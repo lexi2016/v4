@@ -1,0 +1,43 @@
+{
+  "schema_version": "announcement_body_producer_lineage.v1",
+  "fixed_commit": "030b3a66f77f3b26aeb784a263429cff36c58d75",
+  "fixed_bundle_contains_producer": false,
+  "candidate_producer": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/ops/manager_announcement_body_batch.py",
+    "sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+    "bytes": 42252,
+    "profile_map_role": "R3_API_FROZEN_CANDIDATE",
+    "profile_map_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/candidate/api/app/ops/manager_announcement_body_batch.py",
+    "source_map_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+    "matches_profile_map_sha": true,
+    "matches_original_R3_source": true,
+    "original_R3_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/candidate/api/app/ops/manager_announcement_body_batch.py",
+    "original_R3_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb"
+  },
+  "producer_static_contract": {
+    "run_capture_defined": true,
+    "writes_named_body_corpus_json": true,
+    "returns_body_corpus_name": true,
+    "returns_batch_receipt": true,
+    "line_run_capture": 587,
+    "line_write_body_corpus": 717,
+    "line_body_corpus_return_field": 725
+  },
+  "consumer_before": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2/ops/run_manager_daily_announcement.py",
+    "sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+    "uses_body_batch_get_body_corpus": true,
+    "line_body_batch_get": 256
+  },
+  "consumer_after": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/ops/run_manager_daily_announcement.py",
+    "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+    "reads_fixed_body_batch_body_corpus_json": true,
+    "uses_copy_json_bytes": true,
+    "line_fixed_body_corpus_read": 259
+  },
+  "dynamic_run_capture_executed": false,
+  "business_io_performed": false,
+  "assessment": "STATIC_SOURCE_CONTRACT_CONFIRMED; producer is R3 frozen-candidate source, not contained in the fixed delivery bundle; no actual body batch was run.",
+  "pass": true
+}

@@ -1,0 +1,121 @@
+{
+  "schema_version": "three_channel_patch_tree_diff.v1",
+  "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2",
+  "baseline_file_count": 1027,
+  "after_file_count": 1032,
+  "unchanged_baseline_file_count": 1019,
+  "changed_existing": {
+    "apps/api/v35_api/manager_research_router.py": {
+      "before_bytes": 31088,
+      "before_sha256": "9d8d132c58e7cf1c5a5609d93261483d578268ac24c60c2fa7a6a79b87344341",
+      "bytes": 35556,
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "profile": "api_r3_candidate",
+      "change": "modified"
+    },
+    "ops/run_manager_daily_announcement.py": {
+      "before_bytes": 42929,
+      "before_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "bytes": 42910,
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "profile": "api_r3_candidate",
+      "change": "modified"
+    },
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": {
+      "before_bytes": 14396,
+      "before_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "bytes": 18863,
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "profile": "api_r3_candidate",
+      "change": "modified"
+    },
+    "v4/manager_research/plan_owner_dispatch.py": {
+      "before_bytes": 53112,
+      "before_sha256": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987",
+      "bytes": 53361,
+      "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "profile": "api_r3_candidate",
+      "change": "modified"
+    },
+    "v4/manager_research/workspace_announcements.py": {
+      "before_bytes": 162906,
+      "before_sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04",
+      "bytes": 167803,
+      "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "profile": "api_r3_candidate",
+      "change": "modified"
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "before_bytes": 106047,
+      "before_sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+      "bytes": 107076,
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "profile": "api_r3_candidate",
+      "change": "modified"
+    },
+    "apps/web/src/api/managerWorkspace.ts": {
+      "before_bytes": 109062,
+      "before_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+      "bytes": 109896,
+      "sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+      "profile": "web_r3_candidate",
+      "change": "modified"
+    },
+    "tests/test_manager_screen_summary_contract.py": {
+      "before_bytes": 4760,
+      "before_sha256": "9f39c7eaa7fa730322f84e199c94440a838e44332dde35145d09e619b901e09b",
+      "bytes": 4821,
+      "sha256": "0b67119b4b5637dce32e8c61cbfd4c066c35469569c8524cd912d5d75466dd09",
+      "profile": "test_delta",
+      "change": "modified"
+    }
+  },
+  "added_files": {
+    "tests/test_manager_announcement_handoff_20261009.py": {
+      "bytes": 21474,
+      "sha256": "dd38c69af5230927d59f4c10ec375b41506999663a623da278a76c14a101dfe2"
+    },
+    "tests/test_manager_us_mapping_three_channel_20261009.py": {
+      "bytes": 17876,
+      "sha256": "9f7f1a3f73a539b470ba18a1ec029360c77734de21015895d73bc03cdcc1fd2a"
+    },
+    "tests/test_manager_three_channel_hk_reader.py": {
+      "bytes": 12661,
+      "sha256": "d037d4f43559e45d23f92b63a27317f2e5587b1b86649fbb9e6198a62618e7e5"
+    },
+    "tests/manager_three_channel_ui_fixture.py": {
+      "bytes": 1349,
+      "sha256": "1891b76ff2f0f07300831f46878ce416a83aa35441d28e91755eaaadb02ba894"
+    },
+    "apps/web/src/api/managerWorkspace.threeChannel.spec.ts": {
+      "bytes": 6823,
+      "sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4"
+    }
+  },
+  "unexpected": [],
+  "missing": [],
+  "mismatches": [],
+  "protected_issue32_files": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "expected_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "actual_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "pass": true
+    },
+    {
+      "path": "apps/api/v35_api/preselection_router.py",
+      "expected_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "actual_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "pass": true
+    },
+    {
+      "path": "apps/api/v35_api/preselection_service.py",
+      "expected_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "actual_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "pass": true
+    }
+  ],
+  "pass": true,
+  "current_runtime_source_verified": false,
+  "deployment_or_live_integration_claimed": false
+}

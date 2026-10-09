@@ -1,0 +1,445 @@
+
+ RUN  v4.1.10 /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/apps/web
+
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/test_manager_us_mapping_isolation_20261008.py", line 131, in <module>
+    print(json.dumps(owner_workspace_fixture(sys.argv[2], sys.argv[3]), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/test_manager_us_mapping_isolation_20261008.py", line 45, in owner_workspace_fixture
+    service = ManagerResearchJobService(ManagerResearchStore(Path(directory) / 'manager'), None, None)
+                                        ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/v4/manager_research/store.py", line 82, in __init__
+    self._io.ensure_directory(directory)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_io.py", line 100, in ensure_directory
+    with self.directory(relative, create=True):
+         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_io.py", line 78, in directory
+    child = self._open_visible(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_io.py", line 45, in _open_visible
+    return os.open(pathname, flags, mode, dir_fd=dir_fd)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NotADirectoryError: [Errno 20] Not a directory: 'var'
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+ ❯ src/api/managerWorkspace.dailyAutomation.spec.ts (12 tests | 11 failed) 1282ms
+     × accepts actual daily owner readback and plan owner readback fields 117ms
+     × accepts the real original reader-failure DTO with an unmaterialized null-target readback 136ms
+     × rejects invalid daily execution evidence: naive-start 114ms
+     × rejects invalid daily execution evidence: finish-before-start 114ms
+     × rejects invalid daily execution evidence: natural-inference 114ms
+     × rejects a verified US readback borrowed from another product: wrong-target 114ms
+     × rejects a verified US readback borrowed from another product: wrong-run 114ms
+     × rejects a verified US readback borrowed from another product: wrong-sha 114ms
+     × does not let a later failed plan attempt replace or validate the saved product 114ms
+     × requires exact saved-attempt SHA even when latest attempt failed (missing) 115ms
+     × requires exact saved-attempt SHA even when latest attempt failed (malformed) 114ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > accepts actual daily owner readback and plan owner readback fields
+Error: Command failed: /Users/lexi/Desktop/学习/v4_app/.venv/bin/python /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py --fixture
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+
+ ❯ ownerFields src/api/managerWorkspace.dailyAutomation.spec.ts:14:18
+     12| function ownerFields(): JsonObject {
+     13|   if (!ownerDto) {
+     14|     const text = execFileSync(python, [fixtureScript, '--fixture'], {
+       |                  ^
+     15|       cwd: projectRoot,
+     16|       encoding: 'utf8',
+ ❯ originalWorkspace src/api/managerWorkspace.dailyAutomation.spec.ts:35:18
+ ❯ src/api/managerWorkspace.dailyAutomation.spec.ts:62:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > accepts the real original reader-failure DTO with an unmaterialized null-target readback
+Error: Command failed: /Users/lexi/Desktop/学习/v4_app/.venv/bin/python /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/test_manager_us_mapping_isolation_20261008.py --fixture 20261008 reader_failed
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/test_manager_us_mapping_isolation_20261008.py", line 131, in <module>
+    print(json.dumps(owner_workspace_fixture(sys.argv[2], sys.argv[3]), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/test_manager_us_mapping_isolation_20261008.py", line 45, in owner_workspace_fixture
+    service = ManagerResearchJobService(ManagerResearchStore(Path(directory) / 'manager'), None, None)
+                                        ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/v4/manager_research/store.py", line 82, in __init__
+    self._io.ensure_directory(directory)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_io.py", line 100, in ensure_directory
+    with self.directory(relative, create=True):
+         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_io.py", line 78, in directory
+    child = self._open_visible(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_io.py", line 45, in _open_visible
+    return os.open(pathname, flags, mode, dir_fd=dir_fd)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NotADirectoryError: [Errno 20] Not a directory: 'var'
+
+ ❯ unavailableOwnerWorkspace src/api/managerWorkspace.dailyAutomation.spec.ts:26:16
+     24| }
+     25| function unavailableOwnerWorkspace(): JsonObject {
+     26|   const text = execFileSync(python, [unavailableFixtureScript, '--fixt…
+       |                ^
+     27|     cwd: projectRoot, encoding: 'utf8', timeout: 30_000, maxBuffer: 2 …
+     28|     env: { ...process.env, PYTHONPATH: `${projectRoot}:${projectRoot}/…
+ ❯ src/api/managerWorkspace.dailyAutomation.spec.ts:75:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: naive-start
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: finish-before-start
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: natural-inference
+Error: Command failed: /Users/lexi/Desktop/学习/v4_app/.venv/bin/python /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py --fixture
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+
+ ❯ ownerFields src/api/managerWorkspace.dailyAutomation.spec.ts:14:18
+     12| function ownerFields(): JsonObject {
+     13|   if (!ownerDto) {
+     14|     const text = execFileSync(python, [fixtureScript, '--fixture'], {
+       |                  ^
+     15|       cwd: projectRoot,
+     16|       encoding: 'utf8',
+ ❯ originalWorkspace src/api/managerWorkspace.dailyAutomation.spec.ts:35:18
+ ❯ src/api/managerWorkspace.dailyAutomation.spec.ts:86:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-target
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-run
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-sha
+Error: Command failed: /Users/lexi/Desktop/学习/v4_app/.venv/bin/python /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py --fixture
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+
+ ❯ ownerFields src/api/managerWorkspace.dailyAutomation.spec.ts:14:18
+     12| function ownerFields(): JsonObject {
+     13|   if (!ownerDto) {
+     14|     const text = execFileSync(python, [fixtureScript, '--fixture'], {
+       |                  ^
+     15|       cwd: projectRoot,
+     16|       encoding: 'utf8',
+ ❯ originalWorkspace src/api/managerWorkspace.dailyAutomation.spec.ts:35:18
+ ❯ src/api/managerWorkspace.dailyAutomation.spec.ts:97:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > does not let a later failed plan attempt replace or validate the saved product
+Error: Command failed: /Users/lexi/Desktop/学习/v4_app/.venv/bin/python /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py --fixture
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+
+ ❯ ownerFields src/api/managerWorkspace.dailyAutomation.spec.ts:14:18
+     12| function ownerFields(): JsonObject {
+     13|   if (!ownerDto) {
+     14|     const text = execFileSync(python, [fixtureScript, '--fixture'], {
+       |                  ^
+     15|       cwd: projectRoot,
+     16|       encoding: 'utf8',
+ ❯ originalWorkspace src/api/managerWorkspace.dailyAutomation.spec.ts:35:18
+ ❯ src/api/managerWorkspace.dailyAutomation.spec.ts:104:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > requires exact saved-attempt SHA even when latest attempt failed (missing)
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > requires exact saved-attempt SHA even when latest attempt failed (malformed)
+Error: Command failed: /Users/lexi/Desktop/学习/v4_app/.venv/bin/python /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py --fixture
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 211, in <module>
+    print(json.dumps(owner_fixture(), ensure_ascii=False, allow_nan=False))
+                     ~~~~~~~~~~~~~^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/tests/manager_daily_ui_owner_fixture.py", line 137, in owner_fixture
+    ResearchPeripheralStore(source_root).publish(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _synthetic_us_payload("20261007", {"LITE": 5.125}))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 1049, in publish
+    artifact_path = self._path(relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/research_peripheral_store.py", line 906, in _path
+    return resolve_owned_path(self.root, relative)
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 49, in resolve_owned_path
+    _assert_no_reparse_ancestor(raw_root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/infrastructure/owned_path.py", line 26, in _assert_no_reparse_ancestor
+    raise ValueError("owned destination has a reparse-point ancestor")
+ValueError: owned destination has a reparse-point ancestor
+
+ ❯ ownerFields src/api/managerWorkspace.dailyAutomation.spec.ts:14:18
+     12| function ownerFields(): JsonObject {
+     13|   if (!ownerDto) {
+     14|     const text = execFileSync(python, [fixtureScript, '--fixture'], {
+       |                  ^
+     15|       cwd: projectRoot,
+     16|       encoding: 'utf8',
+ ❯ originalWorkspace src/api/managerWorkspace.dailyAutomation.spec.ts:35:18
+ ❯ src/api/managerWorkspace.dailyAutomation.spec.ts:115:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  11 failed | 14 passed (25)
+   Start at  19:47:33
+   Duration  3.30s (transform 56ms, setup 0ms, import 75ms, tests 2.64s, environment 480ms)
+

@@ -1,0 +1,8 @@
+{
+  "attempt": 1,
+  "script": "tools/create_rollback_copy.py",
+  "exit_code": 1,
+  "observed_reason": "SOURCE_BASELINE_DIFFERS",
+  "diagnosis": "Verifier compared baseline manifest rows that include a path field with inventory rows that contain only bytes and sha256; the candidate source tree itself had unchanged file paths and no rollback copy was created.",
+  "repair": "Normalize expected manifest rows to bytes and sha256 before exact tree comparison; rerun only rollback-copy creation."
+}

@@ -1,0 +1,412 @@
+{
+  "schema_version": "three_channel_temp_patch_rollback.v1",
+  "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+  "profile_order_forward": [
+    "api_r3_candidate",
+    "web_r3_candidate",
+    "test_delta"
+  ],
+  "profile_order_reverse": [
+    "test_delta",
+    "web_r3_candidate",
+    "api_r3_candidate"
+  ],
+  "before_profile_status": {
+    "api_r3_candidate": "PASS",
+    "web_r3_candidate": "PASS",
+    "test_delta": "PASS"
+  },
+  "after_profile_status": {
+    "api_r3_candidate": "PASS",
+    "web_r3_candidate": "PASS",
+    "test_delta": "PASS"
+  },
+  "restored_before_profile_status": {
+    "api_r3_candidate": "PASS",
+    "web_r3_candidate": "PASS",
+    "test_delta": "PASS"
+  },
+  "baseline_file_count": 1027,
+  "restored_file_count": 1027,
+  "baseline_bytes": 27949586,
+  "restored_bytes": 27949586,
+  "exact_original_tree_restored": true,
+  "commands": [
+    {
+      "name": "verify_before_api_r3_candidate",
+      "argv": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009",
+        "--profile",
+        "api_r3_candidate",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "--against",
+        "before"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/verify_before_api_r3_candidate.log",
+      "log_sha256": "4165e1d5b959471bf9fd4f9a8a068a8538e3917f9e9be5c2fc8c1ea8459a6f4c"
+    },
+    {
+      "name": "verify_before_web_r3_candidate",
+      "argv": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009",
+        "--profile",
+        "web_r3_candidate",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "--against",
+        "before"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/verify_before_web_r3_candidate.log",
+      "log_sha256": "085a1a2611bd93d4e08a73d2aae782ebda77f566c1ad9c7ddb593eec6f05d430"
+    },
+    {
+      "name": "verify_before_test_delta",
+      "argv": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009",
+        "--profile",
+        "test_delta",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "--against",
+        "before"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/verify_before_test_delta.log",
+      "log_sha256": "4d891f9dc5ffbf45514403bdf9ad83f49c4dea723dd23d2f595a86a521267201"
+    },
+    {
+      "name": "forward_check_api_r3_candidate",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "--check",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/api_r3_candidate.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.010886,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/forward_check_api_r3_candidate.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "forward_apply_api_r3_candidate",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/api_r3_candidate.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.010861,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/forward_apply_api_r3_candidate.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "forward_check_web_r3_candidate",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "--check",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/web_r3_candidate.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.009255,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/forward_check_web_r3_candidate.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "forward_apply_web_r3_candidate",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/web_r3_candidate.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.009693,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/forward_apply_web_r3_candidate.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "forward_check_test_delta",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "--check",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/test_delta.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.009375,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/forward_check_test_delta.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "forward_apply_test_delta",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/test_delta.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.010097,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/forward_apply_test_delta.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "verify_after_api_r3_candidate",
+      "argv": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009",
+        "--profile",
+        "api_r3_candidate",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "--against",
+        "after"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/verify_after_api_r3_candidate.log",
+      "log_sha256": "63f744acf7107d8c3f16d31108dae6d51a7f8bfc0eaf40c0fd4e97b0971182b1"
+    },
+    {
+      "name": "verify_after_web_r3_candidate",
+      "argv": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009",
+        "--profile",
+        "web_r3_candidate",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "--against",
+        "after"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/verify_after_web_r3_candidate.log",
+      "log_sha256": "760f474014d0000e1c95391dc72fe76a2a03ed14ba108f059d7a904c48fa41d8"
+    },
+    {
+      "name": "verify_after_test_delta",
+      "argv": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009",
+        "--profile",
+        "test_delta",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "--against",
+        "after"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/verify_after_test_delta.log",
+      "log_sha256": "4ab5331f3cef327c554b242ff27402b6ab8213076a822de28b8b8fb0ec7efe13"
+    },
+    {
+      "name": "reverse_check_test_delta",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "--reverse",
+        "--check",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/test_delta.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.010942,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/reverse_check_test_delta.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "reverse_apply_test_delta",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "--reverse",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/test_delta.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.00987,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/reverse_apply_test_delta.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "reverse_check_web_r3_candidate",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "--reverse",
+        "--check",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/web_r3_candidate.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.009115,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/reverse_check_web_r3_candidate.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "reverse_apply_web_r3_candidate",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "--reverse",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/web_r3_candidate.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.009076,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/reverse_apply_web_r3_candidate.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "reverse_check_api_r3_candidate",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "--reverse",
+        "--check",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/api_r3_candidate.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.009995,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/reverse_check_api_r3_candidate.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "reverse_apply_api_r3_candidate",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "apply",
+        "--reverse",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/patches/api_r3_candidate.patch"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": 0.010238,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/reverse_apply_api_r3_candidate.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "verify_before_api_r3_candidate",
+      "argv": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009",
+        "--profile",
+        "api_r3_candidate",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "--against",
+        "before"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/verify_before_api_r3_candidate.log",
+      "log_sha256": "4165e1d5b959471bf9fd4f9a8a068a8538e3917f9e9be5c2fc8c1ea8459a6f4c"
+    },
+    {
+      "name": "verify_before_web_r3_candidate",
+      "argv": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009",
+        "--profile",
+        "web_r3_candidate",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "--against",
+        "before"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/verify_before_web_r3_candidate.log",
+      "log_sha256": "085a1a2611bd93d4e08a73d2aae782ebda77f566c1ad9c7ddb593eec6f05d430"
+    },
+    {
+      "name": "verify_before_test_delta",
+      "argv": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009",
+        "--profile",
+        "test_delta",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "--against",
+        "before"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_commands/verify_before_test_delta.log",
+      "log_sha256": "4d891f9dc5ffbf45514403bdf9ad83f49c4dea723dd23d2f595a86a521267201"
+    }
+  ],
+  "runtime_source_writes": true,
+  "live_business_io": false,
+  "deployment_claimed": false,
+  "pass": true
+}

@@ -1,0 +1,76 @@
+{
+  "baseline_unchanged_verified": 1019,
+  "candidate_bytes": 28247528,
+  "candidate_file_count": 1044,
+  "candidate_symlinks": {
+    "apps/web/node_modules": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules"
+  },
+  "candidate_unchanged_during_reviewer_tests": true,
+  "delivery_added_verified": 5,
+  "delivery_changed_verified": 8,
+  "errors": [],
+  "expected_file_count": 1044,
+  "native_import_evidence": [
+    {
+      "module": "v4.manager_research.workspace_plan",
+      "pass": true,
+      "relative_path": "v4/manager_research/workspace_plan.py",
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+    },
+    {
+      "module": "v4.manager_research.workspace_announcements",
+      "pass": true,
+      "relative_path": "v4/manager_research/workspace_announcements.py",
+      "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b"
+    },
+    {
+      "module": "v4.manager_research.plan_owner_dispatch",
+      "pass": true,
+      "relative_path": "v4/manager_research/plan_owner_dispatch.py",
+      "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee"
+    },
+    {
+      "module": "upstreams.v3_shared_data.shared_data.hk_security_master",
+      "pass": true,
+      "relative_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b"
+    },
+    {
+      "module": "ops.run_manager_daily_announcement",
+      "pass": true,
+      "relative_path": "ops/run_manager_daily_announcement.py",
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38"
+    },
+    {
+      "module": "apps.api.v35_api.manager_research_router",
+      "pass": true,
+      "relative_path": "apps/api/v35_api/manager_research_router.py",
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a"
+    }
+  ],
+  "native_import_pass": true,
+  "pass": true,
+  "protected_issue32": [
+    {
+      "actual_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "expected_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "pass": true,
+      "path": "apps/api/v35_api/app.py"
+    },
+    {
+      "actual_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "expected_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "pass": true,
+      "path": "apps/api/v35_api/preselection_router.py"
+    },
+    {
+      "actual_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "expected_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "pass": true,
+      "path": "apps/api/v35_api/preselection_service.py"
+    }
+  ],
+  "rollback_baseline_restored_with_only_support": true,
+  "rollback_file_count": 1039,
+  "test_support_verified": 16
+}

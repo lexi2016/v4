@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "schema_version": "v4.manager_r3.delivery.v1",
+  "manifest_sha256": "ccd38bc88ab8aa2231e844ef581470bea32545f7d48f988996dc9290f9689e9d",
+  "payload_count": 21,
+  "profile": "test_delta",
+  "against": "after",
+  "source_checked": [
+    "tests/test_manager_announcement_handoff_20261009.py",
+    "tests/test_manager_us_mapping_three_channel_20261009.py",
+    "tests/test_manager_three_channel_hk_reader.py",
+    "tests/test_manager_screen_summary_contract.py",
+    "tests/manager_three_channel_ui_fixture.py",
+    "apps/web/src/api/managerWorkspace.threeChannel.spec.ts"
+  ],
+  "preserved_checked": [],
+  "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2",
+  "source_writes": 0,
+  "business_io": false,
+  "deployment_claimed": false
+}

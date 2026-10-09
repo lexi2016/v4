@@ -1,0 +1,171 @@
+{
+  "schema_version": "test_support_assembly.v1",
+  "target_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2",
+  "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+  "support_count": 16,
+  "added_count": 12,
+  "existing_matching_count": 4,
+  "files": [
+    {
+      "path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "archive_path": "tests/support/app/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "bytes": 6248,
+      "sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "state": "EXISTING_MATCH",
+      "actual_bytes": 6248,
+      "actual_sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "pass": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.testHelper.ts",
+      "archive_path": "tests/support/app/apps/web/src/manager-selection/dailyChannels.testHelper.ts",
+      "bytes": 4549,
+      "sha256": "ff2e22d33fe61fc8c44e3c524f2a192b55bb5ee1a6330eadc0ca3373c546f3f0",
+      "state": "EXISTING_MATCH",
+      "actual_bytes": 4549,
+      "actual_sha256": "ff2e22d33fe61fc8c44e3c524f2a192b55bb5ee1a6330eadc0ca3373c546f3f0",
+      "pass": true
+    },
+    {
+      "path": "tests/manager_daily_ui_owner_fixture.py",
+      "archive_path": "tests/support/app/tests/manager_daily_ui_owner_fixture.py",
+      "bytes": 10401,
+      "sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+      "state": "TO_ADD",
+      "actual_bytes": 10401,
+      "actual_sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+      "pass": true
+    },
+    {
+      "path": "tests/r3_scoped_loader.py",
+      "archive_path": "tests/support/app/tests/r3_scoped_loader.py",
+      "bytes": 985,
+      "sha256": "02366f958e893448b4325f864a9b86151956fb8f480b980193dd2489c82345db",
+      "state": "EXISTING_MATCH",
+      "actual_bytes": 985,
+      "actual_sha256": "02366f958e893448b4325f864a9b86151956fb8f480b980193dd2489c82345db",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_announcement_parity_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_announcement_parity_20261008.py",
+      "bytes": 40192,
+      "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+      "state": "TO_ADD",
+      "actual_bytes": 40192,
+      "actual_sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_daily_automation_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_daily_automation_20261008.py",
+      "bytes": 21642,
+      "sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "state": "TO_ADD",
+      "actual_bytes": 21642,
+      "actual_sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_daily_channels_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_daily_channels_20261008.py",
+      "bytes": 10651,
+      "sha256": "43688012eb751ac5c63c09e689aa85a82d3dfd147f82274e3e55f3530dacd536",
+      "state": "TO_ADD",
+      "actual_bytes": 10651,
+      "actual_sha256": "43688012eb751ac5c63c09e689aa85a82d3dfd147f82274e3e55f3530dacd536",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_daily_dispatch_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_daily_dispatch_20261008.py",
+      "bytes": 28067,
+      "sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+      "state": "TO_ADD",
+      "actual_bytes": 28067,
+      "actual_sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_input_contracts_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_input_contracts_20261008.py",
+      "bytes": 18335,
+      "sha256": "7622f1a6affa4beb30be9221aa13d9e3ae11f835cddb5014b561840aaca6905f",
+      "state": "TO_ADD",
+      "actual_bytes": 18335,
+      "actual_sha256": "7622f1a6affa4beb30be9221aa13d9e3ae11f835cddb5014b561840aaca6905f",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_r3_binding_contract.py",
+      "archive_path": "tests/support/app/tests/test_manager_r3_binding_contract.py",
+      "bytes": 29620,
+      "sha256": "c3e6d1055ee936245593656ca365fd622af9148b0041cb715d3e292589e9ea39",
+      "state": "TO_ADD",
+      "actual_bytes": 29620,
+      "actual_sha256": "c3e6d1055ee936245593656ca365fd622af9148b0041cb715d3e292589e9ea39",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_r3_product_contract.py",
+      "archive_path": "tests/support/app/tests/test_manager_r3_product_contract.py",
+      "bytes": 20085,
+      "sha256": "7ecf4789b581818eb516fe420f03f159580f276600ebf0921c73ba3b01c2b21c",
+      "state": "TO_ADD",
+      "actual_bytes": 20085,
+      "actual_sha256": "7ecf4789b581818eb516fe420f03f159580f276600ebf0921c73ba3b01c2b21c",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_us_daily_automation_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_us_daily_automation_20261008.py",
+      "bytes": 24638,
+      "sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "state": "TO_ADD",
+      "actual_bytes": 24638,
+      "actual_sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_us_mapping_isolation_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_us_mapping_isolation_20261008.py",
+      "bytes": 6712,
+      "sha256": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb",
+      "state": "TO_ADD",
+      "actual_bytes": 6712,
+      "actual_sha256": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_us_mapping_research.py",
+      "archive_path": "tests/support/app/tests/test_manager_us_mapping_research.py",
+      "bytes": 19113,
+      "sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "state": "EXISTING_MATCH",
+      "actual_bytes": 19113,
+      "actual_sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "pass": true
+    },
+    {
+      "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "bytes": 8634,
+      "sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+      "state": "TO_ADD",
+      "actual_bytes": 8634,
+      "actual_sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+      "pass": true
+    },
+    {
+      "path": "tests/test_security_master_store_error.py",
+      "archive_path": "tests/support/app/tests/test_security_master_store_error.py",
+      "bytes": 2796,
+      "sha256": "f4658693632ab97a8264b6340a859b44ffb2db8c556ac03fe01802fc4f8069a9",
+      "state": "TO_ADD",
+      "actual_bytes": 2796,
+      "actual_sha256": "f4658693632ab97a8264b6340a859b44ffb2db8c556ac03fe01802fc4f8069a9",
+      "pass": true
+    }
+  ],
+  "pass": true
+}

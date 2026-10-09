@@ -1,0 +1,279 @@
+{
+  "schema_version": "mac_three_channel_acceptance.v1",
+  "fixed_delivery": {
+    "repository": "lexi2016/v4",
+    "commit": "030b3a66f77f3b26aeb784a263429cff36c58d75",
+    "prefix": "handoff/manager-three-channel-repair-20261009/",
+    "github_bundle_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/GITHUB_BUNDLE_RECEIPT.json",
+    "expected_files": 232,
+    "expected_bytes": 2909397,
+    "bundle_pass": true
+  },
+  "candidate": {
+    "root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2",
+    "baseline_files": 1027,
+    "patch_changed_existing": 8,
+    "patch_added_files": 5,
+    "test_support_files": 16,
+    "test_support_added": 12,
+    "protected_issue32_files_pass": true,
+    "post_test_source_integrity": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/post_test_source_integrity.json",
+    "post_test_source_integrity_pass": true
+  },
+  "checks": {
+    "package_verify": {
+      "status": "PASS",
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/package_verify.log"
+    },
+    "package_replay": {
+      "status": "PASS",
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/package_replay.log"
+    },
+    "before_profiles": [
+      {
+        "profile": "api_r3_candidate",
+        "status": "PASS",
+        "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/v2_before_api_r3_candidate.log"
+      },
+      {
+        "profile": "web_r3_candidate",
+        "status": "PASS",
+        "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/v2_before_web_r3_candidate.log"
+      },
+      {
+        "profile": "test_delta",
+        "status": "PASS",
+        "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/v2_before_test_delta.log"
+      }
+    ],
+    "after_profiles_after_tests": [
+      {
+        "profile": "api_r3_candidate",
+        "exit_code": 0,
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2",
+        "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py' --package '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009' --profile api_r3_candidate --source-root '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2' --against after > '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/final_after_api_r3_candidate.log' 2>&1",
+        "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/final_after_api_r3_candidate.log",
+        "log_sha256": "52689ee660ab64a5b2f8bbf053e0c2d58e5b4ad58fc0a778eff8e6e46c6bd075"
+      },
+      {
+        "profile": "web_r3_candidate",
+        "exit_code": 0,
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2",
+        "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py' --package '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009' --profile web_r3_candidate --source-root '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2' --against after > '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/final_after_web_r3_candidate.log' 2>&1",
+        "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/final_after_web_r3_candidate.log",
+        "log_sha256": "f146140a700b13e741c8695eff953fd4131ed6e5a364e064d198d4ee6f793fa4"
+      },
+      {
+        "profile": "test_delta",
+        "exit_code": 0,
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2",
+        "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009/tools/verify_delivery.py' --package '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/incoming/manager-three-channel-repair-20261009' --profile test_delta --source-root '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2' --against after > '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/final_after_test_delta.log' 2>&1",
+        "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/final_after_test_delta.log",
+        "log_sha256": "f4126a2caac0533f62ab0676e6015cec6d2bd074f6298d3c7ef22e7953e30d00"
+      }
+    ],
+    "python_core": {
+      "status": "PASS",
+      "passed": 43,
+      "warnings": 1,
+      "exit_code": 0,
+      "runner": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/tools/run_scoped_core_with_identity_v2.py",
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/python_core_retry1.log",
+      "junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/python_core_retry1.junit.xml",
+      "module_identity_count": 62,
+      "canonical_business_modules": [],
+      "changed_patch_modules_loaded": [
+        {
+          "module": "apps.api.v35_api.manager_research_router",
+          "relative_path": "apps/api/v35_api/manager_research_router.py",
+          "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a"
+        },
+        {
+          "module": "ops.run_manager_daily_announcement",
+          "relative_path": "ops/run_manager_daily_announcement.py",
+          "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38"
+        },
+        {
+          "module": "upstreams.v3_shared_data.shared_data.hk_security_master",
+          "relative_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+          "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b"
+        },
+        {
+          "module": "v4.manager_research.plan_owner_dispatch",
+          "relative_path": "v4/manager_research/plan_owner_dispatch.py",
+          "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee"
+        },
+        {
+          "module": "v4.manager_research.workspace_announcements",
+          "relative_path": "v4/manager_research/workspace_announcements.py",
+          "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b"
+        },
+        {
+          "module": "v4.manager_research.workspace_plan",
+          "relative_path": "v4/manager_research/workspace_plan.py",
+          "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+        }
+      ],
+      "command": "PYTHONDONTWRITEBYTECODE=1 V4_MANAGER_TEST_TMPDIR=/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/python_core_tmp_retry1 /Users/lexi/Desktop/学习/v4_app/.venv/bin/python /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/tools/run_scoped_core_with_identity_v2.py",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2"
+    },
+    "frontend": {
+      "status": "PASS",
+      "passed": 25,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/frontend_retry1.log",
+      "command": "V4_TEST_SOURCE_ROOT=/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2 V4_TEST_PYTHON=/Users/lexi/Desktop/学习/v4_app/.venv/bin/python V4_TEST_CACHE_DIR=/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/vitest-cache_retry1 TMPDIR=/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/frontend_tmp_retry1 PYTHONDONTWRITEBYTECODE=1 /Users/lexi/.local/node-v24.19.0/bin/node /Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vitest/vitest.mjs run --config /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/tools/vitest.config.mjs src/api/managerWorkspace.threeChannel.spec.ts src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/apps/web",
+      "initial_environment_path_failure_preserved": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/frontend_run.log"
+    },
+    "known_failure_before_after": {
+      "before": {
+        "test_id": "tests/test_manager_announcement_parity_20261008.py::test_missing_original_archive_is_not_empty_connect_selection",
+        "root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_rollback_v2",
+        "exit_code": 1,
+        "assertion": "E   AssertionError: assert 'PARTIAL' == 'READY'",
+        "expected_failure_confirmed": true,
+        "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/known_failure_before.log",
+        "junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/known_failure_before.junit.xml",
+        "modules": [
+          {
+            "module": "test_manager_announcement_parity_20261008",
+            "relative_path": "tests/test_manager_announcement_parity_20261008.py",
+            "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed"
+          },
+          {
+            "module": "v4.manager_research.workspace",
+            "relative_path": "v4/manager_research/workspace.py",
+            "sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc"
+          },
+          {
+            "module": "v4.manager_research.workspace_announcements",
+            "relative_path": "v4/manager_research/workspace_announcements.py",
+            "sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04"
+          }
+        ]
+      },
+      "after": {
+        "test_id": "tests/test_manager_announcement_parity_20261008.py::test_missing_original_archive_is_not_empty_connect_selection",
+        "root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2",
+        "exit_code": 1,
+        "assertion": "E   AssertionError: assert 'PARTIAL' == 'READY'",
+        "expected_failure_confirmed": true,
+        "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/known_failure_after.log",
+        "junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/known_failure_after.junit.xml",
+        "modules": [
+          {
+            "module": "test_manager_announcement_parity_20261008",
+            "relative_path": "tests/test_manager_announcement_parity_20261008.py",
+            "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed"
+          },
+          {
+            "module": "v4.manager_research.workspace",
+            "relative_path": "v4/manager_research/workspace.py",
+            "sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc"
+          },
+          {
+            "module": "v4.manager_research.workspace_announcements",
+            "relative_path": "v4/manager_research/workspace_announcements.py",
+            "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b"
+          }
+        ]
+      }
+    },
+    "native_import_smoke": {
+      "status": "PASS",
+      "receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/native_import_smoke.json",
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/native_import_smoke.log",
+      "imported_modules": [
+        {
+          "module": "v4.manager_research.workspace_plan",
+          "status": "IMPORTED",
+          "__file__": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/v4/manager_research/workspace_plan.py",
+          "relative_path": "v4/manager_research/workspace_plan.py",
+          "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+          "within_source_root": true
+        },
+        {
+          "module": "v4.manager_research.workspace_announcements",
+          "status": "IMPORTED",
+          "__file__": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/v4/manager_research/workspace_announcements.py",
+          "relative_path": "v4/manager_research/workspace_announcements.py",
+          "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+          "within_source_root": true
+        },
+        {
+          "module": "v4.manager_research.plan_owner_dispatch",
+          "status": "IMPORTED",
+          "__file__": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/v4/manager_research/plan_owner_dispatch.py",
+          "relative_path": "v4/manager_research/plan_owner_dispatch.py",
+          "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+          "within_source_root": true
+        },
+        {
+          "module": "upstreams.v3_shared_data.shared_data.hk_security_master",
+          "status": "IMPORTED",
+          "__file__": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+          "relative_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+          "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+          "within_source_root": true
+        },
+        {
+          "module": "ops.run_manager_daily_announcement",
+          "status": "IMPORTED",
+          "__file__": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/ops/run_manager_daily_announcement.py",
+          "relative_path": "ops/run_manager_daily_announcement.py",
+          "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+          "within_source_root": true
+        },
+        {
+          "module": "apps.api.v35_api.manager_research_router",
+          "status": "IMPORTED",
+          "__file__": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/apps/api/v35_api/manager_research_router.py",
+          "relative_path": "apps/api/v35_api/manager_research_router.py",
+          "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+          "within_source_root": true
+        }
+      ],
+      "server_started": false,
+      "background_owner_started": false,
+      "business_io": false
+    },
+    "rollback": {
+      "copy_exact": true,
+      "copy_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_copy_receipt.json",
+      "patch_forward_reverse_pass": true,
+      "patch_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/rollback_patch_receipt.json",
+      "candidate_preserved_for_reviewer": true
+    },
+    "announcement_body_producer": {
+      "receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/producer_lineage_receipt.json",
+      "static_source_contract_pass": true,
+      "bundle_producer_present": false,
+      "source_origin": "R3_API_FROZEN_CANDIDATE",
+      "source_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "actual_body_batch_run": false
+    }
+  },
+  "environment_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/mac_test_environment.json",
+  "status": {
+    "IMPLEMENTED": "local temporary candidate assembled; fixed patches applied",
+    "TESTED": "targeted Python 43 and frontend 25 pass; old compatibility failure reproduced identically before/after",
+    "DELIVERED": "local candidate and reviewer handoff are available",
+    "REVIEWED": "PENDING_INDEPENDENT_LUNA_MAX_REVIEWER",
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM pending independent Reviewer",
+    "INTEGRATED": "CANNOT_CONFIRM",
+    "DEPLOYED": "CANNOT_CONFIRM",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM"
+  },
+  "limitations": [
+    "No full 174-test suite rerun; only named pre-existing compatibility failure was replayed before and after.",
+    "No live business POST, service launch, background owner, external connector write, deploy, API/UI reload, or natural-time run.",
+    "Native import smoke covered six explicitly listed modules only; it did not call run_capture or the announcement body producer.",
+    "The producer module is supplied by the R3 frozen candidate source map, not by the fixed GitHub delivery prefix; static contract is confirmed, real output was not generated.",
+    "CANNOT_CONFIRM_NO_BEFORE_SNAPSHOT",
+    "The candidate verifies local source behavior; it does not establish today's three-channel operational recovery."
+  ]
+}

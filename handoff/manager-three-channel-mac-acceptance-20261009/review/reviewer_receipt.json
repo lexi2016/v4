@@ -1,0 +1,326 @@
+{
+  "actual_diff": {
+    "added": 5,
+    "changed_existing": 8,
+    "runtime_paths": [
+      "apps/api/v35_api/manager_research_router.py",
+      "ops/run_manager_daily_announcement.py",
+      "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "v4/manager_research/plan_owner_dispatch.py",
+      "v4/manager_research/workspace_announcements.py",
+      "v4/manager_research/workspace_plan.py",
+      "apps/web/src/api/managerWorkspace.ts"
+    ],
+    "support_added": 12,
+    "test_delta_paths": [
+      "tests/test_manager_screen_summary_contract.py",
+      "tests/test_manager_announcement_handoff_20261009.py",
+      "tests/test_manager_us_mapping_three_channel_20261009.py",
+      "tests/test_manager_three_channel_hk_reader.py",
+      "tests/manager_three_channel_ui_fixture.py",
+      "apps/web/src/api/managerWorkspace.threeChannel.spec.ts"
+    ],
+    "test_support_files": 16
+  },
+  "artifacts": {
+    "candidate_tree_pretests.json": {
+      "bytes": 174679,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/candidate_tree_pretests.json",
+      "sha256": "8cba3b3a5d60627d70ca8ab0fef79e1fbc111956138f616e8a51c9040401ea6a"
+    },
+    "frontend25.log": {
+      "bytes": 308,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/frontend25.log",
+      "sha256": "fec0c6e18f3b8e27cd29cdfdc99bf2c083f37a544087c236e89443272ddb89af"
+    },
+    "integrity_final.json": {
+      "bytes": 2906,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/integrity_final.json",
+      "sha256": "81d70a1a9130b9cb311489895f65b893e610f1ec3f803a9bb04d752ea4631c21"
+    },
+    "known_after.junit.xml": {
+      "bytes": 796,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/known_after.junit.xml",
+      "sha256": "712d6746a666db6f3aecf51a35e499cd2699afb19e04e3f2afe3022841d6c139"
+    },
+    "known_after.log": {
+      "bytes": 17278,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/known_after.log",
+      "sha256": "6f7747d6e6810a8632a153419fff8c4ed3a1097d9a186fe0fb5c38cf1af9e5be"
+    },
+    "known_before.junit.xml": {
+      "bytes": 796,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/known_before.junit.xml",
+      "sha256": "db972a2b7e8d7c19e0a471b5c6176a4bc3a02619502356da2079fadcec070f72"
+    },
+    "known_before.log": {
+      "bytes": 17368,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/known_before.log",
+      "sha256": "e5b055502575203e482a9aa326db36c9f54e4302b11fd4ae8d960e6766093236"
+    },
+    "profile_api_r3_candidate.log": {
+      "bytes": 941,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/profile_api_r3_candidate.log",
+      "sha256": "52689ee660ab64a5b2f8bbf053e0c2d58e5b4ad58fc0a778eff8e6e46c6bd075"
+    },
+    "profile_test_delta.log": {
+      "bytes": 835,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/profile_test_delta.log",
+      "sha256": "f4126a2caac0533f62ab0676e6015cec6d2bd074f6298d3c7ef22e7953e30d00"
+    },
+    "profile_web_r3_candidate.log": {
+      "bytes": 546,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/profile_web_r3_candidate.log",
+      "sha256": "f146140a700b13e741c8695eff953fd4131ed6e5a364e064d198d4ee6f793fa4"
+    },
+    "python43.junit.xml": {
+      "bytes": 7850,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/python43.junit.xml",
+      "sha256": "7c5e5603cdbdf6eff18d8401398d478725c1dfda684c30422ec773d095710e83"
+    },
+    "python43.log": {
+      "bytes": 24371,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/python43.log",
+      "sha256": "ddfa54de6bc184e875c374ce74dde66bc9ee5dd9be06cc574e131afe68d274b3"
+    },
+    "rollback_api_r3_candidate.log": {
+      "bytes": 944,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/rollback_api_r3_candidate.log",
+      "sha256": "4165e1d5b959471bf9fd4f9a8a068a8538e3917f9e9be5c2fc8c1ea8459a6f4c"
+    },
+    "rollback_test_delta.log": {
+      "bytes": 838,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/rollback_test_delta.log",
+      "sha256": "4d891f9dc5ffbf45514403bdf9ad83f49c4dea723dd23d2f595a86a521267201"
+    },
+    "rollback_web_r3_candidate.log": {
+      "bytes": 549,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/rollback_web_r3_candidate.log",
+      "sha256": "085a1a2611bd93d4e08a73d2aae782ebda77f566c1ad9c7ddb593eec6f05d430"
+    },
+    "run_python43_reviewer.py": {
+      "bytes": 2636,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/run_python43_reviewer.py",
+      "sha256": "0d6e703f24e3b05ead6a726f2eb672459afcd5ea776bfa1bdf63111027a984b8"
+    },
+    "screen_summary_contract.junit.xml": {
+      "bytes": 954,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/screen_summary_contract.junit.xml",
+      "sha256": "f3b55216f457e5f0310f2cabb2ee20a0741ab7f9614f71c45819ecdae5c712d2"
+    },
+    "screen_summary_contract.log": {
+      "bytes": 98,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/screen_summary_contract.log",
+      "sha256": "ad430bcd751b836a91fab4ff65c168e7e4f252c79243c40745308b866b554cb7"
+    }
+  },
+  "candidate_integrity": {
+    "baseline_unchanged_verified": 1019,
+    "candidate_bytes": 28247528,
+    "candidate_file_count": 1044,
+    "candidate_symlinks": {
+      "apps/web/node_modules": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules"
+    },
+    "candidate_unchanged_during_reviewer_tests": true,
+    "delivery_added_verified": 5,
+    "delivery_changed_verified": 8,
+    "errors": [],
+    "expected_file_count": 1044,
+    "native_import_evidence": [
+      {
+        "module": "v4.manager_research.workspace_plan",
+        "pass": true,
+        "relative_path": "v4/manager_research/workspace_plan.py",
+        "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+      },
+      {
+        "module": "v4.manager_research.workspace_announcements",
+        "pass": true,
+        "relative_path": "v4/manager_research/workspace_announcements.py",
+        "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b"
+      },
+      {
+        "module": "v4.manager_research.plan_owner_dispatch",
+        "pass": true,
+        "relative_path": "v4/manager_research/plan_owner_dispatch.py",
+        "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee"
+      },
+      {
+        "module": "upstreams.v3_shared_data.shared_data.hk_security_master",
+        "pass": true,
+        "relative_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b"
+      },
+      {
+        "module": "ops.run_manager_daily_announcement",
+        "pass": true,
+        "relative_path": "ops/run_manager_daily_announcement.py",
+        "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38"
+      },
+      {
+        "module": "apps.api.v35_api.manager_research_router",
+        "pass": true,
+        "relative_path": "apps/api/v35_api/manager_research_router.py",
+        "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a"
+      }
+    ],
+    "native_import_pass": true,
+    "pass": true,
+    "protected_issue32": [
+      {
+        "actual_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+        "expected_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+        "pass": true,
+        "path": "apps/api/v35_api/app.py"
+      },
+      {
+        "actual_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+        "expected_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+        "pass": true,
+        "path": "apps/api/v35_api/preselection_router.py"
+      },
+      {
+        "actual_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+        "expected_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+        "pass": true,
+        "path": "apps/api/v35_api/preselection_service.py"
+      }
+    ],
+    "rollback_baseline_restored_with_only_support": true,
+    "rollback_file_count": 1039,
+    "test_support_verified": 16
+  },
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2",
+  "environment": {
+    "frontend_dependency_link": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules",
+    "node": "/Users/lexi/.local/node-v24.19.0/bin/node v24.19.0; Vitest 4.1.10",
+    "python": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python 3.14.6; pytest 9.1.1",
+    "reviewer_cache": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1/vitest_cache",
+    "reviewer_tmp": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/tmp/reviewer-r1"
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "fixed_delivery": {
+    "commit": "030b3a66f77f3b26aeb784a263429cff36c58d75",
+    "prefix": "handoff/manager-three-channel-repair-20261009/",
+    "repository": "lexi2016/v4"
+  },
+  "native_import": {
+    "background_owner_started": false,
+    "business_io": false,
+    "independent_reimport": "NOT_RUN",
+    "server_started": false,
+    "targets_checked": 6,
+    "writer_smoke_receipt_rehashed_against_candidate": true
+  },
+  "producer_lineage": {
+    "dynamic_capture": "NOT_RUN",
+    "producer_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+    "static_source_contract": "CONFIRMED"
+  },
+  "profiles_after": {
+    "api_r3_candidate": "PASS",
+    "test_delta": "PASS",
+    "web_r3_candidate": "PASS"
+  },
+  "profiles_rollback_before": {
+    "api_r3_candidate": "PASS",
+    "test_delta": "PASS",
+    "web_r3_candidate": "PASS"
+  },
+  "report": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/review/INDEPENDENT_REVIEW_20261009.md",
+    "sha256": "a60f5927f472a24693a1bc4f9a6d88c5b77d91b7791cc61eac86d6437b80eee7"
+  },
+  "review_status": {
+    "API_VERIFIED": "NOT_RUN",
+    "BEHAVIOR_VERIFIED": "PASS_SYNTHETIC_ONLY",
+    "DEPLOYED": "NOT_RUN",
+    "INTEGRATED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN",
+    "REVIEWED": "PASS",
+    "TESTED": "PASS",
+    "UI_VERIFIED": "NOT_RUN"
+  },
+  "rollback": {
+    "baseline_file_hashes_restored": 1027,
+    "no_other_extras": true,
+    "only_declared_test_support_extras": 12,
+    "three_profiles_restored_before_PASS": true
+  },
+  "schema_version": "independent_three_channel_review.v1",
+  "tests": {
+    "frontend": {
+      "exit_code": 0,
+      "failed": 0,
+      "status": "PASS",
+      "tests": 25
+    },
+    "known_failure": {
+      "baseline": {
+        "actual": "PARTIAL",
+        "expected": "READY",
+        "pytest_exit_code": 1,
+        "tests": {
+          "errors": 0,
+          "failures": 1,
+          "skipped": 0,
+          "tests": 1
+        }
+      },
+      "candidate": {
+        "actual": "PARTIAL",
+        "expected": "READY",
+        "pytest_exit_code": 1,
+        "tests": {
+          "errors": 0,
+          "failures": 1,
+          "skipped": 0,
+          "tests": 1
+        }
+      },
+      "line": 381,
+      "same_assertion": true,
+      "test": "tests/test_manager_announcement_parity_20261008.py::test_missing_original_archive_is_not_empty_connect_selection"
+    },
+    "python_core": {
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": {
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "tests": 43
+      }
+    },
+    "screen_summary_contract": {
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": {
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "tests": 5
+      }
+    }
+  },
+  "unverified": [
+    "today's three real business inputs/restoration",
+    "live integration and service state",
+    "deployment",
+    "API/UI reload readback",
+    "natural-time result",
+    "full 174-test suite",
+    "actual announcement body capture output"
+  ],
+  "writer_aggregate_receipt": {
+    "initial_intermediate_sha256": "f43c2c3e5f8717990dc47910ca4e73db4f63b0471a5ae4acfbeb0342df913e2d",
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/mac_acceptance_receipt.json",
+    "resolution": "main controller confirmed f43 was an intermediate Writer receipt; terminal 5d47 is authoritative",
+    "terminal_file_reverified": true,
+    "terminal_sha256": "5d47fdeceb5cd0af5d448c23ee1345b03ef970d26b8fb1cb4cde2e2c77030eda"
+  }
+}

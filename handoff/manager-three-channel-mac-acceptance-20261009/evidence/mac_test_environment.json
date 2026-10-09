@@ -1,0 +1,53 @@
+{
+  "schema_version": "mac_test_environment.v1",
+  "captured_at_local_date": "2026-10-09",
+  "python": {
+    "executable": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+    "version": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+    "packages": {
+      "pytest": "9.1.1",
+      "fastapi": "0.141.1",
+      "starlette": "1.6.0",
+      "httpx": "0.28.1",
+      "pandas": "3.0.6",
+      "pyarrow": "24.0.0",
+      "numpy": "2.5.3",
+      "pydantic": "2.13.4"
+    }
+  },
+  "node": {
+    "node": "/Users/lexi/.local/node-v24.19.0/bin/node",
+    "version": "v24.19.0",
+    "dependencyRoot": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules",
+    "packages": {
+      "vitest": "4.1.10",
+      "vite": "7.3.6",
+      "vue": "3.5.40",
+      "typescript": "5.9.3",
+      "jsdom": "28.1.0"
+    }
+  },
+  "dependency_link": {
+    "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/apps/web/node_modules",
+    "is_symlink": true,
+    "link_target": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules",
+    "resolved_target": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules",
+    "no_dependency_install_performed": true
+  },
+  "frontend_cache": {
+    "derived_vitest_config": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/tools/vitest.config.mjs",
+    "configured_cache_dir": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/evidence/vitest-cache_retry1",
+    "isolated_cache_files": [
+      "evidence/vitest-cache_retry1/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json"
+    ],
+    "canonical_node_modules_vite_cache_after": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/.vite",
+      "mtime_utc": "2026-09-20T05:01:40.122829+00:00",
+      "mtime_ns": 1789880500122829359,
+      "is_directory": true
+    },
+    "before_snapshot_receipt_available": false,
+    "canonical_cache_unchanged": "CANNOT_CONFIRM_NO_BEFORE_SNAPSHOT"
+  },
+  "test_cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2"
+}
