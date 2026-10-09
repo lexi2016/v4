@@ -1,0 +1,141 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R1_ISSUE33_SUPPLEMENT_V1",
+  "title": "Issue 33 补充：start/terminal 事件 SHA 被当成 receipt 文件 SHA",
+  "status": "BLOCKED_P1_CONFIRMED_PENDING_CODE_CORRECTION_AND_NEW_LOCAL_PREPARE_REVIEW",
+  "as_of_date": "2026-10-09",
+  "repository": "lexi2016/v4",
+  "fixed_commit_sha": "3764032a16f3cd9db88ec0d0ca122fd5d01c167b",
+  "commit_tree_sha": "a4568e573da77422f963ce4cf2c6d46faaaa0cc0",
+  "after_tree_sha": "f6368e2deafc48100e1baffb9c93985456cec54d",
+  "execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_SAVED_EVAL_R1_20261009_01",
+  "prepare_config": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/PREPARE_CONFIG_LOCAL.json",
+    "sha256": "d862b98076dff198572330628e5a559580f94f232b64dae7c0bb6333c72420e9",
+    "resources": {
+      "cpu_threads": 4,
+      "aggregate_process_tree_rss_bytes_max": 34359738368,
+      "wall_seconds_max": 3600,
+      "sample_seconds": 1
+    }
+  },
+  "prepare_command": "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python -B handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/candidate/src/run_rff_saved_evaluation.py prepare --config handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/PREPARE_CONFIG_LOCAL.json",
+  "prepare_stderr": {
+    "status": "CANNOT_CONFIRM",
+    "error_type": "SavedEvaluationError",
+    "error": "BOUND_FILE_SHA_MISMATCH:/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_RESUME_EXECUTION_20260928/execution/F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01/candidate_output/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
+    "automatic_retry": false,
+    "safety": {
+      "research_only": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "reviewer": {
+    "receipt_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_LOCAL_20261009/review/LOCAL_ACCEPTANCE_BLOCKER_RECEIPT.json",
+    "receipt_sha256": "61d4e579ff139e01eb3ec65d481b51ecd7dead72041bc61db10e9d3d4d05eef1",
+    "decision": "BLOCKED",
+    "P0": 0,
+    "P1": 1,
+    "P2": 0,
+    "REVIEWED": "BLOCKED",
+    "BEHAVIOR_VERIFIED": false,
+    "TESTED_SYNTHETIC": "PASS",
+    "test_summary": "Ran 142 synthetic tests in 18.144s; exit 0; OK.",
+    "test_scope_limit": "Synthetic-only. This does not validate binding the shipped constants to the original receipt files or prove real saved-score evaluation behavior."
+  },
+  "finding": {
+    "id": "RFF_METADATA_EVENT_SHA_USED_AS_RECEIPT_FILE_SHA",
+    "priority": "P1",
+    "summary": "Both candidate start and terminal PINS are event identities, while file_record computes a SHA256 over the complete receipt JSON file.",
+    "source_evidence": [
+      {
+        "path": "candidate/src/rff_saved_eval_contracts.py",
+        "lines": "40-41",
+        "sha256": "35b9f88b8183f8980333bfe4e06f37b3ef3e2acbea7a0fc6904b1d130ef058b7"
+      },
+      {
+        "path": "candidate/src/rff_saved_eval_contracts.py",
+        "lines": "98-102,366-367,493-494"
+      },
+      {
+        "path": "inputs/ISSUE33.md",
+        "lines": "43",
+        "sha256": "6c6356ad92406f619ef0de01533415dea4ed831d9b823135a4bf620f26fd66a0"
+      },
+      {
+        "path": "candidate/tests/test_rff_saved_eval_contracts.py",
+        "lines": "299-317",
+        "sha256": "6d1f0c904caa36cdad219ac609c0a13077ac41796fcf4225b8e972dda1abf3a7"
+      }
+    ],
+    "receipt_metadata": {
+      "candidate_start": {
+        "file_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+        "bytes": 1510,
+        "start_event_sha256": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+      },
+      "candidate_terminal": {
+        "file_sha256": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1",
+        "bytes": 897,
+        "terminal_event_sha256": "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf",
+        "start_receipt_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03"
+      },
+      "receipt_chain_consistent": true
+    },
+    "prepare_result": "No RUN_SPEC, INPUT_BINDING, new execution output or resource trace produced; error occurred before registry read/append; old receipt files are not shown damaged."
+  },
+  "test_gap": {
+    "path": "candidate/tests/test_rff_saved_eval_contracts.py",
+    "lines": "299-317",
+    "detail": "refresh_old_binding records each synthetic receipt file SHA into fixture.pins, then active() patches contracts.PINS with those dynamic values. Synthetic tests therefore do not exercise shipped PINS against frozen original receipt metadata."
+  },
+  "minimum_resolution": [
+    "Separate the full receipt-file SHA256 pins from the RUN_STARTED and terminal event SHA identities.",
+    "Use full-file SHA pins when checking receipt file bytes.",
+    "Separately verify start_receipt.start_event_sha256 and terminal_receipt.terminal_event_sha256 against their event identities and verify terminal_receipt.start_receipt_sha256 equals the full start receipt-file SHA.",
+    "Retain the existing identity and source-hash guards; do not remove or bypass them.",
+    "Add regression coverage that exercises the shipped pin constants and the frozen original receipt metadata, then produce a new prepare receipt for independent review."
+  ],
+  "source_delivery": {
+    "after_blob_count_verified": 51,
+    "requested_intake_blob_count_verified": 6,
+    "manifest_entries_total": 73,
+    "manifest_entries_verified": 56,
+    "manifest_hash_mismatches": 0,
+    "manifest_extra_unreceived_entries": 17,
+    "tree_receipt_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_LOCAL_20261009/intake/GIT_TREE_RECEIPT.json",
+    "tree_receipt_sha256": "e086ae534d2978e8099ec344239f44e315d601aaca4a1049ba8de07e6b3de1a1"
+  },
+  "safety_and_scope": {
+    "source_modified": false,
+    "old_candidate_files_modified": false,
+    "registry_modified": false,
+    "score_truth_label_rows_read": false,
+    "fit_predict_model_load": false,
+    "evaluation_run": false,
+    "prepare_retried": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "writer_tests_run": false
+  },
+  "attachments": {
+    "zip": "CODE_ATTACHMENTS.zip",
+    "manifest": "CODE_ATTACHMENTS_MANIFEST.json",
+    "zip_sha256": "f5ac6be02447435318b126fd1443940163f52dcfae37bb81160e940528e1c819"
+  },
+  "reviewer_receipt_copy_path": "metadata/LOCAL_ACCEPTANCE_BLOCKER_RECEIPT.json",
+  "reviewer_receipt_copy_sha256": "61d4e579ff139e01eb3ec65d481b51ecd7dead72041bc61db10e9d3d4d05eef1",
+  "evidence_limitations": [
+    "The historical real score/truth rows and outcome were not read or evaluated.",
+    "No fresh RUN_SPEC or INPUT_BINDING exists because preparation failed closed.",
+    "The remaining 17 manifest entries are unrequested patch/review artifacts; all required after source and six requested intake blobs were received and verified."
+  ],
+  "historical_attempt_snapshot": {
+    "initial_prepare_blocker_path": "../PREPARE_BLOCKER.md",
+    "initial_prepare_blocker_sha256": "b4bf832c7ac40a64f951099ee926f55c8d22642e8fb13f141f893bf2173d3fdb",
+    "initial_attempt_receipt_path": "../PREPARE_ATTEMPT_RECEIPT.json",
+    "initial_attempt_receipt_sha256": "735b08d4a06b865c5e8cd0ea2b3591afa51e29c32611ac76fb8de01064aec889",
+    "semantics": "These are time-of-attempt records created before the independent Reviewer receipt was available. Their pending-review and not-yet-inspected-terminal wording describes that initial snapshot; this post-review supplement contains the final blocker finding and metadata readback."
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R1_BLOCKER_PACKAGE_RECEIPT_V1",
+  "status": "READY_FOR_ISSUE33_SUBMISSION_REVIEW",
+  "created_at_utc": "2026-10-09T03:10:05Z",
+  "package_root": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_LOCAL_20261009/blocker",
+  "source_commit_sha": "3764032a16f3cd9db88ec0d0ca122fd5d01c167b",
+  "reviewer_receipt_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_LOCAL_20261009/review/LOCAL_ACCEPTANCE_BLOCKER_RECEIPT.json",
+  "reviewer_receipt_sha256": "61d4e579ff139e01eb3ec65d481b51ecd7dead72041bc61db10e9d3d4d05eef1",
+  "file_sha256": {
+    "CODE_ATTACHMENTS.zip": "f5ac6be02447435318b126fd1443940163f52dcfae37bb81160e940528e1c819",
+    "CODE_ATTACHMENTS_MANIFEST.json": "53e2bdaa5bca18063de90e04b78d04b4f5cf1ab32f15c02f04241522cedfccb7",
+    "ISSUE33_SUPPLEMENT.json": "fc5fe74dc5c36cb4bc254d043a2151da2402e4a3acb1a95323a56aa377cda704",
+    "ISSUE33_SUPPLEMENT_ZH.md": "a84f1c06e0196dac2abe90e7fc94ac73f52dec891b52f643df05981e6d634b62",
+    "metadata/CANDIDATE_START_RECEIPT.json": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+    "metadata/CANDIDATE_TERMINAL_RECEIPT.json": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1",
+    "metadata/LOCAL_ACCEPTANCE_BLOCKER_RECEIPT.json": "61d4e579ff139e01eb3ec65d481b51ecd7dead72041bc61db10e9d3d4d05eef1",
+    "metadata/PREPARE_CONFIG_LOCAL.json": "d862b98076dff198572330628e5a559580f94f232b64dae7c0bb6333c72420e9"
+  },
+  "archive_integrity": "PASS_ZIP_TESTZIP",
+  "zip_member_count": 7,
+  "zip_scope": "Two source/test files and metadata-only issue/config/receipt files. No real score, truth, label, model, market-data or registry content.",
+  "checks": {
+    "source_members_sha256_and_bytes_match": true,
+    "start_receipt_copy_exact": true,
+    "terminal_receipt_copy_exact": true,
+    "reviewer_receipt_copy_exact": true,
+    "config_copy_exact": true,
+    "old_source_and_registry_modified": false,
+    "prepare_retried": false,
+    "writer_tests_run": false,
+    "external_issue_posted": false
+  },
+  "sha256sums_file": "SHA256SUMS.txt",
+  "historical_attempt_snapshot": {
+    "initial_prepare_blocker_path": "../PREPARE_BLOCKER.md",
+    "initial_prepare_blocker_sha256": "b4bf832c7ac40a64f951099ee926f55c8d22642e8fb13f141f893bf2173d3fdb",
+    "initial_attempt_receipt_path": "../PREPARE_ATTEMPT_RECEIPT.json",
+    "initial_attempt_receipt_sha256": "735b08d4a06b865c5e8cd0ea2b3591afa51e29c32611ac76fb8de01064aec889",
+    "semantics": "These are time-of-attempt records created before the independent Reviewer receipt was available. Their pending-review and not-yet-inspected-terminal wording describes that initial snapshot; this post-review supplement contains the final blocker finding and metadata readback."
+  }
+}

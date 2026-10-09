@@ -1,0 +1,86 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_LOCAL_ACCEPTANCE_BLOCKER_RECEIPT_V1",
+  "review_scope": "Issue #33 frozen PASS scope; independent local review of saved-evaluation preparation blocker",
+  "decision": "BLOCKED",
+  "verdict": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 0,
+    "REVIEWED": "BLOCKED",
+    "BEHAVIOR_VERIFIED": false,
+    "TESTED_SYNTHETIC": "PASS"
+  },
+  "finding": {
+    "id": "RFF_METADATA_EVENT_SHA_USED_AS_RECEIPT_FILE_SHA",
+    "priority": "P1",
+    "title": "Original candidate start and terminal event hashes are pinned as receipt-file hashes",
+    "impact": "The new saved-evaluation preparation deterministically rejects the intact original receipts before producing RUN_SPEC/INPUT_BINDING or appending a new RUN_STARTED event; the requested evaluation entry cannot proceed.",
+    "source_evidence": [
+      {
+        "path": "handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/candidate/src/rff_saved_eval_contracts.py",
+        "lines": "40-41",
+        "sha256": "35b9f88b8183f8980333bfe4e06f37b3ef3e2acbea7a0fc6904b1d130ef058b7",
+        "detail": "PINS.candidate_start=69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af and PINS.candidate_terminal=5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf."
+      },
+      {
+        "path": "handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/candidate/src/rff_saved_eval_contracts.py",
+        "lines": "98-102,366-367,493-494",
+        "sha256": "35b9f88b8183f8980333bfe4e06f37b3ef3e2acbea7a0fc6904b1d130ef058b7",
+        "detail": "file_record computes SHA256 over receipt file bytes and rejects a mismatch; candidate_start and candidate_terminal are receipt file paths and are passed with those event-hash pins as expected file SHA256."
+      },
+      {
+        "path": "handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/inputs/ISSUE33.md",
+        "lines": "43",
+        "sha256": "6c6356ad92406f619ef0de01533415dea4ed831d9b823135a4bf620f26fd66a0",
+        "detail": "The same values are explicitly identified as the historical RUN_STARTED event SHA and terminal event SHA."
+      }
+    ],
+    "receipt_metadata_only_readback": {
+      "candidate_start_receipt": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_RESUME_EXECUTION_20260928/execution/F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01/candidate_output/CANDIDATE_START_RECEIPT.json",
+        "file_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+        "bytes": 1510,
+        "start_event_sha256": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
+        "status": "RUN_STARTED_DURABLE"
+      },
+      "candidate_terminal_receipt": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_RESUME_EXECUTION_20260928/execution/F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01/candidate_output/CANDIDATE_TERMINAL_RECEIPT.json",
+        "file_sha256": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1",
+        "bytes": 897,
+        "terminal_event_sha256": "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf",
+        "start_receipt_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03"
+      },
+      "interpretation": "Both pin values are event identities, not the SHA256 of their respective receipt files. The receipt chain is internally consistent: terminal.start_receipt_sha256 equals the actual start-receipt file SHA256. This is a pin-category error; the inspected receipts are not shown to be damaged."
+    },
+    "writer_prepare_observation": {
+      "source": "Parent-provided observation of the metadata-only prepare attempt; not rerun by this Reviewer.",
+      "error": "BOUND_FILE_SHA_MISMATCH:CANDIDATE_START_RECEIPT.json:0292f37c...e64a03(actual file):69a41b31...e24d9af(expected pin)",
+      "result": "No RUN_SPEC, INPUT_BINDING, or new registry event was produced."
+    },
+    "test_gap": {
+      "path": "handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/candidate/tests/test_rff_saved_eval_contracts.py",
+      "lines": "306-319",
+      "sha256": "6d1f0c904caa36cdad219ac609c0a13077ac41796fcf4225b8e972dda1abf3a7",
+      "detail": "refresh_old_binding records each synthetic receipt's current file SHA into fixture.pins; tests patch contracts.PINS with those dynamic fixture values. They therefore do not exercise the shipped PINS constants against the frozen original receipt metadata, allowing both event/file pin errors to pass."
+    }
+  },
+  "acceptance_evidence": {
+    "frozen_test_command": "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python -B -m unittest discover -s candidate/tests -p 'test_*.py' -v",
+    "frozen_test_result": "PASS",
+    "frozen_test_summary": "Ran 142 synthetic tests in 18.144s; exit 0; OK.",
+    "cli_help_result": "PASS; exit 0",
+    "test_scope_limit": "Synthetic-only. This does not validate binding the shipped constants to the original receipt files or prove real saved-score evaluation behavior.",
+    "not_performed": [
+      "No PR #5 29-test rerun",
+      "No fit, predict, model load, or truth decode",
+      "No real score/truth/label rows read",
+      "No registry append or prepare retry",
+      "No source edit"
+    ]
+  },
+  "CANNOT_CONFIRM": [
+    "Remote retrieval was performed by the controller/Writer, not by this Reviewer. This Reviewer independently checked the local 57-blob tree receipt against the packaged files; local identity checks passed.",
+    "Native macOS backend/resource behavior and real saved-score evaluation remain unverified and are outside this blocker review."
+  ],
+  "required_resolution_for_re_review": "Correct the receipt file SHA pins while separately validating the start_event_sha256 and terminal_event_sha256 fields against their event identities; add a regression that uses the shipped pin constants and frozen original receipt metadata. Then provide a new local preparation receipt for independent review."
+}
