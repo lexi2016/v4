@@ -1,0 +1,47 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ test_imported_announcement_survives_workspace_refresh_with_missing_us_input __
+
+source_lane = namespace(root=PosixPath('/workspace/scratch/21926b793c00/three_channel/announcement/pytest-cross-channel01/test_impor...MONEY_HK_DATE_CATALOG&publication_date=20261008'), ('POST', '/api/v4/manager/research/announcements/analysis/import')])
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fbaa1395480>
+
+    def test_imported_announcement_survives_workspace_refresh_with_missing_us_input(source_lane, monkeypatch):
+        from v4.manager_research.us_market_bridge import ResearchPeripheralUsMarketReader
+    
+        lane = source_lane
+        monkeypatch.delenv("V4_MANAGER_VIBE_BINDING", raising=False)
+        missing_us_root = lane.root.parent / "synthetic-missing-us-input"
+        missing_us_root.mkdir()
+        lane.service._workspace_us_market_reader = ResearchPeripheralUsMarketReader(missing_us_root)
+        capture = cli._capture(SimpleNamespace(target_date=TARGET, publication_date="20261008",
+            api_base="http://127.0.0.1:8873", research_state_root=str(lane.root)))
+        registered = _register_captured_fixture(lane, capture)
+        cli._import(SimpleNamespace(evidence_run_id=registered["evidence_run_id"],
+            research_state_root=str(lane.root), api_base="http://127.0.0.1:8873"))
+        evidence = lane.root / "announcement_agent_runs" / capture["evidence_run_id"] / "evidence"
+        product_path = parity.analysis.product_path(lane.service.store, TARGET, PUBLICATION)
+        source_snapshot = _snapshot(evidence)
+        imported_bytes = product_path.read_bytes()
+        source_calls = list(lane.source_calls)
+    
+        response = lane.client.post("/api/v4/manager/research/workspace/refresh", params={
+            "date": TARGET, "announcement_date": "20261008", "selection_date": "20261008"},
+            headers={"Origin": "http://testserver"}, content=b"")
+        assert response.status_code == 200, response.text
+        value = response.json()
+>       assert value["us_mapping_preparation"]["status"] == "INPUT_MISSING"
+E       AssertionError: assert 'FAILED' == 'INPUT_MISSING'
+E         
+E         - INPUT_MISSING
+E         + FAILED
+
+tests/test_manager_announcement_handoff_20261009.py:381: AssertionError
+=============================== warnings summary ===============================
+../../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_imported_announcement_survives_workspace_refresh_with_missing_us_input
+1 failed, 1 warning in 0.77s

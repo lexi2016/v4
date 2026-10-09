@@ -1,0 +1,30 @@
+
+ RUN  v4.1.10 /workspace/scratch/21926b793c00/three_channel/app/apps/web
+
+ ❯ src/api/managerWorkspace.threeChannel.spec.ts (11 tests | 1 failed) 20ms
+     × accepts unknown counts without calling them a successful zero and preserves other channels 11ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts unknown counts without calling them a successful zero and preserves other channels
+Error: WORKSPACE_COUNT_INVALID
+ ❯ count src/api/managerWorkspace.ts:180:85
+    178| }
+    179| function count(value: unknown): asserts value is number {
+    180|   if (typeof value !== 'number' || !Number.isSafeInteger(value) || val…
+       |                                                                                     ^
+    181| }
+    182| /** Every rendered action must reference the SAME retained issuer prop…
+ ❯ validateManagerWorkspace src/api/managerWorkspace.ts:1457:5
+ ❯ parseWorkspaceResponse src/api/managerWorkspace.ts:1519:10
+ ❯ requestManagerWorkspace src/api/managerWorkspace.ts:1537:15
+ ❯ src/api/managerWorkspace.threeChannel.spec.ts:39:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 passed (11)
+   Start at  03:00:12
+   Duration  751ms (transform 144ms, setup 0ms, import 169ms, tests 20ms, environment 431ms)
+

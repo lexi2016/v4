@@ -1,0 +1,61 @@
+.FF                                                                      [100%]
+=================================== FAILURES ===================================
+_ test_preparation_rejects_unbounded_owner_diagnostic_without_exposing_it[artifact_sha256] _
+
+owner = (<v4.manager_research.service.ManagerResearchJobService object at 0x7fdceb97ccd0>, <infrastructure.research_peripheral...ject at 0x7fdceb0eae90>, {'now': datetime.datetime(2026, 10, 9, 7, 0, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fdcebce8fc0>
+invalid_field = 'artifact_sha256'
+
+    @pytest.mark.parametrize("invalid_field", ["execution_status", "artifact_sha256"])
+    def test_preparation_rejects_unbounded_owner_diagnostic_without_exposing_it(owner, monkeypatch, invalid_field):
+        service, _source, client, _clock = owner
+        monkeypatch.setattr(service, "refresh_us_mapping_research", lambda *_args, **_kwargs: {
+            "schema_version": mapping.DAILY_SCHEMA, "target_trade_date": TARGET,
+            "status": "FAILED", "run_id": None,
+            "execution_status": "US_MAPPING_OWNER_BUILD_FAILED",
+            "gaps": [], **FLAGS,
+            invalid_field: "SYNTHETIC private source body must not be copied"})
+        response = client.post("/api/v4/manager/research/workspace/refresh", params={"date": TARGET}, content=b"")
+        assert response.status_code == 200, response.text
+>       assert response.json()["us_mapping_preparation"]["execution_status"] == "US_MAPPING_OWNER_CALL_FAILED:ValueError"
+E       AssertionError: assert 'US_MAPPING_O..._BUILD_FAILED' == 'US_MAPPING_O...ED:ValueError'
+E         
+E         - US_MAPPING_OWNER_CALL_FAILED:ValueError
+E         + US_MAPPING_OWNER_BUILD_FAILED
+
+tests/test_manager_us_mapping_three_channel_20261009.py:219: AssertionError
+_____ test_manual_preparation_rejects_artifact_text_without_persisted_run ______
+
+owner = (<v4.manager_research.service.ManagerResearchJobService object at 0x7fdceb0eb9d0>, <infrastructure.research_peripheral...ject at 0x7fdcea610690>, {'now': datetime.datetime(2026, 10, 9, 7, 0, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fdceb0be8d0>
+
+    def test_manual_preparation_rejects_artifact_text_without_persisted_run(owner, monkeypatch):
+        service, _source, client, _clock = owner
+        monkeypatch.setattr(service, "refresh_us_mapping_research", lambda *_args, **_kwargs: {
+            "schema_version": "v4.manager_research.us_mapping_daily_run.v1",
+            "target_trade_date": "20261009", "status": "FAILED", "run_id": None,
+            "artifact_sha256": "SYNTHETIC_PRIVATE_TEXT_NOT_A_DIGEST",
+            "execution_status": "US_MAPPING_OWNER_BUILD_FAILED", "gaps": [], **FLAGS,
+        })
+        response = client.post("/api/v4/manager/research/workspace/refresh",
+                              params={"date": "20261009"}, content=b"")
+        assert response.status_code == 200
+>       assert "SYNTHETIC_PRIVATE_TEXT_NOT_A_DIGEST" not in response.text
+E       assert 'SYNTHETIC_P...NOT_A_DIGEST' not in '{"RESEARCH_...ent":false}}'
+E         
+E         'SYNTHETIC_PRIVATE_TEXT_NOT_A_DIGEST' is contained here:
+E           _sha256":"SYNTHETIC_PRIVATE_TEXT_NOT_A_DIGEST","execution_status":"US_MAPPING_OWNER_BUILD_FAILED","gaps":[],"RESEARCH_ONLY":true,"production_allowed":false,"buy_gate_updated":false,"orders_sent":false},"store_latest_matches_http_plan_product":true,"persisted_store":{"target_trade_date":"20261009","run_id":"bdc97c5dcdf94cf58a03095fd32ac161","product_sha256":"4d205da8962d63f4a40300a03e61274d255409bd6d8d2c4ba4f64478fee2d04b","execution_kind":"MANUAL_REFRESH","owner":"ManagerResearchJobService.refresh_workspace_plan"...
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+../independent_review/test_review_boundaries.py:63: AssertionError
+=============================== warnings summary ===============================
+../../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_us_mapping_three_channel_20261009.py::test_preparation_rejects_unbounded_owner_diagnostic_without_exposing_it[artifact_sha256]
+FAILED ::test_manual_preparation_rejects_artifact_text_without_persisted_run
+2 failed, 1 passed, 1 warning in 1.00s

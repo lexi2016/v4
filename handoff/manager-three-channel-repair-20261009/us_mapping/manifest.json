@@ -1,0 +1,98 @@
+{
+  "source_root": "/workspace/scratch/21926b793c00/three_channel/app",
+  "local_assembly_baseline": "7ca0190a721a7fd0fc0c88b79a872889867d111f",
+  "problem_package_repository": "lexi2016/v4",
+  "problem_package_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+  "frozen_reference_candidate_commit": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+  "base_interpretation": "R3 candidate API after bytes overlaid on fixed b19 source closure, per ../evidence/assembly.json; not the live 17:23 service",
+  "changed_files": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "change": "modified",
+      "before_sha256": "9d8d132c58e7cf1c5a5609d93261483d578268ac24c60c2fa7a6a79b87344341",
+      "after_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "before_bytes": 31088,
+      "after_bytes": 35556,
+      "full_after_path": "after/apps/api/v35_api/manager_research_router.py"
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "change": "modified",
+      "before_sha256": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987",
+      "after_sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "before_bytes": 53112,
+      "after_bytes": 53361,
+      "full_after_path": "after/v4/manager_research/plan_owner_dispatch.py"
+    },
+    {
+      "path": "tests/test_manager_us_mapping_three_channel_20261009.py",
+      "change": "added",
+      "before_sha256": null,
+      "after_sha256": "9f7f1a3f73a539b470ba18a1ec029360c77734de21015895d73bc03cdcc1fd2a",
+      "before_bytes": 0,
+      "after_bytes": 17876,
+      "full_after_path": "after/tests/test_manager_us_mapping_three_channel_20261009.py"
+    }
+  ],
+  "unchanged_owned_runtime": [
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "before_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "after_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "unchanged": true
+    },
+    {
+      "path": "v4/manager_research/us_market_bridge.py",
+      "before_sha256": "18d4ede4267a446d235267c71cecd1208f30ae3fdfe9ff02d9354d1b5a18de06",
+      "after_sha256": "18d4ede4267a446d235267c71cecd1208f30ae3fdfe9ff02d9354d1b5a18de06",
+      "unchanged": true
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "before_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "after_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "unchanged": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "after_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "unchanged": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "before_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "after_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "unchanged": true
+    }
+  ],
+  "final_tests": {
+    "metadata": "14_boundary_final_green.json",
+    "output": "14_boundary_final_green.log",
+    "passed": 12,
+    "failed": 0,
+    "warnings": 1,
+    "scope": "All 11 new US regression parameter cases plus independent artifact-without-run boundary probe; synthetic temporary state with namespace parent-linked scoped imports"
+  },
+  "not_provided": [
+    "v4/manager_research/us_mapping_reviewed_20260930.json",
+    "v4/manager_research/us_mapping_relation_registry.json"
+  ],
+  "not_run": [
+    "Native Mac complete-application tests without scoped loader",
+    "Full repository test suite",
+    "Live API/UI readback",
+    "Deployment/restart/schedule edits",
+    "Historical original US owner product replay",
+    "Natural scheduler-period acceptance"
+  ],
+  "pre_boundary_focused_tests": {
+    "metadata": "12_final_scoped.json",
+    "output": "12_final_scoped.log",
+    "passed": 68,
+    "failed": 0,
+    "warnings": 1,
+    "scope": "Synthetic temporary-state original-owner code regression; namespace parent-linked scoped import",
+    "source_note": "68 passed before the independently found artifact/run diagnostic pairing fix; prior router SHA b1dc6e47c3552c0d7a2b45e4652d12d3a8f7edbc5779c43ed5f72dc60b4a2785"
+  }
+}

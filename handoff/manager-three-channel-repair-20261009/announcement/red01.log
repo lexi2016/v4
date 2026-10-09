@@ -1,0 +1,88 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_original_fresh_capture_preserves_bound_bytes_then_imports_to_workspace __
+
+source_lane = namespace(root=PosixPath('/workspace/scratch/21926b793c00/three_channel/announcement/pytest-red01/test_original_fresh_...pi/v4/manager/research/announcements?date=20261009&source_scope=EASTMONEY_HK_DATE_CATALOG&publication_date=20261008')])
+
+    def test_original_fresh_capture_preserves_bound_bytes_then_imports_to_workspace(source_lane):
+        lane = source_lane
+        capture = cli._capture(SimpleNamespace(target_date=TARGET, publication_date="20261008",
+            api_base="http://127.0.0.1:8873", research_state_root=str(lane.root)))
+        evidence = lane.root / "announcement_agent_runs" / capture["evidence_run_id"] / "evidence"
+        for source_name, fixed_name in [("body_corpus.json", "body_corpus.json"),
+                ("body_corpus_manifest.json", "body_corpus_manifest.json"),
+                ("batch_receipt.json", "body_batch_receipt.json")]:
+>           assert (evidence / fixed_name).read_bytes() == (evidence / "body_batch" / source_name).read_bytes(), (
+                "Original capture reformatted a producer artifact whose exact bytes are SHA-bound: " + fixed_name)
+E           AssertionError: Original capture reformatted a producer artifact whose exact bytes are SHA-bound: body_corpus.json
+E           assert b'{\n  "artic...ount": 1\n}\n' == b'{"article_c...y_count":1}\n'
+E             
+E             At index 1 diff: b'\n' != b'"'
+E             Use -v to get more diff
+
+tests/test_manager_announcement_handoff_20261009.py:209: AssertionError
+_ test_cli_readback_accepts_exact_bound_owner_import_without_fabricating_product _
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7f7a2d2078c0>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red01/test_cli_readback_accepts_exac0/synthetic-imported-state'))
+
+    def test_cli_readback_accepts_exact_bound_owner_import_without_fabricating_product(imported_lane):
+        lane = imported_lane
+        before = _snapshot(lane.root)
+>       result = cli._readback(SimpleNamespace(target_date=TARGET, publication_date="20261008",
+            api_base="http://127.0.0.1:8873"))
+
+tests/test_manager_announcement_handoff_20261009.py:261: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/run_manager_daily_announcement.py:646: in _readback
+    validated_receipt = validate_owner_analysis_import_receipt(receipt, product)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+receipt = {'RESEARCH_ONLY': True, 'agent_judgment_receipt_sha256': 'd110f05ceb20e8fce31510b21c040f04aa4f93395e217024d55a231ad9a0164f', 'available_at': '2026-10-09T01:00:00.000000+00:00', 'buy_gate_updated': False, ...}
+product = {'target_trade_date': '20261009', 'publication_date': '2026-10-08', 'sha256': '059c55829358b888be6be9c7c9bb0b627d400246e1ab2f00777b07584f41d4c6'}
+
+    def validate_owner_analysis_import_receipt(receipt: Any, product: Mapping[str, Any]) -> dict[str, Any]:
+        if not isinstance(receipt, Mapping) or receipt.get('schema_version') != _OWNER_ANALYSIS_IMPORT_SCHEMA:
+            raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_INVALID')
+        available_at = timestamp(receipt.get('available_at'))
+        if (receipt.get('status') != 'VERIFIED'
+                or receipt.get('target_trade_date') != product.get('target_trade_date')
+                or receipt.get('publication_date') != product.get('publication_date')
+                or receipt.get('product_sha256') != product.get('sha256')
+                or not all(isinstance(receipt.get(key), str) and receipt[key].strip()
+                           for key in ('parent_task_id', 'parent_run_id'))
+                or receipt.get('owner') != 'ManagerResearchJobService.import_announcement_analysis'
+                or available_at is None
+                or any(receipt.get(key) is not expected for key, expected in FLAGS.items())
+                or not _signed_digest(receipt)):
+            raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_BINDING_INVALID')
+        judgment = product.get('agent_judgment_receipt')
+        if isinstance(judgment, Mapping) and (
+                receipt.get('parent_task_id') != judgment.get('parent_task_id')
+                or receipt.get('parent_run_id') != judgment.get('parent_run_id')):
+            raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_PARENT_BINDING_INVALID')
+        # Existing v1 receipts remain byte-for-byte readable. New imports bind the
+        # four extra identities as a complete group; GET never upgrades old files.
+        binding_keys = {'source_manifest_sha256', 'evidence_run_id',
+                        'handoff_manifest_sha256', 'agent_judgment_receipt_sha256'}
+        if binding_keys.intersection(receipt):
+            if (not binding_keys.issubset(receipt)
+                    or not isinstance(judgment, Mapping)
+                    or receipt.get('source_manifest_sha256') != product.get('source_manifest_sha256')
+                    or receipt.get('evidence_run_id') != judgment.get('evidence_run_id')
+                    or receipt.get('agent_judgment_receipt_sha256') != judgment.get('sha256')
+                    or re.fullmatch(r'[0-9a-f]{64}', str(receipt.get('handoff_manifest_sha256'))) is None):
+>               raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID')
+E               ValueError: ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID
+
+v4/manager_research/workspace_announcements.py:2188: ValueError
+=============================== warnings summary ===============================
+../../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_original_fresh_capture_preserves_bound_bytes_then_imports_to_workspace
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_cli_readback_accepts_exact_bound_owner_import_without_fabricating_product
+2 failed, 1 warning in 0.67s

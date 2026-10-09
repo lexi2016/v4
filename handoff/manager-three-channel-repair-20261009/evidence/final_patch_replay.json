@@ -1,0 +1,107 @@
+{
+  "schema_version": "v4.manager_r3.isolated_patch_replay.v1",
+  "status": "PASS",
+  "manifest_sha256": "ccd38bc88ab8aa2231e844ef581470bea32545f7d48f988996dc9290f9689e9d",
+  "profiles": [
+    {
+      "profile": "api_r3_candidate",
+      "status": "PASS",
+      "commands": [
+        {
+          "operation": "FORWARD_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "FORWARD_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ],
+      "before_files_checked": 6,
+      "after_files_checked": 6,
+      "preserved_paths": [
+        "apps/api/v35_api/app.py",
+        "apps/api/v35_api/preselection_router.py",
+        "apps/api/v35_api/preselection_service.py"
+      ],
+      "exact_original_tree_restored": true,
+      "temporary_directory_removed": true
+    },
+    {
+      "profile": "web_r3_candidate",
+      "status": "PASS",
+      "commands": [
+        {
+          "operation": "FORWARD_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "FORWARD_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ],
+      "before_files_checked": 1,
+      "after_files_checked": 1,
+      "preserved_paths": [],
+      "exact_original_tree_restored": true,
+      "temporary_directory_removed": true
+    },
+    {
+      "profile": "test_delta",
+      "status": "PASS",
+      "commands": [
+        {
+          "operation": "FORWARD_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "FORWARD_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ],
+      "before_files_checked": 6,
+      "after_files_checked": 6,
+      "preserved_paths": [],
+      "exact_original_tree_restored": true,
+      "temporary_directory_removed": true
+    }
+  ],
+  "runtime_source_writes": 0,
+  "live_business_io": false,
+  "deployment_claimed": false
+}

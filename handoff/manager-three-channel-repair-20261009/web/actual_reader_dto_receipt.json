@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules/vitest/vitest.mjs",
+    "run",
+    "--config",
+    "/workspace/scratch/21926b793c00/three_channel/web/vitest.config.mjs",
+    "src/api/managerWorkspace.threeChannel.spec.ts"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/three_channel/app/apps/web",
+  "exit_code": 0,
+  "scope": "SYNTHETIC_FRONTEND_CONTRACT",
+  "output": "actual_reader_dto.log",
+  "env": {
+    "V4_TEST_PYTHON": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "V4_TEST_SOURCE_ROOT": "/workspace/scratch/21926b793c00/three_channel/app",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  }
+}

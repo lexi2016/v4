@@ -1,0 +1,22 @@
+
+ RUN  v4.1.10 /workspace/scratch/21926b793c00/three_channel/independent_review/package_temporary/host-flow-2scspt19/apps/web
+
+ ❯ src/api/managerWorkspace.threeChannel.spec.ts (0 test)
+ ❯ src/api/managerWorkspace.dailyAutomation.spec.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.dailyAutomation.spec.ts [ src/api/managerWorkspace.dailyAutomation.spec.ts ]
+Error: Cannot find module '/src/api/managerWorkspace.dailyAutomation.spec.ts'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/api/managerWorkspace.threeChannel.spec.ts [ src/api/managerWorkspace.threeChannel.spec.ts ]
+Error: Cannot find module '/src/api/managerWorkspace.threeChannel.spec.ts'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  no tests
+   Start at  03:31:46
+   Duration  1.29s (transform 0ms, setup 0ms, import 0ms, tests 0ms, environment 940ms)
+

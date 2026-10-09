@@ -1,0 +1,81 @@
+{
+  "classification": "INDEPENDENT_SYNTHETIC_REVIEW",
+  "argv": [
+    "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "-c",
+    "import sys; sys.path.insert(0, 'tests'); import r3_scoped_loader; r3_scoped_loader.install(); setattr(sys.modules['v4'], 'manager_research', sys.modules['v4.manager_research']); setattr(sys.modules['infrastructure'], 'scheduling', sys.modules['infrastructure.scheduling']); import pytest; raise SystemExit(pytest.main(['-q', '--tb=short', '-p', 'no:cacheprovider', '--basetemp=/workspace/scratch/21926b793c00/three_channel/independent_review/synthetic_boundary_closure', '--junitxml=/workspace/scratch/21926b793c00/three_channel/independent_review/boundary_closure_results.xml', '/workspace/scratch/21926b793c00/three_channel/independent_review/test_review_boundaries.py']))"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/three_channel/app",
+  "environment_overrides": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/three_channel/app",
+    "V4_TEST_PYTHON": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "V4_TEST_SOURCE_ROOT": "/workspace/scratch/21926b793c00/three_channel/app"
+  },
+  "exit_code": 1,
+  "elapsed_seconds": 1.047,
+  "log": "boundary_closure_checks.log",
+  "log_sha256": "59d259f97a48ba0c5be5f53f8367122ac09b5cfc63c2baf0be029a4880547369",
+  "runtime_before": {
+    "apps/api/v35_api/manager_research_router.py": {
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "bytes": 35556
+    },
+    "apps/web/src/api/managerWorkspace.ts": {
+      "sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+      "bytes": 109896
+    },
+    "ops/run_manager_daily_announcement.py": {
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "bytes": 42910
+    },
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": {
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "bytes": 18863
+    },
+    "v4/manager_research/plan_owner_dispatch.py": {
+      "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "bytes": 53361
+    },
+    "v4/manager_research/workspace_announcements.py": {
+      "sha256": "fd87ad80d38d0af3556359b8d7a3c1089a2cc11cf47fe259a38bda0755a17696",
+      "bytes": 167705
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "bytes": 107076
+    }
+  },
+  "runtime_after": {
+    "apps/api/v35_api/manager_research_router.py": {
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "bytes": 35556
+    },
+    "apps/web/src/api/managerWorkspace.ts": {
+      "sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+      "bytes": 109896
+    },
+    "ops/run_manager_daily_announcement.py": {
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "bytes": 42910
+    },
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": {
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "bytes": 18863
+    },
+    "v4/manager_research/plan_owner_dispatch.py": {
+      "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "bytes": 53361
+    },
+    "v4/manager_research/workspace_announcements.py": {
+      "sha256": "fd87ad80d38d0af3556359b8d7a3c1089a2cc11cf47fe259a38bda0755a17696",
+      "bytes": 167705
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "bytes": 107076
+    }
+  },
+  "runtime_unchanged": true
+}

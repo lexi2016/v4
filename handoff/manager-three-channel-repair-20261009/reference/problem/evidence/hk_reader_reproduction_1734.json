@@ -1,0 +1,15 @@
+{
+  "observed_before_local": "2026-10-09T17:34:08+08:00",
+  "cwd": "/tmp",
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/reproduce_screen_reader.py --app-root <frozen R3 api/app> --authority-root <observed shared authority root> --trade-date 20261008",
+  "authority_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+  "trade_date": "20261008",
+  "latest_json_sha256": "cc10ca8767b81a8192a6e6f7d7ac1a59e62777fb1566d840a24044d757573768",
+  "entry_count": 37,
+  "latest_entry_date": "20261009",
+  "requested_entry_present": false,
+  "status": "READ_ERROR",
+  "exception_type": "StoreError",
+  "exception": "HK security-master metadata invalid: '20261008'",
+  "writes": false
+}

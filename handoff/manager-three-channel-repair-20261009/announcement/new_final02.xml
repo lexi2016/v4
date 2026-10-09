@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.620" timestamp="2026-10-09T03:10:46.721120-07:00" hostname="f2c20067ed3d"><testcase classname="" name="tests.test_manager_announcement_handoff_20261009" time="0.000"><error message="collection failure">ImportError while importing test module '/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_announcement_handoff_20261009.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_handoff_20261009.py:37: in &lt;module&gt;
+    from test_manager_us_mapping_three_channel_20261009 import owner as us_missing_owner
+tests/test_manager_us_mapping_three_channel_20261009.py:22: in &lt;module&gt;
+    from infrastructure.scheduling import manager_announcement_supervisor as supervisor
+infrastructure/scheduling/__init__.py:4: in &lt;module&gt;
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in &lt;module&gt;
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+infrastructure/scheduling/executor_registry.py:22: in &lt;module&gt;
+    from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'</error></testcase></testsuite></testsuites>

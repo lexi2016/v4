@@ -1,0 +1,335 @@
+{
+  "schema_version": "v4.manager_r3.delivery.v1",
+  "package_id": "manager-three-channel-repair-20261009",
+  "task_schema": "v4.manager_three_channel.repair.v1",
+  "base_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+  "frozen_r3_candidate": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+  "local_comparison_baseline": "7ca0190a721a7fd0fc0c88b79a872889867d111f",
+  "parent_shared_baseline": "41a9242d400acec08af3934d1da314b1626a1bcd",
+  "profiles": {
+    "api_r3_candidate": {
+      "role": "FROZEN_R3_API_AND_ORIGINAL_ANNOUNCEMENT_OWNER_SOURCE_ASSEMBLY",
+      "scope": "THREE_CHANNEL_INCREMENT_ONLY_NOT_LIVE_PREIMAGE",
+      "patch_path": "patches/api_r3_candidate.patch",
+      "patch_sha256": "98cde5580bd18197049b84763003909de04b31f680b90fd72c5fb7141ba6a4ad",
+      "source_file_count": 6
+    },
+    "web_r3_candidate": {
+      "role": "FROZEN_R3_WEB_CANDIDATE",
+      "scope": "UNKNOWN_SCREEN_DTO_COMPATIBILITY_NO_LAYOUT_CHANGE",
+      "patch_path": "patches/web_r3_candidate.patch",
+      "patch_sha256": "70ea158500df0e8dfe97bc17bf1b6903bb4305207025e34d8d177dc254e42dbe",
+      "source_file_count": 1
+    },
+    "test_delta": {
+      "role": "SYNTHETIC_SCOPED_REGRESSION_TESTS",
+      "scope": "TEST_ONLY_NO_REAL_BUSINESS_IO",
+      "patch_path": "patches/test_delta.patch",
+      "patch_sha256": "87936182bbb61ddafe8113f1382572caab8b3d0d46b46fb6966c41605acff374",
+      "source_file_count": 6
+    }
+  },
+  "files": [
+    {
+      "profile": "api_r3_candidate",
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+        "repository_path": "handoff/manager-three-channel-problems-20261009/package/source/candidate_after/api/apps/api/v35_api/manager_research_router.py",
+        "source_profile": "api_current",
+        "supplied_role": "api",
+        "supplied_side": "candidate_after",
+        "original_candidate_ref": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+        "current_runtime_source_verified": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": "before/api_r3_candidate/apps/api/v35_api/manager_research_router.py",
+      "before_sha256": "9d8d132c58e7cf1c5a5609d93261483d578268ac24c60c2fa7a6a79b87344341",
+      "before_bytes": 31088,
+      "before_git_blob_sha": "31cc593405789b73b21eef1d5d9ee17ede4f3028",
+      "after_path": "after/api_r3_candidate/apps/api/v35_api/manager_research_router.py",
+      "after_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "after_bytes": 35556,
+      "after_git_blob_sha": "d332ac9d0aa71ec30d7381396a845064687baba0"
+    },
+    {
+      "profile": "api_r3_candidate",
+      "path": "ops/run_manager_daily_announcement.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+        "repository_path": "handoff/manager-three-channel-problems-20261009/package/source/reference/original_r3_business_source/ops/run_manager_daily_announcement.py",
+        "source_profile": "original_owner_reference",
+        "supplied_role": "announcement",
+        "supplied_side": "reference",
+        "original_candidate_ref": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+        "current_runtime_source_verified": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": "before/api_r3_candidate/ops/run_manager_daily_announcement.py",
+      "before_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "before_bytes": 42929,
+      "before_git_blob_sha": "9cca1b53a9cb007fbcda054a3db00d8e40d29208",
+      "after_path": "after/api_r3_candidate/ops/run_manager_daily_announcement.py",
+      "after_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "after_bytes": 42910,
+      "after_git_blob_sha": "6ceaa9fa3fd4e4b5aec9edaa75d535a28d123b22"
+    },
+    {
+      "profile": "api_r3_candidate",
+      "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+        "repository_path": "handoff/manager-three-channel-problems-20261009/package/source/reference/api/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "source_profile": "r3_candidate_reference",
+        "supplied_role": "api",
+        "supplied_side": "reference",
+        "original_candidate_ref": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+        "current_runtime_source_verified": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": "before/api_r3_candidate/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "before_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "before_bytes": 14396,
+      "before_git_blob_sha": "36262bcd4fb9a8a52be8c6791180ee450c2d63b8",
+      "after_path": "after/api_r3_candidate/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "after_sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "after_bytes": 18863,
+      "after_git_blob_sha": "fc423c7de5cf774fd473849c6d02b55220f8e187"
+    },
+    {
+      "profile": "api_r3_candidate",
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+        "repository_path": "handoff/manager-three-channel-problems-20261009/package/source/candidate_after/api/v4/manager_research/plan_owner_dispatch.py",
+        "source_profile": "api_current",
+        "supplied_role": "api",
+        "supplied_side": "candidate_after",
+        "original_candidate_ref": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+        "current_runtime_source_verified": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": "before/api_r3_candidate/v4/manager_research/plan_owner_dispatch.py",
+      "before_sha256": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987",
+      "before_bytes": 53112,
+      "before_git_blob_sha": "c87e5535ff902eb3de3a805d502f1d8c7a7a875e",
+      "after_path": "after/api_r3_candidate/v4/manager_research/plan_owner_dispatch.py",
+      "after_sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "after_bytes": 53361,
+      "after_git_blob_sha": "aa3fa59ca4903d7c6384fbcc86fc21e4c852165d"
+    },
+    {
+      "profile": "api_r3_candidate",
+      "path": "v4/manager_research/workspace_announcements.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+        "repository_path": "handoff/manager-three-channel-problems-20261009/package/source/reference/api/v4/manager_research/workspace_announcements.py",
+        "source_profile": "r3_candidate_reference",
+        "supplied_role": "api",
+        "supplied_side": "reference",
+        "original_candidate_ref": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+        "current_runtime_source_verified": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": "before/api_r3_candidate/v4/manager_research/workspace_announcements.py",
+      "before_sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04",
+      "before_bytes": 162906,
+      "before_git_blob_sha": "5ddab4231e20da6f4c010b1cd68d966f2e3d3408",
+      "after_path": "after/api_r3_candidate/v4/manager_research/workspace_announcements.py",
+      "after_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "after_bytes": 167803,
+      "after_git_blob_sha": "cb3ed21a604bd80adbb5eef8681666e8f176f6e3"
+    },
+    {
+      "profile": "api_r3_candidate",
+      "path": "v4/manager_research/workspace_plan.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+        "repository_path": "handoff/manager-three-channel-problems-20261009/package/source/reference/api/v4/manager_research/workspace_plan.py",
+        "source_profile": "r3_candidate_reference",
+        "supplied_role": "api",
+        "supplied_side": "reference",
+        "original_candidate_ref": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+        "current_runtime_source_verified": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": "before/api_r3_candidate/v4/manager_research/workspace_plan.py",
+      "before_sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+      "before_bytes": 106047,
+      "before_git_blob_sha": "25bdc2c417f28307a4bdd3a05e868ac2285b25c2",
+      "after_path": "after/api_r3_candidate/v4/manager_research/workspace_plan.py",
+      "after_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "after_bytes": 107076,
+      "after_git_blob_sha": "fdefb3b0bcebc69bb58da2a6127db9b298738a9e"
+    },
+    {
+      "profile": "web_r3_candidate",
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+        "repository_path": "handoff/manager-three-channel-problems-20261009/package/source/candidate_after/web/apps/web/src/api/managerWorkspace.ts",
+        "source_profile": "web_cumulative",
+        "supplied_role": "web",
+        "supplied_side": "candidate_after",
+        "original_candidate_ref": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+        "current_runtime_source_verified": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": "before/web_r3_candidate/apps/web/src/api/managerWorkspace.ts",
+      "before_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+      "before_bytes": 109062,
+      "before_git_blob_sha": "b6713b8012958c90079e86a2e7a13df32b3ef66c",
+      "after_path": "after/web_r3_candidate/apps/web/src/api/managerWorkspace.ts",
+      "after_sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+      "after_bytes": 109896,
+      "after_git_blob_sha": "60e30b2acc6a0ae06068ae4d11e758f16f71791b"
+    },
+    {
+      "profile": "test_delta",
+      "path": "tests/test_manager_announcement_handoff_20261009.py",
+      "change": "added",
+      "before_origin": null,
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": 0,
+      "before_git_blob_sha": null,
+      "after_path": "after/test_delta/tests/test_manager_announcement_handoff_20261009.py",
+      "after_sha256": "dd38c69af5230927d59f4c10ec375b41506999663a623da278a76c14a101dfe2",
+      "after_bytes": 21474,
+      "after_git_blob_sha": "404ab5af43ba9868594e220e12bd34cf5ce34876"
+    },
+    {
+      "profile": "test_delta",
+      "path": "tests/test_manager_us_mapping_three_channel_20261009.py",
+      "change": "added",
+      "before_origin": null,
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": 0,
+      "before_git_blob_sha": null,
+      "after_path": "after/test_delta/tests/test_manager_us_mapping_three_channel_20261009.py",
+      "after_sha256": "9f7f1a3f73a539b470ba18a1ec029360c77734de21015895d73bc03cdcc1fd2a",
+      "after_bytes": 17876,
+      "after_git_blob_sha": "37b95a00d46f0fbe41b3ed4569a587912329c74e"
+    },
+    {
+      "profile": "test_delta",
+      "path": "tests/test_manager_three_channel_hk_reader.py",
+      "change": "added",
+      "before_origin": null,
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": 0,
+      "before_git_blob_sha": null,
+      "after_path": "after/test_delta/tests/test_manager_three_channel_hk_reader.py",
+      "after_sha256": "d037d4f43559e45d23f92b63a27317f2e5587b1b86649fbb9e6198a62618e7e5",
+      "after_bytes": 12661,
+      "after_git_blob_sha": "fb577af7ccebaa9cce1e26954319715e4a6339aa"
+    },
+    {
+      "profile": "test_delta",
+      "path": "tests/test_manager_screen_summary_contract.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+        "repository_path": "handoff/v4-running-source-20261005/canonical/tests/test_manager_screen_summary_contract.py",
+        "basis": "EXACT_GIT_BLOB_FROM_FIXED_TREE",
+        "current_runtime_source_verified": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": "before/test_delta/tests/test_manager_screen_summary_contract.py",
+      "before_sha256": "9f39c7eaa7fa730322f84e199c94440a838e44332dde35145d09e619b901e09b",
+      "before_bytes": 4760,
+      "before_git_blob_sha": "0d8a781023226e89de15bf2391dfa86d943153d9",
+      "after_path": "after/test_delta/tests/test_manager_screen_summary_contract.py",
+      "after_sha256": "0b67119b4b5637dce32e8c61cbfd4c066c35469569c8524cd912d5d75466dd09",
+      "after_bytes": 4821,
+      "after_git_blob_sha": "9103caa090a2476961c014a532596b77e70b88e6"
+    },
+    {
+      "profile": "test_delta",
+      "path": "tests/manager_three_channel_ui_fixture.py",
+      "change": "added",
+      "before_origin": null,
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": 0,
+      "before_git_blob_sha": null,
+      "after_path": "after/test_delta/tests/manager_three_channel_ui_fixture.py",
+      "after_sha256": "1891b76ff2f0f07300831f46878ce416a83aa35441d28e91755eaaadb02ba894",
+      "after_bytes": 1349,
+      "after_git_blob_sha": "a8ab525c2a05a028d84390917af7fba48bdd6331"
+    },
+    {
+      "profile": "test_delta",
+      "path": "apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+      "change": "added",
+      "before_origin": null,
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": 0,
+      "before_git_blob_sha": null,
+      "after_path": "after/test_delta/apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+      "after_sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4",
+      "after_bytes": 6823,
+      "after_git_blob_sha": "4f528c782d8771736936421857f3079f5b694b96"
+    }
+  ],
+  "preserve": [
+    {
+      "profiles": [
+        "api_r3_candidate"
+      ],
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "reference_path": "reference/preserved/apps/api/v35_api/app.py",
+      "host_recheck_required": true
+    },
+    {
+      "profiles": [
+        "api_r3_candidate"
+      ],
+      "path": "apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "reference_path": "reference/preserved/apps/api/v35_api/preselection_router.py",
+      "host_recheck_required": true
+    },
+    {
+      "profiles": [
+        "api_r3_candidate"
+      ],
+      "path": "apps/api/v35_api/preselection_service.py",
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "reference_path": "reference/preserved/apps/api/v35_api/preselection_service.py",
+      "host_recheck_required": true
+    }
+  ],
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "not_full_deployable_app": true,
+  "actual_runtime_process_identity": "NOT_RUN"
+}

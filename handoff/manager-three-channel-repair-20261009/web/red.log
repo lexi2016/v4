@@ -1,0 +1,70 @@
+
+ RUN  v4.1.10 /workspace/scratch/21926b793c00/three_channel/app/apps/web
+
+ ❯ src/api/managerWorkspace.threeChannel.spec.ts (11 tests | 3 failed) 19ms
+     × accepts unknown counts without calling them a successful zero and preserves other channels 9ms
+     × preserves a verified-input legitimate zero and rejects null counts in that branch 3ms
+     × retains compatibility with the older numeric unavailable DTO 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts unknown counts without calling them a successful zero and preserves other channels
+Error: WORKSPACE_COUNT_INVALID
+ ❯ count src/api/managerWorkspace.ts:180:85
+    178| }
+    179| function count(value: unknown): asserts value is number {
+    180|   if (typeof value !== 'number' || !Number.isSafeInteger(value) || val…
+       |                                                                                     ^
+    181| }
+    182| /** Every rendered action must reference the SAME retained issuer prop…
+ ❯ validateManagerWorkspace src/api/managerWorkspace.ts:1457:5
+ ❯ parseWorkspaceResponse src/api/managerWorkspace.ts:1519:10
+ ❯ requestManagerWorkspace src/api/managerWorkspace.ts:1537:15
+ ❯ src/api/managerWorkspace.threeChannel.spec.ts:38:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > preserves a verified-input legitimate zero and rejects null counts in that branch
+AssertionError: expected [Function] to not throw an error but 'Error: WORKSPACE_READ_CONTEXT_INVALID' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"Error: WORKSPACE_READ_CONTEXT_INVALID"
+
+ ❯ src/api/managerWorkspace.threeChannel.spec.ts:67:78
+     65|     Object.assign(screen, { status: 'READY', main_screen_ready: true, …
+     66|     screen.coverage = { counts_known: true, ...Object.fromEntries(coun…
+     67|     expect(() => validateManagerWorkspace(envelope(screen), '20261009'…
+       |                                                                              ^
+     68|     (screen.coverage as JsonObject).selected_count = null;
+     69|     expect(() => validateManagerWorkspace(envelope(screen), '20261009'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > retains compatibility with the older numeric unavailable DTO
+AssertionError: expected [Function] to not throw an error but 'Error: WORKSPACE_READ_CONTEXT_INVALID' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"Error: WORKSPACE_READ_CONTEXT_INVALID"
+
+ ❯ src/api/managerWorkspace.threeChannel.spec.ts:75:78
+     73|     const screen = unknownScreen();
+     74|     screen.coverage = Object.fromEntries(countFields.map(key => [key, …
+     75|     expect(() => validateManagerWorkspace(envelope(screen), '20261009'…
+       |                                                                              ^
+     76|     expect(screeningStatus(screen as never).complete).toBe(false);
+     77|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 8 passed (11)
+   Start at  02:59:55
+   Duration  720ms (transform 121ms, setup 0ms, import 146ms, tests 19ms, environment 418ms)
+

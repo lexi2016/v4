@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "schema_version": "v4.manager_r3.delivery.v1",
+  "manifest_sha256": "ccd38bc88ab8aa2231e844ef581470bea32545f7d48f988996dc9290f9689e9d",
+  "payload_count": 21,
+  "profile": "api_r3_candidate",
+  "against": "after",
+  "source_checked": [
+    "apps/api/v35_api/manager_research_router.py",
+    "ops/run_manager_daily_announcement.py",
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+    "v4/manager_research/plan_owner_dispatch.py",
+    "v4/manager_research/workspace_announcements.py",
+    "v4/manager_research/workspace_plan.py"
+  ],
+  "preserved_checked": [
+    "apps/api/v35_api/app.py",
+    "apps/api/v35_api/preselection_router.py",
+    "apps/api/v35_api/preselection_service.py"
+  ],
+  "source_root": "/workspace/scratch/21926b793c00/three_channel/independent_review/package_temporary/host-flow-2rs3q_m2",
+  "source_writes": 0,
+  "business_io": false,
+  "deployment_claimed": false
+}

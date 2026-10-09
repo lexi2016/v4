@@ -1,0 +1,26 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_____ test_cli_rejects_verified_projection_without_catalog_run_and_digest ______
+../independent_review/test_review_boundaries.py:47: in test_cli_rejects_verified_projection_without_catalog_run_and_digest
+    with pytest.raises(ValueError, match="ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_____ test_manual_preparation_rejects_artifact_text_without_persisted_run ______
+../independent_review/test_review_boundaries.py:63: in test_manual_preparation_rejects_artifact_text_without_persisted_run
+    assert "SYNTHETIC_PRIVATE_TEXT_NOT_A_DIGEST" not in response.text
+E   assert 'SYNTHETIC_P...NOT_A_DIGEST' not in '{"RESEARCH_...ent":false}}'
+E     
+E     'SYNTHETIC_PRIVATE_TEXT_NOT_A_DIGEST' is contained here:
+E       _sha256":"SYNTHETIC_PRIVATE_TEXT_NOT_A_DIGEST","execution_status":"US_MAPPING_OWNER_BUILD_FAILED","gaps":[],"RESEARCH_ONLY":true,"production_allowed":false,"buy_gate_updated":false,"orders_sent":false},"store_latest_matches_http_plan_product":true,"persisted_store":{"target_trade_date":"20261009","run_id":"609fd670792a42f7981ce2948825068a","product_sha256":"33615ffa9d6f9310c3a631402040e98517485da72ce6ca4cf7a66da53a01f641","execution_kind":"MANUAL_REFRESH","owner":"ManagerResearchJobService.refresh_workspace_plan"...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+=============================== warnings summary ===============================
+../../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../independent_review/test_review_boundaries.py::test_cli_rejects_verified_projection_without_catalog_run_and_digest
+FAILED ../independent_review/test_review_boundaries.py::test_manual_preparation_rejects_artifact_text_without_persisted_run
+2 failed, 1 warning in 0.70s

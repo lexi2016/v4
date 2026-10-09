@@ -1,0 +1,62 @@
+{
+  "fixture": "UNCHANGED_ASSEMBLY_BASELINE_SYNTHETIC_ONLY",
+  "runtime_root": "/workspace/scratch/21926b793c00/three_channel/announcement/baseline_app",
+  "selection_diagnostics": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "candidate_count": 0,
+    "candidate_scope": "RESEARCH_RELATIONS_NOT_FORMAL_CONNECT_SELECTION",
+    "candidates": [],
+    "capture_input_identity": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "connect_gaps": [],
+    "formal_selection": {
+      "RESEARCH_ONLY": true,
+      "buy_allowed": false,
+      "buy_gate_updated": false,
+      "calendar": {},
+      "candidate_count": null,
+      "membership_status": "OWNER_VERIFIED",
+      "orders_sent": false,
+      "production_allowed": false,
+      "qualified": false,
+      "reason": "HK_CONNECT_CALENDAR_UNVERIFIED",
+      "status": "CANNOT_CONFIRM",
+      "target_trade_date": "20261008"
+    },
+    "gaps": [
+      "ANNOUNCEMENT_INPUT_NOT_READY",
+      "US_MARKET_MAPPING_INPUT_NOT_READY"
+    ],
+    "membership": {
+      "codes": [
+        "HK.00001"
+      ],
+      "gaps": [],
+      "identity": "81496067eefb502f39d6d08a01f316fcae4e09cbe7062afca7d099e43079769c",
+      "membership_semantics": "TARGET_DATE_CAPTURED_HK_CONNECT_AUTHORITY_V2",
+      "source": {
+        "market": "HK_CONNECT",
+        "role": "HK_CONNECT_FULL_MARKET_AUTHORITY",
+        "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "source_date": "20261008"
+      },
+      "status": "OWNER_VERIFIED",
+      "target_trade_date": "20261008"
+    },
+    "orders_sent": false,
+    "original_screen_unchanged": true,
+    "original_stage_unchanged": true,
+    "production_allowed": false,
+    "raw_us_movers_retained": true,
+    "rejections": [],
+    "research_attention_status": "READY_WITH_GAPS",
+    "schema_version": "v4.manager_research.selection_diagnostics.v1",
+    "source_capture_dates": [
+      "20261008"
+    ],
+    "status": "PARTIAL",
+    "target_trade_date": "20261008",
+    "us_relation_audit": []
+  },
+  "target_trade_date": "20261008"
+}

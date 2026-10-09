@@ -1,0 +1,12 @@
+{
+  "command": "/workspace/scratch/a154a3323e32/test_env/bin/python -c 'import sys; sys.path.insert(0, '\"'\"'tests'\"'\"'); import r3_scoped_loader; r3_scoped_loader.install(); setattr(sys.modules['\"'\"'v4'\"'\"'], '\"'\"'manager_research'\"'\"', sys.modules['\"'\"'v4.manager_research'\"'\"']); setattr(sys.modules['\"'\"'infrastructure'\"'\"'], '\"'\"'scheduling'\"'\"', sys.modules['\"'\"'infrastructure.scheduling'\"'\"']); import pytest; raise SystemExit(pytest.main(['\"'\"'-q'\"'\"', '\"'\"'tests/test_manager_us_mapping_three_channel_20261009.py'\"'\"', '\"'\"'tests/test_manager_us_daily_automation_20261008.py'\"'\"', '\"'\"'tests/test_manager_daily_automation_20261008.py'\"'\"', '\"'\"'tests/test_manager_daily_dispatch_20261008.py'\"'\"', '\"'\"'tests/test_manager_workspace_exact_page_binding_20261008.py'\"'\"', '\"'\"'tests/test_manager_us_mapping_isolation_20261008.py'\"'\"', '\"'\"'tests/test_manager_us_mapping_research.py::test_TEST_FIXTURE_synthetic_owner_sessions_produce_date_distinct_mappings_and_api_readbacks'\"'\"']))'",
+  "cwd": "/workspace/scratch/21926b793c00/three_channel/app",
+  "environment_overrides": {
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/three_channel/app",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "exit_code": 0,
+  "elapsed_seconds": 8.79,
+  "classification": "FINAL_FOCUSED_SYNTHETIC_REGRESSION_NAMESPACE_PARENT_LINKED"
+}

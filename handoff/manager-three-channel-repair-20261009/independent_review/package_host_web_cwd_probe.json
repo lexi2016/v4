@@ -1,0 +1,34 @@
+[
+  {
+    "name": "source_web_cwd",
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009/tools/vitest.config.mjs",
+      "src/api/managerWorkspace.threeChannel.spec.ts",
+      "src/api/managerWorkspace.dailyAutomation.spec.ts"
+    ],
+    "cwd": "/workspace/scratch/21926b793c00/three_channel/independent_review/package_temporary/cwd-probe-syg_2f0c/apps/web",
+    "exit_code": 0,
+    "log": "package_host_web_source_web_cwd.log",
+    "log_sha256": "a175297bc7fafa673714e736f61a3c163a424623fe46541789045e119c5b9334"
+  },
+  {
+    "name": "source_root_cwd",
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009/tools/vitest.config.mjs",
+      "src/api/managerWorkspace.threeChannel.spec.ts",
+      "src/api/managerWorkspace.dailyAutomation.spec.ts"
+    ],
+    "cwd": "/workspace/scratch/21926b793c00/three_channel/independent_review/package_temporary/cwd-probe-syg_2f0c",
+    "exit_code": 0,
+    "log": "package_host_web_source_root_cwd.log",
+    "log_sha256": "884741dec42f38e9a2d229b3ba934ca570b534081eda5fc0fb3761da0d07d23e"
+  }
+]

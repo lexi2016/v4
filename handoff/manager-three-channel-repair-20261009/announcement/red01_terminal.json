@@ -1,0 +1,20 @@
+{
+  "fixture": "SYNTHETIC_ONLY",
+  "runtime_root": "/workspace/scratch/21926b793c00/three_channel/app",
+  "target_trade_date": "20261009",
+  "publication_date": "2026-10-08",
+  "byte_binding_checks": {
+    "body_corpus.json": {
+      "expected": "cd369f36470bf90981267dc78ad3ca7169067278aa46daf6d0a057c8d18b9208",
+      "actual": "5b6fb3b8fc04dabd96ceb7f0b0ae5e6401bbd235dcb48a066f5fd497299997c6"
+    },
+    "body_corpus_manifest.json": {
+      "expected": "ab5120a65a484884415f62309d6d4727f63f83ee90f09bb3e060f5ee5c65fec8",
+      "actual": "e2441550be146350335511754851dbbc7dbc62b68b0c493f0401723c3732a729"
+    }
+  },
+  "terminal_validation": {
+    "status": "REJECTED",
+    "reason": "ANNOUNCEMENT_BODY_CAPTURE_RECEIPT_BINDING_INVALID"
+  }
+}

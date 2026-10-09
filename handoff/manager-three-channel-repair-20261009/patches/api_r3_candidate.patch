@@ -1,0 +1,555 @@
+--- a/apps/api/v35_api/manager_research_router.py
++++ b/apps/api/v35_api/manager_research_router.py
+@@ -20,7 +20,7 @@
+ from fastapi import APIRouter, HTTPException, Query, Request
+ from v4.manager_research.store import StoreError
+ from v4.manager_research.workspace_read_control import WorkspaceReadError
+-from v4.manager_research.workspace_projection import HK
++from v4.manager_research.workspace_projection import FLAGS, HK
+ 
+ 
+ _DATE_RE = re.compile(r"^\d{8}$")
+@@ -261,15 +261,69 @@
+         target_day = datetime.strptime(target, "%Y%m%d").date()
+         timing = "RETROSPECTIVE" if target_day < actual_now.astimezone(HK).date() else "UNCLASSIFIED"
+         trigger_id = hashlib.sha256(uuid4().bytes).hexdigest()
++        execution_context = {"trigger_kind": "MANUAL", "timing": timing,
++            "scheduled_for": None, "trigger_id": trigger_id, "natural_run_verified": False}
++        us_mapping_preparation = {"status": "FUTURE_TARGET_NOT_DUE", "target_trade_date": target,
++            "execution_attempted": False, "run_id": None, "artifact_sha256": None,
++            "execution_status": None, "gaps": [], **FLAGS}
++        us_market_request_context = None
++        if target_day <= actual_now.astimezone(HK).date():
++            # The existing page action prepares its independent research owner
++            # before the plan. GET remains read-only; no source is collected.
++            us_mapping_preparation["execution_attempted"] = True
++            try:
++                daily = await run_in_threadpool(service.refresh_us_mapping_research, target,
++                    now=actual_now, timeout_seconds=5.0, execution_context=execution_context)
++                if (not isinstance(daily, dict) or daily.get("target_trade_date") != target
++                        or daily.get("schema_version") != "v4.manager_research.us_mapping_daily_run.v1"
++                        or daily.get("status") not in {"COMPLETED", "VALID_EMPTY", "PARTIAL",
++                            "INPUT_MISSING", "CANNOT_CONFIRM", "FAILED"}
++                        or any(daily.get(key) is not flag for key, flag in FLAGS.items())):
++                    raise ValueError("US_MAPPING_OWNER_RESULT_INVALID")
++                execution_status = daily.get("execution_status")
++                if (execution_status is not None and (not isinstance(execution_status, str)
++                        or not re.fullmatch(r"[A-Z][A-Z0-9_:.]{0,159}", execution_status))):
++                    raise ValueError("US_MAPPING_OWNER_RESULT_DIAGNOSTIC_INVALID")
++                run_id, artifact_sha = daily.get("run_id"), daily.get("artifact_sha256")
++                if ((run_id is None and artifact_sha is not None)
++                        or (run_id is not None and (
++                            not isinstance(run_id, str) or not re.fullmatch(r"[0-9a-f]{32}", run_id)
++                            or not isinstance(artifact_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", artifact_sha)))):
++                    raise ValueError("US_MAPPING_OWNER_RESULT_RUN_IDENTITY_INVALID")
++                if run_id is not None:
++                    from v4.manager_research.us_mapping_research import _read_exact_run
++                    stored = await run_in_threadpool(_read_exact_run, service.store, target, run_id, artifact_sha)
++                    if stored.get("status") != daily.get("status") or artifact_sha != stored.get("artifact_sha256"):
++                        raise ValueError("US_MAPPING_OWNER_RESULT_READBACK_MISMATCH")
++                elif daily["status"] in {"COMPLETED", "VALID_EMPTY", "PARTIAL"}:
++                    raise ValueError("US_MAPPING_OWNER_RESULT_RUN_REQUIRED")
++                us_mapping_preparation.update({key: daily.get(key) for key in (
++                    "status", "run_id", "artifact_sha256", "execution_status")})
++                us_mapping_preparation["gaps"] = [gap for gap in daily.get("gaps", [])
++                    if isinstance(gap, str) and re.fullmatch(r"[A-Z][A-Z0-9_:.]{0,159}", gap)][:32]
++                if daily.get("execution_status") in {"US_MAPPING_OWNER_READ_TIMEOUT", "US_MAPPING_OWNER_READ_BUSY"}:
++                    us_market_request_context = {"target_trade_date": target,
++                        "execution_status": daily["execution_status"], "bypass_reader": True}
++            except (ImportError, ValueError, OSError, KeyError, TypeError, RuntimeError, TimeoutError, StoreError) as exc:
++                # This response diagnostic is not a persisted owner receipt.
++                # Preserve the exception type without blocking unrelated lanes
++                # or manufacturing a new mapping attempt/product in the router.
++                code = "US_MAPPING_OWNER_CALL_FAILED:" + type(exc).__name__
++                us_mapping_preparation.update(status="FAILED", run_id=None, artifact_sha256=None,
++                    execution_status=code, gaps=[code])
++        # Preparation may finish after the click's original cutoff. The plan
++        # must use the actual subsequent clock to consume that saved daily run.
++        actual_now = datetime.now(HK)
++        execution_context["timing"] = ("RETROSPECTIVE"
++            if target_day < actual_now.astimezone(HK).date() else "UNCLASSIFIED")
+         try:
+             # Existing owner projects existing inputs; no catalyst refresh,
+             # quote collection, Stage job or browser-supplied stock list.
+             result = await run_in_threadpool(service.refresh_workspace_plan, target,
+                 execution_kind="MANUAL_REFRESH", now=actual_now,
+                 workspace_date_bindings=workspace_date_bindings or None,
+-                execution_context={"trigger_kind":"MANUAL","timing":timing,
+-                    "scheduled_for":None,"trigger_id":trigger_id,
+-                    "natural_run_verified":False})
++                execution_context=execution_context,
++                us_market_request_context=us_market_request_context)
+             if not isinstance(result, dict) or not isinstance(result.get("plan_product"), dict):
+                 raise ValueError("WORKSPACE_PLAN_REFRESH_RESULT_INVALID")
+             product = result["plan_product"]
+@@ -306,6 +360,7 @@
+                 "target_trade_date": target,
+                 "execution_kind": persisted.get("execution_kind", "MANUAL_REFRESH"),
+                 "formal_recommendation_count": 0,
++                "us_mapping_preparation": us_mapping_preparation,
+                 "store_latest_matches_http_plan_product": True,
+                 "persisted_store": {
+                     "target_trade_date": persisted.get("target_trade_date"),
+--- a/ops/run_manager_daily_announcement.py
++++ b/ops/run_manager_daily_announcement.py
+@@ -35,6 +35,7 @@
+ from v4.manager_research.workspace_announcements import (
+     validate_agent_judgment_receipt,
+     validate_owner_analysis_import_receipt,
++    validate_owner_analysis_readback,
+     validate_terminal_body_capture,
+ )
+ from v4.manager_research.workspace_projection import FLAGS, date_token, digest
+@@ -253,14 +254,12 @@
+                              target, publication)
+     body_path = evidence_root / "body_corpus.json"
+     body_manifest_path = evidence_root / "body_corpus_manifest.json"
+-    if body_batch.get("body_corpus") != "body_corpus.json":
+-        body_value = _load(evidence_root / "body_batch" / str(body_batch.get("body_corpus")))
+-        _write_exclusive(body_path, body_value)
+-    else:
+-        _write_exclusive(body_path, _load(evidence_root / "body_batch/body_corpus.json"))
+-    _write_exclusive(body_manifest_path, _load(evidence_root / "body_batch/body_corpus_manifest.json"))
++    # The body producer binds these exact file bytes into the corpus and
++    # batch receipt. Reformatting their JSON invalidates the handoff hashes.
++    _copy_json_bytes(evidence_root / "body_batch/body_corpus.json", body_path)
++    _copy_json_bytes(evidence_root / "body_batch/body_corpus_manifest.json", body_manifest_path)
+     body_batch_receipt = evidence_root / "body_batch_receipt.json"
+-    _write_exclusive(body_batch_receipt, _load(evidence_root / "body_batch/batch_receipt.json"))
++    _copy_json_bytes(evidence_root / "body_batch/batch_receipt.json", body_batch_receipt)
+     capture_receipt = {"schema_version": "v4.manager_research.announcement_daily_capture.v1",
+         "status": body_batch.get("status"), "evidence_run_id": run_id,
+         "target_trade_date": target, "publication_date": publication,
+@@ -535,7 +534,9 @@
+             or reviewer.get("decision_payload_sha256") != decision_payload_sha
+             or reviewer.get("reader_identity") != args.reader_identity
+             or reviewer.get("reviewer_identity") != args.reviewer_identity
+-            or args.reader_identity == args.reviewer_identity
++            or not all(isinstance(identity, str) and identity.strip()
++                       for identity in (args.reader_identity, args.reviewer_identity))
++            or args.reader_identity.strip() == args.reviewer_identity.strip()
+             or not isinstance(reviewed_at, str) or not reviewed_at.strip()):
+         raise ValueError("ANNOUNCEMENT_HANDOFF_REVIEW_OUTPUT_INVALID")
+     body_sha = _file_sha(body_path)
+@@ -638,12 +639,10 @@
+     if (result.get("target_trade_date") != target
+             or result.get("publication_date") != publication):
+         raise ValueError("ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_DATE_PAIR_MISMATCH")
+-    product = {"target_trade_date": target, "publication_date": publication,
+-        "sha256": analysis.get("product_sha256")}
+     receipt = result.get("owner_import_receipt")
+     if receipt is None:
+         raise ValueError("ANNOUNCEMENT_ANALYSIS_OWNER_IMPORT_RECEIPT_MISSING")
+-    validated_receipt = validate_owner_analysis_import_receipt(receipt, product)
++    validated_receipt = validate_owner_analysis_readback(result)
+     if (validated_receipt.get("target_trade_date") != target
+             or validated_receipt.get("publication_date") != publication
+             or validated_receipt.get("product_sha256") != analysis.get("product_sha256")):
+--- a/upstreams/v3_shared_data/shared_data/hk_security_master.py
++++ b/upstreams/v3_shared_data/shared_data/hk_security_master.py
+@@ -7,6 +7,7 @@
+ from __future__ import annotations
+ 
+ import csv
++import io
+ import json
+ import math
+ import os
+@@ -15,7 +16,7 @@
+ from pathlib import Path
+ from typing import Any, Mapping, Sequence
+ 
+-from .hashing import canonical_bytes, sha256_file, sha256_json
++from .hashing import canonical_bytes, sha256_bytes, sha256_file, sha256_json
+ from .paths import resolve_under, validate_date
+ from .store import StoreError
+ 
+@@ -272,52 +273,135 @@
+         **_SAFETY,
+     }
+ 
+-def load_verified_hk_security_master(
++class HKSecurityMasterReadError(StoreError):
++    """A bounded reader reason and the exact index observation that failed.
++
++    Diagnostic fields contain no exception text, file paths, or security rows.
++    Missing exact-date input remains distinct from invalid referenced evidence.
++    """
++
++    def __init__(self, reason_code: str, diagnostic: Mapping[str, Any]) -> None:
++        super().__init__(reason_code)
++        self.reason_code = reason_code
++        self.diagnostic = dict(diagnostic, reason_code=reason_code)
++
++
++def load_verified_hk_security_master_snapshot(
+     store_root: Path | str, trade_date: str
+-) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
++) -> tuple[dict[str, dict[str, Any]], dict[str, Any], dict[str, Any]]:
++    """Read one exact-date indexed run and witness the same verified bytes.
++
++    The date index is read once. A newer pointer cannot replace the run already
++    selected here, and a missing entry never consults another date or scans runs.
++    Existing consumers can keep using the two-value loader below.
++    """
+     trade_date = validate_date(trade_date)
+     asset_root = Path(store_root) / "assets" / "hk_security_master"
+-    try:
+-        latest = json.loads((asset_root / "latest.json").read_text(encoding="utf-8"))
+-        if latest.get("schema_version") != LATEST_SCHEMA_VERSION:
+-            raise StoreError("HK security-master latest schema mismatch")
+-        entry = latest["entries"][trade_date]
+-        manifest_path = resolve_under(asset_root, str(entry["manifest_relative"]))
+-        receipt_path = resolve_under(asset_root, str(entry["receipt_relative"]))
+-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+-        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+-        artifact = resolve_under(asset_root, str(manifest["artifact_relative"]))
+-    except (OSError, ValueError, KeyError, TypeError) as error:
+-        raise StoreError(f"HK security-master metadata invalid: {error}") from error
++    diagnostic: dict[str, Any] = {
++        "status": "INVALID", "reason_code": None, "requested_trade_date": trade_date,
++        "validation_stage": "INDEX_READ", "latest_json_sha256": None,
++        "entry_count": None, "latest_entry_date": None, "requested_entry_present": None,
++    }
++
++    def failure(reason_code: str, stage: str, *, status: str = "INVALID") -> HKSecurityMasterReadError:
++        return HKSecurityMasterReadError(reason_code,
++            dict(diagnostic, status=status, validation_stage=stage))
++
++    try:
++        latest_bytes = (asset_root / "latest.json").read_bytes()
++    except FileNotFoundError as error:
++        raise failure("HK_SECURITY_MASTER_INDEX_MISSING", "INDEX_READ", status="MISSING") from error
++    except OSError as error:
++        raise failure("HK_SECURITY_MASTER_INDEX_UNREADABLE", "INDEX_READ") from error
++    diagnostic["latest_json_sha256"] = sha256_bytes(latest_bytes)
++    try:
++        latest = json.loads(latest_bytes.decode("utf-8"))
++    except (ValueError, UnicodeError) as error:
++        raise failure("HK_SECURITY_MASTER_INDEX_INVALID", "INDEX_SCHEMA") from error
++    if (not isinstance(latest, dict) or latest.get("schema_version") != LATEST_SCHEMA_VERSION
++            or not isinstance(latest.get("entries"), dict)):
++        raise failure("HK_SECURITY_MASTER_INDEX_SCHEMA_INVALID", "INDEX_SCHEMA")
++    entries = latest["entries"]
++    dates = [key for key in entries if len(key) == 8 and key.isascii() and key.isdigit()]
++    diagnostic.update(entry_count=len(entries), latest_entry_date=max(dates) if dates else None,
++                      requested_entry_present=trade_date in entries)
++    if trade_date not in entries:
++        raise failure("HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING", "INDEX_LOOKUP", status="MISSING")
++    entry = entries[trade_date]
++    if (not isinstance(entry, dict) or not isinstance(entry.get("run_id"), str)
++            or not entry["run_id"] or not isinstance(entry.get("manifest_relative"), str)
++            or not isinstance(entry.get("receipt_relative"), str)):
++        raise failure("HK_SECURITY_MASTER_ENTRY_INVALID", "INDEX_ENTRY")
++    try:
++        manifest_path = resolve_under(asset_root, entry["manifest_relative"])
++        receipt_path = resolve_under(asset_root, entry["receipt_relative"])
++        manifest_bytes = manifest_path.read_bytes()
++        receipt_bytes = receipt_path.read_bytes()
++        manifest = json.loads(manifest_bytes.decode("utf-8"))
++        receipt = json.loads(receipt_bytes.decode("utf-8"))
++        if not isinstance(manifest, dict) or not isinstance(receipt, dict):
++            raise ValueError("metadata objects required")
++        artifact = resolve_under(asset_root, manifest["artifact_relative"])
++    except OSError as error:
++        raise failure("HK_SECURITY_MASTER_METADATA_UNREADABLE", "METADATA_READ") from error
++    except (ValueError, KeyError, TypeError) as error:
++        raise failure("HK_SECURITY_MASTER_METADATA_INVALID", "METADATA_READ") from error
+     if (
+         manifest.get("schema_version") != MANIFEST_SCHEMA_VERSION
+         or receipt.get("schema_version") != RECEIPT_SCHEMA_VERSION
+         or receipt.get("status") != "READY"
+         or manifest.get("trade_date") != trade_date
++        or receipt.get("trade_date") != trade_date
+         or manifest.get("run_id") != entry.get("run_id")
+         or receipt.get("run_id") != entry.get("run_id")
+         or manifest.get("later_snapshot_price_allowed") is not False
+         or any(manifest.get(key) is not False or receipt.get(key) is not False for key in _SAFETY)
+     ):
+-        raise StoreError("HK security-master identity or safety contract invalid")
+-    if sha256_file(artifact) != manifest.get("artifact_sha256") or receipt.get("artifact_sha256") != manifest.get("artifact_sha256"):
+-        raise StoreError("HK security-master artifact checksum mismatch")
++        raise failure("HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID", "IDENTITY")
++    try:
++        artifact_bytes = artifact.read_bytes()
++    except OSError as error:
++        raise failure("HK_SECURITY_MASTER_ARTIFACT_UNREADABLE", "ARTIFACT_READ") from error
++    artifact_sha256 = sha256_bytes(artifact_bytes)
++    if artifact_sha256 != manifest.get("artifact_sha256") or receipt.get("artifact_sha256") != manifest.get("artifact_sha256"):
++        raise failure("HK_SECURITY_MASTER_ARTIFACT_CHECKSUM_MISMATCH", "ARTIFACT_CHECKSUM")
+     if sha256_json(manifest) != receipt.get("manifest_sha256"):
+-        raise StoreError("HK security-master manifest checksum mismatch")
++        raise failure("HK_SECURITY_MASTER_MANIFEST_CHECKSUM_MISMATCH", "MANIFEST_CHECKSUM")
+     rows: dict[str, dict[str, Any]] = {}
+-    with artifact.open("r", encoding="utf-8-sig", newline="") as handle:
++    try:
++        handle = io.StringIO(artifact_bytes.decode("utf-8-sig"), newline="")
+         for row in csv.DictReader(handle):
+             code = str(row.get("code") or "").strip().upper()
+             if not code or code in rows:
+-                raise StoreError("HK security-master artifact code invalid")
++                raise failure("HK_SECURITY_MASTER_ARTIFACT_CODE_INVALID", "ARTIFACT_ROWS")
+             rows[code] = dict(row)
+-    if len(rows) != int(manifest.get("row_count") or -1):
+-        raise StoreError("HK security-master row count mismatch")
++        expected_count = int(manifest.get("row_count") or -1)
++    except (UnicodeError, csv.Error, ValueError, TypeError) as error:
++        raise failure("HK_SECURITY_MASTER_ARTIFACT_INVALID", "ARTIFACT_ROWS") from error
++    if len(rows) != expected_count:
++        raise failure("HK_SECURITY_MASTER_ROW_COUNT_MISMATCH", "ARTIFACT_ROWS")
++    diagnostic.update(status="VERIFIED", reason_code=None, validation_stage="COMPLETE")
++    witness = {
++        "manifest_path": str(manifest_path), "manifest_sha256": sha256_bytes(manifest_bytes),
++        "artifact_path": str(artifact), "artifact_sha256": artifact_sha256,
++        "receipt_path": str(receipt_path), "receipt_sha256": sha256_bytes(receipt_bytes),
++        "row_count": manifest.get("row_count"), "run_id": manifest.get("run_id"),
++        "captured_at": manifest.get("captured_at"), "read_diagnostic": diagnostic,
++    }
++    return rows, manifest, witness
++
++
++def load_verified_hk_security_master(
++    store_root: Path | str, trade_date: str
++) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
++    rows, manifest, _ = load_verified_hk_security_master_snapshot(store_root, trade_date)
+     return rows, manifest
+ 
+ 
+ __all__ = [
++    "HKSecurityMasterReadError",
+     "load_verified_hk_security_master",
++    "load_verified_hk_security_master_snapshot",
+     "publish_hk_security_master",
+     "restore_verified_hk_security_master",
+ ]
+--- a/v4/manager_research/plan_owner_dispatch.py
++++ b/v4/manager_research/plan_owner_dispatch.py
+@@ -632,7 +632,10 @@
+         if branch == "MORNING":
+             from v4.manager_research.workspace_plan_autorun import morning_window
+             scheduled_for = datetime.strptime(str(slot), "%Y%m%dT%H%M").replace(tzinfo=HK)
+-            phase_id = "MORNING_US"
++            # One immutable attempt belongs to one already-admitted morning
++            # slot. Reusing a day-wide trigger would replay an early missing
++            # input forever, even after the original exact-session source arrives.
++            phase_id = "MORNING_US:" + str(slot)
+             timing = "ON_TIME"
+         else:
+             scheduled_for = datetime.strptime(str(scheduled_slot), "%Y%m%dT%H%M").replace(tzinfo=HK)
+--- a/v4/manager_research/workspace_announcements.py
++++ b/v4/manager_research/workspace_announcements.py
+@@ -1738,10 +1738,10 @@
+             or receipt.get('body_corpus_sha256') != manifest.get('body_corpus_sha256')
+             or receipt.get('catalog_product_sha256') != manifest.get('catalog_product_sha256')
+             or not all(isinstance(receipt.get(key), str) and receipt[key].strip()
+-                       for key in ('parent_task_id', 'parent_run_id', 'reviewer_identity'))
++                       for key in ('parent_task_id', 'parent_run_id', 'reader_identity', 'reviewer_identity'))
+             or receipt.get('evidence_binding_status') != 'OUTPUT_BOUND'
+             or receipt.get('external_review_status') != 'DECLARED'
+-            or receipt.get('reader_identity') == receipt.get('reviewer_identity')
++            or receipt['reader_identity'].strip() == receipt['reviewer_identity'].strip()
+             or not all(isinstance(receipt.get(key), str) and re.fullmatch(r'[0-9a-f]{64}', receipt.get(key, ''))
+                        for key in ('agent_output_sha256', 'reader_output_sha256', 'reviewer_output_sha256',
+                                    'source_run_sha256', 'semantic_catalog_sha256', 'body_corpus_sha256'))
+@@ -2189,6 +2189,80 @@
+     return deepcopy(dict(receipt))
+ 
+ 
++def validate_owner_analysis_readback(readback: Mapping[str, Any]) -> dict[str, Any]:
++    """Validate the owner API projection without pretending it is a product.
++
++    The API's shared consumption validator checks the full stored product,
++    Reader/Reviewer artifacts and registered handoff. A CLI readback must bind
++    that verified result to the returned receipt and source identities; the
++    analysis projection deliberately does not contain the raw judgment.
++    """
++    analysis = readback.get('analysis')
++    receipt = readback.get('owner_import_receipt')
++    chain = readback.get('consumption_validation')
++    source = readback.get('source_catalog')
++    if not all(isinstance(value, Mapping) for value in (analysis, receipt, chain, source)):
++        raise ValueError('ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID')
++    manifest = analysis.get('source_manifest')
++    expected = {
++        'target_trade_date': readback.get('target_trade_date'),
++        'publication_date': readback.get('publication_date'),
++        'product_sha256': analysis.get('product_sha256'),
++        'source_manifest_sha256': analysis.get('source_manifest_sha256'),
++        'owner_import_receipt_sha256': receipt.get('sha256'),
++        'owner_available_at': receipt.get('available_at'),
++    }
++    if (not isinstance(manifest, Mapping)
++            or analysis.get('status') != 'VERIFIED'
++            or source.get('readback_status') != 'VERIFIED'
++            or chain.get('schema_version') != 'v4.manager_research.announcement_analysis_consumption.v1'
++            or chain.get('validation_status') != 'VERIFIED'
++            or chain.get('status') != 'VERIFIED'
++            or chain.get('failure_stage') is not None or chain.get('gaps') != []
++            or receipt.get('schema_version') != _OWNER_ANALYSIS_IMPORT_SCHEMA
++            or receipt.get('status') != 'VERIFIED'
++            or receipt.get('owner') != 'ManagerResearchJobService.import_announcement_analysis'
++            or not all(isinstance(receipt.get(key), str) and receipt[key].strip()
++                       for key in ('parent_task_id', 'parent_run_id'))
++            or timestamp(receipt.get('available_at')) is None
++            or not _signed_digest(receipt)
++            or any(receipt.get(key) != expected[key]
++                   for key in ('target_trade_date', 'publication_date', 'product_sha256'))
++            or any(chain.get(key) != value for key, value in expected.items())
++            or any(manifest.get(key) != expected[key] for key in ('target_trade_date', 'publication_date'))
++            or digest(manifest) != expected['source_manifest_sha256']
++            or chain.get('catalog_product_sha256') != manifest.get('catalog_product_sha256')
++            or source.get('catalog_product_sha256') != manifest.get('catalog_product_sha256')
++            or chain.get('source_run_id') != manifest.get('catalog_run_id')
++            or source.get('catalog_run_id') != manifest.get('catalog_run_id')
++            or any(not isinstance(chain.get(key), str)
++                   or re.fullmatch(r'[0-9a-f]{64}', chain[key]) is None
++                   for key in ('catalog_product_sha256', 'handoff_manifest_sha256',
++                               'agent_judgment_receipt_sha256'))
++            or any(not isinstance(chain.get(key), str)
++                   or re.fullmatch(r'[0-9a-f]{32}', chain[key]) is None
++                   for key in ('source_run_id', 'evidence_run_id'))
++            or any(not isinstance(expected.get(key), str)
++                   or re.fullmatch(r'[0-9a-f]{64}', expected[key]) is None
++                   for key in ('product_sha256', 'source_manifest_sha256', 'owner_import_receipt_sha256'))
++            or any(value.get(key) is not expected_flag
++                   for value in (readback, receipt, chain) for key, expected_flag in FLAGS.items())):
++        raise ValueError('ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID')
++    binding_keys = {'source_manifest_sha256', 'evidence_run_id',
++                    'handoff_manifest_sha256', 'agent_judgment_receipt_sha256'}
++    if binding_keys.intersection(receipt):
++        if (not binding_keys.issubset(receipt)
++                or chain.get('owner_handoff_binding_status') != 'PRODUCT_PARENT_HANDOFF_BOUND'
++                or any(receipt.get(key) != chain.get(key) for key in binding_keys)
++                or re.fullmatch(r'[0-9a-f]{32}', str(receipt.get('evidence_run_id'))) is None
++                or any(re.fullmatch(r'[0-9a-f]{64}', str(receipt.get(key))) is None
++                       for key in binding_keys - {'evidence_run_id'})):
++            raise ValueError('ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID')
++    elif chain.get('owner_handoff_binding_status') != 'LEGACY_PRODUCT_PARENT_ONLY_CURRENT_HANDOFF_VERIFIED':
++        raise ValueError('ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID')
++    return deepcopy(dict(receipt))
++
++
+ def _analysis_time_refs(product: Mapping[str, Any]) -> tuple[list[datetime], bool]:
+     records = product.get('records')
+     if not isinstance(records, list) or not records:
+--- a/v4/manager_research/workspace_plan.py
++++ b/v4/manager_research/workspace_plan.py
+@@ -156,10 +156,13 @@
+ 
+ 
+ def _screen_data_context(context: Mapping[str, Any]) -> dict:
+-    return {key: context.get(key) for key in (
++    value = {key: context.get(key) for key in (
+         'plan_trade_date', 'planning_market_session', 'market_session', 'market_session_close',
+         'screen_target_trade_date', 'screen_phase', 'screen_session_policy',
+         'screen_calendar_sha256', 'screen_session_status', 'research_cutoff')}
++    if isinstance(context.get('security_master_read'), Mapping):
++        value['security_master_read'] = dict(context['security_master_read'])
++    return value
+ 
+ 
+ def temporal_role(material: Mapping[str, Any], context: Mapping[str, Any]) -> str:
+@@ -581,12 +584,28 @@
+     return dict(schema_version=REBOUND_SCREEN_SCHEMA, rule_version=REBOUND_SCREEN_RULE,
+         target_trade_date=date, verified_session=day, status='CANNOT_CONFIRM', cards=[],
+         strict=[], near=[], pending=[], gaps=sorted(set(gaps)), coverage=dict(
+-            input_candidate_count=0, history_complete_count=0, history_pending_count=0,
+-            strict_count=0, near_candidate_count=0, near_count=0, selected_count=0,
+-            panel_row_count=0, panel_code_count=0), input_identity=None,
++            counts_known=False,
++            input_candidate_count=None, history_complete_count=None, history_pending_count=None,
++            strict_count=None, near_candidate_count=None, near_count=None, selected_count=None,
++            panel_row_count=None, panel_code_count=None), input_identity=None,
+         authority=None, data_context=_screen_data_context(context),
+         RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False,
+         orders_sent=False, main_screen_ready=False)
++
++
++def _screen_security_master_failure(context: Mapping[str, Any], error: Exception,
++                                    diagnostic: Mapping[str, Any] | None = None) -> dict:
++    """Expose only bounded reader observations, never raw exception text."""
++    code = type(error).__name__
++    if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,63}', code):
++        code = 'Exception'
++    if diagnostic is None:
++        diagnostic = dict(status='CANNOT_CONFIRM', reason_code=code,
++            requested_trade_date=str(context.get('market_session') or ''),
++            validation_stage='READ', latest_json_sha256=None, entry_count=None,
++            latest_entry_date=None, requested_entry_present=None)
++    return _screen_empty(dict(context, security_master_read=dict(diagnostic)),
++        ['SCREEN_SECURITY_MASTER_READ_FAILED:' + str(diagnostic['reason_code'])])
+ 
+ 
+ def _screen_exclusion_decision(row: Mapping[str, Any]) -> dict:
+@@ -613,29 +632,12 @@
+ 
+ def _screen_security_master_witness(authority_root: Path, day: str) -> tuple[dict, dict[str, Any]]:
+     """Read the exact-date verified master and its immutable manifest bytes."""
+-    from v3_shared_data.shared_data.hk_security_master import load_verified_hk_security_master
+-
+-    names, manifest = load_verified_hk_security_master(authority_root, day)
+-    asset_root = authority_root / 'assets' / 'hk_security_master'
+-    latest = json.loads((asset_root / 'latest.json').read_text(encoding='utf-8'))
+-    entry = latest['entries'][day]
+-    manifest_path = (asset_root / str(entry['manifest_relative'])).resolve()
+-    manifest_path.relative_to(asset_root.resolve())
+-    artifact_path = (asset_root / str(manifest['artifact_relative'])).resolve()
+-    artifact_path.relative_to(asset_root.resolve())
+-    manifest_bytes = manifest_path.read_bytes()
+-    artifact_bytes = artifact_path.read_bytes()
+-    return dict(
+-        owner='V4_SHARED_HK_SECURITY_MASTER_AUTHORITY',
+-        manifest_path=str(manifest_path),
+-        manifest_sha256=hashlib.sha256(manifest_bytes).hexdigest(),
+-        artifact_path=str(artifact_path),
+-        artifact_sha256=hashlib.sha256(artifact_bytes).hexdigest(),
+-        row_count=manifest.get('row_count'),
+-        run_id=manifest.get('run_id'),
+-        captured_at=manifest.get('captured_at'),
+-        names=names,
+-    ), manifest
++    # Bind the supplied upstream owner explicitly. The API also has a nested
++    # v3_shared_data package for its current daily-supplement reader.
++    from upstreams.v3_shared_data.shared_data.hk_security_master import load_verified_hk_security_master_snapshot
++
++    names, manifest, witness = load_verified_hk_security_master_snapshot(authority_root, day)
++    return dict(witness, owner='V4_SHARED_HK_SECURITY_MASTER_AUTHORITY', names=names), manifest
+ 
+ 
+ def _read_hk02_daily_supplement_witness(
+@@ -1019,14 +1021,23 @@
+             return _screen_empty(context, ['SCREEN_PANEL_AUTHORITY_UNVERIFIED', *panel_gaps])
+         try:
+             from v3_shared_data.shared_data.store import StoreError
++            from upstreams.v3_shared_data.shared_data.hk_security_master import HKSecurityMasterReadError
+         except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+-            return _screen_empty(context, ['SCREEN_SECURITY_MASTER_READ_FAILED:' + type(exc).__name__])
++            return _screen_security_master_failure(context, exc)
+         try:
+             master, master_manifest = _screen_security_master_witness(root, day)
++        except HKSecurityMasterReadError as exc:
++            return _screen_security_master_failure(context, exc, exc.diagnostic)
+         except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError, StoreError) as exc:
+-            return _screen_empty(context, ['SCREEN_SECURITY_MASTER_READ_FAILED:' + type(exc).__name__])
++            return _screen_security_master_failure(context, exc)
++        if isinstance(master.get('read_diagnostic'), Mapping):
++            context = dict(context, security_master_read=dict(master['read_diagnostic']))
+         master_captured_at = timestamp(master.get('captured_at'))
+         if master_captured_at is None or master_captured_at > timestamp(context['research_cutoff']):
++            if isinstance(context.get('security_master_read'), Mapping):
++                context = dict(context, security_master_read=dict(context['security_master_read'],
++                    status='INVALID', reason_code='HK_SECURITY_MASTER_AFTER_CUTOFF_OR_UNVERIFIED',
++                    validation_stage='RESEARCH_CUTOFF'))
+             return _screen_empty(context, ['SCREEN_SECURITY_MASTER_AFTER_CUTOFF_OR_UNVERIFIED'])
+         required_volume_sessions = [*previous5_session_dates, day]
+         panel_volume_evidence = _screen_panel_volume_evidence(panel, context, required_volume_sessions)
+@@ -1483,7 +1494,8 @@
+                                screen_session_policy=context['screen_session_policy'],
+                                volume_gate_policy='ORIGINAL_OWNER_UNIT_AND_SCALE_PROOF_REQUIRED',
+                                observation_only=['amount_hkd', 'rebound_close_vs_low_pct']))
+-        coverage = dict(input_candidate_count=len(rows), history_complete_count=len(rows)-len(pending),
++        coverage = dict(counts_known=True,
++                        input_candidate_count=len(rows), history_complete_count=len(rows)-len(pending),
+                         numeric_history_complete_count=sum(row['history_numeric_status'] == 'KNOWN' for row in rows),
+                         history_pending_count=len(pending), strict_count=len(strict_rows),
+                         near_candidate_count=len(near_rows), near_count=len(near_rows),

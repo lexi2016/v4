@@ -1,0 +1,383 @@
+{
+  "schema": "independent_three_channel_source_review.v1",
+  "reviewer_task": "/root/three_independent_review",
+  "status": "REVIEWED_WITH_KNOWN_BASELINE_FAILURE",
+  "open_candidate_findings": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "runtime_edited_by_reviewer": false,
+  "source_identity": {
+    "classification": "INDEPENDENT_LOCAL_SOURCE_IDENTITY_AUDIT",
+    "source_repository": "lexi2016/v4",
+    "source_transport_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+    "declared_frozen_r3_candidate": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+    "local_assembly_git_baseline": "7ca0190a721a7fd0fc0c88b79a872889867d111f",
+    "runtime_root": "/workspace/scratch/21926b793c00/three_channel/app",
+    "remote_tree_basis": "Captured fixed-commit GitHub tree; no new remote lookup performed by this reviewer",
+    "remote_tree_file_sha256": "ac844efc1a4cdba6b2ecfe1eb072d40866750f7107426d37977f714db14d8301",
+    "assembly_manifest_sha256": "c87568119dae9c85a2c60a335bd48ecbb76b3b63cf7d9ff12f81802909a8e93a",
+    "baseline_files_verified": 1028,
+    "input_files_verified": 69,
+    "changed_tracked_paths": [
+      "apps/api/v35_api/manager_research_router.py",
+      "apps/web/src/api/managerWorkspace.ts",
+      "ops/run_manager_daily_announcement.py",
+      "tests/test_manager_screen_summary_contract.py",
+      "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "v4/manager_research/plan_owner_dispatch.py",
+      "v4/manager_research/workspace_announcements.py",
+      "v4/manager_research/workspace_plan.py"
+    ],
+    "untracked_paths": [
+      "apps/web/node_modules",
+      "apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+      "tests/manager_three_channel_ui_fixture.py",
+      "tests/test_manager_announcement_handoff_20261009.py",
+      "tests/test_manager_three_channel_hk_reader.py",
+      "tests/test_manager_us_mapping_three_channel_20261009.py"
+    ],
+    "test_only_symlink_excluded_from_delivery": "apps/web/node_modules",
+    "runtime_file_count": 7,
+    "test_file_count": 6,
+    "files": [
+      {
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "role": "runtime",
+        "before_sha256": "9d8d132c58e7cf1c5a5609d93261483d578268ac24c60c2fa7a6a79b87344341",
+        "after_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+        "after_bytes": 35556
+      },
+      {
+        "path": "apps/web/src/api/managerWorkspace.ts",
+        "role": "runtime",
+        "before_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+        "after_sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+        "after_bytes": 109896
+      },
+      {
+        "path": "ops/run_manager_daily_announcement.py",
+        "role": "runtime",
+        "before_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+        "after_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+        "after_bytes": 42910
+      },
+      {
+        "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "role": "runtime",
+        "before_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+        "after_sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+        "after_bytes": 18863
+      },
+      {
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "role": "runtime",
+        "before_sha256": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987",
+        "after_sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+        "after_bytes": 53361
+      },
+      {
+        "path": "v4/manager_research/workspace_announcements.py",
+        "role": "runtime",
+        "before_sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04",
+        "after_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+        "after_bytes": 167803
+      },
+      {
+        "path": "v4/manager_research/workspace_plan.py",
+        "role": "runtime",
+        "before_sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+        "after_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+        "after_bytes": 107076
+      },
+      {
+        "path": "apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+        "role": "test",
+        "before_sha256": null,
+        "after_sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4",
+        "after_bytes": 6823
+      },
+      {
+        "path": "tests/manager_three_channel_ui_fixture.py",
+        "role": "test",
+        "before_sha256": null,
+        "after_sha256": "1891b76ff2f0f07300831f46878ce416a83aa35441d28e91755eaaadb02ba894",
+        "after_bytes": 1349
+      },
+      {
+        "path": "tests/test_manager_announcement_handoff_20261009.py",
+        "role": "test",
+        "before_sha256": null,
+        "after_sha256": "dd38c69af5230927d59f4c10ec375b41506999663a623da278a76c14a101dfe2",
+        "after_bytes": 21474
+      },
+      {
+        "path": "tests/test_manager_us_mapping_three_channel_20261009.py",
+        "role": "test",
+        "before_sha256": null,
+        "after_sha256": "9f7f1a3f73a539b470ba18a1ec029360c77734de21015895d73bc03cdcc1fd2a",
+        "after_bytes": 17876
+      },
+      {
+        "path": "tests/test_manager_three_channel_hk_reader.py",
+        "role": "test",
+        "before_sha256": null,
+        "after_sha256": "d037d4f43559e45d23f92b63a27317f2e5587b1b86649fbb9e6198a62618e7e5",
+        "after_bytes": 12661
+      },
+      {
+        "path": "tests/test_manager_screen_summary_contract.py",
+        "role": "test",
+        "before_sha256": "9f39c7eaa7fa730322f84e199c94440a838e44332dde35145d09e619b901e09b",
+        "after_sha256": "0b67119b4b5637dce32e8c61cbfd4c066c35469569c8524cd912d5d75466dd09",
+        "after_bytes": 4821
+      }
+    ],
+    "scope_check": "PASS",
+    "status": "PASS",
+    "not_current_deployment_identity": true
+  },
+  "focused_results": {
+    "combined_python": {
+      "passed": 174,
+      "failed": 1,
+      "total": 175,
+      "exit_code": 1,
+      "failure": "test_missing_original_archive_is_not_empty_connect_selection"
+    },
+    "three_channel_core_subset": {
+      "passed": 43,
+      "announcement": 20,
+      "us": 11,
+      "hk": 12,
+      "included_in_combined_python": true
+    },
+    "independent_boundary": {
+      "passed": 3,
+      "failed": 0,
+      "exit_code": 0
+    },
+    "frontend_contract": {
+      "passed": 13,
+      "failed": 0,
+      "exit_code": 0,
+      "actual_python_reader_dto_cases_included": 2
+    },
+    "unchanged_baseline_reproduction": {
+      "failed": 1,
+      "passed": 0,
+      "baseline_files_sha256_verified": 1028
+    },
+    "do_not_sum_overlapping_suites": true
+  },
+  "findings": [
+    {
+      "id": "IR-ANN-01",
+      "severity": "P2",
+      "status": "RESOLVED",
+      "summary": "Announcement readback accepted absent source identities; first closure coerced numeric identifiers to strings.",
+      "original_repro": "test_cli_rejects_verified_projection_without_catalog_run_and_digest",
+      "closure_repro": "test_legacy_readback_rejects_numeric_catalog_identity",
+      "resolution": "Require the consumption schema and native-string catalog/handoff/judgment SHA64 plus source/evidence run32 identities, preserving all equality and receipt bindings.",
+      "resolved_source_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "red_logs": [
+        "boundary_checks.log",
+        "boundary_closure_checks.log"
+      ],
+      "green_log": "boundary_final_checks.log"
+    },
+    {
+      "id": "IR-US-01",
+      "severity": "P2",
+      "status": "RESOLVED",
+      "summary": "A failed owner return with no run could echo arbitrary artifact_sha256 text in the preparation diagnostic.",
+      "original_repro": "test_manual_preparation_rejects_artifact_text_without_persisted_run",
+      "resolution": "Require null artifact SHA when run is null, or native-string run32/SHA64 followed by exact persisted readback.",
+      "resolved_source_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "red_logs": [
+        "boundary_checks.log"
+      ],
+      "green_log": "boundary_final_checks.log"
+    }
+  ],
+  "preserved_initial_failure": {
+    "combined_python": "172 passed, 2 failed before fixture completion and boundary findings",
+    "announcement_fixture_failure": "Incomplete synthetic US registry fixture produced FAILED instead of INPUT_MISSING; corrected only the test fixture; final cross-channel case passes.",
+    "baseline_parity_failure": "Unchanged baseline and final candidate both report PARTIAL where existing test expects READY; test remains unchanged."
+  },
+  "environment": {
+    "python_executable": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "python_version": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "dependencies": {
+      "pytest": "9.1.1",
+      "pandas": "3.0.6",
+      "pyarrow": "24.0.0",
+      "fastapi": "0.141.1",
+      "starlette": "1.6.0",
+      "httpx": "0.28.1"
+    },
+    "node_executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "node_version": "v24.19.0",
+    "python_ast_parsed": [
+      "apps/api/v35_api/manager_research_router.py",
+      "ops/run_manager_daily_announcement.py",
+      "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "v4/manager_research/plan_owner_dispatch.py",
+      "v4/manager_research/workspace_announcements.py",
+      "v4/manager_research/workspace_plan.py",
+      "tests/manager_three_channel_ui_fixture.py",
+      "tests/test_manager_announcement_handoff_20261009.py",
+      "tests/test_manager_us_mapping_three_channel_20261009.py",
+      "tests/test_manager_three_channel_hk_reader.py",
+      "tests/test_manager_screen_summary_contract.py"
+    ],
+    "diff_check_exit_code": 0,
+    "diff_check_output": "",
+    "full_python_import_graph": "NOT_RUN",
+    "native_Mac_runtime": "NOT_RUN",
+    "full_TypeScript_typecheck": "NOT_RUN"
+  },
+  "historical_unknowns": {
+    "announcement_first_break": "CANNOT_CONFIRM",
+    "us_live_trigger_to_plan_causal_break": "CANNOT_CONFIRM",
+    "historical_1601_exact_input_replay": "CANNOT_CONFIRM",
+    "live_1723_session_20261009_inner_reader_error": "CANNOT_CONFIRM",
+    "hk695_futu_as_d1_master": "CANNOT_CONFIRM; not used as a substitute"
+  },
+  "not_run": [
+    "Full repository/native package import graph without r3_scoped_loader",
+    "Full TypeScript typecheck/build",
+    "Mac native acceptance, service integration, or current live API/UI readback",
+    "Live announcement capture, formal Reader/Reviewer operation, or real owner import",
+    "Real US source collection or registry deployment",
+    "Shared authority/state writes, scheduler/configuration changes, service restart, merge, or deployment",
+    "BUY/Stage/Vibe changes or trading execution",
+    "Natural-session verification",
+    "Historical 16:01 raw latest.json replay (original input unavailable)"
+  ],
+  "package_transport_review": "Separate package audit required; source verdict does not assert archive or remote handoff acceptance.",
+  "evidence": [
+    {
+      "path": "source_identity_receipt.json",
+      "sha256": "a202ff12120eaa6d40364faacb6daa0d328c5b694ad43f3dd5ee765965d0c736",
+      "bytes": 5476
+    },
+    {
+      "path": "environment_and_syntax.json",
+      "sha256": "dd3650652b38d79d884dabaed3ed8c1314ec093782aad8af85c6da87bf618c45",
+      "bytes": 1294
+    },
+    {
+      "path": "python_final_checks_receipt.json",
+      "sha256": "075cd23430a8368683ab1705408be8c12f8f33abb933b1859b9cf1695d0dffcb",
+      "bytes": 11946
+    },
+    {
+      "path": "python_final_checks.log",
+      "sha256": "7760ef819e23f59ddce606b8af9db292c09f7f745e1e03c6d8b911d2b1e25af2",
+      "bytes": 1428
+    },
+    {
+      "path": "python_final_results.xml",
+      "sha256": "452788c729eea8f18cef5770538afd55ca8582d5ab362e47ad48aa32c42f200c",
+      "bytes": 30437
+    },
+    {
+      "path": "web_final_checks_receipt.json",
+      "sha256": "0212cc9ef3e8783f6b06ad72c4d7a9871beab2720cc33bb7719e5bba2b486917",
+      "bytes": 10851
+    },
+    {
+      "path": "web_final_checks.log",
+      "sha256": "215862e8fc8ee518bdd4930c7f7908a0ea84484e683208954ad3a6a4d6761a61",
+      "bytes": 247
+    },
+    {
+      "path": "boundary_final_checks_receipt.json",
+      "sha256": "6e55aff3f3d3a13ce1f72c74b01216c5c0a7aed31c041ef6a8ddad4b71b12f16",
+      "bytes": 11274
+    },
+    {
+      "path": "boundary_final_checks.log",
+      "sha256": "20f52c7214ecd57156af8c954488f4f2d51c979f7a866d97d729b67c0a27c4de",
+      "bytes": 626
+    },
+    {
+      "path": "boundary_final_results.xml",
+      "sha256": "6b7c6b2f7962873fdf38a35c0917771486151f852182ec5e6e4361aa40710f7b",
+      "bytes": 696
+    },
+    {
+      "path": "baseline_failure_receipt.json",
+      "sha256": "856f25703181e10c070a20d4bda709428c7f728ec2eb6a5859a6a83e476f6a92",
+      "bytes": 1312
+    },
+    {
+      "path": "baseline_failure.log",
+      "sha256": "6f233a296048bfd99d3d17dd46b4b21ae93a717c615fd2da01870b2c8223e9bc",
+      "bytes": 1258
+    },
+    {
+      "path": "python_initial_checks_receipt.json",
+      "sha256": "abc74f8c45f54044feae8f532049fefab6d55742ed1ec6194a6d9288f64cecdb",
+      "bytes": 4521
+    },
+    {
+      "path": "python_initial_checks.log",
+      "sha256": "0e266d369355e37d449669dca5914893a98549b99d9d1d9c78c5062eb71c8015",
+      "bytes": 1952
+    },
+    {
+      "path": "python_initial_results.xml",
+      "sha256": "60419c80aa9ad0533195fc62a75de9086aca0aae01180944e896574fcc3b4270",
+      "bytes": 30672
+    },
+    {
+      "path": "boundary_checks_receipt.json",
+      "sha256": "c0804ec5a522d9b15fdc2fdee164082acd319858999b74590edc3924c5b6cc94",
+      "bytes": 3762
+    },
+    {
+      "path": "boundary_checks.log",
+      "sha256": "6a0f36bb53ec9556d279ca8c7ed2097b11330f60f997e242640b3d523bda2316",
+      "bytes": 2492
+    },
+    {
+      "path": "boundary_closure_checks_receipt.json",
+      "sha256": "2f1813c1ca4332c18333ea087b726bfb1c8d781fe9d52c86e89a1fe111510cbe",
+      "bytes": 3786
+    },
+    {
+      "path": "boundary_closure_checks.log",
+      "sha256": "59d259f97a48ba0c5be5f53f8367122ac09b5cfc63c2baf0be029a4880547369",
+      "bytes": 1326
+    },
+    {
+      "path": "test_review_boundaries.py",
+      "sha256": "047833f56287b9ec1ea6396d0c95d6e74e96149fdefdcbfb1eed0fdb8ca9a245",
+      "bytes": 5034
+    },
+    {
+      "path": "probes_before_boundary_fix.py",
+      "sha256": "50138e4affd94da6a0a2a7c01de75050334310ad70dc14c688190481ac274c6c",
+      "bytes": 3483
+    },
+    {
+      "path": "run_review_checks.py",
+      "sha256": "93d1aa4dc2d0a9aca4c183b043c9f788d62957438c9d8a1bcea5cb1075e74643",
+      "bytes": 5294
+    },
+    {
+      "path": "audit_source_identity.py",
+      "sha256": "6f4f10e7e7c136fff700943364df8e273b3b8c7837047f893cd87722c48d1afb",
+      "bytes": 4809
+    },
+    {
+      "path": "check_baseline_failure.py",
+      "sha256": "d73361c73635687c7483e5317bc1ee163cf0c1df3a000a89dfbb6ca909811ad8",
+      "bytes": 2374
+    }
+  ]
+}

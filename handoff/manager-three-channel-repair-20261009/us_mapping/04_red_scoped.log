@@ -1,0 +1,117 @@
+FFF.F                                                                    [100%]
+=================================== FAILURES ===================================
+_ test_explicit_plan_action_materializes_valid_empty_daily_and_consumes_exact_run _
+
+owner = (<v4.manager_research.service.ManagerResearchJobService object at 0x7fad4beeeba0>, <infrastructure.research_peripheral...t at 0x7fad4b9a9400>, {'now': datetime.datetime(2026, 10, 9, 7, 0, 4, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))})
+
+    def test_explicit_plan_action_materializes_valid_empty_daily_and_consumes_exact_run(owner):
+        service, source, client, clock = owner
+        source.publish(_synthetic_us_payload(SESSION, {}))
+        reader = service._workspace_us_market_reader
+    
+        class AdvancingReader:
+            def read_exact_session(self, session_date):
+                result = reader.read_exact_session(session_date)
+                clock["now"] += timedelta(seconds=2)
+                return result
+    
+        service._workspace_us_market_reader = AdvancingReader()
+        before_get = _bytes(service.store.root)
+        initial = client.get("/api/v4/manager/research/workspace", params={"date": TARGET, "view": "dynamic"})
+        assert initial.status_code == 200
+        assert initial.json()["us_mapping_research"]["daily_run"]["status"] == "NOT_RUN"
+        assert _bytes(service.store.root) == before_get
+    
+        response = client.post("/api/v4/manager/research/workspace/refresh", params={
+            "date": TARGET, "selection_date": TARGET, "announcement_date": SESSION}, content=b"")
+        assert response.status_code == 200, response.text
+        value = response.json()
+        daily = value["us_mapping_research"]["daily_run"]
+>       assert daily["status"] == "VALID_EMPTY"
+E       AssertionError: assert 'NOT_RUN' == 'VALID_EMPTY'
+E         
+E         - VALID_EMPTY
+E         + NOT_RUN
+
+tests/test_manager_us_mapping_three_channel_20261009.py:128: AssertionError
+___ test_missing_us_input_is_recorded_without_blocking_original_plan_action ____
+
+owner = (<v4.manager_research.service.ManagerResearchJobService object at 0x7fad4b089090>, <infrastructure.research_peripheral...ject at 0x7fad4a75b110>, {'now': datetime.datetime(2026, 10, 9, 7, 0, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))})
+
+    def test_missing_us_input_is_recorded_without_blocking_original_plan_action(owner):
+        service, _source, client, _clock = owner
+        response = client.post("/api/v4/manager/research/workspace/refresh", params={"date": TARGET}, content=b"")
+        assert response.status_code == 200, response.text
+        value = response.json()
+        daily = value["us_mapping_research"]["daily_run"]
+>       assert daily["status"] == "INPUT_MISSING"
+E       AssertionError: assert 'NOT_RUN' == 'INPUT_MISSING'
+E         
+E         - INPUT_MISSING
+E         + NOT_RUN
+
+tests/test_manager_us_mapping_three_channel_20261009.py:163: AssertionError
+____ test_us_owner_exception_is_visible_while_independent_plan_materializes ____
+
+owner = (<v4.manager_research.service.ManagerResearchJobService object at 0x7fad4a75bc50>, <infrastructure.research_peripheral...ject at 0x7fad4a58ce10>, {'now': datetime.datetime(2026, 10, 9, 7, 0, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fad4a699d90>
+
+    def test_us_owner_exception_is_visible_while_independent_plan_materializes(owner, monkeypatch):
+        service, _source, client, _clock = owner
+    
+        def failed_owner(*_args, **_kwargs):
+            raise RuntimeError("SYNTHETIC_OWNER_EXCEPTION_PRIVATE_DETAIL")
+    
+        monkeypatch.setattr(service, "refresh_us_mapping_research", failed_owner)
+        response = client.post("/api/v4/manager/research/workspace/refresh", params={"date": TARGET}, content=b"")
+        assert response.status_code == 200, response.text
+        value = response.json()
+        assert value["plan_product"]["status"] == "CURRENT"
+>       preparation = value["us_mapping_preparation"]
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'us_mapping_preparation'
+
+tests/test_manager_us_mapping_three_channel_20261009.py:186: KeyError
+_ test_next_morning_slot_rechecks_later_arriving_input_and_same_slot_remains_idempotent _
+
+owner = (<v4.manager_research.service.ManagerResearchJobService object at 0x7fad4a6390f0>, <infrastructure.research_peripheral...ject at 0x7fad4a639cd0>, {'now': datetime.datetime(2026, 10, 9, 7, 5, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))})
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-223/test_next_morning_slot_recheck0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fad4a5868b0>
+
+    def test_next_morning_slot_rechecks_later_arriving_input_and_same_slot_remains_idempotent(owner, tmp_path, monkeypatch):
+        service, source, _client, clock = owner
+        binding_sha = _binding(service, tmp_path, monkeypatch)
+        first = dispatch.execute_bound_daily_cycle(service, TARGET, binding_sha)
+        assert first["us_mapping_research"]["status"] == "INPUT_MISSING"
+        first_us_trigger = first["us_mapping_research"]["execution_context"]["trigger_id"]
+        first_bytes = _bytes(service.store.root)
+    
+        # Source arrives after the first admitted slot; this is temporary synthetic
+        # publication through the same original store, never a second producer.
+        source.publish(_synthetic_us_payload(SESSION, {}))
+        replay = dispatch.execute_bound_daily_cycle(service, TARGET, binding_sha)
+        assert {key: value for key, value in replay.items() if key != "read_metrics"} == {
+            key: value for key, value in first.items() if key != "read_metrics"}
+        assert _bytes(service.store.root) == first_bytes
+    
+        clock["now"] = datetime(2026, 10, 9, 7, 5, tzinfo=HK)
+        next_slot = dispatch.execute_bound_daily_cycle(service, TARGET, binding_sha)
+>       assert next_slot["us_mapping_research"]["status"] == "VALID_EMPTY"
+E       AssertionError: assert 'INPUT_MISSING' == 'VALID_EMPTY'
+E         
+E         - VALID_EMPTY
+E         + INPUT_MISSING
+
+tests/test_manager_us_mapping_three_channel_20261009.py:243: AssertionError
+=============================== warnings summary ===============================
+../../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_us_mapping_three_channel_20261009.py::test_explicit_plan_action_materializes_valid_empty_daily_and_consumes_exact_run
+FAILED tests/test_manager_us_mapping_three_channel_20261009.py::test_missing_us_input_is_recorded_without_blocking_original_plan_action
+FAILED tests/test_manager_us_mapping_three_channel_20261009.py::test_us_owner_exception_is_visible_while_independent_plan_materializes
+FAILED tests/test_manager_us_mapping_three_channel_20261009.py::test_next_morning_slot_rechecks_later_arriving_input_and_same_slot_remains_idempotent
+4 failed, 1 passed, 1 warning in 1.18s

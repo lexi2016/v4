@@ -1,0 +1,67 @@
+{
+  "schema_version": "v4.manager_three_channel.acceptance.v1",
+  "package_id": "manager-three-channel-repair-20261009",
+  "source_manifest_sha256": "ccd38bc88ab8aa2231e844ef581470bea32545f7d48f988996dc9290f9689e9d",
+  "candidate_implementation": "COMPLETED",
+  "synthetic_core_python": {
+    "status": "PASS",
+    "passed": 43
+  },
+  "synthetic_frontend": {
+    "status": "PASS",
+    "passed": 25,
+    "new_cases": 13
+  },
+  "independent_source_review": "REVIEWED_WITH_KNOWN_BASELINE_FAILURE",
+  "independent_python": {
+    "passed": 174,
+    "failed": 1,
+    "baseline_failure_reproduced": true
+  },
+  "independent_boundary_probes": {
+    "status": "PASS",
+    "passed": 3
+  },
+  "independent_frontend": {
+    "status": "PASS",
+    "passed": 13
+  },
+  "test_counts_overlap": true,
+  "open_candidate_findings": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "isolated_forward_reverse_replay": "PASS",
+  "independent_package_audit_evidence": "independent_review/package_audit_receipt.json",
+  "publication_readback_evidence": "ZIP_TOP_LEVEL/REMOTE_READBACK.json",
+  "historical_unknowns": {
+    "announcement_first_break": "CANNOT_CONFIRM",
+    "us_live_first_break_or_binding_causality": "CANNOT_CONFIRM",
+    "hk_1601_original_index_byte_replay": "CANNOT_CONFIRM",
+    "hk_1723_20261009_store_error_inner_cause": "CANNOT_CONFIRM",
+    "historical_us_relation_artifact_replay": "NOT_PROVIDED"
+  },
+  "not_run": [
+    "MAC_ACCEPTANCE",
+    "LIVE_INTEGRATION",
+    "DEPLOYMENT",
+    "SERVICE_RESTART",
+    "LIVE_API_UI_RELOAD_READBACK",
+    "NATURAL_SESSION_ACCEPTANCE",
+    "SCHEDULER_BINDING_CONFIG_MUTATION",
+    "REAL_ANNOUNCEMENT_CAPTURE_READER_REVIEWER_IMPORT",
+    "REAL_MARKET_COLLECTION",
+    "SHARED_BUSINESS_STATE_WRITES",
+    "FULL_NATIVE_APP_IMPORT",
+    "FULL_TYPESCRIPT_BUILD_TYPECHECK",
+    "FULL_REPOSITORY_TEST_SUITE"
+  ],
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "today_stock_selection_restoration_claimed": false
+}

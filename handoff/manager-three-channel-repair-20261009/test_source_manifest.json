@@ -1,0 +1,270 @@
+{
+  "changed_tests": [
+    {
+      "profile": "test_delta",
+      "path": "tests/test_manager_announcement_handoff_20261009.py",
+      "change": "added",
+      "before_origin": null,
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": 0,
+      "before_git_blob_sha": null,
+      "after_path": "after/test_delta/tests/test_manager_announcement_handoff_20261009.py",
+      "after_sha256": "dd38c69af5230927d59f4c10ec375b41506999663a623da278a76c14a101dfe2",
+      "after_bytes": 21474,
+      "after_git_blob_sha": "404ab5af43ba9868594e220e12bd34cf5ce34876"
+    },
+    {
+      "profile": "test_delta",
+      "path": "tests/test_manager_us_mapping_three_channel_20261009.py",
+      "change": "added",
+      "before_origin": null,
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": 0,
+      "before_git_blob_sha": null,
+      "after_path": "after/test_delta/tests/test_manager_us_mapping_three_channel_20261009.py",
+      "after_sha256": "9f7f1a3f73a539b470ba18a1ec029360c77734de21015895d73bc03cdcc1fd2a",
+      "after_bytes": 17876,
+      "after_git_blob_sha": "37b95a00d46f0fbe41b3ed4569a587912329c74e"
+    },
+    {
+      "profile": "test_delta",
+      "path": "tests/test_manager_three_channel_hk_reader.py",
+      "change": "added",
+      "before_origin": null,
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": 0,
+      "before_git_blob_sha": null,
+      "after_path": "after/test_delta/tests/test_manager_three_channel_hk_reader.py",
+      "after_sha256": "d037d4f43559e45d23f92b63a27317f2e5587b1b86649fbb9e6198a62618e7e5",
+      "after_bytes": 12661,
+      "after_git_blob_sha": "fb577af7ccebaa9cce1e26954319715e4a6339aa"
+    },
+    {
+      "profile": "test_delta",
+      "path": "tests/test_manager_screen_summary_contract.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+        "repository_path": "handoff/v4-running-source-20261005/canonical/tests/test_manager_screen_summary_contract.py",
+        "basis": "EXACT_GIT_BLOB_FROM_FIXED_TREE",
+        "current_runtime_source_verified": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": "before/test_delta/tests/test_manager_screen_summary_contract.py",
+      "before_sha256": "9f39c7eaa7fa730322f84e199c94440a838e44332dde35145d09e619b901e09b",
+      "before_bytes": 4760,
+      "before_git_blob_sha": "0d8a781023226e89de15bf2391dfa86d943153d9",
+      "after_path": "after/test_delta/tests/test_manager_screen_summary_contract.py",
+      "after_sha256": "0b67119b4b5637dce32e8c61cbfd4c066c35469569c8524cd912d5d75466dd09",
+      "after_bytes": 4821,
+      "after_git_blob_sha": "9103caa090a2476961c014a532596b77e70b88e6"
+    },
+    {
+      "profile": "test_delta",
+      "path": "tests/manager_three_channel_ui_fixture.py",
+      "change": "added",
+      "before_origin": null,
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": 0,
+      "before_git_blob_sha": null,
+      "after_path": "after/test_delta/tests/manager_three_channel_ui_fixture.py",
+      "after_sha256": "1891b76ff2f0f07300831f46878ce416a83aa35441d28e91755eaaadb02ba894",
+      "after_bytes": 1349,
+      "after_git_blob_sha": "a8ab525c2a05a028d84390917af7fba48bdd6331"
+    },
+    {
+      "profile": "test_delta",
+      "path": "apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+      "change": "added",
+      "before_origin": null,
+      "after_origin": "ISOLATED_THREE_CHANNEL_CANDIDATE",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": 0,
+      "before_git_blob_sha": null,
+      "after_path": "after/test_delta/apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+      "after_sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4",
+      "after_bytes": 6823,
+      "after_git_blob_sha": "4f528c782d8771736936421857f3079f5b694b96"
+    }
+  ],
+  "unchanged_support": [
+    {
+      "path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "archive_path": "tests/support/app/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "bytes": 6248,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-automation-repair-20261008-r1/after/tests/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts"
+      ]
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.testHelper.ts",
+      "archive_path": "tests/support/app/apps/web/src/manager-selection/dailyChannels.testHelper.ts",
+      "sha256": "ff2e22d33fe61fc8c44e3c524f2a192b55bb5ee1a6330eadc0ca3373c546f3f0",
+      "bytes": 4549,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-workbench-repair-20261008/after/apps/web/src/manager-selection/dailyChannels.testHelper.ts"
+      ]
+    },
+    {
+      "path": "tests/manager_daily_ui_owner_fixture.py",
+      "archive_path": "tests/support/app/tests/manager_daily_ui_owner_fixture.py",
+      "sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+      "bytes": 10401,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-automation-repair-20261008-r1/after/tests/tests/manager_daily_ui_owner_fixture.py"
+      ]
+    },
+    {
+      "path": "tests/r3_scoped_loader.py",
+      "archive_path": "tests/support/app/tests/r3_scoped_loader.py",
+      "sha256": "02366f958e893448b4325f864a9b86151956fb8f480b980193dd2489c82345db",
+      "bytes": 985,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/v4-running-source-20261005/canonical/tests/r3_scoped_loader.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_announcement_parity_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_announcement_parity_20261008.py",
+      "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+      "bytes": 40192,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-r3-repair-20261009/tests/app/tests/test_manager_announcement_parity_20261008.py",
+        "handoff/manager-workbench-repair-20261008/after/tests/test_manager_announcement_parity_20261008.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_daily_automation_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_daily_automation_20261008.py",
+      "sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "bytes": 21642,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-automation-repair-20261008-r1/after/tests/tests/test_manager_daily_automation_20261008.py",
+        "handoff/manager-daily-r3-repair-20261009/tests/app/tests/test_manager_daily_automation_20261008.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_daily_channels_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_daily_channels_20261008.py",
+      "sha256": "43688012eb751ac5c63c09e689aa85a82d3dfd147f82274e3e55f3530dacd536",
+      "bytes": 10651,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-r3-repair-20261009/tests/app/tests/test_manager_daily_channels_20261008.py",
+        "handoff/manager-workbench-mac-completion-20261008/source/tests/backend/test_manager_daily_channels_20261008.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_daily_dispatch_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_daily_dispatch_20261008.py",
+      "sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+      "bytes": 28067,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-automation-repair-20261008-r1/after/tests/tests/test_manager_daily_dispatch_20261008.py",
+        "handoff/manager-daily-r3-repair-20261009/tests/app/tests/test_manager_daily_dispatch_20261008.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_input_contracts_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_input_contracts_20261008.py",
+      "sha256": "7622f1a6affa4beb30be9221aa13d9e3ae11f835cddb5014b561840aaca6905f",
+      "bytes": 18335,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-workbench-repair-20261008/after/tests/test_manager_input_contracts_20261008.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_r3_binding_contract.py",
+      "archive_path": "tests/support/app/tests/test_manager_r3_binding_contract.py",
+      "sha256": "c3e6d1055ee936245593656ca365fd622af9148b0041cb715d3e292589e9ea39",
+      "bytes": 29620,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-r3-repair-20261009/tests/app/tests/test_manager_r3_binding_contract.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_r3_product_contract.py",
+      "archive_path": "tests/support/app/tests/test_manager_r3_product_contract.py",
+      "sha256": "7ecf4789b581818eb516fe420f03f159580f276600ebf0921c73ba3b01c2b21c",
+      "bytes": 20085,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-r3-repair-20261009/tests/app/tests/test_manager_r3_product_contract.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_us_daily_automation_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_us_daily_automation_20261008.py",
+      "sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "bytes": 24638,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-automation-repair-20261008-r1/after/tests/tests/test_manager_us_daily_automation_20261008.py",
+        "handoff/manager-daily-r3-repair-20261009/tests/app/tests/test_manager_us_daily_automation_20261008.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_us_mapping_isolation_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_us_mapping_isolation_20261008.py",
+      "sha256": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb",
+      "bytes": 6712,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/issue29-manager-daily-repair-20261008/after/tests/test_manager_us_mapping_isolation_20261008.py",
+        "handoff/manager-daily-r3-repair-20261009/tests/app/tests/test_manager_us_mapping_isolation_20261008.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_us_mapping_research.py",
+      "archive_path": "tests/support/app/tests/test_manager_us_mapping_research.py",
+      "sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "bytes": 19113,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-chain-20261008/source/api_app/tests/test_manager_us_mapping_research.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "archive_path": "tests/support/app/tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+      "bytes": 8634,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-daily-automation-repair-20261009-r2/after/tests/tests/test_manager_workspace_exact_page_binding_20261008.py",
+        "handoff/manager-daily-r3-repair-20261009/tests/app/tests/test_manager_workspace_exact_page_binding_20261008.py"
+      ]
+    },
+    {
+      "path": "tests/test_security_master_store_error.py",
+      "archive_path": "tests/support/app/tests/test_security_master_store_error.py",
+      "sha256": "f4658693632ab97a8264b6340a859b44ffb2db8c556ac03fe01802fc4f8069a9",
+      "bytes": 2796,
+      "fixed_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+      "fixed_repository_paths": [
+        "handoff/manager-workbench-mac-completion-20261008/source/tests/workspace_failure/test_security_master_store_error.py"
+      ]
+    }
+  ],
+  "scope": "SYNTHETIC_ORIGINAL_OWNER_CODE_NO_LIVE_IO"
+}

@@ -1,0 +1,66 @@
+{
+  "source_package_transport_commit": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+  "declared_frozen_r3_candidate_ref": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+  "local_assembled_compare_head": "7ca0190a721a7fd0fc0c88b79a872889867d111f",
+  "runtime_root": "/workspace/scratch/21926b793c00/three_channel/app",
+  "not_current_deployment_identity": true,
+  "files": [
+    {
+      "path": "ops/run_manager_daily_announcement.py",
+      "change": "modified",
+      "before_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "after_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "after_bytes": 42910
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "change": "modified",
+      "before_sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04",
+      "after_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "after_bytes": 167803
+    },
+    {
+      "path": "tests/test_manager_announcement_handoff_20261009.py",
+      "change": "added",
+      "before_sha256": null,
+      "after_sha256": "dd38c69af5230927d59f4c10ec375b41506999663a623da278a76c14a101dfe2",
+      "after_bytes": 21474
+    }
+  ],
+  "unchanged_test_helper": {
+    "path": "tests/test_manager_announcement_parity_20261008.py",
+    "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed"
+  },
+  "python": {
+    "executable": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "version": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]"
+  },
+  "packages": {
+    "pytest": "9.1.1",
+    "fastapi": "0.141.1",
+    "starlette": "1.6.0",
+    "httpx": "0.28.1"
+  },
+  "test_only_dependencies": [
+    {
+      "path": "tests/test_manager_us_mapping_three_channel_20261009.py",
+      "sha256": "9f7f1a3f73a539b470ba18a1ec029360c77734de21015895d73bc03cdcc1fd2a",
+      "parameter_cases": 11,
+      "used_fixture": "owner"
+    },
+    {
+      "path": "tests/r3_scoped_loader.py",
+      "sha256": "02366f958e893448b4325f864a9b86151956fb8f480b980193dd2489c82345db"
+    }
+  ],
+  "final_test_runner": "Existing r3_scoped_loader.install with normal namespace parent links; not native full application import verification.",
+  "final_test_result": {
+    "passed": 22,
+    "failed": 0,
+    "warnings": 1,
+    "exit_code": 0,
+    "log": "new_final05.log",
+    "junit": "new_final05.xml",
+    "selection": "20 announcement regressions plus two independent announcement boundary probes"
+  }
+}

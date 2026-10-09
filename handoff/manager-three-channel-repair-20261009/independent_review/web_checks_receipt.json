@@ -1,0 +1,84 @@
+{
+  "classification": "INDEPENDENT_SYNTHETIC_REVIEW",
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules/vitest/vitest.mjs",
+    "run",
+    "--config",
+    "/workspace/scratch/21926b793c00/three_channel/web/vitest.config.mjs",
+    "src/api/managerWorkspace.threeChannel.spec.ts"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/three_channel/app/apps/web",
+  "environment_overrides": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/three_channel/app",
+    "V4_TEST_PYTHON": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "V4_TEST_SOURCE_ROOT": "/workspace/scratch/21926b793c00/three_channel/app"
+  },
+  "exit_code": 0,
+  "elapsed_seconds": 2.451,
+  "log": "web_checks.log",
+  "log_sha256": "2bfb28d1bb752fcc12ea0093c2e6436aee98e152547e1d8db2153e7f31959a5f",
+  "runtime_before": {
+    "apps/api/v35_api/manager_research_router.py": {
+      "sha256": "b1dc6e47c3552c0d7a2b45e4652d12d3a8f7edbc5779c43ed5f72dc60b4a2785",
+      "bytes": 35131
+    },
+    "apps/web/src/api/managerWorkspace.ts": {
+      "sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+      "bytes": 109896
+    },
+    "ops/run_manager_daily_announcement.py": {
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "bytes": 42910
+    },
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": {
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "bytes": 18863
+    },
+    "v4/manager_research/plan_owner_dispatch.py": {
+      "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "bytes": 53361
+    },
+    "v4/manager_research/workspace_announcements.py": {
+      "sha256": "3aeab95c185c67572001dbd8a281e0abbc30b13bd0b3bf60273483c1f6d2a8d7",
+      "bytes": 167227
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "bytes": 107076
+    }
+  },
+  "runtime_after": {
+    "apps/api/v35_api/manager_research_router.py": {
+      "sha256": "b1dc6e47c3552c0d7a2b45e4652d12d3a8f7edbc5779c43ed5f72dc60b4a2785",
+      "bytes": 35131
+    },
+    "apps/web/src/api/managerWorkspace.ts": {
+      "sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+      "bytes": 109896
+    },
+    "ops/run_manager_daily_announcement.py": {
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "bytes": 42910
+    },
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": {
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "bytes": 18863
+    },
+    "v4/manager_research/plan_owner_dispatch.py": {
+      "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "bytes": 53361
+    },
+    "v4/manager_research/workspace_announcements.py": {
+      "sha256": "3aeab95c185c67572001dbd8a281e0abbc30b13bd0b3bf60273483c1f6d2a8d7",
+      "bytes": 167227
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "bytes": 107076
+    }
+  },
+  "runtime_unchanged": true
+}

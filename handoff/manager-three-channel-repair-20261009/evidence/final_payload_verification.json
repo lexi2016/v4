@@ -1,0 +1,142 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "argv": [
+        "/workspace/scratch/a154a3323e32/test_env/bin/python",
+        "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009"
+      ],
+      "exit_code": 0,
+      "result": {
+        "status": "PASS",
+        "schema_version": "v4.manager_r3.delivery.v1",
+        "manifest_sha256": "ccd38bc88ab8aa2231e844ef581470bea32545f7d48f988996dc9290f9689e9d",
+        "payload_count": 21,
+        "profile": null,
+        "against": null,
+        "source_checked": [],
+        "preserved_checked": [],
+        "source_root": null,
+        "source_writes": 0,
+        "business_io": false,
+        "deployment_claimed": false
+      },
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/workspace/scratch/a154a3323e32/test_env/bin/python",
+        "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009",
+        "--profile",
+        "api_r3_candidate",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/three_channel/app",
+        "--against",
+        "after"
+      ],
+      "exit_code": 0,
+      "result": {
+        "status": "PASS",
+        "schema_version": "v4.manager_r3.delivery.v1",
+        "manifest_sha256": "ccd38bc88ab8aa2231e844ef581470bea32545f7d48f988996dc9290f9689e9d",
+        "payload_count": 21,
+        "profile": "api_r3_candidate",
+        "against": "after",
+        "source_checked": [
+          "apps/api/v35_api/manager_research_router.py",
+          "ops/run_manager_daily_announcement.py",
+          "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+          "v4/manager_research/plan_owner_dispatch.py",
+          "v4/manager_research/workspace_announcements.py",
+          "v4/manager_research/workspace_plan.py"
+        ],
+        "preserved_checked": [
+          "apps/api/v35_api/app.py",
+          "apps/api/v35_api/preselection_router.py",
+          "apps/api/v35_api/preselection_service.py"
+        ],
+        "source_root": "/workspace/scratch/21926b793c00/three_channel/app",
+        "source_writes": 0,
+        "business_io": false,
+        "deployment_claimed": false
+      },
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/workspace/scratch/a154a3323e32/test_env/bin/python",
+        "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009",
+        "--profile",
+        "web_r3_candidate",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/three_channel/app",
+        "--against",
+        "after"
+      ],
+      "exit_code": 0,
+      "result": {
+        "status": "PASS",
+        "schema_version": "v4.manager_r3.delivery.v1",
+        "manifest_sha256": "ccd38bc88ab8aa2231e844ef581470bea32545f7d48f988996dc9290f9689e9d",
+        "payload_count": 21,
+        "profile": "web_r3_candidate",
+        "against": "after",
+        "source_checked": [
+          "apps/web/src/api/managerWorkspace.ts"
+        ],
+        "preserved_checked": [],
+        "source_root": "/workspace/scratch/21926b793c00/three_channel/app",
+        "source_writes": 0,
+        "business_io": false,
+        "deployment_claimed": false
+      },
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/workspace/scratch/a154a3323e32/test_env/bin/python",
+        "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009/tools/verify_delivery.py",
+        "--package",
+        "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009",
+        "--profile",
+        "test_delta",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/three_channel/app",
+        "--against",
+        "after"
+      ],
+      "exit_code": 0,
+      "result": {
+        "status": "PASS",
+        "schema_version": "v4.manager_r3.delivery.v1",
+        "manifest_sha256": "ccd38bc88ab8aa2231e844ef581470bea32545f7d48f988996dc9290f9689e9d",
+        "payload_count": 21,
+        "profile": "test_delta",
+        "against": "after",
+        "source_checked": [
+          "tests/test_manager_announcement_handoff_20261009.py",
+          "tests/test_manager_us_mapping_three_channel_20261009.py",
+          "tests/test_manager_three_channel_hk_reader.py",
+          "tests/test_manager_screen_summary_contract.py",
+          "tests/manager_three_channel_ui_fixture.py",
+          "apps/web/src/api/managerWorkspace.threeChannel.spec.ts"
+        ],
+        "preserved_checked": [],
+        "source_root": "/workspace/scratch/21926b793c00/three_channel/app",
+        "source_writes": 0,
+        "business_io": false,
+        "deployment_claimed": false
+      },
+      "stderr": ""
+    }
+  ],
+  "unchanged_test_support_verified": 16,
+  "scope": "ISOLATED_CANDIDATE_BYTES_ONLY",
+  "live_deployment": false
+}

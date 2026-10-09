@@ -1,0 +1,11 @@
+{
+  "command": "PYTHONDONTWRITEBYTECODE=1 /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q --tb=short tests/test_manager_three_channel_hk_reader.py tests/test_security_master_store_error.py tests/test_manager_screen_summary_contract.py tests/test_manager_input_contracts_20261008.py",
+  "workdir": "three_channel/app",
+  "exit_code": 0,
+  "synthetic_regression": true,
+  "total_passed": 47,
+  "source_baseline": "7ca0190a721a7fd0fc0c88b79a872889867d111f",
+  "repository_source_ref": "b19eb112bd641ca97cac1246af7c81d8873641f4",
+  "runtime": "Python 3.14.6; pytest 9.1.1; pandas 3.0.6; pyarrow 24.0.0",
+  "full_project_suite_run": false
+}

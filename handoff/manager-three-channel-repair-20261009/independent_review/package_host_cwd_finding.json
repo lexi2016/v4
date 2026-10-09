@@ -1,0 +1,18 @@
+{
+  "finding_id": "IR-PKG-01",
+  "severity": "P2",
+  "kind": "documented frontend command cwd",
+  "runtime_or_test_change_required": false,
+  "original_result": {
+    "cwd": "/workspace/scratch/21926b793c00/three_channel/delivery/manager-three-channel-repair-20261009",
+    "exit_code": 1,
+    "test_cases_collected": 0,
+    "error": "Cannot find module '/src/api/managerWorkspace.threeChannel.spec.ts' (also dailyAutomation)",
+    "log": "package_host_web_initial_failure.log",
+    "log_sha256": "3dda79cc830e28f25317e855ed9a09d5a900277cb2e655b4b6a3a6d06c26cbfc"
+  },
+  "correction_probe": "package_host_web_cwd_probe.json",
+  "proposed_closure": "Explicit subshell cd \"$V4_REVIEW_ROOT/apps/web\" before the unchanged Vitest command",
+  "original_document_bytes": "Not retained before owner applied the correction; initial execution failure and exact invocation are retained.",
+  "fixed_documentation_verified_later": "See package_audit_receipt.json inventory and documented_host_flow."
+}

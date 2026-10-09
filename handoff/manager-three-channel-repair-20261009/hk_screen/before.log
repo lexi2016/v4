@@ -1,0 +1,92 @@
+FFFFFFFFFFFF                                                             [100%]
+=================================== FAILURES ===================================
+_ test_missing_exact_index_key_is_distinct_from_invalid_metadata_and_does_not_write _
+tests/test_manager_three_channel_hk_reader.py:113: in test_missing_exact_index_key_is_distinct_from_invalid_metadata_and_does_not_write
+    assert getattr(caught.value, "reason_code", None) == "HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING"
+E   assert None == 'HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING'
+E    +  where None = getattr(StoreError("HK security-master metadata invalid: '20261008'"), 'reason_code', None)
+E    +    where StoreError("HK security-master metadata invalid: '20261008'") = <ExceptionInfo StoreError("HK security-master metadata invalid: '20261008'") tblen=2>.value
+______ test_real_screen_preserves_exact_missing_reason_and_unknown_counts ______
+tests/test_manager_three_channel_hk_reader.py:134: in test_real_screen_preserves_exact_missing_reason_and_unknown_counts
+    assert screen["gaps"] == [
+E   AssertionError: assert ['SCREEN_SECU...D:StoreError'] == ['SCREEN_SECU...NTRY_MISSING']
+E     
+E     At index 0 diff: 'SCREEN_SECURITY_MASTER_READ_FAILED:StoreError' != 'SCREEN_SECURITY_MASTER_READ_FAILED:HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING'
+E     Use -v to get more diff
+_ test_exact_valid_master_reaches_real_screen_without_inventing_volume_unit_proof _
+tests/test_manager_three_channel_hk_reader.py:165: in test_exact_valid_master_reaches_real_screen_without_inventing_volume_unit_proof
+    assert screen["data_context"]["security_master_read"]["status"] == "VERIFIED"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'security_master_read'
+______ test_witness_keeps_one_verified_run_when_same_date_index_advances _______
+tests/test_manager_three_channel_hk_reader.py:207: in test_witness_keeps_one_verified_run_when_same_date_index_advances
+    assert witness["manifest_sha256"] == _sha(first_manifest)
+E   AssertionError: assert 'bdbeb678af7f...4d9129c3cc29f' == 'be73cd166fac...c932232ad488f'
+E     
+E     - be73cd166fac61afee0085939a3e3895babcdbaf6333dce2fa6c932232ad488f
+E     + bdbeb678af7f7adbe60df9e4dacc67865d6f563ef45888939bd4d9129c3cc29f
+______ test_screen_witness_uses_supplied_upstream_owner_not_shadow_reader ______
+tests/test_manager_three_channel_hk_reader.py:224: in test_screen_witness_uses_supplied_upstream_owner_not_shadow_reader
+    witness, manifest = workspace_plan._screen_security_master_witness(tmp_path, DAY)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/workspace_plan.py:618: in _screen_security_master_witness
+    names, manifest = load_verified_hk_security_master(authority_root, day)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_three_channel_hk_reader.py:221: in wrong_owner
+    raise AssertionError("the shadow package is not the supplied authoritative reader")
+E   AssertionError: the shadow package is not the supplied authoritative reader
+_ test_invalid_exact_input_stays_invalid_with_bounded_reason[index_schema-HK_SECURITY_MASTER_INDEX_SCHEMA_INVALID] _
+tests/test_manager_three_channel_hk_reader.py:264: in test_invalid_exact_input_stays_invalid_with_bounded_reason
+    assert getattr(caught.value, "reason_code", None) == reason
+E   AssertionError: assert None == 'HK_SECURITY_MASTER_INDEX_SCHEMA_INVALID'
+E    +  where None = getattr(StoreError('HK security-master latest schema mismatch'), 'reason_code', None)
+E    +    where StoreError('HK security-master latest schema mismatch') = <ExceptionInfo StoreError('HK security-master latest schema mismatch') tblen=2>.value
+_ test_invalid_exact_input_stays_invalid_with_bounded_reason[entry_shape-HK_SECURITY_MASTER_ENTRY_INVALID] _
+tests/test_manager_three_channel_hk_reader.py:264: in test_invalid_exact_input_stays_invalid_with_bounded_reason
+    assert getattr(caught.value, "reason_code", None) == reason
+E   AssertionError: assert None == 'HK_SECURITY_MASTER_ENTRY_INVALID'
+E    +  where None = getattr(StoreError('HK security-master metadata invalid: list indices must be integers or slices, not str'), 'reason_code', None)
+E    +    where StoreError('HK security-master metadata invalid: list indices must be integers or slices, not str') = <ExceptionInfo StoreError('HK security-master metadata invalid: list indices must be integers or slices, not str') tblen=2>.value
+_ test_invalid_exact_input_stays_invalid_with_bounded_reason[receipt_date-HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID] _
+tests/test_manager_three_channel_hk_reader.py:261: in test_invalid_exact_input_stays_invalid_with_bounded_reason
+    with pytest.raises(StoreError) as caught:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE StoreError
+_ test_invalid_exact_input_stays_invalid_with_bounded_reason[safety-HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID] _
+tests/test_manager_three_channel_hk_reader.py:264: in test_invalid_exact_input_stays_invalid_with_bounded_reason
+    assert getattr(caught.value, "reason_code", None) == reason
+E   AssertionError: assert None == 'HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID'
+E    +  where None = getattr(StoreError('HK security-master identity or safety contract invalid'), 'reason_code', None)
+E    +    where StoreError('HK security-master identity or safety contract invalid') = <ExceptionInfo StoreError('HK security-master identity or safety contract invalid') tblen=2>.value
+_ test_invalid_exact_input_stays_invalid_with_bounded_reason[artifact_checksum-HK_SECURITY_MASTER_ARTIFACT_CHECKSUM_MISMATCH] _
+tests/test_manager_three_channel_hk_reader.py:264: in test_invalid_exact_input_stays_invalid_with_bounded_reason
+    assert getattr(caught.value, "reason_code", None) == reason
+E   AssertionError: assert None == 'HK_SECURITY_MASTER_ARTIFACT_CHECKSUM_MISMATCH'
+E    +  where None = getattr(StoreError('HK security-master artifact checksum mismatch'), 'reason_code', None)
+E    +    where StoreError('HK security-master artifact checksum mismatch') = <ExceptionInfo StoreError('HK security-master artifact checksum mismatch') tblen=2>.value
+_ test_invalid_exact_input_stays_invalid_with_bounded_reason[manifest_checksum-HK_SECURITY_MASTER_MANIFEST_CHECKSUM_MISMATCH] _
+tests/test_manager_three_channel_hk_reader.py:264: in test_invalid_exact_input_stays_invalid_with_bounded_reason
+    assert getattr(caught.value, "reason_code", None) == reason
+E   AssertionError: assert None == 'HK_SECURITY_MASTER_MANIFEST_CHECKSUM_MISMATCH'
+E    +  where None = getattr(StoreError('HK security-master manifest checksum mismatch'), 'reason_code', None)
+E    +    where StoreError('HK security-master manifest checksum mismatch') = <ExceptionInfo StoreError('HK security-master manifest checksum mismatch') tblen=2>.value
+___________ test_valid_master_after_cutoff_still_cannot_enter_screen ___________
+tests/test_manager_three_channel_hk_reader.py:279: in test_valid_master_after_cutoff_still_cannot_enter_screen
+    assert screen["coverage"]["counts_known"] is False
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'counts_known'
+=========================== short test summary info ============================
+FAILED tests/test_manager_three_channel_hk_reader.py::test_missing_exact_index_key_is_distinct_from_invalid_metadata_and_does_not_write
+FAILED tests/test_manager_three_channel_hk_reader.py::test_real_screen_preserves_exact_missing_reason_and_unknown_counts
+FAILED tests/test_manager_three_channel_hk_reader.py::test_exact_valid_master_reaches_real_screen_without_inventing_volume_unit_proof
+FAILED tests/test_manager_three_channel_hk_reader.py::test_witness_keeps_one_verified_run_when_same_date_index_advances
+FAILED tests/test_manager_three_channel_hk_reader.py::test_screen_witness_uses_supplied_upstream_owner_not_shadow_reader
+FAILED tests/test_manager_three_channel_hk_reader.py::test_invalid_exact_input_stays_invalid_with_bounded_reason[index_schema-HK_SECURITY_MASTER_INDEX_SCHEMA_INVALID]
+FAILED tests/test_manager_three_channel_hk_reader.py::test_invalid_exact_input_stays_invalid_with_bounded_reason[entry_shape-HK_SECURITY_MASTER_ENTRY_INVALID]
+FAILED tests/test_manager_three_channel_hk_reader.py::test_invalid_exact_input_stays_invalid_with_bounded_reason[receipt_date-HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID]
+FAILED tests/test_manager_three_channel_hk_reader.py::test_invalid_exact_input_stays_invalid_with_bounded_reason[safety-HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID]
+FAILED tests/test_manager_three_channel_hk_reader.py::test_invalid_exact_input_stays_invalid_with_bounded_reason[artifact_checksum-HK_SECURITY_MASTER_ARTIFACT_CHECKSUM_MISMATCH]
+FAILED tests/test_manager_three_channel_hk_reader.py::test_invalid_exact_input_stays_invalid_with_bounded_reason[manifest_checksum-HK_SECURITY_MASTER_MANIFEST_CHECKSUM_MISMATCH]
+FAILED tests/test_manager_three_channel_hk_reader.py::test_valid_master_after_cutoff_still_cannot_enter_screen
+12 failed in 0.58s
+

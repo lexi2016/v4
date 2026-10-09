@@ -1,0 +1,12 @@
+{
+  "command": "/workspace/scratch/a154a3323e32/test_env/bin/python -c 'import sys; sys.path.insert(0, '\"'\"'tests'\"'\"'); import r3_scoped_loader; r3_scoped_loader.install(); import pytest; raise SystemExit(pytest.main(['\"'\"'-q'\"'\"', '\"'\"'tests/test_manager_us_mapping_three_channel_20261009.py'\"'\"']))'",
+  "cwd": "/workspace/scratch/21926b793c00/three_channel/app",
+  "environment_overrides": {
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/three_channel/app",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "exit_code": 0,
+  "elapsed_seconds": 6.962,
+  "classification": "AFTER_IMPLEMENTATION_SYNTHETIC_SCOPED_SOURCE"
+}

@@ -1,0 +1,1191 @@
+--- /dev/null
++++ b/tests/test_manager_announcement_handoff_20261009.py
+@@ -0,0 +1,399 @@
++"""Synthetic regressions for the existing announcement owner chain.
++
++The catalog/body producer, local owner API, handoff/import and workspace
++consumer are real application code. Only source transport and the wall clock
++are replaced. Every byte is generated below pytest's temporary directory; no
++real announcement, shared state, scheduler, service or trade is touched.
++"""
++from __future__ import annotations
++
++from copy import deepcopy
++from datetime import datetime, timezone
++import hashlib
++import json
++from pathlib import Path
++from types import SimpleNamespace
++from urllib.parse import parse_qs, urlparse
++
++from fastapi import FastAPI
++from fastapi.testclient import TestClient
++import pytest
++
++from apps.api.v35_api import manager_research_router as api
++from ops import manager_announcement_body_batch as body_batch
++from ops import run_manager_daily_announcement as cli
++from v4.manager_research import workspace_announcements as consumer
++from v4.manager_research.announcement_catalog import PAGE_SIZE
++from v4.manager_research.hkex_provider import HkexOfficialProvider
++from v4.manager_research.materials import MaterialStore
++from v4.manager_research.ports import SourceResponse
++from v4.manager_research.service import ManagerResearchJobService
++from v4.manager_research.store import ManagerResearchStore
++from v4.manager_research.workspace_projection import FLAGS, digest
++
++# Existing frozen synthetic evidence builder isolates readback from the fresh
++# capture regression. It creates no production Reader or Reviewer evidence.
++import test_manager_announcement_parity_20261008 as parity
++from test_manager_us_mapping_three_channel_20261009 import owner as us_missing_owner
++
++TARGET = "20261009"
++PUBLICATION = "2026-10-08"
++NOW = datetime(2026, 10, 9, 1, tzinfo=timezone.utc)
++ARTICLE = "AN202610081234567890"
++TITLE = "Synthetic complete announcement fixture"
++
++
++def _write_json(path: Path, value):
++    path.parent.mkdir(parents=True, exist_ok=True)
++    path.write_bytes(body_batch.json_bytes(value))
++
++
++def _sha(path: Path):
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def _snapshot(root: Path):
++    return {str(path.relative_to(root)): _sha(path)
++            for path in root.rglob("*") if path.is_file()}
++
++
++def _clock(monkeypatch):
++    class Clock(datetime):
++        @classmethod
++        def now(cls, tz=None):
++            return NOW.astimezone(tz) if tz else NOW.replace(tzinfo=None)
++
++    monkeypatch.setattr(api, "datetime", Clock)
++    monkeypatch.setattr(consumer, "_now", lambda: NOW.isoformat())
++
++
++def _bind_cli_transport(monkeypatch, client):
++    calls = []
++
++    def request(api_base, path, *, method="GET", payload=None):
++        cli._local_api(api_base)
++        calls.append((method, path))
++        headers = {"Origin": "http://testserver"}
++        if payload is not None:
++            headers["Content-Type"] = "application/json"
++        response = client.request(method, path, content=payload, headers=headers)
++        if response.status_code not in {200, 201}:
++            raise ValueError("ANNOUNCEMENT_IMPORT_API_HTTP_ERROR_" + str(response.status_code))
++        return response.json()
++
++    monkeypatch.setattr(cli, "_request", request)
++    return calls
++
++
++class _SourceService(ManagerResearchJobService):
++    def get_workspace(self, target, **kwargs):
++        kwargs.setdefault("now", NOW)
++        return super().get_workspace(target, **kwargs)
++
++
++@pytest.fixture
++def source_lane(tmp_path, monkeypatch):
++    _clock(monkeypatch)
++    source_calls = []
++
++    def forbidden_transport(*args, **kwargs):
++        pytest.fail("Unexpected non-fixture source transport")
++
++    def source_transport(url, *, timeout, method="GET", body=None, headers=None):
++        source_calls.append(url)
++        parsed = urlparse(url)
++        query = parse_qs(parsed.query)
++        assert method == "GET"
++        if parsed.hostname == "np-anotice-stock.eastmoney.com":
++            assert query["begin_time"] == [PUBLICATION]
++            assert query["end_time"] == [PUBLICATION]
++            page = int(query["page_index"][0])
++            assert page in {1, 2}
++            row = {"art_code": ARTICLE, "title": TITLE,
++                "notice_date": PUBLICATION + " 00:00:00",
++                "display_time": PUBLICATION + " 09:00:00:000",
++                "codes": [{"market_code": "116", "stock_code": "01234",
++                           "ann_type": "H", "short_name": "Synthetic issuer"}]}
++            value = {"success": 1, "data": {"list": [row] if page == 1 else [],
++                "page_index": page, "page_size": PAGE_SIZE, "total_hits": 1}}
++            acquired_at = "2026-10-08T21:00:00+00:00"
++        elif parsed.hostname == "np-cnotice-stock.eastmoney.com":
++            assert query["art_code"] == [ARTICLE]
++            assert query["page_index"] == ["1"]
++            value = {"success": 1, "data": {"art_code": ARTICLE,
++                "notice_title": TITLE, "notice_date": PUBLICATION + " 00:00:00",
++                "page_size": 1, "notice_content": "One complete synthetic announcement body.",
++                "security": [{"market_uni": "116", "stock": "01234"}]}}
++            acquired_at = "2026-10-08T21:01:00+00:00"
++        else:
++            pytest.fail("Unexpected synthetic source URL: " + url)
++        return SourceResponse(url=url, final_url=url, status_code=200, headers={},
++            body=body_batch.json_bytes(value), retrieved_at=acquired_at)
++
++    def provider_factory(*, material_store, timeout):
++        return HkexOfficialProvider(transport=forbidden_transport,
++            eastmoney_transport=source_transport, material_store=material_store, timeout=timeout)
++
++    root = tmp_path / "synthetic-research-state"
++    materials = MaterialStore(root / "materials")
++    provider = provider_factory(material_store=materials, timeout=5)
++    service = _SourceService(ManagerResearchStore(root), None, provider,
++        material_store=materials, workspace_ledger_root=tmp_path / "synthetic-ledger",
++        workspace_security_master_root=tmp_path / "synthetic-master",
++        workspace_screen_authority_root=tmp_path / "synthetic-screen-authority",
++        catalyst_data_root=tmp_path / "synthetic-catalyst-data",
++        catalyst_news_owner_root=tmp_path / "synthetic-news-owner")
++    real_imports = body_batch.imports
++
++    def fixture_imports():
++        return {**real_imports(), "HkexOfficialProvider": provider_factory}
++
++    monkeypatch.setattr(body_batch, "imports", fixture_imports)
++    app = FastAPI()
++    app.include_router(api.create_manager_research_router(service))
++    with TestClient(app) as client:
++        cli_calls = _bind_cli_transport(monkeypatch, client)
++        yield SimpleNamespace(root=root, service=service, client=client,
++            source_calls=source_calls, cli_calls=cli_calls)
++    service.close()
++
++
++def _register_captured_fixture(lane, capture, *, reader_identity="synthetic-reader",
++                             reviewer_identity="synthetic-reviewer"):
++    run_id = capture["evidence_run_id"]
++    evidence = lane.root / "announcement_agent_runs" / run_id / "evidence"
++    catalog_read = json.loads((evidence / "catalog_read.json").read_text())
++    semantic = {"schema": "v4.announcement-semantic-catalog.v2",
++        "status": "PASS_SYNTHETIC_FIXTURE_ONLY", "target_research_date": TARGET,
++        "target_notice_date": PUBLICATION, "row_count": 1, "records": [{
++            "art_code": ARTICLE, "title": TITLE, "security_scope": "HK_LISTED",
++            "issuer_codes": [{"code": "HK.01234"}]}]}
++    reader_path = lane.root / "synthetic-reader-input.json"
++    _write_json(reader_path, semantic)
++    prepared = cli._build(SimpleNamespace(target_date=TARGET, publication_date=PUBLICATION,
++        catalog_read=str(evidence / "catalog_read.json"), semantic_catalog=str(reader_path),
++        body_corpus=str(evidence / "body_corpus.json"), body_capture_evidence_root=str(evidence),
++        decisions=None, review_receipt=None, out=None), reviewed=False, include_product=True)
++    row = prepared["product"]["records"][0]
++    decisions = [{"art_code": row["art_code"],
++        "issuer_codes": [item["code"] for item in row["issuer_codes"]],
++        "security_scope": row["security_scope"],
++        "semantic_record_sha256": row["semantic_record_sha256"],
++        "body_record_sha256": row["body_record_sha256"],
++        "disposition": "SELECTED_EVENT", "selection_basis": "OPERATING_EVENT",
++        "reason": "Synthetic fixture disposition only.", "risk_notes": []}]
++    decision_path = lane.root / "synthetic-decisions.json"
++    _write_json(decision_path, {"article_decisions": decisions})
++    reviewer_path = lane.root / "synthetic-reviewer-input.json"
++    _write_json(reviewer_path, {
++        "schema_version": "v4.manager_research.announcement_agent_review.v1",
++        "review_conclusion": "PASS", "decision_status": "EXPLICIT_DISPOSITIONS",
++        "decision_payload_sha256": digest(decisions), "target_trade_date": TARGET,
++        "publication_date": PUBLICATION, "evidence_run_id": run_id,
++        "reader_identity": reader_identity, "reviewer_identity": reviewer_identity,
++        "reviewed_at": "2026-10-09T00:00:00+00:00",
++        "catalog_product_sha256": catalog_read["catalog"]["sha256"],
++        "semantic_catalog_sha256": _sha(reader_path),
++        "body_corpus_sha256": _sha(evidence / "body_corpus.json")})
++    return cli._register_handoff(SimpleNamespace(target_date=TARGET,
++        publication_date=PUBLICATION, evidence_run_id=run_id,
++        research_state_root=str(lane.root), semantic_catalog=str(reader_path),
++        reviewer_output=str(reviewer_path), decisions=str(decision_path),
++        parent_task_id="synthetic-parent", reader_identity=reader_identity,
++        reviewer_identity=reviewer_identity))
++
++
++def test_original_fresh_capture_preserves_bound_bytes_then_imports_to_workspace(source_lane):
++    lane = source_lane
++    capture = cli._capture(SimpleNamespace(target_date=TARGET, publication_date="20261008",
++        api_base="http://127.0.0.1:8873", research_state_root=str(lane.root)))
++    evidence = lane.root / "announcement_agent_runs" / capture["evidence_run_id"] / "evidence"
++    for source_name, fixed_name in [("body_corpus.json", "body_corpus.json"),
++            ("body_corpus_manifest.json", "body_corpus_manifest.json"),
++            ("batch_receipt.json", "body_batch_receipt.json")]:
++        assert (evidence / fixed_name).read_bytes() == (evidence / "body_batch" / source_name).read_bytes(), (
++            "Original capture reformatted a producer artifact whose exact bytes are SHA-bound: " + fixed_name)
++    catalog = json.loads((evidence / "catalog_read.json").read_text())
++    terminal = consumer.validate_terminal_body_capture(evidence, catalog, TARGET, PUBLICATION,
++        expected_run_id=capture["evidence_run_id"])
++    assert terminal["status"] == "PASS_COMPLETE_CONTENT_API_BODIES_ALL_ROWS"
++    registered = _register_captured_fixture(lane, capture)
++    imported = cli._import(SimpleNamespace(evidence_run_id=registered["evidence_run_id"],
++        research_state_root=str(lane.root), api_base="http://127.0.0.1:8873"))
++    assert imported["product_sha256"] == registered["product_sha256"]
++    snapshot = _snapshot(lane.root)
++    source_calls = list(lane.source_calls)
++    readback = lane.client.get("/api/v4/manager/research/announcements/analysis",
++        params={"date": TARGET, "publication_date": "20261008"})
++    assert readback.status_code == 200, readback.text
++    consumption = readback.json()["consumption_validation"]
++    assert consumption["validation_status"] == "VERIFIED"
++    response = lane.client.get("/api/v4/manager/research/workspace", params={
++        "date": TARGET, "view": "dynamic", "announcement_date": "20261008",
++        "selection_date": "20261008"})
++    assert response.status_code == 200, response.text
++    consumed = response.json()["announcement_reviewed_analysis"]["products"][0]
++    assert consumed["status"] == "CONSUMED"
++    assert consumed["product_sha256"] == registered["product_sha256"]
++    assert consumed["handoff_manifest_sha256"] == registered["handoff_manifest_sha256"]
++    assert consumed["research_references"][0]["stock_code"] == "HK.01234"
++    assert all(consumed[key] is expected for key, expected in FLAGS.items())
++    assert _snapshot(lane.root) == snapshot
++    assert lane.source_calls == source_calls
++    assert len(source_calls) == 3  # Listing, terminal empty page and one body; synthetic only.
++    assert lane.cli_calls[0][0] == "POST"
++    assert "publication_date=20261008" in lane.cli_calls[0][1]
++
++
++@pytest.fixture
++def imported_lane(tmp_path, monkeypatch):
++    _clock(monkeypatch)
++    service = parity._FixtureService(tmp_path / "synthetic-imported-state")
++    product, registered = parity._fixture(service, target=TARGET, publication=PUBLICATION,
++        listing_at="2026-10-08T21:00:00+00:00", body_at="2026-10-08T21:01:00+00:00",
++        reviewed_at="2026-10-09T00:00:00+00:00")
++    with parity._client(service) as client:
++        imported = parity._import(client, registered)
++        _bind_cli_transport(monkeypatch, client)
++        yield SimpleNamespace(service=service, client=client, product=product,
++            registered=registered, imported=imported, root=service.store.root)
++    service.close()
++
++
++def test_cli_readback_accepts_exact_bound_owner_import_without_fabricating_product(imported_lane):
++    lane = imported_lane
++    before = _snapshot(lane.root)
++    result = cli._readback(SimpleNamespace(target_date=TARGET, publication_date="20261008",
++        api_base="http://127.0.0.1:8873"))
++    assert result["status"] == "OWNER_READBACK_VERIFIED"
++    assert result["product_sha256"] == lane.product["sha256"]
++    assert result["owner_receipt_sha256"] == lane.imported["owner_import_receipt"]["sha256"]
++    assert _snapshot(lane.root) == before
++
++
++@pytest.mark.parametrize("mutation", ["missing_chain", "unverified_chain", "product_sha",
++    "source_manifest_sha", "evidence_run_id", "handoff_sha", "judgment_sha", "owner_receipt_sha"])
++def test_cli_readback_rejects_unverified_or_mismatched_complete_chain(imported_lane, monkeypatch, mutation):
++    readback = imported_lane.client.get("/api/v4/manager/research/announcements/analysis",
++        params={"date": TARGET, "publication_date": "20261008"}).json()
++    if mutation == "missing_chain":
++        readback.pop("consumption_validation")
++    elif mutation == "unverified_chain":
++        readback["consumption_validation"]["validation_status"] = "CANNOT_CONFIRM"
++    else:
++        fields = {"product_sha": "product_sha256", "source_manifest_sha": "source_manifest_sha256",
++            "evidence_run_id": "evidence_run_id", "handoff_sha": "handoff_manifest_sha256",
++            "judgment_sha": "agent_judgment_receipt_sha256", "owner_receipt_sha": "owner_import_receipt_sha256"}
++        readback["consumption_validation"][fields[mutation]] = "f" * (32 if mutation == "evidence_run_id" else 64)
++    monkeypatch.setattr(cli, "_request", lambda *args, **kwargs: deepcopy(readback))
++    with pytest.raises(ValueError, match="ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID"):
++        cli._readback(SimpleNamespace(target_date=TARGET, publication_date="20261008",
++            api_base="http://127.0.0.1:8873"))
++
++
++@pytest.mark.parametrize("reader_identity", [None, "", "   "])
++def test_formal_reader_identity_cannot_be_missing_from_bound_judgment(imported_lane, reader_identity):
++    product = deepcopy(imported_lane.product)
++    receipt = product["agent_judgment_receipt"]
++    receipt["reader_identity"] = reader_identity
++    receipt["sha256"] = digest({key: value for key, value in receipt.items() if key != "sha256"})
++    with pytest.raises(ValueError, match="ANNOUNCEMENT_AGENT_JUDGMENT_RECEIPT_BINDING_INVALID"):
++        consumer.validate_agent_judgment_receipt(receipt, product)
++
++
++def test_whitespace_equivalent_reader_reviewer_cannot_register_a_distinct_review(source_lane):
++    lane = source_lane
++    capture = cli._capture(SimpleNamespace(target_date=TARGET, publication_date="20261008",
++        api_base="http://127.0.0.1:8873", research_state_root=str(lane.root)))
++    with pytest.raises(ValueError, match="ANNOUNCEMENT_HANDOFF_REVIEW_OUTPUT_INVALID"):
++        _register_captured_fixture(lane, capture, reader_identity="synthetic-reader",
++            reviewer_identity=" synthetic-reader ")
++    evidence = lane.root / "announcement_agent_runs" / capture["evidence_run_id"] / "evidence"
++    assert not (evidence / "analysis_product.json").exists()
++    assert not (evidence / "handoff_manifest.v1.json").exists()
++
++
++def test_whitespace_equivalent_reader_reviewer_cannot_validate_saved_judgment(imported_lane):
++    product = deepcopy(imported_lane.product)
++    receipt = product["agent_judgment_receipt"]
++    receipt["reader_identity"] = " " + receipt["reviewer_identity"] + " "
++    receipt["sha256"] = digest({key: value for key, value in receipt.items() if key != "sha256"})
++    with pytest.raises(ValueError, match="ANNOUNCEMENT_AGENT_JUDGMENT_RECEIPT_BINDING_INVALID"):
++        consumer.validate_agent_judgment_receipt(receipt, product)
++
++
++@pytest.mark.parametrize("missing", ["capture_receipt.json", "reader_output.json", "reviewer_output.json"])
++def test_import_requires_saved_capture_reader_and_reviewer_before_owner_post(imported_lane, monkeypatch, missing):
++    lane = imported_lane
++    run_id = lane.registered["evidence_run_id"]
++    evidence = lane.root / "announcement_agent_runs" / run_id / "evidence"
++    (evidence / missing).unlink()
++    snapshot = _snapshot(lane.root)
++
++    def forbidden_post(*args, **kwargs):
++        pytest.fail("Incomplete evidence reached owner import POST")
++
++    monkeypatch.setattr(cli, "_request", forbidden_post)
++    with pytest.raises(ValueError, match="ANNOUNCEMENT_AGENT_HANDOFF_OUTPUT_MISSING"):
++        cli._import(SimpleNamespace(evidence_run_id=run_id,
++            research_state_root=str(lane.root), api_base="http://127.0.0.1:8873"))
++    assert _snapshot(lane.root) == snapshot
++
++
++def test_cli_readback_keeps_legacy_receipt_bytes_when_current_handoff_verifies(imported_lane):
++    lane = imported_lane
++    path = parity.analysis.product_path(lane.service.store, TARGET, PUBLICATION).with_name("owner_import_receipt.v1.json")
++    receipt = json.loads(path.read_text())
++    for key in ("source_manifest_sha256", "evidence_run_id", "handoff_manifest_sha256", "agent_judgment_receipt_sha256"):
++        receipt.pop(key)
++    receipt["sha256"] = digest({key: value for key, value in receipt.items() if key != "sha256"})
++    _write_json(path, receipt)
++    before = _snapshot(lane.root)
++    readback = cli._readback(SimpleNamespace(target_date=TARGET, publication_date="20261008",
++        api_base="http://127.0.0.1:8873"))
++    assert readback["owner_receipt_sha256"] == receipt["sha256"]
++    assert _snapshot(lane.root) == before
++
++
++def test_imported_announcement_survives_workspace_refresh_with_missing_us_input(source_lane, us_missing_owner):
++    lane = source_lane
++    us_service, _source, _client, us_clock = us_missing_owner
++    # Reuse the US regression's real-schema synthetic relation files and its
++    # original missing-source adapter; no absent runtime JSON is invented.
++    us_clock["now"] = NOW
++    lane.service._workspace_us_market_reader = us_service._workspace_us_market_reader
++    capture = cli._capture(SimpleNamespace(target_date=TARGET, publication_date="20261008",
++        api_base="http://127.0.0.1:8873", research_state_root=str(lane.root)))
++    registered = _register_captured_fixture(lane, capture)
++    cli._import(SimpleNamespace(evidence_run_id=registered["evidence_run_id"],
++        research_state_root=str(lane.root), api_base="http://127.0.0.1:8873"))
++    evidence = lane.root / "announcement_agent_runs" / capture["evidence_run_id"] / "evidence"
++    product_path = parity.analysis.product_path(lane.service.store, TARGET, PUBLICATION)
++    source_snapshot = _snapshot(evidence)
++    imported_bytes = product_path.read_bytes()
++    source_calls = list(lane.source_calls)
++
++    response = lane.client.post("/api/v4/manager/research/workspace/refresh", params={
++        "date": TARGET, "announcement_date": "20261008", "selection_date": "20261008"},
++        headers={"Origin": "http://testserver"}, content=b"")
++    assert response.status_code == 200, response.text
++    value = response.json()
++    assert value["us_mapping_preparation"]["status"] == "INPUT_MISSING"
++    assert value["us_mapping_research"]["daily_run"]["status"] == "INPUT_MISSING"
++    assert value["owner_chain"]["us_mapping_daily_plan_reference"]["status"] == "INPUT_MISSING"
++    consumed = value["announcement_reviewed_analysis"]["products"][0]
++    assert consumed["status"] == "CONSUMED"
++    assert consumed["product_sha256"] == registered["product_sha256"]
++    assert consumed["handoff_manifest_sha256"] == registered["handoff_manifest_sha256"]
++    assert consumed["research_references"][0]["stock_code"] == "HK.01234"
++    announcement_channel = next(item for item in value["daily_channels"]["channels"]
++        if item["channel"] == "ANNOUNCEMENT")
++    assert announcement_channel["status"] == "READY"
++    assert announcement_channel["candidate_count"] == 1
++    saved = lane.service.get_workspace_plan(TARGET)
++    assert saved["sha256"] == value["plan_product"]["sha256"]
++    assert saved["workspace"]["announcement_reviewed_analysis"]["products"][0]["product_sha256"] == registered["product_sha256"]
++    assert _snapshot(evidence) == source_snapshot
++    assert product_path.read_bytes() == imported_bytes
++    assert lane.source_calls == source_calls
++    assert all(value[key] is expected for key, expected in FLAGS.items())
+--- /dev/null
++++ b/tests/test_manager_us_mapping_three_channel_20261009.py
+@@ -0,0 +1,337 @@
++"""Synthetic three-channel regressions through the original US and plan owners.
++
++Only temporary source/store files are written. Prices and reviewed relations
++are deliberately synthetic; none of these results reconstruct the 10/9 live
++incident, prove a deployment, or authorize a natural-run/trading claim.
++"""
++from __future__ import annotations
++
++from datetime import datetime, timedelta
++import hashlib
++import json
++from pathlib import Path
++from threading import Event
++import time
++
++from fastapi import FastAPI
++from fastapi.testclient import TestClient
++import pytest
++
++from apps.api.v35_api import manager_research_router as api
++from infrastructure.research_peripheral_store import ResearchPeripheralStore
++from infrastructure.scheduling import manager_announcement_supervisor as supervisor
++from v4.manager_research import plan_owner_dispatch as dispatch
++from v4.manager_research import us_mapping_research as mapping
++from v4.manager_research import workspace
++from v4.manager_research.contracts import sha256_json
++from v4.manager_research.service import ManagerResearchJobService
++from v4.manager_research.store import ManagerResearchStore
++from v4.manager_research.us_market_bridge import ResearchPeripheralUsMarketReader
++from v4.manager_research.workspace_projection import FLAGS, HK
++
++from test_manager_us_mapping_research import _synthetic_us_payload
++
++
++TARGET = "20261009"
++SESSION = "20261008"
++
++
++def _bytes(root: Path) -> dict[str, bytes]:
++    return {str(path.relative_to(root)): path.read_bytes()
++            for path in root.rglob("*") if path.is_file()}
++
++
++@pytest.fixture
++def owner(tmp_path, monkeypatch):
++    clock = {"now": datetime(2026, 10, 9, 7, 0, tzinfo=HK)}
++
++    class Clock(datetime):
++        @classmethod
++        def now(cls, tz=None):
++            current = clock["now"]
++            return cls.fromtimestamp(current.timestamp(), tz) if tz else cls.fromtimestamp(current.timestamp())
++
++    for module in (api, mapping, workspace):
++        monkeypatch.setattr(module, "datetime", Clock)
++    monkeypatch.setattr(dispatch, "clock_now", lambda: Clock.now(HK))
++    monkeypatch.delenv("V4_MANAGER_VIBE_BINDING", raising=False)
++
++    # The handoff lacks the two runtime relation JSON files. Exercise their
++    # actual integrity/availability readers against explicitly synthetic files.
++    seed = {
++        "schema_version": "v4.manager_research.us_mapping_reviewed.v1",
++        "target_trade_date": "20260930", "report": {"sha256": "b" * 64},
++        "status": "SYNTHETIC_REGRESSION_ONLY", "cards": [
++            {"daily_match_symbols": [symbol], "hk_symbol": f"HK.{index:05d}",
++             "hk_name": f"Synthetic relation {index}",
++             "relationship_type": "PRODUCT_PEER", "reason": "SYNTHETIC_REGRESSION_ONLY",
++             "official_sources": [], "limitations": ["No historical or live evidence"]}
++            for index, symbol in enumerate(("LITE", "AVGO", "COHR", "CIEN"), 1)
++        ], **FLAGS,
++    }
++    seed["artifact_sha256"] = sha256_json(seed)
++    seed_path = tmp_path / "synthetic-reviewed-relations.json"
++    seed_path.write_text(json.dumps(seed, sort_keys=True), encoding="utf-8")
++    registry = {
++        "schema_version": "v4.manager_research.us_mapping_relation_registry.v1",
++        "source_seed_sha256": hashlib.sha256(seed_path.read_bytes()).hexdigest(),
++        "source_report_sha256": seed["report"]["sha256"],
++        "available_at": "2026-10-01T00:00:00+08:00",
++        "availability_basis": "V4_RELEASE_PUBLICATION", "release_id": "SYNTHETIC_REGRESSION_ONLY",
++        "release_manifest_sha256": "c" * 64, "deployment_receipt_sha256": "d" * 64,
++    }
++    registry["artifact_sha256"] = sha256_json(registry)
++    registry_path = tmp_path / "synthetic-relation-registry.json"
++    registry_path.write_text(json.dumps(registry, sort_keys=True), encoding="utf-8")
++    monkeypatch.setattr(mapping, "REVIEWED_PATH", seed_path)
++    monkeypatch.setattr(mapping, "RELATION_REGISTRY_PATH", registry_path)
++
++    source_root = tmp_path / "synthetic-us-owner"
++    source = ResearchPeripheralStore(source_root)
++    master = tmp_path / "synthetic-missing-hk-authority"
++    master.mkdir()
++    service = ManagerResearchJobService(
++        ManagerResearchStore(tmp_path / "isolated-manager-state"), None, None,
++        existing_research_source=None, workspace_security_master_root=master,
++        workspace_us_market_reader=ResearchPeripheralUsMarketReader(source_root),
++    )
++    application = FastAPI()
++    application.include_router(api.create_manager_research_router(service))
++    try:
++        with TestClient(application) as client:
++            yield service, source, client, clock
++    finally:
++        service.close()
++
++
++def test_explicit_plan_action_materializes_valid_empty_daily_and_consumes_exact_run(owner):
++    service, source, client, clock = owner
++    source.publish(_synthetic_us_payload(SESSION, {}))
++    reader = service._workspace_us_market_reader
++
++    class AdvancingReader:
++        def read_exact_session(self, session_date):
++            result = reader.read_exact_session(session_date)
++            clock["now"] += timedelta(seconds=2)
++            return result
++
++    service._workspace_us_market_reader = AdvancingReader()
++    before_get = _bytes(service.store.root)
++    initial = client.get("/api/v4/manager/research/workspace", params={"date": TARGET, "view": "dynamic"})
++    assert initial.status_code == 200
++    assert initial.json()["us_mapping_research"]["daily_run"]["status"] == "NOT_RUN"
++    assert _bytes(service.store.root) == before_get
++
++    response = client.post("/api/v4/manager/research/workspace/refresh", params={
++        "date": TARGET, "selection_date": TARGET, "announcement_date": SESSION}, content=b"")
++    assert response.status_code == 200, response.text
++    value = response.json()
++    daily = value["us_mapping_research"]["daily_run"]
++    assert daily["status"] == "VALID_EMPTY"
++    assert daily["us_session_date"] == SESSION
++    assert daily["coverage"] == {
++        "reviewed_us_symbol_count": 4, "matched_us_symbol_count": 0,
++        "matched_hk_relation_count": 0, "configured_us_universe_count": 33,
++        "available_us_universe_count": 33, "full_market_coverage": False}
++    reference = value["owner_chain"]["us_mapping_daily_plan_reference"]
++    assert reference["status"] == "CONSUMED"
++    assert reference["run_id"] == daily["run_id"]
++    assert reference["artifact_sha256"] == daily["artifact_sha256"]
++    assert datetime.fromisoformat(reference["available_at"]) <= datetime.fromisoformat(reference["plan_cutoff"])
++    assert value["plan_product"]["status"] == "CURRENT"
++    assert value["plan_product"]["consumed"] is True
++    assert value["store_latest_matches_http_plan_product"] is True
++
++    saved_bytes = _bytes(service.store.root)
++    readback = client.get("/api/v4/manager/research/workspace", params={
++        "date": TARGET, "view": "dynamic", "selection_date": TARGET,
++        "announcement_date": SESSION})
++    assert readback.status_code == 200, readback.text
++    saved = readback.json()
++    assert saved["us_mapping_research"]["daily_run"]["run_id"] == daily["run_id"]
++    assert saved["plan_product"]["run_id"] == value["plan_product"]["run_id"]
++    assert saved["plan_product"]["status"] == "CURRENT"
++    assert all(saved[key] is expected for key, expected in FLAGS.items())
++    assert saved["plan_product"]["execution_context"]["natural_run_verified"] is False
++    assert _bytes(service.store.root) == saved_bytes
++
++
++def test_missing_us_input_is_recorded_without_blocking_original_plan_action(owner):
++    service, _source, client, _clock = owner
++    response = client.post("/api/v4/manager/research/workspace/refresh", params={"date": TARGET}, content=b"")
++    assert response.status_code == 200, response.text
++    value = response.json()
++    daily = value["us_mapping_research"]["daily_run"]
++    assert daily["status"] == "INPUT_MISSING"
++    assert daily["coverage"]["matched_us_symbol_count"] is None
++    assert daily["coverage"]["matched_hk_relation_count"] is None
++    assert daily["latest_attempt"]["status"] == "INPUT_MISSING"
++    assert daily["latest_attempt"]["execution_context"]["trigger_kind"] == "MANUAL"
++    assert value["owner_chain"]["us_mapping_daily_plan_reference"]["status"] == "INPUT_MISSING"
++    assert value["plan_product"]["status"] == "CURRENT"
++    assert value["workspace_plan_attempt"]["state"] == "PARTIAL"
++    assert {row["channel"] for row in value["daily_channels"]["channels"]} == {"ANNOUNCEMENT", "HK_CONNECT", "OVERSOLD"}
++    assert service.get_workspace_plan(TARGET)["run_id"] == value["plan_product"]["run_id"]
++
++
++@pytest.mark.parametrize("failure_type", [RuntimeError, ImportError])
++def test_us_owner_exception_is_visible_while_independent_plan_materializes(owner, monkeypatch, failure_type):
++    service, _source, client, _clock = owner
++
++    def failed_owner(*_args, **_kwargs):
++        raise failure_type("SYNTHETIC_OWNER_EXCEPTION_PRIVATE_DETAIL")
++
++    monkeypatch.setattr(service, "refresh_us_mapping_research", failed_owner)
++    response = client.post("/api/v4/manager/research/workspace/refresh", params={"date": TARGET}, content=b"")
++    assert response.status_code == 200, response.text
++    value = response.json()
++    assert value["plan_product"]["status"] == "CURRENT"
++    preparation = value["us_mapping_preparation"]
++    assert preparation["status"] == "FAILED"
++    assert preparation["execution_status"] == "US_MAPPING_OWNER_CALL_FAILED:" + failure_type.__name__
++    assert preparation["run_id"] is None
++    assert "SYNTHETIC_OWNER_EXCEPTION_PRIVATE_DETAIL" not in response.text
++
++
++def test_future_target_plan_keeps_existing_behavior_without_running_us_owner(owner, monkeypatch):
++    service, _source, client, _clock = owner
++    monkeypatch.setattr(service, "refresh_us_mapping_research",
++        lambda *_args, **_kwargs: pytest.fail("Future target must not run the US daily owner"))
++    response = client.post("/api/v4/manager/research/workspace/refresh", params={"date": "20261012"}, content=b"")
++    assert response.status_code == 200, response.text
++    assert response.json()["plan_product"]["status"] == "CURRENT"
++    assert response.json()["us_mapping_preparation"]["status"] == "FUTURE_TARGET_NOT_DUE"
++    assert response.json()["us_mapping_preparation"]["execution_attempted"] is False
++    assert service.store._io.files("us_mapping_dispatch/20261012") == []
++
++
++@pytest.mark.parametrize("invalid_field", ["execution_status", "artifact_sha256"])
++def test_preparation_rejects_unbounded_owner_diagnostic_without_exposing_it(owner, monkeypatch, invalid_field):
++    service, _source, client, _clock = owner
++    monkeypatch.setattr(service, "refresh_us_mapping_research", lambda *_args, **_kwargs: {
++        "schema_version": mapping.DAILY_SCHEMA, "target_trade_date": TARGET,
++        "status": "FAILED", "run_id": None,
++        "execution_status": "US_MAPPING_OWNER_BUILD_FAILED",
++        "gaps": [], **FLAGS,
++        invalid_field: "SYNTHETIC private source body must not be copied"})
++    response = client.post("/api/v4/manager/research/workspace/refresh", params={"date": TARGET}, content=b"")
++    assert response.status_code == 200, response.text
++    assert response.json()["us_mapping_preparation"]["execution_status"] == "US_MAPPING_OWNER_CALL_FAILED:ValueError"
++    assert "SYNTHETIC private source body" not in response.text
++    assert response.json()["plan_product"]["status"] == "CURRENT"
++
++
++def test_real_timed_out_reader_is_not_reentered_by_plan_and_cannot_publish_late(owner):
++    service, _source, client, clock = owner
++    started, release, finished = Event(), Event(), Event()
++    calls = []
++
++    class BlockedReader:
++        def read_exact_session(self, session_date):
++            calls.append(session_date)
++            started.set()
++            try:
++                assert release.wait(8)
++                return None, {"status": "NOT_MATERIALIZED", "session_date": session_date}
++            finally:
++                finished.set()
++
++    service._workspace_us_market_reader = BlockedReader()
++    began = time.monotonic()
++    try:
++        response = client.post("/api/v4/manager/research/workspace/refresh", params={"date": TARGET}, content=b"")
++        assert response.status_code == 200, response.text
++        assert started.is_set()
++        assert time.monotonic() - began < 6.5
++        value = response.json()
++        assert value["us_mapping_preparation"]["execution_status"] == "US_MAPPING_OWNER_READ_TIMEOUT"
++        assert value["plan_product"]["status"] == "CURRENT"
++        assert value["us_mapping_research"]["daily_run"]["status"] == "FAILED"
++        assert value["us_mapping_research"]["daily_run"]["coverage"]["matched_hk_relation_count"] is None
++        assert calls == [SESSION]
++        clock["now"] += timedelta(seconds=1)
++        busy_started = time.monotonic()
++        busy = client.post("/api/v4/manager/research/workspace/refresh", params={"date": TARGET}, content=b"")
++        assert busy.status_code == 200, busy.text
++        assert time.monotonic() - busy_started < 1.5
++        assert busy.json()["us_mapping_preparation"]["execution_status"] == "US_MAPPING_OWNER_READ_BUSY"
++        assert busy.json()["plan_product"]["status"] == "CURRENT"
++        assert calls == [SESSION]
++        saved_bytes = _bytes(service.store.root)
++    finally:
++        release.set()
++        assert finished.wait(1)
++        assert mapping._ACTIVE_BUILD.done.wait(1)
++    assert _bytes(service.store.root) == saved_bytes
++    assert not (service.store.root / "us_mapping_research" / TARGET / "latest.json").exists()
++
++
++@pytest.mark.parametrize("request_options", [
++    {"headers": {"Origin": "https://invalid.example"}, "content": b""},
++    {"content": b'{"symbols":["HK.00001"]}'},
++])
++def test_rejected_manual_request_does_not_enter_us_or_plan_owner(owner, monkeypatch, request_options):
++    service, _source, client, _clock = owner
++    monkeypatch.setattr(service, "refresh_us_mapping_research",
++        lambda *_args, **_kwargs: pytest.fail("Rejected request entered US owner"))
++    monkeypatch.setattr(service, "refresh_workspace_plan",
++        lambda *_args, **_kwargs: pytest.fail("Rejected request entered plan owner"))
++    before = _bytes(service.store.root)
++    response = client.post("/api/v4/manager/research/workspace/refresh", params={"date": TARGET}, **request_options)
++    assert response.status_code in {403, 422}
++    assert _bytes(service.store.root) == before
++
++
++def _binding(service, tmp_path, monkeypatch):
++    value = {
++        "enabled": True, "manager_state_root": str(service.store.root),
++        "security_master_root": str(service._workspace_security_master_root),
++        "preopen_plan": {"enabled": True, "lead_seconds": 180, "status": "PROPOSAL_ONLY"},
++        "morning_plan": {"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"},
++        "plan_material_refresh": {"enabled": True, "start_local": "16:00", "end_local": "23:00",
++            "max_attempts_per_target_date": 3, "retry_backoff_seconds": 600, "status": "PROPOSAL_ONLY"},
++        "daily_automation": {"enabled": True,
++            "same_day_catchup_slots_local": ["10:00", "12:30", "15:45", "18:30", "22:30"],
++            "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5, "status": "PROPOSAL_ONLY"},
++    }
++    path = tmp_path / "synthetic-binding.json"
++    path.write_text(json.dumps(value, sort_keys=True), encoding="utf-8")
++    monkeypatch.setenv("V4_MANAGER_PLAN_OWNER_BINDING_PATH", str(path))
++    # Deployment/source attestation is not supplied. Only that external
++    # attestation boundary is injected; SHA/root/date/window admission, owners,
++    # dispatch journals and persisted product/readback remain actual code.
++    monkeypatch.setattr(supervisor, "validate_binding", lambda payload, **_kwargs: payload)
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def test_next_morning_slot_rechecks_later_arriving_input_and_same_slot_remains_idempotent(owner, tmp_path, monkeypatch):
++    service, source, _client, clock = owner
++    binding_sha = _binding(service, tmp_path, monkeypatch)
++    first = dispatch.execute_bound_daily_cycle(service, TARGET, binding_sha)
++    assert first["us_mapping_research"]["status"] == "INPUT_MISSING"
++    first_us_trigger = first["us_mapping_research"]["execution_context"]["trigger_id"]
++    first_bytes = _bytes(service.store.root)
++
++    # Source arrives after the first admitted slot; this is temporary synthetic
++    # publication through the same original store, never a second producer.
++    source.publish(_synthetic_us_payload(SESSION, {}))
++    replay = dispatch.execute_bound_daily_cycle(service, TARGET, binding_sha)
++    assert {key: value for key, value in replay.items() if key != "read_metrics"} == {
++        key: value for key, value in first.items() if key != "read_metrics"}
++    assert _bytes(service.store.root) == first_bytes
++
++    clock["now"] = datetime(2026, 10, 9, 7, 5, tzinfo=HK)
++    next_slot = dispatch.execute_bound_daily_cycle(service, TARGET, binding_sha)
++    assert next_slot["us_mapping_research"]["status"] == "VALID_EMPTY"
++    assert next_slot["us_mapping_research"]["coverage"]["matched_hk_relation_count"] == 0
++    assert next_slot["us_mapping_research"]["execution_context"]["trigger_id"] != first_us_trigger
++    saved = service.get_workspace_plan(TARGET)
++    reference = saved["workspace"]["owner_chain"]["us_mapping_daily_plan_reference"]
++    assert reference["status"] == "CONSUMED"
++    assert reference["run_id"] == next_slot["us_mapping_research"]["run_id"]
++    assert saved["workspace"]["us_mapping_research"]["daily_run"]["coverage"]["full_market_coverage"] is False
++    successful_bytes = _bytes(service.store.root)
++    repeated = dispatch.execute_bound_daily_cycle(service, TARGET, binding_sha)
++    assert {key: value for key, value in repeated.items() if key != "read_metrics"} == {
++        key: value for key, value in next_slot.items() if key != "read_metrics"}
++    assert _bytes(service.store.root) == successful_bytes
+--- /dev/null
++++ b/tests/test_manager_three_channel_hk_reader.py
+@@ -0,0 +1,281 @@
++"""Synthetic regressions for the 20261009 exact-date HK reader repair.
++
++All artifacts below are invented test data under pytest temporary roots. These
++tests do not reproduce a historical latest.json, attest market units, collect
++quotes, or publish any business state.
++"""
++from __future__ import annotations
++
++from datetime import datetime
++import hashlib
++import io
++import json
++from pathlib import Path
++
++import pandas as pd
++import pytest
++
++from upstreams.v3_shared_data.shared_data import hk_security_master as owner
++from upstreams.v3_shared_data.shared_data.hashing import canonical_bytes, sha256_json
++from upstreams.v3_shared_data.shared_data.store import StoreError
++from v4.manager_research import workspace_plan
++from v4.manager_research.workspace_projection import build_workspace
++
++
++DAY = "20261008"
++TARGET = "20261009"
++CUTOFF = "2026-10-09T08:00:00+08:00"
++CODE = "HK.90001"
++FLAGS = {"production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++COUNT_FIELDS = (
++    "input_candidate_count", "history_complete_count", "history_pending_count",
++    "strict_count", "near_candidate_count", "near_count", "selected_count",
++    "panel_row_count", "panel_code_count",
++)
++
++
++def _sha(raw: bytes) -> str:
++    return hashlib.sha256(raw).hexdigest()
++
++
++def _files(root: Path) -> dict[str, str]:
++    return {path.relative_to(root).as_posix(): _sha(path.read_bytes())
++            for path in root.rglob("*") if path.is_file()}
++
++
++def _publish_master(root: Path, day: str = DAY, *, name: str = "Synthetic issuer A",
++                    captured_at: str = "2026-10-08T18:01:00+08:00") -> dict:
++    return owner.publish_hk_security_master(
++        root, trade_date=day,
++        rows=[{"code": CODE, "name": name, "outstanding_shares": 1000,
++               "circular_market_val": 100000, "listing_date": "2010-01-01",
++               "lot_size": 100, "sec_status": "NORMAL"}],
++        universe_codes_sha256=sha256_json([CODE]), captured_at=captured_at,
++    )
++
++
++def _master_paths(root: Path, day: str = DAY) -> tuple[Path, Path, Path]:
++    asset = root / "assets/hk_security_master"
++    latest = json.loads((asset / "latest.json").read_bytes())
++    entry = latest["entries"][day]
++    manifest_path = asset / entry["manifest_relative"]
++    manifest = json.loads(manifest_path.read_bytes())
++    return manifest_path, asset / entry["receipt_relative"], asset / manifest["artifact_relative"]
++
++
++def _panel(root: Path) -> None:
++    sessions = workspace_plan.rebound_history_sessions(DAY)
++    rows = [{
++        "trade_date_compact": day, "code_norm": CODE, "name": "Synthetic panel issuer",
++        "open": 99.0, "high": 100.0, "low": 98.0, "close": 99.0,
++        "amount": 10.0, "trade": 100.0, "pre_close": 99.0,
++    } for day in sessions["prior60"]]
++    rows.append({
++        "trade_date_compact": DAY, "code_norm": CODE, "name": "Synthetic panel issuer",
++        "open": 80.0, "high": 80.0, "low": 79.0, "close": 80.0,
++        "amount": 10.0, "trade": 150.0, "pre_close": 99.0,
++    })
++    buffer = io.BytesIO()
++    pd.DataFrame(rows).to_parquet(buffer, index=False)
++    raw = buffer.getvalue()
++    digest = _sha(raw)
++    asset = root / "assets/hk_0_2"
++    relative = f"panels/{DAY}-{digest[:12]}/hkconnect_vipdoc_daily_panel.parquet"
++    path = asset / relative
++    path.parent.mkdir(parents=True)
++    path.write_bytes(raw)
++    manifest = {
++        "asset_schema_version": "v3_shared_data.hk_0_2_panel_asset.v2",
++        "source_contract": "tdx_vipdoc_71_day+verified_zero_trade_repairs",
++        "panel_relative": relative, "panel_sha256": digest, "panel_max_date": DAY,
++        "panel_code_count": 1, "panel_rows": len(rows), "research_only": True,
++        "manifest_prepared_at": "2026-10-08T18:00:00+08:00", **FLAGS,
++    }
++    manifest_path = path.parent / "manifest.json"
++    manifest_path.write_bytes(canonical_bytes(manifest))
++    (asset / "panel_latest.json").write_bytes(canonical_bytes({
++        "manifest_relative": manifest_path.relative_to(asset).as_posix()}))
++
++
++def _screen(root: Path) -> dict:
++    return workspace_plan.read_rebound_screen(root, workspace_plan.plan_context(
++        TARGET, now=datetime.fromisoformat(CUTOFF)))
++
++
++def test_missing_exact_index_key_is_distinct_from_invalid_metadata_and_does_not_write(tmp_path):
++    _publish_master(tmp_path, TARGET)
++    latest_path = tmp_path / "assets/hk_security_master/latest.json"
++    before = _files(tmp_path)
++
++    with pytest.raises(StoreError) as caught:
++        owner.load_verified_hk_security_master(tmp_path, DAY)
++
++    assert getattr(caught.value, "reason_code", None) == "HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING"
++    diagnostic = caught.value.diagnostic
++    assert diagnostic == {
++        "status": "MISSING", "reason_code": "HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING",
++        "requested_trade_date": DAY, "validation_stage": "INDEX_LOOKUP",
++        "latest_json_sha256": _sha(latest_path.read_bytes()), "entry_count": 1,
++        "latest_entry_date": TARGET, "requested_entry_present": False,
++    }
++    assert _files(tmp_path) == before
++
++
++def test_real_screen_preserves_exact_missing_reason_and_unknown_counts(tmp_path):
++    _panel(tmp_path)
++    _publish_master(tmp_path, TARGET)
++    before = _files(tmp_path)
++
++    screen = _screen(tmp_path)
++
++    assert screen["status"] == "CANNOT_CONFIRM"
++    assert screen["verified_session"] == DAY
++    assert screen["main_screen_ready"] is False
++    assert screen["gaps"] == [
++        "SCREEN_SECURITY_MASTER_READ_FAILED:HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING"]
++    diagnostic = screen["data_context"]["security_master_read"]
++    assert diagnostic["requested_trade_date"] == DAY
++    assert diagnostic["requested_entry_present"] is False
++    assert diagnostic["validation_stage"] == "INDEX_LOOKUP"
++    assert str(tmp_path) not in json.dumps(diagnostic)
++    assert screen["coverage"]["counts_known"] is False
++    assert all(screen["coverage"][field] is None for field in COUNT_FIELDS)
++    assert screen["cards"] == screen["strict"] == screen["near"] == screen["pending"] == []
++    assert screen["input_identity"] is None
++    assert all(screen[key] is value for key, value in FLAGS.items())
++    projected = build_workspace(TARGET, market_screen=screen,
++        catalyst={"status": "NOT_MATERIALIZED", "target_trade_date": TARGET, "cards": []})
++    assert projected["summary"]["market_screen_strict_count"] is None
++    assert _files(tmp_path) == before
++
++
++def test_exact_valid_master_reaches_real_screen_without_inventing_volume_unit_proof(tmp_path):
++    _panel(tmp_path)
++    published = _publish_master(tmp_path)
++    # A later entry can coexist with the exact requested one; it is not a fallback.
++    _publish_master(tmp_path, TARGET, name="Synthetic later issuer")
++    before = _files(tmp_path)
++
++    screen = _screen(tmp_path)
++
++    assert screen["status"] == "READY_WITH_GAPS", screen["gaps"]
++    assert screen["main_screen_ready"] is True
++    assert screen["verified_session"] == DAY
++    assert screen["authority"]["security_master"]["run_id"] == published["run_id"]
++    assert screen["data_context"]["security_master_read"]["status"] == "VERIFIED"
++    assert screen["data_context"]["security_master_read"]["requested_trade_date"] == DAY
++    assert screen["data_context"]["security_master_read"]["requested_entry_present"] is True
++    assert screen["coverage"]["counts_known"] is True
++    assert screen["coverage"]["input_candidate_count"] == 1
++    assert screen["coverage"]["history_pending_count"] == 1
++    assert screen["coverage"]["selected_count"] == 0
++    assert screen["cards"] == screen["strict"] == screen["near"] == []
++    row = screen["pending"][0]
++    assert row["name"] == "Synthetic issuer A"
++    assert row["history_numeric_status"] == "KNOWN"
++    assert row["volume_unit_status"] == "NOT_PROVEN"
++    assert row["volume_flag_5d_ge_1_5"] is None
++    assert row["oversold_flag"] is True
++    assert all(screen[key] is value for key, value in FLAGS.items())
++    assert _files(tmp_path) == before
++
++
++def test_witness_keeps_one_verified_run_when_same_date_index_advances(tmp_path, monkeypatch):
++    _publish_master(tmp_path)
++    latest_path = tmp_path / "assets/hk_security_master/latest.json"
++    first_index = latest_path.read_bytes()
++    manifest_path, _, artifact_path = _master_paths(tmp_path)
++    first_manifest = manifest_path.read_bytes()
++    first_artifact = artifact_path.read_bytes()
++    _publish_master(tmp_path, name="Synthetic issuer B")
++    second_index = latest_path.read_bytes()
++    latest_path.write_bytes(first_index)
++    original_open = Path.open
++    index_reads = 0
++
++    def moving_index(path, mode="r", *args, **kwargs):
++        nonlocal index_reads
++        if path == latest_path and "r" in mode:
++            index_reads += 1
++            raw = first_index if index_reads == 1 else second_index
++            return io.BytesIO(raw) if "b" in mode else io.StringIO(raw.decode("utf-8"))
++        return original_open(path, mode, *args, **kwargs)
++
++    monkeypatch.setattr(Path, "open", moving_index)
++    witness, manifest = workspace_plan._screen_security_master_witness(tmp_path, DAY)
++
++    assert witness["manifest_sha256"] == _sha(first_manifest)
++    assert witness["artifact_sha256"] == _sha(first_artifact)
++    assert witness["manifest_path"] == str(manifest_path)
++    assert witness["run_id"] == manifest["run_id"]
++    assert witness["names"][CODE]["name"] == "Synthetic issuer A"
++
++
++def test_screen_witness_uses_supplied_upstream_owner_not_shadow_reader(tmp_path, monkeypatch):
++    from v3_shared_data.shared_data import hk_security_master as shadow
++    _publish_master(tmp_path)
++    expected = Path(__file__).resolve().parents[1] / "upstreams/v3_shared_data/shared_data/hk_security_master.py"
++    assert Path(owner.__file__).resolve() == expected
++
++    def wrong_owner(*args, **kwargs):
++        raise AssertionError("the shadow package is not the supplied authoritative reader")
++
++    monkeypatch.setattr(shadow, "load_verified_hk_security_master", wrong_owner)
++    witness, manifest = workspace_plan._screen_security_master_witness(tmp_path, DAY)
++    assert witness["run_id"] == manifest["run_id"]
++    assert witness["names"][CODE]["name"] == "Synthetic issuer A"
++
++
++@pytest.mark.parametrize(("mutation", "reason"), [
++    ("index_schema", "HK_SECURITY_MASTER_INDEX_SCHEMA_INVALID"),
++    ("entry_shape", "HK_SECURITY_MASTER_ENTRY_INVALID"),
++    ("receipt_date", "HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID"),
++    ("safety", "HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID"),
++    ("artifact_checksum", "HK_SECURITY_MASTER_ARTIFACT_CHECKSUM_MISMATCH"),
++    ("manifest_checksum", "HK_SECURITY_MASTER_MANIFEST_CHECKSUM_MISMATCH"),
++])
++def test_invalid_exact_input_stays_invalid_with_bounded_reason(tmp_path, mutation, reason):
++    _publish_master(tmp_path)
++    asset = tmp_path / "assets/hk_security_master"
++    manifest_path, receipt_path, artifact_path = _master_paths(tmp_path)
++    if mutation in {"index_schema", "entry_shape"}:
++        index = json.loads((asset / "latest.json").read_bytes())
++        if mutation == "index_schema":
++            index["schema_version"] = "synthetic-wrong-schema"
++        else:
++            index["entries"][DAY] = []
++        (asset / "latest.json").write_bytes(canonical_bytes(index))
++    elif mutation in {"receipt_date", "safety"}:
++        receipt = json.loads(receipt_path.read_bytes())
++        receipt["trade_date" if mutation == "receipt_date" else "orders_sent"] = (
++            TARGET if mutation == "receipt_date" else True)
++        receipt_path.write_bytes(canonical_bytes(receipt))
++    elif mutation == "artifact_checksum":
++        artifact_path.write_bytes(artifact_path.read_bytes() + b"\n")
++    else:
++        manifest = json.loads(manifest_path.read_bytes())
++        manifest["captured_at"] = "2026-10-08T18:02:00+08:00"
++        manifest_path.write_bytes(canonical_bytes(manifest))
++    before = _files(tmp_path)
++
++    with pytest.raises(StoreError) as caught:
++        owner.load_verified_hk_security_master(tmp_path, DAY)
++
++    assert getattr(caught.value, "reason_code", None) == reason
++    assert caught.value.diagnostic["status"] == "INVALID"
++    assert str(tmp_path) not in str(caught.value)
++    assert _files(tmp_path) == before
++
++
++def test_valid_master_after_cutoff_still_cannot_enter_screen(tmp_path):
++    _panel(tmp_path)
++    _publish_master(tmp_path, captured_at="2026-10-09T08:01:00+08:00")
++
++    screen = _screen(tmp_path)
++
++    assert screen["status"] == "CANNOT_CONFIRM"
++    assert screen["main_screen_ready"] is False
++    assert screen["gaps"] == ["SCREEN_SECURITY_MASTER_AFTER_CUTOFF_OR_UNVERIFIED"]
++    assert screen["coverage"]["counts_known"] is False
++    assert all(screen["coverage"][field] is None for field in COUNT_FIELDS)
++    assert screen["cards"] == []
+--- a/tests/test_manager_screen_summary_contract.py
++++ b/tests/test_manager_screen_summary_contract.py
+@@ -93,8 +93,9 @@
+     })
+     assert screen['status'] == 'CANNOT_CONFIRM'
+     assert screen['main_screen_ready'] is False
+-    assert screen['coverage']['strict_count'] == 0
+-    assert screen['coverage']['near_count'] == 0
++    assert screen['coverage']['counts_known'] is False
++    assert screen['coverage']['strict_count'] is None
++    assert screen['coverage']['near_count'] is None
+     assert screen['cards'] == []
+ 
+     result = project(screen)
+--- /dev/null
++++ b/tests/manager_three_channel_ui_fixture.py
+@@ -0,0 +1,40 @@
++"""Emit actual reader DTOs from temporary synthetic inputs for frontend tests.
++
++No argument can redirect output writes to a business root. The original reader
++and test-only fixture publishers operate inside TemporaryDirectory only.
++"""
++from __future__ import annotations
++
++import argparse
++import json
++from pathlib import Path
++import sys
++from tempfile import TemporaryDirectory
++
++ROOT = Path(__file__).resolve().parents[1]
++for path in reversed((ROOT, ROOT / "upstreams", ROOT / "tests")):
++    sys.path.insert(0, str(path))
++import r3_scoped_loader
++r3_scoped_loader.install()
++
++from test_manager_three_channel_hk_reader import (
++    _panel, _publish_master, _screen, DAY, TARGET, owner,
++)
++
++
++def main() -> None:
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--fixture", choices=("hk_missing", "hk_valid"), required=True)
++    args = parser.parse_args()
++    with TemporaryDirectory(prefix="manager-three-channel-ui-") as temporary:
++        root = Path(temporary)
++        _panel(root)
++        _publish_master(root, TARGET if args.fixture == "hk_missing" else DAY)
++        screen = _screen(root)
++        print(json.dumps({"scope": "SYNTHETIC_ACTUAL_READER_DTO",
++            "owner_module": str(Path(owner.__file__).resolve()),
++            "market_screen": screen}, ensure_ascii=False, sort_keys=True))
++
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/apps/web/src/api/managerWorkspace.threeChannel.spec.ts
+@@ -0,0 +1,105 @@
++import { afterEach, describe, expect, it, vi } from 'vitest';
++import { execFileSync } from 'node:child_process';
++import { resolve } from 'node:path';
++import { requestManagerWorkspace, validateManagerWorkspace, type JsonObject } from './managerWorkspace';
++import { screeningStatus } from '../manager-selection/adapters/workspaceDecision';
++import { renderDailyChannels } from '../manager-selection/dailyChannels';
++import { workspaceFixture, testFlags } from '../manager-selection/dailyChannels.testHelper';
++
++// Synthetic contract regression. No live source, API or browser is contacted.
++const countFields = ['input_candidate_count', 'history_complete_count', 'history_pending_count',
++  'strict_count', 'near_candidate_count', 'near_count', 'selected_count', 'panel_row_count', 'panel_code_count'];
++const bindings = { plan_date: '20261009', selection_date: '20261009', announcement_date: '20261008' };
++function unknownScreen(): JsonObject {
++  return { ...testFlags, schema_version: 'v4.manager_research.rebound_v3_screen.v1',
++    rule_version: '20260923_REBOUND_TWO_GATE_V1', target_trade_date: '20261009',
++    verified_session: '20261009', status: 'CANNOT_CONFIRM', main_screen_ready: false,
++    cards: [], strict: [], near: [], pending: [], input_identity: null, authority: null,
++    coverage: { counts_known: false, ...Object.fromEntries(countFields.map(key => [key, null])) },
++    gaps: ['SCREEN_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING'],
++    data_context: { market_session: '20261009', screen_phase: 'POST_CLOSE_COMPLETED_SESSION',
++      security_master_read: { status: 'CANNOT_CONFIRM', reason_code: 'HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING',
++        requested_trade_date: '20261009', validation_stage: 'INDEX_ENTRY', latest_json_sha256: 'e'.repeat(64),
++        entry_count: 1, latest_entry_date: '20261008', requested_entry_present: false } },
++  };
++}
++function envelope(screen: JsonObject = unknownScreen()): JsonObject {
++  const value = workspaceFixture(bindings) as unknown as JsonObject;
++  value.market_screen = screen;
++  value.plan_context = { ...(value.plan_context as JsonObject), plan_trade_date: '20261009',
++    research_cutoff: '2026-10-09T17:23:00+08:00', market_session: '20261008' };
++  value.read_context = { ...(value.read_context as JsonObject), as_of: '2026-10-09T17:23:00+08:00' };
++  return value;
++}
++
++afterEach(() => { vi.unstubAllGlobals(); document.body.replaceChildren(); });
++
++describe('three-channel exact-date screen unavailable contract', () => {
++  it('accepts unknown counts without calling them a successful zero and preserves other channels', async () => {
++    const value = envelope();
++    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => value })));
++    const result = await requestManagerWorkspace('20261009', new AbortController().signal, 'dynamic', bindings);
++    expect(result.market_screen?.coverage.selected_count).toBeNull();
++    expect(result.market_screen?.coverage.counts_known).toBe(false);
++    expect(screeningStatus(result.market_screen)).toEqual({ complete: false,
++      label: '筛选未完成 · 数量未知（不是扫描后零候选）' });
++    const host = document.createElement('div'); document.body.append(host);
++    renderDailyChannels(host, result.daily_channels, result.date_bindings!);
++    expect(host.querySelector('[data-daily-channel="ANNOUNCEMENT"]')?.textContent).toContain('HK.00001');
++    expect(host.querySelector('[data-daily-channel="OVERSOLD"]')?.textContent).toContain('未知');
++  });
++
++  it.each([
++    ['status-ready', (screen: JsonObject) => { screen.status = 'READY'; }],
++    ['screen-ready', (screen: JsonObject) => { screen.main_screen_ready = true; }],
++    ['claims-input-identity', (screen: JsonObject) => { screen.input_identity = 'a'.repeat(64); }],
++    ['claims-zero', (screen: JsonObject) => { (screen.coverage as JsonObject).selected_count = 0; }],
++    ['claims-input-count', (screen: JsonObject) => { (screen.coverage as JsonObject).input_candidate_count = 3; }],
++    ['missing-count', (screen: JsonObject) => { delete (screen.coverage as JsonObject).panel_row_count; }],
++    ['string-known', (screen: JsonObject) => { (screen.coverage as JsonObject).counts_known = 'false'; }],
++    ['pending-row', (screen: JsonObject) => { screen.pending = [{}]; }],
++  ])('rejects an unavailable DTO that makes an unsupported claim: %s', (_label, mutate) => {
++    const screen = unknownScreen(); mutate(screen);
++    expect(() => validateManagerWorkspace(envelope(screen), '20261009')).toThrow();
++  });
++
++  it('preserves a verified-input legitimate zero and rejects null counts in that branch', () => {
++    const screen = unknownScreen();
++    Object.assign(screen, { status: 'READY', main_screen_ready: true, input_identity: 'b'.repeat(64), gaps: [] });
++    screen.coverage = { counts_known: true, ...Object.fromEntries(countFields.map(key => [key, 0])) };
++    expect(() => validateManagerWorkspace(envelope(screen), '20261009')).not.toThrow();
++    (screen.coverage as JsonObject).selected_count = null;
++    expect(() => validateManagerWorkspace(envelope(screen), '20261009')).toThrow();
++  });
++
++  it('retains compatibility with the older numeric unavailable DTO', () => {
++    const screen = unknownScreen();
++    screen.coverage = Object.fromEntries(countFields.map(key => [key, 0]));
++    expect(() => validateManagerWorkspace(envelope(screen), '20261009')).not.toThrow();
++    expect(screeningStatus(screen as never).complete).toBe(false);
++  });
++
++  it.each(['hk_missing', 'hk_valid'])('accepts the actual Python reader DTO for %s', fixture => {
++    const root = process.env.V4_TEST_SOURCE_ROOT || resolve(process.cwd(), '../..');
++    const raw = execFileSync(process.env.V4_TEST_PYTHON || 'python3',
++      [resolve(root, 'tests/manager_three_channel_ui_fixture.py'), '--fixture', fixture],
++      { cwd: root, encoding: 'utf8', timeout: 30_000,
++        env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' } });
++    const result = JSON.parse(raw) as JsonObject;
++    expect(result.scope).toBe('SYNTHETIC_ACTUAL_READER_DTO');
++    expect(result.owner_module).toBe(resolve(root, 'upstreams/v3_shared_data/shared_data/hk_security_master.py'));
++    const screen = result.market_screen as JsonObject;
++    expect(() => validateManagerWorkspace(envelope(screen), '20261009')).not.toThrow();
++    const coverage = screen.coverage as JsonObject;
++    if (fixture === 'hk_missing') {
++      expect(screen.status).toBe('CANNOT_CONFIRM');
++      expect(coverage.selected_count).toBeNull();
++      expect(screeningStatus(screen as never).complete).toBe(false);
++    } else {
++      expect(screen.status).toBe('READY_WITH_GAPS');
++      expect(coverage.input_candidate_count).toBe(1);
++      expect(coverage.history_pending_count).toBe(1);
++      expect((screen.pending as JsonObject[])[0].volume_unit_status).toBe('NOT_PROVEN');
++    }
++  });
++});

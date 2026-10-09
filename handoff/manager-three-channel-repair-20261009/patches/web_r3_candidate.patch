@@ -1,0 +1,36 @@
+--- a/apps/web/src/api/managerWorkspace.ts
++++ b/apps/web/src/api/managerWorkspace.ts
+@@ -1454,14 +1454,26 @@
+     const coverage = object(screen.coverage);
+     const inputCount = coverage.input_candidate_count ?? coverage.amount_gate_candidate_count;
+     const nearCount = coverage.near_count ?? coverage.near_selected_count;
+-    count(inputCount); count(coverage.history_complete_count); count(coverage.history_pending_count);
+-    count(coverage.strict_count); count(coverage.near_candidate_count); count(nearCount); count(coverage.selected_count);
+-    if (coverage.selected_count !== screen.cards.length || coverage.strict_count !== screen.strict.length ||
+-        nearCount !== screen.near.length || coverage.near_candidate_count !== nearCount ||
+-        coverage.history_pending_count !== screen.pending.length ||
+-        inputCount !== coverage.history_complete_count + coverage.history_pending_count ||
+-        coverage.selected_count !== coverage.strict_count + nearCount)
++    if (coverage.counts_known !== undefined && typeof coverage.counts_known !== 'boolean')
+       throw new Error('WORKSPACE_SCREEN_COUNT_INVALID');
++    if (coverage.counts_known === false) {
++      const unknownCounts = ['input_candidate_count', 'history_complete_count', 'history_pending_count',
++        'strict_count', 'near_candidate_count', 'near_count', 'selected_count', 'panel_row_count', 'panel_code_count'];
++      if (screen.status !== 'CANNOT_CONFIRM' || screen.main_screen_ready !== false ||
++          screen.input_identity !== null || screen.authority !== null ||
++          screen.cards.length || screen.strict.length || screen.near.length || screen.pending.length ||
++          unknownCounts.some(key => coverage[key] !== null))
++        throw new Error('WORKSPACE_SCREEN_COUNT_INVALID');
++    } else {
++      count(inputCount); count(coverage.history_complete_count); count(coverage.history_pending_count);
++      count(coverage.strict_count); count(coverage.near_candidate_count); count(nearCount); count(coverage.selected_count);
++      if (coverage.selected_count !== screen.cards.length || coverage.strict_count !== screen.strict.length ||
++          nearCount !== screen.near.length || coverage.near_candidate_count !== nearCount ||
++          coverage.history_pending_count !== screen.pending.length ||
++          inputCount !== coverage.history_complete_count + coverage.history_pending_count ||
++          coverage.selected_count !== coverage.strict_count + nearCount)
++        throw new Error('WORKSPACE_SCREEN_COUNT_INVALID');
++    }
+     for (const card of screen.cards) {
+       if (!['STRICT_REBOUND','NEAR_CONDITION'].includes(String(card.classification)) ||
+           typeof card.code !== 'string' || !/^HK\.(?!00000)\d{5}$/.test(card.code) || typeof card.name !== 'string' ||

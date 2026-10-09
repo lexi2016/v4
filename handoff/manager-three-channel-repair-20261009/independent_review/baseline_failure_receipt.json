@@ -1,0 +1,20 @@
+{
+  "classification": "INDEPENDENT_UNCHANGED_BASELINE_FAILURE_REPRODUCTION",
+  "argv": [
+    "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "-c",
+    "import sys; sys.path.insert(0, 'tests'); import r3_scoped_loader; r3_scoped_loader.install(); setattr(sys.modules['v4'], 'manager_research', sys.modules['v4.manager_research']); setattr(sys.modules['infrastructure'], 'scheduling', sys.modules['infrastructure.scheduling']); import pytest; raise SystemExit(pytest.main(['-q', '--tb=short', '-p', 'no:cacheprovider', '--basetemp=/workspace/scratch/21926b793c00/three_channel/independent_review/synthetic_baseline', 'tests/test_manager_announcement_parity_20261008.py::test_missing_original_archive_is_not_empty_connect_selection']))"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/three_channel/announcement/baseline_app",
+  "exit_code": 1,
+  "elapsed_seconds": 0.968,
+  "baseline_files_sha256_verified": 1028,
+  "baseline_identity": "7ca0190a721a7fd0fc0c88b79a872889867d111f",
+  "environment_overrides": {
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/three_channel/announcement/baseline_app",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+  },
+  "log": "baseline_failure.log",
+  "log_sha256": "6f233a296048bfd99d3d17dd46b4b21ae93a717c615fd2da01870b2c8223e9bc"
+}

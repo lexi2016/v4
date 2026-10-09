@@ -1,0 +1,222 @@
+{
+  "classification": "INDEPENDENT_SYNTHETIC_REVIEW",
+  "argv": [
+    "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "-c",
+    "import sys; sys.path.insert(0, 'tests'); import r3_scoped_loader; r3_scoped_loader.install(); setattr(sys.modules['v4'], 'manager_research', sys.modules['v4.manager_research']); setattr(sys.modules['infrastructure'], 'scheduling', sys.modules['infrastructure.scheduling']); import pytest; raise SystemExit(pytest.main(['-q', '--tb=short', '-p', 'no:cacheprovider', '--basetemp=/workspace/scratch/21926b793c00/three_channel/independent_review/synthetic_python_final', '--junitxml=/workspace/scratch/21926b793c00/three_channel/independent_review/python_final_results.xml', 'tests/test_manager_announcement_handoff_20261009.py', 'tests/test_manager_announcement_parity_20261008.py', 'tests/test_manager_us_mapping_three_channel_20261009.py', 'tests/test_manager_three_channel_hk_reader.py', 'tests/test_security_master_store_error.py', 'tests/test_manager_screen_summary_contract.py', 'tests/test_manager_input_contracts_20261008.py', 'tests/test_manager_us_daily_automation_20261008.py', 'tests/test_manager_daily_automation_20261008.py', 'tests/test_manager_daily_dispatch_20261008.py', 'tests/test_manager_workspace_exact_page_binding_20261008.py', 'tests/test_manager_us_mapping_isolation_20261008.py', 'tests/test_manager_us_mapping_research.py::test_TEST_FIXTURE_synthetic_owner_sessions_produce_date_distinct_mappings_and_api_readbacks']))"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/three_channel/app",
+  "environment_overrides": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/three_channel/app",
+    "V4_TEST_PYTHON": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "V4_TEST_SOURCE_ROOT": "/workspace/scratch/21926b793c00/three_channel/app"
+  },
+  "exit_code": 1,
+  "elapsed_seconds": 14.514,
+  "log": "python_final_checks.log",
+  "log_sha256": "7760ef819e23f59ddce606b8af9db292c09f7f745e1e03c6d8b911d2b1e25af2",
+  "runtime_before": {
+    "apps/api/v35_api/manager_research_router.py": {
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "bytes": 35556
+    },
+    "apps/web/src/api/managerWorkspace.ts": {
+      "sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+      "bytes": 109896
+    },
+    "ops/run_manager_daily_announcement.py": {
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "bytes": 42910
+    },
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": {
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "bytes": 18863
+    },
+    "v4/manager_research/plan_owner_dispatch.py": {
+      "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "bytes": 53361
+    },
+    "v4/manager_research/workspace_announcements.py": {
+      "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "bytes": 167803
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "bytes": 107076
+    }
+  },
+  "runtime_after": {
+    "apps/api/v35_api/manager_research_router.py": {
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "bytes": 35556
+    },
+    "apps/web/src/api/managerWorkspace.ts": {
+      "sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+      "bytes": 109896
+    },
+    "ops/run_manager_daily_announcement.py": {
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "bytes": 42910
+    },
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": {
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "bytes": 18863
+    },
+    "v4/manager_research/plan_owner_dispatch.py": {
+      "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "bytes": 53361
+    },
+    "v4/manager_research/workspace_announcements.py": {
+      "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "bytes": 167803
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "bytes": 107076
+    }
+  },
+  "runtime_unchanged": true,
+  "test_source_before": {
+    "/workspace/scratch/21926b793c00/three_channel/app/apps/web/src/api/managerWorkspace.threeChannel.spec.ts": {
+      "sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4",
+      "bytes": 6823
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/manager_three_channel_ui_fixture.py": {
+      "sha256": "1891b76ff2f0f07300831f46878ce416a83aa35441d28e91755eaaadb02ba894",
+      "bytes": 1349
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/r3_scoped_loader.py": {
+      "sha256": "02366f958e893448b4325f864a9b86151956fb8f480b980193dd2489c82345db",
+      "bytes": 985
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_announcement_handoff_20261009.py": {
+      "sha256": "dd38c69af5230927d59f4c10ec375b41506999663a623da278a76c14a101dfe2",
+      "bytes": 21474
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_announcement_parity_20261008.py": {
+      "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+      "bytes": 40192
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_daily_automation_20261008.py": {
+      "sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "bytes": 21642
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_daily_dispatch_20261008.py": {
+      "sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+      "bytes": 28067
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_input_contracts_20261008.py": {
+      "sha256": "7622f1a6affa4beb30be9221aa13d9e3ae11f835cddb5014b561840aaca6905f",
+      "bytes": 18335
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_screen_summary_contract.py": {
+      "sha256": "0b67119b4b5637dce32e8c61cbfd4c066c35469569c8524cd912d5d75466dd09",
+      "bytes": 4821
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_three_channel_hk_reader.py": {
+      "sha256": "d037d4f43559e45d23f92b63a27317f2e5587b1b86649fbb9e6198a62618e7e5",
+      "bytes": 12661
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_us_daily_automation_20261008.py": {
+      "sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "bytes": 24638
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_us_mapping_isolation_20261008.py": {
+      "sha256": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb",
+      "bytes": 6712
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_us_mapping_research.py": {
+      "sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "bytes": 19113
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_us_mapping_three_channel_20261009.py": {
+      "sha256": "9f7f1a3f73a539b470ba18a1ec029360c77734de21015895d73bc03cdcc1fd2a",
+      "bytes": 17876
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_workspace_exact_page_binding_20261008.py": {
+      "sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+      "bytes": 8634
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_security_master_store_error.py": {
+      "sha256": "f4658693632ab97a8264b6340a859b44ffb2db8c556ac03fe01802fc4f8069a9",
+      "bytes": 2796
+    },
+    "/workspace/scratch/21926b793c00/three_channel/independent_review/test_review_boundaries.py": {
+      "sha256": "047833f56287b9ec1ea6396d0c95d6e74e96149fdefdcbfb1eed0fdb8ca9a245",
+      "bytes": 5034
+    }
+  },
+  "test_source_after": {
+    "/workspace/scratch/21926b793c00/three_channel/app/apps/web/src/api/managerWorkspace.threeChannel.spec.ts": {
+      "sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4",
+      "bytes": 6823
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/manager_three_channel_ui_fixture.py": {
+      "sha256": "1891b76ff2f0f07300831f46878ce416a83aa35441d28e91755eaaadb02ba894",
+      "bytes": 1349
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/r3_scoped_loader.py": {
+      "sha256": "02366f958e893448b4325f864a9b86151956fb8f480b980193dd2489c82345db",
+      "bytes": 985
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_announcement_handoff_20261009.py": {
+      "sha256": "dd38c69af5230927d59f4c10ec375b41506999663a623da278a76c14a101dfe2",
+      "bytes": 21474
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_announcement_parity_20261008.py": {
+      "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+      "bytes": 40192
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_daily_automation_20261008.py": {
+      "sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "bytes": 21642
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_daily_dispatch_20261008.py": {
+      "sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+      "bytes": 28067
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_input_contracts_20261008.py": {
+      "sha256": "7622f1a6affa4beb30be9221aa13d9e3ae11f835cddb5014b561840aaca6905f",
+      "bytes": 18335
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_screen_summary_contract.py": {
+      "sha256": "0b67119b4b5637dce32e8c61cbfd4c066c35469569c8524cd912d5d75466dd09",
+      "bytes": 4821
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_three_channel_hk_reader.py": {
+      "sha256": "d037d4f43559e45d23f92b63a27317f2e5587b1b86649fbb9e6198a62618e7e5",
+      "bytes": 12661
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_us_daily_automation_20261008.py": {
+      "sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "bytes": 24638
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_us_mapping_isolation_20261008.py": {
+      "sha256": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb",
+      "bytes": 6712
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_us_mapping_research.py": {
+      "sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "bytes": 19113
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_us_mapping_three_channel_20261009.py": {
+      "sha256": "9f7f1a3f73a539b470ba18a1ec029360c77734de21015895d73bc03cdcc1fd2a",
+      "bytes": 17876
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_manager_workspace_exact_page_binding_20261008.py": {
+      "sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+      "bytes": 8634
+    },
+    "/workspace/scratch/21926b793c00/three_channel/app/tests/test_security_master_store_error.py": {
+      "sha256": "f4658693632ab97a8264b6340a859b44ffb2db8c556ac03fe01802fc4f8069a9",
+      "bytes": 2796
+    },
+    "/workspace/scratch/21926b793c00/three_channel/independent_review/test_review_boundaries.py": {
+      "sha256": "047833f56287b9ec1ea6396d0c95d6e74e96149fdefdcbfb1eed0fdb8ca9a245",
+      "bytes": 5034
+    }
+  },
+  "test_source_unchanged": true
+}

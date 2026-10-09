@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules/vitest/vitest.mjs",
+    "run",
+    "--config",
+    "/workspace/scratch/21926b793c00/three_channel/tools/vitest.config.mjs",
+    "src/api/managerWorkspace.threeChannel.spec.ts",
+    "src/api/managerWorkspace.dailyAutomation.spec.ts"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/three_channel/app/apps/web",
+  "environment_overrides": {
+    "V4_TEST_PYTHON": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "V4_TEST_SOURCE_ROOT": "/workspace/scratch/21926b793c00/three_channel/app",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "exit_code": 0,
+  "elapsed_seconds": 4.44055178900453,
+  "scope": "SYNTHETIC_READER_AND_DAILY_OWNER_DTO_TO_TYPESCRIPT_NO_LIVE_BROWSER"
+}

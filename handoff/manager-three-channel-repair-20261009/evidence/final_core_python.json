@@ -1,0 +1,36 @@
+{
+  "argv": [
+    "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "/workspace/scratch/21926b793c00/three_channel/tools/run_scoped_tests.py",
+    "--app-root",
+    "/workspace/scratch/21926b793c00/three_channel/app",
+    "--junitxml",
+    "/workspace/scratch/21926b793c00/three_channel/evidence/final_core_python.xml"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/three_channel/app",
+  "exit_code": 0,
+  "elapsed_seconds": 9.666107752003882,
+  "scope": "SYNTHETIC_SCOPED_ACTUAL_OWNER_SOURCE",
+  "runtime_and_test_source_sha256": {
+    "apps/api/v35_api/manager_research_router.py": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+    "ops/run_manager_daily_announcement.py": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+    "v4/manager_research/plan_owner_dispatch.py": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+    "v4/manager_research/workspace_announcements.py": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+    "v4/manager_research/workspace_plan.py": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+    "apps/web/src/api/managerWorkspace.ts": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+    "tests/test_manager_announcement_handoff_20261009.py": "dd38c69af5230927d59f4c10ec375b41506999663a623da278a76c14a101dfe2",
+    "tests/test_manager_us_mapping_three_channel_20261009.py": "9f7f1a3f73a539b470ba18a1ec029360c77734de21015895d73bc03cdcc1fd2a",
+    "tests/test_manager_three_channel_hk_reader.py": "d037d4f43559e45d23f92b63a27317f2e5587b1b86649fbb9e6198a62618e7e5",
+    "tests/test_manager_screen_summary_contract.py": "0b67119b4b5637dce32e8c61cbfd4c066c35469569c8524cd912d5d75466dd09",
+    "tests/manager_three_channel_ui_fixture.py": "1891b76ff2f0f07300831f46878ce416a83aa35441d28e91755eaaadb02ba894",
+    "apps/web/src/api/managerWorkspace.threeChannel.spec.ts": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4"
+  },
+  "hashes_unchanged_during_run": true,
+  "manifest_sha256": "ccd38bc88ab8aa2231e844ef581470bea32545f7d48f988996dc9290f9689e9d",
+  "log_sha256": "0af5871abe961a564c132d230c198454cc1928f2058ceba1b42d289505d7537d",
+  "environment_overrides": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+  }
+}

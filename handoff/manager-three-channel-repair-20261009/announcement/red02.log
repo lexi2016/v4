@@ -1,0 +1,371 @@
+FFFFFFFFFFFFF                                                            [100%]
+=================================== FAILURES ===================================
+_ test_original_fresh_capture_preserves_bound_bytes_then_imports_to_workspace __
+
+source_lane = namespace(root=PosixPath('/workspace/scratch/21926b793c00/three_channel/announcement/pytest-red02/test_original_fresh_...pi/v4/manager/research/announcements?date=20261009&source_scope=EASTMONEY_HK_DATE_CATALOG&publication_date=20261008')])
+
+    def test_original_fresh_capture_preserves_bound_bytes_then_imports_to_workspace(source_lane):
+        lane = source_lane
+        capture = cli._capture(SimpleNamespace(target_date=TARGET, publication_date="20261008",
+            api_base="http://127.0.0.1:8873", research_state_root=str(lane.root)))
+        evidence = lane.root / "announcement_agent_runs" / capture["evidence_run_id"] / "evidence"
+        for source_name, fixed_name in [("body_corpus.json", "body_corpus.json"),
+                ("body_corpus_manifest.json", "body_corpus_manifest.json"),
+                ("batch_receipt.json", "body_batch_receipt.json")]:
+>           assert (evidence / fixed_name).read_bytes() == (evidence / "body_batch" / source_name).read_bytes(), (
+                "Original capture reformatted a producer artifact whose exact bytes are SHA-bound: " + fixed_name)
+E           AssertionError: Original capture reformatted a producer artifact whose exact bytes are SHA-bound: body_corpus.json
+E           assert b'{\n  "artic...ount": 1\n}\n' == b'{"article_c...y_count":1}\n'
+E             
+E             At index 1 diff: b'\n' != b'"'
+E             Use -v to get more diff
+
+tests/test_manager_announcement_handoff_20261009.py:209: AssertionError
+_ test_cli_readback_accepts_exact_bound_owner_import_without_fabricating_product _
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b338fb60>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_cli_readback_accepts_exac0/synthetic-imported-state'))
+
+    def test_cli_readback_accepts_exact_bound_owner_import_without_fabricating_product(imported_lane):
+        lane = imported_lane
+        before = _snapshot(lane.root)
+>       result = cli._readback(SimpleNamespace(target_date=TARGET, publication_date="20261008",
+            api_base="http://127.0.0.1:8873"))
+
+tests/test_manager_announcement_handoff_20261009.py:261: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/run_manager_daily_announcement.py:646: in _readback
+    validated_receipt = validate_owner_analysis_import_receipt(receipt, product)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+receipt = {'RESEARCH_ONLY': True, 'agent_judgment_receipt_sha256': 'd110f05ceb20e8fce31510b21c040f04aa4f93395e217024d55a231ad9a0164f', 'available_at': '2026-10-09T01:00:00.000000+00:00', 'buy_gate_updated': False, ...}
+product = {'target_trade_date': '20261009', 'publication_date': '2026-10-08', 'sha256': '059c55829358b888be6be9c7c9bb0b627d400246e1ab2f00777b07584f41d4c6'}
+
+    def validate_owner_analysis_import_receipt(receipt: Any, product: Mapping[str, Any]) -> dict[str, Any]:
+        if not isinstance(receipt, Mapping) or receipt.get('schema_version') != _OWNER_ANALYSIS_IMPORT_SCHEMA:
+            raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_INVALID')
+        available_at = timestamp(receipt.get('available_at'))
+        if (receipt.get('status') != 'VERIFIED'
+                or receipt.get('target_trade_date') != product.get('target_trade_date')
+                or receipt.get('publication_date') != product.get('publication_date')
+                or receipt.get('product_sha256') != product.get('sha256')
+                or not all(isinstance(receipt.get(key), str) and receipt[key].strip()
+                           for key in ('parent_task_id', 'parent_run_id'))
+                or receipt.get('owner') != 'ManagerResearchJobService.import_announcement_analysis'
+                or available_at is None
+                or any(receipt.get(key) is not expected for key, expected in FLAGS.items())
+                or not _signed_digest(receipt)):
+            raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_BINDING_INVALID')
+        judgment = product.get('agent_judgment_receipt')
+        if isinstance(judgment, Mapping) and (
+                receipt.get('parent_task_id') != judgment.get('parent_task_id')
+                or receipt.get('parent_run_id') != judgment.get('parent_run_id')):
+            raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_PARENT_BINDING_INVALID')
+        # Existing v1 receipts remain byte-for-byte readable. New imports bind the
+        # four extra identities as a complete group; GET never upgrades old files.
+        binding_keys = {'source_manifest_sha256', 'evidence_run_id',
+                        'handoff_manifest_sha256', 'agent_judgment_receipt_sha256'}
+        if binding_keys.intersection(receipt):
+            if (not binding_keys.issubset(receipt)
+                    or not isinstance(judgment, Mapping)
+                    or receipt.get('source_manifest_sha256') != product.get('source_manifest_sha256')
+                    or receipt.get('evidence_run_id') != judgment.get('evidence_run_id')
+                    or receipt.get('agent_judgment_receipt_sha256') != judgment.get('sha256')
+                    or re.fullmatch(r'[0-9a-f]{64}', str(receipt.get('handoff_manifest_sha256'))) is None):
+>               raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID')
+E               ValueError: ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID
+
+v4/manager_research/workspace_announcements.py:2188: ValueError
+_ test_cli_readback_rejects_unverified_or_mismatched_complete_chain[missing_chain] _
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b35d4e10>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_cli_readback_rejects_unve0/synthetic-imported-state'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd8b35444d0>
+mutation = 'missing_chain'
+
+    @pytest.mark.parametrize("mutation", ["missing_chain", "unverified_chain", "product_sha",
+        "source_manifest_sha", "evidence_run_id", "handoff_sha", "judgment_sha", "owner_receipt_sha"])
+    def test_cli_readback_rejects_unverified_or_mismatched_complete_chain(imported_lane, monkeypatch, mutation):
+        readback = imported_lane.client.get("/api/v4/manager/research/announcements/analysis",
+            params={"date": TARGET, "publication_date": "20261008"}).json()
+        if mutation == "missing_chain":
+            readback.pop("consumption_validation")
+        elif mutation == "unverified_chain":
+            readback["consumption_validation"]["validation_status"] = "CANNOT_CONFIRM"
+        else:
+            fields = {"product_sha": "product_sha256", "source_manifest_sha": "source_manifest_sha256",
+                "evidence_run_id": "evidence_run_id", "handoff_sha": "handoff_manifest_sha256",
+                "judgment_sha": "agent_judgment_receipt_sha256", "owner_receipt_sha": "owner_import_receipt_sha256"}
+            readback["consumption_validation"][fields[mutation]] = "f" * (32 if mutation == "evidence_run_id" else 64)
+        monkeypatch.setattr(cli, "_request", lambda *args, **kwargs: deepcopy(readback))
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID'
+E         Actual message: 'ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID'
+
+tests/test_manager_announcement_handoff_20261009.py:284: AssertionError
+_ test_cli_readback_rejects_unverified_or_mismatched_complete_chain[unverified_chain] _
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b39e2710>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_cli_readback_rejects_unve1/synthetic-imported-state'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd8b3a22e00>
+mutation = 'unverified_chain'
+
+    @pytest.mark.parametrize("mutation", ["missing_chain", "unverified_chain", "product_sha",
+        "source_manifest_sha", "evidence_run_id", "handoff_sha", "judgment_sha", "owner_receipt_sha"])
+    def test_cli_readback_rejects_unverified_or_mismatched_complete_chain(imported_lane, monkeypatch, mutation):
+        readback = imported_lane.client.get("/api/v4/manager/research/announcements/analysis",
+            params={"date": TARGET, "publication_date": "20261008"}).json()
+        if mutation == "missing_chain":
+            readback.pop("consumption_validation")
+        elif mutation == "unverified_chain":
+            readback["consumption_validation"]["validation_status"] = "CANNOT_CONFIRM"
+        else:
+            fields = {"product_sha": "product_sha256", "source_manifest_sha": "source_manifest_sha256",
+                "evidence_run_id": "evidence_run_id", "handoff_sha": "handoff_manifest_sha256",
+                "judgment_sha": "agent_judgment_receipt_sha256", "owner_receipt_sha": "owner_import_receipt_sha256"}
+            readback["consumption_validation"][fields[mutation]] = "f" * (32 if mutation == "evidence_run_id" else 64)
+        monkeypatch.setattr(cli, "_request", lambda *args, **kwargs: deepcopy(readback))
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID'
+E         Actual message: 'ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID'
+
+tests/test_manager_announcement_handoff_20261009.py:284: AssertionError
+_ test_cli_readback_rejects_unverified_or_mismatched_complete_chain[product_sha] _
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b3a2fed0>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_cli_readback_rejects_unve2/synthetic-imported-state'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd8b19adbf0>
+mutation = 'product_sha'
+
+    @pytest.mark.parametrize("mutation", ["missing_chain", "unverified_chain", "product_sha",
+        "source_manifest_sha", "evidence_run_id", "handoff_sha", "judgment_sha", "owner_receipt_sha"])
+    def test_cli_readback_rejects_unverified_or_mismatched_complete_chain(imported_lane, monkeypatch, mutation):
+        readback = imported_lane.client.get("/api/v4/manager/research/announcements/analysis",
+            params={"date": TARGET, "publication_date": "20261008"}).json()
+        if mutation == "missing_chain":
+            readback.pop("consumption_validation")
+        elif mutation == "unverified_chain":
+            readback["consumption_validation"]["validation_status"] = "CANNOT_CONFIRM"
+        else:
+            fields = {"product_sha": "product_sha256", "source_manifest_sha": "source_manifest_sha256",
+                "evidence_run_id": "evidence_run_id", "handoff_sha": "handoff_manifest_sha256",
+                "judgment_sha": "agent_judgment_receipt_sha256", "owner_receipt_sha": "owner_import_receipt_sha256"}
+            readback["consumption_validation"][fields[mutation]] = "f" * (32 if mutation == "evidence_run_id" else 64)
+        monkeypatch.setattr(cli, "_request", lambda *args, **kwargs: deepcopy(readback))
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID'
+E         Actual message: 'ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID'
+
+tests/test_manager_announcement_handoff_20261009.py:284: AssertionError
+_ test_cli_readback_rejects_unverified_or_mismatched_complete_chain[source_manifest_sha] _
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b1a0b4d0>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_cli_readback_rejects_unve3/synthetic-imported-state'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd8b1245650>
+mutation = 'source_manifest_sha'
+
+    @pytest.mark.parametrize("mutation", ["missing_chain", "unverified_chain", "product_sha",
+        "source_manifest_sha", "evidence_run_id", "handoff_sha", "judgment_sha", "owner_receipt_sha"])
+    def test_cli_readback_rejects_unverified_or_mismatched_complete_chain(imported_lane, monkeypatch, mutation):
+        readback = imported_lane.client.get("/api/v4/manager/research/announcements/analysis",
+            params={"date": TARGET, "publication_date": "20261008"}).json()
+        if mutation == "missing_chain":
+            readback.pop("consumption_validation")
+        elif mutation == "unverified_chain":
+            readback["consumption_validation"]["validation_status"] = "CANNOT_CONFIRM"
+        else:
+            fields = {"product_sha": "product_sha256", "source_manifest_sha": "source_manifest_sha256",
+                "evidence_run_id": "evidence_run_id", "handoff_sha": "handoff_manifest_sha256",
+                "judgment_sha": "agent_judgment_receipt_sha256", "owner_receipt_sha": "owner_import_receipt_sha256"}
+            readback["consumption_validation"][fields[mutation]] = "f" * (32 if mutation == "evidence_run_id" else 64)
+        monkeypatch.setattr(cli, "_request", lambda *args, **kwargs: deepcopy(readback))
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID'
+E         Actual message: 'ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID'
+
+tests/test_manager_announcement_handoff_20261009.py:284: AssertionError
+_ test_cli_readback_rejects_unverified_or_mismatched_complete_chain[evidence_run_id] _
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b32d8cd0>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_cli_readback_rejects_unve4/synthetic-imported-state'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd8b1246350>
+mutation = 'evidence_run_id'
+
+    @pytest.mark.parametrize("mutation", ["missing_chain", "unverified_chain", "product_sha",
+        "source_manifest_sha", "evidence_run_id", "handoff_sha", "judgment_sha", "owner_receipt_sha"])
+    def test_cli_readback_rejects_unverified_or_mismatched_complete_chain(imported_lane, monkeypatch, mutation):
+        readback = imported_lane.client.get("/api/v4/manager/research/announcements/analysis",
+            params={"date": TARGET, "publication_date": "20261008"}).json()
+        if mutation == "missing_chain":
+            readback.pop("consumption_validation")
+        elif mutation == "unverified_chain":
+            readback["consumption_validation"]["validation_status"] = "CANNOT_CONFIRM"
+        else:
+            fields = {"product_sha": "product_sha256", "source_manifest_sha": "source_manifest_sha256",
+                "evidence_run_id": "evidence_run_id", "handoff_sha": "handoff_manifest_sha256",
+                "judgment_sha": "agent_judgment_receipt_sha256", "owner_receipt_sha": "owner_import_receipt_sha256"}
+            readback["consumption_validation"][fields[mutation]] = "f" * (32 if mutation == "evidence_run_id" else 64)
+        monkeypatch.setattr(cli, "_request", lambda *args, **kwargs: deepcopy(readback))
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID'
+E         Actual message: 'ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID'
+
+tests/test_manager_announcement_handoff_20261009.py:284: AssertionError
+_ test_cli_readback_rejects_unverified_or_mismatched_complete_chain[handoff_sha] _
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b191dbd0>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_cli_readback_rejects_unve5/synthetic-imported-state'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd8b330f2f0>
+mutation = 'handoff_sha'
+
+    @pytest.mark.parametrize("mutation", ["missing_chain", "unverified_chain", "product_sha",
+        "source_manifest_sha", "evidence_run_id", "handoff_sha", "judgment_sha", "owner_receipt_sha"])
+    def test_cli_readback_rejects_unverified_or_mismatched_complete_chain(imported_lane, monkeypatch, mutation):
+        readback = imported_lane.client.get("/api/v4/manager/research/announcements/analysis",
+            params={"date": TARGET, "publication_date": "20261008"}).json()
+        if mutation == "missing_chain":
+            readback.pop("consumption_validation")
+        elif mutation == "unverified_chain":
+            readback["consumption_validation"]["validation_status"] = "CANNOT_CONFIRM"
+        else:
+            fields = {"product_sha": "product_sha256", "source_manifest_sha": "source_manifest_sha256",
+                "evidence_run_id": "evidence_run_id", "handoff_sha": "handoff_manifest_sha256",
+                "judgment_sha": "agent_judgment_receipt_sha256", "owner_receipt_sha": "owner_import_receipt_sha256"}
+            readback["consumption_validation"][fields[mutation]] = "f" * (32 if mutation == "evidence_run_id" else 64)
+        monkeypatch.setattr(cli, "_request", lambda *args, **kwargs: deepcopy(readback))
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID'
+E         Actual message: 'ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID'
+
+tests/test_manager_announcement_handoff_20261009.py:284: AssertionError
+_ test_cli_readback_rejects_unverified_or_mismatched_complete_chain[judgment_sha] _
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b191efd0>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_cli_readback_rejects_unve6/synthetic-imported-state'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd8b39c7890>
+mutation = 'judgment_sha'
+
+    @pytest.mark.parametrize("mutation", ["missing_chain", "unverified_chain", "product_sha",
+        "source_manifest_sha", "evidence_run_id", "handoff_sha", "judgment_sha", "owner_receipt_sha"])
+    def test_cli_readback_rejects_unverified_or_mismatched_complete_chain(imported_lane, monkeypatch, mutation):
+        readback = imported_lane.client.get("/api/v4/manager/research/announcements/analysis",
+            params={"date": TARGET, "publication_date": "20261008"}).json()
+        if mutation == "missing_chain":
+            readback.pop("consumption_validation")
+        elif mutation == "unverified_chain":
+            readback["consumption_validation"]["validation_status"] = "CANNOT_CONFIRM"
+        else:
+            fields = {"product_sha": "product_sha256", "source_manifest_sha": "source_manifest_sha256",
+                "evidence_run_id": "evidence_run_id", "handoff_sha": "handoff_manifest_sha256",
+                "judgment_sha": "agent_judgment_receipt_sha256", "owner_receipt_sha": "owner_import_receipt_sha256"}
+            readback["consumption_validation"][fields[mutation]] = "f" * (32 if mutation == "evidence_run_id" else 64)
+        monkeypatch.setattr(cli, "_request", lambda *args, **kwargs: deepcopy(readback))
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID'
+E         Actual message: 'ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID'
+
+tests/test_manager_announcement_handoff_20261009.py:284: AssertionError
+_ test_cli_readback_rejects_unverified_or_mismatched_complete_chain[owner_receipt_sha] _
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b18b20d0>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_cli_readback_rejects_unve7/synthetic-imported-state'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd8b11a7e70>
+mutation = 'owner_receipt_sha'
+
+    @pytest.mark.parametrize("mutation", ["missing_chain", "unverified_chain", "product_sha",
+        "source_manifest_sha", "evidence_run_id", "handoff_sha", "judgment_sha", "owner_receipt_sha"])
+    def test_cli_readback_rejects_unverified_or_mismatched_complete_chain(imported_lane, monkeypatch, mutation):
+        readback = imported_lane.client.get("/api/v4/manager/research/announcements/analysis",
+            params={"date": TARGET, "publication_date": "20261008"}).json()
+        if mutation == "missing_chain":
+            readback.pop("consumption_validation")
+        elif mutation == "unverified_chain":
+            readback["consumption_validation"]["validation_status"] = "CANNOT_CONFIRM"
+        else:
+            fields = {"product_sha": "product_sha256", "source_manifest_sha": "source_manifest_sha256",
+                "evidence_run_id": "evidence_run_id", "handoff_sha": "handoff_manifest_sha256",
+                "judgment_sha": "agent_judgment_receipt_sha256", "owner_receipt_sha": "owner_import_receipt_sha256"}
+            readback["consumption_validation"][fields[mutation]] = "f" * (32 if mutation == "evidence_run_id" else 64)
+        monkeypatch.setattr(cli, "_request", lambda *args, **kwargs: deepcopy(readback))
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_CHAIN_INVALID'
+E         Actual message: 'ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID'
+
+tests/test_manager_announcement_handoff_20261009.py:284: AssertionError
+___ test_formal_reader_identity_cannot_be_missing_from_bound_judgment[None] ____
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b124afd0>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_formal_reader_identity_ca0/synthetic-imported-state'))
+reader_identity = None
+
+    @pytest.mark.parametrize("reader_identity", [None, "", "   "])
+    def test_formal_reader_identity_cannot_be_missing_from_bound_judgment(imported_lane, reader_identity):
+        product = deepcopy(imported_lane.product)
+        receipt = product["agent_judgment_receipt"]
+        receipt["reader_identity"] = reader_identity
+        receipt["sha256"] = digest({key: value for key, value in receipt.items() if key != "sha256"})
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_AGENT_JUDGMENT_RECEIPT_BINDING_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_announcement_handoff_20261009.py:295: Failed
+_____ test_formal_reader_identity_cannot_be_missing_from_bound_judgment[] ______
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b13f87d0>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_formal_reader_identity_ca1/synthetic-imported-state'))
+reader_identity = ''
+
+    @pytest.mark.parametrize("reader_identity", [None, "", "   "])
+    def test_formal_reader_identity_cannot_be_missing_from_bound_judgment(imported_lane, reader_identity):
+        product = deepcopy(imported_lane.product)
+        receipt = product["agent_judgment_receipt"]
+        receipt["reader_identity"] = reader_identity
+        receipt["sha256"] = digest({key: value for key, value in receipt.items() if key != "sha256"})
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_AGENT_JUDGMENT_RECEIPT_BINDING_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_announcement_handoff_20261009.py:295: Failed
+____ test_formal_reader_identity_cannot_be_missing_from_bound_judgment[   ] ____
+
+imported_lane = namespace(service=<test_manager_announcement_parity_20261008._FixtureService object at 0x7fd8b13fb890>, client=<starle...cratch/21926b793c00/three_channel/announcement/pytest-red02/test_formal_reader_identity_ca2/synthetic-imported-state'))
+reader_identity = '   '
+
+    @pytest.mark.parametrize("reader_identity", [None, "", "   "])
+    def test_formal_reader_identity_cannot_be_missing_from_bound_judgment(imported_lane, reader_identity):
+        product = deepcopy(imported_lane.product)
+        receipt = product["agent_judgment_receipt"]
+        receipt["reader_identity"] = reader_identity
+        receipt["sha256"] = digest({key: value for key, value in receipt.items() if key != "sha256"})
+>       with pytest.raises(ValueError, match="ANNOUNCEMENT_AGENT_JUDGMENT_RECEIPT_BINDING_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_announcement_handoff_20261009.py:295: Failed
+=============================== warnings summary ===============================
+../../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_original_fresh_capture_preserves_bound_bytes_then_imports_to_workspace
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_cli_readback_accepts_exact_bound_owner_import_without_fabricating_product
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_cli_readback_rejects_unverified_or_mismatched_complete_chain[missing_chain]
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_cli_readback_rejects_unverified_or_mismatched_complete_chain[unverified_chain]
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_cli_readback_rejects_unverified_or_mismatched_complete_chain[product_sha]
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_cli_readback_rejects_unverified_or_mismatched_complete_chain[source_manifest_sha]
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_cli_readback_rejects_unverified_or_mismatched_complete_chain[evidence_run_id]
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_cli_readback_rejects_unverified_or_mismatched_complete_chain[handoff_sha]
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_cli_readback_rejects_unverified_or_mismatched_complete_chain[judgment_sha]
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_cli_readback_rejects_unverified_or_mismatched_complete_chain[owner_receipt_sha]
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_formal_reader_identity_cannot_be_missing_from_bound_judgment[None]
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_formal_reader_identity_cannot_be_missing_from_bound_judgment[]
+FAILED tests/test_manager_announcement_handoff_20261009.py::test_formal_reader_identity_cannot_be_missing_from_bound_judgment[   ]
+13 failed, 1 warning in 1.30s
