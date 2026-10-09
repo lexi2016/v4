@@ -1,0 +1,107 @@
+{
+  "schema_version": "V4_R3_INDEPENDENT_UI_REVIEW_V1",
+  "status": "NO_REPRODUCIBLE_P1_P2_FINDINGS_IN_REVIEWED_SCOPE",
+  "scope": "Exact supplied current App.vue, appended runtime.ts contract, newly added evidence panel, real SFC compilation/SSR and synthetic VNode event bindings; no actual app-shell, HTTP or browser integration",
+  "findings": [],
+  "reviewed_sha256": {
+    "after/ui/apps/web/src/App.vue": "9eda6f27950eea3e2377335a79420fe43b16ca62ad32c87e701f9dda69f6c15d",
+    "after/ui/apps/web/src/contracts/runtime.ts": "ff6ee3eadd8d9a20668bcb91b94d828d366c71e438b2358062140d4d2da173ba",
+    "after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+    "checks/api/tests/actual_app_harness.mjs": "f465b29c4c1f6001e8cafa9b0d3437436c2f9a3366be3c5b6a0b108207b21a2c",
+    "checks/api/tests/current_app_presentation.test.mjs": "9b3029275b85c24b364521afa55e38896ad341aea72c8b9ec72cf4e1cc3932a8",
+    "checks/api/tests/legacy_presentation.test.mjs": "e414c776f8af300b4cefa34d3d30f2757d6d4759be6e9eceb3d6c71e1edaa0a9",
+    "checks/api/tests/research_presentation.test.mjs": "951e91afa47227e3c0f1c860b0dd6a83c0262607baf2c17e29a1470650b7c704",
+    "patches/ui-before-to-after.patch": "ddd8413e3a14cb89c37c2d0e02600e643867410d82fcff4d01d07095f0eb395a"
+  },
+  "tests": {
+    "ui45": {
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 45,
+      "pass": 45,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "stdout": "/workspace/scratch/49c844334a98/r3_review/ui45.stdout.log",
+      "stderr": "/workspace/scratch/49c844334a98/r3_review/ui45.stderr.log"
+    },
+    "ui27": {
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "stdout": "/workspace/scratch/49c844334a98/r3_review/ui27.stdout.log",
+      "stderr": "/workspace/scratch/49c844334a98/r3_review/ui27.stderr.log"
+    }
+  },
+  "test_total": 72,
+  "artifact_identity": {
+    "status": "PASS",
+    "files": [
+      {
+        "path": "apps/web/src/App.vue",
+        "bytes": 30558,
+        "after_sha256": "9eda6f27950eea3e2377335a79420fe43b16ca62ad32c87e701f9dda69f6c15d",
+        "operation": "modify"
+      },
+      {
+        "path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+        "bytes": 8779,
+        "after_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+        "operation": "add"
+      },
+      {
+        "path": "apps/web/src/contracts/runtime.ts",
+        "bytes": 4268,
+        "after_sha256": "ff6ee3eadd8d9a20668bcb91b94d828d366c71e438b2358062140d4d2da173ba",
+        "operation": "modify"
+      }
+    ],
+    "before_runtime_bytes_preserved": 1540,
+    "legacy_test_bytes_unchanged": true,
+    "patch_apply_exit_code": 0,
+    "patch_apply_exact_after_sha": true,
+    "patch_apply_root": "/workspace/scratch/49c844334a98/r3_review/current_ui_patch_apply"
+  },
+  "review_conclusions": [
+    "Current App before bytes match the supplied 27412-byte Mac source; no historical 122KB App replacement.",
+    "App changes are additive imports/computed presentation plus narrow count/panel template insertion; existing manager, navigation, recovery, refresh, date and stage event expressions remain.",
+    "The first 1540 bytes of runtime.ts are preserved exactly; evidence types append after them.",
+    "The absent panel is explicitly operation add, with null before path/SHA, accepted_before_sha256=[], and /dev/null patch preimage.",
+    "Patch applied cleanly to an independent copy of the two supplied current source files and produced all three exact declared after SHA values.",
+    "Current-scope loading, errors, stale date/stage and inconsistent market/run/artifact/algorithm/raw SHA or row count suppress calculated labels.",
+    "Stored and scope-bound research results remain visible without execution or NATURAL acceptance; identity conflict in one market does not erase the other market.",
+    "New helper has no catch-and-success path; harness asserts parse/render warnings and missing compiled dependencies instead of masking errors.",
+    "The unchanged legacy suite is retained; former extracted-App-function checks now compile/render the delivered current App."
+  ],
+  "boundaries": [
+    "useAppShell and other existing view/component dependencies are explicit synthetic substitutes in actual_app_harness; current implementations were not supplied.",
+    "Manager checks prove the current App still calls openManagerSelection, not that its external destination or live manager page works.",
+    "Tests used the root-authorized existing synthetic consumer fixture; final full package run must generate a fresh fixture.",
+    "Production build/typechecking against the full current UI tree, actual browser reload, real PyTDX canary and current API remain unverified."
+  ],
+  "fixture": {
+    "path": "/workspace/scratch/49c844334a98/r3_lane_ui/evidence/full_chain_fixture/consumer_response.json",
+    "sha256": "ca0a8e74172d4d24e23517eba59be21b9002b8b9e162b4e3cbc5eeda41918f62",
+    "provenance": "synthetic full-chain fixture, existing UI lane; not fresh full-package reviewer run"
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "vue_runtime": "/workspace/scratch/25c09a595aec/stage_minimal/work/ui_runtime"
+  },
+  "safety_scope": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "REAL_PYTDX_CANARY": "NOT_RUN",
+    "LIVE_SAME_RUN_CONSUMER": "NOT_RUN",
+    "DEPLOYED": "NO_DEPLOYMENT"
+  }
+}

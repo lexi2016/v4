@@ -1,0 +1,18 @@
+F.....                                                                   [100%]
+=================================== FAILURES ===================================
+________ test_api_constructor_binds_only_exact_same_backfill_namespace _________
+
+runtime = namespace(root=PosixPath('/tmp/pytest-of-root/pytest-326/test_api_constructor_binds_onl0'), selection=<module 'stage_c...cc0>, get=<function runtime.<locals>.get at 0x7f4506c453a0>, write=<function runtime.<locals>.write at 0x7f4506c45440>)
+
+    def test_api_constructor_binds_only_exact_same_backfill_namespace(runtime):
+        root = runtime.root / "isolated/selection/backfill/research-20261009"
+        consumer = runtime.consumer.StageSelectionConsumer(root)
+>       assert consumer.execution_receipt_root == runtime.root / "isolated/receipts/backfill/research-20261009"
+E       AssertionError: assert None == (PosixPath('/tmp/pytest-of-root/pytest-326/test_api_constructor_binds_onl0') / 'isolated/receipts/backfill/research-20261009')
+E        +  where None = <stage_center.consumer.StageSelectionConsumer object at 0x7f4506e9e330>.execution_receipt_root
+E        +  and   PosixPath('/tmp/pytest-of-root/pytest-326/test_api_constructor_binds_onl0') = namespace(root=PosixPath('/tmp/pytest-of-root/pytest-326/test_api_constructor_binds_onl0'), selection=<module 'stage_c...cc0>, get=<function runtime.<locals>.get at 0x7f4506c453a0>, write=<function runtime.<locals>.write at 0x7f4506c45440>).root
+
+tests/test_research_readback.py:16: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_research_readback.py::test_api_constructor_binds_only_exact_same_backfill_namespace
+1 failed, 5 passed, 48 deselected in 0.25s

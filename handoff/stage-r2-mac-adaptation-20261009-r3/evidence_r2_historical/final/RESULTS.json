@@ -1,0 +1,106 @@
+{
+  "status": "PASS",
+  "scope": "ISOLATED_SOURCE_FIXTURE_TESTS_NOT_MAC_MARKET_API_DEPLOYMENT_OR_NATURAL_ACCEPTANCE",
+  "started_at_utc": "2026-10-09T10:53:13.237370+00:00",
+  "finished_at_utc": "2026-10-09T10:53:32.564912+00:00",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "stage_app": "/workspace/scratch/49c844334a98/package_verify_api_namespace/work/stage_app",
+  "package": {
+    "status": "PASS",
+    "scope": "PACKAGE_BYTES_ONLY_NOT_DEPLOYMENT",
+    "base_commit": "0fc3e8304e11700230517616ded0c86f83a4b257",
+    "source_map_sha256": "f402f93009ff1e8ef588e04c994eec1897274d80970fc20ee07748a506156ce4",
+    "production_files": 21,
+    "offline_support_files": 166,
+    "failures": [],
+    "write_performed": false,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "results": {
+    "stage": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/tests",
+        "--junitxml=/workspace/scratch/49c844334a98/package_verify_api_namespace/stage.junit.xml"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2",
+      "exit_code": 0,
+      "passed": 148
+    },
+    "api": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests",
+        "--junitxml=/workspace/scratch/49c844334a98/package_verify_api_namespace/api.junit.xml"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api",
+      "exit_code": 0,
+      "passed": 82
+    },
+    "fixture_runner": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/tools/export_integration_fixture.py",
+        "--output",
+        "/workspace/scratch/49c844334a98/package_verify_api_namespace/full_chain_fixture"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2",
+      "exit_code": 0
+    },
+    "fixture_api": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/tests/read_integrated_fixture.py",
+        "/workspace/scratch/49c844334a98/package_verify_api_namespace/full_chain_fixture"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api",
+      "exit_code": 0
+    },
+    "vue": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/legacy_presentation.test.mjs",
+        "tests/research_presentation.test.mjs"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api",
+      "exit_code": 0,
+      "tests": 45,
+      "pass": 45,
+      "fail": 0,
+      "skipped": 0
+    },
+    "fixture_vue": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/tests/verify_integrated_fixture.mjs",
+        "/workspace/scratch/49c844334a98/package_verify_api_namespace/full_chain_fixture"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api",
+      "exit_code": 0
+    }
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

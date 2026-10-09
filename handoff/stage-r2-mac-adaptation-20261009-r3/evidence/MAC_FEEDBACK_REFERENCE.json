@@ -1,0 +1,54 @@
+{
+  "schema_version": "V4_R3_MAC_FEEDBACK_REFERENCE_V1",
+  "feedback_commit": "3112c1ee8ed2826c5d77b5d0a4f1e2cd5fc95e45",
+  "repository_directory": "handoff/stage-r2-mac-blockers-20261009",
+  "files": [
+    {
+      "path": "PROMPT_FOR_CHAT.md",
+      "sha256": "0f0cdb1adab8843da4e883bf659ee14ce624796cd50248016d3bb00931172745",
+      "bytes": 3286
+    },
+    {
+      "path": "HANDOFF.md",
+      "sha256": "2680cf699cd397fd2aef7fd4ec796e50dc37d3f034d373f5898c64d67ba6d1b1",
+      "bytes": 5310
+    },
+    {
+      "path": "INDEPENDENT_REVIEW.json",
+      "sha256": "7dbd44885f8d32e761cc0cb6ca5edffa42b3c1819e6d7f3139b0ae25ce615bd9",
+      "bytes": 7401
+    },
+    {
+      "path": "local_observations.json",
+      "sha256": "d05f2cee7d9b1ffb2913e4a72138463ea299eb2488d625e43d9e40cb3880f587",
+      "bytes": 27856
+    },
+    {
+      "path": "evidence/stage_prepare.json",
+      "sha256": "b177c5e3d084c9ff88697192ef14b475a7075274072e045cc05b3e050bbb5c27",
+      "bytes": 17022
+    },
+    {
+      "path": "evidence/api_prepare.json",
+      "sha256": "677bf0fa7438e8240ad918c652c35bda1796fd24131aa8f6ec0245680b24337b",
+      "bytes": 10632
+    },
+    {
+      "path": "evidence/ui_prepare.json",
+      "sha256": "a98ff9d33981805f722a4e647dde9b632dd71dcaea8a386a00b3be003cab611a",
+      "bytes": 15587
+    }
+  ],
+  "observed_mac_baseline": {
+    "stage": 148,
+    "api": 82,
+    "vue": 45,
+    "total_passed": 275,
+    "skipped": 0,
+    "independent_review_completed": true,
+    "actual_preparation": "BLOCKED_IN_R2",
+    "real_market_canary": "NOT_RUN",
+    "same_run_live_http_ui": "NOT_RUN",
+    "deployed": false
+  }
+}

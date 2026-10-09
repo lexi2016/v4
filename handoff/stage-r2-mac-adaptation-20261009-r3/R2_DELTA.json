@@ -1,0 +1,293 @@
+{
+  "schema_version": "V4_R2_TO_R3_CODE_DELTA_V1",
+  "base_commit": "7a9c94d43a296372488541b02e8e35a0f763dc1a",
+  "base_directory": "handoff/stage-research-recovery-20261009-r2",
+  "target_directory": "handoff/stage-r2-mac-adaptation-20261009-r3",
+  "scope": "COMPLETE_PACKAGE_CODE_TOOLS_TESTS_SOURCE_MAP_DELTA; documentation, final evidence and delivery manifests are supplied in full R3 separately",
+  "application_warning": "Apply only inside a copied R2 PACKAGE directory, never an actual/canonical app. For actual UI use ui-before-to-after.patch and its current before hashes. Prefer complete R3 package and prepare tool.",
+  "patch_path": "patches/r2-package-to-r3.patch",
+  "patch_sha256": "271acfeea0ae11b7251dcb7f61a9efbce062966dddbd1c025cf3324a0a5dc546",
+  "files": [
+    {
+      "path": "CANARY_SOURCE_POLICY.json",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "47fb035202d7cf8b8e087aef2abfc567066ac7c68f7302ca41f259e24638d1b5",
+      "before_bytes": 0,
+      "after_bytes": 1895
+    },
+    {
+      "path": "SOURCE_MAP.json",
+      "operation": "modify",
+      "before_sha256": "f402f93009ff1e8ef588e04c994eec1897274d80970fc20ee07748a506156ce4",
+      "after_sha256": "3ec3e7774119bd106185c03be0b5c572b6fe2ca4148b93379d8b116a72994457",
+      "before_bytes": 24434,
+      "after_bytes": 35685
+    },
+    {
+      "path": "TEST_EXPECTATIONS.json",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "37fe3362233af9bbb5f2d7cf54090e634e43ce4951ec81c3b346946fb5c29c7c",
+      "before_bytes": 0,
+      "after_bytes": 457
+    },
+    {
+      "path": "TOOLS_SOURCE_MAP.json",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "7f205b601e2746177915e5322c5092f585a5bccebf71c0b4f81653d008ca3805",
+      "before_bytes": 0,
+      "after_bytes": 2195
+    },
+    {
+      "path": "after/ui/apps/web/src/App.vue",
+      "operation": "modify",
+      "before_sha256": "01903e69d06579c29d4d576bfe739420112ddb2778b6c321f7cb6ef587141f7d",
+      "after_sha256": "9eda6f27950eea3e2377335a79420fe43b16ca62ad32c87e701f9dda69f6c15d",
+      "before_bytes": 122389,
+      "after_bytes": 30558
+    },
+    {
+      "path": "after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "operation": "modify",
+      "before_sha256": "a9d044cd03325cb09acefd5e3c57c2a7e49cb1b61e22eadba0c50cf51963b273",
+      "after_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "before_bytes": 8339,
+      "after_bytes": 8779
+    },
+    {
+      "path": "after/ui/apps/web/src/contracts/runtime.ts",
+      "operation": "modify",
+      "before_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "after_sha256": "ff6ee3eadd8d9a20668bcb91b94d828d366c71e438b2358062140d4d2da173ba",
+      "before_bytes": 4723,
+      "after_bytes": 4268
+    },
+    {
+      "path": "before/ui/apps/web/src/App.vue",
+      "operation": "modify",
+      "before_sha256": "995a680995cc42feadeaa8d2bdd44294c8ec782a908d664c698faf69d4cf02a1",
+      "after_sha256": "ffbfcde222175c7849dfd5a1089cafe6c104dea2a1760b18645d95bc48780530",
+      "before_bytes": 120779,
+      "after_bytes": 27412
+    },
+    {
+      "path": "before/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "operation": "delete",
+      "before_sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+      "after_sha256": null,
+      "before_bytes": 3466,
+      "after_bytes": 0
+    },
+    {
+      "path": "before/ui/apps/web/src/contracts/runtime.ts",
+      "operation": "modify",
+      "before_sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+      "after_sha256": "6d66ae53d26a6c48110d040ad0440bb023e88d49924a697d6671c6da51176d92",
+      "before_bytes": 3044,
+      "after_bytes": 1540
+    },
+    {
+      "path": "checks/adaptation/test_driver_adaptation.py",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "90e79f1571ffdc544dffcdb610c9955760a5c80f10762f231ec700ea068f70c9",
+      "before_bytes": 0,
+      "after_bytes": 8969
+    },
+    {
+      "path": "checks/adaptation/test_package_add_contract.py",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "977bc7a98efd86d3089e8acf5abbba6d46f92d268371783cb4fc87882433c544",
+      "before_bytes": 0,
+      "after_bytes": 3844
+    },
+    {
+      "path": "checks/adaptation/test_prepare_adaptation.py",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "d7c1d2ce3af923533fffef4867c8c822a2f793e4e9cab6e44f8583ff85401ad8",
+      "before_bytes": 0,
+      "after_bytes": 15182
+    },
+    {
+      "path": "checks/adaptation/test_run_checks_completeness.py",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "a5e1125c13bf73cd2341cca31be39842abaecb3a8e0e77dce673e4bdaa799ece",
+      "before_bytes": 0,
+      "after_bytes": 4783
+    },
+    {
+      "path": "checks/api/after/apps/web/src/App.vue",
+      "operation": "modify",
+      "before_sha256": "01903e69d06579c29d4d576bfe739420112ddb2778b6c321f7cb6ef587141f7d",
+      "after_sha256": "9eda6f27950eea3e2377335a79420fe43b16ca62ad32c87e701f9dda69f6c15d",
+      "before_bytes": 122389,
+      "after_bytes": 30558
+    },
+    {
+      "path": "checks/api/after/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "operation": "modify",
+      "before_sha256": "a9d044cd03325cb09acefd5e3c57c2a7e49cb1b61e22eadba0c50cf51963b273",
+      "after_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "before_bytes": 8339,
+      "after_bytes": 8779
+    },
+    {
+      "path": "checks/api/after/apps/web/src/contracts/runtime.ts",
+      "operation": "modify",
+      "before_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "after_sha256": "ff6ee3eadd8d9a20668bcb91b94d828d366c71e438b2358062140d4d2da173ba",
+      "before_bytes": 4723,
+      "after_bytes": 4268
+    },
+    {
+      "path": "checks/api/tests/actual_app_harness.mjs",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "f465b29c4c1f6001e8cafa9b0d3437436c2f9a3366be3c5b6a0b108207b21a2c",
+      "before_bytes": 0,
+      "after_bytes": 15364
+    },
+    {
+      "path": "checks/api/tests/current_app_presentation.test.mjs",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "9b3029275b85c24b364521afa55e38896ad341aea72c8b9ec72cf4e1cc3932a8",
+      "before_bytes": 0,
+      "after_bytes": 11115
+    },
+    {
+      "path": "checks/api/tests/render_fixture.mjs",
+      "operation": "modify",
+      "before_sha256": "ed9614a332b81a5cfdf2c7aed36707538fb3a78fe355c60c403fdc9227ba74c9",
+      "after_sha256": "a5b88c64df9f5e959fb81959bded1131a2e3ff8352b490b5abffc62949a9570e",
+      "before_bytes": 1133,
+      "after_bytes": 1119
+    },
+    {
+      "path": "checks/api/tests/research_presentation.test.mjs",
+      "operation": "modify",
+      "before_sha256": "0893a7a42c85099a9d883e13759742f4d6c6122dc219e46b1bfcc8004d6e3827",
+      "after_sha256": "951e91afa47227e3c0f1c860b0dd6a83c0262607baf2c17e29a1470650b7c704",
+      "before_bytes": 9547,
+      "after_bytes": 7599
+    },
+    {
+      "path": "checks/api/tests/ssr_harness.mjs",
+      "operation": "modify",
+      "before_sha256": "b69112ced3f2e23163da079a6c746197b607099767b28f7f1703da4d2c30ca8e",
+      "after_sha256": "41c73146ad63d2e07e20a0a299c5d55121742826455276fd37461f36995ba108",
+      "before_bytes": 4795,
+      "after_bytes": 4938
+    },
+    {
+      "path": "checks/api/tests/verify_integrated_fixture.mjs",
+      "operation": "modify",
+      "before_sha256": "ddc3cf034920b8eb5dce3d0a4aa302d943bbef62e8e3898f653768bbd0edf41c",
+      "after_sha256": "a8b386a57f0088f7f68e2e155521ffdaac4a4ffc7963557d6214874913fb4bb9",
+      "before_bytes": 1729,
+      "after_bytes": 4005
+    },
+    {
+      "path": "patches/ui-before-to-after.patch",
+      "operation": "modify",
+      "before_sha256": "9c17f84b8b7fb7a6df8099378d51044dcfa2115d64677f8160948d93b975bc57",
+      "after_sha256": "ddd8413e3a14cb89c37c2d0e02600e643867410d82fcff4d01d07095f0eb395a",
+      "before_bytes": 18890,
+      "after_bytes": 19583
+    },
+    {
+      "path": "tests/test_run_current_research_canary.py",
+      "operation": "modify",
+      "before_sha256": "cc279661a92668612d926c85a5481d5b30239e7ac8dca2ab44a7d08a73968e8d",
+      "after_sha256": "16cfb708fd03fb98a4a7bb53b567dabc76af4e6629df41c871ede98bdf2d2702",
+      "before_bytes": 12808,
+      "after_bytes": 13373
+    },
+    {
+      "path": "tool_before/prepare_canary.py",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "e09ea8493dbf775b6162c252b0707b5dc2f121cf0ab7495c0b953efa2135b751",
+      "before_bytes": 0,
+      "after_bytes": 12760
+    },
+    {
+      "path": "tool_before/run_checks.py",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "2bfdd7afc8ecbbbc3307958a4d80e8dd27dbc71e5e0d1e17b0b6bc4a4bc4a0e5",
+      "before_bytes": 0,
+      "after_bytes": 6069
+    },
+    {
+      "path": "tool_before/run_current_research_canary.py",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "802657e5edcde27904b18635aeaa717c481cb49aa8a9884e939f30dbc7ebd679",
+      "before_bytes": 0,
+      "after_bytes": 18523
+    },
+    {
+      "path": "tool_before/verify_package.py",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "3583ef87d7d298c1dec72dc0ce2883a19833b6f1c6e8b12cb2e625a85952611b",
+      "before_bytes": 0,
+      "after_bytes": 4159
+    },
+    {
+      "path": "tools/RUN_CURRENT_RESEARCH_CANARY.md",
+      "operation": "modify",
+      "before_sha256": "ea53099db5db41f6593aaaecf72d7225e944aa9aa87a3a102c9ce00a4cdef2f4",
+      "after_sha256": "a9d34401623c88369f62766bb636f1ef2a10f2329a677180bc7c1bdcfabee1b8",
+      "before_bytes": 5956,
+      "after_bytes": 6916
+    },
+    {
+      "path": "tools/canary_sources.py",
+      "operation": "add",
+      "before_sha256": null,
+      "after_sha256": "5c7e0079796bc599fa43b684f81aae3ce55977e6fade71a0f3580d9d72610ebb",
+      "before_bytes": 0,
+      "after_bytes": 12548
+    },
+    {
+      "path": "tools/prepare_canary.py",
+      "operation": "modify",
+      "before_sha256": "e09ea8493dbf775b6162c252b0707b5dc2f121cf0ab7495c0b953efa2135b751",
+      "after_sha256": "e2aefe2196b4087dd4158463222f4346f6be310aac6b52ad79afab57052ea014",
+      "before_bytes": 12760,
+      "after_bytes": 16958
+    },
+    {
+      "path": "tools/run_checks.py",
+      "operation": "modify",
+      "before_sha256": "2bfdd7afc8ecbbbc3307958a4d80e8dd27dbc71e5e0d1e17b0b6bc4a4bc4a0e5",
+      "after_sha256": "ccf7e10d87d4f71a0bf8711e07e3b445f83c4255817e55d255a04f342732a81a",
+      "before_bytes": 6069,
+      "after_bytes": 10928
+    },
+    {
+      "path": "tools/run_current_research_canary.py",
+      "operation": "modify",
+      "before_sha256": "802657e5edcde27904b18635aeaa717c481cb49aa8a9884e939f30dbc7ebd679",
+      "after_sha256": "60cc21568422f2c664d0747c3a0a04ce6a464b0acd73a9cdb1faacc90991fab4",
+      "before_bytes": 18523,
+      "after_bytes": 25087
+    },
+    {
+      "path": "tools/verify_package.py",
+      "operation": "modify",
+      "before_sha256": "3583ef87d7d298c1dec72dc0ce2883a19833b6f1c6e8b12cb2e625a85952611b",
+      "after_sha256": "eb0b14f781b88b8db2e2e9dd7271409c025553354a848e515916458105bd3486",
+      "before_bytes": 4159,
+      "after_bytes": 5569
+    }
+  ],
+  "stage_api_after_byte_changes": 0
+}

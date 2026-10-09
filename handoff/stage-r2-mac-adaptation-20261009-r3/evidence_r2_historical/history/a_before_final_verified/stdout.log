@@ -1,0 +1,223 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: /workspace/scratch/49c844334a98/lane_a
+configfile: pytest.ini
+testpaths: tests
+collected 52 items
+
+tests/test_a_quote_pipeline.py FFF...FF.....FFF......................... [ 78%]
+..FF.......                                                              [100%]
+
+=================================== FAILURES ===================================
+_ test_auction_csv_previous_close_survives_source_builder_and_final_row[102-2] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_csv_previous_clos0')
+last = 102, expected = 2
+
+    @pytest.mark.parametrize("last,expected", [(102, 2), (100, 0), (95, -5)])
+    def test_auction_csv_previous_close_survives_source_builder_and_final_row(tmp_path, last, expected):
+        trace = {}
+        source, envelope = collect_csv(tmp_path, [csv_row(100, last)], trace=trace)
+        assert source.rows[0]["prev_close_price"] == 100
+        row = envelope["rows"][0]
+        assert row["code"] == source.rows[0]["code"]
+>       assert row["prev_close_price"] == source.rows[0]["prev_close_price"]
+E       assert None == 100.0
+
+tests/test_a_quote_pipeline.py:134: AssertionError
+_ test_auction_csv_previous_close_survives_source_builder_and_final_row[100-0] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_csv_previous_clos1')
+last = 100, expected = 0
+
+    @pytest.mark.parametrize("last,expected", [(102, 2), (100, 0), (95, -5)])
+    def test_auction_csv_previous_close_survives_source_builder_and_final_row(tmp_path, last, expected):
+        trace = {}
+        source, envelope = collect_csv(tmp_path, [csv_row(100, last)], trace=trace)
+        assert source.rows[0]["prev_close_price"] == 100
+        row = envelope["rows"][0]
+        assert row["code"] == source.rows[0]["code"]
+>       assert row["prev_close_price"] == source.rows[0]["prev_close_price"]
+E       assert None == 100.0
+
+tests/test_a_quote_pipeline.py:134: AssertionError
+_ test_auction_csv_previous_close_survives_source_builder_and_final_row[95--5] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_csv_previous_clos2')
+last = 95, expected = -5
+
+    @pytest.mark.parametrize("last,expected", [(102, 2), (100, 0), (95, -5)])
+    def test_auction_csv_previous_close_survives_source_builder_and_final_row(tmp_path, last, expected):
+        trace = {}
+        source, envelope = collect_csv(tmp_path, [csv_row(100, last)], trace=trace)
+        assert source.rows[0]["prev_close_price"] == 100
+        row = envelope["rows"][0]
+        assert row["code"] == source.rows[0]["code"]
+>       assert row["prev_close_price"] == source.rows[0]["prev_close_price"]
+E       assert None == 100.0
+
+tests/test_a_quote_pipeline.py:134: AssertionError
+_ test_auction_invalid_or_absent_source_baseline_stays_nullable[0-0-PREV_CLOSE_PRICE_INVALID] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_invalid_or_absent3')
+previous = 0, normalized = 0, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,normalized,reason", [
+        (MISSING, None, "PREV_CLOSE_PRICE_MISSING"),
+        (None, None, "PREV_CLOSE_PRICE_MISSING"),
+        ("", None, "PREV_CLOSE_PRICE_MISSING"),
+        (0, 0, "PREV_CLOSE_PRICE_INVALID"),
+        (-5, -5, "PREV_CLOSE_PRICE_INVALID"),
+        ("bad", None, "PREV_CLOSE_PRICE_MISSING"),
+        ("NaN", None, "PREV_CLOSE_PRICE_MISSING"),
+        ("inf", None, "PREV_CLOSE_PRICE_MISSING"),
+        (True, None, "PREV_CLOSE_PRICE_MISSING"),
+    ])
+    def test_auction_invalid_or_absent_source_baseline_stays_nullable(tmp_path, previous, normalized, reason):
+        source, envelope = collect_csv(tmp_path, [csv_row(previous)])
+        # The unchanged collector normalizes non-numeric wire input to None.
+        # The final reason describes this observed SourceResult boundary.
+        assert source.rows[0]["prev_close_price"] == normalized
+        row = envelope["rows"][0]
+        assert row["prev_close_price"] is None
+        assert row["current_change_pct"] is None
+        assert row["qmt_gap_pct"] is None
+>       assert row["current_change_pct_missing_reason"] == reason
+E       AssertionError: assert 'PREV_CLOSE_PRICE_MISSING' == 'PREV_CLOSE_PRICE_INVALID'
+E         
+E         - PREV_CLOSE_PRICE_INVALID
+E         ?                    ^^^^^
+E         + PREV_CLOSE_PRICE_MISSING
+E         ?                  ++++  ^
+
+tests/test_a_quote_pipeline.py:162: AssertionError
+_ test_auction_invalid_or_absent_source_baseline_stays_nullable[-5--5-PREV_CLOSE_PRICE_INVALID] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_invalid_or_absent4')
+previous = -5, normalized = -5, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,normalized,reason", [
+        (MISSING, None, "PREV_CLOSE_PRICE_MISSING"),
+        (None, None, "PREV_CLOSE_PRICE_MISSING"),
+        ("", None, "PREV_CLOSE_PRICE_MISSING"),
+        (0, 0, "PREV_CLOSE_PRICE_INVALID"),
+        (-5, -5, "PREV_CLOSE_PRICE_INVALID"),
+        ("bad", None, "PREV_CLOSE_PRICE_MISSING"),
+        ("NaN", None, "PREV_CLOSE_PRICE_MISSING"),
+        ("inf", None, "PREV_CLOSE_PRICE_MISSING"),
+        (True, None, "PREV_CLOSE_PRICE_MISSING"),
+    ])
+    def test_auction_invalid_or_absent_source_baseline_stays_nullable(tmp_path, previous, normalized, reason):
+        source, envelope = collect_csv(tmp_path, [csv_row(previous)])
+        # The unchanged collector normalizes non-numeric wire input to None.
+        # The final reason describes this observed SourceResult boundary.
+        assert source.rows[0]["prev_close_price"] == normalized
+        row = envelope["rows"][0]
+        assert row["prev_close_price"] is None
+        assert row["current_change_pct"] is None
+        assert row["qmt_gap_pct"] is None
+>       assert row["current_change_pct_missing_reason"] == reason
+E       AssertionError: assert 'PREV_CLOSE_PRICE_MISSING' == 'PREV_CLOSE_PRICE_INVALID'
+E         
+E         - PREV_CLOSE_PRICE_INVALID
+E         ?                    ^^^^^
+E         + PREV_CLOSE_PRICE_MISSING
+E         ?                  ++++  ^
+
+tests/test_a_quote_pipeline.py:162: AssertionError
+______ test_auction_recovered_source_drives_the_unchanged_bounded_formula ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_recovered_source_0')
+
+    def test_auction_recovered_source_drives_the_unchanged_bounded_formula(tmp_path):
+        _, envelope = collect_csv(tmp_path, [csv_row(100, last=102)])
+        # Frozen V3: 50 + 2 * 10 + (10m / 100m) * 2.5 = 70.25.
+>       assert envelope["rows"][0]["score"] == 70.25
+E       assert 50.25 == 70.25
+
+tests/test_a_quote_pipeline.py:178: AssertionError
+________ test_real_auction_replay_previous_day_bar_reaches_selected_row ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_real_auction_replay_previ0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f377dd6ad80>
+
+    def test_real_auction_replay_previous_day_bar_reaches_selected_row(tmp_path, monkeypatch):
+        api, source, envelope = collect_replay(
+            tmp_path, monkeypatch, ("A.000001",), {"000001": {"previous": 100, "last": 100}},
+        )
+        assert api.requested_codes == ["000001"]
+        assert source.rows[0]["prev_close_price"] == 100
+        assert source.rows[0]["source_method"] == "pytdx.hq.get_transaction_data"
+>       assert envelope["rows"][0]["prev_close_price"] == 100
+E       assert None == 100
+
+tests/test_a_quote_pipeline.py:235: AssertionError
+_ test_auction_216_requests_205_quotes_keep_missing_codes_and_after_200_winner _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_216_requests_205_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f377dd6d3d0>
+
+    def test_auction_216_requests_205_quotes_keep_missing_codes_and_after_200_winner(tmp_path, monkeypatch):
+        codes = tuple(f"A.{index:06d}" for index in range(1, 217))
+        records = {code[2:]: {"previous": 100, "last": 100} for code in codes[:205]}
+        records[codes[204][2:]] = {"previous": 100, "last": 105}
+        api, source, envelope = collect_replay(tmp_path, monkeypatch, codes, records)
+        assert len(api.requested_codes) == source.requested_rows == envelope["requested_rows"] == 216
+        assert len(source.rows) == envelope["source_rows"] == 205
+        assert source.status == envelope["selection_status"] == "PARTIAL_WITH_ROWS"
+        assert source.missing_symbols == codes[205:]
+        assert envelope["missing_symbols"] == list(codes[205:])
+        assert all(code in " ".join(envelope["cannot_confirm"]) for code in codes[205:])
+        assert envelope["selected_rows"] == 10
+>       assert envelope["rows"][0]["code"] == codes[204]
+E       AssertionError: assert 'A.000001' == 'A.000205'
+E         
+E         - A.000205
+E         ?      - ^
+E         + A.000001
+E         ?       ^^
+
+tests/test_a_quote_pipeline.py:252: AssertionError
+_ test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_minute_boolean_previous_c0')
+previous = True
+
+    @pytest.mark.parametrize("previous", [True, False])
+    def test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline(tmp_path, previous):
+        _, source, envelope = collect_minute(
+            tmp_path, LIVE_STAGES[0], ("A.000001",), {"000001": minute_wire(previous)},
+        )
+        # A boolean is malformed quote data, including True (float(True) == 1).
+>       assert source.rows[0]["prev_close_price"] is None
+E       assert 1.0 is None
+
+tests/test_a_quote_pipeline.py:391: AssertionError
+_ test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_minute_boolean_previous_c1')
+previous = False
+
+    @pytest.mark.parametrize("previous", [True, False])
+    def test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline(tmp_path, previous):
+        _, source, envelope = collect_minute(
+            tmp_path, LIVE_STAGES[0], ("A.000001",), {"000001": minute_wire(previous)},
+        )
+        # A boolean is malformed quote data, including True (float(True) == 1).
+>       assert source.rows[0]["prev_close_price"] is None
+E       assert 0.0 is None
+
+tests/test_a_quote_pipeline.py:391: AssertionError
+- generated xml file: /workspace/scratch/49c844334a98/lane_a/evidence/before_final_verified/junit.xml -
+=========================== short test summary info ============================
+FAILED tests/test_a_quote_pipeline.py::test_auction_csv_previous_close_survives_source_builder_and_final_row[102-2]
+FAILED tests/test_a_quote_pipeline.py::test_auction_csv_previous_close_survives_source_builder_and_final_row[100-0]
+FAILED tests/test_a_quote_pipeline.py::test_auction_csv_previous_close_survives_source_builder_and_final_row[95--5]
+FAILED tests/test_a_quote_pipeline.py::test_auction_invalid_or_absent_source_baseline_stays_nullable[0-0-PREV_CLOSE_PRICE_INVALID]
+FAILED tests/test_a_quote_pipeline.py::test_auction_invalid_or_absent_source_baseline_stays_nullable[-5--5-PREV_CLOSE_PRICE_INVALID]
+FAILED tests/test_a_quote_pipeline.py::test_auction_recovered_source_drives_the_unchanged_bounded_formula
+FAILED tests/test_a_quote_pipeline.py::test_real_auction_replay_previous_day_bar_reaches_selected_row
+FAILED tests/test_a_quote_pipeline.py::test_auction_216_requests_205_quotes_keep_missing_codes_and_after_200_winner
+FAILED tests/test_a_quote_pipeline.py::test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[True]
+FAILED tests/test_a_quote_pipeline.py::test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[False]
+======================== 10 failed, 42 passed in 10.69s ========================

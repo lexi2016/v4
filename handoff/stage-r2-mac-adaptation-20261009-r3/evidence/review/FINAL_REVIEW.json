@@ -1,0 +1,247 @@
+{
+  "schema_version": "V4_R3_INDEPENDENT_FINAL_REVIEW_V1",
+  "review_identity": "Independent Reviewer; read-only candidate access; all review/test writes confined to r3_review; no Git operations or Mac access",
+  "completed_at_utc": "2026-10-09T12:37:54.235990+00:00",
+  "status": "PASS_WITHIN_ISOLATED_IMPLEMENTATION_AND_FIXTURE_SCOPE",
+  "assessment": "No open reproducible P1/P2 findings in the frozen implementation. Ready for final package assembly and separate Mac execution/acceptance.",
+  "base_commit_provided": "7a9c94d43a296372488541b02e8e35a0f763dc1a",
+  "feedback_commit": "3112c1ee8ed2826c5d77b5d0a4f1e2cd5fc95e45",
+  "feedback_parent_commit": "4db264512b71723cb13680c4f7554deef401ef44",
+  "source_map_sha256": "3ec3e7774119bd106185c03be0b5c572b6fe2ca4148b93379d8b116a72994457",
+  "canary_source_policy_sha256": "47fb035202d7cf8b8e087aef2abfc567066ac7c68f7302ca41f259e24638d1b5",
+  "test_expectations_sha256": "37fe3362233af9bbb5f2d7cf54090e634e43ce4951ec81c3b346946fb5c29c7c",
+  "reviewed_file_sha256": {
+    "tools/run_checks.py": "ccf7e10d87d4f71a0bf8711e07e3b445f83c4255817e55d255a04f342732a81a",
+    "tools/verify_package.py": "eb0b14f781b88b8db2e2e9dd7271409c025553354a848e515916458105bd3486",
+    "tools/canary_sources.py": "5c7e0079796bc599fa43b684f81aae3ce55977e6fade71a0f3580d9d72610ebb",
+    "tools/prepare_canary.py": "e2aefe2196b4087dd4158463222f4346f6be310aac6b52ad79afab57052ea014",
+    "tools/run_current_research_canary.py": "60cc21568422f2c664d0747c3a0a04ce6a464b0acd73a9cdb1faacc90991fab4",
+    "checks/adaptation/test_run_checks_completeness.py": "a5e1125c13bf73cd2341cca31be39842abaecb3a8e0e77dce673e4bdaa799ece",
+    "checks/adaptation/test_package_add_contract.py": "977bc7a98efd86d3089e8acf5abbba6d46f92d268371783cb4fc87882433c544",
+    "checks/adaptation/test_prepare_adaptation.py": "d7c1d2ce3af923533fffef4867c8c822a2f793e4e9cab6e44f8583ff85401ad8",
+    "checks/adaptation/test_driver_adaptation.py": "90e79f1571ffdc544dffcdb610c9955760a5c80f10762f231ec700ea068f70c9",
+    "checks/api/tests/actual_app_harness.mjs": "f465b29c4c1f6001e8cafa9b0d3437436c2f9a3366be3c5b6a0b108207b21a2c",
+    "checks/api/tests/current_app_presentation.test.mjs": "9b3029275b85c24b364521afa55e38896ad341aea72c8b9ec72cf4e1cc3932a8",
+    "checks/api/tests/research_presentation.test.mjs": "951e91afa47227e3c0f1c860b0dd6a83c0262607baf2c17e29a1470650b7c704",
+    "checks/api/tests/legacy_presentation.test.mjs": "e414c776f8af300b4cefa34d3d30f2757d6d4759be6e9eceb3d6c71e1edaa0a9",
+    "tests/test_run_current_research_canary.py": "16cfb708fd03fb98a4a7bb53b567dabc76af4e6629df41c871ede98bdf2d2702",
+    "TEST_EXPECTATIONS.json": "37fe3362233af9bbb5f2d7cf54090e634e43ce4951ec81c3b346946fb5c29c7c",
+    "CANARY_SOURCE_POLICY.json": "47fb035202d7cf8b8e087aef2abfc567066ac7c68f7302ca41f259e24638d1b5",
+    "SOURCE_MAP.json": "3ec3e7774119bd106185c03be0b5c572b6fe2ca4148b93379d8b116a72994457"
+  },
+  "frozen_identity_unchanged_during_final_checks": true,
+  "final_independent_checks": {
+    "status": "PASS",
+    "started_at_utc": "2026-10-09T12:33:32.310641+00:00",
+    "finished_at_utc": "2026-10-09T12:34:10.756714+00:00",
+    "result": "/workspace/scratch/49c844334a98/r3_review/final_checks/RESULTS.json",
+    "result_sha256": "fbc214b980a8b0c29f6b4da7725f263f3998df332889196f642e7dc71ffceee2",
+    "scope": "ISOLATED_SOURCE_FIXTURE_TESTS_NOT_MAC_MARKET_API_DEPLOYMENT_OR_NATURAL_ACCEPTANCE",
+    "expected_tests": {
+      "stage": 148,
+      "api": 82,
+      "adaptation": 50,
+      "vue": 45,
+      "vue_actual": 27
+    },
+    "total": 352,
+    "suites": {
+      "stage": {
+        "exit_code": 0,
+        "status": "PASS",
+        "expected_tests": 148,
+        "observed_tests": 148,
+        "passed": 148,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "declared": {
+          "tests": 148,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "junit_sha256": "783950173fc57a849e95b45e8b0d42ae444fe2b9554fb2cb65da035c85dbea05"
+      },
+      "api": {
+        "exit_code": 0,
+        "status": "PASS",
+        "expected_tests": 82,
+        "observed_tests": 82,
+        "passed": 82,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "declared": {
+          "tests": 82,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "junit_sha256": "b5dff3ca5c5b36ced10559f4c25d24dc96bf2d5a01650340cb0eb53046bb15d5"
+      },
+      "adaptation": {
+        "exit_code": 0,
+        "status": "PASS",
+        "expected_tests": 50,
+        "observed_tests": 50,
+        "passed": 50,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "declared": {
+          "tests": 50,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "junit_sha256": "10b933bd7ec2161c39a6580784be076300b15e1c5eff6b0142e1f68ae8df30a5"
+      },
+      "vue": {
+        "exit_code": 0,
+        "status": "PASS",
+        "expected_tests": 45,
+        "observed_tests": 45,
+        "passed": 45,
+        "skipped": 0,
+        "failures": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "vue_actual": {
+        "exit_code": 0,
+        "status": "PASS",
+        "expected_tests": 27,
+        "observed_tests": 27,
+        "passed": 27,
+        "skipped": 0,
+        "failures": 0,
+        "cancelled": 0,
+        "todo": 0
+      }
+    },
+    "fixture_commands": {
+      "fixture_runner": {
+        "exit_code": 0
+      },
+      "fixture_api": {
+        "exit_code": 0
+      },
+      "fixture_vue": {
+        "exit_code": 0
+      }
+    },
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "node": "v24.19.0",
+    "vue_packages": {
+      "vue": "3.5.13",
+      "@vue/compiler-sfc": "3.5.13",
+      "@vue/server-renderer": "3.5.13"
+    }
+  },
+  "fresh_full_chain_fixture": {
+    "fresh_output_root": "/workspace/scratch/49c844334a98/r3_review/final_checks/full_chain_fixture",
+    "external_io": "SYNTHETIC_PYTDX_FIXTURE",
+    "owner_store_readback": "Existing original runner/store/reader/consumer functions",
+    "api_scope": "AVAILABLE_ORIGINAL_FUNCTIONS_NOT_CURRENT_HTTP_SERVICE",
+    "trade_date": "20261009",
+    "stage_id": "STAGE_0930_0935",
+    "market": "HK_CONNECT",
+    "run_id": "run-2c40a8d057e1beffde847ab1",
+    "selected_rows": 10,
+    "requested_rows": 695,
+    "source_rows": 695,
+    "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+    "raw_artifact_sha256": "3c942a34e3dcb713ed250f0d42e5f031f4aa09e0cb09b3691678a0a288576741",
+    "selection_artifact_bytes_sha256": "aa69e1d04c009ac033434ec5be156465bff2db964b2a14815c00c7b894054100",
+    "receipt_history_binding": "OWNER_HISTORY_SHA_BOUND",
+    "selection_trio_binding": "BOUND_TO_VERIFIED_SELECTION_TRIO",
+    "execution_origin": "CURRENT_DAY_RESEARCH_REPLAY",
+    "execution_verified": false,
+    "natural_verified": false,
+    "current_app": {
+      "status": "PASS",
+      "scope": "EXACT_CURRENT_APP_AND_PANEL_SFC_WITH_EXPLICIT_APP_SHELL_STATE_FIXTURE_AND_OTHER_VIEW_STUBS",
+      "http_or_browser_acceptance": "NOT_RUN",
+      "source_files": {
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/after/ui/apps/web/src/App.vue": "9eda6f27950eea3e2377335a79420fe43b16ca62ad32c87e701f9dda69f6c15d",
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d"
+      },
+      "trade_date": "20261009",
+      "stage_id": "STAGE_0930_0935",
+      "market": "HK_CONNECT",
+      "run_id": "run-2c40a8d057e1beffde847ab1",
+      "artifact_id": "selection-2c40a8d057e1beffde847ab1",
+      "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+      "raw_artifact_sha256": "3c942a34e3dcb713ed250f0d42e5f031f4aa09e0cb09b3691678a0a288576741",
+      "selected_rows": 10,
+      "current_hk_column": "已计算 10 只",
+      "primary_hk_text": "港股通 已计算 10 只 行情 695 / 695 只，缺 0 只 选股产物计数 研究来源限制 当日研究；非正式 D1；港股通资格待确认。 名单日期 20261008；采集时间 2026-10-09T15:38:41+08:00。 沿用较早名单，保留原名单日期。 结果与原执行记录已绑定",
+      "manager_navigation_retained": true
+    },
+    "natural_label_displayed": false
+  },
+  "open_findings": [],
+  "resolved_review_findings": [
+    {
+      "priority": "P2",
+      "id": "R3_POLICY_CANDIDATE_MISSING_PREPARE_MANIFEST",
+      "before": "Independent exact reproduction: delete prepare manifest and add an unmapped candidate dependency; actual driver execute=True produced RESEARCH_ROWS_WRITTEN/HK10 with candidate_source_manifest_sha256=null.",
+      "fix": "Driver now requires the prepare manifest whenever a SHA-bound source policy is present; no-policy legacy synthetic contract remains optional.",
+      "after": "Same mutated candidate now returns PREFLIGHT_FAILED/CANDIDATE_SOURCE_MANIFEST_REQUIRED, owner call count 0, no output directory.",
+      "before_evidence": "/workspace/scratch/49c844334a98/r3_review/manifest_bypass.json",
+      "after_evidence": "/workspace/scratch/49c844334a98/r3_review/MANIFEST_BYPASS_FIXED.json"
+    },
+    {
+      "priority": "P2",
+      "id": "R3_EXTERNAL_LINK_DIRECTORY_CLASSIFICATION",
+      "before": "os.walk(followlinks=False) may classify symlink directories through DirEntry.is_dir with following semantics; independently observed in source review and fixed by the tool writer.",
+      "fix": "Snapshot opens directories with no-follow flags and collects entry names through scandir; subsequent classification uses lstat.",
+      "after": "Independent actual-prepare API instrumentation with an existing synthetic external target observed only allowed link metadata/readlink operations and no target-follow stat/open calls. Final formal regression also passes.",
+      "after_evidence": "/workspace/scratch/49c844334a98/r3_review/EXTERNAL_LINK_API_REVIEW.json",
+      "native_trace_scope": "NOT_RUN: this environment denied PTRACE_TRACEME; no syscall-level PASS is claimed."
+    }
+  ],
+  "requirements_verified": {
+    "test_gate": "All five mandatory suites require their frozen exact counts and zero adverse outcomes. JUnit uses actual testcase outcomes plus declarations; TAP requires all six unique counters. Expectations and policy bytes are SOURCE_MAP SHA bound.",
+    "source_links": "Exact internal dependency link is preserved, declared external legacy link is omitted without target content access, source link identity is recorded, and unknown/changed/escaped/mapped links fail before preparation.",
+    "permissions": "Independent real non-root RED/GREEN reproduced old Errno13 and fixed CANARY_PREPARED with 0555 directories/0444 files restored; source bytes/mode/uid/gid unchanged and old partial copy retained.",
+    "driver": "Prepared internal alias and readonly shared-copy paths are covered. All 19 effective build_production_config path parameters and relevant PYTHONPATH/V3_SHARED_DATA_SOURCE_ROOT dependencies are guarded; unrelated environment data is excluded.",
+    "ui": "Current 27412-byte App before source is preserved by a narrow patch; manager and existing route/action wiring retained. Runtime original 1540-byte prefix is unchanged; the absent 8779-byte panel is an explicit add with null before fields and empty accepted list.",
+    "identity": "Current date/stage/market/run/artifact/SHA/count conflicts do not become calculated result labels. Independently bound research results remain visible without natural acceptance, and one-market conflict does not erase the other.",
+    "algorithm_api_scope": "All 16 Stage and 2 API after files are byte-identical to local frozen R2.",
+    "feedback_source": "All ten supplied local feedback files match root-recorded remote Git blob identities, computed without Git or network access."
+  },
+  "supporting_evidence": {
+    "GATE_REVIEW.json": "/workspace/scratch/49c844334a98/r3_review/GATE_REVIEW.json",
+    "UI_REVIEW.json": "/workspace/scratch/49c844334a98/r3_review/UI_REVIEW.json",
+    "UI_ARTIFACT_IDENTITY.json": "/workspace/scratch/49c844334a98/r3_review/UI_ARTIFACT_IDENTITY.json",
+    "NONROOT_API_REVIEW.json": "/workspace/scratch/49c844334a98/r3_review/NONROOT_API_REVIEW.json",
+    "MANIFEST_BYPASS_FIXED.json": "/workspace/scratch/49c844334a98/r3_review/MANIFEST_BYPASS_FIXED.json",
+    "EXTERNAL_LINK_API_REVIEW.json": "/workspace/scratch/49c844334a98/r3_review/EXTERNAL_LINK_API_REVIEW.json",
+    "STAGE_API_UNCHANGED.json": "/workspace/scratch/49c844334a98/r3_review/STAGE_API_UNCHANGED.json",
+    "FEEDBACK_INPUT_BINDING.json": "/workspace/scratch/49c844334a98/r3_review/FEEDBACK_INPUT_BINDING.json"
+  },
+  "intermediate_run": {
+    "path": "/workspace/scratch/49c844334a98/r3_review/full_checks/RESULTS.json",
+    "tests": 350,
+    "disposition": "Pre-fix intermediate receipt only; superseded by final_checks for acceptance"
+  },
+  "boundaries": {
+    "REAL_PYTDX_CANARY": "NOT_RUN",
+    "LIVE_SAME_RUN_CONSUMER": "NOT_RUN",
+    "ACTUAL_MAC_PREPARE": "NOT_RUN",
+    "DEPLOYED": "NO_DEPLOYMENT",
+    "API_VERIFIED_CURRENT_HTTP": "NOT_RUN",
+    "UI_VERIFIED_RELOADED_BROWSER": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN",
+    "COMPLETE_DYNAMIC_DEPENDENCY_CLOSURE": "CANNOT_CONFIRM",
+    "ui_test_dependencies": "Current useAppShell and other existing view implementations were unavailable; the actual App and panel SFCs use explicit synthetic shell state/handler and other-view substitutes. Existing manager wiring is tested, its live destination is not.",
+    "final_docs_and_delivery_manifests": "Still being assembled by root; this report approves the frozen tools/source/tests/policy/expectations, not an unseen final archive or deployment."
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

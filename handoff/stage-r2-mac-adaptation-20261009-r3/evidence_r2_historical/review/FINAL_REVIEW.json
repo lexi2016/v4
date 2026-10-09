@@ -1,0 +1,1049 @@
+{
+  "schema_version": "v4.stage_recovery_independent_final_review.v1",
+  "reviewed_at_utc": "2026-10-09T10:58:44.208501+00:00",
+  "reviewer": "/root/final_review",
+  "skill": "superpowers:requesting-code-review",
+  "decision": "PASS_FOR_EXACT_SHA_ISOLATED_RESEARCH_CANARY",
+  "critical_open": 0,
+  "important_open": 0,
+  "open_findings": [],
+  "read_only_business_source_review": true,
+  "business_source_files_modified_by_reviewer": [],
+  "host": {
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "is_mac": false,
+    "live_market_access_performed_by_reviewer": false,
+    "deployment_performed": false
+  },
+  "scope": "KNOWN_SOURCE_CANDIDATE_AND_OFFLINE_FULL_CHAIN_NOT_CURRENT_MAC_OR_LIVE_MARKET_OR_NATURAL_ACCEPTANCE",
+  "package_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2",
+  "base_commit": "0fc3e8304e11700230517616ded0c86f83a4b257",
+  "base_commit_scope": "Fixed GitHub handoff checkpoint; not a current-running-production assertion. Historical preimage provenance remains per-file in SOURCE_MAP.",
+  "source_map_sha256": "f402f93009ff1e8ef588e04c994eec1897274d80970fc20ee07748a506156ce4",
+  "production_source_file_count": 21,
+  "source_group_counts": {
+    "stage": 16,
+    "api": 2,
+    "ui": 3
+  },
+  "all_current_mac_bytes_verified": false,
+  "offline_support_file_count": 166,
+  "source_files": [
+    {
+      "accepted_before_sha256": [
+        "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+        "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08"
+      ],
+      "after_bytes": 1217,
+      "after_path": "after/stage/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "after_sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+      "before_bytes": 1112,
+      "before_path": "before/stage/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "before_sha256": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+      "relative_path": "ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "source_git_blob_sha1": "b175aa766ff636f3e90f1b209116a94f2415c0d9",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/v4-running-source-20261005/canonical/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/ops/_run_stage_center_nodes_parts/deadline_supervision.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+        "3a40b79ecea876997aad9272205ebf61289af2a17162057fa680174c50e74fd2"
+      ],
+      "after_bytes": 43645,
+      "after_path": "after/stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "after_sha256": "fd544913cacff11e9fe8ed5ca682239d3ff4185d8c1b810934637580cdb65aa2",
+      "before_bytes": 42295,
+      "before_path": "before/stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "before_sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "3a40b79ecea876997aad9272205ebf61289af2a17162057fa680174c50e74fd2",
+      "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "source_git_blob_sha1": "86971b3f46c4755cabce98e501f5d4d60f2df5b0",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/v4-running-source-20261005/stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/ops/_run_stage_center_nodes_parts/node_entry.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec"
+      ],
+      "after_bytes": 2738,
+      "after_path": "after/stage/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "after_sha256": "515a739b73e4a874489958aa4d207ae7aca643166a356c2bc05d494ad5f2a93a",
+      "before_bytes": 2361,
+      "before_path": "before/stage/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "before_sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+      "relative_path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "source_git_blob_sha1": "fe88b068c4ed1893b2649bfeaae88abb24a122f6",
+      "source_ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "source_repository_path": "handoff/v4-running-source-20261005/canonical/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/ops/_run_stage_center_nodes_parts/runtime_arguments.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "4eb8e1a3be0e3780ff9cb62417c695c5aab67948f224db462d3f6e3a67299f42"
+      ],
+      "after_bytes": 26601,
+      "after_path": "after/stage/ops/run_stage_center_tick.py",
+      "after_sha256": "f362bb04734fb78e847bdf6e435a29bc01a66f6186ddfd4c52cb0efc7c21b439",
+      "before_bytes": 25917,
+      "before_path": "before/stage/ops/run_stage_center_tick.py",
+      "before_sha256": "4eb8e1a3be0e3780ff9cb62417c695c5aab67948f224db462d3f6e3a67299f42",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "4eb8e1a3be0e3780ff9cb62417c695c5aab67948f224db462d3f6e3a67299f42",
+      "relative_path": "ops/run_stage_center_tick.py",
+      "source_git_blob_sha1": "9dbaef79a86deaec6a324285ffdfc2289820cf5a",
+      "source_ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "source_repository_path": "handoff/v4-running-source-20261005/stage/ops/run_stage_center_tick.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/ops/run_stage_center_tick.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179"
+      ],
+      "after_bytes": 11057,
+      "after_path": "after/stage/stage_center/_live_collectors_parts/hk_minute.py",
+      "after_sha256": "03300128a9525d49b0aedd77b35fa7cbeda464900d6802b503a001172a5ccf65",
+      "before_bytes": 6947,
+      "before_path": "before/stage/stage_center/_live_collectors_parts/hk_minute.py",
+      "before_sha256": "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179",
+      "relative_path": "stage_center/_live_collectors_parts/hk_minute.py",
+      "source_git_blob_sha1": "b81c1336f234cc0d87064ad19eae58dd7db7d78e",
+      "source_ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "source_repository_path": "handoff/v4-running-source-20261005/stage/stage_center/_live_collectors_parts/hk_minute.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/_live_collectors_parts/hk_minute.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22"
+      ],
+      "after_bytes": 23605,
+      "after_path": "after/stage/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "after_sha256": "13fa73cc9b00c1255c05421f43eddc4155a0c14b4488b2a9829a0b496f6337df",
+      "before_bytes": 21870,
+      "before_path": "before/stage/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before_sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+      "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "source_git_blob_sha1": "ea28586244319a62396bcbb2357d5e74b65fcf16",
+      "source_ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "source_repository_path": "handoff/stage-selection-issues-20261008/source/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/_live_collectors_parts/selection_builder_registry.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486"
+      ],
+      "after_bytes": 3359,
+      "after_path": "after/stage/stage_center/_runner_parts/configuration.py",
+      "after_sha256": "62416ad875ff37a95ae222e3c8c4094a351b53229daa5313d43f5d27a98899be",
+      "before_bytes": 3170,
+      "before_path": "before/stage/stage_center/_runner_parts/configuration.py",
+      "before_sha256": "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486",
+      "relative_path": "stage_center/_runner_parts/configuration.py",
+      "source_git_blob_sha1": "c42606a7e331483f5055b7c622762bf3ee87685d",
+      "source_ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "source_repository_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/configuration.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/_runner_parts/configuration.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95"
+      ],
+      "after_bytes": 11315,
+      "after_path": "after/stage/stage_center/_runner_parts/hk_candidate_authority.py",
+      "after_sha256": "57bf97d5edb73ba2f226d102bb81c9079f84aebf67ead45d5649ebfe5cc932cb",
+      "before_bytes": 9557,
+      "before_path": "before/stage/stage_center/_runner_parts/hk_candidate_authority.py",
+      "before_sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+      "relative_path": "stage_center/_runner_parts/hk_candidate_authority.py",
+      "source_git_blob_sha1": "b4cfee08e5e230303b985c58f49bda1ae16b7b47",
+      "source_ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "source_repository_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/hk_candidate_authority.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/_runner_parts/hk_candidate_authority.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735"
+      ],
+      "after_bytes": 30503,
+      "after_path": "after/stage/stage_center/_runner_parts/hk_input_validation.py",
+      "after_sha256": "7bd2ca1e47a9831170c64b2d5d6ecbfe5b0e66d7e664ae4b2c3dcc9d4aaf1c74",
+      "before_bytes": 23786,
+      "before_path": "before/stage/stage_center/_runner_parts/hk_input_validation.py",
+      "before_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "relative_path": "stage_center/_runner_parts/hk_input_validation.py",
+      "source_git_blob_sha1": "ad07c9a495f363822f294403e0da9ec12d74b26f",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/_runner_parts/hk_input_validation.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/_runner_parts/hk_input_validation.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "d3d9e69230b00a2864eae106f1c5c89ea0d383e20c2e87d655d4cabd273bbc83",
+        "d634647ef5f50620a4b98a696a61b7d2d1491e9f7c2c351e0e621168a2e03f9f"
+      ],
+      "after_bytes": 20251,
+      "after_path": "after/stage/stage_center/_runner_parts/runner_receipts.py",
+      "after_sha256": "94fb3592619a8012904e4193280b5cd4f78f5c898b8fdd6cc5751398dc7f882d",
+      "before_bytes": 7766,
+      "before_path": "before/stage/stage_center/_runner_parts/runner_receipts.py",
+      "before_sha256": "d3d9e69230b00a2864eae106f1c5c89ea0d383e20c2e87d655d4cabd273bbc83",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "d634647ef5f50620a4b98a696a61b7d2d1491e9f7c2c351e0e621168a2e03f9f",
+      "relative_path": "stage_center/_runner_parts/runner_receipts.py",
+      "source_git_blob_sha1": "d940c780a1a65e957eca9522092056abeb132233",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/_runner_parts/runner_receipts.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/_runner_parts/runner_receipts.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c"
+      ],
+      "after_bytes": 11586,
+      "after_path": "after/stage/stage_center/_runner_parts/selection_input_validation.py",
+      "after_sha256": "87265f5027b2c8fb4c7d74dc8ea0c748df7f449516bc21f20b2f839de8a595fb",
+      "before_bytes": 10698,
+      "before_path": "before/stage/stage_center/_runner_parts/selection_input_validation.py",
+      "before_sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "relative_path": "stage_center/_runner_parts/selection_input_validation.py",
+      "source_git_blob_sha1": "4592c30c12dc9962e1c84c5c5eed1f9f53ec2888",
+      "source_ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "source_repository_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/selection_input_validation.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/_runner_parts/selection_input_validation.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+        "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96"
+      ],
+      "after_bytes": 50706,
+      "after_path": "after/stage/stage_center/_runner_parts/slot_execution.py",
+      "after_sha256": "3ed350bb9b072806a8b033055dbfa29b1ccc7292df6d79cbff61e55c8409112e",
+      "before_bytes": 46386,
+      "before_path": "before/stage/stage_center/_runner_parts/slot_execution.py",
+      "before_sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96",
+      "relative_path": "stage_center/_runner_parts/slot_execution.py",
+      "source_git_blob_sha1": "e406fcc2f173ba524cbcdae95bc39a789bc0a004",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/_runner_parts/slot_execution.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/_runner_parts/slot_execution.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+        "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1"
+      ],
+      "after_bytes": 9078,
+      "after_path": "after/stage/stage_center/_selection_parts/a_auction.py",
+      "after_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+      "before_bytes": 7957,
+      "before_path": "before/stage/stage_center/_selection_parts/a_auction.py",
+      "before_sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+      "relative_path": "stage_center/_selection_parts/a_auction.py",
+      "source_git_blob_sha1": "0dd8b201d888d4eeadbe6a3b806f44b3c3457f77",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/_selection_parts/a_auction.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/_selection_parts/a_auction.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d",
+        "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0"
+      ],
+      "after_bytes": 9704,
+      "after_path": "after/stage/stage_center/_selection_parts/a_live.py",
+      "after_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+      "before_bytes": 7307,
+      "before_path": "before/stage/stage_center/_selection_parts/a_live.py",
+      "before_sha256": "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+      "relative_path": "stage_center/_selection_parts/a_live.py",
+      "source_git_blob_sha1": "ca1f1b6d95d9d2b76591b77d372e7415fe2c5ce7",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/_selection_parts/a_live.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/_selection_parts/a_live.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232"
+      ],
+      "after_bytes": 45612,
+      "after_path": "after/stage/stage_center/runner.py",
+      "after_sha256": "ea9909bb4f39c4248032771aedd9611a852353e940451e0b0c7273bde8c26345",
+      "before_bytes": 44615,
+      "before_path": "before/stage/stage_center/runner.py",
+      "before_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "relative_path": "stage_center/runner.py",
+      "source_git_blob_sha1": "b0aa8badf3cbe4c5e9b6e758044f3403c57c2ee3",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/runner.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/stage_center/runner.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f"
+      ],
+      "after_bytes": 20039,
+      "after_path": "after/stage/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "after_sha256": "fdd849fc032b5745d6611df31b5f9a147b14207d77dca953dff7b0ea4140cea2",
+      "before_bytes": 19952,
+      "before_path": "before/stage/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "before_sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "stage",
+      "r1_candidate_sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+      "relative_path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "source_git_blob_sha1": "9b63eeacbe3fe02a2a117f45a11b5ff541becb67",
+      "source_ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "source_repository_path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/integration_app/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+        "bd79b1844568a79750ccce6c547cfe08f651291f1863e213fb25629d34a67b79"
+      ],
+      "after_bytes": 25837,
+      "after_path": "after/api/stage_center/execution_evidence.py",
+      "after_sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "before_bytes": 7682,
+      "before_path": "before/api/stage_center/execution_evidence.py",
+      "before_sha256": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": false,
+      "group": "api",
+      "r1_candidate_sha256": "bd79b1844568a79750ccce6c547cfe08f651291f1863e213fb25629d34a67b79",
+      "relative_path": "stage_center/execution_evidence.py",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/stage-minimal-flow-20261009/source/actual_api/stage_center/execution_evidence.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/after/source/actual_api/stage_center/execution_evidence.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+        "bc428dc5b3747b0eb1e3c4d68ae4e6f2441882393cfa4a31e4c4c962b924c234"
+      ],
+      "after_bytes": 35451,
+      "after_path": "after/api/stage_center/consumer.py",
+      "after_sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "before_bytes": 33874,
+      "before_path": "before/api/stage_center/consumer.py",
+      "before_sha256": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "api",
+      "r1_candidate_sha256": "bc428dc5b3747b0eb1e3c4d68ae4e6f2441882393cfa4a31e4c4c962b924c234",
+      "relative_path": "stage_center/consumer.py",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/v4-running-source-20261005/api/stage_center/consumer.py",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/after/conditional_api/stage_center/consumer.py"
+    },
+    {
+      "accepted_before_sha256": [
+        "995a680995cc42feadeaa8d2bdd44294c8ec782a908d664c698faf69d4cf02a1",
+        "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5"
+      ],
+      "after_bytes": 122389,
+      "after_path": "after/ui/apps/web/src/App.vue",
+      "after_sha256": "01903e69d06579c29d4d576bfe739420112ddb2778b6c321f7cb6ef587141f7d",
+      "before_bytes": 120779,
+      "before_path": "before/ui/apps/web/src/App.vue",
+      "before_sha256": "995a680995cc42feadeaa8d2bdd44294c8ec782a908d664c698faf69d4cf02a1",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "ui",
+      "r1_candidate_sha256": "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5",
+      "relative_path": "apps/web/src/App.vue",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/v4-running-source-20261005/api/apps/web/src/App.vue",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/after/apps/web/src/App.vue"
+    },
+    {
+      "accepted_before_sha256": [
+        "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+        "6cb4aecf34fe69a0b95af9075bfabbcd0c504dc29026cb31edd17ef83f764a6a"
+      ],
+      "after_bytes": 8339,
+      "after_path": "after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "after_sha256": "a9d044cd03325cb09acefd5e3c57c2a7e49cb1b61e22eadba0c50cf51963b273",
+      "before_bytes": 3466,
+      "before_path": "before/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "before_sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "ui",
+      "r1_candidate_sha256": "6cb4aecf34fe69a0b95af9075bfabbcd0c504dc29026cb31edd17ef83f764a6a",
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/v4-running-source-20261005/api/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/after/apps/web/src/components/review/StageExecutionEvidencePanel.vue"
+    },
+    {
+      "accepted_before_sha256": [
+        "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+        "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe"
+      ],
+      "after_bytes": 4723,
+      "after_path": "after/ui/apps/web/src/contracts/runtime.ts",
+      "after_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "before_bytes": 3044,
+      "before_path": "before/ui/apps/web/src/contracts/runtime.ts",
+      "before_sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+      "conditional_historical_preimage": true,
+      "current_mac_bytes_verified": false,
+      "group": "ui",
+      "r1_candidate_sha256": "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe",
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/v4-running-source-20261005/api/apps/web/src/contracts/runtime.ts",
+      "before_verified": true,
+      "after_verified": true,
+      "tested_copy_verified": true,
+      "tested_copy_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/after/apps/web/src/contracts/runtime.ts"
+    }
+  ],
+  "tool_sources": [
+    {
+      "path": "tools/diagnose_source_witness.py",
+      "sha256": "f7907128a8dd256b86e7320313ee4df2a9374a3100490a6f354965d3bff25dec",
+      "bytes": 11304
+    },
+    {
+      "path": "tools/export_integration_fixture.py",
+      "sha256": "f8705126a5f80dee7a016ed1c1f654e0dcb4bbbbc74309da49f88a7c5670f45b",
+      "bytes": 1710
+    },
+    {
+      "path": "tools/prepare_canary.py",
+      "sha256": "e09ea8493dbf775b6162c252b0707b5dc2f121cf0ab7495c0b953efa2135b751",
+      "bytes": 12760
+    },
+    {
+      "path": "tools/run_checks.py",
+      "sha256": "2bfdd7afc8ecbbbc3307958a4d80e8dd27dbc71e5e0d1e17b0b6bc4a4bc4a0e5",
+      "bytes": 6069
+    },
+    {
+      "path": "tools/run_current_research_canary.py",
+      "sha256": "802657e5edcde27904b18635aeaa717c481cb49aa8a9884e939f30dbc7ebd679",
+      "bytes": 18523
+    },
+    {
+      "path": "tools/verify_package.py",
+      "sha256": "3583ef87d7d298c1dec72dc0ce2883a19833b6f1c6e8b12cb2e625a85952611b",
+      "bytes": 4159
+    }
+  ],
+  "patches": [
+    {
+      "path": "patches/api-before-to-after.patch",
+      "sha256": "f6ad932b6d01d3289f6766b2fdcb99b21a296619b92acfcf5507c83a18d6e547"
+    },
+    {
+      "path": "patches/api-r1-to-r2.patch",
+      "sha256": "9d573f89b0de94d6ca208ab7eb5a896d4380da7588fc03ab97d830d544e6ac52"
+    },
+    {
+      "path": "patches/stage-before-to-after.patch",
+      "sha256": "c0236cffc391133fa428943ac599ba3ae01ebbf689444b1b33b2c349e9689af5"
+    },
+    {
+      "path": "patches/stage-r1-to-r2.patch",
+      "sha256": "cabdfdf0ddc49e4bbc65a121acb0b7931524ec280de25c66dff43c2e18a055d0"
+    },
+    {
+      "path": "patches/ui-before-to-after.patch",
+      "sha256": "9c17f84b8b7fb7a6df8099378d51044dcfa2115d64677f8160948d93b975bc57"
+    },
+    {
+      "path": "patches/ui-r1-to-r2.patch",
+      "sha256": "59abe4df6b6004b00f76aa1a7eaec4d9b49a4e9b96eabffc3e4fd6e9ff94938d"
+    }
+  ],
+  "input_pin": {
+    "path": "CURRENT_DAY_RESEARCH_PIN.json",
+    "sha256": "7b28085ecab2bc19046aa0725bd0bd4de5d21960efd62883cc34048501849071",
+    "contents": {
+      "schema_version": "v4.hk_current_day_research_pin.v1",
+      "mode": "CURRENT_DAY_RESEARCH_ONLY",
+      "market": "HK_CONNECT",
+      "trade_date": "20261009",
+      "universe_as_of": "20261008",
+      "captured_at": "2026-10-09T15:38:41+08:00",
+      "stale_universe": true,
+      "hk_connect_membership_status": "CANNOT_CONFIRM",
+      "formal_d1_eligible": false,
+      "formal_pit": false,
+      "row_count": 695,
+      "files": {
+        "snapshot_rows_projected.json": "9c2396530e3de8059d49354a2c330a06829a060bfbac68ff2fb726111d9e0c30",
+        "receipt.json": "f8735ae71437a85067d7bca06b55f451bdd5dbfa7802cf2f680dfcab5f31a3ea",
+        "reference_codes_20261008.json": "9b837e801a1fae55893f3aba3548402ac59b4d1027627f6d698a10934027fb95",
+        "FINAL_RECEIPT.json": "3242a8ffbc4364ff96ef18a2855037521902617fa21a8c024e6f57445dbcf3f3"
+      },
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "actual_four_raw_input_files_available_in_chat": false,
+    "pin_values_revalidated_against_actual_mac_raw_files": false
+  },
+  "algorithm_sha256_by_family": {
+    "A_SHARE_LIVE_AND_AUCTION": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+    "HK_FOUR_LANE": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506"
+  },
+  "algorithm_source_unchanged_checks": [
+    {
+      "path": "stage_center/_selection_parts/hk_formula_score.py",
+      "baseline_sha256": "4e42a0e6c233f649f8937dc5b5de231ce59fce8363d05025e9df77a78c4f00d7",
+      "candidate_sha256": "4e42a0e6c233f649f8937dc5b5de231ce59fce8363d05025e9df77a78c4f00d7",
+      "unchanged_from_stage_base_app": true
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_four_lanes.py",
+      "baseline_sha256": "d44cd657b15b806922dd99317cfe759849a0d59884a0e39a533f0204f530ae71",
+      "candidate_sha256": "d44cd657b15b806922dd99317cfe759849a0d59884a0e39a533f0204f530ae71",
+      "unchanged_from_stage_base_app": true
+    },
+    {
+      "path": "stage_center/_selection_parts/a_live.py",
+      "baseline_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+      "candidate_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+      "unchanged_from_stage_base_app": true
+    },
+    {
+      "path": "stage_center/_selection_parts/a_auction.py",
+      "baseline_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+      "candidate_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+      "unchanged_from_stage_base_app": true
+    }
+  ],
+  "closed_findings": [
+    {
+      "id": "FR-01",
+      "origin": "independent_review",
+      "severity_when_found": "Important",
+      "status": "CLOSED",
+      "title": "A publication-time input pointer failure aborted the healthy HK lane",
+      "locations": [
+        {
+          "path": "after/stage/stage_center/_runner_parts/slot_execution.py",
+          "line": 560
+        },
+        {
+          "path": "after/stage/stage_center/_runner_parts/slot_execution.py",
+          "line": 606
+        },
+        {
+          "path": "after/stage/stage_center/_runner_parts/slot_execution.py",
+          "line": 623
+        }
+      ],
+      "resolution": "Final pointer validation now marks only A exact_input_errors; observed A quote count remains available, invalid A raw/selection are not published, and verified HK continues.",
+      "tests": [
+        "tests/test_final_review_edges.py::test_changed_a_pointer_is_lane_local_and_hk_still_publishes"
+      ]
+    },
+    {
+      "id": "FR-02",
+      "origin": "independent_review",
+      "severity_when_found": "Important",
+      "status": "CLOSED",
+      "title": "Historical and late replay origins could be projected as NATURAL",
+      "locations": [
+        {
+          "path": "after/api/stage_center/execution_evidence.py",
+          "line": 339
+        },
+        {
+          "path": "after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+          "line": 73
+        }
+      ],
+      "resolution": "Both API and Vue recognize all four explicit replay origins, even when an older contradictory receipt also says natural dispatch/DUE.",
+      "tests": [
+        "tests/test_final_review_edges.py::test_reader_does_not_classify_explicit_replay_origin_as_natural",
+        "checks/api/tests/research_presentation.test.mjs"
+      ]
+    },
+    {
+      "id": "FR-03",
+      "origin": "independent_review",
+      "severity_when_found": "Important",
+      "status": "CLOSED",
+      "title": "Real NOT_DUE owner receipt could not pass the final reader identity shape",
+      "locations": [
+        {
+          "path": "after/stage/stage_center/_runner_parts/runner_receipts.py",
+          "line": 66
+        }
+      ],
+      "resolution": "Writer archives an explicit empty markets object for early returns without inventing executions; original origin and immutable owner history remain readable.",
+      "tests": [
+        "tests/test_final_review_edges.py::test_real_not_due_owner_receipt_remains_readable_by_candidate_reader"
+      ]
+    },
+    {
+      "id": "FR-04",
+      "origin": "independent_review_child",
+      "severity_when_found": "Important",
+      "status": "CLOSED",
+      "title": "Valid JSON with an invalid manifest shape escaped the diagnosis JSON contract",
+      "locations": [
+        {
+          "path": "tools/diagnose_source_witness.py",
+          "line": 124
+        },
+        {
+          "path": "tools/diagnose_source_witness.py",
+          "line": 144
+        },
+        {
+          "path": "tools/diagnose_source_witness.py",
+          "line": 165
+        },
+        {
+          "path": "tools/diagnose_source_witness.py",
+          "line": 194
+        }
+      ],
+      "resolution": "Read-only diagnostic catches AttributeError/KeyError and returns CANNOT_CONFIRM without changing source inputs or weakening the validator.",
+      "tests": [
+        "final_review/canary/test_diagnose_bad_manifest.py",
+        "package tools regression suite"
+      ]
+    },
+    {
+      "id": "FR-05",
+      "origin": "independent_review",
+      "severity_when_found": "Important",
+      "status": "CLOSED",
+      "title": "Copied final-consumer check retained a local workspace dependency",
+      "locations": [
+        {
+          "path": "tests/test_final_review_edges.py",
+          "line": 78
+        }
+      ],
+      "resolution": "Executed package tests now resolve the candidate package from their own file location; canary fixtures support explicit environment paths.",
+      "tests": [
+        "tests/test_final_review_edges.py::test_real_research_runner_to_final_full_consumer_keeps_same_run",
+        "tools/run_checks.py complete final run"
+      ]
+    },
+    {
+      "id": "FR-06",
+      "origin": "parent_integration_review_independently_verified",
+      "severity_when_found": "Important",
+      "status": "CLOSED",
+      "title": "Original API construction with only a backfill selection root did not locate its owner receipt",
+      "locations": [
+        {
+          "path": "after/api/stage_center/consumer.py",
+          "line": 294
+        },
+        {
+          "path": "after/api/stage_center/consumer.py",
+          "line": 303
+        }
+      ],
+      "resolution": "Exact selection/backfill/<safe-id> maps to sibling receipts/backfill/<same-id>; explicit receipt root wins, no broad root search or alternate namespace fallback is introduced.",
+      "tests": [
+        "checks/api/tests/test_research_readback.py::test_api_constructor_binds_only_exact_same_backfill_namespace",
+        "checks/api/tests/test_research_readback.py::test_api_explicit_receipt_root_still_overrides_backfill_layout",
+        "checks/api/tests/read_integrated_fixture.py"
+      ],
+      "final_regression_count": 6
+    }
+  ],
+  "final_package_verification": {
+    "executed_by": "parent /root",
+    "independently_inspected_by": "/root/final_review",
+    "result": {
+      "status": "PASS",
+      "scope": "ISOLATED_SOURCE_FIXTURE_TESTS_NOT_MAC_MARKET_API_DEPLOYMENT_OR_NATURAL_ACCEPTANCE",
+      "started_at_utc": "2026-10-09T10:53:13.237370+00:00",
+      "finished_at_utc": "2026-10-09T10:53:32.564912+00:00",
+      "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "stage_app": "/workspace/scratch/49c844334a98/package_verify_api_namespace/work/stage_app",
+      "package": {
+        "status": "PASS",
+        "scope": "PACKAGE_BYTES_ONLY_NOT_DEPLOYMENT",
+        "base_commit": "0fc3e8304e11700230517616ded0c86f83a4b257",
+        "source_map_sha256": "f402f93009ff1e8ef588e04c994eec1897274d80970fc20ee07748a506156ce4",
+        "production_files": 21,
+        "offline_support_files": 166,
+        "failures": [],
+        "write_performed": false,
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "results": {
+        "stage": {
+          "command": [
+            "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+            "-B",
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/tests",
+            "--junitxml=/workspace/scratch/49c844334a98/package_verify_api_namespace/stage.junit.xml"
+          ],
+          "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2",
+          "exit_code": 0,
+          "passed": 148
+        },
+        "api": {
+          "command": [
+            "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+            "-B",
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            "tests",
+            "--junitxml=/workspace/scratch/49c844334a98/package_verify_api_namespace/api.junit.xml"
+          ],
+          "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api",
+          "exit_code": 0,
+          "passed": 82
+        },
+        "fixture_runner": {
+          "command": [
+            "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+            "-B",
+            "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/tools/export_integration_fixture.py",
+            "--output",
+            "/workspace/scratch/49c844334a98/package_verify_api_namespace/full_chain_fixture"
+          ],
+          "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2",
+          "exit_code": 0
+        },
+        "fixture_api": {
+          "command": [
+            "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+            "-B",
+            "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/tests/read_integrated_fixture.py",
+            "/workspace/scratch/49c844334a98/package_verify_api_namespace/full_chain_fixture"
+          ],
+          "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api",
+          "exit_code": 0
+        },
+        "vue": {
+          "command": [
+            "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "--test",
+            "--test-reporter=tap",
+            "tests/legacy_presentation.test.mjs",
+            "tests/research_presentation.test.mjs"
+          ],
+          "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api",
+          "exit_code": 0,
+          "tests": 45,
+          "pass": 45,
+          "fail": 0,
+          "skipped": 0
+        },
+        "fixture_vue": {
+          "command": [
+            "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/tests/verify_integrated_fixture.mjs",
+            "/workspace/scratch/49c844334a98/package_verify_api_namespace/full_chain_fixture"
+          ],
+          "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api",
+          "exit_code": 0
+        }
+      },
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "junit_totals": {
+      "stage": {
+        "tests": 148,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "api": {
+        "tests": 82,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "evidence_files": [
+      {
+        "path": "/workspace/scratch/49c844334a98/package_verify_api_namespace/RESULTS.json",
+        "sha256": "f2851fc64edfbe992f3708ba5fd330378690014473699208c3e818240497baa4",
+        "bytes": 4088
+      },
+      {
+        "path": "/workspace/scratch/49c844334a98/package_verify_api_namespace/stage.junit.xml",
+        "sha256": "b6c458189782435a1078a77a1b3490fe764dd933b5361e9d55017f9d399a091f",
+        "bytes": 22596
+      },
+      {
+        "path": "/workspace/scratch/49c844334a98/package_verify_api_namespace/api.junit.xml",
+        "sha256": "d69093ef529db7899141d5ec77d4337b94a762f634e7f8ba630cde79ec46cae1",
+        "bytes": 13027
+      },
+      {
+        "path": "/workspace/scratch/49c844334a98/package_verify_api_namespace/vue.stdout.log",
+        "sha256": "58c9e166bfc5d55651443170146f65e36432e1b490e9dcea70e295baa65af4c9",
+        "bytes": 10490
+      },
+      {
+        "path": "/workspace/scratch/49c844334a98/package_verify_api_namespace/fixture_runner.stdout.log",
+        "sha256": "ebe5729bd8c7b7d415201034801ca6ee1361802d4f63eaf418fc716864d7feff",
+        "bytes": 442
+      },
+      {
+        "path": "/workspace/scratch/49c844334a98/package_verify_api_namespace/fixture_api.stdout.log",
+        "sha256": "c04ae313873211f60c9b7acc0bc07856cc5593609f8b54b043c435cbe958da70",
+        "bytes": 1974
+      },
+      {
+        "path": "/workspace/scratch/49c844334a98/package_verify_api_namespace/fixture_vue.stdout.log",
+        "sha256": "5090c505bcfb663795a88f85a00b71aea0579402bb822af969e220d22015f11d",
+        "bytes": 958
+      },
+      {
+        "path": "/workspace/scratch/49c844334a98/package_verify_api_namespace/full_chain_fixture/api_readback_assertions.json",
+        "sha256": "c04ae313873211f60c9b7acc0bc07856cc5593609f8b54b043c435cbe958da70",
+        "bytes": 1974
+      }
+    ]
+  },
+  "reviewer_final_byte_verification": {
+    "command": "python -B tools/verify_package.py",
+    "status": "PASS",
+    "source_map_sha256": "f402f93009ff1e8ef588e04c994eec1897274d80970fc20ee07748a506156ce4",
+    "before_after_files_verified": 21,
+    "tested_copies_verified": 21,
+    "patches_verified": 3,
+    "offline_support_files_verified": 166,
+    "write_performed": false
+  },
+  "earlier_reviewer_executed_checks": [
+    {
+      "scope": "integration_tests plus reviewer boundary tests before the final consumer-only constructor adjustment",
+      "passed": 47,
+      "coverage_in_final_package_rerun": true
+    },
+    {
+      "scope": "A quote pipeline field and original algorithm regressions",
+      "passed": 52,
+      "coverage_in_final_package_rerun": true
+    },
+    {
+      "scope": "first canary driver suite before its extra direct-shared-root test",
+      "passed": 11,
+      "final_canary_suite_count_in_stage148": 12
+    },
+    {
+      "scope": "malformed JSON-shape manifest read-only diagnosis independent regression",
+      "passed": 1
+    }
+  ],
+  "test_count_policy": "Final package counts are 148 Stage, 82 API and 45 Vue; earlier overlapping runs are not added to these counts.",
+  "full_chain_api_assertions": {
+    "status": "PASS",
+    "scope": "OFFLINE_REAL_PRODUCTION_RUNNER_STORE_TO_CURRENT_CANDIDATE_READER_CONSUMER_EXTERNAL_PYTDX_IO_FIXTURE_NOT_MAC",
+    "checked_at_utc": "2026-10-09T10:53:31.715900+00:00",
+    "trade_date": "20261009",
+    "stage_id": "STAGE_0930_0935",
+    "market": "HK_CONNECT",
+    "run_id": "run-2c40a8d057e1beffde847ab1",
+    "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+    "raw_artifact_sha256": "3c942a34e3dcb713ed250f0d42e5f031f4aa09e0cb09b3691678a0a288576741",
+    "selection_artifact_bytes_sha256": "aa69e1d04c009ac033434ec5be156465bff2db964b2a14815c00c7b894054100",
+    "selected_rows": 10,
+    "requested_rows": 695,
+    "source_rows": 695,
+    "a_selection_status": "CANNOT_CONFIRM",
+    "a_borrowed_hk_identity": false,
+    "input_files_unchanged": true,
+    "checked_input_files": 19,
+    "receipt_history_binding": "OWNER_HISTORY_SHA_BOUND",
+    "selection_trio_binding": "BOUND_TO_VERIFIED_SELECTION_TRIO",
+    "execution_origin": "CURRENT_DAY_RESEARCH_REPLAY",
+    "attempt_mode": "RECOVERY",
+    "execution_verified": false,
+    "natural_verified": false,
+    "api_projection_scope": "AVAILABLE_ORIGINAL_FUNCTIONS_NOT_CURRENT_HTTP_SERVICE",
+    "api_constructor_scope": "ORIGINAL_SELECTION_ROOT_ONLY_EXACT_BACKFILL_RECEIPT_NAMESPACE",
+    "api_projection_preserves_verified_result": true,
+    "source_files": {
+      "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/after/source/actual_api/stage_center/execution_evidence.py": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/checks/api/after/conditional_api/stage_center/consumer.py": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2/test_support/api_projection_reference.py": "9715377acf8d64795ff1748676ff9364ac06b443d4ad39f15d526d74a3cc13bc"
+    }
+  },
+  "full_chain_vue_assertions": {
+    "status": "PASS",
+    "scope": "REAL_VUE_SFC_COMPILE_SSR_OF_OFFLINE_FULL_CHAIN_CONSUMER_JSON",
+    "run_id": "run-2c40a8d057e1beffde847ab1",
+    "selected_rows": 10,
+    "requested_rows": 695,
+    "source_rows": 695,
+    "api_run_sha_scope_assertions": "api_readback_assertions.json",
+    "a_borrowed_hk_rows": false,
+    "primary_hk_text": "港股通 已计算 10 只 行情 695 / 695 只，缺 0 只 选股产物计数 研究来源限制 当日研究；非正式 D1；港股通资格待确认。 名单日期 20261008；采集时间 2026-10-09T15:38:41+08:00。 沿用较早名单，保留原名单日期。 结果与原执行记录已绑定",
+    "primary_a_text": "A股 选股结果待核对 行情 未知 / 未知 只；缺口数量未知 行情计数未绑定 执行记录尚未完整绑定",
+    "natural_label_displayed": false,
+    "node": "v24.19.0",
+    "packages": {
+      "vue": "3.5.13",
+      "@vue/compiler-sfc": "3.5.13",
+      "@vue/server-renderer": "3.5.13"
+    }
+  },
+  "portability": {
+    "primary_tools_package_relative_or_explicit_paths": true,
+    "executed_tests_have_no_fixed_workspace_dependency": true,
+    "ui_dependencies_explicit_via_ui_runtime_or_STAGE_UI_RUNTIME": true,
+    "reports_can_contain_historical_absolute_evidence_paths": true,
+    "non_executed_legacy_helper": {
+      "path": "checks/api/tests/run_verification.py",
+      "line": 15,
+      "note": "Contains an older default UI runtime path; not invoked by tools/run_checks.py. Explicit STAGE_UI_RUNTIME is the supported runtime selection. No claim that every archived helper has no absolute string."
+    }
+  },
+  "limitations": [
+    "Actual current Mac bytes, actual current API/UI runtime, current owner process and dirty canonical state have not been inspected. Exact accepted preimage/already-after match remains the installation boundary; no fuzzy overlay.",
+    "The four user input files and their real 695 records were not supplied to Chat. The final 695 full-chain run uses synthetic security and external PyTDX I/O fixtures while executing original owner/algorithm/store/API projection/Vue code.",
+    "The six-minute-stage current-research route is verified offline. Live PyTDX exact-stage quote availability, 09:25 source and Stage8 distinct source are not established by these tests.",
+    "Observed loaded module paths and on-disk file SHA values are source observations, not memory execution attestation.",
+    "Historical/research/manual/late replay remains RECOVERY with execution_verified=false and natural_verified=false. This is not current Mac, deployment, production or NATURAL acceptance.",
+    "The preparation helper is reviewed for a normal independently owned new output directory. A separately recorded concurrent adversarial path-replacement race is not claimed to be prevented by it; this bounded filesystem assumption was accepted without expanding the change."
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

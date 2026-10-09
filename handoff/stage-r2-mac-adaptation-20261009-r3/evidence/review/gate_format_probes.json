@@ -1,0 +1,333 @@
+{
+  "status": "PASS",
+  "checks": 19,
+  "reports": [
+    {
+      "kind": "JUnit",
+      "name": "complete",
+      "expected_status": "PASS",
+      "result": {
+        "status": "PASS",
+        "expected_tests": 1,
+        "observed_tests": 1,
+        "passed": 1,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "declared": {
+          "tests": 1,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "junit_sha256": "a6a4661d81a00e63b7f31ccc161b602fee540f8242b013bff859bbaa8f354e1c"
+      }
+    },
+    {
+      "kind": "JUnit",
+      "name": "fewer_actual_than_declared",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": null,
+        "passed": null,
+        "skipped": null,
+        "failures": null,
+        "errors": null,
+        "reason": "JUNIT_MISSING_OR_INVALID",
+        "detail": "JUnit declared totals do not match testcase outcomes"
+      }
+    },
+    {
+      "kind": "JUnit",
+      "name": "more_actual_than_declared",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": null,
+        "passed": null,
+        "skipped": null,
+        "failures": null,
+        "errors": null,
+        "reason": "JUNIT_MISSING_OR_INVALID",
+        "detail": "JUnit declared totals do not match testcase outcomes"
+      }
+    },
+    {
+      "kind": "JUnit",
+      "name": "undeclared_skip",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": null,
+        "passed": null,
+        "skipped": null,
+        "failures": null,
+        "errors": null,
+        "reason": "JUNIT_MISSING_OR_INVALID",
+        "detail": "JUnit declared totals do not match testcase outcomes"
+      }
+    },
+    {
+      "kind": "JUnit",
+      "name": "declared_skip",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": 1,
+        "passed": 0,
+        "skipped": 1,
+        "failures": 0,
+        "errors": 0,
+        "declared": {
+          "tests": 1,
+          "skipped": 1,
+          "failures": 0,
+          "errors": 0
+        },
+        "junit_sha256": "a8afcc19196bc9003369a9f5c1b596093e3777c7c515711182091297003a01e1",
+        "reason": "EXACT_COUNT_AND_ZERO_SKIPS_FAILURES_ERRORS_REQUIRED"
+      }
+    },
+    {
+      "kind": "JUnit",
+      "name": "declared_failure",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": 1,
+        "passed": 0,
+        "skipped": 0,
+        "failures": 1,
+        "errors": 0,
+        "declared": {
+          "tests": 1,
+          "skipped": 0,
+          "failures": 1,
+          "errors": 0
+        },
+        "junit_sha256": "685037c166954334d30a9b48d8bc2f3e5e3ea6a14d8b3ac1a46a7eb1a102dfb9",
+        "reason": "EXACT_COUNT_AND_ZERO_SKIPS_FAILURES_ERRORS_REQUIRED"
+      }
+    },
+    {
+      "kind": "JUnit",
+      "name": "declared_error",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": 1,
+        "passed": 0,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 1,
+        "declared": {
+          "tests": 1,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 1
+        },
+        "junit_sha256": "bb1eb48efc9a710ae4b845c98cc9eceda02697bf78561f9f5ebc7abb57e0dba5",
+        "reason": "EXACT_COUNT_AND_ZERO_SKIPS_FAILURES_ERRORS_REQUIRED"
+      }
+    },
+    {
+      "kind": "JUnit",
+      "name": "missing_declared_counters",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": null,
+        "passed": null,
+        "skipped": null,
+        "failures": null,
+        "errors": null,
+        "reason": "JUNIT_MISSING_OR_INVALID",
+        "detail": "'skipped'"
+      }
+    },
+    {
+      "kind": "JUnit",
+      "name": "missing_suite",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": null,
+        "passed": null,
+        "skipped": null,
+        "failures": null,
+        "errors": null,
+        "reason": "JUNIT_MISSING_OR_INVALID",
+        "detail": "missing JUnit testsuite"
+      }
+    },
+    {
+      "kind": "JUnit",
+      "name": "invalid_xml",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": null,
+        "passed": null,
+        "skipped": null,
+        "failures": null,
+        "errors": null,
+        "reason": "JUNIT_MISSING_OR_INVALID",
+        "detail": "unclosed token: line 1, column 0"
+      }
+    },
+    {
+      "kind": "TAP",
+      "name": "complete",
+      "expected_status": "PASS",
+      "result": {
+        "status": "PASS",
+        "expected_tests": 1,
+        "observed_tests": 1,
+        "passed": 1,
+        "skipped": 0,
+        "failures": 0,
+        "cancelled": 0,
+        "todo": 0
+      }
+    },
+    {
+      "kind": "TAP",
+      "name": "missing_tests",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": null,
+        "passed": null,
+        "skipped": null,
+        "failures": null,
+        "cancelled": null,
+        "todo": null,
+        "reason": "TAP_SUMMARY_MISSING_OR_AMBIGUOUS"
+      }
+    },
+    {
+      "kind": "TAP",
+      "name": "missing_skip",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": null,
+        "passed": null,
+        "skipped": null,
+        "failures": null,
+        "cancelled": null,
+        "todo": null,
+        "reason": "TAP_SUMMARY_MISSING_OR_AMBIGUOUS"
+      }
+    },
+    {
+      "kind": "TAP",
+      "name": "duplicate_tests",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": null,
+        "passed": null,
+        "skipped": null,
+        "failures": null,
+        "cancelled": null,
+        "todo": null,
+        "reason": "TAP_SUMMARY_MISSING_OR_AMBIGUOUS"
+      }
+    },
+    {
+      "kind": "TAP",
+      "name": "skipped",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": 1,
+        "passed": 1,
+        "skipped": 1,
+        "failures": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "reason": "EXACT_COUNT_AND_ZERO_SKIPS_FAILURES_CANCELLED_TODO_REQUIRED"
+      }
+    },
+    {
+      "kind": "TAP",
+      "name": "cancelled",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": 1,
+        "passed": 1,
+        "skipped": 0,
+        "failures": 0,
+        "cancelled": 1,
+        "todo": 0,
+        "reason": "EXACT_COUNT_AND_ZERO_SKIPS_FAILURES_CANCELLED_TODO_REQUIRED"
+      }
+    },
+    {
+      "kind": "TAP",
+      "name": "todo",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": 1,
+        "passed": 1,
+        "skipped": 0,
+        "failures": 0,
+        "cancelled": 0,
+        "todo": 1,
+        "reason": "EXACT_COUNT_AND_ZERO_SKIPS_FAILURES_CANCELLED_TODO_REQUIRED"
+      }
+    },
+    {
+      "kind": "TAP",
+      "name": "failure",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": 1,
+        "passed": 1,
+        "skipped": 0,
+        "failures": 1,
+        "cancelled": 0,
+        "todo": 0,
+        "reason": "EXACT_COUNT_AND_ZERO_SKIPS_FAILURES_CANCELLED_TODO_REQUIRED"
+      }
+    },
+    {
+      "kind": "TAP",
+      "name": "fewer",
+      "expected_status": "FAIL",
+      "result": {
+        "status": "FAIL",
+        "expected_tests": 1,
+        "observed_tests": 0,
+        "passed": 0,
+        "skipped": 0,
+        "failures": 0,
+        "cancelled": 0,
+        "todo": 0,
+        "reason": "EXACT_COUNT_AND_ZERO_SKIPS_FAILURES_CANCELLED_TODO_REQUIRED"
+      }
+    }
+  ],
+  "failures": []
+}

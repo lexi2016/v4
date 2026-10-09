@@ -1,0 +1,532 @@
+<section class="execution-evidence" aria-label="阶段选股结果与运行记录" data-v-stage-evidence-fixture><h3 data-v-stage-evidence-fixture>本阶段选股结果</h3><p data-v-stage-evidence-fixture>20261009 · STAGE_0930_0935</p><div class="execution-markets" data-v-stage-evidence-fixture><!--[--><article data-market="A_SHARE" data-v-stage-evidence-fixture><h4 data-v-stage-evidence-fixture>A股</h4><p class="execution-result" data-v-stage-evidence-fixture><strong data-v-stage-evidence-fixture>选股结果待核对</strong></p><p data-v-stage-evidence-fixture>行情 未知 / 未知 只；缺口数量未知<small class="execution-count-source" data-v-stage-evidence-fixture>行情计数未绑定</small></p><!----><!----><p data-v-stage-evidence-fixture>执行记录尚未完整绑定</p></article><article data-market="HK_CONNECT" data-v-stage-evidence-fixture><h4 data-v-stage-evidence-fixture>港股通</h4><p class="execution-result" data-v-stage-evidence-fixture><strong data-v-stage-evidence-fixture>已计算 10 只</strong></p><p data-v-stage-evidence-fixture>行情 695 / 695 只，缺 0 只<small class="execution-count-source" data-v-stage-evidence-fixture>选股产物计数</small></p><div class="execution-research-source" data-v-stage-evidence-fixture><strong data-v-stage-evidence-fixture>研究来源限制</strong><p data-v-stage-evidence-fixture>当日研究；非正式 D1；港股通资格待确认。</p><p data-v-stage-evidence-fixture>名单日期 20261008；采集时间 2026-10-09T15:38:41+08:00。</p><p data-v-stage-evidence-fixture>沿用较早名单，保留原名单日期。</p></div><!----><p data-v-stage-evidence-fixture>结果与原执行记录已绑定</p></article><!--]--></div><h4 data-v-stage-evidence-fixture>运行记录与验收</h4><p class="execution-safety" data-v-stage-evidence-fixture>RESEARCH_ONLY=true · production_allowed=false · buy_gate_updated=false · orders_sent=false</p><dl class="execution-facts" data-v-stage-evidence-fixture><div data-v-stage-evidence-fixture><dt data-v-stage-evidence-fixture>运行方式（回执声明）</dt><dd data-v-stage-evidence-fixture>补验 / 回放（自然时段未验证）</dd></div><div data-v-stage-evidence-fixture><dt data-v-stage-evidence-fixture>原执行方历史记录</dt><dd data-v-stage-evidence-fixture>已核对</dd></div><div data-v-stage-evidence-fixture><dt data-v-stage-evidence-fixture>记录时间</dt><dd data-v-stage-evidence-fixture>2026-10-09T12:34:08.759265+00:00</dd></div><div data-v-stage-evidence-fixture><dt data-v-stage-evidence-fixture>自然时段验收</dt><dd data-v-stage-evidence-fixture>尚未验证</dd></div></dl><p data-v-stage-evidence-fixture>执行过程与自然时段仍需独立验收。</p><details data-v-stage-evidence-fixture><summary data-v-stage-evidence-fixture>查看运行与来源详情</summary><pre data-v-stage-evidence-fixture>{
+  &quot;status&quot;: &quot;SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED&quot;,
+  &quot;trade_date&quot;: &quot;20261009&quot;,
+  &quot;stage_id&quot;: &quot;STAGE_0930_0935&quot;,
+  &quot;execution_verified&quot;: false,
+  &quot;natural_verified&quot;: false,
+  &quot;markets&quot;: {
+    &quot;A_SHARE&quot;: {
+      &quot;requested_rows&quot;: null,
+      &quot;source_rows&quot;: null,
+      &quot;observed_rows&quot;: 0,
+      &quot;accepted_rows&quot;: null,
+      &quot;selected_rows&quot;: 0,
+      &quot;status&quot;: &quot;CANNOT_CONFIRM&quot;,
+      &quot;reasons&quot;: [
+        &quot;strict current is missing or unavailable&quot;
+      ],
+      &quot;selection_binding&quot;: &quot;NO_VERIFIED_SELECTION_BINDING&quot;,
+      &quot;failure_layer&quot;: null,
+      &quot;declared_identity&quot;: {
+        &quot;run_id&quot;: null,
+        &quot;artifact_id&quot;: null,
+        &quot;algorithm_sha256&quot;: null,
+        &quot;raw_artifact_sha256&quot;: null
+      },
+      &quot;write_performed&quot;: false
+    },
+    &quot;HK_CONNECT&quot;: {
+      &quot;requested_rows&quot;: 695,
+      &quot;source_rows&quot;: 695,
+      &quot;observed_rows&quot;: null,
+      &quot;accepted_rows&quot;: null,
+      &quot;selected_rows&quot;: 10,
+      &quot;status&quot;: null,
+      &quot;reasons&quot;: [
+        &quot;HK_CURRENT_DAY_RESEARCH_MEMBERSHIP_CANNOT_CONFIRM&quot;
+      ],
+      &quot;selection_binding&quot;: &quot;BOUND_TO_VERIFIED_SELECTION&quot;,
+      &quot;failure_layer&quot;: null,
+      &quot;declared_identity&quot;: {
+        &quot;run_id&quot;: &quot;run-2c40a8d057e1beffde847ab1&quot;,
+        &quot;artifact_id&quot;: &quot;selection-2c40a8d057e1beffde847ab1&quot;,
+        &quot;algorithm_sha256&quot;: &quot;fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506&quot;,
+        &quot;raw_artifact_sha256&quot;: &quot;3c942a34e3dcb713ed250f0d42e5f031f4aa09e0cb09b3691678a0a288576741&quot;
+      },
+      &quot;write_performed&quot;: null
+    }
+  },
+  &quot;historical_bad_row_status&quot;: &quot;NOT_RECORDED_OR_NOT_BOUND&quot;,
+  &quot;cannot_confirm&quot;: [
+    &quot;NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING&quot;
+  ],
+  &quot;write_performed&quot;: false,
+  &quot;scope&quot;: &quot;READ_ONLY_EXECUTION_DECLARATION_SEPARATE_FROM_VERIFIED_SELECTION&quot;,
+  &quot;selection_results&quot;: {
+    &quot;A_SHARE&quot;: {
+      &quot;status&quot;: &quot;NO_VERIFIED_RESULT&quot;,
+      &quot;selection_status&quot;: null,
+      &quot;selection_mode&quot;: null,
+      &quot;selected_rows&quot;: null,
+      &quot;requested_rows&quot;: null,
+      &quot;source_rows&quot;: null,
+      &quot;missing_quote_rows&quot;: null,
+      &quot;quote_coverage_ratio&quot;: null,
+      &quot;evidence_scope&quot;: &quot;VERIFIED_SELECTION_RESULT_NOT_EXECUTION_ATTESTATION&quot;,
+      &quot;trade_date&quot;: &quot;20261009&quot;,
+      &quot;stage_id&quot;: &quot;STAGE_0930_0935&quot;,
+      &quot;market&quot;: &quot;A_SHARE&quot;,
+      &quot;source_evidence&quot;: [],
+      &quot;research_source&quot;: null,
+      &quot;research_source_status&quot;: &quot;NOT_RECORDED&quot;,
+      &quot;run_id&quot;: null,
+      &quot;artifact_id&quot;: null,
+      &quot;algorithm_sha256&quot;: null,
+      &quot;raw_artifact_sha256&quot;: null
+    },
+    &quot;HK_CONNECT&quot;: {
+      &quot;status&quot;: &quot;RESULT_AVAILABLE&quot;,
+      &quot;selection_status&quot;: &quot;PARTIAL_WITH_ROWS&quot;,
+      &quot;selection_mode&quot;: null,
+      &quot;selected_rows&quot;: 10,
+      &quot;requested_rows&quot;: 695,
+      &quot;source_rows&quot;: 695,
+      &quot;missing_quote_rows&quot;: 0,
+      &quot;quote_coverage_ratio&quot;: 1,
+      &quot;evidence_scope&quot;: &quot;VERIFIED_SELECTION_RESULT_NOT_EXECUTION_ATTESTATION&quot;,
+      &quot;trade_date&quot;: &quot;20261009&quot;,
+      &quot;stage_id&quot;: &quot;STAGE_0930_0935&quot;,
+      &quot;market&quot;: &quot;HK_CONNECT&quot;,
+      &quot;source_evidence&quot;: [
+        &quot;route=shared_pytdx_exhq_hk_current_day_research&quot;,
+        &quot;shared_data_root=types&quot;,
+        &quot;research_source={\&quot;captured_at\&quot;:\&quot;2026-10-09T15:38:41+08:00\&quot;,\&quot;formal_d1_eligible\&quot;:false,\&quot;formal_pit\&quot;:false,\&quot;hk_connect_membership_status\&quot;:\&quot;CANNOT_CONFIRM\&quot;,\&quot;input_sha256\&quot;:{\&quot;FINAL_RECEIPT.json\&quot;:\&quot;bb6bbf231147977accf65c924f3e93b342a1d677ee9bdf20c726dcefeb1b7150\&quot;,\&quot;receipt.json\&quot;:\&quot;f96d74704751d3f386bd331efc6bdbcae3165800cdeea0295de4ce10659eaf75\&quot;,\&quot;reference_codes_20261008.json\&quot;:\&quot;bb8d3dc0ae18e417b8990dd977962831eea646b458729bc6d54ca54f8d6addc3\&quot;,\&quot;snapshot_rows_projected.json\&quot;:\&quot;177236eaacfc43fdce19819a2baf41b21849e92c0ed4facd020e9af6cb6304c2\&quot;},\&quot;market\&quot;:\&quot;HK_CONNECT\&quot;,\&quot;mode\&quot;:\&quot;CURRENT_DAY_RESEARCH_ONLY\&quot;,\&quot;schema_version\&quot;:\&quot;HK_CURRENT_DAY_RESEARCH_V1\&quot;,\&quot;source_sha256\&quot;:\&quot;1b6645f81bb6fb167027036a4404174b72bfe7a3d84bcfcc1cc3ed5dd9997a00\&quot;,\&quot;stale_universe\&quot;:true,\&quot;trade_date\&quot;:\&quot;20261009\&quot;,\&quot;universe_as_of\&quot;:\&quot;20261008\&quot;}&quot;,
+        &quot;hk_research_root=/workspace/scratch/49c844334a98/r3_review/final_checks/full_chain_fixture/security_source&quot;,
+        &quot;hk_research_binding_sha256=1b6645f81bb6fb167027036a4404174b72bfe7a3d84bcfcc1cc3ed5dd9997a00&quot;,
+        &quot;hk_selection_mode=CURRENT_DAY_RESEARCH_ONLY&quot;,
+        &quot;hk_connect_eligibility=CANNOT_CONFIRM&quot;,
+        &quot;security_metadata_only=true&quot;,
+        &quot;formal_pit=false&quot;,
+        &quot;production_allowed=false&quot;,
+        &quot;buy_gate_updated=false&quot;,
+        &quot;orders_sent=false&quot;,
+        &quot;hk_research_quote_source=EXISTING_PYTDX_EXHQ_EXACT_STAGE&quot;,
+        &quot;hk_research_live_lane_asserted=false&quot;,
+        &quot;candidate_current_sha256=1b6645f81bb6fb167027036a4404174b72bfe7a3d84bcfcc1cc3ed5dd9997a00&quot;,
+        &quot;candidate_run_id=hk-current-research-1b6645f81bb6fb16&quot;,
+        &quot;due_status=HISTORICAL_BACKFILL&quot;,
+        &quot;HK_CURRENT_DAY_RESEARCH_MEMBERSHIP_CANNOT_CONFIRM&quot;,
+        &quot;selection_contract=V3_TOP10_RECOMMENDATION&quot;,
+        &quot;algorithm_sha256=fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506&quot;
+      ],
+      &quot;research_source&quot;: {
+        &quot;captured_at&quot;: &quot;2026-10-09T15:38:41+08:00&quot;,
+        &quot;formal_d1_eligible&quot;: false,
+        &quot;formal_pit&quot;: false,
+        &quot;hk_connect_membership_status&quot;: &quot;CANNOT_CONFIRM&quot;,
+        &quot;input_sha256&quot;: {
+          &quot;FINAL_RECEIPT.json&quot;: &quot;bb6bbf231147977accf65c924f3e93b342a1d677ee9bdf20c726dcefeb1b7150&quot;,
+          &quot;receipt.json&quot;: &quot;f96d74704751d3f386bd331efc6bdbcae3165800cdeea0295de4ce10659eaf75&quot;,
+          &quot;reference_codes_20261008.json&quot;: &quot;bb8d3dc0ae18e417b8990dd977962831eea646b458729bc6d54ca54f8d6addc3&quot;,
+          &quot;snapshot_rows_projected.json&quot;: &quot;177236eaacfc43fdce19819a2baf41b21849e92c0ed4facd020e9af6cb6304c2&quot;
+        },
+        &quot;market&quot;: &quot;HK_CONNECT&quot;,
+        &quot;mode&quot;: &quot;CURRENT_DAY_RESEARCH_ONLY&quot;,
+        &quot;schema_version&quot;: &quot;HK_CURRENT_DAY_RESEARCH_V1&quot;,
+        &quot;source_sha256&quot;: &quot;1b6645f81bb6fb167027036a4404174b72bfe7a3d84bcfcc1cc3ed5dd9997a00&quot;,
+        &quot;stale_universe&quot;: true,
+        &quot;trade_date&quot;: &quot;20261009&quot;,
+        &quot;universe_as_of&quot;: &quot;20261008&quot;
+      },
+      &quot;research_source_status&quot;: &quot;RECORDED_IN_VERIFIED_SELECTION&quot;,
+      &quot;run_id&quot;: &quot;run-2c40a8d057e1beffde847ab1&quot;,
+      &quot;artifact_id&quot;: &quot;selection-2c40a8d057e1beffde847ab1&quot;,
+      &quot;algorithm_sha256&quot;: &quot;fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506&quot;,
+      &quot;raw_artifact_sha256&quot;: &quot;3c942a34e3dcb713ed250f0d42e5f031f4aa09e0cb09b3691678a0a288576741&quot;
+    }
+  },
+  &quot;receipt_history_binding&quot;: &quot;OWNER_HISTORY_SHA_BOUND&quot;,
+  &quot;selection_artifact_bindings&quot;: {
+    &quot;A_SHARE&quot;: {
+      &quot;status&quot;: &quot;SELECTION_TRIO_NOT_RECORDED&quot;
+    },
+    &quot;HK_CONNECT&quot;: {
+      &quot;status&quot;: &quot;BOUND_TO_VERIFIED_SELECTION_TRIO&quot;,
+      &quot;run_id&quot;: &quot;run-2c40a8d057e1beffde847ab1&quot;,
+      &quot;artifact_bytes_sha256&quot;: &quot;aa69e1d04c009ac033434ec5be156465bff2db964b2a14815c00c7b894054100&quot;,
+      &quot;manifest_bytes_sha256&quot;: &quot;7d31193509048fe720977a2310f6ba5e380842f94b0fb425b73c88de57bd9b1b&quot;,
+      &quot;receipt_bytes_sha256&quot;: &quot;e5067329f0d7aa7393e312ff595688e04f1d1fcc42d9f5c0fed885c9239d7bf9&quot;,
+      &quot;manifest_canonical_sha256&quot;: &quot;ef6bda7e755de7fcadda37139626eb1aa5c4b93edfd45985192a89291af9f41c&quot;,
+      &quot;receipt_canonical_sha256&quot;: &quot;2200434d9b9733c9c5bbebf996f8c9a097add139440c3d51d21b0a6599f76f0c&quot;,
+      &quot;execution_verified&quot;: false,
+      &quot;natural_verified&quot;: false
+    }
+  },
+  &quot;RESEARCH_ONLY&quot;: true,
+  &quot;production_allowed&quot;: false,
+  &quot;buy_gate_updated&quot;: false,
+  &quot;orders_sent&quot;: false,
+  &quot;receipt_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/full_chain_fixture/receipts/backfill/0922e624d9ba48d29a60999e613eb7a9/20261009/STAGE_0930_0935/receipt.json&quot;,
+  &quot;observed_sha256&quot;: &quot;30e621bd056f8287e0b6efdd1b3f090de1e4c5cde428c8c93e2445c4444d9461&quot;,
+  &quot;attempt_mode&quot;: &quot;RECOVERY&quot;,
+  &quot;due_status&quot;: &quot;HISTORICAL_BACKFILL&quot;,
+  &quot;declared_status&quot;: &quot;PARTIAL_WITH_ROWS&quot;,
+  &quot;recorded_at&quot;: &quot;2026-10-09T12:34:08.759265+00:00&quot;,
+  &quot;node_id&quot;: null,
+  &quot;node_attempt_count&quot;: null,
+  &quot;node_outcome&quot;: null,
+  &quot;retry_after&quot;: null,
+  &quot;first_failed_layer&quot;: null,
+  &quot;error&quot;: null,
+  &quot;candidate_run_id&quot;: &quot;hk-current-research-1b6645f81bb6fb16&quot;,
+  &quot;candidate_current_sha256&quot;: &quot;1b6645f81bb6fb167027036a4404174b72bfe7a3d84bcfcc1cc3ed5dd9997a00&quot;,
+  &quot;candidate_binding&quot;: &quot;REFERENCE_ONLY_CURRENT_TRIO_NOT_BOUND&quot;,
+  &quot;declared_attempt_mode&quot;: &quot;RECOVERY&quot;,
+  &quot;execution_origin&quot;: &quot;CURRENT_DAY_RESEARCH_REPLAY&quot;,
+  &quot;same_day_late_observation_recovery&quot;: null,
+  &quot;runtime_source_identity&quot;: {
+    &quot;cannot_confirm&quot;: [],
+    &quot;files&quot;: {
+      &quot;infrastructure/__init__.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/__init__.py&quot;,
+        &quot;module&quot;: &quot;infrastructure&quot;,
+        &quot;sha256&quot;: &quot;46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b&quot;
+      },
+      &quot;infrastructure/_stage_acquisition_universe_commit_parts/__init__.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/_stage_acquisition_universe_commit_parts/__init__.py&quot;,
+        &quot;module&quot;: &quot;infrastructure._stage_acquisition_universe_commit_parts&quot;,
+        &quot;sha256&quot;: &quot;29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8&quot;
+      },
+      &quot;infrastructure/_stage_acquisition_universe_commit_parts/_namespace.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/_stage_acquisition_universe_commit_parts/_namespace.py&quot;,
+        &quot;module&quot;: &quot;infrastructure._stage_acquisition_universe_commit_parts._namespace&quot;,
+        &quot;sha256&quot;: &quot;45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1&quot;
+      },
+      &quot;infrastructure/_stage_acquisition_universe_commit_parts/identity_primitives.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/_stage_acquisition_universe_commit_parts/identity_primitives.py&quot;,
+        &quot;module&quot;: &quot;infrastructure._stage_acquisition_universe_commit_parts.identity_primitives&quot;,
+        &quot;sha256&quot;: &quot;c54541390c68db1f5e602a3d0f5229be4d40c36931f89f4cd9efb42ff0c74c0a&quot;
+      },
+      &quot;infrastructure/data_store.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/data_store.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.data_store&quot;,
+        &quot;sha256&quot;: &quot;7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd&quot;
+      },
+      &quot;infrastructure/interprocess_lock.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/interprocess_lock.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.interprocess_lock&quot;,
+        &quot;sha256&quot;: &quot;9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0&quot;
+      },
+      &quot;infrastructure/market_time.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/market_time.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.market_time&quot;,
+        &quot;sha256&quot;: &quot;e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1&quot;
+      },
+      &quot;infrastructure/owned_io.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/owned_io.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.owned_io&quot;,
+        &quot;sha256&quot;: &quot;9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0&quot;
+      },
+      &quot;infrastructure/owned_path.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/owned_path.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.owned_path&quot;,
+        &quot;sha256&quot;: &quot;c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30&quot;
+      },
+      &quot;infrastructure/preselection_pool_readers.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/preselection_pool_readers.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.preselection_pool_readers&quot;,
+        &quot;sha256&quot;: &quot;949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1&quot;
+      },
+      &quot;infrastructure/preselection_pool_sources.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/preselection_pool_sources.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.preselection_pool_sources&quot;,
+        &quot;sha256&quot;: &quot;cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6&quot;
+      },
+      &quot;infrastructure/preselection_pool_store.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/preselection_pool_store.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.preselection_pool_store&quot;,
+        &quot;sha256&quot;: &quot;a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a&quot;
+      },
+      &quot;infrastructure/preselection_pool_transactions.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/preselection_pool_transactions.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.preselection_pool_transactions&quot;,
+        &quot;sha256&quot;: &quot;22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d&quot;
+      },
+      &quot;infrastructure/scope_gate.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/scope_gate.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.scope_gate&quot;,
+        &quot;sha256&quot;: &quot;5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68&quot;
+      },
+      &quot;infrastructure/secure_evidence_fs.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/secure_evidence_fs.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.secure_evidence_fs&quot;,
+        &quot;sha256&quot;: &quot;f12477fa19c2d8c308d3eb5bd5f1ba17adef2ba8d3b1ac00685bbb4245421d56&quot;
+      },
+      &quot;infrastructure/stage_acquisition_universe_commit.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/stage_acquisition_universe_commit.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.stage_acquisition_universe_commit&quot;,
+        &quot;sha256&quot;: &quot;373d011f299d2a1d7afb173ac7b107ac54d92d036cea7127dadba4873bcf56a3&quot;
+      },
+      &quot;infrastructure/stage_acquisition_universe_contracts.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/stage_acquisition_universe_contracts.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.stage_acquisition_universe_contracts&quot;,
+        &quot;sha256&quot;: &quot;ab23a06700d080044d0c372997544b2ab35365ca96332c53170af6788aabc8f9&quot;
+      },
+      &quot;infrastructure/stage_source_roots.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/stage_source_roots.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.stage_source_roots&quot;,
+        &quot;sha256&quot;: &quot;daf2d43ea482e364d5ad2a22c91be1676e39be9e8b2ad2c2125ddc75d617dc5d&quot;
+      },
+      &quot;infrastructure/trading_safety.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/infrastructure/trading_safety.py&quot;,
+        &quot;module&quot;: &quot;infrastructure.trading_safety&quot;,
+        &quot;sha256&quot;: &quot;ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df&quot;
+      },
+      &quot;stage_center/__init__.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/__init__.py&quot;,
+        &quot;module&quot;: &quot;stage_center&quot;,
+        &quot;sha256&quot;: &quot;f5bc18e6c6143feaa23627ac8b66885810adbf77fb2135a295526fd188949955&quot;
+      },
+      &quot;stage_center/_live_collectors_parts/__init__.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_live_collectors_parts/__init__.py&quot;,
+        &quot;module&quot;: &quot;stage_center._live_collectors_parts&quot;,
+        &quot;sha256&quot;: &quot;29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8&quot;
+      },
+      &quot;stage_center/_live_collectors_parts/_namespace.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_live_collectors_parts/_namespace.py&quot;,
+        &quot;module&quot;: &quot;stage_center._live_collectors_parts._namespace&quot;,
+        &quot;sha256&quot;: &quot;45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1&quot;
+      },
+      &quot;stage_center/_live_collectors_parts/collector_registry.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_live_collectors_parts/collector_registry.py&quot;,
+        &quot;module&quot;: &quot;stage_center._live_collectors_parts.collector_registry&quot;,
+        &quot;sha256&quot;: &quot;b8c366267f611ff76d0228093a9d826ee7c367b938aa4ab098f022a687245999&quot;
+      },
+      &quot;stage_center/_live_collectors_parts/hk_minute.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_live_collectors_parts/hk_minute.py&quot;,
+        &quot;module&quot;: &quot;stage_center._live_collectors_parts.hk_minute&quot;,
+        &quot;sha256&quot;: &quot;03300128a9525d49b0aedd77b35fa7cbeda464900d6802b503a001172a5ccf65&quot;
+      },
+      &quot;stage_center/_live_collectors_parts/selection_builder_registry.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_live_collectors_parts/selection_builder_registry.py&quot;,
+        &quot;module&quot;: &quot;stage_center._live_collectors_parts.selection_builder_registry&quot;,
+        &quot;sha256&quot;: &quot;13fa73cc9b00c1255c05421f43eddc4155a0c14b4488b2a9829a0b496f6337df&quot;
+      },
+      &quot;stage_center/_live_collectors_parts/temporal_validation.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_live_collectors_parts/temporal_validation.py&quot;,
+        &quot;module&quot;: &quot;stage_center._live_collectors_parts.temporal_validation&quot;,
+        &quot;sha256&quot;: &quot;61c8fec0021fb66356cf31791a5bc3af576681fa1e576bbf142463b581dc2961&quot;
+      },
+      &quot;stage_center/_raw_store_parts/__init__.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_raw_store_parts/__init__.py&quot;,
+        &quot;module&quot;: &quot;stage_center._raw_store_parts&quot;,
+        &quot;sha256&quot;: &quot;29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8&quot;
+      },
+      &quot;stage_center/_raw_store_parts/_namespace.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_raw_store_parts/_namespace.py&quot;,
+        &quot;module&quot;: &quot;stage_center._raw_store_parts._namespace&quot;,
+        &quot;sha256&quot;: &quot;45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1&quot;
+      },
+      &quot;stage_center/_raw_store_parts/codec.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_raw_store_parts/codec.py&quot;,
+        &quot;module&quot;: &quot;stage_center._raw_store_parts.codec&quot;,
+        &quot;sha256&quot;: &quot;504b97a64f483db17026dbeed6d5084fbc18ee972be60ad9e069ebd038708572&quot;
+      },
+      &quot;stage_center/_raw_store_parts/filesystem_io.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_raw_store_parts/filesystem_io.py&quot;,
+        &quot;module&quot;: &quot;stage_center._raw_store_parts.filesystem_io&quot;,
+        &quot;sha256&quot;: &quot;f904f4086d4debfc32f5ad33ec2717cda522a59f2e15a3518c7aa83b91eef2b1&quot;
+      },
+      &quot;stage_center/_raw_store_parts/receipt_identity.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_raw_store_parts/receipt_identity.py&quot;,
+        &quot;module&quot;: &quot;stage_center._raw_store_parts.receipt_identity&quot;,
+        &quot;sha256&quot;: &quot;b33c496a6052b450959a9b886c79ad8d5686230e320dbc99bfd98a3e8265a8f0&quot;
+      },
+      &quot;stage_center/_raw_store_parts/transaction_publish.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_raw_store_parts/transaction_publish.py&quot;,
+        &quot;module&quot;: &quot;stage_center._raw_store_parts.transaction_publish&quot;,
+        &quot;sha256&quot;: &quot;4c28d92667428cfeced54e074e800337ca88b7e87d8a5468a9464b668ca9b24e&quot;
+      },
+      &quot;stage_center/_raw_store_parts/transaction_read.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_raw_store_parts/transaction_read.py&quot;,
+        &quot;module&quot;: &quot;stage_center._raw_store_parts.transaction_read&quot;,
+        &quot;sha256&quot;: &quot;8b7e88dc5e5f41456e5222f1a5c08c5dcd05f5e5d7f2c179fd26652bff2932b6&quot;
+      },
+      &quot;stage_center/_runner_parts/__init__.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/__init__.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts&quot;,
+        &quot;sha256&quot;: &quot;29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8&quot;
+      },
+      &quot;stage_center/_runner_parts/_namespace.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/_namespace.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts._namespace&quot;,
+        &quot;sha256&quot;: &quot;45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1&quot;
+      },
+      &quot;stage_center/_runner_parts/configuration.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/configuration.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts.configuration&quot;,
+        &quot;sha256&quot;: &quot;62416ad875ff37a95ae222e3c8c4094a351b53229daa5313d43f5d27a98899be&quot;
+      },
+      &quot;stage_center/_runner_parts/hk_candidate_authority.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/hk_candidate_authority.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts.hk_candidate_authority&quot;,
+        &quot;sha256&quot;: &quot;57bf97d5edb73ba2f226d102bb81c9079f84aebf67ead45d5649ebfe5cc932cb&quot;
+      },
+      &quot;stage_center/_runner_parts/hk_input_validation.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/hk_input_validation.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts.hk_input_validation&quot;,
+        &quot;sha256&quot;: &quot;7bd2ca1e47a9831170c64b2d5d6ecbfe5b0e66d7e664ae4b2c3dcc9d4aaf1c74&quot;
+      },
+      &quot;stage_center/_runner_parts/row_evidence.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/row_evidence.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts.row_evidence&quot;,
+        &quot;sha256&quot;: &quot;f1659b68c8983c789c9306027e3e90d0dcce8c137674a5cf34edfa7d7fdbde3a&quot;
+      },
+      &quot;stage_center/_runner_parts/runner_receipts.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/runner_receipts.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts.runner_receipts&quot;,
+        &quot;sha256&quot;: &quot;94fb3592619a8012904e4193280b5cd4f78f5c898b8fdd6cc5751398dc7f882d&quot;
+      },
+      &quot;stage_center/_runner_parts/selection_input_validation.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/selection_input_validation.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts.selection_input_validation&quot;,
+        &quot;sha256&quot;: &quot;87265f5027b2c8fb4c7d74dc8ea0c748df7f449516bc21f20b2f839de8a595fb&quot;
+      },
+      &quot;stage_center/_runner_parts/slot_execution.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/slot_execution.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts.slot_execution&quot;,
+        &quot;sha256&quot;: &quot;3ed350bb9b072806a8b033055dbfa29b1ccc7292df6d79cbff61e55c8409112e&quot;
+      },
+      &quot;stage_center/_runner_parts/slot_idempotency.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/slot_idempotency.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts.slot_idempotency&quot;,
+        &quot;sha256&quot;: &quot;2f79cdfedd50e047f22beaafe254edff420a7fb28be6379ba9a92a475abfa39c&quot;
+      },
+      &quot;stage_center/_runner_parts/slot_lock.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/slot_lock.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts.slot_lock&quot;,
+        &quot;sha256&quot;: &quot;f90d3c8e3fba34d157bf45e1f544e9169a575931a3f2f33340e97c25879f5c1d&quot;
+      },
+      &quot;stage_center/_runner_parts/tick_planning.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_runner_parts/tick_planning.py&quot;,
+        &quot;module&quot;: &quot;stage_center._runner_parts.tick_planning&quot;,
+        &quot;sha256&quot;: &quot;c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15&quot;
+      },
+      &quot;stage_center/_selection_parts/__init__.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/__init__.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts&quot;,
+        &quot;sha256&quot;: &quot;b56739ecc4a80eaa081f3ea124cf3199683fd470d71a770c9f91cc14de128140&quot;
+      },
+      &quot;stage_center/_selection_parts/_namespace.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/_namespace.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts._namespace&quot;,
+        &quot;sha256&quot;: &quot;45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1&quot;
+      },
+      &quot;stage_center/_selection_parts/artifact_codec.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/artifact_codec.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts.artifact_codec&quot;,
+        &quot;sha256&quot;: &quot;6c0ddaed1dfe7a066be9aeb1c726e2357f5c1814b0baca834c37bb1879aeeb9d&quot;
+      },
+      &quot;stage_center/_selection_parts/hk_formula_score.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/hk_formula_score.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts.hk_formula_score&quot;,
+        &quot;sha256&quot;: &quot;4e42a0e6c233f649f8937dc5b5de231ce59fce8363d05025e9df77a78c4f00d7&quot;
+      },
+      &quot;stage_center/_selection_parts/hk_four_lanes.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/hk_four_lanes.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts.hk_four_lanes&quot;,
+        &quot;sha256&quot;: &quot;d44cd657b15b806922dd99317cfe759849a0d59884a0e39a533f0204f530ae71&quot;
+      },
+      &quot;stage_center/_selection_parts/market_quality.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/market_quality.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts.market_quality&quot;,
+        &quot;sha256&quot;: &quot;726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f&quot;
+      },
+      &quot;stage_center/_selection_parts/primitives_io.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/primitives_io.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts.primitives_io&quot;,
+        &quot;sha256&quot;: &quot;6f492e2d32fab11970993adfe694cf159cccafe2205b288685917f93560e2501&quot;
+      },
+      &quot;stage_center/_selection_parts/schema_values.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/schema_values.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts.schema_values&quot;,
+        &quot;sha256&quot;: &quot;80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458&quot;
+      },
+      &quot;stage_center/_selection_parts/selection_envelope.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/selection_envelope.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts.selection_envelope&quot;,
+        &quot;sha256&quot;: &quot;be7748ff72fd85375fc6575a6a40281fb1518c8faf0e55f352f167fbbc42bd89&quot;
+      },
+      &quot;stage_center/_selection_parts/store_publication.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/store_publication.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts.store_publication&quot;,
+        &quot;sha256&quot;: &quot;e3ee42413c35aa098cddc136795fcf04a37898bc2224d815cbe9e2b854c5c968&quot;
+      },
+      &quot;stage_center/_selection_parts/store_verification.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/_selection_parts/store_verification.py&quot;,
+        &quot;module&quot;: &quot;stage_center._selection_parts.store_verification&quot;,
+        &quot;sha256&quot;: &quot;af061784202e35bd7c497208407ce1313876683544d89bcb05153ebca1e7af0f&quot;
+      },
+      &quot;stage_center/acquisition.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/acquisition.py&quot;,
+        &quot;module&quot;: &quot;stage_center.acquisition&quot;,
+        &quot;sha256&quot;: &quot;2806c63dbe76af9051a3ea655356738d45a67205441c03638fd52ca44087fc1b&quot;
+      },
+      &quot;stage_center/calendar.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/calendar.py&quot;,
+        &quot;module&quot;: &quot;stage_center.calendar&quot;,
+        &quot;sha256&quot;: &quot;31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099&quot;
+      },
+      &quot;stage_center/candidate_input.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/candidate_input.py&quot;,
+        &quot;module&quot;: &quot;stage_center.candidate_input&quot;,
+        &quot;sha256&quot;: &quot;59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff&quot;
+      },
+      &quot;stage_center/consumer.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/consumer.py&quot;,
+        &quot;module&quot;: &quot;stage_center.consumer&quot;,
+        &quot;sha256&quot;: &quot;9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb&quot;
+      },
+      &quot;stage_center/contracts.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/contracts.py&quot;,
+        &quot;module&quot;: &quot;stage_center.contracts&quot;,
+        &quot;sha256&quot;: &quot;6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d&quot;
+      },
+      &quot;stage_center/end_to_end_deadline.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/end_to_end_deadline.py&quot;,
+        &quot;module&quot;: &quot;stage_center.end_to_end_deadline&quot;,
+        &quot;sha256&quot;: &quot;f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e&quot;
+      },
+      &quot;stage_center/input_contracts.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/input_contracts.py&quot;,
+        &quot;module&quot;: &quot;stage_center.input_contracts&quot;,
+        &quot;sha256&quot;: &quot;9521a336709286ab301368a70e2c99f6db6a8ffe288347977328619de7611fd2&quot;
+      },
+      &quot;stage_center/live_collectors.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/live_collectors.py&quot;,
+        &quot;module&quot;: &quot;stage_center.live_collectors&quot;,
+        &quot;sha256&quot;: &quot;82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf&quot;
+      },
+      &quot;stage_center/raw_store.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/raw_store.py&quot;,
+        &quot;module&quot;: &quot;stage_center.raw_store&quot;,
+        &quot;sha256&quot;: &quot;15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde&quot;
+      },
+      &quot;stage_center/runner.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/runner.py&quot;,
+        &quot;module&quot;: &quot;stage_center.runner&quot;,
+        &quot;sha256&quot;: &quot;ea9909bb4f39c4248032771aedd9611a852353e940451e0b0c7273bde8c26345&quot;
+      },
+      &quot;stage_center/scheduler.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/scheduler.py&quot;,
+        &quot;module&quot;: &quot;stage_center.scheduler&quot;,
+        &quot;sha256&quot;: &quot;db110aba2fe504213591330000120b660cff04292728b5325711e2fa6799e7b0&quot;
+      },
+      &quot;stage_center/selection.py&quot;: {
+        &quot;loaded_path&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app/stage_center/selection.py&quot;,
+        &quot;module&quot;: &quot;stage_center.selection&quot;,
+        &quot;sha256&quot;: &quot;ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294&quot;
+      }
+    },
+    &quot;memory_execution_attested&quot;: false,
+    &quot;scope&quot;: &quot;LOADED_MODULE_PATHS_AND_OBSERVED_FILE_BYTES&quot;,
+    &quot;source_root&quot;: &quot;/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app&quot;,
+    &quot;source_set_sha256&quot;: &quot;097b1452d75173357155adf458d88143532bb6bbadd2972fee05b7bcc7c6f822&quot;,
+    &quot;status&quot;: &quot;OBSERVED&quot;
+  },
+  &quot;runtime_source_identity_scope&quot;: &quot;OWNER_RECEIPT_DECLARED_FILE_OBSERVATIONS&quot;,
+  &quot;attempt_mode_status&quot;: &quot;OWNER_DECLARATION_ONLY&quot;,
+  &quot;record_time_status&quot;: &quot;OWNER_WRITE_CLOCK_RECORDED&quot;,
+  &quot;runner_invoked_at&quot;: &quot;2026-10-09T12:34:08.420172+00:00&quot;,
+  &quot;invocation_time_source&quot;: &quot;OWNER_RUNNER_INVOCATION_UTC&quot;
+}</pre></details></section>

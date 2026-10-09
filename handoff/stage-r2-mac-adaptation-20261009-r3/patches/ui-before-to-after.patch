@@ -1,0 +1,293 @@
+--- a/apps/web/src/App.vue
++++ b/apps/web/src/App.vue
+@@ -1,6 +1,9 @@
+ <script setup lang="ts">
+ 
+ 
++import { computed } from "vue";
++import StageExecutionEvidencePanel from "./components/review/StageExecutionEvidencePanel.vue";
++import type { StageExecutionEvidenceReadback } from "./contracts/runtime";
+ import TaskStatusView from "./views/TaskStatusView.vue";
+ import ReviewView from "./views/ReviewView.vue";
+ import ResearchView from "./views/ResearchView.vue";
+@@ -102,6 +105,49 @@
+   ensureStage,
+   onDateInputChange,
+ } = useAppShell();
++
++type ExecutionWorkbench = {
++  trade_date?: string;
++  stage?: { stage_id?: string };
++  markets?: Partial<Record<"A" | "HK", Record<string, unknown>>>;
++  unified_rows?: { market?: string }[];
++  execution_evidence?: StageExecutionEvidenceReadback;
++};
++
++const stageExecutionEvidence = computed<StageExecutionEvidenceReadback | null>(() => {
++  const workbench = stageWorkbench.value as ExecutionWorkbench | null;
++  const evidence = workbench?.execution_evidence;
++  if (stageLoading.value || stageError.value || !workbench || !evidence
++      || workbench.trade_date !== selectedDate.value || workbench.stage?.stage_id !== selectedStage.value
++      || evidence.trade_date !== selectedDate.value || evidence.stage_id !== selectedStage.value) return null;
++  if (!evidence.selection_results) return evidence;
++  const selection_results = Object.fromEntries(Object.entries(evidence.selection_results).map(([key, result]) => {
++    if (!["RESULT_AVAILABLE", "VERIFIED_EMPTY_RESULT"].includes(result.status)) return [key, result];
++    const market = key === "A_SHARE" ? "A" : key === "HK_CONNECT" ? "HK" : null;
++    const summary = market ? workbench.markets?.[market] : null;
++    const selected = result.selected_rows;
++    const bound = summary && result.trade_date === workbench.trade_date
++      && result.stage_id === workbench.stage?.stage_id && result.market === key
++      && typeof selected === "number" && Number.isSafeInteger(selected)
++      && (result.status === "VERIFIED_EMPTY_RESULT" ? selected === 0 : selected > 0)
++      && Array.isArray(workbench.unified_rows)
++      && workbench.unified_rows.filter(row => row.market === market).length === selected
++      && (["run_id", "artifact_id", "algorithm_sha256", "raw_artifact_sha256"] as const).every(field =>
++        typeof result[field] === "string" && result[field]!.trim().length > 0
++        && result[field] === summary[field]
++        && (!field.endsWith("sha256") || /^[a-f0-9]{64}$/i.test(result[field]!)));
++    // Derive a display verdict without changing the app-shell response or rows.
++    return [key, bound ? result : { ...result, status: "SELECTION_IDENTITY_CONFLICT" }];
++  }));
++  return { ...evidence, selection_results };
++});
++
++function stageResultCount(market: "A_SHARE" | "HK_CONNECT") {
++  const result = stageExecutionEvidence.value?.selection_results?.[market];
++  if (result?.status === "RESULT_AVAILABLE") return `已计算 ${result.selected_rows} 只`;
++  if (result?.status === "VERIFIED_EMPTY_RESULT") return "已保存空结果（0 只）";
++  return null;
++}
+ </script>
+ 
+ <template>
+@@ -181,7 +227,7 @@
+     <section v-if="!closeReviewActive" class="panel timeline-panel" aria-label="七阶段上下文">
+       <div class="section-heading">
+         <div><span class="eyebrow">阶段分组主视图</span><h2>七阶段上下文 v2</h2></div>
+-        <p>{{ selectedDate }} · {{ currentStageDefinition.label }} · A股 {{ stageCountText(stageWorkbench?.selected_a_rows) }} / 港股 {{ stageMarketCountText(stageWorkbench?.markets?.HK, stageWorkbench?.selected_hk_rows) }}</p>
++        <p>{{ selectedDate }} · {{ currentStageDefinition.label }} · A股 {{ stageResultCount('A_SHARE') || stageCountText(stageWorkbench?.selected_a_rows) }} / 港股 {{ stageResultCount('HK_CONNECT') || stageMarketCountText(stageWorkbench?.markets?.HK, stageWorkbench?.selected_hk_rows) }}</p>
+       </div>
+       <div class="timeline-grid">
+         <button
+@@ -215,6 +261,8 @@
+         <span v-if="referenceMode" class="reference-label">参考快照 · WATCH_ONLY</span>
+         <span v-if="stageRunStatus">最近运行：{{ stageRunStatus }}</span>
+       </div>
++      <StageExecutionEvidencePanel v-if="stageExecutionEvidence" :evidence="stageExecutionEvidence" />
++      <p v-else-if="!stageLoading && !stageError" class="evidence-gap">CANNOT_CONFIRM：当前日期与阶段没有可绑定的执行证据。</p>
+       <section class="stage-lineage-panel" aria-label="阶段运行血缘">
+         <strong>阶段运行血缘</strong>
+         <div v-if="stageWorkbench?.stage_lineage" class="stage-lineage-grid">
+@@ -259,7 +307,7 @@
+ 
+       <div class="market-columns">
+         <section class="market-column" aria-label="A股候选">
+-          <div class="market-title"><h3>A股</h3><span>{{ stageCountText(stageWorkbench?.selected_a_rows) }} 条</span></div>
++          <div class="market-title"><h3>A股</h3><span>{{ stageResultCount('A_SHARE') || `${stageCountText(stageWorkbench?.selected_a_rows)} 条` }}</span></div>
+           <p v-if="stageWorkbench?.markets?.A?.selection_mode === 'BACKFILL'" class="evidence-note">
+             历史回补 BACKFILL · {{ stageWorkbench?.markets?.A?.backfill_run_ids?.join("、") || stageWorkbench?.markets?.A?.backfill_run_id || "run id CANNOT_CONFIRM" }} · selection {{ stageWorkbench?.markets?.A?.selection_manifest_receipt_verified ? "manifest/receipt 已验证" : "manifest/receipt CANNOT_CONFIRM" }} · runner receipt {{ stageWorkbench?.markets?.A?.runner_receipt_verified ? "已验证" : "CANNOT_CONFIRM" }}
+           </p>
+@@ -284,7 +332,7 @@
+           </article>
+         </section>
+         <section class="market-column" :aria-label="stageWorkbench?.markets?.HK?.display_mode === 'OBSERVATION_UNVERIFIED' ? '港股通观察行' : '港股通候选'">
+-          <div class="market-title"><h3>{{ stageWorkbench?.markets?.HK?.display_mode === "OBSERVATION_UNVERIFIED" ? "港股通观察行" : `港股通${isPreopenStage ? "09:20二筛" : "二筛"}` }}</h3><span>{{ stageMarketCountText(stageWorkbench?.markets?.HK, stageWorkbench?.selected_hk_rows) }}<template v-if="!['CANNOT_CONFIRM', 'OBSERVATION_UNVERIFIED', 'READY_EMPTY'].includes(stageWorkbench?.markets?.HK?.display_mode || '')"> 条</template></span></div>
++          <div class="market-title"><h3>{{ stageWorkbench?.markets?.HK?.display_mode === "OBSERVATION_UNVERIFIED" ? "港股通观察行" : `港股通${isPreopenStage ? "09:20二筛" : "二筛"}` }}</h3><span>{{ stageResultCount('HK_CONNECT') || stageMarketCountText(stageWorkbench?.markets?.HK, stageWorkbench?.selected_hk_rows) }}<template v-if="!stageResultCount('HK_CONNECT') && !['CANNOT_CONFIRM', 'OBSERVATION_UNVERIFIED', 'READY_EMPTY'].includes(stageWorkbench?.markets?.HK?.display_mode || '')"> 条</template></span></div>
+           <p v-if="stageWorkbench?.markets?.HK?.display_mode === 'OBSERVATION_UNVERIFIED'" class="evidence-note">未验证原因：{{ stageWorkbench.markets.HK.display_reasons?.join("、") || "SelectionStore 或执行绑定不足" }}</p>
+           <p v-if="stageWorkbench?.markets?.HK?.selection_mode === 'BACKFILL'" class="evidence-note">
+             历史回补 BACKFILL · {{ stageWorkbench?.markets?.HK?.backfill_run_ids?.join("、") || stageWorkbench?.markets?.HK?.backfill_run_id || "run id CANNOT_CONFIRM" }} · selection {{ stageWorkbench?.markets?.HK?.selection_manifest_receipt_verified ? "manifest/receipt 已验证" : "manifest/receipt CANNOT_CONFIRM" }} · runner receipt {{ stageWorkbench?.markets?.HK?.runner_receipt_verified ? "已验证" : "CANNOT_CONFIRM" }}
+--- /dev/null
++++ b/apps/web/src/components/review/StageExecutionEvidencePanel.vue
+@@ -0,0 +1,141 @@
++<script setup lang="ts">
++import { computed } from "vue";
++import type { StageExecutionEvidenceReadback } from "../../contracts/runtime";
++const props = defineProps<{ evidence: StageExecutionEvidenceReadback }>();
++
++function counter(value: unknown): number | null {
++  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : null;
++}
++function quoteText(requested: number | null, source: number | null, declaredMissing?: unknown) {
++  if (requested === null || source === null) {
++    return `行情 ${source ?? "未知"} / ${requested ?? "未知"} 只；缺口数量未知`;
++  }
++  const missing = requested - source;
++  if (missing < 0 || (declaredMissing != null && counter(declaredMissing) !== missing)) {
++    return `行情计数待核对（来源 ${source}；请求 ${requested}）`;
++  }
++  return `行情 ${source} / ${requested} 只，缺 ${missing} 只`;
++}
++function resultBinding(market: string) {
++  const binding = props.evidence.selection_artifact_bindings?.[market]?.status;
++  const legacy = props.evidence.markets?.[market]?.selection_binding;
++  if (binding === "SELECTION_TRIO_CONFLICT" || legacy === "SELECTION_IDENTITY_CONFLICT" || legacy === "SELECTION_COUNT_CONFLICT") {
++    return "结果与运行记录的身份冲突，待核对";
++  }
++  if (binding === "BOUND_TO_VERIFIED_SELECTION_TRIO") return "结果与原执行记录已绑定";
++  if (binding === "EXECUTION_RECEIPT_NAMESPACE_NOT_BOUND") return "结果来自历史回补；当前回执未绑定该次执行";
++  if (binding === "SELECTION_TRIO_MATCHES_CURRENT_RECEIPT_HISTORY_UNBOUND") return "结果引用相符，历史记录未绑定";
++  return "执行记录尚未完整绑定";
++}
++const marketViews = computed(() => {
++  const markets = props.evidence.stage_id === "STAGE_1545_1555" ? ["HK_CONNECT"] : ["A_SHARE", "HK_CONNECT"];
++  return markets.map(market => {
++    const lane = props.evidence.markets?.[market];
++    const hasSummary = Object.prototype.hasOwnProperty.call(props.evidence, "selection_results");
++    const result = props.evidence.selection_results?.[market];
++    const scopeConflict = Boolean(result && (
++      result.status === "SELECTION_IDENTITY_CONFLICT"
++      || (result.trade_date !== undefined && result.trade_date !== props.evidence.trade_date)
++      || (result.stage_id !== undefined && result.stage_id !== props.evidence.stage_id)
++      || (result.market !== undefined && result.market !== market)
++    ));
++    const selected = counter(hasSummary ? result?.selected_rows : lane?.selected_rows);
++    const available = !scopeConflict && (hasSummary
++      ? (result?.status === "RESULT_AVAILABLE" && selected !== null && selected > 0)
++        || (result?.status === "VERIFIED_EMPTY_RESULT" && selected === 0)
++      : lane?.selection_binding === "BOUND_TO_VERIFIED_SELECTION" && selected !== null);
++    const preselectionBlocked = market === "HK_CONNECT" && (
++      lane?.failure_layer === "PRESELECTION_INPUT"
++      || lane?.reasons?.some(reason => reason.includes("HK D1 status must be STRICT_0_2_READY"))
++    );
++    const requested = counter(hasSummary ? (available ? result?.requested_rows : null) : lane?.requested_rows);
++    const source = counter(hasSummary ? (available ? result?.source_rows : null) : (lane?.source_rows ?? lane?.observed_rows));
++    const research = available && result?.research_source_status === "RECORDED_IN_VERIFIED_SELECTION"
++      ? result.research_source : null;
++    return {
++      market, name: market === "A_SHARE" ? "A股" : "港股通",
++      headline: scopeConflict ? "选股结果身份待核对" : available ? (selected === 0 ? "已保存空结果（0 只）" : `已计算 ${selected} 只`)
++        : preselectionBlocked ? "预选池未就绪，未进入算法" : "选股结果待核对",
++      quote: quoteText(requested, source, hasSummary && available ? result?.missing_quote_rows : undefined),
++      countSource: hasSummary ? (available ? "选股产物计数" : "行情计数未绑定") : "回执记录计数",
++      binding: resultBinding(market),
++      blockedAttemptWithSavedResult: available && preselectionBlocked,
++      research,
++      researchConflict: available && result?.research_source_status === "CANNOT_CONFIRM",
++    };
++  });
++});
++const modeText = computed(() => {
++  if (Object.values(props.evidence.selection_results || {}).some(result =>
++    result.status === "RESULT_AVAILABLE" && result.selection_mode === "BACKFILL")) {
++    return "历史回补（BACKFILL；自然时段未验证）";
++  }
++  const replay = props.evidence.attempt_mode_status === "NATURAL_DECLARATION_CONFLICT"
++    || ["MANUAL_REPLAY", "CURRENT_DAY_RESEARCH_REPLAY", "HISTORICAL_BACKFILL", "LATE_CATCHUP_REPLAY"].includes(props.evidence.execution_origin || "")
++    || ["HISTORICAL_BACKFILL", "LATE_CATCHUP_REPLAY"].includes(props.evidence.due_status || "")
++    || props.evidence.same_day_late_observation_recovery === true;
++  if (replay) return "补验 / 回放（自然时段未验证）";
++  const mode = props.evidence.attempt_mode;
++  if (!mode) return "未记录";
++  if (mode === "NATURAL") return "自然触发（NATURAL）";
++  if (mode === "RECOVERY") return "补跑（RECOVERY）";
++  return `其他方式（${mode}）`;
++});
++const historyText = computed(() => {
++  const binding = props.evidence.receipt_history_binding;
++  if (binding === "OWNER_HISTORY_SHA_BOUND") return "已核对";
++  if (binding === "OWNER_HISTORY_CONFLICT") return "身份冲突，待核对";
++  return !binding || binding === "OWNER_HISTORY_NOT_RECORDED" ? "未记录" : "待核对";
++});
++const recordTimeText = computed(() => {
++  if (!props.evidence.recorded_at) return "原回执未记录";
++  return props.evidence.receipt_history_binding === "OWNER_HISTORY_SHA_BOUND"
++    && props.evidence.record_time_status === "OWNER_WRITE_CLOCK_RECORDED"
++    ? props.evidence.recorded_at : "待核对";
++});
++function detail(value: unknown) { return JSON.stringify(value, null, 2); }
++</script>
++<template>
++  <section class="execution-evidence" aria-label="阶段选股结果与运行记录">
++    <h3>本阶段选股结果</h3>
++    <p>{{ evidence.trade_date }} · {{ evidence.stage_id }}</p>
++    <div class="execution-markets">
++      <article v-for="lane in marketViews" :key="lane.market" :data-market="lane.market">
++        <h4>{{ lane.name }}</h4>
++        <p class="execution-result"><strong>{{ lane.headline }}</strong></p>
++        <p>{{ lane.quote }}<small class="execution-count-source">{{ lane.countSource }}</small></p>
++        <div v-if="lane.research" class="execution-research-source">
++          <strong>研究来源限制</strong>
++          <p>当日研究；非正式 D1；港股通资格待确认。</p>
++          <p>名单日期 {{ lane.research.universe_as_of }}；采集时间 {{ lane.research.captured_at }}。</p>
++          <p v-if="lane.research.stale_universe">沿用较早名单，保留原名单日期。</p>
++        </div>
++        <p v-else-if="lane.researchConflict">研究来源记录待核对；已计算结果保留展示。</p>
++        <p v-if="lane.blockedAttemptWithSavedResult">当前回执：预选池未就绪，未进入算法。</p>
++        <p>{{ lane.binding }}</p>
++      </article>
++    </div>
++    <h4>运行记录与验收</h4>
++    <p class="execution-safety">RESEARCH_ONLY={{ evidence.RESEARCH_ONLY === true ? "true" : "CANNOT_CONFIRM" }} · production_allowed={{ evidence.production_allowed === false ? "false" : "CANNOT_CONFIRM" }} · buy_gate_updated={{ evidence.buy_gate_updated === false ? "false" : "CANNOT_CONFIRM" }} · orders_sent={{ evidence.orders_sent === false ? "false" : "CANNOT_CONFIRM" }}</p>
++    <dl class="execution-facts">
++      <div><dt>运行方式（回执声明）</dt><dd>{{ modeText }}</dd></div>
++      <div><dt>原执行方历史记录</dt><dd>{{ historyText }}</dd></div>
++      <div><dt>记录时间</dt><dd>{{ recordTimeText }}</dd></div>
++      <div><dt>自然时段验收</dt><dd>尚未验证</dd></div>
++    </dl>
++    <p>执行过程与自然时段仍需独立验收。</p>
++    <details><summary>查看运行与来源详情</summary>
++      <pre>{{ detail(evidence) }}</pre>
++    </details>
++  </section>
++</template>
++<style scoped>
++.execution-evidence { padding: 1rem; border: 1px solid #cbd5e1; margin-block: 1rem; }
++.execution-markets { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; }
++.execution-result { font-size: 1.1rem; }
++.execution-count-source { display: block; margin-top: 0.25rem; }
++.execution-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 1rem; }
++.execution-facts dt { font-weight: 600; }
++.execution-facts dd { margin: 0.25rem 0 0; overflow-wrap: anywhere; }
++.execution-evidence pre, .execution-evidence code, .execution-evidence p { white-space: pre-wrap; overflow-wrap: anywhere; }
++</style>
+--- a/apps/web/src/contracts/runtime.ts
++++ b/apps/web/src/contracts/runtime.ts
+@@ -51,3 +51,48 @@
+   buy_gate_updated: boolean;
+   orders_sent: boolean;
+ };
++
++
++export type StageResearchSource = {
++  schema_version: "HK_CURRENT_DAY_RESEARCH_V1"; mode: "CURRENT_DAY_RESEARCH_ONLY";
++  market: "HK_CONNECT"; trade_date: string; universe_as_of: string; captured_at: string;
++  stale_universe: boolean; hk_connect_membership_status: "CANNOT_CONFIRM";
++  formal_d1_eligible: false; source_sha256: string;
++  security_master_sha256?: string; reference_codes_sha256?: string;
++  receipt_sha256?: string; final_receipt_sha256?: string;
++};
++
++export type StageExecutionEvidenceReadback = {
++  status: string; execution_verified: boolean; natural_verified: boolean;
++  trade_date: string; stage_id: string; receipt_path?: string; observed_sha256?: string;
++  attempt_mode?: string | null; due_status?: string | null; declared_status?: string | null;
++  declared_attempt_mode?: string | null; execution_origin?: string | null;
++  attempt_mode_status?: string; same_day_late_observation_recovery?: boolean;
++  runtime_source_identity?: Record<string, unknown> | null; runtime_source_identity_scope?: string;
++  recorded_at?: string | null; first_failed_layer?: string | null; error?: string | null;
++  node_attempt_count?: number | null; node_outcome?: string | null; retry_after?: string | null;
++  candidate_run_id?: string | null; candidate_current_sha256?: string | null; candidate_binding?: string;
++  cannot_confirm: string[]; historical_bad_row_status?: string;
++  selection_results?: Record<string, {
++    status: string; selected_rows: number | null; requested_rows: number | null;
++    source_rows: number | null; missing_quote_rows?: number | null;
++    quote_coverage_ratio?: number | null; selection_status?: string | null;
++    selection_mode?: string | null;
++    trade_date?: string; stage_id?: string; market?: string;
++    run_id?: string | null; artifact_id?: string | null;
++    algorithm_sha256?: string | null; raw_artifact_sha256?: string | null;
++    source_evidence?: string[]; research_source?: StageResearchSource | null;
++    research_source_status?: string;
++    evidence_scope?: string;
++  }>;
++  receipt_history_binding?: string; record_time_status?: string;
++  selection_artifact_bindings?: Record<string, { status: string }>;
++  runner_invoked_at?: string | null; invocation_time_source?: string | null;
++  RESEARCH_ONLY?: boolean; production_allowed?: boolean; buy_gate_updated?: boolean; orders_sent?: boolean;
++  markets: Record<string, {
++    status?: string | null; selection_binding: string; failure_layer?: string | null;
++    requested_rows: number | null; source_rows: number | null; observed_rows: number | null;
++    accepted_rows: number | null; selected_rows: number | null; reasons: string[];
++    diagnostics?: Record<string, unknown>; declared_identity?: Record<string, unknown>;
++  }>;
++};

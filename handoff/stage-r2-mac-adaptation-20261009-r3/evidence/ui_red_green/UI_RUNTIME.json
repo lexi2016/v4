@@ -1,0 +1,71 @@
+{
+  "node": "v24.19.0",
+  "versions": {
+    "vue": "3.5.13",
+    "@vue/compiler-sfc": "3.5.13",
+    "@vue/server-renderer": "3.5.13",
+    "@babel/parser": "7.29.9"
+  },
+  "compileFacts": [
+    {
+      "filename": "/workspace/scratch/49c844334a98/r3_lane_ui/after/ui/apps/web/src/App.vue",
+      "imports": [
+        "vue",
+        "vue",
+        "vue/server-renderer",
+        "vue",
+        "./components/review/StageExecutionEvidencePanel.vue",
+        "./views/TaskStatusView.vue",
+        "./views/ReviewView.vue",
+        "./views/ResearchView.vue",
+        "./components/research/GlobalIndustryMap.vue",
+        "./components/research/WechatMentionPool.vue",
+        "./app_shell/useAppShell"
+      ],
+      "source_bytes": 30558,
+      "compiled_bytes": 40162,
+      "useSsr": true
+    },
+    {
+      "filename": "/workspace/scratch/49c844334a98/r3_lane_ui/after/ui/apps/web/src/App.vue",
+      "imports": [
+        "vue",
+        "vue",
+        "vue",
+        "./components/review/StageExecutionEvidencePanel.vue",
+        "./views/TaskStatusView.vue",
+        "./views/ReviewView.vue",
+        "./views/ResearchView.vue",
+        "./components/research/GlobalIndustryMap.vue",
+        "./components/research/WechatMentionPool.vue",
+        "./app_shell/useAppShell"
+      ],
+      "source_bytes": 30558,
+      "compiled_bytes": 68261,
+      "useSsr": false
+    },
+    {
+      "filename": "/workspace/scratch/49c844334a98/r3_lane_ui/after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "imports": [
+        "vue",
+        "vue",
+        "vue/server-renderer",
+        "vue"
+      ],
+      "source_bytes": 8779,
+      "compiled_bytes": 9977,
+      "useSsr": true
+    },
+    {
+      "filename": "/workspace/scratch/49c844334a98/r3_lane_ui/after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "imports": [
+        "vue",
+        "vue",
+        "vue"
+      ],
+      "source_bytes": 8779,
+      "compiled_bytes": 11505,
+      "useSsr": false
+    }
+  ]
+}

@@ -1,0 +1,211 @@
+{
+  "status": "PASS",
+  "scope": "ISOLATED_SOURCE_FIXTURE_TESTS_NOT_MAC_MARKET_API_DEPLOYMENT_OR_NATURAL_ACCEPTANCE",
+  "started_at_utc": "2026-10-09T12:33:32.310641+00:00",
+  "finished_at_utc": "2026-10-09T12:34:10.756714+00:00",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "stage_app": "/workspace/scratch/49c844334a98/r3_review/final_checks/work/stage_app",
+  "package": {
+    "status": "PASS",
+    "scope": "PACKAGE_BYTES_ONLY_NOT_DEPLOYMENT",
+    "base_commit": "7a9c94d43a296372488541b02e8e35a0f763dc1a",
+    "source_map_sha256": "3ec3e7774119bd106185c03be0b5c572b6fe2ca4148b93379d8b116a72994457",
+    "production_files": 21,
+    "offline_support_files": 166,
+    "failures": [],
+    "write_performed": false,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "test_expectations_sha256": "37fe3362233af9bbb5f2d7cf54090e634e43ce4951ec81c3b346946fb5c29c7c",
+  "expected_tests": {
+    "stage": 148,
+    "api": 82,
+    "adaptation": 50,
+    "vue": 45,
+    "vue_actual": 27
+  },
+  "results": {
+    "stage": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/tests",
+        "--junitxml=/workspace/scratch/49c844334a98/r3_review/final_checks/stage.junit.xml"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3",
+      "exit_code": 0,
+      "gate": {
+        "status": "PASS",
+        "expected_tests": 148,
+        "observed_tests": 148,
+        "passed": 148,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "declared": {
+          "tests": 148,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "junit_sha256": "783950173fc57a849e95b45e8b0d42ae444fe2b9554fb2cb65da035c85dbea05"
+      },
+      "passed": 148,
+      "skipped": 0
+    },
+    "api": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests",
+        "--junitxml=/workspace/scratch/49c844334a98/r3_review/final_checks/api.junit.xml"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/checks/api",
+      "exit_code": 0,
+      "gate": {
+        "status": "PASS",
+        "expected_tests": 82,
+        "observed_tests": 82,
+        "passed": 82,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "declared": {
+          "tests": 82,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "junit_sha256": "b5dff3ca5c5b36ced10559f4c25d24dc96bf2d5a01650340cb0eb53046bb15d5"
+      },
+      "passed": 82,
+      "skipped": 0
+    },
+    "adaptation": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/checks/adaptation",
+        "--junitxml=/workspace/scratch/49c844334a98/r3_review/final_checks/adaptation.junit.xml"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3",
+      "exit_code": 0,
+      "gate": {
+        "status": "PASS",
+        "expected_tests": 50,
+        "observed_tests": 50,
+        "passed": 50,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "declared": {
+          "tests": 50,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "junit_sha256": "10b933bd7ec2161c39a6580784be076300b15e1c5eff6b0142e1f68ae8df30a5"
+      },
+      "passed": 50,
+      "skipped": 0
+    },
+    "fixture_runner": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/tools/export_integration_fixture.py",
+        "--output",
+        "/workspace/scratch/49c844334a98/r3_review/final_checks/full_chain_fixture"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3",
+      "exit_code": 0
+    },
+    "fixture_api": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/tests/read_integrated_fixture.py",
+        "/workspace/scratch/49c844334a98/r3_review/final_checks/full_chain_fixture"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/checks/api",
+      "exit_code": 0
+    },
+    "vue": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/legacy_presentation.test.mjs",
+        "tests/research_presentation.test.mjs"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/checks/api",
+      "exit_code": 0,
+      "gate": {
+        "status": "PASS",
+        "expected_tests": 45,
+        "observed_tests": 45,
+        "passed": 45,
+        "skipped": 0,
+        "failures": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "passed": 45,
+      "skipped": 0
+    },
+    "vue_actual": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/current_app_presentation.test.mjs"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/checks/api",
+      "exit_code": 0,
+      "gate": {
+        "status": "PASS",
+        "expected_tests": 27,
+        "observed_tests": 27,
+        "passed": 27,
+        "skipped": 0,
+        "failures": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "passed": 27,
+      "skipped": 0
+    },
+    "fixture_vue": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/tests/verify_integrated_fixture.mjs",
+        "/workspace/scratch/49c844334a98/r3_review/final_checks/full_chain_fixture"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/checks/api",
+      "exit_code": 0
+    }
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

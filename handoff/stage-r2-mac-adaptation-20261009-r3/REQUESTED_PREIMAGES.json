@@ -1,0 +1,21 @@
+{
+  "schema_version": "V4_R3_PREIMAGE_STATUS_V1",
+  "feedback_commit": "3112c1ee8ed2826c5d77b5d0a4f1e2cd5fc95e45",
+  "required_now": [],
+  "mapped_current_status": {
+    "stage": "16/16 MAC BEFORE_MATCH",
+    "api": "2/2 MAC BEFORE_MATCH",
+    "ui_existing": "2 exact current attachments",
+    "ui_component": "ABSENT_EXPLICIT_ADD"
+  },
+  "runtime_boundaries_not_new_code_preconditions": [
+    "current useAppShell/types/formatters and web package/lock copied unchanged",
+    "current API factory/launcher configuration unchanged",
+    "actual PyTDX ExHQ dependency copied unchanged",
+    "quarantined external v3.5 dynamic dependency CANNOT_CONFIRM"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

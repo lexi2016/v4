@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "files": [
+    {
+      "path": "apps/web/src/App.vue",
+      "bytes": 30558,
+      "after_sha256": "9eda6f27950eea3e2377335a79420fe43b16ca62ad32c87e701f9dda69f6c15d",
+      "operation": "modify"
+    },
+    {
+      "path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "bytes": 8779,
+      "after_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "operation": "add"
+    },
+    {
+      "path": "apps/web/src/contracts/runtime.ts",
+      "bytes": 4268,
+      "after_sha256": "ff6ee3eadd8d9a20668bcb91b94d828d366c71e438b2358062140d4d2da173ba",
+      "operation": "modify"
+    }
+  ],
+  "before_runtime_bytes_preserved": 1540,
+  "legacy_test_bytes_unchanged": true,
+  "patch_apply_exit_code": 0,
+  "patch_apply_exact_after_sha": true,
+  "patch_apply_root": "/workspace/scratch/49c844334a98/r3_review/current_ui_patch_apply"
+}

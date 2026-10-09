@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.866" timestamp="2026-10-09T05:08:16.406861-07:00" hostname="f2c20067ed3d"><testcase classname="checks.adaptation.test_run_checks_completeness" name="test_zero_exit_incomplete_or_skipped_suite_cannot_pass[fewer-stage]" time="0.836"><failure message="AssertionError: stage with fewer incorrectly passed despite exit-0 children&#10;assert 0 != 0">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-329/test_zero_exit_incomplete_or_s0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f43af8a8da0&gt;
+suite = 'stage', defect = 'fewer'
+
+    @pytest.mark.parametrize("suite", ["stage", "api", "vue", "adaptation", "vue_actual"])
+    @pytest.mark.parametrize("defect", ["fewer", "skip"])
+    def test_zero_exit_incomplete_or_skipped_suite_cannot_pass(tmp_path, monkeypatch, suite, defect):
+        code, report = execute_gate(tmp_path, monkeypatch, suite, defect)
+&gt;       assert code != 0, f"{suite} with {defect} incorrectly passed despite exit-0 children"
+E       AssertionError: stage with fewer incorrectly passed despite exit-0 children
+E       assert 0 != 0
+
+checks/adaptation/test_run_checks_completeness.py:84: AssertionError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "scope": "REAL_VUE_SFC_COMPILE_SSR_OF_OFFLINE_FULL_CHAIN_CONSUMER_JSON",
+  "run_id": "run-2c40a8d057e1beffde847ab1",
+  "selected_rows": 10,
+  "requested_rows": 695,
+  "source_rows": 695,
+  "api_run_sha_scope_assertions": "api_readback_assertions.json",
+  "a_borrowed_hk_rows": false,
+  "primary_hk_text": "港股通 已计算 10 只 行情 695 / 695 只，缺 0 只 选股产物计数 研究来源限制 当日研究；非正式 D1；港股通资格待确认。 名单日期 20261008；采集时间 2026-10-09T15:38:41+08:00。 沿用较早名单，保留原名单日期。 结果与原执行记录已绑定",
+  "primary_a_text": "A股 选股结果待核对 行情 未知 / 未知 只；缺口数量未知 行情计数未绑定 执行记录尚未完整绑定",
+  "natural_label_displayed": false,
+  "node": "v24.19.0",
+  "packages": {
+    "vue": "3.5.13",
+    "@vue/compiler-sfc": "3.5.13",
+    "@vue/server-renderer": "3.5.13"
+  },
+  "current_app": {
+    "status": "PASS",
+    "scope": "EXACT_CURRENT_APP_AND_PANEL_SFC_WITH_EXPLICIT_APP_SHELL_STATE_FIXTURE_AND_OTHER_VIEW_STUBS",
+    "http_or_browser_acceptance": "NOT_RUN",
+    "source_files": {
+      "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/after/ui/apps/web/src/App.vue": "9eda6f27950eea3e2377335a79420fe43b16ca62ad32c87e701f9dda69f6c15d",
+      "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d"
+    },
+    "trade_date": "20261009",
+    "stage_id": "STAGE_0930_0935",
+    "market": "HK_CONNECT",
+    "run_id": "run-2c40a8d057e1beffde847ab1",
+    "artifact_id": "selection-2c40a8d057e1beffde847ab1",
+    "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+    "raw_artifact_sha256": "3c942a34e3dcb713ed250f0d42e5f031f4aa09e0cb09b3691678a0a288576741",
+    "selected_rows": 10,
+    "current_hk_column": "已计算 10 只",
+    "primary_hk_text": "港股通 已计算 10 只 行情 695 / 695 只，缺 0 只 选股产物计数 研究来源限制 当日研究；非正式 D1；港股通资格待确认。 名单日期 20261008；采集时间 2026-10-09T15:38:41+08:00。 沿用较早名单，保留原名单日期。 结果与原执行记录已绑定",
+    "manager_navigation_retained": true
+  }
+}

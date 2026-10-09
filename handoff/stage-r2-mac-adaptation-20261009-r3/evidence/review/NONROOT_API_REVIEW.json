@@ -1,0 +1,162 @@
+{
+  "status": "PASS_REAL_NONROOT_RED_GREEN",
+  "runs": {
+    "old_r2": {
+      "euid": 65534,
+      "result": {
+        "schema_version": "V4_EXACT_SHA_CANARY_PREPARATION_V1",
+        "status": "COPY_FAILED",
+        "group": "api",
+        "package": "/workspace/scratch/49c844334a98/r3_review/independent_nonroot_api/package",
+        "source_root": "/workspace/scratch/49c844334a98/r3_review/independent_nonroot_api/actual",
+        "destination": "/workspace/scratch/49c844334a98/r3_review/independent_nonroot_api/old_r2",
+        "inspect_only": false,
+        "write_performed": true,
+        "files": [
+          {
+            "relative_path": "stage_center/runner.py",
+            "accepted_before_sha256": [
+              "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3"
+            ],
+            "after_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+            "observed_sha256": "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3",
+            "status": "BEFORE_MATCH"
+          },
+          {
+            "relative_path": "stage_center/consumer.py",
+            "accepted_before_sha256": [
+              "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6"
+            ],
+            "after_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+            "observed_sha256": "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6",
+            "status": "BEFORE_MATCH"
+          }
+        ],
+        "package_files": [
+          {
+            "group": "api",
+            "relative_path": "stage_center/runner.py",
+            "after_path": "after/api/stage_center/runner.py",
+            "after_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+            "observed_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+            "status": "AFTER_SHA_MATCH"
+          },
+          {
+            "group": "api",
+            "relative_path": "stage_center/consumer.py",
+            "after_path": "after/api/stage_center/consumer.py",
+            "after_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+            "observed_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+            "status": "AFTER_SHA_MATCH"
+          }
+        ],
+        "errors": [
+          "[Errno 13] Permission denied: '/workspace/scratch/49c844334a98/r3_review/independent_nonroot_api/old_r2/stage_center/tmpynx2o_ro'"
+        ],
+        "source_files_changed": [],
+        "source_verification_scope": "MAPPED_FILES",
+        "ignored_names": [
+          ".git",
+          ".pytest_cache",
+          ".venv",
+          "__pycache__",
+          "node_modules"
+        ],
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "source_map_sha256": "ca82d90930e6dbfb4fee0e9f306b0e7eb54f836a0dd52d9ab25584b1f2c0c9dd"
+      }
+    },
+    "fixed_r3": {
+      "euid": 65534,
+      "result": {
+        "schema_version": "V4_EXACT_SHA_CANARY_PREPARATION_V1",
+        "status": "CANARY_PREPARED",
+        "group": "api",
+        "package": "/workspace/scratch/49c844334a98/r3_review/independent_nonroot_api/package",
+        "source_root": "/workspace/scratch/49c844334a98/r3_review/independent_nonroot_api/actual",
+        "destination": "/workspace/scratch/49c844334a98/r3_review/independent_nonroot_api/fixed_r3",
+        "inspect_only": false,
+        "write_performed": true,
+        "files": [
+          {
+            "relative_path": "stage_center/runner.py",
+            "operation": "modify",
+            "accepted_before_sha256": [
+              "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3"
+            ],
+            "after_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+            "observed_sha256": "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3",
+            "status": "BEFORE_MATCH",
+            "destination_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec"
+          },
+          {
+            "relative_path": "stage_center/consumer.py",
+            "operation": "modify",
+            "accepted_before_sha256": [
+              "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6"
+            ],
+            "after_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+            "observed_sha256": "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6",
+            "status": "BEFORE_MATCH",
+            "destination_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477"
+          }
+        ],
+        "package_files": [
+          {
+            "group": "api",
+            "relative_path": "stage_center/runner.py",
+            "after_path": "after/api/stage_center/runner.py",
+            "after_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+            "observed_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+            "status": "AFTER_SHA_MATCH"
+          },
+          {
+            "group": "api",
+            "relative_path": "stage_center/consumer.py",
+            "after_path": "after/api/stage_center/consumer.py",
+            "after_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+            "observed_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+            "status": "AFTER_SHA_MATCH"
+          }
+        ],
+        "errors": [],
+        "source_files_changed": [],
+        "source_verification_scope": "DECLARED_SOURCE_SET_BYTES_MODES_AND_LINK_IDENTITIES",
+        "permissions_restored": true,
+        "source_bytes_and_permissions_unchanged": true,
+        "ignored_names": [
+          ".cache",
+          ".git",
+          ".pytest_cache",
+          ".venv",
+          "__pycache__",
+          "node_modules",
+          "venv"
+        ],
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "source_map_sha256": "ca82d90930e6dbfb4fee0e9f306b0e7eb54f836a0dd52d9ab25584b1f2c0c9dd",
+        "canary_source_policy_sha256": null,
+        "copy_roots": [
+          "."
+        ],
+        "optional_roots": [],
+        "source_tree_sha256": "30778ea357f14601b0616d47700b88c1d5b95f8c88feb0121efb7340f66a439c",
+        "source_links": [],
+        "excluded_roots": [],
+        "candidate_source_manifest": "/workspace/scratch/49c844334a98/r3_review/independent_nonroot_api/fixed_r3/CANARY_SOURCE_MANIFEST.json",
+        "candidate_source_manifest_sha256": "3d8d113f650d7234b9fec22672c2e99903e9059b998045b0cde081238a183d9d"
+      }
+    }
+  },
+  "source_bytes_modes_uid_gid_unchanged": true,
+  "old_partial_copy_preserved": true,
+  "fixed_destination_modes_restored": true,
+  "reviewed_prepare_sha256": "e2aefe2196b4087dd4158463222f4346f6be310aac6b52ad79afab57052ea014",
+  "scope": "Independent synthetic fixture reproducing 0555 directories and 0444 mapped files; no actual Mac path accessed"
+}

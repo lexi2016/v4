@@ -1,0 +1,60 @@
+{
+  "status": "PASS_LOCAL_INPUT_BYTES_MATCH_RECORDED_REMOTE_BLOBS",
+  "commit": "3112c1ee8ed2826c5d77b5d0a4f1e2cd5fc95e45",
+  "parent_commits": [
+    "4db264512b71723cb13680c4f7554deef401ef44"
+  ],
+  "remote_identity_scope": "Root-provided connector read receipt; reviewer independently hashed all local feedback blobs without Git or network calls",
+  "rows": [
+    {
+      "relative_path": "HANDOFF.md",
+      "git_blob_sha1": "228163344f71efdc9fd1d0e8d22a13e114675bca",
+      "matches": true
+    },
+    {
+      "relative_path": "INDEPENDENT_REVIEW.json",
+      "git_blob_sha1": "ba929db941e876b150bd76332ca9a8d68136fa32",
+      "matches": true
+    },
+    {
+      "relative_path": "PROMPT_FOR_CHAT.md",
+      "git_blob_sha1": "719c4ce37fd19d81f3885a6e1da81f9795aeacde",
+      "matches": true
+    },
+    {
+      "relative_path": "SOURCE_MAP.json",
+      "git_blob_sha1": "f984c28f24c86978f31e26e2d8b39b17e70913ff",
+      "matches": true
+    },
+    {
+      "relative_path": "evidence/api_prepare.json",
+      "git_blob_sha1": "78a6fb7e2c34e9a23719781b11c6512ce5b9653b",
+      "matches": true
+    },
+    {
+      "relative_path": "evidence/stage_prepare.json",
+      "git_blob_sha1": "3eafa10c06744360aa841dbc971434eb849a13c5",
+      "matches": true
+    },
+    {
+      "relative_path": "evidence/ui_prepare.json",
+      "git_blob_sha1": "18ba6a20523ee636a0afeda8e19434f2cb58853c",
+      "matches": true
+    },
+    {
+      "relative_path": "local_observations.json",
+      "git_blob_sha1": "d1cab373512f2bcdb99e3e19879ba3285f37300c",
+      "matches": true
+    },
+    {
+      "relative_path": "ui_actual/apps/web/src/App.vue",
+      "git_blob_sha1": "760bd4f73043c12eba6f08020ab1b37df53e5287",
+      "matches": true
+    },
+    {
+      "relative_path": "ui_actual/apps/web/src/contracts/runtime.ts",
+      "git_blob_sha1": "3f633ea627e86f28d4745834e5a6e43df1e09fcd",
+      "matches": true
+    }
+  ]
+}

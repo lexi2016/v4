@@ -1,0 +1,81 @@
+{
+  "status": "PASS",
+  "scope": "EXACT_CURRENT_MAC_APP_PLUS_R3_PATCH_REAL_VUE_COMPILE_SSR_VNODE_EVENTS_WITH_EXPLICIT_SHELL_AND_OTHER_VIEW_FIXTURES",
+  "finished_at_utc": "2026-10-09T12:18:58.713059+00:00",
+  "results": {
+    "final_vue45": {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/legacy_presentation.test.mjs",
+        "tests/research_presentation.test.mjs"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/r3_lane_ui/checks/api",
+      "exit_code": 0,
+      "expected": 45,
+      "tests": 45,
+      "pass": 45,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0
+    },
+    "final_vue_actual27": {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/current_app_presentation.test.mjs"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/r3_lane_ui/checks/api",
+      "exit_code": 0,
+      "expected": 27,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0
+    },
+    "final_fixture_vue": {
+      "command": [
+        "node",
+        "tests/verify_integrated_fixture.mjs",
+        "/workspace/scratch/49c844334a98/r3_lane_ui/evidence/full_chain_fixture"
+      ],
+      "cwd": "/workspace/scratch/49c844334a98/r3_lane_ui/checks/api",
+      "exit_code": 0,
+      "expected": null
+    }
+  },
+  "total_vue_tests": 72,
+  "skipped": 0,
+  "HTTP": "NOT_RUN",
+  "BROWSER": "NOT_RUN",
+  "CURRENT_SHELL_IMPLEMENTATION": "NOT_VERIFIED_HISTORICAL_REFERENCE_ONLY",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "final_red_before": {
+    "tests": 27,
+    "pass": 8,
+    "fail": 19,
+    "skipped": 0
+  },
+  "source_sha256": {
+    "apps/web/src/App.vue": "9eda6f27950eea3e2377335a79420fe43b16ca62ad32c87e701f9dda69f6c15d",
+    "apps/web/src/contracts/runtime.ts": "ff6ee3eadd8d9a20668bcb91b94d828d366c71e438b2358062140d4d2da173ba",
+    "apps/web/src/components/review/StageExecutionEvidencePanel.vue": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d"
+  },
+  "test_sha256": {
+    "checks/api/tests/current_app_presentation.test.mjs": "9b3029275b85c24b364521afa55e38896ad341aea72c8b9ec72cf4e1cc3932a8",
+    "checks/api/tests/legacy_presentation.test.mjs": "e414c776f8af300b4cefa34d3d30f2757d6d4759be6e9eceb3d6c71e1edaa0a9",
+    "checks/api/tests/verify_integrated_fixture.mjs": "a8b386a57f0088f7f68e2e155521ffdaac4a4ffc7963557d6214874913fb4bb9",
+    "checks/api/tests/research_presentation.test.mjs": "951e91afa47227e3c0f1c860b0dd6a83c0262607baf2c17e29a1470650b7c704",
+    "checks/api/tests/render_fixture.mjs": "a5b88c64df9f5e959fb81959bded1131a2e3ff8352b490b5abffc62949a9570e",
+    "checks/api/tests/ssr_harness.mjs": "41c73146ad63d2e07e20a0a299c5d55121742826455276fd37461f36995ba108",
+    "checks/api/tests/actual_app_harness.mjs": "f465b29c4c1f6001e8cafa9b0d3437436c2f9a3366be3c5b6a0b108207b21a2c"
+  }
+}

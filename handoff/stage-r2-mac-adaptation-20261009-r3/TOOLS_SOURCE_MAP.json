@@ -1,0 +1,51 @@
+{
+  "schema_version": "V4_R3_TOOLS_SOURCE_MAP_V1",
+  "scope": "PACKAGE_TOOLS_NOT_APP_OVERLAY",
+  "files": [
+    {
+      "relative_path": "tools/canary_sources.py",
+      "operation": "add",
+      "before_path": null,
+      "before_sha256": null,
+      "after_path": "tools/canary_sources.py",
+      "after_sha256": "5c7e0079796bc599fa43b684f81aae3ce55977e6fade71a0f3580d9d72610ebb",
+      "source_ref": null
+    },
+    {
+      "relative_path": "tools/prepare_canary.py",
+      "operation": "modify",
+      "before_path": "tool_before/prepare_canary.py",
+      "before_sha256": "e09ea8493dbf775b6162c252b0707b5dc2f121cf0ab7495c0b953efa2135b751",
+      "after_path": "tools/prepare_canary.py",
+      "after_sha256": "e2aefe2196b4087dd4158463222f4346f6be310aac6b52ad79afab57052ea014",
+      "source_ref": "7a9c94d43a296372488541b02e8e35a0f763dc1a"
+    },
+    {
+      "relative_path": "tools/run_current_research_canary.py",
+      "operation": "modify",
+      "before_path": "tool_before/run_current_research_canary.py",
+      "before_sha256": "802657e5edcde27904b18635aeaa717c481cb49aa8a9884e939f30dbc7ebd679",
+      "after_path": "tools/run_current_research_canary.py",
+      "after_sha256": "60cc21568422f2c664d0747c3a0a04ce6a464b0acd73a9cdb1faacc90991fab4",
+      "source_ref": "7a9c94d43a296372488541b02e8e35a0f763dc1a"
+    },
+    {
+      "relative_path": "tools/run_checks.py",
+      "operation": "modify",
+      "before_path": "tool_before/run_checks.py",
+      "before_sha256": "2bfdd7afc8ecbbbc3307958a4d80e8dd27dbc71e5e0d1e17b0b6bc4a4bc4a0e5",
+      "after_path": "tools/run_checks.py",
+      "after_sha256": "ccf7e10d87d4f71a0bf8711e07e3b445f83c4255817e55d255a04f342732a81a",
+      "source_ref": "7a9c94d43a296372488541b02e8e35a0f763dc1a"
+    },
+    {
+      "relative_path": "tools/verify_package.py",
+      "operation": "modify",
+      "before_path": "tool_before/verify_package.py",
+      "before_sha256": "3583ef87d7d298c1dec72dc0ce2883a19833b6f1c6e8b12cb2e625a85952611b",
+      "after_path": "tools/verify_package.py",
+      "after_sha256": "eb0b14f781b88b8db2e2e9dd7271409c025553354a848e515916458105bd3486",
+      "source_ref": "7a9c94d43a296372488541b02e8e35a0f763dc1a"
+    }
+  ]
+}

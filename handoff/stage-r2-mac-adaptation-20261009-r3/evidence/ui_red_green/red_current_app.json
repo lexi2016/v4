@@ -1,0 +1,15 @@
+{
+  "phase": "before",
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/current_app_presentation.test.mjs"
+  ],
+  "exit_code": 1,
+  "source_scope": "EXACT_CURRENT_MAC_APP_NO_PANEL",
+  "tests": 27,
+  "pass": 8,
+  "fail": 19,
+  "skipped": 0
+}

@@ -1,0 +1,88 @@
+{
+  "status": "CANDIDATE_DRIVER_VERIFIED",
+  "completed_at_utc": "2026-10-09T10:48:04.604890+00:00",
+  "production_code_modified": false,
+  "files": [
+    {
+      "path": "tools/run_current_research_canary.py",
+      "bytes": 18523,
+      "sha256": "802657e5edcde27904b18635aeaa717c481cb49aa8a9884e939f30dbc7ebd679"
+    },
+    {
+      "path": "tools/RUN_CURRENT_RESEARCH_CANARY.md",
+      "bytes": 5947,
+      "sha256": "b546feb2351047de605724742475c830b2472c3a73c2500982b2b20631712b06"
+    },
+    {
+      "path": "canary_tests/test_run_current_research_canary.py",
+      "bytes": 12819,
+      "sha256": "56560b2537fc8fb50cf752b20104714e4657c490cc9800c62a5f549647190ab3"
+    }
+  ],
+  "red": {
+    "tests": 11,
+    "failures": 11,
+    "errors": 0,
+    "reason": "Feature absent: current research canary driver not implemented",
+    "evidence": "canary_evidence/red"
+  },
+  "first_green": {
+    "tests": 11,
+    "failures": 0,
+    "errors": 0,
+    "evidence": "canary_evidence/green_first"
+  },
+  "final": {
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "canary_tests",
+      "--junitxml=/workspace/scratch/49c844334a98/lane_a/canary_evidence/final_portable/junit.xml"
+    ],
+    "cwd": "/workspace/scratch/49c844334a98/lane_a",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "environment_overrides": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "RESEARCH_ONLY": "true",
+      "CANARY_TEST_PACKAGE": "/workspace/scratch/49c844334a98/v4/handoff/stage-research-recovery-20261009-r2",
+      "CANARY_TEST_STAGE_APP": "/workspace/scratch/49c844334a98/integration_app",
+      "CANARY_TEST_DRIVER": "/workspace/scratch/49c844334a98/lane_a/tools/run_current_research_canary.py"
+    },
+    "returncode": 0,
+    "counts": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "source_sha256": {
+      "/workspace/scratch/49c844334a98/lane_a/tools/run_current_research_canary.py": "802657e5edcde27904b18635aeaa717c481cb49aa8a9884e939f30dbc7ebd679",
+      "/workspace/scratch/49c844334a98/lane_a/canary_tests/test_run_current_research_canary.py": "56560b2537fc8fb50cf752b20104714e4657c490cc9800c62a5f549647190ab3"
+    },
+    "source_unchanged_during_run": true,
+    "completed_at_utc": "2026-10-09T10:46:44.467304+00:00"
+  },
+  "coverage": [
+    "SOURCE_MAP package/stage after SHA before output creation",
+    "fixed pin four raw SHA and dates before output creation",
+    "original shared HQ accepted before/after -> independent full dependency copy -> exact after",
+    "candidate app shared after used directly without copy",
+    "original config/input/app/shared bytes unchanged; lexical venv preserved",
+    "unsupported auction/Stage8 refused",
+    "CLI config secret sentinel not emitted",
+    "real owner child historical tick: 10 HK selections with same receipt/history/trio readback",
+    "real owner child empty quote input: no false selected-result success"
+  ],
+  "not_run": [
+    "Actual Mac four-file source validation",
+    "Live PyTDX or Futu acquisition",
+    "Deployment or production replacement"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

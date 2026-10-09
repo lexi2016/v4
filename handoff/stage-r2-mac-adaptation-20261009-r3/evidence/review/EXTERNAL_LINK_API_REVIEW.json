@@ -1,0 +1,143 @@
+{
+  "status": "PASS_INDEPENDENT_PYTHON_API_NONFOLLOWING_PROBE",
+  "prepare_status": "CANARY_PREPARED",
+  "reviewed_helper_sha256": "5c7e0079796bc599fa43b684f81aae3ce55977e6fade71a0f3580d9d72610ebb",
+  "scope": "Actual frozen prepare with existing synthetic external target, instrumenting DirEntry classification, os.stat, readlink, os.open and builtin open. Native syscall tracing was NOT_RUN because ptrace is disabled in this environment.",
+  "native_trace": {
+    "status": "NOT_RUN",
+    "reason": "PTRACE_TRACEME Operation not permitted; no approval requested"
+  },
+  "forbidden_calls_observed": 0,
+  "link_api_calls": [
+    {
+      "op": "os.stat",
+      "path": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/actual/upstreams/v3.5",
+      "follow_symlinks": false
+    },
+    {
+      "op": "os.readlink",
+      "path": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/actual/upstreams/v3.5"
+    },
+    {
+      "op": "os.stat",
+      "path": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/actual/upstreams/v3.5",
+      "follow_symlinks": false
+    },
+    {
+      "op": "os.readlink",
+      "path": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/actual/upstreams/v3.5"
+    },
+    {
+      "op": "os.stat",
+      "path": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/actual/upstreams/v3.5",
+      "follow_symlinks": false
+    },
+    {
+      "op": "os.readlink",
+      "path": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/actual/upstreams/v3.5"
+    },
+    {
+      "op": "os.stat",
+      "path": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/actual/upstreams/v3.5",
+      "follow_symlinks": false
+    },
+    {
+      "op": "os.readlink",
+      "path": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/actual/upstreams/v3.5"
+    }
+  ],
+  "result": {
+    "schema_version": "V4_EXACT_SHA_CANARY_PREPARATION_V1",
+    "status": "CANARY_PREPARED",
+    "group": "stage",
+    "package": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/package",
+    "source_root": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/actual",
+    "destination": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/candidate",
+    "inspect_only": false,
+    "write_performed": true,
+    "files": [
+      {
+        "relative_path": "stage_center/runner.py",
+        "operation": "modify",
+        "accepted_before_sha256": [
+          "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3"
+        ],
+        "after_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+        "observed_sha256": "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3",
+        "status": "BEFORE_MATCH",
+        "destination_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec"
+      },
+      {
+        "relative_path": "stage_center/consumer.py",
+        "operation": "modify",
+        "accepted_before_sha256": [
+          "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6"
+        ],
+        "after_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+        "observed_sha256": "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6",
+        "status": "BEFORE_MATCH",
+        "destination_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477"
+      }
+    ],
+    "package_files": [
+      {
+        "group": "stage",
+        "relative_path": "stage_center/runner.py",
+        "after_path": "after/stage/stage_center/runner.py",
+        "after_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+        "observed_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+        "status": "AFTER_SHA_MATCH"
+      },
+      {
+        "group": "stage",
+        "relative_path": "stage_center/consumer.py",
+        "after_path": "after/stage/stage_center/consumer.py",
+        "after_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+        "observed_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+        "status": "AFTER_SHA_MATCH"
+      }
+    ],
+    "errors": [],
+    "source_files_changed": [],
+    "source_verification_scope": "DECLARED_SOURCE_SET_BYTES_MODES_AND_LINK_IDENTITIES",
+    "permissions_restored": true,
+    "source_bytes_and_permissions_unchanged": true,
+    "ignored_names": [
+      ".cache",
+      ".git",
+      ".pytest_cache",
+      ".venv",
+      "__pycache__",
+      "node_modules",
+      "venv"
+    ],
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "source_map_sha256": "c790e191c6236228bb5c6622d1ea859832cb6824552a5bc682bce80d13f0fcbf",
+    "canary_source_policy_sha256": "0b091a115580b72bf8f008c763a0d3d96ed90f5e77a4ea9c4d74d06f171841ba",
+    "copy_roots": [
+      "."
+    ],
+    "optional_roots": [],
+    "source_tree_sha256": "7e2544f2efd1b4c15bf8423b6b583ddb686e4c3915be8a01969b53f7482b8899",
+    "source_links": [
+      {
+        "relative_path": "upstreams/v3.5",
+        "actual_path": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/actual/upstreams/v3.5",
+        "link_text": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/external_release",
+        "action": "quarantine",
+        "device": 27,
+        "inode": 1096003,
+        "mtime_ns": 1791549276840377344,
+        "ctime_ns": 1791549276840377344,
+        "target_contents_read": false,
+        "lexical_target": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/external_release"
+      }
+    ],
+    "excluded_roots": [],
+    "candidate_source_manifest": "/workspace/scratch/49c844334a98/r3_review/external_link_syscall_probe/candidate/CANARY_SOURCE_MANIFEST.json",
+    "candidate_source_manifest_sha256": "e0f0063909294a5fa02282de4a12f176a799c3f679f473a819afd747776342ae"
+  }
+}

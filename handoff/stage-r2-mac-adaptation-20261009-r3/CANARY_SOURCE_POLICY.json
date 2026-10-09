@@ -1,0 +1,44 @@
+{
+  "schema_version": "V4_CANARY_SOURCE_POLICY_V1",
+  "provenance": {
+    "feedback_commit": "3112c1ee8ed2826c5d77b5d0a4f1e2cd5fc95e45",
+    "evidence": "local_observations.json:stage_symlinks",
+    "source_identity": "Exact existing Mac link text; external target contents were not supplied or read"
+  },
+  "runtime_boundary": {
+    "static_stage_reference_result": "NO_DIRECT_REFERENCE_TO_upstreams/v3.5_IN_REVIEWED_STAGE_CODE",
+    "external_target_dependency_status": "CANNOT_CONFIRM",
+    "quarantine_meaning": "Omit the exact legacy link from the candidate, retain its source identity, and reject configuration or relevant environment paths that require its target",
+    "dynamic_scope": "Shared modules, data-derived paths, and collector child processes still require actual Mac execution evidence"
+  },
+  "groups": {
+    "stage": {
+      "copy_roots": ["."],
+      "optional_roots": [],
+      "symlinks": [
+        {
+          "relative_path": "v3_shared_data",
+          "link_text": "upstreams/v3_shared_data",
+          "action": "preserve_internal",
+          "reason": "Observed internal shared-data dependency; its target must remain inside the selected source set and contain no symlink path components"
+        },
+        {
+          "relative_path": "upstreams/v3.5",
+          "link_text": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260818T140000Z-v35-stage-input-owner/app/upstreams/v3.5",
+          "action": "quarantine",
+          "reason": "Known legacy external link; copy neither the link nor its target, inspect only source lstat/readlink, and preserve CANNOT_CONFIRM for the complete dynamic dependency closure"
+        }
+      ]
+    },
+    "api": {
+      "copy_roots": ["."],
+      "optional_roots": [],
+      "symlinks": []
+    },
+    "ui": {
+      "copy_roots": ["apps/web"],
+      "optional_roots": [],
+      "symlinks": []
+    }
+  }
+}

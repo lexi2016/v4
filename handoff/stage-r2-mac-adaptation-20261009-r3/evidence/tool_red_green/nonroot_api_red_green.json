@@ -1,0 +1,230 @@
+{
+  "all_source_bytes_permissions_uid_gid_unchanged": true,
+  "green": {
+    "result": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "canary_source_policy_sha256": null,
+      "candidate_source_manifest": "/workspace/scratch/49c844334a98/r3_lane_tools/evidence/nonroot_api_real_case/candidate_fixed/CANARY_SOURCE_MANIFEST.json",
+      "candidate_source_manifest_sha256": "2dac64f84dbca5e1ba68505219a6c2ae7652929d978a445ac701482d16cee1d2",
+      "copy_roots": [
+        "."
+      ],
+      "destination": "/workspace/scratch/49c844334a98/r3_lane_tools/evidence/nonroot_api_real_case/candidate_fixed",
+      "errors": [],
+      "excluded_roots": [],
+      "files": [
+        {
+          "accepted_before_sha256": [
+            "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3"
+          ],
+          "after_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+          "destination_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+          "observed_sha256": "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3",
+          "operation": "modify",
+          "relative_path": "stage_center/runner.py",
+          "status": "BEFORE_MATCH"
+        },
+        {
+          "accepted_before_sha256": [
+            "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6"
+          ],
+          "after_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+          "destination_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+          "observed_sha256": "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6",
+          "operation": "modify",
+          "relative_path": "stage_center/consumer.py",
+          "status": "BEFORE_MATCH"
+        }
+      ],
+      "group": "api",
+      "ignored_names": [
+        ".cache",
+        ".git",
+        ".pytest_cache",
+        ".venv",
+        "__pycache__",
+        "node_modules",
+        "venv"
+      ],
+      "inspect_only": false,
+      "optional_roots": [],
+      "orders_sent": false,
+      "package": "/workspace/scratch/49c844334a98/r3_lane_tools/evidence/nonroot_api_real_case/package",
+      "package_files": [
+        {
+          "after_path": "after/api/stage_center/runner.py",
+          "after_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+          "group": "api",
+          "observed_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+          "relative_path": "stage_center/runner.py",
+          "status": "AFTER_SHA_MATCH"
+        },
+        {
+          "after_path": "after/api/stage_center/consumer.py",
+          "after_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+          "group": "api",
+          "observed_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+          "relative_path": "stage_center/consumer.py",
+          "status": "AFTER_SHA_MATCH"
+        }
+      ],
+      "permissions_restored": true,
+      "production_allowed": false,
+      "schema_version": "V4_EXACT_SHA_CANARY_PREPARATION_V1",
+      "source_bytes_and_permissions_unchanged": true,
+      "source_files_changed": [],
+      "source_links": [],
+      "source_map_sha256": "ca82d90930e6dbfb4fee0e9f306b0e7eb54f836a0dd52d9ab25584b1f2c0c9dd",
+      "source_root": "/workspace/scratch/49c844334a98/r3_lane_tools/evidence/nonroot_api_real_case/actual",
+      "source_tree_sha256": "30778ea357f14601b0616d47700b88c1d5b95f8c88feb0121efb7340f66a439c",
+      "source_verification_scope": "DECLARED_SOURCE_SET_BYTES_MODES_AND_LINK_IDENTITIES",
+      "status": "CANARY_PREPARED",
+      "write_performed": true
+    },
+    "uid": 65534
+  },
+  "old_partial_inventory_unchanged": true,
+  "old_partial_retained": true,
+  "process_launcher": "unshare --user (isolated unmapped user namespace; no root identity over existing filesystem)",
+  "red": {
+    "result": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "destination": "/workspace/scratch/49c844334a98/r3_lane_tools/evidence/nonroot_api_real_case/candidate",
+      "errors": [
+        "[Errno 13] Permission denied: '/workspace/scratch/49c844334a98/r3_lane_tools/evidence/nonroot_api_real_case/candidate/stage_center/tmp2eshzq07'"
+      ],
+      "files": [
+        {
+          "accepted_before_sha256": [
+            "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3"
+          ],
+          "after_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+          "observed_sha256": "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3",
+          "relative_path": "stage_center/runner.py",
+          "status": "BEFORE_MATCH"
+        },
+        {
+          "accepted_before_sha256": [
+            "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6"
+          ],
+          "after_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+          "observed_sha256": "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6",
+          "relative_path": "stage_center/consumer.py",
+          "status": "BEFORE_MATCH"
+        }
+      ],
+      "group": "api",
+      "ignored_names": [
+        ".git",
+        ".pytest_cache",
+        ".venv",
+        "__pycache__",
+        "node_modules"
+      ],
+      "inspect_only": false,
+      "orders_sent": false,
+      "package": "/workspace/scratch/49c844334a98/r3_lane_tools/evidence/nonroot_api_real_case/package",
+      "package_files": [
+        {
+          "after_path": "after/api/stage_center/runner.py",
+          "after_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+          "group": "api",
+          "observed_sha256": "65fec1b7e4d9b6fe5409b41066fe794fddbfe4177c95bb186bcf56dd6905b5ec",
+          "relative_path": "stage_center/runner.py",
+          "status": "AFTER_SHA_MATCH"
+        },
+        {
+          "after_path": "after/api/stage_center/consumer.py",
+          "after_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+          "group": "api",
+          "observed_sha256": "84dde1bd2a1e5fd6bb70b7a12fa87a4db3e371d6efb5632b993cd95a618e9477",
+          "relative_path": "stage_center/consumer.py",
+          "status": "AFTER_SHA_MATCH"
+        }
+      ],
+      "production_allowed": false,
+      "schema_version": "V4_EXACT_SHA_CANARY_PREPARATION_V1",
+      "source_files_changed": [],
+      "source_map_sha256": "ca82d90930e6dbfb4fee0e9f306b0e7eb54f836a0dd52d9ab25584b1f2c0c9dd",
+      "source_root": "/workspace/scratch/49c844334a98/r3_lane_tools/evidence/nonroot_api_real_case/actual",
+      "source_verification_scope": "MAPPED_FILES",
+      "status": "COPY_FAILED",
+      "write_performed": true
+    },
+    "uid": 65534
+  },
+  "retry_destination_is_new": "/workspace/scratch/49c844334a98/r3_lane_tools/evidence/nonroot_api_real_case/candidate_fixed",
+  "schema_version": "R3_NONROOT_API_PERMISSION_REPRODUCTION_V1",
+  "source_inventory_after": {
+    ".": {
+      "gid": 0,
+      "kind": 16384,
+      "mode": 365,
+      "uid": 0
+    },
+    "stage_center": {
+      "gid": 0,
+      "kind": 16384,
+      "mode": 365,
+      "uid": 0
+    },
+    "stage_center/consumer.py": {
+      "gid": 0,
+      "kind": 32768,
+      "mode": 292,
+      "sha256": "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6",
+      "uid": 0
+    },
+    "stage_center/runner.py": {
+      "gid": 0,
+      "kind": 32768,
+      "mode": 292,
+      "sha256": "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3",
+      "uid": 0
+    },
+    "unchanged.txt": {
+      "gid": 0,
+      "kind": 32768,
+      "mode": 420,
+      "sha256": "ac554f44b6319d6cca9517aba36fdbe303b3d0dd8308dcb1491d7c02a3ad953b",
+      "uid": 0
+    }
+  },
+  "source_inventory_before": {
+    ".": {
+      "gid": 0,
+      "kind": 16384,
+      "mode": 365,
+      "uid": 0
+    },
+    "stage_center": {
+      "gid": 0,
+      "kind": 16384,
+      "mode": 365,
+      "uid": 0
+    },
+    "stage_center/consumer.py": {
+      "gid": 0,
+      "kind": 32768,
+      "mode": 292,
+      "sha256": "c77af570871809209e5f83c097a293c6ad65775ef5e908094c5290394e0f93a6",
+      "uid": 0
+    },
+    "stage_center/runner.py": {
+      "gid": 0,
+      "kind": 32768,
+      "mode": 292,
+      "sha256": "be34009fd4f970bbdb3ac7def0bf1de9943e313f8f55e992c8b50ebd5ff382f3",
+      "uid": 0
+    },
+    "unchanged.txt": {
+      "gid": 0,
+      "kind": 32768,
+      "mode": 420,
+      "sha256": "ac554f44b6319d6cca9517aba36fdbe303b3d0dd8308dcb1491d7c02a3ad953b",
+      "uid": 0
+    }
+  }
+}

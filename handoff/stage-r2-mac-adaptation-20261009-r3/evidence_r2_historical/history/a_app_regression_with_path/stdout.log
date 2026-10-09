@@ -1,0 +1,331 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: /workspace/scratch/49c844334a98/lane_a
+configfile: pytest.ini
+collected 19 items
+
+app/stage_center/tests/test_selection_consumer_batch3.py ........        [ 42%]
+app/tests/test_stage_research_context_v4.py F....F..FFF                  [100%]
+
+=================================== FAILURES ===================================
+_______ test_exact_cutoff_selects_verified_slot_and_preserves_provenance _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-252/test_exact_cutoff_selects_veri0')
+
+    def test_exact_cutoff_selects_verified_slot_and_preserves_provenance(tmp_path: Path) -> None:
+        root = tmp_path / "v4-data"
+        _write_morning(root)
+        _publish_slot(root, "20260911", "0900", with_stage_evidence=True)
+        _publish_slot(root, "20260911", "2300", with_stage_evidence=True)
+    
+        early = load_research_context(root, trade_date="20260911", stage_cutoff="09:35")
+        late = load_research_context(root, trade_date="20260911", stage_cutoff="23:59")
+    
+        assert early.selected_slot == "0900"
+        assert late.selected_slot == "2300"
+        assert early.by_code["A.000001"].research_quality_score == 72.5
+        assert early.by_code["A.000001"].research_delta_hits == 1
+        assert early.by_code["A.000001"].news_quality_score == 12.0
+>       assert early.cannot_confirm == ()
+E       AssertionError: assert ('RESEARCH_SO...aaaaaa.json',) == ()
+E         
+E         Left contains one more item: 'RESEARCH_SOURCE_WITNESS_MISSING:research/hourly/source/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.json'
+E         Use -v to get more diff
+
+app/tests/test_stage_research_context_v4.py:284: AssertionError
+_________ test_live_stage_uses_only_verified_formal_overlay_membership _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-252/test_live_stage_uses_only_veri0')
+
+    def test_live_stage_uses_only_verified_formal_overlay_membership(tmp_path: Path) -> None:
+        from stage_center.runner import _attach_a_authority
+    
+        plan, source, raw = _live_stage_fixture(tmp_path / "v4-data")
+        matched_source = _attach_a_authority(
+            source,
+            formal_root=_formal_root(tmp_path / "formal-match", "A.000001"),
+            trade_date="20260911",
+        )
+        assert matched_source.rows[0]["_formal_authority_overlay_verified"] is True
+        matched = production_selection_builders("STAGE_0930_0935")["A_SHARE"](
+            matched_source, plan, raw
+        )
+>       assert matched["source_status"] == "READY"
+E       AssertionError: assert 'CANNOT_CONFIRM' == 'READY'
+E         
+E         - READY
+E         + CANNOT_CONFIRM
+
+app/tests/test_stage_research_context_v4.py:442: AssertionError
+_____________ test_persistent_v4_node_entrypoint_checks_ten_nodes ______________
+
+    def test_persistent_v4_node_entrypoint_checks_ten_nodes() -> None:
+        assert len(NODE_IDS) == 10
+>       assert node_main(["--config", str(V4_ROOT / "stage_center_tick_config.json"), "--check"]) == 0
+E       AssertionError: assert 3 == 0
+E        +  where 3 = node_main(['--config', '/workspace/scratch/49c844334a98/lane_a/app/stage_center_tick_config.json', '--check'])
+
+app/tests/test_stage_research_context_v4.py:489: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"buy_gate_updated": false, "end_to_end_deadline": {"blocking_call_hard_timeout_covered": false, "budget_ns": 5000000000, "budget_status": "WITHIN_OBSERVED_INTERVAL", "business_success_verified": false, "business_write_may_have_occurred": false, "deadline_met": null, "due_metric_scope": "WALL_CLOCK_OBSERVATION_NOT_SYNTHETIC_EVALUATED_AT_OR_MONOTONIC_DURATION", "due_to_final_receipt_wall_ns": null, "elapsed_ns": 1255243, "events": [{"budget_ns": 5000000000, "elapsed_ns": 11177, "entry_monotonic_ns": 35669866544864, "entry_wall_ns": 1791540790086884777, "monotonic_ns": 35669866556041, "phase": "ENTRY_ANCHOR", "seq": 0, "start_scope": "ENTRY_LOWER_BOUND", "wall_time_ns": 1791540790086895363, "wall_time_utc": "2026-10-09T10:13:10.086895+00:00"}, {"elapsed_ns": 38707, "monotonic_ns": 35669866583571, "phase": "IMPORTS_ARGUMENTS_DONE", "seq": 1, "wall_time_ns": 1791540790086922903, "wall_time_utc": "2026-10-09T10:13:10.086923+00:00"}], "final_receipt": null, "measurement_scope": "ENTRY_LOWER_BOUND", "natural_verified": false, "policy": "observe", "schema_version": "stage_center.end_to_end_timing.v1"}, "error": "[Errno 2] No such file or directory: '/workspace/scratch/49c844334a98/lane_a/app/stage_center_tick_config.json'", "orders_sent": false, "production_allowed": false, "schema_version": "stage_center.node_schedule.v1", "status": "CANNOT_CONFIRM"}
+__________ test_v4_analyzer_is_pure_and_does_not_invent_stage_quality __________
+
+    def test_v4_analyzer_is_pure_and_does_not_invent_stage_quality() -> None:
+        from infrastructure.isolated_package_loader import load_isolated_package_module
+    
+>       module = load_isolated_package_module(
+            V4_ROOT / "upstreams",
+            package_directory="shared_research",
+            module_leaf="v3_zsxq_adapter",
+            namespace_prefix="stage_context_test_analyzer",
+        )
+
+app/tests/test_stage_research_context_v4.py:495: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+package_root = PosixPath('/workspace/scratch/49c844334a98/lane_a/app/upstreams')
+package_directory = 'shared_research', module_leaf = 'v3_zsxq_adapter'
+namespace_prefix = 'stage_context_test_analyzer'
+
+    @lru_cache(maxsize=16)
+    def load_isolated_package_module(
+        package_root: Path,
+        *,
+        package_directory: str,
+        module_leaf: str,
+        namespace_prefix: str,
+    ) -> ModuleType:
+        """Import a fixed module from a verified directory under an isolated name."""
+        for label, value in (
+            ("package_directory", package_directory),
+            ("module_leaf", module_leaf),
+            ("namespace_prefix", namespace_prefix),
+        ):
+            if not _SAFE_NAME.fullmatch(value):
+                raise ValueError(f"unsafe {label}: {value!r}")
+    
+        root = Path(package_root).resolve()
+        package_dir = root / package_directory
+        package_init = package_dir / "__init__.py"
+        module_path = package_dir / f"{module_leaf}.py"
+        if not package_init.is_file() or not module_path.is_file():
+>           raise ValueError(f"shared module missing: {module_path}")
+E           ValueError: shared module missing: /workspace/scratch/49c844334a98/lane_a/app/upstreams/shared_research/v3_zsxq_adapter.py
+
+app/infrastructure/isolated_package_loader.py:81: ValueError
+_____________ test_node_cli_check_is_reproducible_without_network ______________
+
+    def test_node_cli_check_is_reproducible_without_network() -> None:
+        command = [
+            "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+            "-B",
+            str(V4_ROOT / "ops/run_stage_center_nodes.py"),
+            "--config",
+            str(V4_ROOT / "stage_center_tick_config.json"),
+            "--check",
+        ]
+>       completed = subprocess.run(
+            command,
+            cwd=V4_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+            env={"PYTHONPATH": str(V4_ROOT), "PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"},
+        )
+
+app/tests/test_stage_research_context_v4.py:517: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Popen: returncode: 255 args: ['/Users/lexi/Library/Application Support/com....>
+args = ['/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python', '-B', '/workspace/scra...ge_center_nodes.py', '--config', '/workspace/scratch/49c844334a98/lane_a/app/stage_center_tick_config.json', '--check']
+executable = b'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python'
+preexec_fn = None, close_fds = True, pass_fds = ()
+cwd = PosixPath('/workspace/scratch/49c844334a98/lane_a/app')
+env = {'PYTHONPATH': '/workspace/scratch/49c844334a98/lane_a/app', 'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1'}
+startupinfo = None, creationflags = 0, shell = False, p2cread = -1
+p2cwrite = -1, c2pread = 11, c2pwrite = 12, errread = 13, errwrite = 14
+restore_signals = True, gid = None, gids = None, uid = None, umask = -1
+start_new_session = False, process_group = -1
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals,
+                       gid, gids, uid, umask,
+                       start_new_session, process_group):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        elif isinstance(args, os.PathLike):
+            if shell:
+                raise TypeError('path-like args is not allowed when '
+                                'shell is true')
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            # On Android the default shell is at '/system/bin/sh'.
+            unix_shell = ('/system/bin/sh' if
+                      hasattr(sys, 'getandroidapilevel') else '/bin/sh')
+            args = [unix_shell, "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+    
+        sys.audit("subprocess.Popen", executable, args, cwd, env)
+    
+        if (_USE_POSIX_SPAWN
+                and os.path.dirname(executable)
+                and preexec_fn is None
+                and not close_fds
+                and not pass_fds
+                and cwd is None
+                and (p2cread == -1 or p2cread > 2)
+                and (c2pwrite == -1 or c2pwrite > 2)
+                and (errwrite == -1 or errwrite > 2)
+                and not start_new_session
+                and process_group == -1
+                and gid is None
+                and gids is None
+                and uid is None
+                and umask < 0):
+            self._posix_spawn(args, executable, env, restore_signals,
+                              p2cread, p2cwrite,
+                              c2pread, c2pwrite,
+                              errread, errwrite)
+            return
+    
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+                        restore_signals, start_new_session,
+                        process_group, gid, gids, uid, umask,
+                        preexec_fn, _USE_VFORK)
+                self._child_created = True
+            finally:
+                # be sure the FD is closed no matter what
+                os.close(errpipe_write)
+    
+            self._close_pipe_fds(p2cread, p2cwrite,
+                                 c2pread, c2pwrite,
+                                 errread, errwrite)
+    
+            # Wait for exec to fail or succeed; possibly raising an
+            # exception (limited in size)
+            errpipe_data = bytearray()
+            while True:
+                part = os.read(errpipe_read, 50000)
+                errpipe_data += part
+                if not part or len(errpipe_data) > 50000:
+                    break
+        finally:
+            # be sure the FD is closed no matter what
+            os.close(errpipe_read)
+    
+        if errpipe_data:
+            try:
+                pid, sts = os.waitpid(self.pid, 0)
+                if pid == self.pid:
+                    self._handle_exitstatus(sts)
+                else:
+                    self.returncode = sys.maxsize
+            except ChildProcessError:
+                pass
+    
+            try:
+                exception_name, hex_errno, err_msg = (
+                        errpipe_data.split(b':', 2))
+                # The encoding here should match the encoding
+                # written in by the subprocess implementations
+                # like _posixsubprocess
+                err_msg = err_msg.decode()
+            except ValueError:
+                exception_name = b'SubprocessError'
+                hex_errno = b'0'
+                err_msg = 'Bad exception data from child: {!r}'.format(
+                              bytes(errpipe_data))
+            child_exception_type = getattr(
+                    builtins, exception_name.decode('ascii'),
+                    SubprocessError)
+            if issubclass(child_exception_type, OSError) and hex_errno:
+                errno_num = int(hex_errno, 16)
+                if err_msg == "noexec:chdir":
+                    err_msg = ""
+                    # The error must be from chdir(cwd).
+                    err_filename = cwd
+                elif err_msg == "noexec":
+                    err_msg = ""
+                    err_filename = None
+                else:
+                    err_filename = orig_executable
+                if errno_num != 0:
+                    err_msg = os.strerror(errno_num)
+                if err_filename is not None:
+>                   raise child_exception_type(errno_num, err_msg, err_filename)
+E                   FileNotFoundError: [Errno 2] No such file or directory: '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py:1955: FileNotFoundError
+- generated xml file: /workspace/scratch/49c844334a98/lane_a/evidence/app_regression_with_path/junit.xml -
+=========================== short test summary info ============================
+FAILED app/tests/test_stage_research_context_v4.py::test_exact_cutoff_selects_verified_slot_and_preserves_provenance
+FAILED app/tests/test_stage_research_context_v4.py::test_live_stage_uses_only_verified_formal_overlay_membership
+FAILED app/tests/test_stage_research_context_v4.py::test_persistent_v4_node_entrypoint_checks_ten_nodes
+FAILED app/tests/test_stage_research_context_v4.py::test_v4_analyzer_is_pure_and_does_not_invent_stage_quality
+FAILED app/tests/test_stage_research_context_v4.py::test_node_cli_check_is_reproducible_without_network
+========================= 5 failed, 14 passed in 0.32s =========================

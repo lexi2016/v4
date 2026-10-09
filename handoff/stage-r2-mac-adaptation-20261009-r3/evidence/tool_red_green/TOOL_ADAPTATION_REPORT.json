@@ -1,0 +1,124 @@
+{
+  "base_package": "stage-research-recovery-20261009-r2",
+  "dependency_boundary": {
+    "dynamic_dependency_status": "CANNOT_CONFIRM",
+    "external_legacy_link": "exact text observed using lstat/readlink only; omitted from candidate; no target traversal or chmod",
+    "internal_shared_link": "exact relative link preserved; target must be in the copied source set with no symlink path components",
+    "missing_static_evidence": "Actual Mac shared scripts/live_acquisition/pytdx_exhq.py, original runtime configuration/environment, and data-derived paths were not supplied; static Stage scan found no direct upstreams/v3.5 reference",
+    "runtime_guard": "19 existing RunnerConfig path fields and PYTHONPATH/V3_SHARED_DATA_SOURCE_ROOT only; effective overwritten output roots checked; lexical venv preserved",
+    "source_manifest": "source and candidate SHA/modes/link identity plus quarantined source identity"
+  },
+  "environment": {
+    "nonroot_process_launcher": "unshare --user",
+    "observed_nonroot_euid": 65534,
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+  },
+  "feedback_commit": "3112c1ee8ed2826c5d77b5d0a4f1e2cd5fc95e45",
+  "files": [
+    {
+      "after_bytes": 16958,
+      "after_sha256": "e2aefe2196b4087dd4158463222f4346f6be310aac6b52ad79afab57052ea014",
+      "before_bytes": 12760,
+      "before_sha256": "e09ea8493dbf775b6162c252b0707b5dc2f121cf0ab7495c0b953efa2135b751",
+      "operation": "modify",
+      "relative_path": "tools/prepare_canary.py"
+    },
+    {
+      "after_bytes": 25087,
+      "after_sha256": "60cc21568422f2c664d0747c3a0a04ce6a464b0acd73a9cdb1faacc90991fab4",
+      "before_bytes": 18523,
+      "before_sha256": "802657e5edcde27904b18635aeaa717c481cb49aa8a9884e939f30dbc7ebd679",
+      "operation": "modify",
+      "relative_path": "tools/run_current_research_canary.py"
+    },
+    {
+      "after_bytes": 12548,
+      "after_sha256": "5c7e0079796bc599fa43b684f81aae3ce55977e6fade71a0f3580d9d72610ebb",
+      "before_bytes": null,
+      "before_sha256": null,
+      "operation": "add",
+      "relative_path": "tools/canary_sources.py"
+    },
+    {
+      "after_bytes": 1895,
+      "after_sha256": "47fb035202d7cf8b8e087aef2abfc567066ac7c68f7302ca41f259e24638d1b5",
+      "before_bytes": null,
+      "before_sha256": null,
+      "operation": "add",
+      "relative_path": "CANARY_SOURCE_POLICY.json"
+    },
+    {
+      "after_bytes": 13373,
+      "after_sha256": "16cfb708fd03fb98a4a7bb53b567dabc76af4e6629df41c871ede98bdf2d2702",
+      "before_bytes": 12808,
+      "before_sha256": "cc279661a92668612d926c85a5481d5b30239e7ac8dca2ab44a7d08a73968e8d",
+      "operation": "modify",
+      "relative_path": "tests/test_run_current_research_canary.py"
+    },
+    {
+      "after_bytes": 15182,
+      "after_sha256": "d7c1d2ce3af923533fffef4867c8c822a2f793e4e9cab6e44f8583ff85401ad8",
+      "before_bytes": null,
+      "before_sha256": null,
+      "operation": "add",
+      "relative_path": "checks/adaptation/test_prepare_adaptation.py"
+    },
+    {
+      "after_bytes": 8969,
+      "after_sha256": "90e79f1571ffdc544dffcdb610c9955760a5c80f10762f231ec700ea068f70c9",
+      "before_bytes": null,
+      "before_sha256": null,
+      "operation": "add",
+      "relative_path": "checks/adaptation/test_driver_adaptation.py"
+    }
+  ],
+  "integration_note": "Parent owns SOURCE_MAP/policy binding, package verifier, fixed-count run_checks gate, complete business suites, and Git sync. Copy only the seven listed code/policy/test files plus selected small evidence; do not copy synthetic source trees or pytest temporary fixtures.",
+  "nonroot_result": {
+    "fixed_status": "CANARY_PREPARED",
+    "fixed_target_is_new": true,
+    "old_partial_retained_unchanged": true,
+    "original_errno": 13,
+    "original_status": "COPY_FAILED",
+    "source_bytes_modes_uid_gid_unchanged": true,
+    "uid": 65534
+  },
+  "not_run": [
+    "Actual Mac preparation",
+    "Real HK PyTDX canary",
+    "Live same-run HTTP API/UI readback",
+    "Natural-run acceptance"
+  ],
+  "red_evidence": {
+    "cross_tool_ignored_scope": "evidence/cache_red.log",
+    "driver": "evidence/driver_red.log",
+    "external_directory_classification": "evidence/no_follow_red.log",
+    "manifest_bypass": "evidence/manifest_red.log",
+    "prepare": "evidence/prepare_red.log",
+    "real_nonroot_api_permission_error": "evidence/nonroot_api_red_green.json"
+  },
+  "review_repairs": [
+    {
+      "finding": "os.walk directory classification may stat symlink targets",
+      "fix": "snapshot uses directory descriptors, scandir names, and lstat; full prepare test probes both DirEntry classification and os.stat",
+      "test": "test_external_quarantine_is_never_followed_even_for_directory_classification"
+    },
+    {
+      "finding": "Removing a policy-bound candidate manifest allowed legacy fallback and changed unmapped dependencies",
+      "fix": "Driver requires provenance whenever policy SHA is bound; original source preparation and no-policy legacy remain compatible",
+      "test": "test_policy_candidate_cannot_drop_manifest_and_run_changed_unmapped_dependencies"
+    }
+  ],
+  "schema_version": "R3_PREPARATION_TOOL_ADAPTATION_V1",
+  "scope": "Preparation/copy/manifest canary tooling only; original Stage/API business Python bytes were not edited",
+  "source_policy_sha256": "47fb035202d7cf8b8e087aef2abfc567066ac7c68f7302ca41f259e24638d1b5",
+  "tests": {
+    "adaptation_passed": 31,
+    "command": "CANARY_TEST_PACKAGE=/workspace/scratch/49c844334a98/r3_lane_tools/evidence/r3_policy_fixture_package CANARY_TEST_STAGE_APP=/workspace/scratch/49c844334a98/r3_lane_tools/evidence/r3_policy_fixture_prepared CANARY_TEST_DRIVER=/workspace/scratch/49c844334a98/r3_lane_tools/tools/run_current_research_canary.py python -m pytest -q checks/adaptation tests --basetemp=evidence/final_reviewed_tool_fixture --tb=short",
+    "existing_tool_tests_passed": 22,
+    "failed": 0,
+    "skipped": 0,
+    "stdout": "evidence/final_tool_tests.log",
+    "total_passed": 53
+  }
+}

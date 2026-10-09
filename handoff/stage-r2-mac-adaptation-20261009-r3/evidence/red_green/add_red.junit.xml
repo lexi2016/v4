@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.063" timestamp="2026-10-09T05:10:26.180028-07:00" hostname="f2c20067ed3d"><testcase classname="checks.adaptation.test_package_add_contract" name="test_explicit_absent_before_with_dev_null_patch_is_valid_new_file" time="0.036"><failure message="AssertionError: {'status': 'FAIL', 'error': &quot;unsupported operand type(s) for /: 'PosixPath' and 'NoneType'&quot;, 'write_performed': False}&#10;assert 3 == 0">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-332/test_explicit_absent_before_wi0')
+
+    def test_explicit_absent_before_with_dev_null_patch_is_valid_new_file(tmp_path):
+        root, _ = package(tmp_path)
+        code, result = run(root)
+&gt;       assert code == 0, result
+E       AssertionError: {'status': 'FAIL', 'error': "unsupported operand type(s) for /: 'PosixPath' and 'NoneType'", 'write_performed': False}
+E       assert 3 == 0
+
+checks/adaptation/test_package_add_contract.py:53: AssertionError</failure></testcase></testsuite></testsuites>

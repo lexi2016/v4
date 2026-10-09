@@ -1,0 +1,1538 @@
+{
+  "schema_version": "V4_OFFLINE_REFERENCE_SOURCE_INDEX_V2",
+  "base_commit": "0fc3e8304e11700230517616ded0c86f83a4b257",
+  "scope": "OFFLINE_TEST_DEPENDENCIES_ONLY_NOT_DEPLOYABLE_APP_OR_CURRENT_MAC_PROOF",
+  "files": [
+    {
+      "path": "contracts/__init__.py",
+      "sha256": "6334176641872990a56b559f965a9dc6d65f29ab0a0efc0752ef1a73fe42bc7d",
+      "git_blob_sha1": "bdeb74d7a882d62b6f3eb78a06b8127f2121ff40",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/contracts/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "contracts/research.py",
+      "sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "git_blob_sha1": "7b0e212950a878169f64849a7a7dae29797c3f84",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/contracts/research.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "contracts/research_day_product.py",
+      "sha256": "f0e4d36e30259db6bf94bb3374241ce9d96ea04a4cf5eb18f74b871decef277d",
+      "git_blob_sha1": "7d8400625f85cf5c902ce6287dc177f28f75c7ec",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/contracts/research_day_product.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "contracts/runtime_tasks.py",
+      "sha256": "f9923462342eaaeafba6255e9f8adda54f9852ea4996cf6da0cf82e4faf32965",
+      "git_blob_sha1": "4b25839e4668f726b8b45887272f26d33302e6a2",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/contracts/runtime_tasks.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "contracts/stages.py",
+      "sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+      "git_blob_sha1": "41bf1ba5de290c23a22695d9454b4991976c3e39",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/contracts/stages.py",
+        "handoff/v4-running-source-20261005/canonical/contracts/stages.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "contracts/trading_calendar.py",
+      "sha256": "584f28d18273a8824c5f68a701aa4404123b5c71900caada3e2772828991ee8f",
+      "git_blob_sha1": "dc18a1ac447242a15a0e543606aa8076ca452fbc",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/contracts/trading_calendar.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "domains/d1_review_lane_producer.py",
+      "sha256": "9bff043d44f186469869aac80c10211ee0c8d1de3ab28ba0d6571d812d182c03",
+      "git_blob_sha1": "5578d5b135fe4d7f62370f13b562475dc4d2a5a4",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/domains/d1_review_lane_producer.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "domains/intraday_research.py",
+      "sha256": "da1fc98fc6303413e8df30e3aebe053b8706711e6093f18b06285dc807bc8b7e",
+      "git_blob_sha1": "551dcbfb598ee4c2c07ff41740899be2e1ccc606",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/domains/intraday_research.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "domains/preselection_materializer.py",
+      "sha256": "f090146f39eaaf1ea5baaa5da60cddc2aefe738be16eb1609f166b643953d84e",
+      "git_blob_sha1": "8d7f68924163ce5ca48c85b6b33b9b1e3c950e20",
+      "reference_paths_at_base": [
+        "handoff/stage-selection-issues-20261008/source/active_producer_reference/domains/preselection_materializer.py",
+        "handoff/v4-running-source-20261005/api/domains/preselection_materializer.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "domains/research.py",
+      "sha256": "2ad669ea58f08338605885547ec065921ec63cc0047460bb2acd153151fb214b",
+      "git_blob_sha1": "8e3de7d3e38e6739dd2624bb0b950959fb9789a0",
+      "reference_paths_at_base": [],
+      "reference_scope": "PINNED_REFERENCE_BYTES_FROM_SOURCE_MANIFEST_NOT_CURRENT_MAC"
+    },
+    {
+      "path": "domains/research_day_product.py",
+      "sha256": "de085c51b34946aedf9134fdb6edbbd48fee4dfb3386dab1d327768c4b73ea1f",
+      "git_blob_sha1": "76c5e6d6a56b6a197ddef58d9647a0fcff8ad271",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/domains/research_day_product.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "domains/research_hourly.py",
+      "sha256": "f40f5b997fa088e021fa07d32a3d5875c9c71c8a65fa13daddceabb4567ca747",
+      "git_blob_sha1": "51ec55ad9a08d7d0b5968ed213be9658b4c40e27",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/domains/research_hourly.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "domains/runtime_policy.py",
+      "sha256": "bb571a0bd431a072f03d051ca919d21aab04f12bc5a0973da4edad61b9424c85",
+      "git_blob_sha1": "f0d3857a0cb63c8f557bd6b2f228a3fdf47b7252",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/domains/runtime_policy.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/__init__.py",
+      "sha256": "46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b",
+      "git_blob_sha1": "647f68415f88ab9dfb514686554c9f9abf4c1cd6",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "git_blob_sha1": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/apps/api/v35_api/_research_lane_router_parts/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "git_blob_sha1": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/test_support/namespace.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/_namespace.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/artifact_validation.py",
+      "sha256": "82a2ad10a6c2c83ca49ca325790eac037a56bbce5f02e6c45dbe0d516bf843a9",
+      "git_blob_sha1": "fbf565f9471976bfec2fb2514d8660e317ea00f4",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_commit_parts/artifact_validation.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/commit_metadata.py",
+      "sha256": "5e00058b431e77ccda2ab5f0a85ab69fc385f5ec6c45790fa5037b8dad6f7710",
+      "git_blob_sha1": "9a7b6f6c7074054827d4cb589788b9b1f9e5b27c",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_commit_parts/commit_metadata.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/current_verification.py",
+      "sha256": "3c2971a8d2301c7842fd5af79518828aa8e5013edb0864bd1bb21a254e96e99c",
+      "git_blob_sha1": "4222b5a2407464d1e955d1e56d8e7be034fdd574",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_commit_parts/current_verification.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/identity_primitives.py",
+      "sha256": "c54541390c68db1f5e602a3d0f5229be4d40c36931f89f4cd9efb42ff0c74c0a",
+      "git_blob_sha1": "62a09d00d459945edebaecb29aecf46797cbf14f",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_commit_parts/identity_primitives.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/initial_publication.py",
+      "sha256": "043e09b84c72b6189a01f035c55b20c0171f6c2beba8cccd265a276d600922ab",
+      "git_blob_sha1": "fa2f7768e8754e5c1f228996a18ff8667ef6ea83",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_commit_parts/initial_publication.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/orphan_recovery.py",
+      "sha256": "a79541afbcbda69264fb2cbd3bcda9b533613540bb8ee3287b31e9cf13e57e35",
+      "git_blob_sha1": "0aeb173d10fc3b5bb9a6ac3795f829f044471e4f",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_commit_parts/orphan_recovery.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/successor_publication.py",
+      "sha256": "8dbb2dc66ad14b19395a455f6080116c72262234d189134969cee35718bc2b71",
+      "git_blob_sha1": "e76abfa223901e847c08e058279c77cef40a0ce9",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_commit_parts/successor_publication.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/supersession_receipts.py",
+      "sha256": "2e775c05d8b1a06077d8efa4b1e24b6201f4ac4155ebe96bcefd967979126dab",
+      "git_blob_sha1": "c5c98e26e4f6eb0920db0989df083a4f13657353",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_commit_parts/supersession_receipts.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/supersession_verification.py",
+      "sha256": "194d422597e296c991118285552616618a8e4d09403748dc704dca4ac2b0f317",
+      "git_blob_sha1": "3e3dd2725073a34554256ada587467dc63459072",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_commit_parts/supersession_verification.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "git_blob_sha1": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/apps/api/v35_api/_research_lane_router_parts/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "git_blob_sha1": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/test_support/namespace.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/_namespace.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/frozen_types.py",
+      "sha256": "b2d12a2395e7eee37b507491a69e7b41faec9a956060de549cbb86d7ce34898e",
+      "git_blob_sha1": "91524f65daa907c92f0c880759bf256d1b50a964",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_contracts_parts/frozen_types.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/primitives.py",
+      "sha256": "74a3ec19a475aadce3f320104b04a9927982b4701dd90722efe6ec71e645e6f0",
+      "git_blob_sha1": "8dfba6ae86fdf2de753bf895345b60a8fe9bafbe",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_contracts_parts/primitives.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/rows_metadata.py",
+      "sha256": "bbd01c448a433c27c9eb6029144cb7aaf37ee20fe0fa5deda6fe83b34748641a",
+      "git_blob_sha1": "0acd792c3df1ad56c27cba2423413dd2c23533eb",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_contracts_parts/rows_metadata.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_aggregation.py",
+      "sha256": "7026f222987d2929e40492e7a45aafe277a091a60fa346e7e3c10d34d76e6031",
+      "git_blob_sha1": "758c50890621304660ecfa370e96f00301d2a4bb",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_aggregation.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_provenance.py",
+      "sha256": "996be2450136317f4c21880edba8e567fcb130d9cfc01767e0ae6140ca6e0ecd",
+      "git_blob_sha1": "a7c0c6b7df9cc9efeab6a4197234f8540207b9b1",
+      "reference_paths_at_base": [],
+      "reference_scope": "PINNED_REFERENCE_BYTES_FROM_SOURCE_MANIFEST_NOT_CURRENT_MAC"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_publication.py",
+      "sha256": "e4bfd622b1e514e86afe660a0d677ec16a9183703be1f51f3631062eb3103573",
+      "git_blob_sha1": "ee91865ba498dc6cf7c1b500132dbf47fcc6e39a",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_publication.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_verification.py",
+      "sha256": "c69b5b486c65c7b3da124ecb41557cad412cdd9cf1e68bf04c2abc3576a211dc",
+      "git_blob_sha1": "d9ca86ffd46be80ceb0022ffb03184350c549a40",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_verification.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/strict_artifact.py",
+      "sha256": "482366aced74e8db9f384c3497728ef66d32ed62a6bc8d448c2cddd95b604a57",
+      "git_blob_sha1": "533a7440f33eed2f374b6bcbca0358a406b906f4",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/_stage_acquisition_universe_contracts_parts/strict_artifact.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/data_store.py",
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "git_blob_sha1": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/data_store.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/data_store.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/formula_generation.py",
+      "sha256": "0904603912d6257cb02f41dfaf66c080e2f682e690b1c1901a86a7bafe1e74f0",
+      "git_blob_sha1": "b209a2a2ef63308772e3b922641c45e99907810e",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/formula_generation.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/historical_pool_sources.py",
+      "sha256": "dbee92a602619f923ef27def8200604fa14f074680c34d65031b69c55181fcf8",
+      "git_blob_sha1": "cf1b3fad074ae1ffdc6a72c60c222521820978a4",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/infrastructure/historical_pool_sources.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/hkconnect_stage_replay_provider.py",
+      "sha256": "cbd6704b33963907262af10d1252de18c394fe1c4d6f3ae91746707a1c16b08f",
+      "git_blob_sha1": "1b7f6177d43208b09f2aebff1d236b74b1160764",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/hkconnect_stage_replay_provider.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/interprocess_lock.py",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "git_blob_sha1": "a97e733725834235fbcc9129639ae198fa8770cd",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/interprocess_lock.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/infrastructure/interprocess_lock.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/isolated_package_loader.py",
+      "sha256": "2d02912bd6e00faef5d34fd7dcc6c26b7be3ed41045c98a1ada3252c78a55058",
+      "git_blob_sha1": "7ce6aa7175c677c5e9dfc9d7b9c8af1c007612b6",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/infrastructure/isolated_package_loader.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/market_time.py",
+      "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+      "git_blob_sha1": "bcac1bd49b6861d60f8820e0bbc7dd7fa42c8fd0",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/market_time.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/market_time.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/owned_io.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/api_ui/test_support/owned_io.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/owned_path.py",
+      "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+      "git_blob_sha1": "2d9873a41c09a05c62975210a13a59bf350a1a5a",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/owned_path.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/owned_path.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/preselection_pool_readers.py",
+      "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "git_blob_sha1": "da6a4cd1f25095a45ebeb356ac58c0e6b5ecd4da",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/preselection_pool_readers.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/preselection_pool_readers.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/preselection_pool_sources.py",
+      "sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "git_blob_sha1": "12790ab2e2815097762d4aa21cd63f2ea5cc76a2",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/preselection_pool_sources.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/preselection_pool_sources.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/preselection_pool_store.py",
+      "sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+      "git_blob_sha1": "f67eb0df532b002b2b4ac832713c2432c920b213",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/infrastructure/preselection_pool_store.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/preselection_pool_transactions.py",
+      "sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "git_blob_sha1": "6b8ade94068811f6e46fe2d1233938eb9f4c0da5",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/preselection_pool_transactions.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/preselection_pool_transactions.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/research_lane_source.py",
+      "sha256": "efe4ae3817330b35264d54821f177455cbb34c50eee4df07fa788846d3e9765d",
+      "git_blob_sha1": "7459c12f7c3a711489e6d6be35f23e7b4f2b414b",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/infrastructure/research_lane_source.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/research_peripheral_store.py",
+      "sha256": "17f590fedf8d404f047d888bc1af7dcfeaa0f078c05dab2aec75f8f33dcb89a6",
+      "git_blob_sha1": "f65e71b3a5453bfab6b7eb36126399e7997f25c1",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/infrastructure/research_peripheral_store.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/research_store.py",
+      "sha256": "471ad4ceb0c34f080da674d147df5bb96045c5e7998ab41ba2845297ab63ab6f",
+      "git_blob_sha1": "0bd3452c583b79ff5d949a4747da6cb0b9f48782",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/infrastructure/research_store.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/review_core_stage7_pool_source.py",
+      "sha256": "cc0e4c86935086d6338755e2d97d4f51b2eedc878b514e1fa616ca599a053981",
+      "git_blob_sha1": "152f5d33bb8129c93b51ae159d926b40ece3446a",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/infrastructure/review_core_stage7_pool_source.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/__init__.py",
+      "sha256": "d42d3c1cb4fd90bfbde8f17aa928a7f5526a065bd4ea133c35e0962b69b60099",
+      "git_blob_sha1": "05885332cd3d13e203fd64b0f9539f4f99c47846",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/runtime_graph/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/bindings.py",
+      "sha256": "2a5aa2ed1dbe349253ae45a2e8fd7ac74ff51af75c719117239c266fa88f459f",
+      "git_blob_sha1": "dbcb25849f6213c4d9b8ec5dab773bcd860cbe1b",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/runtime_graph/bindings.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/collectors.py",
+      "sha256": "3d0db27410407f9618f7b0f2372e823cd2f841bad6c27ac436a8ee89f0bbecf2",
+      "git_blob_sha1": "534880fde66b68260b1bac0b2985406126260be8",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/runtime_graph/collectors.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/contracts.py",
+      "sha256": "f67ad4333b9dd329e1b58e871acf4b12f255f1896e1404314eb1a72224596c12",
+      "git_blob_sha1": "08a89ab0542e8c42dc5392ed10964723e6396e5a",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/runtime_graph/contracts.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/evidence_requirements.py",
+      "sha256": "ede42401ee123f1414b844d03fcb0c41b6c42b03cf4a409dff03c7ba9afb2adf",
+      "git_blob_sha1": "5a058e69f9ad8ca5c07a9f0c397187365f1f0c19",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/runtime_graph/evidence_requirements.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/http_client.py",
+      "sha256": "f8b3c3e32d94a7883016f0d6734fac61c6c6c290d83aea59a194917067e7dd13",
+      "git_blob_sha1": "6aac5d736eea9643d251a67df2c0f01b56d81a8f",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/runtime_graph/http_client.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/repair.py",
+      "sha256": "11eed8d00118177b296be6e7834324c3d189bc0265e25306c88d5daf81d8d55b",
+      "git_blob_sha1": "e6aab10f91ee4f688624bf64e6ec232c9993532a",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/runtime_graph/repair.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/service.py",
+      "sha256": "4002a3a7fb4c80d44825ed491d2a0be3a94de53d793169a4d5e7751babab9f86",
+      "git_blob_sha1": "c8e137f6172577f9b95548e3144e310265f1ff99",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/infrastructure/runtime_graph/service.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/snapshot.py",
+      "sha256": "311d261662de873884ef2425777155719d8ac2981ecc057703acf39021db2bb6",
+      "git_blob_sha1": "511d7652ea385aac921f5fcf5c03aad916b8a2b3",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/runtime_graph/snapshot.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/store.py",
+      "sha256": "0b9d4562730de81fcae5beb4c4594901b9adfce9bddb74068eb2008f42b30d3a",
+      "git_blob_sha1": "13fc554327cc02a176e9e7214c63e0d66dd88d82",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/infrastructure/runtime_graph/store.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/runtime_graph/topology.py",
+      "sha256": "a14b3de14b5d7cb5baf8871e6c96048bf69fad9014b78638fd7c3a2acbb31638",
+      "git_blob_sha1": "960dcd727a4a4b99bbedfb4294548f2b86eab2f5",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/runtime_graph/topology.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/scheduling/__init__.py",
+      "sha256": "66f43516bae3998546285e3c757925a2d8c04c157f17309f13d53eef0668a425",
+      "git_blob_sha1": "ba7b3a9e2e1e9e3cb4ba162be907ac89e999029a",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/scheduling/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/scheduling/dispatcher.py",
+      "sha256": "7e61cbb234246bd88c9325fb0641c4bbead10debed09b924298e406b06854668",
+      "git_blob_sha1": "4aec24d2efeb7ff5bb2f192868d448c92bb609ab",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/infrastructure/scheduling/dispatcher.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/scheduling/execution_ledger.py",
+      "sha256": "966fba07ec9d32abcab5435441e4e574002bcdd7b63d6494ff94d7a7e7018007",
+      "git_blob_sha1": "a1f1606766ce35b0d01e63e4d54f90d75006665d",
+      "reference_paths_at_base": [
+        "handoff/issue32-stage-autorun-fix-20261009-r1/references/historical_canonical_20261005/infrastructure/scheduling/execution_ledger.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/scheduling/execution_ledger.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/scheduling/executor_registry.py",
+      "sha256": "2f1354be9cdaa5b20293a74eefc7acbd3bd489661c9ffd2c598494e7492444f7",
+      "git_blob_sha1": "ce28681ed4d6dbf0b9329d1faca6ea302081dd68",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/infrastructure/scheduling/executor_registry.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/scope_gate.py",
+      "sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+      "git_blob_sha1": "33539d4b64b5374f8b1b9839ae30c494e30fb5ae",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/scope_gate.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/scope_gate.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/secure_evidence_fs.py",
+      "sha256": "f12477fa19c2d8c308d3eb5bd5f1ba17adef2ba8d3b1ac00685bbb4245421d56",
+      "git_blob_sha1": "cc9c6c6864477cca035a2df09d8d08e2dc554e16",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/secure_evidence_fs.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/shared_morning_news_reader.py",
+      "sha256": "6f99c9052c93484c6ce6e70b6c2978be53b23f57c0f4e2cd68140982929c1938",
+      "git_blob_sha1": "6b0a04e2e2c996e9e5e1291f03355d4bdab6448c",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/shared_morning_news_reader.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/stage_acquisition_universe_commit.py",
+      "sha256": "373d011f299d2a1d7afb173ac7b107ac54d92d036cea7127dadba4873bcf56a3",
+      "git_blob_sha1": "5a892e52731a366ac3ea67fb59b8e4f0e49bbf19",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/stage_acquisition_universe_commit.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/stage_acquisition_universe_contracts.py",
+      "sha256": "ab23a06700d080044d0c372997544b2ab35365ca96332c53170af6788aabc8f9",
+      "git_blob_sha1": "898988accd5e96f6a69497c736daff81600e1ae4",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/stage_acquisition_universe_contracts.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/stage_source_roots.py",
+      "sha256": "daf2d43ea482e364d5ad2a22c91be1676e39be9e8b2ad2c2125ddc75d617dc5d",
+      "git_blob_sha1": "a40fc622969d51b7146bca73f829e2874c06bf11",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/stage_source_roots.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/stage_store.py",
+      "sha256": "00d3dca6b90f86b7a6f6707f3150f2189e2eb15fcbb7eb5198db4ffd5e0392c4",
+      "git_blob_sha1": "2cc6e6fab3c3ae83f3763349151e9c0b964dfbc6",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/infrastructure/stage_store.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/tdx_minute_replay_provider.py",
+      "sha256": "02d7505614b66768f6c3f6b86e4e606f0df9f4fabb6aaad5ea8f8a0fa3738260",
+      "git_blob_sha1": "0f56417034470318e620b1a22c27e0ce92dcff6b",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/references/handoff/v4-running-source-20261005/stage/infrastructure/tdx_minute_replay_provider.py",
+        "handoff/v4-running-source-20261005/stage/infrastructure/tdx_minute_replay_provider.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "infrastructure/trading_safety.py",
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "git_blob_sha1": "5f10cfb51cb3dacd327447475964e0f6867ee89f",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/trading_safety.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/trading_safety.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/_run_stage_center_nodes_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "git_blob_sha1": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/apps/api/v35_api/_research_lane_router_parts/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/_run_stage_center_nodes_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "git_blob_sha1": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/test_support/namespace.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/_namespace.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+      "git_blob_sha1": "da67fe15083a441b20087ffba91b10e78315e524",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/deadline_supervision.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "3a40b79ecea876997aad9272205ebf61289af2a17162057fa680174c50e74fd2",
+      "git_blob_sha1": "77b88ae2d58686321585a9924c747fa5c94f8fea",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+      "git_blob_sha1": "fe88b068c4ed1893b2649bfeaae88abb24a122f6",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/ops/_run_stage_center_nodes_parts/runtime_arguments.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "sha256": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+      "git_blob_sha1": "78696ef0dac8a50663becc3224a6021d66377580",
+      "reference_paths_at_base": [
+        "handoff/stage-selection-issues-20261008/source/active_stage_reference/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+        "handoff/v4-running-source-20261005/stage/ops/_run_stage_center_nodes_parts/stage_dispatch.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/daily_materialize.py",
+      "sha256": "e350f409b291bee26e2218dc0ace6436d7a85cc48a20569f7e6f3e987bb265d4",
+      "git_blob_sha1": "2c2c9b700d4cfabcf19d24646c088e4130fa346d",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/ops/daily_materialize.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/materialize_stage_acquisition_universe.py",
+      "sha256": "18adabeebc75a28f49f48778ca513ed3d703b12dee40446b8067dff49966f1fe",
+      "git_blob_sha1": "f53cc7b545e1b561d17747d45db42e70f5b81d00",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/ops/materialize_stage_acquisition_universe.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/run_stage_center_nodes.py",
+      "sha256": "8e9ca56aca8a21950590abe83ef305e46a022490eb61f48e0c5d19c2493e1772",
+      "git_blob_sha1": "2887e34e0162d2aa67544ba09759dbb75cee02a2",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/test_support/run_stage_center_nodes.py",
+        "handoff/v4-running-source-20261005/canonical/ops/run_stage_center_nodes.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/run_stage_center_tick.py",
+      "sha256": "4eb8e1a3be0e3780ff9cb62417c695c5aab67948f224db462d3f6e3a67299f42",
+      "git_blob_sha1": "9dbaef79a86deaec6a324285ffdfc2289820cf5a",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/ops/run_stage_center_tick.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "ops/us_market_digest.py",
+      "sha256": "59e54bd7e5d20aa650eb30998862e25773c5676d25b8455905d29f6caf64f68d",
+      "git_blob_sha1": "1d8e37e60282c3151a92b562cdeefe7f611be082",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/ops/us_market_digest.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/__init__.py",
+      "sha256": "f5bc18e6c6143feaa23627ac8b66885810adbf77fb2135a295526fd188949955",
+      "git_blob_sha1": "3a4c75212e2f586243eb326f90d66006fdbb1b27",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/__main__.py",
+      "sha256": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "git_blob_sha1": "eb53e2f31b2f703ad32ef64b8a41faa3e7d18e08",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/__main__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "git_blob_sha1": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/apps/api/v35_api/_research_lane_router_parts/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "git_blob_sha1": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/test_support/namespace.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/_namespace.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/a_auction.py",
+      "sha256": "2b39ede48161e6be59efc769849a8da2319521faeac3f2985b82de508e7c6aef",
+      "git_blob_sha1": "541e8bbcad00bf87f3a693d78e5e2a136575616b",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/references/handoff/v4-running-source-20261005/stage/stage_center/_live_collectors_parts/a_auction.py",
+        "handoff/v4-running-source-20261005/stage/stage_center/_live_collectors_parts/a_auction.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/a_minute.py",
+      "sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e",
+      "git_blob_sha1": "3d30471b125766cfc391bd538e9a092e3064d113",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/references/handoff/v4-running-source-20261005/canonical/stage_center/_live_collectors_parts/a_minute.py",
+        "handoff/v4-running-source-20261005/canonical/stage_center/_live_collectors_parts/a_minute.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/collector_registry.py",
+      "sha256": "b8c366267f611ff76d0228093a9d826ee7c367b938aa4ab098f022a687245999",
+      "git_blob_sha1": "ad1359844d5d31020885a6c7bfc2c12d47c8bfa9",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_live_collectors_parts/collector_registry.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/hk_active_snapshot.py",
+      "sha256": "5079d283c25d8bc778e749e29b5c590eae25d90b3a9d5ffc785e32ce02e5f5b9",
+      "git_blob_sha1": "cf21456d292d05614e2a27090c6bc21cf1849e51",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_live_collectors_parts/hk_active_snapshot.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/hk_auction.py",
+      "sha256": "7658e15fbaffeb0846dad2eecc31c079f22968892c149385673eb6fa373e6dea",
+      "git_blob_sha1": "5201e6e5d0387306aa046286f60ad5bd73b8009d",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_live_collectors_parts/hk_auction.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/hk_minute.py",
+      "sha256": "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179",
+      "git_blob_sha1": "b81c1336f234cc0d87064ad19eae58dd7db7d78e",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/stage_center/_live_collectors_parts/hk_minute.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/hk_replay.py",
+      "sha256": "89456aaf429390a41604dc3d9f564c23f9ec6d7a36e2a5ec32948f9d53b9a108",
+      "git_blob_sha1": "04a70650dea2cf670ae341de0d8074f7376d6160",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_live_collectors_parts/hk_replay.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+      "git_blob_sha1": "ea28586244319a62396bcbb2357d5e74b65fcf16",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/references/handoff/stage-selection-issues-20261008/source/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py",
+        "handoff/stage-selection-issues-20261008/source/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/shared_module_loading.py",
+      "sha256": "a24bb9cfbc4449796df6d0abacb60a1766b4554357a58ca95520e25f1c154fc2",
+      "git_blob_sha1": "745089e14d886b75932de274e7b5e99ce0554dce",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_live_collectors_parts/shared_module_loading.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/temporal_validation.py",
+      "sha256": "61c8fec0021fb66356cf31791a5bc3af576681fa1e576bbf142463b581dc2961",
+      "git_blob_sha1": "bdf47587b13506604208ec140cd6ac542679ab28",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_live_collectors_parts/temporal_validation.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_raw_store_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "git_blob_sha1": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/apps/api/v35_api/_research_lane_router_parts/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_raw_store_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "git_blob_sha1": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/test_support/namespace.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/_namespace.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_raw_store_parts/codec.py",
+      "sha256": "504b97a64f483db17026dbeed6d5084fbc18ee972be60ad9e069ebd038708572",
+      "git_blob_sha1": "4c678d04db2b29d06373c2584779954b2a57adb9",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_raw_store_parts/codec.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_raw_store_parts/filesystem_io.py",
+      "sha256": "f904f4086d4debfc32f5ad33ec2717cda522a59f2e15a3518c7aa83b91eef2b1",
+      "git_blob_sha1": "67f59e1b049b88c8c9e0cd24a6f25989b4a83e89",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_raw_store_parts/filesystem_io.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_raw_store_parts/receipt_identity.py",
+      "sha256": "b33c496a6052b450959a9b886c79ad8d5686230e320dbc99bfd98a3e8265a8f0",
+      "git_blob_sha1": "48fd739a205b63e1771a99aba95b6b8087e0619e",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_raw_store_parts/receipt_identity.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_raw_store_parts/transaction_publish.py",
+      "sha256": "4c28d92667428cfeced54e074e800337ca88b7e87d8a5468a9464b668ca9b24e",
+      "git_blob_sha1": "7b3d48747a5c5dea1464c40d4b790942bcf10422",
+      "reference_paths_at_base": [],
+      "reference_scope": "PINNED_REFERENCE_BYTES_FROM_SOURCE_MANIFEST_NOT_CURRENT_MAC"
+    },
+    {
+      "path": "stage_center/_raw_store_parts/transaction_read.py",
+      "sha256": "8b7e88dc5e5f41456e5222f1a5c08c5dcd05f5e5d7f2c179fd26652bff2932b6",
+      "git_blob_sha1": "a526dd61e21e4180b3a5e73bf3a6dac30da3d37d",
+      "reference_paths_at_base": [],
+      "reference_scope": "PINNED_REFERENCE_BYTES_FROM_SOURCE_MANIFEST_NOT_CURRENT_MAC"
+    },
+    {
+      "path": "stage_center/_runner_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "git_blob_sha1": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/apps/api/v35_api/_research_lane_router_parts/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "git_blob_sha1": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/test_support/namespace.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/_namespace.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/a_candidate_authority.py",
+      "sha256": "ffe9a6a9f8fa06772e45468b9b00269427ff091be260cb78e633481663835560",
+      "git_blob_sha1": "39182e852715a80dd019f88bbff82498eef24c0a",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/a_candidate_authority.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/a_name_authority.py",
+      "sha256": "a2f86dd7819bd76acba555b3a18a6f913f71689b284536ea3086225f5d8cf556",
+      "git_blob_sha1": "dd6b34743055fc3d998828652afff2e9a8577bdc",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/a_name_authority.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/configuration.py",
+      "sha256": "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486",
+      "git_blob_sha1": "c42606a7e331483f5055b7c622762bf3ee87685d",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/configuration.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/hk_candidate_authority.py",
+      "sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+      "git_blob_sha1": "b4cfee08e5e230303b985c58f49bda1ae16b7b47",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/hk_candidate_authority.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "git_blob_sha1": "ad07c9a495f363822f294403e0da9ec12d74b26f",
+      "reference_paths_at_base": [
+        "handoff/issue32-stage-autorun-fix-20261009-r1/input/baseline/source/actual_stage/stage_center/_runner_parts/hk_input_validation.py",
+        "handoff/stage-autorun-readiness-20261009/source/actual_stage/stage_center/_runner_parts/hk_input_validation.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/row_evidence.py",
+      "sha256": "f1659b68c8983c789c9306027e3e90d0dcce8c137674a5cf34edfa7d7fdbde3a",
+      "git_blob_sha1": "6f3ca218d951ed68b978010b16c07884866e812f",
+      "reference_paths_at_base": [],
+      "reference_scope": "PINNED_REFERENCE_BYTES_FROM_SOURCE_MANIFEST_NOT_CURRENT_MAC"
+    },
+    {
+      "path": "stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "d634647ef5f50620a4b98a696a61b7d2d1491e9f7c2c351e0e621168a2e03f9f",
+      "git_blob_sha1": "23086ab5fa443295725e93006db72c73e5bb417a",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/receipt_binding/after/source/actual_stage/stage_center/_runner_parts/runner_receipts.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/selection_input_validation.py",
+      "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "git_blob_sha1": "4592c30c12dc9962e1c84c5c5eed1f9f53ec2888",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/selection_input_validation.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/slot_execution.py",
+      "sha256": "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96",
+      "git_blob_sha1": "569f2b0593b623b508105494b4f08b1db5b6c05b",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/receipt_binding/after/source/actual_stage/stage_center/_runner_parts/slot_execution.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/slot_idempotency.py",
+      "sha256": "2f79cdfedd50e047f22beaafe254edff420a7fb28be6379ba9a92a475abfa39c",
+      "git_blob_sha1": "1ebfdbbf754337c335384e61292473b55a1a11d2",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/receipt_binding/references/stage_center/_runner_parts/slot_idempotency.py",
+        "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/slot_idempotency.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/slot_lock.py",
+      "sha256": "f90d3c8e3fba34d157bf45e1f544e9169a575931a3f2f33340e97c25879f5c1d",
+      "git_blob_sha1": "744525a185253771b924058436ff5099a140278f",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/slot_lock.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_runner_parts/tick_planning.py",
+      "sha256": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15",
+      "git_blob_sha1": "80cdb07663d5867af967ab92496a9d455b2cb2c6",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/stage_center/_runner_parts/tick_planning.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/__init__.py",
+      "sha256": "b56739ecc4a80eaa081f3ea124cf3199683fd470d71a770c9f91cc14de128140",
+      "git_blob_sha1": "7319e68fca8b6ae31315a1bc94b7494dcf887ae9",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_selection_parts/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "git_blob_sha1": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/test_support/namespace.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/_namespace.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/a_auction.py",
+      "sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+      "git_blob_sha1": "6acde7f10dc11719e13dbd09ebd560a34892317d",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/after/stage_center/_selection_parts/a_auction.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/a_live.py",
+      "sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+      "git_blob_sha1": "5815f97d8f72a4f73476d912a0f40c2df6a94cef",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/after/stage_center/_selection_parts/a_live.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/a_stage.py",
+      "sha256": "05a681a0e0d6de765fee6c84242747aaf233a6abdad3e982ae1d5f0909195cf2",
+      "git_blob_sha1": "dc87d8230a4ea41a92509c22fb8cdb164921b0a8",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_selection_parts/a_stage.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/artifact_codec.py",
+      "sha256": "6c0ddaed1dfe7a066be9aeb1c726e2357f5c1814b0baca834c37bb1879aeeb9d",
+      "git_blob_sha1": "16c5484e950f4cfaade62882aaaa734acfa75984",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/artifact_codec.py",
+        "handoff/stage-selection-issues-20261008/source/canonical/stage_center/_selection_parts/artifact_codec.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_auction_filter.py",
+      "sha256": "2b3b3bb94dde8f35afabd4bd4072a4482a82f4cd0a9b8ee0d878046f1a5c4d4c",
+      "git_blob_sha1": "12f49d16e43d3a346169734edcbc5899b748cbc9",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_selection_parts/hk_auction_filter.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_auction_reference.py",
+      "sha256": "d02e852313f6430a0102a029c22fe399400085ec4a317849b27987e8db64286d",
+      "git_blob_sha1": "89d7748dd0ab85a4d14e79dd2ebc7001ed87860c",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_selection_parts/hk_auction_reference.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_formula_score.py",
+      "sha256": "4e42a0e6c233f649f8937dc5b5de231ce59fce8363d05025e9df77a78c4f00d7",
+      "git_blob_sha1": "0e67cd5361f597c300770ed4d49623dfa514f22a",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_selection_parts/hk_formula_score.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_four_lanes.py",
+      "sha256": "d44cd657b15b806922dd99317cfe759849a0d59884a0e39a533f0204f530ae71",
+      "git_blob_sha1": "1c462d4ac2925bb5d77f7a8199735a3567205a8b",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_selection_parts/hk_four_lanes.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/market_quality.py",
+      "sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+      "git_blob_sha1": "6f6ddebbf4469da2a39daea02113c65441835498",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/references/handoff/v4-running-source-20261005/canonical/stage_center/_selection_parts/market_quality.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/market_quality.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/primitives_io.py",
+      "sha256": "6f492e2d32fab11970993adfe694cf159cccafe2205b288685917f93560e2501",
+      "git_blob_sha1": "66cbbb36e5c7cdb02a226c7666ec0acfd1067ec4",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/references/handoff/v4-running-source-20261005/canonical/stage_center/_selection_parts/primitives_io.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/primitives_io.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/schema_values.py",
+      "sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+      "git_blob_sha1": "2f5cf40e2197c6af0dddfd2e7ba65a0b6403acb0",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/schema_values.py",
+        "handoff/stage-selection-issues-20261008/source/canonical/stage_center/_selection_parts/schema_values.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/selection_envelope.py",
+      "sha256": "be7748ff72fd85375fc6575a6a40281fb1518c8faf0e55f352f167fbbc42bd89",
+      "git_blob_sha1": "44e32a44c24f7e2b99aeda48a5f39a71c7e55910",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/selection_envelope.py",
+        "handoff/v4-running-source-20261005/canonical/stage_center/_selection_parts/selection_envelope.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/shadow_capture.py",
+      "sha256": "92875f5e1b969ec73790b31cd91378059d3f3eb07c3fcbd70c3ad16675ee66e5",
+      "git_blob_sha1": "47391f5c14a3020d8c27c18ba00ed164bc6b49e9",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/_selection_parts/shadow_capture.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/store_publication.py",
+      "sha256": "e3ee42413c35aa098cddc136795fcf04a37898bc2224d815cbe9e2b854c5c968",
+      "git_blob_sha1": "e0532c71dbe469177b57c21ff37758c9e3ddbde5",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/store_publication.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/receipt_binding/references/stage_center/_selection_parts/store_publication.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/_selection_parts/store_verification.py",
+      "sha256": "af061784202e35bd7c497208407ce1313876683544d89bcb05153ebca1e7af0f",
+      "git_blob_sha1": "2515e4cacbc6328455725a365dae0d52721a61a8",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/store_verification.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/receipt_binding/references/stage_center/_selection_parts/store_verification.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/acquisition.py",
+      "sha256": "2806c63dbe76af9051a3ea655356738d45a67205441c03638fd52ca44087fc1b",
+      "git_blob_sha1": "f60d2407f322e17ffa917c1d27a9daefc696fac4",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/stage_center/acquisition.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/attempt_evidence.py",
+      "sha256": "f98a9070ade0c26a3cfa0bf60acd4798ec011330ca83bc172c64856bd88dc1bf",
+      "git_blob_sha1": "196acddd5f25f3c3419d26d316b39e4f9b1c8dd1",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/attempt_evidence.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/calendar.py",
+      "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+      "git_blob_sha1": "5d819f6467328cd94d94563143fc57f461a5b973",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/calendar.py",
+        "handoff/v4-running-source-20261005/canonical/stage_center/calendar.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/candidate_input.py",
+      "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+      "git_blob_sha1": "384a49608330385515463f4d4e9543c5a45d2097",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/receipt_binding/references/stage_center/candidate_input.py",
+        "handoff/v4-running-source-20261005/canonical/stage_center/candidate_input.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/collectors.py",
+      "sha256": "861d368fb062eb5e4fb000e138a825800d7c83e5b0fd118f5c0a4046387dfdce",
+      "git_blob_sha1": "9f5301022e64a6c961c30273d6f4b6de67f0a93c",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/collectors.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/consumer.py",
+      "sha256": "9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb",
+      "git_blob_sha1": "55f225f72c53378fe0a77a6cc5bd167e0e984852",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/stage_center/consumer.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/contracts.py",
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+      "git_blob_sha1": "3c08626f76e43f3534ba8edc2785e7da8fbc2292",
+      "reference_paths_at_base": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/stage_center/contracts.py",
+        "handoff/stage-minimal-fix-20261009-r1/input/baseline/source/actual_stage/stage_center/contracts.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/end_to_end_deadline.py",
+      "sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+      "git_blob_sha1": "774b2795f0c45cbb0cd3ffbb7cee5e8945c7ff0d",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/receipt_binding/references/stage_center/end_to_end_deadline.py",
+        "handoff/v4-running-source-20261005/canonical/stage_center/end_to_end_deadline.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/formula_margin_shadow.py",
+      "sha256": "5e637c8650a7779b24148d6341743765045b252804bc450f755a9f448acdbb2b",
+      "git_blob_sha1": "c57cc5c0aedbe712374200df1d945b5e49c43c23",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/formula_margin_shadow.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/hk_stage8/__init__.py",
+      "sha256": "d33f9f7ba2135f35073c92fdae1cd8b877f1fa9271f4c1c22217c1e969455f0b",
+      "git_blob_sha1": "8544c2d159cbfccf65508617263676c9df97fc6b",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/hk_stage8/__init__.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/hk_stage8/builders.py",
+      "sha256": "231b8c0acc1092663b3236ad0415242280c4951b17a0aa094b632f7be0fe5a7c",
+      "git_blob_sha1": "2adb7bf59d55aa00267f55d8dafeac260cb3edf5",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/hk_stage8/builders.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/hk_stage8/precapture.py",
+      "sha256": "09e2140a6a3dd5516556193dec4a4e67b7d5db425be2282f187ea8c819d1f002",
+      "git_blob_sha1": "52bf5b1a5dd696f7d447c9ca94171786f9aadd94",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/hk_stage8/precapture.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/hk_stage8/rtdata.py",
+      "sha256": "a85317c29df499162c7c805be19e89e198f77ad1d51811912da0c29d27bb8547",
+      "git_blob_sha1": "5d33beffd7b3f5de963b393acf2151c77dfcf460",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/hk_stage8/rtdata.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/hk_stage8/snapshot.py",
+      "sha256": "d1658e72a03a6842c2e6b1b3ae63f6889aa00f28c69ad0a7aa5c7400bf6f5267",
+      "git_blob_sha1": "be5dd4ea8dc587e46bbda034e43fca1c1a1671f8",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/hk_stage8/snapshot.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/hk_universe_preflight.py",
+      "sha256": "f527db45d4ec3720845606dd38e76bf6e93e973063b43f1cadb44a8e12407e5c",
+      "git_blob_sha1": "071868acac9abf2a492d614d1d469c81ba031fdb",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/stage/stage_center/hk_universe_preflight.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/input_contracts.py",
+      "sha256": "9521a336709286ab301368a70e2c99f6db6a8ffe288347977328619de7611fd2",
+      "git_blob_sha1": "b51c99498dcd0f7b09ce0423c30b45dac3d7634c",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/input_contracts.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/live_collectors.py",
+      "sha256": "82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf",
+      "git_blob_sha1": "f7ba32406153d1d4220a15851f2b0829502eaa03",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/live_collectors.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/raw_store.py",
+      "sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde",
+      "git_blob_sha1": "19e8b1808c69dbbe286b69e78117250ab44bb73f",
+      "reference_paths_at_base": [],
+      "reference_scope": "PINNED_REFERENCE_BYTES_FROM_SOURCE_MANIFEST_NOT_CURRENT_MAC"
+    },
+    {
+      "path": "stage_center/research_context.py",
+      "sha256": "3bfaae2b13bc8fdb7658e38047f505a8e4c74c1ce5cfb762d38c912bba23e89e",
+      "git_blob_sha1": "ed853f07366f93cd076edfeaa815abbf7063684c",
+      "reference_paths_at_base": [
+        "handoff/stage-selection-issues-20261008/source/active_stage_reference/stage_center/research_context.py",
+        "handoff/v4-running-source-20261005/stage/stage_center/research_context.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/runner.py",
+      "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "git_blob_sha1": "b0aa8badf3cbe4c5e9b6e758044f3403c57c2ee3",
+      "reference_paths_at_base": [
+        "handoff/issue32-stage-autorun-fix-20261009-r1/input/baseline/source/actual_stage/stage_center/runner.py",
+        "handoff/stage-autorun-readiness-20261009/source/actual_stage/stage_center/runner.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/scheduler.py",
+      "sha256": "db110aba2fe504213591330000120b660cff04292728b5325711e2fa6799e7b0",
+      "git_blob_sha1": "df23d27c497e469fb6144a92fb809cf84c8d5794",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/test_support/scheduler.py",
+        "handoff/v4-running-source-20261005/stage/stage_center/scheduler.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/selection.py",
+      "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+      "git_blob_sha1": "e5bb693578a32f954355f53fe9b79e1d592e8422",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/input/baseline/source/actual_stage/stage_center/selection.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/selection.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "stage_center/tests/test_selection_consumer_batch3.py",
+      "sha256": "b1b6dfecf291c0b25cf898e9d76bd9872c20b71c41e81dd785b5d9a7744e772a",
+      "git_blob_sha1": "95cb72cc630399ef32cf54b2371313705fc2acfe",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/stage_center/tests/test_selection_consumer_batch3.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "tests/test_stage_research_context_v4.py",
+      "sha256": "7ff67a523678d397fba24d57026e125a60b9240f18bd03b542a894df1d88606e",
+      "git_blob_sha1": "92c607d480d04f358b905dd36bba3fa0ad28f968",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/api/tests/test_stage_research_context_v4.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/contracts.py",
+      "sha256": "776569b71a9db060186362fe04cce3e8b0f707d8b4a77f80288f8031a2f14fcc",
+      "git_blob_sha1": "2db1935847c4f7c4639442a9980004513230fe5b",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/live_acquisition/contracts.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+      "sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+      "git_blob_sha1": "9518999f52a44d4b1c5c7fe8398413edb22cde9b",
+      "reference_paths_at_base": [
+        "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+      "git_blob_sha1": "9b63eeacbe3fe02a2a117f45a11b5ff541becb67",
+      "reference_paths_at_base": [
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/references/handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+        "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py"
+      ],
+      "reference_scope": "BYTE_IDENTICAL_FILE_IN_FIXED_BASE_COMMIT"
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,98 @@
+{
+  "status": "PASS",
+  "base_commit": "7a9c94d43a296372488541b02e8e35a0f763dc1a",
+  "stage_files_identical": 16,
+  "api_files_identical": 2,
+  "rows": [
+    {
+      "group": "stage",
+      "path": "ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "r2_r3_sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08"
+    },
+    {
+      "group": "stage",
+      "path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "r2_r3_sha256": "fd544913cacff11e9fe8ed5ca682239d3ff4185d8c1b810934637580cdb65aa2"
+    },
+    {
+      "group": "stage",
+      "path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "r2_r3_sha256": "515a739b73e4a874489958aa4d207ae7aca643166a356c2bc05d494ad5f2a93a"
+    },
+    {
+      "group": "stage",
+      "path": "ops/run_stage_center_tick.py",
+      "r2_r3_sha256": "f362bb04734fb78e847bdf6e435a29bc01a66f6186ddfd4c52cb0efc7c21b439"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/_live_collectors_parts/hk_minute.py",
+      "r2_r3_sha256": "03300128a9525d49b0aedd77b35fa7cbeda464900d6802b503a001172a5ccf65"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "r2_r3_sha256": "13fa73cc9b00c1255c05421f43eddc4155a0c14b4488b2a9829a0b496f6337df"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/_runner_parts/configuration.py",
+      "r2_r3_sha256": "62416ad875ff37a95ae222e3c8c4094a351b53229daa5313d43f5d27a98899be"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/_runner_parts/hk_candidate_authority.py",
+      "r2_r3_sha256": "57bf97d5edb73ba2f226d102bb81c9079f84aebf67ead45d5649ebfe5cc932cb"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/_runner_parts/hk_input_validation.py",
+      "r2_r3_sha256": "7bd2ca1e47a9831170c64b2d5d6ecbfe5b0e66d7e664ae4b2c3dcc9d4aaf1c74"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/_runner_parts/runner_receipts.py",
+      "r2_r3_sha256": "94fb3592619a8012904e4193280b5cd4f78f5c898b8fdd6cc5751398dc7f882d"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/_runner_parts/selection_input_validation.py",
+      "r2_r3_sha256": "87265f5027b2c8fb4c7d74dc8ea0c748df7f449516bc21f20b2f839de8a595fb"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/_runner_parts/slot_execution.py",
+      "r2_r3_sha256": "3ed350bb9b072806a8b033055dbfa29b1ccc7292df6d79cbff61e55c8409112e"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/_selection_parts/a_auction.py",
+      "r2_r3_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/_selection_parts/a_live.py",
+      "r2_r3_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0"
+    },
+    {
+      "group": "stage",
+      "path": "stage_center/runner.py",
+      "r2_r3_sha256": "ea9909bb4f39c4248032771aedd9611a852353e940451e0b0c7273bde8c26345"
+    },
+    {
+      "group": "stage",
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "r2_r3_sha256": "fdd849fc032b5745d6611df31b5f9a147b14207d77dca953dff7b0ea4140cea2"
+    },
+    {
+      "group": "api",
+      "path": "stage_center/execution_evidence.py",
+      "r2_r3_sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b"
+    },
+    {
+      "group": "api",
+      "path": "stage_center/consumer.py",
+      "r2_r3_sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207"
+    }
+  ]
+}

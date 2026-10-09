@@ -1,0 +1,27 @@
+{
+  "status": "PASS_PREVIOUS_BYPASS_NOW_BLOCKED",
+  "original_reproducer": "/workspace/scratch/49c844334a98/r3_review/manifest_bypass.json",
+  "same_mutated_candidate": "/workspace/scratch/49c844334a98/r3_review/manifest_bypass_case/bounded_candidate",
+  "result": {
+    "schema_version": "V4_CURRENT_DAY_RESEARCH_CANARY_RUN_V1",
+    "status": "PREFLIGHT_FAILED",
+    "executed": false,
+    "execute_requested": true,
+    "input_bytes_unchanged": null,
+    "stage_id": "STAGE_0930_0935",
+    "errors": [
+      "CANDIDATE_SOURCE_MANIFEST_REQUIRED"
+    ],
+    "manual_replay": true,
+    "historical_backfill": true,
+    "natural_verified": false,
+    "execution_origin": "CURRENT_DAY_RESEARCH_REPLAY",
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "owner_call_count": 0,
+  "output_created": false,
+  "driver_sha256": "60cc21568422f2c664d0747c3a0a04ce6a464b0acd73a9cdb1faacc90991fab4"
+}

@@ -1,0 +1,284 @@
+TAP version 13
+# (node:671) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: new response shows A result and quote gap while HK stays before its algorithm
+ok 1 - new response shows A result and quote gap while HK stays before its algorithm
+  ---
+  duration_ms: 11.838625
+  type: 'test'
+  ...
+# Subtest: independent selection result remains visible when the receipt is missing
+ok 2 - independent selection result remains visible when the receipt is missing
+  ---
+  duration_ms: 0.692356
+  type: 'test'
+  ...
+# Subtest: verified empty result is an explicit zero instead of an unknown count
+ok 3 - verified empty result is an explicit zero instead of an unknown count
+  ---
+  duration_ms: 0.711024
+  type: 'test'
+  ...
+# Subtest: null quote counters remain unknown and cannot become zero
+ok 4 - null quote counters remain unknown and cannot become zero
+  ---
+  duration_ms: 0.712626
+  type: 'test'
+  ...
+# Subtest: invalid quote counter -1 is not displayed as an observation
+ok 5 - invalid quote counter -1 is not displayed as an observation
+  ---
+  duration_ms: 0.734228
+  type: 'test'
+  ...
+# Subtest: invalid quote counter 1.5 is not displayed as an observation
+ok 6 - invalid quote counter 1.5 is not displayed as an observation
+  ---
+  duration_ms: 0.621192
+  type: 'test'
+  ...
+# Subtest: invalid quote counter NaN is not displayed as an observation
+ok 7 - invalid quote counter NaN is not displayed as an observation
+  ---
+  duration_ms: 0.675101
+  type: 'test'
+  ...
+# Subtest: invalid quote counter Infinity is not displayed as an observation
+ok 8 - invalid quote counter Infinity is not displayed as an observation
+  ---
+  duration_ms: 0.560764
+  type: 'test'
+  ...
+# Subtest: invalid quote counter true is not displayed as an observation
+ok 9 - invalid quote counter true is not displayed as an observation
+  ---
+  duration_ms: 0.616025
+  type: 'test'
+  ...
+# Subtest: source count larger than requested is presented as a conflict
+ok 10 - source count larger than requested is presented as a conflict
+  ---
+  duration_ms: 0.85098
+  type: 'test'
+  ...
+# Subtest: conflicting declared gap is not silently accepted as full coverage
+ok 11 - conflicting declared gap is not silently accepted as full coverage
+  ---
+  duration_ms: 3.123728
+  type: 'test'
+  ...
+# Subtest: old bound selection can show computed rows but quote counts remain receipt declarations
+ok 12 - old bound selection can show computed rows but quote counts remain receipt declarations
+  ---
+  duration_ms: 0.434989
+  type: 'test'
+  ...
+# Subtest: old unbound selection declaration does not claim calculation
+ok 13 - old unbound selection declaration does not claim calculation
+  ---
+  duration_ms: 0.292179
+  type: 'test'
+  ...
+# Subtest: new no-result verdict cannot be upgraded by an old bound receipt
+ok 14 - new no-result verdict cannot be upgraded by an old bound receipt
+  ---
+  duration_ms: 0.349393
+  type: 'test'
+  ...
+# Subtest: new summary map missing A cannot fall back to old bound counts (empty)
+ok 15 - new summary map missing A cannot fall back to old bound counts (empty)
+  ---
+  duration_ms: 1.902124
+  type: 'test'
+  ...
+# Subtest: new summary map missing A cannot fall back to old bound counts (HK_CONNECT)
+ok 16 - new summary map missing A cannot fall back to old bound counts (HK_CONNECT)
+  ---
+  duration_ms: 0.350284
+  type: 'test'
+  ...
+# Subtest: legacy observed_rows fallback is labeled as receipt evidence
+ok 17 - legacy observed_rows fallback is labeled as receipt evidence
+  ---
+  duration_ms: 0.432705
+  type: 'test'
+  ...
+# Subtest: NATURAL plus owner binding is still distinct from natural acceptance
+ok 18 - NATURAL plus owner binding is still distinct from natural acceptance
+  ---
+  duration_ms: 0.310667
+  type: 'test'
+  ...
+# Subtest: owner history conflict is shown without hiding the verified result
+ok 19 - owner history conflict is shown without hiding the verified result
+  ---
+  duration_ms: 0.267252
+  type: 'test'
+  ...
+# Subtest: selection-to-receipt identity conflict is explicit while stored result remains visible
+ok 20 - selection-to-receipt identity conflict is explicit while stored result remains visible
+  ---
+  duration_ms: 0.213013
+  type: 'test'
+  ...
+# Subtest: missing record time is not inferred from date, stage, due status or current clock
+ok 21 - missing record time is not inferred from date, stage, due status or current clock
+  ---
+  duration_ms: 0.331637
+  type: 'test'
+  ...
+# Subtest: only the HK lane is rendered for the HK-only late stage
+ok 22 - only the HK lane is rendered for the HK-only late stage
+  ---
+  duration_ms: 0.444623
+  type: 'test'
+  ...
+# Subtest: raw reason codes and identifiers remain inside closed technical details
+ok 23 - raw reason codes and identifiers remain inside closed technical details
+  ---
+  duration_ms: 0.312179
+  type: 'test'
+  ...
+# (node:672) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: calculated HK research result keeps count, quote coverage and source limitations visible independently
+ok 24 - calculated HK research result keeps count, quote coverage and source limitations visible independently
+  ---
+  duration_ms: 10.076027
+  type: 'test'
+  ...
+# Subtest: research source conflict stays separate from ten calculated rows
+ok 25 - research source conflict stays separate from ten calculated rows
+  ---
+  duration_ms: 0.586762
+  type: 'test'
+  ...
+# Subtest: evidence panel refuses summary scope mismatch in trade_date
+ok 26 - evidence panel refuses summary scope mismatch in trade_date
+  ---
+  duration_ms: 0.518581
+  type: 'test'
+  ...
+# Subtest: evidence panel refuses summary scope mismatch in stage_id
+ok 27 - evidence panel refuses summary scope mismatch in stage_id
+  ---
+  duration_ms: 0.50377
+  type: 'test'
+  ...
+# Subtest: evidence panel refuses summary scope mismatch in market
+ok 28 - evidence panel refuses summary scope mismatch in market
+  ---
+  duration_ms: 0.957947
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"execution_origin":"MANUAL_REPLAY"}
+ok 29 - explicit replay evidence never renders a natural trigger: {"execution_origin":"MANUAL_REPLAY"}
+  ---
+  duration_ms: 0.661862
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"execution_origin":"HISTORICAL_BACKFILL"}
+ok 30 - explicit replay evidence never renders a natural trigger: {"execution_origin":"HISTORICAL_BACKFILL"}
+  ---
+  duration_ms: 0.476149
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"execution_origin":"LATE_CATCHUP_REPLAY"}
+ok 31 - explicit replay evidence never renders a natural trigger: {"execution_origin":"LATE_CATCHUP_REPLAY"}
+  ---
+  duration_ms: 0.562757
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"due_status":"HISTORICAL_BACKFILL"}
+ok 32 - explicit replay evidence never renders a natural trigger: {"due_status":"HISTORICAL_BACKFILL"}
+  ---
+  duration_ms: 0.386077
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"due_status":"LATE_CATCHUP_REPLAY"}
+ok 33 - explicit replay evidence never renders a natural trigger: {"due_status":"LATE_CATCHUP_REPLAY"}
+  ---
+  duration_ms: 0.45617
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"same_day_late_observation_recovery":true}
+ok 34 - explicit replay evidence never renders a natural trigger: {"same_day_late_observation_recovery":true}
+  ---
+  duration_ms: 0.309444
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"attempt_mode_status":"NATURAL_DECLARATION_CONFLICT"}
+ok 35 - explicit replay evidence never renders a natural trigger: {"attempt_mode_status":"NATURAL_DECLARATION_CONFLICT"}
+  ---
+  duration_ms: 0.223629
+  type: 'test'
+  ...
+# Subtest: current App SSR displays ten verified research rows despite CANNOT_CONFIRM
+ok 36 - current App SSR displays ten verified research rows despite CANNOT_CONFIRM
+  ---
+  duration_ms: 6.658769
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting date
+ok 37 - current App SSR does not borrow a research summary with conflicting date
+  ---
+  duration_ms: 1.588412
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting stage
+ok 38 - current App SSR does not borrow a research summary with conflicting stage
+  ---
+  duration_ms: 3.608098
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting run
+ok 39 - current App SSR does not borrow a research summary with conflicting run
+  ---
+  duration_ms: 0.937176
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting sha
+ok 40 - current App SSR does not borrow a research summary with conflicting sha
+  ---
+  duration_ms: 1.01429
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting market
+ok 41 - current App SSR does not borrow a research summary with conflicting market
+  ---
+  duration_ms: 0.669403
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting no_evidence
+ok 42 - current App SSR does not borrow a research summary with conflicting no_evidence
+  ---
+  duration_ms: 0.675872
+  type: 'test'
+  ...
+# Subtest: SFC runtime can render the consumer JSON fixture through the actual evidence panel
+ok 43 - SFC runtime can render the consumer JSON fixture through the actual evidence panel
+  ---
+  duration_ms: 2.093465
+  type: 'test'
+  ...
+# Subtest: original API projection preserves same-run research identity through the current App SSR
+ok 44 - original API projection preserves same-run research identity through the current App SSR
+  ---
+  duration_ms: 3.858948
+  type: 'test'
+  ...
+# Subtest: backfill result is never labeled natural by a different namespace receipt
+ok 45 - backfill result is never labeled natural by a different namespace receipt
+  ---
+  duration_ms: 0.429211
+  type: 'test'
+  ...
+1..45
+# tests 45
+# suites 0
+# pass 45
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 547.512724

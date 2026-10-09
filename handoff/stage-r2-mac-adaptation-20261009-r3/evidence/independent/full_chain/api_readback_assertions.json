@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "scope": "OFFLINE_REAL_PRODUCTION_RUNNER_STORE_TO_CURRENT_CANDIDATE_READER_CONSUMER_EXTERNAL_PYTDX_IO_FIXTURE_NOT_MAC",
+  "checked_at_utc": "2026-10-09T12:34:08.937681+00:00",
+  "trade_date": "20261009",
+  "stage_id": "STAGE_0930_0935",
+  "market": "HK_CONNECT",
+  "run_id": "run-2c40a8d057e1beffde847ab1",
+  "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+  "raw_artifact_sha256": "3c942a34e3dcb713ed250f0d42e5f031f4aa09e0cb09b3691678a0a288576741",
+  "selection_artifact_bytes_sha256": "aa69e1d04c009ac033434ec5be156465bff2db964b2a14815c00c7b894054100",
+  "selected_rows": 10,
+  "requested_rows": 695,
+  "source_rows": 695,
+  "a_selection_status": "CANNOT_CONFIRM",
+  "a_borrowed_hk_identity": false,
+  "input_files_unchanged": true,
+  "checked_input_files": 19,
+  "receipt_history_binding": "OWNER_HISTORY_SHA_BOUND",
+  "selection_trio_binding": "BOUND_TO_VERIFIED_SELECTION_TRIO",
+  "execution_origin": "CURRENT_DAY_RESEARCH_REPLAY",
+  "attempt_mode": "RECOVERY",
+  "execution_verified": false,
+  "natural_verified": false,
+  "api_projection_scope": "AVAILABLE_ORIGINAL_FUNCTIONS_NOT_CURRENT_HTTP_SERVICE",
+  "api_constructor_scope": "ORIGINAL_SELECTION_ROOT_ONLY_EXACT_BACKFILL_RECEIPT_NAMESPACE",
+  "api_projection_preserves_verified_result": true,
+  "source_files": {
+    "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/after/source/actual_api/stage_center/execution_evidence.py": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+    "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/after/conditional_api/stage_center/consumer.py": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+    "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3/test_support/api_projection_reference.py": "9715377acf8d64795ff1748676ff9364ac06b443d4ad39f15d526d74a3cc13bc"
+  }
+}

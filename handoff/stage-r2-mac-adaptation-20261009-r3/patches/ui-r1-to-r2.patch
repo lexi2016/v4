@@ -1,0 +1,182 @@
+--- a/apps/web/src/App.vue
++++ b/apps/web/src/App.vue
+@@ -561,6 +561,23 @@
+   if (isBackfillReadOnly.value) return backfillMarketKey.value === market;
+   return Boolean(market === "A" ? approvedACandidateBinding.value : approvedHKCandidateBinding.value);
+ }
++function verifiedResearchResult(workbench: StageWorkbench | undefined | null, market: CandidateMarketKey) {
++  const evidence = workbench?.execution_evidence;
++  const key = market === "A" ? "A_SHARE" : "HK_CONNECT";
++  const result = evidence?.selection_results?.[key];
++  const summary = workbench?.markets?.[market];
++  if (!workbench || !summary || !evidence || !result
++      || evidence.trade_date !== workbench.trade_date || evidence.stage_id !== workbench.stage.stage_id
++      || result.trade_date !== workbench.trade_date || result.stage_id !== workbench.stage.stage_id
++      || result.market !== key || result.status !== "RESULT_AVAILABLE"
++      || !Number.isSafeInteger(result.selected_rows) || (result.selected_rows ?? 0) <= 0) return null;
++  for (const field of ["run_id", "artifact_id", "algorithm_sha256", "raw_artifact_sha256"] as const) {
++    if (!result[field] || result[field] !== summary[field]) return null;
++  }
++  const rows = workbench.unified_rows?.filter(row => row.market === market) ?? [];
++  if (rows.length !== result.selected_rows) return null;
++  return result;
++}
+ function candidateColumnCountLabel(market: CandidateMarketKey) {
+   if (isBackfillReadOnly.value) {
+     if (backfillMarketKey.value !== market) return "未请求";
+@@ -575,6 +592,10 @@
+   }
+   if (stageLoading.value) return "读取中";
+   if (stageError.value) return "CANNOT_CONFIRM";
++  const result = stageWorkbench.value?.trade_date === selectedDate.value
++    && stageWorkbench.value?.stage.stage_id === selectedStage.value
++    ? verifiedResearchResult(stageWorkbench.value, market) : null;
++  if (result) return `已计算 ${result.selected_rows} 只`;
+   if (market === "HK" && hkSummary.value.display_mode === "CANNOT_CONFIRM") return "待确认/缺少正式产物";
+   if (market === "HK" && hkSummary.value.display_mode === "OBSERVATION_UNVERIFIED") {
+     return `${hkSummary.value.observation_count ?? 0} 条观察行 · 未验证`;
+@@ -1346,11 +1367,14 @@
+   if (!snapshot || snapshot.loading) return "读取中";
+   if (snapshot.error || !snapshot.payload) return "读取失败/点击重试";
+   const rows = snapshot.payload.unified_rows?.filter((row) => row.market === market) ?? [];
+-  if (market === "HK") return marketDisplayCount(snapshot.payload.markets?.HK, snapshot.payload.selected_hk_rows, rows.length);
++  if (market === "HK") return marketDisplayCount(snapshot.payload.markets?.HK, snapshot.payload.selected_hk_rows, rows.length, snapshot.payload, market);
+   return String(rows.slice(0, 12).length);
+ }
+ 
+-function marketDisplayCount(summary: MarketSummary | undefined, selectedRows: number | null | undefined, observedRows: number) {
++function marketDisplayCount(summary: MarketSummary | undefined, selectedRows: number | null | undefined, observedRows: number,
++  workbench?: StageWorkbench, market: CandidateMarketKey = "HK") {
++  const result = verifiedResearchResult(workbench, market);
++  if (result) return `已计算 ${result.selected_rows} 只`;
+   if (summary?.display_mode === "CANNOT_CONFIRM") return "待确认/缺少正式产物";
+   if (summary?.display_mode === "OBSERVATION_UNVERIFIED") {
+     return `${summary.observation_count ?? observedRows} 条观察行 · 未验证`;
+@@ -1371,7 +1395,7 @@
+   if (stageWorkbench.value?.trade_date === selectedDate.value && stageWorkbench.value.stage.stage_id === stageId) {
+     const rows = market === "A" ? aCandidateRows.value : hkCandidateRows.value;
+     return market === "HK"
+-      ? marketDisplayCount(stageWorkbench.value.markets?.HK, stageWorkbench.value.selected_hk_rows, rows.length)
++      ? marketDisplayCount(stageWorkbench.value.markets?.HK, stageWorkbench.value.selected_hk_rows, rows.length, stageWorkbench.value, market)
+       : String(rows.length);
+   }
+   return formalStageDisplayCount(timelineStageSnapshot(stageId), market);
+--- a/apps/web/src/components/review/StageExecutionEvidencePanel.vue
++++ b/apps/web/src/components/review/StageExecutionEvidencePanel.vue
+@@ -23,6 +23,7 @@
+     return "结果与运行记录的身份冲突，待核对";
+   }
+   if (binding === "BOUND_TO_VERIFIED_SELECTION_TRIO") return "结果与原执行记录已绑定";
++  if (binding === "EXECUTION_RECEIPT_NAMESPACE_NOT_BOUND") return "结果来自历史回补；当前回执未绑定该次执行";
+   if (binding === "SELECTION_TRIO_MATCHES_CURRENT_RECEIPT_HISTORY_UNBOUND") return "结果引用相符，历史记录未绑定";
+   return "执行记录尚未完整绑定";
+ }
+@@ -32,29 +33,47 @@
+     const lane = props.evidence.markets?.[market];
+     const hasSummary = Object.prototype.hasOwnProperty.call(props.evidence, "selection_results");
+     const result = props.evidence.selection_results?.[market];
++    const scopeConflict = Boolean(result && (
++      (result.trade_date !== undefined && result.trade_date !== props.evidence.trade_date)
++      || (result.stage_id !== undefined && result.stage_id !== props.evidence.stage_id)
++      || (result.market !== undefined && result.market !== market)
++    ));
+     const selected = counter(hasSummary ? result?.selected_rows : lane?.selected_rows);
+-    const available = hasSummary
++    const available = !scopeConflict && (hasSummary
+       ? (result?.status === "RESULT_AVAILABLE" && selected !== null && selected > 0)
+         || (result?.status === "VERIFIED_EMPTY_RESULT" && selected === 0)
+-      : lane?.selection_binding === "BOUND_TO_VERIFIED_SELECTION" && selected !== null;
++      : lane?.selection_binding === "BOUND_TO_VERIFIED_SELECTION" && selected !== null);
+     const preselectionBlocked = market === "HK_CONNECT" && (
+       lane?.failure_layer === "PRESELECTION_INPUT"
+       || lane?.reasons?.some(reason => reason.includes("HK D1 status must be STRICT_0_2_READY"))
+     );
+     const requested = counter(hasSummary ? (available ? result?.requested_rows : null) : lane?.requested_rows);
+     const source = counter(hasSummary ? (available ? result?.source_rows : null) : (lane?.source_rows ?? lane?.observed_rows));
++    const research = available && result?.research_source_status === "RECORDED_IN_VERIFIED_SELECTION"
++      ? result.research_source : null;
+     return {
+       market, name: market === "A_SHARE" ? "A股" : "港股通",
+-      headline: available ? (selected === 0 ? "已保存空结果（0 只）" : `已计算 ${selected} 只`)
++      headline: scopeConflict ? "选股结果身份待核对" : available ? (selected === 0 ? "已保存空结果（0 只）" : `已计算 ${selected} 只`)
+         : preselectionBlocked ? "预选池未就绪，未进入算法" : "选股结果待核对",
+       quote: quoteText(requested, source, hasSummary && available ? result?.missing_quote_rows : undefined),
+       countSource: hasSummary ? (available ? "选股产物计数" : "行情计数未绑定") : "回执记录计数",
+       binding: resultBinding(market),
+       blockedAttemptWithSavedResult: available && preselectionBlocked,
++      research,
++      researchConflict: available && result?.research_source_status === "CANNOT_CONFIRM",
+     };
+   });
+ });
+ const modeText = computed(() => {
++  if (Object.values(props.evidence.selection_results || {}).some(result =>
++    result.status === "RESULT_AVAILABLE" && result.selection_mode === "BACKFILL")) {
++    return "历史回补（BACKFILL；自然时段未验证）";
++  }
++  const replay = props.evidence.attempt_mode_status === "NATURAL_DECLARATION_CONFLICT"
++    || ["MANUAL_REPLAY", "CURRENT_DAY_RESEARCH_REPLAY", "HISTORICAL_BACKFILL", "LATE_CATCHUP_REPLAY"].includes(props.evidence.execution_origin || "")
++    || ["HISTORICAL_BACKFILL", "LATE_CATCHUP_REPLAY"].includes(props.evidence.due_status || "")
++    || props.evidence.same_day_late_observation_recovery === true;
++  if (replay) return "补验 / 回放（自然时段未验证）";
+   const mode = props.evidence.attempt_mode;
+   if (!mode) return "未记录";
+   if (mode === "NATURAL") return "自然触发（NATURAL）";
+@@ -84,6 +103,13 @@
+         <h4>{{ lane.name }}</h4>
+         <p class="execution-result"><strong>{{ lane.headline }}</strong></p>
+         <p>{{ lane.quote }}<small class="execution-count-source">{{ lane.countSource }}</small></p>
++        <div v-if="lane.research" class="execution-research-source">
++          <strong>研究来源限制</strong>
++          <p>当日研究；非正式 D1；港股通资格待确认。</p>
++          <p>名单日期 {{ lane.research.universe_as_of }}；采集时间 {{ lane.research.captured_at }}。</p>
++          <p v-if="lane.research.stale_universe">沿用较早名单，保留原名单日期。</p>
++        </div>
++        <p v-else-if="lane.researchConflict">研究来源记录待核对；已计算结果保留展示。</p>
+         <p v-if="lane.blockedAttemptWithSavedResult">当前回执：预选池未就绪，未进入算法。</p>
+         <p>{{ lane.binding }}</p>
+       </article>
+--- a/apps/web/src/contracts/runtime.ts
++++ b/apps/web/src/contracts/runtime.ts
+@@ -65,10 +65,22 @@
+ };
+ 
+ 
++export type StageResearchSource = {
++  schema_version: "HK_CURRENT_DAY_RESEARCH_V1"; mode: "CURRENT_DAY_RESEARCH_ONLY";
++  market: "HK_CONNECT"; trade_date: string; universe_as_of: string; captured_at: string;
++  stale_universe: boolean; hk_connect_membership_status: "CANNOT_CONFIRM";
++  formal_d1_eligible: false; source_sha256: string;
++  security_master_sha256?: string; reference_codes_sha256?: string;
++  receipt_sha256?: string; final_receipt_sha256?: string;
++};
++
+ export type StageExecutionEvidenceReadback = {
+   status: string; execution_verified: boolean; natural_verified: boolean;
+   trade_date: string; stage_id: string; receipt_path?: string; observed_sha256?: string;
+   attempt_mode?: string | null; due_status?: string | null; declared_status?: string | null;
++  declared_attempt_mode?: string | null; execution_origin?: string | null;
++  attempt_mode_status?: string; same_day_late_observation_recovery?: boolean;
++  runtime_source_identity?: Record<string, unknown> | null; runtime_source_identity_scope?: string;
+   recorded_at?: string | null; first_failed_layer?: string | null; error?: string | null;
+   node_attempt_count?: number | null; node_outcome?: string | null; retry_after?: string | null;
+   candidate_run_id?: string | null; candidate_current_sha256?: string | null; candidate_binding?: string;
+@@ -77,11 +89,18 @@
+     status: string; selected_rows: number | null; requested_rows: number | null;
+     source_rows: number | null; missing_quote_rows?: number | null;
+     quote_coverage_ratio?: number | null; selection_status?: string | null;
++    selection_mode?: string | null;
++    trade_date?: string; stage_id?: string; market?: string;
++    run_id?: string | null; artifact_id?: string | null;
++    algorithm_sha256?: string | null; raw_artifact_sha256?: string | null;
++    source_evidence?: string[]; research_source?: StageResearchSource | null;
++    research_source_status?: string;
+     evidence_scope?: string;
+   }>;
+   receipt_history_binding?: string; record_time_status?: string;
+   selection_artifact_bindings?: Record<string, { status: string }>;
+   runner_invoked_at?: string | null; invocation_time_source?: string | null;
++  RESEARCH_ONLY?: boolean; production_allowed?: boolean; buy_gate_updated?: boolean; orders_sent?: boolean;
+   markets: Record<string, {
+     status?: string | null; selection_binding: string; failure_layer?: string | null;
+     requested_rows: number | null; source_rows: number | null; observed_rows: number | null;

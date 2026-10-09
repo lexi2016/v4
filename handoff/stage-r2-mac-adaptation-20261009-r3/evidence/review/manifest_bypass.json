@@ -1,0 +1,18 @@
+{
+  "finding": "P2_POLICY_CANDIDATE_MISSING_PREPARE_MANIFEST_ACCEPTED",
+  "policy_sha256": "1822986ee36730c64fbc468bbef5b7031542dccc2115d139dc7cd77b588e5219",
+  "original_prepared_tree_sha256": "ee83b8cd6ebfca5336ddf1819d5e7a6c14bac8646ec79a532a762b5e87bfb272",
+  "manifest_deleted": true,
+  "unmapped_candidate_bytes_changed_after_prepare": true,
+  "observed_status": "RESEARCH_ROWS_WRITTEN",
+  "executed": true,
+  "candidate_source_manifest_sha256": null,
+  "input_bytes_unchanged": true,
+  "selected_rows": {
+    "A_SHARE": 0,
+    "HK_CONNECT": 10
+  },
+  "expected": "PREFLIGHT_FAILED before any output directory or owner execution",
+  "scope": "Synthetic copied Stage app and HK inputs; original owner executes with external PyTDX bridge replaced by existing fixture hook; not real market data",
+  "result_path": "/workspace/scratch/49c844334a98/r3_review/manifest_bypass_case/canary_output/run_manifest.json"
+}

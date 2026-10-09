@@ -1,0 +1,58 @@
+{
+  "schema_version": "V4_R3_INDEPENDENT_GATE_REVIEW_V1",
+  "review_scope": "R3 completed completeness gate and new-file package contract only; integration pending",
+  "base_commit_provided": "7a9c94d43a296372488541b02e8e35a0f763dc1a",
+  "package": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3",
+  "reviewed_sha256": {
+    "tools/run_checks.py": "ccf7e10d87d4f71a0bf8711e07e3b445f83c4255817e55d255a04f342732a81a",
+    "tools/verify_package.py": "eb0b14f781b88b8db2e2e9dd7271409c025553354a848e515916458105bd3486",
+    "checks/adaptation/test_run_checks_completeness.py": "a5e1125c13bf73cd2341cca31be39842abaecb3a8e0e77dce673e4bdaa799ece",
+    "checks/adaptation/test_package_add_contract.py": "977bc7a98efd86d3089e8acf5abbba6d46f92d268371783cb4fc87882433c544"
+  },
+  "status": "NO_REPRODUCIBLE_P1_P2_FINDINGS_IN_REVIEWED_SCOPE",
+  "regression_tests": {
+    "status": "PASS",
+    "tests": 19,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junit": "/workspace/scratch/49c844334a98/r3_review/gate_review.junit.xml",
+    "stdout": "/workspace/scratch/49c844334a98/r3_review/gate_review.stdout.log",
+    "stderr": "/workspace/scratch/49c844334a98/r3_review/gate_review.stderr.log"
+  },
+  "format_probes": {
+    "status": "PASS",
+    "cases": 19,
+    "scope": "independent malformed/contradictory JUnit and incomplete/ambiguous TAP reports; not application fixture tests",
+    "report": "/workspace/scratch/49c844334a98/r3_review/gate_format_probes.json"
+  },
+  "observations": [
+    "Five required suite labels must all exist and all have exit code zero and gate PASS.",
+    "Stage/API/adaptation JUnit requires actual testcase counts and child outcomes to equal declared totals, exact expected count, and zero skip/failure/error.",
+    "Vue and vue_actual TAP require single unambiguous tests/pass/fail/skipped/cancelled/todo totals, exact expected count and zero adverse totals.",
+    "Runtime results do not modify frozen expectations. A present expectations file must be SHA bound through SOURCE_MAP before normal checks run.",
+    "New files use operation add and /dev/null patch preimage; fabricated/ambiguous preimages and unknown operations fail package verification.",
+    "Unknown-existing versus missing-new filesystem preparation behavior remains pending integration review of prepare_canary.py."
+  ],
+  "findings": [],
+  "not_reviewed_yet": [
+    "Final TEST_EXPECTATIONS count values and SOURCE_MAP binding",
+    "Source policy and prepare implementation",
+    "Final UI adaptation",
+    "Final complete package bytes, commands and full fixture runner"
+  ],
+  "test_environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "node": "v24.19.0"
+  },
+  "safety_scope": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "REAL_PYTDX_CANARY": "NOT_RUN",
+    "LIVE_SAME_RUN_CONSUMER": "NOT_RUN",
+    "DEPLOYED": "NO_DEPLOYMENT"
+  }
+}

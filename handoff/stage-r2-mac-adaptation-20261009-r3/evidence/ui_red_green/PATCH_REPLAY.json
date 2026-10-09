@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "scope": "EXACT_CURRENT_PREIMAGE_PATCH_REPLAY_ALL_THREE_AFTER_BYTES_MATCH",
+  "new_panel_was_absent": true,
+  "checks": [
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/49c844334a98/r3_lane_ui/patches/ui-current-before-to-r3.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "/workspace/scratch/49c844334a98/r3_lane_ui/patches/ui-current-before-to-r3.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}
