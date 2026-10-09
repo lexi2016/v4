@@ -1,5 +1,7 @@
 # 公告预算、HTTP 门禁与 V5 私有 owner 候选
 
+最新恢复入口身份加固见 [RECOVERY_IDENTITY_FIX.md](RECOVERY_IDENTITY_FIX.md)。新增原 app 与 identity SHA 必需参数；恢复用例 15 项、总计 70 项待 Mac。以下为历史背景。
+
 当前阶段：874 Mac 55 PASS 后发现真实字节序列化缺陷；只做离线恢复，见 [OFFLINE_RECOVERY.md](OFFLINE_RECOVERY.md)。原 55 项不变，新增 7 项候选，共 62 项；新测试尚未执行。旧 BLOCKED 与证据必须保留，禁止重采。以下为历史交付背景。
 
 最新为 db871765 之后的三项静态审查修复，见 [ISOLATION_REVIEW_FIX.md](ISOLATION_REVIEW_FIX.md)。原 47 项测试未改，新增 8 项，总计 55 项待 Mac 验收。当前五个完整候选包含新增原 CLI IO 接缝；以下为前轮背景。

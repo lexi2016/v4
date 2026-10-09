@@ -1,5 +1,7 @@
 # 真实序列化缺陷：只允许离线恢复
 
+当前入口须同时遵循 RECOVERY_IDENTITY_FIX.md：新增 --source-app 与 --identity-sha256；下列旧命令须补齐这两个参数。原身份不得改写。
+
 基线 874ff9aaf27a7fb24a2d22c066c7c412dafdff2c。父任务报告 Mac 55 PASS 后唯一真实 T20261009/P20261008 run `16cc60afcb089f11690430b05853114c`：392 条目录、21 页；340 正文完整、52 失败；1026 请求、363.5 秒。未知传输消耗后 BLOCKED，未重试或重置。失败分类为身份不匹配 3、页数超限 1、ValueError 1、门禁拒绝 47。capture exit0 仅表示命令返回，产物仍为 PARTIAL。
 
 只读核验确认 batch 为紧凑 JSON，顶层为两空格缩进；值相同，字节 SHA 不同。旧 run 7536 个文件 SHA 保持不变。上述为父任务提供的 Mac 证据，云端没有访问该 Mac、运行测试或新采集。

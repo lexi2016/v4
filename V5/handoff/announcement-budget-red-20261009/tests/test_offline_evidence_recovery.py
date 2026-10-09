@@ -7,11 +7,13 @@ import shutil
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from urllib.parse import parse_qs,urlsplit
 spec=importlib.util.spec_from_file_location('recovery_owner_support',Path(__file__).with_name('test_v5_private_owner.py'))
 support=importlib.util.module_from_spec(spec);sys.modules[spec.name]=support;spec.loader.exec_module(support)
 from ops import run_manager_daily_announcement as daily
 from ops.recover_announcement_evidence_offline import recover,prepare_recovered
+from ops import recover_announcement_evidence_offline as recovery_module
 from ops.run_v5_private_announcement import PrivateOwner
 from v4.manager_research.workspace_announcements import validate_terminal_body_capture
 
@@ -39,8 +41,8 @@ class OfflineRecoveryTests(unittest.TestCase):
                 headers={'Content-Type':'application/json'},retrieved_at='2026-10-09T00:00:00+00:00')
         owner=cls.fixture.owner(transport,initialize=True,capture_enabled=True)
         cls.result=owner.execute(['capture','--target-date','20261009','--publication-date','2026-10-08'])
-        cls.run=cls.result['evidence_run_id']
-        cls.prefix=Path('announcement_agent_runs')/cls.run/'evidence'
+        cls.run_id=cls.result['evidence_run_id']
+        cls.prefix=Path('announcement_agent_runs')/cls.run_id/'evidence'
 
     @classmethod
     def tearDownClass(cls):
@@ -50,6 +52,16 @@ class OfflineRecoveryTests(unittest.TestCase):
         self.tmp=tempfile.TemporaryDirectory(prefix='offline-recovery-test-');self.addCleanup(self.tmp.cleanup)
         self.base=Path(self.tmp.name).resolve();self.source=self.base/'old';self.out=self.base/'recovery'
         shutil.copytree(self.fixture.root,self.source)
+        # Test-only synthetic app trust anchor and fixture root rebinding.
+        # Production pins the independently reconstructed 874 app manifest.
+        self.source_app=support.APP
+        self.trust=patch.object(recovery_module,'TRUSTED_SOURCE_APP_SHA256',
+            sha((self.source_app/'V5_OWNER_APP_MANIFEST.json').read_bytes()))
+        self.trust.start();self.addCleanup(self.trust.stop)
+        identity_path=self.source/'v5_owner_identity.json'
+        identity=json.loads(identity_path.read_bytes())
+        identity.update(private_root=str(self.source),private_parent=str(self.base))
+        identity_path.write_text(json.dumps(identity)+'\n')
         self.evidence=self.source/self.prefix
         # Reproduce the old CLI bug: same JSON values, different actual bytes.
         capture=json.loads((self.evidence/'capture_receipt.json').read_bytes())
@@ -61,19 +73,19 @@ class OfflineRecoveryTests(unittest.TestCase):
         self.batch_sha=sha((self.evidence/'body_batch/batch_receipt.json').read_bytes())
         self.original=snapshot(self.source)
 
-    def recover(self):return recover(self.source,self.out,self.run,self.policy_sha,self.batch_sha)
+    def recover(self):return recover(self.source,self.out,self.run_id,self.policy_sha,self.batch_sha,source_app=self.source_app,identity_sha256=sha((self.source/'v5_owner_identity.json').read_bytes()))
 
     def test_capture_publishes_exact_authoritative_batch_bytes(self):
         evidence=self.fixture.root/self.prefix
         for top,batch in [('body_corpus.json','body_corpus.json'),('body_corpus_manifest.json','body_corpus_manifest.json'),('body_batch_receipt.json','batch_receipt.json')]:
             self.assertEqual((evidence/top).read_bytes(),(evidence/'body_batch'/batch).read_bytes())
-        result=validate_terminal_body_capture(evidence,json.loads((evidence/'catalog_read.json').read_bytes()),'20261009','2026-10-08',expected_run_id=self.run)
+        result=validate_terminal_body_capture(evidence,json.loads((evidence/'catalog_read.json').read_bytes()),'20261009','2026-10-08',expected_run_id=self.run_id)
         self.assertEqual(result['status'],'PARTIAL_BODY_MATERIAL_CAPTURE_WITH_TERMINAL_GAPS')
         self.assertEqual(len(result['failed_articles']),1)
 
     def test_serialization_only_recovery_keeps_originals_and_partial_status(self):
         with self.assertRaisesRegex(ValueError,'RECEIPT_BINDING_INVALID'):
-            validate_terminal_body_capture(self.evidence,json.loads((self.evidence/'catalog_read.json').read_bytes()),'20261009','2026-10-08',expected_run_id=self.run)
+            validate_terminal_body_capture(self.evidence,json.loads((self.evidence/'catalog_read.json').read_bytes()),'20261009','2026-10-08',expected_run_id=self.run_id)
         result=self.recover()
         self.assertEqual(result['terminal']['status'],'PARTIAL_BODY_MATERIAL_CAPTURE_WITH_TERMINAL_GAPS')
         self.assertEqual(len(result['terminal']['failed_articles']),1)
@@ -109,5 +121,68 @@ class OfflineRecoveryTests(unittest.TestCase):
         self.recover()
         with self.assertRaises(FileNotFoundError):prepare_recovered(self.out,self.out/'semantic_catalog.json')
         self.assertFalse((self.out/'semantic_catalog.json').exists())
+
+    def test_wrong_source_identity_root_is_rejected(self):
+        path=self.source/'v5_owner_identity.json';value=json.loads(path.read_bytes())
+        value['private_root']=str(self.base/'other');path.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError,'IDENTITY_ROOT_MISMATCH'):self.recover()
+        self.assertFalse(self.out.exists())
+
+    def test_wrong_identity_manifest_is_rejected(self):
+        path=self.source/'v5_owner_identity.json';value=json.loads(path.read_bytes())
+        value['app_manifest_sha256']='0'*64;path.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError,'APP_MANIFEST_BINDING_INVALID'):self.recover()
+        self.assertFalse(self.out.exists())
+
+    def test_wrong_policy_manifest_is_rejected_even_with_updated_expected_policy_sha(self):
+        path=self.source/'transport_policy.json';value=json.loads(path.read_bytes())
+        value['app_manifest_sha256']='0'*64;path.write_text(json.dumps(value))
+        self.policy_sha=sha(path.read_bytes())
+        with self.assertRaisesRegex(ValueError,'APP_MANIFEST_BINDING_INVALID'):self.recover()
+        self.assertFalse(self.out.exists())
+
+    def test_forbidden_output_child_and_ancestor_are_rejected(self):
+        path=self.source/'v5_owner_identity.json';value=json.loads(path.read_bytes())
+        banned=self.base/'v4-output';value['forbidden_roots'].append(str(banned/'state'))
+        path.write_text(json.dumps(value))
+        for output in (banned,banned/'state'/'recovery'):
+            with self.subTest(output=output):
+                self.out=output
+                with self.assertRaisesRegex(ValueError,'OUTPUT_FORBIDDEN_ROOT'):self.recover()
+                self.assertFalse(output.exists())
+
+    def test_source_app_manifest_bytes_must_match_trusted_874_anchor(self):
+        self.source_app=self.base/'source-app';shutil.copytree(support.APP,self.source_app)
+        path=self.source_app/'V5_OWNER_APP_MANIFEST.json';path.write_bytes(path.read_bytes()+b' ')
+        with self.assertRaisesRegex(ValueError,'APP_MANIFEST_SHA_MISMATCH'):self.recover()
+        self.assertFalse(self.out.exists())
+
+    def test_source_app_file_must_match_manifest(self):
+        self.source_app=self.base/'source-app';shutil.copytree(support.APP,self.source_app)
+        path=self.source_app/'ops/run_v5_private_announcement.py';path.write_bytes(path.read_bytes()+b'\n')
+        with self.assertRaisesRegex(ValueError,'APP_FILE_SHA_MISMATCH'):self.recover()
+        self.assertFalse(self.out.exists())
+
+    def test_boolean_to_integer_change_is_not_serialization(self):
+        # Preserve both Python equality and the old receipt SHA binding to prove
+        # rejection comes from strict JSON types, not another guard.
+        path=self.evidence/'body_corpus_manifest.json';value=json.loads(path.read_bytes())
+        accounting=value['limits']['byte_accounting']
+        self.assertIs(accounting['physical_network_bytes_verified'],False)
+        accounting['physical_network_bytes_verified']=0
+        authoritative=json.loads((self.evidence/'body_batch/body_corpus_manifest.json').read_bytes())
+        self.assertEqual(value,authoritative,'ordinary Python equality misses this change')
+        raw=(json.dumps(value,ensure_ascii=False,sort_keys=True,indent=2)+'\n').encode();path.write_bytes(raw)
+        capture_path=self.evidence/'capture_receipt.json';capture=json.loads(capture_path.read_bytes())
+        capture['body_corpus_manifest_file_sha256']=sha(raw);capture_path.write_text(json.dumps(capture))
+        with self.assertRaisesRegex(ValueError,'NOT_SERIALIZATION_ONLY'):self.recover()
+        self.assertFalse(self.out.exists())
+
+    def test_nested_json_types_are_compared_strictly(self):
+        same=recovery_module._same_json_structure
+        self.assertFalse(same({'x':[False]},{'x':[0]}))
+        self.assertFalse(same({'x':[True]},{'x':[1]}))
+        self.assertFalse(same({'x':1},{'x':1.0}))
+        self.assertTrue(same({'x':[False,1,None,'正文']},{'x':[False,1,None,'正文']}))
 
 if __name__=='__main__':unittest.main(verbosity=2)

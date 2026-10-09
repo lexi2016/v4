@@ -16,7 +16,74 @@ from infrastructure.owned_io import SafeRoot
 from ops.run_v5_private_announcement import _absolute,_no_symlink,_raw
 
 
+# Deterministically reconstructed from the verified 874 handoff manifests.
+TRUSTED_SOURCE_APP_SHA256='7b9e27770331c67734bac30c17cc36a76dba32d34be3cbeed64378eff85384f7'
+SOURCE_COMMIT='0382f753929365048d231a7252d9c328d40f8522'
+
+
 def sha(raw):return hashlib.sha256(raw).hexdigest()
+
+
+def _validate_source_identity(src,source,output,policy,source_app,identity_sha256):
+    identity_raw=src.read_bytes('v5_owner_identity.json')
+    if sha(identity_raw)!=identity_sha256:raise ValueError('RECOVERY_SOURCE_IDENTITY_SHA_MISMATCH')
+    identity=json.loads(identity_raw)
+    if not isinstance(identity,dict) or identity.get('schema')!='v5.announcement_private_owner.v1':
+        raise ValueError('RECOVERY_SOURCE_IDENTITY_INVALID')
+    if identity.get('private_root')!=str(source):raise ValueError('RECOVERY_SOURCE_IDENTITY_ROOT_MISMATCH')
+    parent_value=identity.get('private_parent')
+    if not isinstance(parent_value,str):raise ValueError('RECOVERY_SOURCE_IDENTITY_PARENT_INVALID')
+    parent=_absolute(parent_value);_no_symlink(parent)
+    if (str(parent)!=parent_value or parent==Path(parent.anchor) or parent==source
+            or not source.is_relative_to(parent) or not parent.is_dir()):
+        raise ValueError('RECOVERY_SOURCE_IDENTITY_PARENT_INVALID')
+    values=identity.get('forbidden_roots')
+    if not isinstance(values,list) or not values or any(not isinstance(v,str) for v in values):
+        raise ValueError('RECOVERY_SOURCE_FORBIDDEN_ROOTS_INVALID')
+    forbidden=[]
+    for value in values:
+        path=_absolute(value);_no_symlink(path)
+        if str(path)!=value:raise ValueError('RECOVERY_SOURCE_FORBIDDEN_ROOTS_INVALID')
+        forbidden.append(path)
+    forbidden.extend([_absolute(Path.home()/'Library/Application Support/com.lexi.v4.local'),
+                      _absolute(Path.home()/'Desktop/学习/v4_app')])
+    for path in forbidden:
+        if source==path or source.is_relative_to(path) or path.is_relative_to(source):
+            raise ValueError('RECOVERY_SOURCE_FORBIDDEN_ROOT')
+        if output==path or output.is_relative_to(path) or path.is_relative_to(output):
+            raise ValueError('RECOVERY_OUTPUT_FORBIDDEN_ROOT')
+    if (identity.get('source_commit')!=SOURCE_COMMIT
+            or identity.get('app_manifest_sha256')!=TRUSTED_SOURCE_APP_SHA256
+            or policy.get('schema')!='v5.announcement_transport_policy.v1'
+            or policy.get('app_manifest_sha256')!=TRUSTED_SOURCE_APP_SHA256):
+        raise ValueError('RECOVERY_SOURCE_APP_MANIFEST_BINDING_INVALID')
+    history=policy.get('history')
+    if (not isinstance(history,list) or not history
+            or any(not isinstance(item,dict) or item.get('app_manifest_sha256')!=TRUSTED_SOURCE_APP_SHA256 for item in history)
+            or history[-1]!={k:v for k,v in policy.items() if k!='history'}):
+        raise ValueError('RECOVERY_POLICY_HISTORY_BINDING_INVALID')
+    app=_absolute(source_app);_no_symlink(app)
+    if output==app or output.is_relative_to(app) or app.is_relative_to(output):
+        raise ValueError('RECOVERY_OUTPUT_OVERLAPS_SOURCE_APP')
+    appio=SafeRoot(app);raw=appio.read_bytes('V5_OWNER_APP_MANIFEST.json')
+    if sha(raw)!=TRUSTED_SOURCE_APP_SHA256:raise ValueError('RECOVERY_SOURCE_APP_MANIFEST_SHA_MISMATCH')
+    manifest=json.loads(raw)
+    if manifest.get('schema')!='v5.announcement_owner_app.v1':raise ValueError('RECOVERY_SOURCE_APP_MANIFEST_INVALID')
+    for entry in manifest['files']:
+        if sha(appio.read_bytes(entry['path']))!=entry['sha256']:
+            raise ValueError('RECOVERY_SOURCE_APP_FILE_SHA_MISMATCH')
+    return identity_raw,app
+
+
+
+def _same_json_structure(left,right):
+    # bool is a subclass of int in Python; JSON value identity must be stricter.
+    if type(left) is not type(right):return False
+    if isinstance(left,dict):
+        return left.keys()==right.keys() and all(_same_json_structure(left[key],right[key]) for key in left)
+    if isinstance(left,list):
+        return len(left)==len(right) and all(_same_json_structure(a,b) for a,b in zip(left,right))
+    return left==right
 
 
 def _inventory(io,relative):
@@ -33,7 +100,7 @@ def _inventory(io,relative):
     return result
 
 
-def recover(source_root,output_root,run_id,policy_sha256,batch_sha256):
+def recover(source_root,output_root,run_id,policy_sha256,batch_sha256,*,source_app,identity_sha256):
     # No provider, budget reset, source writes, owner initialization or API call.
     from v4.manager_research.workspace_announcements import validate_terminal_body_capture
     from ops.run_manager_daily_announcement import _evidence_run_id
@@ -43,11 +110,12 @@ def recover(source_root,output_root,run_id,policy_sha256,batch_sha256):
             or output.exists()):
         raise ValueError('RECOVERY_OUTPUT_MUST_BE_NEW_DISJOINT_DIRECTORY')
     if not re.fullmatch('[0-9a-f]{32}',run_id):raise ValueError('RECOVERY_RUN_ID_INVALID')
-    if any(not re.fullmatch('[0-9a-f]{64}',x) for x in (policy_sha256,batch_sha256)):
+    if any(not re.fullmatch('[0-9a-f]{64}',x) for x in (policy_sha256,batch_sha256,identity_sha256)):
         raise ValueError('RECOVERY_EXPECTED_SHA_REQUIRED')
     src=SafeRoot(source);prefix='announcement_agent_runs/'+run_id+'/evidence'
     policy_raw=src.read_bytes('transport_policy.json');policy=json.loads(policy_raw)
     if sha(policy_raw)!=policy_sha256:raise ValueError('RECOVERY_POLICY_SHA_MISMATCH')
+    identity_raw,source_app=_validate_source_identity(src,source,output,policy,source_app,identity_sha256)
     if policy.get('state')!='BLOCKED' or not policy.get('accounting',{}).get('admission_stop_reason'):
         raise ValueError('RECOVERY_REQUIRES_PRESERVED_BLOCKED_POLICY')
     batch_raw=src.read_bytes(prefix+'/body_batch/batch_receipt.json');batch=json.loads(batch_raw)
@@ -77,13 +145,15 @@ def recover(source_root,output_root,run_id,policy_sha256,batch_sha256):
     # Permit only the observed serialization defect, never changed JSON values.
     for name,raw in replacements.items():
         old=src.read_bytes(prefix+'/'+name)
-        if json.loads(old)!=json.loads(raw) or sha(old)!=capture.get(old_keys[name]):
+        if not _same_json_structure(json.loads(old),json.loads(raw)) or sha(old)!=capture.get(old_keys[name]):
             raise ValueError('RECOVERY_NOT_SERIALIZATION_ONLY')
     original_files=_inventory(src,prefix)
     original_files['transport_policy.json']=policy_sha256
-    original_files['v5_owner_identity.json']=sha(src.read_bytes('v5_owner_identity.json'))
+    original_files['v5_owner_identity.json']=sha(identity_raw)
     marker={'schema':'v5.announcement_offline_recovery.v1','network_allowed':False,
-        'source_root':str(source),'source_run_id':run_id,'source_policy_sha256':policy_sha256,
+        'source_root':str(source),'derived_root':str(output),'source_run_id':run_id,
+        'source_identity_sha256':sha(identity_raw),'source_app_root':str(source_app),
+        'source_app_manifest_sha256':TRUSTED_SOURCE_APP_SHA256,'source_policy_sha256':policy_sha256,
         'source_batch_receipt_sha256':batch_sha256,'source_state':'BLOCKED',
         'semantic_catalog':'READER_OUTPUT_REQUIRED','status':'UNVERIFIED'}
     with SafeRoot(output.parent).directory() as fd:os.mkdir(output.name,mode=0o700,dir_fd=fd)
@@ -131,7 +201,7 @@ def prepare_recovered(root,semantic_catalog):
     io=SafeRoot(root)
     marker=json.loads(io.read_bytes('OFFLINE_RECOVERY.json'))
     receipt=json.loads(io.read_bytes('recovery_receipt.json'))
-    if (marker.get('network_allowed') is not False
+    if (marker.get('derived_root')!=str(root) or marker.get('network_allowed') is not False
             or receipt.get('status')!='OFFLINE_TERMINAL_EVIDENCE_VERIFIED'
             or sha(io.read_bytes('transport_policy.json'))!=receipt.get('source_policy_sha256')):
         raise ValueError('RECOVERY_VERIFICATION_REQUIRED')
@@ -155,6 +225,8 @@ def main():
     sys.addaudithook(deny)
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source-root',type=Path)
+    parser.add_argument('--source-app',type=Path)
+    parser.add_argument('--identity-sha256')
     parser.add_argument('--output-root',type=Path)
     parser.add_argument('--run-id')
     parser.add_argument('--policy-sha256')
@@ -164,13 +236,13 @@ def main():
     args=parser.parse_args()
     capture_args=(args.source_root,args.output_root,args.run_id,args.policy_sha256,args.batch_sha256)
     if args.prepare_root is not None:
-        if any(x is not None for x in capture_args) or args.semantic_catalog is None:
+        if any(x is not None for x in capture_args) or args.source_app is not None or args.identity_sha256 is not None or args.semantic_catalog is None:
             parser.error('prepare requires only --prepare-root and --semantic-catalog')
         result=prepare_recovered(args.prepare_root,args.semantic_catalog)
     else:
-        if any(x is None for x in capture_args) or args.semantic_catalog is not None:
-            parser.error('recovery requires source/output/run and both expected SHA values')
-        result=recover(*capture_args)
+        if any(x is None for x in capture_args) or args.source_app is None or args.identity_sha256 is None or args.semantic_catalog is not None:
+            parser.error('recovery requires source-root/source-app/output/run and policy/batch/identity SHA values')
+        result=recover(*capture_args,source_app=args.source_app,identity_sha256=args.identity_sha256)
     print(json.dumps(result,ensure_ascii=False))
 
 if __name__=='__main__':main()

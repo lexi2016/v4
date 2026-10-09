@@ -1,7 +1,7 @@
 {
   "status": "IMPLEMENTED_MAC_REVALIDATION_PENDING",
-  "parent_commit": "874ff9aaf27a7fb24a2d22c066c7c412dafdff2c",
-  "red_evidence": "Parent Mac 55 PASS then unique real run 16cc60afcb089f11690430b05853114c: terminal RECEIPT_BINDING_INVALID from compact batch vs indented top-level JSON; values identical, old 7536 file SHA unchanged, BLOCKED retained. New seven offline regression candidates NOT_RUN.",
+  "parent_commit": "3eaf4a5ccc73bb2c368b623509ac4e830a0f1982",
+  "red_evidence": "Parent Mac 3eaf: original55 PASS; recovery file exit1, zero tests executed, cls.run shadowed TestCase.run. Rename to run_id; strict typed JSON comparison and source identity/874 manifest/forbidden-root checks implemented. Recovery15 and full70 await Mac; cloud tests NOT_RUN.",
   "cloud_product_tests": "NOT_RUN",
   "entries": [
     {
@@ -37,7 +37,7 @@
       "source_commit": null,
       "preimage_path": null,
       "preimage_sha256": null,
-      "previous_candidate_sha256": "5bf534ff90601d1dc2fe4bd349798033836f8335d9ecbbbcdb79d057f8de981a",
+      "previous_candidate_sha256": "b63f0dae641c0186d210664bcf08796a3e73f78121507af8d04da64ac507e686",
       "sha256": "b63f0dae641c0186d210664bcf08796a3e73f78121507af8d04da64ac507e686"
     },
     {
@@ -46,7 +46,7 @@
       "source_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
       "preimage_path": "pinned/ops/run_manager_daily_announcement.py",
       "preimage_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
-      "previous_candidate_sha256": "f2b51313a8696365d120da98224b44d5495925ea42a2974b59414d6de31b8139",
+      "previous_candidate_sha256": "57ac27e0741d87774ab6b11d3c607365fa2afab562446e4e618ae5c4c23b28aa",
       "sha256": "57ac27e0741d87774ab6b11d3c607365fa2afab562446e4e618ae5c4c23b28aa"
     },
     {
@@ -55,8 +55,8 @@
       "source_commit": null,
       "preimage_path": null,
       "preimage_sha256": null,
-      "previous_candidate_sha256": null,
-      "sha256": "6046624ec89aa4c39b9e5ab0889cd32d0f758257bebc39e61b53e340ea6027a4"
+      "previous_candidate_sha256": "6046624ec89aa4c39b9e5ab0889cd32d0f758257bebc39e61b53e340ea6027a4",
+      "sha256": "c35a62d071b19582772b663efb182adf3904ba858a1e972c40ea386b9dfb0c57"
     }
   ]
 }
