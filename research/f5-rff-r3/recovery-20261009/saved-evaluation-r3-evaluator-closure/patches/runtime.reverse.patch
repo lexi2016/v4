@@ -1,0 +1,2958 @@
+diff --git a/candidate/src/rff_saved_eval_contracts.py b/candidate/src/rff_saved_eval_contracts.py
+--- a/candidate/src/rff_saved_eval_contracts.py
++++ b/candidate/src/rff_saved_eval_contracts.py
+@@ -48,7 +48,6 @@
+     "FROZEN_UNWEIGHTED_PLUS_PATH_top3": "c3efc891e6d4432e0d97d64d38500bd61d2ff5fef853d7aa0cd005f5af3a625b",
+     "score_aware_metrics": "fc93d6225c75b633981508a18c428e7649122571c7d897264d0b7da1e591eb8c",
+     "frozen_metrics": "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763",
+-    "frozen_evaluator_manifest": "64fd0f7a5e3d646f7b5b184d44ca10576aab9db73772b3abb2cfceab36862a9b",
+     "resource_tree": "9d0792a8e582d0345c83ddaf83a15612a5629b5f0460833b4715068324ff2752",
+     "execution_guard": "85929366a7b018480085c02f80edd312f7f47de94bab5c32982d4e8637d7d7e0",
+     "registry_adapter": "8596f2a20c165b5fbc2b92a597cb3e1177f6e40bfefac62753b40b3c7daae17f",
+@@ -67,15 +66,6 @@
+ _EXPERIMENT_RELATIVE = Path("research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/contracts/EXPERIMENT_CONTRACT.json")
+ _SCORE_AWARE_RELATIVE = Path("research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/score_aware_metrics.py")
+ _POLICY_NAME = "EXPERIMENT_REGISTRY_APPEND_COMPATIBILITY_POLICY_V1.json"
+-_FROZEN_MODULES = {
+-    "frozen_package_init": ("spike5", "spike5/__init__.py"),
+-    "frozen_common": ("spike5.common", "spike5/common.py"),
+-    "frozen_features": ("spike5.features", "spike5/features.py"),
+-    "frozen_settings": ("spike5.settings", "spike5/settings.py"),
+-    "frozen_metrics": ("spike5.metrics", "spike5/metrics.py"),
+-}
+-_FROZEN_CONFIGS = {"frozen_base_features": "config/base_features.json",
+-                   "frozen_contract": "config/contract.json"}
+ 
+ 
+ class SavedEvaluationError(RuntimeError):
+@@ -187,79 +177,6 @@
+     for category in ("code_files", "executable_helpers", "official_helpers", "metadata_files"):
+         for name, record in binding[category].items():
+             checked_read(record, name=f"{category}:{name}")
+-
+-
+-def _frozen_evaluator_manifest():
+-    # This historical manifest is authenticated by the separately retained
+-    # Mac-fixed package identity receipt. Never promote current file hashes.
+-    path = Path(__file__).resolve().parent.parent / "contracts/FROZEN_EVALUATOR_SOURCE_MANIFEST.json"
+-    record = file_record(path, PINS["frozen_evaluator_manifest"])
+-    document = json_object(checked_read(record, name="frozen_evaluator_manifest"),
+-                           name="frozen_evaluator_manifest")
+-    if (document.get("schema") != "HK_SPIKE_F5_MAC_FIXED_SOURCE_MANIFEST_V1"
+-            or document.get("identity_kind") != "MAC_FIXED_SOURCE_ARCHIVE"):
+-        raise SavedEvaluationError("FROZEN_EVALUATOR_HISTORICAL_MANIFEST_REQUIRED")
+-    files = {item["path"]: item for item in document["files"]}
+-    if len(files) != len(document["files"]):
+-        raise SavedEvaluationError("FROZEN_EVALUATOR_HISTORICAL_PATH_DUPLICATE")
+-    return record, files
+-
+-
+-def bind_frozen_evaluator(metrics_path: str | Path):
+-    """Read only the seven historically identified evaluator source/config files."""
+-    metrics = plain_path(metrics_path)
+-    if metrics.name != "metrics.py" or metrics.parent.name != "spike5":
+-        raise SavedEvaluationError("FROZEN_EVALUATOR_PACKAGE_LAYOUT_MISMATCH")
+-    root = metrics.parent.parent
+-    manifest, historical = _frozen_evaluator_manifest()
+-
+-    def identified(relative):
+-        expected = historical[relative]
+-        record = file_record(root / relative, expected["sha256"])
+-        if record["bytes"] != expected["bytes"]:
+-            raise SavedEvaluationError(f"FROZEN_EVALUATOR_HISTORICAL_SIZE_MISMATCH:{relative}")
+-        return record
+-
+-    helpers = {key: identified(relative) for key, (_, relative) in _FROZEN_MODULES.items()}
+-    metadata = {key: identified(relative) for key, relative in _FROZEN_CONFIGS.items()}
+-    metadata["frozen_evaluator_manifest"] = manifest
+-    return helpers, metadata
+-
+-
+-def validate_frozen_evaluator(binding: Mapping[str, Any]) -> dict[str, Any]:
+-    """Validate paths, bytes and historical SHA before executing any package code."""
+-    helpers, metadata = binding.get("executable_helpers", {}), binding.get("metadata_files", {})
+-    for category, keys in ((helpers, _FROZEN_MODULES),
+-                           (metadata, (*_FROZEN_CONFIGS, "frozen_evaluator_manifest"))):
+-        for key in keys:
+-            if not isinstance(category.get(key), Mapping):
+-                raise SavedEvaluationError(f"FROZEN_EVALUATOR_DEPENDENCY_MISSING:{key}")
+-    metrics = plain_path(helpers["frozen_metrics"]["path"])
+-    if metrics.name != "metrics.py" or metrics.parent.name != "spike5":
+-        raise SavedEvaluationError("FROZEN_EVALUATOR_PACKAGE_LAYOUT_MISMATCH")
+-    root = metrics.parent.parent
+-    manifest, historical = _frozen_evaluator_manifest()
+-    if canonical_bytes(metadata["frozen_evaluator_manifest"]) != canonical_bytes(manifest):
+-        raise SavedEvaluationError("FROZEN_EVALUATOR_HISTORICAL_MANIFEST_IDENTITY_MISMATCH")
+-
+-    def validated(category, key, relative):
+-        record, expected = category[key], historical[relative]
+-        path = root / relative
+-        if record.get("path") != str(path) or plain_path(record["path"]) != path:
+-            raise SavedEvaluationError(f"FROZEN_EVALUATOR_PATH_MISMATCH:{key}")
+-        if (record.get("sha256") != expected["sha256"]
+-                or type(record.get("bytes")) is not int or record["bytes"] != expected["bytes"]):
+-            raise SavedEvaluationError(f"FROZEN_EVALUATOR_HISTORICAL_IDENTITY_MISMATCH:{key}")
+-        checked_read(record, name=key)
+-        return record
+-
+-    modules = {name: validated(helpers, key, relative)
+-               for key, (name, relative) in _FROZEN_MODULES.items()}
+-    configs = {str(root / relative): validated(metadata, key, relative)
+-               for key, relative in _FROZEN_CONFIGS.items()}
+-    closure = {"modules": modules, "configs": configs, "historical_manifest": manifest}
+-    return {"modules": modules, "configs": configs,
+-            "closure_sha256": sha256_bytes(canonical_bytes(closure))}
+ 
+ 
+ def validate_resources(value: Mapping[str, Any]) -> dict[str, Any]:
+@@ -516,7 +433,6 @@
+     for name, filename in (("frozen_settings", "settings.py"), ("frozen_package_init", "__init__.py")):
+         if helpers[name]["path"] != str(metrics_path.parent / filename):
+             raise SavedEvaluationError(f"FROZEN_METRICS_PACKAGE_PATH_MISMATCH:{name}")
+-    validate_frozen_evaluator(binding)
+     if metadata["append_policy"]["path"] != str(_append_policy_path(official["validator"])):
+         raise SavedEvaluationError("OFFICIAL_APPEND_POLICY_PATH_BINDING_MISMATCH")
+     policy = json_object(checked_read(metadata["append_policy"]), name="append_policy")
+@@ -565,12 +481,13 @@
+             inputs[name] = _opaque_record(item[f"{kind}_path"], PINS[name])
+     code_files = {name: file_record(Path(__file__).parent / f"{name}.py") for name in SOURCE_NAMES}
+     metrics = Path(config["frozen_metrics_path"])
+-    frozen_helpers, frozen_metadata = bind_frozen_evaluator(metrics)
+     native = _old_native_records(old)
+     helpers = {
+         "accepted_worker": file_record(config["accepted_worker_path"], PINS["accepted_worker"]),
+         "score_aware_metrics": file_record(root / _SCORE_AWARE_RELATIVE, PINS["score_aware_metrics"]),
+-        **frozen_helpers,
++        "frozen_metrics": file_record(metrics, PINS["frozen_metrics"]),
++        "frozen_settings": file_record(metrics.parent / "settings.py"),
++        "frozen_package_init": file_record(metrics.parent / "__init__.py"),
+         "native_runtime": native["native_runtime"],
+         "resource_tree": file_record(old["resource_tree_path"], PINS["resource_tree"]),
+     }
+@@ -585,7 +502,7 @@
+         "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+         "candidate_terminal": file_record(original_output / "CANDIDATE_TERMINAL_RECEIPT.json", PINS["candidate_terminal"]),
+         "native_reference": native_reference, "native_runtime_contract": runtime_record,
+-        "append_policy": file_record(policy_path), **frozen_metadata}
++        "append_policy": file_record(policy_path)}
+     registry_path = plain_path(root / "contracts/EXPERIMENT_REGISTRY.jsonl")
+     registry_bytes = registry_path.read_bytes()
+     events = [json_object(line, name="registry_event") for line in registry_bytes.splitlines() if line]
+@@ -668,11 +585,9 @@
+                 raise SavedEvaluationError(f"FROZEN_IDENTITY_PIN_MISMATCH:{name}")
+     required = {"metadata_files": {"candidate_binding", "candidate_spec", "prediction_seal",
+             "experiment_contract", "candidate_start", "candidate_terminal", "native_reference",
+-            "native_runtime_contract", "append_policy", "frozen_base_features", "frozen_contract",
+-            "frozen_evaluator_manifest"},
++            "native_runtime_contract", "append_policy"},
+         "executable_helpers": {"accepted_worker", "score_aware_metrics", "frozen_metrics",
+-            "frozen_settings", "frozen_package_init", "frozen_common", "frozen_features",
+-            "native_runtime", "resource_tree"},
++            "frozen_settings", "frozen_package_init", "native_runtime", "resource_tree"},
+         "official_helpers": {"execution_guard", "registry_adapter", "builder", "validator"}}
+     for category, names in required.items():
+         if set(binding.get(category, {})) != names:
+diff --git a/candidate/src/rff_saved_eval_worker.py b/candidate/src/rff_saved_eval_worker.py
+--- a/candidate/src/rff_saved_eval_worker.py
++++ b/candidate/src/rff_saved_eval_worker.py
+@@ -54,24 +54,6 @@
+         raise RuntimeError(f"SAVED_CSV_PARSE_FAILED:{name}:{type(exc).__name__}:{exc}") from exc
+ 
+ 
+-def _check_frozen_package_cache(common, closure, *, require_closure):
+-    modules = closure["modules"]
+-    present = {name: module for name, module in list(sys.modules.items())
+-               if name == "spike5" or name.startswith("spike5.")}
+-    for name, module in present.items():
+-        if name not in modules:
+-            raise common.SavedEvaluationError(f"UNBOUND_FROZEN_PACKAGE_DEPENDENCY:{name}")
+-        record = modules[name]
+-        origin = getattr(getattr(module, "__spec__", None), "origin", None)
+-        if (getattr(module, "__file__", None) != record["path"] or origin != record["path"]
+-                or getattr(module, "__rff_source_sha256__", None) != record["sha256"]):
+-            raise common.SavedEvaluationError(f"FROZEN_EVALUATOR_MODULE_IDENTITY_MISMATCH:{name}")
+-        if require_closure and getattr(module, "__rff_evaluator_closure_sha256__", None) != closure["closure_sha256"]:
+-            raise common.SavedEvaluationError(f"FROZEN_EVALUATOR_CACHED_CLOSURE_MISMATCH:{name}")
+-    if present and set(present) != set(modules):
+-        raise common.SavedEvaluationError("FROZEN_EVALUATOR_CACHED_CLOSURE_INCOMPLETE")
+-
+-
+ def _load_evaluators(common, binding):
+     helpers = binding["executable_helpers"]
+     # Reject a wrong accepted identity before executing its module body.
+@@ -79,55 +61,30 @@
+         raise common.SavedEvaluationError("ACCEPTED_PR5_JOIN_SHA_MISMATCH")
+     if helpers["score_aware_metrics"]["sha256"] != common.PINS["score_aware_metrics"]:
+         raise common.SavedEvaluationError("SCORE_AWARE_METRICS_SOURCE_SHA_MISMATCH")
+-    closure = common.validate_frozen_evaluator(binding)
+-    # Reject unknown or stale cached modules before executing any package body.
+-    _check_frozen_package_cache(common, closure, require_closure=True)
+     accepted = common.load_bound_module(helpers["accepted_worker"], "_rff_saved_accepted_pr5")
+     score_aware = common.load_bound_module(helpers["score_aware_metrics"], "_rff_saved_score_aware")
+     if (helpers["frozen_metrics"]["sha256"] != score_aware.FROZEN_METRICS_SHA256
+             or Path(helpers["frozen_metrics"]["path"]).resolve() != score_aware.FROZEN_METRICS_PATH.resolve()):
+         raise common.SavedEvaluationError("FROZEN_EVALUATOR_PATH_OR_SHA_MISMATCH")
+-    # Preload the exact historical transitive modules, so normal relative
+-    # imports in the original settings/metrics never execute an unbound body.
+-    modules = closure["modules"]
+-    package = common.load_bound_module(modules["spike5"], "spike5", package=True)
+-    for name in ("spike5.common", "spike5.features"):
+-        module = common.load_bound_module(modules[name], name)
+-        setattr(package, name.rsplit(".", 1)[1], module)
+-    frozen_common = sys.modules["spike5.common"]
+-    original_read_json = frozen_common.read_json
+-
+-    def read_bound_configuration(path):
+-        resolved = str(common.plain_path(path))
+-        record = closure["configs"].get(resolved)
+-        if record is None:
+-            raise common.SavedEvaluationError(f"UNBOUND_FROZEN_EVALUATOR_CONFIG:{resolved}")
+-        return json.loads(common.checked_read(record, name=resolved).decode("utf-8"))
+-
+-    try:
+-        # Preserve the original settings and JSON semantics; only its two
+-        # configuration reads are restricted to historically verified bytes.
+-        frozen_common.read_json = read_bound_configuration
+-        settings = common.load_bound_module(modules["spike5.settings"], "spike5.settings")
+-    finally:
+-        frozen_common.read_json = original_read_json
+-    package.settings = settings
+-    metrics = common.load_bound_module(modules["spike5.metrics"], "spike5.metrics")
+-    package.metrics = metrics
++    package_dir = common.plain_path(helpers["frozen_metrics"]["path"]).parent
++    for name, filename in (("frozen_settings", "settings.py"), ("frozen_package_init", "__init__.py")):
++        if common.plain_path(helpers[name]["path"]) != package_dir / filename:
++            raise common.SavedEvaluationError(f"FROZEN_EVALUATOR_PACKAGE_LOCATION_MISMATCH:{name}")
++    # Compile the exact already verified source bytes, including the settings
++    # dependency omitted from the remote issue attachment. Never invent bins.
++    common.load_bound_module(helpers["frozen_package_init"], "spike5", package=True)
++    common.load_bound_module(helpers["frozen_settings"], "spike5.settings")
++    metrics = common.load_bound_module(helpers["frozen_metrics"], "spike5.metrics")
+     if score_aware.frozen_metrics() is not metrics:
+         raise common.SavedEvaluationError("FROZEN_EVALUATOR_IMPORT_IDENTITY_MISMATCH")
+-    _check_frozen_package_cache(common, closure, require_closure=False)
+-    for name in modules:
+-        sys.modules[name].__rff_evaluator_closure_sha256__ = closure["closure_sha256"]
++    allowed = {Path(v["path"]).resolve() for v in helpers.values()}
++    for name, module in list(sys.modules.items()):
++        if name == "spike5" or name.startswith("spike5."):
++            origin = Path(str(getattr(module, "__file__", ""))).resolve()
++            if origin not in allowed:
++                raise common.SavedEvaluationError(f"UNBOUND_FROZEN_PACKAGE_DEPENDENCY:{name}:{origin}")
+     frames = common.load_bound_module(binding["code_files"]["rff_saved_eval_frames"], "_rff_saved_frames")
+     return frames, score_aware, accepted
+-
+-
+-def preflight_evaluators(common, binding):
+-    """Run the same source/config loader before the owner can create a start."""
+-    _load_evaluators(common, binding)
+-    return {"status": "PASS_FROZEN_EVALUATOR_CODE_AND_CONFIG",
+-            "closure_sha256": sys.modules["spike5"].__rff_evaluator_closure_sha256__}
+ 
+ 
+ def _validate_child_runtime(common, binding, payload):
+diff --git a/candidate/src/run_rff_saved_evaluation.py b/candidate/src/run_rff_saved_evaluation.py
+--- a/candidate/src/run_rff_saved_evaluation.py
++++ b/candidate/src/run_rff_saved_evaluation.py
+@@ -730,8 +730,6 @@
+         native_reference = common.json_object(common.checked_read(binding["metadata_files"]["native_reference"]), name="native_reference")
+         native_spec = native.native_spec_from_contract(native_reference)
+         native_observation = native.validate_native_files(native_spec, require_macos=True)
+-        evaluator_worker = common.load_bound_module(binding["code_files"]["rff_saved_eval_worker"], "_rff_saved_evaluator_preflight")
+-        evaluator_worker.preflight_evaluators(common, binding)
+         guard_module = common.load_bound_module(binding["official_helpers"]["execution_guard"], "execution_guard_core")
+         adapter_module = common.load_bound_module(binding["official_helpers"]["registry_adapter"], "_rff_saved_registry_adapter")
+         registration = common.load_bound_module(binding["code_files"]["rff_saved_eval_registration"], "_rff_saved_registration")
+diff --git a/candidate/tests/test_rff_saved_eval_contracts.py b/candidate/tests/test_rff_saved_eval_contracts.py
+--- a/candidate/tests/test_rff_saved_eval_contracts.py
++++ b/candidate/tests/test_rff_saved_eval_contracts.py
+@@ -15,8 +15,6 @@
+ import unittest
+ from unittest import mock
+ from pathlib import Path
+-
+-from test_rff_evaluator_dependencies import copy_historical_package, FIXTURE as EVALUATOR_FIXTURE
+ 
+ SOURCE = Path(__file__).resolve().parents[1] / "src" / "rff_saved_eval_contracts.py"
+ if SOURCE.is_file():
+@@ -148,13 +146,11 @@
+ 
+ 
+ class SyntheticPreparation:
+-    """Generated candidate metadata with the historical evaluator source closure.
++    """An entirely generated metadata tree, including nonexistent data paths.
+ 
+     PINS are patched only for the lifetime of a test. The production identities
+     and the five source names are never written or replaced by test fixtures.
+-    No source in this tree is imported; other generated helper raising bodies
+-    detect that mistake. R3 copies all seven original evaluator files plus its
+-    original manifest, so preparation validates the actual recursive shape.
++    No source in this tree is imported; the raising bodies detect that mistake.
+     """
+ 
+     def __init__(self, root: Path, *, validator_directory="contracts"):
+@@ -170,8 +166,6 @@
+         self.execution = "SYNTHETIC_METADATA_ONLY_EVAL"
+         for name in contracts.SOURCE_NAMES:
+             self.put(self.sources / (name + ".py"), b"raise AssertionError('source must not run during prepare')\n")
+-        self.put(self.sources.parent / "contracts/FROZEN_EVALUATOR_SOURCE_MANIFEST.json",
+-                 (EVALUATOR_FIXTURE / "MAC_FIXED_SOURCE_MANIFEST.json").read_bytes())
+ 
+         self.batch = self.project / "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927"
+         self.contract_path = self.batch / "contracts/EXPERIMENT_CONTRACT.json"
+@@ -202,7 +196,11 @@
+         self.put(self.native_path, b"raise AssertionError('native preflight must not run during prepare')\n")
+         self.accepted_worker = self.root / "accepted PR5/rff_worker.py"
+         self.record_source("accepted_worker", self.accepted_worker)
+-        self.metric_path = copy_historical_package(self.root / "frozen evaluator")
++        self.metric_path = self.root / "frozen evaluator/spike5/metrics.py"
++        self.record_source("frozen_metrics", self.metric_path,
++                           "from .settings import CONTRACT\nraise AssertionError('do not import metrics')\n")
++        self.put(self.metric_path.parent / "settings.py", b"CONTRACT = {'synthetic_cost': 17}\n")
++        self.put(self.metric_path.parent / "__init__.py", b"# synthetic frozen package\n")
+         self.score_aware = self.project / "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/score_aware_metrics.py"
+         self.record_source("score_aware_metrics", self.score_aware,
+             f"from pathlib import Path\nF5_SOURCE_ROOT = Path({str(self.metric_path.parent.parent)!r})\n"
+@@ -474,9 +472,10 @@
+ 
+     def test_prepare_rejects_a_copy_of_metrics_outside_the_frozen_evaluator_path(self):
+         f = self.fixture
+-        # Preserve the full historical closure at the wrong root, so this
+-        # still reaches the original score-aware absolute-path binding guard.
+-        other = copy_historical_package(f.root / "lookalike evaluator")
++        other = f.root / "lookalike evaluator/metrics.py"
++        f.put(other, f.metric_path.read_bytes())
++        for name in ("settings.py", "__init__.py"):
++            f.put(other.parent / name, (f.metric_path.parent / name).read_bytes())
+         f.config["frozen_metrics_path"] = str(other)
+         with self.assertRaisesRegex(contracts.SavedEvaluationError, "FROZEN_METRICS.*PATH"):
+             f.prepare()
+@@ -631,7 +630,7 @@
+         peripheral_paths = {
+             "candidate_binding": self.binding_path, "candidate_spec": self.spec_path,
+             "experiment_contract": self.contract_path, "prediction_seal": self.seal_path,
+-            "accepted_worker": self.accepted_worker,
++            "accepted_worker": self.accepted_worker, "frozen_metrics": self.metric_path,
+             "score_aware_metrics": self.score_aware, "resource_tree": self.resource_tree,
+             **{name: Path(record["path"]) for name, record in self.official.items()},
+         }
+diff --git a/candidate/tests/test_rff_saved_eval_worker.py b/candidate/tests/test_rff_saved_eval_worker.py
+--- a/candidate/tests/test_rff_saved_eval_worker.py
++++ b/candidate/tests/test_rff_saved_eval_worker.py
+@@ -4,9 +4,8 @@
+ The real Mac spike5.settings path and native runtime are unavailable. Normal
+ worker cases substitute only evaluator loading and the child-native verification
+ seam with explicit synthetic fixtures; neither is a production skip branch.
+-Focused loader cases exercise all seven historically authenticated evaluator
+-source/config files in temporary locations. Only the wrapper's absolute path
+-attributes are changed in memory; they do not claim Mac runtime acceptance.
++Focused loader cases exercise bound source loading on source-only temporary
++files. They do not claim acceptance of the real Mac runtime or settings.
+ """
+ from __future__ import annotations
+ import copy
+@@ -24,7 +23,6 @@
+ sys.path.insert(0, str(SRC))
+ import rff_saved_eval_contracts as common
+ import test_rff_saved_eval_frames as fixture_module
+-from test_rff_evaluator_dependencies import copy_historical_package
+ 
+ 
+ def load(path, name):
+@@ -138,16 +136,20 @@
+     def loader_binding(self):
+         """Exact accepted source; only the absent Mac package path is substituted."""
+         for name in ("_rff_saved_accepted_pr5", "_rff_saved_score_aware", "_rff_saved_frames",
+-                     "spike5", "spike5.common", "spike5.features", "spike5.settings",
+-                     "spike5.metrics", "spike5.extra"):
++                     "spike5", "spike5.settings", "spike5.metrics", "spike5.extra"):
+             self.restore_module_later(name)
+-        metrics_path = copy_historical_package(self.root / "historical_frozen")
+-        package = metrics_path.parent
+-        helpers, metadata = common.bind_frozen_evaluator(metrics_path)
+-        helpers.update({
++        package = self.root / "synthetic_frozen" / "spike5"
++        package.mkdir(parents=True)
++        (package / "__init__.py").write_text("# Synthetic package init; no real settings claim.\n")
++        (package / "settings.py").write_text("CONTRACT = {'calibration_bins': [0.0, 0.5, 1.0]}\n")
++        (package / "metrics.py").write_bytes((fixture_module.REMOTE / "external_frozen_evaluator/metrics.py").read_bytes())
++        helpers = {
+             "accepted_worker": common.file_record(fixture_module.ATTACHMENTS / "rff/pr5_accepted/src/rff_worker.py"),
+             "score_aware_metrics": common.file_record(fixture_module.ATTACHMENTS / "shared/src/score_aware_metrics.py"),
+-        })
++            "frozen_metrics": common.file_record(package / "metrics.py"),
++            "frozen_settings": common.file_record(package / "settings.py"),
++            "frozen_package_init": common.file_record(package / "__init__.py"),
++        }
+         wrapper = common.load_bound_module(helpers["score_aware_metrics"], "_rff_saved_score_aware")
+         wrapper.frozen_metrics.cache_clear()
+         for field, value in (("FROZEN_METRICS_PATH", package / "metrics.py"), ("F5_SOURCE_ROOT", package.parent)):
+@@ -159,8 +161,7 @@
+             if str(package.parent) in sys.path:
+                 sys.path.remove(str(package.parent))
+         self.addCleanup(remove_fixture_path)
+-        return {"executable_helpers": helpers, "metadata_files": metadata,
+-                "code_files": self.binding["code_files"]}
++        return {"executable_helpers": helpers, "code_files": self.binding["code_files"]}
+ 
+     def native_binding(self):
+         """Synthetic source fixture for the native API seam, not an ABI check."""
+@@ -415,7 +416,7 @@
+         settings = outside / "settings.py"
+         settings.write_bytes(Path(original["path"]).read_bytes())
+         binding["executable_helpers"]["frozen_settings"] = common.file_record(settings)
+-        with self.assertRaisesRegex(common.SavedEvaluationError, "FROZEN_EVALUATOR_PATH_MISMATCH:frozen_settings"):
++        with self.assertRaisesRegex(Exception, "FROZEN_EVALUATOR_PACKAGE_LOCATION_MISMATCH:frozen_settings"):
+             self.worker._load_evaluators(common, binding)
+         self.assertNotIn("spike5", sys.modules)
+ 
+@@ -427,7 +428,7 @@
+         init = outside / "__init__.py"
+         init.write_text("# Synthetic external init.\n")
+         binding["executable_helpers"]["frozen_package_init"] = common.file_record(init)
+-        with self.assertRaisesRegex(common.SavedEvaluationError, "FROZEN_EVALUATOR_PATH_MISMATCH:frozen_package_init"):
++        with self.assertRaisesRegex(Exception, "FROZEN_EVALUATOR_PACKAGE_LOCATION_MISMATCH:frozen_package_init"):
+             self.worker._load_evaluators(common, binding)
+ 
+     def test_unbound_frozen_package_import_is_rejected(self):
+@@ -437,12 +438,8 @@
+         (init.parent / "extra.py").write_text("SYNTHETIC_EXTRA_MODULE = True\n")
+         init.write_text("from . import extra\n")
+         binding["executable_helpers"]["frozen_package_init"] = common.file_record(init)
+-        # R3 rejects the altered init against its historical SHA before import;
+-        # the original allowlist remains a second line of defense.
+-        with self.assertRaisesRegex(common.SavedEvaluationError,
+-                                   "FROZEN_EVALUATOR_HISTORICAL_IDENTITY_MISMATCH:frozen_package_init"):
++        with self.assertRaisesRegex(Exception, "UNBOUND_FROZEN_PACKAGE_DEPENDENCY:spike5.extra"):
+             self.worker._load_evaluators(common, binding)
+-        self.assertNotIn("spike5.extra", sys.modules)
+ 
+     def test_child_runtime_seam_uses_bound_reference_and_preserves_observation(self):
+         self.native_patch.stop()
+diff --git a/candidate/contracts/FROZEN_EVALUATOR_SOURCE_MANIFEST.json b/candidate/contracts/FROZEN_EVALUATOR_SOURCE_MANIFEST.json
+deleted file mode 100644
+--- a/candidate/contracts/FROZEN_EVALUATOR_SOURCE_MANIFEST.json
++++ /dev/null
+@@ -1,541 +0,0 @@
+-{
+-  "schema": "HK_SPIKE_F5_MAC_FIXED_SOURCE_MANIFEST_V1",
+-  "identity_kind": "MAC_FIXED_SOURCE_ARCHIVE",
+-  "package_root": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1",
+-  "archive": {
+-    "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/HK_SPIKE_F5_TRAIN_V1_MAC_FIXED_20260914.zip",
+-    "bytes": 1073959,
+-    "sha256": "aaf9d39eaed231f957c1818e19396edc258bf1df3a7add3d480630122b003412"
+-  },
+-  "origin_submitted_zip": {
+-    "path": "/Users/lexi/Downloads/HK_SPIKE_F5_TRAIN_V1_20260914.zip",
+-    "sha256": "fa107fd967bcaca1b4d4b994d7d57a953d2585e1ea87c9e0ed82fb224c2a9baf",
+-    "bytes": 1049399
+-  },
+-  "baseline_manifest": {
+-    "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/MANIFEST.sha256",
+-    "bytes": 8322,
+-    "sha256": "61afebf6c5ad0205dc74dd684ad6a8e3f3ce5f9c47fea4f0f6149b53deb97411"
+-  },
+-  "excluded_runtime": [
+-    ".venv_locked/**",
+-    ".pytest_cache/**",
+-    "**/__pycache__/**"
+-  ],
+-  "files": [
+-    {
+-      "path": "MANIFEST.sha256",
+-      "bytes": 8322,
+-      "sha256": "61afebf6c5ad0205dc74dd684ad6a8e3f3ce5f9c47fea4f0f6149b53deb97411"
+-    },
+-    {
+-      "path": "README.md",
+-      "bytes": 6918,
+-      "sha256": "138fe43d452f7a7bb881e0591140f2db57ff05fea007ac067a18aea14f87c6e0"
+-    },
+-    {
+-      "path": "SCOPE.md",
+-      "bytes": 3019,
+-      "sha256": "f92fdd6acd270f0a85e15f179ba319b18e1bd2fa67def4744ebd981184183d5e"
+-    },
+-    {
+-      "path": "build_input.py",
+-      "bytes": 15349,
+-      "sha256": "8d2c5e76018438894ff19c25c0d94e1a3faec6073fc8628a8917cfb9506b317a"
+-    },
+-    {
+-      "path": "config/base_features.json",
+-      "bytes": 408,
+-      "sha256": "6284bfe3609ec9f220b4f4baef6e0cb4d3190529830fbcb0d8ff435c0859c7af"
+-    },
+-    {
+-      "path": "config/calendar_2018_2025.csv.gz",
+-      "bytes": 9886,
+-      "sha256": "1403be75f638a6d7b34ce8e77d681b0037b7e1bd64866f1219a23cf63ef17550"
+-    },
+-    {
+-      "path": "config/codes_snapshot_691.json",
+-      "bytes": 9677,
+-      "sha256": "a4e533d47dc64718762422c004b8be2f0c0cb5b20219aec1a51c690023017e0d"
+-    },
+-    {
+-      "path": "config/contract.json",
+-      "bytes": 10193,
+-      "sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb"
+-    },
+-    {
+-      "path": "config/export.example.json",
+-      "bytes": 3132,
+-      "sha256": "c8a840d66ae49d4d00728d81a3b0bd8034dce6d82886ce632883570d5fca3520"
+-    },
+-    {
+-      "path": "config/export.local.json",
+-      "bytes": 7174,
+-      "sha256": "11ca0d4d97b5e0a11925c4874312956865e9b8ead063c67dc22880a18496abf0"
+-    },
+-    {
+-      "path": "config/feature_order_64.json",
+-      "bytes": 1233,
+-      "sha256": "0188d530e6aca9ba29d2a40b7dcb730bc45cd5528e2b1bd0eb609ae83de0ffc3"
+-    },
+-    {
+-      "path": "docs/INPUT_SCHEMA_ZH.md",
+-      "bytes": 4862,
+-      "sha256": "0c6a490c10c3740b43315b1f7f2d4259718c0643f50e3a397ec719464b3ec9aa"
+-    },
+-    {
+-      "path": "docs/PATH_FEATURES_ZH.md",
+-      "bytes": 2114,
+-      "sha256": "74b85813254d435c62b9fd67214ce71a2c90a76af7322360b013e1cd0a41202b"
+-    },
+-    {
+-      "path": "docs/SOURCES_AND_LIMITS_ZH.md",
+-      "bytes": 1641,
+-      "sha256": "a8445e94bdcda62e722e9503ce79b891991698e2c585f2624ac66cad18a0f8bb"
+-    },
+-    {
+-      "path": "docs/TRAINING_CONTRACT_ZH.md",
+-      "bytes": 5394,
+-      "sha256": "393956f59be606f78103a1ca8833a61ca554b2b8aec19ddcaf6d12f4c07fbff1"
+-    },
+-    {
+-      "path": "engineering/BASE34/fit_receipt.json",
+-      "bytes": 1428,
+-      "sha256": "2c9039d3a01291510c2ee9645a95653bf1555ff75da4762bbe5c26122c92d0ec"
+-    },
+-    {
+-      "path": "engineering/BASE34/model.txt",
+-      "bytes": 287847,
+-      "sha256": "a33fb92230b07a5052b1a7f7f96773f258def55cb2b3e98f43c013c5fdbd041e"
+-    },
+-    {
+-      "path": "engineering/BASE34/preprocessing.json",
+-      "bytes": 688,
+-      "sha256": "bd588fab133fbe42307d5d2c0882ae8c0ba553dfac2ef611e9bfb53a2a6a8827"
+-    },
+-    {
+-      "path": "engineering/BASE34/probability.npy",
+-      "bytes": 16768,
+-      "sha256": "810c3f771c9410832d1484d192f427de270db75a9a1f4ca3ef560f0481cecd63"
+-    },
+-    {
+-      "path": "engineering/BASE34/resource_trace.json",
+-      "bytes": 3739,
+-      "sha256": "87aafece3eee0ebf9c6c452da0667d6ce8d0e9e047cbabc7f59a5c067576dae4"
+-    },
+-    {
+-      "path": "engineering/BASE34/scores.csv.gz",
+-      "bytes": 50828,
+-      "sha256": "5b6ff6b354cfcb567871767609d56bae26306266c377fedc37aaf0d659a345d3"
+-    },
+-    {
+-      "path": "engineering/BASE34/top3.csv.gz",
+-      "bytes": 15074,
+-      "sha256": "e8093bc76f7c1c27c4a0b892d54da3d4c5436a772428f35eb9c374f0b507c295"
+-    },
+-    {
+-      "path": "engineering/BASE34/train.log",
+-      "bytes": 0,
+-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+-    },
+-    {
+-      "path": "engineering/MODEL_INVENTORY.json",
+-      "bytes": 4798,
+-      "sha256": "596e0e60f647e4215de27160069ca8753d951eaea84308f3852054550a864e5e"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/fit_receipt.json",
+-      "bytes": 1388,
+-      "sha256": "a410b036b8cd08580707d541fe23f9a3355af7fbafdbefeab30a0fb703676e69"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/model.txt",
+-      "bytes": 280150,
+-      "sha256": "fd2adfabb1fce1e6d39267f2af9355b4fbc40290269e005d81068fc93cf26101"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/preprocessing.json",
+-      "bytes": 1573,
+-      "sha256": "7fb1104649225d39e2574a9f81e72354278595d685742a4f706987a0bcdf990b"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/probability.npy",
+-      "bytes": 16768,
+-      "sha256": "b47429d53fcb231deac4abdef663385de78e2ad037f1c1b21d6a0740b537eb4b"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/resource_trace.json",
+-      "bytes": 153,
+-      "sha256": "e380dbfa952ec43981dc0ee80c885382ba39c409198f4e21b885a22bb1b6e414"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/scores.csv.gz",
+-      "bytes": 50926,
+-      "sha256": "3eb7abe961b2ef780328db5958dc80fea5c4d51aba8198af180d41c2f3fb3390"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/top3.csv.gz",
+-      "bytes": 15058,
+-      "sha256": "b6352d934484d8b606d6da4deb20b7585ac00968b88a26f917748a7b4af8e44d"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/train.log",
+-      "bytes": 0,
+-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+-    },
+-    {
+-      "path": "engineering/X_eval.npy",
+-      "bytes": 532608,
+-      "sha256": "24f74700ffd9520a9738214d362c87c53223ae623537145aec4fd47620791bd5"
+-    },
+-    {
+-      "path": "engineering/eval_meta.csv.gz",
+-      "bytes": 27496,
+-      "sha256": "2c7b14c75ebba138dc2a0e8b7c7c7036c9c91d1ed167ada817a0c061c6bfccfb"
+-    },
+-    {
+-      "path": "engineering/replay_locked_diagnostic.py",
+-      "bytes": 4461,
+-      "sha256": "59ba4ec5124543bde6195b21a62a3f403beac0286a93f51c6417307207f9dda3"
+-    },
+-    {
+-      "path": "engineering/replay_saved.py",
+-      "bytes": 1979,
+-      "sha256": "74809369b54cb1c05093fa92cce3d917bfbf21f56f109c461b0d20ead1f74c1a"
+-    },
+-    {
+-      "path": "evidence/ATTEMPT_ACCOUNTING.json",
+-      "bytes": 508,
+-      "sha256": "fc26ed81e7815b2b9ff5b08ce98155682af68e89dc008ea4305ee2b6db0bc34a"
+-    },
+-    {
+-      "path": "evidence/BENCHMARK_CONSOLE.txt",
+-      "bytes": 0,
+-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+-    },
+-    {
+-      "path": "evidence/CONTRACT_BEFORE_ENGINEERING_FIX.json",
+-      "bytes": 7142,
+-      "sha256": "5810e3a24b38b53233d2bcf26d0fb085cfadce113845f4978ab65313b7f108d0"
+-    },
+-    {
+-      "path": "evidence/CONTRACT_BEFORE_SOURCE_BOUNDARY_FIX.json",
+-      "bytes": 7568,
+-      "sha256": "8ef2730ccd12366e54d5560987609f8a6cd9a1538b935fe92d51a09ef9ada9cd"
+-    },
+-    {
+-      "path": "evidence/DELIVERY_STATUS.json",
+-      "bytes": 820,
+-      "sha256": "dc91e1fb687568a7c8cc278e9111d119a23cdf48039fce2d233ee9abbc3390fd"
+-    },
+-    {
+-      "path": "evidence/ENGINEERING_FAILURE_AMENDMENT.json",
+-      "bytes": 383,
+-      "sha256": "57cd2d1b4570c85e3f299d42d0fdfaceb4ed1af89f1d32beb2204f820baa8e22"
+-    },
+-    {
+-      "path": "evidence/ENVIRONMENT_FINAL.json",
+-      "bytes": 643,
+-      "sha256": "cbb12fbb3acfc20d1e0231d6833ebee20e78253b7eb85472ebdc539754221e9a"
+-    },
+-    {
+-      "path": "evidence/ENVIRONMENT_INITIAL.json",
+-      "bytes": 588,
+-      "sha256": "811800955a026d5420a77401dc148dd330904ca443b0da2a73e2b2972e8cde25"
+-    },
+-    {
+-      "path": "evidence/FINAL_ENGINEERING_INPUT_EQUIVALENCE.json",
+-      "bytes": 780,
+-      "sha256": "379b8351e0a6e11635c8a262eba714405d47e24f7853451407d1f4a5e65f1526"
+-    },
+-    {
+-      "path": "evidence/FINAL_ENGINEERING_REPLAY.json",
+-      "bytes": 311,
+-      "sha256": "f8ebc8eb6dcc65ad012bfc7cd0d86d4af8faf698463652c4f9fb3cff790f9d24"
+-    },
+-    {
+-      "path": "evidence/ORIGINAL_CASE_SOURCE_MANIFEST.json",
+-      "bytes": 2325,
+-      "sha256": "734724e4d28d15948eabb13a53983d3f3761f791d7789212c1d8948348fe8c7e"
+-    },
+-    {
+-      "path": "evidence/REAL_588_PATH_FEATURES.csv.gz",
+-      "bytes": 124818,
+-      "sha256": "9dbb409c695d264545242de1984487e50a84dffa53999743ad9c0643bce7e727"
+-    },
+-    {
+-      "path": "evidence/REAL_CASE_ADAPTER_CHECK.json",
+-      "bytes": 2002,
+-      "sha256": "571b3d1af4532c94fd482ad566d602c39da1d88bdc570d1aeb8eff08072c936d"
+-    },
+-    {
+-      "path": "evidence/REAL_TRAINING_STATUS.json",
+-      "bytes": 654,
+-      "sha256": "9b5c296450112fd535f4a5d5893b2c9b0edf96dafef0a0254f690a7f57fd8ac7"
+-    },
+-    {
+-      "path": "evidence/SMOKE_CONSOLE.txt",
+-      "bytes": 1178,
+-      "sha256": "86d55b1875e6dd92063c5ec5e305399d530b7a20c540c3b47263a1934aace17d"
+-    },
+-    {
+-      "path": "evidence/SMOKE_RECEIPT.json",
+-      "bytes": 1227,
+-      "sha256": "e6ba6321cdd72e52fb27a10f11f8f81b0dd441c0ed6c5ef4acea7aa63089a7e4"
+-    },
+-    {
+-      "path": "evidence/SMOKE_RECOVERY_CONSOLE.txt",
+-      "bytes": 882,
+-      "sha256": "81599f7900ef49a39343a5abced75272204a9da44a02b0891234bbe087f5b1d3"
+-    },
+-    {
+-      "path": "evidence/SMOKE_V2_CONSOLE.txt",
+-      "bytes": 0,
+-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+-    },
+-    {
+-      "path": "evidence/TDD_GREEN_CORE.txt",
+-      "bytes": 99,
+-      "sha256": "915abf6e3013302ef73970c963eb3c6ab123954f7590724a18abe0f03b651f65"
+-    },
+-    {
+-      "path": "evidence/TDD_RED.txt",
+-      "bytes": 14853,
+-      "sha256": "154ef31697bcd919f9d44b78ad8df48337d3d20d2541dc4cc91a8ea71bd0a22e"
+-    },
+-    {
+-      "path": "evidence/TDD_RED_DATASET_BINDING.txt",
+-      "bytes": 1663,
+-      "sha256": "264c8317f726da1f7dbb57e0ecdb17e8ffd2e26de032e97bbf34f33f83fbf0df"
+-    },
+-    {
+-      "path": "evidence/TDD_RED_GUARDS.txt",
+-      "bytes": 2222,
+-      "sha256": "f011073860e85dc8e04e69ddb228bab8059ef8ffbd418f694caafd7ca0a7924a"
+-    },
+-    {
+-      "path": "evidence/TDD_RED_OUTPUT_PARENT.txt",
+-      "bytes": 1993,
+-      "sha256": "b5779b4843455ae5040dc48314dcc98fe85cd0f2a730fea9c7b2f96a20b48d0e"
+-    },
+-    {
+-      "path": "evidence/TDD_RED_PIPELINE.txt",
+-      "bytes": 10044,
+-      "sha256": "985125da2aab2ac430cc98fea7d1c1aeb804191830938f07e7861a7a44a8c29d"
+-    },
+-    {
+-      "path": "evidence/TDD_RED_SOURCE_BOUNDARY.txt",
+-      "bytes": 838,
+-      "sha256": "68eaed39d4525ccc72240381033e0c0825ada8f5d5b1175158bc5a2e23769250"
+-    },
+-    {
+-      "path": "evidence/TESTS_CURRENT.txt",
+-      "bytes": 99,
+-      "sha256": "047793470b1a4a06b3d96304dd714637a6028f1ab26c5bdb7a6c465087c2e8cd"
+-    },
+-    {
+-      "path": "evidence/TESTS_FINAL.txt",
+-      "bytes": 100,
+-      "sha256": "7115287baab13f1149d34d48de4ee48df09862376cb9d820fffb6dbb1c9bfa96"
+-    },
+-    {
+-      "path": "evidence/engineering_v2_registry.sqlite",
+-      "bytes": 20480,
+-      "sha256": "b427a3a819f69437a9347477a957118a0086b91e8026e0df6548874a5f41e634"
+-    },
+-    {
+-      "path": "evidence/failed_engineering_attempt/FAILURE.json",
+-      "bytes": 560,
+-      "sha256": "cb1c4b1cff24e42a61b9ca6f8ad14033d45a596f7649c201f73a56d95254b0d0"
+-    },
+-    {
+-      "path": "evidence/failed_engineering_attempt/fixed_registry.sqlite",
+-      "bytes": 20480,
+-      "sha256": "c185d2f0e2fa41eb8d6f79e88c5588d3cd1aea634a45a2bb0ad61aaeed5328de"
+-    },
+-    {
+-      "path": "evidence/failed_engineering_attempt/train.log",
+-      "bytes": 683,
+-      "sha256": "bd1a298f50b761932c1042174ae3f227e4866f78842a5af56b9b100b3b69acd6"
+-    },
+-    {
+-      "path": "evidence/resource_benchmark/BENCHMARK_PREFIT.json",
+-      "bytes": 1046,
+-      "sha256": "62e386efb50d84da1038da9a43d06d9abe5fe0953efdc9f01582753caa681abc"
+-    },
+-    {
+-      "path": "evidence/resource_benchmark/RESOURCE_RECEIPT.json",
+-      "bytes": 656,
+-      "sha256": "93bd3ddf55351d994204bb388e946fff9a1ae5b08bdc2f302490f6ae673a2bc0"
+-    },
+-    {
+-      "path": "evidence/resource_benchmark/benchmark.log",
+-      "bytes": 0,
+-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+-    },
+-    {
+-      "path": "evidence/resource_benchmark/environment.json",
+-      "bytes": 485,
+-      "sha256": "5c7cb8550fa24bcb8c5b6d03b87e73354bfdc29d095a83625c55d53b33685ac8"
+-    },
+-    {
+-      "path": "evidence/run_real_case_adapter_check.py",
+-      "bytes": 3175,
+-      "sha256": "be44ed0fe222200d8e08cce39168ac13050aac060986d0adac1de54a1be49fc7"
+-    },
+-    {
+-      "path": "parity_check.py",
+-      "bytes": 10692,
+-      "sha256": "6b60edaccf9b213ee2a05d9a4283331e739fdbce67d292d227d974746d12b16a"
+-    },
+-    {
+-      "path": "pytest.ini",
+-      "bytes": 27,
+-      "sha256": "c809c969ec7e11b9ff37784e9c6fcc0b7c5148d168e18b05aed797e03fbd6ead"
+-    },
+-    {
+-      "path": "requirements.lock.txt",
+-      "bytes": 140,
+-      "sha256": "73348b7f14b4689459de16d626fed1eb8d2d9392fcbebfb38fa2856078c52f78"
+-    },
+-    {
+-      "path": "spike5/__init__.py",
+-      "bytes": 22,
+-      "sha256": "27e8febb48ada44153ea2add9969a2c50a9831a74d9755fdd53c549a888b1cc2"
+-    },
+-    {
+-      "path": "spike5/__main__.py",
+-      "bytes": 3101,
+-      "sha256": "f4668c977549527f7855cb946215c76c1a05bededf7e00c8d783213dfba85fa5"
+-    },
+-    {
+-      "path": "spike5/aggregate.py",
+-      "bytes": 3342,
+-      "sha256": "30ce0292b30f6d3315e067275eab02f74f726740b45f8eb3f774d5b2aef808a6"
+-    },
+-    {
+-      "path": "spike5/budget.py",
+-      "bytes": 2665,
+-      "sha256": "8aee11d28ad5726923309325dbed33dacf5b291a54bd844161cacb7103d5257e"
+-    },
+-    {
+-      "path": "spike5/common.py",
+-      "bytes": 2067,
+-      "sha256": "affff27d758d73fdbde3da21af59b94b265d4072cf83036475cd06b0941a4097"
+-    },
+-    {
+-      "path": "spike5/data.py",
+-      "bytes": 9435,
+-      "sha256": "05dec3f1823237c07e82e00b267e2a7e1ef2b203276117301d937f4af92e19d3"
+-    },
+-    {
+-      "path": "spike5/engineering.py",
+-      "bytes": 5753,
+-      "sha256": "194125bf8e6f6c7e2ace2f7c3fb8c02893fc6d360acd4d34a0d88ae478831162"
+-    },
+-    {
+-      "path": "spike5/exporter.py",
+-      "bytes": 6893,
+-      "sha256": "fbf605a1d397d59af952a9dda54bc682c81924541ca1ecf364a94d5fd450bdb4"
+-    },
+-    {
+-      "path": "spike5/features.py",
+-      "bytes": 5941,
+-      "sha256": "947e8d9a2f2b36e44ecfc8d713e0c492670039838dcf3e5abb9396f17a637c38"
+-    },
+-    {
+-      "path": "spike5/fixtures.py",
+-      "bytes": 2638,
+-      "sha256": "6dd52c14e3d151f8d2f2f3cdb8c393e564cf5845bb870b2ce905b2ec4190d21d"
+-    },
+-    {
+-      "path": "spike5/labels.py",
+-      "bytes": 3047,
+-      "sha256": "d7cdcff9f2f1f71d9cc08086d811f1960dbf937f6bc7e4efbd9394390db63ae1"
+-    },
+-    {
+-      "path": "spike5/metrics.py",
+-      "bytes": 8758,
+-      "sha256": "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763"
+-    },
+-    {
+-      "path": "spike5/runner.py",
+-      "bytes": 15625,
+-      "sha256": "7afe20601a06c1932021eea38b7be0a7b4c868bec0f1875565e915f36ce7582a"
+-    },
+-    {
+-      "path": "spike5/settings.py",
+-      "bytes": 288,
+-      "sha256": "702c374612806e45647b8cdb8cb345736b6cac689f23df352c00d08735bfb4fc"
+-    },
+-    {
+-      "path": "tests/test_binding.py",
+-      "bytes": 459,
+-      "sha256": "ced8a760fb2f2f0a31a2b939631c22856be67a711d31e1fb1932e241f641aafe"
+-    },
+-    {
+-      "path": "tests/test_core.py",
+-      "bytes": 3446,
+-      "sha256": "8cffaa89996fd5aaa7fb8a05a5e3810326d74801458df4450f4da55cdb5225e7"
+-    },
+-    {
+-      "path": "tests/test_data.py",
+-      "bytes": 3115,
+-      "sha256": "26e18ce25f001013607b13f1a5ab93a2417cea3f8e9d16ff5be60ae35509da05"
+-    },
+-    {
+-      "path": "tests/test_export.py",
+-      "bytes": 2019,
+-      "sha256": "ee69ac46f298dcb196bbf3a500f9183abc34d4c266ec458ecafe1730970918d9"
+-    },
+-    {
+-      "path": "tests/test_pipeline.py",
+-      "bytes": 2760,
+-      "sha256": "f6b0338ed4a74fe0a5f0476cdef79c22f1c1bacfea06e47c4c762f0204d52a77"
+-    }
+-  ],
+-  "actual_source_changes": {
+-    "spike5/data.py": {
+-      "submitted_zip_sha256": "5e2874977f14a13e4ec3ff3553e98dccb7cf6ae1718791840caadf3d080ba3d4",
+-      "current_sha256": "05dec3f1823237c07e82e00b267e2a7e1ef2b203276117301d937f4af92e19d3",
+-      "reason": "pandas read-only NumPy view copy before masking"
+-    },
+-    "spike5/exporter.py": {
+-      "submitted_zip_sha256": "b52866a0d44a72bda5c38061f554543f5bef1815dfde7303a666df7766985d48",
+-      "current_sha256": "fbf605a1d397d59af952a9dda54bc682c81924541ca1ecf364a94d5fd450bdb4",
+-      "reason": "lineage source hashes in output manifest"
+-    },
+-    "config/contract.json": {
+-      "submitted_zip_sha256": "d610fc60f8ee078e8c934a29738e3b1683e395b2cf143251433afdb062403f31",
+-      "current_sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb",
+-      "reason": "metadata-only input admission amendment; target/learner/real-fit budget unchanged"
+-    },
+-    "SCOPE.md": {
+-      "current_sha256": "f92fdd6acd270f0a85e15f179ba319b18e1bd2fa67def4744ebd981184183d5e",
+-      "reason": "explicitly records authorized metadata-only amendment"
+-    },
+-    "engineering/replay_locked_diagnostic.py": {
+-      "current_sha256": "59ba4ec5124543bde6195b21a62a3f403beac0286a93f51c6417307207f9dda3",
+-      "reason": "zero-fit platform replay diagnostic"
+-    }
+-  },
+-  "binding": {
+-    "input_manifest_sha256": "b151979a05587bdf571f329300bd34b9a03aad68726b1afec7eb735b6ed844a8",
+-    "prepared_rebound_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/prepared_rebound_20260914",
+-    "prepared_rebound_json_sha256": "24bd84583980da9f1c3e02cf2222d4eff1d3c4cb8402fe803e0e43d551f87e39",
+-    "prepared_rebound_contract_sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb",
+-    "prepared_rebound_validate": "PASS",
+-    "trigger_parity_receipt": {
+-      "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/trigger_parity.json",
+-      "bytes": 2363,
+-      "sha256": "925128cc520949f314bd63dc6f479920226df28374429205f8f249727b195e4d"
+-    },
+-    "trigger_parity_status": "PASS_TRIGGER_PARITY_ALL_GRID",
+-    "real_fit": false
+-  },
+-  "notes": [
+-    "This archive is the Mac-fixed source identity and does not claim to be byte-identical to the submitted ZIP.",
+-    "The submitted ZIP remains read-only and unchanged.",
+-    "The environment venv is deliberately excluded from this source archive; its exact package freeze is recorded separately."
+-  ]
+-}
+diff --git a/candidate/tests/fixtures/frozen_evaluator/HISTORICAL_CLOSURE_PROVENANCE.json b/candidate/tests/fixtures/frozen_evaluator/HISTORICAL_CLOSURE_PROVENANCE.json
+deleted file mode 100644
+--- a/candidate/tests/fixtures/frozen_evaluator/HISTORICAL_CLOSURE_PROVENANCE.json
++++ /dev/null
+@@ -1,126 +0,0 @@
+-{
+-  "status": "HISTORICAL_MANIFEST_RECOVERED_SEVEN_IDENTITIES_SEVEN_EXACT_FILES",
+-  "identity_kind": "MAC_FIXED_SOURCE_ARCHIVE_NOT_SUBMITTED_ZIP",
+-  "historical_manifest_sha256": "64fd0f7a5e3d646f7b5b184d44ca10576aab9db73772b3abb2cfceab36862a9b",
+-  "historical_manifest_bytes": 19131,
+-  "manifest_text_recovery": {
+-    "adjustment": "Restored one terminal LF only; resulting complete bytes match the independent package identity receipt SHA256 and size exactly. Original returned text remains preserved in private input evidence.",
+-    "returned_text_bytes": 19130,
+-    "verified_manifest_file": "MAC_FIXED_SOURCE_MANIFEST.json"
+-  },
+-  "historical_archive_identity": {
+-    "bytes": 1073959,
+-    "sha256": "aaf9d39eaed231f957c1818e19396edc258bf1df3a7add3d480630122b003412",
+-    "filename": "HK_SPIKE_F5_TRAIN_V1_MAC_FIXED_20260914.zip"
+-  },
+-  "archive_bytes_downloaded_or_rehashed_here": false,
+-  "files": [
+-    {
+-      "path": "spike5/__init__.py",
+-      "bytes": 22,
+-      "sha256": "27e8febb48ada44153ea2add9969a2c50a9831a74d9755fdd53c549a888b1cc2",
+-      "byte_source": null,
+-      "bytes_recovered": true,
+-      "local_verified_source": "spike5/__init__.py",
+-      "byte_recovery_method": "Root proposed the 22-byte version declaration; independent reviewer compared full byte count and SHA256 with the historical manifest before saving. No original file or ZIP contents were retrieved for this member.",
+-      "candidate_text": "__version__ = \"1.0.0\"\n"
+-    },
+-    {
+-      "path": "spike5/settings.py",
+-      "bytes": 288,
+-      "sha256": "702c374612806e45647b8cdb8cb345736b6cac689f23df352c00d08735bfb4fc",
+-      "byte_source": "spike5/settings.py",
+-      "bytes_recovered": true,
+-      "local_verified_source": "spike5/settings.py",
+-      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+-    },
+-    {
+-      "path": "spike5/common.py",
+-      "bytes": 2067,
+-      "sha256": "affff27d758d73fdbde3da21af59b94b265d4072cf83036475cd06b0941a4097",
+-      "byte_source": "spike5/common.py",
+-      "bytes_recovered": true,
+-      "local_verified_source": "spike5/common.py",
+-      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+-    },
+-    {
+-      "path": "spike5/features.py",
+-      "bytes": 5941,
+-      "sha256": "947e8d9a2f2b36e44ecfc8d713e0c492670039838dcf3e5abb9396f17a637c38",
+-      "byte_source": "spike5/features.py",
+-      "bytes_recovered": true,
+-      "local_verified_source": "spike5/features.py",
+-      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+-    },
+-    {
+-      "path": "spike5/metrics.py",
+-      "bytes": 8758,
+-      "sha256": "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763",
+-      "byte_source": "spike5/metrics.py",
+-      "bytes_recovered": true,
+-      "local_verified_source": "spike5/metrics.py",
+-      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+-    },
+-    {
+-      "path": "config/base_features.json",
+-      "bytes": 408,
+-      "sha256": "6284bfe3609ec9f220b4f4baef6e0cb4d3190529830fbcb0d8ff435c0859c7af",
+-      "byte_source": "config/base_features.json",
+-      "bytes_recovered": true,
+-      "local_verified_source": "config/base_features.json",
+-      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+-    },
+-    {
+-      "path": "config/contract.json",
+-      "bytes": 10193,
+-      "sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb",
+-      "byte_source": "config/contract.json",
+-      "bytes_recovered": true,
+-      "local_verified_source": "config/contract.json",
+-      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+-    }
+-  ],
+-  "scope": "Source/config metadata only; no real data rows, models, registry, import or evaluator execution; no new historical claims derived solely from current files.",
+-  "historical_metadata_sources": [
+-    {
+-      "name": "MAC_FIXED_SOURCE_MANIFEST.json",
+-      "created_at": "2026-09-23T03:45:54.298791Z",
+-      "modified_at": "2026-09-23T03:45:54.298791Z",
+-      "reported_bytes": 19131,
+-      "read_complete": true,
+-      "delivered_file": "MAC_FIXED_SOURCE_MANIFEST.json"
+-    },
+-    {
+-      "name": "FROZEN_SOURCE_ANCHORS_R3.json",
+-      "created_at": "2026-09-23T02:37:19.368125Z",
+-      "modified_at": "2026-09-23T02:37:19.368125Z",
+-      "reported_bytes": 8595,
+-      "read_complete": true
+-    },
+-    {
+-      "name": "MAC_FIXED_PACKAGE_IDENTITY_RECEIPT.json",
+-      "created_at": "2026-09-23T03:46:17.479973Z",
+-      "modified_at": "2026-09-23T03:46:17.479973Z",
+-      "reported_bytes": 5827,
+-      "read_complete": true,
+-      "delivered_file": "evidence/historical/MAC_FIXED_PACKAGE_IDENTITY_RECEIPT.read_text.json",
+-      "delivered_file_relative_to": "delivery_root"
+-    }
+-  ],
+-  "amendment_record": {
+-    "original_file": "config/contract.json",
+-    "json_pointer": "/input_metadata_amendment",
+-    "historical_manifest_record": "MAC_FIXED_SOURCE_MANIFEST.json#/actual_source_changes/config~1contract.json",
+-    "independent_receipt_record": "evidence/historical/MAC_FIXED_PACKAGE_IDENTITY_RECEIPT.read_text.json#/actual_package_source/contract_amendment_id",
+-    "independent_receipt_record_relative_to": "delivery_root",
+-    "new_record_generated": false
+-  },
+-  "mac_init_limitation": "This is hash-authenticated byte recovery, not an observed Mac file read; the unchanged actual Mac package init must still pass runtime identity verification.",
+-  "document_kind": "DERIVED_PUBLIC_PROVENANCE_EXPORT",
+-  "export_scope": {
+-    "original_complete_provenance_retained_in_private_inputs": true,
+-    "redaction": "Removed internal storage identifiers and storage locator/download metadata only. Replaced workspace paths with reproducible package-relative references; the historical archive is identified by filename, byte count and SHA256.",
+-    "paths_relative_to": "candidate/tests/fixtures/frozen_evaluator/ unless a delivery_root locator is explicitly marked",
+-    "unchanged_evidence": "All seven source/config identities, historical metadata filenames and timestamps, byte-recovery methods, archive retrieval limitation and amendment references are preserved."
+-  }
+-}
+diff --git a/candidate/tests/fixtures/frozen_evaluator/MAC_FIXED_SOURCE_MANIFEST.json b/candidate/tests/fixtures/frozen_evaluator/MAC_FIXED_SOURCE_MANIFEST.json
+deleted file mode 100644
+--- a/candidate/tests/fixtures/frozen_evaluator/MAC_FIXED_SOURCE_MANIFEST.json
++++ /dev/null
+@@ -1,541 +0,0 @@
+-{
+-  "schema": "HK_SPIKE_F5_MAC_FIXED_SOURCE_MANIFEST_V1",
+-  "identity_kind": "MAC_FIXED_SOURCE_ARCHIVE",
+-  "package_root": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1",
+-  "archive": {
+-    "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/HK_SPIKE_F5_TRAIN_V1_MAC_FIXED_20260914.zip",
+-    "bytes": 1073959,
+-    "sha256": "aaf9d39eaed231f957c1818e19396edc258bf1df3a7add3d480630122b003412"
+-  },
+-  "origin_submitted_zip": {
+-    "path": "/Users/lexi/Downloads/HK_SPIKE_F5_TRAIN_V1_20260914.zip",
+-    "sha256": "fa107fd967bcaca1b4d4b994d7d57a953d2585e1ea87c9e0ed82fb224c2a9baf",
+-    "bytes": 1049399
+-  },
+-  "baseline_manifest": {
+-    "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/MANIFEST.sha256",
+-    "bytes": 8322,
+-    "sha256": "61afebf6c5ad0205dc74dd684ad6a8e3f3ce5f9c47fea4f0f6149b53deb97411"
+-  },
+-  "excluded_runtime": [
+-    ".venv_locked/**",
+-    ".pytest_cache/**",
+-    "**/__pycache__/**"
+-  ],
+-  "files": [
+-    {
+-      "path": "MANIFEST.sha256",
+-      "bytes": 8322,
+-      "sha256": "61afebf6c5ad0205dc74dd684ad6a8e3f3ce5f9c47fea4f0f6149b53deb97411"
+-    },
+-    {
+-      "path": "README.md",
+-      "bytes": 6918,
+-      "sha256": "138fe43d452f7a7bb881e0591140f2db57ff05fea007ac067a18aea14f87c6e0"
+-    },
+-    {
+-      "path": "SCOPE.md",
+-      "bytes": 3019,
+-      "sha256": "f92fdd6acd270f0a85e15f179ba319b18e1bd2fa67def4744ebd981184183d5e"
+-    },
+-    {
+-      "path": "build_input.py",
+-      "bytes": 15349,
+-      "sha256": "8d2c5e76018438894ff19c25c0d94e1a3faec6073fc8628a8917cfb9506b317a"
+-    },
+-    {
+-      "path": "config/base_features.json",
+-      "bytes": 408,
+-      "sha256": "6284bfe3609ec9f220b4f4baef6e0cb4d3190529830fbcb0d8ff435c0859c7af"
+-    },
+-    {
+-      "path": "config/calendar_2018_2025.csv.gz",
+-      "bytes": 9886,
+-      "sha256": "1403be75f638a6d7b34ce8e77d681b0037b7e1bd64866f1219a23cf63ef17550"
+-    },
+-    {
+-      "path": "config/codes_snapshot_691.json",
+-      "bytes": 9677,
+-      "sha256": "a4e533d47dc64718762422c004b8be2f0c0cb5b20219aec1a51c690023017e0d"
+-    },
+-    {
+-      "path": "config/contract.json",
+-      "bytes": 10193,
+-      "sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb"
+-    },
+-    {
+-      "path": "config/export.example.json",
+-      "bytes": 3132,
+-      "sha256": "c8a840d66ae49d4d00728d81a3b0bd8034dce6d82886ce632883570d5fca3520"
+-    },
+-    {
+-      "path": "config/export.local.json",
+-      "bytes": 7174,
+-      "sha256": "11ca0d4d97b5e0a11925c4874312956865e9b8ead063c67dc22880a18496abf0"
+-    },
+-    {
+-      "path": "config/feature_order_64.json",
+-      "bytes": 1233,
+-      "sha256": "0188d530e6aca9ba29d2a40b7dcb730bc45cd5528e2b1bd0eb609ae83de0ffc3"
+-    },
+-    {
+-      "path": "docs/INPUT_SCHEMA_ZH.md",
+-      "bytes": 4862,
+-      "sha256": "0c6a490c10c3740b43315b1f7f2d4259718c0643f50e3a397ec719464b3ec9aa"
+-    },
+-    {
+-      "path": "docs/PATH_FEATURES_ZH.md",
+-      "bytes": 2114,
+-      "sha256": "74b85813254d435c62b9fd67214ce71a2c90a76af7322360b013e1cd0a41202b"
+-    },
+-    {
+-      "path": "docs/SOURCES_AND_LIMITS_ZH.md",
+-      "bytes": 1641,
+-      "sha256": "a8445e94bdcda62e722e9503ce79b891991698e2c585f2624ac66cad18a0f8bb"
+-    },
+-    {
+-      "path": "docs/TRAINING_CONTRACT_ZH.md",
+-      "bytes": 5394,
+-      "sha256": "393956f59be606f78103a1ca8833a61ca554b2b8aec19ddcaf6d12f4c07fbff1"
+-    },
+-    {
+-      "path": "engineering/BASE34/fit_receipt.json",
+-      "bytes": 1428,
+-      "sha256": "2c9039d3a01291510c2ee9645a95653bf1555ff75da4762bbe5c26122c92d0ec"
+-    },
+-    {
+-      "path": "engineering/BASE34/model.txt",
+-      "bytes": 287847,
+-      "sha256": "a33fb92230b07a5052b1a7f7f96773f258def55cb2b3e98f43c013c5fdbd041e"
+-    },
+-    {
+-      "path": "engineering/BASE34/preprocessing.json",
+-      "bytes": 688,
+-      "sha256": "bd588fab133fbe42307d5d2c0882ae8c0ba553dfac2ef611e9bfb53a2a6a8827"
+-    },
+-    {
+-      "path": "engineering/BASE34/probability.npy",
+-      "bytes": 16768,
+-      "sha256": "810c3f771c9410832d1484d192f427de270db75a9a1f4ca3ef560f0481cecd63"
+-    },
+-    {
+-      "path": "engineering/BASE34/resource_trace.json",
+-      "bytes": 3739,
+-      "sha256": "87aafece3eee0ebf9c6c452da0667d6ce8d0e9e047cbabc7f59a5c067576dae4"
+-    },
+-    {
+-      "path": "engineering/BASE34/scores.csv.gz",
+-      "bytes": 50828,
+-      "sha256": "5b6ff6b354cfcb567871767609d56bae26306266c377fedc37aaf0d659a345d3"
+-    },
+-    {
+-      "path": "engineering/BASE34/top3.csv.gz",
+-      "bytes": 15074,
+-      "sha256": "e8093bc76f7c1c27c4a0b892d54da3d4c5436a772428f35eb9c374f0b507c295"
+-    },
+-    {
+-      "path": "engineering/BASE34/train.log",
+-      "bytes": 0,
+-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+-    },
+-    {
+-      "path": "engineering/MODEL_INVENTORY.json",
+-      "bytes": 4798,
+-      "sha256": "596e0e60f647e4215de27160069ca8753d951eaea84308f3852054550a864e5e"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/fit_receipt.json",
+-      "bytes": 1388,
+-      "sha256": "a410b036b8cd08580707d541fe23f9a3355af7fbafdbefeab30a0fb703676e69"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/model.txt",
+-      "bytes": 280150,
+-      "sha256": "fd2adfabb1fce1e6d39267f2af9355b4fbc40290269e005d81068fc93cf26101"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/preprocessing.json",
+-      "bytes": 1573,
+-      "sha256": "7fb1104649225d39e2574a9f81e72354278595d685742a4f706987a0bcdf990b"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/probability.npy",
+-      "bytes": 16768,
+-      "sha256": "b47429d53fcb231deac4abdef663385de78e2ad037f1c1b21d6a0740b537eb4b"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/resource_trace.json",
+-      "bytes": 153,
+-      "sha256": "e380dbfa952ec43981dc0ee80c885382ba39c409198f4e21b885a22bb1b6e414"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/scores.csv.gz",
+-      "bytes": 50926,
+-      "sha256": "3eb7abe961b2ef780328db5958dc80fea5c4d51aba8198af180d41c2f3fb3390"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/top3.csv.gz",
+-      "bytes": 15058,
+-      "sha256": "b6352d934484d8b606d6da4deb20b7585ac00968b88a26f917748a7b4af8e44d"
+-    },
+-    {
+-      "path": "engineering/PLUS_PATH/train.log",
+-      "bytes": 0,
+-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+-    },
+-    {
+-      "path": "engineering/X_eval.npy",
+-      "bytes": 532608,
+-      "sha256": "24f74700ffd9520a9738214d362c87c53223ae623537145aec4fd47620791bd5"
+-    },
+-    {
+-      "path": "engineering/eval_meta.csv.gz",
+-      "bytes": 27496,
+-      "sha256": "2c7b14c75ebba138dc2a0e8b7c7c7036c9c91d1ed167ada817a0c061c6bfccfb"
+-    },
+-    {
+-      "path": "engineering/replay_locked_diagnostic.py",
+-      "bytes": 4461,
+-      "sha256": "59ba4ec5124543bde6195b21a62a3f403beac0286a93f51c6417307207f9dda3"
+-    },
+-    {
+-      "path": "engineering/replay_saved.py",
+-      "bytes": 1979,
+-      "sha256": "74809369b54cb1c05093fa92cce3d917bfbf21f56f109c461b0d20ead1f74c1a"
+-    },
+-    {
+-      "path": "evidence/ATTEMPT_ACCOUNTING.json",
+-      "bytes": 508,
+-      "sha256": "fc26ed81e7815b2b9ff5b08ce98155682af68e89dc008ea4305ee2b6db0bc34a"
+-    },
+-    {
+-      "path": "evidence/BENCHMARK_CONSOLE.txt",
+-      "bytes": 0,
+-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+-    },
+-    {
+-      "path": "evidence/CONTRACT_BEFORE_ENGINEERING_FIX.json",
+-      "bytes": 7142,
+-      "sha256": "5810e3a24b38b53233d2bcf26d0fb085cfadce113845f4978ab65313b7f108d0"
+-    },
+-    {
+-      "path": "evidence/CONTRACT_BEFORE_SOURCE_BOUNDARY_FIX.json",
+-      "bytes": 7568,
+-      "sha256": "8ef2730ccd12366e54d5560987609f8a6cd9a1538b935fe92d51a09ef9ada9cd"
+-    },
+-    {
+-      "path": "evidence/DELIVERY_STATUS.json",
+-      "bytes": 820,
+-      "sha256": "dc91e1fb687568a7c8cc278e9111d119a23cdf48039fce2d233ee9abbc3390fd"
+-    },
+-    {
+-      "path": "evidence/ENGINEERING_FAILURE_AMENDMENT.json",
+-      "bytes": 383,
+-      "sha256": "57cd2d1b4570c85e3f299d42d0fdfaceb4ed1af89f1d32beb2204f820baa8e22"
+-    },
+-    {
+-      "path": "evidence/ENVIRONMENT_FINAL.json",
+-      "bytes": 643,
+-      "sha256": "cbb12fbb3acfc20d1e0231d6833ebee20e78253b7eb85472ebdc539754221e9a"
+-    },
+-    {
+-      "path": "evidence/ENVIRONMENT_INITIAL.json",
+-      "bytes": 588,
+-      "sha256": "811800955a026d5420a77401dc148dd330904ca443b0da2a73e2b2972e8cde25"
+-    },
+-    {
+-      "path": "evidence/FINAL_ENGINEERING_INPUT_EQUIVALENCE.json",
+-      "bytes": 780,
+-      "sha256": "379b8351e0a6e11635c8a262eba714405d47e24f7853451407d1f4a5e65f1526"
+-    },
+-    {
+-      "path": "evidence/FINAL_ENGINEERING_REPLAY.json",
+-      "bytes": 311,
+-      "sha256": "f8ebc8eb6dcc65ad012bfc7cd0d86d4af8faf698463652c4f9fb3cff790f9d24"
+-    },
+-    {
+-      "path": "evidence/ORIGINAL_CASE_SOURCE_MANIFEST.json",
+-      "bytes": 2325,
+-      "sha256": "734724e4d28d15948eabb13a53983d3f3761f791d7789212c1d8948348fe8c7e"
+-    },
+-    {
+-      "path": "evidence/REAL_588_PATH_FEATURES.csv.gz",
+-      "bytes": 124818,
+-      "sha256": "9dbb409c695d264545242de1984487e50a84dffa53999743ad9c0643bce7e727"
+-    },
+-    {
+-      "path": "evidence/REAL_CASE_ADAPTER_CHECK.json",
+-      "bytes": 2002,
+-      "sha256": "571b3d1af4532c94fd482ad566d602c39da1d88bdc570d1aeb8eff08072c936d"
+-    },
+-    {
+-      "path": "evidence/REAL_TRAINING_STATUS.json",
+-      "bytes": 654,
+-      "sha256": "9b5c296450112fd535f4a5d5893b2c9b0edf96dafef0a0254f690a7f57fd8ac7"
+-    },
+-    {
+-      "path": "evidence/SMOKE_CONSOLE.txt",
+-      "bytes": 1178,
+-      "sha256": "86d55b1875e6dd92063c5ec5e305399d530b7a20c540c3b47263a1934aace17d"
+-    },
+-    {
+-      "path": "evidence/SMOKE_RECEIPT.json",
+-      "bytes": 1227,
+-      "sha256": "e6ba6321cdd72e52fb27a10f11f8f81b0dd441c0ed6c5ef4acea7aa63089a7e4"
+-    },
+-    {
+-      "path": "evidence/SMOKE_RECOVERY_CONSOLE.txt",
+-      "bytes": 882,
+-      "sha256": "81599f7900ef49a39343a5abced75272204a9da44a02b0891234bbe087f5b1d3"
+-    },
+-    {
+-      "path": "evidence/SMOKE_V2_CONSOLE.txt",
+-      "bytes": 0,
+-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+-    },
+-    {
+-      "path": "evidence/TDD_GREEN_CORE.txt",
+-      "bytes": 99,
+-      "sha256": "915abf6e3013302ef73970c963eb3c6ab123954f7590724a18abe0f03b651f65"
+-    },
+-    {
+-      "path": "evidence/TDD_RED.txt",
+-      "bytes": 14853,
+-      "sha256": "154ef31697bcd919f9d44b78ad8df48337d3d20d2541dc4cc91a8ea71bd0a22e"
+-    },
+-    {
+-      "path": "evidence/TDD_RED_DATASET_BINDING.txt",
+-      "bytes": 1663,
+-      "sha256": "264c8317f726da1f7dbb57e0ecdb17e8ffd2e26de032e97bbf34f33f83fbf0df"
+-    },
+-    {
+-      "path": "evidence/TDD_RED_GUARDS.txt",
+-      "bytes": 2222,
+-      "sha256": "f011073860e85dc8e04e69ddb228bab8059ef8ffbd418f694caafd7ca0a7924a"
+-    },
+-    {
+-      "path": "evidence/TDD_RED_OUTPUT_PARENT.txt",
+-      "bytes": 1993,
+-      "sha256": "b5779b4843455ae5040dc48314dcc98fe85cd0f2a730fea9c7b2f96a20b48d0e"
+-    },
+-    {
+-      "path": "evidence/TDD_RED_PIPELINE.txt",
+-      "bytes": 10044,
+-      "sha256": "985125da2aab2ac430cc98fea7d1c1aeb804191830938f07e7861a7a44a8c29d"
+-    },
+-    {
+-      "path": "evidence/TDD_RED_SOURCE_BOUNDARY.txt",
+-      "bytes": 838,
+-      "sha256": "68eaed39d4525ccc72240381033e0c0825ada8f5d5b1175158bc5a2e23769250"
+-    },
+-    {
+-      "path": "evidence/TESTS_CURRENT.txt",
+-      "bytes": 99,
+-      "sha256": "047793470b1a4a06b3d96304dd714637a6028f1ab26c5bdb7a6c465087c2e8cd"
+-    },
+-    {
+-      "path": "evidence/TESTS_FINAL.txt",
+-      "bytes": 100,
+-      "sha256": "7115287baab13f1149d34d48de4ee48df09862376cb9d820fffb6dbb1c9bfa96"
+-    },
+-    {
+-      "path": "evidence/engineering_v2_registry.sqlite",
+-      "bytes": 20480,
+-      "sha256": "b427a3a819f69437a9347477a957118a0086b91e8026e0df6548874a5f41e634"
+-    },
+-    {
+-      "path": "evidence/failed_engineering_attempt/FAILURE.json",
+-      "bytes": 560,
+-      "sha256": "cb1c4b1cff24e42a61b9ca6f8ad14033d45a596f7649c201f73a56d95254b0d0"
+-    },
+-    {
+-      "path": "evidence/failed_engineering_attempt/fixed_registry.sqlite",
+-      "bytes": 20480,
+-      "sha256": "c185d2f0e2fa41eb8d6f79e88c5588d3cd1aea634a45a2bb0ad61aaeed5328de"
+-    },
+-    {
+-      "path": "evidence/failed_engineering_attempt/train.log",
+-      "bytes": 683,
+-      "sha256": "bd1a298f50b761932c1042174ae3f227e4866f78842a5af56b9b100b3b69acd6"
+-    },
+-    {
+-      "path": "evidence/resource_benchmark/BENCHMARK_PREFIT.json",
+-      "bytes": 1046,
+-      "sha256": "62e386efb50d84da1038da9a43d06d9abe5fe0953efdc9f01582753caa681abc"
+-    },
+-    {
+-      "path": "evidence/resource_benchmark/RESOURCE_RECEIPT.json",
+-      "bytes": 656,
+-      "sha256": "93bd3ddf55351d994204bb388e946fff9a1ae5b08bdc2f302490f6ae673a2bc0"
+-    },
+-    {
+-      "path": "evidence/resource_benchmark/benchmark.log",
+-      "bytes": 0,
+-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+-    },
+-    {
+-      "path": "evidence/resource_benchmark/environment.json",
+-      "bytes": 485,
+-      "sha256": "5c7cb8550fa24bcb8c5b6d03b87e73354bfdc29d095a83625c55d53b33685ac8"
+-    },
+-    {
+-      "path": "evidence/run_real_case_adapter_check.py",
+-      "bytes": 3175,
+-      "sha256": "be44ed0fe222200d8e08cce39168ac13050aac060986d0adac1de54a1be49fc7"
+-    },
+-    {
+-      "path": "parity_check.py",
+-      "bytes": 10692,
+-      "sha256": "6b60edaccf9b213ee2a05d9a4283331e739fdbce67d292d227d974746d12b16a"
+-    },
+-    {
+-      "path": "pytest.ini",
+-      "bytes": 27,
+-      "sha256": "c809c969ec7e11b9ff37784e9c6fcc0b7c5148d168e18b05aed797e03fbd6ead"
+-    },
+-    {
+-      "path": "requirements.lock.txt",
+-      "bytes": 140,
+-      "sha256": "73348b7f14b4689459de16d626fed1eb8d2d9392fcbebfb38fa2856078c52f78"
+-    },
+-    {
+-      "path": "spike5/__init__.py",
+-      "bytes": 22,
+-      "sha256": "27e8febb48ada44153ea2add9969a2c50a9831a74d9755fdd53c549a888b1cc2"
+-    },
+-    {
+-      "path": "spike5/__main__.py",
+-      "bytes": 3101,
+-      "sha256": "f4668c977549527f7855cb946215c76c1a05bededf7e00c8d783213dfba85fa5"
+-    },
+-    {
+-      "path": "spike5/aggregate.py",
+-      "bytes": 3342,
+-      "sha256": "30ce0292b30f6d3315e067275eab02f74f726740b45f8eb3f774d5b2aef808a6"
+-    },
+-    {
+-      "path": "spike5/budget.py",
+-      "bytes": 2665,
+-      "sha256": "8aee11d28ad5726923309325dbed33dacf5b291a54bd844161cacb7103d5257e"
+-    },
+-    {
+-      "path": "spike5/common.py",
+-      "bytes": 2067,
+-      "sha256": "affff27d758d73fdbde3da21af59b94b265d4072cf83036475cd06b0941a4097"
+-    },
+-    {
+-      "path": "spike5/data.py",
+-      "bytes": 9435,
+-      "sha256": "05dec3f1823237c07e82e00b267e2a7e1ef2b203276117301d937f4af92e19d3"
+-    },
+-    {
+-      "path": "spike5/engineering.py",
+-      "bytes": 5753,
+-      "sha256": "194125bf8e6f6c7e2ace2f7c3fb8c02893fc6d360acd4d34a0d88ae478831162"
+-    },
+-    {
+-      "path": "spike5/exporter.py",
+-      "bytes": 6893,
+-      "sha256": "fbf605a1d397d59af952a9dda54bc682c81924541ca1ecf364a94d5fd450bdb4"
+-    },
+-    {
+-      "path": "spike5/features.py",
+-      "bytes": 5941,
+-      "sha256": "947e8d9a2f2b36e44ecfc8d713e0c492670039838dcf3e5abb9396f17a637c38"
+-    },
+-    {
+-      "path": "spike5/fixtures.py",
+-      "bytes": 2638,
+-      "sha256": "6dd52c14e3d151f8d2f2f3cdb8c393e564cf5845bb870b2ce905b2ec4190d21d"
+-    },
+-    {
+-      "path": "spike5/labels.py",
+-      "bytes": 3047,
+-      "sha256": "d7cdcff9f2f1f71d9cc08086d811f1960dbf937f6bc7e4efbd9394390db63ae1"
+-    },
+-    {
+-      "path": "spike5/metrics.py",
+-      "bytes": 8758,
+-      "sha256": "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763"
+-    },
+-    {
+-      "path": "spike5/runner.py",
+-      "bytes": 15625,
+-      "sha256": "7afe20601a06c1932021eea38b7be0a7b4c868bec0f1875565e915f36ce7582a"
+-    },
+-    {
+-      "path": "spike5/settings.py",
+-      "bytes": 288,
+-      "sha256": "702c374612806e45647b8cdb8cb345736b6cac689f23df352c00d08735bfb4fc"
+-    },
+-    {
+-      "path": "tests/test_binding.py",
+-      "bytes": 459,
+-      "sha256": "ced8a760fb2f2f0a31a2b939631c22856be67a711d31e1fb1932e241f641aafe"
+-    },
+-    {
+-      "path": "tests/test_core.py",
+-      "bytes": 3446,
+-      "sha256": "8cffaa89996fd5aaa7fb8a05a5e3810326d74801458df4450f4da55cdb5225e7"
+-    },
+-    {
+-      "path": "tests/test_data.py",
+-      "bytes": 3115,
+-      "sha256": "26e18ce25f001013607b13f1a5ab93a2417cea3f8e9d16ff5be60ae35509da05"
+-    },
+-    {
+-      "path": "tests/test_export.py",
+-      "bytes": 2019,
+-      "sha256": "ee69ac46f298dcb196bbf3a500f9183abc34d4c266ec458ecafe1730970918d9"
+-    },
+-    {
+-      "path": "tests/test_pipeline.py",
+-      "bytes": 2760,
+-      "sha256": "f6b0338ed4a74fe0a5f0476cdef79c22f1c1bacfea06e47c4c762f0204d52a77"
+-    }
+-  ],
+-  "actual_source_changes": {
+-    "spike5/data.py": {
+-      "submitted_zip_sha256": "5e2874977f14a13e4ec3ff3553e98dccb7cf6ae1718791840caadf3d080ba3d4",
+-      "current_sha256": "05dec3f1823237c07e82e00b267e2a7e1ef2b203276117301d937f4af92e19d3",
+-      "reason": "pandas read-only NumPy view copy before masking"
+-    },
+-    "spike5/exporter.py": {
+-      "submitted_zip_sha256": "b52866a0d44a72bda5c38061f554543f5bef1815dfde7303a666df7766985d48",
+-      "current_sha256": "fbf605a1d397d59af952a9dda54bc682c81924541ca1ecf364a94d5fd450bdb4",
+-      "reason": "lineage source hashes in output manifest"
+-    },
+-    "config/contract.json": {
+-      "submitted_zip_sha256": "d610fc60f8ee078e8c934a29738e3b1683e395b2cf143251433afdb062403f31",
+-      "current_sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb",
+-      "reason": "metadata-only input admission amendment; target/learner/real-fit budget unchanged"
+-    },
+-    "SCOPE.md": {
+-      "current_sha256": "f92fdd6acd270f0a85e15f179ba319b18e1bd2fa67def4744ebd981184183d5e",
+-      "reason": "explicitly records authorized metadata-only amendment"
+-    },
+-    "engineering/replay_locked_diagnostic.py": {
+-      "current_sha256": "59ba4ec5124543bde6195b21a62a3f403beac0286a93f51c6417307207f9dda3",
+-      "reason": "zero-fit platform replay diagnostic"
+-    }
+-  },
+-  "binding": {
+-    "input_manifest_sha256": "b151979a05587bdf571f329300bd34b9a03aad68726b1afec7eb735b6ed844a8",
+-    "prepared_rebound_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/prepared_rebound_20260914",
+-    "prepared_rebound_json_sha256": "24bd84583980da9f1c3e02cf2222d4eff1d3c4cb8402fe803e0e43d551f87e39",
+-    "prepared_rebound_contract_sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb",
+-    "prepared_rebound_validate": "PASS",
+-    "trigger_parity_receipt": {
+-      "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/trigger_parity.json",
+-      "bytes": 2363,
+-      "sha256": "925128cc520949f314bd63dc6f479920226df28374429205f8f249727b195e4d"
+-    },
+-    "trigger_parity_status": "PASS_TRIGGER_PARITY_ALL_GRID",
+-    "real_fit": false
+-  },
+-  "notes": [
+-    "This archive is the Mac-fixed source identity and does not claim to be byte-identical to the submitted ZIP.",
+-    "The submitted ZIP remains read-only and unchanged.",
+-    "The environment venv is deliberately excluded from this source archive; its exact package freeze is recorded separately."
+-  ]
+-}
+diff --git a/candidate/tests/fixtures/frozen_evaluator/README.md b/candidate/tests/fixtures/frozen_evaluator/README.md
+deleted file mode 100644
+--- a/candidate/tests/fixtures/frozen_evaluator/README.md
++++ /dev/null
+@@ -1,33 +0,0 @@
+-# Historical evaluator source fixture
+-
+-The seven files under `spike5/` and `config/` preserve complete bytes verified
+-against `MAC_FIXED_SOURCE_MANIFEST.json` (19,131 bytes; SHA-256
+-`64fd0f7a5e3d646f7b5b184d44ca10576aab9db73772b3abb2cfceab36862a9b`).
+-The independent historical package identity receipt authenticates that
+-manifest. `HISTORICAL_CLOSURE_PROVENANCE.json` is a derived public export of
+-the source and recovery record: it removes internal storage identifiers and
+-locator metadata, and replaces workspace paths with package-relative references.
+-The complete original provenance remains in private input evidence. The export
+-preserves all seven identities, recovery details and limitations; it does not
+-modify the original manifest, source files, configuration, or tests. The delivered
+-independent receipt is at
+-`evidence/historical/MAC_FIXED_PACKAGE_IDENTITY_RECEIPT.read_text.json`, relative
+-to the delivery root (not the installed code or this fixture directory).
+-
+-This is the historical Mac-fixed package configuration: `config/contract.json`
+-has SHA-256 `17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb`.
+-It includes the historical Mac metadata amendment. It is not the configuration
+-identity of the original submitted ZIP.
+-
+-The 22-byte `spike5/__init__.py` was recovered as a candidate version declaration
+-whose complete byte count and SHA-256 match the historical manifest. This is
+-hash-authenticated byte recovery, not an observed read of the actual Mac file
+-or retrieval of that member from the original archive. The Mac file must pass
+-the same identity check during preparation and execution.
+-
+-Tests copy this small source/config closure into temporary directories. The
+-only positive-loader substitution changes the two absolute path attributes on
+-an already SHA-verified score-aware wrapper instance. No source SHA, historical
+-pin, settings implementation, metric function, label or threshold is replaced.
+-Negative cases alter only temporary copies or explicitly inject invalid cached
+-module metadata. Test execution reads no original data, model or registry file.
+diff --git a/candidate/tests/fixtures/frozen_evaluator/config/base_features.json b/candidate/tests/fixtures/frozen_evaluator/config/base_features.json
+deleted file mode 100644
+--- a/candidate/tests/fixtures/frozen_evaluator/config/base_features.json
++++ /dev/null
+@@ -1,36 +0,0 @@
+-[
+-  "ret_1d",
+-  "ret_3d",
+-  "ret_5d",
+-  "ret_20d",
+-  "ret_60d",
+-  "ret_120d",
+-  "dist_hi20",
+-  "dist_hi60",
+-  "dist_hi120",
+-  "pos20",
+-  "pos60",
+-  "pos120",
+-  "vol5",
+-  "vol20",
+-  "vol60",
+-  "vol_ratio",
+-  "vr5",
+-  "vr5_20",
+-  "vr5_60",
+-  "vr20_60",
+-  "vol_up5",
+-  "shrink5",
+-  "vmax20",
+-  "cp",
+-  "ls",
+-  "us",
+-  "body",
+-  "gap",
+-  "rng",
+-  "op250",
+-  "op60",
+-  "days_since_big",
+-  "rel_1d",
+-  "rel_20d"
+-]
+diff --git a/candidate/tests/fixtures/frozen_evaluator/config/contract.json b/candidate/tests/fixtures/frozen_evaluator/config/contract.json
+deleted file mode 100644
+--- a/candidate/tests/fixtures/frozen_evaluator/config/contract.json
++++ /dev/null
+@@ -1,281 +0,0 @@
+-{
+-  "experiment_id": "HK_SPIKE_F5_PATH_INCREMENT_V1",
+-  "contract_version": "1.0.1",
+-  "research_flags": {
+-    "RESEARCH_ONLY": true,
+-    "production_allowed": false,
+-    "buy_gate_updated": false,
+-    "orders_sent": false
+-  },
+-  "new_target_not_A": true,
+-  "horizon_sessions": 5,
+-  "prefix_sessions": 60,
+-  "trigger": {
+-    "high_multiplier": 1.4,
+-    "close_multiplier": 1.25,
+-    "previous_close": "EXACT_PREVIOUS_MARKET_SESSION",
+-    "comparison": "SOURCE_FLOAT32_PERCENT_GE_40_OR_25_NO_EPSILON",
+-    "price_basis": "RAW_FROZEN_SNAPSHOT_ECONOMIC_TRIGGER_NOT_CERTIFIED"
+-  },
+-  "first_definition": "first trigger of a new episode within t+1..t+5, conditional on five known non-trigger sessions t-4..t; y is undefined (NOT_AT_RISK), not a negative, on active/unknown recent-trigger rows",
+-  "episode_continuation": "gap since prior trigger <=5 market sessions; newness unknown if no known prior trigger but prior five contain unknown",
+-  "risk_set": "past-five CLEAR; full sixty-close prefix; current frozen membership eligible; base-feature row exists and visible; no outcome-based inclusion",
+-  "positive_with_earlier_unknown": "existence positive; first time interval; do not force episode link",
+-  "right_boundary": "last five dates stay RIGHT_CENSORED; do not read 2026 even if a partial-horizon trigger is already observed",
+-  "label_maturity": "full fifth-session close or later actual required data availability, same rule for positives and negatives",
+-  "folds": [
+-    2023,
+-    2024,
+-    2025
+-  ],
+-  "development_start": "2018-01-01",
+-  "cap": "2025-12-31",
+-  "purge": "training label_end_session < first calendar session of eval year minus 59; all source-label availability < Jan1; no train support overlaps earliest eval visible prefix; this proves separation of the added 60-row path support, not certification of the original34 unknown lookbacks",
+-  "weights": "1 per eligible known stock-date; all negatives retained, no class weights, no negative sampling, no episode reweighting",
+-  "preprocessing": "no scaler or imputer; source numeric infinities rejected, native NaN, training-only histogram binning; native float32 feature matrix",
+-  "arms": {
+-    "BASE34": [
+-      "ret_1d",
+-      "ret_3d",
+-      "ret_5d",
+-      "ret_20d",
+-      "ret_60d",
+-      "ret_120d",
+-      "dist_hi20",
+-      "dist_hi60",
+-      "dist_hi120",
+-      "pos20",
+-      "pos60",
+-      "pos120",
+-      "vol5",
+-      "vol20",
+-      "vol60",
+-      "vol_ratio",
+-      "vr5",
+-      "vr5_20",
+-      "vr5_60",
+-      "vr20_60",
+-      "vol_up5",
+-      "shrink5",
+-      "vmax20",
+-      "cp",
+-      "ls",
+-      "us",
+-      "body",
+-      "gap",
+-      "rng",
+-      "op250",
+-      "op60",
+-      "days_since_big",
+-      "rel_1d",
+-      "rel_20d"
+-    ],
+-    "PLUS_PATH": [
+-      "ret_1d",
+-      "ret_3d",
+-      "ret_5d",
+-      "ret_20d",
+-      "ret_60d",
+-      "ret_120d",
+-      "dist_hi20",
+-      "dist_hi60",
+-      "dist_hi120",
+-      "pos20",
+-      "pos60",
+-      "pos120",
+-      "vol5",
+-      "vol20",
+-      "vol60",
+-      "vol_ratio",
+-      "vr5",
+-      "vr5_20",
+-      "vr5_60",
+-      "vr20_60",
+-      "vol_up5",
+-      "shrink5",
+-      "vmax20",
+-      "cp",
+-      "ls",
+-      "us",
+-      "body",
+-      "gap",
+-      "rng",
+-      "op250",
+-      "op60",
+-      "days_since_big",
+-      "rel_1d",
+-      "rel_20d",
+-      "path_displacement_10",
+-      "path_displacement_20",
+-      "path_displacement_60",
+-      "path_close_range_10",
+-      "path_close_range_20",
+-      "path_close_range_60",
+-      "path_drawdown_20",
+-      "path_drawdown_60",
+-      "path_efficiency_20",
+-      "path_efficiency_60",
+-      "path_compression_10v20",
+-      "path_activity_10v20",
+-      "path_peak_activity_share_30",
+-      "path_range_location_30",
+-      "path_rebound_from_trough_60",
+-      "path_below_peak_60",
+-      "path_max_return_60",
+-      "path_min_return_60",
+-      "path_pulse_activity_ratio",
+-      "path_pulse_age_60",
+-      "path_pulse_return",
+-      "path_pulse_retention",
+-      "path_pulse_cooling_5",
+-      "path_lower_reclaim_depth_mean_30",
+-      "path_upper_rejection_depth_mean_30",
+-      "path_low_slope_20",
+-      "path_volatility_10v20",
+-      "path_down_up_activity_30",
+-      "path_lower_reclaim_fraction_30",
+-      "path_upper_rejection_fraction_30"
+-    ]
+-  },
+-  "learner": {
+-    "name": "LightGBM",
+-    "version": "4.6.0",
+-    "rounds": 200,
+-    "params": {
+-      "objective": "binary",
+-      "metric": "binary_logloss",
+-      "boosting_type": "gbdt",
+-      "learning_rate": 0.05,
+-      "num_leaves": 15,
+-      "max_depth": 4,
+-      "min_data_in_leaf": 50,
+-      "lambda_l2": 1.0,
+-      "lambda_l1": 0.0,
+-      "min_sum_hessian_in_leaf": 0.001,
+-      "max_bin": 63,
+-      "bin_construct_sample_cnt": 200000,
+-      "feature_fraction": 1.0,
+-      "bagging_fraction": 1.0,
+-      "bagging_freq": 0,
+-      "is_unbalance": false,
+-      "scale_pos_weight": 1.0,
+-      "boost_from_average": true,
+-      "use_missing": true,
+-      "zero_as_missing": false,
+-      "seed": 42,
+-      "data_random_seed": 42,
+-      "feature_fraction_seed": 42,
+-      "bagging_seed": 42,
+-      "deterministic": true,
+-      "force_col_wise": true,
+-      "num_threads": 4,
+-      "device_type": "cpu",
+-      "verbosity": -1
+-    }
+-  },
+-  "search_budget": {
+-    "specifications": 1,
+-    "real_fit_attempts": 6,
+-    "max_attempts_per_year_arm": 1,
+-    "engineering_smoke_fits": 3,
+-    "resource_benchmark_fits": 1,
+-    "failed_attempts_count": true,
+-    "auto_retry": false
+-  },
+-  "runtime": {
+-    "max_panel_rows": 2000000,
+-    "cloud_worker_rss_bytes": 3221225472,
+-    "cloud_worker_wall_seconds": 900,
+-    "prediction_batch_rows": 65536,
+-    "concurrent_fit_workers": 1,
+-    "thread_count": 4
+-  },
+-  "main_metric": "daily Top3 future-five-session new-episode precision, denominator 3 * all eval calendar dates; unknown bounds, fixed candidate identities",
+-  "promotion": {
+-    "paired_precision_lower_gain": 0.03,
+-    "relative_precision_lower_ratio": 1.25,
+-    "random_lift_lower": 2.0,
+-    "positive_years_min": 2,
+-    "selected_unknown_fraction_max": 0.05,
+-    "empty_slots_max": 0,
+-    "episode_coverage_gain_min": 0.0,
+-    "ap_known_gain_min": 0.0,
+-    "brier_known_gain_max": 0.0,
+-    "interpretation": "retrospective research candidate only; 3pp is practical hurdle not MDE or significance cutoff"
+-  },
+-  "diagnostics": [
+-    "all-candidate AP (noninterpolated PR-AUC) on known labels + coverage",
+-    "raw probability Brier/logloss known and worst-case missing bounds",
+-    "fixed calibration bins",
+-    "episode deduplicated coverage",
+-    "lead-time and repeat alerts",
+-    "false alarm bounds",
+-    "all excluded/unknown rows"
+-  ],
+-  "calibration_bins": [
+-    0,
+-    0.001,
+-    0.003,
+-    0.01,
+-    0.03,
+-    0.1,
+-    0.3,
+-    0.6,
+-    1
+-  ],
+-  "probability_status": "RAW_MODEL_PROBABILITY_NOT_CERTIFIED_CALIBRATED; no extra calibrator fit",
+-  "bootstrap": {
+-    "block_sessions": 20,
+-    "replicates": 2000,
+-    "seed": 20260914,
+-    "same_indices_all_arms": true,
+-    "within_year": true,
+-    "scope": "descriptive date-block uncertainty; unknown identification separate; stock/episode dependence not an independence claim"
+-  },
+-  "A_evaluation": "NOT_INCLUDED; separate same-pool same-price A ablation required; never compound overlapping five-day outcome labels",
+-  "input_status_at_freeze": "FULL_DOMAIN_REAL_INPUT_RECEIVED; 691-code x 1,968-session grid bound to input_manifest_sha256=b151979a05587bdf571f329300bd34b9a03aad68726b1afec7eb735b6ed844a8; dataset_kind=FULL_DOMAIN_REAL; opportunity_basis=ALL_DECLARED_CODE_SESSION_ROWS; domain_kind=FIXED_RESEARCH_PROXY; 2026 excluded",
+-  "input_metadata_amendment": {
+-    "amendment_id": "HK_SPIKE_F5_INPUT_METADATA_R1_20260914",
+-    "previous_input_status_at_freeze": "FULL_OPPORTUNITY_DOMAIN_NOT_RECEIVED; 588 event-conditioned windows cannot fit or calibrate this target",
+-    "current_input": {
+-      "dataset_kind": "FULL_DOMAIN_REAL",
+-      "opportunity_basis": "ALL_DECLARED_CODE_SESSION_ROWS",
+-      "domain_kind": "FIXED_RESEARCH_PROXY",
+-      "input_manifest_sha256": "b151979a05587bdf571f329300bd34b9a03aad68726b1afec7eb735b6ed844a8",
+-      "codes": 691,
+-      "calendar_sessions": 1968,
+-      "grid_rows": 1359888,
+-      "date_start": "2018-01-02",
+-      "date_end": "2025-12-31",
+-      "cap": "2025-12-31",
+-      "rows_2026": 0,
+-      "trigger_parity": "PASS_TRIGGER_PARITY_ALL_GRID; difference_count=0; reference/package counts unknown=461462, negative=897838, positive=588"
+-    },
+-    "research_assumptions": {
+-      "membership_mode": "FIXED_CURRENT_SNAPSHOT_PROXY",
+-      "availability_policy": "ASSUMED_AT_SESSION_CLOSE",
+-      "price_basis_id": "RAW_FROZEN_SOURCE_UNCERTIFIED_ACTION_ADJUSTMENT",
+-      "price_basis_limitation": "Raw frozen source economic price basis and authenticated corporate-action adjustment timing are not certified.",
+-      "historical_limitations": [
+-        "Historical Stock Connect membership and eligibility are not reconstructed.",
+-        "Historical source available_at timestamps and official exchange-calendar identity are not certified.",
+-        "This input is research-only and cannot support production or BUY interpretation."
+-      ]
+-    },
+-    "computational_effect": "METADATA_ONLY; target, horizon_sessions, prefix_sessions, learner parameters, and search_budget.real_fit_attempts=6 are unchanged"
+-  },
+-  "engineering_amendment": {
+-    "reason": "one failed engineering attempt: Dataset constructed without frozen data_random_seed; bind Dataset params before construction; no model/parameter search",
+-    "old_contract_sha256": "5810e3a24b38b53233d2bcf26d0fb085cfadce113845f4978ab65313b7f108d0",
+-    "attempts_total": 3,
+-    "failed_attempts": 1,
+-    "remaining_clean_paired_attempts": 2,
+-    "real_fit_budget_unchanged": 6
+-  },
+-  "label_arithmetic_amendment": {
+-    "old_contract_sha256": "8ef2730ccd12366e54d5560987609f8a6cd9a1538b935fe92d51a09ef9ada9cd",
+-    "reason": "actual 588-source check: float64 multiplication only matches585; float32 percent matches588 with max percentage reconstruction error5.69e-14",
+-    "fit_timing": "before any genuine full-domain fit; engineering models on synthetic nonboundary inputs only",
+-    "not_proven": "full-domain non-event parity requires Codex native-source check"
+-  }
+-}
+diff --git a/candidate/tests/fixtures/frozen_evaluator/spike5/__init__.py b/candidate/tests/fixtures/frozen_evaluator/spike5/__init__.py
+deleted file mode 100644
+--- a/candidate/tests/fixtures/frozen_evaluator/spike5/__init__.py
++++ /dev/null
+@@ -1 +0,0 @@
+-__version__ = "1.0.0"
+diff --git a/candidate/tests/fixtures/frozen_evaluator/spike5/common.py b/candidate/tests/fixtures/frozen_evaluator/spike5/common.py
+deleted file mode 100644
+--- a/candidate/tests/fixtures/frozen_evaluator/spike5/common.py
++++ /dev/null
+@@ -1,51 +0,0 @@
+-from __future__ import annotations
+-import hashlib,json,os,tempfile
+-from pathlib import Path
+-import numpy as np
+-
+-ROOT=Path(__file__).resolve().parents[1]
+-
+-def sha(path):
+-    h=hashlib.sha256()
+-    with open(path,'rb') as f:
+-        for b in iter(lambda:f.read(1024*1024),b''):h.update(b)
+-    return h.hexdigest()
+-
+-def clean(x):
+-    if isinstance(x,dict):return {str(k):clean(v) for k,v in x.items()}
+-    if isinstance(x,(list,tuple)):return [clean(v) for v in x]
+-    if isinstance(x,np.ndarray):return clean(x.tolist())
+-    if isinstance(x,(np.integer,)):return int(x)
+-    if isinstance(x,(float,np.floating)):return float(x) if np.isfinite(x) else None
+-    if isinstance(x,np.bool_):return bool(x)
+-    if isinstance(x,Path):return str(x)
+-    return x
+-
+-def canonical(x):return json.dumps(clean(x),ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+-def digest(x):return hashlib.sha256(canonical(x)).hexdigest()
+-def read_json(path):return json.loads(Path(path).read_text())
+-
+-def write_json(path,value,exclusive=False):
+-    p=Path(path);p.parent.mkdir(parents=True,exist_ok=True)
+-    if exclusive:
+-        with p.open('x',encoding='utf-8') as f:json.dump(clean(value),f,ensure_ascii=False,indent=2,allow_nan=False);f.write('\n')
+-    else:
+-        tmp=p.with_name(p.name+'.tmp')
+-        with tmp.open('w',encoding='utf-8') as f:json.dump(clean(value),f,ensure_ascii=False,indent=2,allow_nan=False);f.write('\n')
+-        os.replace(tmp,p)
+-
+-def source_identity():
+-    return {str(p.relative_to(ROOT)):sha(p) for p in sorted((ROOT/'spike5').glob('*.py'))}
+-
+-def safe_child(root,relative):
+-    r=Path(root).resolve();p=(r/relative).resolve()
+-    if not p.is_relative_to(r):raise ValueError('path escapes bundle')
+-    return p
+-
+-def csv_write(df,path):
+-    import gzip
+-    with open(path,'wb') as raw:
+-        with gzip.GzipFile(filename='',mode='wb',fileobj=raw,mtime=0) as zipped:
+-            import io
+-            with io.TextIOWrapper(zipped,encoding='utf-8',newline='') as text:
+-                df.to_csv(text,index=False,float_format='%.17g')
+diff --git a/candidate/tests/fixtures/frozen_evaluator/spike5/features.py b/candidate/tests/fixtures/frozen_evaluator/spike5/features.py
+deleted file mode 100644
+--- a/candidate/tests/fixtures/frozen_evaluator/spike5/features.py
++++ /dev/null
+@@ -1,114 +0,0 @@
+-"""Thirty continuous descriptors of an exact 60-row visible OHLC/activity prefix.
+-No event IDs, boolean P1-P4 labels, outcomes or whole-history normalizers.
+-Activity is the frozen raw amount series, not certified shares or money flow.
+-"""
+-from __future__ import annotations
+-import numpy as np
+-
+-PATH_FEATURES=[
+- 'path_displacement_10','path_displacement_20','path_displacement_60',
+- 'path_close_range_10','path_close_range_20','path_close_range_60',
+- 'path_drawdown_20','path_drawdown_60','path_efficiency_20','path_efficiency_60',
+- 'path_compression_10v20','path_activity_10v20','path_peak_activity_share_30',
+- 'path_range_location_30','path_rebound_from_trough_60','path_below_peak_60',
+- 'path_max_return_60','path_min_return_60',
+- 'path_pulse_activity_ratio','path_pulse_age_60','path_pulse_return',
+- 'path_pulse_retention','path_pulse_cooling_5',
+- 'path_lower_reclaim_depth_mean_30','path_upper_rejection_depth_mean_30',
+- 'path_low_slope_20','path_volatility_10v20','path_down_up_activity_30',
+- 'path_lower_reclaim_fraction_30','path_upper_rejection_fraction_30']
+-
+-
+-def _ratio(a,b):
+-    a,b=np.broadcast_arrays(a,b);o=np.full(a.shape,np.nan,dtype=float)
+-    np.divide(a,b,out=o,where=np.isfinite(a)&np.isfinite(b)&(b!=0))
+-    return o
+-
+-
+-def continuous_path_many(windows):
+-    w=np.asarray(windows,dtype=np.float64)
+-    if w.ndim!=3 or w.shape[1:]!=(60,5):raise ValueError('expected (n,60,5) OHLC/activity')
+-    n=len(w);op,hi,lo,c,a=[w[:,:,i].copy() for i in range(5)]
+-    for x in (op,hi,lo,c):x[~np.isfinite(x)|(x<=0)]=np.nan
+-    a[~np.isfinite(a)|(a<0)]=np.nan
+-    out={}
+-    for k in (10,20,60):
+-        z=c[:,-k:]
+-        out[f'path_displacement_{k}']=_ratio(z[:,-1],z[:,0])-1
+-        out[f'path_close_range_{k}']=_ratio(z.max(1),z.min(1))-1
+-        good=np.isfinite(z).all(1)
+-        for nm in (f'path_displacement_{k}',f'path_close_range_{k}'):
+-            out[nm][~good]=np.nan
+-    for k in (20,60):
+-        z=c[:,-k:];chg=np.diff(np.log(z),axis=1)
+-        out[f'path_drawdown_{k}']=(_ratio(z,np.maximum.accumulate(z,axis=1))-1).min(1)
+-        distance=np.abs(chg).sum(1)
+-        eff=_ratio(np.abs(chg.sum(1)),distance)
+-        eff[(distance==0)&np.isfinite(z).all(1)]=0.
+-        out[f'path_efficiency_{k}']=eff
+-    recent=c[:,-10:];earlier=c[:,-30:-10]
+-    out['path_compression_10v20']=_ratio(_ratio(recent.max(1),recent.min(1))-1,
+-                                                   _ratio(earlier.max(1),earlier.min(1))-1)
+-    out['path_activity_10v20']=_ratio(np.median(a[:,-10:],axis=1),np.median(a[:,-30:-10],axis=1))
+-    out['path_peak_activity_share_30']=_ratio(a[:,-30:].max(1),a[:,-30:].sum(1))
+-    z=c[:,-30:];out['path_range_location_30']=_ratio(z[:,-1]-z.min(1),z.max(1)-z.min(1))
+-    out['path_rebound_from_trough_60']=_ratio(c[:,-1],c.min(1))-1
+-    out['path_below_peak_60']=_ratio(c[:,-1],c.max(1))-1
+-    ret=_ratio(c[:,1:],c[:,:-1])-1
+-    out['path_max_return_60']=ret.max(1);out['path_min_return_60']=ret.min(1)
+-    # One deterministic anchor: strongest activity-weighted positive impulse in [-40,-6].
+-    candidates=[];ratios=[];rets=[]
+-    for i in range(20,55):
+-        ar=_ratio(a[:,i],np.median(a[:,i-10:i],axis=1));rr=ret[:,i-1]
+-        strength=rr*np.log1p(ar)
+-        strength[~np.isfinite(strength)|(rr<=0)|(ar<=0)]=-np.inf
+-        candidates.append(strength);ratios.append(ar);rets.append(rr)
+-    strengths=np.column_stack(candidates);choice=np.argmax(strengths,axis=1)
+-    usable=np.isfinite(strengths.max(1));ix=choice+20;row=np.arange(n)
+-    ar=np.column_stack(ratios)[row,choice];rr=np.column_stack(rets)[row,choice]
+-    pc=c[row,ix];before=c[row,ix-1];pa=a[row,ix]
+-    vals=[ar,(59-ix)/60,rr,_ratio(c[:,-1]-before,pc-before),_ratio(np.median(a[:,-5:],axis=1),pa)]
+-    for nm,v in zip(PATH_FEATURES[18:23],vals):
+-        v=np.asarray(v,dtype=float);v[~usable]=np.nan;out[nm]=v
+-    good_candle=(np.isfinite(op)&np.isfinite(hi)&np.isfinite(lo)&np.isfinite(c)
+-                 &(hi>=np.maximum.reduce([op,c,lo]))&(lo<=np.minimum.reduce([op,c,hi])))
+-    recl=[];reject=[];rdepth=[];udepth=[]
+-    for i in range(30,60):
+-        prior=c[:,i-10:i];mn=prior.min(1);mx=prior.max(1)
+-        valid=good_candle[:,i]&np.isfinite(prior).all(1)
+-        hitlo=(lo[:,i]<mn)&(c[:,i]>=mn);hithi=(hi[:,i]>mx)&(c[:,i]<=mx)
+-        dl=np.where(hitlo,_ratio(mn-lo[:,i],mn),0.)
+-        du=np.where(hithi,_ratio(hi[:,i]-mx,mx),0.)
+-        rl=hitlo.astype(float);rh=hithi.astype(float)
+-        for v in (dl,du,rl,rh):v[~valid]=np.nan
+-        recl.append(rl);reject.append(rh);rdepth.append(dl);udepth.append(du)
+-    out['path_lower_reclaim_depth_mean_30']=np.column_stack(rdepth).mean(1)
+-    out['path_upper_rejection_depth_mean_30']=np.column_stack(udepth).mean(1)
+-    out['path_lower_reclaim_fraction_30']=np.column_stack(recl).mean(1)
+-    out['path_upper_rejection_fraction_30']=np.column_stack(reject).mean(1)
+-    lowlog=np.log(lo[:,-20:]);t=np.arange(20)-9.5
+-    out['path_low_slope_20']=(lowlog*t).sum(1)/(t*t).sum()
+-    logr=np.diff(np.log(c),axis=1)
+-    out['path_volatility_10v20']=_ratio(logr[:,-10:].std(1,ddof=1),logr[:,-30:-10].std(1,ddof=1))
+-    r=ret[:,-30:];aa=a[:,-30:]
+-    dn=_ratio(np.where(r<0,aa,0).sum(1),(r<0).sum(1))
+-    up=_ratio(np.where(r>0,aa,0).sum(1),(r>0).sum(1))
+-    v=_ratio(dn,up);v[~np.isfinite(aa).all(1)|~np.isfinite(r).all(1)]=np.nan
+-    out['path_down_up_activity_30']=v
+-    mat=np.column_stack([out[k] for k in PATH_FEATURES]);mat[~np.isfinite(mat)]=np.nan
+-    return mat.astype(np.float32)
+-
+-
+-def continuous_path(prefix):
+-    p=np.asarray(prefix)
+-    if p.shape!=(60,5):raise ValueError('exactly 60 rows are required')
+-    return dict(zip(PATH_FEATURES,map(float,continuous_path_many(p[None])[0])))
+-
+-
+-def path_matrix(raw):
+-    raw=np.asarray(raw,dtype=float)
+-    out=np.full((len(raw),len(PATH_FEATURES)),np.nan,np.float32)
+-    if len(raw)>=60:
+-        w=np.lib.stride_tricks.sliding_window_view(raw,60,axis=0).transpose(0,2,1)
+-        out[59:]=continuous_path_many(w)
+-    return out
+diff --git a/candidate/tests/fixtures/frozen_evaluator/spike5/metrics.py b/candidate/tests/fixtures/frozen_evaluator/spike5/metrics.py
+deleted file mode 100644
+--- a/candidate/tests/fixtures/frozen_evaluator/spike5/metrics.py
++++ /dev/null
+@@ -1,137 +0,0 @@
+-"""Fixed-domain predictive metrics, not a P&L/backtest engine.
+-Unknown bounds are identification bounds, NOT confidence intervals.
+-AP is reported on known scored labels only; its denominator is explicit.
+-"""
+-from __future__ import annotations
+-import math
+-import numpy as np
+-import pandas as pd
+-from sklearn.metrics import average_precision_score
+-from .settings import CONTRACT
+-
+-
+-def select_top3(frame):
+-    q=frame.loc[frame.scoreable.astype(bool)&np.isfinite(frame.probability)].copy()
+-    q=q.sort_values(['session_id','probability','code'],ascending=[True,False,True],kind='mergesort')
+-    q=q.groupby('session_id',sort=False,group_keys=False).head(3).copy()
+-    q['rank']=q.groupby('session_id',sort=False).cumcount()+1
+-    q['weight']='1/3';return q
+-
+-
+-def paired_precision(a,b,sessions):
+-    days=list(map(int,sessions));v=[]
+-    for day in days:
+-        ar=a.loc[a.session_id==day];br=b.loc[b.session_id==day]
+-        left=dict(zip(ar.code,ar.y));right=dict(zip(br.code,br.y));lo=hi=0.
+-        for code in set(left)|set(right):
+-            coeff=int(code in left)-int(code in right)
+-            if not coeff:continue # exactly the same one-seat weight; no approximation
+-            val=left.get(code,right.get(code,np.nan))
+-            if np.isfinite(val):lo+=coeff*val;hi+=coeff*val
+-            elif coeff>0:hi+=coeff
+-            else:lo+=coeff
+-        v.append({'session_id':day,'lower':lo/3,'upper':hi/3})
+-    return {'denominator':3*len(days),'lower':float(np.mean([r['lower'] for r in v])) if v else None,
+-            'upper':float(np.mean([r['upper'] for r in v])) if v else None,'daily':v}
+-
+-
+-def probability_metrics(frame):
+-    q=frame.loc[frame.scoreable.astype(bool)&np.isfinite(frame.probability)]
+-    p=q.probability.to_numpy(float);y=q.y.to_numpy(float);known=np.isfinite(y)
+-    pk=p[known];yk=y[known];n=len(y);u=n-int(known.sum())
+-    if np.any((p<0)|(p>1)):raise ValueError('probabilities outside [0,1]')
+-    eps=np.finfo(float).eps
+-    ll=-(yk*np.log(np.clip(pk,eps,1-eps))+(1-yk)*np.log(np.clip(1-pk,eps,1)))
+-    bs=(pk-yk)**2;pu=p[~known]
+-    bins=[];edges=CONTRACT['calibration_bins']
+-    for j,(a,b) in enumerate(zip(edges[:-1],edges[1:])):
+-        ix=(p>=a)&((p<=b) if j==len(edges)-2 else (p<b));kk=ix&known
+-        count=int(ix.sum());h=float(y[kk].sum());uk=int((ix&~known).sum())
+-        bins.append({'left':a,'right':b,'count':count,'known':int(kk.sum()),'unknown':uk,
+-            'mean_probability':float(p[ix].mean()) if count else None,
+-            'observed_rate_known':float(y[kk].mean()) if kk.any() else None,
+-            'event_rate_lower':h/count if count else None,'event_rate_upper':(h+uk)/count if count else None})
+-    return {'scored':n,'known':int(known.sum()),'unknown':u,'positive_known':int(yk.sum()),
+-        'average_precision_known':float(average_precision_score(yk,pk)) if len(np.unique(yk))==2 else None,
+-        'pr_auc_definition':'noninterpolated_average_precision_known_labels_only',
+-        'brier_known':float(bs.mean()) if len(bs) else None,
+-        'logloss_known':float(ll.mean()) if len(ll) else None,
+-        'logloss_all_lower':float((ll.sum()+np.minimum(-np.log(np.clip(pu,eps,1-eps)),-np.log(np.clip(1-pu,eps,1))).sum())/n) if n else None,
+-        'logloss_all_upper':float((ll.sum()+np.maximum(-np.log(np.clip(pu,eps,1-eps)),-np.log(np.clip(1-pu,eps,1))).sum())/n) if n else None,
+-        'brier_all_lower':float((bs.sum()+np.minimum(pu**2,(1-pu)**2).sum())/n) if n else None,
+-        'brier_all_upper':float((bs.sum()+np.maximum(pu**2,(1-pu)**2).sum())/n) if n else None,
+-        'calibration_bins':bins,'probabilities_calibrated_claim':False}
+-
+-
+-def arm_metrics(frame,selected,calendar):
+-    days=list(calendar.session_id.astype(int));daily=[]
+-    for day in days:
+-        f=frame.loc[frame.session_id==day];s=selected.loc[selected.session_id==day]
+-        eligible=f.loc[f.scoreable.astype(bool)];k=np.isfinite(s.y);hits=int(s.loc[k,'y'].sum());u=int((~k).sum())
+-        ek=np.isfinite(eligible.y);h=int(eligible.loc[ek,'y'].sum());eu=int((~ek).sum());m=len(eligible)
+-        daily.append({'session_id':day,'market_date':str(calendar.loc[calendar.session_id==day,'market_date'].iloc[0]),
+-          'candidate_rows':len(f),'scoreable':m,'selected':len(s),'empty_slots':3-len(s),'hits':hits,'unknown_selected':u,
+-          'precision_lower':hits/3,'precision_upper':(hits+u)/3,
+-          'random_lower':h/m if m else np.nan,'random_upper':(h+eu)/m if m else np.nan})
+-    d=pd.DataFrame(daily);den=3*len(d);h=int(d.hits.sum());u=int(d.unknown_selected.sum())
+-    random_complete=np.isfinite(d.random_lower).all()
+-    rl=float(d.random_lower.mean()) if random_complete else None
+-    ru=float(d.random_upper.mean()) if random_complete else None
+-    # Confirmed NEW events, and the subset with a potential scoreable alarm in the evaluation grid.
+-    lo=min(days);hi=max(days);events=frame.loc[(frame.episode_state=='NEW')&frame.session_id.between(lo,hi)]
+-    hit_events=set();leads={};alert_hits=0
+-    for r in selected.itertuples():
+-        if np.isfinite(r.y) and r.y==1 and r.first_exact>=0:
+-            key=(str(r.code),int(r.first_exact));hit_events.add(key);alert_hits+=1
+-            leads.setdefault(key,[]).append(int(r.first_exact-r.session_id))
+-    event_keys=set(zip(events.code.astype(str),events.session_id.astype(int)))
+-    hit_events &= event_keys
+-    coverable=set()
+-    for code,t in event_keys:
+-        if frame.loc[(frame.code==code)&frame.session_id.between(t-5,t-1),'scoreable'].astype(bool).any():coverable.add((code,t))
+-    # Year-boundary outcomes outside this cohort remain separately logged; no forced matching.
+-    valid_hits=sum(len(leads[k]) for k in hit_events)
+-    known_sel=selected.loc[np.isfinite(selected.y)]
+-    repeats=0;prev=set()
+-    for day in days:
+-        now=set(selected.loc[selected.session_id==day,'code']);repeats+=len(now&prev);prev=now
+-    return {'dates':len(d),'slots':den,'hits_known':h,'unknown_selected':u,'empty_slots':int(d.empty_slots.sum()),
+-      'precision_lower':h/den if den else None,'precision_upper':(h+u)/den if den else None,
+-      'random_precision_lower':rl,'random_precision_upper':ru,
+-      'random_lift_lower':(h/den)/ru if ru and den else None,
+-      'false_alerts_known':int((known_sel.y==0).sum()),
+-      'false_alert_fraction_lower':int((known_sel.y==0).sum())/len(selected) if len(selected) else None,
+-      'false_alert_fraction_upper':(int((known_sel.y==0).sum())+u)/len(selected) if len(selected) else None,
+-      'false_positive_rate_known_opportunities':int((known_sel.y==0).sum())/int(((frame.y==0)&frame.scoreable.astype(bool)).sum()) if ((frame.y==0)&frame.scoreable.astype(bool)).any() else None,
+-      'unknown_newness_trigger_events':int((frame.episode_state=='UNKNOWN_NEWNESS').sum()),
+-      'confirmed_new_events':len(event_keys),'coverable_new_events':len(coverable),'hit_unique_episodes':len(hit_events),
+-      'episode_coverage_confirmed':len(hit_events)/len(event_keys) if event_keys else None,
+-      'episode_coverage_coverable':len(hit_events&coverable)/len(coverable) if coverable else None,
+-      'repeated_alerts_same_episode':valid_hits-len(hit_events),
+-      'consecutive_daily_repeated_names':repeats,
+-      'first_alarm_lead_sessions':[max(leads[k]) for k in sorted(hit_events)],
+-      'positive_alerts_first_time_ambiguous':int(((selected.y==1)&(selected.first_exact<0)).sum()),
+-      'probability':probability_metrics(frame),'daily':daily,
+-      'not_a_strategy_return':True,'domain':'FIXED_RESEARCH_PROXY_AT_RISK'}
+-
+-
+-def block_interval(daily,calendar):
+-    # Resample full market-date blocks, never compact away unknown dates.
+-    # Every draw is applied to both identification endpoints.
+-    a=pd.DataFrame(daily).merge(calendar[['session_id','year']],on='session_id',validate='one_to_one')
+-    block=CONTRACT['bootstrap']['block_sessions'];reps=CONTRACT['bootstrap']['replicates']
+-    rng=np.random.default_rng(CONTRACT['bootstrap']['seed'])
+-    groups=[g for _,g in a.groupby('year',sort=True)]
+-    if any(len(g)<block or not np.all(np.diff(g.session_id)==1) for g in groups):
+-        return {'status':'INSUFFICIENT_CONTIGUOUS_YEAR_BLOCKS','replications':0}
+-    out=np.zeros((reps,2));count=sum(len(g) for g in groups)
+-    for g in groups:
+-        arr=g[['lower','upper']].to_numpy();n=len(g);chunks=math.ceil(n/block)
+-        starts=rng.integers(0,n-block+1,size=(reps,chunks))
+-        ix=(starts[:,:,None]+np.arange(block)).reshape(reps,-1)[:,:n]
+-        out+=arr[ix].sum(1)
+-    out/=count
+-    return {'status':'DESCRIPTIVE_EXPOSED_HISTORY','block_sessions':block,'replications':reps,
+-      'lower_endpoint_interval':np.quantile(out[:,0],[.025,.975]).tolist(),
+-      'upper_endpoint_interval':np.quantile(out[:,1],[.025,.975]).tolist(),
+-      'independent_stock_days_claim':False}
+diff --git a/candidate/tests/fixtures/frozen_evaluator/spike5/settings.py b/candidate/tests/fixtures/frozen_evaluator/spike5/settings.py
+deleted file mode 100644
+--- a/candidate/tests/fixtures/frozen_evaluator/spike5/settings.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-from .common import ROOT,read_json
+-from .features import PATH_FEATURES
+-BASE_FEATURES=read_json(ROOT/'config/base_features.json')
+-FEATURES=BASE_FEATURES+PATH_FEATURES
+-CONTRACT=read_json(ROOT/'config/contract.json')
+-PARAMS=CONTRACT['learner']['params']
+-ROUNDS=CONTRACT['learner']['rounds']
+diff --git a/candidate/tests/test_rff_evaluator_dependencies.py b/candidate/tests/test_rff_evaluator_dependencies.py
+deleted file mode 100644
+--- a/candidate/tests/test_rff_evaluator_dependencies.py
++++ /dev/null
+@@ -1,334 +0,0 @@
+-"""R3 evaluator closure regressions; original source/config, synthetic placement.
+-
+-All seven evaluator source/config files are copied byte-for-byte from the
+-historical MAC_FIXED_SOURCE_MANIFEST-authenticated recovery. No historical SHA,
+-PINS mapping, evaluator source, settings, or metric is replaced. The only loader
+-seam changes the already SHA-verified score-aware wrapper's two absolute path
+-attributes to this test's temporary package directory. The package __init__ is
+-the independently hash-authenticated 22-byte recovery, not a claimed Mac read.
+-
+-Tests import code and configuration only. They never open data/model/registry
+-artifacts, call a metric, fit or predict, or run accepted PR5/R2 acceptance.
+-Unknown-module fault injection edits only a temporary copy and deliberately
+-updates its local record; the historical manifest must still reject that copy.
+-"""
+-from __future__ import annotations
+-
+-import copy
+-import hashlib
+-import importlib.util
+-import json
+-from pathlib import Path
+-import sys
+-import tempfile
+-import types
+-import unittest
+-from unittest import mock
+-
+-
+-ROOT = Path(__file__).resolve().parents[2]
+-SRC = ROOT / "candidate/src"
+-FIXTURE = Path(__file__).resolve().parent / "fixtures/frozen_evaluator"
+-ATTACHMENTS = ROOT / "inputs/attachments"
+-MANIFEST_SHA256 = "64fd0f7a5e3d646f7b5b184d44ca10576aab9db73772b3abb2cfceab36862a9b"
+-MODULE_FILES = {
+-    "frozen_package_init": ("spike5", "spike5/__init__.py"),
+-    "frozen_common": ("spike5.common", "spike5/common.py"),
+-    "frozen_features": ("spike5.features", "spike5/features.py"),
+-    "frozen_settings": ("spike5.settings", "spike5/settings.py"),
+-    "frozen_metrics": ("spike5.metrics", "spike5/metrics.py"),
+-}
+-CONFIG_FILES = {
+-    "frozen_base_features": "config/base_features.json",
+-    "frozen_contract": "config/contract.json",
+-}
+-
+-
+-def load_test_source(path, name):
+-    spec = importlib.util.spec_from_file_location(name, path)
+-    module = importlib.util.module_from_spec(spec)
+-    spec.loader.exec_module(module)
+-    return module
+-
+-
+-def copy_historical_package(destination):
+-    """Reusable fixture adapter; source bytes and formal hashes stay intact."""
+-    destination = Path(destination)
+-    manifest_raw = (FIXTURE / "MAC_FIXED_SOURCE_MANIFEST.json").read_bytes()
+-    if len(manifest_raw) != 19131 or hashlib.sha256(manifest_raw).hexdigest() != MANIFEST_SHA256:
+-        raise AssertionError("historical evaluator fixture manifest identity mismatch")
+-    manifest = json.loads(manifest_raw)
+-    records = {item["path"]: item for item in manifest["files"]}
+-    for relative in [item[1] for item in MODULE_FILES.values()] + list(CONFIG_FILES.values()):
+-        raw = (FIXTURE / relative).read_bytes()
+-        expected = records[relative]
+-        if len(raw) != expected["bytes"] or hashlib.sha256(raw).hexdigest() != expected["sha256"]:
+-            raise AssertionError(f"historical evaluator fixture identity mismatch: {relative}")
+-        path = destination / relative
+-        path.parent.mkdir(parents=True, exist_ok=True)
+-        path.write_bytes(raw)
+-    return destination / "spike5/metrics.py"
+-
+-
+-class FrozenEvaluatorDependenciesTest(unittest.TestCase):
+-    def setUp(self):
+-        self.common = load_test_source(SRC / "rff_saved_eval_contracts.py", "rff_dependency_contracts")
+-        self.worker = load_test_source(SRC / "rff_saved_eval_worker.py", "rff_dependency_worker")
+-        self.temp = tempfile.TemporaryDirectory()
+-        self.addCleanup(self.temp.cleanup)
+-        self.root = Path(self.temp.name).resolve()
+-        self.metric_path = copy_historical_package(self.root / "historical package")
+-        self.package_root = self.metric_path.parent.parent
+-        self.original_pins = self.common.PINS
+-        self.original_pin_values = copy.deepcopy(self.common.PINS)
+-        self.addCleanup(self.assert_pins_unchanged)
+-        # Restore only the module namespace and sys.path that this loader owns.
+-        names = {name for name in sys.modules if name == "spike5" or name.startswith("spike5.")}
+-        names |= {"_rff_saved_score_aware", "_rff_saved_accepted_pr5", "_rff_saved_frames"}
+-        self.previous_modules = {name: sys.modules.pop(name) for name in names if name in sys.modules}
+-        self.previous_path = list(sys.path)
+-        self.previous_bytecode = sys.dont_write_bytecode
+-        self.addCleanup(self.restore_import_state)
+-        self.binding = self.manual_binding()
+-
+-    def assert_pins_unchanged(self):
+-        self.assertIs(self.common.PINS, self.original_pins)
+-        self.assertEqual(self.common.PINS, self.original_pin_values)
+-
+-    def restore_import_state(self):
+-        for name in list(sys.modules):
+-            if name == "spike5" or name.startswith("spike5.") or name in {
+-                "_rff_saved_score_aware", "_rff_saved_accepted_pr5", "_rff_saved_frames"}:
+-                sys.modules.pop(name, None)
+-        sys.modules.update(self.previous_modules)
+-        sys.path[:] = self.previous_path
+-        sys.dont_write_bytecode = self.previous_bytecode
+-
+-    def manual_binding(self):
+-        helpers = {key: self.common.file_record(self.package_root / relative)
+-                   for key, (_, relative) in MODULE_FILES.items()}
+-        helpers.update({
+-            "accepted_worker": self.common.file_record(ATTACHMENTS / "rff/pr5_accepted/src/rff_worker.py"),
+-            "score_aware_metrics": self.common.file_record(ATTACHMENTS / "shared/src/score_aware_metrics.py"),
+-        })
+-        manifest = SRC.parent / "contracts/FROZEN_EVALUATOR_SOURCE_MANIFEST.json"
+-        # Before R3 the package copy does not exist. Use the identical historical
+-        # fixture solely so RED can reach the original loader's missing closure.
+-        if not manifest.is_file():
+-            manifest = FIXTURE / "MAC_FIXED_SOURCE_MANIFEST.json"
+-        metadata = {key: self.common.file_record(self.package_root / relative)
+-                    for key, relative in CONFIG_FILES.items()}
+-        metadata["frozen_evaluator_manifest"] = self.common.file_record(manifest, MANIFEST_SHA256)
+-        return {"executable_helpers": helpers, "metadata_files": metadata,
+-                "code_files": {"rff_saved_eval_frames": self.common.file_record(SRC / "rff_saved_eval_frames.py")}}
+-
+-    def wrapper_path_seam(self):
+-        wrapper = self.common.load_bound_module(
+-            self.binding["executable_helpers"]["score_aware_metrics"], "_rff_saved_score_aware")
+-        self.assertEqual(wrapper.__rff_source_sha256__, self.common.PINS["score_aware_metrics"])
+-        wrapper.frozen_metrics.cache_clear()
+-        for field, value in (("FROZEN_METRICS_PATH", self.metric_path),
+-                             ("F5_SOURCE_ROOT", self.package_root)):
+-            patch = mock.patch.object(wrapper, field, value)
+-            patch.start()
+-            self.addCleanup(patch.stop)
+-        self.addCleanup(wrapper.frozen_metrics.cache_clear)
+-        return wrapper
+-
+-    def validate(self, binding=None):
+-        self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+-                        "R3 static frozen evaluator closure validator is missing")
+-        return self.common.validate_frozen_evaluator(self.binding if binding is None else binding)
+-
+-    def test_original_transitive_loader_preserves_full_source_provenance(self):
+-        self.wrapper_path_seam()
+-        _, wrapper, accepted = self.worker._load_evaluators(self.common, self.binding)
+-        self.assertEqual(accepted.__rff_source_sha256__, self.common.PINS["accepted_worker"])
+-        self.assertIs(wrapper.frozen_metrics(), sys.modules["spike5.metrics"])
+-        for key, (name, _) in MODULE_FILES.items():
+-            with self.subTest(module=name):
+-                record = self.binding["executable_helpers"][key]
+-                module = sys.modules[name]
+-                self.assertEqual(Path(module.__file__).resolve(), Path(record["path"]))
+-                self.assertEqual(Path(module.__spec__.origin).resolve(), Path(record["path"]))
+-                self.assertEqual(module.__rff_source_sha256__, record["sha256"])
+-        settings = sys.modules["spike5.settings"]
+-        original = json.loads((FIXTURE / "config/contract.json").read_bytes())
+-        self.assertEqual(settings.CONTRACT, original)
+-        self.assertEqual(settings.PARAMS, original["learner"]["params"])
+-        self.assertEqual(settings.ROUNDS, original["learner"]["rounds"])
+-        self.assertEqual(settings.BASE_FEATURES, json.loads((FIXTURE / "config/base_features.json").read_bytes()))
+-        self.assertEqual(settings.FEATURES, settings.BASE_FEATURES + sys.modules["spike5.features"].PATH_FEATURES)
+-        self.assertEqual(settings.CONTRACT["calibration_bins"], [0, .001, .003, .01, .03, .1, .3, .6, 1])
+-        read_json = sys.modules["spike5.common"].read_json
+-        self.assertEqual(read_json.__module__, "spike5.common")
+-        self.assertEqual(Path(read_json.__code__.co_filename).resolve(),
+-                         Path(self.binding["executable_helpers"]["frozen_common"]["path"]))
+-
+-    def test_bind_api_uses_complete_historical_manifest_without_import(self):
+-        self.assertTrue(callable(getattr(self.common, "bind_frozen_evaluator", None)),
+-                        "R3 historical evaluator binding function is missing")
+-        with mock.patch.object(self.common, "load_bound_module", side_effect=AssertionError("static bind imported code")):
+-            helpers, metadata = self.common.bind_frozen_evaluator(self.metric_path)
+-        self.assertEqual(set(helpers), set(MODULE_FILES))
+-        self.assertEqual(set(metadata), {*CONFIG_FILES, "frozen_evaluator_manifest"})
+-        self.assertEqual(metadata["frozen_evaluator_manifest"]["sha256"], MANIFEST_SHA256)
+-        for key in MODULE_FILES:
+-            self.assertEqual(helpers[key], self.binding["executable_helpers"][key])
+-        for key in CONFIG_FILES:
+-            self.assertEqual(metadata[key], self.binding["metadata_files"][key])
+-        self.assertFalse(any(name == "spike5" or name.startswith("spike5.") for name in sys.modules))
+-
+-    def test_static_validation_returns_exact_module_and_config_closure(self):
+-        with mock.patch.object(self.common, "load_bound_module", side_effect=AssertionError("static validate imported code")):
+-            result = self.validate()
+-        self.assertEqual(result["modules"], {name: self.binding["executable_helpers"][key]
+-                                            for key, (name, _) in MODULE_FILES.items()})
+-        self.assertEqual(result["configs"], {record["path"]: record for key, record in
+-                         self.binding["metadata_files"].items() if key in CONFIG_FILES})
+-        self.assertRegex(result["closure_sha256"], r"^[a-f0-9]{64}$")
+-        self.assertFalse(any(name == "spike5" or name.startswith("spike5.") for name in sys.modules))
+-
+-    def test_each_previously_omitted_dependency_is_required(self):
+-        for category, key in (("executable_helpers", "frozen_common"),
+-                              ("executable_helpers", "frozen_features"),
+-                              ("metadata_files", "frozen_base_features"),
+-                              ("metadata_files", "frozen_contract")):
+-            with self.subTest(dependency=key):
+-                binding = copy.deepcopy(self.binding)
+-                del binding[category][key]
+-                with self.assertRaises(self.common.SavedEvaluationError):
+-                    self.validate(binding)
+-
+-    def test_each_source_and_configuration_hash_is_historically_fixed(self):
+-        for category, keys in (("executable_helpers", MODULE_FILES), ("metadata_files", CONFIG_FILES)):
+-            for key in keys:
+-                with self.subTest(dependency=key):
+-                    binding = copy.deepcopy(self.binding)
+-                    binding[category][key]["sha256"] = "0" * 64
+-                    with self.assertRaises(self.common.SavedEvaluationError):
+-                        self.validate(binding)
+-
+-    def test_manifest_identity_cannot_be_rebound_to_another_self_consistent_file(self):
+-        binding = copy.deepcopy(self.binding)
+-        path = self.root / "altered_manifest.json"
+-        document = json.loads((FIXTURE / "MAC_FIXED_SOURCE_MANIFEST.json").read_bytes())
+-        document["identity_kind"] = "SYNTHETIC_NOT_HISTORICAL"
+-        path.write_text(json.dumps(document))
+-        binding["metadata_files"]["frozen_evaluator_manifest"] = self.common.file_record(path)
+-        with self.assertRaises(self.common.SavedEvaluationError):
+-            self.validate(binding)
+-
+-    def test_declared_byte_counts_cannot_disagree_with_historical_identities(self):
+-        for category, key in (("executable_helpers", "frozen_common"),
+-                              ("metadata_files", "frozen_contract")):
+-            with self.subTest(dependency=key):
+-                binding = copy.deepcopy(self.binding)
+-                binding[category][key]["bytes"] += 1
+-                with self.assertRaises(self.common.SavedEvaluationError):
+-                    self.validate(binding)
+-
+-    def test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency(self):
+-        for category, key in (("executable_helpers", "frozen_common"),
+-                              ("executable_helpers", "frozen_features"),
+-                              ("metadata_files", "frozen_base_features"),
+-                              ("metadata_files", "frozen_contract")):
+-            with self.subTest(dependency=key):
+-                binding = copy.deepcopy(self.binding)
+-                original = Path(binding[category][key]["path"])
+-                destination = self.root / "foreign" / key / original.name
+-                destination.parent.mkdir(parents=True, exist_ok=True)
+-                destination.write_bytes(original.read_bytes())
+-                binding[category][key] = self.common.file_record(destination)
+-                with self.assertRaises(self.common.SavedEvaluationError):
+-                    self.validate(binding)
+-
+-    def test_unknown_module_is_rejected_before_its_body_executes(self):
+-        self.wrapper_path_seam()
+-        marker = self.root / "unbound_body_executed"
+-        (self.metric_path.parent / "extra.py").write_text(
+-            f"from pathlib import Path\nPath({str(marker)!r}).write_text('executed')\n")
+-        init = self.metric_path.parent / "__init__.py"
+-        init.write_text("from . import extra\n")
+-        self.binding["executable_helpers"]["frozen_package_init"] = self.common.file_record(init)
+-        with self.assertRaises(self.common.SavedEvaluationError):
+-            self.worker._load_evaluators(self.common, self.binding)
+-        self.assertFalse(marker.exists(), "unbound body ran before the loader rejected its origin")
+-        self.assertNotIn("spike5.extra", sys.modules)
+-
+-    def test_unbound_cached_package_is_rejected_before_any_package_body(self):
+-        self.wrapper_path_seam()
+-        extra = types.ModuleType("spike5.extra")
+-        extra.__file__ = str(self.root / "unbound_cached.py")
+-        sys.modules["spike5.extra"] = extra
+-        calls = []
+-        original = self.common.load_bound_module
+-        def observed(record, name, **kwargs):
+-            calls.append(name)
+-            return original(record, name, **kwargs)
+-        with mock.patch.object(self.common, "load_bound_module", side_effect=observed):
+-            with self.assertRaises(self.common.SavedEvaluationError):
+-                self.worker._load_evaluators(self.common, self.binding)
+-        self.assertFalse(any(name == "spike5" or name.startswith("spike5.") for name in calls))
+-
+-    def test_config_drift_cannot_reuse_a_previously_loaded_settings_cache(self):
+-        self.wrapper_path_seam()
+-        self.worker._load_evaluators(self.common, self.binding)
+-        original_settings = sys.modules["spike5.settings"]
+-        path = Path(self.binding["metadata_files"]["frozen_contract"]["path"])
+-        changed = json.loads(path.read_bytes())
+-        changed["calibration_bins"] = [0, 1]
+-        path.write_text(json.dumps(changed))
+-        self.binding["metadata_files"]["frozen_contract"] = self.common.file_record(path)
+-        with self.assertRaises(self.common.SavedEvaluationError):
+-            self.worker._load_evaluators(self.common, self.binding)
+-        self.assertIs(sys.modules["spike5.settings"], original_settings)
+-        self.assertNotEqual(original_settings.CONTRACT["calibration_bins"], [0, 1])
+-
+-    def test_closure_fingerprint_is_required_on_cached_package_modules(self):
+-        self.wrapper_path_seam()
+-        self.worker._load_evaluators(self.common, self.binding)
+-        settings = sys.modules["spike5.settings"]
+-        self.assertRegex(getattr(settings, "__rff_evaluator_closure_sha256__", ""), r"^[a-f0-9]{64}$")
+-        settings.__rff_evaluator_closure_sha256__ = "0" * 64
+-        with self.assertRaises(self.common.SavedEvaluationError):
+-            self.worker._load_evaluators(self.common, self.binding)
+-
+-    def test_cached_spec_origin_cannot_disagree_with_verified_file_origin(self):
+-        self.wrapper_path_seam()
+-        self.worker._load_evaluators(self.common, self.binding)
+-        settings = sys.modules["spike5.settings"]
+-        settings.__spec__.origin = str(self.root / "foreign_settings.py")
+-        with self.assertRaises(self.common.SavedEvaluationError):
+-            self.worker._load_evaluators(self.common, self.binding)
+-
+-    def test_preflight_loads_code_and_configuration_without_metric_or_data_calls(self):
+-        self.wrapper_path_seam()
+-        self.assertTrue(callable(getattr(self.worker, "preflight_evaluators", None)),
+-                        "R3 source/config-only evaluator preflight is missing")
+-        forbidden = self.root / "must_not_read_data"
+-        binding = copy.deepcopy(self.binding)
+-        binding["input_files"] = {"eval_truth": {"path": str(forbidden), "sha256": "0" * 64}}
+-        # Observe actual Python calls without substituting any frozen function.
+-        # Import-time <module> execution is expected; evaluator function calls
+-        # would cross the source/config-only preflight boundary.
+-        metric_calls = []
+-        previous_profile = sys.getprofile()
+-        def observe_calls(frame, event, arg):
+-            if event == "call" and frame.f_code.co_filename == str(self.metric_path) and frame.f_code.co_name != "<module>":
+-                metric_calls.append(frame.f_code.co_name)
+-        try:
+-            sys.setprofile(observe_calls)
+-            with mock.patch.object(self.worker, "_read_csv", side_effect=AssertionError("preflight decoded data")):
+-                result = self.worker.preflight_evaluators(self.common, binding)
+-        finally:
+-            sys.setprofile(previous_profile)
+-        self.assertTrue(result["status"])
+-        self.assertRegex(result["closure_sha256"], r"^[a-f0-9]{64}$")
+-        self.assertEqual(metric_calls, [])
+-        self.assertFalse(forbidden.exists())
+-        self.assertIn("spike5.settings", sys.modules)
+-
+-
+-if __name__ == "__main__":
+-    unittest.main()
+diff --git a/candidate/tests/test_rff_evaluator_prestart.py b/candidate/tests/test_rff_evaluator_prestart.py
+deleted file mode 100644
+--- a/candidate/tests/test_rff_evaluator_prestart.py
++++ /dev/null
+@@ -1,260 +0,0 @@
+-"""R3 _run_real pre-start integration; no real Mac, registry, or data access.
+-
+-Original manifest-authenticated evaluator code and JSON run in a temporary
+-package through the real worker preflight and source loader. Peripheral seams:
+-load_documents, release/native validation, and the reviewed wrapper's absolute
+-Mac path attributes. An observation barrier stops before the first official
+-helper is loaded: no adapter, guard, registry, owner, or monitor is constructed.
+-"""
+-from __future__ import annotations
+-
+-import builtins
+-import importlib.util
+-import sys
+-import types
+-import unittest
+-from pathlib import Path
+-from unittest import mock
+-
+-import test_rff_evaluator_dependencies as fixture_module
+-
+-SRC = Path(__file__).resolve().parents[1] / "src"
+-OMITTED_DEPENDENCIES = (
+-    ("executable_helpers", "frozen_common"),
+-    ("executable_helpers", "frozen_features"),
+-    ("metadata_files", "frozen_base_features"),
+-    ("metadata_files", "frozen_contract"),
+-)
+-
+-
+-class StopBeforeOfficialRegistry(RuntimeError):
+-    """Observation barrier: the first official helper has not been loaded."""
+-
+-
+-class EvaluatorPrestartTests(unittest.TestCase):
+-    def setUp(self):
+-        self.fixture = fixture_module.FrozenEvaluatorDependenciesTest()
+-        self.fixture.setUp()
+-        self.addCleanup(self.fixture.doCleanups)
+-        self.common = self.fixture.common
+-        self.root = self.fixture.root
+-        self.binding = self.fixture.binding
+-        frozen_helpers, frozen_metadata = self.common.bind_frozen_evaluator(self.fixture.metric_path)
+-        self.binding["executable_helpers"].update(frozen_helpers)
+-        self.binding["metadata_files"].update(frozen_metadata)
+-        self.fixture.wrapper_path_seam()
+-        self.runner = fixture_module.load_test_source(
+-            SRC / "run_rff_saved_evaluation.py", "r3_evaluator_prestart_runner")
+-        self.output = self.root / "execution/SYNTHETIC_R3_PREFLIGHT"
+-        self.trace = self.root / "evidence/resource.json"
+-        self.forbidden_paths = {self.root / "never_read" / name
+-                                for name in (*self.common.INPUT_NAMES, "candidate_model")}
+-        self.binding.update({
+-            "resources": {"cpu_threads": 4, "aggregate_process_tree_rss_bytes_max": 2147483648,
+-                          "wall_seconds_max": 60, "sample_seconds": .05},
+-            "output_root": str(self.output), "resource_trace_path": str(self.trace),
+-            "official_registry_path": str(self.root / "never_read/registry.jsonl"),
+-            "input_files": {name: {"path": str(self.root / "never_read" / name), "sha256": "0" * 64}
+-                            for name in self.common.INPUT_NAMES},
+-            "code_files": {name: self.common.file_record(SRC / (name + ".py"))
+-                           for name in self.common.SOURCE_NAMES},
+-            "official_helpers": {name: {"path": str(self.root / "never_read" / (name + ".py")),
+-                                         "sha256": "0" * 64}
+-                                 for name in ("execution_guard", "registry_adapter", "builder", "validator")},
+-        })
+-        self.forbidden_paths.add(Path(self.binding["official_registry_path"]))
+-        self.binding["code_sha256"] = self.common.sha256_bytes(self.common.canonical_bytes(self.binding["code_files"]))
+-        native_reference = self.root / "synthetic_native_reference.json"
+-        native_reference.write_text('{"synthetic_only": true}')
+-        self.binding["metadata_files"]["native_reference"] = self.common.file_record(native_reference)
+-        self.binding["executable_helpers"]["native_runtime"] = {
+-            "path": str(self.root / "SYNTHETIC_NATIVE_SEAM.py"), "sha256": "0" * 64}
+-        self.events = []
+-        self.read_attempts = []
+-        self.preflight_result = None
+-        self.owner = mock.Mock(side_effect=AssertionError("owner execution reached before observation barrier"))
+-        self.monitor = mock.Mock(side_effect=AssertionError("process monitor unexpectedly entered"))
+-        self.worker_alias = "_rff_saved_evaluator_preflight"
+-        old_worker = sys.modules.pop(self.worker_alias, None)
+-        self.addCleanup(self.restore_worker_alias, old_worker)
+-
+-    def restore_worker_alias(self, previous):
+-        sys.modules.pop(self.worker_alias, None)
+-        if previous is not None:
+-            sys.modules[self.worker_alias] = previous
+-
+-    def native_validation(self, spec, *, require_macos):
+-        self.assertTrue(require_macos)
+-        self.events.append("native_ready")
+-        return {"synthetic_native_runtime_seam": True}
+-
+-    def run_to_observation_barrier(self):
+-        self.events.clear()
+-        self.read_attempts.clear()
+-        self.preflight_result = None
+-        original_loader = self.common.load_bound_module
+-        original_path_open, original_open = Path.open, builtins.open
+-        preflight_functions = []
+-        native = types.SimpleNamespace(
+-            native_spec_from_contract=lambda reference: {"synthetic_only": True},
+-            validate_native_files=self.native_validation)
+-
+-        def record_read(path):
+-            if isinstance(path, (str, bytes, Path)):
+-                candidate = Path(path if not isinstance(path, bytes) else path.decode()).absolute()
+-                if candidate in self.forbidden_paths:
+-                    self.read_attempts.append(str(candidate))
+-                    raise AssertionError("preflight attempted a data, model, or registry read")
+-
+-        def guarded_path_open(path, *args, **kwargs):
+-            record_read(path)
+-            return original_path_open(path, *args, **kwargs)
+-
+-        def guarded_open(path, *args, **kwargs):
+-            record_read(path)
+-            return original_open(path, *args, **kwargs)
+-
+-        def observed_loader(record, name, **kwargs):
+-            if name == "_rff_saved_native_runtime":
+-                return native
+-            if name in ("execution_guard_core", "_rff_saved_registry_adapter", "_rff_saved_registration"):
+-                self.events.append("official_boundary")
+-                raise StopBeforeOfficialRegistry(name)
+-            module = original_loader(record, name, **kwargs)
+-            if name == self.worker_alias:
+-                self.events.append("bound_worker_loaded")
+-                actual_preflight = module.preflight_evaluators
+-                preflight_functions.append((module, actual_preflight))
+-                def observed_preflight(common, binding):
+-                    self.events.append("evaluator_begin")
+-                    self.preflight_result = actual_preflight(common, binding)
+-                    self.events.append("evaluator_ready")
+-                    return self.preflight_result
+-                module.preflight_evaluators = observed_preflight
+-            return module
+-
+-        try:
+-            with mock.patch.object(self.runner, "_common", return_value=self.common), \
+-                 mock.patch.object(self.common, "load_documents", return_value=({}, self.binding, b"{}", b"{}")), \
+-                 mock.patch.object(self.common, "verify_review_release", return_value={}), \
+-                 mock.patch.object(self.common, "load_bound_module", side_effect=observed_loader), \
+-                 mock.patch.object(self.runner, "_execute_bound", self.owner), \
+-                 mock.patch.object(self.runner, "_monitor_once", self.monitor), \
+-                 mock.patch.object(Path, "open", guarded_path_open), \
+-                 mock.patch.object(builtins, "open", guarded_open):
+-                self.runner._run_real(self.root / "SYNTHETIC_RUN_SPEC.json", self.root / "SYNTHETIC_BINDING.json")
+-        finally:
+-            for module, preflight in reversed(preflight_functions):
+-                module.preflight_evaluators = preflight
+-
+-    def assert_no_execution_side_effects(self):
+-        self.owner.assert_not_called()
+-        self.monitor.assert_not_called()
+-        self.assertFalse(self.output.exists())
+-        self.assertFalse(self.trace.parent.exists())
+-        self.assertEqual(self.read_attempts, [])
+-
+-    def assert_rejected_before_official_helper(self):
+-        with self.assertRaises(self.common.SavedEvaluationError):
+-            self.run_to_observation_barrier()
+-        self.assertNotIn("official_boundary", self.events)
+-        self.assertNotIn("evaluator_ready", self.events)
+-        self.assert_no_execution_side_effects()
+-
+-    def test_real_preflight_completes_after_native_and_before_any_official_helper(self):
+-        with self.assertRaises(StopBeforeOfficialRegistry):
+-            self.run_to_observation_barrier()
+-        self.assertEqual(self.events, ["native_ready", "bound_worker_loaded", "evaluator_begin",
+-                                       "evaluator_ready", "official_boundary"])
+-        self.assertTrue(self.preflight_result["status"])
+-        self.assertRegex(self.preflight_result["closure_sha256"], r"^[a-f0-9]{64}$")
+-        for key, (name, _) in fixture_module.MODULE_FILES.items():
+-            self.assertEqual(sys.modules[name].__rff_source_sha256__,
+-                             self.binding["executable_helpers"][key]["sha256"])
+-        self.assert_no_execution_side_effects()
+-
+-    def test_each_missing_dependency_rejects_before_start(self):
+-        for category, key in OMITTED_DEPENDENCIES:
+-            with self.subTest(dependency=key):
+-                original = self.binding[category].pop(key)
+-                try:
+-                    self.assert_rejected_before_official_helper()
+-                finally:
+-                    self.binding[category][key] = original
+-
+-    def test_each_wrong_dependency_sha_rejects_before_start(self):
+-        for category, key in OMITTED_DEPENDENCIES:
+-            with self.subTest(dependency=key):
+-                original = self.binding[category][key]["sha256"]
+-                self.binding[category][key]["sha256"] = "0" * 64
+-                try:
+-                    self.assert_rejected_before_official_helper()
+-                finally:
+-                    self.binding[category][key]["sha256"] = original
+-
+-    def test_each_missing_dependency_file_rejects_before_start(self):
+-        for category, key in OMITTED_DEPENDENCIES:
+-            with self.subTest(dependency=key):
+-                path = Path(self.binding[category][key]["path"])
+-                original = path.read_bytes()
+-                path.unlink()
+-                try:
+-                    self.assert_rejected_before_official_helper()
+-                finally:
+-                    path.write_bytes(original)
+-
+-    def test_same_bytes_at_foreign_dependency_path_reject_before_start(self):
+-        for category, key in OMITTED_DEPENDENCIES:
+-            with self.subTest(dependency=key):
+-                original = self.binding[category][key]
+-                foreign = self.root / ("foreign_" + key)
+-                foreign.write_bytes(Path(original["path"]).read_bytes())
+-                self.binding[category][key] = self.common.file_record(foreign)
+-                try:
+-                    self.assert_rejected_before_official_helper()
+-                finally:
+-                    self.binding[category][key] = original
+-
+-    def test_dependency_byte_drift_rejects_before_start(self):
+-        for category, key in OMITTED_DEPENDENCIES:
+-            with self.subTest(dependency=key):
+-                path = Path(self.binding[category][key]["path"])
+-                original = path.read_bytes()
+-                path.write_bytes(original + b"\n")
+-                try:
+-                    self.assert_rejected_before_official_helper()
+-                finally:
+-                    path.write_bytes(original)
+-
+-    def test_wrong_cached_module_file_or_spec_origin_rejects_before_start(self):
+-        for field in ("__file__", "__spec__.origin"):
+-            with self.subTest(field=field):
+-                record = self.binding["executable_helpers"]["frozen_common"]
+-                module = types.ModuleType("spike5.common")
+-                module.__file__ = record["path"]
+-                module.__spec__ = importlib.util.spec_from_file_location("spike5.common", record["path"])
+-                module.__rff_source_sha256__ = record["sha256"]
+-                module.__rff_evaluator_closure_sha256__ = self.common.validate_frozen_evaluator(self.binding)["closure_sha256"]
+-                if field == "__file__":
+-                    module.__file__ = str(self.root / "foreign_common.py")
+-                else:
+-                    module.__spec__.origin = str(self.root / "foreign_common.py")
+-                sys.modules["spike5.common"] = module
+-                try:
+-                    self.assert_rejected_before_official_helper()
+-                finally:
+-                    sys.modules.pop("spike5.common", None)
+-
+-    def test_unknown_cached_package_module_rejects_before_start(self):
+-        module = types.ModuleType("spike5.extra")
+-        module.__file__ = str(self.root / "unbound_extra.py")
+-        sys.modules["spike5.extra"] = module
+-        self.assert_rejected_before_official_helper()
+-
+-    def test_wrong_bound_worker_sha_rejects_before_start(self):
+-        self.binding["code_files"]["rff_saved_eval_worker"]["sha256"] = "0" * 64
+-        self.assert_rejected_before_official_helper()
+-
+-
+-if __name__ == "__main__":
+-    unittest.main()

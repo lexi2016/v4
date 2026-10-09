@@ -1,0 +1,126 @@
+{
+  "status": "HISTORICAL_MANIFEST_RECOVERED_SEVEN_IDENTITIES_SEVEN_EXACT_FILES",
+  "identity_kind": "MAC_FIXED_SOURCE_ARCHIVE_NOT_SUBMITTED_ZIP",
+  "historical_manifest_sha256": "64fd0f7a5e3d646f7b5b184d44ca10576aab9db73772b3abb2cfceab36862a9b",
+  "historical_manifest_bytes": 19131,
+  "manifest_text_recovery": {
+    "adjustment": "Restored one terminal LF only; resulting complete bytes match the independent package identity receipt SHA256 and size exactly. Original returned text remains preserved in private input evidence.",
+    "returned_text_bytes": 19130,
+    "verified_manifest_file": "MAC_FIXED_SOURCE_MANIFEST.json"
+  },
+  "historical_archive_identity": {
+    "bytes": 1073959,
+    "sha256": "aaf9d39eaed231f957c1818e19396edc258bf1df3a7add3d480630122b003412",
+    "filename": "HK_SPIKE_F5_TRAIN_V1_MAC_FIXED_20260914.zip"
+  },
+  "archive_bytes_downloaded_or_rehashed_here": false,
+  "files": [
+    {
+      "path": "spike5/__init__.py",
+      "bytes": 22,
+      "sha256": "27e8febb48ada44153ea2add9969a2c50a9831a74d9755fdd53c549a888b1cc2",
+      "byte_source": null,
+      "bytes_recovered": true,
+      "local_verified_source": "spike5/__init__.py",
+      "byte_recovery_method": "Root proposed the 22-byte version declaration; independent reviewer compared full byte count and SHA256 with the historical manifest before saving. No original file or ZIP contents were retrieved for this member.",
+      "candidate_text": "__version__ = \"1.0.0\"\n"
+    },
+    {
+      "path": "spike5/settings.py",
+      "bytes": 288,
+      "sha256": "702c374612806e45647b8cdb8cb345736b6cac689f23df352c00d08735bfb4fc",
+      "byte_source": "spike5/settings.py",
+      "bytes_recovered": true,
+      "local_verified_source": "spike5/settings.py",
+      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+    },
+    {
+      "path": "spike5/common.py",
+      "bytes": 2067,
+      "sha256": "affff27d758d73fdbde3da21af59b94b265d4072cf83036475cd06b0941a4097",
+      "byte_source": "spike5/common.py",
+      "bytes_recovered": true,
+      "local_verified_source": "spike5/common.py",
+      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+    },
+    {
+      "path": "spike5/features.py",
+      "bytes": 5941,
+      "sha256": "947e8d9a2f2b36e44ecfc8d713e0c492670039838dcf3e5abb9396f17a637c38",
+      "byte_source": "spike5/features.py",
+      "bytes_recovered": true,
+      "local_verified_source": "spike5/features.py",
+      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+    },
+    {
+      "path": "spike5/metrics.py",
+      "bytes": 8758,
+      "sha256": "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763",
+      "byte_source": "spike5/metrics.py",
+      "bytes_recovered": true,
+      "local_verified_source": "spike5/metrics.py",
+      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+    },
+    {
+      "path": "config/base_features.json",
+      "bytes": 408,
+      "sha256": "6284bfe3609ec9f220b4f4baef6e0cb4d3190529830fbcb0d8ff435c0859c7af",
+      "byte_source": "config/base_features.json",
+      "bytes_recovered": true,
+      "local_verified_source": "config/base_features.json",
+      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+    },
+    {
+      "path": "config/contract.json",
+      "bytes": 10193,
+      "sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb",
+      "byte_source": "config/contract.json",
+      "bytes_recovered": true,
+      "local_verified_source": "config/contract.json",
+      "byte_recovery_method": "Exact bytes from the submitted feedback snapshot; full byte count and SHA256 verified against the recovered historical Mac-fixed manifest before copying to this fixture."
+    }
+  ],
+  "scope": "Source/config metadata only; no real data rows, models, registry, import or evaluator execution; no new historical claims derived solely from current files.",
+  "historical_metadata_sources": [
+    {
+      "name": "MAC_FIXED_SOURCE_MANIFEST.json",
+      "created_at": "2026-09-23T03:45:54.298791Z",
+      "modified_at": "2026-09-23T03:45:54.298791Z",
+      "reported_bytes": 19131,
+      "read_complete": true,
+      "delivered_file": "MAC_FIXED_SOURCE_MANIFEST.json"
+    },
+    {
+      "name": "FROZEN_SOURCE_ANCHORS_R3.json",
+      "created_at": "2026-09-23T02:37:19.368125Z",
+      "modified_at": "2026-09-23T02:37:19.368125Z",
+      "reported_bytes": 8595,
+      "read_complete": true
+    },
+    {
+      "name": "MAC_FIXED_PACKAGE_IDENTITY_RECEIPT.json",
+      "created_at": "2026-09-23T03:46:17.479973Z",
+      "modified_at": "2026-09-23T03:46:17.479973Z",
+      "reported_bytes": 5827,
+      "read_complete": true,
+      "delivered_file": "evidence/historical/MAC_FIXED_PACKAGE_IDENTITY_RECEIPT.read_text.json",
+      "delivered_file_relative_to": "delivery_root"
+    }
+  ],
+  "amendment_record": {
+    "original_file": "config/contract.json",
+    "json_pointer": "/input_metadata_amendment",
+    "historical_manifest_record": "MAC_FIXED_SOURCE_MANIFEST.json#/actual_source_changes/config~1contract.json",
+    "independent_receipt_record": "evidence/historical/MAC_FIXED_PACKAGE_IDENTITY_RECEIPT.read_text.json#/actual_package_source/contract_amendment_id",
+    "independent_receipt_record_relative_to": "delivery_root",
+    "new_record_generated": false
+  },
+  "mac_init_limitation": "This is hash-authenticated byte recovery, not an observed Mac file read; the unchanged actual Mac package init must still pass runtime identity verification.",
+  "document_kind": "DERIVED_PUBLIC_PROVENANCE_EXPORT",
+  "export_scope": {
+    "original_complete_provenance_retained_in_private_inputs": true,
+    "redaction": "Removed internal storage identifiers and storage locator/download metadata only. Replaced workspace paths with reproducible package-relative references; the historical archive is identified by filename, byte count and SHA256.",
+    "paths_relative_to": "candidate/tests/fixtures/frozen_evaluator/ unless a delivery_root locator is explicitly marked",
+    "unchanged_evidence": "All seven source/config identities, historical metadata filenames and timestamps, byte-recovery methods, archive retrieval limitation and amendment references are preserved."
+  }
+}

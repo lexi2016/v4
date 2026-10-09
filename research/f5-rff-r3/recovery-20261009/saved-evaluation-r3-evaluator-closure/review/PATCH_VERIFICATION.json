@@ -1,0 +1,45 @@
+{
+  "scope": "TEMPORARY_CODE_COPIES_ONLY",
+  "checks": [
+    {
+      "scope": "standalone_directory",
+      "git_directory_prefix_used": false,
+      "results": [
+        {
+          "direction": "runtime.patch",
+          "check_and_apply_exit_code": 0,
+          "whole_candidate_byte_identity": "PASS",
+          "shasum_exit_code": 0,
+          "accepted_worker_unchanged": true
+        },
+        {
+          "direction": "runtime.reverse.patch",
+          "check_and_apply_exit_code": 0,
+          "whole_candidate_byte_identity": "PASS",
+          "shasum_exit_code": 0,
+          "accepted_worker_unchanged": true
+        }
+      ]
+    },
+    {
+      "scope": "parent_git_subdirectory_with_spaces_and_chinese",
+      "git_directory_prefix_used": true,
+      "results": [
+        {
+          "direction": "runtime.patch",
+          "check_and_apply_exit_code": 0,
+          "whole_candidate_byte_identity": "PASS",
+          "shasum_exit_code": 0,
+          "accepted_worker_unchanged": true
+        },
+        {
+          "direction": "runtime.reverse.patch",
+          "check_and_apply_exit_code": 0,
+          "whole_candidate_byte_identity": "PASS",
+          "shasum_exit_code": 0,
+          "accepted_worker_unchanged": true
+        }
+      ]
+    }
+  ]
+}

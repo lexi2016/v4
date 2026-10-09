@@ -1,0 +1,97 @@
+{
+  "schema": "HK_SPIKE_F5_MAC_FIXED_PACKAGE_IDENTITY_RECEIPT_V1",
+  "status": "PASS_MAC_FIXED_PACKAGE_AND_PREPARED_BOUND",
+  "identity_kind": "MAC_FIXED_SOURCE_ARCHIVE_NOT_SUBMITTED_ZIP",
+  "package_archive": {
+    "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/HK_SPIKE_F5_TRAIN_V1_MAC_FIXED_20260914.zip",
+    "bytes": 1073959,
+    "sha256": "aaf9d39eaed231f957c1818e19396edc258bf1df3a7add3d480630122b003412"
+  },
+  "source_manifest": {
+    "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/MAC_FIXED_SOURCE_MANIFEST.json",
+    "bytes": 19131,
+    "sha256": "64fd0f7a5e3d646f7b5b184d44ca10576aab9db73772b3abb2cfceab36862a9b"
+  },
+  "archive_readback": {
+    "member_count": 94,
+    "path_safety_bad": [],
+    "symlinks": [],
+    "manifest_entries": 94,
+    "source_hash_match_count": 94,
+    "archive_hash_match_count": 94
+  },
+  "origin_submitted_zip": {
+    "path": "/Users/lexi/Downloads/HK_SPIKE_F5_TRAIN_V1_20260914.zip",
+    "sha256": "fa107fd967bcaca1b4d4b994d7d57a953d2585e1ea87c9e0ed82fb224c2a9baf",
+    "bytes": 1049399,
+    "identity_relation": "distinct; source archive contains the two prior narrow source patches plus metadata amendment and replay diagnostic"
+  },
+  "actual_package_source": {
+    "root": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1",
+    "file_count": 94,
+    "baseline_manifest_sha256": "61afebf6c5ad0205dc74dd684ad6a8e3f3ce5f9c47fea4f0f6149b53deb97411",
+    "contract_sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb",
+    "contract_amendment_id": "HK_SPIKE_F5_INPUT_METADATA_R1_20260914",
+    "scope_sha256": "f92fdd6acd270f0a85e15f179ba319b18e1bd2fa67def4744ebd981184183d5e",
+    "data_py_sha256": "05dec3f1823237c07e82e00b267e2a7e1ef2b203276117301d937f4af92e19d3",
+    "exporter_py_sha256": "fbf605a1d397d59af952a9dda54bc682c81924541ca1ecf364a94d5fd450bdb4",
+    "replay_saved_sha256": "74809369b54cb1c05093fa92cce3d917bfbf21f56f109c461b0d20ead1f74c1a",
+    "replay_diagnostic_sha256": "59ba4ec5124543bde6195b21a62a3f403beac0286a93f51c6417307207f9dda3"
+  },
+  "prepared_binding": {
+    "input_bundle": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/input_bundle",
+    "input_manifest_sha256": "b151979a05587bdf571f329300bd34b9a03aad68726b1afec7eb735b6ed844a8",
+    "prepared_root": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/prepared_rebound_20260914",
+    "prepared_json_sha256": "24bd84583980da9f1c3e02cf2222d4eff1d3c4cb8402fe803e0e43d551f87e39",
+    "prepared_contract_sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb",
+    "prepared_input_manifest_sha256": "b151979a05587bdf571f329300bd34b9a03aad68726b1afec7eb735b6ed844a8",
+    "rows": 1359888,
+    "parts": 691,
+    "fit_count": 0,
+    "validate_prepared": "PASS",
+    "binding_receipt": {
+      "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/PREPARED_REBOUND_BINDING_RECEIPT.json",
+      "bytes": 5542,
+      "sha256": "60a34cde13dddfaf27c5850c803236968b1fe08c1ab38b79d76a321a8d4e42ec"
+    }
+  },
+  "parity_binding": {
+    "receipt": {
+      "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/trigger_parity.json",
+      "bytes": 2363,
+      "sha256": "925128cc520949f314bd63dc6f479920226df28374429205f8f249727b195e4d"
+    },
+    "status": "PASS_TRIGGER_PARITY_ALL_GRID",
+    "difference_count": 0,
+    "relation": "Existing independent parity receipt preserved; rebound trigger_state was checked equal for all 1,359,888 rows; parity algorithm was not rerun."
+  },
+  "environment_binding": {
+    "receipt": {
+      "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/ENVIRONMENT_LOCK_RECEIPT.json",
+      "bytes": 14195,
+      "sha256": "e00665080e28f74f328463a0f6aabdeda4ed8bd3bf236edbca6ca128208193c6"
+    },
+    "venv": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked",
+    "freeze": {
+      "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/ENVIRONMENT_LOCK_FREEZE.txt",
+      "bytes": 279,
+      "sha256": "e9efc318f18e2e037346b0646227aa03ce6c77f23e44b0131a84c47ad46fed88"
+    },
+    "runtime": "Python 3.13.12 macOS arm64; numpy2.3.5; pandas2.2.3; scikit-learn1.8.0; scipy1.17.0; LightGBM4.6.0; psutil7.2.2",
+    "libomp": "venv-local sklearn/.dylibs/libomp.dylib via DYLD_LIBRARY_PATH; system dynamic libraries unchanged"
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "real_fit": false,
+    "fit_count": 0
+  },
+  "cannot_confirm": [
+    "This archive is not the submitted ZIP and must be identified by its own archive/source/contract/prepared hashes.",
+    "Native Mac zero-fit replay is semantically rank-stable but not byte-identical to original Linux synthetic score/top3 artifacts at last floating-point digits.",
+    "Historical membership/availability/official-calendar/action-adjustment certification, persistent registry kill/reconciliation, real plan/fit and API/UI/natural verification remain open."
+  ],
+  "reviewer_instruction": "Use this archive/source manifest and prepared_rebound identity together; do not validate against the original ZIP manifest or stale prepared receipt."
+}

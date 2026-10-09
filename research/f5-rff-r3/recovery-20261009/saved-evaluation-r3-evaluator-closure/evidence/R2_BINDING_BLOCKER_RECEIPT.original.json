@@ -1,0 +1,138 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R2_LOCAL_BINDING_REVIEW_RECEIPT_V1",
+  "review_scope": "Independent review of the exact metadata-only R2 binding for code/source identity, frozen evaluator package settings, truth/accounting contract, zero-debit scope, output isolation, resource bounds, and official registry lifecycle. No score/truth/label data rows read.",
+  "decision": "BLOCKED_P1",
+  "verdict": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 0,
+    "REVIEWED": "BLOCKED",
+    "BEHAVIOR_VERIFIED": false,
+    "READY_FOR_PARENT_RELEASE": false
+  },
+  "identities": {
+    "route_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927",
+    "candidate_execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01",
+    "execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_SAVED_EVAL_R2_20261009_01",
+    "run_spec_sha256": "53db55d73b305d9bafa0af6d60b9d216a668aefdc329901f528013962f079a50",
+    "input_binding_sha256": "1231b165213786c451f66a83fd52ff01f03077ce0f684905427702eadfd8feed",
+    "source_code_sha256": "17c2fe55ff06ba5a34ba8f7481aafedc0c02e9e8baa9e748e90fc507451e3d00"
+  },
+  "finding": {
+    "id": "FROZEN_EVALUATOR_TRANSITIVE_DEPENDENCIES_NOT_BOUND",
+    "priority": "P1",
+    "title": "Frozen evaluator imports package dependencies outside the bound dependency closure",
+    "impact": "The prepared binding authorizes/imports the same-package settings.py, but that file imports spike5.common and spike5.features and reads config/base_features.json and config/contract.json. The worker's allowed package origins contain only the seven executable_helpers, which omit common.py, features.py, and those configuration files. _load_evaluators therefore raises UNBOUND_FROZEN_PACKAGE_DEPENDENCY before saved-score evaluation can complete. The runner appends durable RUN_STARTED before invoking the monitored worker, so this can consume the new execution and end as CANNOT_CONFIRM.",
+    "exact_evidence": [
+      {
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/spike5/settings.py",
+        "lines": "1-7",
+        "sha256": "702c374612806e45647b8cdb8cb345736b6cac689f23df352c00d08735bfb4fc",
+        "detail": "The bound settings imports .common and .features and reads config/base_features.json and config/contract.json."
+      },
+      {
+        "path": "handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/candidate/src/rff_saved_eval_contracts.py",
+        "lines": "586-595",
+        "sha256": "e41ab4b41c8386875b14515e34c7609e108db17b538ed43eebe7f76fc3394ba6",
+        "detail": "The required executable_helpers closure omits common.py, features.py, and their settings JSON dependencies."
+      },
+      {
+        "path": "handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/candidate/src/rff_saved_eval_worker.py",
+        "lines": "75-85,168",
+        "sha256": "c015246b4b3a21bcb69a1745e41516a9c19f694bf923dfb39553a920a96dfdd8",
+        "detail": "The worker imports the bound settings and metrics, then rejects any spike5.* module whose origin is outside helpers.values(); run_saved_evaluation calls _load_evaluators."
+      },
+      {
+        "path": "handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/candidate/src/run_rff_saved_evaluation.py",
+        "lines": "330-369",
+        "sha256": "115f84e85777a3f002e01c441f62f0fe179adbac72e3c2ecdfaa91adbc5802ba",
+        "detail": "The owner claims zero-debit RUN_STARTED and writes its durable start receipt before passing the worker to the monitor."
+      }
+    ],
+    "reviewer_action": "No run or evaluator smoke was attempted after this deterministic source-level blocker was established. No LOCAL_REVIEW.json was created."
+  },
+  "passed_checks": {
+    "metadata_only_load_documents": {
+      "status": "PASS",
+      "run_spec_sha256": "53db55d73b305d9bafa0af6d60b9d216a668aefdc329901f528013962f079a50",
+      "input_binding_sha256": "1231b165213786c451f66a83fd52ff01f03077ce0f684905427702eadfd8feed",
+      "recomputed_code_manifest_sha256": "17c2fe55ff06ba5a34ba8f7481aafedc0c02e9e8baa9e748e90fc507451e3d00",
+      "evidence": "review/R2_BINDING_LOAD_DOCUMENTS.stdout.log"
+    },
+    "prior_research_identity": {
+      "accepted_pr5_worker_sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+      "prediction_seal_sha256": "4fc18f9ae2cd47d3a1a23adaadd2ddcc5db9aa97b60a1758d78f2b497cdc8bfa",
+      "experiment_contract_sha256": "e6c1509955730a032d183563d6ffcf2501a587dd5734426f35fc59b222491135",
+      "original_candidate_start_file_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+      "original_candidate_terminal_file_sha256": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1",
+      "source": "load_documents() passed _validate_frozen_dependencies; evaluation data rows were not opened."
+    },
+    "contract": {
+      "evaluation": {
+        "year": 2024,
+        "grid_rows": 169986,
+        "scoreable_rows": 120084,
+        "sessions": 246,
+        "selection_slots": 738,
+        "known_positive_denominator": 126
+      },
+      "gates": "Primary candidate-minus-PLUS lower > 0; practical candidate-minus-BASE34 lower >= 0.03; original promotion_now=false and single exposed year blocks promotion.",
+      "authorized_counts": {
+        "fit": 0,
+        "predict": 0,
+        "control_fit": 0,
+        "control_predict": 0,
+        "calibrator_fit": 0,
+        "model_load": 0,
+        "candidate_model_load": false,
+        "evaluation_truth_decode": 1,
+        "automatic_retry": false
+      },
+      "historical_candidate_debits": {
+        "fit": 1,
+        "predict": 1,
+        "truth_decode": 1
+      },
+      "safety": {
+        "research_only": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    "registry_prefix": {
+      "actual_sha256": "1785e187a6ef1b8897dcebb807b4a0148caf134fafc5b0e38a880d240ae79efa",
+      "bound_sha256": "1785e187a6ef1b8897dcebb807b4a0148caf134fafc5b0e38a880d240ae79efa",
+      "route_events_match": [
+        "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
+        "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf"
+      ]
+    },
+    "output_isolation": {
+      "candidate_output_and_recovery_roots_disjoint": true,
+      "new_output_root_exists": false,
+      "resource_trace_exists": false,
+      "parent_release_exists": false,
+      "start_receipt_exists": false
+    },
+    "resource_backend": {
+      "status": "PASS_MAC_RSS_BACKEND_SMOKE",
+      "backend": "posix_ps",
+      "parent_preflight_rss_bytes": 28393472,
+      "rss_cap_bytes": 34359738368,
+      "spawned_child_seen_in_tree": true,
+      "evidence": "review/R2_MAC_RSS_BACKEND_SMOKE.stdout.log"
+    }
+  },
+  "cannot_confirm": [
+    "Historical identity of spike5.common.py, spike5.features.py, config/base_features.json, and config/contract.json is not bound; no expected frozen SHA is present in this binding.",
+    "Actual saved-score/truth evaluation and native worker completion were not run; no result metrics or RUN_STARTED/terminal events were produced."
+  ],
+  "side_effects": {
+    "score_truth_label_rows_read": 0,
+    "fit_predict_model_load": 0,
+    "registry_append": 0,
+    "prepare_invocations": 0
+  },
+  "source_log_receipt": "review/R2_BINDING_LOAD_AND_MAC_RSS_SMOKE_RECEIPT.json"
+}

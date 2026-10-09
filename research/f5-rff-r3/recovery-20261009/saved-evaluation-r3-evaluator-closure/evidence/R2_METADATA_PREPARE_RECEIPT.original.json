@@ -1,0 +1,78 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R2_METADATA_PREPARE_RECEIPT_V1",
+  "status": "PREPARED_UNSIGNED_REQUIRES_LOCAL_REVIEW_AND_PARENT_RELEASE",
+  "execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_SAVED_EVAL_R2_20261009_01",
+  "command": [
+    "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python",
+    "-B",
+    "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/candidate/src/run_rff_saved_evaluation.py",
+    "prepare",
+    "--config",
+    "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/PREPARE_CONFIG_R2_LOCAL.json"
+  ],
+  "settings_source": {
+    "config_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/PREPARE_CONFIG_R2_LOCAL.json",
+    "config_sha256": "1cf4824971325b29e42055e823d2434aa0e05ad23144d8cb1d6df6e92eeccac4",
+    "config_example_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/source_delivery/saved-evaluation-r2-receipt-pins/examples/PREPARE_CONFIG_R2_LOCAL.example.json",
+    "cpu_threads": 4,
+    "aggregate_process_tree_rss_bytes_max": 34359738368,
+    "wall_seconds_max": 3600,
+    "sample_seconds": 1
+  },
+  "review_gate": {
+    "independent_review_receipt_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/review/R2_SCOPED_INDEPENDENT_REVIEW_RECEIPT.json",
+    "independent_review_decision": "SCOPED_PASS",
+    "independent_38_contract_tests": "PASS; 38 tests in 0.900s; exit 0",
+    "independent_cli_help": "PASS; exit 0",
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "outputs": {
+    "run_spec_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/contracts/RUN_SPEC.json",
+    "run_spec_sha256": "53db55d73b305d9bafa0af6d60b9d216a668aefdc329901f528013962f079a50",
+    "input_binding_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/contracts/INPUT_BINDING.json",
+    "input_binding_sha256": "1231b165213786c451f66a83fd52ff01f03077ce0f684905427702eadfd8feed",
+    "source_code_sha256": "17c2fe55ff06ba5a34ba8f7481aafedc0c02e9e8baa9e748e90fc507451e3d00",
+    "candidate_start_receipt_file_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+    "candidate_terminal_receipt_file_sha256": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1"
+  },
+  "captured_process": {
+    "stdout_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/intake/METADATA_PREPARE.stdout.log",
+    "stdout_sha256": "8467ea7d657af21a1d62c55d073e387000cd4d483bccca78f46052d72759dd0c",
+    "stderr_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/intake/METADATA_PREPARE.stderr.log",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exit_code_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/intake/METADATA_PREPARE.exit_code.txt",
+    "exit_code": 0,
+    "prepare_invocation_count": 1
+  },
+  "readback_checks": {
+    "prepare_exit_zero": true,
+    "prepare_status_unsigned": true,
+    "data_rows_read_false": true,
+    "registry_mutated_false": true,
+    "execution_started_false": true,
+    "spec_sha_matches_stdout": true,
+    "binding_sha_matches_stdout": true,
+    "spec_execution_id": true,
+    "binding_execution_id": true,
+    "binding_source_sha_matches_stdout": true,
+    "resources_match_config": true,
+    "safety_research_only": true,
+    "safety_production_false": true,
+    "safety_buy_gate_false": true,
+    "safety_orders_false": true,
+    "registry_mutation_not_declared": true,
+    "synthetic_only_false": true,
+    "start_file_pin": true,
+    "terminal_file_pin": true
+  },
+  "side_effects": {
+    "data_rows_read": false,
+    "registry_mutated": false,
+    "execution_started": false,
+    "fit_predict_model_load": 0,
+    "release_activated": false
+  },
+  "status_boundary": "Unsigned metadata preparation only; no local review transcript or parent release has been issued."
+}

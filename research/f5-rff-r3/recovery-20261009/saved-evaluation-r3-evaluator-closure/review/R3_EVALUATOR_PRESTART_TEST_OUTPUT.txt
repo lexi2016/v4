@@ -1,0 +1,14 @@
+test_dependency_byte_drift_rejects_before_start (test_rff_evaluator_prestart.EvaluatorPrestartTests.test_dependency_byte_drift_rejects_before_start) ... ok
+test_each_missing_dependency_file_rejects_before_start (test_rff_evaluator_prestart.EvaluatorPrestartTests.test_each_missing_dependency_file_rejects_before_start) ... ok
+test_each_missing_dependency_rejects_before_start (test_rff_evaluator_prestart.EvaluatorPrestartTests.test_each_missing_dependency_rejects_before_start) ... ok
+test_each_wrong_dependency_sha_rejects_before_start (test_rff_evaluator_prestart.EvaluatorPrestartTests.test_each_wrong_dependency_sha_rejects_before_start) ... ok
+test_real_preflight_completes_after_native_and_before_any_official_helper (test_rff_evaluator_prestart.EvaluatorPrestartTests.test_real_preflight_completes_after_native_and_before_any_official_helper) ... ok
+test_same_bytes_at_foreign_dependency_path_reject_before_start (test_rff_evaluator_prestart.EvaluatorPrestartTests.test_same_bytes_at_foreign_dependency_path_reject_before_start) ... ok
+test_unknown_cached_package_module_rejects_before_start (test_rff_evaluator_prestart.EvaluatorPrestartTests.test_unknown_cached_package_module_rejects_before_start) ... ok
+test_wrong_bound_worker_sha_rejects_before_start (test_rff_evaluator_prestart.EvaluatorPrestartTests.test_wrong_bound_worker_sha_rejects_before_start) ... ok
+test_wrong_cached_module_file_or_spec_origin_rejects_before_start (test_rff_evaluator_prestart.EvaluatorPrestartTests.test_wrong_cached_module_file_or_spec_origin_rejects_before_start) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.155s
+
+OK

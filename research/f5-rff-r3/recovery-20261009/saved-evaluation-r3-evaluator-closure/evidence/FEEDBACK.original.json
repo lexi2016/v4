@@ -1,0 +1,130 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R2_BINDING_BLOCKER_FEEDBACK_V1",
+  "issue_number": 33,
+  "title_zh": "Issue #33 R2 本机新绑定 P1：冻结 evaluator 的传递依赖未绑定",
+  "package_status": "LOCAL_FEEDBACK_PACKAGE_READY_NOT_SUBMITTED",
+  "source": {
+    "repository": "lexi2016/v4",
+    "fixed_source_commit": "4be3c657c04cb3431d19a83cf584bdb2a0481dac",
+    "r1_base_commit": "3764032a16f3cd9db88ec0dca122fd5d01c167b",
+    "r2_production_source_sha256": "e41ab4b41c8386875b14515e34c7609e108db17b538ed43eebe7f76fc3394ba6",
+    "r2_contract_test_sha256": "95b1baa54699bd6a791f03f67a9f1f54acc98866783c16db0077ef8b429db4b6",
+    "production_delta": "+11/-2 in rff_saved_eval_contracts.py"
+  },
+  "r2_static_acceptance": {
+    "independent_scoped_review": "SCOPED_PASS",
+    "focused_contract_tests": "PASS; 38/38; exit 0",
+    "cli_help": "PASS; exit 0",
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "review_receipt": "evidence/review/R2_SCOPED_INDEPENDENT_REVIEW_RECEIPT.json"
+  },
+  "metadata_prepare": {
+    "status": "PREPARED_UNSIGNED_REQUIRES_LOCAL_REVIEW_AND_PARENT_RELEASE",
+    "invocations": 1,
+    "exit_code": 0,
+    "run_spec_sha256": "53db55d73b305d9bafa0af6d60b9d216a668aefdc329901f528013962f079a50",
+    "input_binding_sha256": "1231b165213786c451f66a83fd52ff01f03077ce0f684905427702eadfd8feed",
+    "source_code_sha256": "17c2fe55ff06ba5a34ba8f7481aafedc0c02e9e8baa9e748e90fc507451e3d00",
+    "config_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/PREPARE_CONFIG_R2_LOCAL.json",
+    "config_sha256": "1cf4824971325b29e42055e823d2434aa0e05ad23144d8cb1d6df6e92eeccac4",
+    "resources": {
+      "cpu_threads": 4,
+      "aggregate_process_tree_rss_bytes_max": 34359738368,
+      "wall_seconds_max": 3600,
+      "sample_seconds": 1
+    },
+    "data_rows_read": false,
+    "registry_mutated": false,
+    "execution_started": false
+  },
+  "latest_independent_review": {
+    "path": "evidence/review/R2_LOCAL_BINDING_REVIEW_BLOCKER_RECEIPT.json",
+    "sha256": "9910e624dfe8635766a3b31731d014df5bbbd5443b5f755d88bd52bb47ab49cd",
+    "decision": "BLOCKED_P1",
+    "P0": 0,
+    "P1": 1,
+    "P2": 0,
+    "finding_id": "FROZEN_EVALUATOR_TRANSITIVE_DEPENDENCIES_NOT_BOUND",
+    "title": "Frozen evaluator imports package dependencies outside the bound dependency closure",
+    "impact": "The prepared binding authorizes/imports the same-package settings.py, but that file imports spike5.common and spike5.features and reads config/base_features.json and config/contract.json. The worker's allowed package origins contain only the seven executable_helpers, which omit common.py, features.py, and those configuration files. _load_evaluators therefore raises UNBOUND_FROZEN_PACKAGE_DEPENDENCY before saved-score evaluation can complete. The runner appends durable RUN_STARTED before invoking the monitored worker, so this can consume the new execution and end as CANNOT_CONFIRM.",
+    "evidence": [
+      {
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/spike5/settings.py",
+        "lines": "1-7",
+        "sha256": "702c374612806e45647b8cdb8cb345736b6cac689f23df352c00d08735bfb4fc",
+        "detail": "The bound settings imports .common and .features and reads config/base_features.json and config/contract.json."
+      },
+      {
+        "path": "handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/candidate/src/rff_saved_eval_contracts.py",
+        "lines": "586-595",
+        "sha256": "e41ab4b41c8386875b14515e34c7609e108db17b538ed43eebe7f76fc3394ba6",
+        "detail": "The required executable_helpers closure omits common.py, features.py, and their settings JSON dependencies."
+      },
+      {
+        "path": "handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/candidate/src/rff_saved_eval_worker.py",
+        "lines": "75-85,168",
+        "sha256": "c015246b4b3a21bcb69a1745e41516a9c19f694bf923dfb39553a920a96dfdd8",
+        "detail": "The worker imports the bound settings and metrics, then rejects any spike5.* module whose origin is outside helpers.values(); run_saved_evaluation calls _load_evaluators."
+      },
+      {
+        "path": "handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/candidate/src/run_rff_saved_evaluation.py",
+        "lines": "330-369",
+        "sha256": "115f84e85777a3f002e01c441f62f0fe179adbac72e3c2ecdfaa91adbc5802ba",
+        "detail": "The owner claims zero-debit RUN_STARTED and writes its durable start receipt before passing the worker to the monitor."
+      }
+    ]
+  },
+  "dependency_closure": {
+    "bound_helpers": [
+      "accepted_worker",
+      "frozen_metrics",
+      "frozen_package_init",
+      "frozen_settings",
+      "native_runtime",
+      "resource_tree",
+      "score_aware_metrics"
+    ],
+    "missing_dependency_paths": [
+      "spike5.common",
+      "spike5.features",
+      "config/base_features.json",
+      "config/contract.json"
+    ],
+    "historical_dependency_hash_status": "CANNOT_CONFIRM",
+    "do_not_treat_current_snapshot_hashes_as_historical_pins": true,
+    "evidence": "evidence/DEPENDENCY_CLOSURE_EVIDENCE.md",
+    "source_identity_manifest": "evidence/SOURCE_IDENTITY_GAPS.json"
+  },
+  "resource_smoke": {
+    "status": "READ_ONLY_METADATA_LOAD_AND_SOFTWARE_RESOURCE_BACKEND_SMOKE",
+    "backend_status": "PASS_MAC_RSS_BACKEND_SMOKE",
+    "meaning": "Software-only RSS backend smoke; not evaluator, score, truth, or model validation.",
+    "evidence": "evidence/review/R2_BINDING_LOAD_AND_MAC_RSS_SMOKE_RECEIPT.json"
+  },
+  "required_minimal_fix": {
+    "request": "Restore the complete, traceable frozen evaluator dependency closure from the existing producer/evaluator package and validate every dependency identity and allowed origin before RUN_STARTED.",
+    "forbidden_shortcuts": [
+      "Do not delete or broaden the worker module-origin allowlist.",
+      "Do not create simplified substitute settings.py or reimplement the evaluator.",
+      "Do not change metrics, thresholds, labels, TopN, or truth.",
+      "Do not claim current files have historical identity when the historical SHA is unavailable."
+    ],
+    "required_validation": "Independent source and binding review must show complete path/SHA closure and prove the missing-module failure is rejected before any durable RUN_STARTED or registry append."
+  },
+  "side_effects": {
+    "run_started_events": 0,
+    "registry_append_count": 0,
+    "fit": 0,
+    "predict": 0,
+    "model_load": 0,
+    "candidate_score_truth_label_rows_read": 0,
+    "parent_release_issued": false
+  },
+  "unresolved": [
+    "Historical SHA identity for common.py, features.py, config/base_features.json, and config/contract.json is unknown.",
+    "R2 source pin regression passes and metadata prepare succeeded, but the actual prepared binding is blocked by P1 dependency closure.",
+    "No source fix, evaluator import, evaluation, run, or release was performed for this blocker packet."
+  ]
+}

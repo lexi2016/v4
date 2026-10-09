@@ -1,0 +1,66 @@
+test_bound_frozen_loader_preserves_exact_source_provenance (test_rff_saved_eval_worker.SavedWorkerTest.test_bound_frozen_loader_preserves_exact_source_provenance) ... ok
+test_cached_common_module_requires_matching_origin_and_full_sha (test_rff_saved_eval_worker.SavedWorkerTest.test_cached_common_module_requires_matching_origin_and_full_sha) ... ok
+test_child_native_check_is_observed_before_evaluator_loading (test_rff_saved_eval_worker.SavedWorkerTest.test_child_native_check_is_observed_before_evaluator_loading) ... ok
+test_child_native_failure_is_durable_with_zero_truth_and_no_evaluator_load (test_rff_saved_eval_worker.SavedWorkerTest.test_child_native_failure_is_durable_with_zero_truth_and_no_evaluator_load) ... ok
+test_child_runtime_seam_uses_bound_reference_and_preserves_observation (test_rff_saved_eval_worker.SavedWorkerTest.test_child_runtime_seam_uses_bound_reference_and_preserves_observation) ... ok
+test_child_runtime_spec_cannot_override_bound_native_reference (test_rff_saved_eval_worker.SavedWorkerTest.test_child_runtime_spec_cannot_override_bound_native_reference) ... ok
+test_later_control_parse_failure_preserves_consumed_truth_and_first_control (test_rff_saved_eval_worker.SavedWorkerTest.test_later_control_parse_failure_preserves_consumed_truth_and_first_control) ... ok
+test_new_common_module_records_the_full_verified_source_identity (test_rff_saved_eval_worker.SavedWorkerTest.test_new_common_module_records_the_full_verified_source_identity) ... ok
+test_package_init_cannot_be_loaded_from_a_different_directory (test_rff_saved_eval_worker.SavedWorkerTest.test_package_init_cannot_be_loaded_from_a_different_directory) ... FAIL
+test_payload_cannot_swap_an_unbound_score_file (test_rff_saved_eval_worker.SavedWorkerTest.test_payload_cannot_swap_an_unbound_score_file) ... ok
+test_reentry_never_replaces_existing_result_or_status (test_rff_saved_eval_worker.SavedWorkerTest.test_reentry_never_replaces_existing_result_or_status) ... ok
+test_result_write_failure_persists_computed_metrics_and_actual_counts (test_rff_saved_eval_worker.SavedWorkerTest.test_result_write_failure_persists_computed_metrics_and_actual_counts) ... ok
+test_score_hash_drift_stops_before_truth_decode (test_rff_saved_eval_worker.SavedWorkerTest.test_score_hash_drift_stops_before_truth_decode) ... ok
+test_score_parser_failure_does_not_open_truth_file (test_rff_saved_eval_worker.SavedWorkerTest.test_score_parser_failure_does_not_open_truth_file) ... ok
+test_settings_and_init_must_share_the_frozen_metrics_physical_package (test_rff_saved_eval_worker.SavedWorkerTest.test_settings_and_init_must_share_the_frozen_metrics_physical_package) ... FAIL
+test_start_must_be_durable_before_any_evaluation_input (test_rff_saved_eval_worker.SavedWorkerTest.test_start_must_be_durable_before_any_evaluation_input) ... ok
+test_success_receipts_bind_the_complete_identity_chain (test_rff_saved_eval_worker.SavedWorkerTest.test_success_receipts_bind_the_complete_identity_chain) ... ok
+test_synthetic_saved_files_complete_without_fit_predict_or_model (test_rff_saved_eval_worker.SavedWorkerTest.test_synthetic_saved_files_complete_without_fit_predict_or_model) ... ok
+test_truth_parser_failure_preserves_attempt_one_completion_zero (test_rff_saved_eval_worker.SavedWorkerTest.test_truth_parser_failure_preserves_attempt_one_completion_zero) ... ok
+test_truth_snapshot_hash_failure_has_one_read_attempt_and_zero_decodes (test_rff_saved_eval_worker.SavedWorkerTest.test_truth_snapshot_hash_failure_has_one_read_attempt_and_zero_decodes) ... ok
+test_unaccepted_join_source_is_rejected_before_its_module_body_runs (test_rff_saved_eval_worker.SavedWorkerTest.test_unaccepted_join_source_is_rejected_before_its_module_body_runs) ... ok
+test_unbound_frozen_package_import_is_rejected (test_rff_saved_eval_worker.SavedWorkerTest.test_unbound_frozen_package_import_is_rejected) ... FAIL
+
+======================================================================
+FAIL: test_package_init_cannot_be_loaded_from_a_different_directory (test_rff_saved_eval_worker.SavedWorkerTest.test_package_init_cannot_be_loaded_from_a_different_directory)
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: FROZEN_EVALUATOR_PATH_MISMATCH:frozen_package_init
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_saved_eval_worker.py", line 430, in test_package_init_cannot_be_loaded_from_a_different_directory
+    with self.assertRaisesRegex(Exception, "FROZEN_EVALUATOR_PACKAGE_LOCATION_MISMATCH:frozen_package_init"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "FROZEN_EVALUATOR_PACKAGE_LOCATION_MISMATCH:frozen_package_init" does not match "FROZEN_EVALUATOR_PATH_MISMATCH:frozen_package_init"
+
+======================================================================
+FAIL: test_settings_and_init_must_share_the_frozen_metrics_physical_package (test_rff_saved_eval_worker.SavedWorkerTest.test_settings_and_init_must_share_the_frozen_metrics_physical_package)
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: FROZEN_EVALUATOR_PATH_MISMATCH:frozen_settings
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_saved_eval_worker.py", line 418, in test_settings_and_init_must_share_the_frozen_metrics_physical_package
+    with self.assertRaisesRegex(Exception, "FROZEN_EVALUATOR_PACKAGE_LOCATION_MISMATCH:frozen_settings"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "FROZEN_EVALUATOR_PACKAGE_LOCATION_MISMATCH:frozen_settings" does not match "FROZEN_EVALUATOR_PATH_MISMATCH:frozen_settings"
+
+======================================================================
+FAIL: test_unbound_frozen_package_import_is_rejected (test_rff_saved_eval_worker.SavedWorkerTest.test_unbound_frozen_package_import_is_rejected)
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: FROZEN_EVALUATOR_HISTORICAL_IDENTITY_MISMATCH:frozen_package_init
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_saved_eval_worker.py", line 442, in test_unbound_frozen_package_import_is_rejected
+    with self.assertRaisesRegex(Exception, "SHA|UNBOUND_FROZEN_PACKAGE_DEPENDENCY"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "SHA|UNBOUND_FROZEN_PACKAGE_DEPENDENCY" does not match "FROZEN_EVALUATOR_HISTORICAL_IDENTITY_MISMATCH:frozen_package_init"
+
+----------------------------------------------------------------------
+Ran 22 tests in 1.480s
+
+FAILED (failures=3)

@@ -1,0 +1,136 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R3_EVALUATOR_CLOSURE_VERIFICATION_V1",
+  "status": "PASS_SCOPED_SOFTWARE_VERIFICATION_REAL_MAC_R3_ACCEPTANCE_PENDING",
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39"
+  },
+  "frozen_runtime_and_tests": [
+    {
+      "path": "candidate/src/rff_saved_eval_contracts.py",
+      "sha256": "856c4adc1948a51a829f83d8a6d5201d1a1c5dc008bc12bbc951c6dc49b22c81"
+    },
+    {
+      "path": "candidate/src/rff_saved_eval_worker.py",
+      "sha256": "df5c873c20f2af57ebd68d72d29cdc56c16b0e91e581406395fd029f8b99d99a"
+    },
+    {
+      "path": "candidate/src/run_rff_saved_evaluation.py",
+      "sha256": "91af4af8dc815ba9748265d60880b8526a3dd3744c14c136ee7e518d28b20e8e"
+    },
+    {
+      "path": "candidate/tests/test_rff_saved_eval_contracts.py",
+      "sha256": "e2a8528d1e8b50771df3e6bb38fc598dec0c178945d65e491fe8fed4f77455bb"
+    },
+    {
+      "path": "candidate/tests/test_rff_saved_eval_worker.py",
+      "sha256": "8f54a62a5cf96257fce698ae974d7eccaec1dc930cc857d363dd2240b5ca3e22"
+    },
+    {
+      "path": "candidate/tests/test_rff_evaluator_dependencies.py",
+      "sha256": "d6a8dd320b255264c7ac2ead83b5ec9a906e0f4de617d44159df8f3baa79798c"
+    },
+    {
+      "path": "candidate/tests/test_rff_evaluator_prestart.py",
+      "sha256": "f6794cc2c17073600df6fc6f56be6a9de0a6e05426e108ab3b518e50685d85a6"
+    },
+    {
+      "path": "candidate/contracts/FROZEN_EVALUATOR_SOURCE_MANIFEST.json",
+      "sha256": "64fd0f7a5e3d646f7b5b184d44ca10576aab9db73772b3abb2cfceab36862a9b"
+    }
+  ],
+  "groups": [
+    {
+      "name": "new_evaluator_dependencies",
+      "test_methods": 14,
+      "seconds": 1.266,
+      "exit_code": 0,
+      "executor": "/root/metric_parity",
+      "log": "review/logs/evaluator_dependencies_green_attempt1.log",
+      "log_sha256": "930817eeec4fa4fd0198e542e532683d073333e964ab509a0eba80dcd11d19d2"
+    },
+    {
+      "name": "new_evaluator_prestart",
+      "test_methods": 9,
+      "seconds": 1.155,
+      "exit_code": 0,
+      "executor": "/root/lifecycle_review",
+      "log": "review/R3_EVALUATOR_PRESTART_TEST_OUTPUT.txt",
+      "log_sha256": "b4681b0a518aa6bfe468f984af6fad8dcc0f03eb19c43848bc2a062d878f8e29"
+    },
+    {
+      "name": "affected_contracts_r3_regression",
+      "test_methods": 38,
+      "seconds": 1.089,
+      "exit_code": 0,
+      "executor": "/root/metric_parity",
+      "log": "review/logs/r3_contracts_regression_green.log",
+      "log_sha256": "975ec30d6b14173880ac7f5260cc6ab48bb3965e25d489f936b745647cb90a59"
+    },
+    {
+      "name": "affected_worker_r3_regression",
+      "test_methods": 22,
+      "seconds": 1.608,
+      "exit_code": 0,
+      "executor": "/root/metric_parity",
+      "log": "review/logs/r3_worker_regression_green.log",
+      "log_sha256": "dafee85773e103d092355b0945808c82ef4bf2789b803c9629384bd824b83ab2"
+    }
+  ],
+  "new_test_methods": 23,
+  "affected_regression_methods": 60,
+  "unique_scoped_test_methods": 83,
+  "groups_are_disjoint": true,
+  "existing_mac_r2_38_pass_and_prepare_preserved": true,
+  "same_r2_reinstalled_or_reaccepted": false,
+  "full_old_suite_reexecuted": false,
+  "red": {
+    "source": "R2 unchanged production; before R3 implementation",
+    "complete_dependency_cases": 14,
+    "log": "review/logs/evaluator_dependencies_red_complete.log",
+    "initial_prestart_ordering_case": "review/R3_EVALUATOR_PRESTART_VERIFICATION.json#/red_observation",
+    "new_api_missing_failures_separated_from_behavioral_failures": true
+  },
+  "fixture_scope": {
+    "historical_manifest_sha_is_pinned": true,
+    "original_five_modules_and_two_configs_use_exact_historical_bytes": true,
+    "new_tests_replace_pins_or_metric_functions": false,
+    "positive_path_seam": "Two absolute path attributes on the already source-SHA-verified score-aware wrapper instance",
+    "prestart_peripheral_seams": [
+      "load_documents",
+      "review/release",
+      "native",
+      "first official helper observation barrier"
+    ],
+    "affected_old_fixture_changes": "Use full historical evaluator and exact earlier rejection codes; retain old test cases."
+  },
+  "independent_review": {
+    "reviewer": "/root/saved_eval_review",
+    "path": "review/INDEPENDENT_R3_REVIEW.json",
+    "reviewer_authored_production_or_tests": false,
+    "reviewer_reran_tests": false,
+    "receipt_sha256": "f0cbccdd1e5e8c5ee86a27f52b8abbc1462b818d597027a5c06c15398ff05a9a"
+  },
+  "root_verification": {
+    "baseline_git_blob_verification": true,
+    "feedback_archive_verification": true,
+    "historical_source_identity_verification": true,
+    "forward_reverse_patch_whole_tree_bytes": true,
+    "root_read_all_final_test_logs": true,
+    "root_reran_test_groups": false
+  },
+  "real_actions_this_r3_delivery": {
+    "mac_prepare": false,
+    "fit": false,
+    "predict": false,
+    "model_load": false,
+    "real_score_truth_label_rows_read": false,
+    "real_registry_access_or_append": false,
+    "run_started": false,
+    "release_created": false,
+    "evaluation": false,
+    "hit_rate_produced": false,
+    "improvement_verified": false
+  },
+  "mac_next_gate": "Apply delta to a verified R2 copy; new 23 tests; one new prepare and one actual source/config preflight; independent new binding review and parent release before saved-score evaluation."
+}

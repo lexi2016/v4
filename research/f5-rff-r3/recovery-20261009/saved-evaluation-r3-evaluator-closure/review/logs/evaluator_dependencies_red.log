@@ -1,0 +1,272 @@
+test_bind_api_uses_complete_historical_manifest_without_import (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_bind_api_uses_complete_historical_manifest_without_import) ... FAIL
+test_closure_fingerprint_is_required_on_cached_package_modules (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_closure_fingerprint_is_required_on_cached_package_modules) ... FAIL
+test_config_drift_cannot_reuse_a_previously_loaded_settings_cache (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_config_drift_cannot_reuse_a_previously_loaded_settings_cache) ... FAIL
+test_each_previously_omitted_dependency_is_required (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_previously_omitted_dependency_is_required) ... 
+  test_each_previously_omitted_dependency_is_required (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_previously_omitted_dependency_is_required) (dependency='frozen_common') ... FAIL
+  test_each_previously_omitted_dependency_is_required (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_previously_omitted_dependency_is_required) (dependency='frozen_features') ... FAIL
+  test_each_previously_omitted_dependency_is_required (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_previously_omitted_dependency_is_required) (dependency='frozen_base_features') ... FAIL
+  test_each_previously_omitted_dependency_is_required (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_previously_omitted_dependency_is_required) (dependency='frozen_contract') ... FAIL
+test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) ... 
+  test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_package_init') ... FAIL
+  test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_common') ... FAIL
+  test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_features') ... FAIL
+  test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_settings') ... FAIL
+  test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_metrics') ... FAIL
+  test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_base_features') ... FAIL
+  test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_contract') ... FAIL
+test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency) ... 
+  test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency) (dependency='frozen_common') ... FAIL
+  test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency) (dependency='frozen_features') ... FAIL
+  test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency) (dependency='frozen_base_features') ... FAIL
+  test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency) (dependency='frozen_contract') ... FAIL
+test_manifest_identity_cannot_be_rebound_to_another_self_consistent_file (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_manifest_identity_cannot_be_rebound_to_another_self_consistent_file) ... FAIL
+test_original_transitive_loader_preserves_full_source_provenance (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_original_transitive_loader_preserves_full_source_provenance) ... 
+  test_original_transitive_loader_preserves_full_source_provenance (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_original_transitive_loader_preserves_full_source_provenance) (module='spike5.common') ... ERROR
+  test_original_transitive_loader_preserves_full_source_provenance (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_original_transitive_loader_preserves_full_source_provenance) (module='spike5.features') ... ERROR
+test_preflight_loads_code_and_configuration_without_metric_or_data_calls (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_preflight_loads_code_and_configuration_without_metric_or_data_calls) ... FAIL
+test_static_validation_returns_exact_module_and_config_closure (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_static_validation_returns_exact_module_and_config_closure) ... FAIL
+test_unbound_cached_package_is_rejected_before_any_package_body (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_unbound_cached_package_is_rejected_before_any_package_body) ... FAIL
+test_unknown_module_is_rejected_before_its_body_executes (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_unknown_module_is_rejected_before_its_body_executes) ... FAIL
+
+======================================================================
+ERROR: test_original_transitive_loader_preserves_full_source_provenance (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_original_transitive_loader_preserves_full_source_provenance) (module='spike5.common')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 155, in test_original_transitive_loader_preserves_full_source_provenance
+    self.assertEqual(module.__rff_source_sha256__, record["sha256"])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'spike5.common' has no attribute '__rff_source_sha256__'
+
+======================================================================
+ERROR: test_original_transitive_loader_preserves_full_source_provenance (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_original_transitive_loader_preserves_full_source_provenance) (module='spike5.features')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 155, in test_original_transitive_loader_preserves_full_source_provenance
+    self.assertEqual(module.__rff_source_sha256__, record["sha256"])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'spike5.features' has no attribute '__rff_source_sha256__'
+
+======================================================================
+FAIL: test_bind_api_uses_complete_historical_manifest_without_import (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_bind_api_uses_complete_historical_manifest_without_import)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 166, in test_bind_api_uses_complete_historical_manifest_without_import
+    self.assertTrue(callable(getattr(self.common, "bind_frozen_evaluator", None)),
+AssertionError: False is not true : R3 historical evaluator binding function is missing
+
+======================================================================
+FAIL: test_closure_fingerprint_is_required_on_cached_package_modules (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_closure_fingerprint_is_required_on_cached_package_modules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 280, in test_closure_fingerprint_is_required_on_cached_package_modules
+    self.assertRegex(getattr(settings, "__rff_evaluator_closure_sha256__", ""), r"^[a-f0-9]{64}$")
+AssertionError: Regex didn't match: '^[a-f0-9]{64}$' not found in ''
+
+======================================================================
+FAIL: test_config_drift_cannot_reuse_a_previously_loaded_settings_cache (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_config_drift_cannot_reuse_a_previously_loaded_settings_cache)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 271, in test_config_drift_cannot_reuse_a_previously_loaded_settings_cache
+    with self.assertRaises(self.common.SavedEvaluationError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: SavedEvaluationError not raised
+
+======================================================================
+FAIL: test_each_previously_omitted_dependency_is_required (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_previously_omitted_dependency_is_required) (dependency='frozen_common')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 198, in test_each_previously_omitted_dependency_is_required
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_each_previously_omitted_dependency_is_required (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_previously_omitted_dependency_is_required) (dependency='frozen_features')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 198, in test_each_previously_omitted_dependency_is_required
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_each_previously_omitted_dependency_is_required (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_previously_omitted_dependency_is_required) (dependency='frozen_base_features')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 198, in test_each_previously_omitted_dependency_is_required
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_each_previously_omitted_dependency_is_required (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_previously_omitted_dependency_is_required) (dependency='frozen_contract')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 198, in test_each_previously_omitted_dependency_is_required
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_package_init')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 207, in test_each_source_and_configuration_hash_is_historically_fixed
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_common')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 207, in test_each_source_and_configuration_hash_is_historically_fixed
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_features')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 207, in test_each_source_and_configuration_hash_is_historically_fixed
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_settings')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 207, in test_each_source_and_configuration_hash_is_historically_fixed
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_metrics')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 207, in test_each_source_and_configuration_hash_is_historically_fixed
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_base_features')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 207, in test_each_source_and_configuration_hash_is_historically_fixed
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_each_source_and_configuration_hash_is_historically_fixed (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_each_source_and_configuration_hash_is_historically_fixed) (dependency='frozen_contract')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 207, in test_each_source_and_configuration_hash_is_historically_fixed
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency) (dependency='frozen_common')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 232, in test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency) (dependency='frozen_features')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 232, in test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency) (dependency='frozen_base_features')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 232, in test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency) (dependency='frozen_contract')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 232, in test_identical_bytes_in_foreign_package_cannot_rebind_a_dependency
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_manifest_identity_cannot_be_rebound_to_another_self_consistent_file (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_manifest_identity_cannot_be_rebound_to_another_self_consistent_file)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 217, in test_manifest_identity_cannot_be_rebound_to_another_self_consistent_file
+    self.validate(binding)
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_preflight_loads_code_and_configuration_without_metric_or_data_calls (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_preflight_loads_code_and_configuration_without_metric_or_data_calls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 287, in test_preflight_loads_code_and_configuration_without_metric_or_data_calls
+    self.assertTrue(callable(getattr(self.worker, "preflight_evaluators", None)),
+AssertionError: False is not true : R3 source/config-only evaluator preflight is missing
+
+======================================================================
+FAIL: test_static_validation_returns_exact_module_and_config_closure (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_static_validation_returns_exact_module_and_config_closure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 181, in test_static_validation_returns_exact_module_and_config_closure
+    result = self.validate()
+             ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 140, in validate
+    self.assertTrue(callable(getattr(self.common, "validate_frozen_evaluator", None)),
+AssertionError: False is not true : R3 static frozen evaluator closure validator is missing
+
+======================================================================
+FAIL: test_unbound_cached_package_is_rejected_before_any_package_body (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_unbound_cached_package_is_rejected_before_any_package_body)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 260, in test_unbound_cached_package_is_rejected_before_any_package_body
+    self.assertFalse(any(name == "spike5" or name.startswith("spike5.") for name in calls))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_unknown_module_is_rejected_before_its_body_executes (test_rff_evaluator_dependencies.FrozenEvaluatorDependenciesTest.test_unknown_module_is_rejected_before_its_body_executes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r3/candidate/tests/test_rff_evaluator_dependencies.py", line 244, in test_unknown_module_is_rejected_before_its_body_executes
+    self.assertFalse(marker.exists(), "unbound body ran before the loader rejected its origin")
+AssertionError: True is not false : unbound body ran before the loader rejected its origin
+
+----------------------------------------------------------------------
+Ran 12 tests in 1.085s
+
+FAILED (failures=23, errors=2)

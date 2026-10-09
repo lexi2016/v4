@@ -1,0 +1,109 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R3_PRESTART_SCOPED_VERIFICATION_V1",
+  "recorded_at_utc": "2026-10-09T06:23:41.692248+00:00",
+  "status": "PASS",
+  "command": "python -m unittest discover -s candidate/tests -p test_rff_evaluator_prestart.py -v",
+  "unittest_cases": 9,
+  "exit_code": 0,
+  "reported_seconds": 1.155,
+  "scope": "SYNTHETIC_RUN_REAL_PRESTART_EVALUATOR_INTEGRATION_ONLY",
+  "executed": [
+    "actual runner _run_real",
+    "actual bound worker preflight_evaluators",
+    "actual contracts bind_frozen_evaluator and evaluator validation",
+    "historical-manifest-authenticated original 5 package modules and 2 JSON configurations in temporary paths"
+  ],
+  "explicit_test_seams": [
+    "load_documents",
+    "independent review/release validation",
+    "native runtime validation",
+    "two absolute path attributes of the SHA-verified score-aware wrapper",
+    "observation barrier before the first official helper load"
+  ],
+  "asserted_before_official_helper": [
+    "preflight succeeds before the boundary in the positive case",
+    "missing records/files, wrong SHA, foreign path, byte drift, wrong cache origin and unbound module reject",
+    "owner and monitor never called",
+    "output and resource trace directories absent",
+    "data, model, and registry read-attempt sentinels remain empty"
+  ],
+  "not_executed": [
+    "real Mac validation",
+    "real prepare",
+    "real registry access or append",
+    "real evaluation data/model read",
+    "metric/fit/predict calls",
+    "R2 38/150 acceptance suites",
+    "historical PR5 join acceptance suite"
+  ],
+  "red_observation": {
+    "baseline_runner_sha256": "115f84e85777a3f002e01c441f62f0fe179adbac72e3c2ecdfaa91adbc5802ba",
+    "initial_unittest_cases": 1,
+    "result": "FAIL",
+    "test_name": "test_runner_preflights_bound_worker_before_official_helpers",
+    "actual_events": [
+      "native",
+      "official_boundary"
+    ],
+    "expected_events": [
+      "native",
+      "bound_worker_loaded",
+      "official_boundary"
+    ],
+    "note": "Initial ordering test ran before the two-line runner change; it was then expanded into this final 9-case real-closure suite."
+  },
+  "independent_read_only_test_review": {
+    "agent": "/root/saved_eval_review",
+    "result": "PASS",
+    "scope": "runner two-line integration, explicit seams, and test ordering/negative-case false-positive risk"
+  },
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "source_snapshots_recorded_after_scoped_green": [
+    {
+      "path": "candidate/src/run_rff_saved_evaluation.py",
+      "bytes": 49678,
+      "sha256": "91af4af8dc815ba9748265d60880b8526a3dd3744c14c136ee7e518d28b20e8e"
+    },
+    {
+      "path": "candidate/src/rff_saved_eval_contracts.py",
+      "bytes": 46016,
+      "sha256": "856c4adc1948a51a829f83d8a6d5201d1a1c5dc008bc12bbc951c6dc49b22c81"
+    },
+    {
+      "path": "candidate/src/rff_saved_eval_worker.py",
+      "bytes": 18997,
+      "sha256": "df5c873c20f2af57ebd68d72d29cdc56c16b0e91e581406395fd029f8b99d99a"
+    },
+    {
+      "path": "candidate/src/rff_saved_eval_frames.py",
+      "bytes": 20611,
+      "sha256": "0931cf63d5f779d02025ce5e41ca984aa9541686709b58e2d2367782200e203b"
+    },
+    {
+      "path": "candidate/src/rff_saved_eval_registration.py",
+      "bytes": 22974,
+      "sha256": "e25f3312332547f71f9edab2b76a49e20921ca1fb3c29d0c0face7211fd03ce0"
+    }
+  ],
+  "test": {
+    "path": "candidate/tests/test_rff_evaluator_prestart.py",
+    "bytes": 13173,
+    "sha256": "f6794cc2c17073600df6fc6f56be6a9de0a6e05426e108ab3b518e50685d85a6"
+  },
+  "shared_fixture_provider": {
+    "path": "candidate/tests/test_rff_evaluator_dependencies.py",
+    "bytes": 18910,
+    "sha256": "d6a8dd320b255264c7ac2ead83b5ec9a906e0f4de617d44159df8f3baa79798c"
+  },
+  "historical_manifest": {
+    "path": "candidate/contracts/FROZEN_EVALUATOR_SOURCE_MANIFEST.json",
+    "bytes": 19131,
+    "sha256": "64fd0f7a5e3d646f7b5b184d44ca10576aab9db73772b3abb2cfceab36862a9b"
+  },
+  "test_output": {
+    "path": "review/R3_EVALUATOR_PRESTART_TEST_OUTPUT.txt",
+    "bytes": 1664,
+    "sha256": "b4681b0a518aa6bfe468f984af6fad8dcc0f03eb19c43848bc2a062d878f8e29"
+  }
+}
