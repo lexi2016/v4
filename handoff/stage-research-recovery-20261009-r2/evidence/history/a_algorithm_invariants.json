@@ -1,0 +1,79 @@
+{
+  "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+  "checks": [
+    {
+      "check": "stage_center/_live_collectors_parts/a_auction.py unchanged",
+      "passed": true,
+      "sha256": "2b39ede48161e6be59efc769849a8da2319521faeac3f2985b82de508e7c6aef"
+    },
+    {
+      "check": "stage_center/_live_collectors_parts/a_minute.py unchanged",
+      "passed": true,
+      "sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e"
+    },
+    {
+      "check": "stage_center/_selection_parts/a_auction.py unchanged",
+      "passed": true,
+      "sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1"
+    },
+    {
+      "check": "stage_center/_selection_parts/a_live.py unchanged",
+      "passed": true,
+      "sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0"
+    },
+    {
+      "check": "stage_center/_selection_parts/market_quality.py unchanged",
+      "passed": true,
+      "sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f"
+    },
+    {
+      "check": "stage_center/_selection_parts/selection_envelope.py unchanged",
+      "passed": true,
+      "sha256": "be7748ff72fd85375fc6575a6a40281fb1518c8faf0e55f352f167fbbc42bd89"
+    },
+    {
+      "check": "stage_center/selection.py unchanged",
+      "passed": true,
+      "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294"
+    },
+    {
+      "check": "stage_center/contracts.py unchanged",
+      "passed": true,
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d"
+    },
+    {
+      "check": "actual Stage registry differs only by one auction prev_close_price mapping",
+      "passed": true
+    },
+    {
+      "check": "HK builder exact bytes unchanged",
+      "passed": true
+    },
+    {
+      "check": "HQ probe differs only by bool baseline rejection",
+      "passed": true
+    },
+    {
+      "check": "upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py manifest bytes unchanged",
+      "passed": true,
+      "sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da"
+    },
+    {
+      "check": "upstreams/v3_shared_data/scripts/live_acquisition/contracts.py manifest bytes unchanged",
+      "passed": true,
+      "sha256": "776569b71a9db060186362fe04cce3e8b0f707d8b4a77f80288f8031a2f14fcc"
+    },
+    {
+      "check": "all five supplied app-test failures reproduce on pre-change sources",
+      "passed": true,
+      "failure_names": [
+        "test_exact_cutoff_selects_verified_slot_and_preserves_provenance",
+        "test_live_stage_uses_only_verified_formal_overlay_membership",
+        "test_node_cli_check_is_reproducible_without_network",
+        "test_persistent_v4_node_entrypoint_checks_ten_nodes",
+        "test_v4_analyzer_is_pure_and_does_not_invent_stage_quality"
+      ]
+    }
+  ],
+  "passed": true
+}

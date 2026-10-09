@@ -1,0 +1,308 @@
+{
+  "schema_version": "V4_R2_PREIMAGE_REQUEST_V1",
+  "base_commit": "0fc3e8304e11700230517616ded0c86f83a4b257",
+  "roots": {
+    "stage": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+    "api": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+    "ui": "/Users/lexi/Desktop/学习/v4_app"
+  },
+  "files": [
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "known_before_sha256": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+      "accepted_before_sha256": [
+        "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+        "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08"
+      ],
+      "candidate_after_sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/ops/_run_stage_center_nodes_parts/deadline_supervision.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "known_before_sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+      "accepted_before_sha256": [
+        "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+        "3a40b79ecea876997aad9272205ebf61289af2a17162057fa680174c50e74fd2"
+      ],
+      "candidate_after_sha256": "fd544913cacff11e9fe8ed5ca682239d3ff4185d8c1b810934637580cdb65aa2",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/ops/_run_stage_center_nodes_parts/node_entry.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "known_before_sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+      "accepted_before_sha256": [
+        "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec"
+      ],
+      "candidate_after_sha256": "515a739b73e4a874489958aa4d207ae7aca643166a356c2bc05d494ad5f2a93a",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/ops/_run_stage_center_nodes_parts/runtime_arguments.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/ops/run_stage_center_tick.py",
+      "known_before_sha256": "4eb8e1a3be0e3780ff9cb62417c695c5aab67948f224db462d3f6e3a67299f42",
+      "accepted_before_sha256": [
+        "4eb8e1a3be0e3780ff9cb62417c695c5aab67948f224db462d3f6e3a67299f42"
+      ],
+      "candidate_after_sha256": "f362bb04734fb78e847bdf6e435a29bc01a66f6186ddfd4c52cb0efc7c21b439",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/ops/run_stage_center_tick.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_live_collectors_parts/hk_minute.py",
+      "known_before_sha256": "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179",
+      "accepted_before_sha256": [
+        "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179"
+      ],
+      "candidate_after_sha256": "03300128a9525d49b0aedd77b35fa7cbeda464900d6802b503a001172a5ccf65",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/_live_collectors_parts/hk_minute.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "known_before_sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+      "accepted_before_sha256": [
+        "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22"
+      ],
+      "candidate_after_sha256": "13fa73cc9b00c1255c05421f43eddc4155a0c14b4488b2a9829a0b496f6337df",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/_live_collectors_parts/selection_builder_registry.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/configuration.py",
+      "known_before_sha256": "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486",
+      "accepted_before_sha256": [
+        "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486"
+      ],
+      "candidate_after_sha256": "62416ad875ff37a95ae222e3c8c4094a351b53229daa5313d43f5d27a98899be",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/_runner_parts/configuration.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/hk_candidate_authority.py",
+      "known_before_sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+      "accepted_before_sha256": [
+        "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95"
+      ],
+      "candidate_after_sha256": "57bf97d5edb73ba2f226d102bb81c9079f84aebf67ead45d5649ebfe5cc932cb",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/_runner_parts/hk_candidate_authority.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/hk_input_validation.py",
+      "known_before_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "accepted_before_sha256": [
+        "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735"
+      ],
+      "candidate_after_sha256": "7bd2ca1e47a9831170c64b2d5d6ecbfe5b0e66d7e664ae4b2c3dcc9d4aaf1c74",
+      "current_mac_sha256": null,
+      "source_scope": "USER_SUPPLIED_ACTUAL_SOURCE_SLICE",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/_runner_parts/hk_input_validation.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/runner_receipts.py",
+      "known_before_sha256": "d3d9e69230b00a2864eae106f1c5c89ea0d383e20c2e87d655d4cabd273bbc83",
+      "accepted_before_sha256": [
+        "d3d9e69230b00a2864eae106f1c5c89ea0d383e20c2e87d655d4cabd273bbc83",
+        "d634647ef5f50620a4b98a696a61b7d2d1491e9f7c2c351e0e621168a2e03f9f"
+      ],
+      "candidate_after_sha256": "94fb3592619a8012904e4193280b5cd4f78f5c898b8fdd6cc5751398dc7f882d",
+      "current_mac_sha256": null,
+      "source_scope": "USER_SUPPLIED_ACTUAL_SOURCE_SLICE",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/_runner_parts/runner_receipts.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/selection_input_validation.py",
+      "known_before_sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "accepted_before_sha256": [
+        "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c"
+      ],
+      "candidate_after_sha256": "87265f5027b2c8fb4c7d74dc8ea0c748df7f449516bc21f20b2f839de8a595fb",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/_runner_parts/selection_input_validation.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/slot_execution.py",
+      "known_before_sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+      "accepted_before_sha256": [
+        "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+        "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96"
+      ],
+      "candidate_after_sha256": "3ed350bb9b072806a8b033055dbfa29b1ccc7292df6d79cbff61e55c8409112e",
+      "current_mac_sha256": null,
+      "source_scope": "USER_SUPPLIED_ACTUAL_SOURCE_SLICE",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/_runner_parts/slot_execution.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_selection_parts/a_auction.py",
+      "known_before_sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+      "accepted_before_sha256": [
+        "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+        "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1"
+      ],
+      "candidate_after_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+      "current_mac_sha256": null,
+      "source_scope": "USER_SUPPLIED_ACTUAL_SOURCE_SLICE",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/_selection_parts/a_auction.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_selection_parts/a_live.py",
+      "known_before_sha256": "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d",
+      "accepted_before_sha256": [
+        "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d",
+        "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0"
+      ],
+      "candidate_after_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+      "current_mac_sha256": null,
+      "source_scope": "USER_SUPPLIED_ACTUAL_SOURCE_SLICE",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/_selection_parts/a_live.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/runner.py",
+      "known_before_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "accepted_before_sha256": [
+        "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232"
+      ],
+      "candidate_after_sha256": "ea9909bb4f39c4248032771aedd9611a852353e940451e0b0c7273bde8c26345",
+      "current_mac_sha256": null,
+      "source_scope": "USER_SUPPLIED_ACTUAL_SOURCE_SLICE",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/runner.py"
+    },
+    {
+      "group": "stage",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "known_before_sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+      "accepted_before_sha256": [
+        "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f"
+      ],
+      "candidate_after_sha256": "fdd849fc032b5745d6611df31b5f9a147b14207d77dca953dff7b0ea4140cea2",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py"
+    },
+    {
+      "group": "api",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/stage_center/execution_evidence.py",
+      "known_before_sha256": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+      "accepted_before_sha256": [
+        "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+        "bd79b1844568a79750ccce6c547cfe08f651291f1863e213fb25629d34a67b79"
+      ],
+      "candidate_after_sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "current_mac_sha256": null,
+      "source_scope": "USER_SUPPLIED_ACTUAL_SOURCE_SLICE",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/execution_evidence.py"
+    },
+    {
+      "group": "api",
+      "current_file_requested": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/stage_center/consumer.py",
+      "known_before_sha256": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+      "accepted_before_sha256": [
+        "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+        "bc428dc5b3747b0eb1e3c4d68ae4e6f2441882393cfa4a31e4c4c962b924c234"
+      ],
+      "candidate_after_sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH",
+      "canonical_counterpart_if_existing_release_chain_requires_merge": "/Users/lexi/Desktop/学习/v4_app/stage_center/consumer.py"
+    },
+    {
+      "group": "ui",
+      "current_file_requested": "/Users/lexi/Desktop/学习/v4_app/apps/web/src/App.vue",
+      "known_before_sha256": "995a680995cc42feadeaa8d2bdd44294c8ec782a908d664c698faf69d4cf02a1",
+      "accepted_before_sha256": [
+        "995a680995cc42feadeaa8d2bdd44294c8ec782a908d664c698faf69d4cf02a1",
+        "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5"
+      ],
+      "candidate_after_sha256": "01903e69d06579c29d4d576bfe739420112ddb2778b6c321f7cb6ef587141f7d",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH"
+    },
+    {
+      "group": "ui",
+      "current_file_requested": "/Users/lexi/Desktop/学习/v4_app/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "known_before_sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+      "accepted_before_sha256": [
+        "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+        "6cb4aecf34fe69a0b95af9075bfabbcd0c504dc29026cb31edd17ef83f764a6a"
+      ],
+      "candidate_after_sha256": "a9d044cd03325cb09acefd5e3c57c2a7e49cb1b61e22eadba0c50cf51963b273",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH"
+    },
+    {
+      "group": "ui",
+      "current_file_requested": "/Users/lexi/Desktop/学习/v4_app/apps/web/src/contracts/runtime.ts",
+      "known_before_sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+      "accepted_before_sha256": [
+        "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+        "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe"
+      ],
+      "candidate_after_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "current_mac_sha256": null,
+      "source_scope": "HISTORICAL_REFERENCE_ONLY",
+      "request_condition": "RETURN_FULL_CURRENT_BYTES_AND_SHA_ONLY_IF_PREPARE_CANARY_REPORTS_MISSING_OR_MISMATCH"
+    }
+  ],
+  "additional_readback_adapter_if_current_contract_differs": {
+    "file": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/apps/api/v35_api/app.py",
+    "current_sha256": null,
+    "known_reference_git_blob_sha1": "f2cdb61eb5689f70bf9f9508e96a0262c0af7389",
+    "request": "Current full source bytes plus SHA256; current launcher/config path and SHA with credentials omitted. No API refactor is required."
+  },
+  "external_shared_hq": {
+    "file": "<current tick config shared_data_root>/scripts/live_acquisition/pytdx_hq.py",
+    "expected_before_sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+    "expected_after_sha256": "fdd849fc032b5745d6611df31b5f9a147b14207d77dca953dff7b0ea4140cea2",
+    "request_condition": "Only if the provided canary driver reports mismatch."
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

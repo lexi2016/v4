@@ -1,0 +1,533 @@
+{
+  "completed_at_utc": "2026-10-09T10:18:28.623669+00:00",
+  "baseline_commit": "0fc3e8304e11700230517616ded0c86f83a4b257",
+  "status": "IMPLEMENTED_TESTED_CANDIDATE",
+  "candidate_suite": {
+    "evidence": "evidence/after_final_verified",
+    "passed": 52,
+    "failed": 0,
+    "returncode": 0
+  },
+  "before_suite": {
+    "evidence": "evidence/before_final_verified",
+    "passed": 42,
+    "failed": 10,
+    "returncode": 1
+  },
+  "supplied_app_suite": {
+    "passed": 14,
+    "failed": 5,
+    "returncode": 1,
+    "same_failures_on_before": true,
+    "status": "FAIL_BASELINE_REPRODUCED"
+  },
+  "source_changes": [
+    {
+      "path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before_sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+      "after_sha256": "409274a2adace19f22ef6d19cdbc7e5291b58fd9944d39239abbffd90ab1f6e4",
+      "before_bytes": 21870,
+      "after_bytes": 21939
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "before_sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+      "after_sha256": "fdd849fc032b5745d6611df31b5f9a147b14207d77dca953dff7b0ea4140cea2",
+      "before_bytes": 19952,
+      "after_bytes": 20039
+    }
+  ],
+  "invariants": {
+    "count": 14,
+    "passed": true
+  },
+  "actual_pipeline_trace_stages": [
+    "STAGE_0925",
+    "STAGE_0930_0935",
+    "STAGE_0935_0940",
+    "STAGE_0940_0945",
+    "STAGE_0945_1030",
+    "STAGE_1300_1315",
+    "STAGE_1445_1500"
+  ],
+  "intermediate_business_code_replaced": false,
+  "io_simulation": [
+    "external pytdx wire API",
+    "market clock"
+  ],
+  "coverage_cases": [
+    {
+      "stage_id": "STAGE_0925",
+      "requested_rows": 216,
+      "source_rows": 205,
+      "selected_rows": 10,
+      "missing_symbols": 11
+    },
+    {
+      "stage_id": "STAGE_0930_0935",
+      "requested_rows": 216,
+      "source_rows": 206,
+      "selected_rows": 10,
+      "missing_symbols": 10
+    },
+    {
+      "stage_id": "STAGE_0935_0940",
+      "requested_rows": 216,
+      "source_rows": 206,
+      "selected_rows": 10,
+      "missing_symbols": 10
+    },
+    {
+      "stage_id": "STAGE_0940_0945",
+      "requested_rows": 216,
+      "source_rows": 206,
+      "selected_rows": 10,
+      "missing_symbols": 10
+    },
+    {
+      "stage_id": "STAGE_0945_1030",
+      "requested_rows": 216,
+      "source_rows": 206,
+      "selected_rows": 10,
+      "missing_symbols": 10
+    },
+    {
+      "stage_id": "STAGE_1300_1315",
+      "requested_rows": 216,
+      "source_rows": 206,
+      "selected_rows": 10,
+      "missing_symbols": 10
+    },
+    {
+      "stage_id": "STAGE_1445_1500",
+      "requested_rows": 216,
+      "source_rows": 206,
+      "selected_rows": 10,
+      "missing_symbols": 10
+    }
+  ],
+  "all_recorded_runs": [
+    {
+      "evidence": "evidence/after_final_verified",
+      "execution": {
+        "phase": "after",
+        "scope": "fieldchain",
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/after_final_verified/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "environment": {
+          "A_QUOTE_APP": "/workspace/scratch/49c844334a98/lane_a/app",
+          "PYTHONPATH": "/workspace/scratch/49c844334a98/lane_a/app",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "RESEARCH_ONLY": "true"
+        },
+        "returncode": 0,
+        "completed_at_utc": "2026-10-09T10:16:01.651124+00:00",
+        "source_sha256": {
+          "stage_center/_live_collectors_parts/selection_builder_registry.py": "409274a2adace19f22ef6d19cdbc7e5291b58fd9944d39239abbffd90ab1f6e4",
+          "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py": "fdd849fc032b5745d6611df31b5f9a147b14207d77dca953dff7b0ea4140cea2"
+        },
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "counts": {
+        "total": 52,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 52
+      },
+      "failures": []
+    },
+    {
+      "evidence": "evidence/app_before",
+      "execution": {
+        "phase": "before",
+        "scope": "app",
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "/tmp/v4-a-fields-bck_itf5/app",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/app_before/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "environment": {
+          "A_QUOTE_APP": "/tmp/v4-a-fields-bck_itf5/app",
+          "PYTHONPATH": "/tmp/v4-a-fields-bck_itf5/app",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "RESEARCH_ONLY": "true"
+        },
+        "returncode": 1,
+        "completed_at_utc": "2026-10-09T10:14:45.977174+00:00",
+        "source_sha256": {
+          "stage_center/_live_collectors_parts/selection_builder_registry.py": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+          "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f"
+        },
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "counts": {
+        "total": 19,
+        "failed": 5,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 14
+      },
+      "failures": [
+        "test_exact_cutoff_selects_verified_slot_and_preserves_provenance",
+        "test_live_stage_uses_only_verified_formal_overlay_membership",
+        "test_persistent_v4_node_entrypoint_checks_ten_nodes",
+        "test_v4_analyzer_is_pure_and_does_not_invent_stage_quality",
+        "test_node_cli_check_is_reproducible_without_network"
+      ]
+    },
+    {
+      "evidence": "evidence/app_regression",
+      "execution": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "app",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/app_regression/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "returncode": 2,
+        "phase": "RECONSTRUCTED_APP_SUPPLIED_TESTS",
+        "date_utc": "2026-10-09T10:12:17.222334+00:00"
+      },
+      "counts": {
+        "total": 2,
+        "failed": 0,
+        "errors": 2,
+        "skipped": 0,
+        "passed": 0
+      },
+      "failures": [
+        "app.stage_center.tests.test_selection_consumer_batch3",
+        "app.tests.test_stage_research_context_v4"
+      ]
+    },
+    {
+      "evidence": "evidence/app_regression_with_path",
+      "execution": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "app",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/app_regression_with_path/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "environment": {
+          "PYTHONPATH": "/workspace/scratch/49c844334a98/lane_a/app"
+        },
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "returncode": 1,
+        "phase": "RECONSTRUCTED_APP_SUPPLIED_TESTS_VALID_PATH",
+        "date_utc": "2026-10-09T10:13:10.195921+00:00"
+      },
+      "counts": {
+        "total": 19,
+        "failed": 5,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 14
+      },
+      "failures": [
+        "test_exact_cutoff_selects_verified_slot_and_preserves_provenance",
+        "test_live_stage_uses_only_verified_formal_overlay_membership",
+        "test_persistent_v4_node_entrypoint_checks_ten_nodes",
+        "test_v4_analyzer_is_pure_and_does_not_invent_stage_quality",
+        "test_node_cli_check_is_reproducible_without_network"
+      ]
+    },
+    {
+      "evidence": "evidence/before_final_52",
+      "execution": {
+        "phase": "before",
+        "scope": "fieldchain",
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/before_final_52/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "environment": {
+          "A_QUOTE_APP": "/tmp/v4-a-fields-ut6n_fnv/app",
+          "PYTHONPATH": "/tmp/v4-a-fields-ut6n_fnv/app",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "RESEARCH_ONLY": "true"
+        },
+        "returncode": 1,
+        "completed_at_utc": "2026-10-09T10:14:55.845937+00:00",
+        "source_sha256": {
+          "stage_center/_live_collectors_parts/selection_builder_registry.py": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+          "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f"
+        },
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "counts": {
+        "total": 52,
+        "failed": 10,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 42
+      },
+      "failures": [
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[102-2]",
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[100-0]",
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[95--5]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[0-0-PREV_CLOSE_PRICE_INVALID]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[-5--5-PREV_CLOSE_PRICE_INVALID]",
+        "test_auction_recovered_source_drives_the_unchanged_bounded_formula",
+        "test_real_auction_replay_previous_day_bar_reaches_selected_row",
+        "test_auction_216_requests_205_quotes_keep_missing_codes_and_after_200_winner",
+        "test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[True]",
+        "test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[False]"
+      ]
+    },
+    {
+      "evidence": "evidence/before_final_verified",
+      "execution": {
+        "phase": "before",
+        "scope": "fieldchain",
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/before_final_verified/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "environment": {
+          "A_QUOTE_APP": "/tmp/v4-a-fields-d686xy1o/app",
+          "PYTHONPATH": "/tmp/v4-a-fields-d686xy1o/app",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "RESEARCH_ONLY": "true"
+        },
+        "returncode": 1,
+        "completed_at_utc": "2026-10-09T10:16:35.736497+00:00",
+        "source_sha256": {
+          "stage_center/_live_collectors_parts/selection_builder_registry.py": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+          "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f"
+        },
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "counts": {
+        "total": 52,
+        "failed": 10,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 42
+      },
+      "failures": [
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[102-2]",
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[100-0]",
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[95--5]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[0-0-PREV_CLOSE_PRICE_INVALID]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[-5--5-PREV_CLOSE_PRICE_INVALID]",
+        "test_auction_recovered_source_drives_the_unchanged_bounded_formula",
+        "test_real_auction_replay_previous_day_bar_reaches_selected_row",
+        "test_auction_216_requests_205_quotes_keep_missing_codes_and_after_200_winner",
+        "test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[True]",
+        "test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[False]"
+      ]
+    },
+    {
+      "evidence": "evidence/green_final",
+      "execution": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/green_final/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "returncode": 0,
+        "phase": "GREEN_FINAL_A_CANDIDATE",
+        "date_utc": "2026-10-09T10:13:20.460079+00:00"
+      },
+      "counts": {
+        "total": 52,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 52
+      },
+      "failures": []
+    },
+    {
+      "evidence": "evidence/green_full",
+      "execution": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/green_full/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "returncode": 0,
+        "phase": "GREEN_ONE_LINE_BUILDER_FIX",
+        "date_utc": "2026-10-09T10:11:45.455623+00:00"
+      },
+      "counts": {
+        "total": 50,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 50
+      },
+      "failures": []
+    },
+    {
+      "evidence": "evidence/red_auction",
+      "execution": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/test_a_quote_pipeline.py",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/red_auction/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "returncode": 1,
+        "phase": "RED_BEFORE_ANY_PRODUCTION_CHANGE",
+        "date_utc": "2026-10-09T10:08:47.238232+00:00"
+      },
+      "counts": {
+        "total": 17,
+        "failed": 15,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 2
+      },
+      "failures": [
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[102-2]",
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[100-0]",
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[95--5]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[previous0-None-PREV_CLOSE_PRICE_MISSING]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[None-None-PREV_CLOSE_PRICE_MISSING]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[-None-PREV_CLOSE_PRICE_MISSING]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[0-0-PREV_CLOSE_PRICE_INVALID]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[-5--5-PREV_CLOSE_PRICE_INVALID]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[bad-None-PREV_CLOSE_PRICE_MISSING]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[NaN-None-PREV_CLOSE_PRICE_MISSING]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[inf-None-PREV_CLOSE_PRICE_MISSING]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[True-None-PREV_CLOSE_PRICE_MISSING]",
+        "test_auction_recovered_source_drives_the_unchanged_bounded_formula",
+        "test_real_auction_replay_previous_day_bar_reaches_selected_row",
+        "test_auction_216_requests_205_quotes_keep_missing_codes_and_after_200_winner"
+      ]
+    },
+    {
+      "evidence": "evidence/red_boolean",
+      "execution": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/test_a_quote_pipeline.py",
+          "-k",
+          "boolean_previous_close",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/red_boolean/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "returncode": 1,
+        "phase": "RED_BEFORE_BOOL_SOURCE_FIX",
+        "date_utc": "2026-10-09T10:12:31.089648+00:00"
+      },
+      "counts": {
+        "total": 2,
+        "failed": 2,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 0
+      },
+      "failures": [
+        "test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[True]",
+        "test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[False]"
+      ]
+    },
+    {
+      "evidence": "evidence/red_full",
+      "execution": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/test_a_quote_pipeline.py",
+          "--junitxml=/workspace/scratch/49c844334a98/lane_a/evidence/red_full/junit.xml"
+        ],
+        "cwd": "/workspace/scratch/49c844334a98/lane_a",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "returncode": 1,
+        "phase": "RED_BEFORE_ANY_PRODUCTION_CHANGE",
+        "date_utc": "2026-10-09T10:11:19.317844+00:00"
+      },
+      "counts": {
+        "total": 50,
+        "failed": 8,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 42
+      },
+      "failures": [
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[102-2]",
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[100-0]",
+        "test_auction_csv_previous_close_survives_source_builder_and_final_row[95--5]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[0-0-PREV_CLOSE_PRICE_INVALID]",
+        "test_auction_invalid_or_absent_source_baseline_stays_nullable[-5--5-PREV_CLOSE_PRICE_INVALID]",
+        "test_auction_recovered_source_drives_the_unchanged_bounded_formula",
+        "test_real_auction_replay_previous_day_bar_reaches_selected_row",
+        "test_auction_216_requests_205_quotes_keep_missing_codes_and_after_200_winner"
+      ]
+    }
+  ],
+  "not_run": [
+    "Mac active owner",
+    "deployment",
+    "live API/UI acceptance",
+    "natural-period execution",
+    "order actions",
+    "git commit/push by this lane"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

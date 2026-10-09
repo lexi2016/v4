@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="10" skipped="0" tests="52" time="10.688" timestamp="2026-10-09T03:16:25.000985-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_a_quote_pipeline" name="test_auction_csv_previous_close_survives_source_builder_and_final_row[102-2]" time="0.018"><failure message="assert None == 100.0">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_csv_previous_clos0')
+last = 102, expected = 2
+
+    @pytest.mark.parametrize("last,expected", [(102, 2), (100, 0), (95, -5)])
+    def test_auction_csv_previous_close_survives_source_builder_and_final_row(tmp_path, last, expected):
+        trace = {}
+        source, envelope = collect_csv(tmp_path, [csv_row(100, last)], trace=trace)
+        assert source.rows[0]["prev_close_price"] == 100
+        row = envelope["rows"][0]
+        assert row["code"] == source.rows[0]["code"]
+&gt;       assert row["prev_close_price"] == source.rows[0]["prev_close_price"]
+E       assert None == 100.0
+
+tests/test_a_quote_pipeline.py:134: AssertionError</failure></testcase><testcase classname="tests.test_a_quote_pipeline" name="test_auction_csv_previous_close_survives_source_builder_and_final_row[100-0]" time="0.003"><failure message="assert None == 100.0">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_csv_previous_clos1')
+last = 100, expected = 0
+
+    @pytest.mark.parametrize("last,expected", [(102, 2), (100, 0), (95, -5)])
+    def test_auction_csv_previous_close_survives_source_builder_and_final_row(tmp_path, last, expected):
+        trace = {}
+        source, envelope = collect_csv(tmp_path, [csv_row(100, last)], trace=trace)
+        assert source.rows[0]["prev_close_price"] == 100
+        row = envelope["rows"][0]
+        assert row["code"] == source.rows[0]["code"]
+&gt;       assert row["prev_close_price"] == source.rows[0]["prev_close_price"]
+E       assert None == 100.0
+
+tests/test_a_quote_pipeline.py:134: AssertionError</failure></testcase><testcase classname="tests.test_a_quote_pipeline" name="test_auction_csv_previous_close_survives_source_builder_and_final_row[95--5]" time="0.003"><failure message="assert None == 100.0">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_csv_previous_clos2')
+last = 95, expected = -5
+
+    @pytest.mark.parametrize("last,expected", [(102, 2), (100, 0), (95, -5)])
+    def test_auction_csv_previous_close_survives_source_builder_and_final_row(tmp_path, last, expected):
+        trace = {}
+        source, envelope = collect_csv(tmp_path, [csv_row(100, last)], trace=trace)
+        assert source.rows[0]["prev_close_price"] == 100
+        row = envelope["rows"][0]
+        assert row["code"] == source.rows[0]["code"]
+&gt;       assert row["prev_close_price"] == source.rows[0]["prev_close_price"]
+E       assert None == 100.0
+
+tests/test_a_quote_pipeline.py:134: AssertionError</failure></testcase><testcase classname="tests.test_a_quote_pipeline" name="test_auction_invalid_or_absent_source_baseline_stays_nullable[previous0-None-PREV_CLOSE_PRICE_MISSING]" time="0.002" /><testcase classname="tests.test_a_quote_pipeline" name="test_auction_invalid_or_absent_source_baseline_stays_nullable[None-None-PREV_CLOSE_PRICE_MISSING]" time="0.002" /><testcase classname="tests.test_a_quote_pipeline" name="test_auction_invalid_or_absent_source_baseline_stays_nullable[-None-PREV_CLOSE_PRICE_MISSING]" time="0.002" /><testcase classname="tests.test_a_quote_pipeline" name="test_auction_invalid_or_absent_source_baseline_stays_nullable[0-0-PREV_CLOSE_PRICE_INVALID]" time="0.002"><failure message="AssertionError: assert 'PREV_CLOSE_PRICE_MISSING' == 'PREV_CLOSE_PRICE_INVALID'&#10;  &#10;  - PREV_CLOSE_PRICE_INVALID&#10;  ?                    ^^^^^&#10;  + PREV_CLOSE_PRICE_MISSING&#10;  ?                  ++++  ^">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_invalid_or_absent3')
+previous = 0, normalized = 0, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,normalized,reason", [
+        (MISSING, None, "PREV_CLOSE_PRICE_MISSING"),
+        (None, None, "PREV_CLOSE_PRICE_MISSING"),
+        ("", None, "PREV_CLOSE_PRICE_MISSING"),
+        (0, 0, "PREV_CLOSE_PRICE_INVALID"),
+        (-5, -5, "PREV_CLOSE_PRICE_INVALID"),
+        ("bad", None, "PREV_CLOSE_PRICE_MISSING"),
+        ("NaN", None, "PREV_CLOSE_PRICE_MISSING"),
+        ("inf", None, "PREV_CLOSE_PRICE_MISSING"),
+        (True, None, "PREV_CLOSE_PRICE_MISSING"),
+    ])
+    def test_auction_invalid_or_absent_source_baseline_stays_nullable(tmp_path, previous, normalized, reason):
+        source, envelope = collect_csv(tmp_path, [csv_row(previous)])
+        # The unchanged collector normalizes non-numeric wire input to None.
+        # The final reason describes this observed SourceResult boundary.
+        assert source.rows[0]["prev_close_price"] == normalized
+        row = envelope["rows"][0]
+        assert row["prev_close_price"] is None
+        assert row["current_change_pct"] is None
+        assert row["qmt_gap_pct"] is None
+&gt;       assert row["current_change_pct_missing_reason"] == reason
+E       AssertionError: assert 'PREV_CLOSE_PRICE_MISSING' == 'PREV_CLOSE_PRICE_INVALID'
+E         
+E         - PREV_CLOSE_PRICE_INVALID
+E         ?                    ^^^^^
+E         + PREV_CLOSE_PRICE_MISSING
+E         ?                  ++++  ^
+
+tests/test_a_quote_pipeline.py:162: AssertionError</failure></testcase><testcase classname="tests.test_a_quote_pipeline" name="test_auction_invalid_or_absent_source_baseline_stays_nullable[-5--5-PREV_CLOSE_PRICE_INVALID]" time="0.002"><failure message="AssertionError: assert 'PREV_CLOSE_PRICE_MISSING' == 'PREV_CLOSE_PRICE_INVALID'&#10;  &#10;  - PREV_CLOSE_PRICE_INVALID&#10;  ?                    ^^^^^&#10;  + PREV_CLOSE_PRICE_MISSING&#10;  ?                  ++++  ^">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_invalid_or_absent4')
+previous = -5, normalized = -5, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,normalized,reason", [
+        (MISSING, None, "PREV_CLOSE_PRICE_MISSING"),
+        (None, None, "PREV_CLOSE_PRICE_MISSING"),
+        ("", None, "PREV_CLOSE_PRICE_MISSING"),
+        (0, 0, "PREV_CLOSE_PRICE_INVALID"),
+        (-5, -5, "PREV_CLOSE_PRICE_INVALID"),
+        ("bad", None, "PREV_CLOSE_PRICE_MISSING"),
+        ("NaN", None, "PREV_CLOSE_PRICE_MISSING"),
+        ("inf", None, "PREV_CLOSE_PRICE_MISSING"),
+        (True, None, "PREV_CLOSE_PRICE_MISSING"),
+    ])
+    def test_auction_invalid_or_absent_source_baseline_stays_nullable(tmp_path, previous, normalized, reason):
+        source, envelope = collect_csv(tmp_path, [csv_row(previous)])
+        # The unchanged collector normalizes non-numeric wire input to None.
+        # The final reason describes this observed SourceResult boundary.
+        assert source.rows[0]["prev_close_price"] == normalized
+        row = envelope["rows"][0]
+        assert row["prev_close_price"] is None
+        assert row["current_change_pct"] is None
+        assert row["qmt_gap_pct"] is None
+&gt;       assert row["current_change_pct_missing_reason"] == reason
+E       AssertionError: assert 'PREV_CLOSE_PRICE_MISSING' == 'PREV_CLOSE_PRICE_INVALID'
+E         
+E         - PREV_CLOSE_PRICE_INVALID
+E         ?                    ^^^^^
+E         + PREV_CLOSE_PRICE_MISSING
+E         ?                  ++++  ^
+
+tests/test_a_quote_pipeline.py:162: AssertionError</failure></testcase><testcase classname="tests.test_a_quote_pipeline" name="test_auction_invalid_or_absent_source_baseline_stays_nullable[bad-None-PREV_CLOSE_PRICE_MISSING]" time="0.003" /><testcase classname="tests.test_a_quote_pipeline" name="test_auction_invalid_or_absent_source_baseline_stays_nullable[NaN-None-PREV_CLOSE_PRICE_MISSING]" time="0.002" /><testcase classname="tests.test_a_quote_pipeline" name="test_auction_invalid_or_absent_source_baseline_stays_nullable[inf-None-PREV_CLOSE_PRICE_MISSING]" time="0.002" /><testcase classname="tests.test_a_quote_pipeline" name="test_auction_invalid_or_absent_source_baseline_stays_nullable[True-None-PREV_CLOSE_PRICE_MISSING]" time="0.002" /><testcase classname="tests.test_a_quote_pipeline" name="test_auction_csv_last_close_is_match_price_not_previous_close_alias" time="0.002" /><testcase classname="tests.test_a_quote_pipeline" name="test_auction_recovered_source_drives_the_unchanged_bounded_formula" time="0.002"><failure message="assert 50.25 == 70.25">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_recovered_source_0')
+
+    def test_auction_recovered_source_drives_the_unchanged_bounded_formula(tmp_path):
+        _, envelope = collect_csv(tmp_path, [csv_row(100, last=102)])
+        # Frozen V3: 50 + 2 * 10 + (10m / 100m) * 2.5 = 70.25.
+&gt;       assert envelope["rows"][0]["score"] == 70.25
+E       assert 50.25 == 70.25
+
+tests/test_a_quote_pipeline.py:178: AssertionError</failure></testcase><testcase classname="tests.test_a_quote_pipeline" name="test_real_auction_replay_previous_day_bar_reaches_selected_row" time="0.002"><failure message="assert None == 100">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_real_auction_replay_previ0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f377dd6ad80&gt;
+
+    def test_real_auction_replay_previous_day_bar_reaches_selected_row(tmp_path, monkeypatch):
+        api, source, envelope = collect_replay(
+            tmp_path, monkeypatch, ("A.000001",), {"000001": {"previous": 100, "last": 100}},
+        )
+        assert api.requested_codes == ["000001"]
+        assert source.rows[0]["prev_close_price"] == 100
+        assert source.rows[0]["source_method"] == "pytdx.hq.get_transaction_data"
+&gt;       assert envelope["rows"][0]["prev_close_price"] == 100
+E       assert None == 100
+
+tests/test_a_quote_pipeline.py:235: AssertionError</failure></testcase><testcase classname="tests.test_a_quote_pipeline" name="test_auction_216_requests_205_quotes_keep_missing_codes_and_after_200_winner" time="0.014"><failure message="AssertionError: assert 'A.000001' == 'A.000205'&#10;  &#10;  - A.000205&#10;  ?      - ^&#10;  + A.000001&#10;  ?       ^^">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_auction_216_requests_205_0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f377dd6d3d0&gt;
+
+    def test_auction_216_requests_205_quotes_keep_missing_codes_and_after_200_winner(tmp_path, monkeypatch):
+        codes = tuple(f"A.{index:06d}" for index in range(1, 217))
+        records = {code[2:]: {"previous": 100, "last": 100} for code in codes[:205]}
+        records[codes[204][2:]] = {"previous": 100, "last": 105}
+        api, source, envelope = collect_replay(tmp_path, monkeypatch, codes, records)
+        assert len(api.requested_codes) == source.requested_rows == envelope["requested_rows"] == 216
+        assert len(source.rows) == envelope["source_rows"] == 205
+        assert source.status == envelope["selection_status"] == "PARTIAL_WITH_ROWS"
+        assert source.missing_symbols == codes[205:]
+        assert envelope["missing_symbols"] == list(codes[205:])
+        assert all(code in " ".join(envelope["cannot_confirm"]) for code in codes[205:])
+        assert envelope["selected_rows"] == 10
+&gt;       assert envelope["rows"][0]["code"] == codes[204]
+E       AssertionError: assert 'A.000001' == 'A.000205'
+E         
+E         - A.000205
+E         ?      - ^
+E         + A.000001
+E         ?       ^^
+
+tests/test_a_quote_pipeline.py:252: AssertionError</failure></testcase><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[last_close-STAGE_0930_0935]" time="0.120" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[last_close-STAGE_0935_0940]" time="0.058" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[last_close-STAGE_0940_0945]" time="0.056" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[last_close-STAGE_0945_1030]" time="0.054" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[last_close-STAGE_1300_1315]" time="0.057" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[last_close-STAGE_1445_1500]" time="0.061" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[prev_close-STAGE_0930_0935]" time="0.060" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[prev_close-STAGE_0935_0940]" time="0.064" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[prev_close-STAGE_0940_0945]" time="0.065" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[prev_close-STAGE_0945_1030]" time="0.062" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[prev_close-STAGE_1300_1315]" time="0.056" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[prev_close-STAGE_1445_1500]" time="0.063" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[pre_close-STAGE_0930_0935]" time="0.065" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[pre_close-STAGE_0935_0940]" time="0.063" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[pre_close-STAGE_0940_0945]" time="0.057" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[pre_close-STAGE_0945_1030]" time="0.055" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[pre_close-STAGE_1300_1315]" time="0.069" /><testcase classname="tests.test_a_quote_pipeline" name="test_real_minute_probe_alias_to_source_qmt_to_final_true_zero[pre_close-STAGE_1445_1500]" time="0.065" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_source_missing_or_invalid_baseline_does_not_become_day_zero[previous0-PREV_CLOSE_PRICE_MISSING]" time="0.059" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_source_missing_or_invalid_baseline_does_not_become_day_zero[None-PREV_CLOSE_PRICE_MISSING]" time="0.057" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_source_missing_or_invalid_baseline_does_not_become_day_zero[-PREV_CLOSE_PRICE_MISSING]" time="0.059" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_source_missing_or_invalid_baseline_does_not_become_day_zero[0-PREV_CLOSE_PRICE_INVALID]" time="0.053" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_source_missing_or_invalid_baseline_does_not_become_day_zero[-5-PREV_CLOSE_PRICE_INVALID]" time="0.064" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_source_missing_or_invalid_baseline_does_not_become_day_zero[bad-PREV_CLOSE_PRICE_MISSING]" time="0.051" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_source_missing_or_invalid_baseline_does_not_become_day_zero[NaN-PREV_CLOSE_PRICE_INVALID]" time="0.055" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_source_missing_or_invalid_baseline_does_not_become_day_zero[inf-PREV_CLOSE_PRICE_INVALID]" time="0.056" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_source_known_alias_precedence_does_not_replace_zero_with_other_alias" time="0.050" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[True]" time="0.049"><failure message="assert 1.0 is None">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_minute_boolean_previous_c0')
+previous = True
+
+    @pytest.mark.parametrize("previous", [True, False])
+    def test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline(tmp_path, previous):
+        _, source, envelope = collect_minute(
+            tmp_path, LIVE_STAGES[0], ("A.000001",), {"000001": minute_wire(previous)},
+        )
+        # A boolean is malformed quote data, including True (float(True) == 1).
+&gt;       assert source.rows[0]["prev_close_price"] is None
+E       assert 1.0 is None
+
+tests/test_a_quote_pipeline.py:391: AssertionError</failure></testcase><testcase classname="tests.test_a_quote_pipeline" name="test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline[False]" time="0.050"><failure message="assert 0.0 is None">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-272/test_minute_boolean_previous_c1')
+previous = False
+
+    @pytest.mark.parametrize("previous", [True, False])
+    def test_minute_boolean_previous_close_never_becomes_a_numeric_day_baseline(tmp_path, previous):
+        _, source, envelope = collect_minute(
+            tmp_path, LIVE_STAGES[0], ("A.000001",), {"000001": minute_wire(previous)},
+        )
+        # A boolean is malformed quote data, including True (float(True) == 1).
+&gt;       assert source.rows[0]["prev_close_price"] is None
+E       assert 0.0 is None
+
+tests/test_a_quote_pipeline.py:391: AssertionError</failure></testcase><testcase classname="tests.test_a_quote_pipeline" name="test_minute_216_requests_206_quotes_keep_top10_without_200_input_cap[STAGE_0930_0935]" time="1.484" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_216_requests_206_quotes_keep_top10_without_200_input_cap[STAGE_0935_0940]" time="1.534" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_216_requests_206_quotes_keep_top10_without_200_input_cap[STAGE_0940_0945]" time="1.435" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_216_requests_206_quotes_keep_top10_without_200_input_cap[STAGE_0945_1030]" time="1.400" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_216_requests_206_quotes_keep_top10_without_200_input_cap[STAGE_1300_1315]" time="1.394" /><testcase classname="tests.test_a_quote_pipeline" name="test_minute_216_requests_206_quotes_keep_top10_without_200_input_cap[STAGE_1445_1500]" time="1.367" /><testcase classname="tests.test_a_quote_pipeline" name="test_formula_sort_limit_and_existing_null_projection_bytes_are_frozen" time="0.001" /></testsuite></testsuites>
