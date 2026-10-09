@@ -1,0 +1,20 @@
+{
+  "schema_version": "v5.rebound_owner_capsule.v1",
+  "base_commit": "2719328494a9ec3177a7be56e7348f86dd0137f5",
+  "owner_entrypoint": "v4.manager_research.workspace_plan:read_rebound_screen",
+  "native_evidence_entrypoint": "v4.manager_research.workspace_plan:rebound_native_evidence",
+  "owner_source_sha256": "be0d5e69ff72efd07d2caca4e68948245db4900a8c41f467e9c30f6899c044b1",
+  "bindings": {
+    "contracts/rebound_source_manifest.json": "153c6dc8168e61bc73133ea1dd9a3bd1a8a27eb58b9d23c3869b2233623e13cd",
+    "uv.lock": "7cb690f890cc28b6a79311f07e724f61c3dc4411494d480c0041f075f0825bfd",
+    "pyproject.toml": "0a1824d3b255ee7f8391919254b2c21bf0deaf6da11a1b8cfc3e3a58c6fd4584"
+  },
+  "runtime_closure_status": "NOT_RUN",
+  "historical_process_identity": "NOT_PROVEN",
+  "formal_admission": "NOT_IMPLEMENTED_NO_UNIT_FINALITY_OR_TARGET_MEMBERSHIP_ATTESTATION",
+  "notes": [
+    "Reuses the existing 18-file byte-identical rebound_baseline; no V4 source changes.",
+    "Original lock plus V5 uv.lock retained separately; runtime validates installed V5 packages.",
+    "New private snapshot proves bound bytes only, never an atomic live-authority lease."
+  ]
+}
