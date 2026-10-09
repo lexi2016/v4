@@ -46,3 +46,54 @@ Existing original dailyChannels runtime tests which intentionally expect a
 non-explicit fallback to issue a second guessed query must be reconciled to the
 corrected semantics while retaining cancellation/stale-response coverage; do
 not merely delete them. Preserve V4 and the fixed preview until Mac validates.
+
+## Production source overlay after confirmed UI RED
+
+Mac 2fdf754c RED: 1 PASS / 2 FAIL / 0 ERROR, exit 1. Default first read failed
+before reread was reached; explicit mismatch rejection passed; ordinary 503
+incorrectly claimed concurrency exhaustion. All 134 original source files and
+isolated-copy SHAs matched. The preview task then confirmed this exact R2/R1
+source mapping and the original 11-file build/static correspondence.
+
+The source overlay now changes only managerWorkspace.ts and
+catalystObservationPanel.ts in production. Default reads adopt validated backend
+binding for display without turning it into an explicit query; user-selected
+bindings retain exact rejection checks. Selection/announcement defaults remain
+separate from explicit intent after reread and manual refresh. Changing or
+clearing announcement choice recomputes explicit intent. No query response alias.
+The original error status is retained; validated reason_codes allow MODULE_BUSY
+to report capacity, MODULE_RESULT_NOT_AVAILABLE to report unpublished results,
+and unclassified 503 to report an unconfirmed unavailable service.
+
+The three RED tests are unchanged. The original dailyChannels.runtime.spec.ts
+is retained in full except its former guessed-second-request cancellation test
+now waits on the default canonical request; cancellation and rejection of the
+late response are still asserted. All other runtime cases remain unchanged.
+Original dailyChannels.ts, DTO validation and ManagerSelectionView.vue are not
+modified. This is a source candidate, not a built/deployed site.
+
+Use an isolated copy of the verified Mac web root already owned by the existing
+UI task, not the active source or active dist. In that copy create the marker
+and apply the checked overlay (substitute actual absolute paths):
+
+```sh
+printf 'v5.ui-candidate.v1\n' > /absolute/isolated-web/.v5-ui-candidate
+python3 /absolute/v4/V5/ui/manager-workbench/apply_candidate.py --web-root /absolute/isolated-web
+cd /absolute/isolated-web
+npm run test -- src/manager-selection/dailyChannels.v5Bindings.spec.ts src/manager-selection/dailyChannels.runtime.spec.ts src/manager-selection/dailyChannels.spec.ts src/manager-selection/catalystObservationPanel.runtime.spec.ts
+npm run typecheck
+npm run build -- --outDir /absolute/isolated-dist
+```
+
+The overlay manifest checks both before/after SHAs and unchanged dependencies;
+it accepts the already-added identical RED test and rejects mismatched originals.
+Cloud review checked exact source provenance, changed scope, original test count,
+manifest SHA and diff. No TypeScript execution, UI test, npm install/build or
+preview/static write was performed in the cloud. The same existing Mac task
+must report targeted tests, typecheck/build and real date09 default/reread plus
+explicit historical date08 UI outcomes. No 10/8 announcement is renamed today.
+
+Separately acknowledged: b26e5616 Mac manager8 PASS, announcement6 PASS, full322
+PASS; real new plan dc92c0e960ef4a91b2d9eb52720f232d later CURRENT / consumed=true
+with matching identity and unchanged file SHAs, PARTIAL/natural=false. No P2
+source changes are made in this UI candidate.

@@ -1,0 +1,36 @@
+{
+  "base_commit": "2fdf754c3cc9d52d24a46c8634a822c747faee0a",
+  "source_commit": "8342862f05ca9f6516f51b3164b6110651e5af77",
+  "changes": [
+    {
+      "path": "src/api/managerWorkspace.ts",
+      "source": "source/apps/web/src/api/managerWorkspace.ts",
+      "before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+      "after_sha256": "83f68557306054430a2e9a9f97bca53da9b746493ca2be95aad7c22a00cbc5af"
+    },
+    {
+      "path": "src/manager-selection/catalystObservationPanel.ts",
+      "source": "source/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+      "after_sha256": "cffc12eba5251c883ade6335429fc9bbfeaf501656932466e6082fd52c4a1fcf"
+    },
+    {
+      "path": "src/manager-selection/dailyChannels.runtime.spec.ts",
+      "source": "source/apps/web/src/manager-selection/dailyChannels.runtime.spec.ts",
+      "before_sha256": "c300e175a184a6a9e365c5d99a2977ea8cc8c8eed27fbedb3291785a83bd640e",
+      "after_sha256": "d239fec28cbe5d00375c87798f30e3ed283cbf69da80a657f2c65733a5ac5eca"
+    },
+    {
+      "path": "src/manager-selection/dailyChannels.v5Bindings.spec.ts",
+      "source": "next-tests/dailyChannels.v5Bindings.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "5f54165ed165f1e3599d5f4a9f60d50ebb5148f5de941b4a4106a7554c239ffb"
+    }
+  ],
+  "unchanged": {
+    "src/manager-selection/dailyChannels.ts": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+    "src/manager-selection/dailyChannels.testHelper.ts": "ff2e22d33fe61fc8c44e3c524f2a192b55bb5ee1a6330eadc0ca3373c546f3f0",
+    "src/views/ManagerSelectionView.vue": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+    "src/manager-selection/dailyChannels.spec.ts": "4bc77f9a73881decf160814b90dc84124d5dc8eede9304f8011047d752f19ef3"
+  }
+}
