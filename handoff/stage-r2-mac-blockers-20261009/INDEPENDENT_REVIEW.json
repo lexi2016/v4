@@ -1,0 +1,152 @@
+{
+  "schema_version": "V4_R2_INDEPENDENT_REVIEW_V1",
+  "review_identity": "independent read-only Reviewer",
+  "scope": "Frozen R2 package identity, mapped source diff, local prepare blockers, offline fixture tests and exact acceptance boundary.",
+  "package": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R2_MAC_20261009/incoming/stage-research-recovery-20261009-r2",
+    "delivery_commit_claim": "7a9c94d43a296372488541b02e8e35a0f763dc1a",
+    "local_files": 328,
+    "manifest_entries": 326,
+    "sha256_entries": 327,
+    "sha256_matched": 327,
+    "sha256_mismatches": 0,
+    "source_map_sha256": "f402f93009ff1e8ef588e04c994eec1897274d80970fc20ee07748a506156ce4",
+    "package_verifier": "PASS: 21 mapped source files, 166 offline support files",
+    "delivery_commit_remote_binding": "CANNOT_CONFIRM from the local package; DELIVERY_MANIFEST names base_commit, not delivery commit"
+  },
+  "diff_review": {
+    "mapped_files": 21,
+    "groups": {
+      "stage": 16,
+      "api": 2,
+      "ui": 3
+    },
+    "patch": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R2_MAC_20261009/evidence/review/temp/actual_delivery.diff",
+    "focus": [
+      "explicit HK current-day research input remains separate from strict D1",
+      "original PyTDX and four-lane selector path",
+      "same-run selection/receipt/API identity",
+      "A-share full-input and quote-gap projection",
+      "UI result identity and recovery/natural labels"
+    ],
+    "no_P0_or_P1_source_behavior_regression_observed_in_offline_scope": true
+  },
+  "independent_tests": {
+    "status": "PASS",
+    "scope": "isolated source fixtures; not real market data, live service/API/UI deployment, or natural acceptance",
+    "python": "3.14.6",
+    "platform": "macOS 26.6.2 arm64",
+    "node": "v24.19.0",
+    "vue": {
+      "passed": 45,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "vue_compiler_sfc": "3.5.40",
+    "vue_server_renderer": "3.5.40",
+    "stage": {
+      "passed": 148,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "api": {
+      "passed": 82,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "total_fixture_tests": 275,
+    "fixture_runner_api_vue": {
+      "exit_code": 0,
+      "scope": "synthetic 695-row input; original runner/store/reader functions and actual Vue SFC SSR, external quote I/O fixture"
+    },
+    "fixture_identity": {
+      "trade_date": "20261009",
+      "stage_id": "STAGE_0930_0935",
+      "market": "HK_CONNECT",
+      "run_id": "run-2c40a8d057e1beffde847ab1",
+      "selected_rows": 10,
+      "requested_rows": 695,
+      "source_rows": 695,
+      "execution_origin": "CURRENT_DAY_RESEARCH_REPLAY",
+      "execution_verified": false,
+      "natural_verified": false,
+      "api_projection": "original functions, not current HTTP service",
+      "ui_natural_label_displayed": false
+    },
+    "results": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R2_MAC_20261009/evidence/review/checkoutputs/independent_7a9c94d4/RESULTS.json",
+    "fixture_assertions": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R2_MAC_20261009/evidence/review/checkoutputs/independent_7a9c94d4/full_chain_fixture"
+  },
+  "actual_prepare": {
+    "stage": {
+      "status": "BLOCKED",
+      "write_performed": false,
+      "mapped_preimages": "16/16 BEFORE_MATCH; all 21 package after hashes match",
+      "errors": [
+        "SOURCE_TREE_SYMLINK at the Stage app v3_shared_data link",
+        "SOURCE_TREE_SYMLINK at the Stage app upstreams/v3.5 link"
+      ],
+      "evidence": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R2_MAC_20261009/candidate/mac_apply_20261009_7a9c94d4/stage_prepare.json"
+    },
+    "api": {
+      "status": "BLOCKED",
+      "write_performed": true,
+      "mapped_preimages": "2/2 BEFORE_MATCH; all 21 package after hashes match",
+      "error": "[Errno 13] Permission denied creating candidate/mac_apply_20261009_7a9c94d4/api_app/stage_center/tmp0pz8q150",
+      "evidence": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R2_MAC_20261009/candidate/mac_apply_20261009_7a9c94d4/api_prepare.json",
+      "partial_copy": "candidate/api_app remains, but destination api_app and stage_center directories are 0555; temp0pz8q150 is absent; do not treat as prepared"
+    },
+    "ui": {
+      "status": "BLOCKED",
+      "write_performed": false,
+      "app_vue": {
+        "observed_sha256": "ffbfcde222175c7849dfd5a1089cafe6c104dea2a1760b18645d95bc48780530",
+        "accepted_before_sha256": [
+          "995a680995cc42feadeaa8d2bdd44294c8ec782a908d664c698faf69d4cf02a1",
+          "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5"
+        ]
+      },
+      "runtime_ts": {
+        "observed_sha256": "6d66ae53d26a6c48110d040ad0440bb023e88d49924a697d6671c6da51176d92",
+        "accepted_before_sha256": [
+          "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+          "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe"
+        ]
+      },
+      "panel": "StageExecutionEvidencePanel.vue is absent from current canonical tree",
+      "evidence": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R2_MAC_20261009/candidate/mac_apply_20261009_7a9c94d4/ui_prepare.json"
+    }
+  },
+  "findings": [
+    {
+      "priority": "P1",
+      "title": "No full local candidate can be prepared; real canary and same-run live acceptance remain blocked",
+      "evidence": [
+        "stage_prepare.json",
+        "api_prepare.json",
+        "ui_prepare.json",
+        "handoff/r2_mac_blockers/HANDOFF.md"
+      ],
+      "action": "Return exact Stage symlink handling, API readonly-copy preparation, and UI preimage adaptation to Chat under the frozen split. Keep the source/preimage guards intact locally."
+    },
+    {
+      "priority": "P2",
+      "title": "run_checks.py can report PASS without enforcing complete Stage/API test counts or zero skips",
+      "evidence": "tools/run_checks.py lines 67-73 parse only the pytest passed count; line 97 gates skips only for Vue. A pytest exit code of zero with skipped Stage/API tests or fewer collected tests can still satisfy the package PASS expression.",
+      "current_run_effect": "None: independent stdout logs show exactly 148 passed and 82 passed, no skipped; Vue reports 45 passed, 0 skipped.",
+      "action": "Make the test gate enforce the frozen expected counts and skipped=0 for all three suites."
+    }
+  ],
+  "acceptance": {
+    "REVIEWED": "package bytes, 21-file before/after diff and target-path regression surfaces",
+    "TESTED": "275 independent isolated fixture tests passed; synthetic full-chain API/Vue checks passed",
+    "REAL_PYTDX_CANARY": "NOT_RUN due to Stage preparation blocker",
+    "LIVE_SAME_RUN_CONSUMER": "NOT_RUN",
+    "INTEGRATED": "CANNOT_CONFIRM",
+    "DEPLOYED": "NO_DEPLOYMENT",
+    "API_VERIFIED": "NOT_RUN against current service",
+    "UI_VERIFIED": "NOT_RUN against reloaded current page",
+    "NATURAL_VERIFIED": "NOT_RUN",
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM for real selected-date behavior"
+  },
+  "execution_notes": "The successful standalone API suite was rerun once by the official package wrapper after the initial direct Stage/Vue invocation setup was incomplete; the full wrapper run is the acceptance receipt. Five pytest cleanup warnings were emitted in Stage and API logs; both suites still report the exact pass counts above."
+}
