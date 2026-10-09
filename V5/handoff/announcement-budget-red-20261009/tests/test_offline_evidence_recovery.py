@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 from urllib.parse import parse_qs,urlsplit
@@ -28,21 +29,38 @@ class OfflineRecoveryTests(unittest.TestCase):
             'display_time':'2026-10-08 12:00:00:000','title':'离线 notice %d'%i,
             'codes':[{'market_code':'116','ann_type':'H','stock_code':'%05d'%i,'short_name':'Fixture'}]}
             for i in (1,2)]
+        first_body_ready=threading.Event()
+        cls.transport_trace=[]
         def transport(url,**kwargs):
             query=parse_qs(urlsplit(url).query)
             if urlsplit(url).path=='/api/security/ann':
                 page=int(query['page_index'][0]);data={'list':rows if page==1 else [],'page_index':page,'page_size':20,'total_hits':2}
             else:
                 art=query['art_code'][0];i=int(art[-4:])
-                if i==2:raise OSError('SYNTHETIC_UNKNOWN_CONSUMPTION')
+                if i==2:
+                    # Worker submission order is not request admission order.
+                    # Do not close the shared gate until body 1 is in flight.
+                    if not first_body_ready.wait(timeout=10):
+                        cls.transport_trace.append('FIRST_BODY_NOT_ADMITTED')
+                        raise AssertionError('FIXTURE_FIRST_BODY_NOT_ADMITTED')
+                    cls.transport_trace.append('BODY_2_SYNTHETIC_FAILURE')
+                    raise OSError('SYNTHETIC_UNKNOWN_CONSUMPTION')
                 data={'art_code':art,'notice_title':rows[i-1]['title'],'notice_date':rows[i-1]['notice_date'],
                     'notice_content':'离线 body','page_size':1,'security':[{'market_uni':'116','stock':'%05d'%i}]}
-            return support.SourceResponse(url=url,final_url=url,status_code=200,body=json.dumps({'success':1,'data':data}).encode(),
+            response=support.SourceResponse(url=url,final_url=url,status_code=200,body=json.dumps({'success':1,'data':data}).encode(),
                 headers={'Content-Type':'application/json'},retrieved_at='2026-10-09T00:00:00+00:00')
+            if urlsplit(url).path=='/api/content/ann':
+                cls.transport_trace.append('BODY_1_VALID_RESPONSE_READY')
+                first_body_ready.set()
+            return response
         owner=cls.fixture.owner(transport,initialize=True,capture_enabled=True)
         cls.result=owner.execute(['capture','--target-date','20261009','--publication-date','2026-10-08'])
         cls.run_id=cls.result['evidence_run_id']
         cls.prefix=Path('announcement_agent_runs')/cls.run_id/'evidence'
+        # Retain observable terminal identities/errors in assertion output even
+        # when the temporary fixture is cleaned up after the Mac run.
+        manifest=json.loads((cls.fixture.root/cls.prefix/'body_corpus_manifest.json').read_bytes())
+        cls.fixture_receipts=manifest['article_receipts']
 
     @classmethod
     def tearDownClass(cls):
@@ -81,14 +99,18 @@ class OfflineRecoveryTests(unittest.TestCase):
             self.assertEqual((evidence/top).read_bytes(),(evidence/'body_batch'/batch).read_bytes())
         result=validate_terminal_body_capture(evidence,json.loads((evidence/'catalog_read.json').read_bytes()),'20261009','2026-10-08',expected_run_id=self.run_id)
         self.assertEqual(result['status'],'PARTIAL_BODY_MATERIAL_CAPTURE_WITH_TERMINAL_GAPS')
-        self.assertEqual(len(result['failed_articles']),1)
+        statuses={row['art_code']:row['body_status'] for row in self.fixture_receipts}
+        self.assertEqual(statuses,{'AN2026100800000001':'COMPLETE_CONTENT_API_BODY',
+            'AN2026100800000002':'BODY_CAPTURE_FAILED'},self.fixture_receipts)
+        self.assertEqual(self.transport_trace,['BODY_1_VALID_RESPONSE_READY','BODY_2_SYNTHETIC_FAILURE'])
+        self.assertEqual(len(result['failed_articles']),1,{'receipts':self.fixture_receipts,'transport_trace':self.transport_trace})
 
     def test_serialization_only_recovery_keeps_originals_and_partial_status(self):
         with self.assertRaisesRegex(ValueError,'RECEIPT_BINDING_INVALID'):
             validate_terminal_body_capture(self.evidence,json.loads((self.evidence/'catalog_read.json').read_bytes()),'20261009','2026-10-08',expected_run_id=self.run_id)
         result=self.recover()
         self.assertEqual(result['terminal']['status'],'PARTIAL_BODY_MATERIAL_CAPTURE_WITH_TERMINAL_GAPS')
-        self.assertEqual(len(result['terminal']['failed_articles']),1)
+        self.assertEqual(len(result['terminal']['failed_articles']),1,{'receipts':self.fixture_receipts,'transport_trace':self.transport_trace})
         self.assertEqual(snapshot(self.source),self.original)
         for name in result['original_files']:self.assertEqual((self.out/'original'/name).read_bytes(),self.original[name])
         self.assertEqual((self.out/'transport_policy.json').read_bytes(),self.original['transport_policy.json'])

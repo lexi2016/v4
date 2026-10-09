@@ -1,5 +1,7 @@
 # 公告预算、HTTP 门禁与 V5 私有 owner 候选
 
+最新：780 Mac 恢复测试 13 PASS / 2 FAIL 的 fixture 顺序修复候选见 [RECOVERY_FIXTURE_ORDER.md](RECOVERY_FIXTURE_ORDER.md)。失败预期仍为 1；生产代码未改，待 Mac 单次复验。
+
 最新恢复入口身份加固见 [RECOVERY_IDENTITY_FIX.md](RECOVERY_IDENTITY_FIX.md)。新增原 app 与 identity SHA 必需参数；恢复用例 15 项、总计 70 项待 Mac。以下为历史背景。
 
 当前阶段：874 Mac 55 PASS 后发现真实字节序列化缺陷；只做离线恢复，见 [OFFLINE_RECOVERY.md](OFFLINE_RECOVERY.md)。原 55 项不变，新增 7 项候选，共 62 项；新测试尚未执行。旧 BLOCKED 与证据必须保留，禁止重采。以下为历史交付背景。
