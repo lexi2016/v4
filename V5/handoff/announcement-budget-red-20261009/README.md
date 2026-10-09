@@ -1,64 +1,60 @@
-# 公告请求预算 / 并发：首批 RED 候选
+# 公告请求预算与有界并发修复候选
 
-状态：TEST_CANDIDATE_NOT_RUN。仅测试与固定源副本；无生产修复、部署或远端采集。已获授权将本测试候选提交到独立分支 `v5/announcement-capture-budget-20261009`，精确发布 commit/tree/blob 由父任务交接记录提供。父任务安排现有 Mac 独立验收。云端只做 Git 原文件读取、manifest SHA 校验和打包，没有导入产品模块或执行本测试。
+状态：IMPLEMENTED_MAC_VALIDATION_PENDING。生产改动仅两份候选完整文件；未集成、部署、真实抓取或云端运行产品测试。保留原日期目录→全目录 body→审查导入路径，不改经理 reader/UI，也不增加采集器。
 
-## 固定来源及转移
+## 已收到的真实 RED
 
-- 原源 commit：`0fd5eb374cb155232ed003d5fc4d0d3594252491`。
-- V5 主开发基线：`945b89d7c3411a4913f50c4472514a61676c621e`，目标主任务分支 `v5/module-isolation-20261008`；本候选没有移动其 HEAD。
-- `SOURCE_MANIFEST.json`：逐文件原路径、Git blob SHA1、SHA256、来源 manifest 路径及 SHA256、原 source_root。
-- `pinned/ops/*.py`：daily-chain bundle manifest 精确对应的两个原脚本，未改。
-- `pinned/v4/manager_research/*.py` 与 `pinned/infrastructure/*.py`：同一固定提交的 API manifests 选取，按 snapshot_path 读取，再验证 manifest SHA。源文件虽去重存于 canonical 路径，选择依据是 API manifest，不是 main。该旧 API 快照与现役 R3 的依赖一致性尚须 Mac 核验，不能宣称现役等价。
-- `tests/test_capture_budget_red.py`：新增测试完整文件，stdlib unittest，无 pytest 安装要求；`pinned/**/__init__.py` 是空测试 namespace shim，不是产品修改。
-- 发布目录：`V5/handoff/announcement-budget-red-20261009/`，只新增测试、必要源文本和清单；不上传 tar.gz、日志或公告数据。全部源副本未改，暂无生产 patch，因为必须先取得实际 RED。
-- 全部新增交付路径与 manager_plan、workspace、UI 修改不重叠。只读依赖副本包含 workspace_projection.py，字节未改，也不应替换主任务对应文件。
+父任务报告现有 Mac 对 `2db7defbf6cde8663b0239f70a2993f65e1d4f61` 单次执行：3 PASS / 2 FAIL / 0 ERROR，exit 1，3.248 秒。长批预算下 HTTP timeout 实际 3600 秒、预期 20 秒；阻塞响应释放前同时进入 transport 实际 1、预期 3。源清单通过，13 个 pinned 文件与目标 R3 app/canonical 对应文件同 SHA；不是整个现役进程等价证明。
 
-## Mac 精确命令（由父任务安排，不启动另一任务）
+父任务提供的回执路径：`/Users/lexi/Documents/Codex/2026-10-08/task/announcement-budget-2db7def/evidence/RESULT.md`。本云端未读取该 Mac 文件，依据父任务回报开始实现。首轮 `-I` 忽略环境变量产生隔离目录 pycache，本轮命令改用 `-B -I`。
 
-在现有 Mac 验收终端使用已有私有仓库 checkout 只读取出固定提交；只写新的临时目录，不切换现役分支、不读取现役材料或配置。`CANDIDATE_COMMIT` 必须填父任务收到的发布固定 SHA，不用移动分支代替：
+## 交付与文件边界
+
+- 发布分支：`v5/announcement-capture-budget-20261009`，新增/修改仅在 `V5/handoff/announcement-budget-red-20261009/`。
+- 初始 V5 基线：`945b89d7c3411a4913f50c4472514a61676c621e`；本次 parent 为上述 RED commit。
+- 原源固定 `0fd5eb374cb155232ed003d5fc4d0d3594252491`。`SOURCE_MANIFEST.json` 保留逐文件原来源、manifest SHA、Git blob SHA1、SHA256；`pinned/` 原字节全部保留。
+- `candidate/ops/manager_announcement_body_batch.py` 与 `candidate/v4/manager_research/announcement_source.py` 是唯一生产实现候选完整文件。完整文件**不可直接覆盖 manager/UI 分支**；集成前须核前像和 Mac 验收，差异可对照 pinned 原文件查看。
+- `CANDIDATE_MANIFEST.json` 记录两文件前后 SHA、来源及 RED 依据。`SHA256SUMS` 校验整个交付包。
+- `tests/test_capture_budget_red.py` 保留原五项断言，增加竞争/缓存/释放/节流/owner/transport 回归；先验证原源 SHA，再验证候选 SHA，加载两份候选，其余依赖仍使用 pinned 原源。未安装/覆盖现役模块。
+- pinned 内 workspace_projection.py 仅为不变依赖副本；无主任务 workspace、manager_plan、UI 文件修改。无 tar.gz、公告数据、凭据、缓存或运行日志提交。
+
+## 实现
+
+1. 单请求 `timeout=min(provider._timeout, batch_remaining)`；剩余时间非正时拒绝发起，不把小于 1ms 的剩余时间向上取整。无 budget 时仍用 provider 原配置。
+2. 保持 3 workers / 2000 请求 / 64MiB / 3600 秒 / 0.35 秒准入间隔。独立 BoundedSemaphore 限制最多 3 个在途；Condition 短锁只修改计数、request-id 租约和准入时刻；等待节流时释放短锁。HTTP/read、MaterialStore 写入和 hash 回读均在计数锁外，许可在 finally 释放。
+3. 按 request-id 预留每响应上限，已结算字节加所有未结算预留不得超过总预算再准入。thread-local 绑定当前请求；重复结算同大小幂等，不同大小拒绝；重复 end 不释放他人的许可。失败释放尚未结算预留，已取得响应在时间/存储/hash 校验前计入物理字节，避免失败后漏计。缓存没有请求租约，不计物理请求或响应字节。
+4. 每 worker 首次工作时创建独立 HkexOfficialProvider，并在该线程复用；共享 MaterialStore，避免共享 urllib opener。
+5. 原 MaterialStore 按 source-key kernel_lock、SafeRoot 唯一临时文件保持不变。增加 URL 级 kernel lock 保护 attempt→receipt 状态转换，不串行不同 URL；原目录 art_code 唯一性校验不变。atomic_json 改 UUID 临时名并清理；progress/corpus 等聚合写入仍在主线程。
+6. 批次持有排他 kernel lock，第二 owner 立即拒绝。锁位置在 `output_root.parent/.locks/body-batch-<output basename SHA256>.mutex`，是唯一新增的 output_root 外侧写入；放在同一证据父目录是为了不预先创建 canary output、破坏原“目录必须不存在”门禁。inode 持久保留，不删除锁文件。原 incomplete marker 与 NO_RETRY 规则不变。
+
+## Mac 单次验收命令
+
+由父任务接续现有 Mac 验收，不另起任务。用已有私有仓库仅获取并提取固定提交，**不切换运行分支**。把 `REPO` 改为已有 checkout，把 `CANDIDATE_COMMIT` 填本轮固定发布 SHA（不是 RED 旧 SHA）。
 
 ```bash
 REPO=/path/to/existing/v4
 CANDIDATE_COMMIT=REPLACE_WITH_PUBLISHED_40_CHAR_COMMIT
- git -C "$REPO" fetch origin v5/announcement-capture-budget-20261009
- git -C "$REPO" cat-file -e "$CANDIDATE_COMMIT^{commit}"
-CANDIDATE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/announcement-budget-red.XXXXXX")"
+git -C "$REPO" fetch origin v5/announcement-capture-budget-20261009
+git -C "$REPO" cat-file -e "$CANDIDATE_COMMIT^{commit}" || exit 1
+CANDIDATE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/announcement-budget-fix.XXXXXX")"
 git -C "$REPO" archive "$CANDIDATE_COMMIT" V5/handoff/announcement-budget-red-20261009 | tar -x -C "$CANDIDATE_DIR"
-cd "$CANDIDATE_DIR/V5/handoff/announcement-budget-red-20261009"
-shasum -a 256 -c SHA256SUMS
-PYTHONDONTWRITEBYTECODE=1 python3 -I tests/test_capture_budget_red.py > mac-red.log 2>&1
+cd "$CANDIDATE_DIR/V5/handoff/announcement-budget-red-20261009" || exit 1
+shasum -a 256 -c SHA256SUMS || exit 1
+python3 -B -I tests/test_capture_budget_red.py > mac-validation.log 2>&1
 TEST_RC=$?
-cat mac-red.log
+cat mac-validation.log
 printf 'candidate_commit=%s test_exit=%s\n' "$CANDIDATE_COMMIT" "$TEST_RC"
 ```
 
-Python 3.10+，macOS/POSIX；只使用标准库。固定源内 PDF parser 会被导入，但不调用 PDF 解析，因此不需安装 PDF 依赖。测试使用真实 MaterialStore/SafeRoot 和真实 capture_eastmoney/_capture_url，替换最底层 HTTP transport 为受控 SourceResponse；audit hook 禁止 socket 连接、DNS、bind 和子进程。测试不调用 run_capture/main/daily owner、真实 URL 请求或服务入口。字符串 URL 仅用于原安全校验和 source-key，绝不连网。
+Python 3.10+、POSIX/macOS、标准库，无 PDF 解析调用，无需安装 PDF 依赖。测试用真实 capture/MaterialStore/SafeRoot 与受控 SourceResponse/可观测阻塞，所有材料/输出在测试临时目录；audit hook 禁止 socket、DNS、bind、子进程。部分 owner/provider 单元回归使用本地替身隔离实际 batch 入口；不调用服务或真实采集。预计 18 项通过，但**尚未运行，不宣称 GREEN**。请回传完整日志、退出码、Python/系统版本与固定 commit，错误/失败不要自动重跑。
 
-预期首轮：5 个测试方法中 2 个 FAIL、3 个 PASS（预测，尚未观测），exit=1：
+覆盖：原 timeout/三请求重叠与第四请求阻挡、传输失败释放/回执、请求/截止/字节门禁；缓存零成本、相同 URL 阻塞后复用、竞争预留/重复结算/重复释放、hash 回读失败仍计字节、请求额度竞争、节流/截止等待、unique tmp、批 owner 排他及 canary 目录不预创建、每 worker provider 隔离、许可等待截止、低于 1ms 的 timeout。
 
-1. timeout 长预算子项预期 `[20.0]`，原源实际应为 `[3600.0]`；短剩余 0.25 秒及无 budget 子项应通过。
-2. 三请求在释放任何 transport read 前同时进入，应为 3；原源预计只能观察到 1。控制线程等待有上限，finally 释放阻塞，结果还检查全部回执、请求数和实际字节总量。独立提交六个线程，同时检查第四个请求不得入场，防止修复后无限并发。
-3. 失败请求终态回执及 reservation 释放、请求/截止预算阻止 transport、字节预留阻止下一次满额响应应通过。
+## 限制与未执行
 
-导入、SHA、权限、超时 watchdog 等 ERROR 不算有效 RED。请返回 Mac Python/系统版本、发布 commit 与 SHA256SUMS 校验结果、完整 mac-red.log 和退出码。只有确认前两项以预期断言失败，才进入实现；不要把预测写成已失败。
-
-## 已核实源码与下一轮实现约束
-
-- daily `_capture` 215–274 仍是日期目录验证→全目录 body→证据回执；body batch 587–661 提交全部 rows，未换成前三入口抓取。
-- gate 的 RLock 从 before_request 延伸到 _capture_url finally end_request，跨 HTTP/read、MaterialStore 写入和 hash 回读。`_owner`/单 `_reserved_bytes` 只适用于单在途；不能简单提前 release。
-- timeout 源 521–523 有 budget 时只用 batch remainder；应约束 provider timeout 与剩余截止的最小值，并保留截止检查（该值是 transport/socket 超时，不等于已证明完整流读取硬截止）。
-- 保留原 3 workers、2000 请求、64MiB、3600 秒、0.35 秒；3 不是官方额度，不承诺性能倍数。独立 semaphore 限制在途，节流只控制开始时间；短计数锁维护 request-id reservation/结算，finally 恰好释放；失败、缓存、终态日志不得错计或释放他人的预留。
-- MaterialStore 145–195 按 source-key kernel_lock；SafeRoot 120–155 用 UUID 临时名/原子替换，182–215 用独立 fd flock。不同 key 可并行；相同 key 的 fetch 被序列化，但后续 readback 不在 fetch 锁内，仍须保证 URL/art_code 唯一派发，防止 force/rebind 竞争。仅静态核实，Mac 并发压力证明 NOT_RUN。
-- body-batch atomic_json 48–54 固定 `.tmp`，batch marker 存在检查与写入不是原子 owner 锁；并发实现须保留单 writer/唯一临时名和批 owner 排他，不能只靠 MaterialStore 锁。当前 progress 在 as_completed 主线程写，勿改为 worker 共写。
-- 原 run_capture 共享 provider；其 urllib opener 并发安全未证明。后续使用每 worker transport/provider，材料仓库共享；本测试使用每次调用独立受控 provider，不证明真实 opener 安全。
-- 原实现没有专用 429/403/Retry-After 能力。HTTPError 的 public_error 丢失状态及 Retry-After，envelope 不保存 headers。后续若加冷却，仅白名单保存 Retry-After（秒数/HTTP-date），不保存 cookie/token；403/验证码停止；429/503 冷却且 one-attempt 可保持，不用新 run 重置预算，不将 plan 600 秒退避冒充 HTTP 退避。API 合同/许可由父任务核实，此包不增加远端访问方式。
-- 原 resume 非中断续传；batch_attempt 无终态拒绝重跑，URL/article marker 无终态为 INDETERMINATE_NO_RETRY。保留完整成功页复用；已发无终态协调处理，不删 marker。
-
-## 最小缺项
-
-1. 现有 Mac 上实际 RED 结果；这是开始生产实现的前置条件。
-2. Mac 对 API manifest 依赖与目标实际 app 来源的核对（此包是固定候选快照）。
-3. GREEN 前还需追加并发 reservation 结算/重复释放、缓存零请求、节流与截止等待、MaterialStore 同 key/不同 key、重复 URL/art_code、批 owner 和唯一 tmp 回归。这首批不是完整并发安全证明。
-4. 真实 transport headers/停止冷却合同及准确集成路径由父任务确认后另做失败测试；本轮不实现重试。
-
-仓库与 Mac 上位规则已分清：读取固定 checkout 的 AGENTS.md 与 canonical/AGENTS.md；云端 `/workspace/.agents` 为空，checkout 无本地 skills；规则引用的 `/Users/lexi/.../AGENTS.md` 云端不可用，Mac 验收需读取。首轮遵守“先不推任何分支”；本轮根据父任务后续明确授权，仅发布指定独立分支及指定新增目录。已读取 test-driven-development/SKILL.md；其补充 writing-good-tests.md 资源读取失败。用户要求的“等待实际 RED 才实现”本身已经足够决定本轮停止于测试交付，无需另行授权。
+- 云端只做源码静态检查、清单和差异检查、发布后原字节读回；候选测试和完整产品 suite 均 NOT_RUN，Mac 候选 GREEN/集成/部署/自然运行均待完成。不能据此承诺提速倍数。
+- 原预算以 provider 调用计数，不涵盖 urllib 重定向物理 hops；请求返回前 transport 异常/中断的部分响应字节不可观测，沿用原失败释放语义，不虚构已读取长度。收到完整响应之后才有准确字节。单次 socket timeout 加 cooperative deadline 并不是整个流/存储耗时的硬终止保证；本补丁不增加外部 watchdog。
+- 在途许可覆盖收到响应后的 store/hash 收尾，最多 3 的约束比仅 HTTP 更保守。预留空间不足立即拒绝该次 URL，保留 one-attempt，而不是后台排队到预算回收后自动重试。
+- 源 API 目录 unique art_code 原校验保留；并发写入测试不等于外部进程 force/rebind 行为证明。批 owner 仅协调采用同一新锁的候选调用，不假称可与旧实现共同运行。不能并行启用旧采集器和候选。
+- 原代码没有专用 429/403/Retry-After 能力，本轮不新增或假称具备。HTTPError 仍可能经 public_error 丢失 status/Retry-After，envelope 不存 headers；后续需按父任务确认的 API 合同做白名单 Retry-After 冷却和 403/验证码停止回归，绝不绕过限制、代理轮转或扩大权限。未获官方并发额度，WORKERS=3 只是既有应用上限。
+- 原 resume 不是中断续传；已发请求无终态仍需协调，不删 marker/开新 run 重置预算。date-catalog 与审查导入入口未改。

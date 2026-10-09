@@ -1,0 +1,24 @@
+{
+  "status": "IMPLEMENTED_MAC_VALIDATION_PENDING",
+  "parent_commit": "2db7defbf6cde8663b0239f70a2993f65e1d4f61",
+  "red_evidence": "Parent-reported Mac single run: 3 PASS / 2 FAIL / 0 ERROR, exit 1; timeout 3600 vs 20; first wave 1 vs 3",
+  "cloud_product_tests": "NOT_RUN",
+  "entries": [
+    {
+      "candidate_path": "candidate/ops/manager_announcement_body_batch.py",
+      "target_app_path": "ops/manager_announcement_body_batch.py",
+      "source_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
+      "preimage_path": "pinned/ops/manager_announcement_body_batch.py",
+      "preimage_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "sha256": "8e1b35f177c9d83d2b84e9afcf4a1f8c48827fdaae91e3f73cb9d7a419aed8a8"
+    },
+    {
+      "candidate_path": "candidate/v4/manager_research/announcement_source.py",
+      "target_app_path": "v4/manager_research/announcement_source.py",
+      "source_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
+      "preimage_path": "pinned/v4/manager_research/announcement_source.py",
+      "preimage_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "sha256": "a6a4217ce492fcea699bc2751a7cb96793546c3826ad254752219cec48079edf"
+    }
+  ]
+}
