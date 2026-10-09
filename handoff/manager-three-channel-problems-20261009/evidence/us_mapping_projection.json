@@ -1,0 +1,23 @@
+{
+  "input_date": "20261008",
+  "input_kind": "POST_CLOSE source existed",
+  "isolated_run_id": "a95450cd4b264fb6840308d7d2681cf6",
+  "isolated_product_sha256": "2ac764fa1d5b691c6db518ff35b278f89cceeedd3614549a6741d4e8987bfa67",
+  "isolated_status": "VALID_EMPTY",
+  "isolated_coverage": {
+    "configured": 33,
+    "available": 33,
+    "reviewed": 4,
+    "matched_us": 0,
+    "matched_hk_relation": 0,
+    "full_market": false
+  },
+  "independent_review_status": "PASS",
+  "review_receipt_sha256": "eef898f0c3404f95f769ce032d54ae45da7f5683d97ceee36806fc5623ff9a1b",
+  "behavior_review_sha256": "8e98127c917de59634c6cb5eef8bf5e95d38796c76042faa4f2059e3357f9367",
+  "live_daily_run": "NOT_RUN",
+  "live_plan": "NOT_MATERIALIZED",
+  "live_gap": "DAILY_MAPPING_NOT_MATERIALIZED",
+  "trigger_to_plan_consumer_cause": "CANNOT_CONFIRM",
+  "no_algorithm_or_threshold_change": true
+}

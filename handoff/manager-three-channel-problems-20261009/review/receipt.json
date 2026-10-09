@@ -1,0 +1,70 @@
+{
+  "schema_version": "v1",
+  "reviewer": "/root/three_channel_package_review",
+  "independent_of_writer": true,
+  "scope": "frozen problem-package review only; no business state, live API, or business suite",
+  "package_id": "three_channel_problem_package_20261009",
+  "verdict": "FAIL",
+  "review_status": "FAIL",
+  "p0": [],
+  "p1": [],
+  "p2": [
+    {
+      "id": "P2-HK-FROZEN-INPUT-REPLAY",
+      "finding": "Local acceptance calls for replaying the frozen 16:01 input, but the reproducer reads latest.json from the supplied live authority root at invocation time and accepts no frozen snapshot input.",
+      "evidence": [
+        "package/LOCAL_ACCEPTANCE.md:7",
+        "tools/reproduce_screen_reader.py:8-16",
+        "evidence/hk_reader_projection.json:39-52",
+        "evidence/hk_reader_reproduction_1734.json:4-14"
+      ],
+      "confirmed": true,
+      "unproven": "CANNOT_CONFIRM that the stated 16:01 replay can be performed from this package; the 16:01 latest.json itself is not included."
+    }
+  ],
+  "package_validation": {
+    "directory_verifier": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/verify_package.py <package-directory>",
+      "status": "PASS",
+      "files": 62,
+      "errors": []
+    },
+    "zip_verifier": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/verify_package.py three_channel_problem_package_20261009.zip",
+      "status": "PASS",
+      "files": 62,
+      "errors": []
+    },
+    "zip_sha256_expected": "2357304626a82907a8e2ee01ef1f2bb15521a61e39a3f21727208b4903334e1d",
+    "zip_sha256_observed": "2357304626a82907a8e2ee01ef1f2bb15521a61e39a3f21727208b4903334e1d",
+    "offline_extraction": {
+      "members": 64,
+      "duplicate_members": false,
+      "unsafe_paths": 0,
+      "crc_error": null,
+      "member_bytes_match_package_directory": true
+    },
+    "source_index": {
+      "rows": 48,
+      "preimage": 20,
+      "candidate_after": 22,
+      "reference": 6,
+      "sha256": "36ad5654634fefd79561729649b3e35a91bbaa8c966261ebae0f1bd33e930626"
+    },
+    "source_manifest_sha256_field": "2288039fdfdc763904b943d57fb02ad16879b9fa5d7a2c4bc7e1b8b414ba4213",
+    "source_manifest_field_referent": "CANNOT_CONFIRM"
+  },
+  "problem_claim_review": {
+    "announcement_first_break": "CANNOT_CONFIRM; package correctly preserves uncertainty",
+    "us_mapping_trigger_or_consumer_cause": "CANNOT_CONFIRM; VALID_EMPTY and zero matches are not treated as a scheduler rejection or required nonzero selection",
+    "hk_20261008_missing_exact_index_key_in_recorded_observation": "SUPPORTED_BY_PACKAGED_EVIDENCE",
+    "hk_20261009_post_close_inner_cause": "CANNOT_CONFIRM",
+    "hk_695_receipt_is_d1_security_master": "CANNOT_CONFIRM"
+  },
+  "business_regression_tests": "NOT_RUN by frozen scope; package requires Chat to return targeted tests and actual results",
+  "business_behavior_verified": "CANNOT_CONFIRM",
+  "git_commit_to_bundled_file_identity": "CANNOT_CONFIRM under package-only scope",
+  "transferability": "Source bytes and hashes are transferable; revise the frozen-input acceptance instruction before marking the handoff REVIEWED.",
+  "report_path": "review/report.md",
+  "report_sha256": "7f5215a264ee97f6ad7d0c5aaaa2c2cabe4b73f701b91129fef4a04aa1384d70"
+}

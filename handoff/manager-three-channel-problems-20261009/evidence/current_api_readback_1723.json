@@ -1,0 +1,43 @@
+{
+  "started": "2026-10-09T17:23:37.791741+08:00",
+  "finished": "2026-10-09T17:23:38.293689+08:00",
+  "method": "GET",
+  "path": "/api/v4/manager/research/workspace",
+  "query": {
+    "date": "20261009",
+    "selection_date": "20261009",
+    "announcement_date": "20261008",
+    "view": "dynamic"
+  },
+  "http_status": 200,
+  "response_bytes": 8632376,
+  "response_sha256": "927933e64edf142927701d9ee29992ad91a0d5d9156e21a0ed9e6dcb184ec3d8",
+  "plan": {
+    "status": "NOT_MATERIALIZED",
+    "run_id": null,
+    "sha256": null
+  },
+  "us_mapping": {
+    "daily_run": "NOT_RUN",
+    "gaps": [
+      "DAILY_MAPPING_NOT_MATERIALIZED"
+    ],
+    "reviewed_symbols": 4,
+    "full_market_coverage": false
+  },
+  "announcement": {
+    "status": "PARTIAL",
+    "gap": "ANNOUNCEMENT_ANALYSIS_NOT_CONSUMED:ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED"
+  },
+  "market_screen": {
+    "status": "CANNOT_CONFIRM",
+    "session": "20261009",
+    "phase": "POST_CLOSE_COMPLETED_SESSION",
+    "gap": "SCREEN_SECURITY_MASTER_READ_FAILED:StoreError",
+    "selected_count": 0,
+    "strict_count": 0,
+    "input_candidate_count": 0,
+    "panel_row_count": 0
+  },
+  "raw_body_or_rows_saved": false
+}

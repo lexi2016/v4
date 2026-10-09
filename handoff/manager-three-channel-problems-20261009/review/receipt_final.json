@@ -1,0 +1,55 @@
+{
+  "schema_version": "v1",
+  "reviewer": "/root/three_channel_package_review",
+  "independent_of_writer": true,
+  "review_type": "incremental delta review",
+  "scope": "revised LOCAL_ACCEPTANCE wording and rebuilt manifest/ZIP only; no source re-review or business-state access",
+  "package_id": "three_channel_problem_package_20261009",
+  "verdict": "REVIEWED",
+  "review_status": "PASS",
+  "p0": [],
+  "p1": [],
+  "p2": [],
+  "prior_finding": {
+    "id": "P2-HK-FROZEN-INPUT-REPLAY",
+    "status": "RESOLVED_BY_DOC_UPDATE",
+    "resolution_evidence": "package/LOCAL_ACCEPTANCE.md:7 explicitly marks historical replay CANNOT_CONFIRM, describes the runtime latest.json fields to record, and separates synthetic regression fixtures."
+  },
+  "acceptance_delta": {
+    "historical_1601_latest_json_in_package": false,
+    "historical_replay": "CANNOT_CONFIRM",
+    "runtime_current_probe_description": "records current latest SHA, entry count, latest date, target-key presence, and error; not called historical replay",
+    "patched_behavior_test": "independent synthetic fixture, labeled synthetic regression",
+    "real_authority_root_writes": false
+  },
+  "validation": {
+    "directory_verifier": {
+      "status": "PASS",
+      "files": 64,
+      "errors": []
+    },
+    "zip_verifier": {
+      "status": "PASS",
+      "files": 64,
+      "errors": []
+    },
+    "zip_sha256_expected": "bace4ace340d38c1d964be1d5609e9cd2333f5b82f80cdfc0474187a0332e74e",
+    "zip_sha256_observed": "bace4ace340d38c1d964be1d5609e9cd2333f5b82f80cdfc0474187a0332e74e",
+    "offline_extraction": {
+      "members": 66,
+      "duplicate_members": false,
+      "unsafe_paths": 0,
+      "crc_error": null,
+      "inventory_matches_directory": true,
+      "member_bytes_match_directory": true,
+      "prior_report_included": true,
+      "prior_receipt_included": true
+    }
+  },
+  "business_tests": "NOT_RUN; incremental scope only",
+  "live_probe_or_api_read": "NOT_RUN",
+  "historical_replay": "CANNOT_CONFIRM",
+  "business_behavior_verified": "CANNOT_CONFIRM",
+  "report_path": "review/report_final.md",
+  "report_sha256": "35ddbd5aff24ef833c4d4cb620d82a4843efe6ce948a7bd6f22dcd1d21a973c0"
+}

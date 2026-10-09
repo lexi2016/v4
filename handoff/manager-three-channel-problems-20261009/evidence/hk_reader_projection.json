@@ -1,0 +1,54 @@
+{
+  "plan_run_id": "dba211c2677045afb4e0ef8c990367ee",
+  "plan_status": "PARTIAL",
+  "plan_product_sha256": "1074af779b6f0a6218a032b76620a31e6093341f51eed233bbe8579636d25db0",
+  "plan_artifact_sha256": "a63b34d364d4146317234a85bd19b7006ec44c9823f8de83ccf3d3767aef5675",
+  "root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+  "session": "20261008",
+  "latest_json": "assets/hk_security_master/latest.json",
+  "latest_json_sha256": "cc10ca8767b81a8192a6e6f7d7ac1a59e62777fb1566d840a24044d757573768",
+  "date_entries": 37,
+  "latest_entry": "20261009",
+  "target_entry_present": false,
+  "reader_chain": [
+    "workspace.py:724-727 read_rebound_screen",
+    "workspace_plan.py:614 _screen_security_master_witness",
+    "workspace_plan.py:616-618 calls load_verified_hk_security_master(authority_root, day)",
+    "hk_security_master.py:275-291 resolves latest.json entry and wraps metadata lookup errors"
+  ],
+  "readonly_reproduction": "StoreError: HK security-master metadata invalid: '20261008'",
+  "diagnosis": "Both the frozen 16:01 snapshot and the fresh read-only reproduction before 17:34 show the configured root has no 20261008 index key. latest.json advanced between observations (36 entries through 20260930, then 37 through 20261009). The exact-date loader still fails before date-specific manifest/receipt schema or source validation. This is not a path mismatch for the observed root; the separate 20261009 live GET only disclosed StoreError, so its inner cause remains CANNOT_CONFIRM.",
+  "get_1650": {
+    "phase": "POST_CLOSE_COMPLETED_SESSION",
+    "reported_gap": "exact-date panel missing",
+    "full_projection_retained": false
+  },
+  "get_1723": {
+    "started": "2026-10-09T17:23:37.791741+08:00",
+    "finished": "2026-10-09T17:23:38.293689+08:00",
+    "session": "20261009",
+    "phase": "POST_CLOSE_COMPLETED_SESSION",
+    "gap": "SCREEN_SECURITY_MASTER_READ_FAILED:StoreError",
+    "inner_cause": "CANNOT_CONFIRM",
+    "response_sha256": "927933e64edf142927701d9ee29992ad91a0d5d9156e21a0ed9e6dcb184ec3d8",
+    "response_bytes": 8632376
+  },
+  "hk695_receipt_sha256": "3242a8ffbc4364ff96ef18a2855037521902617fa21a8c024e6f57445dbcf3f3",
+  "hk695_is_d1_master": "CANNOT_CONFIRM",
+  "raw_rows_included": false,
+  "historical_1601": {
+    "latest_json_sha256": "7547d5c65a773ebeb51a81ec0a1ab173dc311ee3009b61088bede48260bcd763",
+    "date_entries": 36,
+    "latest_entry": "20260930",
+    "target_entry_present": false
+  },
+  "current_readonly_reproduction": {
+    "observed_before_local": "2026-10-09T17:34:08+08:00",
+    "latest_json_sha256": "cc10ca8767b81a8192a6e6f7d7ac1a59e62777fb1566d840a24044d757573768",
+    "date_entries": 37,
+    "latest_entry": "20261009",
+    "target_entry_present": false,
+    "result": "StoreError: HK security-master metadata invalid: '20261008'",
+    "writes": false
+  }
+}
