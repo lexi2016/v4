@@ -1,0 +1,551 @@
+{
+  "purpose": "TEST_ONLY_ORIGINAL_OWNER_RED_BASELINE_NOT_V5_WIRING",
+  "entries": [
+    {
+      "relative_path": "contracts/market_calendar_2026.json",
+      "local_path": "vendor/announcement_readback_baseline/contracts/market_calendar_2026.json",
+      "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "repository_path": "V5/vendor/announcement_readback_baseline/contracts/market_calendar_2026.json",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "contracts/stages.py",
+      "local_path": "tests/fixtures/manager_owner/source/contracts/stages.py",
+      "sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/contracts/stages.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "contracts/trading_calendar.py",
+      "local_path": "vendor/announcement_readback_baseline/contracts/trading_calendar.py",
+      "sha256": "584f28d18273a8824c5f68a701aa4404123b5c71900caada3e2772828991ee8f",
+      "repository_path": "V5/vendor/announcement_readback_baseline/contracts/trading_calendar.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "contracts/us_equity_calendar.py",
+      "local_path": "vendor/us_mapping_baseline/contracts/us_equity_calendar.py",
+      "sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452",
+      "repository_path": "V5/vendor/us_mapping_baseline/contracts/us_equity_calendar.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "contracts/us_equity_calendar_2026.json",
+      "local_path": "vendor/us_mapping_baseline/contracts/us_equity_calendar_2026.json",
+      "sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f",
+      "repository_path": "V5/vendor/us_mapping_baseline/contracts/us_equity_calendar_2026.json",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/_research_peripheral_store_parts/__init__.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/__init__.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/_research_peripheral_store_parts/envelope_validation.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/envelope_validation.py",
+      "sha256": "9b068a58500d557d34ccda6c6e08e9520d2989ae15a189e337498e184b37347f",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/envelope_validation.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "sha256": "7f6b3912b11c6c0af9e7027c57b564df1652c7b3c6a60b4690887e2ff62cb01e",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/_research_peripheral_store_parts/primitives.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/primitives.py",
+      "sha256": "e113c739623317ce562b9c24703524f094f7f7b8b370041bbc0ee3efdc567a8a",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/primitives.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/_research_peripheral_store_parts/publish_read.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/publish_read.py",
+      "sha256": "b51dea0a9c7b0e303f20e0fa76070e10008769592024ad062a032240fdfd3150",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/publish_read.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/_research_peripheral_store_parts/session_validation.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/session_validation.py",
+      "sha256": "48b6ec629083ff16ccaa9df4d0db50f1e43b2033edbcb10bed03d0b043a52145",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/session_validation.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/data_store.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/data_store.py",
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/data_store.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/http_transport.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/http_transport.py",
+      "sha256": "b34f906be69051da0f0f5e2f4980bf9b4c310d88ad9fc1b50b3246fceffccc69",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/http_transport.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/interprocess_lock.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/interprocess_lock.py",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/interprocess_lock.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/market_time.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/market_time.py",
+      "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/market_time.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/owned_io.py",
+      "local_path": "vendor/announcement_readback_baseline/infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "repository_path": "V5/vendor/announcement_readback_baseline/infrastructure/owned_io.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/owned_path.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/owned_path.py",
+      "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/owned_path.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/research_peripheral_store.py",
+      "local_path": "vendor/us_mapping_baseline/infrastructure/research_peripheral_store.py",
+      "sha256": "ec5ca1e32232946bacf04834d0ec0e0ed6e772ce1d3470fdb65b35522dc2faab",
+      "repository_path": "V5/vendor/us_mapping_baseline/infrastructure/research_peripheral_store.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "infrastructure/trading_safety.py",
+      "local_path": "vendor/announcement_readback_baseline/infrastructure/trading_safety.py",
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "repository_path": "V5/vendor/announcement_readback_baseline/infrastructure/trading_safety.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "ops/_materialize_research_peripherals_parts/__init__.py",
+      "local_path": "vendor/us_mapping_baseline/ops/_materialize_research_peripherals_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "repository_path": "V5/vendor/us_mapping_baseline/ops/_materialize_research_peripherals_parts/__init__.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "ops/_materialize_research_peripherals_parts/_namespace.py",
+      "local_path": "vendor/us_mapping_baseline/ops/_materialize_research_peripherals_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "repository_path": "V5/vendor/us_mapping_baseline/ops/_materialize_research_peripherals_parts/_namespace.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "ops/_materialize_research_peripherals_parts/schema_values.py",
+      "local_path": "vendor/us_mapping_baseline/ops/_materialize_research_peripherals_parts/schema_values.py",
+      "sha256": "2647cfffb684d91f152358368244e49c07b33e73b36f9183ca130879f14e609c",
+      "repository_path": "V5/vendor/us_mapping_baseline/ops/_materialize_research_peripherals_parts/schema_values.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "ops/_us_market_digest_parts/__init__.py",
+      "local_path": "vendor/us_mapping_baseline/ops/_us_market_digest_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "repository_path": "V5/vendor/us_mapping_baseline/ops/_us_market_digest_parts/__init__.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "ops/_us_market_digest_parts/_namespace.py",
+      "local_path": "vendor/us_mapping_baseline/ops/_us_market_digest_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "repository_path": "V5/vendor/us_mapping_baseline/ops/_us_market_digest_parts/_namespace.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "ops/_us_market_digest_parts/capture_metadata.py",
+      "local_path": "vendor/us_mapping_baseline/ops/_us_market_digest_parts/capture_metadata.py",
+      "sha256": "b6f7fb81bc6aa90cb48e1196b868dc05033b99c9054e145f295014afc81528a3",
+      "repository_path": "V5/vendor/us_mapping_baseline/ops/_us_market_digest_parts/capture_metadata.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "ops/_us_market_digest_parts/market_snapshot.py",
+      "local_path": "vendor/us_mapping_baseline/ops/_us_market_digest_parts/market_snapshot.py",
+      "sha256": "649d1f706f7ddbe662191b876fa46102c7b3f0f1d7f9cb2f8039a4d8b8e6287e",
+      "repository_path": "V5/vendor/us_mapping_baseline/ops/_us_market_digest_parts/market_snapshot.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "ops/_us_market_digest_parts/quote_parsing.py",
+      "local_path": "vendor/us_mapping_baseline/ops/_us_market_digest_parts/quote_parsing.py",
+      "sha256": "b2acf3b603248b13b8aed1b1e1da78fb64d2d9fa19b6d7d6e243fab8f7e6eb3e",
+      "repository_path": "V5/vendor/us_mapping_baseline/ops/_us_market_digest_parts/quote_parsing.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "ops/materialize_research_peripherals.py",
+      "local_path": "vendor/us_mapping_baseline/ops/materialize_research_peripherals.py",
+      "sha256": "712fb09f36f47f1e821793b2ba94a612396d474eb688036d40061458805ca512",
+      "repository_path": "V5/vendor/us_mapping_baseline/ops/materialize_research_peripherals.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "ops/us_market_digest.py",
+      "local_path": "vendor/us_mapping_baseline/ops/us_market_digest.py",
+      "sha256": "5e814bc2ddffeec45a2ed7a593d3fa20128826c7c4951e0f10a95f3bdc0f552c",
+      "repository_path": "V5/vendor/us_mapping_baseline/ops/us_market_digest.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/announcement_analysis.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/announcement_analysis.py",
+      "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/announcement_analysis.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/announcement_autorun.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/announcement_autorun.py",
+      "sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/announcement_autorun.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/announcement_catalog.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/announcement_catalog.py",
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/announcement_catalog.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/announcement_materials.py",
+      "local_path": "vendor/manager_attention_baseline/v4/manager_research/announcement_materials.py",
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "repository_path": "V5/vendor/manager_attention_baseline/v4/manager_research/announcement_materials.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/announcement_observation.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/announcement_observation.py",
+      "sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/announcement_observation.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/announcement_selection.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/announcement_selection.py",
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/announcement_selection.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/announcement_source.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/announcement_source.py",
+      "sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/announcement_source.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/archive_catalyst_inputs.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/archive_catalyst_inputs.py",
+      "sha256": "968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/archive_catalyst_inputs.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/attention_decision.py",
+      "local_path": "vendor/manager_attention_baseline/v4/manager_research/attention_decision.py",
+      "sha256": "4b84e0469a5267771ccfe9f9f5040fc829e82f7a1b24afdeed11ebef0cb7d640",
+      "repository_path": "V5/vendor/manager_attention_baseline/v4/manager_research/attention_decision.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/cache_contract.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/cache_contract.py",
+      "sha256": "0dabc0d2787fae9af2e3c0fb3f5bf3e49c71d28649ffd30c07c31f5e8d071b7f",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/cache_contract.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/catalyst_projection.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/catalyst_projection.py",
+      "sha256": "f0824db4b6ca7723c0e4ec47d6a34f9c1bb32a7c978974da0149ff525f5e7e13",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/catalyst_projection.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/connect_capture_adapter.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/connect_capture_adapter.py",
+      "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/connect_capture_adapter.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/connect_selection.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/connect_selection.py",
+      "sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+      "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/connect_selection.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/contracts.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/contracts.py",
+      "sha256": "d90f0027a8383f20a299e3058d69716e62737e9e5300afc61a8ef2ed949d402f",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/contracts.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/errors.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/errors.py",
+      "sha256": "324e0f53301d4ba1007e1a69c86559472347bb7124f6c216f2b3c18e2c80bc1a",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/errors.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/event_source.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/event_source.py",
+      "sha256": "a61bcc463b5c0cffdd4dbb4b5d6c8fe17315119dd07c221b95911ec1233d5585",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/event_source.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/evidence_identity.py",
+      "local_path": "vendor/manager_attention_baseline/v4/manager_research/evidence_identity.py",
+      "sha256": "6ff16b31c8e23f3bbceea7acc22cf866afc29db6f9f67158381cec2c23b3d053",
+      "repository_path": "V5/vendor/manager_attention_baseline/v4/manager_research/evidence_identity.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/existing_materials.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/existing_materials.py",
+      "sha256": "51ea860dcedba60a51d297f0223c47db5bc7f7ff7fd787e0347452523a8c0195",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/existing_materials.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/financial_projection.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/financial_projection.py",
+      "sha256": "c5aec263ae59791fe28e07ab38ac0062b39563a2a7006d6840dde43580e3372c",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/financial_projection.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/hkex_provider.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/hkex_provider.py",
+      "sha256": "7bc565f9c7a210bc4966622cfde60875ec9f002f7b38a5d9063c467a9499d56d",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/hkex_provider.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/issuer_us_relations.py",
+      "local_path": "vendor/manager_attention_baseline/v4/manager_research/issuer_us_relations.py",
+      "sha256": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f",
+      "repository_path": "V5/vendor/manager_attention_baseline/v4/manager_research/issuer_us_relations.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/material_transport.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/material_transport.py",
+      "sha256": "497c52c915e5485f34de27cb1fb2caca3971c77f531385a0d1f80d4587fc6ab5",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/material_transport.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/materials.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/materials.py",
+      "sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/materials.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/pdf_parser.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/pdf_parser.py",
+      "sha256": "0ddf7fd5510333c70060af7de2a25dd4e6c9ac2880a0d8b97d95e84542a03383",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/pdf_parser.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/plan_owner_dispatch.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/plan_owner_dispatch.py",
+      "sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+      "repository_path": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/plan_owner_dispatch.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/ports.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/ports.py",
+      "sha256": "d55f0bd6b5ade41ec78c429cbaea3986bb24a4723f473ef94ac0e5ad7d08afea",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/ports.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/recommendation.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/recommendation.py",
+      "sha256": "5a26bd6145a30d3314f8268a9fcffc57fc35f329e75492b97d9726b6c3eeffb4",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/recommendation.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/research_attention.py",
+      "local_path": "vendor/manager_attention_baseline/v4/manager_research/research_attention.py",
+      "sha256": "ccf9246193e082f6fd09e83fae0df00533c8dc0ef27ebb5f5335dfc35d76be96",
+      "repository_path": "V5/vendor/manager_attention_baseline/v4/manager_research/research_attention.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/research_evidence.py",
+      "local_path": "vendor/manager_attention_baseline/v4/manager_research/research_evidence.py",
+      "sha256": "d2539b676d5779d9369fd8aba187c0565fcc38dbb0e89596d1248668fda4a7d5",
+      "repository_path": "V5/vendor/manager_attention_baseline/v4/manager_research/research_evidence.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/safety.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/safety.py",
+      "sha256": "c82fcdee6845e765783584f5ac46a9d4ca6b6b9fda1c3c2e919c17ab17c7f3e8",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/safety.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/stage_read_timing.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/stage_read_timing.py",
+      "sha256": "bfbab170b4e8b32e1bdd0405282825989f0382aeb41e6044fe22d0fdeca6ae38",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/stage_read_timing.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/store.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/store.py",
+      "sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/store.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/us_mapping_relation_registry.json",
+      "local_path": "vendor/us_mapping_baseline/v4/manager_research/us_mapping_relation_registry.json",
+      "sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe",
+      "repository_path": "V5/vendor/us_mapping_baseline/v4/manager_research/us_mapping_relation_registry.json",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/us_mapping_research.py",
+      "local_path": "vendor/us_mapping_baseline/v4/manager_research/us_mapping_research.py",
+      "sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+      "repository_path": "V5/vendor/us_mapping_baseline/v4/manager_research/us_mapping_research.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/us_mapping_reviewed_20260930.json",
+      "local_path": "vendor/us_mapping_baseline/v4/manager_research/us_mapping_reviewed_20260930.json",
+      "sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a",
+      "repository_path": "V5/vendor/us_mapping_baseline/v4/manager_research/us_mapping_reviewed_20260930.json",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/us_market_bridge.py",
+      "local_path": "vendor/us_mapping_baseline/v4/manager_research/us_market_bridge.py",
+      "sha256": "18d4ede4267a446d235267c71cecd1208f30ae3fdfe9ff02d9354d1b5a18de06",
+      "repository_path": "V5/vendor/us_mapping_baseline/v4/manager_research/us_market_bridge.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/workspace.py",
+      "sha256": "ab25d4856019b10bda1cb73928e5e2e75fad870a8321025019dceeb2cf0b6b52",
+      "repository_path": "handoff/issue29-manager-daily-repair-20261008/after/v4/manager_research/workspace.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_actions.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/workspace_actions.py",
+      "sha256": "9ae8f53fd261e5a28f97029e76ee0b296d7befb02a32a0f6689229b5000b2ecf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_actions.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_announcements.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/workspace_announcements.py",
+      "sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04",
+      "repository_path": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/workspace_announcements.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_briefing.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/workspace_briefing.py",
+      "sha256": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_briefing.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_daily_channels.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/workspace_daily_channels.py",
+      "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_daily_channels.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_discovery.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/workspace_discovery.py",
+      "sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_discovery.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_history.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/workspace_history.py",
+      "sha256": "d46b84f084af5eb695812a7052520147722a80a6885fb3dfdb4c1a18de3c72b5",
+      "repository_path": "handoff/issue29-manager-daily-repair-20261008/after/v4/manager_research/workspace_history.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_plan.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/workspace_plan.py",
+      "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+      "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_plan.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_plan_autorun.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/workspace_plan_autorun.py",
+      "sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+      "repository_path": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/workspace_plan_autorun.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_projection.py",
+      "local_path": "vendor/announcement_readback_baseline/v4/manager_research/workspace_projection.py",
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "repository_path": "V5/vendor/announcement_readback_baseline/v4/manager_research/workspace_projection.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_read_control.py",
+      "local_path": "tests/fixtures/manager_owner/source/v4/manager_research/workspace_read_control.py",
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_read_control.py",
+      "commit": "8342862f05ca9f6516f51b3164b6110651e5af77"
+    },
+    {
+      "relative_path": "v4/manager_research/workspace_semantics.py",
+      "local_path": "vendor/manager_attention_baseline/v4/manager_research/workspace_semantics.py",
+      "sha256": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+      "repository_path": "V5/vendor/manager_attention_baseline/v4/manager_research/workspace_semantics.py",
+      "commit": "27c7d08c4e2d5261ff84a74db03daa033dce5759"
+    }
+  ]
+}
