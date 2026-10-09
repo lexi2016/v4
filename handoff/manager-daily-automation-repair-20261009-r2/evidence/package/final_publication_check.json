@@ -1,0 +1,46 @@
+{
+  "schema_version": "manager_daily_r2.publication_freeze.v1",
+  "status": "PASS_LOCAL_ARTIFACT_FREEZE_ONLY",
+  "checked_at_utc": "2026-10-09 00:50:09 UTC",
+  "clock_source": "clock__curr_time",
+  "relative_markdown_links_checked": 37,
+  "source_manifest_sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+  "review_bound_source_files": 5,
+  "identities": {
+    "source_manifest.json": {
+      "bytes": 15635,
+      "sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+      "git_blob_sha": "c67e26f95f2c1c0aa669b736864cdfef596a6c99"
+    },
+    "evidence/writer/writer_final_report.json": {
+      "bytes": 14599,
+      "sha256": "683ca56c18e91bec967e3ab0686c9f0c5e79025b8c2de2c3b41ac16b1c65e1e1",
+      "git_blob_sha": "32f214736e06d8e9df0e03d634c7290b5b131427"
+    },
+    "independent_tests/final_review.json": {
+      "bytes": 7630,
+      "sha256": "c777f4ce3266d9ed41c2c519a98b925d5d22f7bf7f88969b004ac21278d9c952",
+      "git_blob_sha": "28756a496f851186d689f235732484cf70c51c1b"
+    },
+    "evidence/package/final_packaging_review.json": {
+      "bytes": 7407,
+      "sha256": "ff141c440c07eb4218090f2b4fc297004d28531767c94a16d4636f5981c01c1f",
+      "git_blob_sha": "afd6f5b3f943d586dbedcba41016364cfcbbbbdf"
+    },
+    "evidence/package/review_source_binding.json": {
+      "bytes": 1909,
+      "sha256": "aed57209acfe8465349fddf44ca1496434ca204fd72fe39625ebbeed7db11065",
+      "git_blob_sha": "00f83d22ef759b7e99e8948b575100e3fc67b595"
+    },
+    "acceptance_status.json": {
+      "bytes": 3781,
+      "sha256": "a8e54ca63adda12a0e193af9a3225423af2bde936441beb708cb7371644b6a41",
+      "git_blob_sha": "43131bfc04df5e87dc39220f220c1fb224eb0c50"
+    }
+  },
+  "symlinks_and_generated_caches": "NONE",
+  "utf8_and_json_valid": true,
+  "original_seed_and_registry_reuploaded": false,
+  "deployments_or_business_calls_executed": false,
+  "note": "Independent packaging audit covers the pre-publication payload. This final identity manifest is generated after inserting that report and excludes its own digest."
+}

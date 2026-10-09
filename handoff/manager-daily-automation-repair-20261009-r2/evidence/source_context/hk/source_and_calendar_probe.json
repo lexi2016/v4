@@ -1,0 +1,194 @@
+{
+  "schema_version": "manager_hk_next_day_readonly_diagnostic.v1",
+  "captured_at_utc": "2026-10-09T00:18:23.417259+00:00",
+  "diagnostic_kind": "READ_ONLY_SOURCE_AND_NATIVE_CALENDAR_PROBE",
+  "python_version": "3.14.6",
+  "source_root": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+  "repo_head": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "source_identities": [
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "bytes": 106047,
+      "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb"
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "bytes": 12982,
+      "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "bytes": 17496,
+      "sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "bytes": 36498,
+      "sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "bytes": 67647,
+      "sha256": "27da90f0e623e45fa1a27af7dcc3b6e5e1ff2320bae1c61bd903ed82050beb89"
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+      "bytes": 3621,
+      "sha256": "e54266676520eaf3ff59340758891a0abc1807a4afff65ed2b2536b144f5e1ec"
+    },
+    {
+      "path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "bytes": 31474,
+      "sha256": "0a9651f88bc8a50d4b5e8ec4b6775a5291918f9f2556cf37c05b80a55cdfd84a"
+    },
+    {
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "bytes": 72911,
+      "sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c"
+    },
+    {
+      "path": "ops/ensure_hk_security_master.py",
+      "bytes": 44249,
+      "sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9"
+    },
+    {
+      "path": "runtime_layers/hk_child/ops/macos_research_panel_daily.py",
+      "bytes": 98276,
+      "sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3"
+    },
+    {
+      "path": "contracts/trading_calendar.py",
+      "bytes": 10239,
+      "sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1"
+    },
+    {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/contracts/market_calendar_2026.json",
+      "bytes": 3473,
+      "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
+    }
+  ],
+  "synthetic_clock_contract_cases": [
+    {
+      "target_trade_date": "20261008",
+      "synthetic_cutoff": "2026-10-09T08:15:00+08:00",
+      "planning_market_session": "20261007",
+      "screen_market_session": "20261008",
+      "screen_phase": "POST_CLOSE_COMPLETED_SESSION",
+      "screen_market_close": "2026-10-08T16:10:00+08:00",
+      "target_membership_required": "20261008"
+    },
+    {
+      "target_trade_date": "20261009",
+      "synthetic_cutoff": "2026-10-08T22:30:00+08:00",
+      "planning_market_session": "20261008",
+      "screen_market_session": "20261008",
+      "screen_phase": "PREOPEN_COMPLETED_SESSION",
+      "screen_market_close": "2026-10-08T16:10:00+08:00",
+      "target_membership_required": "20261009"
+    },
+    {
+      "target_trade_date": "20261009",
+      "synthetic_cutoff": "2026-10-09T09:20:00+08:00",
+      "planning_market_session": "20261008",
+      "screen_market_session": "20261008",
+      "screen_phase": "INTRADAY_COMPLETED_SESSION",
+      "screen_market_close": "2026-10-08T16:10:00+08:00",
+      "target_membership_required": "20261009"
+    },
+    {
+      "target_trade_date": "20261009",
+      "synthetic_cutoff": "2026-10-09T18:30:00+08:00",
+      "planning_market_session": "20261008",
+      "screen_market_session": "20261009",
+      "screen_phase": "POST_CLOSE_COMPLETED_SESSION",
+      "screen_market_close": "2026-10-09T16:10:00+08:00",
+      "target_membership_required": "20261009"
+    },
+    {
+      "target_trade_date": "20261012",
+      "synthetic_cutoff": "2026-10-12T09:20:00+08:00",
+      "planning_market_session": "20261009",
+      "screen_market_session": "20261009",
+      "screen_phase": "INTRADAY_COMPLETED_SESSION",
+      "screen_market_close": "2026-10-09T16:10:00+08:00",
+      "target_membership_required": "20261012"
+    }
+  ],
+  "volume_evidence_static": [
+    {
+      "function": "rebound_native_evidence",
+      "line_start": 764,
+      "line_end": 847,
+      "source_segment_sha256": "2ed83872e56758d890d096341523a23bd80b79ebc5f820f78f75728b4d6eb15e",
+      "owner_verified_literal_occurs": false,
+      "not_proven_literal_occurs": true
+    },
+    {
+      "function": "_screen_panel_volume_evidence",
+      "line_start": 918,
+      "line_end": 960,
+      "source_segment_sha256": "15f18540e662ef477ef220f5b8b02946e83ff6f76306fa7722cddcb5b00ffa84",
+      "owner_verified_literal_occurs": false,
+      "not_proven_literal_occurs": true
+    },
+    {
+      "function": "_screen_supplement_volume_evidence",
+      "line_start": 963,
+      "line_end": 972,
+      "source_segment_sha256": "c5dccc279a5bafa88d8600e0398e6d2b47ef91b8e913b07ebe40046dd0cf84ee",
+      "owner_verified_literal_occurs": false,
+      "not_proven_literal_occurs": true
+    }
+  ],
+  "publisher_manifest_literal": {
+    "function": "update_hk_0_2_panel_from_vipdoc",
+    "line_start": 576,
+    "line_end": 696,
+    "keys": [
+      "asset_schema_version",
+      "source_contract",
+      "increment_contract",
+      "panel_relative",
+      "panel_sha256",
+      "parent_panel_sha256",
+      "panel_rows",
+      "panel_code_count",
+      "panel_max_date",
+      "new_row_count",
+      "new_dates",
+      "through_date_code_count",
+      "positive_trade_coverage_rate",
+      "positive_amount_coverage_rate",
+      "source_file_count",
+      "source_location_contract",
+      "research_only",
+      "production_allowed",
+      "buy_gate_updated",
+      "orders_sent"
+    ],
+    "manifest_prepared_at_present": false,
+    "native_observation_present": false
+  },
+  "frozen_original_hk_workload": {
+    "path": "/workspace/scratch/a154a3323e32/investigation/automation/remote/scheduler/contracts/runtime_workloads.json",
+    "sha256": "7389cae30de08cf68c31e5b0bb6f5b17fead403366946496b7a4de148229d0ef",
+    "workload_id": "research_panel_daily_hk",
+    "enabled": true,
+    "slots": [
+      "1720"
+    ],
+    "run_policy": "HK_SECURITIES_TRADE_DAY",
+    "target_date_role": "BUSINESS_DATE",
+    "session_requirement": "POST_CLOSE"
+  },
+  "execution_boundary": {
+    "network_calls": 0,
+    "market_reads": 0,
+    "api_calls": 0,
+    "service_changes": 0,
+    "production_source_changes": 0,
+    "test_source_changes": 0,
+    "business_product_writes": 0,
+    "natural_sessions_verified": 0
+  }
+}

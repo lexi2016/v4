@@ -1,0 +1,373 @@
+
+ RUN  v4.1.10 /workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web
+
+ ❯ src/views/ManagerSelectionView.dailyIntegration.spec.ts (4 tests | 1 failed) 2090ms
+     × shows the actual saved plan in default auto and re-reads the same run on the same date 1241ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/views/ManagerSelectionView.dailyIntegration.spec.ts > complete ordinary manager parent over original FastAPI owners > shows the actual saved plan in default auto and re-reads the same run on the same date
+AssertionError: expected '计划保存状态20261008 · 来源已变化，保存计划不再对应当前输入保存…' to contain '保存产物已读回核验'
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"manager-selection-page"[39m
+        [33mdata-state[39m=[32m"ERROR"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"manager-hero"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"manager-hero__copy"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"manager-kicker"[39m
+            [36m>[39m
+              [0mV4 · 股票研究[0m
+            [36m</p>[39m
+            [36m<h1>[39m
+              [0m经理选股工作台[0m
+            [36m</h1>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"manager-hero__description"[39m
+            [36m>[39m
+              [0m 先看股票、理由和数据时间，再逐项核对条件。先核具体变化，再核预期；原Stage与BUY保留在来源详情。 [0m
+            [36m</p>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33maria-label[39m=[32m"当前目标交易日"[39m
+            [33mclass[39m=[32m"manager-hero__date"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0m原Stage参考日[0m
+            [36m</span>[39m
+            [36m<strong>[39m
+              [0m20261007[0m
+            [36m</strong>[39m
+            [36m<small>[39m
+              [0m研究日期 · exact[0m
+            [36m</small>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"manager-catalyst-host"[39m
+        [36m>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"本计划研究关注"[39m
+            [33mclass[39m=[32m"manager-catalyst-observations"[39m
+            [33mdata-input-identity[39m=[32m"9aadc35cf6a143a1d4329da09373a81ee977fae62230285c96d27099d10ef3e7"[39m
+            [33mdata-read-state[39m=[32m"READY"[39m
+            [33mdata-target-date[39m=[32m"20261008"[39m
+          [36m>[39m
+            [36m<header[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<h2[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m本计划研究关注[0m
+              [36m</h2>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m计划目标日：[0m
+                [36m<input[39m
+                  [33maria-label[39m=[32m"计划目标日"[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mtype[39m=[32m"date"[39m
+                [36m/>[39m
+                [36m<small[39m
+                  [33mclass[39m=[32m""[39m
+                [36m>[39m
+                  [0m独立于原Stage来源日期；URL用 plan_date 保存计划日，date 仍表示Stage来源日。[0m
+                [36m</small>[39m
+              [36m</label>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m""[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m读取更新[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m""[39m
+                [33mtitle[39m=[32m""[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m用既有材料生成计划[0m
+              [36m</button>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m读取口径：[0m
+                [36m<select[39m
+                  [33maria-label[39m=[32m"历史或现在回看"[39m
+                  [33mclass[39m=[32m""[39m
+                [36m>[39m
+                  [36m<option[39m
+                    [33mclass[39m=[32m""[39m
+                    [33mvalue[39m=[32m"auto"[39m
+                  [36m>[39m
+                    [0m当时历史 / 当日预览[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mclass[39m=[32m""[39m
+                    [33mvalue[39m=[32m"dynamic"[39m
+                  [36m>[39m
+                    [0m现在回看（可能含后续消息）[0m
+                  [36m</option>[39m
+                [36m</select>[39m
+              [36m</label>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m""[39m
+                [33mhidden[39m=[32m""[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m取消本次读取[0m
+              [36m</button>[39m
+            [36m</header>[39m
+            [36m<p[39m
+              [33maria-live[39m=[32m"polite"[39m
+              [33mclass[39m=[32m""[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m计划 20261008 · 当日动态预览（非历史冻结计划） ｜ 材料截至 10-08 10:00 港时 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<section[39m
+                [33maria-label[39m=[32m"每日研究结果与保存计划回执"[39m
+                [33mclass[39m=[32m""[39m
+                [33mdata-daily-research-run[39m=[32m""[39m
+              [36m>[39m
+                [36m<section[39m
+                  [33maria-label[39m=[32m"计划保存产物读回"[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mdata-plan-readback[39m=[32m""[39m
+                [36m>[39m
+                  [36m<h4[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m计划保存状态[0m
+                  [36m</h4>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m20261008 · 来源已变化，保存计划不再对应当前输入[0m
+                  [36m</p>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m保存运行 e11220020de04370acb8917a8a5fbc99 · 生成于 2026-10-08T02:00:02+00:00 · 读回于 2026-10-08T10:00:03+08:00[0m
+                  [36m</p>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m保存产物 SHA256 003e89f5b2717b673161165d9b36490662be5802c2456b438b557df2e2e95073[0m
+                  [36m</p>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m原 owner 记录：人工触发；不表示自然时段执行。[0m
+                  [36m</p>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m最近尝试 PARTIAL · e11220020de04370acb8917a8a5fbc99。[0m
+                  [36m</p>[39m
+                  [36m<details[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [36m<summary[39m
+                      [33mclass[39m=[32m""[39m
+                    [36m>[39m
+                      [0m计划 owner、同一 immutable run 的尝试回执与当前读回详情[0m
+                    [36m</summary>[39m
+            ...
+
+- Expected
++ Received
+
+- 保存产物已读回核验
++ 计划保存状态20261008 · 来源已变化，保存计划不再对应当前输入保存运行 e11220020de04370acb8917a8a5fbc99 · 生成于 2026-10-08T02:00:02+00:00 · 读回于 2026-10-08T10:00:03+08:00保存产物 SHA256 003e89f5b2717b673161165d9b36490662be5802c2456b438b557df2e2e95073原 owner 记录：人工触发；不表示自然时段执行。最近尝试 PARTIAL · e11220020de04370acb8917a8a5fbc99。计划 owner、同一 immutable run 的尝试回执与当前读回详情{
++   "product": {
++     "consumed": false,
++     "execution_context": {
++       "finished_at": "2026-10-08T02:00:02+00:00",
++       "natural_run_verified": false,
++       "scheduled_for": null,
++       "started_at": "2026-10-08T10:00:00.000000+08:00",
++       "timing": "UNCLASSIFIED",
++       "trigger_id": "8f0e01ab2b00e2d8677e119511e314ac6efcc6c31dc341681dbd8cf888bd009d",
++       "trigger_kind": "MANUAL"
++     },
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-08T02:00:02+00:00",
++     "last_checked_at": "2026-10-08T10:00:03+08:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "e11220020de04370acb8917a8a5fbc99",
++     "run_readback": {
++       "artifact_sha256": "003e89f5b2717b673161165d9b36490662be5802c2456b438b557df2e2e95073",
++       "input_identity": "03b38228242732e15c40c716ace25a28e76fd64d9a4b796434a21b450d74ed9e",
++       "owner": "ManagerResearchJobService.refresh_workspace_plan",
++       "owner_attempt_run_id": null,
++       "owner_attempt_sha256": null,
++       "owner_attempt_state": null,
++       "owner_finished_at": null,
++       "read_at": "2026-10-08T10:00:03+08:00",
++       "run_id": "e11220020de04370acb8917a8a5fbc99",
++       "status": "CANNOT_CONFIRM",
++       "target_trade_date": "20261008"
++     },
++     "sha256": "003e89f5b2717b673161165d9b36490662be5802c2456b438b557df2e2e95073",
++     "status": "STALE_INPUTS_CHANGED"
++   },
++   "exact_run_readback": {
++     "artifact_sha256": "003e89f5b2717b673161165d9b36490662be5802c2456b438b557df2e2e95073",
++     "input_identity": "03b38228242732e15c40c716ace25a28e76fd64d9a4b796434a21b450d74ed9e",
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "owner_attempt_run_id": null,
++     "owner_attempt_sha256": null,
++     "owner_attempt_state": null,
++     "owner_finished_at": null,
++     "read_at": "2026-10-08T10:00:03+08:00",
++     "run_id": "e11220020de04370acb8917a8a5fbc99",
++     "status": "CANNOT_CONFIRM",
++     "target_trade_date": "20261008"
++   },
++   "latest_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_context": {
++       "finished_at": "2026-10-08T02:00:02+00:00",
++       "natural_run_verified": false,
++       "scheduled_for": null,
++       "started_at": "2026-10-08T10:00:00.000000+08:00",
++       "timing": "UNCLASSIFIED",
++       "trigger_id": "8f0e01ab2b00e2d8677e119511e314ac6efcc6c31dc341681dbd8cf888bd009d",
++       "trigger_kind": "MANUAL"
++     },
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
++       "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
++       "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND",
++       "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND",
++       "MATERIAL_DISCOVERY_NATIVE_SECURITY_MASTER_ROOT_NOT_BOUND",
++       "PLAN_NATIVE_CLOSE_DATA_ROOT_NOT_BOUND",
++       "RESEARCH_ARCHIVE_READER_NOT_BOUND",
++       "SCREEN_AUTHORITY_ROOT_NOT_BOUND",
++       "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
++     ],
++     "finished_at": "2026-10-08T02:00:02+00:00",
++     "input_coverage": {
++       "attempted_artifact_count": 0,
++       "excluded_after_cutoff_count": 0,
++       "global_market_coverage": "NOT_ESTABLISHED",
++       "market_session": "20261007",
++       "material_count": 0,
++       "plan_trade_date": "20261008",
++       "research_cutoff": "2026-10-08T10:00:00+08:00",
++       "verified_artifact_count": 0,
++       "vibe_binding": {
++         "a_share_session_dates": [
++           "20261008"
++         ],
++         "availability_reason": null,
++         "calendar_owner": "contracts.trading_calendar / a_share",
++         "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
++         "calendar_status": "VERIFIED",
++         "context_dates": [],
++         "empty_dates": [],
++         "excluded_dates": [
++           "20261006",
++           "20261007"
++         ],
++         "gaps": [
++           "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
++         ],
++         "hk_candidate_coverage": "NOT_PROVIDED_BY_VIBE_A_SHARE_REVIEW_CONTRACT",
++         "market_scope": "A_SHARE_ONLY",
++         "material_count": 0,
++         "network_requests": 0,
++         "owner_verification_status": "NOT_CONFIGURED",
++         "projected_material_count": 0,
++         "projection_counts_by_date": {},
++         "projection_empty_dates": [],
++         "required_inputs": [
++           "binding_json",
++           "implementation_manifest_sha256",
++           "input_sha256_by_date:20261008"
++         ],
++         "schema_version": "v4.manager_research.vibe_binding_preflight.v1",
++         "source_contract": "A_SHARE_AGGREGATED_REVIEW_CONTEXT_ONLY",
++         "status": "NOT_CONFIGURED",
++         "unknown_calendar_dates": [],
++         "usable_context_available": false,
++         "verified_dates": [],
++         "writes": 0
++       },
++       "vibe_radar_snapshot": {
++         "excluded_after_cutoff_count": 0,
++         "included_material_count": 0,
++         "network_requests": 0,
++         "projected_material_count": 0,
++         "status": "NOT_CONFIGURED"
++       },
++       "window_dates": [
++         "20261006",
++         "20261007",
++         "20261008"
++       ]
++     },
++     "input_identity": "03b38228242732e15c40c716ace25a28e76fd64d9a4b796434a21b450d74ed9e",
++     "last_success_at": "2026-10-08T02:00:02+00:00",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "e11220020de04370acb8917a8a5fbc99",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "ad88ad5b7387c1ed6e67d8befd389bdc5f0b78a95518c07f1d1df1d8f63e66da",
++     "started_at": "2026-10-08T02:00:00.000000+00:00",
++     "state": "PARTIAL",
++     "success_scope": "EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE",
++     "summary": {
++       "focus_count": 0,
++       "formal_recommendation_count": 0,
++       "input_relation_count": 0,
++       "market_screen_card_count": null,
++       "market_screen_near_count": null,
++       "market_screen_strict_count": null,
++       "rejected_fragment_count": 0,
++       "relation_count": 0,
++       "reused_material_count": 0,
++       "stock_count": 0,
++       "theme_count": 0
++     },
++     "target_trade_date": "20261008"
++   }
++ }
+
+ ❯ src/views/ManagerSelectionView.dailyIntegration.spec.ts:168:52
+    166|
+    167|       const plan = root.querySelector<HTMLElement>('[data-plan-readbac…
+    168|       await waitFor(() => expect(plan.textContent).toContain('保存产物已读回核…
+       |                                                    ^
+    169|       const initialRun = plan.textContent?.match(/保存运行 ([A-Za-z0-9]+)/…
+    170|       expect(initialRun).toBeTruthy();
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../../../../../candidate/apps/web/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../../../../../candidate/apps/web/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../../../../../candidate/apps/web/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  17:25:04
+   Duration  3.78s (transform 887ms, setup 0ms, import 1.10s, tests 2.09s, environment 435ms)
+

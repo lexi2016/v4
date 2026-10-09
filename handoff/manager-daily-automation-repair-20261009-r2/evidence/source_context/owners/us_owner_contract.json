@@ -1,0 +1,709 @@
+{
+  "schema_version": "manager_daily_us_owner_contract_diagnosis.v1",
+  "observed_at_utc": "2026-10-09T00:16:49.598327+00:00",
+  "scope": "READ_ONLY_SOURCE_AND_SUPPLIED_EVIDENCE; no live Mac, source capture, POST, import, owner execution, enable, or deployment",
+  "calculation_scope": "Pure stdlib date derivation from read source contract and frozen calendar payload; not an execution of scheduler or owner and not new business tests.",
+  "source_identities": {
+    "actual_workload_snapshot": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/remote/scheduler/contracts/runtime_workloads.json",
+      "bytes": 51682,
+      "sha256": "7389cae30de08cf68c31e5b0bb6f5b17fead403366946496b7a4de148229d0ef"
+    },
+    "canonical_workload_snapshot": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/contracts/runtime_workloads.json",
+      "bytes": 52461,
+      "sha256": "0c6e8a7f823bfd2d01104de399593d047e870d18b28ea60269230a1ba88a028b"
+    },
+    "api_us_executor_candidate": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/api_executor_registry.py",
+      "bytes": 101560,
+      "sha256": "f462a3254c15cfe9043783b6e07c88781ea4a3151a652c02509da3f2d9b870c9"
+    },
+    "stage_us_executor_candidate": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/stage_executor_registry.py",
+      "bytes": 92433,
+      "sha256": "2f1354be9cdaa5b20293a74eefc7acbd3bd489661c9ffd2c598494e7492444f7"
+    },
+    "canonical_split_us_executor_candidate": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/infrastructure/scheduling/_executor_registry_parts/us_digest.py",
+      "bytes": 14764,
+      "sha256": "6515b81f47749e73206754d890d9ec9f58bbbe772b91f4716b55868c069a3452"
+    },
+    "api_us_digest_candidate": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/api_us_market_digest.py",
+      "bytes": 99595,
+      "sha256": "7c73342d8e2cfff536d81faf7d616e507581b67f5bf5ff44d9a97380859577ea"
+    },
+    "stage_us_digest_candidate": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/stage_us_market_digest.py",
+      "bytes": 90299,
+      "sha256": "59e54bd7e5d20aa650eb30998862e25773c5676d25b8455905d29f6caf64f68d"
+    },
+    "canonical_us_session_windows": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/ops/_us_market_digest_parts/session_windows.py",
+      "bytes": 6350,
+      "sha256": "608f4fead6c1ed236fd3180d724c6698a380f53c81e5df7852a71a078f969759"
+    },
+    "us_calendar": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/contracts/us_equity_calendar.py",
+      "bytes": 3603,
+      "sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452"
+    },
+    "us_calendar_payload": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/contracts/us_equity_calendar_2026.json",
+      "bytes": 603,
+      "sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f"
+    },
+    "daily_mapping_consumer": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/v4/manager_research/us_mapping_research.py",
+      "bytes": 57938,
+      "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7"
+    },
+    "daily_owner_dispatch": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 46210,
+      "sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90"
+    },
+    "source_input_evidence": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/boundaries.json",
+      "bytes": 11339,
+      "sha256": "53ad50519573ee8257e3079540683d4177259aa68daadee6965e706dcf7a6d8e"
+    },
+    "existing_us_slot_runner": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/840b9538/canonical/ops/run_us_market_slot.py",
+      "bytes": 10195,
+      "sha256": "16f7895072a66b8a7e6ed0c792f74069101426cfa1194df3bd89e63d95f4d948",
+      "git_blob_sha": "2841dc6d6802b787d279b7fa3023b7c68fb0ab82"
+    },
+    "existing_us_job_delivery": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/840b9538/DAILY_DELIVERY.json",
+      "bytes": 7256,
+      "sha256": "595e04e7dd94ccdbc9f8980e57adcb5291d4f6ca7dab10f046b72491c79062b0",
+      "git_blob_sha": "f1c80ecfc3b50418b710efa2bd9276131732db26"
+    },
+    "existing_us_job_readme": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/840b9538/README.md",
+      "bytes": 2161,
+      "sha256": "eb3c4ff301b3318fc0d1bc482e2c3050603af762f9fb846e0c9cbaade7e18f98",
+      "git_blob_sha": "400b4d993fd25c179d93ef05cc54474ba9c68ed1"
+    },
+    "relation_registry_recovered": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/840b9538/canonical/v4/manager_research/us_mapping_relation_registry.json",
+      "bytes": 809,
+      "sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe",
+      "git_blob_sha": "f03ed4b429c3e6155987276a080fe9b947580834"
+    },
+    "reviewed_seed_recovered": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/840b9538/canonical/v4/manager_research/us_mapping_reviewed_20260930.json",
+      "bytes": 7890,
+      "sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a",
+      "git_blob_sha": "5c2a632b3e812c67d24b12e3d0f1fe7524cbc944"
+    }
+  },
+  "actual_workload": {
+    "aliases": [
+      "us_market_digest_capture"
+    ],
+    "command": [
+      "python",
+      "-m",
+      "ops.us_market_digest",
+      "--data-root",
+      "{data_root}",
+      "--trade-date",
+      "{business_date}",
+      "--capture-phase",
+      "{capture_phase}"
+    ],
+    "enabled": false,
+    "market_scope": "CROSS_MARKET",
+    "owner_id": "v35_dispatcher.us_market_digest",
+    "run_policy": "NATURAL_DAY",
+    "safety": {
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    },
+    "scheduled_date_role": "SCHEDULED_DATE",
+    "session_requirement": "DAY_ELIGIBILITY_ONLY",
+    "signal_date_role": "BUSINESS_DATE",
+    "slots": [
+      "0415",
+      "0515",
+      "2100",
+      "2200"
+    ],
+    "target_date_role": "BUSINESS_DATE",
+    "workload_id": "us_market_digest"
+  },
+  "canonical_workload": {
+    "aliases": [
+      "us_market_digest_capture"
+    ],
+    "command": [
+      "python",
+      "-m",
+      "ops.us_market_digest",
+      "--data-root",
+      "{data_root}",
+      "--trade-date",
+      "{business_date}",
+      "--capture-phase",
+      "{capture_phase}"
+    ],
+    "enabled": true,
+    "market_scope": "CROSS_MARKET",
+    "owner_id": "v4_dispatcher.us_market_digest",
+    "run_policy": "NATURAL_DAY",
+    "safety": {
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    },
+    "scheduled_date_role": "SCHEDULED_DATE",
+    "session_requirement": "DAY_ELIGIBILITY_ONLY",
+    "signal_date_role": "BUSINESS_DATE",
+    "slots": [
+      "0415",
+      "0515",
+      "2100",
+      "2200"
+    ],
+    "target_date_role": "BUSINESS_DATE",
+    "workload_id": "us_market_digest"
+  },
+  "known_executable_layouts": [
+    {
+      "layer": "api snapshot observed 2026-10-05",
+      "layout": "INLINE_METHOD",
+      "path": "infrastructure/scheduling/executor_registry.py",
+      "method": "FixedExecutorRegistry._us_market_digest",
+      "lines": [
+        1929,
+        2229
+      ],
+      "source_ref": "api_us_executor_candidate",
+      "actual_current_scheduler_identity": "NOT_PROVEN"
+    },
+    {
+      "layer": "stage snapshot observed 2026-10-05",
+      "layout": "INLINE_METHOD",
+      "path": "infrastructure/scheduling/executor_registry.py",
+      "method": "FixedExecutorRegistry._us_market_digest",
+      "lines": [
+        1928,
+        2059
+      ],
+      "source_ref": "stage_us_executor_candidate",
+      "actual_current_scheduler_identity": "NOT_PROVEN"
+    },
+    {
+      "layer": "canonical snapshot",
+      "layout": "SPLIT_HELPER",
+      "path": "infrastructure/scheduling/_executor_registry_parts/us_digest.py",
+      "method": "_FixedExecutorRegistry__us_market_digest_body",
+      "lines": [
+        6,
+        283
+      ],
+      "source_ref": "canonical_split_us_executor_candidate",
+      "actual_current_scheduler_identity": "NOT_PROVEN"
+    }
+  ],
+  "layout_conclusion": "Missing split us_digest.py is insufficient to conclude the actual scheduler has no executable US owner. Obtain actual executor_registry.py, dispatch table/method identity and the imported ops.us_market_digest module, whether inline or split.",
+  "phase_contract": {
+    "timezone": "America/New_York",
+    "PRE_OPEN": [
+      "09:00:00",
+      "09:05:00"
+    ],
+    "POST_CLOSE": [
+      "16:15:00",
+      "16:20:00"
+    ],
+    "slots_timezone": "Asia/Shanghai",
+    "slots": [
+      "0415",
+      "0515",
+      "2100",
+      "2200"
+    ],
+    "run_policy": "NATURAL_DAY",
+    "phase_resolution_refs": [
+      "originals/api_us_market_digest.py:114-118,190-222",
+      "worktrees/manager_automation/ops/_us_market_digest_parts/session_windows.py:21-50"
+    ]
+  },
+  "derived_slots": [
+    {
+      "scheduled_date": "20261008",
+      "slot": "0415",
+      "shanghai_instant": "2026-10-08T04:15:00+08:00",
+      "new_york_instant": "2026-10-07T16:15:00-04:00",
+      "resolved_us_session": "20261007",
+      "capture_phase": "POST_CLOSE",
+      "slot_outcome": "DUE_CONTRACT_ONLY",
+      "us_calendar_state": "OPEN",
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261008",
+      "slot": "0515",
+      "shanghai_instant": "2026-10-08T05:15:00+08:00",
+      "new_york_instant": "2026-10-07T17:15:00-04:00",
+      "resolved_us_session": null,
+      "capture_phase": null,
+      "slot_outcome": "NOT_DUE",
+      "us_calendar_state": null,
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261008",
+      "slot": "2100",
+      "shanghai_instant": "2026-10-08T21:00:00+08:00",
+      "new_york_instant": "2026-10-08T09:00:00-04:00",
+      "resolved_us_session": "20261008",
+      "capture_phase": "PRE_OPEN",
+      "slot_outcome": "DUE_CONTRACT_ONLY",
+      "us_calendar_state": "OPEN",
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261008",
+      "slot": "2200",
+      "shanghai_instant": "2026-10-08T22:00:00+08:00",
+      "new_york_instant": "2026-10-08T10:00:00-04:00",
+      "resolved_us_session": null,
+      "capture_phase": null,
+      "slot_outcome": "NOT_DUE",
+      "us_calendar_state": null,
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261009",
+      "slot": "0415",
+      "shanghai_instant": "2026-10-09T04:15:00+08:00",
+      "new_york_instant": "2026-10-08T16:15:00-04:00",
+      "resolved_us_session": "20261008",
+      "capture_phase": "POST_CLOSE",
+      "slot_outcome": "DUE_CONTRACT_ONLY",
+      "us_calendar_state": "OPEN",
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261009",
+      "slot": "0515",
+      "shanghai_instant": "2026-10-09T05:15:00+08:00",
+      "new_york_instant": "2026-10-08T17:15:00-04:00",
+      "resolved_us_session": null,
+      "capture_phase": null,
+      "slot_outcome": "NOT_DUE",
+      "us_calendar_state": null,
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261009",
+      "slot": "2100",
+      "shanghai_instant": "2026-10-09T21:00:00+08:00",
+      "new_york_instant": "2026-10-09T09:00:00-04:00",
+      "resolved_us_session": "20261009",
+      "capture_phase": "PRE_OPEN",
+      "slot_outcome": "DUE_CONTRACT_ONLY",
+      "us_calendar_state": "OPEN",
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261009",
+      "slot": "2200",
+      "shanghai_instant": "2026-10-09T22:00:00+08:00",
+      "new_york_instant": "2026-10-09T10:00:00-04:00",
+      "resolved_us_session": null,
+      "capture_phase": null,
+      "slot_outcome": "NOT_DUE",
+      "us_calendar_state": null,
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261010",
+      "slot": "0415",
+      "shanghai_instant": "2026-10-10T04:15:00+08:00",
+      "new_york_instant": "2026-10-09T16:15:00-04:00",
+      "resolved_us_session": "20261009",
+      "capture_phase": "POST_CLOSE",
+      "slot_outcome": "DUE_CONTRACT_ONLY",
+      "us_calendar_state": "OPEN",
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261010",
+      "slot": "0515",
+      "shanghai_instant": "2026-10-10T05:15:00+08:00",
+      "new_york_instant": "2026-10-09T17:15:00-04:00",
+      "resolved_us_session": null,
+      "capture_phase": null,
+      "slot_outcome": "NOT_DUE",
+      "us_calendar_state": null,
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261010",
+      "slot": "2100",
+      "shanghai_instant": "2026-10-10T21:00:00+08:00",
+      "new_york_instant": "2026-10-10T09:00:00-04:00",
+      "resolved_us_session": "20261010",
+      "capture_phase": "PRE_OPEN",
+      "slot_outcome": "CLOSED_NO_CAPTURE",
+      "us_calendar_state": "CLOSED_WEEKEND",
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261010",
+      "slot": "2200",
+      "shanghai_instant": "2026-10-10T22:00:00+08:00",
+      "new_york_instant": "2026-10-10T10:00:00-04:00",
+      "resolved_us_session": null,
+      "capture_phase": null,
+      "slot_outcome": "NOT_DUE",
+      "us_calendar_state": null,
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261012",
+      "slot": "0415",
+      "shanghai_instant": "2026-10-12T04:15:00+08:00",
+      "new_york_instant": "2026-10-11T16:15:00-04:00",
+      "resolved_us_session": "20261011",
+      "capture_phase": "POST_CLOSE",
+      "slot_outcome": "CLOSED_NO_CAPTURE",
+      "us_calendar_state": "CLOSED_WEEKEND",
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261012",
+      "slot": "0515",
+      "shanghai_instant": "2026-10-12T05:15:00+08:00",
+      "new_york_instant": "2026-10-11T17:15:00-04:00",
+      "resolved_us_session": null,
+      "capture_phase": null,
+      "slot_outcome": "NOT_DUE",
+      "us_calendar_state": null,
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261012",
+      "slot": "2100",
+      "shanghai_instant": "2026-10-12T21:00:00+08:00",
+      "new_york_instant": "2026-10-12T09:00:00-04:00",
+      "resolved_us_session": "20261012",
+      "capture_phase": "PRE_OPEN",
+      "slot_outcome": "DUE_CONTRACT_ONLY",
+      "us_calendar_state": "OPEN",
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261012",
+      "slot": "2200",
+      "shanghai_instant": "2026-10-12T22:00:00+08:00",
+      "new_york_instant": "2026-10-12T10:00:00-04:00",
+      "resolved_us_session": null,
+      "capture_phase": null,
+      "slot_outcome": "NOT_DUE",
+      "us_calendar_state": null,
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261102",
+      "slot": "0415",
+      "shanghai_instant": "2026-11-02T04:15:00+08:00",
+      "new_york_instant": "2026-11-01T15:15:00-05:00",
+      "resolved_us_session": null,
+      "capture_phase": null,
+      "slot_outcome": "NOT_DUE",
+      "us_calendar_state": null,
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261102",
+      "slot": "0515",
+      "shanghai_instant": "2026-11-02T05:15:00+08:00",
+      "new_york_instant": "2026-11-01T16:15:00-05:00",
+      "resolved_us_session": "20261101",
+      "capture_phase": "POST_CLOSE",
+      "slot_outcome": "CLOSED_NO_CAPTURE",
+      "us_calendar_state": "CLOSED_WEEKEND",
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261102",
+      "slot": "2100",
+      "shanghai_instant": "2026-11-02T21:00:00+08:00",
+      "new_york_instant": "2026-11-02T08:00:00-05:00",
+      "resolved_us_session": null,
+      "capture_phase": null,
+      "slot_outcome": "NOT_DUE",
+      "us_calendar_state": null,
+      "actual_capture_observed": false
+    },
+    {
+      "scheduled_date": "20261102",
+      "slot": "2200",
+      "shanghai_instant": "2026-11-02T22:00:00+08:00",
+      "new_york_instant": "2026-11-02T09:00:00-05:00",
+      "resolved_us_session": "20261102",
+      "capture_phase": "PRE_OPEN",
+      "slot_outcome": "DUE_CONTRACT_ONLY",
+      "us_calendar_state": "OPEN",
+      "actual_capture_observed": false
+    }
+  ],
+  "derived_daily_bindings": [
+    {
+      "target_hk_date": "20261008",
+      "research_cutoff": "2026-10-08T06:30:00+08:00",
+      "expected_us_session": "20261007",
+      "completed_session_close_at": "2026-10-07T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-08T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261008",
+      "research_cutoff": "2026-10-08T09:27:00+08:00",
+      "expected_us_session": "20261007",
+      "completed_session_close_at": "2026-10-07T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-08T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261008",
+      "research_cutoff": "2026-10-08T10:00:00+08:00",
+      "expected_us_session": "20261007",
+      "completed_session_close_at": "2026-10-07T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-08T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261008",
+      "research_cutoff": "2026-10-08T12:30:00+08:00",
+      "expected_us_session": "20261007",
+      "completed_session_close_at": "2026-10-07T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-08T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261008",
+      "research_cutoff": "2026-10-08T15:45:00+08:00",
+      "expected_us_session": "20261007",
+      "completed_session_close_at": "2026-10-07T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-08T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261008",
+      "research_cutoff": "2026-10-08T18:30:00+08:00",
+      "expected_us_session": "20261007",
+      "completed_session_close_at": "2026-10-07T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-08T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261008",
+      "research_cutoff": "2026-10-08T22:30:00+08:00",
+      "expected_us_session": "20261007",
+      "completed_session_close_at": "2026-10-07T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-08T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261009",
+      "research_cutoff": "2026-10-09T06:30:00+08:00",
+      "expected_us_session": "20261008",
+      "completed_session_close_at": "2026-10-08T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-09T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261009",
+      "research_cutoff": "2026-10-09T09:27:00+08:00",
+      "expected_us_session": "20261008",
+      "completed_session_close_at": "2026-10-08T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-09T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261009",
+      "research_cutoff": "2026-10-09T10:00:00+08:00",
+      "expected_us_session": "20261008",
+      "completed_session_close_at": "2026-10-08T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-09T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261009",
+      "research_cutoff": "2026-10-09T12:30:00+08:00",
+      "expected_us_session": "20261008",
+      "completed_session_close_at": "2026-10-08T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-09T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261009",
+      "research_cutoff": "2026-10-09T15:45:00+08:00",
+      "expected_us_session": "20261008",
+      "completed_session_close_at": "2026-10-08T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-09T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261009",
+      "research_cutoff": "2026-10-09T18:30:00+08:00",
+      "expected_us_session": "20261008",
+      "completed_session_close_at": "2026-10-08T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-09T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261009",
+      "research_cutoff": "2026-10-09T22:30:00+08:00",
+      "expected_us_session": "20261008",
+      "completed_session_close_at": "2026-10-08T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-09T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261012",
+      "research_cutoff": "2026-10-12T06:30:00+08:00",
+      "expected_us_session": "20261009",
+      "completed_session_close_at": "2026-10-09T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-10T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261012",
+      "research_cutoff": "2026-10-12T09:27:00+08:00",
+      "expected_us_session": "20261009",
+      "completed_session_close_at": "2026-10-09T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-10T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261012",
+      "research_cutoff": "2026-10-12T10:00:00+08:00",
+      "expected_us_session": "20261009",
+      "completed_session_close_at": "2026-10-09T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-10T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261012",
+      "research_cutoff": "2026-10-12T12:30:00+08:00",
+      "expected_us_session": "20261009",
+      "completed_session_close_at": "2026-10-09T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-10T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261012",
+      "research_cutoff": "2026-10-12T15:45:00+08:00",
+      "expected_us_session": "20261009",
+      "completed_session_close_at": "2026-10-09T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-10T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261012",
+      "research_cutoff": "2026-10-12T18:30:00+08:00",
+      "expected_us_session": "20261009",
+      "completed_session_close_at": "2026-10-09T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-10T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    },
+    {
+      "target_hk_date": "20261012",
+      "research_cutoff": "2026-10-12T22:30:00+08:00",
+      "expected_us_session": "20261009",
+      "completed_session_close_at": "2026-10-09T16:00:00-04:00",
+      "source_natural_post_close_capture_at": "2026-10-10T04:15:00+08:00",
+      "actual_mapping_run_observed": false
+    }
+  ],
+  "retrospective_10_8_example": {
+    "example_actual_execution_at": "2026-10-09T08:04:00+08:00",
+    "target": "20261008",
+    "us_owner_research_cutoff": "2026-10-08T23:59:59.999999+08:00",
+    "expected_us_session": "20261007",
+    "plan_owner_execution_cutoff": "Actual execution time is preserved separately; do not clamp the entire plan or timestamp it 10/8",
+    "actual_execution_performed": false
+  },
+  "existing_10_7_source_evidence": {
+    "evidence_level": "SUPPLIED_10_8_READONLY_METADATA_NOT_FRESH_HOST_READ",
+    "us_session": "20261007",
+    "captured_at": "2026-10-07T20:15:00Z",
+    "derived_hk_time": "2026-10-08T04:15:00+08:00",
+    "payload_sha256": "34c529faf0b356afcd47a48d583e18bb63de29beea36fa0fda7af8736c5a8056",
+    "receipt_and_manifest_match_reported": true,
+    "capture_slot_time_aligned": true,
+    "original_trigger_run_id": null,
+    "actual_executable_sha256": null,
+    "actual_enabled_producer_binding": null,
+    "natural_capture_proven": false,
+    "continuous_source_dates_proven": false,
+    "reason": "Exact source bytes/receipt existence and scheduled-looking timestamps do not identify which actual executable/trigger produced them. No source-linked US dispatch receipt is in this evidence."
+  },
+  "minimum_wiring_point": {
+    "consumer": "Existing ResearchPeripheralStore -> ResearchPeripheralUsMarketReader.read_exact_session -> us_market_bridge.project_us_market -> refresh_us_mapping_research -> persisted daily run -> original plan owner",
+    "already_implemented": "008649895054cb24f1d1c3df37e215d307615db3",
+    "next_existing_entry": "Existing ops/run_us_market_slot.py from 840b9538, reported deployed hash16f7895072… and V4 owner. Read its current actual LaunchAgent/task binding, app/executor/CLI/data/ledger roots and recent exact US capture receipts.",
+    "v35_disabled_interpretation": "Not evidence that all US production is disabled. Separate V4 original owner was previously loaded; keep V35 disabled pending ownership reconciliation.",
+    "safe_next_code_scope": "Restore/reuse already fixed original slot-runner bytes only if actual current source identity/authorized integration calls for it. Then apply at most the missing bounded wiring inside that original owner. No enabled flag change or new capture scheduling is justified from current source evidence alone.",
+    "preserve_source_fix": "The frozen09 assembled canonical runner is older 9035B/e2e9cf1e…, while840b9538 has10195B/16f7895072… reported deployed with15min default lateness. Do not regress it by copying the older source slice.",
+    "late_recovery": "API producer candidate retains original five-minute natural capture window and an explicit bounded late POST_CLOSE path; scheduler calls do not automatically pass late flag. Outer wrapper15min admission is not proof that a newly delayed capture past16:20NY succeeds. Need source-bound actual receipt before choosing a correction."
+  },
+  "report_revision": 2,
+  "prior_loaded_original_v4_us_job": {
+    "commit": "840b9538c45c9ba8fd56f8e89048aff230df0f0f",
+    "receipt_path": "handoff/us-mapping-daily-workbench-20261005/DAILY_DELIVERY.json",
+    "receipt_sha256": "595e04e7dd94ccdbc9f8980e57adcb5291d4f6ca7dab10f046b72491c79062b0",
+    "receipt_release": "manager-us-mapping-daily-20261006-r2",
+    "loaded_at_receipt_time": true,
+    "current_loaded_status": "NOT_RECHECKED_ON_HOST",
+    "source_wrapper": "ops/run_us_market_slot.py",
+    "source_wrapper_sha256": "16f7895072a66b8a7e6ed0c792f74069101426cfa1194df3bd89e63d95f4d948",
+    "owner_id": "v4_dispatcher.us_market_digest",
+    "four_slots": [
+      "0415",
+      "0515",
+      "2100",
+      "2200"
+    ],
+    "RunAtLoad": false,
+    "default_lateness_limit_minutes": 15,
+    "wrapper_catalog_admission": "Exactly one original workload, owner v4_dispatcher.us_market_digest, enabled=True, exact four-slot sequence; narrows original catalog in memory and calls existing dispatcher/executor/ledger.",
+    "source_refs": [
+      "originals/840b9538/canonical/ops/run_us_market_slot.py:28-33,55-97,158-214,243-271",
+      "originals/840b9538/DAILY_DELIVERY.json:104-118"
+    ],
+    "actual_plist_bytes": "NOT_INCLUDED (original README explicitly excludes plists)",
+    "actual_job_label": null,
+    "actual_current_argv": null,
+    "actual_current_data_root": null,
+    "actual_current_ledger_root": null,
+    "actual_current_executor_or_child_root": null,
+    "natural_capture_claimed_by_prior_receipt": false,
+    "conclusion": "A pre-existing distinct V4 US capture job was reported installed and loaded. V35 workload disabled cannot establish US source starvation. Verify and reuse this original loaded job before any scheduler activation; do not create duplicate US producers."
+  },
+  "recovered_reviewed_dependencies": {
+    "status": "RAW_BYTES_RECOVERED_FROM_PRIOR_FIXED_ORIGINAL_COMMIT_MATCH_PROBLEM_METADATA_PINS",
+    "current_process_loaded_identity": "NOT_VERIFIED",
+    "registry": {
+      "sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe",
+      "bytes": 809,
+      "availability": "2026-10-05T16:18:15.957785+00:00",
+      "availability_scope": "APPLICATION_SYSTEM_ONLY_NOT_HISTORICAL_PIT_OR_TARGET_DATE_ELIGIBILITY"
+    },
+    "seed": {
+      "sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a",
+      "bytes": 7890
+    },
+    "no_new_relations_or_times_created": true
+  }
+}

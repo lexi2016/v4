@@ -1,0 +1,205 @@
+{
+  "source_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+  "file_count": 33,
+  "all_match": true,
+  "files": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "expected_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+      "observed_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+      "match": true
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "expected_sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "observed_sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "match": true
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "expected_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+      "observed_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+      "match": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "expected_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+      "observed_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+      "match": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+      "expected_sha256": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501",
+      "observed_sha256": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501",
+      "match": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+      "expected_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+      "observed_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+      "match": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "expected_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+      "observed_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+      "match": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "expected_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+      "observed_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+      "match": true
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "expected_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+      "observed_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+      "match": true
+    },
+    {
+      "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+      "expected_sha256": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+      "observed_sha256": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+      "match": true
+    },
+    {
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "expected_sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+      "observed_sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+      "match": true
+    },
+    {
+      "path": "ops/ensure_hk_security_master.py",
+      "expected_sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "observed_sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "match": true
+    },
+    {
+      "path": "ops/render_manager_announcement_binding.py",
+      "expected_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+      "observed_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+      "match": true
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "expected_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+      "observed_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+      "match": true
+    },
+    {
+      "path": "runtime_layers/hk_child/ops/macos_research_panel_daily.py",
+      "expected_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+      "observed_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+      "match": true
+    },
+    {
+      "path": "tests/manager_daily_ui_owner_fixture.py",
+      "expected_sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+      "observed_sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+      "match": true
+    },
+    {
+      "path": "tests/manager_daily_ui_route_fixture.py",
+      "expected_sha256": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104",
+      "observed_sha256": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104",
+      "match": true
+    },
+    {
+      "path": "tests/test_hk_daily_publication_chain.py",
+      "expected_sha256": "5e70c7f2943df396b0d8dde48c8adcc0153962306d71c0ececb72af17e04eec3",
+      "observed_sha256": "5e70c7f2943df396b0d8dde48c8adcc0153962306d71c0ececb72af17e04eec3",
+      "match": true
+    },
+    {
+      "path": "tests/test_hk_daily_supplement_r4.py",
+      "expected_sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+      "observed_sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+      "match": true
+    },
+    {
+      "path": "tests/test_manager_daily_automation_20261008.py",
+      "expected_sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "observed_sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "match": true
+    },
+    {
+      "path": "tests/test_manager_daily_dispatch_20261008.py",
+      "expected_sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+      "observed_sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+      "match": true
+    },
+    {
+      "path": "tests/test_manager_history_contract_20261008.py",
+      "expected_sha256": "ba8b74490c9fcb248bc102c0c22aa76ec121f268730ab13ac14c2f69e013d188",
+      "observed_sha256": "ba8b74490c9fcb248bc102c0c22aa76ec121f268730ab13ac14c2f69e013d188",
+      "match": true
+    },
+    {
+      "path": "tests/test_manager_owner_namespace_contracts.py",
+      "expected_sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0",
+      "observed_sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0",
+      "match": true
+    },
+    {
+      "path": "tests/test_manager_us_daily_automation_20261008.py",
+      "expected_sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "observed_sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "match": true
+    },
+    {
+      "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "expected_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+      "observed_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+      "match": true
+    },
+    {
+      "path": "tests/test_manager_workspace_owner_20261008.py",
+      "expected_sha256": "46ebbea9f71baf052ebbd1185d2dc25bcd4bc92d3e2e6da8ebd96c41135294ea",
+      "observed_sha256": "46ebbea9f71baf052ebbd1185d2dc25bcd4bc92d3e2e6da8ebd96c41135294ea",
+      "match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "expected_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "observed_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "expected_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+      "observed_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "expected_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "observed_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "expected_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "observed_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "expected_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+      "observed_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "expected_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "observed_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "expected_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+      "observed_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+      "match": true
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": "manager_daily_r2.existing_test_dependencies.v1",
+  "files": [
+    {
+      "path": "tests/test_manager_announcement_parity_20261008.py",
+      "bytes": 40192,
+      "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+      "git_blob_sha": "899b9cb388d63fd88a84ad268df98e0290183ef0",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_paths": [
+        "handoff/manager-workbench-repair-20261008/after/tests/test_manager_announcement_parity_20261008.py"
+      ],
+      "role": "UNCHANGED_ORIGINAL_TEST_FIXTURE_OR_REGRESSION_SOURCE"
+    },
+    {
+      "path": "tests/test_manager_us_mapping_research.py",
+      "bytes": 19113,
+      "sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "git_blob_sha": "11a08514d51b1eeea45b7326ecf87336f9c1fe18",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_paths": [
+        "handoff/manager-daily-chain-20261008/source/api_app/tests/test_manager_us_mapping_research.py"
+      ],
+      "role": "UNCHANGED_ORIGINAL_TEST_FIXTURE_OR_REGRESSION_SOURCE"
+    },
+    {
+      "path": "tests/manager_daily_ui_owner_fixture.py",
+      "bytes": 10401,
+      "sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+      "git_blob_sha": "d96cefec9fbdb3b01662b7e2f9670c0d43c05c59",
+      "source_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+      "source_paths": [
+        "handoff/manager-daily-automation-repair-20261008-r1/after/tests/tests/manager_daily_ui_owner_fixture.py"
+      ],
+      "role": "UNCHANGED_ORIGINAL_TEST_FIXTURE_OR_REGRESSION_SOURCE"
+    },
+    {
+      "path": "tests/test_manager_history_readback_r1.py",
+      "bytes": 13935,
+      "sha256": "aa2109b6cc8fd96e43212c59d30bec754bf51cb9c630e162a7c07ed15b585f26",
+      "git_blob_sha": "3118c1ba68dd9801f32149f4d55393b495b27f2c",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_paths": [
+        "handoff/issue29-manager-daily-repair-20261008/after/tests/test_manager_history_readback_r1.py"
+      ],
+      "role": "UNCHANGED_ORIGINAL_TEST_FIXTURE_OR_REGRESSION_SOURCE"
+    },
+    {
+      "path": "tests/test_manager_history_contract_20261008.py",
+      "bytes": 15113,
+      "sha256": "ba8b74490c9fcb248bc102c0c22aa76ec121f268730ab13ac14c2f69e013d188",
+      "git_blob_sha": "3e0f6b5002963b3eb29aa8327fab2b0c2d405282",
+      "source_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+      "source_paths": [
+        "handoff/manager-daily-automation-repair-20261008-r1/after/tests/tests/test_manager_history_contract_20261008.py"
+      ],
+      "role": "UNCHANGED_ORIGINAL_TEST_FIXTURE_OR_REGRESSION_SOURCE"
+    }
+  ],
+  "source_modules_reuploaded": false
+}

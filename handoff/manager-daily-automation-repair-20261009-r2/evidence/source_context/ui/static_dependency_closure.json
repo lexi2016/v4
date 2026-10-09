@@ -1,0 +1,3963 @@
+{
+  "schema_version": "manager_ui_readonly_source_closure.v1",
+  "method": "TypeScript 5.9.3 syntax-tree static imports; Vue script extraction; no application code execution and no source edits",
+  "source_root": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+  "source_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+  "overlay": {
+    "apps/web/src/api/managerAnnouncementAnalysis.ts": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+    "apps/web/src/manager-selection/announcementAnalysis.ts": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/source/apps/web/src/manager-selection/announcementAnalysis.ts"
+  },
+  "results": [
+    {
+      "entry": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "with_recovered_original_pair": false,
+      "node_count": 8,
+      "nodes": [
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerWorkspace.ts",
+          "bytes": 109062,
+          "sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "bytes": 9195,
+          "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/announcementObservation.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/announcementObservation.ts",
+          "bytes": 16354,
+          "sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/businessStatus.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/businessStatus.ts",
+          "bytes": 15087,
+          "sha256": "7eb96077f9c4c76c926b452dc0c4c581d3e35f777be8cde9d2c789b344bd6089",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "bytes": 65108,
+          "sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyChannels.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyChannels.ts",
+          "bytes": 18449,
+          "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyResearchRun.ts",
+          "bytes": 19519,
+          "sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/researchAttention.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/researchAttention.ts",
+          "bytes": 23801,
+          "sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        }
+      ],
+      "edges": [
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementObservation.js",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/manager-selection/announcementObservation.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./researchAttention.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/researchAttention.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./businessStatus.js",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/businessStatus.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": false,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerAnnouncementAnalysis.js",
+          "type_only": false,
+          "line": 14,
+          "target": null
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementAnalysis.js",
+          "type_only": false,
+          "line": 15,
+          "target": null
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./adapters/workspaceDecision.js",
+          "type_only": false,
+          "line": 17,
+          "target": "apps/web/src/manager-selection/adapters/workspaceDecision.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "specifier": "../../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": true,
+          "line": 6,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/businessStatus.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/announcementObservation.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        }
+      ],
+      "missing": [
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "../api/managerAnnouncementAnalysis.js",
+          "line": 14
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "./announcementAnalysis.js",
+          "line": 15
+        }
+      ],
+      "external": [],
+      "fetch_calls": [
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1533,
+          "expression": "fetch(`/api/v4/manager/research/workspace?${query}`, {\n    method: 'GET', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1547,
+          "expression": "fetch(`/api/v4/manager/research/announcements?date=${encodeURIComponent(date)}`,{\n    method:'GET',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1560,
+          "expression": "fetch(`/api/v4/manager/research/announcements/refresh?date=${encodeURIComponent(date)}`,{\n    method:'POST',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1585,
+          "expression": "fetch(`/api/v4/manager/research/workspace/refresh?${params.toString()}`, {\n    method: 'POST', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        }
+      ]
+    },
+    {
+      "entry": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "with_recovered_original_pair": true,
+      "node_count": 10,
+      "nodes": [
+        {
+          "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+          "bytes": 19705,
+          "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+          "source_kind": "EXACT_RECOVERED_PRIOR_ACCEPTED_SOURCE"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerWorkspace.ts",
+          "bytes": 109062,
+          "sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "bytes": 9195,
+          "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/source/apps/web/src/manager-selection/announcementAnalysis.ts",
+          "bytes": 17541,
+          "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+          "source_kind": "EXACT_RECOVERED_PRIOR_ACCEPTED_SOURCE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/announcementObservation.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/announcementObservation.ts",
+          "bytes": 16354,
+          "sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/businessStatus.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/businessStatus.ts",
+          "bytes": 15087,
+          "sha256": "7eb96077f9c4c76c926b452dc0c4c581d3e35f777be8cde9d2c789b344bd6089",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "bytes": 65108,
+          "sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyChannels.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyChannels.ts",
+          "bytes": 18449,
+          "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyResearchRun.ts",
+          "bytes": 19519,
+          "sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/researchAttention.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/researchAttention.ts",
+          "bytes": 23801,
+          "sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        }
+      ],
+      "edges": [
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementObservation.js",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/manager-selection/announcementObservation.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./researchAttention.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/researchAttention.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./businessStatus.js",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/businessStatus.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": false,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerAnnouncementAnalysis.js",
+          "type_only": false,
+          "line": 14,
+          "target": "apps/web/src/api/managerAnnouncementAnalysis.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementAnalysis.js",
+          "type_only": false,
+          "line": 15,
+          "target": "apps/web/src/manager-selection/announcementAnalysis.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./adapters/workspaceDecision.js",
+          "type_only": false,
+          "line": 17,
+          "target": "apps/web/src/manager-selection/adapters/workspaceDecision.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "specifier": "../../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/announcementAnalysis.ts",
+          "specifier": "../api/managerAnnouncementAnalysis.js",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerAnnouncementAnalysis.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": true,
+          "line": 6,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/businessStatus.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/announcementObservation.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        }
+      ],
+      "missing": [],
+      "external": [],
+      "fetch_calls": [
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1533,
+          "expression": "fetch(`/api/v4/manager/research/workspace?${query}`, {\n    method: 'GET', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1547,
+          "expression": "fetch(`/api/v4/manager/research/announcements?date=${encodeURIComponent(date)}`,{\n    method:'GET',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1560,
+          "expression": "fetch(`/api/v4/manager/research/announcements/refresh?date=${encodeURIComponent(date)}`,{\n    method:'POST',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1585,
+          "expression": "fetch(`/api/v4/manager/research/workspace/refresh?${params.toString()}`, {\n    method: 'POST', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+          "line": 293,
+          "expression": "fetch(`/api/v4/manager/research/announcements/analysis?${params.toString()}`,{\n    method:'GET',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        }
+      ]
+    },
+    {
+      "entry": "apps/web/src/views/ManagerSelectionView.vue",
+      "with_recovered_original_pair": false,
+      "node_count": 31,
+      "nodes": [
+        {
+          "path": "apps/web/src/api/managerDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerDecision.ts",
+          "bytes": 923,
+          "sha256": "34e4c30ce66f973935ec2b427b0839a838f2ce8f04cb84018532a7997e49f4e3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerPreselection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerPreselection.ts",
+          "bytes": 847,
+          "sha256": "29a0d16821774ab402d769bddcb79eba10ffa8b068c51c97ea308d92ea58794f",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerResearch.ts",
+          "bytes": 18879,
+          "sha256": "42f6e4d19614675eaa66fc22809cacfbdb5caa1f64c655c98df5e9e9b95b1ae0",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerStageSelection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerStageSelection.ts",
+          "bytes": 1116,
+          "sha256": "f7854ab5dabc2441a29546a88517e5cf27eb8c90491f750fe02669374654b56a",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerWorkbenchResearch.ts",
+          "bytes": 2042,
+          "sha256": "4335963c9b9c4b3d95ddb8758903812ecef057dc52afb02dc1a7c15185724aea",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerWorkspace.ts",
+          "bytes": 109062,
+          "sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/research_lane.ts",
+          "bytes": 17538,
+          "sha256": "a9b8277f3e967cf02c3c5d759278be696142642254625a48bfeb64ecde8cd7bf",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/selection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/selection.ts",
+          "bytes": 1177,
+          "sha256": "f94a8d4431fbfcf178a666eb019925b803c2e9ebb1cf9b31c93d5469189ff74d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/evidence.ts",
+          "bytes": 17165,
+          "sha256": "1f87bab46ae58cf720edf3f7034a24897144299d2e3b80cde62910d0697cb9bc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/primitives.ts",
+          "bytes": 3836,
+          "sha256": "6dde5bcb17347105f395ea164b733774656a610b6f01b28f6a6dfba92def0dfe",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/product.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/product.ts",
+          "bytes": 19169,
+          "sha256": "984419d2f769c2c927edaec5ff5b15077a2812e070d009fa99861b7adf4fa036",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/schema.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/schema.ts",
+          "bytes": 4665,
+          "sha256": "1d09cb1f7665a7122cd424147b32646d6f86b11f55fe4b11ae08e5fcfd9a053d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "bytes": 6941,
+          "sha256": "f4f387ff5ab3ff6775aeec23068377a04d002acd09875195786fec475bb3bacc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/types.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/types.ts",
+          "bytes": 4899,
+          "sha256": "37e580095acd12193fe31db64972132412c4aa02bec4c2e8f1a4767be1fe8bf6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerDecision.ts",
+          "bytes": 14787,
+          "sha256": "80ee9cdd31ad6de7575da0318046dffe4d1e3c4f7aebdc4a8fe66af4b285c184",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerPreselection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerPreselection.ts",
+          "bytes": 14967,
+          "sha256": "ecf15c3a472fabba3737e60e525c9728adc018b21062a4d0d3218c0a70fcf9c3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerStageSelection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerStageSelection.ts",
+          "bytes": 12620,
+          "sha256": "53893ac1e9b7b1e3cad031d2eb1cdc9d63230d1a011e0969f82ac472eea5df6c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerWorkbenchResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerWorkbenchResearch.ts",
+          "bytes": 24221,
+          "sha256": "bbdcb12c9a99eead6d2384fd93f0763cdc43989fa2c235ea654f6a385db1a9b5",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/selection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/selection.ts",
+          "bytes": 494,
+          "sha256": "bcf3ef03be77d2ba9a2e19c4bcd8487af124f4675ceaaf26622f037765009492",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/priority.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/priority.ts",
+          "bytes": 44423,
+          "sha256": "65fbdd8cb9e635787e0771de748ae0a106c08a937111fb64e8832856cf1ef671",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "bytes": 46083,
+          "sha256": "a4b147c00050bfe6afe0bb4ffd96f6ad481d9bbd3b9cac91111d34ecb57a2453",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "bytes": 2981,
+          "sha256": "f35380e1be0d6997348fe2b754fe865cd6efb633e337345f9bd8b4654e716fe3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "bytes": 9195,
+          "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/announcementObservation.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/announcementObservation.ts",
+          "bytes": 16354,
+          "sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/businessStatus.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/businessStatus.ts",
+          "bytes": 15087,
+          "sha256": "7eb96077f9c4c76c926b452dc0c4c581d3e35f777be8cde9d2c789b344bd6089",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "bytes": 65108,
+          "sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyChannels.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyChannels.ts",
+          "bytes": 18449,
+          "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyResearchRun.ts",
+          "bytes": 19519,
+          "sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/researchAttention.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/researchAttention.ts",
+          "bytes": 23801,
+          "sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/styles/manager-selection.css",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/styles/manager-selection.css",
+          "bytes": 56271,
+          "sha256": "c0ea17ab987fa4ac4aae4b0e48a38641e0629df8362b6b78f7f620f1d08a34d6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/views/ManagerSelectionView.vue",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/views/ManagerSelectionView.vue",
+          "bytes": 202767,
+          "sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        }
+      ],
+      "edges": [
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/selection",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerPreselection",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/api/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerStageSelection",
+          "type_only": false,
+          "line": 6,
+          "target": "apps/web/src/api/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerWorkbenchResearch",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/api/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerDecision",
+          "type_only": false,
+          "line": 8,
+          "target": "apps/web/src/api/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerResearch",
+          "type_only": false,
+          "line": 9,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/research_lane",
+          "type_only": false,
+          "line": 17,
+          "target": "apps/web/src/api/research_lane.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/selection",
+          "type_only": false,
+          "line": 25,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": false,
+          "line": 33,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/selection",
+          "type_only": true,
+          "line": 25,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": true,
+          "line": 33,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 46,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 46,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerWorkbenchResearch",
+          "type_only": true,
+          "line": 50,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/stageReasonContributions",
+          "type_only": false,
+          "line": 57,
+          "target": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/priority",
+          "type_only": false,
+          "line": 64,
+          "target": "apps/web/src/manager-selection/adapters/priority.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerDecision",
+          "type_only": false,
+          "line": 75,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerDecision",
+          "type_only": true,
+          "line": 75,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/workbenchPresentation",
+          "type_only": false,
+          "line": 80,
+          "target": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/catalystObservationPanel",
+          "type_only": false,
+          "line": 81,
+          "target": "apps/web/src/manager-selection/catalystObservationPanel.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../styles/manager-selection.css",
+          "type_only": false,
+          "line": 82,
+          "target": "apps/web/src/styles/manager-selection.css"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementObservation.js",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/manager-selection/announcementObservation.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./researchAttention.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/researchAttention.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./businessStatus.js",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/businessStatus.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": false,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerAnnouncementAnalysis.js",
+          "type_only": false,
+          "line": 14,
+          "target": null
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementAnalysis.js",
+          "type_only": false,
+          "line": 15,
+          "target": null
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./adapters/workspaceDecision.js",
+          "type_only": false,
+          "line": 17,
+          "target": "apps/web/src/manager-selection/adapters/workspaceDecision.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "specifier": "../../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": true,
+          "line": 6,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/businessStatus.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/announcementObservation.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "specifier": "../../contracts/managerWorkbenchResearch",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../contracts/managerPreselection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../api/managerResearch",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 3,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/managerStageSelection.ts",
+          "specifier": "./managerPreselection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerResearch.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../api/research_lane",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/research_lane.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../api/managerResearch",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../contracts/managerPreselection",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 8,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/types",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/product",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/product.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./evidence",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/evidence.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./snapshots",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/contracts/_selection_parts/snapshots.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 6,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerDecision.ts",
+          "specifier": "../contracts/managerDecision",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerDecision.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/selection.ts",
+          "specifier": "../contracts/selection",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "specifier": "../contracts/managerWorkbenchResearch",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerPreselection.ts",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerPreselection.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/api/selection.ts"
+        }
+      ],
+      "missing": [
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "../api/managerAnnouncementAnalysis.js",
+          "line": 14
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "./announcementAnalysis.js",
+          "line": 15
+        }
+      ],
+      "external": [
+        "vue"
+      ],
+      "fetch_calls": [
+        {
+          "path": "apps/web/src/views/ManagerSelectionView.vue",
+          "line": 2673,
+          "expression": "fetch(\"/api/v1/runs/date-list\", { cache: \"no-store\" })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1533,
+          "expression": "fetch(`/api/v4/manager/research/workspace?${query}`, {\n    method: 'GET', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1547,
+          "expression": "fetch(`/api/v4/manager/research/announcements?date=${encodeURIComponent(date)}`,{\n    method:'GET',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1560,
+          "expression": "fetch(`/api/v4/manager/research/announcements/refresh?date=${encodeURIComponent(date)}`,{\n    method:'POST',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1585,
+          "expression": "fetch(`/api/v4/manager/research/workspace/refresh?${params.toString()}`, {\n    method: 'POST', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "line": 347,
+          "expression": "fetch(\n      url,\n      options ? { cache: \"no-store\", signal: options.signal } : { cache: \"no-store\" },\n    )"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "line": 396,
+          "expression": "fetch(url, options)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 404,
+          "expression": "fetch(url, { cache: \"no-store\", signal: options.signal })"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 404,
+          "expression": "fetch(url, { cache: \"no-store\", signal: options.signal })"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/managerDecision.ts",
+          "line": 11,
+          "expression": "fetch(\n    `/api/v3/research/selection/manager-decision?target_trade_date=${encodeURIComponent(targetTradeDate)}`,\n    requestInit,\n  )"
+        },
+        {
+          "path": "apps/web/src/api/selection.ts",
+          "line": 24,
+          "expression": "fetch(\n    `/api/v3/research/selection?target_trade_date=${encodeURIComponent(targetTradeDate)}`,\n    requestInit,\n  )"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "line": 29,
+          "expression": "fetch(`/api/v4/manager/workbench-research?${params.toString()}`, {\n      cache: \"no-store\",\n      signal: options.signal,\n    })"
+        },
+        {
+          "path": "apps/web/src/api/managerStageSelection.ts",
+          "line": 18,
+          "expression": "fetch(`/api/v3/manager/stage-selection?${query.toString()}`, requestInit)"
+        },
+        {
+          "path": "apps/web/src/api/managerPreselection.ts",
+          "line": 11,
+          "expression": "fetch(\n    `/api/v3/preselection-pools?date=${encodeURIComponent(targetDate)}&limit=200`,\n    requestInit,\n  )"
+        }
+      ]
+    },
+    {
+      "entry": "apps/web/src/views/ManagerSelectionView.vue",
+      "with_recovered_original_pair": true,
+      "node_count": 33,
+      "nodes": [
+        {
+          "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+          "bytes": 19705,
+          "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+          "source_kind": "EXACT_RECOVERED_PRIOR_ACCEPTED_SOURCE"
+        },
+        {
+          "path": "apps/web/src/api/managerDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerDecision.ts",
+          "bytes": 923,
+          "sha256": "34e4c30ce66f973935ec2b427b0839a838f2ce8f04cb84018532a7997e49f4e3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerPreselection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerPreselection.ts",
+          "bytes": 847,
+          "sha256": "29a0d16821774ab402d769bddcb79eba10ffa8b068c51c97ea308d92ea58794f",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerResearch.ts",
+          "bytes": 18879,
+          "sha256": "42f6e4d19614675eaa66fc22809cacfbdb5caa1f64c655c98df5e9e9b95b1ae0",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerStageSelection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerStageSelection.ts",
+          "bytes": 1116,
+          "sha256": "f7854ab5dabc2441a29546a88517e5cf27eb8c90491f750fe02669374654b56a",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerWorkbenchResearch.ts",
+          "bytes": 2042,
+          "sha256": "4335963c9b9c4b3d95ddb8758903812ecef057dc52afb02dc1a7c15185724aea",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerWorkspace.ts",
+          "bytes": 109062,
+          "sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/research_lane.ts",
+          "bytes": 17538,
+          "sha256": "a9b8277f3e967cf02c3c5d759278be696142642254625a48bfeb64ecde8cd7bf",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/selection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/selection.ts",
+          "bytes": 1177,
+          "sha256": "f94a8d4431fbfcf178a666eb019925b803c2e9ebb1cf9b31c93d5469189ff74d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/evidence.ts",
+          "bytes": 17165,
+          "sha256": "1f87bab46ae58cf720edf3f7034a24897144299d2e3b80cde62910d0697cb9bc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/primitives.ts",
+          "bytes": 3836,
+          "sha256": "6dde5bcb17347105f395ea164b733774656a610b6f01b28f6a6dfba92def0dfe",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/product.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/product.ts",
+          "bytes": 19169,
+          "sha256": "984419d2f769c2c927edaec5ff5b15077a2812e070d009fa99861b7adf4fa036",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/schema.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/schema.ts",
+          "bytes": 4665,
+          "sha256": "1d09cb1f7665a7122cd424147b32646d6f86b11f55fe4b11ae08e5fcfd9a053d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "bytes": 6941,
+          "sha256": "f4f387ff5ab3ff6775aeec23068377a04d002acd09875195786fec475bb3bacc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/types.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/types.ts",
+          "bytes": 4899,
+          "sha256": "37e580095acd12193fe31db64972132412c4aa02bec4c2e8f1a4767be1fe8bf6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerDecision.ts",
+          "bytes": 14787,
+          "sha256": "80ee9cdd31ad6de7575da0318046dffe4d1e3c4f7aebdc4a8fe66af4b285c184",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerPreselection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerPreselection.ts",
+          "bytes": 14967,
+          "sha256": "ecf15c3a472fabba3737e60e525c9728adc018b21062a4d0d3218c0a70fcf9c3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerStageSelection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerStageSelection.ts",
+          "bytes": 12620,
+          "sha256": "53893ac1e9b7b1e3cad031d2eb1cdc9d63230d1a011e0969f82ac472eea5df6c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerWorkbenchResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerWorkbenchResearch.ts",
+          "bytes": 24221,
+          "sha256": "bbdcb12c9a99eead6d2384fd93f0763cdc43989fa2c235ea654f6a385db1a9b5",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/selection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/selection.ts",
+          "bytes": 494,
+          "sha256": "bcf3ef03be77d2ba9a2e19c4bcd8487af124f4675ceaaf26622f037765009492",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/priority.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/priority.ts",
+          "bytes": 44423,
+          "sha256": "65fbdd8cb9e635787e0771de748ae0a106c08a937111fb64e8832856cf1ef671",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "bytes": 46083,
+          "sha256": "a4b147c00050bfe6afe0bb4ffd96f6ad481d9bbd3b9cac91111d34ecb57a2453",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "bytes": 2981,
+          "sha256": "f35380e1be0d6997348fe2b754fe865cd6efb633e337345f9bd8b4654e716fe3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "bytes": 9195,
+          "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/source/apps/web/src/manager-selection/announcementAnalysis.ts",
+          "bytes": 17541,
+          "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+          "source_kind": "EXACT_RECOVERED_PRIOR_ACCEPTED_SOURCE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/announcementObservation.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/announcementObservation.ts",
+          "bytes": 16354,
+          "sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/businessStatus.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/businessStatus.ts",
+          "bytes": 15087,
+          "sha256": "7eb96077f9c4c76c926b452dc0c4c581d3e35f777be8cde9d2c789b344bd6089",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "bytes": 65108,
+          "sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyChannels.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyChannels.ts",
+          "bytes": 18449,
+          "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyResearchRun.ts",
+          "bytes": 19519,
+          "sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/researchAttention.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/researchAttention.ts",
+          "bytes": 23801,
+          "sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/styles/manager-selection.css",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/styles/manager-selection.css",
+          "bytes": 56271,
+          "sha256": "c0ea17ab987fa4ac4aae4b0e48a38641e0629df8362b6b78f7f620f1d08a34d6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/views/ManagerSelectionView.vue",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/views/ManagerSelectionView.vue",
+          "bytes": 202767,
+          "sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        }
+      ],
+      "edges": [
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/selection",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerPreselection",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/api/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerStageSelection",
+          "type_only": false,
+          "line": 6,
+          "target": "apps/web/src/api/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerWorkbenchResearch",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/api/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerDecision",
+          "type_only": false,
+          "line": 8,
+          "target": "apps/web/src/api/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerResearch",
+          "type_only": false,
+          "line": 9,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/research_lane",
+          "type_only": false,
+          "line": 17,
+          "target": "apps/web/src/api/research_lane.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/selection",
+          "type_only": false,
+          "line": 25,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": false,
+          "line": 33,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/selection",
+          "type_only": true,
+          "line": 25,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": true,
+          "line": 33,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 46,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 46,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerWorkbenchResearch",
+          "type_only": true,
+          "line": 50,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/stageReasonContributions",
+          "type_only": false,
+          "line": 57,
+          "target": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/priority",
+          "type_only": false,
+          "line": 64,
+          "target": "apps/web/src/manager-selection/adapters/priority.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerDecision",
+          "type_only": false,
+          "line": 75,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerDecision",
+          "type_only": true,
+          "line": 75,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/workbenchPresentation",
+          "type_only": false,
+          "line": 80,
+          "target": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/catalystObservationPanel",
+          "type_only": false,
+          "line": 81,
+          "target": "apps/web/src/manager-selection/catalystObservationPanel.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../styles/manager-selection.css",
+          "type_only": false,
+          "line": 82,
+          "target": "apps/web/src/styles/manager-selection.css"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementObservation.js",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/manager-selection/announcementObservation.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./researchAttention.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/researchAttention.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./businessStatus.js",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/businessStatus.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": false,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerAnnouncementAnalysis.js",
+          "type_only": false,
+          "line": 14,
+          "target": "apps/web/src/api/managerAnnouncementAnalysis.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementAnalysis.js",
+          "type_only": false,
+          "line": 15,
+          "target": "apps/web/src/manager-selection/announcementAnalysis.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./adapters/workspaceDecision.js",
+          "type_only": false,
+          "line": 17,
+          "target": "apps/web/src/manager-selection/adapters/workspaceDecision.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "specifier": "../../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/announcementAnalysis.ts",
+          "specifier": "../api/managerAnnouncementAnalysis.js",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerAnnouncementAnalysis.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": true,
+          "line": 6,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/businessStatus.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/announcementObservation.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "specifier": "../../contracts/managerWorkbenchResearch",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../contracts/managerPreselection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../api/managerResearch",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 3,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/managerStageSelection.ts",
+          "specifier": "./managerPreselection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerResearch.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../api/research_lane",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/research_lane.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../api/managerResearch",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../contracts/managerPreselection",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 8,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/types",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/product",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/product.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./evidence",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/evidence.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./snapshots",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/contracts/_selection_parts/snapshots.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 6,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerDecision.ts",
+          "specifier": "../contracts/managerDecision",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerDecision.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/selection.ts",
+          "specifier": "../contracts/selection",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "specifier": "../contracts/managerWorkbenchResearch",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerPreselection.ts",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerPreselection.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/api/selection.ts"
+        }
+      ],
+      "missing": [],
+      "external": [
+        "vue"
+      ],
+      "fetch_calls": [
+        {
+          "path": "apps/web/src/views/ManagerSelectionView.vue",
+          "line": 2673,
+          "expression": "fetch(\"/api/v1/runs/date-list\", { cache: \"no-store\" })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1533,
+          "expression": "fetch(`/api/v4/manager/research/workspace?${query}`, {\n    method: 'GET', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1547,
+          "expression": "fetch(`/api/v4/manager/research/announcements?date=${encodeURIComponent(date)}`,{\n    method:'GET',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1560,
+          "expression": "fetch(`/api/v4/manager/research/announcements/refresh?date=${encodeURIComponent(date)}`,{\n    method:'POST',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1585,
+          "expression": "fetch(`/api/v4/manager/research/workspace/refresh?${params.toString()}`, {\n    method: 'POST', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+          "line": 293,
+          "expression": "fetch(`/api/v4/manager/research/announcements/analysis?${params.toString()}`,{\n    method:'GET',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "line": 347,
+          "expression": "fetch(\n      url,\n      options ? { cache: \"no-store\", signal: options.signal } : { cache: \"no-store\" },\n    )"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "line": 396,
+          "expression": "fetch(url, options)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 404,
+          "expression": "fetch(url, { cache: \"no-store\", signal: options.signal })"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 404,
+          "expression": "fetch(url, { cache: \"no-store\", signal: options.signal })"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/managerDecision.ts",
+          "line": 11,
+          "expression": "fetch(\n    `/api/v3/research/selection/manager-decision?target_trade_date=${encodeURIComponent(targetTradeDate)}`,\n    requestInit,\n  )"
+        },
+        {
+          "path": "apps/web/src/api/selection.ts",
+          "line": 24,
+          "expression": "fetch(\n    `/api/v3/research/selection?target_trade_date=${encodeURIComponent(targetTradeDate)}`,\n    requestInit,\n  )"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "line": 29,
+          "expression": "fetch(`/api/v4/manager/workbench-research?${params.toString()}`, {\n      cache: \"no-store\",\n      signal: options.signal,\n    })"
+        },
+        {
+          "path": "apps/web/src/api/managerStageSelection.ts",
+          "line": 18,
+          "expression": "fetch(`/api/v3/manager/stage-selection?${query.toString()}`, requestInit)"
+        },
+        {
+          "path": "apps/web/src/api/managerPreselection.ts",
+          "line": 11,
+          "expression": "fetch(\n    `/api/v3/preselection-pools?date=${encodeURIComponent(targetDate)}&limit=200`,\n    requestInit,\n  )"
+        }
+      ]
+    },
+    {
+      "entry": "apps/web/src/manager-selection/main.ts",
+      "with_recovered_original_pair": false,
+      "node_count": 32,
+      "nodes": [
+        {
+          "path": "apps/web/src/api/managerDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerDecision.ts",
+          "bytes": 923,
+          "sha256": "34e4c30ce66f973935ec2b427b0839a838f2ce8f04cb84018532a7997e49f4e3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerPreselection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerPreselection.ts",
+          "bytes": 847,
+          "sha256": "29a0d16821774ab402d769bddcb79eba10ffa8b068c51c97ea308d92ea58794f",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerResearch.ts",
+          "bytes": 18879,
+          "sha256": "42f6e4d19614675eaa66fc22809cacfbdb5caa1f64c655c98df5e9e9b95b1ae0",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerStageSelection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerStageSelection.ts",
+          "bytes": 1116,
+          "sha256": "f7854ab5dabc2441a29546a88517e5cf27eb8c90491f750fe02669374654b56a",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerWorkbenchResearch.ts",
+          "bytes": 2042,
+          "sha256": "4335963c9b9c4b3d95ddb8758903812ecef057dc52afb02dc1a7c15185724aea",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerWorkspace.ts",
+          "bytes": 109062,
+          "sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/research_lane.ts",
+          "bytes": 17538,
+          "sha256": "a9b8277f3e967cf02c3c5d759278be696142642254625a48bfeb64ecde8cd7bf",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/selection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/selection.ts",
+          "bytes": 1177,
+          "sha256": "f94a8d4431fbfcf178a666eb019925b803c2e9ebb1cf9b31c93d5469189ff74d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/evidence.ts",
+          "bytes": 17165,
+          "sha256": "1f87bab46ae58cf720edf3f7034a24897144299d2e3b80cde62910d0697cb9bc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/primitives.ts",
+          "bytes": 3836,
+          "sha256": "6dde5bcb17347105f395ea164b733774656a610b6f01b28f6a6dfba92def0dfe",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/product.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/product.ts",
+          "bytes": 19169,
+          "sha256": "984419d2f769c2c927edaec5ff5b15077a2812e070d009fa99861b7adf4fa036",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/schema.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/schema.ts",
+          "bytes": 4665,
+          "sha256": "1d09cb1f7665a7122cd424147b32646d6f86b11f55fe4b11ae08e5fcfd9a053d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "bytes": 6941,
+          "sha256": "f4f387ff5ab3ff6775aeec23068377a04d002acd09875195786fec475bb3bacc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/types.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/types.ts",
+          "bytes": 4899,
+          "sha256": "37e580095acd12193fe31db64972132412c4aa02bec4c2e8f1a4767be1fe8bf6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerDecision.ts",
+          "bytes": 14787,
+          "sha256": "80ee9cdd31ad6de7575da0318046dffe4d1e3c4f7aebdc4a8fe66af4b285c184",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerPreselection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerPreselection.ts",
+          "bytes": 14967,
+          "sha256": "ecf15c3a472fabba3737e60e525c9728adc018b21062a4d0d3218c0a70fcf9c3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerStageSelection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerStageSelection.ts",
+          "bytes": 12620,
+          "sha256": "53893ac1e9b7b1e3cad031d2eb1cdc9d63230d1a011e0969f82ac472eea5df6c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerWorkbenchResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerWorkbenchResearch.ts",
+          "bytes": 24221,
+          "sha256": "bbdcb12c9a99eead6d2384fd93f0763cdc43989fa2c235ea654f6a385db1a9b5",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/selection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/selection.ts",
+          "bytes": 494,
+          "sha256": "bcf3ef03be77d2ba9a2e19c4bcd8487af124f4675ceaaf26622f037765009492",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/priority.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/priority.ts",
+          "bytes": 44423,
+          "sha256": "65fbdd8cb9e635787e0771de748ae0a106c08a937111fb64e8832856cf1ef671",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "bytes": 46083,
+          "sha256": "a4b147c00050bfe6afe0bb4ffd96f6ad481d9bbd3b9cac91111d34ecb57a2453",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "bytes": 2981,
+          "sha256": "f35380e1be0d6997348fe2b754fe865cd6efb633e337345f9bd8b4654e716fe3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "bytes": 9195,
+          "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/announcementObservation.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/announcementObservation.ts",
+          "bytes": 16354,
+          "sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/businessStatus.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/businessStatus.ts",
+          "bytes": 15087,
+          "sha256": "7eb96077f9c4c76c926b452dc0c4c581d3e35f777be8cde9d2c789b344bd6089",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "bytes": 65108,
+          "sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyChannels.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyChannels.ts",
+          "bytes": 18449,
+          "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyResearchRun.ts",
+          "bytes": 19519,
+          "sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/main.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/main.ts",
+          "bytes": 166,
+          "sha256": "769df8d97df6c27785cbaa248b80fb6cc447cfe3afbd627e32fe925d2065b843",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/researchAttention.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/researchAttention.ts",
+          "bytes": 23801,
+          "sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/styles/manager-selection.css",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/styles/manager-selection.css",
+          "bytes": 56271,
+          "sha256": "c0ea17ab987fa4ac4aae4b0e48a38641e0629df8362b6b78f7f620f1d08a34d6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/views/ManagerSelectionView.vue",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/views/ManagerSelectionView.vue",
+          "bytes": 202767,
+          "sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        }
+      ],
+      "edges": [
+        {
+          "from": "apps/web/src/manager-selection/main.ts",
+          "specifier": "../views/ManagerSelectionView.vue",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/views/ManagerSelectionView.vue"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/selection",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerPreselection",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/api/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerStageSelection",
+          "type_only": false,
+          "line": 6,
+          "target": "apps/web/src/api/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerWorkbenchResearch",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/api/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerDecision",
+          "type_only": false,
+          "line": 8,
+          "target": "apps/web/src/api/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerResearch",
+          "type_only": false,
+          "line": 9,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/research_lane",
+          "type_only": false,
+          "line": 17,
+          "target": "apps/web/src/api/research_lane.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/selection",
+          "type_only": false,
+          "line": 25,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": false,
+          "line": 33,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/selection",
+          "type_only": true,
+          "line": 25,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": true,
+          "line": 33,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 46,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 46,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerWorkbenchResearch",
+          "type_only": true,
+          "line": 50,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/stageReasonContributions",
+          "type_only": false,
+          "line": 57,
+          "target": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/priority",
+          "type_only": false,
+          "line": 64,
+          "target": "apps/web/src/manager-selection/adapters/priority.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerDecision",
+          "type_only": false,
+          "line": 75,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerDecision",
+          "type_only": true,
+          "line": 75,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/workbenchPresentation",
+          "type_only": false,
+          "line": 80,
+          "target": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/catalystObservationPanel",
+          "type_only": false,
+          "line": 81,
+          "target": "apps/web/src/manager-selection/catalystObservationPanel.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../styles/manager-selection.css",
+          "type_only": false,
+          "line": 82,
+          "target": "apps/web/src/styles/manager-selection.css"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementObservation.js",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/manager-selection/announcementObservation.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./researchAttention.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/researchAttention.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./businessStatus.js",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/businessStatus.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": false,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerAnnouncementAnalysis.js",
+          "type_only": false,
+          "line": 14,
+          "target": null
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementAnalysis.js",
+          "type_only": false,
+          "line": 15,
+          "target": null
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./adapters/workspaceDecision.js",
+          "type_only": false,
+          "line": 17,
+          "target": "apps/web/src/manager-selection/adapters/workspaceDecision.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "specifier": "../../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": true,
+          "line": 6,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/businessStatus.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/announcementObservation.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "specifier": "../../contracts/managerWorkbenchResearch",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../contracts/managerPreselection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../api/managerResearch",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 3,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/managerStageSelection.ts",
+          "specifier": "./managerPreselection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerResearch.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../api/research_lane",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/research_lane.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../api/managerResearch",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../contracts/managerPreselection",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 8,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/types",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/product",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/product.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./evidence",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/evidence.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./snapshots",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/contracts/_selection_parts/snapshots.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 6,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerDecision.ts",
+          "specifier": "../contracts/managerDecision",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerDecision.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/selection.ts",
+          "specifier": "../contracts/selection",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "specifier": "../contracts/managerWorkbenchResearch",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerPreselection.ts",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerPreselection.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/api/selection.ts"
+        }
+      ],
+      "missing": [
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "../api/managerAnnouncementAnalysis.js",
+          "line": 14
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "./announcementAnalysis.js",
+          "line": 15
+        }
+      ],
+      "external": [
+        "vue"
+      ],
+      "fetch_calls": [
+        {
+          "path": "apps/web/src/views/ManagerSelectionView.vue",
+          "line": 2673,
+          "expression": "fetch(\"/api/v1/runs/date-list\", { cache: \"no-store\" })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1533,
+          "expression": "fetch(`/api/v4/manager/research/workspace?${query}`, {\n    method: 'GET', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1547,
+          "expression": "fetch(`/api/v4/manager/research/announcements?date=${encodeURIComponent(date)}`,{\n    method:'GET',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1560,
+          "expression": "fetch(`/api/v4/manager/research/announcements/refresh?date=${encodeURIComponent(date)}`,{\n    method:'POST',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1585,
+          "expression": "fetch(`/api/v4/manager/research/workspace/refresh?${params.toString()}`, {\n    method: 'POST', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "line": 347,
+          "expression": "fetch(\n      url,\n      options ? { cache: \"no-store\", signal: options.signal } : { cache: \"no-store\" },\n    )"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "line": 396,
+          "expression": "fetch(url, options)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 404,
+          "expression": "fetch(url, { cache: \"no-store\", signal: options.signal })"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 404,
+          "expression": "fetch(url, { cache: \"no-store\", signal: options.signal })"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/managerDecision.ts",
+          "line": 11,
+          "expression": "fetch(\n    `/api/v3/research/selection/manager-decision?target_trade_date=${encodeURIComponent(targetTradeDate)}`,\n    requestInit,\n  )"
+        },
+        {
+          "path": "apps/web/src/api/selection.ts",
+          "line": 24,
+          "expression": "fetch(\n    `/api/v3/research/selection?target_trade_date=${encodeURIComponent(targetTradeDate)}`,\n    requestInit,\n  )"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "line": 29,
+          "expression": "fetch(`/api/v4/manager/workbench-research?${params.toString()}`, {\n      cache: \"no-store\",\n      signal: options.signal,\n    })"
+        },
+        {
+          "path": "apps/web/src/api/managerStageSelection.ts",
+          "line": 18,
+          "expression": "fetch(`/api/v3/manager/stage-selection?${query.toString()}`, requestInit)"
+        },
+        {
+          "path": "apps/web/src/api/managerPreselection.ts",
+          "line": 11,
+          "expression": "fetch(\n    `/api/v3/preselection-pools?date=${encodeURIComponent(targetDate)}&limit=200`,\n    requestInit,\n  )"
+        }
+      ]
+    },
+    {
+      "entry": "apps/web/src/manager-selection/main.ts",
+      "with_recovered_original_pair": true,
+      "node_count": 34,
+      "nodes": [
+        {
+          "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+          "bytes": 19705,
+          "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+          "source_kind": "EXACT_RECOVERED_PRIOR_ACCEPTED_SOURCE"
+        },
+        {
+          "path": "apps/web/src/api/managerDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerDecision.ts",
+          "bytes": 923,
+          "sha256": "34e4c30ce66f973935ec2b427b0839a838f2ce8f04cb84018532a7997e49f4e3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerPreselection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerPreselection.ts",
+          "bytes": 847,
+          "sha256": "29a0d16821774ab402d769bddcb79eba10ffa8b068c51c97ea308d92ea58794f",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerResearch.ts",
+          "bytes": 18879,
+          "sha256": "42f6e4d19614675eaa66fc22809cacfbdb5caa1f64c655c98df5e9e9b95b1ae0",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerStageSelection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerStageSelection.ts",
+          "bytes": 1116,
+          "sha256": "f7854ab5dabc2441a29546a88517e5cf27eb8c90491f750fe02669374654b56a",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerWorkbenchResearch.ts",
+          "bytes": 2042,
+          "sha256": "4335963c9b9c4b3d95ddb8758903812ecef057dc52afb02dc1a7c15185724aea",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/managerWorkspace.ts",
+          "bytes": 109062,
+          "sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/research_lane.ts",
+          "bytes": 17538,
+          "sha256": "a9b8277f3e967cf02c3c5d759278be696142642254625a48bfeb64ecde8cd7bf",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/api/selection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/api/selection.ts",
+          "bytes": 1177,
+          "sha256": "f94a8d4431fbfcf178a666eb019925b803c2e9ebb1cf9b31c93d5469189ff74d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/evidence.ts",
+          "bytes": 17165,
+          "sha256": "1f87bab46ae58cf720edf3f7034a24897144299d2e3b80cde62910d0697cb9bc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/primitives.ts",
+          "bytes": 3836,
+          "sha256": "6dde5bcb17347105f395ea164b733774656a610b6f01b28f6a6dfba92def0dfe",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/product.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/product.ts",
+          "bytes": 19169,
+          "sha256": "984419d2f769c2c927edaec5ff5b15077a2812e070d009fa99861b7adf4fa036",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/schema.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/schema.ts",
+          "bytes": 4665,
+          "sha256": "1d09cb1f7665a7122cd424147b32646d6f86b11f55fe4b11ae08e5fcfd9a053d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "bytes": 6941,
+          "sha256": "f4f387ff5ab3ff6775aeec23068377a04d002acd09875195786fec475bb3bacc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/_selection_parts/types.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/_selection_parts/types.ts",
+          "bytes": 4899,
+          "sha256": "37e580095acd12193fe31db64972132412c4aa02bec4c2e8f1a4767be1fe8bf6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerDecision.ts",
+          "bytes": 14787,
+          "sha256": "80ee9cdd31ad6de7575da0318046dffe4d1e3c4f7aebdc4a8fe66af4b285c184",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerPreselection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerPreselection.ts",
+          "bytes": 14967,
+          "sha256": "ecf15c3a472fabba3737e60e525c9728adc018b21062a4d0d3218c0a70fcf9c3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerStageSelection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerStageSelection.ts",
+          "bytes": 12620,
+          "sha256": "53893ac1e9b7b1e3cad031d2eb1cdc9d63230d1a011e0969f82ac472eea5df6c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/managerWorkbenchResearch.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/managerWorkbenchResearch.ts",
+          "bytes": 24221,
+          "sha256": "bbdcb12c9a99eead6d2384fd93f0763cdc43989fa2c235ea654f6a385db1a9b5",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/contracts/selection.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/contracts/selection.ts",
+          "bytes": 494,
+          "sha256": "bcf3ef03be77d2ba9a2e19c4bcd8487af124f4675ceaaf26622f037765009492",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/priority.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/priority.ts",
+          "bytes": 44423,
+          "sha256": "65fbdd8cb9e635787e0771de748ae0a106c08a937111fb64e8832856cf1ef671",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "bytes": 46083,
+          "sha256": "a4b147c00050bfe6afe0bb4ffd96f6ad481d9bbd3b9cac91111d34ecb57a2453",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "bytes": 2981,
+          "sha256": "f35380e1be0d6997348fe2b754fe865cd6efb633e337345f9bd8b4654e716fe3",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "bytes": 9195,
+          "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/source/apps/web/src/manager-selection/announcementAnalysis.ts",
+          "bytes": 17541,
+          "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+          "source_kind": "EXACT_RECOVERED_PRIOR_ACCEPTED_SOURCE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/announcementObservation.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/announcementObservation.ts",
+          "bytes": 16354,
+          "sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/businessStatus.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/businessStatus.ts",
+          "bytes": 15087,
+          "sha256": "7eb96077f9c4c76c926b452dc0c4c581d3e35f777be8cde9d2c789b344bd6089",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "bytes": 65108,
+          "sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyChannels.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyChannels.ts",
+          "bytes": 18449,
+          "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/dailyResearchRun.ts",
+          "bytes": 19519,
+          "sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/main.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/main.ts",
+          "bytes": 166,
+          "sha256": "769df8d97df6c27785cbaa248b80fb6cc447cfe3afbd627e32fe925d2065b843",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/manager-selection/researchAttention.ts",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/manager-selection/researchAttention.ts",
+          "bytes": 23801,
+          "sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/styles/manager-selection.css",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/styles/manager-selection.css",
+          "bytes": 56271,
+          "sha256": "c0ea17ab987fa4ac4aae4b0e48a38641e0629df8362b6b78f7f620f1d08a34d6",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        },
+        {
+          "path": "apps/web/src/views/ManagerSelectionView.vue",
+          "actual_read_path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web/src/views/ManagerSelectionView.vue",
+          "bytes": 202767,
+          "sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+          "source_kind": "FROZEN_ASSEMBLED_WORKTREE"
+        }
+      ],
+      "edges": [
+        {
+          "from": "apps/web/src/manager-selection/main.ts",
+          "specifier": "../views/ManagerSelectionView.vue",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/views/ManagerSelectionView.vue"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/selection",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerPreselection",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/api/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerStageSelection",
+          "type_only": false,
+          "line": 6,
+          "target": "apps/web/src/api/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerWorkbenchResearch",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/api/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerDecision",
+          "type_only": false,
+          "line": 8,
+          "target": "apps/web/src/api/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/managerResearch",
+          "type_only": false,
+          "line": 9,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../api/research_lane",
+          "type_only": false,
+          "line": 17,
+          "target": "apps/web/src/api/research_lane.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/selection",
+          "type_only": false,
+          "line": 25,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": false,
+          "line": 33,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/selection",
+          "type_only": true,
+          "line": 25,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": true,
+          "line": 33,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 46,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 46,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerWorkbenchResearch",
+          "type_only": true,
+          "line": 50,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/stageReasonContributions",
+          "type_only": false,
+          "line": 57,
+          "target": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/priority",
+          "type_only": false,
+          "line": 64,
+          "target": "apps/web/src/manager-selection/adapters/priority.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerDecision",
+          "type_only": false,
+          "line": 75,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../contracts/managerDecision",
+          "type_only": true,
+          "line": 75,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/adapters/workbenchPresentation",
+          "type_only": false,
+          "line": 80,
+          "target": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../manager-selection/catalystObservationPanel",
+          "type_only": false,
+          "line": 81,
+          "target": "apps/web/src/manager-selection/catalystObservationPanel.ts"
+        },
+        {
+          "from": "apps/web/src/views/ManagerSelectionView.vue",
+          "specifier": "../styles/manager-selection.css",
+          "type_only": false,
+          "line": 82,
+          "target": "apps/web/src/styles/manager-selection.css"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementObservation.js",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/manager-selection/announcementObservation.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./researchAttention.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/researchAttention.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./businessStatus.js",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/businessStatus.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": false,
+          "line": 13,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "../api/managerAnnouncementAnalysis.js",
+          "type_only": false,
+          "line": 14,
+          "target": "apps/web/src/api/managerAnnouncementAnalysis.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./announcementAnalysis.js",
+          "type_only": false,
+          "line": 15,
+          "target": "apps/web/src/manager-selection/announcementAnalysis.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "specifier": "./adapters/workspaceDecision.js",
+          "type_only": false,
+          "line": 17,
+          "target": "apps/web/src/manager-selection/adapters/workspaceDecision.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+          "specifier": "../../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkspace.ts",
+          "specifier": "../manager-selection/dailyChannels",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/announcementAnalysis.ts",
+          "specifier": "../api/managerAnnouncementAnalysis.js",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerAnnouncementAnalysis.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 5,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "specifier": "./dailyChannels.js",
+          "type_only": true,
+          "line": 6,
+          "target": "apps/web/src/manager-selection/dailyChannels.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/businessStatus.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/researchAttention.ts",
+          "specifier": "./dailyResearchRun.js",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/announcementObservation.ts",
+          "specifier": "../api/managerWorkspace.js",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+          "specifier": "../../contracts/managerWorkbenchResearch",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../contracts/managerPreselection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../api/managerResearch",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/priority.ts",
+          "specifier": "../../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 3,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/managerStageSelection.ts",
+          "specifier": "./managerPreselection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerResearch.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../api/research_lane",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/api/research_lane.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../api/managerResearch",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/api/managerResearch.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../contracts/managerPreselection",
+          "type_only": false,
+          "line": 7,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+          "specifier": "../../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 8,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/types",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/selection.ts",
+          "specifier": "./_selection_parts/product",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/product.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./evidence",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/evidence.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./snapshots",
+          "type_only": false,
+          "line": 5,
+          "target": "apps/web/src/contracts/_selection_parts/snapshots.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/product.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 6,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/snapshots.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/primitives.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./primitives",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/_selection_parts/primitives.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./schema",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/contracts/_selection_parts/schema.ts"
+        },
+        {
+          "from": "apps/web/src/contracts/_selection_parts/evidence.ts",
+          "specifier": "./types",
+          "type_only": true,
+          "line": 4,
+          "target": "apps/web/src/contracts/_selection_parts/types.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerDecision.ts",
+          "specifier": "../contracts/managerDecision",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerDecision.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerDecision.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/selection.ts",
+          "specifier": "../contracts/selection",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "specifier": "../contracts/managerWorkbenchResearch",
+          "type_only": false,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerWorkbenchResearch.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": true,
+          "line": 2,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "../contracts/managerStageSelection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/contracts/managerStageSelection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerStageSelection.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 3,
+          "target": "apps/web/src/api/selection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerPreselection.ts",
+          "specifier": "../contracts/managerPreselection",
+          "type_only": true,
+          "line": 1,
+          "target": "apps/web/src/contracts/managerPreselection.ts"
+        },
+        {
+          "from": "apps/web/src/api/managerPreselection.ts",
+          "specifier": "./selection",
+          "type_only": false,
+          "line": 2,
+          "target": "apps/web/src/api/selection.ts"
+        }
+      ],
+      "missing": [],
+      "external": [
+        "vue"
+      ],
+      "fetch_calls": [
+        {
+          "path": "apps/web/src/views/ManagerSelectionView.vue",
+          "line": 2673,
+          "expression": "fetch(\"/api/v1/runs/date-list\", { cache: \"no-store\" })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1533,
+          "expression": "fetch(`/api/v4/manager/research/workspace?${query}`, {\n    method: 'GET', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1547,
+          "expression": "fetch(`/api/v4/manager/research/announcements?date=${encodeURIComponent(date)}`,{\n    method:'GET',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1560,
+          "expression": "fetch(`/api/v4/manager/research/announcements/refresh?date=${encodeURIComponent(date)}`,{\n    method:'POST',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "line": 1585,
+          "expression": "fetch(`/api/v4/manager/research/workspace/refresh?${params.toString()}`, {\n    method: 'POST', signal, credentials: 'same-origin', cache: 'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+          "line": 293,
+          "expression": "fetch(`/api/v4/manager/research/announcements/analysis?${params.toString()}`,{\n    method:'GET',signal,credentials:'same-origin',cache:'no-store',\n  })"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "line": 347,
+          "expression": "fetch(\n      url,\n      options ? { cache: \"no-store\", signal: options.signal } : { cache: \"no-store\" },\n    )"
+        },
+        {
+          "path": "apps/web/src/api/managerResearch.ts",
+          "line": 396,
+          "expression": "fetch(url, options)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 404,
+          "expression": "fetch(url, { cache: \"no-store\", signal: options.signal })"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 404,
+          "expression": "fetch(url, { cache: \"no-store\", signal: options.signal })"
+        },
+        {
+          "path": "apps/web/src/api/research_lane.ts",
+          "line": 405,
+          "expression": "fetch(url)"
+        },
+        {
+          "path": "apps/web/src/api/managerDecision.ts",
+          "line": 11,
+          "expression": "fetch(\n    `/api/v3/research/selection/manager-decision?target_trade_date=${encodeURIComponent(targetTradeDate)}`,\n    requestInit,\n  )"
+        },
+        {
+          "path": "apps/web/src/api/selection.ts",
+          "line": 24,
+          "expression": "fetch(\n    `/api/v3/research/selection?target_trade_date=${encodeURIComponent(targetTradeDate)}`,\n    requestInit,\n  )"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkbenchResearch.ts",
+          "line": 29,
+          "expression": "fetch(`/api/v4/manager/workbench-research?${params.toString()}`, {\n      cache: \"no-store\",\n      signal: options.signal,\n    })"
+        },
+        {
+          "path": "apps/web/src/api/managerStageSelection.ts",
+          "line": 18,
+          "expression": "fetch(`/api/v3/manager/stage-selection?${query.toString()}`, requestInit)"
+        },
+        {
+          "path": "apps/web/src/api/managerPreselection.ts",
+          "line": 11,
+          "expression": "fetch(\n    `/api/v3/preselection-pools?date=${encodeURIComponent(targetDate)}&limit=200`,\n    requestInit,\n  )"
+        }
+      ]
+    }
+  ]
+}

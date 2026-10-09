@@ -1,0 +1,62 @@
+{
+  "schema_version": "investigation.original_relation_readonly_probe.v1",
+  "status": "PASS_ORIGINAL_READ_ONLY_LOADER",
+  "evidence_capture": "Structured record of the probe process stdout observed in this turn",
+  "mode": "ORIGINAL_FULL_MODULE_LOADED_AGAINST_EXISTING_LOCAL_PACKAGE; ORIGINAL_LOADER_FUNCTIONS_CALLED",
+  "interpreter": "3.12.14",
+  "original_loader_path": "/workspace/scratch/a154a3323e32/investigation/automation/remote/active_api/v4/manager_research/us_mapping_research.py",
+  "process_local_path_injection": true,
+  "source_bytes": {
+    "original_loader_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+    "relation_registry_sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe",
+    "reviewed_seed_sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a"
+  },
+  "source_bytes_unchanged": true,
+  "source_identity_ast_comparison": {
+    "_read_reviewed": {
+      "original_ast_sha256": "45d11a11375c421b03c44132c29c27935f010ff05f5be8d0d171051f74bb8ea5",
+      "candidate_ast_sha256": "45d11a11375c421b03c44132c29c27935f010ff05f5be8d0d171051f74bb8ea5",
+      "identical_ast": true
+    },
+    "_relation_available_at": {
+      "original_ast_sha256": "9e2eda4a81fab35e5d846745af8cbe89cf485d41ab645304401fd256579cf1b9",
+      "candidate_ast_sha256": "9e2eda4a81fab35e5d846745af8cbe89cf485d41ab645304401fd256579cf1b9",
+      "identical_ast": true
+    },
+    "_relation_index": {
+      "original_ast_sha256": "120eeadb6732445911299885021784df05bc864735b4de24335906f09bfc7769",
+      "candidate_ast_sha256": "120eeadb6732445911299885021784df05bc864735b4de24335906f09bfc7769",
+      "identical_ast": true
+    },
+    "_safe_tree": {
+      "original_ast_sha256": "b9ac04ab89746412fecccc06b8fe5eac5ecda2a9aa8c46fabc9a2da9a4b0781c",
+      "candidate_ast_sha256": "b9ac04ab89746412fecccc06b8fe5eac5ecda2a9aa8c46fabc9a2da9a4b0781c",
+      "identical_ast": true
+    }
+  },
+  "accepted_reviewed_schema": "v4.manager_research.us_mapping_reviewed.v1",
+  "reviewed_target_trade_date": "20260930",
+  "reviewed_card_count": 5,
+  "reviewed_us_symbol_count": 4,
+  "relation_availability": {
+    "value": "2026-10-06T00:18:15.957785+08:00",
+    "gap": null,
+    "basis": "V4_RELEASE_PUBLICATION",
+    "scope": "APPLICATION_SYSTEM_ONLY_NOT_HISTORICAL_PIT_OR_TARGET_DATE_ELIGIBILITY"
+  },
+  "side_effect_controls": {
+    "bytecode_disabled": true,
+    "audit_blocks_file_writes_network_and_subprocess": true,
+    "denied_attempts": []
+  },
+  "market_capture_invoked": false,
+  "daily_run_executed": false,
+  "research_run_saved": false,
+  "owner_api_called": false,
+  "natural_run_evidence": false,
+  "limits": [
+    "Recovered seed and registry bytes are read-only historical source dependencies; do not republish in a new handoff or use as synthetic data.",
+    "Passing this probe closes only raw dependency/schema/availability integrity; it is not a 2026-10-08 mapping or deployment run.",
+    "The registry establishes application system availability, not historical PIT or target-date security eligibility."
+  ]
+}

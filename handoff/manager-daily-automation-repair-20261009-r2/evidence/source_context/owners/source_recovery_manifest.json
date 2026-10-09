@@ -1,0 +1,121 @@
+{
+  "schema_version": "investigation.original_owner_source_recovery.v1",
+  "scope": "READ_ONLY_SOURCE_PROVENANCE_AND_WIRING_DIAGNOSIS",
+  "repository": "lexi2016/v4",
+  "entries": [
+    {
+      "key": "original_us_slot_runner_with_reported_deployed_lateness_fix",
+      "ref": "840b9538c45c9ba8fd56f8e89048aff230df0f0f",
+      "path": "handoff/us-mapping-daily-workbench-20261005/canonical/ops/run_us_market_slot.py",
+      "sha256": "16f7895072a66b8a7e6ed0c792f74069101426cfa1194df3bd89e63d95f4d948",
+      "git_blob_sha": "2841dc6d6802b787d279b7fa3023b7c68fb0ab82",
+      "bytes": 10195,
+      "cache_path": "originals/840b9538/canonical/ops/run_us_market_slot.py",
+      "reuse_status": "ORIGINAL_SOURCE_CANDIDATE_MATCHES_EARLIER_DEPLOYMENT_REPORT; CURRENT_LAUNCH_IDENTITY_UNVERIFIED",
+      "url": "https://github.com/lexi2016/v4/blob/840b9538c45c9ba8fd56f8e89048aff230df0f0f/handoff/us-mapping-daily-workbench-20261005/canonical/ops/run_us_market_slot.py",
+      "export_default_for_this_diagnosis": "LINK_AND_HASH_ONLY; scoped code restoration may separately reuse original bytes after identity review"
+    },
+    {
+      "key": "original_us_job_delivery_report",
+      "ref": "840b9538c45c9ba8fd56f8e89048aff230df0f0f",
+      "path": "handoff/us-mapping-daily-workbench-20261005/DAILY_DELIVERY.json",
+      "sha256": "595e04e7dd94ccdbc9f8980e57adcb5291d4f6ca7dab10f046b72491c79062b0",
+      "git_blob_sha": "f1c80ecfc3b50418b710efa2bd9276131732db26",
+      "bytes": 7256,
+      "cache_path": "originals/840b9538/DAILY_DELIVERY.json",
+      "reuse_status": "EARLIER_REPORTED_JOB_LOADED_NOT_CURRENT_OR_NATURAL_EVIDENCE",
+      "url": "https://github.com/lexi2016/v4/blob/840b9538c45c9ba8fd56f8e89048aff230df0f0f/handoff/us-mapping-daily-workbench-20261005/DAILY_DELIVERY.json",
+      "export_default_for_this_diagnosis": "LINK_AND_HASH_ONLY; scoped code restoration may separately reuse original bytes after identity review"
+    },
+    {
+      "key": "relation_registry_exact_pinned_bytes",
+      "ref": "840b9538c45c9ba8fd56f8e89048aff230df0f0f",
+      "path": "handoff/us-mapping-daily-workbench-20261005/canonical/v4/manager_research/us_mapping_relation_registry.json",
+      "sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe",
+      "git_blob_sha": "f03ed4b429c3e6155987276a080fe9b947580834",
+      "bytes": 809,
+      "cache_path": "originals/840b9538/canonical/v4/manager_research/us_mapping_relation_registry.json",
+      "reuse_status": "EXACT_PROBLEM_METADATA_PIN_AND_ORIGINAL_READ_ONLY_LOADER_PASS",
+      "republish_raw_in_new_handoff": false,
+      "not_synthetic_test_data": true,
+      "url": "https://github.com/lexi2016/v4/blob/840b9538c45c9ba8fd56f8e89048aff230df0f0f/handoff/us-mapping-daily-workbench-20261005/canonical/v4/manager_research/us_mapping_relation_registry.json"
+    },
+    {
+      "key": "reviewed_seed_exact_pinned_bytes",
+      "ref": "840b9538c45c9ba8fd56f8e89048aff230df0f0f",
+      "path": "handoff/us-mapping-daily-workbench-20261005/canonical/v4/manager_research/us_mapping_reviewed_20260930.json",
+      "sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a",
+      "git_blob_sha": "5c2a632b3e812c67d24b12e3d0f1fe7524cbc944",
+      "bytes": 7890,
+      "cache_path": "originals/840b9538/canonical/v4/manager_research/us_mapping_reviewed_20260930.json",
+      "reuse_status": "EXACT_PROBLEM_METADATA_PIN_AND_ORIGINAL_READ_ONLY_LOADER_PASS",
+      "republish_raw_in_new_handoff": false,
+      "not_synthetic_test_data": true,
+      "url": "https://github.com/lexi2016/v4/blob/840b9538c45c9ba8fd56f8e89048aff230df0f0f/handoff/us-mapping-daily-workbench-20261005/canonical/v4/manager_research/us_mapping_reviewed_20260930.json"
+    },
+    {
+      "key": "api_original_inline_us_executor_candidate",
+      "ref": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "path": "handoff/v4-running-source-20261005/api/infrastructure/scheduling/executor_registry.py",
+      "sha256": "f462a3254c15cfe9043783b6e07c88781ea4a3151a652c02509da3f2d9b870c9",
+      "git_blob_sha": "669556efd8ac4814bc740c7a781690953b670df7",
+      "bytes": 101560,
+      "cache_path": "originals/api_executor_registry.py",
+      "reuse_status": "INLINE_LAYOUT_EXISTS; OLD_API_SNAPSHOT_NOT_CURRENT_US_JOB_IDENTITY",
+      "url": "https://github.com/lexi2016/v4/blob/09f82ac665e36a002e7f67f949b7e38f4e0598bf/handoff/v4-running-source-20261005/api/infrastructure/scheduling/executor_registry.py",
+      "export_default_for_this_diagnosis": "LINK_AND_HASH_ONLY; scoped code restoration may separately reuse original bytes after identity review"
+    },
+    {
+      "key": "api_original_us_digest_candidate",
+      "ref": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "path": "handoff/v4-running-source-20261005/api/ops/us_market_digest.py",
+      "sha256": "7c73342d8e2cfff536d81faf7d616e507581b67f5bf5ff44d9a97380859577ea",
+      "git_blob_sha": "b2daae4e01762af575d7117b81c802fc6c6026db",
+      "bytes": 99595,
+      "cache_path": "originals/api_us_market_digest.py",
+      "reuse_status": "ORIGINAL_PRODUCER_EXISTS; OLD_API_SNAPSHOT_NOT_CURRENT_US_JOB_IDENTITY",
+      "url": "https://github.com/lexi2016/v4/blob/09f82ac665e36a002e7f67f949b7e38f4e0598bf/handoff/v4-running-source-20261005/api/ops/us_market_digest.py",
+      "export_default_for_this_diagnosis": "LINK_AND_HASH_ONLY; scoped code restoration may separately reuse original bytes after identity review"
+    },
+    {
+      "key": "original_announcement_runbook",
+      "ref": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "path": "handoff/manager-daily-chain-20261008/source/api_app/docs/manager_daily_research.md",
+      "sha256": "84763ac3e271d749154a8980b1547231e1ed496fc80d861a7ef6d30ad8482d78",
+      "git_blob_sha": "140708438a68c2f7b3ed7613b0d6fe5ed5a849d6",
+      "bytes": 9160,
+      "reuse_status": "DECLARES_0630_HEARTBEAT_AND_EXTERNAL_READER_REVIEWER; DOES_NOT_SUPPLY_EXECUTOR",
+      "url": "https://github.com/lexi2016/v4/blob/09f82ac665e36a002e7f67f949b7e38f4e0598bf/handoff/manager-daily-chain-20261008/source/api_app/docs/manager_daily_research.md",
+      "export_default_for_this_diagnosis": "LINK_AND_HASH_ONLY; scoped code restoration may separately reuse original bytes after identity review"
+    },
+    {
+      "key": "original_announcement_artifact_bridge",
+      "ref": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "path": "handoff/manager-daily-chain-20261008/source/api_app/ops/run_manager_daily_announcement.py",
+      "sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "git_blob_sha": "9cca1b53a9cb007fbcda054a3db00d8e40d29208",
+      "bytes": 42929,
+      "reuse_status": "EXISTING_CAPTURE_REGISTER_IMPORT_READBACK; NO_READER_MODEL_EXECUTION",
+      "url": "https://github.com/lexi2016/v4/blob/09f82ac665e36a002e7f67f949b7e38f4e0598bf/handoff/manager-daily-chain-20261008/source/api_app/ops/run_manager_daily_announcement.py",
+      "export_default_for_this_diagnosis": "LINK_AND_HASH_ONLY; scoped code restoration may separately reuse original bytes after identity review"
+    },
+    {
+      "key": "earlier_announcement_once_only_import_instructions",
+      "ref": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "path": "handoff/announcement-daily-repair-20261007/ops/ANALYSIS_PRODUCT_V4_OWNER_IMPORT_COMMAND.md",
+      "sha256": "efaf0a0a442c75632c6a74c2d8115432c71b6cf639742fd8dc9b7f4132011232",
+      "bytes": 17824,
+      "cache_path": "originals/9dfa503/ops/ANALYSIS_PRODUCT_V4_OWNER_IMPORT_COMMAND.md",
+      "reuse_status": "ONCE_ONLY_FIXED_PRODUCT_IMPORT_NOT_NATURAL_DAILY_EXECUTOR",
+      "url": "https://github.com/lexi2016/v4/blob/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/handoff/announcement-daily-repair-20261007/ops/ANALYSIS_PRODUCT_V4_OWNER_IMPORT_COMMAND.md",
+      "export_default_for_this_diagnosis": "LINK_AND_HASH_ONLY; scoped code restoration may separately reuse original bytes after identity review"
+    }
+  ],
+  "packaging_policy": "Publish links, hashes and derived investigation receipts for this diagnosis. Do not recursively copy originals/ into a new handoff. Original research seed and registry must not be reuploaded or treated as synthetic data; scoped reuse of original code remains a separate implementation decision.",
+  "not_proof_of": [
+    "current_loaded_job_identity",
+    "2026-10-08_actual_daily_mapping",
+    "manager_live_deployment",
+    "continuous_natural_runs"
+  ]
+}

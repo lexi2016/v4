@@ -1,0 +1,319 @@
+{
+  "schema_version": "v4.manager_workbench_repair.delivery.v1",
+  "base_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+  "original_problem_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+  "source_root_kind": "R2_INCREMENT_ON_REVIEWED_R1_DISTINCT_SOURCE_LAYERS",
+  "not_live_release": true,
+  "actual_process_loaded_identity": "NOT_VERIFIED_CURRENT",
+  "integration_requires": "ISSUE_30_SINGLE_INTEGRATION_OWNER_WITH_CURRENT_CUMULATIVE_BEFORE_GATES",
+  "files": [
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "worktree_path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "profile": "web",
+      "change": "modified",
+      "before_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+      "before_bytes": 65108,
+      "before_git_blob_sha": "6bafca0e188c996c89fb95f28fd5d7ea0c20a6ea",
+      "before_source_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+      "before_source_origin": "handoff/manager-daily-automation-repair-20261008-r1/after/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "before_source_basis": "EXACT_FROZEN_R1_AFTER_BYTES_NOT_ASSUMED_DEPLOYED",
+      "after_path": "after/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "after_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3",
+      "after_bytes": 65122,
+      "after_git_blob_sha": "a2c668220659d4e1808cafed0116438721d22ac0",
+      "patch_path": "patches/web/apps/web/src/manager-selection/catalystObservationPanel.ts.patch",
+      "patch_sha256": "572869ece221d6e87c2431b5d9f3bd19d56ce8fae16c28b7c2d1a6c165691660",
+      "patch_bytes": 632,
+      "incremental_patch_path": null,
+      "incremental_patch_sha256": null,
+      "incremental_patch_bytes": null,
+      "new_implementation_delta": true
+    },
+    {
+      "path": "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+      "worktree_path": "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+      "profile": "tests",
+      "change": "added",
+      "before_sha256": null,
+      "before_bytes": null,
+      "before_git_blob_sha": null,
+      "before_source_commit": null,
+      "before_source_origin": null,
+      "before_source_basis": "NEW_ISOLATED_TEST_FILE",
+      "after_path": "after/tests/apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+      "after_sha256": "2d1f353823a96745f4d1c4a0e9eed55f9ba1caec0ea766bd0f16861e303dc668",
+      "after_bytes": 17938,
+      "after_git_blob_sha": "c5d1462ff2d5a2a98e4255d2afcfeafebe1724c5",
+      "patch_path": "patches/tests/apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts.patch",
+      "patch_sha256": "7a8f946c5ecaa25f4174095c93ab0147f49c2b0c3622d73ea3cf7cd299323d62",
+      "patch_bytes": 18377,
+      "incremental_patch_path": null,
+      "incremental_patch_sha256": null,
+      "incremental_patch_bytes": null,
+      "new_implementation_delta": true
+    },
+    {
+      "path": "tests/manager_daily_ui_parent_route_worker.py",
+      "worktree_path": "tests/manager_daily_ui_parent_route_worker.py",
+      "profile": "tests",
+      "change": "added",
+      "before_sha256": null,
+      "before_bytes": null,
+      "before_git_blob_sha": null,
+      "before_source_commit": null,
+      "before_source_origin": null,
+      "before_source_basis": "NEW_ISOLATED_TEST_FILE",
+      "after_path": "after/tests/tests/manager_daily_ui_parent_route_worker.py",
+      "after_sha256": "bc40e4716f5dffad231318723e130a6879518a5ec681d4a31df316014d265eaa",
+      "after_bytes": 10216,
+      "after_git_blob_sha": "1c86fed1fca05dd446ba7d97afb1842e7f5e7f54",
+      "patch_path": "patches/tests/tests/manager_daily_ui_parent_route_worker.py.patch",
+      "patch_sha256": "228aa54fbbfde6e8acdb727f8504c1a0add880b4306990ff23a4d9438ee080d3",
+      "patch_bytes": 10520,
+      "incremental_patch_path": null,
+      "incremental_patch_sha256": null,
+      "incremental_patch_bytes": null,
+      "new_implementation_delta": true
+    },
+    {
+      "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "worktree_path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "profile": "tests",
+      "change": "modified",
+      "before_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+      "before_bytes": 4746,
+      "before_git_blob_sha": "aeb57fcc2c43dd465fbdd8bcd5df6396aad45f7d",
+      "before_source_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+      "before_source_origin": "handoff/manager-daily-automation-repair-20261008-r1/after/tests/tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "before_source_basis": "EXACT_FROZEN_R1_AFTER_BYTES_NOT_ASSUMED_DEPLOYED",
+      "after_path": "after/tests/tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "after_sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+      "after_bytes": 8634,
+      "after_git_blob_sha": "08f1af0ae911b35c2834aa37bd05f0f3c4a46e76",
+      "patch_path": "patches/tests/tests/test_manager_workspace_exact_page_binding_20261008.py.patch",
+      "patch_sha256": "049da53beb4dfc94d5dda57dba0dbcee7a326912d06efe08c1b61a2a29b9b1a4",
+      "patch_bytes": 4550,
+      "incremental_patch_path": null,
+      "incremental_patch_sha256": null,
+      "incremental_patch_bytes": null,
+      "new_implementation_delta": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "worktree_path": "v4/manager_research/workspace.py",
+      "profile": "api",
+      "change": "modified",
+      "before_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+      "before_bytes": 76020,
+      "before_git_blob_sha": "3d8537db6bd196f572fda493c4ac841a101f2b31",
+      "before_source_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+      "before_source_origin": "handoff/manager-daily-automation-repair-20261008-r1/after/api/v4/manager_research/workspace.py",
+      "before_source_basis": "EXACT_FROZEN_R1_AFTER_BYTES_NOT_ASSUMED_DEPLOYED",
+      "after_path": "after/api/v4/manager_research/workspace.py",
+      "after_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "after_bytes": 76034,
+      "after_git_blob_sha": "e2ec0af87b8b40fe40a4f28c6098cae11f0b636a",
+      "patch_path": "patches/api/v4/manager_research/workspace.py.patch",
+      "patch_sha256": "78e36045009689db5f6c21bcceceb115aa723b1e3547f7c2a7b48535c0bb7275",
+      "patch_bytes": 1064,
+      "incremental_patch_path": null,
+      "incremental_patch_sha256": null,
+      "incremental_patch_bytes": null,
+      "new_implementation_delta": true
+    }
+  ],
+  "preserve": [],
+  "profile_root_bindings": {
+    "api": "R1-composed protected 8873 API candidate",
+    "web": "R1-composed actual ordinary manager web source candidate",
+    "tests": "Isolated source test assembly"
+  },
+  "prior_r1_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+  "retained_r1_records": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "profile": "api",
+      "sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "profile": "tests",
+      "sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "profile": "web",
+      "sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+      "profile": "tests",
+      "sha256": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+      "profile": "web",
+      "sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "profile": "web",
+      "sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "profile": "api",
+      "sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "profile": "api",
+      "sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+      "profile": "hk_child",
+      "sha256": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "profile": "hk_child",
+      "sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "ops/ensure_hk_security_master.py",
+      "profile": "hk_child",
+      "sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "ops/render_manager_announcement_binding.py",
+      "profile": "api",
+      "sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "profile": "api",
+      "sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "runtime_layers/hk_child/ops/macos_research_panel_daily.py",
+      "profile": "hk_child",
+      "sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "tests/manager_daily_ui_owner_fixture.py",
+      "profile": "tests",
+      "sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "tests/manager_daily_ui_route_fixture.py",
+      "profile": "tests",
+      "sha256": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "tests/test_hk_daily_publication_chain.py",
+      "profile": "tests",
+      "sha256": "5e70c7f2943df396b0d8dde48c8adcc0153962306d71c0ececb72af17e04eec3",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "tests/test_hk_daily_supplement_r4.py",
+      "profile": "tests",
+      "sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "tests/test_manager_daily_automation_20261008.py",
+      "profile": "tests",
+      "sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "tests/test_manager_daily_dispatch_20261008.py",
+      "profile": "tests",
+      "sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "tests/test_manager_history_contract_20261008.py",
+      "profile": "tests",
+      "sha256": "ba8b74490c9fcb248bc102c0c22aa76ec121f268730ab13ac14c2f69e013d188",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "tests/test_manager_owner_namespace_contracts.py",
+      "profile": "tests",
+      "sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "tests/test_manager_us_daily_automation_20261008.py",
+      "profile": "tests",
+      "sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "tests/test_manager_workspace_owner_20261008.py",
+      "profile": "tests",
+      "sha256": "46ebbea9f71baf052ebbd1185d2dc25bcd4bc92d3e2e6da8ebd96c41135294ea",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "profile": "hk_upstream",
+      "sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "profile": "api",
+      "sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "profile": "api",
+      "sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "profile": "api",
+      "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "profile": "api",
+      "sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "profile": "api",
+      "sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

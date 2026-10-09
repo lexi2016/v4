@@ -1,0 +1,223 @@
+--- /dev/null
++++ b/tests/manager_daily_ui_parent_route_worker.py
+@@ -0,0 +1,220 @@
++"""TestClient-backed HTTP transport worker for the complete manager page.
++
++All research, review, and market values are explicitly synthetic test inputs.
++The current original announcement analysis owner, US mapping owner, workspace
++plan owner, FastAPI routes, stores, cutoffs, and readback adapters execute
++normally inside this process. JSON-lines are transport only; owner DTOs are
++never assembled by this fixture.
++"""
++from __future__ import annotations
++
++from datetime import datetime
++import json
++from pathlib import Path
++import sys
++from tempfile import TemporaryDirectory
++from zoneinfo import ZoneInfo
++
++from fastapi.testclient import TestClient
++
++from infrastructure.research_peripheral_store import ResearchPeripheralStore
++from test_manager_announcement_parity_20261008 import (
++    _FixtureService,
++    _client,
++    _fixture,
++    _import,
++)
++from manager_daily_ui_owner_fixture import _synthetic_us_payload
++from v4.manager_research import us_mapping_research, workspace as workspace_owner
++from v4.manager_research.us_market_bridge import ResearchPeripheralUsMarketReader
++
++
++TARGETS = (
++    ("20261007", "2026-10-06", "3" * 32, "SELECTED_EVENT"),
++    ("20261008", "2026-10-07", "1" * 32, "SELECTED_EVENT"),
++    ("20261009", "2026-10-07", "2" * 32, "NOT_SELECTED"),
++)
++HK = ZoneInfo("Asia/Hong_Kong")
++ACTUAL_NOW = datetime(2026, 10, 8, 10, 0, tzinfo=HK)
++NOW = datetime(2026, 10, 8, 10, 0, 3, tzinfo=HK)
++
++
++def _configure_clock() -> None:
++    import test_manager_announcement_parity_20261008 as parity
++
++    class FrozenRouterClock(datetime):
++        @classmethod
++        def now(cls, tz=None):
++            return ACTUAL_NOW.astimezone(tz) if tz else ACTUAL_NOW.replace(tzinfo=None)
++
++    parity.api.datetime = FrozenRouterClock
++    parity.NOW = NOW
++    workspace_owner._now = lambda: "2026-10-08T02:00:02+00:00"
++
++
++def _import_synthetic_current_owner_products(service: _FixtureService, client: TestClient) -> None:
++    for target, publication, run_id, disposition in TARGETS:
++        _, registration = _fixture(
++            service,
++            target=target,
++            publication=publication,
++            run_id=run_id,
++            reviewed_at="2026-10-08T00:00:00+00:00",
++            disposition=disposition,
++        )
++        if registration is None:
++            raise RuntimeError(f"current owner did not register synthetic review input: {target}")
++        _import(client, registration)
++
++
++def _run_original_us_daily_owner(service: _FixtureService, state_root: Path, mode: str) -> None:
++    source_root = state_root / "synthetic-us-peripheral"
++    store = ResearchPeripheralStore(source_root)
++    if mode == "complete":
++        store.publish(_synthetic_us_payload("20261007", {"LITE": 5.125}))
++    reader = ResearchPeripheralUsMarketReader(source_root)
++    service._workspace_us_market_reader = reader
++
++    reviewed = {
++        "schema_version": "TEST_FIXTURE",
++        "artifact_sha256": "d" * 64,
++        "cards": [{
++            "daily_match_symbols": ["LITE"],
++            "hk_symbol": "HK.06166",
++            "hk_name": "Synthetic issuer",
++            "research_priority": "PRIORITY",
++            "relationship_type": "PRODUCT_PEER",
++            "reason": "TEST_FIXTURE_ORIGINAL_OWNER_RELATION_REASON",
++            "maturity": "TEST_FIXTURE",
++            "limitations": ["synthetic test fixture; no natural market evidence"],
++            "official_sources": [],
++        }],
++    }
++    us_mapping_research._read_reviewed = lambda: reviewed
++    us_mapping_research._relation_available_at = lambda _reviewed: (
++        datetime(2026, 10, 1, 0, 0, tzinfo=HK), None)
++    service.refresh_us_mapping_research(
++        "20261008",
++        now=datetime(2026, 10, 8, 10, 0, tzinfo=HK),
++        timeout_seconds=2.0,
++        execution_context={
++            "trigger_kind": "SCHEDULED",
++            "timing": "LATE_CATCHUP",
++            "scheduled_for": "2026-10-08T10:00:00+08:00",
++            "trigger_id": "b" * 64,
++            "natural_run_verified": False,
++        },
++    )
++
++
++def _prepare(service: _FixtureService, client: TestClient, state_root: Path, mode: str) -> None:
++    _configure_clock()
++    _import_synthetic_current_owner_products(service, client)
++    _run_original_us_daily_owner(service, state_root, mode)
++    post = client.post(
++        "/api/v4/manager/research/workspace/refresh",
++        params={"date": "20261008", "selection_date": "20261007", "announcement_date": "20261007"},
++        headers={"Origin": "http://testserver"},
++    )
++    if post.status_code != 200:
++        raise RuntimeError(f"original workspace plan owner POST failed: {post.status_code} {post.text}")
++    result = post.json()
++    product = result.get("plan_product")
++    if not isinstance(product, dict) or product.get("status") != "CURRENT" or product.get("consumed") is not True:
++        raise RuntimeError("original plan owner did not return a saved-current plan; fixture refused to synthesize one")
++    readback = client.get(
++        "/api/v4/manager/research/workspace",
++        params={"date": "20261008", "view": "dynamic", "selection_date": "20261007", "announcement_date": "20261007"},
++    )
++    if readback.status_code != 200:
++        raise RuntimeError(f"original workspace GET readback failed: {readback.status_code} {readback.text}")
++    dto = readback.json()
++    plan = dto.get("plan_product", {})
++    if (plan.get("run_id") != product.get("run_id")
++            or plan.get("status") != "CURRENT"
++            or plan.get("run_readback", {}).get("status") != "VERIFIED"):
++        raise RuntimeError("original workspace route did not read back the exact saved plan run: " + json.dumps({
++            "target": dto.get("target_trade_date"),
++            "date_bindings": dto.get("date_bindings"),
++            "expected_run_id": product.get("run_id"),
++            "actual_run_id": plan.get("run_id"),
++            "actual_status": plan.get("status"),
++            "actual_readback": plan.get("run_readback"),
++            "post_input_identity": product.get("input_identity"),
++            "get_input_identity": dto.get("input_identity"),
++            "post_attempt": result.get("workspace_plan_attempt"),
++            "get_attempt": dto.get("workspace_plan_attempt"),
++            "read_context": dto.get("read_context"),
++        }, ensure_ascii=False, sort_keys=True))
++    auto_readback = client.get(
++        "/api/v4/manager/research/workspace",
++        params={"date": "20261008", "view": "auto", "selection_date": "20261007", "announcement_date": "20261007"},
++    )
++    if auto_readback.status_code != 200:
++        raise RuntimeError(f"original workspace auto GET failed: {auto_readback.status_code} {auto_readback.text}")
++    auto_plan = auto_readback.json().get("plan_product", {})
++    channels = dto.get("daily_channels", {}).get("channels", [])
++    announcement = next((row for row in channels if row.get("channel") == "ANNOUNCEMENT"), None)
++    us_daily = dto.get("us_mapping_research", {}).get("daily_run", {})
++    if mode == "complete" and (announcement is None or announcement.get("status") != "READY"
++            or not announcement.get("rows")):
++        raise RuntimeError("current original announcement owner did not project its synthetic selected row")
++    if mode == "missing-us" and us_daily.get("status") != "INPUT_MISSING":
++        raise RuntimeError("original US mapping owner did not persist the synthetic missing-input run receipt")
++    print(json.dumps({
++        "ready": True,
++        "mode": mode,
++        "saved_plan_run_id": plan.get("run_id"),
++        "saved_plan_sha256": plan.get("sha256"),
++        "saved_plan_target_date": dto.get("target_trade_date"),
++        "auto_plan_status": auto_plan.get("status"),
++        "auto_readback_status": auto_plan.get("run_readback", {}).get("status"),
++        "announcement_status": announcement.get("status") if announcement else None,
++        "announcement_rows": len(announcement.get("rows", [])) if announcement else None,
++        "us_mapping_status": us_daily.get("status"),
++        "us_mapping_run_id": us_daily.get("run_id"),
++        "us_mapping_readback_status": us_daily.get("run_readback", {}).get("status"),
++        "oversold_status": next((row.get("status") for row in channels if row.get("channel") == "OVERSOLD"), None),
++    }, ensure_ascii=False, sort_keys=True), flush=True)
++
++
++def main() -> None:
++    mode = sys.argv[1] if len(sys.argv) > 1 else "complete"
++    if mode not in {"complete", "missing-us"}:
++        raise SystemExit("Usage: manager_daily_ui_parent_route_worker.py [complete|missing-us]")
++    with TemporaryDirectory(prefix="manager-daily-parent-page-testclient-") as directory:
++        root = Path(directory)
++        service = _FixtureService(root / "manager-state")
++        try:
++            with _client(service) as client:
++                _prepare(service, client, root, mode)
++                for line in sys.stdin:
++                    request = None
++                    try:
++                        request = json.loads(line)
++                        response = client.request(
++                            str(request.get("method", "GET")),
++                            str(request.get("url", "/")),
++                            headers={"Origin": "http://testserver", **(request.get("headers") or {})},
++                            content=request.get("body"),
++                        )
++                        try:
++                            body = response.json()
++                        except ValueError:
++                            body = response.text
++                        result = {
++                            "id": request.get("id"),
++                            "status": response.status_code,
++                            "ok": response.is_success,
++                            "body": body,
++                        }
++                    except Exception as exc:  # Preserve a transport error for the Vitest caller.
++                        result = {"id": request.get("id") if isinstance(request, dict) else None,
++                            "status": 599, "ok": False, "body": {"error": type(exc).__name__, "detail": str(exc)}}
++                    print(json.dumps(result, ensure_ascii=False, sort_keys=True, allow_nan=False), flush=True)
++        finally:
++            service.close()
++
++
++if __name__ == "__main__":
++    main()

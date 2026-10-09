@@ -1,0 +1,162 @@
+{
+  "schema_version": "investigation.original_owner_minimum_wiring.v1",
+  "scope": "READ_ONLY_NO_OWNER_EXECUTION_NO_PRODUCTION_OR_TEST_EDITS",
+  "us": {
+    "original_entry": {
+      "file": "ops/run_us_market_slot.py",
+      "function": "run_us_market_slot",
+      "module_owner": "v4_dispatcher.us_market_digest",
+      "original_reported_runner_sha256": "16f7895072a66b8a7e6ed0c792f74069101426cfa1194df3bd89e63d95f4d948",
+      "default_slot_lateness_minutes": 15,
+      "run_at_load": false
+    },
+    "invocation_contract": {
+      "required": [
+        "--data-root",
+        "--ledger-root"
+      ],
+      "optional": [
+        "--slot",
+        "--date",
+        "--timeout-seconds",
+        "--dry-run"
+      ],
+      "default_date_timezone": "Asia/Shanghai",
+      "slots": [
+        "0415",
+        "0515",
+        "2100",
+        "2200"
+      ],
+      "run_policy": "NATURAL_DAY",
+      "source_root": "Path(__file__).resolve().parents[1]"
+    },
+    "source_to_consumer": [
+      {
+        "point": "original launch task",
+        "contract": "Original V4 loaded job from prior receipt; current label, plist bytes/metadata, command, imported source and enabled state are not supplied."
+      },
+      {
+        "point": "original registry",
+        "contract": "FixedExecutorRegistry(data_root=--data-root, repo_root=runner app root), matching V4 owner catalog; inline or split actual layout must be measured."
+      },
+      {
+        "point": "original producer",
+        "contract": "registry _us_market_digest invokes sys.executable -m ops.us_market_digest with cwd=repo_root, --trade-date=resolved US session and original --capture-phase."
+      },
+      {
+        "point": "original store",
+        "contract": "ResearchPeripheralStore writes research/peripherals/<US session>/external_finance.json, exact owner receipt and manifest under the same data root."
+      },
+      {
+        "point": "manager injected reader",
+        "contract": "create_app uses ResearchPeripheralUsMarketReader(store.root); exact-session reader checks original payload, receipt and manifest under one owner lock."
+      },
+      {
+        "point": "R1 daily owner",
+        "contract": "Original ManagerResearchJobService.refresh_us_mapping_research consumes latest completed US session for the bounded dated cutoff and saves dated mapping; plan reads that saved result."
+      }
+    ],
+    "known_reported_peripheral_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+    "required_root_equality": "US task --data-root == actual API store.root == service._workspace_us_market_reader.root",
+    "separate_manager_output_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+    "minimum_action_after_identity_readback": "Reconcile/reuse the existing V4 capture task and its exact data root; preserve the already-fixed runner and the already-implemented R1 daily mapping owner call. Confirm its injected reader's source root, exact-session source receipts, dated plan persistence and natural runs. Do not enable the separate V35 disabled US entry or add a second mapping hook.",
+    "date_examples": [
+      {
+        "hk_manager_date": "20261008",
+        "us_session": "20261007",
+        "original_shanghai_post_close_slot": "2026-10-08 04:15",
+        "state": "SOURCE_DATE_CONTRACT_ONLY; no new daily execution"
+      },
+      {
+        "hk_manager_date": "20261009",
+        "us_session": "20261008",
+        "original_shanghai_post_close_slot": "2026-10-09 04:15",
+        "state": "SOURCE_DATE_CONTRACT_ONLY; no new daily execution"
+      },
+      {
+        "hk_manager_date": "20261012",
+        "us_session": "20261009",
+        "original_shanghai_post_close_slot": "2026-10-10 04:15 Saturday",
+        "state": "SOURCE_DATE_CONTRACT_ONLY; NATURAL_DAY preserves Friday US close"
+      }
+    ],
+    "remaining_actual_identity_fields": [
+      "loaded task label and current enabled state",
+      "non-secret ProgramArguments / interpreter / app root",
+      "actual runtime_workloads.json SHA and V4 us_market_digest ownership",
+      "actual executor_registry and imported ops.us_market_digest paths and SHA, inline or split",
+      "US data-root and execution-ledger-root",
+      "source-session dispatch receipts linked to real capture payload/owner receipt/manifest hashes"
+    ],
+    "not_allowed_inference": "10/7 source capture at 20:15:00Z fits the planned slot, but does not prove its triggering task or continuous natural execution.",
+    "original_dependency_probe": "reviewed_dependency_readonly_probe.json",
+    "capture_vs_daily_mapping": "The original V4 four-slot job captures source inputs only; it is not the manager daily mapping owner.",
+    "r1_daily_mapping_call_status": "ALREADY_IMPLEMENTED_IN_PREVIOUS_R1_DELIVERY: the original manager daily cycle calls ManagerResearchJobService.refresh_us_mapping_research before dated plan reads; this read-only investigation does not request a second mapping hook.",
+    "remaining_us_work": "Verify the actual original capture job identity, interpreter/app/data/ledger roots and source-session natural dispatch/capture receipts; deploy and validate the existing R1 mapping call through the shared-entry owner. Missing current runtime evidence is not another missing mapping implementation."
+  },
+  "announcement": {
+    "declared_schedule": "06:30 heartbeat; actual scheduler/platform task ID, timezone setting, enabled state and executable/API contract are not supplied",
+    "original_entry": "ops/run_manager_daily_announcement.py",
+    "fixed_steps": [
+      "capture (or resume exact evidence_run_id)",
+      "existing assigned Reader -> actual semantic JSON",
+      "independent assigned Reviewer -> actual source-bound reviewer JSON",
+      "register-handoff exact files and identities",
+      "import existing owner endpoint",
+      "readback exact target/publication pair"
+    ],
+    "narrow_missing_execution_seam": "Between capture's exact evidence directory and register-handoff's required externally produced Reader/Reviewer paths. The bridge validates and binds outputs; it does not invoke or implement the assigned Reader/Reviewer model tasks.",
+    "known_output_contract": {
+      "reader": "semantic_catalog JSON accepted by original announcement_analysis.build_product; source article/body identity and gaps preserved",
+      "reviewer_schema": "v4.manager_research.announcement_agent_review.v1",
+      "reviewer_required_bound_fields": [
+        "review_conclusion=PASS",
+        "target_trade_date",
+        "publication_date",
+        "evidence_run_id",
+        "decision_status",
+        "decision_payload_sha256",
+        "reader_identity",
+        "reviewer_identity distinct from reader",
+        "reviewed_at",
+        "catalog_product_sha256",
+        "semantic_catalog_sha256",
+        "body_corpus_sha256"
+      ],
+      "fixed_registered_files": [
+        "catalog_read.json",
+        "body_corpus.json",
+        "body_corpus_manifest.json",
+        "body_batch_receipt.json",
+        "capture_receipt.json",
+        "semantic_catalog.json",
+        "reader_output.json",
+        "reviewer_output.json",
+        "optional article_decisions.json",
+        "analysis_product.json",
+        "handoff_manifest.v1.json"
+      ],
+      "declared_review_limit": "external_review_status=DECLARED and evidence_binding_status=OUTPUT_BOUND establish byte linkage; neither authenticates an external task identity",
+      "dispositions": "Explicit source-bound decisions only. If no real decisions or insufficient content, preserve NOT_ASSESSED."
+    },
+    "minimum_original_contract_needed": [
+      "the existing heartbeat executable entry or supported task/API method",
+      "its non-secret task/schedule and source identity",
+      "Reader and Reviewer request/prompt/selection-policy contract and original provider/model reference",
+      "actual output file/schema and parent task/run linkage",
+      "bounded retry/resume/timeout lifecycle and independent reviewer identity"
+    ],
+    "next_legitimate_code_task": "Add only the original heartbeat continuation that consumes the exact capture run, invokes its already-designated readers/reviewer, registers/imports/reads back real outputs, and records bounded failures/resumption. Existing R1 daily plan owner consumes admitted products. No new parallel producer or generated approval.",
+    "single_import_cannot_close": "Earlier 9dfa503 command is explicitly once-only fixed-product import; it provides no ongoing reader/reviewer execution."
+  },
+  "shared_closure": {
+    "stage_namespace": "Original byte closure only: stage_center._selection_parts._namespace absent in searched pinned trees. No Stage repair or replacement namespace performed.",
+    "apps_marker": "Original apps/__init__.py absent in searched pinned trees; parent is handling full-page original dependency closure."
+  },
+  "implementation_performed": false,
+  "natural_execution_claimed": false,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,117 @@
+{
+  "review": {
+    "reviewer_identity": "Luna Max independent reviewer",
+    "candidate_root": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate",
+    "decision": "PASS",
+    "decision_scope": "frozen-source API/owner contracts and bounded manager-research parent-SFC DOM integration only",
+    "production_changes_by_reviewer": false,
+    "live_or_deployed_claims": {
+      "live_api": "NOT_RUN",
+      "real_mac": "NOT_RUN",
+      "production_ui_or_deployment": "NOT_RUN",
+      "real_business_data": "NOT_RUN",
+      "october_8_live_result": "NOT_RUN",
+      "natural_schedule": "NOT_RUN",
+      "full_web_build": "NOT_RUN",
+      "whole_app_typecheck": "NOT_RUN"
+    },
+    "constraints_and_limits": [
+      "All generated owner data, market inputs, state stores, and dispatch receipts were synthetic and isolated.",
+      "The full original ManagerSelectionView.vue SFC was mounted for the manager-research region; unrelated page endpoints returned explicit 404 and are outside the PASS scope.",
+      "The original two HTML entry files remain unavailable, so no build result is claimed.",
+      "The whole-app typecheck was not run because the original issue8R2.ownerObservations.json input remains unavailable; no stub was created."
+    ]
+  },
+  "sources": {
+    "r1_readonly_baseline": {
+      "workspace.py": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+      "catalystObservationPanel.ts": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6"
+    },
+    "frozen_r2_candidate": {
+      "workspace.py": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "catalystObservationPanel.ts": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3"
+    },
+    "independent_reviewer_test": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/reviewer/test_workspace_auto_readback_contract.py",
+      "sha256": "e20677a6aef3d1ea856b8692cb9beb303c921473b95839d81248de50de6d3c29"
+    },
+    "writer_parent_sfc_spec_rerun": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+      "sha256": "2d1f353823a96745f4d1c4a0e9eed55f9ba1caec0ea766bd0f16861e303dc668"
+    },
+    "writer_real_route_worker_rerun": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/tests/manager_daily_ui_parent_route_worker.py",
+      "sha256": "bc40e4716f5dffad231318723e130a6879518a5ec681d4a31df316014d265eaa"
+    },
+    "report": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/reviewer/R2_INDEPENDENT_REVIEW.md",
+      "sha256": "1f08a62d8ac773c6ce44572272e13ec7532eab0bb4a81f9a87c7936c70a38644"
+    }
+  },
+  "test_runs": [
+    {
+      "name": "independent_api_owner_contract_regression",
+      "result": "PASS",
+      "counts": {
+        "passed": 4,
+        "failed": 0,
+        "not_run": 0
+      },
+      "exit_code": 0,
+      "cwd": "/workspace/scratch/a154a3323e32",
+      "command": "set -o pipefail\nV4_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate:/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/tests /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -p no:cacheprovider -vv /workspace/scratch/a154a3323e32/investigation/continuation_20261009/reviewer/test_workspace_auto_readback_contract.py 2>&1 | tee /workspace/scratch/a154a3323e32/investigation/continuation_20261009/reviewer/independent_api_regression_final.log",
+      "log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/reviewer/independent_api_regression_final.log",
+      "verified_contracts": [
+        "POST then ordinary default-auto GET reuses exact same-day sealed context and records the later actual read_at",
+        "Future-target auto GET reads the exact saved evening plan",
+        "Changed verified synthetic US owner source remains stale after original owner replay",
+        "Selection/publication binding mismatches do not reuse the saved cutoff",
+        "include_saved=false performs a fresh later-cutoff owner read without saved plan readback",
+        "A late US daily owner dispatch remains outside the saved plan cutoff and is not consumed by the old plan"
+      ]
+    },
+    {
+      "name": "selected_history_boundary_regression",
+      "result": "PASS",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "not_run": 0
+      },
+      "exit_code": 0,
+      "cwd": "/workspace/scratch/a154a3323e32",
+      "command": "set -o pipefail\nPYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate:/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/tests /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -p no:cacheprovider -vv /workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/tests/test_manager_history_readback_r1.py::test_history_missing_does_not_scan_live_owners /workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/tests/test_manager_history_readback_r1.py::test_auto_history_and_explicit_dynamic_are_distinct 2>&1 | tee /workspace/scratch/a154a3323e32/investigation/continuation_20261009/reviewer/selected_history_regression.log",
+      "log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/reviewer/selected_history_regression.log",
+      "verified_contracts": [
+        "Missing historical plan refuses to scan live owners and remains NOT_MATERIALIZED",
+        "Past auto history remains distinct from explicit dynamic preview"
+      ]
+    },
+    {
+      "name": "original_parent_sfc_manager_research_dom_integration",
+      "result": "PASS",
+      "counts": {
+        "files_passed": 1,
+        "tests_passed": 5,
+        "tests_failed": 0,
+        "not_run": 0
+      },
+      "exit_code": 0,
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web",
+      "command": "set -o pipefail\nV4_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate V4_TEST_PYTHON=/workspace/scratch/a154a3323e32/test_env/bin/python /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm test -- --run src/views/ManagerSelectionView.dailyIntegration.spec.ts 2>&1 | tee /workspace/scratch/a154a3323e32/investigation/continuation_20261009/reviewer/full_parent_sfc_daily_integration.log",
+      "log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/reviewer/full_parent_sfc_daily_integration.log",
+      "temporary_node_modules_symlink": {
+        "target": "/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules",
+        "cleaned_after_run": true
+      },
+      "scope_note": "Original ManagerSelectionView.vue SFC mount covers the manager-research region. Unrelated page endpoints intentionally return 404; this is not a full-page browser/deployment result.",
+      "verified_contracts": [
+        "Same-date ordinary auto readback",
+        "Explicit three-date plan POST followed by auto GET with same verified run",
+        "Missing-US owner receipt with ANN output retained and unknown counts preserved",
+        "Old date response is consumed after date switch but cannot overwrite the new current panel",
+        "Past-date auto history remains distinct from explicit dynamic read"
+      ]
+    }
+  ]
+}

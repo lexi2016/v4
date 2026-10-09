@@ -1,0 +1,49 @@
+{
+  "schema_version": "manager_daily_r2.review_source_binding.v1",
+  "status": "PASS_FROZEN_SOURCE_AND_REPORT_IDENTITY",
+  "writer_agent": "/root/luna_manager_continuation_writer",
+  "independent_reviewer_agent": "/root/luna_manager_continuation_reviewer",
+  "dispatch_configuration": {
+    "writer_model": "gpt-6-luna",
+    "writer_reasoning_effort": "max",
+    "reviewer_model": "gpt-6-luna",
+    "reviewer_reasoning_effort": "max",
+    "basis": "Actual collaboration.spawn_agent parameters; distinct agent identities"
+  },
+  "writer_report": {
+    "path": "evidence/writer/writer_final_report.json",
+    "sha256": "683ca56c18e91bec967e3ab0686c9f0c5e79025b8c2de2c3b41ac16b1c65e1e1",
+    "bytes": 14599
+  },
+  "independent_report": {
+    "path": "independent_tests/final_review.json",
+    "sha256": "c777f4ce3266d9ed41c2c519a98b925d5d22f7bf7f88969b004ac21278d9c952",
+    "bytes": 7630
+  },
+  "source_manifest": {
+    "sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+    "bytes": 15635
+  },
+  "production_sources": [
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "profile": "web",
+      "before_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+      "after_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3"
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "profile": "api",
+      "before_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+      "after_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc"
+    }
+  ],
+  "writer_tests_match_frozen_hashes": true,
+  "independent_test_matches_final_hash": true,
+  "counts_are_non_additive": true,
+  "full_typecheck_and_build": {
+    "writer": "EXECUTED_FAILED_ORIGINAL_CLOSURE_GAPS",
+    "reviewer": "NOT_RERUN"
+  },
+  "live_deployment_api_ui_natural_verified": false
+}

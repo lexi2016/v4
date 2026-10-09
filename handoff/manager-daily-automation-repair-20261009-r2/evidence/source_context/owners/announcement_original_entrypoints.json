@@ -1,0 +1,377 @@
+{
+  "schema_version": "manager_original_announcement_entrypoint_diagnosis.v1",
+  "observed_at_utc": "2026-10-09T00:14:02.677607+00:00",
+  "scope": "READ_ONLY_ORIGINAL_SOURCE_DIAGNOSIS. No production/test modifications, no Mac, no source capture, agent/model invocation, API POST, enable, service action or publishing.",
+  "source_identities": {
+    "runbook": {
+      "path": "/workspace/scratch/a154a3323e32/remote/handoff/manager-daily-chain-20261008/source/api_app/docs/manager_daily_research.md",
+      "bytes": 9160,
+      "sha256": "84763ac3e271d749154a8980b1547231e1ed496fc80d861a7ef6d30ad8482d78"
+    },
+    "bridge": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/ops/run_manager_daily_announcement.py",
+      "bytes": 42929,
+      "sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee"
+    },
+    "body_capture": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/ops/manager_announcement_body_batch.py",
+      "bytes": 42252,
+      "sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb"
+    },
+    "analysis_owner": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/v4/manager_research/announcement_analysis.py",
+      "bytes": 68733,
+      "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f"
+    },
+    "workspace_consumer": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/v4/manager_research/workspace_announcements.py",
+      "bytes": 162906,
+      "sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04"
+    },
+    "original_cycle": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/ops/run_manager_announcement_cycle.py",
+      "bytes": 36743,
+      "sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1"
+    },
+    "bound_supervisor": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 30208,
+      "sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373"
+    },
+    "original_daemon": {
+      "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/ops/run_v35_macos_scheduler_daemon.py",
+      "bytes": 46094,
+      "sha256": "7e3ead4e646a599981878e7b5eca66ecde01217de83f0f3039637a411cfa1f5c"
+    },
+    "earlier_readme": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/9dfa503/README.md",
+      "bytes": 1420,
+      "sha256": "938c62233bad944b16fd66bc1acd580fc6270c82eb764b4d87b04f16a1d078c3"
+    },
+    "earlier_fixed_import_command": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/9dfa503/ops/ANALYSIS_PRODUCT_V4_OWNER_IMPORT_COMMAND.md",
+      "bytes": 17824,
+      "sha256": "efaf0a0a442c75632c6a74c2d8115432c71b6cf639742fd8dc9b7f4132011232"
+    },
+    "earlier_import_handoff": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/9dfa503/ops/ANALYSIS_PRODUCT_V4_IMPORT_HANDOFF.md",
+      "bytes": 2902,
+      "sha256": "58719484c25552b4ee0f57a7f4846cc86e3b814848404d736880093f1f668f9a"
+    },
+    "earlier_closure": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/owners/originals/9dfa503/results/FINAL_CLOSURE_RECEIPT.json",
+      "bytes": 9808,
+      "sha256": "fa7905015a999dcd738a4fc418729de4ff49343d4fb72037ac289dd160c4fa02"
+    }
+  },
+  "known_declared_owner": {
+    "owner": "06:30 heartbeat with assigned human/agent Reader and separate Reviewer",
+    "evidence": "runbook:15,47; bridge:2-7",
+    "evidence_kind": "SOURCE_DOCUMENT_DECLARATION",
+    "actual_task_id": null,
+    "actual_task_definition_path": null,
+    "actual_enabled_schedule": null,
+    "actual_agent_execution_command_or_api": null,
+    "actual_model_invocation_contract": null,
+    "actual_receipt_for_scheduled_task": null,
+    "status": "DECLARED_ORIGINAL_OWNER_EXECUTABLE_BINDING_UNPROVEN"
+  },
+  "proven_existing_commands": [
+    {
+      "name": "capture",
+      "function": "_capture or _resume_capture",
+      "implementation_ref": "bridge:215-435",
+      "inputs": [
+        "exact target HK securities date",
+        "publication date",
+        "same API base",
+        "original ManagerResearch state root",
+        "optional exact resume evidence run id"
+      ],
+      "output": "catalog_read.json/body_corpus.json/body manifest and terminal capture receipts under announcement_agent_runs/<evidence_run_id>/evidence",
+      "scope": "Existing owner catalog + body capture, no semantic reader model execution"
+    },
+    {
+      "name": "prepare",
+      "function": "_build(reviewed=False)",
+      "implementation_ref": "bridge:82-177,668-675",
+      "inputs": [
+        "saved catalog read",
+        "external semantic catalog/Reader JSON",
+        "body corpus",
+        "terminal body-capture evidence root"
+      ],
+      "output": "validated existing product inputs; no network or owner write",
+      "scope": "Requires Reader output already supplied"
+    },
+    {
+      "name": "register-handoff",
+      "function": "_register_handoff",
+      "implementation_ref": "bridge:481-626",
+      "inputs": [
+        "exact evidence_run_id",
+        "Reader semantic-catalog JSON",
+        "different Reviewer JSON",
+        "parent_task_id",
+        "reader_identity",
+        "reviewer_identity",
+        "optional explicit article_decisions JSON"
+      ],
+      "output": "immutable registered handoff manifest and analysis product",
+      "scope": "Validates and copies real input bytes. Does not run a model or authenticate platform identities."
+    },
+    {
+      "name": "import",
+      "function": "_import",
+      "implementation_ref": "bridge:436-463",
+      "inputs": [
+        "exact registered evidence_run_id",
+        "same state root",
+        "same loopback API base"
+      ],
+      "output": "owner import receipt with available_at and exact product SHA readback",
+      "scope": "Sends evidence reference to original import API. Already-reviewed input product required."
+    },
+    {
+      "name": "readback",
+      "function": "_readback",
+      "implementation_ref": "bridge:629-655",
+      "inputs": [
+        "target date",
+        "publication date",
+        "same loopback API"
+      ],
+      "output": "exact owner product and import receipt verified",
+      "scope": "Does not produce the research judgments"
+    }
+  ],
+  "minimum_missing_seam": {
+    "before": "Existing capture returns evidence_run_id and fixed evidence root",
+    "missing": "The real existing 06:30 heartbeat executor must invoke its assigned Reader against that fixed evidence root, then invoke an independent Reviewer, save their actual JSON and explicit disposition evidence, and pass those exact paths/identities to register-handoff.",
+    "after": "Existing register-handoff -> original import -> owner receipt/available_at -> delivered daily-cycle consumes only admissible reviewed product -> saved dated plan -> ordinary GET/UI",
+    "not_missing": "The deterministic import/consumer/late-catchup code already exists and was independently tested in previous delivery; creating another cron or re-importing one product cannot replace external Reader/Reviewer execution.",
+    "specific_input_needed_to_write_a_legitimate_adapter": [
+      "Original heartbeat task id and unredacted non-secret schedule/command configuration plus its enabled/disabled state",
+      "Original executor file/module or supported API method and its imported-path/SHA identity",
+      "Original Reader and Reviewer invocation contract: request schema, model/provider reference, output schema/path, task/run linkage, timeout/cancellation/retry/lifecycle",
+      "Original prompt/selection-policy contract and identity separation requirements; no new strategy thresholds",
+      "One preserved real scheduled invocation receipt with started/finished timestamps and evidence-run linkage; failed receipt is acceptable for diagnosis"
+    ],
+    "no_need_to_upload_credentials": true,
+    "reason_no_synthetic_fallback": "Without this actual executor contract, filling semantic JSON, assigning generic SELECTED/WATCH, or claiming a differently named Reviewer from one local model call would create a second producer or invented research evidence."
+  },
+  "existing_plan_only_boundary": {
+    "source": "bound_supervisor:383-384",
+    "rule": "daily_automation.enabled requires plan_material_refresh_only=true; collection remains false",
+    "implication": "The daily plan hook deliberately cannot serve as replacement article Reader/Reviewer. Old collector opt-in and 06:30 article research are separate original roles."
+  },
+  "earlier_source_followup": {
+    "commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+    "path": "handoff/announcement-daily-repair-20261007",
+    "finding": "Earlier fixed owner import command explicitly says Run this once only and pins one reviewed product; README leaves operator, per-article semantic decisions, owner import and natural daily operation unverified. It adds valid front-end dependency bytes but does not supply heartbeat execution/model contract.",
+    "references": [
+      "earlier_readme:7",
+      "earlier_fixed_import_command:3-7"
+    ]
+  },
+  "bridge_functions": [
+    {
+      "name": "_load",
+      "lines": [
+        49,
+        51
+      ]
+    },
+    {
+      "name": "_file_sha",
+      "lines": [
+        54,
+        55
+      ]
+    },
+    {
+      "name": "_publication_iso",
+      "lines": [
+        58,
+        66
+      ]
+    },
+    {
+      "name": "_write_exclusive",
+      "lines": [
+        69,
+        79
+      ]
+    },
+    {
+      "name": "_build",
+      "lines": [
+        82,
+        176
+      ]
+    },
+    {
+      "name": "_local_api",
+      "lines": [
+        179,
+        186
+      ]
+    },
+    {
+      "name": "_request",
+      "lines": [
+        189,
+        212
+      ]
+    },
+    {
+      "name": "_capture",
+      "lines": [
+        215,
+        274
+      ]
+    },
+    {
+      "name": "_evidence_run_id",
+      "lines": [
+        277,
+        280
+      ]
+    },
+    {
+      "name": "_resume_capture",
+      "lines": [
+        283,
+        433
+      ]
+    },
+    {
+      "name": "_import",
+      "lines": [
+        436,
+        463
+      ]
+    },
+    {
+      "name": "_copy_json_bytes",
+      "lines": [
+        466,
+        478
+      ]
+    },
+    {
+      "name": "_register_handoff",
+      "lines": [
+        481,
+        626
+      ]
+    },
+    {
+      "name": "_readback",
+      "lines": [
+        629,
+        654
+      ]
+    },
+    {
+      "name": "_parser",
+      "lines": [
+        657,
+        706
+      ]
+    },
+    {
+      "name": "main",
+      "lines": [
+        709,
+        733
+      ]
+    }
+  ],
+  "bounded_text_searches": {
+    "runbook": {
+      "heartbeat": [
+        15,
+        47
+      ],
+      "06:30": [
+        15
+      ]
+    },
+    "bridge": {
+      "heartbeat": [
+        5
+      ],
+      "reader_identity": [
+        536,
+        538,
+        568,
+        577,
+        624
+      ],
+      "reviewer_identity": [
+        537,
+        538,
+        568,
+        578,
+        625
+      ]
+    },
+    "body_capture": {},
+    "analysis_owner": {},
+    "workspace_consumer": {
+      "reader_identity": [
+        1744,
+        2137,
+        2139,
+        2144
+      ],
+      "reviewer_identity": [
+        1741,
+        1744,
+        2138,
+        2140,
+        2144
+      ]
+    },
+    "original_cycle": {},
+    "bound_supervisor": {
+      "subprocess": [
+        15,
+        440,
+        456,
+        476,
+        478
+      ]
+    },
+    "original_daemon": {
+      "heartbeat": [
+        6,
+        809,
+        838,
+        943,
+        969,
+        1045,
+        1053
+      ],
+      "subprocess": [
+        19,
+        561,
+        576,
+        608,
+        616,
+        624,
+        631,
+        636,
+        651,
+        669
+      ]
+    },
+    "earlier_readme": {},
+    "earlier_fixed_import_command": {},
+    "earlier_import_handoff": {},
+    "earlier_closure": {}
+  },
+  "classification": "SOURCE_PIPELINE_SEAM_IDENTIFIED; EXISTING_AGENT_EXECUTOR_CONTRACT_NOT_PROVIDED; NO_PRODUCTION_PATCH_JUSTIFIED_FOR_AGENT_EXECUTION_YET",
+  "next_code_work_when_original_entry_is_available": "Add the smallest continuation in that original heartbeat executor: preserve exact capture run; reader -> separate reviewer -> register/import/readback; durable terminal failures and bounded resume under original lifecycle; then use the already delivered daily owner. Keep semantic rules and all PIT/import gates unchanged."
+}

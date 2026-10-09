@@ -1,0 +1,102 @@
+{
+  "schema_version": "manager_daily_automation.acceptance_status.v2",
+  "original_problem_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+  "reused_r1_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+  "business_goal_complete": false,
+  "levels": {
+    "IMPLEMENTED": {
+      "status": "PASS_R2_DELTA_ON_REUSED_R1",
+      "scope": "Two manager API/web fixes; existing R1 daily owner/input/persistence chain retained"
+    },
+    "TESTED": {
+      "status": "PASS_SCOPED_WITH_RECORDED_BASELINE_FAILURES",
+      "writer_python": {
+        "passed": 59,
+        "known_baseline_failed": 1
+      },
+      "writer_parent_dom": {
+        "passed": 5
+      },
+      "manager_production_typecheck": "PASS",
+      "whole_web_typecheck": "EXECUTED_FAIL_EXIT_2",
+      "whole_web_build": "EXECUTED_FAIL_EXIT_1",
+      "note": "The 2 exact-binding tests are within the 59; scoped rerun deselects the separately reproduced baseline failure."
+    },
+    "REVIEWED": {
+      "status": "PASS_SCOPED",
+      "independent_api": {
+        "passed": 4
+      },
+      "existing_history_boundary": {
+        "passed": 2
+      },
+      "writer_parent_dom_independently_rerun": {
+        "passed": 5
+      },
+      "whole_web_typecheck_and_build": "NOT_RERUN_BY_REVIEWER"
+    },
+    "INTEGRATED": {
+      "status": "NOT_RUN",
+      "dependency": "Issue #30 unique protected integration owner and four R1 path ownership registrations"
+    },
+    "DEPLOYED": {
+      "status": "NOT_RUN",
+      "actual_loaded_release": "NOT_VERIFIED_CURRENT"
+    },
+    "API_VERIFIED": {
+      "status": "NOT_RUN_LIVE",
+      "isolated_original_TestClient_routes": "PASS_SCOPED"
+    },
+    "UI_VERIFIED": {
+      "status": "NOT_RUN_LIVE",
+      "isolated_original_parent_manager_research_region": "PASS_SCOPED",
+      "unrelated_page_sections": "EXPLICIT_UNAVAILABLE_IN_TEST"
+    },
+    "BEHAVIOR_VERIFIED": {
+      "status": "ISOLATED_CONTRACTS_ONLY",
+      "real_20261008_retrospective": "NOT_RUN",
+      "source_date_rollover": "ISOLATED_TESTS_AND_ORIGINAL_CALENDAR_PROBE",
+      "actual_cross_day_chain": "NOT_RUN"
+    },
+    "NATURAL_VERIFIED": {
+      "status": "NATURAL_SLOT_UNVERIFIED",
+      "required_consecutive_applicable_days": 2,
+      "observed_in_this_round": 0
+    }
+  },
+  "original_inputs": {
+    "announcement": "ANNOUNCEMENT_ORIGINAL_HEARTBEAT_EXECUTOR_UNAVAILABLE",
+    "us_capture": "ORIGINAL_V4_SLOT_RUNNER_RECOVERED; CURRENT_TASK_IDENTITY_AND_SOURCE_RECEIPTS_UNVERIFIED",
+    "us_mapping": "R1_BOUNDED_DAILY_OWNER_CALL_REUSED; REAL_RUN_UNVERIFIED",
+    "hk_owner": "ACTUAL_ORIGINAL_METADATA_IMPLEMENTATION_FOUND; CHILD_IMPORT_BINDING_UNVERIFIED",
+    "oversold": "OVERSOLD_VERIFIED_VOLUME_CONTRACT_UNAVAILABLE; HISTORICAL_QUALIFICATION_AND_PIT_GAPS_PRESERVED"
+  },
+  "source_and_report_identity": {
+    "source_manifest.json": {
+      "sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+      "bytes": 15635
+    },
+    "evidence/writer/writer_final_report.json": {
+      "sha256": "683ca56c18e91bec967e3ab0686c9f0c5e79025b8c2de2c3b41ac16b1c65e1e1",
+      "bytes": 14599
+    },
+    "independent_tests/final_review.json": {
+      "sha256": "c777f4ce3266d9ed41c2c519a98b925d5d22f7bf7f88969b004ac21278d9c952",
+      "bytes": 7630
+    },
+    "evidence/package/review_source_binding.json": {
+      "sha256": "aed57209acfe8465349fddf44ca1496434ca204fd72fe39625ebbeed7db11065",
+      "bytes": 1909
+    },
+    "evidence/package/source_scope_audit.json": {
+      "sha256": "5132afe4c4241a92d60cd40b42f1e60fa503704c4038cd7ae15f26f9bdd79a51",
+      "bytes": 2182
+    }
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "recorded_at_utc": "2026-10-09 00:50:09 UTC",
+  "recorded_at_source": "clock__curr_time"
+}

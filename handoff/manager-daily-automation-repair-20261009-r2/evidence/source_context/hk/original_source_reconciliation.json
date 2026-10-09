@@ -1,0 +1,211 @@
+{
+  "schema_version": "manager_hk_original_source_reconciliation.v1",
+  "source_branch": "codex/stage-autorun-readiness-20261009",
+  "source_branch_frozen_commit": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+  "remote_files": [
+    {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/hk_inputs/remote/actual_shared_owner_hk_0_2.py",
+      "sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac",
+      "bytes": 57090,
+      "commit": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+      "remote_url": "https://github.com/lexi2016/v4/blob/b00ca5a658a9de83cf5e54ad39aa68ddd5c23526/handoff/stage-autorun-readiness-20261009/source/actual_shared_owner/shared_data/hk_0_2.py",
+      "remote_git_blob_sha": "28d999b680d22f4557fd0c8c40a8e4108f1fc892"
+    },
+    {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/hk_inputs/remote/SOURCE_MANIFEST.stage_autorun_b00ca5.json",
+      "sha256": "6bc8c198bbe116e23921ef095e1c383664aebdf039d23dc5b761c338e983086e",
+      "bytes": 8279,
+      "commit": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+      "remote_url": "https://github.com/lexi2016/v4/blob/b00ca5a658a9de83cf5e54ad39aa68ddd5c23526/handoff/stage-autorun-readiness-20261009/SOURCE_MANIFEST.json",
+      "remote_git_blob_sha": "58df0a6600ab2b8d8dc690e1bfacdaa85cf943b3"
+    },
+    {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/hk_inputs/remote/HK_READINESS_STATE.stage_autorun_b00ca5.json",
+      "sha256": "519b16009eb6e4cb01b81610425c88fc85e0dd056bbc3a0048772a0cfdb2ff90",
+      "bytes": 3087,
+      "commit": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+      "remote_url": "https://github.com/lexi2016/v4/blob/b00ca5a658a9de83cf5e54ad39aa68ddd5c23526/handoff/stage-autorun-readiness-20261009/HK_READINESS_STATE.json",
+      "remote_git_blob_sha": "7f2b52e6ec3e68168d4ad31b80d44dcce9a1b64d"
+    },
+    {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/hk_inputs/remote/README.stage_autorun_b00ca5.md",
+      "sha256": "67e755b0c51cb9216634c512008adb2d6b07708fa677b05844a49301e7fcf214",
+      "bytes": 11169,
+      "commit": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+      "remote_url": "https://github.com/lexi2016/v4/blob/b00ca5a658a9de83cf5e54ad39aa68ddd5c23526/handoff/stage-autorun-readiness-20261009/README.zh-CN.md",
+      "remote_git_blob_sha": "632846ebabb88a643b272df4001ab0fb9c143618"
+    },
+    {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/hk_inputs/remote/issue29_hk_us_boundary_20261008.json",
+      "sha256": "53ad50519573ee8257e3079540683d4177259aa68daadee6965e706dcf7a6d8e",
+      "bytes": 11339,
+      "commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "remote_url": "https://github.com/lexi2016/v4/blob/09f82ac665e36a002e7f67f949b7e38f4e0598bf/handoff/issue29-mac-acceptance-20261008/input_readiness/issue29_hk_us_boundary_20261008.json",
+      "remote_git_blob_sha": "22b2d9dc1301c357cb741c87bef023ef157b0e8c"
+    },
+    {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/hk_inputs/remote/SOURCE_GAPS.hk_trio_66ed.json",
+      "sha256": "a8d4744c6a1e4f8f6113a634df46602834c00fdc78ebec74e86cd43ff5a069ed",
+      "bytes": 6729,
+      "commit": "66ed06937c3c6235c3b978a2abdfe6607543a798",
+      "remote_url": "https://github.com/lexi2016/v4/blob/66ed06937c3c6235c3b978a2abdfe6607543a798/handoff/issue28-hk-trio-mac-20261008/SOURCE_GAPS.json",
+      "remote_git_blob_sha": "64caa69759747240a0a12c7a876a83080e2a454a"
+    },
+    {
+      "path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/hk_inputs/remote/README.hk_trio_66ed.md",
+      "sha256": "7bb4c1518def5ae43c70fd1851957de066b2167ab31478ec27ba8a43d98d9c3f",
+      "bytes": 5061,
+      "commit": "66ed06937c3c6235c3b978a2abdfe6607543a798",
+      "remote_url": "https://github.com/lexi2016/v4/blob/66ed06937c3c6235c3b978a2abdfe6607543a798/handoff/issue28-hk-trio-mac-20261008/README.zh-CN.md",
+      "remote_git_blob_sha": "8853073a5d984f5a300a34527a601a50a429026e"
+    }
+  ],
+  "tree_searches": [
+    {
+      "ref": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "truncated": false,
+      "entry_count": 2152,
+      "upstream_source_candidates": [
+        {
+          "path": "handoff/v4-running-source-20261005/api/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+          "git_blob_sha": "a4f1bc3d9c886eda23e06dc9a149206bf49e482a",
+          "bytes": 1345
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/api/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "ec482b5b7caa423907a85d3fad143e46a2058ca8",
+          "bytes": 58597
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+          "git_blob_sha": "cab70a41286686e3307d688ff62b51a2672caf45",
+          "bytes": 3621
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+          "bytes": 67647
+        }
+      ]
+    },
+    {
+      "ref": "66ed06937c3c6235c3b978a2abdfe6607543a798",
+      "truncated": false,
+      "entry_count": 2740,
+      "upstream_source_candidates": [
+        {
+          "path": "handoff/stage-selection-issues-20261008/source/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+          "bytes": 67647
+        },
+        {
+          "path": "handoff/stage-selection-repair-20261008-r1/hk/support/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+          "bytes": 67647
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/api/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+          "git_blob_sha": "a4f1bc3d9c886eda23e06dc9a149206bf49e482a",
+          "bytes": 1345
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/api/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "ec482b5b7caa423907a85d3fad143e46a2058ca8",
+          "bytes": 58597
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+          "git_blob_sha": "cab70a41286686e3307d688ff62b51a2672caf45",
+          "bytes": 3621
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+          "bytes": 67647
+        }
+      ]
+    },
+    {
+      "ref": "30ad7bb633f715f30c4e10eb67e9041de92cf036",
+      "truncated": false,
+      "entry_count": 2485,
+      "upstream_source_candidates": [
+        {
+          "path": "handoff/stage-selection-issues-20261008/source/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+          "bytes": 67647
+        },
+        {
+          "path": "handoff/stage-selection-repair-20261008-r1/hk/support/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+          "bytes": 67647
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/api/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+          "git_blob_sha": "a4f1bc3d9c886eda23e06dc9a149206bf49e482a",
+          "bytes": 1345
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/api/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "ec482b5b7caa423907a85d3fad143e46a2058ca8",
+          "bytes": 58597
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+          "git_blob_sha": "cab70a41286686e3307d688ff62b51a2672caf45",
+          "bytes": 3621
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+          "bytes": 67647
+        }
+      ]
+    },
+    {
+      "ref": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+      "truncated": false,
+      "entry_count": 2280,
+      "upstream_source_candidates": [
+        {
+          "path": "handoff/stage-autorun-readiness-20261009/source/actual_shared_owner/shared_data/hk_0_2.py",
+          "git_blob_sha": "28d999b680d22f4557fd0c8c40a8e4108f1fc892",
+          "bytes": 57090
+        },
+        {
+          "path": "handoff/stage-autorun-readiness-20261009/source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+          "bytes": 67647
+        },
+        {
+          "path": "handoff/stage-selection-issues-20261008/source/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+          "bytes": 67647
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/api/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+          "git_blob_sha": "a4f1bc3d9c886eda23e06dc9a149206bf49e482a",
+          "bytes": 1345
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/api/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "ec482b5b7caa423907a85d3fad143e46a2058ca8",
+          "bytes": 58597
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+          "git_blob_sha": "cab70a41286686e3307d688ff62b51a2672caf45",
+          "bytes": 3621
+        },
+        {
+          "path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+          "bytes": 67647
+        }
+      ]
+    }
+  ],
+  "conclusion": "ACTUAL_SHARED_OWNER_SOURCE_FOUND_WITH_NATIVE_TIME_METADATA; DO_NOT_PATCH_OLD_CANONICAL_AS_ACTUAL_UPDATER",
+  "runtime_binding_gap": "HK child run-bound updater argv, Python imported __file__, and owner_source_sha256 from raw 10/8 manifest not supplied together; root reconciliation remains required.",
+  "withdrawn_candidate_claim": "Canonical 27da90f0 lacks manifest_prepared_at, but actual shared owner 45a5091c already implements it; absence in old candidate assembly is not a current runtime defect."
+}

@@ -1,0 +1,136 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/a154a3323e32/test_env/bin/python
+rootdir: /workspace/scratch/a154a3323e32/investigation/continuation_20261009
+plugins: anyio-4.14.2
+collecting ... collected 4 items
+
+../reviewer/test_workspace_auto_readback_contract.py::test_omitted_view_post_then_get_reuses_same_day_sealed_context_and_records_real_read_time FAILED [ 25%]
+../reviewer/test_workspace_auto_readback_contract.py::test_future_auto_page_reads_its_exact_saved_evening_plan FAILED [ 50%]
+../reviewer/test_workspace_auto_readback_contract.py::test_verified_us_owner_source_revision_is_replayed_and_stays_stale PASSED [ 75%]
+../reviewer/test_workspace_auto_readback_contract.py::test_late_us_daily_owner_cycle_is_not_consumed_by_saved_plan_readback FAILED [100%]
+
+=================================== FAILURES ===================================
+_ test_omitted_view_post_then_get_reuses_same_day_sealed_context_and_records_real_read_time _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-353/test_omitted_view_post_then_ge0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f646417f5c0>
+
+    def test_omitted_view_post_then_get_reuses_same_day_sealed_context_and_records_real_read_time(
+        tmp_path, monkeypatch
+    ):
+        post_at = datetime(2026, 10, 8, 10, 0, tzinfo=HK)
+        generated_at = post_at + timedelta(seconds=2)
+        get_at = post_at + timedelta(seconds=3)
+        clock = _set_clock(monkeypatch, post_at=post_at, generated_at=generated_at)
+        monkeypatch.setattr(api_fixture, "NOW", post_at)
+        service = _service(tmp_path)
+    
+        try:
+            with api_fixture._client(service) as client:
+                saved = _post(client)
+                saved_product = saved["plan_product"]
+                assert saved_product["status"] == "CURRENT"
+                assert saved_product["consumed"] is True
+                assert saved_product["run_readback"]["status"] == "VERIFIED"
+                assert all(saved[key] is value for key, value in FLAGS.items())
+    
+                # No view, selection_date, or announcement_date: this is the normal
+                # parent-page GET with router defaults, three seconds after POST.
+                clock["now"] = get_at
+                monkeypatch.setattr(api_fixture, "NOW", get_at)
+                read = _get(client)
+    
+                assert read["date_bindings"] == {
+                    "plan_date": TARGET,
+                    "selection_date": TARGET,
+                    "announcement_date": previous_hk_session(TARGET),
+                }
+                assert read["plan_product"]["run_id"] == saved_product["run_id"]
+                assert read["plan_product"]["status"] == "CURRENT"
+                assert read["plan_product"]["consumed"] is True
+                assert read["plan_product"]["run_readback"]["status"] == "VERIFIED"
+>               assert read["plan_product"]["run_readback"]["read_at"] == get_at.isoformat(timespec="microseconds")
+E               AssertionError: assert '2026-10-08T10:00:03+08:00' == '2026-10-08T10:00:03.000000+08:00'
+E                 
+E                 - 2026-10-08T10:00:03.000000+08:00
+E                 ?                    -------
+E                 + 2026-10-08T10:00:03+08:00
+
+../reviewer/test_workspace_auto_readback_contract.py:131: AssertionError
+___________ test_future_auto_page_reads_its_exact_saved_evening_plan ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-353/test_future_auto_page_reads_it0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6463fe1220>
+
+    def test_future_auto_page_reads_its_exact_saved_evening_plan(tmp_path, monkeypatch):
+        post_at = datetime(2026, 10, 8, 20, 0, tzinfo=HK)
+        generated_at = post_at + timedelta(seconds=2)
+        get_at = post_at + timedelta(seconds=3)
+        clock = _set_clock(monkeypatch, post_at=post_at, generated_at=generated_at)
+        monkeypatch.setattr(api_fixture, "NOW", post_at)
+        service = _service(tmp_path)
+        future = "20261009"
+    
+        try:
+            with api_fixture._client(service) as client:
+                saved = _post(client, future)
+                clock["now"] = get_at
+                monkeypatch.setattr(api_fixture, "NOW", get_at)
+                read = _get(client, future)
+    
+            assert read["read_context"]["mode"] == "CURRENT_DYNAMIC_PREVIEW"
+            assert read["plan_product"]["status"] == "CURRENT"
+            assert read["plan_product"]["consumed"] is True
+            assert read["plan_product"]["run_id"] == saved["plan_product"]["run_id"]
+            assert read["date_bindings"] == {
+                "plan_date": future,
+                "selection_date": future,
+                "announcement_date": previous_hk_session(future),
+            }
+            assert read["plan_context"]["research_cutoff"] == post_at.isoformat()
+>           assert read["plan_product"]["run_readback"]["read_at"] == get_at.isoformat(timespec="microseconds")
+E           AssertionError: assert '2026-10-08T20:00:03+08:00' == '2026-10-08T20:00:03.000000+08:00'
+E             
+E             - 2026-10-08T20:00:03.000000+08:00
+E             ?                    -------
+E             + 2026-10-08T20:00:03+08:00
+
+../reviewer/test_workspace_auto_readback_contract.py:191: AssertionError
+____ test_late_us_daily_owner_cycle_is_not_consumed_by_saved_plan_readback _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-353/test_late_us_daily_owner_cycle0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6462cce580>
+
+    def test_late_us_daily_owner_cycle_is_not_consumed_by_saved_plan_readback(tmp_path, monkeypatch):
+        from test_manager_us_mapping_research import _synthetic_us_payload
+    
+        post_at = datetime(2026, 10, 8, 10, 0, tzinfo=HK)
+        generated_at = post_at + timedelta(seconds=2)
+        late_cycle_at = post_at + timedelta(seconds=4)
+        get_at = post_at + timedelta(seconds=5)
+        clock = _set_clock(monkeypatch, post_at=post_at, generated_at=generated_at)
+        monkeypatch.setattr(api_fixture, "NOW", post_at)
+>       owner_clock = _set_module_clock(us_mapping_research, late_cycle_at + timedelta(seconds=1))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _set_module_clock() missing 1 required positional argument: 'initial'
+
+../reviewer/test_workspace_auto_readback_contract.py:253: TypeError
+=============================== warnings summary ===============================
+../../../test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../reviewer/test_workspace_auto_readback_contract.py::test_omitted_view_post_then_get_reuses_same_day_sealed_context_and_records_real_read_time - AssertionError: assert '2026-10-08T10:00:03+08:00' == '2026-10-08T10:00:03.000000+08:00'
+  
+  - 2026-10-08T10:00:03.000000+08:00
+  ?                    -------
+  + 2026-10-08T10:00:03+08:00
+FAILED ../reviewer/test_workspace_auto_readback_contract.py::test_future_auto_page_reads_its_exact_saved_evening_plan - AssertionError: assert '2026-10-08T20:00:03+08:00' == '2026-10-08T20:00:03.000000+08:00'
+  
+  - 2026-10-08T20:00:03.000000+08:00
+  ?                    -------
+  + 2026-10-08T20:00:03+08:00
+FAILED ../reviewer/test_workspace_auto_readback_contract.py::test_late_us_daily_owner_cycle_is_not_consumed_by_saved_plan_readback - TypeError: _set_module_clock() missing 1 required positional argument: 'initial'
+==================== 3 failed, 1 passed, 1 warning in 0.60s ====================

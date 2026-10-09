@@ -1,0 +1,336 @@
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/vue';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { spawn } from 'node:child_process';
+import { createInterface } from 'node:readline';
+import { resolve } from 'node:path';
+import { setImmediate as nextEventLoopTurn } from 'node:timers';
+import ManagerSelectionView from './ManagerSelectionView.vue';
+
+declare const process: {
+  cwd(): string;
+  env: Record<string, string | undefined>;
+};
+
+type RouteReply = { id: number; status: number; ok: boolean; body: unknown };
+type WorkerRequest = { method?: string; url?: string; headers?: Record<string, string>; body?: string };
+type RouteCall = { method: string; url: string; reply?: RouteReply };
+
+const projectRoot = process.env.V4_TEST_SOURCE_ROOT || resolve(process.cwd(), '../..');
+const python = process.env.V4_TEST_PYTHON || 'python3';
+const workerScript = resolve(projectRoot, 'tests/manager_daily_ui_parent_route_worker.py');
+
+function startRouteWorker(mode: 'complete' | 'missing-us') {
+  const child = spawn(python, ['-u', workerScript, mode], {
+    cwd: projectRoot,
+    env: {
+      ...process.env,
+      PYTHONPATH: `${projectRoot}:${projectRoot}/upstreams:${projectRoot}/tests`,
+    },
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  const lines = createInterface({ input: child.stdout });
+  const replies = new Map<number, (reply: RouteReply) => void>();
+  const errors: string[] = [];
+  const calls: RouteCall[] = [];
+  let nextId = 0;
+  let resolveReady!: () => void;
+  let rejectReady!: (error: Error) => void;
+  const ready = new Promise<void>((resolvePromise, rejectPromise) => {
+    resolveReady = resolvePromise;
+    rejectReady = rejectPromise;
+  });
+  child.stderr.on('data', (chunk: Buffer) => errors.push(String(chunk)));
+  lines.on('line', (line: string) => {
+    let value: Record<string, unknown>;
+    try { value = JSON.parse(line) as Record<string, unknown>; }
+    catch { errors.push(`non-JSON worker stdout: ${line}`); return; }
+    if (value.ready === true) { resolveReady(); return; }
+    const id = value.id;
+    if (typeof id === 'number') {
+      replies.get(id)?.(value as unknown as RouteReply);
+      replies.delete(id);
+    }
+  });
+  child.once('error', (error: Error) => rejectReady(error));
+  child.once('exit', (code: number | null) => {
+    if (code !== 0) rejectReady(new Error(`route worker exited ${code}: ${errors.join('')}`));
+    for (const resolveReply of replies.values())
+      resolveReply({ id: -1, status: 599, ok: false, body: { error: 'WORKER_EXITED', detail: errors.join('') } });
+    replies.clear();
+  });
+  return {
+    calls,
+    errors,
+    ready,
+    async request(request: WorkerRequest): Promise<RouteReply> {
+      await ready;
+      const id = ++nextId;
+      const method = String(request.method || 'GET').toUpperCase();
+      const url = String(request.url || '/');
+      const call: RouteCall = { method, url };
+      calls.push(call);
+      const reply = await new Promise<RouteReply>((resolveReply, rejectReply) => {
+        replies.set(id, resolveReply);
+        child.stdin.write(`${JSON.stringify({ ...request, id, method, url })}\n`, (error: Error | null | undefined) => {
+          if (error) { replies.delete(id); rejectReply(error); }
+        });
+      });
+      call.reply = reply;
+      return reply;
+    },
+    close(): void { child.kill(); lines.close(); },
+  };
+}
+
+type Deferred<T> = { promise: Promise<T>; resolve: (value: T) => void };
+function deferred<T>(): Deferred<T> {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((next) => { resolve = next; });
+  return { promise, resolve };
+}
+
+type Gate = { day: string; arrived: Deferred<void>; release: Deferred<void>; parsed: Deferred<void>; used: boolean };
+function installFetch(worker: ReturnType<typeof startRouteWorker>, gate?: Gate): () => void {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const raw = input instanceof Request ? input.url : String(input);
+    const url = new URL(raw, 'http://manager.test');
+    const managerRoute = url.pathname.startsWith('/api/v4/manager/research/workspace') ||
+      url.pathname.startsWith('/api/v4/manager/research/announcements');
+    if (!managerRoute) {
+      return { ok: false, status: 404, json: async () => ({ detail: 'unrelated manager-page dependency not installed in this test' }) } as Response;
+    }
+    const reply = await worker.request({
+      method: init?.method || 'GET',
+      url: `${url.pathname}${url.search}`,
+      body: typeof init?.body === 'string' ? init.body : undefined,
+    });
+    let heldResponse = false;
+    if (gate && !gate.used && url.pathname === '/api/v4/manager/research/workspace' &&
+        url.searchParams.get('date') === gate.day) {
+      gate.used = true;
+      heldResponse = true;
+      gate.arrived.resolve();
+      await gate.release.promise;
+    }
+    return {
+      ok: reply.ok,
+      status: reply.status,
+      json: () => Promise.resolve(reply.body).then((body) => {
+        if (heldResponse) gate?.parsed.resolve();
+        return body;
+      }),
+      text: async () => JSON.stringify(reply.body),
+    } as Response;
+  }) as typeof fetch;
+  return () => { globalThis.fetch = originalFetch; };
+}
+
+function pageUrl(query: string): void {
+  window.history.replaceState({}, '', `/manager-selection/?${query}`);
+}
+
+function panel(): HTMLElement {
+  const value = document.querySelector<HTMLElement>('.manager-catalyst-observations');
+  if (!value) throw new Error('actual ManagerSelectionView did not mount its catalyst observations panel');
+  return value;
+}
+
+let completeWorker: ReturnType<typeof startRouteWorker>;
+let missingUsWorker: ReturnType<typeof startRouteWorker>;
+
+beforeAll(async () => {
+  completeWorker = startRouteWorker('complete');
+  missingUsWorker = startRouteWorker('missing-us');
+  await Promise.all([completeWorker.ready, missingUsWorker.ready]);
+}, 180_000);
+
+afterEach(() => {
+  cleanup();
+  window.history.replaceState({}, '', '/manager-selection/');
+});
+
+afterAll(() => {
+  completeWorker?.close();
+  missingUsWorker?.close();
+});
+
+describe('complete ordinary manager parent over original FastAPI owners', () => {
+  it('shows the actual saved plan in default auto and re-reads the same run on the same date', async () => {
+    const restore = installFetch(completeWorker);
+    pageUrl('date=20261007&plan_date=20261008&selection_date=20261007&announcement_date=20261007');
+    render(ManagerSelectionView);
+    try {
+      await waitFor(() => expect(within(panel()).getByLabelText('每日三路研究结果')
+        .querySelector('[data-daily-channel="ANNOUNCEMENT"]')?.getAttribute('data-daily-status')).toBe('READY'));
+      const root = panel();
+      const announcement = within(root).getByLabelText('每日三路研究结果')
+        .querySelector<HTMLElement>('[data-daily-channel="ANNOUNCEMENT"]')!;
+      expect(announcement.textContent).toContain('Synthetic fixture disposition only.');
+      expect(announcement.textContent).toContain('数据日 20261007');
+      expect(root.querySelector('[data-daily-bindings]')?.textContent)
+        .toContain('来源/选股日 20261007 · 公告日 20261007 · 计划日 20261008');
+
+      await waitFor(() => expect(root.querySelector('[data-plan-readback]')?.textContent)
+        .toContain('保存产物已读回核验'));
+      const initialRun = root.querySelector<HTMLElement>('[data-plan-readback]')?.textContent
+        ?.match(/保存运行 ([A-Za-z0-9]+)/)?.[1];
+      expect(initialRun).toBeTruthy();
+      const us = root.querySelector<HTMLElement>('[data-us-daily-run]')!;
+      expect(us.textContent).toContain('日常映射已完成');
+      expect(us.textContent).toContain('美股来源日 2026-10-07');
+      expect(us.textContent).toContain('LITE → HK.06166 Synthetic issuer');
+      expect(us.textContent).toContain('TEST_FIXTURE_ORIGINAL_OWNER_RELATION_REASON');
+
+      for (const channel of ['HK_CONNECT', 'OVERSOLD']) {
+        const card = root.querySelector<HTMLElement>(`[data-daily-channel="${channel}"]`)!;
+        expect(card.dataset.dailyStatus).toBe('CANNOT_CONFIRM');
+        expect(card.textContent).toContain('候选数量未知');
+        expect(card.textContent).not.toContain('候选 0 只');
+      }
+
+      const readsBefore = completeWorker.calls.filter(call => call.method === 'GET' &&
+        call.url.startsWith('/api/v4/manager/research/workspace?') &&
+        new URL(call.url, 'http://manager.test').searchParams.get('date') === '20261008').length;
+      await fireEvent.click(within(root).getByRole('button', { name: '读取更新' }));
+      await waitFor(() => expect(completeWorker.calls.filter(call => call.method === 'GET' &&
+        call.url.startsWith('/api/v4/manager/research/workspace?') &&
+        new URL(call.url, 'http://manager.test').searchParams.get('date') === '20261008').length).toBe(readsBefore + 1));
+      await waitFor(() => expect(root.querySelector('[data-plan-readback]')?.textContent)
+        .toContain('保存产物已读回核验'));
+      const currentPlan = root.querySelector<HTMLElement>('[data-plan-readback]')!;
+      expect(root.contains(currentPlan)).toBe(true);
+      expect(currentPlan.textContent).toContain(`保存运行 ${initialRun}`);
+    } finally { restore(); }
+  }, 180_000);
+
+  it('posts the explicit three-date plan binding then reads that same run back through auto', async () => {
+    const worker = startRouteWorker('complete');
+    let restore = () => {};
+    try {
+      await worker.ready;
+      restore = installFetch(worker);
+      pageUrl('date=20261007&plan_date=20261008&selection_date=20261006&announcement_date=20261007');
+      render(ManagerSelectionView);
+      await waitFor(() => expect(document.querySelector('.manager-catalyst-observations')).toBeTruthy());
+      const root = panel();
+      await waitFor(() => expect(root.querySelector('[data-daily-bindings]')?.textContent)
+        .toContain('来源/选股日 20261006 · 公告日 20261007 · 计划日 20261008'));
+      const postCount = worker.calls.filter(call => call.method === 'POST' &&
+        call.url.startsWith('/api/v4/manager/research/workspace/refresh?')).length;
+      await fireEvent.click(within(root).getByRole('button', { name: '用既有材料生成计划' }));
+      await waitFor(() => expect(worker.calls.filter(call => call.method === 'POST' &&
+        call.url.startsWith('/api/v4/manager/research/workspace/refresh?')).length).toBe(postCount + 1));
+      await waitFor(() => expect(worker.calls.filter(call => call.method === 'POST' &&
+        call.url.startsWith('/api/v4/manager/research/workspace/refresh?')).at(-1)?.reply).toBeTruthy());
+      const post = worker.calls.filter(call => call.method === 'POST' &&
+        call.url.startsWith('/api/v4/manager/research/workspace/refresh?')).at(-1)!;
+      const postQuery = new URL(post.url, 'http://manager.test').searchParams;
+      expect(postQuery.get('date')).toBe('20261008');
+      expect(postQuery.get('selection_date')).toBe('20261006');
+      expect(postQuery.get('announcement_date')).toBe('20261007');
+      const postedPlan = (post.reply?.body as { plan_product?: { run_id?: string; status?: string } }).plan_product;
+      expect(postedPlan?.status).toBe('CURRENT');
+      expect(postedPlan?.run_id).toBeTruthy();
+
+      await waitFor(() => expect(root.querySelector('[data-plan-readback]')?.textContent)
+        .toContain('保存产物已读回核验'));
+      await waitFor(() => expect(worker.calls.filter(call => call.method === 'GET' &&
+        call.url.startsWith('/api/v4/manager/research/workspace?') &&
+        new URL(call.url, 'http://manager.test').searchParams.get('date') === '20261008' &&
+        new URL(call.url, 'http://manager.test').searchParams.get('view') === 'auto' &&
+        new URL(call.url, 'http://manager.test').searchParams.get('selection_date') === '20261006' &&
+        new URL(call.url, 'http://manager.test').searchParams.get('announcement_date') === '20261007').at(-1)?.reply).toBeTruthy());
+      const readback = worker.calls.filter(call => call.method === 'GET' &&
+        call.url.startsWith('/api/v4/manager/research/workspace?') &&
+        new URL(call.url, 'http://manager.test').searchParams.get('date') === '20261008' &&
+        new URL(call.url, 'http://manager.test').searchParams.get('view') === 'auto' &&
+        new URL(call.url, 'http://manager.test').searchParams.get('selection_date') === '20261006' &&
+        new URL(call.url, 'http://manager.test').searchParams.get('announcement_date') === '20261007').at(-1)!;
+      expect((readback.reply?.body as { plan_product?: { run_id?: string; status?: string;
+        run_readback?: { status?: string } } }).plan_product).toMatchObject({
+        run_id: postedPlan?.run_id, status: 'CURRENT', run_readback: { status: 'VERIFIED' },
+      });
+      expect(root.querySelector('[data-plan-readback]')?.textContent).toContain(`保存运行 ${postedPlan?.run_id}`);
+    } finally { restore(); worker.close(); }
+  }, 180_000);
+
+  it('keeps announcement output when US daily mapping input is missing and leaves unknown counts unknown', async () => {
+    const restore = installFetch(missingUsWorker);
+    pageUrl('date=20261007&plan_date=20261008&selection_date=20261007&announcement_date=20261007');
+    render(ManagerSelectionView);
+    try {
+      await waitFor(() => expect(document.querySelector('.manager-catalyst-observations')).toBeTruthy());
+      const root = panel();
+      const channels = within(root).getByLabelText('每日三路研究结果');
+      await waitFor(() => expect(channels.querySelector('[data-daily-channel="ANNOUNCEMENT"]')
+        ?.getAttribute('data-daily-status')).toBe('READY'));
+      expect(channels.textContent).toContain('Synthetic fixture disposition only.');
+      const us = root.querySelector<HTMLElement>('[data-us-daily-run]')!;
+      expect(us.textContent).toContain('日常映射输入缺失');
+      expect(us.textContent).toContain('owner读回 VERIFIED');
+      await waitFor(() => expect(us.textContent).toContain('匹配数量未知'));
+      expect(us.textContent).not.toContain('匹配港股关系 0 条');
+      const oversold = channels.querySelector<HTMLElement>('[data-daily-channel="OVERSOLD"]')!;
+      expect(oversold.dataset.dailyStatus).toBe('CANNOT_CONFIRM');
+      expect(oversold.textContent).toContain('候选数量未知');
+      expect(oversold.textContent).not.toContain('候选 0 只');
+    } finally { restore(); }
+  }, 180_000);
+
+  it('clears old date immediately and discards a late response after moving to the next plan date', async () => {
+    const gate: Gate = { day: '20261008', arrived: deferred<void>(), release: deferred<void>(),
+      parsed: deferred<void>(), used: false };
+    const restore = installFetch(completeWorker, gate);
+    pageUrl('date=20261007&plan_date=20261008&selection_date=20261007&announcement_date=20261007');
+    render(ManagerSelectionView);
+    try {
+      await gate.arrived.promise;
+      const root = panel();
+      const dateInput = within(root).getByLabelText('计划目标日') as HTMLInputElement;
+      await fireEvent.change(dateInput, { target: { value: '2026-10-09' } });
+      expect(root.querySelector('[data-daily-bindings]')?.textContent)
+        .toContain('来源/选股日 20261007 · 公告日 20261007 · 计划日 20261009');
+      expect(root.querySelector('[data-daily-channel="ANNOUNCEMENT"]')?.textContent)
+        .not.toContain('Synthetic fixture disposition only.');
+      await waitFor(() => expect(root.querySelector('[data-daily-bindings]')?.textContent)
+        .toContain('来源/选股日 20261007 · 公告日 20261007 · 计划日 20261009'));
+      gate.release.resolve();
+      await gate.parsed.promise;
+      await new Promise<void>(resolveTurn => nextEventLoopTurn(resolveTurn));
+      await waitFor(() => expect(root.dataset.targetDate).toBe('20261009'));
+      expect(root.querySelector('[role="status"]')?.textContent).toContain('当日动态预览');
+      expect(completeWorker.calls.some(call => call.method === 'GET' &&
+        call.url.startsWith('/api/v4/manager/research/workspace?') &&
+        new URL(call.url, 'http://manager.test').searchParams.get('date') === '20261009' &&
+        new URL(call.url, 'http://manager.test').searchParams.get('view') === 'auto')).toBe(true);
+      expect(root.querySelector('[data-daily-bindings]')?.textContent)
+        .toContain('计划日 20261009');
+      expect(root.querySelector('[data-daily-channel="ANNOUNCEMENT"]')?.textContent)
+        .not.toContain('Synthetic fixture disposition only.');
+    } finally {
+      gate.release.resolve();
+      restore();
+    }
+  }, 180_000);
+
+  it('keeps auto historical as-of separate from an explicit later dynamic read', async () => {
+    const restore = installFetch(completeWorker);
+    pageUrl('date=20261007&plan_date=20261007&selection_date=20261007&announcement_date=20261006');
+    render(ManagerSelectionView);
+    try {
+      await waitFor(() => expect(document.querySelector('.manager-catalyst-observations')).toBeTruthy());
+      const root = panel();
+      await waitFor(() => expect(root.querySelector('[data-read-state]')?.textContent || root.textContent)
+        .toContain('当时历史：缺少合格保存计划'));
+      const view = within(root).getByLabelText('历史或现在回看') as HTMLSelectElement;
+      await fireEvent.change(view, { target: { value: 'dynamic' } });
+      await waitFor(() => expect(root.querySelector('[role="status"]')?.textContent)
+        .toContain('现在回看（含后续信息，非当时已知）'));
+      expect(within(root).getByLabelText('每日三路研究结果').textContent)
+        .toContain('20261007');
+      expect(root.querySelector('[data-plan-readback]')?.textContent)
+        .not.toContain('保存产物已读回核验');
+    } finally { restore(); }
+  }, 180_000);
+});

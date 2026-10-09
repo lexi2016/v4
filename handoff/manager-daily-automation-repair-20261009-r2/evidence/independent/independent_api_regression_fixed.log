@@ -1,0 +1,160 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/a154a3323e32/test_env/bin/python
+rootdir: /workspace/scratch/a154a3323e32/investigation/continuation_20261009
+plugins: anyio-4.14.2
+collecting ... collected 4 items
+
+../reviewer/test_workspace_auto_readback_contract.py::test_omitted_view_post_then_get_reuses_same_day_sealed_context_and_records_real_read_time FAILED [ 25%]
+../reviewer/test_workspace_auto_readback_contract.py::test_future_auto_page_reads_its_exact_saved_evening_plan PASSED [ 50%]
+../reviewer/test_workspace_auto_readback_contract.py::test_verified_us_owner_source_revision_is_replayed_and_stays_stale PASSED [ 75%]
+../reviewer/test_workspace_auto_readback_contract.py::test_late_us_daily_owner_cycle_is_not_consumed_by_saved_plan_readback FAILED [100%]
+
+=================================== FAILURES ===================================
+_ test_omitted_view_post_then_get_reuses_same_day_sealed_context_and_records_real_read_time _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-354/test_omitted_view_post_then_ge0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fda731bb6f0>
+
+    def test_omitted_view_post_then_get_reuses_same_day_sealed_context_and_records_real_read_time(
+        tmp_path, monkeypatch
+    ):
+        post_at = datetime(2026, 10, 8, 10, 0, tzinfo=HK)
+        generated_at = post_at + timedelta(seconds=2)
+        get_at = post_at + timedelta(seconds=3)
+        clock = _set_clock(monkeypatch, post_at=post_at, generated_at=generated_at)
+        monkeypatch.setattr(api_fixture, "NOW", post_at)
+        service = _service(tmp_path)
+    
+        try:
+            with api_fixture._client(service) as client:
+                saved = _post(client)
+                saved_product = saved["plan_product"]
+                assert saved_product["status"] == "CURRENT"
+                assert saved_product["consumed"] is True
+                assert saved_product["run_readback"]["status"] == "VERIFIED"
+                assert all(saved[key] is value for key, value in FLAGS.items())
+    
+                # No view, selection_date, or announcement_date: this is the normal
+                # parent-page GET with router defaults, three seconds after POST.
+                clock["now"] = get_at
+                monkeypatch.setattr(api_fixture, "NOW", get_at)
+                read = _get(client)
+    
+                assert read["date_bindings"] == {
+                    "plan_date": TARGET,
+                    "selection_date": TARGET,
+                    "announcement_date": previous_hk_session(TARGET),
+                }
+                assert read["plan_product"]["run_id"] == saved_product["run_id"]
+                assert read["plan_product"]["status"] == "CURRENT"
+                assert read["plan_product"]["consumed"] is True
+                assert read["plan_product"]["run_readback"]["status"] == "VERIFIED"
+                assert read["plan_product"]["run_readback"]["read_at"] == get_at.isoformat()
+                assert read["plan_product"]["last_checked_at"] == get_at.isoformat()
+                assert datetime.fromisoformat(read["plan_product"]["run_readback"]["read_at"]) >= datetime.fromisoformat(
+                    read["plan_product"]["generated_at"]
+                )
+                assert read["plan_context"]["research_cutoff"] == post_at.isoformat()
+                assert read["input_identity"] == saved["input_identity"]
+    
+                wrong_selection = _get(client, selection_date="20261007", announcement_date="20261007")
+                wrong_publication = _get(client, selection_date=TARGET, announcement_date="20261006")
+                for wrong in (wrong_selection, wrong_publication):
+                    assert wrong["plan_product"]["status"] == "STALE_INPUTS_CHANGED"
+                    assert wrong["plan_product"]["consumed"] is False
+                    assert wrong["plan_product"]["run_id"] == saved_product["run_id"]
+    
+            # The no-save owner lane must begin from its actual later clock. It may
+            # not borrow the sealed plan cutoff as a successful readback shortcut.
+            preview_at = get_at + timedelta(seconds=1)
+            preview = workspace_owner.get_workspace(
+                service,
+                TARGET,
+                include_saved=False,
+                view="auto",
+                now=preview_at,
+                selection_date=TARGET,
+                announcement_date="20261007",
+            )
+            assert preview["plan_context"]["research_cutoff"] == preview_at.isoformat()
+>           assert preview["plan_product"]["status"] == "DYNAMIC_PREVIEW"
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'plan_product'
+
+../reviewer/test_workspace_auto_readback_contract.py:165: KeyError
+____ test_late_us_daily_owner_cycle_is_not_consumed_by_saved_plan_readback _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-354/test_late_us_daily_owner_cycle0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fda71b5e690>
+
+    def test_late_us_daily_owner_cycle_is_not_consumed_by_saved_plan_readback(tmp_path, monkeypatch):
+        from test_manager_us_mapping_research import _synthetic_us_payload
+    
+        post_at = datetime(2026, 10, 8, 10, 0, tzinfo=HK)
+        generated_at = post_at + timedelta(seconds=2)
+        late_cycle_at = post_at + timedelta(seconds=4)
+        get_at = post_at + timedelta(seconds=5)
+        clock = _set_clock(monkeypatch, post_at=post_at, generated_at=generated_at)
+        monkeypatch.setattr(api_fixture, "NOW", post_at)
+        owner_clock = _set_module_clock(monkeypatch, us_mapping_research, late_cycle_at + timedelta(seconds=1))
+    
+        reviewed_unsigned = {
+            "schema_version": "v4.manager_research.us_mapping_reviewed.v1",
+            "target_trade_date": "20260930",
+            "status": "TEST_FIXTURE_SYNTHETIC_REVIEW",
+            "reviewed_at": post_at.isoformat(),
+            "cards": [],
+            **FLAGS,
+        }
+        reviewed = {**reviewed_unsigned, "artifact_sha256": digest(reviewed_unsigned)}
+        monkeypatch.setattr(us_mapping_research, "_read_reviewed", lambda: reviewed)
+        monkeypatch.setattr(
+            us_mapping_research,
+            "_relation_available_at",
+            lambda _reviewed: (post_at - timedelta(days=1), None),
+        )
+    
+        us_root = tmp_path / "synthetic-peripheral-owner"
+        peripheral = ResearchPeripheralStore(us_root)
+        us_session = latest_completed_session(post_at).session_date
+        peripheral.publish(_synthetic_us_payload(us_session, {}))
+        service = _service(tmp_path, reader=ResearchPeripheralUsMarketReader(us_root))
+    
+        try:
+            with api_fixture._client(service) as client:
+                saved = _post(client)
+                saved_run = saved["plan_product"]["run_id"]
+                late_cycle = service.refresh_us_mapping_research(TARGET, now=late_cycle_at)
+                assert late_cycle["run_id"]
+                assert late_cycle["status"] in {"VALID_EMPTY", "PARTIAL"}
+                assert datetime.fromisoformat(late_cycle["generated_at"]) > post_at
+    
+                clock["now"] = get_at
+                owner_clock["now"] = get_at
+                monkeypatch.setattr(api_fixture, "NOW", get_at)
+                read = _get(client)
+    
+            assert read["plan_product"]["status"] == "CURRENT"
+            assert read["plan_product"]["consumed"] is True
+            assert read["plan_product"]["run_id"] == saved_run
+            assert read["plan_product"]["run_readback"]["read_at"] == get_at.isoformat()
+            reference = read["owner_chain"]["us_mapping_daily_plan_reference"]
+            assert reference["status"] == "NOT_CONSUMED_AFTER_CUTOFF"
+            assert reference["run_id"] == late_cycle["run_id"]
+            assert datetime.fromisoformat(reference["available_at"]) > post_at
+            daily = read["us_mapping_research"]["daily_run"]
+>           assert daily["latest_attempt_after_plan_cutoff"] is True
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'latest_attempt_after_plan_cutoff'
+
+../reviewer/test_workspace_auto_readback_contract.py:306: KeyError
+=============================== warnings summary ===============================
+../../../test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../reviewer/test_workspace_auto_readback_contract.py::test_omitted_view_post_then_get_reuses_same_day_sealed_context_and_records_real_read_time - KeyError: 'plan_product'
+FAILED ../reviewer/test_workspace_auto_readback_contract.py::test_late_us_daily_owner_cycle_is_not_consumed_by_saved_plan_readback - KeyError: 'latest_attempt_after_plan_cutoff'
+==================== 2 failed, 2 passed, 1 warning in 0.74s ====================

@@ -1,0 +1,35 @@
+{
+  "schema_version": "manager_daily_r2.original_dependencies.v1",
+  "requires_r1_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+  "restored_web_dependencies": [
+    {
+      "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "package_path": "dependencies/web_original/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "bytes": 19705,
+      "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "git_blob_sha": "c69bacde41c0af509be6816d2835eea5111dd021",
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "source_path": "handoff/announcement-daily-repair-20261007/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "role": "RECOVERED_ORIGINAL_TEST_ASSEMBLY_DEPENDENCY_NOT_NEW_PRODUCTION_DELTA",
+      "current_mac_loaded_identity": "NOT_VERIFIED"
+    },
+    {
+      "path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "package_path": "dependencies/web_original/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "bytes": 17541,
+      "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "git_blob_sha": "989ebf937bb4b92113ce04435cbde21f13957d3c",
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "source_path": "handoff/announcement-daily-repair-20261007/source/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "role": "RECOVERED_ORIGINAL_TEST_ASSEMBLY_DEPENDENCY_NOT_NEW_PRODUCTION_DELTA",
+      "current_mac_loaded_identity": "NOT_VERIFIED"
+    }
+  ],
+  "original_hk_source": "evidence/source_context/hk/original_source_reconciliation.json",
+  "original_us_source": "evidence/source_context/owners/source_recovery_manifest.json",
+  "raw_registry_and_research_seed_included": false,
+  "original_vite_html_entries": "NOT_SUPPLIED",
+  "whole_application_build_claimed": false,
+  "existing_python_test_sources": "evidence/test_dependency_lineage.json",
+  "tested_runtime_identity": "evidence/runtime_identity.json"
+}

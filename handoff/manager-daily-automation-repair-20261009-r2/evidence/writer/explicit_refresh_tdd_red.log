@@ -1,0 +1,224 @@
+
+ RUN  v4.1.10 /workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web
+
+ ❯ src/views/ManagerSelectionView.dailyIntegration.spec.ts (5 tests | 1 failed | 4 skipped) 1947ms
+     × posts the explicit three-date plan binding then reads that same run back through auto 1349ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/views/ManagerSelectionView.dailyIntegration.spec.ts > complete ordinary manager parent over original FastAPI owners > posts the explicit three-date plan binding then reads that same run back through auto
+AssertionError: expected +0 to be 1 // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"manager-selection-page"[39m
+        [33mdata-state[39m=[32m"ERROR"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"manager-hero"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"manager-hero__copy"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"manager-kicker"[39m
+            [36m>[39m
+              [0mV4 · 股票研究[0m
+            [36m</p>[39m
+            [36m<h1>[39m
+              [0m经理选股工作台[0m
+            [36m</h1>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"manager-hero__description"[39m
+            [36m>[39m
+              [0m 先看股票、理由和数据时间，再逐项核对条件。先核具体变化，再核预期；原Stage与BUY保留在来源详情。 [0m
+            [36m</p>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33maria-label[39m=[32m"当前目标交易日"[39m
+            [33mclass[39m=[32m"manager-hero__date"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0m原Stage参考日[0m
+            [36m</span>[39m
+            [36m<strong>[39m
+              [0m20261007[0m
+            [36m</strong>[39m
+            [36m<small>[39m
+              [0m研究日期 · exact[0m
+            [36m</small>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"manager-catalyst-host"[39m
+        [36m>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"本计划研究关注"[39m
+            [33mclass[39m=[32m"manager-catalyst-observations"[39m
+            [33mdata-read-state[39m=[32m"FAILED"[39m
+          [36m>[39m
+            [36m<header[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<h2[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m本计划研究关注[0m
+              [36m</h2>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m计划目标日：[0m
+                [36m<input[39m
+                  [33maria-label[39m=[32m"计划目标日"[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mtype[39m=[32m"date"[39m
+                [36m/>[39m
+                [36m<small[39m
+                  [33mclass[39m=[32m""[39m
+                [36m>[39m
+                  [0m独立于原Stage来源日期；URL用 plan_date 保存计划日，date 仍表示Stage来源日。[0m
+                [36m</small>[39m
+              [36m</label>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m""[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m读取更新[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m""[39m
+                [33mtitle[39m=[32m""[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m用既有材料生成计划[0m
+              [36m</button>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m读取口径：[0m
+                [36m<select[39m
+                  [33maria-label[39m=[32m"历史或现在回看"[39m
+                  [33mclass[39m=[32m""[39m
+                [36m>[39m
+                  [36m<option[39m
+                    [33mclass[39m=[32m""[39m
+                    [33mvalue[39m=[32m"auto"[39m
+                  [36m>[39m
+                    [0m当时历史 / 当日预览[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mclass[39m=[32m""[39m
+                    [33mvalue[39m=[32m"dynamic"[39m
+                  [36m>[39m
+                    [0m现在回看（可能含后续消息）[0m
+                  [36m</option>[39m
+                [36m</select>[39m
+              [36m</label>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m""[39m
+                [33mhidden[39m=[32m""[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m取消本次读取[0m
+              [36m</button>[39m
+            [36m</header>[39m
+            [36m<p[39m
+              [33maria-live[39m=[32m"polite"[39m
+              [33mclass[39m=[32m""[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m计划 20261008：网络连接或响应读取失败；可检查连接后重新读取。 未显示旧日或未核验股票。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<section[39m
+                [33maria-label[39m=[32m"每日研究结果与保存计划回执"[39m
+                [33mclass[39m=[32m""[39m
+                [33mdata-daily-research-run[39m=[32m""[39m
+              [36m>[39m
+                [36m<section[39m
+                  [33maria-label[39m=[32m"计划保存产物读回"[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mdata-plan-readback[39m=[32m""[39m
+                [36m>[39m
+                  [36m<h4[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m计划保存状态[0m
+                  [36m</h4>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m20261008 · 目标日没有已保存计划产物[0m
+                  [36m</p>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m原计划触发/执行信息未提供。[0m
+                  [36m</p>[39m
+                  [36m<details[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [36m<summary[39m
+                      [33mclass[39m=[32m""[39m
+                    [36m>[39m
+                      [0m计划 owner、同一 immutable run 的尝试回执与当前读回详情[0m
+                    [36m</summary>[39m
+                    [36m<pre[39m
+                      [33mclass[39m=[32m""[39m
+                    [36m>[39m
+                      [0m{
+  "product": {},
+  "exact_run_readback": {},
+  "latest_attempt": null
+}[0m
+                    [36m</pre>[39m
+                  [36m</details>[39m
+                [36m</section>[39m
+                [36m<section[39m
+                  [33maria-label[39m=[32m"美股到港股业务关系日常映射"[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mdata-us-daily-run[39m=[32m""[39m
+                [36m>[39m
+                  [36m<h4[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m美股 → 港股业务关系日常映射（独立于港股通资格）[0m
+                  [36m</h4>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m日常映射状态未确认 · 目标港股日 2026-10-08 · 美股来源日 未提供 · 来源 cutoff 未提供[0m
+                  [3...
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/views/ManagerSelectionView.dailyIntegration.spec.ts:220:85
+    218|       await fireEvent.click(within(root).getByRole('button', { name: '…
+    219|       await waitFor(() => expect(completeWorker.calls.filter(call => c…
+    220|         call.url.startsWith('/api/v4/manager/research/workspace/refres…
+       |                                                                                     ^
+    221|       const post = completeWorker.calls.filter(call => call.method ===…
+    222|         call.url.startsWith('/api/v4/manager/research/workspace/refres…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../../../../../candidate/apps/web/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../../../../../candidate/apps/web/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../../../../../candidate/apps/web/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 skipped (5)
+   Start at  17:32:00
+   Duration  3.47s (transform 795ms, setup 0ms, import 1.01s, tests 1.95s, environment 378ms)
+

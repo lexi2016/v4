@@ -1,0 +1,426 @@
+{
+  "schema_version": "manager_ui_original_source_recovery.v1",
+  "captured_at_utc": "2026-10-09T00:13:31.901063+00:00",
+  "agent": "/root/ui_closure_read",
+  "mode": "READ_ONLY_DIAGNOSIS_AND_CACHE_ONLY",
+  "status": "EXACT_ORIGINAL_PAIR_RECOVERED_STATIC_DOM_DEPENDENCY_CLOSURE_COMPLETE",
+  "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+  "source_commit_parent": "a7732310a5262b59c95a30fdf5d7bedc9910939f",
+  "source_commit_tree": "9b88e720777b20e8f123e845bf7bb94e68e8408b",
+  "source_manifest": {
+    "path": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+    "sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+    "frozen_files_unchanged": true,
+    "frozen_file_count": 33
+  },
+  "selected_sources": [
+    {
+      "path": "source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "source_path": "handoff/announcement-daily-repair-20261007/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "git_blob_sha": "c69bacde41c0af509be6816d2835eea5111dd021",
+      "cache_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "bytes": 19705,
+      "verified_git_blob_sha": "c69bacde41c0af509be6816d2835eea5111dd021",
+      "logical_path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "recovery_status": "EXACT_ORIGINAL_BYTES_MATCH_PRIOR_CANDIDATE_INTEGRATION_FINAL_RECEIPTS",
+      "current_web_snapshot_preimage_identity": "NOT_SUPPLIED",
+      "current_mac_process_identity": "UNVERIFIED",
+      "allowed_next_use": "EXPLICIT_ISOLATED_TEST_ASSEMBLY_ONLY_PENDING_NEW_TESTS"
+    },
+    {
+      "path": "source/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "source_path": "handoff/announcement-daily-repair-20261007/source/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "git_blob_sha": "989ebf937bb4b92113ce04435cbde21f13957d3c",
+      "cache_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/source/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "bytes": 17541,
+      "verified_git_blob_sha": "989ebf937bb4b92113ce04435cbde21f13957d3c",
+      "logical_path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "recovery_status": "EXACT_ORIGINAL_BYTES_MATCH_PRIOR_CANDIDATE_INTEGRATION_FINAL_RECEIPTS",
+      "current_web_snapshot_preimage_identity": "NOT_SUPPLIED",
+      "current_mac_process_identity": "UNVERIFIED",
+      "allowed_next_use": "EXPLICIT_ISOLATED_TEST_ASSEMBLY_ONLY_PENDING_NEW_TESTS"
+    }
+  ],
+  "alternative_sources": [
+    {
+      "source_path": "handoff/announcement-stock-selection-20261005/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "git_blob_sha": "3268356c2f92ca3fd5fcf3b7e5ddbe2976fca7fa",
+      "path": "alternatives/announcement-stock-selection-20261005/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "cache_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/alternatives/announcement-stock-selection-20261005/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "sha256": "31b1ab21e4c06c05397b179830eeb057f84aaa2fb57d5b168623ce15408c604d",
+      "bytes": 14358,
+      "verified_git_blob_sha": "3268356c2f92ca3fd5fcf3b7e5ddbe2976fca7fa",
+      "selection": "NOT_SELECTED_OLDER_DIFFERENT_BYTES",
+      "reason": "The 10/5 stock-selection pair equals the documented canonical BEFORE hashes of the accepted 10/7 change; the still older display pair is a separate prior version. Neither is an exact substitute for the accepted 10/7 pair."
+    },
+    {
+      "source_path": "handoff/announcement-stock-selection-20261005/source/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "git_blob_sha": "905d7f903dbbcb1f40757d74c057b9db802b4a84",
+      "path": "alternatives/announcement-stock-selection-20261005/source/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "cache_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/alternatives/announcement-stock-selection-20261005/source/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "sha256": "ae344d35e44263f35f081fe19a4800bcd50911908158972c383db7e35f133fe0",
+      "bytes": 16669,
+      "verified_git_blob_sha": "905d7f903dbbcb1f40757d74c057b9db802b4a84",
+      "selection": "NOT_SELECTED_OLDER_DIFFERENT_BYTES",
+      "reason": "The 10/5 stock-selection pair equals the documented canonical BEFORE hashes of the accepted 10/7 change; the still older display pair is a separate prior version. Neither is an exact substitute for the accepted 10/7 pair."
+    },
+    {
+      "source_path": "handoff/announcement-workbench-display-20261005/source/runtime/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "git_blob_sha": "e64a985e4e6b9465b4e7f6d213da2323d74924a8",
+      "path": "alternatives/announcement-workbench-display-20261005/source/runtime/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "cache_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/alternatives/announcement-workbench-display-20261005/source/runtime/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "sha256": "bcfcbe18ba5029e0c411f849eee5417fbae277885f3b81e95d65e7b28e47f943",
+      "bytes": 7133,
+      "verified_git_blob_sha": "e64a985e4e6b9465b4e7f6d213da2323d74924a8",
+      "selection": "NOT_SELECTED_OLDER_DIFFERENT_BYTES",
+      "reason": "The 10/5 stock-selection pair equals the documented canonical BEFORE hashes of the accepted 10/7 change; the still older display pair is a separate prior version. Neither is an exact substitute for the accepted 10/7 pair."
+    },
+    {
+      "source_path": "handoff/announcement-workbench-display-20261005/source/runtime/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "git_blob_sha": "a9f61338c80166de110fe7c9ed1e66fb2134d82e",
+      "path": "alternatives/announcement-workbench-display-20261005/source/runtime/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "cache_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/ui/cache/9dfa50346357b6dc4b2463a30dcbf3718fce2f03/alternatives/announcement-workbench-display-20261005/source/runtime/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "sha256": "69fac76760927443d01ece784ec5a1543eecb0fde9901e22e3e80c9732d68bfd",
+      "bytes": 9414,
+      "verified_git_blob_sha": "a9f61338c80166de110fe7c9ed1e66fb2134d82e",
+      "selection": "NOT_SELECTED_OLDER_DIFFERENT_BYTES",
+      "reason": "The 10/5 stock-selection pair equals the documented canonical BEFORE hashes of the accepted 10/7 change; the still older display pair is a separate prior version. Neither is an exact substitute for the accepted 10/7 pair."
+    }
+  ],
+  "provenance_checks": {
+    "git_blob_bytes_verified": true,
+    "all_three_prior_receipt_hashes_match": true,
+    "prior_api_ui_results_reused_as_current_acceptance": false,
+    "search_scope": "Local acquired indexes/source paths, then three parent-named GitHub manager-workbench branches; no repository-wide unbounded search."
+  },
+  "compatibility": {
+    "current_parent_module": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+    "current_parent_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+    "frozen_before_parent_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+    "function_interfaces": [
+      {
+        "name": "requestManagerAnnouncementAnalysis",
+        "source_line": 285,
+        "parameters": "targetDate:string, publicationDate:string|undefined, signal:AbortSignal",
+        "return": "Promise<ManagerAnnouncementAnalysis>",
+        "current_consumer_line": 604,
+        "result": "STATIC_SIGNATURE_COMPATIBLE"
+      },
+      {
+        "name": "renderAnnouncementAnalysis",
+        "source_line": 158,
+        "parameters": "host, value|undefined, selectedPublicationDate|undefined, failure|undefined, onDateChange",
+        "current_consumer_lines": [
+          164,
+          602,
+          606,
+          610
+        ],
+        "result": "STATIC_SIGNATURE_COMPATIBLE"
+      }
+    ],
+    "pair_external_runtime_dependencies": [],
+    "pair_internal_dependency": "announcementAnalysis.ts imports only types from ../api/managerAnnouncementAnalysis.js; API module has no imports.",
+    "current_backend_comparison": [
+      {
+        "path": "v4/manager_research/announcement_catalog.py",
+        "announcement_20261007_accepted_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+        "current_assembled_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+        "equal": true
+      },
+      {
+        "path": "v4/manager_research/workspace_announcements.py",
+        "announcement_20261007_accepted_sha256": "0916a0191568e32aee6dd1bd5e17bcdc6a32ae7dbe733a6ce25d5388eacbd9e4",
+        "current_assembled_sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04",
+        "equal": false
+      },
+      {
+        "path": "v4/manager_research/announcement_analysis.py",
+        "announcement_20261007_accepted_sha256": "29cedc701bc94ca1b8e12106432b85639c990bf98a74445dac2144ba05e64903",
+        "current_assembled_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+        "equal": false
+      },
+      {
+        "path": "v4/manager_research/service.py",
+        "announcement_20261007_accepted_sha256": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0",
+        "current_assembled_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+        "equal": false
+      }
+    ],
+    "limitation": "Static interface and import closure do not prove current backend DTO behavioral compatibility, full browser operation, or current Mac loaded source identity."
+  },
+  "static_closure_summary": [
+    {
+      "entry": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "recovered_pair": false,
+      "file_count": 8,
+      "missing": [
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "../api/managerAnnouncementAnalysis.js",
+          "line": 14
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "./announcementAnalysis.js",
+          "line": 15
+        }
+      ],
+      "external": []
+    },
+    {
+      "entry": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "recovered_pair": true,
+      "file_count": 10,
+      "missing": [],
+      "external": []
+    },
+    {
+      "entry": "apps/web/src/views/ManagerSelectionView.vue",
+      "recovered_pair": false,
+      "file_count": 31,
+      "missing": [
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "../api/managerAnnouncementAnalysis.js",
+          "line": 14
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "./announcementAnalysis.js",
+          "line": 15
+        }
+      ],
+      "external": [
+        "vue"
+      ]
+    },
+    {
+      "entry": "apps/web/src/views/ManagerSelectionView.vue",
+      "recovered_pair": true,
+      "file_count": 33,
+      "missing": [],
+      "external": [
+        "vue"
+      ]
+    },
+    {
+      "entry": "apps/web/src/manager-selection/main.ts",
+      "recovered_pair": false,
+      "file_count": 32,
+      "missing": [
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "../api/managerAnnouncementAnalysis.js",
+          "line": 14
+        },
+        {
+          "from": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "import": "./announcementAnalysis.js",
+          "line": 15
+        }
+      ],
+      "external": [
+        "vue"
+      ]
+    },
+    {
+      "entry": "apps/web/src/manager-selection/main.ts",
+      "recovered_pair": true,
+      "file_count": 34,
+      "missing": [],
+      "external": [
+        "vue"
+      ]
+    }
+  ],
+  "dom_test_assembly": {
+    "root": "NEW_ISOLATED_COPY_ONLY",
+    "copy_from": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+    "preserve_frozen_candidate": true,
+    "add_only_original_pair_from_cache": true,
+    "include_source_metadata_outside_frozen_manifest": true,
+    "mount_complete_vue_component": "import ManagerSelectionView from src/views/ManagerSelectionView.vue; render(ManagerSelectionView, {props:{date:explicitValidDate}}) with @testing-library/vue",
+    "existing_application_entry": "apps/web/src/manager-selection/main.ts calls createApp(ManagerSelectionView).mount(\"#manager-selection\")",
+    "parent_mount_contract": "ManagerSelectionView.vue watches catalystObservationHost and requestedDate after render, mounts the unmodified real catalyst module into .manager-catalyst-host; disposes on unmount/date replacement.",
+    "dom_controls": [
+      ".manager-catalyst-host",
+      "input[aria-label=\"计划目标日\"]",
+      "input[aria-label=\"公告日期\"]",
+      "[data-daily-channel]",
+      "[data-daily-bindings]"
+    ],
+    "dependencies": {
+      "node": "v24.19.0",
+      "dependency_root": "/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules",
+      "packages": {
+        "@testing-library/vue": "8.1.0",
+        "@vitejs/plugin-vue": "6.0.8",
+        "jsdom": "28.1.0",
+        "typescript": "5.9.3",
+        "vite": "7.3.6",
+        "vitest": "4.1.10",
+        "vue": "3.5.40",
+        "vue-tsc": "3.3.8"
+      }
+    },
+    "existing_tests": [
+      {
+        "path": "apps/web/src/manager-selection/dailyChannels.runtime.spec.ts",
+        "boundary": "Real requestManagerWorkspace + global fetch mock + real catalyst mount; useful initial fetch/date/race patterns."
+      },
+      {
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+        "boundary": "Mocks requestManagerWorkspace/refreshManagerWorkspace functions; cannot stand alone as API-client-to-DOM proof."
+      },
+      {
+        "path": "apps/web/src/views/ManagerSelectionView.spec.ts",
+        "boundary": "Imports and renders complete actual Vue component using @testing-library/vue; large existing independent Stage fixtures should not be relabeled as new daily evidence."
+      }
+    ],
+    "recommended_new_coverage": [
+      "Actual current Python route DTO enters original requestManagerWorkspace -> strict validator -> complete Vue parent -> actual catalyst -> daily renderers; stocks/reasons/date/status and same saved run/SHA visible.",
+      "Different publication or plan date clears old content immediately; a delayed old response cannot replace new binding.",
+      "US failure retains real announcement/oversold state; unknown remains unknown.",
+      "Separate independent analysis child may return explicit unavailable response when outside target coverage. A successful analysis test must use valid current owner DTO and the recovered original parser, not a guessed product.",
+      "No owner/client/component vi.mock in the primary complete-page chain; mock only HTTP fetch as explicit synthetic transport boundary.",
+      "Explicit valid date avoids date-list dependency. For unrelated original lanes, explicit HTTP unavailable response can document isolation; never fabricate qualified Stage or BUY data.",
+      "Cleanup Vue render, dispose callbacks, timers, fetch stubs and window history."
+    ],
+    "fetch_boundaries": [
+      {
+        "path": "/api/v4/manager/research/workspace",
+        "method": "GET",
+        "purpose": "Current real client validates canonical workspace DTO; preserve date/view/selection_date/announcement_date bindings."
+      },
+      {
+        "path": "/api/v4/manager/research/announcements",
+        "method": "GET",
+        "purpose": "Independent observed-announcement review; publication day is separate."
+      },
+      {
+        "path": "/api/v4/manager/research/announcements/analysis",
+        "method": "GET",
+        "purpose": "Recovered original client: date=plan target; optional publication_date. Current analysis owner contract must be separately verified for a successful response."
+      },
+      {
+        "path": "/api/v3/research/selection",
+        "method": "GET",
+        "purpose": "Parent original Stage/reference lane; target_trade_date."
+      },
+      {
+        "path": "/api/v3/preselection-pools",
+        "method": "GET",
+        "purpose": "Parent preselection lane; date and limit=200 remain existing contract."
+      },
+      {
+        "path": "/api/v3/manager/stage-selection",
+        "method": "GET",
+        "purpose": "Parent original stage lane; API constructs original date/market/stage query."
+      },
+      {
+        "path": "/api/v4/manager/research",
+        "method": "GET",
+        "purpose": "Parent original research product; do not synthesize can_ensure true or a job success."
+      },
+      {
+        "path": "/api/v3/research/lane",
+        "method": "GET",
+        "purpose": "Parent research lane; research_date."
+      },
+      {
+        "path": "/api/v4/manager/workbench-research",
+        "method": "GET",
+        "purpose": "Parent original workbench research lane."
+      },
+      {
+        "path": "/api/v3/research/selection/manager-decision",
+        "method": "GET",
+        "purpose": "Parent original research-decision lane; target_trade_date."
+      },
+      {
+        "path": "/api/v1/runs/date-list",
+        "method": "GET",
+        "purpose": "Only needed when neither props.date nor URL date exists; set an explicit valid date for bounded daily tests."
+      },
+      {
+        "path": "/api/v4/manager/research/ensure",
+        "method": "POST_CONDITIONAL",
+        "purpose": "Original parent may call only after valid NOT_MATERIALIZED + can_ensure true; testing must intercept fetch, never contact live service."
+      },
+      {
+        "path": "/api/v4/manager/research/status and /api/v4/manager/research/jobs/{id}",
+        "method": "GET_CONDITIONAL",
+        "purpose": "Existing queued/running product bounded polling; avoid fabricated active jobs unless specifically testing this lane."
+      },
+      {
+        "path": "/api/v4/manager/research/workspace/refresh",
+        "method": "POST_USER_ACTION",
+        "purpose": "Existing generate button; if tested, return valid current owner response and verify subsequent canonical GET."
+      },
+      {
+        "path": "/api/v4/manager/research/announcements/refresh",
+        "method": "POST_USER_ACTION",
+        "purpose": "Existing update-announcements button; no real upstream invocation in DOM tests."
+      }
+    ],
+    "implementation_or_new_test_written_by_this_agent": false,
+    "application_tests_executed_by_this_agent": false
+  },
+  "full_build_remaining_gap": {
+    "status": "ORIGINAL_MULTI_ENTRY_BUILD_INPUTS_NOT_CLOSED",
+    "configuration": "apps/web/vite.config.ts",
+    "configuration_sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+    "present": [
+      "apps/web/index.html"
+    ],
+    "missing": [
+      "apps/web/daily-research-command/index.html",
+      "apps/web/manager-selection/index.html"
+    ],
+    "searched_known_branch_trees": true,
+    "found_original_missing_html": false,
+    "action": "Do not create substitute HTML or claim original npm run build passes. Complete Vue DOM mount is separately available without fabricating these application entry files."
+  },
+  "acceptance_limits": [
+    "No current Mac connection or process/source verification.",
+    "No code changes, service changes, remote writes, tests or deployment by this agent.",
+    "The recovered pair was not in the fixed 09f82 problem source closure; never amend its historical manifest or label it same-SHA current preimage.",
+    "Prior 10/7 receipts are provenance only; new assembled parent behavior requires new Writer and different Reviewer tests.",
+    "Real 10/8 retrospective and consecutive natural execution remain unverified."
+  ],
+  "evidence_files": {
+    "retrieved_sources.json": {
+      "sha256": "0c447fc0c5d6ad293ff9c9a3a77e557b08a181d4568c416cb0b0cc7f89583b8e",
+      "bytes": 7736
+    },
+    "remote_source_lookup.json": {
+      "sha256": "e3340b05a2624f9714410d9a141b7d8ddfaa617a5386272e88c70a92b3f05475",
+      "bytes": 16704
+    },
+    "static_dependency_closure.json": {
+      "sha256": "9ecd8acf6566ced8365fdd0549e7f33bdbaaf45747f40b605edfeb84fbcc3af8",
+      "bytes": 171009
+    },
+    "dom_dependency_inventory.json": {
+      "sha256": "b87369144ccc20029b75f59c1aa702d7d80a49d61c91b88f5817a292e25167b0",
+      "bytes": 345
+    },
+    "frozen_source_readback.json": {
+      "sha256": "9845fac611ee228a363520e2b873a68089ebab714a7c9a1fe51043d3f7eaa0e8",
+      "bytes": 9509
+    },
+    "announcement_backend_context.json": {
+      "sha256": "1bf4d6310a836ef6e27fb1578f51429d9b31f9f0fc93f86e76d57ef2de12a68a",
+      "bytes": 1193
+    }
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "read_at_utc": "2026-10-09 00:08:46 UTC",
+  "branch": "chat/issue30-api-module-isolation-20261008-r1",
+  "head": "2ead7eb9e9f067b69610d24990bc47f792bc75b4",
+  "commit_author_date": "2026-10-08T15:04:48Z",
+  "commit_committer_date": "2026-10-08T15:04:48Z",
+  "parent_shas": [
+    "a0a0b88dc133d14ee5763569272c174bcd7cc445"
+  ],
+  "tree": "ba92eae205b070a35c0676b3c05cee7196285aaa",
+  "tree_truncated": false,
+  "tree_entry_count": 2234,
+  "package_prefix": "handoff/issue30-api-module-isolation-20261008-r1",
+  "package_tree": {
+    "path": "handoff/issue30-api-module-isolation-20261008-r1",
+    "mode": "040000",
+    "type": "tree",
+    "sha": "c13846cf0db7dc6352da3218c404697f251b32da",
+    "url": "https://api.github.com/repos/lexi2016/v4/git/trees/c13846cf0db7dc6352da3218c404697f251b32da"
+  },
+  "read_scope": "GITHUB_ONLY_NOT_MAC",
+  "downloaded_files": [
+    {
+      "path": "DELIVERY_STATUS.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "286dbbb6c4b1e1735365c8b994c128cf53c876d1",
+      "size": 1647
+    },
+    {
+      "path": "EVIDENCE_INDEX.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2e2ddf7aa8678fb2ee906a7cf7b38f76131f2aa9",
+      "size": 2743
+    },
+    {
+      "path": "OPEN_ITEMS.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7ab66c82daad6d09981b1f3ac460533de772266f",
+      "size": 3838
+    },
+    {
+      "path": "PROMPT_FOR_MAC.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1b96cddcfc0a549bacfb21793fd932dd6ff08a36",
+      "size": 9010
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2c1201b3253da9c5713ec4c9dd6bc296a2c5e247",
+      "size": 1103
+    },
+    {
+      "path": "README.zh-CN.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6801e2e269d2ca5824278348ab5a26ce810e2470",
+      "size": 10384
+    },
+    {
+      "path": "SOURCE_MANIFEST.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5197efba81f0ac263f7ed6dc1776cb62fd3552f6",
+      "size": 7279
+    },
+    {
+      "path": "TEST_RESULTS.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6b2266b1dfed02a4ab286905e2bb286d8c65bd12",
+      "size": 11742
+    },
+    {
+      "path": "after/actual_cutover_reference/api_only_cutover_r2_ready.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dd7d239d30152876462cbc81dc54dfba2a5fd180",
+      "size": 119529
+    },
+    {
+      "path": "after/ops/api_release_integration.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9525da2da82355bee380b84a6251a69393b42fcc",
+      "size": 57781
+    },
+    {
+      "path": "after/ops/build_release_candidate.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "28b62f3635a08f8e8cd912ee265e6d943b72e5de",
+      "size": 36367
+    },
+    {
+      "path": "after/ops/create_api_module_delta.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3441ab6e7e36d39cbc5536ce2233d954abefafb4",
+      "size": 6580
+    },
+    {
+      "path": "after/ops/prepare_api_only_cutover.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0e9e45c9e2642a06665f49458595fb16943d0a97",
+      "size": 22797
+    },
+    {
+      "path": "change_sets/preselection.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f584db093a9d3d09bd6935e698916a979a8e66db",
+      "size": 932
+    },
+    {
+      "path": "design/MODULE_OWNERSHIP.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "050d5b7a6e985f33cd769716363d0d0589d78e6f",
+      "size": 4986
+    },
+    {
+      "path": "evidence/independent_final/final_review.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "06a6997cc9d6603f58ea3f96ec06809e77121163",
+      "size": 28082
+    },
+    {
+      "path": "evidence/independent_final/final_review.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cc4985cdec7e603ad411f366b5983542f5fef7ed",
+      "size": 12565
+    },
+    {
+      "path": "evidence/independent_final/final_shared_app_preservation.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "76425c6c487c1d6b35c2a661a61e33904a2a5eb9",
+      "size": 11894
+    },
+    {
+      "path": "original/AGENTS.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8cb438949efa6bb5c20795974cdd759ed052ebf8",
+      "size": 3152
+    },
+    {
+      "path": "tests/release/test_manager_actual_ownership.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e35109620d7b0074b22f73c0f02d396a972ca409",
+      "size": 977
+    }
+  ]
+}

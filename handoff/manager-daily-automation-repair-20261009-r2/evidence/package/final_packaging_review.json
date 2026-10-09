@@ -1,0 +1,121 @@
+{
+  "schema_version": "manager_daily_r2.independent_packaging_review.v1",
+  "reviewed_at_utc": "2026-10-09T00:48:29Z",
+  "reviewer_role": "independent_read_only_package_audit",
+  "reviewed_package": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261009-r2",
+  "decision": "PASS_NO_PACKAGE_BLOCKERS",
+  "review_scope": {
+    "package_payload_files_reviewed": 68,
+    "package_size_at_review": "1.2M",
+    "markdown_files_reviewed": 7,
+    "local_markdown_links_checked": 37,
+    "broken_or_escaping_local_links": 0,
+    "after_source_files": 5,
+    "patch_files": 5,
+    "recovered_original_typescript_dependencies": 2,
+    "review_exclusions": [
+      "package_manifest.json and publication_check.json were not present at the time of this review; root will generate them after adding this audit report.",
+      "No business test suite was re-run by this read-only packaging review; only temporary forward/reverse patch reconstruction and file/hash audits were run."
+    ]
+  },
+  "frozen_identities": {
+    "source_manifest_sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+    "source_manifest_bytes": 15635,
+    "writer_final_report_json_sha256": "683ca56c18e91bec967e3ab0686c9f0c5e79025b8c2de2c3b41ac16b1c65e1e1",
+    "independent_final_review_json_sha256": "c777f4ce3266d9ed41c2c519a98b925d5d22f7bf7f88969b004ac21278d9c952",
+    "independent_review_markdown_sha256": "1f08a62d8ac773c6ce44572272e13ec7532eab0bb4a81f9a87c7936c70a38644",
+    "independent_test_sha256": "e20677a6aef3d1ea856b8692cb9beb303c921473b95839d81248de50de6d3c29",
+    "parent_sfc_test_sha256": "2d1f353823a96745f4d1c4a0e9eed55f9ba1caec0ea766bd0f16861e303dc668",
+    "route_worker_sha256": "bc40e4716f5dffad231318723e130a6879518a5ec681d4a31df316014d265eaa",
+    "review_source_binding_sha256": "aed57209acfe8465349fddf44ca1496434ca204fd72fe39625ebbeed7db11065",
+    "source_scope_audit_sha256": "5132afe4c4241a92d60cd40b42f1e60fa503704c4038cd7ae15f26f9bdd79a51"
+  },
+  "source_scope_audit": {
+    "result": "PASS",
+    "r1_source_head": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+    "r1_baseline_files": 1024,
+    "r1_baseline_matches_frozen_r1_exactly": true,
+    "r1_delta_records": 33,
+    "r2_retained_r1_records": 30,
+    "retained_r1_record_set_matches_r1_manifest_and_worktree": true,
+    "candidate_changed_paths_exact": [
+      "apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+      "tests/manager_daily_ui_parent_route_worker.py",
+      "tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "v4/manager_research/workspace.py"
+    ],
+    "change_counts": {
+      "source_manifest_deltas": 5,
+      "production_files": 2,
+      "implementation_test_files": 3,
+      "recovered_original_dependencies": 2
+    },
+    "r2_before_sha_matches_r1_after_sha": true,
+    "candidate_delta_matches_manifest_plus_dependencies": true,
+    "package_after_files_match_manifest_and_frozen_candidate": true,
+    "patch_forward_application_and_reverse_restoration_exact": true,
+    "source_changes": [
+      {
+        "path": "v4/manager_research/workspace.py",
+        "before_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+        "after_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+        "delta": "Only non-history include_saved auto/dynamic reads can use the saved context for an exact three-date binding; the historical auto early return remains earlier, and original owners plus identity checks still run."
+      },
+      {
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "before_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+        "after_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3",
+        "delta": "The explicit generation request uses selection_date: selectionDate instead of an undefined shorthand."
+      }
+    ]
+  },
+  "dependency_and_raw_data_boundary": {
+    "recovered_typescript_dependencies_match_required_dependencies_sha": true,
+    "dependencies_are_test_assembly_only": true,
+    "actual_registry_or_research_seed_payload_included": false,
+    "originals_directory_in_package": false,
+    "common_raw_market_database_files_found": false,
+    "source_context_contains_metadata_hashes_and_provenance_only": true
+  },
+  "claims_and_evidence_review": {
+    "synthetic_test_data_disclosed": true,
+    "real_original_fastapi_testclient_routes_used_for_manager_research_requests": true,
+    "original_parent_sfc_mounted": true,
+    "unrelated_parent_page_endpoints_explicitly_unavailable_in_tests": true,
+    "full_application_build_or_typecheck_claimed_as_pass": false,
+    "live_api_mac_browser_deployment_or_natural_execution_claimed": false,
+    "business_goal_marked_incomplete": true,
+    "known_failures_preserved": {
+      "writer_whole_web_typecheck": "EXECUTED_FAIL_EXIT_2; missing original issue8R2.ownerObservations.json and derived/legacy TypeScript diagnostics",
+      "writer_whole_web_build": "EXECUTED_FAIL_EXIT_1; missing original Vite entry daily-research-command/index.html; manager-selection/index.html also unavailable",
+      "writer_hk_history_baseline": "EXECUTED_FAIL; PLAN_HK_02_PANEL_LATEST_MANIFEST_UNREADABLE reproduced unchanged on R1",
+      "independent_reviewer_full_typecheck_and_build": "NOT_RERUN_BY_REVIEWER"
+    },
+    "unresolved_live_or_business_gates_preserved": [
+      "No real October 8 retrospective run in this round.",
+      "No current Mac/task/import binding or current loaded release was verified.",
+      "Announcement Reader/independent Reviewer heartbeat execution contract remains unavailable.",
+      "US original V4 task current identity and source-linked receipts remain unverified.",
+      "HK updater import identity remains unverified; the actual shared owner source has timestamp metadata.",
+      "Oversold unit and full six-day scale contract remain unproven; unknown is kept as unknown.",
+      "Issue #30 protected integration, deployment, live API/UI behavior, and two consecutive natural applicable days were not run."
+    ]
+  },
+  "documentation_review": {
+    "local_links_resolve": true,
+    "links_checked": 37,
+    "source_scope_and_package_counts_consistent": true,
+    "testing_roles_and_result_counts_are_separated": true,
+    "full_web_typecheck_build_and_hk_baseline_failures_are_visible": true,
+    "reviewer_not_rerun_status_is_explicit": true,
+    "parent_sfc_dom_scope_is_bounded_to_manager_research_region": true,
+    "no_claim_of_full_app_or_live_browser_success": true
+  },
+  "non_blocking_notes": [
+    "The unshipped candidate/candidate_origin.json is an intermediate injection snapshot reporting 1,026 files; the later candidate has 1,028 inventory files after two test additions. It is excluded from the package and is not used as final evidence. The packaged source_scope_audit independently binds the 1,024-file R1 baseline plus the exact seven changed paths.",
+    "The original UI static dependency scan predates the final catalystObservationPanel.ts one-property change; final_production_import_binding.json explicitly rebinds that graph to final bytes and marks the changed node."
+  ]
+}

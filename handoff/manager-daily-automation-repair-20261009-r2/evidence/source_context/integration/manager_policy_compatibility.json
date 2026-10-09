@@ -1,0 +1,454 @@
+{
+  "scope": "READ_ONLY_GITHUB_BYTES_AND_IN_MEMORY_POLICY_COMPATIBILITY",
+  "issue30_commit": "2ead7eb9e9f067b69610d24990bc47f792bc75b4",
+  "manager_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+  "manager_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+  "issue30_manifest_sha256": "baac33ad9e1f8b2d89f1817d00dd3c6e28c612a00c37586773dc50dadb6bada1",
+  "core_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+  "policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6",
+  "direct_product_path_intersection": [],
+  "api_profile_owned_count": 7,
+  "api_profile_rejected_count": 4,
+  "rows": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "profile": "api",
+      "before_sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+      "after_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+      "result": "OWNED_BY_MANAGER",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "profile": "tests",
+      "before_sha256": null,
+      "after_sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "profile": "web",
+      "before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+      "after_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:apps/web/src/api/managerWorkspace.ts",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "profile": "web",
+      "before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+      "after_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+      "profile": "tests",
+      "before_sha256": null,
+      "after_sha256": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+      "profile": "web",
+      "before_sha256": null,
+      "after_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:apps/web/src/manager-selection/dailyResearchRun.ts",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "profile": "web",
+      "before_sha256": "16bb02dd12c22fd6c55f6c42bb57f8e48ac66864673ba403380381cb2b63f3ef",
+      "after_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:apps/web/src/manager-selection/researchAttention.ts",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "profile": "api",
+      "before_sha256": null,
+      "after_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "shared_paths_attempt": "API_RELEASE_MODULE_SHARED_PATH_NOT_ALLOWED"
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "profile": "api",
+      "before_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+      "after_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:infrastructure/scheduling/manager_announcement_supervisor.py",
+      "shared_paths_attempt": "API_RELEASE_MODULE_SHARED_PATH_NOT_ALLOWED"
+    },
+    {
+      "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+      "profile": "hk_child",
+      "before_sha256": null,
+      "after_sha256": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:ops/_macos_research_panel_daily_parts/_namespace.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "profile": "hk_child",
+      "before_sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+      "after_sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "ops/ensure_hk_security_master.py",
+      "profile": "hk_child",
+      "before_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "after_sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:ops/ensure_hk_security_master.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "ops/render_manager_announcement_binding.py",
+      "profile": "api",
+      "before_sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "after_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:ops/render_manager_announcement_binding.py",
+      "shared_paths_attempt": "API_RELEASE_MODULE_SHARED_PATH_NOT_ALLOWED"
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "profile": "api",
+      "before_sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+      "after_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:ops/run_manager_announcement_cycle.py",
+      "shared_paths_attempt": "API_RELEASE_MODULE_SHARED_PATH_NOT_ALLOWED"
+    },
+    {
+      "path": "ops/macos_research_panel_daily.py",
+      "profile": "hk_child",
+      "before_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+      "after_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:ops/macos_research_panel_daily.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/manager_daily_ui_owner_fixture.py",
+      "profile": "tests",
+      "before_sha256": null,
+      "after_sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/manager_daily_ui_owner_fixture.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/manager_daily_ui_route_fixture.py",
+      "profile": "tests",
+      "before_sha256": null,
+      "after_sha256": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/manager_daily_ui_route_fixture.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/test_hk_daily_publication_chain.py",
+      "profile": "tests",
+      "before_sha256": null,
+      "after_sha256": "5e70c7f2943df396b0d8dde48c8adcc0153962306d71c0ececb72af17e04eec3",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_hk_daily_publication_chain.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/test_hk_daily_supplement_r4.py",
+      "profile": "tests",
+      "before_sha256": "6e28ec956e048517b6312f57d6a351253717ee50a5f5f6d20079787e8bc819b6",
+      "after_sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_hk_daily_supplement_r4.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/test_manager_daily_automation_20261008.py",
+      "profile": "tests",
+      "before_sha256": null,
+      "after_sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_manager_daily_automation_20261008.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/test_manager_daily_dispatch_20261008.py",
+      "profile": "tests",
+      "before_sha256": "f4137ac34bc45c4deec95c5c238cbec12776be4e383e485557c27fc4a24d66b1",
+      "after_sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_manager_daily_dispatch_20261008.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/test_manager_history_contract_20261008.py",
+      "profile": "tests",
+      "before_sha256": "36eeb5b9f41a927f6b9b19f6d1d1bd6f515986631ccd5754e14bbd423eacd774",
+      "after_sha256": "ba8b74490c9fcb248bc102c0c22aa76ec121f268730ab13ac14c2f69e013d188",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_manager_history_contract_20261008.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/test_manager_owner_namespace_contracts.py",
+      "profile": "tests",
+      "before_sha256": null,
+      "after_sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_manager_owner_namespace_contracts.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/test_manager_us_daily_automation_20261008.py",
+      "profile": "tests",
+      "before_sha256": null,
+      "after_sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_manager_us_daily_automation_20261008.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "profile": "tests",
+      "before_sha256": null,
+      "after_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "tests/test_manager_workspace_owner_20261008.py",
+      "profile": "tests",
+      "before_sha256": "9d1faeee5a0d8e1d9466244023d0a9fbbb3032d7934de40337096a1d35eda13e",
+      "after_sha256": "46ebbea9f71baf052ebbd1185d2dc25bcd4bc92d3e2e6da8ebd96c41135294ea",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_manager_workspace_owner_20261008.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "shared_data/hk_daily_supplement.py",
+      "profile": "hk_upstream",
+      "before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:shared_data/hk_daily_supplement.py",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "profile": "api",
+      "before_sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+      "after_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+      "result": "OWNED_BY_MANAGER",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "profile": "api",
+      "before_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+      "after_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "result": "OWNED_BY_MANAGER",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "profile": "api",
+      "before_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+      "after_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "result": "OWNED_BY_MANAGER",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "profile": "api",
+      "before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+      "after_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+      "result": "OWNED_BY_MANAGER",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "profile": "api",
+      "before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+      "after_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "result": "OWNED_BY_MANAGER",
+      "shared_paths_attempt": null
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "profile": "api",
+      "before_sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+      "after_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+      "result": "OWNED_BY_MANAGER",
+      "shared_paths_attempt": null
+    }
+  ],
+  "downloaded_files": [
+    {
+      "path": "DELIVERY_STATUS.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "286dbbb6c4b1e1735365c8b994c128cf53c876d1",
+      "size": 1647,
+      "sha256": "f43ebbe70a5ee75f9ee811a66debd0a8dc59faa77230b899a8d87c48ce1be7a8"
+    },
+    {
+      "path": "EVIDENCE_INDEX.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2e2ddf7aa8678fb2ee906a7cf7b38f76131f2aa9",
+      "size": 2743,
+      "sha256": "bfa288bde326d8b49f648e31df86b65fbb0022c009a11e554c459bedb315a54f"
+    },
+    {
+      "path": "OPEN_ITEMS.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7ab66c82daad6d09981b1f3ac460533de772266f",
+      "size": 3838,
+      "sha256": "f908536f16fd5fdbaf22880a403293b7035d60eebef8dd5b1999feed261eb5c8"
+    },
+    {
+      "path": "PROMPT_FOR_MAC.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1b96cddcfc0a549bacfb21793fd932dd6ff08a36",
+      "size": 9010,
+      "sha256": "346806c8ed7319d87dd405864dd921df26a4da94f74326d39a4154088338d29b"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2c1201b3253da9c5713ec4c9dd6bc296a2c5e247",
+      "size": 1103,
+      "sha256": "d6b86f75f57331e098394f69b78ac5677770452b29dfef486a8c4d7a81abf87e"
+    },
+    {
+      "path": "README.zh-CN.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6801e2e269d2ca5824278348ab5a26ce810e2470",
+      "size": 10384,
+      "sha256": "7b46f4d1ecabd90491baadd6371f9278dc28f44d84309a1b2eae62c51f4d1ee3"
+    },
+    {
+      "path": "SOURCE_MANIFEST.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5197efba81f0ac263f7ed6dc1776cb62fd3552f6",
+      "size": 7279,
+      "sha256": "baac33ad9e1f8b2d89f1817d00dd3c6e28c612a00c37586773dc50dadb6bada1"
+    },
+    {
+      "path": "TEST_RESULTS.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6b2266b1dfed02a4ab286905e2bb286d8c65bd12",
+      "size": 11742,
+      "sha256": "a5adfaddcb68801ecb7daa180b5162e84c25adbd6fc09c2853870143311f2186"
+    },
+    {
+      "path": "after/actual_cutover_reference/api_only_cutover_r2_ready.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dd7d239d30152876462cbc81dc54dfba2a5fd180",
+      "size": 119529,
+      "sha256": "389be853923a72066472ad229129a9a41ef9e9785f1b729aa468ed3e58df19f5"
+    },
+    {
+      "path": "after/ops/api_release_integration.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9525da2da82355bee380b84a6251a69393b42fcc",
+      "size": 57781,
+      "sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050"
+    },
+    {
+      "path": "after/ops/build_release_candidate.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "28b62f3635a08f8e8cd912ee265e6d943b72e5de",
+      "size": 36367,
+      "sha256": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6"
+    },
+    {
+      "path": "after/ops/create_api_module_delta.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3441ab6e7e36d39cbc5536ce2233d954abefafb4",
+      "size": 6580,
+      "sha256": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072"
+    },
+    {
+      "path": "after/ops/prepare_api_only_cutover.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0e9e45c9e2642a06665f49458595fb16943d0a97",
+      "size": 22797,
+      "sha256": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c"
+    },
+    {
+      "path": "change_sets/preselection.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f584db093a9d3d09bd6935e698916a979a8e66db",
+      "size": 932,
+      "sha256": "9747d9820bb746360a502fe8b185f0be50a27a014f0e913793f858ef3c8989b2"
+    },
+    {
+      "path": "design/MODULE_OWNERSHIP.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "050d5b7a6e985f33cd769716363d0d0589d78e6f",
+      "size": 4986,
+      "sha256": "8a1b24c9e2dc3d791186aaa31bd19fc6e9220d84a313c105c0bd5ac26ec3ce1a"
+    },
+    {
+      "path": "evidence/independent_final/final_review.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "06a6997cc9d6603f58ea3f96ec06809e77121163",
+      "size": 28082,
+      "sha256": "9bb6428f895b9591db8381740eecfce2fe6a3a3958157bb9bdc4d9bf08ee4bbd"
+    },
+    {
+      "path": "evidence/independent_final/final_review.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cc4985cdec7e603ad411f366b5983542f5fef7ed",
+      "size": 12565,
+      "sha256": "12cf34341abf65dfe9bc13f3c7803e5dc8b893844e53dc4192aa0feb2364d9db"
+    },
+    {
+      "path": "evidence/independent_final/final_shared_app_preservation.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "76425c6c487c1d6b35c2a661a61e33904a2a5eb9",
+      "size": 11894,
+      "sha256": "dd79552cb97adaacb1e75d3a121235fca8c3cfbbf9a8aa9b2c625224856d4db8"
+    },
+    {
+      "path": "original/AGENTS.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8cb438949efa6bb5c20795974cdd759ed052ebf8",
+      "size": 3152,
+      "sha256": "fd790799d7ae8913088eb716ebe29da51c21e57681966240691542978e2d84c0"
+    },
+    {
+      "path": "tests/release/test_manager_actual_ownership.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e35109620d7b0074b22f73c0f02d396a972ca409",
+      "size": 977,
+      "sha256": "023f646b550e11b7552b068053e0f1450a61f35cef4698f4c71aabe2c3163e35"
+    }
+  ],
+  "side_effects": {
+    "candidate_built": false,
+    "active_pointer_read": false,
+    "active_pointer_written": false,
+    "service_called": false,
+    "business_called": false,
+    "network_called_by_probe": false
+  },
+  "limitations": [
+    "No live Mac inspection",
+    "No complete active runtime closure",
+    "Non-API profiles are outside the API module scope by design",
+    "No production code edited; this is not a policy fix"
+  ]
+}

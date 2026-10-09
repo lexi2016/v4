@@ -1,0 +1,169 @@
+{
+  "report_version": 1,
+  "scope": "Isolated continuation verification for the ordinary ManagerSelectionView and exact-date saved-plan readback. Candidate only; no service, Mac browser, formal external POST, enablement, deployment, merge, or external comments.",
+  "candidate_root": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate",
+  "frozen_source_root": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+  "frozen_source_head": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "original_candidate_delivery": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+  "source_changes": [
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+      "after_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "change": "On the existing non-history immediate read path, include_saved auto and dynamic views may select the exact full-binding sealed context, then rerun owner readers and identity comparison. Existing history early return and include_saved=false owner preview remain unchanged."
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "before_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+      "after_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3",
+      "change": "Fix explicit refresh binding payload to use selection_date: selectionDate."
+    }
+  ],
+  "restored_original_dependencies": [
+    {
+      "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "bytes": 19705
+    },
+    {
+      "path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "bytes": 17541
+    }
+  ],
+  "candidate_file_changes": {
+    "added": [
+      "apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+      "candidate_origin.json",
+      "tests/manager_daily_ui_parent_route_worker.py"
+    ],
+    "modified": [
+      "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "v4/manager_research/workspace.py"
+    ],
+    "removed": [],
+    "integrity_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/candidate_integrity.log"
+  },
+  "necessary_test_paths": [
+    "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+    "tests/manager_daily_ui_parent_route_worker.py",
+    "tests/test_manager_workspace_exact_page_binding_20261008.py",
+    "writer/manager_page_typecheck.tsconfig.json"
+  ],
+  "necessary_test_artifact_sha256": {
+    "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts": "2d1f353823a96745f4d1c4a0e9eed55f9ba1caec0ea766bd0f16861e303dc668",
+    "tests/manager_daily_ui_parent_route_worker.py": "bc40e4716f5dffad231318723e130a6879518a5ec681d4a31df316014d265eaa",
+    "tests/test_manager_workspace_exact_page_binding_20261008.py": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+    "writer/manager_page_typecheck.tsconfig.json": "d1553899480c227c6307a3b6e14368717a7c5e6636def57bff474e9e89c80727"
+  },
+  "tests": [
+    {
+      "name": "TDD RED: default auto GET failed to read back same-day exact saved context before workspace fix",
+      "command": "PYTHONPATH=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate:/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/upstreams:/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/tests /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_manager_workspace_exact_page_binding_20261008.py::test_default_auto_get_reuses_exact_current_saved_context_but_owner_preview_does_not",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate",
+      "exit_code": 1,
+      "result": "Expected RED: omitted-view route returned STALE_INPUTS_CHANGED rather than the saved run's CURRENT status.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/default_auto_api_tdd_red.log"
+    },
+    {
+      "name": "TDD RED: actual full parent page did not display verified saved plan in default auto before workspace fix",
+      "command": "V4_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate V4_TEST_PYTHON=/workspace/scratch/a154a3323e32/test_env/bin/python ./node_modules/.bin/vitest run src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web",
+      "exit_code": 1,
+      "result": "Expected RED: 1 default-auto saved-plan assertion failed; the other 3 then-existing scenarios passed.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/full_parent_tdd_red_confirmed.log"
+    },
+    {
+      "name": "TDD RED: explicit three-date refresh did not POST before selection_date fix",
+      "command": "V4_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate V4_TEST_PYTHON=/workspace/scratch/a154a3323e32/test_env/bin/python ./node_modules/.bin/vitest run src/views/ManagerSelectionView.dailyIntegration.spec.ts -t 'posts the explicit three-date plan binding'",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web",
+      "exit_code": 1,
+      "result": "Expected RED: refresh button produced 0 POSTs where the test required 1; the undefined selection_date identifier prevented the explicit action.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/explicit_refresh_tdd_red.log"
+    },
+    {
+      "name": "Python exact-binding regression suite",
+      "command": "PYTHONPATH=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate:/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/upstreams:/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/tests /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate",
+      "exit_code": 0,
+      "result": "2 passed.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/default_auto_api_green.log"
+    },
+    {
+      "name": "Scoped workspace/history regression suite",
+      "command": "PYTHONPATH=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate:/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/upstreams:/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/tests /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_manager_workspace_exact_page_binding_20261008.py tests/test_manager_history_readback_r1.py tests/test_manager_history_contract_20261008.py -k 'not exact_panel_selected_without_latest_substitution'",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate",
+      "exit_code": 0,
+      "result": "59 passed, 1 deselected. The deselected baseline failure is separately reproduced against the frozen original worktree.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/workspace_history_scoped_green.log"
+    },
+    {
+      "name": "Original owner worker smoke for missing US peripheral input",
+      "command": "PYTHONPATH=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate:/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/upstreams:/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/tests /workspace/scratch/a154a3323e32/test_env/bin/python tests/manager_daily_ui_parent_route_worker.py missing-us < /dev/null",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate",
+      "exit_code": 0,
+      "result": "Actual US owner persisted INPUT_MISSING and VERIFIED readback; original announcement owner still returned READY with one synthetic row; oversold remained CANNOT_CONFIRM.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/missing_us_worker_smoke.log"
+    },
+    {
+      "name": "Explicit refresh binding integration test",
+      "command": "V4_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate V4_TEST_PYTHON=/workspace/scratch/a154a3323e32/test_env/bin/python ./node_modules/.bin/vitest run src/views/ManagerSelectionView.dailyIntegration.spec.ts -t 'posts the explicit three-date plan binding'",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web",
+      "exit_code": 0,
+      "result": "1 passed, 4 skipped. Real local TestClient route received all three date bindings; subsequent auto GET returned the same CURRENT / VERIFIED run.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/explicit_refresh_green.log"
+    },
+    {
+      "name": "Full ManagerSelectionView parent DOM integration suite",
+      "command": "V4_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate V4_TEST_PYTHON=/workspace/scratch/a154a3323e32/test_env/bin/python ./node_modules/.bin/vitest run src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web",
+      "exit_code": 0,
+      "result": "5 passed. Covers same-day saved-plan refresh, explicit three-date POST then auto readback, US INPUT_MISSING while announcement remains READY, target-date switch with late old response discarded, and historical auto versus explicit dynamic replay.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/full_parent_green.log"
+    },
+    {
+      "name": "Actual production import-closure Vue/TypeScript check",
+      "command": "./node_modules/.bin/vue-tsc --noEmit --project /workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/manager_page_typecheck.tsconfig.json",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web",
+      "exit_code": 0,
+      "result": "Passed for the real ManagerSelectionView and manager-selection/main.ts production import closure.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/manager_page_typecheck.log"
+    },
+    {
+      "name": "Whole web TypeScript check",
+      "command": "npm run typecheck",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web",
+      "exit_code": 2,
+      "result": "Blocked by the absent original issue8R2.ownerObservations.json fixture (plus its derivative implicit-any diagnostics) and two pre-existing unused ts-expect-error directives in ManagerSelectionView.spec.ts. The fixed catalyst selection_date error is absent.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/web_typecheck.log"
+    },
+    {
+      "name": "Whole web Vite build",
+      "command": "npm run build",
+      "cwd": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web",
+      "exit_code": 1,
+      "result": "Blocked before transform by absent original Vite entry daily-research-command/index.html. The original manager-selection/index.html entry is also absent from the supplied source closure; no HTML entry was fabricated.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/web_build_closure.log"
+    },
+    {
+      "name": "Unrelated HK panel exact-history baseline reproduction on frozen original source",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/a154a3323e32/worktrees/manager_automation:/workspace/scratch/a154a3323e32/worktrees/manager_automation/upstreams:/workspace/scratch/a154a3323e32/worktrees/manager_automation/tests /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q -p no:cacheprovider --basetemp=/tmp/manager-history-readback-baseline-20261009 tests/test_manager_history_readback_r1.py::test_exact_panel_selected_without_latest_substitution",
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+      "exit_code": 1,
+      "result": "Same pre-existing PLAN_HK_02_PANEL_LATEST_MANIFEST_UNREADABLE baseline failure reproduced against the frozen original; workspace_plan.py and test hashes matched the candidate. Out of this repair scope.",
+      "raw_log": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/writer/hk_history_failure_baseline.log"
+    }
+  ],
+  "non_additive_result_note": "Test counts overlap: the 2-test exact-binding suite is included within the 59-pass scoped workspace/history run; the explicit-refresh 1-pass subset is one of the 5 full parent-page tests. Do not sum these counts.",
+  "test_data_boundary": "Announcement, market mapping, and research inputs are explicit offline synthetic test fixtures consumed by current original owners. No historical research outcomes were fabricated. The Vue test exercises the real full parent component in a local DOM and sends workspace traffic to original FastAPI TestClient routes; it is not a formal Mac/browser validation.",
+  "dependency_link": {
+    "temporary_candidate_apps_web_node_modules_symlink": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web/node_modules",
+    "target": "/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules",
+    "status": "Removed after verification for independent reviewer. Recreate temporarily with: ln -s /workspace/scratch/a154a3323e32/candidate/apps/web/node_modules /workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/apps/web/node_modules"
+  }
+}

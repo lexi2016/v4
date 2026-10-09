@@ -1,0 +1,143 @@
+{
+  "schema_version": "manager_daily_r2.patch_verification.v1",
+  "status": "PASS",
+  "scope": "ARTIFACT_TEMPORARY_SOURCE_RECONSTRUCTION_ONLY",
+  "files": 5,
+  "forward_apply": true,
+  "exact_after_file_set": true,
+  "reverse_restored": true,
+  "profiles_checked": [
+    "api",
+    "web",
+    "tests"
+  ],
+  "checks": [
+    {
+      "profile": "api",
+      "phase": "after",
+      "exit_code": 0,
+      "result": {
+        "against": "after",
+        "base_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "failures": [],
+        "manifest_sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+        "package_files_checked": 5,
+        "package_patches_checked": 5,
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261009-r2",
+        "preserve_files_checked": 0,
+        "profile": "api",
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "source_files_checked": 1,
+        "source_root": "/tmp/manager-r2-patch-check-iu4yb_yx",
+        "status": "PASS"
+      }
+    },
+    {
+      "profile": "web",
+      "phase": "after",
+      "exit_code": 0,
+      "result": {
+        "against": "after",
+        "base_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "failures": [],
+        "manifest_sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+        "package_files_checked": 5,
+        "package_patches_checked": 5,
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261009-r2",
+        "preserve_files_checked": 0,
+        "profile": "web",
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "source_files_checked": 1,
+        "source_root": "/tmp/manager-r2-patch-check-iu4yb_yx",
+        "status": "PASS"
+      }
+    },
+    {
+      "profile": "tests",
+      "phase": "after",
+      "exit_code": 0,
+      "result": {
+        "against": "after",
+        "base_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "failures": [],
+        "manifest_sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+        "package_files_checked": 5,
+        "package_patches_checked": 5,
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261009-r2",
+        "preserve_files_checked": 0,
+        "profile": "tests",
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "source_files_checked": 3,
+        "source_root": "/tmp/manager-r2-patch-check-iu4yb_yx",
+        "status": "PASS"
+      }
+    },
+    {
+      "profile": "api",
+      "phase": "before",
+      "exit_code": 0,
+      "result": {
+        "against": "before",
+        "base_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "failures": [],
+        "manifest_sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+        "package_files_checked": 5,
+        "package_patches_checked": 5,
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261009-r2",
+        "preserve_files_checked": 0,
+        "profile": "api",
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "source_files_checked": 1,
+        "source_root": "/tmp/manager-r2-patch-check-iu4yb_yx",
+        "status": "PASS"
+      }
+    },
+    {
+      "profile": "web",
+      "phase": "before",
+      "exit_code": 0,
+      "result": {
+        "against": "before",
+        "base_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "failures": [],
+        "manifest_sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+        "package_files_checked": 5,
+        "package_patches_checked": 5,
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261009-r2",
+        "preserve_files_checked": 0,
+        "profile": "web",
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "source_files_checked": 1,
+        "source_root": "/tmp/manager-r2-patch-check-iu4yb_yx",
+        "status": "PASS"
+      }
+    },
+    {
+      "profile": "tests",
+      "phase": "before",
+      "exit_code": 0,
+      "result": {
+        "against": "before",
+        "base_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "failures": [],
+        "manifest_sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+        "package_files_checked": 5,
+        "package_patches_checked": 5,
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261009-r2",
+        "preserve_files_checked": 0,
+        "profile": "tests",
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "source_files_checked": 3,
+        "source_root": "/tmp/manager-r2-patch-check-iu4yb_yx",
+        "status": "PASS"
+      }
+    }
+  ],
+  "reused_verifier": {
+    "bytes": 17769,
+    "sha256": "6cdd78d754ba0b997beb8ab33356afcac8027f24af6e822c69062ada0940a51d",
+    "git_blob_sha": "222289dc643b8860b5792585d261975c3fcb56b9"
+  },
+  "deployed": false,
+  "natural_execution": false
+}

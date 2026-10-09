@@ -1,0 +1,11 @@
+--- a/apps/web/src/manager-selection/catalystObservationPanel.ts
++++ b/apps/web/src/manager-selection/catalystObservationPanel.ts
+@@ -667,7 +667,7 @@
+     try {
+       if(refresh){
+         const refreshBindings=selectedDates.explicit
+-          ? {selection_date,announcement_date:publicationDate} : undefined;
++          ? {selection_date:selectionDate,announcement_date:publicationDate} : undefined;
+         try { refreshedValue=await refreshManagerWorkspace(requestedDate,current.signal,refreshBindings); }
+         catch(error){if(current.signal.aborted)throw error;refreshFailure=failureKind(error,false,false)[0];}
+       }

@@ -1,0 +1,52 @@
+{
+  "schema_version": "manager_daily_r2.source_scope.v1",
+  "status": "PASS",
+  "r1_source_head": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "r1_inventory_files_verified": 1024,
+  "r1_tree_unchanged": true,
+  "r1_delta_records_verified": 33,
+  "candidate_changes_exact": [
+    "apps/web/src/api/managerAnnouncementAnalysis.ts",
+    "apps/web/src/manager-selection/announcementAnalysis.ts",
+    "apps/web/src/manager-selection/catalystObservationPanel.ts",
+    "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+    "tests/manager_daily_ui_parent_route_worker.py",
+    "tests/test_manager_workspace_exact_page_binding_20261008.py",
+    "v4/manager_research/workspace.py"
+  ],
+  "production_delta_files": 2,
+  "implementation_test_files": 3,
+  "restored_original_dependencies": 2,
+  "source_file_identities": {
+    "apps/web/src/manager-selection/catalystObservationPanel.ts": {
+      "bytes": 65122,
+      "sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3",
+      "git_blob_sha": "a2c668220659d4e1808cafed0116438721d22ac0"
+    },
+    "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts": {
+      "bytes": 17938,
+      "sha256": "2d1f353823a96745f4d1c4a0e9eed55f9ba1caec0ea766bd0f16861e303dc668",
+      "git_blob_sha": "c5d1462ff2d5a2a98e4255d2afcfeafebe1724c5"
+    },
+    "tests/manager_daily_ui_parent_route_worker.py": {
+      "bytes": 10216,
+      "sha256": "bc40e4716f5dffad231318723e130a6879518a5ec681d4a31df316014d265eaa",
+      "git_blob_sha": "1c86fed1fca05dd446ba7d97afb1842e7f5e7f54"
+    },
+    "tests/test_manager_workspace_exact_page_binding_20261008.py": {
+      "bytes": 8634,
+      "sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+      "git_blob_sha": "08f1af0ae911b35c2834aa37bd05f0f3c4a46e76"
+    },
+    "v4/manager_research/workspace.py": {
+      "bytes": 76034,
+      "sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "git_blob_sha": "e2ec0af87b8b40fe40a4f28c6098cae11f0b636a"
+    }
+  },
+  "raw_business_sources_included": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

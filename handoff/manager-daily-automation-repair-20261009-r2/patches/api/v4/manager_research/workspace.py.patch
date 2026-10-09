@@ -1,0 +1,18 @@
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -502,13 +502,13 @@
+         from .workspace_daily_channels import build_daily_channels
+         result['daily_channels'] = build_daily_channels(result)
+         return result
+-    # A dynamic page read is re-evaluated from the original owners. When the
++    # A non-history page read is re-evaluated from the original owners. When the
+     # complete date binding matches the sealed plan, use that plan's original
+     # as-of context so a few seconds of wall-clock drift do not change the
+     # semantic projection. This is not a cached-success shortcut: all sources
+     # below are still re-read and _readback_plan compares their identities.
+     saved_context = (_saved_plan_context_for_bindings(service, date, bindings)
+-                     if include_saved and view == 'dynamic' else None)
++                     if include_saved and view in {'auto', 'dynamic'} else None)
+     context = saved_context
+     if context is None:
+         context = plan_context(date, now=clock)

@@ -1,0 +1,38 @@
+{
+  "schema_version": "manager_daily_r2.test_runtime.v1",
+  "python_executable": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+  "python_version": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python_distributions": {
+    "pytest": "9.1.1",
+    "fastapi": "0.141.1",
+    "starlette": "1.6.0",
+    "httpx": "0.28.1",
+    "pandas": "3.0.6",
+    "pyarrow": "24.0.0"
+  },
+  "node_version": "v24.19.0",
+  "node_distributions": {
+    "vue": "3.5.40",
+    "@testing-library/vue": "8.1.0",
+    "vitest": "4.1.10",
+    "jsdom": "28.1.0",
+    "@vitejs/plugin-vue": "6.0.8",
+    "typescript": "5.9.3",
+    "vue-tsc": "3.3.8",
+    "vite": "7.3.6"
+  },
+  "dependency_root": "/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules",
+  "source_package_pins": {
+    "investigation/continuation_20261009/candidate/apps/web/package.json": {
+      "sha256": "c8d04118f256283116666971f572e067aaee52191a433503fc060345479a006f",
+      "bytes": 470
+    },
+    "investigation/continuation_20261009/candidate/apps/web/package-lock.json": {
+      "sha256": "a8c3e160a3902d195d67e4e9eb0f1bb283cb041bb164b290a1b256992174bc36",
+      "bytes": 145193
+    }
+  },
+  "scope": "ISOLATED_TEST_RUNTIME_NOT_MAC_CURRENT_RELEASE",
+  "live_api_or_service_started": false
+}
