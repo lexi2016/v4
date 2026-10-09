@@ -1,0 +1,55 @@
+{
+  "analysis": {
+    "buy_gate_updated": false,
+    "conditional_watch_count": 54,
+    "decision_status": "EXPLICIT_DISPOSITIONS",
+    "evidence_run_id": "3f9d37a643060b57992167f3df05d987",
+    "not_assessed_stock_count": 75,
+    "not_selected_stock_count": 367,
+    "publication_date": "2026-10-07",
+    "selected_stock_count": 33,
+    "selection_status": "VERIFIED",
+    "source_run_id": "6730f3cf34c8480d86fa229df5aa4019",
+    "status": "VERIFIED",
+    "stock_count": 529,
+    "target_trade_date": "20261008",
+    "validation_status": "VERIFIED"
+  },
+  "announcement_channel": {
+    "announcement_date": "20261007",
+    "candidate_count": 33,
+    "channel": "ANNOUNCEMENT",
+    "pending_count": 75,
+    "row_count": 87,
+    "run_id": "3f9d37a643060b57992167f3df05d987",
+    "selection_date": "20261008",
+    "status": "PARTIAL",
+    "target_trade_date": "20261008",
+    "watch_count": 54
+  },
+  "hk_connect": {
+    "channel": "HK_CONNECT",
+    "row_count": 0,
+    "run_id": null,
+    "status": "CANNOT_CONFIRM"
+  },
+  "interpretation": "20261007 publication consumed in a 20261008 workspace readback, not evidence of a fully completed 20260930 three-channel plan. Announcement rows were partial; HK, oversold, and plan were unresolved.",
+  "natural_run_verified": false,
+  "observed_at_utc": "2026-10-08T12:30:19.167161+00:00",
+  "oversold": {
+    "channel": "OVERSOLD",
+    "row_count": 0,
+    "run_id": null,
+    "status": "CANNOT_CONFIRM"
+  },
+  "plan_product": {
+    "consumed": false,
+    "run_id": null,
+    "status": "NOT_MATERIALIZED"
+  },
+  "requested_workspace": "/api/v4/manager/research/workspace?date=20261008&selection_date=20261008&announcement_date=20261007&view=dynamic",
+  "schema_version": "offline_handoff.announcement_consumer_readback_summary.v1",
+  "source_readback_sha256": "839fc584c54534d8ca608c586524f66ce0050caee03eb802a2b5984890ed69dc",
+  "workspace_product_cutoff_status": "SATISFIED",
+  "workspace_product_status": "CONSUMED"
+}

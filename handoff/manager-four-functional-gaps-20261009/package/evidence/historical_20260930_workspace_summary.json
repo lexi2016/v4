@@ -1,0 +1,87 @@
+{
+  "historical_reader_rejection": {
+    "interpretation": "The saved product and PARTIAL attempt remain on disk. The new historical reader rejects readback on dependency-fingerprint mismatch; this rejection does not establish that the original run failed.",
+    "observed_result": {
+      "consumed": false,
+      "plan_product_status": "SOURCE_FAILED",
+      "reason": "HISTORY_READER_VERSION_CHANGED",
+      "run_id": "ba13fba330464300b760fe940ba579a1"
+    },
+    "reader_line_end": 263,
+    "reader_line_start": 262,
+    "reader_source_path": "v4/manager_research/workspace_history.py",
+    "reason": null,
+    "selected_saved_run_id": "ba13fba330464300b760fe940ba579a1"
+  },
+  "saved_workspace_runs": [
+    {
+      "announcement": "NOT_RUN",
+      "attempt_state": "PARTIAL",
+      "execution_kind": "MANUAL_REFRESH",
+      "formal_recommendations": 0,
+      "generated_at_asia_shanghai": "2026-09-29T16:00:01.967606+08:00",
+      "generated_at_utc": "2026-09-29T08:00:01.967606+00:00",
+      "market_screen": "READY_WITH_GAPS",
+      "read_contract_sha256": "9cb7ed0bf2b09b2cb8b1e7a3658cd7ca187deda248fcfaa3d7fbc910e9a64d24",
+      "run_id": "ca77f41d26cd4c19b8a64237498f4256",
+      "stocks": 0,
+      "us_market_attention": "INPUT_MISSING"
+    },
+    {
+      "announcement": "NOT_RUN",
+      "attempt_state": "PARTIAL",
+      "execution_kind": "MANUAL_REFRESH",
+      "formal_recommendations": 0,
+      "generated_at_asia_shanghai": "2026-09-29T16:10:00.554688+08:00",
+      "generated_at_utc": "2026-09-29T08:10:00.554688+00:00",
+      "market_screen": "CANNOT_CONFIRM",
+      "read_contract_sha256": "9cb7ed0bf2b09b2cb8b1e7a3658cd7ca187deda248fcfaa3d7fbc910e9a64d24",
+      "run_id": "8377b588c99847f9b7b10968c4eff769",
+      "stocks": 0,
+      "us_market_attention": "INPUT_MISSING"
+    },
+    {
+      "announcement": "NOT_RUN",
+      "attempt_state": "PARTIAL",
+      "execution_kind": "SCHEDULED_PREOPEN",
+      "formal_recommendations": 0,
+      "generated_at_asia_shanghai": "2026-09-30T09:27:08.783627+08:00",
+      "generated_at_utc": "2026-09-30T01:27:08.783627+00:00",
+      "market_screen": "CANNOT_CONFIRM",
+      "read_contract_sha256": "9cb7ed0bf2b09b2cb8b1e7a3658cd7ca187deda248fcfaa3d7fbc910e9a64d24",
+      "run_id": "ba13fba330464300b760fe940ba579a1",
+      "screen_gaps": [
+        "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+        "PLAN_HK_02_PANEL_TARGET_MISMATCH",
+        "SCREEN_PANEL_AUTHORITY_UNVERIFIED"
+      ],
+      "stocks": 0,
+      "us_market_attention": "INPUT_MISSING"
+    },
+    {
+      "announcement": "NOT_RUN",
+      "attempt_state": "PARTIAL",
+      "execution_kind": "MANUAL_REFRESH",
+      "formal_recommendations": 0,
+      "generated_at_asia_shanghai": "2026-09-30T09:53:35.549339+08:00",
+      "generated_at_utc": "2026-09-30T01:53:35.549339+00:00",
+      "mapping_diagnostics_accepted_hk_mapping_count": 0,
+      "market_screen": "CANNOT_CONFIRM",
+      "read_contract_sha256": "cab2d2061ca8c8498a89363d148cf004517e9f5f8a06d6dbfe50fdb502d3ba88",
+      "run_id": "f0db65a25bb340b584682542b8d597b8",
+      "stocks": 0,
+      "us_coverage_scope": "FIXED_24_INDUSTRY_PROXY_ROWS_AND_33_CONFIGURED_US_SYMBOLS_NOT_FULL_US_MARKET",
+      "us_expected_session": "20260929",
+      "us_market_attention": "READY"
+    }
+  ],
+  "schema_version": "offline_handoff.historical_20260930_workbench_summary.v1",
+  "scope_note": "These saved workspace records do not confirm the user's claimed independent 20260930 one-day three-channel entrypoint. They also do not refute it; that separate owner entrypoint and receipt were not found in the examined source set.",
+  "source_receipt_sha256": "a567b32051b595efef30807341d713cec680b65a7178bd19fc7a4e4c3c3d4454",
+  "user_claim_boundary": {
+    "claim": "The user reports the announcement selection, US mapping, and oversold selection had all run successfully on 2026-09-30.",
+    "examined_manager_store_result": "The four exact-date plan attempts found here are PARTIAL. The saved plan products do not show a combined three-channel success; the later manual product shows US attention READY but announcement NOT_RUN and market_screen CANNOT_CONFIRM.",
+    "interpretation": "The examined manager store cannot substantiate the combined claim, but it cannot refute historical success through a separate owner or entrance that was not located.",
+    "other_owner_entrypoint_located": false
+  }
+}

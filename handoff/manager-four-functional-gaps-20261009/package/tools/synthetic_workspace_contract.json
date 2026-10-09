@@ -1,0 +1,12 @@
+{
+  "fixture_kind": "SYNTHETIC_CONTRACT_ONLY_NOT_MARKET_DATA",
+  "target_trade_date": "20261009",
+  "date_bindings": {"plan_date": "20261009", "selection_date": "20261009", "announcement_date": "20261008"},
+  "channels": [
+    {"channel": "ANNOUNCEMENT", "status": "CANNOT_CONFIRM", "row_count": 0, "run_id": null, "gaps": ["SYNTHETIC_NO_OWNER_ARTIFACT"]},
+    {"channel": "HK_CONNECT", "status": "CANNOT_CONFIRM", "row_count": 0, "run_id": null, "gaps": ["SYNTHETIC_NO_OWNER_ARTIFACT"]},
+    {"channel": "OVERSOLD", "status": "CANNOT_CONFIRM", "row_count": 0, "run_id": null, "gaps": ["SYNTHETIC_NO_OWNER_ARTIFACT"]}
+  ],
+  "plan_product": {"status": "NOT_MATERIALIZED", "consumed": false, "run_id": null, "input_identity": null, "stock_count": 0},
+  "safety": {"RESEARCH_ONLY": true, "production_allowed": false, "buy_gate_updated": false, "orders_sent": false}
+}

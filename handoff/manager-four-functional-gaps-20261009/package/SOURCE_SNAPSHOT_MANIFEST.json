@@ -1,0 +1,488 @@
+{
+  "excluded": [
+    "market data",
+    "manager state",
+    "credentials",
+    "browser data",
+    "screenshots",
+    "dist",
+    "node_modules",
+    "venv",
+    "compiled Python files",
+    "raw R1 readbacks",
+    "raw owner product payloads"
+  ],
+  "files": [
+    {
+      "bundle_path": "code/r2_chat_patch_target/apps/api/v35_api/app.py",
+      "bundle_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "bytes": 324648,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/apps/api/v35_api/app.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "apps/api/v35_api/app.py",
+      "source_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/apps/api/v35_api/manager_research_router.py",
+      "bundle_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "bytes": 35556,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/apps/api/v35_api/manager_research_router.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "apps/api/v35_api/manager_research_router.py",
+      "source_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/service.py",
+      "bundle_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "bytes": 94921,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/service.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/service.py",
+      "source_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/workspace.py",
+      "bundle_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "bytes": 76034,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/workspace.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/workspace.py",
+      "source_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/workspace_plan.py",
+      "bundle_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "bytes": 107076,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/workspace_plan.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/workspace_plan.py",
+      "source_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/workspace_plan_autorun.py",
+      "bundle_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "bytes": 15547,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/workspace_plan_autorun.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/workspace_plan_autorun.py",
+      "source_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/workspace_daily_channels.py",
+      "bundle_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "bytes": 12982,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/workspace_daily_channels.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/workspace_daily_channels.py",
+      "source_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/workspace_announcements.py",
+      "bundle_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "bytes": 167803,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/workspace_announcements.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/workspace_announcements.py",
+      "source_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/announcement_analysis.py",
+      "bundle_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "bytes": 68733,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/announcement_analysis.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/announcement_analysis.py",
+      "source_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/plan_owner_dispatch.py",
+      "bundle_sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "bytes": 53361,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/plan_owner_dispatch.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/plan_owner_dispatch.py",
+      "source_sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/connect_capture_adapter.py",
+      "bundle_sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "bytes": 19841,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/connect_capture_adapter.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/connect_capture_adapter.py",
+      "source_sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/connect_selection.py",
+      "bundle_sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+      "bytes": 17496,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/connect_selection.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/connect_selection.py",
+      "source_sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/v4/manager_research/workspace_history.py",
+      "bundle_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "bytes": 21208,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/workspace_history.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "v4/manager_research/workspace_history.py",
+      "source_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "bundle_sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "bytes": 18863,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "source_sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+      "bundle_sha256": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850",
+      "bytes": 4335,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+      "source_sha256": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/upstreams/v3_shared_data/shared_data/store.py",
+      "bundle_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "bytes": 27895,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/upstreams/v3_shared_data/shared_data/store.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/store.py",
+      "source_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/tests/test_manager_plan_readback_issue24.py",
+      "bundle_sha256": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989",
+      "bytes": 13936,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/tests/test_manager_plan_readback_issue24.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "tests/test_manager_plan_readback_issue24.py",
+      "source_sha256": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/tests/test_issue8_selection_gaps.py",
+      "bundle_sha256": "c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8",
+      "bytes": 16293,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/tests/test_issue8_selection_gaps.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "tests/test_issue8_selection_gaps.py",
+      "source_sha256": "c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/tests/test_manager_announcement_supervisor.py",
+      "bundle_sha256": "a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c",
+      "bytes": 16108,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/tests/test_manager_announcement_supervisor.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "tests/test_manager_announcement_supervisor.py",
+      "source_sha256": "a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c"
+    },
+    {
+      "bundle_path": "code/r2_chat_patch_target/tests/test_manager_announcement_date_catalog.py",
+      "bundle_sha256": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+      "bytes": 18959,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/tests/test_manager_announcement_date_catalog.py",
+      "source_label": "fixed R2 candidate app",
+      "source_relative_path": "tests/test_manager_announcement_date_catalog.py",
+      "source_sha256": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/v4/manager_research/service.py",
+      "bundle_sha256": "7c30f372cdd6ed12f84272ce861133a7ff76dda87689b3c39354145fca441027",
+      "bytes": 91399,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v4/manager_research/service.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "v4/manager_research/service.py",
+      "source_sha256": "7c30f372cdd6ed12f84272ce861133a7ff76dda87689b3c39354145fca441027"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/v4/manager_research/workspace.py",
+      "bundle_sha256": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
+      "bytes": 40465,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v4/manager_research/workspace.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "v4/manager_research/workspace.py",
+      "source_sha256": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/v4/manager_research/workspace_plan.py",
+      "bundle_sha256": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
+      "bytes": 64248,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v4/manager_research/workspace_plan.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "v4/manager_research/workspace_plan.py",
+      "source_sha256": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/v4/manager_research/us_market_bridge.py",
+      "bundle_sha256": "46fcf3fce15dfce4ae45e8eefe2c9b619d884f602d4f5b4261f163755debf0ae",
+      "bytes": 14192,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v4/manager_research/us_market_bridge.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "v4/manager_research/us_market_bridge.py",
+      "source_sha256": "46fcf3fce15dfce4ae45e8eefe2c9b619d884f602d4f5b4261f163755debf0ae"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/v4/manager_research/workspace_announcements.py",
+      "bundle_sha256": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
+      "bytes": 54199,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v4/manager_research/workspace_announcements.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "v4/manager_research/workspace_announcements.py",
+      "source_sha256": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/v4/manager_research/announcement_autorun.py",
+      "bundle_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "bytes": 21749,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v4/manager_research/announcement_autorun.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "v4/manager_research/announcement_autorun.py",
+      "source_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/v4/manager_research/announcement_source.py",
+      "bundle_sha256": "2236ffd7490d48e9df77e810474aafe7fa43dbfeb0c27557e0c91fc366d2de0d",
+      "bytes": 36181,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v4/manager_research/announcement_source.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "v4/manager_research/announcement_source.py",
+      "source_sha256": "2236ffd7490d48e9df77e810474aafe7fa43dbfeb0c27557e0c91fc366d2de0d"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/v4/manager_research/announcement_materials.py",
+      "bundle_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "bytes": 10727,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v4/manager_research/announcement_materials.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "v4/manager_research/announcement_materials.py",
+      "source_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/v4/manager_research/announcement_observation.py",
+      "bundle_sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed",
+      "bytes": 5435,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v4/manager_research/announcement_observation.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "v4/manager_research/announcement_observation.py",
+      "source_sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/v4/manager_research/workspace_plan_autorun.py",
+      "bundle_sha256": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b",
+      "bytes": 9439,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v4/manager_research/workspace_plan_autorun.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "v4/manager_research/workspace_plan_autorun.py",
+      "source_sha256": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/infrastructure/research_peripheral_store.py",
+      "bundle_sha256": "17f590fedf8d404f047d888bc1af7dcfeaa0f078c05dab2aec75f8f33dcb89a6",
+      "bytes": 68593,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/infrastructure/research_peripheral_store.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "infrastructure/research_peripheral_store.py",
+      "source_sha256": "17f590fedf8d404f047d888bc1af7dcfeaa0f078c05dab2aec75f8f33dcb89a6"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bundle_sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+      "bytes": 25925,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "source_sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/tests/test_manager_plan_identity_r2.py",
+      "bundle_sha256": "ebe66a16cd19edbe56086bd52cd9f74fac8849e2a0f52458c30a3f49685d3ce4",
+      "bytes": 5689,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/tests/test_manager_plan_identity_r2.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "tests/test_manager_plan_identity_r2.py",
+      "source_sha256": "ebe66a16cd19edbe56086bd52cd9f74fac8849e2a0f52458c30a3f49685d3ce4"
+    },
+    {
+      "bundle_path": "code/r3_20260930_reference/tests/test_manager_workspace_targeted_r2.py",
+      "bundle_sha256": "ff1c19f0d27ebc6c8f0bb9db91a9128086e8711600b3ab91eece115a24e3fcf5",
+      "bytes": 19478,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/tests/test_manager_workspace_targeted_r2.py",
+      "source_label": "pinned R3 20260930 source snapshot",
+      "source_relative_path": "tests/test_manager_workspace_targeted_r2.py",
+      "source_sha256": "ff1c19f0d27ebc6c8f0bb9db91a9128086e8711600b3ab91eece115a24e3fcf5"
+    },
+    {
+      "bundle_path": "code/r1_20261007_announcement_consumer/apps/api/v35_api/manager_research_router.py",
+      "bundle_sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+      "bytes": 26922,
+      "source_absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api/app/apps/api/v35_api/manager_research_router.py",
+      "source_label": "R1 live-readback source identity",
+      "source_relative_path": "apps/api/v35_api/manager_research_router.py",
+      "source_sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073"
+    },
+    {
+      "bundle_path": "code/r1_20261007_announcement_consumer/v4/manager_research/announcement_analysis.py",
+      "bundle_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "bytes": 68733,
+      "source_absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api/app/v4/manager_research/announcement_analysis.py",
+      "source_label": "R1 live-readback source identity",
+      "source_relative_path": "v4/manager_research/announcement_analysis.py",
+      "source_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f"
+    },
+    {
+      "bundle_path": "code/r1_20261007_announcement_consumer/v4/manager_research/workspace_announcements.py",
+      "bundle_sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04",
+      "bytes": 162906,
+      "source_absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api/app/v4/manager_research/workspace_announcements.py",
+      "source_label": "R1 live-readback source identity",
+      "source_relative_path": "v4/manager_research/workspace_announcements.py",
+      "source_sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04"
+    },
+    {
+      "bundle_path": "code/r1_20261007_announcement_consumer/v4/manager_research/materials.py",
+      "bundle_sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2",
+      "bytes": 9292,
+      "source_absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api/app/v4/manager_research/materials.py",
+      "source_label": "R1 live-readback source identity",
+      "source_relative_path": "v4/manager_research/materials.py",
+      "source_sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2"
+    },
+    {
+      "bundle_path": "code/r1_20261007_announcement_consumer/v4/manager_research/service.py",
+      "bundle_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+      "bytes": 93685,
+      "source_absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api/app/v4/manager_research/service.py",
+      "source_label": "R1 live-readback source identity",
+      "source_relative_path": "v4/manager_research/service.py",
+      "source_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37"
+    },
+    {
+      "bundle_path": "code/r1_20261007_announcement_consumer/v4/manager_research/workspace_projection.py",
+      "bundle_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "bytes": 30841,
+      "source_absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api/app/v4/manager_research/workspace_projection.py",
+      "source_label": "R1 live-readback source identity",
+      "source_relative_path": "v4/manager_research/workspace_projection.py",
+      "source_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/tests/run_actual_us_mapping_20261009.py",
+      "bundle_sha256": "983c6f28c103ca4cc912926605e88a305e21919f9034eaae780d474f1bac0fa4",
+      "bytes": 3802,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/tests/run_actual_us_mapping_20261009.py",
+      "source_label": "actual isolated owner runner/checker source",
+      "source_relative_path": "tests/run_actual_us_mapping_20261009.py",
+      "source_sha256": "983c6f28c103ca4cc912926605e88a305e21919f9034eaae780d474f1bac0fa4"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/tests/run_actual_manager_plan_20261009.py",
+      "bundle_sha256": "715b459006e2ea3109ba3d7512ee7354878ea1a0372a4b1e84ab4ae554c59239",
+      "bytes": 4772,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/tests/run_actual_manager_plan_20261009.py",
+      "source_label": "actual isolated owner runner/checker source",
+      "source_relative_path": "tests/run_actual_manager_plan_20261009.py",
+      "source_sha256": "715b459006e2ea3109ba3d7512ee7354878ea1a0372a4b1e84ab4ae554c59239"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/review/verify_isolated_owner_readback_20261009.py",
+      "bundle_sha256": "042cc470090210f024084976fe55225886a1e4440c3dad6d6d52814a9a475550",
+      "bytes": 16948,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/review/verify_isolated_owner_readback_20261009.py",
+      "source_label": "actual isolated owner runner/checker source",
+      "source_relative_path": "review/verify_isolated_owner_readback_20261009.py",
+      "source_sha256": "042cc470090210f024084976fe55225886a1e4440c3dad6d6d52814a9a475550"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/ops/run_manager_daily_announcement.py",
+      "bundle_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "bytes": 42929,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/candidate/original_r3_business_source/ops/run_manager_daily_announcement.py",
+      "source_label": "actual original announcement owner runner source",
+      "source_relative_path": "ops/run_manager_daily_announcement.py",
+      "source_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/source/v4/manager_research/service.py",
+      "bundle_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "bytes": 94921,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/candidate/original_r3_business_source/v4/manager_research/service.py",
+      "source_label": "actual 20261009 owner source baseline",
+      "source_relative_path": "v4/manager_research/service.py",
+      "source_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/source/v4/manager_research/us_mapping_research.py",
+      "bundle_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "bytes": 57938,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/candidate/original_r3_business_source/v4/manager_research/us_mapping_research.py",
+      "source_label": "actual 20261009 owner source baseline",
+      "source_relative_path": "v4/manager_research/us_mapping_research.py",
+      "source_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/source/v4/manager_research/us_market_bridge.py",
+      "bundle_sha256": "46fcf3fce15dfce4ae45e8eefe2c9b619d884f602d4f5b4261f163755debf0ae",
+      "bytes": 14192,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/candidate/original_r3_business_source/v4/manager_research/us_market_bridge.py",
+      "source_label": "actual 20261009 owner source baseline",
+      "source_relative_path": "v4/manager_research/us_market_bridge.py",
+      "source_sha256": "46fcf3fce15dfce4ae45e8eefe2c9b619d884f602d4f5b4261f163755debf0ae"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/source/v4/manager_research/workspace_plan.py",
+      "bundle_sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+      "bytes": 106047,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/candidate/original_r3_business_source/v4/manager_research/workspace_plan.py",
+      "source_label": "actual 20261009 owner source baseline",
+      "source_relative_path": "v4/manager_research/workspace_plan.py",
+      "source_sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/source/v4/manager_research/workspace.py",
+      "bundle_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "bytes": 76034,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/candidate/original_r3_business_source/v4/manager_research/workspace.py",
+      "source_label": "actual 20261009 owner source baseline",
+      "source_relative_path": "v4/manager_research/workspace.py",
+      "source_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/source/v4/manager_research/store.py",
+      "bundle_sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "bytes": 19988,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/candidate/original_r3_business_source/v4/manager_research/store.py",
+      "source_label": "actual 20261009 owner source baseline",
+      "source_relative_path": "v4/manager_research/store.py",
+      "source_sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e"
+    },
+    {
+      "bundle_path": "code/actual_owner_runner_20261009/source/infrastructure/research_peripheral_store.py",
+      "bundle_sha256": "1bcb74e9194932d5ec3d6ac24d7ec42979532cf495b270a1a04b09082706f4fe",
+      "bytes": 73460,
+      "source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/candidate/original_r3_business_source/infrastructure/research_peripheral_store.py",
+      "source_label": "actual 20261009 owner source baseline",
+      "source_relative_path": "infrastructure/research_peripheral_store.py",
+      "source_sha256": "1bcb74e9194932d5ec3d6ac24d7ec42979532cf495b270a1a04b09082706f4fe"
+    }
+  ],
+  "fixed_r2_candidate_commit": "a7f5d09fb19de10564925757207977aadc080cc1",
+  "fixed_r2_candidate_release_manifest_sha256": "f6385dd23e9fda4d2169f20d6dc68b6e1e519b2b1a35e1ceb0bfd3111a079ad5",
+  "schema_version": "offline_handoff.source_snapshot_manifest.v1",
+  "source_identity_caveat": "The saved 20260930 workspace receipt does not pin the exact runtime source bytes for the user's reported independent owner entrypoint. The R3 tree is the explicitly named pinned source snapshot, attached as reference; do not claim it was the exact source used by the 09:53 saved plan.",
+  "source_roots": {
+    "actual_20261009_owner_source_baseline": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/candidate/original_r3_business_source",
+    "actual_20261009_runner_and_checker_source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009",
+    "fixed_r2_chat_patch_target": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app",
+    "original_announcement_runner_source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_REAL_RESULT_RECOVERY_20261009/candidate/original_r3_business_source",
+    "pinned_r3_20260930_reference_snapshot": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+    "r1_20261007_announcement_consumption_source_identity": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api/app"
+  }
+}

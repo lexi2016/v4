@@ -1,0 +1,136 @@
+{
+  "candidate_release_manifest_sha256": "f6385dd23e9fda4d2169f20d6dc68b6e1e519b2b1a35e1ceb0bfd3111a079ad5",
+  "interpretation": "App-wired exact-input GET only. Zero stocks with three unavailable channels is not VALID_EMPTY or a completed selection.",
+  "receipt_file_sha256": "776f5646a6537321d69360c7bf66b2fb59147db2a1cc83bff654d058e6f3b1f1",
+  "receipt_internal_canonical_sha256": "6ab0071ed312b09d11be2025ae3a3d740db08375b3cf5ca264579f979e046055",
+  "receipt_status": "PASS_APP_WIRED_READ_ONLY_GET",
+  "report_sha256": "8c654e5838d669ec641061d275f4d30e7a727ef535b87b5636c12f694e5e1e5d",
+  "result_summary": {
+    "announcement_review": {
+      "gaps": [
+        "ANNOUNCEMENT_OWNER_NOT_RUN"
+      ],
+      "status": "NOT_RUN"
+    },
+    "daily_channels": [
+      {
+        "announcement_date": "20261008",
+        "candidate_count": null,
+        "channel": "ANNOUNCEMENT",
+        "gaps": [
+          "ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED"
+        ],
+        "natural_run_verified": false,
+        "pending_count": null,
+        "row_count": 0,
+        "run_id": null,
+        "selection_date": "20261009",
+        "status": "CANNOT_CONFIRM",
+        "target_trade_date": "20261009"
+      },
+      {
+        "announcement_date": "20261008",
+        "candidate_count": null,
+        "channel": "HK_CONNECT",
+        "gaps": [
+          "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND",
+          "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "pending_count": null,
+        "row_count": 0,
+        "run_id": null,
+        "selection_date": "20261009",
+        "status": "CANNOT_CONFIRM",
+        "target_trade_date": "20261009"
+      },
+      {
+        "announcement_date": "20261008",
+        "candidate_count": null,
+        "channel": "OVERSOLD",
+        "gaps": [
+          "SCREEN_SECURITY_MASTER_READ_FAILED:HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING"
+        ],
+        "natural_run_verified": false,
+        "pending_count": null,
+        "row_count": 0,
+        "run_id": null,
+        "selection_date": "20261009",
+        "status": "CANNOT_CONFIRM",
+        "target_trade_date": "20261009"
+      }
+    ],
+    "daily_us_mapping": {
+      "artifact_sha256": "2ac764fa1d5b691c6db518ff35b278f89cceeedd3614549a6741d4e8987bfa67",
+      "coverage": {
+        "available_us_universe_count": 33,
+        "configured_us_universe_count": 33,
+        "full_market_coverage": false,
+        "matched_hk_relation_count": 0,
+        "matched_us_symbol_count": 0,
+        "reviewed_us_symbol_count": 4
+      },
+      "gaps": [],
+      "run_id": "a95450cd4b264fb6840308d7d2681cf6",
+      "status": "VALID_EMPTY"
+    },
+    "date_bindings": {
+      "announcement_date": "20261008",
+      "plan_date": "20261009",
+      "selection_date": "20261009"
+    },
+    "gaps": [
+      "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+      "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+      "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND",
+      "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND",
+      "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED:20261008:HKSecurityMasterReadError",
+      "NO_VERIFIED_RESEARCH_ARCHIVE_IN_EXACT_WINDOW",
+      "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+      "SCREEN_SECURITY_MASTER_READ_FAILED:HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING",
+      "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+    ],
+    "input_identity": "7c5d9f18905271b410e51c9e61dc2da0d50c969058be6212d024e2c38a1a0667",
+    "market_screen": {
+      "gaps": [
+        "SCREEN_SECURITY_MASTER_READ_FAILED:HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING"
+      ],
+      "input_identity": null,
+      "near_count": 0,
+      "status": "CANNOT_CONFIRM",
+      "strict_count": 0,
+      "verified_session": "20261008"
+    },
+    "observation_mode": "READ_ONLY_EXISTING_OWNER_PREVIEW",
+    "plan_product": {
+      "consumed": false,
+      "generated_at": "2026-10-09T08:01:30.549336+00:00",
+      "run_id": "dba211c2677045afb4e0ef8c990367ee",
+      "sha256": "a63b34d364d4146317234a85bd19b7006ec44c9823f8de83ccf3d3767aef5675",
+      "status": "STALE_INPUTS_CHANGED"
+    },
+    "plan_run_readback": {
+      "artifact_sha256": "a63b34d364d4146317234a85bd19b7006ec44c9823f8de83ccf3d3767aef5675",
+      "input_identity": "5df99128ed0520759634d84a4e085bb624617a765953e9c9805cbf503b0a65f7",
+      "owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "owner_attempt_run_id": null,
+      "owner_attempt_sha256": null,
+      "owner_attempt_state": null,
+      "owner_finished_at": null,
+      "run_id": "dba211c2677045afb4e0ef8c990367ee",
+      "status": "CANNOT_CONFIRM",
+      "target_trade_date": "20261009"
+    },
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    },
+    "stock_count": 0,
+    "stock_symbols": [],
+    "target_trade_date": "20261009"
+  },
+  "schema_version": "offline_handoff.app_wired_get_summary.v1",
+  "target_trade_date": "20261009"
+}

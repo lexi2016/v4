@@ -1,0 +1,53 @@
+{
+  "behavior_verified": "PASS",
+  "interpretation": "Verified readback of existing isolated owner outputs only. Mapping VALID_EMPTY is bounded to 4 of 33 configured US symbols and full_market_coverage=false; plan PARTIAL with 0 stocks. This is not a complete owner run.",
+  "mapping": {
+    "coverage": {
+      "available_us_universe_count": 33,
+      "configured_us_universe_count": 33,
+      "full_market_coverage": false,
+      "matched_hk_relation_count": 0,
+      "matched_us_symbol_count": 0,
+      "reviewed_us_symbol_count": 4
+    },
+    "gaps": [],
+    "matches": 0,
+    "run_id": "a95450cd4b264fb6840308d7d2681cf6",
+    "status": "VALID_EMPTY"
+  },
+  "not_run": {
+    "full_regression_suite": true,
+    "live_api": true,
+    "natural": true,
+    "owner_rerun": true,
+    "ui": true
+  },
+  "plan": {
+    "attempt_sha256": "64b12241d6c50d9d95dbaa72f6d56635315ca2cbf199a5a224b0c1fb3e12ab2d",
+    "gaps": [
+      "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+      "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+      "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND",
+      "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND",
+      "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED:20261008:StoreError",
+      "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+      "RESEARCH_ARCHIVE_READER_NOT_BOUND",
+      "SCREEN_SECURITY_MASTER_READ_FAILED:StoreError",
+      "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+    ],
+    "input_identity": "5df99128ed0520759634d84a4e085bb624617a765953e9c9805cbf503b0a65f7",
+    "mapping_artifact_sha256": "2ac764fa1d5b691c6db518ff35b278f89cceeedd3614549a6741d4e8987bfa67",
+    "mapping_run_id": "a95450cd4b264fb6840308d7d2681cf6",
+    "product_sha256": "a63b34d364d4146317234a85bd19b7006ec44c9823f8de83ccf3d3767aef5675",
+    "readback_status": "VERIFIED",
+    "run_id": "dba211c2677045afb4e0ef8c990367ee",
+    "status": "PARTIAL",
+    "stock_count": 0
+  },
+  "reviewed": "PASS",
+  "schema_version": "offline_handoff.isolated_owner_readback_summary.v1",
+  "source_checker_sha256": "042cc470090210f024084976fe55225886a1e4440c3dad6d6d52814a9a475550",
+  "source_receipt_file_sha256": "eef898f0c3404f95f769ce032d54ae45da7f5683d97ceee36806fc5623ff9a1b",
+  "source_report_sha256": "8e98127c917de59634c6cb5eef8bf5e95d38796c76042faa4f2059e3357f9367",
+  "target_trade_date": "20261009"
+}
