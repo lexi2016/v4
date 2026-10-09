@@ -1,0 +1,105 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R2_CODE_RECEIVE_RECEIPT_V1",
+  "milestone": "CODE_READY_REVIEW_PENDING",
+  "source": {
+    "repository": "lexi2016/v4",
+    "commit_sha": "4be3c657c04cb3431d19a83cf584bdb2a0481dac",
+    "commit_parent_r1": "3764032a16f3cd9db88ec0dca122fd5d01c167b",
+    "package_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/source_delivery/saved-evaluation-r2-receipt-pins",
+    "package_verification_receipt": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/intake/SOURCE_PACKAGE_VERIFICATION.json",
+    "package_verification_receipt_sha256": "8bfa8d8c3596f262f72781745692a849d292a0157cd0a5d6cb156bce7533b8c8",
+    "github_tree_blob_count": 30,
+    "git_tree_blob_and_size": "PASS",
+    "manifest_file_sha256_and_size": "PASS",
+    "patch_sha256": "ac17abc7d8b3a644a837cfca411a594e686dab49cf98bed8467cae20ee808cdb",
+    "r1_checksum_manifest_sha256": "f1c348b38bc19c8db9cc827007b1719a8bae7f3dcfc451863e57746579928f83",
+    "r2_checksum_manifest_sha256": "31bc043eb1c7a1847b523e4a97b3d7b32b2892628f734a03118ed51065c4023d"
+  },
+  "copy_and_patch": {
+    "r1_code_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009",
+    "r2_code_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009",
+    "initial_copy_byte_comparison": "PASS",
+    "git_worktree_prefix": "",
+    "git_apply_check": "PASS",
+    "git_apply": "PASS",
+    "r1_sha256sums_check": "PASS",
+    "r2_sha256sums_check": "PASS",
+    "relative_file_delta": {
+      "modified": [
+        "candidate/src/rff_saved_eval_contracts.py",
+        "candidate/tests/test_rff_saved_eval_contracts.py"
+      ],
+      "added": [
+        "PREPARE_CONFIG_R2_LOCAL.json",
+        "candidate/tests/fixtures/issue33_receipts/CANDIDATE_START_RECEIPT.json",
+        "candidate/tests/fixtures/issue33_receipts/CANDIDATE_TERMINAL_RECEIPT.json",
+        "candidate/tests/fixtures/issue33_receipts/ISSUE33_SUPPLEMENT.json"
+      ],
+      "removed": []
+    },
+    "production_source_sha256": "e41ab4b41c8386875b14515e34c7609e108db17b538ed43eebe7f76fc3394ba6",
+    "contract_test_sha256": "95b1baa54699bd6a791f03f67a9f1f54acc98866783c16db0077ef8b429db4b6",
+    "accepted_worker_sha256_unchanged": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+    "unchanged_runtime_files_sha256": {
+      "candidate/src/rff_saved_eval_frames.py": "0931cf63d5f779d02025ce5e41ca984aa9541686709b58e2d2367782200e203b",
+      "candidate/src/rff_saved_eval_registration.py": "e25f3312332547f71f9edab2b76a49e20921ca1fb3c29d0c0face7211fd03ce0",
+      "candidate/src/rff_saved_eval_worker.py": "c015246b4b3a21bcb69a1745e41516a9c19f694bf923dfb39553a920a96dfdd8",
+      "candidate/src/run_rff_saved_evaluation.py": "115f84e85777a3f002e01c441f62f0fe179adbac72e3c2ecdfaa91adbc5802ba"
+    }
+  },
+  "prepare_config": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/PREPARE_CONFIG_R2_LOCAL.json",
+    "copied_byte_exact_from": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/source_delivery/saved-evaluation-r2-receipt-pins/examples/PREPARE_CONFIG_R2_LOCAL.example.json",
+    "sha256": "1cf4824971325b29e42055e823d2434aa0e05ad23144d8cb1d6df6e92eeccac4",
+    "json_parse": "PASS",
+    "recovery_root": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009",
+    "execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_SAVED_EVAL_R2_20261009_01",
+    "accepted_worker_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/inputs/attachments/rff/pr5_accepted/src/rff_worker.py",
+    "resources": {
+      "cpu_threads": 4,
+      "aggregate_process_tree_rss_bytes_max": 34359738368,
+      "wall_seconds_max": 3600,
+      "sample_seconds": 1
+    },
+    "prepare_attempts": 0
+  },
+  "independent_review": {
+    "status": "SCOPED_CODE_PASS_ACTUAL_BINDING_BLOCKED_P1",
+    "code_and_test_receipt": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/review/R2_SCOPED_INDEPENDENT_REVIEW_RECEIPT.json",
+    "actual_binding_receipt": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/review/R2_LOCAL_BINDING_REVIEW_BLOCKER_RECEIPT.json",
+    "actual_binding_receipt_sha256": "9910e624dfe8635766a3b31731d014df5bbbd5443b5f755d88bd52bb47ab49cd",
+    "P0": 0,
+    "P1": 1,
+    "P2": 0
+  },
+  "forbidden_stage1_actions": {
+    "prepare_run_release_activation": "NOT_RUN",
+    "true_scoring_top3_or_truth_rows_read": false,
+    "fit_predict_model_load": false,
+    "registry_append": false
+  },
+  "safety_flags": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "unresolved": [
+    "The exact prepared binding has independent P1 FROZEN_EVALUATOR_TRANSITIVE_DEPENDENCIES_NOT_BOUND.",
+    "Metadata-only prepare succeeded once and remains unsigned; no parent release or new run was issued.",
+    "Historical SHA identities for common.py, features.py, config/base_features.json, and config/contract.json remain CANNOT_CONFIRM."
+  ],
+  "prepare_behavior_source_review": {
+    "status": "SOURCE_PATH_REVIEWED_METADATA_ONLY",
+    "source": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/candidate/src/rff_saved_eval_contracts.py",
+    "prepare_function_line": 444,
+    "opaque_record_line": 241,
+    "observed_behavior": [
+      "_opaque_record validates a declared digest and path identity only; it does not read, hash, or measure candidate score, Top3, truth, calendar, or control data bytes.",
+      "prepare reads and validates bound JSON metadata/source/helper files, and reads the registry JSONL to check that the new execution_id is unused.",
+      "prepare writes a new RUN_SPEC.json and INPUT_BINDING.json; it does not append the registry or create parent release authorization."
+    ],
+    "allowed_for_planned_prepare": true,
+    "actual_prepare_run": false
+  }
+}

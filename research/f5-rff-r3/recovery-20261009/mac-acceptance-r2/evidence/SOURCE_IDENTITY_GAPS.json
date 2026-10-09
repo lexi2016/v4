@@ -1,0 +1,95 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R2_BLOCKER_SOURCE_IDENTITY_GAPS_V1",
+  "source_package_root": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1",
+  "new_binding_executable_helper_names": [
+    "accepted_worker",
+    "frozen_metrics",
+    "frozen_package_init",
+    "frozen_settings",
+    "native_runtime",
+    "resource_tree",
+    "score_aware_metrics"
+  ],
+  "missing_dependency_paths": [
+    "spike5.common",
+    "spike5.features",
+    "config/base_features.json",
+    "config/contract.json"
+  ],
+  "files": [
+    {
+      "package_relative_path": "metrics.py",
+      "origin_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/spike5/metrics.py",
+      "current_snapshot_bytes": 8758,
+      "current_snapshot_sha256": "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763",
+      "binding_status": "BOUND_BY_FROZEN_METRICS_PIN",
+      "sha256_in_new_binding": "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763",
+      "historical_expected_sha256": null,
+      "historical_identity_status": "CANNOT_CONFIRM",
+      "common_credential_field_names_or_key_patterns_found": 0,
+      "archive_exact_current_bytes": true
+    },
+    {
+      "package_relative_path": "settings.py",
+      "origin_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/spike5/settings.py",
+      "current_snapshot_bytes": 288,
+      "current_snapshot_sha256": "702c374612806e45647b8cdb8cb345736b6cac689f23df352c00d08735bfb4fc",
+      "binding_status": "BOUND_AS_CURRENT_FROZEN_SETTINGS_HELPER",
+      "sha256_in_new_binding": "702c374612806e45647b8cdb8cb345736b6cac689f23df352c00d08735bfb4fc",
+      "historical_expected_sha256": null,
+      "historical_identity_status": "CANNOT_CONFIRM",
+      "common_credential_field_names_or_key_patterns_found": 0,
+      "archive_exact_current_bytes": true
+    },
+    {
+      "package_relative_path": "common.py",
+      "origin_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/spike5/common.py",
+      "current_snapshot_bytes": 2067,
+      "current_snapshot_sha256": "affff27d758d73fdbde3da21af59b94b265d4072cf83036475cd06b0941a4097",
+      "binding_status": "NOT_IN_INPUT_BINDING",
+      "sha256_in_new_binding": null,
+      "historical_expected_sha256": null,
+      "historical_identity_status": "CANNOT_CONFIRM",
+      "common_credential_field_names_or_key_patterns_found": 0,
+      "archive_exact_current_bytes": true
+    },
+    {
+      "package_relative_path": "features.py",
+      "origin_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/spike5/features.py",
+      "current_snapshot_bytes": 5941,
+      "current_snapshot_sha256": "947e8d9a2f2b36e44ecfc8d713e0c492670039838dcf3e5abb9396f17a637c38",
+      "binding_status": "NOT_IN_INPUT_BINDING",
+      "sha256_in_new_binding": null,
+      "historical_expected_sha256": null,
+      "historical_identity_status": "CANNOT_CONFIRM",
+      "common_credential_field_names_or_key_patterns_found": 0,
+      "archive_exact_current_bytes": true
+    },
+    {
+      "package_relative_path": "config/base_features.json",
+      "origin_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/config/base_features.json",
+      "current_snapshot_bytes": 408,
+      "current_snapshot_sha256": "6284bfe3609ec9f220b4f4baef6e0cb4d3190529830fbcb0d8ff435c0859c7af",
+      "binding_status": "NOT_IN_INPUT_BINDING",
+      "sha256_in_new_binding": null,
+      "historical_expected_sha256": null,
+      "historical_identity_status": "CANNOT_CONFIRM",
+      "common_credential_field_names_or_key_patterns_found": 0,
+      "archive_exact_current_bytes": true
+    },
+    {
+      "package_relative_path": "config/contract.json",
+      "origin_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/config/contract.json",
+      "current_snapshot_bytes": 10193,
+      "current_snapshot_sha256": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb",
+      "binding_status": "NOT_IN_INPUT_BINDING",
+      "sha256_in_new_binding": null,
+      "historical_expected_sha256": null,
+      "historical_identity_status": "CANNOT_CONFIRM",
+      "common_credential_field_names_or_key_patterns_found": 0,
+      "archive_exact_current_bytes": true
+    }
+  ],
+  "interpretation": "Current byte SHA values identify the evidence snapshots only. Historical dependency SHA values remain unknown; current presence or current hashes do not certify historical frozen identity.",
+  "secret_scan_scope": "Common credential key names and obvious key literals were checked; zero hits. This is used only to decide that exact configs can be included."
+}

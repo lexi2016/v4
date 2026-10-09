@@ -1,0 +1,255 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R2_SOURCE_PACKAGE_VERIFICATION_V1",
+  "repository": "lexi2016/v4",
+  "commit_sha": "4be3c657c04cb3431d19a83cf584bdb2a0481dac",
+  "tree_sha": "0a27952ec6227b9959293633e2e238c4312a9ee0",
+  "source_prefix": "research/f5-rff-r3/recovery-20261009/saved-evaluation-r2-receipt-pins/",
+  "blob_count": 30,
+  "manifest_sha256": "3cbdc3758c7c86bcf64fb4230c5706a0bdc30f8090cdcdf9055fc5e9edcadeef",
+  "manifest_records": 29,
+  "tree_blob_and_size_verification": "PASS",
+  "manifest_sha256_and_size_verification": "PASS",
+  "files": [
+    {
+      "path": "MANIFEST.json",
+      "tree_blob_sha1_expected": "75bb9b12bd66e6df66d836b16ca465f77e06578e",
+      "tree_blob_sha1_actual": "75bb9b12bd66e6df66d836b16ca465f77e06578e",
+      "tree_size_expected": 7198,
+      "size_actual": 7198,
+      "sha256_actual": "3cbdc3758c7c86bcf64fb4230c5706a0bdc30f8090cdcdf9055fc5e9edcadeef"
+    },
+    {
+      "path": "README_ZH.md",
+      "tree_blob_sha1_expected": "0e20aade3ff6518b337b9a2b81a89d104f1377b0",
+      "tree_blob_sha1_actual": "0e20aade3ff6518b337b9a2b81a89d104f1377b0",
+      "tree_size_expected": 8926,
+      "size_actual": 8926,
+      "sha256_actual": "7660f80ab97dffadebb486722b98db8ecb0e358602e7e56d88efeb79dba85c4b"
+    },
+    {
+      "path": "SOURCE_MAP_DELTA.json",
+      "tree_blob_sha1_expected": "32b69707cd056005b4f894fbc4d73a05df661be8",
+      "tree_blob_sha1_actual": "32b69707cd056005b4f894fbc4d73a05df661be8",
+      "tree_size_expected": 5466,
+      "size_actual": 5466,
+      "sha256_actual": "d58ace3bff72963a33ce10093e0cbda124d5df847d0494368bd8cb9045806fb7"
+    },
+    {
+      "path": "after/candidate/src/rff_saved_eval_contracts.py",
+      "tree_blob_sha1_expected": "4a84c991361a565981458b829f3bb5bb3e1ceeba",
+      "tree_blob_sha1_actual": "4a84c991361a565981458b829f3bb5bb3e1ceeba",
+      "tree_size_expected": 41298,
+      "size_actual": 41298,
+      "sha256_actual": "e41ab4b41c8386875b14515e34c7609e108db17b538ed43eebe7f76fc3394ba6"
+    },
+    {
+      "path": "after/candidate/tests/fixtures/issue33_receipts/CANDIDATE_START_RECEIPT.json",
+      "tree_blob_sha1_expected": "a5a2d727fc42544183ba6e3168709ef8ca3b5848",
+      "tree_blob_sha1_actual": "a5a2d727fc42544183ba6e3168709ef8ca3b5848",
+      "tree_size_expected": 1510,
+      "size_actual": 1510,
+      "sha256_actual": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03"
+    },
+    {
+      "path": "after/candidate/tests/fixtures/issue33_receipts/CANDIDATE_TERMINAL_RECEIPT.json",
+      "tree_blob_sha1_expected": "b317ed4980893208f309c944e194a1e6fdef643f",
+      "tree_blob_sha1_actual": "b317ed4980893208f309c944e194a1e6fdef643f",
+      "tree_size_expected": 897,
+      "size_actual": 897,
+      "sha256_actual": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1"
+    },
+    {
+      "path": "after/candidate/tests/fixtures/issue33_receipts/ISSUE33_SUPPLEMENT.json",
+      "tree_blob_sha1_expected": "55d716c3bd5b67d87aec529e1c15f720b8f5941c",
+      "tree_blob_sha1_actual": "55d716c3bd5b67d87aec529e1c15f720b8f5941c",
+      "tree_size_expected": 7708,
+      "size_actual": 7708,
+      "sha256_actual": "fc5fe74dc5c36cb4bc254d043a2151da2402e4a3acb1a95323a56aa377cda704"
+    },
+    {
+      "path": "after/candidate/tests/test_rff_saved_eval_contracts.py",
+      "tree_blob_sha1_expected": "15b2d4b9dda6eef6a9f8d7f70c98283c568a428d",
+      "tree_blob_sha1_actual": "15b2d4b9dda6eef6a9f8d7f70c98283c568a428d",
+      "tree_size_expected": 47272,
+      "size_actual": 47272,
+      "sha256_actual": "95b1baa54699bd6a791f03f67a9f1f54acc98866783c16db0077ef8b429db4b6"
+    },
+    {
+      "path": "before/candidate/src/rff_saved_eval_contracts.py",
+      "tree_blob_sha1_expected": "9809e784ef4061b3f09c4a9676b0ef7be95de69d",
+      "tree_blob_sha1_actual": "9809e784ef4061b3f09c4a9676b0ef7be95de69d",
+      "tree_size_expected": 40716,
+      "size_actual": 40716,
+      "sha256_actual": "35b9f88b8183f8980333bfe4e06f37b3ef3e2acbea7a0fc6904b1d130ef058b7"
+    },
+    {
+      "path": "before/candidate/tests/test_rff_saved_eval_contracts.py",
+      "tree_blob_sha1_expected": "3a989b22726b7dca597f74fffb4c0c32a932067c",
+      "tree_blob_sha1_actual": "3a989b22726b7dca597f74fffb4c0c32a932067c",
+      "tree_size_expected": 33399,
+      "size_actual": 33399,
+      "sha256_actual": "6d1f0c904caa36cdad219ac609c0a13077ac41796fcf4225b8e972dda1abf3a7"
+    },
+    {
+      "path": "evidence/ISSUE33.original.md",
+      "tree_blob_sha1_expected": "601d3cb4318f72e6a425879e0cfbd0c76e8faf30",
+      "tree_blob_sha1_actual": "601d3cb4318f72e6a425879e0cfbd0c76e8faf30",
+      "tree_size_expected": 11093,
+      "size_actual": 11093,
+      "sha256_actual": "6c6356ad92406f619ef0de01533415dea4ed831d9b823135a4bf620f26fd66a0"
+    },
+    {
+      "path": "evidence/ISSUE33_SUPPLEMENT.json",
+      "tree_blob_sha1_expected": "55d716c3bd5b67d87aec529e1c15f720b8f5941c",
+      "tree_blob_sha1_actual": "55d716c3bd5b67d87aec529e1c15f720b8f5941c",
+      "tree_size_expected": 7708,
+      "size_actual": 7708,
+      "sha256_actual": "fc5fe74dc5c36cb4bc254d043a2151da2402e4a3acb1a95323a56aa377cda704"
+    },
+    {
+      "path": "evidence/ISSUE_COMMENT_6073492447.json",
+      "tree_blob_sha1_expected": "a30075449445e19b9b6ed3024837f83353ab1fc9",
+      "tree_blob_sha1_actual": "a30075449445e19b9b6ed3024837f83353ab1fc9",
+      "tree_size_expected": 10562,
+      "size_actual": 10562,
+      "sha256_actual": "98b683d26870a1f2ecb03d0963e1b0f2331ab128269e1f8c535abeddbf60ff11"
+    },
+    {
+      "path": "evidence/LOCAL_ACCEPTANCE_BLOCKER_RECEIPT.original.json",
+      "tree_blob_sha1_expected": "4d018a27c7c9db5c898346be12e72dd951ebcae0",
+      "tree_blob_sha1_actual": "4d018a27c7c9db5c898346be12e72dd951ebcae0",
+      "tree_size_expected": 5934,
+      "size_actual": 5934,
+      "sha256_actual": "61d4e579ff139e01eb3ec65d481b51ecd7dead72041bc61db10e9d3d4d05eef1"
+    },
+    {
+      "path": "evidence/ORIGINAL_CODE_ATTACHMENTS_MANIFEST.json",
+      "tree_blob_sha1_expected": "a028fa0739872b2987f634b2b17a4364684c8a15",
+      "tree_blob_sha1_actual": "a028fa0739872b2987f634b2b17a4364684c8a15",
+      "tree_size_expected": 4004,
+      "size_actual": 4004,
+      "sha256_actual": "53e2bdaa5bca18063de90e04b78d04b4f5cf1ab32f15c02f04241522cedfccb7"
+    },
+    {
+      "path": "evidence/PREPARE_CONFIG_LOCAL.original.json",
+      "tree_blob_sha1_expected": "34eca2dcad2d123660b87acc033e06dabb7b7e2f",
+      "tree_blob_sha1_actual": "34eca2dcad2d123660b87acc033e06dabb7b7e2f",
+      "tree_size_expected": 964,
+      "size_actual": 964,
+      "sha256_actual": "d862b98076dff198572330628e5a559580f94f232b64dae7c0bb6333c72420e9"
+    },
+    {
+      "path": "examples/PREPARE_CONFIG_R2_LOCAL.example.json",
+      "tree_blob_sha1_expected": "274fc70c73ea3aaea0626d4864be23aa36cea8f2",
+      "tree_blob_sha1_actual": "274fc70c73ea3aaea0626d4864be23aa36cea8f2",
+      "tree_size_expected": 964,
+      "size_actual": 964,
+      "sha256_actual": "1cf4824971325b29e42055e823d2434aa0e05ad23144d8cb1d6df6e92eeccac4"
+    },
+    {
+      "path": "patches/R1_SHA256SUMS.txt",
+      "tree_blob_sha1_expected": "7e8a94dbc57f0ee9c2fcab51c065177475f53adf",
+      "tree_blob_sha1_actual": "7e8a94dbc57f0ee9c2fcab51c065177475f53adf",
+      "tree_size_expected": 1342,
+      "size_actual": 1342,
+      "sha256_actual": "f1c348b38bc19c8db9cc827007b1719a8bae7f3dcfc451863e57746579928f83"
+    },
+    {
+      "path": "patches/R2_SHA256SUMS.txt",
+      "tree_blob_sha1_expected": "12b80f50d165f829ddb7e44c3c6e0a8bee6c2efb",
+      "tree_blob_sha1_actual": "12b80f50d165f829ddb7e44c3c6e0a8bee6c2efb",
+      "tree_size_expected": 1751,
+      "size_actual": 1751,
+      "sha256_actual": "31bc043eb1c7a1847b523e4a97b3d7b32b2892628f734a03118ed51065c4023d"
+    },
+    {
+      "path": "patches/runtime.patch",
+      "tree_blob_sha1_expected": "1361f51017db6ba010c499d019433a260ce19548",
+      "tree_blob_sha1_actual": "1361f51017db6ba010c499d019433a260ce19548",
+      "tree_size_expected": 29365,
+      "size_actual": 29365,
+      "sha256_actual": "ac17abc7d8b3a644a837cfca411a594e686dab49cf98bed8467cae20ee808cdb"
+    },
+    {
+      "path": "patches/runtime.reverse.patch",
+      "tree_blob_sha1_expected": "8d72a4717b971046c93792a148e5c61472942391",
+      "tree_blob_sha1_actual": "8d72a4717b971046c93792a148e5c61472942391",
+      "tree_size_expected": 29377,
+      "size_actual": 29377,
+      "sha256_actual": "2102358a4cdacf110aeb7238c7136e7270fb6434683da90a1814f4fa5257e43b"
+    },
+    {
+      "path": "review/BASELINE_REPRODUCTION.json",
+      "tree_blob_sha1_expected": "f0444cbab1f4eb3e6dfd0bc1fdaf1c36568a7573",
+      "tree_blob_sha1_actual": "f0444cbab1f4eb3e6dfd0bc1fdaf1c36568a7573",
+      "tree_size_expected": 1769,
+      "size_actual": 1769,
+      "sha256_actual": "04ce76ee21b9ec609b06ded65d7cf9129ecb62f3fe8e237f0c5f2ad7658bfb11"
+    },
+    {
+      "path": "review/INDEPENDENT_PIN_FIX_REVIEW.md",
+      "tree_blob_sha1_expected": "da83780b854f3087e82fd1fb820fe3a4a0c9be34",
+      "tree_blob_sha1_actual": "da83780b854f3087e82fd1fb820fe3a4a0c9be34",
+      "tree_size_expected": 9593,
+      "size_actual": 9593,
+      "sha256_actual": "d21d2abcec957c2cfa8583162af7b090600d0fed883cc1094e52ed421bac371c"
+    },
+    {
+      "path": "review/PATCH_VERIFICATION.json",
+      "tree_blob_sha1_expected": "5de83d15e586121ecf37649d79daf3b1afd9e09b",
+      "tree_blob_sha1_actual": "5de83d15e586121ecf37649d79daf3b1afd9e09b",
+      "tree_size_expected": 3425,
+      "size_actual": 3425,
+      "sha256_actual": "62f65e591af86637ddd072d531f27a2fb84dc89c521b32afb56b16ac6e225fad"
+    },
+    {
+      "path": "review/VERIFICATION.json",
+      "tree_blob_sha1_expected": "e2563dbab42593fe6731abdfdaae525f3bfa0d4f",
+      "tree_blob_sha1_actual": "e2563dbab42593fe6731abdfdaae525f3bfa0d4f",
+      "tree_size_expected": 4544,
+      "size_actual": 4544,
+      "sha256_actual": "7716c4e44c1fceb26a09c437121fa4947f680fd8222604f25b1938b30dc8a3fd"
+    },
+    {
+      "path": "review/logs/cli_help_root.log",
+      "tree_blob_sha1_expected": "b05d5ec311f720df68474c2af8db9073bca23bf0",
+      "tree_blob_sha1_actual": "b05d5ec311f720df68474c2af8db9073bca23bf0",
+      "tree_size_expected": 699,
+      "size_actual": 699,
+      "sha256_actual": "7bc63e3451bb96d2dd3174b86accb4e164353a28d892ea33e12fbd3587eb30d3"
+    },
+    {
+      "path": "review/logs/contracts_module_green.log",
+      "tree_blob_sha1_expected": "0e8a41faf8305285786ce714cbbb951931c70644",
+      "tree_blob_sha1_actual": "0e8a41faf8305285786ce714cbbb951931c70644",
+      "tree_size_expected": 7551,
+      "size_actual": 7551,
+      "sha256_actual": "59195a7f756dd76cf23ccec34b95a5a0902c1adeca1f81690519367cd96c10fb"
+    },
+    {
+      "path": "review/logs/formal_receipt_pins_green.log",
+      "tree_blob_sha1_expected": "f3768bafd795a1059654690fa910d5fec244f887",
+      "tree_blob_sha1_actual": "f3768bafd795a1059654690fa910d5fec244f887",
+      "tree_size_expected": 1678,
+      "size_actual": 1678,
+      "sha256_actual": "f3637426bc1be99cfc16e05ae1f0d41dd183b65f65d5043a0f4beb0c2cdd238b"
+    },
+    {
+      "path": "review/logs/formal_receipt_pins_red.log",
+      "tree_blob_sha1_expected": "94ecef7a465c5518834ba27e91afae1f978e075a",
+      "tree_blob_sha1_actual": "94ecef7a465c5518834ba27e91afae1f978e075a",
+      "tree_size_expected": 55187,
+      "size_actual": 55187,
+      "sha256_actual": "edba53b7f6dafcf6dda885e9a2ae2a1792d824c38d196f7cc5dbd83ba4c04c31"
+    },
+    {
+      "path": "review/logs/full_suite_root.log",
+      "tree_blob_sha1_expected": "2e7ca3ecc82e3d12ee3fb712d2c5b844622eeec3",
+      "tree_blob_sha1_actual": "2e7ca3ecc82e3d12ee3fb712d2c5b844622eeec3",
+      "tree_size_expected": 27752,
+      "size_actual": 27752,
+      "sha256_actual": "7b41c38ee7a082df3e0dd6a6c97a646e003ae0062327f8b16b151175ce0f32c6"
+    }
+  ],
+  "errors": []
+}

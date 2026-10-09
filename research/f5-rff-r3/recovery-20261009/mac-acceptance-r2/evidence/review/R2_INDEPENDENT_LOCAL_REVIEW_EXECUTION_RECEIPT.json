@@ -1,0 +1,51 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R2_INDEPENDENT_LOCAL_REVIEW_EXECUTION_V1",
+  "review_scope": "Issue #33 frozen PASS scope: exact 38-case contracts test and CLI help only",
+  "reviewed_at_utc": "2026-10-09T04:05:44.276307+00:00",
+  "python_executable": "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python",
+  "code_directory": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009",
+  "source_sha256": "e41ab4b41c8386875b14515e34c7609e108db17b538ed43eebe7f76fc3394ba6",
+  "test_sha256": "95b1baa54699bd6a791f03f67a9f1f54acc98866783c16db0077ef8b429db4b6",
+  "commands": [
+    {
+      "label": "contracts_38",
+      "argv": [
+        "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "candidate/tests",
+        "-p",
+        "test_rff_saved_eval_contracts.py",
+        "-v"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009",
+      "exit_code": 0,
+      "stdout_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/review/R2_REVIEW_contracts_38.stdout.log",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/review/R2_REVIEW_contracts_38.stderr.log",
+      "stderr_sha256": "84de99f392ea7473a3c4ca618993714f63d6b3a55d765c45347be8f53d7febaa"
+    },
+    {
+      "label": "cli_help",
+      "argv": [
+        "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python",
+        "-B",
+        "candidate/src/run_rff_saved_evaluation.py",
+        "--help"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009",
+      "exit_code": 0,
+      "stdout_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/review/R2_REVIEW_cli_help.stdout.log",
+      "stdout_sha256": "7bc63e3451bb96d2dd3174b86accb4e164353a28d892ea33e12fbd3587eb30d3",
+      "stderr_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_LOCAL_20261009/review/R2_REVIEW_cli_help.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "real_score_truth_label_rows_read": 0,
+  "fit_predict_model_load": 0,
+  "registry_append": 0,
+  "prepare_invocations": 0
+}

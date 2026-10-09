@@ -1,0 +1,40 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R2_LOCAL_BINDING_LOAD_AND_MAC_RSS_SMOKE_V1",
+  "recorded_at_utc": "2026-10-09T04:09:44.386805+00:00",
+  "commands": [
+    {
+      "name": "R2_BINDING_LOAD_DOCUMENTS",
+      "argv": [
+        "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python",
+        "-B",
+        "-c"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009",
+      "exit_code": 0,
+      "stdout": "review/R2_BINDING_LOAD_DOCUMENTS.stdout.log",
+      "stdout_sha256": "7875f7a822a19ae66c4380c7b5e7d74c473782f273739301cbfc515ae094af2b",
+      "stderr": "review/R2_BINDING_LOAD_DOCUMENTS.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code_file": "review/R2_BINDING_LOAD_DOCUMENTS.exit_code.txt"
+    },
+    {
+      "name": "R2_MAC_RSS_BACKEND_SMOKE",
+      "argv": [
+        "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python",
+        "-B",
+        "-c"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009",
+      "exit_code": 0,
+      "stdout": "review/R2_MAC_RSS_BACKEND_SMOKE.stdout.log",
+      "stdout_sha256": "315a13349b0ec9129079bca5a47dfa0fb17ced44eadbaa30ac2a5ab76020e27b",
+      "stderr": "review/R2_MAC_RSS_BACKEND_SMOKE.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code_file": "review/R2_MAC_RSS_BACKEND_SMOKE.exit_code.txt"
+    }
+  ],
+  "scope": "READ_ONLY_METADATA_LOAD_AND_SOFTWARE_RESOURCE_BACKEND_SMOKE",
+  "score_truth_label_rows_read": 0,
+  "registry_appends": 0,
+  "fit_predict_model_load": 0
+}

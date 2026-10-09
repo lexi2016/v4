@@ -1,0 +1,55 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R2_SCOPED_INDEPENDENT_REVIEW_RECEIPT_V1",
+  "review_scope": "Issue #33 frozen PASS scope: R2 receipt-file SHA/event SHA separation, regression coverage, 38 focused contracts tests, and CLI help.",
+  "decision": "SCOPED_PASS",
+  "verdict": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "REVIEWED": "PASS_SCOPED_R2_PIN_FIX",
+    "BEHAVIOR_VERIFIED": "PASS_SYNTHETIC_METADATA_PREPARE_ONLY"
+  },
+  "reviewed_code": {
+    "path": "handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/candidate/src/rff_saved_eval_contracts.py",
+    "sha256": "e41ab4b41c8386875b14515e34c7609e108db17b538ed43eebe7f76fc3394ba6",
+    "observed_diff": "Only production delta: +11/-2. PINS.candidate_start/candidate_terminal now hold exact full-file SHA256; CANDIDATE_EVENT_SHA256 holds historical event identities; the validation path separately checks start_event_sha256 and terminal_event_sha256 after existing chain identity checks.",
+    "source_evidence": [
+      "candidate/src/rff_saved_eval_contracts.py:36-59",
+      "candidate/src/rff_saved_eval_contracts.py:379-391"
+    ],
+    "unchanged_runtime_files": {
+      "candidate/src/rff_saved_eval_frames.py": "0931cf63d5f779d02025ce5e41ca984aa9541686709b58e2d2367782200e203b",
+      "candidate/src/rff_saved_eval_registration.py": "e25f3312332547f71f9edab2b76a49e20921ca1fb3c29d0c0face7211fd03ce0",
+      "candidate/src/rff_saved_eval_worker.py": "c015246b4b3a21bcb69a1745e41516a9c19f694bf923dfb39553a920a96dfdd8",
+      "candidate/src/run_rff_saved_evaluation.py": "115f84e85777a3f002e01c441f62f0fe179adbac72e3c2ecdfaa91adbc5802ba",
+      "inputs/attachments/rff/pr5_accepted/src/rff_worker.py": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c"
+    }
+  },
+  "regression_evidence": {
+    "path": "handoffs/F5_RFF_SAVED_EVAL_R2_CODE_20261009/candidate/tests/test_rff_saved_eval_contracts.py",
+    "sha256": "95b1baa54699bd6a791f03f67a9f1f54acc98866783c16db0077ef8b429db4b6",
+    "new_cases": "8 focused tests cover authentic packaged start/terminal receipt bytes under shipped pins, separation of file and event hashes, synthetic metadata prepare+reload with those pins, file mutation rejection, decoded event field rejection, start-receipt chain rejection, and continued prior identity/source guards.",
+    "test_command": "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python -B -m unittest discover -s candidate/tests -p 'test_rff_saved_eval_contracts.py' -v",
+    "test_result": "PASS; Ran 38 tests in 0.900s; exit 0.",
+    "test_log": "review/R2_REVIEW_contracts_38.stderr.log",
+    "test_log_sha256": "84de99f392ea7473a3c4ca618993714f63d6b3a55d765c45347be8f53d7febaa"
+  },
+  "cli_evidence": {
+    "command": "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python -B candidate/src/run_rff_saved_evaluation.py --help",
+    "result": "PASS; exit 0; help exposes prepare/run and states prepare is metadata only.",
+    "stdout_log": "review/R2_REVIEW_cli_help.stdout.log",
+    "stdout_sha256": "7bc63e3451bb96d2dd3174b86accb4e164353a28d892ea33e12fbd3587eb30d3"
+  },
+  "actionable_findings": [],
+  "cannot_confirm": [
+    "Actual metadata-only prepare against the current real registry and original bound source tree; not run in this reviewer phase.",
+    "Real saved-score/truth evaluation behavior, real data-row parity, and native Mac runtime behavior; outside this scoped engineering acceptance."
+  ],
+  "side_effects": {
+    "real_score_truth_label_rows_read": 0,
+    "fit_predict_model_load": 0,
+    "registry_append": 0,
+    "prepare_invocations": 0
+  },
+  "execution_receipt": "review/R2_INDEPENDENT_LOCAL_REVIEW_EXECUTION_RECEIPT.json"
+}

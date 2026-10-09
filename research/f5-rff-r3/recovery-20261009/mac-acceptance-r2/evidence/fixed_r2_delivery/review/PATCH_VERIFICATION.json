@@ -1,0 +1,115 @@
+{
+  "scope": "LOCAL_SYNTHETIC_CODE_COPIES_ONLY",
+  "checks": [
+    {
+      "scope": "standalone_directory",
+      "forward_exact_bytes": true,
+      "reverse_exact_bytes": true,
+      "sha256sums_files_checked_with_shasum": true,
+      "other_runtime_files_and_accepted_worker_preserved": true,
+      "commands": [
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--directory=",
+            "--check",
+            "/workspace/scratch/f05cf31db0d4/issue33_r2/delivery/RFF_SAVED_EVALUATION_R2_RECEIPT_PIN_FIX/patches/runtime.patch"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--directory=",
+            "/workspace/scratch/f05cf31db0d4/issue33_r2/delivery/RFF_SAVED_EVALUATION_R2_RECEIPT_PIN_FIX/patches/runtime.patch"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--directory=",
+            "--check",
+            "/workspace/scratch/f05cf31db0d4/issue33_r2/delivery/RFF_SAVED_EVALUATION_R2_RECEIPT_PIN_FIX/patches/runtime.reverse.patch"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--directory=",
+            "/workspace/scratch/f05cf31db0d4/issue33_r2/delivery/RFF_SAVED_EVALUATION_R2_RECEIPT_PIN_FIX/patches/runtime.reverse.patch"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "scope": "subdirectory_inside_parent_git_repository",
+      "forward_exact_bytes": true,
+      "reverse_exact_bytes": true,
+      "sha256sums_files_checked_with_shasum": true,
+      "other_runtime_files_and_accepted_worker_preserved": true,
+      "commands": [
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--directory=handoffs/R2 code 工厂/",
+            "--check",
+            "/workspace/scratch/f05cf31db0d4/issue33_r2/delivery/RFF_SAVED_EVALUATION_R2_RECEIPT_PIN_FIX/patches/runtime.patch"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--directory=handoffs/R2 code 工厂/",
+            "/workspace/scratch/f05cf31db0d4/issue33_r2/delivery/RFF_SAVED_EVALUATION_R2_RECEIPT_PIN_FIX/patches/runtime.patch"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--directory=handoffs/R2 code 工厂/",
+            "--check",
+            "/workspace/scratch/f05cf31db0d4/issue33_r2/delivery/RFF_SAVED_EVALUATION_R2_RECEIPT_PIN_FIX/patches/runtime.reverse.patch"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--directory=handoffs/R2 code 工厂/",
+            "/workspace/scratch/f05cf31db0d4/issue33_r2/delivery/RFF_SAVED_EVALUATION_R2_RECEIPT_PIN_FIX/patches/runtime.reverse.patch"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}
