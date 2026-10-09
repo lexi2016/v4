@@ -11,7 +11,7 @@ from v5_shadow.digests import canonical_bytes,sha256_json
 from v5_shadow.module_api import _open_directory,_read_at
 from v5_shadow.module_artifacts import _directory
 
-LANES={'announcement','us_mapping','rebound'}
+LANES={'announcement','us_mapping','rebound','manager_plan'}
 MARKER=b'v5.daily-run-ledger.v1\n'
 
 
@@ -80,7 +80,7 @@ def claim_run(root,identity,*,max_attempts=2):
 
 def finish_run(root,claim,receipt):
     exact_keys(receipt,('status','product_reference','readback_verified','retry_safe_without_external_effect','reason_codes'))
-    if receipt['status'] not in {'SUCCEEDED','FAILED'}:raise ValueError('DAILY_TERMINAL_STATUS')
+    if receipt['status'] not in {'SUCCEEDED','FAILED','BLOCKED'}:raise ValueError('DAILY_TERMINAL_STATUS')
     if type(receipt['readback_verified']) is not bool or type(receipt['retry_safe_without_external_effect']) is not bool:raise ValueError('DAILY_RECEIPT_BOOL')
     if receipt['status']=='SUCCEEDED' and (receipt['readback_verified'] is not True or not isinstance(receipt['product_reference'],dict) or not receipt['product_reference']):raise ValueError('DAILY_PRODUCT_READBACK_REQUIRED')
     if not isinstance(receipt['reason_codes'],list) or any(not isinstance(r,str) for r in receipt['reason_codes']):raise ValueError('DAILY_REASON_CODES')

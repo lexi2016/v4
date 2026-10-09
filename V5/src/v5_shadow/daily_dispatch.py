@@ -3,7 +3,9 @@ from datetime import datetime,timezone,timedelta
 from v5_shadow.daily_close_plan import _sources,_market_states
 from v5_shadow.contracts import aware
 from v5_shadow.digests import sha256_json
-from v5_shadow.run_ledger import LANES,claim_run,finish_run
+from v5_shadow.run_ledger import claim_run,finish_run
+
+LANES={'announcement','us_mapping','rebound'}
 
 
 def dispatch_due(schedule,bindings,ledger_root):
