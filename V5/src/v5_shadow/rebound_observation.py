@@ -28,6 +28,7 @@ from v5_shadow.digests import canonical_bytes, sha256_json, MAX_JSON_BYTES
 from v5_shadow.module_api import _open_directory, _read_at
 from v5_shadow.module_artifacts import _directory, _write_once
 from v5_shadow.source_capsule import checked_path
+from v5_shadow import rebound_panel_repair
 
 BASE = owner.BASE
 DESCRIPTOR = BASE / 'contracts/rebound_observation_capsule.json'
@@ -161,7 +162,7 @@ def _request(value):
         raise ValueError('OBSERVATION_INPUT_FILES')
     for relative, digest in value['files'].items():
         checked_path(root, relative); sha(digest)
-        if not re.fullmatch(r'assets/hk_0_2/panels/[A-Za-z0-9._-]+/(?:manifest\.json|hkconnect_vipdoc_daily_panel\.parquet)', relative):
+        if not re.fullmatch(r'assets/hk_0_2/panels/[A-Za-z0-9._-]+/(?:manifest\.json|receipt\.json|hkconnect_vipdoc_daily_panel\.parquet)', relative):
             raise ValueError('OBSERVATION_PANEL_ONLY_INPUT')
     if not set(value['paths'].values()).issubset(value['files']):
         raise ValueError('OBSERVATION_ROLE_NOT_BOUND')
@@ -241,6 +242,8 @@ def project_rows(raw_rows, signal_date, observed_at):
 def _identity():
     result = owner._identity()
     result['rebound_observation.py'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    result['rebound_panel_repair.py'] = hashlib.sha256(Path(rebound_panel_repair.__file__).read_bytes()).hexdigest()
+    result['rebound_raw_repair.py'] = hashlib.sha256(Path(__file__).with_name('rebound_raw_repair.py').read_bytes()).hexdigest()
     return result
 
 
@@ -274,8 +277,15 @@ def _worker(envelope):
     owner._verify_private(private, snapshot)
     manifest = _panel_metadata(private, request, observed_text)
     violations = owner._guard(private)
-    witness, panel_gaps = original._read_hk02_panel_witness(private, day,
-        research_cutoff=observed_text, required_history_date=dates5[-1])
+    if manifest.get('source_contract') in (rebound_panel_repair.SOURCE_CONTRACT, rebound_panel_repair.RAW_SOURCE_CONTRACT):
+        witness = rebound_panel_repair.read_repaired_panel_witness(private / 'assets/hk_0_2',
+            request['paths']['panel_manifest'].removeprefix('assets/hk_0_2/'),
+            expected_files={p.removeprefix('assets/hk_0_2/'): digest for p, digest in request['files'].items()},
+            cutoff=observed_text)
+        panel_gaps = ['REPAIRED_PANEL_REQUIRES_INDEPENDENT_FINANCIAL_ADMISSION']
+    else:
+        witness, panel_gaps = original._read_hk02_panel_witness(private, day,
+            research_cutoff=observed_text, required_history_date=dates5[-1])
     if witness is None:
         raise ValueError('OBSERVATION_PANEL_WITNESS:' + ','.join(panel_gaps))
     if (witness['panel_sha256'] != request['files'][request['paths']['panel']]
@@ -363,7 +373,15 @@ def _validate(value):
             or value['history_sessions']['calendar_sha256'] != calendar_sha
             or value['context']['calendar_sha256'] != calendar_sha):
         raise ValueError('OBSERVATION_ARTIFACT_SOURCE_IDENTITY')
-    exact_keys(value['implementation_identity'], _identity())
+    identity_keys = set(_identity())
+    # Preserve readback of the already delivered panel-only v1 artifacts.
+    # New execution/admission still requires the current full identity.
+    extension_keys = {'rebound_panel_repair.py', 'rebound_raw_repair.py'}
+    if (set(value['implementation_identity']) == identity_keys - extension_keys
+            and value['implementation_identity'].get('rebound_observation.py') ==
+                'ecf2473791bddea11ac307472a0564193518fb121e15eaf17d7e6a2ff4e8041b'):
+        identity_keys -= extension_keys
+    exact_keys(value['implementation_identity'], identity_keys)
     for digest in value['implementation_identity'].values(): sha(digest)
     codes = set()
     for row in value['rows']:
