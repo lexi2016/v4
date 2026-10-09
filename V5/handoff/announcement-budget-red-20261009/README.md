@@ -1,5 +1,7 @@
 # 公告预算、HTTP 门禁与 V5 私有 owner 候选
 
+本地最新候选：离线恢复后的 analysis 合同与私有 prepare→注册→验证→导入→读回，见 [OFFLINE_ANALYSIS_CHAIN.md](OFFLINE_ANALYSIS_CHAIN.md)。原 81 项测试逐字不变，新增 7 项待 Mac；本轮未运行产品测试；候选交由既有独立分支固定提交供 Mac 验收。下文为历史交付记录。
+
 当前真实离线恢复遇到失败正文已保留页面合同差异；修复说明见 [FAILED_PARTIAL_PAGES.md](FAILED_PARTIAL_PAGES.md)。保留失败状态/原页面/原错误，新增 11 项候选未运行；V4 和旧证据不变。
 
 最新：780 Mac 恢复测试 13 PASS / 2 FAIL 的 fixture 顺序修复候选见 [RECOVERY_FIXTURE_ORDER.md](RECOVERY_FIXTURE_ORDER.md)。失败预期仍为 1；生产代码未改，待 Mac 单次复验。

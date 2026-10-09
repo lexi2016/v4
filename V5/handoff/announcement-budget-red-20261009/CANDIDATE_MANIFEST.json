@@ -1,7 +1,7 @@
 {
   "status": "IMPLEMENTED_MAC_REVALIDATION_PENDING",
-  "parent_commit": "6e30a74b268c8f9ebbb2fa50eda5110ee4c3f71a",
-  "red_evidence": "Parent Mac 6e30 recovery15 PASS. Actual offline recovery failed original terminal validator on retained failed prefixes 60/108 and 27/86. Source7536 SHA/BLOCKED unchanged. New11 offline candidates NOT_RUN.",
+  "parent_commit": "4cac13494d850bbabe64a226f130ab2799beb2b3",
+  "red_evidence": "Parent reported real recovered prepare rejected retained failed pages at announcement_analysis._validated_terminal_body_capture. New 7 downstream offline candidates NOT_RUN; original 81 tests unchanged.",
   "cloud_product_tests": "NOT_RUN",
   "entries": [
     {
@@ -64,8 +64,26 @@
       "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
       "preimage_path": "owner_dependencies/v4/manager_research/workspace_announcements.py",
       "preimage_sha256": "60839e20df9b61be04629481752ab3072a1088d229c87980e83059b590548e50",
+      "previous_candidate_sha256": "448258b8aefc8aae5be75f13fd872b4761fdd78dcc01119d03be6fe8a39b342a",
+      "sha256": "a19991353c932815052c5f04fc1100d3d5cbd2f67e238a45505292a00f01e26a"
+    },
+    {
+      "candidate_path": "candidate/v4/manager_research/announcement_analysis.py",
+      "target_app_path": "v4/manager_research/announcement_analysis.py",
+      "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
+      "preimage_path": "owner_dependencies/v4/manager_research/announcement_analysis.py",
+      "preimage_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
       "previous_candidate_sha256": null,
-      "sha256": "448258b8aefc8aae5be75f13fd872b4761fdd78dcc01119d03be6fe8a39b342a"
+      "sha256": "1b3037281fb8f03cc9252d6f90847daf349eb79037e688a9a15b22c7424742e1"
+    },
+    {
+      "candidate_path": "candidate/ops/run_v5_offline_analysis.py",
+      "target_app_path": "ops/run_v5_offline_analysis.py",
+      "source_commit": null,
+      "preimage_path": null,
+      "preimage_sha256": null,
+      "previous_candidate_sha256": null,
+      "sha256": "58684aaf8499be2f1b3849ca44a99b8a84fbd3cb056d455a63d9417fff8e6c32"
     }
   ]
 }

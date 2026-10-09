@@ -2035,6 +2035,8 @@ def validate_terminal_body_capture(evidence: Path, catalog_read: Mapping[str, An
                 body_row,original,receipt,listing,publication,body_root)
             failures[code] = {'error_code': error_code.strip(), 'receipt_sha256': artifact_sha,
                 'captured_page_count':captured_pages,'expected_page_count':expected_pages}
+            if captured_pages:
+                failures[code]['retained_pages_sha256']=digest(body_row['pages'])
         else:
             if (receipt.get('error_code') is not None
                     or not isinstance(body_row.get('pages'), list) or not body_row.get('pages')
