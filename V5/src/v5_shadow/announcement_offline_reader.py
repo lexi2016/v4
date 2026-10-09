@@ -12,13 +12,16 @@ from v5_shadow.contracts import aware
 from v5_shadow.digests import canonical_bytes,sha256_json,MAX_JSON_BYTES
 APP=Path(__file__).resolve().parents[2]/'vendor/announcement_offline_baseline'
 PIN='0ff96e3c5bc48c67fada2b979a9862b7778c9a33c1983cdc0ab180ea85125ab5'
+REVISION_APP=APP.with_name('announcement_revision_baseline')
+REVISION_PIN='da392a57bf93dd9a5b4355d934e267a7c5c4fe495e90779364627e8a8f118d8a'
 
 
-def sources():
-    raw=(APP/'V5_OWNER_APP_MANIFEST.json').read_bytes()
-    if hashlib.sha256(raw).hexdigest()!=PIN:raise ValueError('OFFLINE_MANAGER_APP_PIN')
+def sources(app=None,pin=None):
+    app=APP if app is None else app;pin=PIN if pin is None else pin
+    raw=(app/'V5_OWNER_APP_MANIFEST.json').read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('OFFLINE_MANAGER_APP_PIN')
     for entry in json.loads(raw)['files']:
-        path=APP/entry['path']
+        path=app/entry['path']
         if path.is_symlink() or hashlib.sha256(path.read_bytes()).hexdigest()!=entry['sha256']:raise ValueError('OFFLINE_MANAGER_APP_BYTES')
 
 
@@ -44,7 +47,9 @@ def install_consumer_contract(module):
 
 
 def read_owner(binding,cutoff,*,default_analysis=False):
-    sources();request=dict(binding=binding,cutoff=cutoff)
+    revision='revision_manifest_sha256' in binding
+    app,pin=(REVISION_APP,REVISION_PIN) if revision else (APP,PIN)
+    sources(app,pin);request=dict(binding=binding,cutoff=cutoff)
     if default_analysis:request['default_analysis']=True
     child=subprocess.run([sys.executable,'-I','-B',str(Path(__file__).resolve())],input=canonical_bytes(request),
         stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=120,
@@ -54,9 +59,9 @@ def read_owner(binding,cutoff,*,default_analysis=False):
     except ValueError as error:raise ValueError('OFFLINE_MANAGER_CHILD_RESPONSE') from error
     if child.returncode:raise ValueError(result.get('reason','OFFLINE_MANAGER_READ_FAILED'))
     from v5_shadow.manager_plan import PIN as consumer_pin
-    if (result.get('app_manifest_sha256')!=PIN or result.get('consumer_source_capsule_sha256')!=consumer_pin
+    if (result.get('app_manifest_sha256')!=pin or result.get('consumer_source_capsule_sha256')!=consumer_pin
             or result.get('request_sha256')!=sha256_json(request)):raise ValueError('OFFLINE_MANAGER_CHILD_IDENTITY')
-    sources();return result
+    sources(app,pin);return result
 
 
 def install_transport(service,announcements,binding,result,error):
@@ -83,6 +88,9 @@ def install_transport(service,announcements,binding,result,error):
 
 
 def _worker(request):
+    global APP,PIN
+    revision='revision_manifest_sha256' in request['binding']
+    if revision:APP,PIN=REVISION_APP,REVISION_PIN
     sources();sys.path.insert(0,str(APP))
     from infrastructure.owned_io import SafeRoot
     from ops.run_v5_offline_analysis import OfflineAnalysisOwner,verify_recovery
@@ -95,8 +103,10 @@ def _worker(request):
     binding=request['binding'];root=no_symlinks(binding['root'])
     if aware(request['cutoff'])>datetime.now(timezone.utc):raise ValueError('OFFLINE_MANAGER_FUTURE_CUTOFF')
     original_init=SafeRoot.__init__
+    allowed_roots={root}
+    if revision:allowed_roots.add(root.parent.parent)
     def init(io,path):
-        if Path(path).absolute()!=root:raise ValueError('OFFLINE_MANAGER_ROOT_NOT_BOUND')
+        if Path(path).absolute() not in allowed_roots:raise ValueError('OFFLINE_MANAGER_ROOT_NOT_BOUND')
         original_init(io,path)
     def existing_directory(io,relative=None):
         with io.directory(relative,create=False):pass
@@ -112,7 +122,17 @@ def _worker(request):
     if (declared.get('schema')!='v5.announcement_offline_analysis_binding.v1' or declared.get('status')!='PRIVATE_OWNER_READBACK_VERIFIED'
             or declared.get('owner_root')!=str(root) or declared.get('target_trade_date')!=binding['target_date'] or declared.get('publication_date')!=binding['publication_date']
             or declared.get('network_allowed') is not False or declared.get('capture_allowed') is not False or declared.get('manager_ui_integrated') is not False):raise ValueError('OFFLINE_MANAGER_BINDING_IDENTITY')
-    owner=OfflineAnalysisOwner(root,declared['recovery_receipt_sha256'])
+    if revision:
+        from ops.run_v5_decision_revision import DecisionRevisionOwner
+        def existing_once(owner,name,raw):
+            if owner.io.read_bytes(name)!=raw:raise ValueError('OFFLINE_REVISION_EXISTING_IDENTITY')
+        DecisionRevisionOwner._write_once=existing_once
+        if declared.get('revision_manifest_sha256')!=binding['revision_manifest_sha256']:
+            raise ValueError('OFFLINE_REVISION_BINDING_SHA')
+        owner=DecisionRevisionOwner(root,binding['revision_manifest_sha256'])
+        if declared.get('decision_revision')!=owner.revision['decision_revision']:
+            raise ValueError('OFFLINE_REVISION_PARENT_BINDING')
+    else:owner=OfflineAnalysisOwner(root,declared['recovery_receipt_sha256'])
     if declared['evidence_run_id']!=owner.recovery['source_run_id'] or declared['blocked_policy_sha256']!=owner.recovery['source_policy_sha256']:raise ValueError('OFFLINE_MANAGER_RECOVERY_IDENTITY')
     target=binding['target_date'];publication=binding['publication_date']
     prefix=f"workspace_announcements/{target}/eastmoney_date_catalog/{publication.replace('-','')}/"
@@ -146,7 +166,9 @@ def _worker(request):
                 or analysis.get('analysis',{}).get('status')!='VERIFIED'
                 or analysis['analysis']['product_sha256']!=declared['product_sha256']):
             raise ValueError('OFFLINE_DEFAULT_ANALYSIS_DATE_OR_PRODUCT')
-    verify_recovery(root,declared['recovery_receipt_sha256']);check_products()
+    if revision:owner._verify_evidence()
+    else:verify_recovery(root,declared['recovery_receipt_sha256'])
+    check_products()
     if io.read_bytes('manager_binding.v1.json')!=raw:raise ValueError('OFFLINE_MANAGER_BINDING_CHANGED')
     sources()
     return dict(catalog=catalog,analysis=analysis,consumption=consumption,cutoff=request['cutoff'],

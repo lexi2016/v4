@@ -47,7 +47,7 @@ class DailyOwnerAdapterTests(unittest.TestCase):
             clock.now.return_value=datetime(2026,10,9,2,tzinfo=timezone.utc)
             saved=run_manager_daily(request,fixture.root,registration)
             again=run_manager_daily(request,fixture.root,registration)
-        self.assertEqual(owner.call_count,1)
+        self.assertEqual(owner.call_count,2)  # refresh + ordinary workspace read
         self.assertEqual(saved['state']['attempts'][-1]['status'],'BLOCKED')
         self.assertEqual(again['status'],'RETRY_BLOCKED')
 

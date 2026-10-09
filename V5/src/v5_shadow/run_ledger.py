@@ -49,6 +49,24 @@ def _read(fd,name):
     except FileNotFoundError:return None
 
 
+def read_run(root,identity):
+    """Read a committed atomic state without admitting work or creating paths."""
+    key=identity_key(identity);fd=_open_directory(root);lane=day=None
+    try:
+        if _read_at(fd,None,'.v5-daily-run-ledger')!=MARKER:raise ValueError('DAILY_LEDGER_MARKER')
+        try:
+            lane=os.open(identity['lane'],os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=fd)
+            day=os.open(identity['target_date'],os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=lane)
+        except FileNotFoundError:return None
+        state=_read(day,key+'.json')
+        if state is not None and (state['identity']!=identity or state['identity_sha256']!=key):
+            raise ValueError('DAILY_LEDGER_IDENTITY')
+        return state
+    finally:
+        for item in (day,lane,fd):
+            if item is not None:os.close(item)
+
+
 def _write(fd,name,value):
     temporary='.'+uuid4().hex+'.tmp'
     out=os.open(temporary,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600,dir_fd=fd)

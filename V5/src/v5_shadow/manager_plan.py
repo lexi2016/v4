@@ -185,7 +185,9 @@ def _request(value):
                 raise ValueError('MANAGER_MEMBERSHIP_PATH')
     if value.get('announcement_offline_owner') is not None:
         binding=value['announcement_offline_owner']
-        exact_keys(binding, ('root','binding_sha256','target_date','publication_date'))
+        exact_keys(binding, ('root','binding_sha256','target_date','publication_date')+
+            (('revision_manifest_sha256',) if 'revision_manifest_sha256' in binding else ()))
+        if 'revision_manifest_sha256' in binding:sha(binding['revision_manifest_sha256'])
         root=no_symlinks(binding['root'])
         if not Path(binding['root']).is_absolute():raise ValueError('OFFLINE_MANAGER_ROOT')
         if root.is_relative_to(output) or output.is_relative_to(root):raise ValueError('OFFLINE_MANAGER_OUTPUT_OVERLAP')

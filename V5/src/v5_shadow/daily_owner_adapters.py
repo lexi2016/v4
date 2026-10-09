@@ -14,6 +14,9 @@ def blocked(reference, reasons, *, readback=False):
 
 
 def read_announcement_owner(request, ledger_run_id):
+    if 'revision_create' in request:
+        from v5_shadow.daily_announcement_revision import run_revision
+        return run_revision(request,ledger_run_id)
     from v5_shadow.announcement_offline_reader import read_owner
     first=read_owner(request['binding'],request['cutoff'])
     second=read_owner(request['binding'],request['cutoff'])
@@ -61,7 +64,12 @@ def run_manager_daily(request, ledger_root, binding_identity):
             or readback['plan_sha256']!=product['sha256']
             or readback['attempt']['run_id']!=product['run_id']):
         raise ValueError('DAILY_MANAGER_SAME_ATTEMPT_READBACK')
+    page=run_manager_plan(dict(request,action='read',view='auto'))
+    page_product=page['payload']['plan_product']
+    if page_product.get('run_id')!=product['run_id'] or page_product.get('sha256')!=product['sha256']:
+        raise ValueError('DAILY_MANAGER_PAGE_PRODUCT_MISMATCH')
     reference=dict(root=request['manager_output_root'],readback=readback,
+        page_payload_sha256=sha256_json(page['payload']),page_readback='ORIGINAL_AUTO_WORKSPACE_READ_MATCHED_NOT_HTTP_DEPLOYMENT',
         plan_status=product.get('status'),natural_verified=False)
     # Saving a partial plan is useful but not three-lane business success.
     receipt=blocked(reference,['THREE_LANE_BUSINESS_ACCEPTANCE_NOT_VERIFIED'],readback=True)
@@ -69,7 +77,7 @@ def run_manager_daily(request, ledger_root, binding_identity):
 
 
 def adapter_identity(config, dependencies):
-    files=('daily_owner_adapters.py','daily_rebound_owner.py','daily_tick.py','daily_dispatch.py','run_ledger.py',
+    files=('daily_owner_adapters.py','daily_rebound_owner.py','daily_announcement_revision.py','daily_manager_assembly.py','daily_tick.py','daily_dispatch.py','run_ledger.py',
            'announcement_offline_reader.py','daily_close_plan.py','module_api.py','module_artifacts.py')
     return dict(code_sha256=sha256_json({name:hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in files}),
         config_sha256=sha256_json(config),dependency_sha256=sha256_json(dependencies))

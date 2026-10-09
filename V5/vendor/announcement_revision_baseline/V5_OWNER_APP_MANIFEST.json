@@ -1,0 +1,121 @@
+{
+  "schema": "v5.announcement_owner_app.v1",
+  "files": [
+    {
+      "path": "infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0"
+    },
+    {
+      "path": "infrastructure/trading_safety.py",
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df"
+    },
+    {
+      "path": "ops/manager_announcement_body_batch.py",
+      "sha256": "2eca580a8b426118afb5b24a3f276b38853518f4da9d26c14a524001b014ef54"
+    },
+    {
+      "path": "ops/recover_announcement_evidence_offline.py",
+      "sha256": "c35a62d071b19582772b663efb182adf3904ba858a1e972c40ea386b9dfb0c57"
+    },
+    {
+      "path": "ops/run_manager_daily_announcement.py",
+      "sha256": "57ac27e0741d87774ab6b11d3c607365fa2afab562446e4e618ae5c4c23b28aa"
+    },
+    {
+      "path": "ops/run_v5_decision_revision.py",
+      "sha256": "d78898559a8b46e7ec7edd344bc3352871d1f360db75fe62d6545c0532b9ab64"
+    },
+    {
+      "path": "ops/run_v5_offline_analysis.py",
+      "sha256": "1b805f2aca8938cc22851fe38c1e293ff96fb9fb231647804efe23c2303fb856"
+    },
+    {
+      "path": "ops/run_v5_private_announcement.py",
+      "sha256": "b63f0dae641c0186d210664bcf08796a3e73f78121507af8d04da64ac507e686"
+    },
+    {
+      "path": "v4/manager_research/announcement_analysis.py",
+      "sha256": "1b3037281fb8f03cc9252d6f90847daf349eb79037e688a9a15b22c7424742e1"
+    },
+    {
+      "path": "v4/manager_research/announcement_catalog.py",
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68"
+    },
+    {
+      "path": "v4/manager_research/announcement_selection.py",
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21"
+    },
+    {
+      "path": "v4/manager_research/announcement_source.py",
+      "sha256": "525e1d00aabfad407845586e2c59b2c472e15d5391dcf089283e4180ea122c10"
+    },
+    {
+      "path": "v4/manager_research/cache_contract.py",
+      "sha256": "0dabc0d2787fae9af2e3c0fb3f5bf3e49c71d28649ffd30c07c31f5e8d071b7f"
+    },
+    {
+      "path": "v4/manager_research/contracts.py",
+      "sha256": "d90f0027a8383f20a299e3058d69716e62737e9e5300afc61a8ef2ed949d402f"
+    },
+    {
+      "path": "v4/manager_research/errors.py",
+      "sha256": "324e0f53301d4ba1007e1a69c86559472347bb7124f6c216f2b3c18e2c80bc1a"
+    },
+    {
+      "path": "v4/manager_research/hkex_provider.py",
+      "sha256": "695be83528a047bccd4fba519caf445a1fcb8d07624345bf9b0fd5d5ae604794"
+    },
+    {
+      "path": "v4/manager_research/material_transport.py",
+      "sha256": "497c52c915e5485f34de27cb1fb2caca3971c77f531385a0d1f80d4587fc6ab5"
+    },
+    {
+      "path": "v4/manager_research/materials.py",
+      "sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2"
+    },
+    {
+      "path": "v4/manager_research/pdf_parser.py",
+      "sha256": "0ddf7fd5510333c70060af7de2a25dd4e6c9ac2880a0d8b97d95e84542a03383"
+    },
+    {
+      "path": "v4/manager_research/ports.py",
+      "sha256": "d55f0bd6b5ade41ec78c429cbaea3986bb24a4723f473ef94ac0e5ad7d08afea"
+    },
+    {
+      "path": "v4/manager_research/safety.py",
+      "sha256": "c82fcdee6845e765783584f5ac46a9d4ca6b6b9fda1c3c2e919c17ab17c7f3e8"
+    },
+    {
+      "path": "v4/manager_research/store.py",
+      "sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e"
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "sha256": "a19991353c932815052c5f04fc1100d3d5cbd2f67e238a45505292a00f01e26a"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "sha256": "be0d5e69ff72efd07d2caca4e68948245db4900a8c41f467e9c30f6899c044b1"
+    },
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200"
+    },
+    {
+      "path": "ops/__init__.py",
+      "sha256": "9894a729a6c4befd24f63602a021e3e8f33f26385b75b9e5a42cdfb38a1833f8"
+    },
+    {
+      "path": "v4/__init__.py",
+      "sha256": "9894a729a6c4befd24f63602a021e3e8f33f26385b75b9e5a42cdfb38a1833f8"
+    },
+    {
+      "path": "v4/manager_research/__init__.py",
+      "sha256": "9894a729a6c4befd24f63602a021e3e8f33f26385b75b9e5a42cdfb38a1833f8"
+    },
+    {
+      "path": "infrastructure/__init__.py",
+      "sha256": "9894a729a6c4befd24f63602a021e3e8f33f26385b75b9e5a42cdfb38a1833f8"
+    }
+  ]
+}
