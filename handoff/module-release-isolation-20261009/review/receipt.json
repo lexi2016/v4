@@ -1,0 +1,95 @@
+{
+  "schema_version": "v4.module_release_isolation.independent_review.v1",
+  "reviewer_identity": "/root/isolation_package_review",
+  "reviewed_at_local_date": "2026-10-09",
+  "scope": "package/evidence/tools/ZIP only; source read-only; no services or business suites",
+  "verdict": {
+    "reviewed_package": "FAIL",
+    "behavior_verified": "CANNOT_CONFIRM",
+    "p0": 0,
+    "p1": 1,
+    "p2": 0
+  },
+  "package_identity": {
+    "zip_sha256": "1924122131b7ec11ea1c2e7e57a9337b513256ab762652cb196daca9f728a22c",
+    "frozen_expected_zip_sha256": "1924122131b7ec11ea1c2e7e57a9337b513256ab762652cb196daca9f728a22c",
+    "package_manifest_sha256": "5f98c2d7b0c780ac9ac835e714f6ade6ce96d3ea6ece3630161f5f96688e5304",
+    "frozen_expected_manifest_sha256": "5f98c2d7b0c780ac9ac835e714f6ade6ce96d3ea6ece3630161f5f96688e5304",
+    "manifest_file_count": 24,
+    "zip_entry_count": 25,
+    "zip_inventory_and_bytes": "PASS"
+  },
+  "source_review": {
+    "local_declared_source_provenance": "PASS for 33 SHA checks and declared route sources",
+    "manager_research_route_ast": "PASS, 17 routes",
+    "stage_route_manual_source_comparison": "PASS, 6 routes",
+    "portable_implementation_source_closure": "FAIL",
+    "portable_git_remote_and_fixed_ref_for_all_required_preimages": "CANNOT_CONFIRM",
+    "critical_missing_preimages": [
+      "apps/api/v35_api/run.py",
+      "full current apps/api/v35_api/app.py and route source snapshots",
+      "frozen ISSUE30 ops/api_release_integration.py source snapshot and manifest record",
+      "ISSUE32 api_only_cutover_issue32_r4.py full source bytes in ZIP",
+      "ops/build_release_candidate.py",
+      "ops/release_candidate_sources.py",
+      "ops/prepare_api_only_cutover.py",
+      "current gateway plist/source configuration"
+    ]
+  },
+  "behavior_and_scope": {
+    "architecture_status": "DESIGN_ONLY",
+    "implementation": "NOT_RUN",
+    "deployment": "NOT_RUN",
+    "behavior_verified": "CANNOT_CONFIRM",
+    "historical_overwrite_causality": "CANNOT_CONFIRM",
+    "r3_writer_only_counts": {
+      "scoped": "66/0",
+      "daily_regression": "36/0",
+      "policy_verifier": "18/0"
+    },
+    "old_hk_suite": "12/3 FAIL_RECORDED",
+    "stage_local_tests": 0,
+    "historical_linux_tests": 287,
+    "business_suites_run_by_reviewer": false,
+    "production_trading_flags": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "sanitization": {
+    "credential_pattern_scan_hits": 0,
+    "raw_business_state_or_market_payload_files": 0,
+    "absolute_local_path_and_runtime_metadata_present": true,
+    "external_audience_risk": "CANNOT_CONFIRM"
+  },
+  "checks": [
+    {
+      "name": "verify_manager_evidence.py",
+      "result": "PASS",
+      "evidence": "33 SHA checks"
+    },
+    {
+      "name": "verify_delivery.py --verify-source-provenance",
+      "result": "PASS",
+      "evidence": "24 package files plus declared sources"
+    },
+    {
+      "name": "verify_delivery.py --zip",
+      "result": "PASS",
+      "evidence": "manifest and ZIP bytes/inventory"
+    },
+    {
+      "name": "temporary ZIP extraction verification",
+      "result": "PASS",
+      "evidence": "24 package file hashes"
+    }
+  ],
+  "blocking_finding": {
+    "id": "P1-1",
+    "summary": "Required implementation source preimages and a portable fixed Git source reference are absent from the ZIP."
+  },
+  "report_sha256": "5b07446943d87a224551c68326b89d083f8d2ce46b66d7e007157f23aa7d6b9d",
+  "verification_log_sha256": "5e0e34a3810f6a9d4080757ce0a9775b436f2d1eee2b2a959bbee5a24774fb29"
+}

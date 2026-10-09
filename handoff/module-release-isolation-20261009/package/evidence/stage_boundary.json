@@ -1,0 +1,63 @@
+{
+  "schema_version": "v4.module_release_isolation.stage_boundary.v1",
+  "sources": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_MINIMAL_FIX_MAC_20261009/evidence/CURRENT_STATE_RECEIPT.md",
+      "sha256": "54d7ee1798d707a5e28921cb8467f691b45d18eab2fb6d346527feb94b3bd883"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_MINIMAL_FIX_MAC_20261009/evidence/CURRENT_STATE_RECEIPT.json",
+      "sha256": "119c82d2d2d12b9100c3698e780d46b21f27b290f88c31085e824010fe4fdcfc"
+    }
+  ],
+  "stage_source_before_matches": {
+    "ops/_run_stage_center_nodes_parts/deadline_supervision.py": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+    "ops/_run_stage_center_nodes_parts/node_entry.py": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+    "stage_center/_runner_parts/runner_receipts.py": "d3d9e69230b00a2864eae106f1c5c89ea0d383e20c2e87d655d4cabd273bbc83",
+    "stage_center/_runner_parts/slot_execution.py": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+    "stage_center/_selection_parts/a_auction.py": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+    "stage_center/_selection_parts/a_live.py": "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d"
+  },
+  "canonical_preimage_conflicts": {
+    "ops/_run_stage_center_nodes_parts/node_entry.py": {
+      "sha256": "b83d35091ddf7566084c1f39e8821a96d72c1297549dcbdb76a1c11dbec655e4",
+      "expected_before": "2343cd5e…",
+      "match": false
+    },
+    "apps/web/src/App.vue": {
+      "sha256": "ffbfcde222175c7849dfd5a1089cafe6c104dea2a1760b18645d95bc48780530",
+      "modified_tracked": true,
+      "expected_before_match": false
+    },
+    "apps/web/src/contracts/runtime.ts": {
+      "sha256": "6d66ae53d26a6c48110d040ad0440bb023e88d49924a697d6671c6da51176d92",
+      "modified_tracked": true,
+      "expected_before_match": false
+    },
+    "apps/web/src/components/review/StageExecutionEvidencePanel.vue": {
+      "exists": false
+    }
+  },
+  "actual_api_stage_sources": {
+    "stage_center/consumer.py": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+    "stage_center/execution_evidence.py": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b"
+  },
+  "status": {
+    "local_tests": 0,
+    "source_candidate": "NOT_CREATED",
+    "candidate_integration": "NOT_RUN",
+    "build": "NOT_RUN",
+    "canary": "NOT_RUN",
+    "deployment": "NOT_RUN",
+    "natural_verification": "NOT_RUN",
+    "shared_publish_delta_applied": false,
+    "exact_manager_file_overlap": "CANNOT_CONFIRM",
+    "specific_overwrite_event_causality": "CANNOT_CONFIRM"
+  },
+  "safety": {
+    "RESEARCH_ONLY_RUNTIME_OBSERVED": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

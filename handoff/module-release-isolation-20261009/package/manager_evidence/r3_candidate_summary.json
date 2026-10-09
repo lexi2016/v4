@@ -1,0 +1,55 @@
+{
+  "schema_version": "v4.module_release_isolation.r3_candidate_summary.v1",
+  "source_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/evidence/mac_candidate_receipt.json",
+    "sha256": "30113d01f3c9ffec5ad16f9b617ad9bfb15da13ff09b9a5c287a715e42e168fd",
+    "status": "CANDIDATE_SAVED_WRITER_TESTED_REVIEW_PENDING",
+    "source_commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+    "parent_shared_baseline": "66bb05a2e12976775ccb997191ce943bae8cc9a5",
+    "candidate_commit": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+    "candidate_tree_sha": "ece74876f00a6123e2f75b33cac39f88859769f4",
+    "package_files_verified": 192,
+    "package_sha256_rows": 191,
+    "package_sha256_mismatches": 0
+  },
+  "candidate_roots": {
+    "api_current": {"path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/candidate/api/app", "changed_paths": 13, "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app"},
+    "worker_current": {"path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/candidate/worker/app", "changed_paths": 5, "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app"},
+    "hk_child": {"path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/candidate/hk_child/app", "changed_paths": 3},
+    "web_cumulative": {"path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/candidate/web/repo", "changed_paths": 0, "status": "EXACT_R2_AFTER_REUSED"},
+    "offline_test_app": {"path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/candidate/test_app", "deployable": false}
+  },
+  "writer_test_results": {
+    "r3_scoped": {"passed": 66, "failed": 0, "status": "PASS"},
+    "daily_regression": {"passed": 36, "failed": 0, "status": "PASS"},
+    "policy_and_verifier": {"passed": 18, "failed": 0, "status": "PASS"},
+    "original_hk_supplement": {
+      "passed": 12,
+      "failed": 3,
+      "known_screen_failures": 2,
+      "additional_failure": "Fixed older R1 helper expects --daily-supplement/--canary-codes, absent from the supplied actual HK02 updater snapshot.",
+      "status": "FAIL_RECORDED"
+    }
+  },
+  "runtime_and_review": {
+    "api_source_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+    "scheduler_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app",
+    "api_tree_scheduler_files_are_copies": true,
+    "live_in_memory_module_sha": "CANNOT_CONFIRM",
+    "independent_review": "PENDING",
+    "shared_release": "NOT_RUN",
+    "stage_delta_applied": false,
+    "actual_owner_dispatch_and_natural_success": "CANNOT_CONFIRM"
+  },
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "provenance": {
+    "reviewer_entry": {"path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/handoff/REVIEWER_ENTRY.md", "sha256": "c0ad3b4abafd50c94d57404e6faa532680cf00d879c1a4acc9f2f05ab4853fa8"},
+    "final_handoff": {"path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/handoff/FINAL_HANDOFF.md", "sha256": "97eaf87137319f4f143ca4722228213e39246f6ef6a3020cb61df5ebc14049e9"},
+    "source_root_map": {"path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/evidence/source_root_map.json", "sha256": "74b69947a805578351ab304587dbeb95e1b5b04aeb4a91ed859b453669aa153a"}
+  }
+}

@@ -1,0 +1,43 @@
+Incremental reviewer verification log — 2026-10-09
+Scope: frozen package source snapshots, package/ZIP validation, route AST and tamper canary only. No business suites, services, POST, data collection, deployment, or GitHub operations.
+
+Frozen identity:
+ZIP SHA-256: 21d027fee15dc1377c259e51b2eb36f45b242e033a52f3e2d3927a8412103507
+source_manifest SHA-256: fd16d20b5b6c356d520a03fb51a51983d66132fd731cc07af59fee23e8b863c6
+package_manifest SHA-256: 84d1db09dd1013bb9b1cf45d9929dd54539f573367b48967e46dc7fd8ce87547
+
+1) python3 tools/verify_manager_evidence.py
+PASS: manager evidence hashes and frozen claims verified (33 SHA checks)
+
+2) python3 package/tools/verify_delivery.py --package-root package
+PASS: package manifest, route/safety contracts, 45 package hashes, and 20 portable source preimages verified
+
+3) python3 package/tools/verify_delivery.py --package-root package --zip V4_MODULE_RELEASE_ISOLATION_20261009_problem_package.zip
+PASS: package manifest, route/safety contracts, 45 package hashes, and 20 portable source preimages verified; ZIP inventory and bytes verified
+
+4) Temporary ZIP extraction + python3 tools/verify_delivery.py --package-root <temp-root>
+PASS: package manifest, route/safety contracts, 45 package hashes, and 20 portable source preimages verified
+TEMP_EXTRACT_EXIT=0
+
+5) Temporary source tamper canary
+Action: append one byte to source_snapshot/active_api_issue32/apps/api/v35_api/manager_research_router.py; update only its ordinary package_manifest SHA entry; leave source_manifest unchanged.
+Expected source-manifest rejection observed:
+- source preimage size mismatch
+- source preimage SHA-256 mismatch
+- source preimage Git blob SHA-1 mismatch
+TAMPERED_SOURCE_EXPECTED_REJECTION_EXIT=1
+SOURCE_MANIFEST_REJECTION=PASS
+Temporary directory only; no package/source workspace bytes changed.
+
+6) Route AST
+- manager research router exact 17 route inventory: PASS via offline verifier
+- manager workbench route and manager stage-selection handler: PASS via offline verifier
+- Stage AST exact set comparison: 6 expected, 6 actual, equal; unclassified API v3 routes 0
+- static routes precede /{target_trade_date}: PASS by source inspection
+
+7) Classification
+- source snapshot entries: 20 SNAPSHOT
+- two new role plist preimages: ABSENT, separately asserted
+- module_proxy.py and api_module_contracts.json: PARALLEL_IMPLEMENTATION_IN_PROGRESS/NOT_BASELINE, not included
+- no fixed Git remote/ref: CANNOT_CONFIRM; exact frozen source bytes are included and checked
+- current implementation behavior: NOT_RUN

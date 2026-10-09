@@ -1,0 +1,32 @@
+Reviewer verification log — 2026-10-09
+Scope: package/provenance/ZIP validation only. No service, POST, market-data, business suite, deployment, or GitHub operations.
+
+1) python3 tools/verify_manager_evidence.py
+PASS: manager evidence hashes and frozen claims verified (33 SHA checks)
+
+2) python3 package/tools/verify_delivery.py --package-root package --verify-source-provenance
+PASS: manager evidence hashes and frozen claims verified (33 SHA checks)
+PASS: package manifest, route/safety contracts and 24 file hashes verified
+
+3) python3 package/tools/verify_delivery.py --package-root package --zip V4_MODULE_RELEASE_ISOLATION_20261009_problem_package.zip
+PASS: package manifest, route/safety contracts and 24 file hashes verified; ZIP inventory and bytes verified
+
+4) Temporary ZIP extraction + python3 tools/verify_delivery.py --package-root <temp-root>
+PASS: package manifest, route/safety contracts and 24 file hashes verified
+TEMP_EXTRACTED_ZIP_VERIFY_EXIT=0
+
+5) SHA-256 readback
+ZIP:      1924122131b7ec11ea1c2e7e57a9337b513256ab762652cb196daca9f728a22c (matches frozen expected)
+Manifest: 5f98c2d7b0c780ac9ac835e714f6ade6ce96d3ea6ece3630161f5f96688e5304 (matches frozen expected)
+
+6) Source review (read-only)
+Manager research routes: exact 17-route AST inventory; router SHA matches package provenance.
+Stage routes: current app.py + preselection_router.py expose the six paths listed in route_contract.json.
+Manager catch-all: GET /api/v4/manager/research/{target_trade_date} is registered after static research routes.
+Frozen guard: SHA 1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050; label fixed to com.lexi.v35.api-only and lock fixed to .com.lexi.v35.api-only.release.lock.
+ISSUE32 cutover: SHA 864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25; fixed Issue32 task root, API-only label and 127.0.0.1:8873/shared-lock behavior.
+
+7) Sanitization/inventory
+ZIP entries: 25; all are .md/.json/.py plus package_manifest.json.
+Credential-pattern scan: 0 hits across 25 entries.
+No raw market/state payload files present; absolute local root/path metadata is present.

@@ -1,0 +1,64 @@
+{
+  "schema_version": "v4.module_release_isolation.route_contract.v1",
+  "gateway": "127.0.0.1:8873",
+  "stage_target": {"host": "127.0.0.1", "port": 8874, "label": "com.lexi.v4.stage-api", "install_time_port_check_required": true},
+  "manager_target": {"host": "127.0.0.1", "port": 8875, "label": "com.lexi.v4.manager-api", "install_time_port_check_required": true},
+  "sources": {
+    "stage_route_ownership": "ARCHITECTURE_HANDOFF.md",
+    "manager_research_router": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/apps/api/v35_api/manager_research_router.py",
+      "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073"
+    },
+    "manager_workbench_router": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/apps/api/v35_api/manager_workbench_router.py",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e"
+    },
+    "manager_stage_selection_route": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/apps/api/v35_api/app.py",
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5"
+    }
+  },
+  "stage_routes": [
+    {"method": "GET", "path": "/api/v3/meta/stages", "owner": "stage"},
+    {"method": "GET", "path": "/api/v3/preselection-pools", "owner": "stage"},
+    {"method": "GET", "path": "/api/v3/workbench/stage", "owner": "stage"},
+    {"method": "POST", "path": "/api/v3/workbench/stage/ensure", "owner": "stage"},
+    {"method": "GET", "path": "/api/v3/stage-center/selection", "owner": "stage"},
+    {"method": "POST", "path": "/api/v3/stage-center/selection/ensure", "owner": "stage"}
+  ],
+  "manager_research_routes": [
+    {"method": "GET", "path": "/api/v4/manager/research", "handler": "read_research"},
+    {"method": "GET", "path": "/api/v4/manager/research/status", "handler": "read_research_status"},
+    {"method": "POST", "path": "/api/v4/manager/research/ensure", "handler": "ensure_research"},
+    {"method": "POST", "path": "/api/v4/manager/research/retry", "handler": "retry_research"},
+    {"method": "POST", "path": "/api/v4/manager/research/events", "handler": "refresh_research_events"},
+    {"method": "GET", "path": "/api/v4/manager/research/jobs/{job_id}", "handler": "read_job"},
+    {"method": "POST", "path": "/api/v4/manager/research/jobs/{job_id}/cancel", "handler": "cancel_job"},
+    {"method": "GET", "path": "/api/v4/manager/research/catalyst-observations", "handler": "read_catalyst_observations"},
+    {"method": "POST", "path": "/api/v4/manager/research/catalyst-observations/refresh", "handler": "refresh_catalyst_observations"},
+    {"method": "GET", "path": "/api/v4/manager/research/workspace", "handler": "read_manager_workspace"},
+    {"method": "POST", "path": "/api/v4/manager/research/workspace/refresh", "handler": "refresh_manager_workspace"},
+    {"method": "POST", "path": "/api/v4/manager/research/workspace/scheduled-cycle", "handler": "run_bound_workspace_cycle"},
+    {"method": "GET", "path": "/api/v4/manager/research/announcements", "handler": "read_announcements"},
+    {"method": "GET", "path": "/api/v4/manager/research/announcements/analysis", "handler": "read_announcement_analysis"},
+    {"method": "POST", "path": "/api/v4/manager/research/announcements/analysis/import", "handler": "import_announcement_analysis"},
+    {"method": "POST", "path": "/api/v4/manager/research/announcements/refresh", "handler": "refresh_announcements"},
+    {"method": "GET", "path": "/api/v4/manager/research/{target_trade_date}", "handler": "read_research_by_path"}
+  ],
+  "manager_other_routes": [
+    {"method": "GET", "path": "/api/v4/manager/workbench-research", "handler": "read_workbench_research", "owner": "manager"},
+    {"method": "GET", "path": "/api/v3/manager/stage-selection", "handler": "manager_stage_selection", "owner": "manager_read_only_stage_consumer"}
+  ],
+  "proxy_policy": {
+    "fixed_loopback_upstreams_only": true,
+    "preserve_method_path_query_body_status_content_type_and_required_headers": true,
+    "remove_hop_by_hop_headers": true,
+    "bounded_connect_and_read_timeouts": true,
+    "retry_post": false,
+    "wrong_method_status": 405,
+    "known_backend_unavailable_statuses": [503, 504],
+    "fallback_to_old_handler": false,
+    "unknown_route_status_in_split_contract": 404,
+    "other_existing_platform_routes_unchanged": true
+  }
+}

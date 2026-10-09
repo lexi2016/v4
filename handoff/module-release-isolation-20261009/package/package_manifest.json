@@ -1,0 +1,190 @@
+{
+  "schema_version": "v4.module_release_isolation.delivery.v1",
+  "source_evidence_as_of": "2026-10-09T15:45:17+08:00",
+  "architecture_status": "DESIGN_ONLY",
+  "implementation_status": "NOT_RUN",
+  "deployment_status": "NOT_RUN",
+  "files": [
+    {
+      "path": "ACCEPTANCE_ROLLBACK_MATRIX.md",
+      "sha256": "a8db454f5315a316f09b91d8bdc9a4e4395cbcd896b63c1299d1eeeb3c1817c4"
+    },
+    {
+      "path": "ARCHITECTURE_HANDOFF.md",
+      "sha256": "097cb0c3a9451b63e028b3e627e5b4b8254100418f2e6b085b8dcdd93d9cf8e7"
+    },
+    {
+      "path": "ARCHITECTURE_RECEIPT.json",
+      "sha256": "a38fc877c4f82f1f1226f6bfcb2fde58f8bf7bf7bc231305d0fe694f2e437ef0"
+    },
+    {
+      "path": "CHAT_IMPLEMENTATION_PROMPT.md",
+      "sha256": "e0aa0447c642c9d57861280888c4251c207c39a85548d5c003511f02401fa762"
+    },
+    {
+      "path": "FACTS_INFERENCES_GAPS.md",
+      "sha256": "0a64d657484fcaacd6039e5bc6d0d8fa685f2ea6ecd49045d122f329cac55216"
+    },
+    {
+      "path": "IMPLEMENTATION_SCOPE.md",
+      "sha256": "ee65e4b29303903a470ae0ba1e60491457b014460fbbe23812b68a16feb99ba7"
+    },
+    {
+      "path": "OPEN_DECISIONS.md",
+      "sha256": "2d83dec9e6e2386a96783bd09c6846ab7f65ce8e6f52490ba71692c826e6a68e"
+    },
+    {
+      "path": "ORIGINAL_SCOPE.md",
+      "sha256": "60fa191aa52d02c756f58f4ef37e8f8120562dadbb1911b12c0c1e9dcec86a80"
+    },
+    {
+      "path": "OWNERSHIP.md",
+      "sha256": "81052fc729e12bdd3d2d0cfed89639647ee9776b3a4ee27e27494a9554371182"
+    },
+    {
+      "path": "README.md",
+      "sha256": "65f7ebe08a2717647c4a0b9f7dacbe62180b44cb163702fdf96abbf0bd4e651c"
+    },
+    {
+      "path": "REVIEWER_ENTRY.md",
+      "sha256": "c7f7f5f148751fb3b0754bce108a48159cf37647c24f90f0ff9a0238bf792aa3"
+    },
+    {
+      "path": "ROUTE_CONTRACT.md",
+      "sha256": "f634d80a342f6a4b0c77f6d443cb53b5add0d11e3d76b4789a2d40a9758de0f3"
+    },
+    {
+      "path": "evidence/STAGE_SHARED_BOUNDARY_20261009.md",
+      "sha256": "8658ea725aa447afcd012025233c6024d62f08d11e119e97104c4b2c678f467a"
+    },
+    {
+      "path": "evidence/current_runtime_release_graph.md",
+      "sha256": "b4b30be9492bf67a678aeadf46144b96d576209a2176b922e7b2543bb73ad829"
+    },
+    {
+      "path": "evidence/stage_boundary.json",
+      "sha256": "276eb1d00edb1acd33b1035d20840f2102fa7f2424b6e1dc16613fe328dd1641"
+    },
+    {
+      "path": "manager_evidence/SHARED_SURFACE_20261009.md",
+      "sha256": "75fda58f05e8e5b5983d31e1947dce09ebc66365e42d91a07ddc0384a6a47f28"
+    },
+    {
+      "path": "manager_evidence/current_runtime_identity.json",
+      "sha256": "537aeb776e3a491b03d3c3ce930e1b593024e21ccd10511e08933257761420e4"
+    },
+    {
+      "path": "manager_evidence/manifest.json",
+      "sha256": "e5fa0d05eb729d47c27f4c28ba7308c56f04436910350401547c7861da7d01d2"
+    },
+    {
+      "path": "manager_evidence/r3_candidate_summary.json",
+      "sha256": "c2a45f70cd22290ab5f5b690d39b2774fcfde282efc7f2e6155886eda178e9b6"
+    },
+    {
+      "path": "manager_evidence/source_extracts_20261009.md",
+      "sha256": "4d0f71dc6e0b3c95149497704367bce385a225abeed2aa38e334b3f4a4b15b52"
+    },
+    {
+      "path": "route_contract.json",
+      "sha256": "ff1678c2b30654fa51ee92419bc4f2097366b9a03708e5ae2ed3c189bdb78d99"
+    },
+    {
+      "path": "source_manifest.json",
+      "sha256": "fd16d20b5b6c356d520a03fb51a51983d66132fd731cc07af59fee23e8b863c6"
+    },
+    {
+      "path": "source_snapshot/active_api_issue32/apps/api/v35_api/app.py",
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5"
+    },
+    {
+      "path": "source_snapshot/active_api_issue32/apps/api/v35_api/manager_research_router.py",
+      "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073"
+    },
+    {
+      "path": "source_snapshot/active_api_issue32/apps/api/v35_api/manager_workbench_router.py",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e"
+    },
+    {
+      "path": "source_snapshot/active_api_issue32/apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae"
+    },
+    {
+      "path": "source_snapshot/active_api_issue32/apps/api/v35_api/run.py",
+      "sha256": "bcd4e623eabaedcc41a0e438942d755b578dbcc6a60c0ab0cf032af74fdbba43"
+    },
+    {
+      "path": "source_snapshot/active_api_issue32/release-manifest.json",
+      "sha256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6"
+    },
+    {
+      "path": "source_snapshot/active_api_issue32/stage_center/consumer.py",
+      "sha256": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4"
+    },
+    {
+      "path": "source_snapshot/active_runtime_gateway/LaunchAgents/com.lexi.v35.api-only.plist",
+      "sha256": "c88e4069f6deb467a204b4510824e62b15cb8fc11dfa7892a43e5ec8eaed8ec4"
+    },
+    {
+      "path": "source_snapshot/canonical_v4/apps/api/v35_api/app.py",
+      "sha256": "0362282afbac2d6684e1b6d27a6c4852fe96272e29cc29ff618719793f6ec465"
+    },
+    {
+      "path": "source_snapshot/canonical_v4/apps/api/v35_api/manager_research_router.py",
+      "sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c"
+    },
+    {
+      "path": "source_snapshot/canonical_v4/apps/api/v35_api/manager_workbench_router.py",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e"
+    },
+    {
+      "path": "source_snapshot/canonical_v4/apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae"
+    },
+    {
+      "path": "source_snapshot/canonical_v4/apps/api/v35_api/run.py",
+      "sha256": "edce24060615b03cff3602b534dedc5e845fe875cc25489b46f3bde6ae272345"
+    },
+    {
+      "path": "source_snapshot/canonical_v4/ops/api_release_integration.py",
+      "sha256": "579bb0986404232bb497027705d9d7a0f18ee74ad663a44e8ce0befd0f9cb24a"
+    },
+    {
+      "path": "source_snapshot/canonical_v4/ops/build_release_candidate.py",
+      "sha256": "86ba30a04df15dad6f15587a3a63597d375d11af9da00b41241fa6b026e73155"
+    },
+    {
+      "path": "source_snapshot/canonical_v4/ops/prepare_api_only_cutover.py",
+      "sha256": "2a6cc7972cdf367965001314ee20f459579028accbc132345ab37db99aaee0a6"
+    },
+    {
+      "path": "source_snapshot/canonical_v4/ops/release_candidate_sources.py",
+      "sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738"
+    },
+    {
+      "path": "source_snapshot/canonical_v4/stage_center/consumer.py",
+      "sha256": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489"
+    },
+    {
+      "path": "source_snapshot/frozen_issue30_guard/ops/api_release_integration.py",
+      "sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050"
+    },
+    {
+      "path": "source_snapshot/frozen_issue32_cutover/tools/api_only_cutover_issue32_r4.py",
+      "sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25"
+    },
+    {
+      "path": "tools/build_delivery_zip.py",
+      "sha256": "c9dc1ae58f01f155644154cbcbba32be140897b4ff4f70787fc475086529573f"
+    },
+    {
+      "path": "tools/verify_delivery.py",
+      "sha256": "b4d079b410f64f791364aa862cde246a65ab61fa534c22a845b53b175746afb2"
+    },
+    {
+      "path": "tools/verify_manager_evidence.py",
+      "sha256": "7bb41e5d2ee214f94e17fb31ea03194635523a3e791ec3c54185b65706d945f0"
+    }
+  ],
+  "file_count": 45
+}

@@ -1,0 +1,155 @@
+{
+  "captured_at": "2026-10-09T14:33:35+08:00",
+  "caveats": [
+    "launchctl config, PID and process cwd do not prove exact in-memory Python module bytes",
+    "no service, binding, release root or shared state was changed"
+  ],
+  "read_only": true,
+  "schema_version": "v4.module_release_isolation.manager_runtime_readback.v1",
+  "services": [
+    {
+      "app_root_file_sha256": {
+        "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+        "apps/api/v35_api/manager_research_router.py": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+        "apps/api/v35_api/manager_workbench_router.py": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+        "apps/api/v35_api/preselection_router.py": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+        "ops/launch_v35_macos_scheduler.sh": "2634b60f718e4c94fec0d731d12102e27d85847d8e0b9e8bb6f5ab499ae6d9d5",
+        "ops/run_v35_macos_scheduler_daemon.py": "c5a922e5f5dc71bd5df61a1ee72eb7fceb0d8347142c5297981242f207b226d9"
+      },
+      "environment": {
+        "BUY_GATE_UPDATED": "false",
+        "ORDERS_SENT": "false",
+        "PRODUCTION_ALLOWED": "false",
+        "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "RESEARCH_ONLY": "1",
+        "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "V35_RELEASE_ID": "issue32_preselection_api_actual_r4",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+        "V35_RUNTIME_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime",
+        "V4_MANAGER_PLAN_OWNER_BINDING_PATH": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/staged_config/manager-plan-binding-c1.disabled.final-d1-r2.json",
+        "buy_gate_updated": "false",
+        "orders_sent": "false",
+        "production_allowed": "false"
+      },
+      "label": "com.lexi.v35.api-only",
+      "launchctl_state": "running",
+      "manager_binding": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+        "buy_gate_updated": false,
+        "enabled": false,
+        "orders_sent": false,
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/staged_config/manager-plan-binding-c1.disabled.final-d1-r2.json",
+        "plan_owner_present": false,
+        "production_allowed": false,
+        "research_only": true,
+        "sha256": "f3b7cbfa1709b2b27816d294e599cb1ae82ff918ba41ec148644f1a1751f5fd6"
+      },
+      "manifest_actual_sha256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+      "manifest_pin_matches": true,
+      "pid": 78617,
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "plist_program_arguments": [
+        "/usr/bin/env",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "-m",
+        "apps.api.v35_api.run",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8873",
+        "--stage-selection-root",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection"
+      ],
+      "plist_sha256": "c88e4069f6deb467a204b4510824e62b15cb8fc11dfa7892a43e5ec8eaed8ec4",
+      "process_arguments": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873 --stage-selection-root /Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+      "process_cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+      "program": "/usr/bin/env",
+      "safety_flags": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false,
+        "research_only": true
+      },
+      "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app"
+    },
+    {
+      "app_root_file_sha256": {
+        "apps/api/v35_api/app.py": "2c1eebfc0080b057b65cc2f0a6391c51e8b1b65b83a4f67c95361a8c1e87d501",
+        "ops/launch_v35_macos_scheduler.sh": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+        "ops/run_v35_macos_scheduler_daemon.py": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec"
+      },
+      "environment": {
+        "BUY_GATE_UPDATED": "false",
+        "ORDERS_SENT": "false",
+        "PRODUCTION_ALLOWED": "false",
+        "PYTHONPATH": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app",
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app",
+        "V35_RELEASE_ID": "issue32-preselection-scheduler-mac-20261009-r1",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "6ccaa8fcf7e7046b53b2451829a1c4ed805ad274287ae2580eee36391f5f0794",
+        "V35_RUNTIME_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime",
+        "V4_MANAGER_ANNOUNCEMENT_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+        "V4_MANAGER_ANNOUNCEMENT_BINDING": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/staged_config/manager-daily-plan-hook-r1/manager-plan-binding-r2.json",
+        "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256": "f891e74f2bbfed928f36479b0cbea57ab5fdcf2ab4882f9977f82654bfcbba81"
+      },
+      "label": "com.lexi.v35.scheduler",
+      "launchctl_state": "running",
+      "manager_binding": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+        "buy_gate_updated": false,
+        "enabled": true,
+        "orders_sent": false,
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/staged_config/manager-daily-plan-hook-r1/manager-plan-binding-r2.json",
+        "plan_owner_present": false,
+        "production_allowed": false,
+        "research_only": true,
+        "sha256": "c0fbff52449eb5dbf5c1655f17cf08915bea1214f9499cc8a4df1176d9625951"
+      },
+      "manifest_actual_sha256": "6ccaa8fcf7e7046b53b2451829a1c4ed805ad274287ae2580eee36391f5f0794",
+      "manifest_pin_matches": true,
+      "pid": 83677,
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "plist_program_arguments": [
+        "/bin/bash",
+        "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/launch_v35_macos_scheduler.sh"
+      ],
+      "plist_sha256": "b9e9e8361e9ce6eaca58df0688fcd214bf35bdc702f5febe405d07c6ceb05754",
+      "process_arguments": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-mac/bin/python -S -m ops.run_v35_macos_scheduler_daemon --data-root /Users/lexi/Library/Application Support/com.lexi.v35.local/state/data --ledger-root /Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher --preselection-input-root /Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_inputs --stage-selection-root /Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection --hk-0-2-python /Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/app/ops/launch_hk_0_2_python_nosite.sh --a-daily-timeout-seconds 3600 --shared-data-root /Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data --hk-universe-root /Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data --shared-package-root /Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-hk-security-master-owner-mac-20261009-r1/app/upstreams/v3_shared_data --selector-data-root /Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据",
+      "process_cwd": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app",
+      "program": "/bin/bash",
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app"
+    },
+    {
+      "environment": {
+        "BUY_GATE_UPDATED": "false",
+        "ORDERS_SENT": "false",
+        "PRODUCTION_ALLOWED": "false",
+        "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+        "RESEARCH_ONLY": "1",
+        "V35_RELEASE_ID": "20261003-hk-binding-wrapper-r3",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "f642954ebcb2c7af86e9c7ea84674e485ab82530503474536167766624895434"
+      },
+      "label": "com.lexi.stage-center.scheduler",
+      "launchctl_state": "not running",
+      "manifest_actual_sha256": "f642954ebcb2c7af86e9c7ea84674e485ab82530503474536167766624895434",
+      "manifest_pin_matches": true,
+      "pid": null,
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+      "plist_program_arguments": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/ops/run_stage_center_nodes.py",
+        "--config",
+        "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center_tick_config.json"
+      ],
+      "plist_sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5",
+      "process_arguments": null,
+      "process_cwd": null,
+      "program": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app"
+    }
+  ]
+}

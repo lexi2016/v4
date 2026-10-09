@@ -1,0 +1,75 @@
+{
+  "schema_version": "v4.module_release_isolation.independent_review_final.v1",
+  "reviewer_identity": "/root/isolation_package_review",
+  "reviewed_at_local_date": "2026-10-09",
+  "review_scope": "incremental package/source snapshot review only; no business/service/deployment actions",
+  "verdict": {
+    "reviewed": "PASS",
+    "reviewed_package": "PASS",
+    "behavior_verified": "CANNOT_CONFIRM",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0
+  },
+  "initial_review_preserved": {
+    "verdict": "FAIL",
+    "report_sha256": "5b07446943d87a224551c68326b89d083f8d2ce46b66d7e007157f23aa7d6b9d",
+    "receipt_sha256": "df4cd811f7bb7b74b4e2894e71fb5a14919d33636e5e99a9795adb0007528a9b"
+  },
+  "package_identity": {
+    "zip_sha256": "21d027fee15dc1377c259e51b2eb36f45b242e033a52f3e2d3927a8412103507",
+    "expected_zip_sha256": "21d027fee15dc1377c259e51b2eb36f45b242e033a52f3e2d3927a8412103507",
+    "source_manifest_sha256": "fd16d20b5b6c356d520a03fb51a51983d66132fd731cc07af59fee23e8b863c6",
+    "expected_source_manifest_sha256": "fd16d20b5b6c356d520a03fb51a51983d66132fd731cc07af59fee23e8b863c6",
+    "package_manifest_sha256": "84d1db09dd1013bb9b1cf45d9929dd54539f573367b48967e46dc7fd8ce87547",
+    "portable_source_preimages": 20,
+    "package_manifest_files": 45,
+    "zip_inventory_and_content": "PASS"
+  },
+  "source_statuses": {
+    "snapshots": "20 SNAPSHOT entries",
+    "planned_preimages_absent": [
+      "deployment/com.lexi.v4.manager-api.plist",
+      "deployment/com.lexi.v4.stage-api.plist"
+    ],
+    "parallel_implementation_not_baseline": [
+      "apps/api/v35_api/module_proxy.py",
+      "deployment/api_module_contracts.json"
+    ],
+    "fixed_git_remote_ref": "CANNOT_CONFIRM; portable exact bytes included and hash verified"
+  },
+  "verification": {
+    "manager_evidence": "PASS, 33 SHA checks",
+    "offline_package_verifier": "PASS, 45 package file hashes and 20 portable source preimages",
+    "zip_verifier": "PASS, inventory and bytes",
+    "temporary_extraction": "PASS",
+    "source_tamper_canary": "PASS, rejected on size/SHA-256/Git blob SHA-1",
+    "manager_research_route_ast": "PASS, 17 exact routes",
+    "manager_workbench_and_stage_selection_ast": "PASS",
+    "stage_route_ast": "PASS, exact 6-route equality and zero unclassified API v3 routes",
+    "external_source_provenance": "NOT_RUN; frozen snapshot is the review baseline and current implementation may be in progress"
+  },
+  "security_and_behavior": {
+    "credential_shaped_matches": 0,
+    "active_gateway_sensitive_environment_key_names": 0,
+    "active_gateway_environment_value_count": 0,
+    "raw_state_or_market_payloads_detected": false,
+    "absolute_runtime_path_metadata_present": true,
+    "implementation_and_deployment": "NOT_RUN",
+    "behavior_verified": "CANNOT_CONFIRM",
+    "historical_overwrite_causality": "CANNOT_CONFIRM",
+    "business_suites_run": false,
+    "r3_writer_only_counts": {
+      "scoped": "66/0",
+      "daily_regression": "36/0",
+      "policy_verifier": "18/0"
+    },
+    "old_hk_suite": "12/3 FAIL_RECORDED",
+    "stage_local_tests": 0,
+    "historical_linux_tests": 287
+  },
+  "closed_initial_finding": "P1-1 source-preimage portability gap closed by 20 verified portable snapshots",
+  "new_findings": [],
+  "report_sha256": "fc2469b2ea947361e42d8cbc546c74abd04a84f2e3b74dc5371b0a3f3a0e8b8b",
+  "verification_log_sha256": "126272d645cf63994046a1b1391ff130b470ebdcc8748ada286b782a054a4cae"
+}

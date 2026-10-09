@@ -1,0 +1,189 @@
+{
+  "schema_version": "v4.module_release_isolation.manager_evidence.v1",
+  "captured_at": "2026-10-09T14:33:35+08:00",
+  "summary": "SHARED_SURFACE_20261009.md",
+  "summary_sha256": "75fda58f05e8e5b5983d31e1947dce09ebc66365e42d91a07ddc0384a6a47f28",
+  "current_runtime_identity": "current_runtime_identity.json",
+  "current_runtime_identity_sha256": "537aeb776e3a491b03d3c3ce930e1b593024e21ccd10511e08933257761420e4",
+  "r3_candidate_summary": "r3_candidate_summary.json",
+  "r3_candidate_summary_sha256": "c2a45f70cd22290ab5f5b690d39b2774fcfde282efc7f2e6155886eda178e9b6",
+  "source_extracts": "source_extracts_20261009.md",
+  "source_extracts_sha256": "4d0f71dc6e0b3c95149497704367bce385a225abeed2aa38e334b3f4a4b15b52",
+  "evidence": [
+    {
+      "kind": "owner_handoff",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/coordination/SHARED_OWNER_HANDOFF.md",
+      "sha256": "3a3a23691facf46cb08be3ed35c4e820db1b643e1a60f3475383264813076811"
+    },
+    {
+      "kind": "runtime_identity_snapshot",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/coordination/SHARED_OWNER_CURRENT_IDENTITY.json",
+      "sha256": "6ea7ff06ed9ee56ff7ebefe72a024dbfe22ec7ea29417190e7d5702d5f703c30",
+      "observed_at": "2026-10-09T14:04:11.405944+08:00"
+    },
+    {
+      "kind": "policy_only_review",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/coordination/SHARED_OWNER_POLICY_REVIEW.json",
+      "sha256": "aa9bc900b2c4959dcc6945fe389c40bdf4829b752deb21f029a5936c48872416"
+    },
+    {
+      "kind": "r3_host_handoff",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/incoming/manager-daily-r3-repair-20261009/HOST_HANDOFF.md",
+      "sha256": "9fcf50e6afba6f42047eea14c01d81df1f4d9a81cb188d0167ba7a45ed6ba711"
+    },
+    {
+      "kind": "r3_source_map",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/incoming/manager-daily-r3-repair-20261009/SOURCE_MAP.md",
+      "sha256": "1c7ab8afbcce9c73be996f45d3c4966ec612445f047c918d123f55a6a5601fbb"
+    },
+    {
+      "kind": "r3_candidate_manifest",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/incoming/manager-daily-r3-repair-20261009/source_manifest.json",
+      "sha256": "2288039fdfdc763904b943d57fb02ad16879b9fa5d7a2c4bc7e1b8b414ba4213",
+      "candidate_only": true,
+      "actual_runtime_process_identity": "NOT_RUN"
+    },
+    {
+      "kind": "live_api_app_entry",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/apps/api/v35_api/app.py",
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5"
+    },
+    {
+      "kind": "live_api_manager_router",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/apps/api/v35_api/manager_research_router.py",
+      "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073"
+    },
+    {
+      "kind": "live_api_workbench_router",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/apps/api/v35_api/manager_workbench_router.py",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e"
+    },
+    {
+      "kind": "protected_live_api_stage_router",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app/apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae"
+    },
+    {
+      "kind": "live_scheduler_daemon",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec"
+    },
+    {
+      "kind": "live_scheduler_launcher",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/launch_v35_macos_scheduler.sh",
+      "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952"
+    },
+    {
+      "kind": "api_release_tool",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/tools/api_only_cutover_issue32_r4.py",
+      "sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25",
+      "executed_in_this_task": false
+    },
+    {
+      "kind": "api_release_manifest",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/release-manifest.json",
+      "sha256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+      "matches_runtime_pin": true
+    },
+    {
+      "kind": "scheduler_release_manifest",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/release-manifest.json",
+      "sha256": "6ccaa8fcf7e7046b53b2451829a1c4ed805ad274287ae2580eee36391f5f0794",
+      "runtime_manifest_pin": "6ccaa8fcf7e7046b53b2451829a1c4ed805ad274287ae2580eee36391f5f0794"
+    },
+    {
+      "kind": "r3_mac_candidate_receipt",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/evidence/mac_candidate_receipt.json",
+      "sha256": "30113d01f3c9ffec5ad16f9b617ad9bfb15da13ff09b9a5c287a715e42e168fd",
+      "status": "CANDIDATE_SAVED_WRITER_TESTED_REVIEW_PENDING"
+    },
+    {
+      "kind": "r3_runtime_identity_projection",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/evidence/runtime_identity_projection.json",
+      "sha256": "556005994073ca4dab733b75d6dffa848dc196785da45cca0d803bddca34b427",
+      "live_in_memory_python_module_file_identity": "CANNOT_CONFIRM"
+    },
+    {
+      "kind": "r3_reviewer_entry",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/handoff/REVIEWER_ENTRY.md",
+      "sha256": "c0ad3b4abafd50c94d57404e6faa532680cf00d879c1a4acc9f2f05ab4853fa8"
+    },
+    {
+      "kind": "r3_final_handoff",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/handoff/FINAL_HANDOFF.md",
+      "sha256": "97eaf87137319f4f143ca4722228213e39246f6ef6a3020cb61df5ebc14049e9"
+    },
+    {
+      "kind": "r3_source_root_map",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/evidence/source_root_map.json",
+      "sha256": "74b69947a805578351ab304587dbeb95e1b5b04aeb4a91ed859b453669aa153a"
+    },
+    {
+      "kind": "r3_old_hk_suite_failure_log",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R3_REPAIR_MAC_20261009/evidence/mac_original_hk_supplement_final.log",
+      "sha256": "9cc1c725846b12a837b3c6b3d64364e63675166d7cc939932cc7df5aceb5e2ea",
+      "status": "FAIL_RECORDED"
+    },
+    {
+      "kind": "current_read_only_runtime_identity",
+      "path": "current_runtime_identity.json",
+      "sha256": "537aeb776e3a491b03d3c3ce930e1b593024e21ccd10511e08933257761420e4"
+    },
+    {
+      "kind": "r3_candidate_summary",
+      "path": "r3_candidate_summary.json",
+      "sha256": "c2a45f70cd22290ab5f5b690d39b2774fcfde282efc7f2e6155886eda178e9b6"
+    },
+    {
+      "kind": "manager_evidence_verifier",
+      "path": "../tools/verify_manager_evidence.py",
+      "sha256": "7bb41e5d2ee214f94e17fb31ea03194635523a3e791ec3c54185b65706d945f0"
+    },
+    {
+      "kind": "stage_shared_surface_summary",
+      "path": "../evidence/STAGE_SHARED_BOUNDARY_20261009.md",
+      "sha256": "8658ea725aa447afcd012025233c6024d62f08d11e119e97104c4b2c678f467a"
+    },
+    {
+      "kind": "stage_boundary_machine_extract",
+      "path": "../evidence/stage_boundary.json",
+      "sha256": "276eb1d00edb1acd33b1035d20840f2102fa7f2424b6e1dc16613fe328dd1641"
+    },
+    {
+      "kind": "current_runtime_release_graph",
+      "path": "../evidence/current_runtime_release_graph.md",
+      "sha256": "b4b30be9492bf67a678aeadf46144b96d576209a2176b922e7b2543bb73ad829"
+    },
+    {
+      "kind": "stage_current_state_receipt",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_MINIMAL_FIX_MAC_20261009/evidence/CURRENT_STATE_RECEIPT.md",
+      "sha256": "54d7ee1798d707a5e28921cb8467f691b45d18eab2fb6d346527feb94b3bd883"
+    },
+    {
+      "kind": "stage_current_state_machine_receipt",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_MINIMAL_FIX_MAC_20261009/evidence/CURRENT_STATE_RECEIPT.json",
+      "sha256": "119c82d2d2d12b9100c3698e780d46b21f27b290f88c31085e824010fe4fdcfc"
+    }
+  ],
+  "shared_policy_exact_paths": [
+    "infrastructure/_research_peripheral_store_parts/_namespace.py",
+    "infrastructure/scheduling/manager_announcement_supervisor.py",
+    "ops/render_manager_announcement_binding.py",
+    "ops/run_manager_announcement_cycle.py",
+    "v3_shared_data/shared_data/hk_daily_supplement.py"
+  ],
+  "claims": {
+    "stage_and_manager_share_api_process_and_application_root": "SUPPORTED_BY_CURRENT_API_ENTRY_AND_LAUNCHAGENT",
+    "scheduler_code_root_is_separate_from_api_code_root": "SUPPORTED_BY_LAUNCHAGENT_CWD_PYTHONPATH_AND_RELEASE_MANIFEST",
+    "api_and_scheduler_manager_bindings_match": false,
+    "manager_r3_policy_is_applied": false,
+    "stage_scheduler_causal_failure_due_to_manager_publication": "CANNOT_CONFIRM",
+    "in_memory_imported_module_sha": "CANNOT_CONFIRM"
+  },
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
