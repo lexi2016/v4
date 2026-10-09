@@ -1,0 +1,219 @@
+{
+  "RESEARCH_ONLY": true,
+  "buy_gate_updated": false,
+  "destination": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R2_MAC_20261009/candidate/mac_apply_20261009_7a9c94d4/api_app",
+  "errors": [
+    "[Errno 13] Permission denied: '/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R2_MAC_20261009/candidate/mac_apply_20261009_7a9c94d4/api_app/stage_center/tmp0pz8q150'"
+  ],
+  "files": [
+    {
+      "accepted_before_sha256": [
+        "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+        "bd79b1844568a79750ccce6c547cfe08f651291f1863e213fb25629d34a67b79"
+      ],
+      "after_sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "observed_sha256": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+      "relative_path": "stage_center/execution_evidence.py",
+      "status": "BEFORE_MATCH"
+    },
+    {
+      "accepted_before_sha256": [
+        "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+        "bc428dc5b3747b0eb1e3c4d68ae4e6f2441882393cfa4a31e4c4c962b924c234"
+      ],
+      "after_sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "observed_sha256": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+      "relative_path": "stage_center/consumer.py",
+      "status": "BEFORE_MATCH"
+    }
+  ],
+  "group": "api",
+  "ignored_names": [
+    ".git",
+    ".pytest_cache",
+    ".venv",
+    "__pycache__",
+    "node_modules"
+  ],
+  "inspect_only": false,
+  "orders_sent": false,
+  "package": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R2_MAC_20261009/incoming/stage-research-recovery-20261009-r2",
+  "package_files": [
+    {
+      "after_path": "after/stage/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "after_sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+      "group": "stage",
+      "observed_sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+      "relative_path": "ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "after_sha256": "fd544913cacff11e9fe8ed5ca682239d3ff4185d8c1b810934637580cdb65aa2",
+      "group": "stage",
+      "observed_sha256": "fd544913cacff11e9fe8ed5ca682239d3ff4185d8c1b810934637580cdb65aa2",
+      "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "after_sha256": "515a739b73e4a874489958aa4d207ae7aca643166a356c2bc05d494ad5f2a93a",
+      "group": "stage",
+      "observed_sha256": "515a739b73e4a874489958aa4d207ae7aca643166a356c2bc05d494ad5f2a93a",
+      "relative_path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/ops/run_stage_center_tick.py",
+      "after_sha256": "f362bb04734fb78e847bdf6e435a29bc01a66f6186ddfd4c52cb0efc7c21b439",
+      "group": "stage",
+      "observed_sha256": "f362bb04734fb78e847bdf6e435a29bc01a66f6186ddfd4c52cb0efc7c21b439",
+      "relative_path": "ops/run_stage_center_tick.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/_live_collectors_parts/hk_minute.py",
+      "after_sha256": "03300128a9525d49b0aedd77b35fa7cbeda464900d6802b503a001172a5ccf65",
+      "group": "stage",
+      "observed_sha256": "03300128a9525d49b0aedd77b35fa7cbeda464900d6802b503a001172a5ccf65",
+      "relative_path": "stage_center/_live_collectors_parts/hk_minute.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "after_sha256": "13fa73cc9b00c1255c05421f43eddc4155a0c14b4488b2a9829a0b496f6337df",
+      "group": "stage",
+      "observed_sha256": "13fa73cc9b00c1255c05421f43eddc4155a0c14b4488b2a9829a0b496f6337df",
+      "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/_runner_parts/configuration.py",
+      "after_sha256": "62416ad875ff37a95ae222e3c8c4094a351b53229daa5313d43f5d27a98899be",
+      "group": "stage",
+      "observed_sha256": "62416ad875ff37a95ae222e3c8c4094a351b53229daa5313d43f5d27a98899be",
+      "relative_path": "stage_center/_runner_parts/configuration.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/_runner_parts/hk_candidate_authority.py",
+      "after_sha256": "57bf97d5edb73ba2f226d102bb81c9079f84aebf67ead45d5649ebfe5cc932cb",
+      "group": "stage",
+      "observed_sha256": "57bf97d5edb73ba2f226d102bb81c9079f84aebf67ead45d5649ebfe5cc932cb",
+      "relative_path": "stage_center/_runner_parts/hk_candidate_authority.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/_runner_parts/hk_input_validation.py",
+      "after_sha256": "7bd2ca1e47a9831170c64b2d5d6ecbfe5b0e66d7e664ae4b2c3dcc9d4aaf1c74",
+      "group": "stage",
+      "observed_sha256": "7bd2ca1e47a9831170c64b2d5d6ecbfe5b0e66d7e664ae4b2c3dcc9d4aaf1c74",
+      "relative_path": "stage_center/_runner_parts/hk_input_validation.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/_runner_parts/runner_receipts.py",
+      "after_sha256": "94fb3592619a8012904e4193280b5cd4f78f5c898b8fdd6cc5751398dc7f882d",
+      "group": "stage",
+      "observed_sha256": "94fb3592619a8012904e4193280b5cd4f78f5c898b8fdd6cc5751398dc7f882d",
+      "relative_path": "stage_center/_runner_parts/runner_receipts.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/_runner_parts/selection_input_validation.py",
+      "after_sha256": "87265f5027b2c8fb4c7d74dc8ea0c748df7f449516bc21f20b2f839de8a595fb",
+      "group": "stage",
+      "observed_sha256": "87265f5027b2c8fb4c7d74dc8ea0c748df7f449516bc21f20b2f839de8a595fb",
+      "relative_path": "stage_center/_runner_parts/selection_input_validation.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/_runner_parts/slot_execution.py",
+      "after_sha256": "3ed350bb9b072806a8b033055dbfa29b1ccc7292df6d79cbff61e55c8409112e",
+      "group": "stage",
+      "observed_sha256": "3ed350bb9b072806a8b033055dbfa29b1ccc7292df6d79cbff61e55c8409112e",
+      "relative_path": "stage_center/_runner_parts/slot_execution.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/_selection_parts/a_auction.py",
+      "after_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+      "group": "stage",
+      "observed_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+      "relative_path": "stage_center/_selection_parts/a_auction.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/_selection_parts/a_live.py",
+      "after_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+      "group": "stage",
+      "observed_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+      "relative_path": "stage_center/_selection_parts/a_live.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/stage_center/runner.py",
+      "after_sha256": "ea9909bb4f39c4248032771aedd9611a852353e940451e0b0c7273bde8c26345",
+      "group": "stage",
+      "observed_sha256": "ea9909bb4f39c4248032771aedd9611a852353e940451e0b0c7273bde8c26345",
+      "relative_path": "stage_center/runner.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/stage/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "after_sha256": "fdd849fc032b5745d6611df31b5f9a147b14207d77dca953dff7b0ea4140cea2",
+      "group": "stage",
+      "observed_sha256": "fdd849fc032b5745d6611df31b5f9a147b14207d77dca953dff7b0ea4140cea2",
+      "relative_path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/api/stage_center/execution_evidence.py",
+      "after_sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "group": "api",
+      "observed_sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "relative_path": "stage_center/execution_evidence.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/api/stage_center/consumer.py",
+      "after_sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "group": "api",
+      "observed_sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "relative_path": "stage_center/consumer.py",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/ui/apps/web/src/App.vue",
+      "after_sha256": "01903e69d06579c29d4d576bfe739420112ddb2778b6c321f7cb6ef587141f7d",
+      "group": "ui",
+      "observed_sha256": "01903e69d06579c29d4d576bfe739420112ddb2778b6c321f7cb6ef587141f7d",
+      "relative_path": "apps/web/src/App.vue",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "after_sha256": "a9d044cd03325cb09acefd5e3c57c2a7e49cb1b61e22eadba0c50cf51963b273",
+      "group": "ui",
+      "observed_sha256": "a9d044cd03325cb09acefd5e3c57c2a7e49cb1b61e22eadba0c50cf51963b273",
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/ui/apps/web/src/contracts/runtime.ts",
+      "after_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "group": "ui",
+      "observed_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "status": "AFTER_SHA_MATCH"
+    }
+  ],
+  "production_allowed": false,
+  "schema_version": "V4_EXACT_SHA_CANARY_PREPARATION_V1",
+  "source_files_changed": [],
+  "source_map_sha256": "f402f93009ff1e8ef588e04c994eec1897274d80970fc20ee07748a506156ce4",
+  "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+  "source_verification_scope": "MAPPED_FILES",
+  "status": "COPY_FAILED",
+  "write_performed": true
+}
