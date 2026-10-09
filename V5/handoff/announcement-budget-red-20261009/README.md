@@ -1,8 +1,12 @@
 # 公告预算与有界并发：第二轮修复候选
 
-状态 **IMPLEMENTED_MAC_REVALIDATION_PENDING**。本轮依据现有 Mac 实际 RED 修复真实 provider/transport 字节计量和独立 CLI 初始化，完整说明见 [REVIEW_FIX.md](REVIEW_FIX.md)。云端没有运行产品测试，未采集、集成或部署。
+状态 **HTTP_POLICY_RED_CANDIDATE_NOT_RUN**。历史记录：本轮依据现有 Mac 实际 RED 修复真实 provider/transport 字节计量和独立 CLI 初始化，完整说明见 [REVIEW_FIX.md](REVIEW_FIX.md)。云端没有运行产品测试，未采集、集成或部署。
 
 第一轮 e4fc9225 已由父任务报告 Mac 18 项通过。第二轮 cdab6fa8 实际为 provider 2 PASS / 4 FAIL、CLI 1 FAIL，均 exit1，无环境ERROR；本次以此为依据实现。原18+7断言不变，增加6项竞争/未知消耗回归，待Mac单次复验31项。历史失败测试及设计记录见 [REVIEW_RED.md](REVIEW_RED.md)，其中“未实现/未运行”描述只对应历史cdab候选，不代表本轮状态。
+
+## 当前阶段：HTTP门禁RED及私有owner接线
+
+父任务已报告79fcdf81的31项Mac通过、两缺陷独立复审关闭。现进入今天完整链适配：本轮仅新增9项HTTP门禁失败回归及12项固定依赖来源清单，生产三文件不变。请先执行 [HTTP_POLICY_RED.md](HTTP_POLICY_RED.md) 的单次新测试命令；不要重复下面历史31项复验命令。该文也给出复用原完整链的V5私有owner分派边界，下一阶段不通过8873写入。
 
 ## 固定来源、交付和边界
 

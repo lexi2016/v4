@@ -47,7 +47,7 @@ printf 'budget_exit=%s provider_exit=%s cli_exit=%s\n' "$BUDGET_RC" "$PROVIDER_R
 ## 限制和后续门禁
 
 - 这里计的是应用 read/transport 返回且可证明的响应体字节，不含请求头、TLS、TCP缓存、重定向内部流量或失败read未返回的部分；不是64MiB物理网络硬上限。异常未知消耗以停止而非猜测处理。未知标记只在同一gate有效，不得以新run规避。
-- 对 opaque 注入 transport，已返回body只能事后计量；若其违反额度，记录真实数量并关闭后续准入，不能追溯撤销已经收到的字节。默认 transport 才支持逐read预先限额。部署必须使用本轮三个候选组成的已核版本，不能把旧provider与新gate混用。为兼容旧测试/调用保留的 duck-typed provider fallback 没有真实transport读边界保证，不作为真实采集放行依据。
+- 对 opaque 注入 transport，已返回body只能事后计量；若其违反总预算（已观察字节加其他在途预留），记录真实数量并关闭后续准入，不能追溯撤销已经收到的字节。默认 transport 才支持逐read预先限额。部署必须使用本轮三个候选组成的已核版本，不能把旧provider与新gate混用。为兼容旧测试/调用保留的 duck-typed provider fallback 没有真实transport读边界保证，不作为真实采集放行依据。
 - 已在途的阻塞IO不能同步撤销；未知消耗标记阻止新准入和下一次read，不能收回已在执行的read。MaterialStore30秒锁等待及存储收尾也不证明3600秒完整流水线硬终止。
 - 原3 workers/2000调用/64MiB/3600s/0.35s不变，许可/计数只协调同gate，批owner只协调同output，不是跨批全局上限；不承诺吞吐倍数。
 - HTTPError结构化状态/Retry-After、429/403/验证码全批停止/冷却仍是明确后续工作；未知消耗stop不冒充HTTP协议门禁。未满足这些门禁前仍不放行真实采集。保持无部署、无凭据扩权、无代理轮转。
