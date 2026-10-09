@@ -1,0 +1,26 @@
+{
+  "stage": "fetch",
+  "command_argv": [
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_pipeline_runner.py",
+    "--run-dir",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+    "--url",
+    "https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw",
+    "--title",
+    "风言风语信息更新 10.8",
+    "--target-date",
+    "20261008",
+    "--stage",
+    "fetch"
+  ],
+  "cwd": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号",
+  "python": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+  "runner_sha256": "b65fc26d232d2c3f38b5ec72f0b739728ff867a85b3e97da0dc26729ebf5d63e",
+  "adapter_sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17",
+  "exit_code": 1,
+  "output_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_runner_fetch.log",
+  "output_sha256": "012a6e9be5ffbf2e96a3352f02ec64c2697f8bbdc6428774abd41a364484ac69",
+  "argv_capture_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/observer/runner_argv.jsonl",
+  "network_guard_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/observer/network_guard.jsonl"
+}

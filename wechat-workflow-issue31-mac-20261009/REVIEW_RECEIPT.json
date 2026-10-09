@@ -1,0 +1,107 @@
+{
+  "schema_version": "issue31-independent-review-v1",
+  "reviewer_identity": "/root/issue31_r2_mac_reviewer",
+  "frozen_scope": "Issue31 R2 Mac acceptance; read-only candidate review; evidence written only under E/reviewer plus the two requested review files",
+  "candidate": {
+    "actual_diff_sha256": "d1de7a1bb64ed0756ee4dd9b35906a5f8c5ffa22af9dd939811b1d87441806e3",
+    "writer_receipt_sha256": "86c28fb160125d0766a6ac2169385460302a90158a1ddcf24c9a76afc72a56e8",
+    "manifest_candidate_hashes_checked": true,
+    "independent_copy": "evidence/issue31_r2_mac_20261009/reviewer/candidate"
+  },
+  "verdict": {
+    "reviewed": "FAIL",
+    "tested": "PASS",
+    "behavior_verified": "PARTIAL",
+    "target_daily_restore": "FAIL",
+    "complete_zip_raw_readback": "CANNOT_CONFIRM",
+    "p0": 0,
+    "p1": 1,
+    "p2": 0
+  },
+  "findings": [
+    {
+      "id": "R2-MAC-001",
+      "severity": "P1",
+      "file": "mac_actual/candidate/scripts/wechat_article_fetch.py",
+      "lines": "62-77",
+      "title": "Text BODY bypasses image-manifest binding",
+      "evidence": [
+        "Lines 72-73 return as soon as BODY text is nonempty, before comparing BODY image URLs with manifest rows.",
+        "Independent repro: article BODY contains text and one mmbiz image while manifest_rows is empty; _prepare_promotion accepts it with identity.image_count=0 and promoted images=0. See reviewer/article_body_promotion_repro_rerun.log.",
+        "The same comparison rejects a duplicate-URL image-only BODY even though the real collector projects ordered unique mmbiz URLs and filters GIF URLs (wechat_article_intake.py lines 273-284). See reviewer/article_body_binding_repro.log."
+      ],
+      "minimum_fix": "Apply the collector's ordered, unique mmbiz URL projection to every BODY, including text-bearing BODY, then compare it with the manifest. Add missing-row, duplicate-URL, and GIF regression cases."
+    }
+  ],
+  "independent_checks": [
+    {
+      "name": "fetch recovery regression suite",
+      "cwd": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/reviewer/candidate/tests",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 TMPDIR=/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/reviewer/tmp/fetch PYTHONPATH=/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/reviewer/candidate/tests:/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/reviewer/candidate/scripts /Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python -m unittest -v test_wechat_article_fetch_recovery",
+      "exit_code": 0,
+      "tests": 17,
+      "log": "reviewer/r2_fetch_recovery_tests.log",
+      "log_sha256": "79c6387957e9435854cd86464ddfca6868c8bb47ead0c64a1d3664822154b9cb"
+    },
+    {
+      "name": "targeted prior-mentions appendix regressions",
+      "cwd": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/reviewer/candidate/tests",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 TMPDIR=/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/reviewer/tmp/appendix PYTHONPATH=/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/reviewer/candidate/tests:/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/reviewer/candidate/scripts /Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python -m unittest -v test_prior_mentions_performance_appendix.PriorMentionsPerformanceAppendixTests.test_hk_receipt_facts_survive_current_panel_sha_failure test_prior_mentions_performance_appendix.PriorMentionsPerformanceAppendixTests.test_failed_a_bj_and_hk_probes_are_cached_once test_prior_mentions_performance_appendix.PriorMentionsPerformanceAppendixTests.test_failed_bindings_preserve_receipt_and_all_108_rows_in_json_and_markdown",
+      "exit_code": 0,
+      "tests": 3,
+      "log": "reviewer/r2_appendix_regression_tests.log",
+      "log_sha256": "7a8f27d8ff3a0e92fcfb5af1c8d499da9f33e4361ef061b7f89b8bad4f5d7875"
+    },
+    {
+      "name": "real external collector offline CLI with saved HTML and seeded image cache",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 TMPDIR=<E>/reviewer/tmp <test_venv>/bin/python evidence/issue31_r2_mac_20261009/reviewer/run_collector_cli_probe_rerun.py",
+      "exit_code": 0,
+      "result": "50 manifest rows and 50 promoted images; 50/50 images reused; network attempts 0; prepare_ocr exit 0. This verifies the saved-input/cache path only, not fresh network collection or OCR execution.",
+      "collector_path": "/Users/lexi/.codex/skills/wechat-research-intake/scripts/wechat_article_intake.py",
+      "collector_sha256": "de9499c2e049bcf6d3da5ea6375831aece5eb2374e338e057f04e60dfd0c6058",
+      "receipt": "reviewer/collector_cli_probe_receipt.json"
+    },
+    {
+      "name": "candidate runner prepare_ocr, ocr_canary, ocr_full cache reuse",
+      "exit_code": 0,
+      "result": "50 images prepared; canary reused 3/3; full reused 50/50; OCR attempts 0.",
+      "log": "reviewer/runner_vision_reuse.log",
+      "log_sha256": "7e9a29b6fcd097ef66d824375c5e089a1b0c56fd4505036c79e2404375dfb42c"
+    },
+    {
+      "name": "candidate default runner fetch on the historical run",
+      "exit_code": 1,
+      "child_exit_code": 2,
+      "result": "The child argv contains --skip-ocr; fetch did not complete and the historical run remains unrecovered. Network guard recorded zero network attempts. The failure is the R2 identity/promotion binding refusal for the historical run.",
+      "log": "reviewer/runner_fetch.log",
+      "argv_log": "reviewer/runner_fetch_argv.jsonl",
+      "log_sha256": "3e40be887bcacc6103d3d2bef8e9966f658e4e011fe511aff4d500875bdf0112"
+    },
+    {
+      "name": "appendix CLI against scoped synthetic 108-mention input",
+      "exit_code": 0,
+      "result": "CANNOT_CONFIRM with all 108 rows preserved, 0 observed prices, A=81, BJ=3, HK=24. Existing A PARTIAL receipt facts were preserved; HK prior receipt was unavailable.",
+      "log": "reviewer/appendix_cli.log",
+      "log_sha256": "aedbc5b79e027f13527ef4ae406d023f840a58a9830f3060b2771e3da5cc456c"
+    }
+  ],
+  "acceptance_evidence": {
+    "full_zip_file_id": "1kzaeWN8SqAvKKt7E4zhgFoehOYsBtNrW",
+    "expected_size_bytes": 11012113,
+    "expected_sha256": "f335cc03ee936315f9f91d825235208bb25ee899a3d92a832dd57e4aee8de34a",
+    "metadata_verified": true,
+    "raw_bytes_obtained": false,
+    "status": "CANNOT_CONFIRM",
+    "failure": "HTTP 403 Forbidden, connector download_url response code 1010",
+    "receipt": "drive_readback/CANDIDATE_FULL_ZIP_READBACK_RECEIPT.json"
+  },
+  "limitations": [
+    "No fresh OCR was performed; OCR evidence is cache reuse only.",
+    "No full daily restore passed through the default runner.",
+    "The new full ZIP raw-byte round trip is unverified."
+  ],
+  "reviewer_files": {
+    "findings": "REVIEW_FINDINGS.md",
+    "receipt": "REVIEW_RECEIPT.json"
+  }
+}

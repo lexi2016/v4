@@ -1,0 +1,12 @@
+{"stage": "fetch", "action": "RUN"}
+Traceback (most recent call last):
+  File "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_pipeline_runner.py", line 1710, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_pipeline_runner.py", line 1703, in main
+    run_stage(s, args)
+  File "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_pipeline_runner.py", line 1562, in run_stage
+    _run_fetch(
+  File "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_pipeline_runner.py", line 770, in _run_fetch
+    raise subprocess.CalledProcessError(completed.returncode, cmd, output=completed.stdout, stderr=completed.stderr)
+subprocess.CalledProcessError: Command '['/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python', '-X', 'utf8', '/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_article_fetch.py', '--url', 'https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw', '--out', '/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw', '--skip-ocr']' returned non-zero exit status 2.

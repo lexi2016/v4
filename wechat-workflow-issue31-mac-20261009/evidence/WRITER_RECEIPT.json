@@ -1,0 +1,763 @@
+{
+  "schema_version": "issue31-r2-mac-writer-receipt-v1",
+  "writer_status": "PARTIAL_CANDIDATE_READY_FOR_INDEPENDENT_REVIEW",
+  "acceptance_status": "CANNOT_CONFIRM",
+  "scope": {
+    "goal": "Isolated Mac acceptance of fixed Issue 31 R2 and rollback evidence.",
+    "workspace_root": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号",
+    "evidence_root": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009",
+    "allowed_write_root": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009",
+    "remote_review_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+    "r1_commit": "e7dcf69d342a43d605521d551aafb4dc5c3911af",
+    "workflow_expected_local_change": "The reviewed R2 paragraph was added to the current local workflow document only; the redacted remote export's path substitutions were not applied.",
+    "actual_workspace_source_files_modified": [],
+    "research_only_flags": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "services_or_schedules_changed": false,
+    "deployment_or_integration_performed": false
+  },
+  "machine": {
+    "macos": "26.6.2",
+    "architecture": "arm64",
+    "test_python": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+      "version": "3.12.14"
+    },
+    "system_python": {
+      "path": "/usr/bin/python3",
+      "version": "Python 3.9.6"
+    }
+  },
+  "initial_state": {
+    "git_status_before": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/git_status.before.txt",
+      "bytes": 80693,
+      "sha256": "913c2e9626aaceeb99981308a3c7c6be0d32237280d8822f0627714fd39ae8d2",
+      "line_count": 931
+    },
+    "snapshot_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/INITIAL_SNAPSHOT.json",
+    "snapshot_sha256": "8cb23e0ce01921f5173fd89abb835f132974c0ff1f4639b958491d300bc38f5d",
+    "preexisting_dirty_repository_state_preserved": true
+  },
+  "candidate": {
+    "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate",
+    "file_count": 142,
+    "file_bytes": 38953305,
+    "disk_usage": "37M\t/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate",
+    "complete_candidate_package_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/handoffs/wechat_chat_materials_issue31_r2_mac_20261009.zip",
+    "complete_candidate_package_bytes": 11012113,
+    "complete_candidate_package_sha256": "f335cc03ee936315f9f91d825235208bb25ee899a3d92a832dd57e4aee8de34a",
+    "complete_candidate_package_member_count": 56,
+    "complete_candidate_package_image_member_count": 50
+  },
+  "source_manifest_comparison": [
+    {
+      "manifest_path": "wechat/WORKFLOW_公众号链接固定执行方案.md",
+      "candidate_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/WORKFLOW_公众号链接固定执行方案.md",
+      "workspace_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/WORKFLOW_公众号链接固定执行方案.md",
+      "manifest_before_sha256": "fe549923926d413d3f9ced9bdbaa0bda9e2e31480071c51e4b2e0d57774a8b13",
+      "local_before_sha256": "04a3d1cf5be4c8d278a04c76d4e3455d741fa8c2fcfb109b90f1431ac83de345",
+      "local_before_matches_manifest": false,
+      "manifest_after_sha256": "6737f1b37f1bc6f7df90b654296b5f46fe3ee8ac8be06421ee6fbbc342ff592f",
+      "candidate_after_sha256": "4020c1320de51622c35e1cc8e55adc7b2037cd9ab2d67fc09d51f9e50046c4e8",
+      "candidate_after_matches_manifest": false,
+      "workspace_sha256": "04a3d1cf5be4c8d278a04c76d4e3455d741fa8c2fcfb109b90f1431ac83de345",
+      "workspace_matches_local_before": true,
+      "mac_apply_note": "This workflow export contains redacted paths; apply the reviewed insertion to the actual document, not the entire exported file."
+    },
+    {
+      "manifest_path": "wechat/scripts/wechat_article_fetch.py",
+      "candidate_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_article_fetch.py",
+      "workspace_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/scripts/wechat_article_fetch.py",
+      "manifest_before_sha256": "8c5a2dba2b1dc9c7392d43d9b8023fc2559c62c2dadc99cef8a1e5f3d69381a1",
+      "local_before_sha256": "8c5a2dba2b1dc9c7392d43d9b8023fc2559c62c2dadc99cef8a1e5f3d69381a1",
+      "local_before_matches_manifest": true,
+      "manifest_after_sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17",
+      "candidate_after_sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17",
+      "candidate_after_matches_manifest": true,
+      "workspace_sha256": "8c5a2dba2b1dc9c7392d43d9b8023fc2559c62c2dadc99cef8a1e5f3d69381a1",
+      "workspace_matches_local_before": true,
+      "mac_apply_note": "Require exact before SHA or rebase and review against the actual current Mac file."
+    },
+    {
+      "manifest_path": "wechat/scripts/wechat_yesterday_performance.py",
+      "candidate_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_yesterday_performance.py",
+      "workspace_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/scripts/wechat_yesterday_performance.py",
+      "manifest_before_sha256": "364d441853fd8e0ab977cd35c173143e2639bd77e2a9363d8e1bf6e04f07e51d",
+      "local_before_sha256": "364d441853fd8e0ab977cd35c173143e2639bd77e2a9363d8e1bf6e04f07e51d",
+      "local_before_matches_manifest": true,
+      "manifest_after_sha256": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c",
+      "candidate_after_sha256": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c",
+      "candidate_after_matches_manifest": true,
+      "workspace_sha256": "364d441853fd8e0ab977cd35c173143e2639bd77e2a9363d8e1bf6e04f07e51d",
+      "workspace_matches_local_before": true,
+      "mac_apply_note": "Require exact before SHA or rebase and review against the actual current Mac file."
+    },
+    {
+      "manifest_path": "wechat/tests/test_prior_mentions_performance_appendix.py",
+      "candidate_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/tests/test_prior_mentions_performance_appendix.py",
+      "workspace_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/tests/test_prior_mentions_performance_appendix.py",
+      "manifest_before_sha256": "621c9d7163595e89f26ed2a818358513a6674992b8e30d175dc124a9cf9aa3ca",
+      "local_before_sha256": "621c9d7163595e89f26ed2a818358513a6674992b8e30d175dc124a9cf9aa3ca",
+      "local_before_matches_manifest": true,
+      "manifest_after_sha256": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588",
+      "candidate_after_sha256": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588",
+      "candidate_after_matches_manifest": true,
+      "workspace_sha256": "621c9d7163595e89f26ed2a818358513a6674992b8e30d175dc124a9cf9aa3ca",
+      "workspace_matches_local_before": true,
+      "mac_apply_note": "Require exact before SHA or rebase and review against the actual current Mac file."
+    },
+    {
+      "manifest_path": "wechat/tests/test_wechat_article_fetch_recovery.py",
+      "candidate_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/tests/test_wechat_article_fetch_recovery.py",
+      "workspace_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/tests/test_wechat_article_fetch_recovery.py",
+      "manifest_before_sha256": null,
+      "local_before_sha256": null,
+      "local_before_matches_manifest": true,
+      "manifest_after_sha256": "3d5a55f32c62a1ea250f1bdfef3b41584abcccbb06199000357483acdde2e124",
+      "candidate_after_sha256": "3d5a55f32c62a1ea250f1bdfef3b41584abcccbb06199000357483acdde2e124",
+      "candidate_after_matches_manifest": true,
+      "workspace_sha256": null,
+      "workspace_matches_local_before": true,
+      "mac_apply_note": "Require exact before SHA or rebase and review against the actual current Mac file."
+    }
+  ],
+  "actual_diff": {
+    "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/ACTUAL_DIFF.patch",
+    "bytes": 120499,
+    "sha256": "d1de7a1bb64ed0756ee4dd9b35906a5f8c5ffa22af9dd939811b1d87441806e3",
+    "manifest_source_file_count_changed": 5,
+    "changed_manifest_paths": [
+      "wechat/WORKFLOW_公众号链接固定执行方案.md",
+      "wechat/scripts/wechat_article_fetch.py",
+      "wechat/scripts/wechat_yesterday_performance.py",
+      "wechat/tests/test_prior_mentions_performance_appendix.py",
+      "wechat/tests/test_wechat_article_fetch_recovery.py"
+    ],
+    "patch_headers": [
+      "WORKFLOW_公众号链接固定执行方案.md",
+      "scripts/wechat_article_fetch.py",
+      "scripts/wechat_yesterday_performance.py",
+      "tests/test_prior_mentions_performance_appendix.py",
+      "tests/test_wechat_article_fetch_recovery.py"
+    ],
+    "all_patch_headers_within_frozen_manifest": true,
+    "patch_apply_check": {
+      "status": "PASS",
+      "files": [
+        {
+          "path": "WORKFLOW_公众号链接固定执行方案.md",
+          "patch_applied_sha256": "4020c1320de51622c35e1cc8e55adc7b2037cd9ab2d67fc09d51f9e50046c4e8",
+          "candidate_sha256": "4020c1320de51622c35e1cc8e55adc7b2037cd9ab2d67fc09d51f9e50046c4e8",
+          "matches": true
+        },
+        {
+          "path": "scripts/wechat_article_fetch.py",
+          "patch_applied_sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17",
+          "candidate_sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17",
+          "matches": true
+        },
+        {
+          "path": "scripts/wechat_yesterday_performance.py",
+          "patch_applied_sha256": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c",
+          "candidate_sha256": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c",
+          "matches": true
+        },
+        {
+          "path": "tests/test_prior_mentions_performance_appendix.py",
+          "patch_applied_sha256": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588",
+          "candidate_sha256": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588",
+          "matches": true
+        },
+        {
+          "path": "tests/test_wechat_article_fetch_recovery.py",
+          "patch_applied_sha256": "3d5a55f32c62a1ea250f1bdfef3b41584abcccbb06199000357483acdde2e124",
+          "candidate_sha256": "3d5a55f32c62a1ea250f1bdfef3b41584abcccbb06199000357483acdde2e124",
+          "matches": true
+        }
+      ]
+    }
+  },
+  "rollback": {
+    "status": "AVAILABLE_IN_ISOLATED_EVIDENCE_ROOT",
+    "method": "Restore only the listed candidate files from these byte-preserved local baseline copies; the actual workspace was not modified.",
+    "baseline_files": [
+      {
+        "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/baseline/source/WORKFLOW_公众号链接固定执行方案.md",
+        "sha256": "04a3d1cf5be4c8d278a04c76d4e3455d741fa8c2fcfb109b90f1431ac83de345"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/baseline/source/scripts/wechat_article_fetch.py",
+        "sha256": "8c5a2dba2b1dc9c7392d43d9b8023fc2559c62c2dadc99cef8a1e5f3d69381a1"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/baseline/source/scripts/wechat_yesterday_performance.py",
+        "sha256": "364d441853fd8e0ab977cd35c173143e2639bd77e2a9363d8e1bf6e04f07e51d"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/baseline/source/tests/test_prior_mentions_performance_appendix.py",
+        "sha256": "621c9d7163595e89f26ed2a818358513a6674992b8e30d175dc124a9cf9aa3ca"
+      }
+    ],
+    "actual_workspace_source_files_match_initial_baseline": true
+  },
+  "input_identity": {
+    "run_id": "20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+    "url": "https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw",
+    "article_date": "20261008",
+    "source_run_copy": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+    "source_run_copy_receipt": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/COPY_REBIND_RECEIPT.json",
+      "bytes": 6380,
+      "sha256": "709350d03c1bf1fa37be42070d7710346c0cb485dd4db052011d18e8cafd8d4e"
+    },
+    "source_run_file_count": null,
+    "source_run_ordered_images": {
+      "image_count": 50,
+      "ordered_manifest_sha256": "45a4eb159bdfc564481bfee6045195a454c3dd36b520f9ea8d2c919e2fd1a3a4",
+      "ocr_ok_nonempty_count": 50,
+      "ocr_image_sha_matches": 50
+    },
+    "original_frozen_package": {
+      "package_id": "wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1",
+      "input_digest": "c93e458747fe18fa33373785d79a9b026c15792d02fa9263db7b6f2bda48abc2",
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/original_inputs/wechat_chat_materials_wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1.zip",
+      "bytes": 11012092,
+      "sha256": "c8a0dcfb548012bc8feb4e818e0cad7eead7de5a564a0ecaa85d64ce3763956f",
+      "expected_sha256": "c8a0dcfb548012bc8feb4e818e0cad7eead7de5a564a0ecaa85d64ce3763956f",
+      "matches_expected": true
+    }
+  },
+  "actual_runner_fetch": {
+    "stage": "fetch",
+    "command_argv": [
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_pipeline_runner.py",
+      "--run-dir",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+      "--url",
+      "https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw",
+      "--title",
+      "风言风语信息更新 10.8",
+      "--target-date",
+      "20261008",
+      "--stage",
+      "fetch"
+    ],
+    "cwd": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号",
+    "runner_sha256": "b65fc26d232d2c3f38b5ec72f0b739728ff867a85b3e97da0dc26729ebf5d63e",
+    "adapter_sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17",
+    "actual_adapter_child_argv": [
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_article_fetch.py",
+      "--url",
+      "https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw",
+      "--out",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+      "--skip-ocr"
+    ],
+    "actual_adapter_argv_contains_skip_ocr": true,
+    "outer_exit_code": 1,
+    "adapter_child_exit_code": 2,
+    "result": "CANNOT_CONFIRM_HISTORICAL_INPUT_NOT_R2_BOUND",
+    "input_identity_fields": {
+      "identity_status": "PASS",
+      "fetch_attempt_id": null,
+      "promotion_receipt_count": 0,
+      "attempt_result_count": 0
+    },
+    "reason": "The copied historical intake summary lacks identity_status=PASS and a bound fetch_attempt_id/PROMOTION_RECEIPT; the R2 adapter refused it before creating a new attempt or invoking the collector.",
+    "attempt_created": false,
+    "collector_network_events": 0,
+    "log": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_runner_fetch.log",
+      "bytes": 1638,
+      "sha256": "012a6e9be5ffbf2e96a3352f02ec64c2697f8bbdc6428774abd41a364484ac69"
+    },
+    "argv_capture": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/observer/runner_argv.jsonl",
+      "bytes": 672,
+      "sha256": "855d7323ddcd1e352237f0aa2acfb683100aba936d2aa1257f0a5c4096650a4b"
+    },
+    "network_guard_log": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/observer/network_guard.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "actual_runner_vision": {
+    "command_argv": [
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_pipeline_runner.py",
+      "--run-dir",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+      "--stage",
+      "prepare_ocr,ocr_canary,ocr_full"
+    ],
+    "cwd": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号",
+    "runner_sha256": "b65fc26d232d2c3f38b5ec72f0b739728ff867a85b3e97da0dc26729ebf5d63e",
+    "prepare_sha256": "980c9004a1fa38862708ee325970ab8adfebbd66661cb42f0f8318436eebe606",
+    "vision_sha256": "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d",
+    "exit_code": 0,
+    "canary": {
+      "planned_indices": [
+        2,
+        25,
+        50
+      ],
+      "cache_reused": 3,
+      "attempted": 0,
+      "ok": 3
+    },
+    "full": {
+      "image_count": 50,
+      "cache_reused": 50,
+      "attempted": 0,
+      "ok": 50,
+      "timeout": 0,
+      "error": 0,
+      "empty": 0
+    },
+    "raw_html_sha256_before_after": [
+      "1923182d24644ecb31e73efb059928d7cebb1bcf07996aa136199b18dce3aa90",
+      "1923182d24644ecb31e73efb059928d7cebb1bcf07996aa136199b18dce3aa90"
+    ],
+    "ocr_text_sha256_before_after": [
+      "521fca956fee60ec3a0fd5d749fb60e8544a3386001826c7d952fe40c1f2f996",
+      "521fca956fee60ec3a0fd5d749fb60e8544a3386001826c7d952fe40c1f2f996"
+    ],
+    "ocr_source_rows_sha256_before_after": [
+      "393901ddbbf509d53e03838f3bd1d5c7fb7d59aa87a7690d2d14d817ce5aa70f",
+      "393901ddbbf509d53e03838f3bd1d5c7fb7d59aa87a7690d2d14d817ce5aa70f"
+    ],
+    "all_50_image_sha256_unchanged": true,
+    "ocr_summary": {
+      "status": "OCR_OK",
+      "engine": "macOS Vision Swift executable; one process per image/slice",
+      "ocr_config_sha256": "631e624bf348d42d2cb2d333e599e412cddd230593e0372663076e8865ba7814",
+      "processed_count": 50,
+      "ok_count": 50,
+      "cache_reused_count": 50,
+      "attempted_count": 0,
+      "text_length": 33174
+    },
+    "log": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_runner_vision.log",
+      "bytes": 1971,
+      "sha256": "32653dd6064fd3a4e3c027639f56276545d37de01f553232bfa1caa41d4086ab"
+    },
+    "detailed_hash_receipt": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_runner_vision.receipt.json",
+      "bytes": 12186,
+      "sha256": "3a68acfd68e640fe4eefe462e981a09d8b12940d6d2953fc490849e4ba3cbb85"
+    }
+  },
+  "actual_external_collector": {
+    "source_path": "/Users/lexi/.codex/skills/wechat-research-intake/scripts/wechat_article_intake.py",
+    "candidate_copy": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_article_intake.py",
+    "source_sha256": "de9499c2e049bcf6d3da5ea6375831aece5eb2374e338e057f04e60dfd0c6058",
+    "candidate_copy_sha256": "de9499c2e049bcf6d3da5ea6375831aece5eb2374e338e057f04e60dfd0c6058",
+    "byte_identical_copy": true,
+    "saved_html_no_download_run": {
+      "command_argv": [
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_article_intake.py",
+        "--url",
+        "https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw",
+        "--out",
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/collector_cli_fixture",
+        "--html-file",
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_raw.html",
+        "--skip-ocr",
+        "--no-download-images",
+        "--image-retries",
+        "0"
+      ],
+      "exit_code": 0,
+      "body_found": true,
+      "images_referenced": 50,
+      "downloads": 0,
+      "ocr_status": "OCR_SKIPPED",
+      "log": {
+        "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_collector_cli.log",
+        "bytes": 1491,
+        "sha256": "7d3a7b170ee3e4bf8308950a46317fca13c630dcecc31099ba3d3a22b9b53912"
+      }
+    },
+    "saved_html_existing_50_image_cache_run": {
+      "command_argv": [
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_article_intake.py",
+        "--url",
+        "https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw",
+        "--out",
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/collector_cli_cache_reuse_fixture",
+        "--html-file",
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_raw.html",
+        "--skip-ocr",
+        "--image-retries",
+        "0"
+      ],
+      "exit_code": 0,
+      "images_referenced": 50,
+      "manifest_rows": 50,
+      "cache_reused_rows": 50,
+      "cache_status_all_reused": true,
+      "ordered_indices": true,
+      "raw_html_byte_identical": true,
+      "all_50_source_image_bytes_reused": true,
+      "network_guard_events": 0,
+      "network_guard_log_absent_after_run": true,
+      "network_guard_selfcheck": {
+        "log": {
+          "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/observer/network_guard_selfcheck.jsonl",
+          "bytes": 63,
+          "sha256": "5b9e509eb23f1ad5b627967a62c9a5fc147e3006b7d5fe29114472305875c294"
+        },
+        "blocked_host": "mmbiz.qpic.cn",
+        "blocked_before_network": true
+      },
+      "reported_downloaded_image_count": 50,
+      "reported_reused_image_count": 50,
+      "count_semantics_caveat": "The collector counts OK_REUSED rows in downloaded_image_count; cache_status and the active network guard show these 50 rows were reused without network requests.",
+      "log": {
+        "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_collector_cli_cache_reuse.log",
+        "bytes": 1540,
+        "sha256": "c5f53cbba14734118626dda401f840584304fbdf876b5f02cd73ba72ee101407"
+      },
+      "seed_receipt": {
+        "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/collector_cli_cache_fixture_receipt.json",
+        "bytes": 9324,
+        "sha256": "f55cde66cbe1d7497f19f6d5ccbefae0a6cbc8c036bbc5cff038453d31791eea"
+      }
+    }
+  },
+  "actual_candidate_package": {
+    "command_argv": [
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_chat_handoff.py",
+      "package",
+      "--run-dir",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+      "--out-dir",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/handoffs",
+      "--package-id",
+      "issue31_r2_mac_20261009"
+    ],
+    "exit_code": 0,
+    "package_receipt": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/handoffs/PACKAGE_RECEIPT.json",
+      "bytes": 1455,
+      "sha256": "e2f5b8f8795d36327dbcd380ec3bf423503876dae9e35743190277a66ccf8718"
+    },
+    "status": "PACKAGE_READY",
+    "review_contract_version": "wechat-event-dispositions-v1",
+    "package_id": "issue31_r2_mac_20261009",
+    "input_digest": "6698eea7f27cfa22f9273f8a304f68a56b3b6a3c2ac05b370d6db38279721c24",
+    "zip": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/handoffs/wechat_chat_materials_issue31_r2_mac_20261009.zip",
+      "bytes": 11012113,
+      "sha256": "f335cc03ee936315f9f91d825235208bb25ee899a3d92a832dd57e4aee8de34a",
+      "member_count": 56,
+      "image_member_count": 50
+    },
+    "image_count": 50,
+    "ocr": {
+      "ocr_status": "OCR_OK",
+      "ocr_processed": 50,
+      "ocr_timeout": 0,
+      "ocr_error": 0,
+      "ocr_empty": 0
+    },
+    "semantic_claim": "MACHINE_TRANSCRIPT_NOT_SEMANTICALLY_VERIFIED",
+    "log": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_handoff_package.log",
+      "bytes": 1455,
+      "sha256": "e2f5b8f8795d36327dbcd380ec3bf423503876dae9e35743190277a66ccf8718"
+    }
+  },
+  "actual_appendix_cli": {
+    "fixture_builder_command_argv": [
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/make_appendix_cli_fixture.py"
+    ],
+    "fixture_inputs": {
+      "fixture_root": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture",
+      "prior_article_dir": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/article",
+      "current_package_receipt": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/handoff/frozen/PACKAGE_RECEIPT.json",
+      "runtime_config_evidence": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/runtime_pointer_discovery.json",
+      "calendar_json": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/market_calendar_2026.json",
+      "out_dir": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/appendix_output",
+      "source_package_id": "wechat_test_current",
+      "expected_mentions": {
+        "A": 81,
+        "BJ": 3,
+        "HK": 24
+      }
+    },
+    "command_argv": [
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts/wechat_yesterday_performance.py",
+      "appendix",
+      "--prior-article-dir",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/article",
+      "--current-package-receipt",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/handoff/frozen/PACKAGE_RECEIPT.json",
+      "--obs-date",
+      "20260928",
+      "--runtime-config-evidence",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/runtime_pointer_discovery.json",
+      "--calendar-json",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/market_calendar_2026.json",
+      "--out-dir",
+      "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/appendix_output"
+    ],
+    "exit_code": 0,
+    "status": "CANNOT_CONFIRM",
+    "unique_listings": 108,
+    "market_counts": {
+      "A": 81,
+      "BJ": 3,
+      "HK": 24
+    },
+    "observed_counts": {
+      "A": 0,
+      "BJ": 0,
+      "HK": 0
+    },
+    "all_rows_cannot_confirm": true,
+    "all_prices_null": true,
+    "a_partial_receipt_facts": {
+      "receipt_status": "PARTIAL",
+      "receipt_target_date_file_count": 5137,
+      "receipt_target_count": 5800,
+      "receipt_coverage_rate": 0.8856896551724138,
+      "receipt_row_count": 5261,
+      "sync_authority_status": "REBUILD_REQUIRED",
+      "binding_error": "ROW_COUNT_MISMATCH"
+    },
+    "hk_missing_previous_receipt": {
+      "current_receipt_status": "READY",
+      "missing_previous_receipt_date": "20260925",
+      "previous_receipt_status": "MISSING_OR_INVALID"
+    },
+    "markdown_states_no_valid_observations_is_not_zero_percent_return": true,
+    "outputs": {
+      "json": {
+        "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/appendix_output/performance_appendix.json",
+        "bytes": 155629,
+        "sha256": "8e8cfe0b00a790c481e4b3c3279b1ac49ba3bbff306b7fded03b23b0f6ddf9cf"
+      },
+      "markdown": {
+        "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/appendix_output/performance_appendix.md",
+        "bytes": 25920,
+        "sha256": "f09bb71d74fb32d0045b24b2d674024aaf5e64f09bfe11cdb2364de8b6261591"
+      },
+      "receipt": {
+        "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture/appendix_output/PERFORMANCE_APPENDIX_RECEIPT.json",
+        "bytes": 7679,
+        "sha256": "c7670f72a91e8d7fec9dbe8742f821a9019c2ee306dce2c7d2965fffce446bed"
+      }
+    },
+    "receipt_package_binding": {
+      "source_package_id": "wechat_test_prior",
+      "current_package_id": "wechat_test_current",
+      "observation_date": "20260928"
+    },
+    "log": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_appendix_cli.log",
+      "bytes": 1495,
+      "sha256": "d668509f4bcf64488841ea8fdcac65ec03fb46832109a5e2be910e84954026f5"
+    }
+  },
+  "tests": [
+    {
+      "suite": "fetch_recovery",
+      "command_argv": [
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/tests/test_wechat_article_fetch_recovery.py"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate",
+      "environment": {
+        "TMPDIR": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/test_tmp"
+      },
+      "exit_code": 0,
+      "tests_run": 17,
+      "status": "PASS",
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_fetch_recovery_tests_final.log",
+      "bytes": 17654,
+      "sha256": "2a4e4b875dfd8c7aff4989dbef13aafd8d3b40c7d8cde506a8bcbb7e320d7fe1",
+      "receipt_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/fetch_recovery_final.receipt.json",
+      "receipt_sha256": "26380d138af536e680685892c2968f3ec7c018ec42e1229c4788c0a798c932af"
+    },
+    {
+      "suite": "appendix_targeted_r2",
+      "command_argv": [
+        "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+        "-m",
+        "unittest",
+        "-v",
+        "test_prior_mentions_performance_appendix.PriorMentionsPerformanceAppendixTests.test_hk_receipt_facts_survive_current_panel_sha_failure",
+        "test_prior_mentions_performance_appendix.PriorMentionsPerformanceAppendixTests.test_failed_a_bj_and_hk_probes_are_cached_once",
+        "test_prior_mentions_performance_appendix.PriorMentionsPerformanceAppendixTests.test_failed_bindings_preserve_receipt_and_all_108_rows_in_json_and_markdown"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/tests",
+      "environment": {
+        "TMPDIR": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/test_tmp",
+        "PYTHONPATH": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/tests:/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/scripts"
+      },
+      "exit_code": 0,
+      "tests_run": 3,
+      "status": "PASS",
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_appendix_regression_tests_final.log",
+      "bytes": 720,
+      "sha256": "f8b0b93e95d5fa847b74448613fb04c9915e040306b2be32468fc1dabb46f488",
+      "receipt_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_targeted_r2_final.receipt.json",
+      "receipt_sha256": "f553f75d4ba5988eed2dd017b9b49596b9e9c1a4fa13b66296b15fb92b90979e"
+    }
+  ],
+  "preserved_failure_evidence": [
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_fetch_recovery_tests.log",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_fetch_recovery_tests_rerun.log",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_fetch_recovery_tests_rerun2.log",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_appendix_regression_tests.log",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_appendix_regression_tests_rerun.log",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_appendix_regression_tests_rerun2.log",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_appendix_regression_tests_rerun3.log",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_ocr_cache_failure_diagnostic.log",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_runner_fetch.log"
+  ],
+  "support_inputs": [
+    {
+      "source": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/tests/test_wechat_chat_handoff.py",
+      "candidate_copy": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/tests/test_wechat_chat_handoff.py",
+      "source_sha256": "a1df48347402728fef6ee65897eca89a52ad9f3abf2c7591891be196219a5814",
+      "candidate_sha256": "a1df48347402728fef6ee65897eca89a52ad9f3abf2c7591891be196219a5814",
+      "same_bytes": true
+    },
+    {
+      "source": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/templates/chat_research_prompt.md",
+      "candidate_copy": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/templates/chat_research_prompt.md",
+      "source_sha256": "29aec527fe954c1408f8a94905bfc9f5e7f28a2e97195008d2ee8978936a1c6f",
+      "candidate_sha256": "29aec527fe954c1408f8a94905bfc9f5e7f28a2e97195008d2ee8978936a1c6f",
+      "same_bytes": true
+    }
+  ],
+  "state_labels": {
+    "IMPLEMENTED": "Isolated five-file candidate captured in ACTUAL_DIFF.patch.",
+    "TESTED": "Writer-focused Mac test logs and CLI receipts attached; independent rerun is still required.",
+    "REVIEWED": "PENDING_INDEPENDENT_REVIEWER",
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM until the Reviewer inspects and independently replays the frozen PASS scope.",
+    "INTEGRATED": false,
+    "DEPLOYED": false,
+    "API_VERIFIED": "NOT_RUN",
+    "UI_VERIFIED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "unresolved_gaps": [
+    {
+      "status": "CANNOT_CONFIRM",
+      "scope": "Actual default-runner fetch reuse on the historical run",
+      "detail": "The R2 adapter correctly refused the unbound pre-R2 summary; no attempt_id/PROMOTION_RECEIPT exists, so the real runner did not invoke the collector for that run."
+    },
+    {
+      "status": "CANNOT_CONFIRM",
+      "scope": "Drive complete-ZIP raw-byte readback",
+      "detail": "Parent-owned Drive connector readback failed; see evidence/issue31_r2_mac_20261009/drive_readback/STREAM_DOWNLOAD_FAILURE.json. This writer did not retry or change Drive."
+    },
+    {
+      "status": "PENDING",
+      "scope": "Independent review",
+      "detail": "A different-identity Luna Max Reviewer must inspect the actual diff, frozen scope, logs, and target behavior, then rerun the required checks."
+    },
+    {
+      "status": "NOT_RUN",
+      "scope": "API/UI/Chat natural reading/V4 Stage A",
+      "detail": "Outside this isolated Mac writer batch; no integration or deployment claim is made."
+    }
+  ],
+  "artifact_index": [
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_runner_fetch.log",
+      "bytes": 1638,
+      "sha256": "012a6e9be5ffbf2e96a3352f02ec64c2697f8bbdc6428774abd41a364484ac69"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_runner_vision.log",
+      "bytes": 1971,
+      "sha256": "32653dd6064fd3a4e3c027639f56276545d37de01f553232bfa1caa41d4086ab"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_collector_cli.log",
+      "bytes": 1491,
+      "sha256": "7d3a7b170ee3e4bf8308950a46317fca13c630dcecc31099ba3d3a22b9b53912"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_collector_cli_cache_reuse.log",
+      "bytes": 1540,
+      "sha256": "c5f53cbba14734118626dda401f840584304fbdf876b5f02cd73ba72ee101407"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_handoff_package.log",
+      "bytes": 1455,
+      "sha256": "e2f5b8f8795d36327dbcd380ec3bf423503876dae9e35743190277a66ccf8718"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_appendix_cli.log",
+      "bytes": 1495,
+      "sha256": "d668509f4bcf64488841ea8fdcac65ec03fb46832109a5e2be910e84954026f5"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_fetch_recovery_tests_final.log",
+      "bytes": 17654,
+      "sha256": "2a4e4b875dfd8c7aff4989dbef13aafd8d3b40c7d8cde506a8bcbb7e320d7fe1"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/r2_appendix_regression_tests_final.log",
+      "bytes": 720,
+      "sha256": "f8b0b93e95d5fa847b74448613fb04c9915e040306b2be32468fc1dabb46f488"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/make_appendix_cli_fixture.log",
+      "bytes": 1152,
+      "sha256": "e31ecc29a30c541c8d6ec6233dd7c8fabda1c14b397452b95db8ee480e106e8e"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/seed_collector_cache_fixture.log",
+      "bytes": 662,
+      "sha256": "6be39c0ffe2973f876215cbbe482d87a5cc03ed28f13275ce68d3bb256c94981"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_runner_fetch.receipt.json",
+      "bytes": 1675,
+      "sha256": "449876a18edb02f5102092158fb31f150629e3a6eeec1c52678ebfe220a3622e"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/actual_runner_vision.receipt.json",
+      "bytes": 12186,
+      "sha256": "3a68acfd68e640fe4eefe462e981a09d8b12940d6d2953fc490849e4ba3cbb85"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/candidate/handoffs/PACKAGE_RECEIPT.json",
+      "bytes": 1455,
+      "sha256": "e2f5b8f8795d36327dbcd380ec3bf423503876dae9e35743190277a66ccf8718"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/COPY_REBIND_RECEIPT.json",
+      "bytes": 6380,
+      "sha256": "709350d03c1bf1fa37be42070d7710346c0cb485dd4db052011d18e8cafd8d4e"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/collector_cli_cache_fixture_receipt.json",
+      "bytes": 9324,
+      "sha256": "f55cde66cbe1d7497f19f6d5ccbefae0a6cbc8c036bbc5cff038453d31791eea"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/appendix_cli_fixture_inputs.json",
+      "bytes": 1152,
+      "sha256": "e31ecc29a30c541c8d6ec6233dd7c8fabda1c14b397452b95db8ee480e106e8e"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "status": "CANNOT_CONFIRM_FULL_ZIP_RAW_READBACK",
+  "file_id": "1tWgjFhjA5r6V0JexzKIIBk2h8uPmUUjb",
+  "parent_ids": [
+    "1xr9x3edz57QY0NHqrBVztS9RSV7-iHD5"
+  ],
+  "mime_type": "application/zip",
+  "size": 11012092,
+  "modified_time": "2026-10-08T15:41:17.156Z",
+  "attempts": [
+    {
+      "method": "connector stream metadata",
+      "result": "METADATA_OBTAINED"
+    },
+    {
+      "method": "local download of connector provided URL",
+      "result": "HTTP_403",
+      "host": "sdmntprwestus3.oaiusercontent.com"
+    },
+    {
+      "method": "connector inline base64",
+      "result": "Transport closed"
+    },
+    {
+      "method": "connector inline base64 bounded retry",
+      "result": "Transport closed"
+    }
+  ],
+  "raw_bytes_obtained": false,
+  "hash_computed": false,
+  "trusted_hash_match": false,
+  "permission_cause": "CANNOT_CONFIRM",
+  "further_retry": "STOPPED_NO_NEW_EVIDENCE",
+  "safety": "No permission changes; no replacement Drive client; no source recapture"
+}
