@@ -91,8 +91,9 @@ def load_owner():
 
 
 def _request(value):
-    exact_keys(value, ('target_date', 'now', 'action', 'view', 'selection_date',
-                       'announcement_date', 'inputs', 'rebound', 'manager_output_root'))
+    required = ('target_date', 'now', 'action', 'view', 'selection_date',
+                'announcement_date', 'inputs', 'rebound', 'manager_output_root')
+    exact_keys(value, required + (('rebound_owner',) if 'rebound_owner' in value else ()))
     trade_date(value['target_date'])
     if aware(value['now']) > datetime.now(timezone.utc):
         raise ValueError('MANAGER_FUTURE_CUTOFF')
@@ -148,6 +149,19 @@ def _request(value):
         rebound_root = no_symlinks(value['rebound']['root'])
         if output.is_relative_to(rebound_root) or rebound_root.is_relative_to(output):
             raise ValueError('MANAGER_REBOUND_OUTPUT_OVERLAP')
+    if value.get('rebound_owner') is not None:
+        binding = value['rebound_owner']
+        exact_keys(binding, ('root', 'reference'))
+        observed_root = no_symlinks(binding['root'])
+        for other in [output, *roots]:
+            if observed_root.is_relative_to(other) or other.is_relative_to(observed_root):
+                raise ValueError('MANAGER_REBOUND_OWNER_ROOT_OVERLAP')
+        reference = binding['reference']
+        exact_keys(reference, ('run_id', 'artifact_sha256', 'manifest_sha256', 'receipt_sha256'))
+        if not re.fullmatch(r'[0-9a-f]{32}', str(reference['run_id'])):
+            raise ValueError('MANAGER_REBOUND_OWNER_RUN_ID')
+        for key in ('artifact_sha256', 'manifest_sha256', 'receipt_sha256'):
+            sha(reference[key])
     canonical_bytes(value)
     return value
 
@@ -173,7 +187,7 @@ def _snapshot(binding):
 
 
 def _identity():
-    names = ('archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
@@ -198,6 +212,14 @@ def _assemble(request):
     if request['rebound'] is not None:
         from v5_shadow.shadow_store import read_shadow, _ref
         rebound = read_shadow(Path(request['rebound']['root']), _ref(request['rebound']['reference']))
+    observation_artifact = None; observation_error = None
+    if request.get('rebound_owner') is not None:
+        from v5_shadow.rebound_owner import read_rebound_owner, manager_projection, SAFETY as observation_safety
+        observation_binding = request['rebound_owner']
+        try:
+            observation_artifact = read_rebound_owner(observation_binding['root'], observation_binding['reference'])
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            observation_error = str(error) if isinstance(error, ValueError) else 'REBOUND_OWNER_READ_FAILED:' + type(error).__name__
     workspace = load_owner()
     store_module = importlib.import_module('v4.manager_research.store')
     material_module = importlib.import_module('v4.manager_research.materials')
@@ -290,6 +312,26 @@ def _assemble(request):
         payload = workspace.get_workspace(service, request['target_date'], now=now, view=request['view'],
             selection_date=request['selection_date'], announcement_date=request['announcement_date'])
         readback = dict(status='READ_ONLY', plan_product=payload.get('plan_product'))
+    if request.get('rebound_owner') is not None:
+        # Independent read-time observation, never feed legacy_diagnostic into
+        # the formal screen, selection algorithm or immutable saved workspace.
+        context = payload.get('plan_context') or {}
+        if observation_artifact is not None:
+            try:
+                if read_rebound_owner(observation_binding['root'], observation_binding['reference']) != observation_artifact:
+                    raise ValueError('REBOUND_OWNER_CHANGED_DURING_MANAGER_READ')
+                observation = manager_projection(observation_artifact,
+                    target_date=request['target_date'], research_cutoff=context['research_cutoff'],
+                    market_session=context['market_session'])
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                observation_error = str(error) if isinstance(error, ValueError) else 'REBOUND_OWNER_READ_FAILED:' + type(error).__name__
+        if observation_error is not None:
+            observation = dict(status='CANNOT_CONFIRM', eligible_screen=None,
+                research_observation=None, reason_codes=[observation_error],
+                source_run_id=observation_binding['reference']['run_id'], **observation_safety)
+        observation['binding_reference'] = copy.deepcopy(observation_binding['reference'])
+        observation['scope'] = 'INDEPENDENT_READ_TIME_OBSERVATION_NOT_SAVED_PLAN_OR_FORMAL_SELECTION'
+        payload['rebound_research_observation'] = observation
     if violations:
         raise ValueError('MANAGER_BOUNDARY_VIOLATION:' + ','.join(violations))
     for name, binding in request['inputs'].items():
