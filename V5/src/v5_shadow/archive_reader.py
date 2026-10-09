@@ -34,7 +34,10 @@ def sources():
 
 class _Loader(common._FrozenLoader):
     def exec_module(self,module):
-        if module.__name__ in self.packages:module.__path__=[]
+        if module.__name__ in self.packages:
+            # Namespace-only packages avoid unrelated scheduler/provider exports.
+            module.__path__=[]
+            return
         item=self.sources.get(module.__name__)
         if item:
             relative,raw,_=item;module.__file__=str(CAPSULE/relative)
