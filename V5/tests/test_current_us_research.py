@@ -45,7 +45,7 @@ class CurrentUsResearchTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'FRESH_MARKED_OUTPUT'):run_current_research(self.request)
         owner.assert_not_called();self.assertEqual(old.read_bytes(),b'old')
 
-    def test_missing_native_master_does_not_block_existing_seed_owner_or_copy_old_binding(self):
+    def _exercise_archive_transport(self, use_import=False):
         def mapping(request):
             daily=dict(run_id='a'*32,status='VALID_EMPTY',target_trade_date='20261012')
             daily['artifact_sha256']=sha256_json(daily)
@@ -53,20 +53,43 @@ class CurrentUsResearchTests(unittest.TestCase):
             (day/'runs'/('a'*32+'.json')).write_bytes(canonical_bytes(daily))
             (day/'latest.json').write_bytes(canonical_bytes(dict(run_id=daily['run_id'],artifact_sha256=daily['artifact_sha256'])))
             return dict(persisted_daily=daily,readback_status='MATCHED',execution_kind='MANUAL_RECOVERY')
-        archives=self.root/'archives';archives.mkdir();(archives/'manifest.json').write_text('{}')
-        self.request['archives']=dict(root=str(archives),files={'manifest.json':sha256_json({})})
+        archives=self.root/'archives';archives.mkdir()
+        binding=dict(root=str(archives),files={'manifest.json':sha256_json({})})
+        if use_import:
+            (archives/'.v5-archive-article-v2').write_bytes(b'v5.archive-article.v2\n')
+            self.request['archive_import']=dict(capture_root=str(self.root/'us'),capture_files={},
+                receipt={},archive_v1={},output_root=str(archives))
+        else:
+            (archives/'manifest.json').write_text('{}')
+            self.request['archives']=binding
         response=dict(archive_readback={'validated_artifacts':1},readback={'run_id':'plan','plan_sha256':'b'*64},payload={'plan_product':{'run_id':'plan','sha256':'b'*64}})
-        with patch('v5_shadow.current_us_research.inspect_target',return_value=self.context),patch('v5_shadow.current_us_research.run_us_mapping',side_effect=mapping),patch('v5_shadow.current_us_research.run_manager_plan',return_value=response) as manager:
+        with patch('v5_shadow.current_us_research.inspect_target',return_value=self.context),patch('v5_shadow.current_us_research.run_us_mapping',side_effect=mapping),patch('v5_shadow.current_us_research.run_manager_plan',return_value=response) as manager,patch('v5_shadow.archive_article_v2.run_import',return_value={'archive_binding':binding,'readback':'MATCHED'}) as importer:
             result=run_current_research(self.request)
         self.assertEqual(manager.call_count,2)
         self.assertEqual([call.args[0]['action'] for call in manager.call_args_list],['refresh','read'])
         self.assertTrue(all(call.args[0]['view']=='dynamic' for call in manager.call_args_list))
         self.assertNotIn('native_master',result['manager_request']['inputs'])
-        self.assertEqual(result['manager_request']['inputs']['archives'],self.request['archives'])
-        self.assertTrue(all(call.args[0]['inputs']['archives']==self.request['archives'] for call in manager.call_args_list))
+        self.assertEqual(result['manager_request']['inputs']['archives'],binding)
+        self.assertTrue(all(call.args[0]['inputs']['archives']==binding for call in manager.call_args_list))
         self.assertEqual(result['archive_readback'],{'validated_artifacts':1})
         self.assertFalse(result['native_master_bound']);self.assertFalse(result['historical_pit_claimed'])
         self.assertEqual(result['underlying_us_execution_kind'],'MANUAL_RECOVERY')
+        if use_import:
+            importer.assert_called_once_with(self.request['archive_import'])
+            self.assertEqual(result['archive_import']['readback'],'MATCHED')
+        else:
+            importer.assert_not_called()
+
+    def test_missing_native_master_does_not_block_existing_seed_owner_or_copy_old_binding(self):
+        self._exercise_archive_transport()
+
+    def test_new_archive_import_binding_reaches_refresh_and_independent_read(self):
+        self._exercise_archive_transport(use_import=True)
+
+    def test_archive_import_cannot_coexist_with_existing_archive_binding(self):
+        self.request.update(archives={},archive_import={})
+        with self.assertRaisesRegex(ValueError,'ARCHIVE_INPUT_EXCLUSIVE'):
+            run_current_research(self.request)
 
     def test_three_scopes_keep_original_unknown_zero_and_rejections(self):
         import copy

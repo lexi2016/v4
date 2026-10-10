@@ -73,7 +73,7 @@ class ArchiveAcquisitionProducerTests(unittest.TestCase):
             value=self.run_owner()
         fetch.assert_not_called();clock.assert_not_called();self.assertTrue(value['reused'])
         self.assertNotIn('acquisition_evidence_v2',value);self.assertEqual(path.read_bytes(),raw)
-        self.assertFalse(list(self.root.rglob('acquisition_receipt.v2.json')))
+        self.assertFalse(list(self.root.rglob('acquisition_receipt.v3.json')))
 
     def test_unmarked_root_is_rejected_before_fetch(self):
         (self.root/'.v5-archive-acquisition').unlink()
@@ -84,7 +84,7 @@ class ArchiveAcquisitionProducerTests(unittest.TestCase):
     def test_failed_fetch_never_publishes_success_or_acquisition(self):
         with patch.object(self.owner,'collect_paginated_topics',side_effect=RuntimeError('synthetic fetch failure')):
             with self.assertRaisesRegex(RuntimeError,'synthetic fetch failure'):self.run_owner()
-        self.assertFalse(list(self.root.rglob('acquisition_receipt.v2.json')))
+        self.assertFalse(list(self.root.rglob('acquisition_receipt.v3.json')))
         self.assertFalse(list(self.root.rglob('latest_zsxq_hourly_status.json')))
 
     def test_clock_rollback_retains_payload_but_does_not_publish_ready_status(self):
@@ -101,5 +101,5 @@ class ArchiveAcquisitionProducerTests(unittest.TestCase):
             return original(store,path,value)
         with patch.object(self.owner,'collect_paginated_topics',return_value=self.fetched),patch.object(self.owner,'_acquisition_clock',side_effect=self.times),patch.object(self.owner.NativeDataStore,'_write',write):
             with self.assertRaisesRegex(ValueError,'PAYLOAD_READBACK_MISMATCH'):self.run_owner()
-        self.assertFalse(list(self.root.rglob('acquisition_receipt.v2.json')))
+        self.assertFalse(list(self.root.rglob('acquisition_receipt.v3.json')))
         self.assertFalse(list(self.root.rglob('latest_zsxq_hourly_status.json')))

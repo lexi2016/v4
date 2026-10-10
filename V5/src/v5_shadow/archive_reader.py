@@ -18,7 +18,16 @@ BASE=Path(__file__).resolve().parents[2]
 CAPSULE=BASE/'vendor/archive_reader_baseline'
 DESCRIPTOR=BASE/'contracts/archive_reader_source_manifest.json'
 PIN='33a4b671c4b2b6b89db2c3e8bed7efdc8d1ee8fc983ff005d2ade2692d47b2a4'
-PATTERN=r'(?:receipts/)?research/(?:archives/[0-9]{8}|hourly/live/[0-9]{8}/[0-9]{4})\.json'
+ARCHIVE_PATTERN=r'(?:receipts/)?research/(?:archives/[0-9]{8}|hourly/live/[0-9]{8}/[0-9]{4})\.json'
+from v5_shadow.archive_article_v2 import CAPTURE_PATTERN, INPUT_PATTERN
+PATTERN='(?:'+ARCHIVE_PATTERN+'|'+CAPTURE_PATTERN+'|'+INPUT_PATTERN+')'
+
+
+def article_v2_identity():
+    return sha256_json({
+        'adapter':hashlib.sha256((BASE/'src/v5_shadow/archive_article_v2.py').read_bytes()).hexdigest(),
+        'producer_manifest':hashlib.sha256((BASE/'producers/archive-acquisition-v2/manifest.json').read_bytes()).hexdigest(),
+    })
 
 
 def sources():
@@ -54,7 +63,8 @@ def read_private(root, binding):
     try:out=json.loads(process.stdout)
     except ValueError as exc:raise ValueError('ARCHIVE_READER_RESPONSE:'+process.stderr.decode(errors='replace')[-1000:]) from exc
     if process.returncode:raise ValueError(out.get('reason','ARCHIVE_READER_FAILED'))
-    if out.get('source_capsule_sha256')!=PIN or out.get('request_sha256')!=sha256_json(request):raise ValueError('ARCHIVE_READER_IDENTITY')
+    if (out.get('source_capsule_sha256')!=PIN or out.get('request_sha256')!=sha256_json(request)
+            or out.get('article_v2_source_sha256')!=article_v2_identity()):raise ValueError('ARCHIVE_READER_IDENTITY')
     # Stable provenance identity; physical private paths must not churn plan hashes.
     for row in out['records'].values():
         if row.get('binding'):
@@ -115,9 +125,14 @@ def worker(request):
     manifest=json.loads((root/'manifest.json').read_bytes())
     days=set()
     for name in {*files,*manifest}:
-        if re.fullmatch(PATTERN,name):days.add(re.search(r'/([0-9]{8})(?:/|\.json)',name).group(1))
+        if re.fullmatch(ARCHIVE_PATTERN,name):days.add(re.search(r'/([0-9]{8})(?:/|\.json)',name).group(1))
     if len(days)>370:raise ValueError('ARCHIVE_DATE_BOUND')
     sys.meta_path.insert(0,_Loader(sources()))
+    from v5_shadow.archive_article_v2 import install_validator
+    def read_evidence(name):
+        if name not in files:raise ValueError('ARTICLE_V2_UNDECLARED_FILE')
+        return common._relative(root,name).read_bytes()
+    install_validator(read_evidence)
     module=importlib.import_module('infrastructure.research_lane_source')
     source=module.ResearchLaneSource(root,ledger_root=root/'unused-ledger')
     # Construction only touched the private root. Reads now prohibit writes,
@@ -137,7 +152,8 @@ def worker(request):
         for slot in slots[day].get('value',[]):records[day+'/'+slot]=capture(lambda:record(day,slot))
     for name,digest in files.items():
         if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest:raise ValueError('ARCHIVE_PRIVATE_CHANGED')
-    return dict(records=records,slots=slots,source_capsule_sha256=PIN,request_sha256=sha256_json(request))
+    return dict(records=records,slots=slots,source_capsule_sha256=PIN,
+        article_v2_source_sha256=article_v2_identity(),request_sha256=sha256_json(request))
 
 
 if __name__=='__main__':

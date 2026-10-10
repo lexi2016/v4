@@ -83,7 +83,9 @@ def coverage_paths(workspace):
 
 def run_current_research(request):
     exact_keys(request,('target_date','us_data_root','us_files','us_output_root','manager_output_root','materials','native_master')+
-        (('archives',) if 'archives' in request else ()))
+        tuple(key for key in ('archives','archive_import') if key in request))
+    if 'archives' in request and 'archive_import' in request:
+        raise ValueError('CURRENT_RESEARCH_ARCHIVE_INPUT_EXCLUSIVE')
     # Caller cannot override wall clock or relabel an old target as current.
     context=inspect_target(request['target_date'])
     target=context['target_date']
@@ -97,6 +99,15 @@ def run_current_research(request):
     sources=[no_symlinks(request['us_data_root']),no_symlinks(request['materials']['root'])]
     for name in ('native_master','archives'):
         if request.get(name) is not None:sources.append(no_symlinks(request[name]['root']))
+    archive_output=None
+    if 'archive_import' in request:
+        job=request['archive_import']
+        archive_output=_new_output(job['output_root'],'.v5-archive-article-v2',b'v5.archive-article.v2\n')
+        sources.append(no_symlinks(job['capture_root']))
+        if any(archive_output.is_relative_to(out) or out.is_relative_to(archive_output) for out in (usout,managerout)):
+            raise ValueError('CURRENT_RESEARCH_ARCHIVE_OUTPUT_OVERLAP')
+        if any(source.is_relative_to(archive_output) or archive_output.is_relative_to(source) for source in sources):
+            raise ValueError('CURRENT_RESEARCH_ARCHIVE_SOURCE_OVERLAP')
     for source in sources:
         if any(source.is_relative_to(out) or out.is_relative_to(source) for out in (usout,managerout)):
             raise ValueError('CURRENT_RESEARCH_SOURCE_OUTPUT_OVERLAP')
@@ -114,6 +125,11 @@ def run_current_research(request):
         materials=copy.deepcopy(request['materials']),us=dict(root=request['us_data_root'],files=request['us_files']))
     for name in ('native_master','archives'):
         if request.get(name) is not None:inputs[name]=copy.deepcopy(request[name])
+    archive_import=None
+    if archive_output is not None:
+        from v5_shadow.archive_article_v2 import run_import
+        archive_import=run_import(request['archive_import'])
+        inputs['archives']=archive_import['archive_binding']
     manager_request=dict(target_date=target,now=datetime.now(timezone.utc).isoformat(),action='refresh',view='dynamic',
         selection_date=None,announcement_date=None,inputs=inputs,rebound=None,manager_output_root=str(managerout))
     saved=run_manager_plan(manager_request)
@@ -129,6 +145,7 @@ def run_current_research(request):
         manager_request=manager_request,manager_readback=saved['readback'],
         workspace=read['payload'],coverage_paths=coverage_paths(read['payload']),
         archive_readback=copy.deepcopy(read.get('archive_readback')),
+        archive_import=archive_import,
         natural_verified=False,historical_pit_claimed=False,
         production_allowed=False,buy_gate_updated=False,orders_sent=False)
 

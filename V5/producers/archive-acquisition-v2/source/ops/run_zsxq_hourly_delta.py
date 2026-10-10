@@ -269,7 +269,7 @@ def _require_acquisition_root(data_root: Path) -> None:
 
 
 def _publish_acquisition_receipt(store, output_relative, run_id, started_at,
-                                 retrieved_at, expected_payloads, bounded_has_more):
+                                 retrieved_at, expected_payloads, bounded_has_more, pages):
     # NativeDataStore/SafeRoot writes fsync the file and containing directory.
     # Bind exact persisted bytes AND compare them with this invocation's values.
     evidence = {}
@@ -279,12 +279,28 @@ def _publish_acquisition_receipt(store, output_relative, run_id, started_at,
         if json.loads(raw) != expected:
             raise ValueError("V5_ACQUISITION_PAYLOAD_READBACK_MISMATCH")
         evidence[relative] = {"sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
+    page_bindings = []
+    for index, page in enumerate(pages):
+        relative = output_relative + f"/pages/{index:04d}.json"
+        store._io.write_bytes(relative, page["raw"])
+        raw = store._io.read_bytes(relative)
+        if raw != page["raw"]:
+            raise ValueError("V5_ACQUISITION_PAGE_READBACK_MISMATCH")
+        page_bindings.append({"path": relative, "sha256": hashlib.sha256(raw).hexdigest(),
+                              "bytes": len(raw), "group_id": page["group_id"],
+                              "retrieved_at": page["retrieved_at"]})
     available_at = _acquisition_clock()
     stamps = [datetime.fromisoformat(value) for value in (started_at, retrieved_at, available_at)]
     if any(value.utcoffset() is None for value in stamps) or not stamps[0] <= stamps[1] <= stamps[2]:
         raise ValueError("V5_ACQUISITION_CLOCK_ORDER")
+    previous = stamps[0]
+    for page in page_bindings:
+        observed = datetime.fromisoformat(page["retrieved_at"])
+        if observed.utcoffset() is None or not previous <= observed <= stamps[1]:
+            raise ValueError("V5_ACQUISITION_PAGE_CLOCK_ORDER")
+        previous = observed
     receipt = {
-        "schema_version": "v5.zsxq_acquisition_receipt.v2",
+        "schema_version": "v5.zsxq_acquisition_receipt.v3",
         "scope": "NEW_BOUNDED_CLI_RESPONSE_AND_DERIVED_SUMMARY_NOT_ARTICLE_PROVENANCE",
         "run_id": run_id,
         "acquisition_started_at": started_at,
@@ -292,6 +308,9 @@ def _publish_acquisition_receipt(store, output_relative, run_id, started_at,
         "source_payloads_available_at": available_at,
         "clock_basis": "PRODUCER_WALL_CLOCK_AFTER_CALLBACK_AND_DURABLE_READBACK",
         "files": evidence,
+        "pages": page_bindings,
+        "response_representation": "CLI_STDOUT_TEXT_UTF8_AFTER_BOM_REMOVAL",
+        "producer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "bounded_has_more": bool(bounded_has_more),
         "full_source_coverage": False,
         "article_acquisition_verified": False,
@@ -300,14 +319,15 @@ def _publish_acquisition_receipt(store, output_relative, run_id, started_at,
         "natural_verified": False,
         **SAFETY,
     }
-    relative = output_relative + "/acquisition_receipt.v2.json"
+    relative = output_relative + "/acquisition_receipt.v3.json"
     # output_relative was exclusively created by this new invocation; no backfill/reuse.
     store._write(relative, receipt)
     raw = store._io.read_bytes(relative)
     if json.loads(raw) != receipt:
         raise ValueError("V5_ACQUISITION_RECEIPT_READBACK_MISMATCH")
     # Recheck the bound bytes before allowing the original success status publish.
-    for name, ref in evidence.items():
+    all_bound = {**evidence, **{page["path"]: page for page in page_bindings}}
+    for name, ref in all_bound.items():
         raw_payload = store._io.read_bytes(name)
         if len(raw_payload) != ref["bytes"] or hashlib.sha256(raw_payload).hexdigest() != ref["sha256"]:
             raise ValueError("V5_ACQUISITION_PAYLOAD_CHANGED")
@@ -355,6 +375,17 @@ def materialize_zsxq_hourly_delta(
     floor = as_of - timedelta(days=max(1, int(lookback_days)))
     previous = _previous_success_time(Path(data_root), trade_date, slot)
     since = max(floor, previous) if previous is not None else floor
+    pages = []
+    def capture_runner(command, **kwargs):
+        completed = process_runner(command, **kwargs)
+        finished = _acquisition_clock()
+        if completed.returncode == 0:
+            raw = (completed.stdout or "").lstrip("\ufeff").encode("utf-8")
+            if len(pages) >= 400 or sum(len(p["raw"]) for p in pages) + len(raw) > 16 * 1024 * 1024:
+                raise ValueError("V5_ACQUISITION_PAGE_SIZE")
+            pages.append({"raw": raw, "group_id": command[command.index("--group-id") + 1],
+                          "retrieved_at": finished})
+        return completed
     acquisition_started_at = _acquisition_clock()
     fetched = collect_paginated_topics(
         cli=Path(cli),
@@ -363,7 +394,7 @@ def materialize_zsxq_hourly_delta(
         since=since,
         page_limit=page_limit,
         max_pages=max_pages,
-        process_runner=process_runner,
+        process_runner=capture_runner,
     )
     retrieval_completed_at = _acquisition_clock()
     recent = {
@@ -411,7 +442,7 @@ def materialize_zsxq_hourly_delta(
         acquisition_started_at, retrieval_completed_at,
         {"zsxq_recent_topics_fetch_result.json": fetch_result,
          "zsxq_recent_topics.json": recent, "zsxq_summary.json": summary_payload},
-        fetched["bounded_has_more"],
+        fetched["bounded_has_more"], pages,
     )
     cannot_confirm = (
         ["ZSXQ_PAGINATION_BOUNDED_HAS_MORE"]

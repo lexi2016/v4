@@ -252,7 +252,7 @@ def _snapshot(binding):
 
 
 def _identity():
-    names = ('native_identity_reader.py', 'hk_preselection.py', 'us_mapping_scope.py', 'announcement_offline_reader.py', 'manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('native_identity_reader.py', 'hk_preselection.py', 'us_mapping_scope.py', 'announcement_offline_reader.py', 'manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'archive_article_v2.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
@@ -497,6 +497,7 @@ def _assemble(request):
     _sources()
     archive_diagnostics = None if archive_readback is None else dict(
         source_capsule_sha256=archive_readback['source_capsule_sha256'],
+        article_v2_source_sha256=archive_readback['article_v2_source_sha256'],
         validated_artifacts=sum(row.get('payload') is not None for row in archive_readback['records'].values()),
         rejected_artifacts={key:row['error'] for key,row in archive_readback['records'].items() if 'error' in row},
         rejected_slot_lists={key:row['error'] for key,row in archive_readback['slots'].items() if 'error' in row},
