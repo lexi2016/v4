@@ -12,15 +12,15 @@
       "path": "src/manager-selection/catalystObservationPanel.ts",
       "source": "source/apps/web/src/manager-selection/catalystObservationPanel.ts",
       "before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
-      "after_sha256": "b7bf1888174c830ab3edb218dce81cb0d9e6eacbabd6322408acd6c14b1d8984",
-      "previous_candidate_sha256": "476b99b35b2171ef3153a613430d1af64be0f72948a5e0e17d27dd8dd0de0596"
+      "after_sha256": "2375802f97ce2a6c2095d130365415bc5dedb82e75fac97e7f39efe51cb00844",
+      "previous_candidate_sha256": "b7bf1888174c830ab3edb218dce81cb0d9e6eacbabd6322408acd6c14b1d8984"
     },
     {
       "path": "src/manager-selection/dailyChannels.runtime.spec.ts",
       "source": "source/apps/web/src/manager-selection/dailyChannels.runtime.spec.ts",
       "before_sha256": "c300e175a184a6a9e365c5d99a2977ea8cc8c8eed27fbedb3291785a83bd640e",
-      "after_sha256": "b265029e9e862724b938af818316a369c2a09ca8870b1778ceaceef35cd0aa66",
-      "previous_candidate_sha256": "d239fec28cbe5d00375c87798f30e3ed283cbf69da80a657f2c65733a5ac5eca"
+      "after_sha256": "26c7e976edb7f67505f2f2568105e0ad3d53a543c946b04fb91bdfb1842480da",
+      "previous_candidate_sha256": "b265029e9e862724b938af818316a369c2a09ca8870b1778ceaceef35cd0aa66"
     },
     {
       "path": "src/manager-selection/dailyChannels.v5Bindings.spec.ts",
@@ -32,8 +32,8 @@
       "path": "src/manager-selection/catalystObservationPanel.runtime.spec.ts",
       "source": "source/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
       "before_sha256": "9ed39eebf1983c6287b25232839d68c6bfca684b3701a0dab080b8f5ed5e31a4",
-      "after_sha256": "700ffb5918a7380de10eea275efc3f025ecf50a43e940f3fb6dc0767997fa8ff",
-      "previous_candidate_sha256": "bbddd5621771a3adabcd610c1ed3072b08ed96fb0a77798e535ec9bf07f0c0a7"
+      "after_sha256": "44fe20c6211665f2670b82a04400032c27f995036c9018bfc158bff4edb1ba97",
+      "previous_candidate_sha256": "700ffb5918a7380de10eea275efc3f025ecf50a43e940f3fb6dc0767997fa8ff"
     },
     {
       "path": "src/manager-selection/catalystViewNavigation.spec.ts",
@@ -59,13 +59,27 @@
       "path": "src/manager-selection/usMappingCoverage.ts",
       "source": "source/apps/web/src/manager-selection/usMappingCoverage.ts",
       "before_sha256": null,
-      "after_sha256": "250d4059f7d3e726275109f626bcf0cdf8c7719904f2e5dcf2ea59a7aedfebbe"
+      "after_sha256": "ffe41f768d2ab73528d4e20809267722a5eac5cd01216a429bae171af6df6e2f",
+      "previous_candidate_sha256": "250d4059f7d3e726275109f626bcf0cdf8c7719904f2e5dcf2ea59a7aedfebbe"
     },
     {
       "path": "src/manager-selection/usMappingCoverage.spec.ts",
       "source": "next-tests/usMappingCoverage.spec.ts",
       "before_sha256": null,
-      "after_sha256": "aac250b13003324af14d7f3f3a572668e40cd98831487338d0dcba11a239329d"
+      "after_sha256": "13fb992e2573d288bc2333b4654120a4bcdcaf8d3001a2b301e468439d2504db",
+      "previous_candidate_sha256": "aac250b13003324af14d7f3f3a572668e40cd98831487338d0dcba11a239329d"
+    },
+    {
+      "path": "src/manager-selection/managerStrategySummary.ts",
+      "source": "source/apps/web/src/manager-selection/managerStrategySummary.ts",
+      "before_sha256": null,
+      "after_sha256": "ed1a441baf3581d313b70cf18b45a4eb43d2a27c280bf5885a26d4c10cc785be"
+    },
+    {
+      "path": "src/manager-selection/managerStrategySummary.spec.ts",
+      "source": "next-tests/managerStrategySummary.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "94dc760bd6d70e4811086ceca4c0121b85be2f53de4b9a406bacf307e0adb402"
     }
   ],
   "unchanged": {

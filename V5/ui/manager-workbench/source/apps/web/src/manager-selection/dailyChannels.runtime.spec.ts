@@ -94,7 +94,8 @@ describe('first-screen independent research channels', () => {
     await waitFor(() => expect(host.querySelector('[data-daily-channel="ANNOUNCEMENT"]')?.textContent).toContain('原研究理由：已审阅的扩产事件。'));
     const announcement = host.querySelector('[data-daily-channel="ANNOUNCEMENT"]')!;
     expect(announcement.textContent).toContain('HK.00001'); expect(announcement.textContent).toContain('20261007');
-    expect(announcement.textContent).toContain('synthetic-import-run'); expect(announcement.closest('details')).toBeNull();
+    expect(announcement.textContent).toContain('synthetic-import-run'); expect(announcement.closest('details')?.hasAttribute('data-original-research')).toBe(true);
+    expect(announcement.closest('details')?.open).toBe(false);
     expect(host.querySelectorAll('[data-daily-channel]')).toHaveLength(3);
     expect(host.querySelector('[data-daily-channel="HK_CONNECT"]')?.textContent).toContain('候选数量未知');
     expect(host.querySelector('[data-daily-channel="OVERSOLD"]')?.textContent).toContain('候选数量未知');

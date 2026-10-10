@@ -1,0 +1,55 @@
+# Bounded manager display cleanup
+
+Baseline c7a3686e9794c71b7fb257a17449c5f500f2783f; same authorized V5 branch.
+User-approved design: first screen contains plan/data dates, the three strategy
+states, and current stock research results. US matches group by HK stock (multiple
+US clues retained on one card), with relation type, reason, named source links,
+and explicit assessed versus unassessed scope. No fixed live counts or stocks.
+Announcement and rebound each have one expandable summary; unavailable is not zero.
+Original materials, controls, duplicate legacy lanes, raw reasons and audit identity
+remain inside labelled closed details. HK_CONNECT is never relabelled US mapping.
+Use the existing V4 DOM/styles, responsive wrapping and Asia/Shanghai timestamps.
+
+Affected source: catalystObservationPanel.ts layout/lifecycle, usMappingCoverage.ts
+read-only rendering, new managerStrategySummary.ts for payload-based summaries;
+matching candidate tests and overlay manifest. Existing renderers, algorithms,
+API contracts, source dates and frozen backend issues remain unchanged. No new
+requests or automatic actions. Legacy limited issuer capture remains available
+only under original advanced details, not the normal strategy entry.
+
+Cloud verification is static only. Mac E must run candidate UI tests/typecheck
+and inspect desktop/mobile browser layout, expandability, safe source links,
+missing/zero/partial results, failure and date-switch clearing before publishing.
+This candidate does not resolve announcement HTTP 503/404 or missing source data.
+
+Implemented: grouped cards are derived only from the current daily_run.matches
+when scope diagnostics and daily run state permit display. Historical seed cards
+are not promoted. Official source titles are clickable; unsafe schemes are not
+links, with original bytes still available inside evidence. Scope details and
+legacy UI remain closed by default. Valid empty has its own wording; an unavailable
+result never becomes zero. Independent analysis service failure is stated on the
+announcement summary and does not rewrite the channel result. Header time display
+converts offset-bearing timestamps to Beijing time; timezone-free input is unknown.
+
+Candidate tests: existing 8 scope cases preserved; 2 added grouped-card/empty-state
+cases; 2 new channel/time cases; the existing page-wiring test now asserts default
+folding and access to original details. The previous daily-channel test's explicit
+unfolded-layout assertion is updated to the new closed original-details contract;
+all source/date/stock/reason assertions are retained.
+
+Mac E commands (only isolated verified copy, existing marker and fixture):
+
+```sh
+python3 /absolute/v4/V5/ui/manager-workbench/apply_candidate.py --web-root /absolute/isolated-web
+cd /absolute/isolated-web
+npm run test -- src/manager-selection/managerStrategySummary.spec.ts src/manager-selection/usMappingCoverage.spec.ts src/manager-selection/catalystObservationPanel.runtime.spec.ts src/manager-selection/dailyChannels.runtime.spec.ts src/manager-selection/catalystViewNavigation.spec.ts
+npm run typecheck
+```
+
+Browser acceptance: real payload renders the actual HK card count, with multiple
+US clues grouped by HK symbol; no hardcoded 3/4/19. Verify narrow and wide viewport
+source links do not overflow, the first screen has no raw run/SHA/reason strings,
+announcement/oversold each have one closed summary, and all original evidence and
+limited-capture controls remain accessible under details. Confirm failed reads,
+manual date changes and browser navigation do not retain stale cards. No cloud
+product tests/build/browser/owner runs or deployment were performed (NOT_RUN).

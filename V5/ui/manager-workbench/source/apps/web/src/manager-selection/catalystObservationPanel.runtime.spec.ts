@@ -707,6 +707,14 @@ describe("catalyst workspace runtime boundary", () => {
     try {
       await waitFor(()=>expect(host.querySelector('[aria-label="US 关系覆盖范围"]')?.textContent).toContain("配置样本 37"));
       expect(host.querySelector('[aria-label="US 关系覆盖范围"]')?.textContent).toContain("SYN_ONLY");
+      const original=host.querySelector<HTMLDetailsElement>('[data-original-research]')!;
+      expect(original.open).toBe(false);
+      expect(host.querySelector('[aria-label="US 关系覆盖范围"]')?.closest('details')).toBeNull();
+      for(const key of ['ANNOUNCEMENT','OVERSOLD']){
+        const group=host.querySelector<HTMLDetailsElement>(`[data-strategy-summary="${key}"]`)!;
+        expect(group.open).toBe(false);expect(group.querySelector(':scope > summary')?.textContent).toContain('未知');
+      }
+      original.open=true;expect(original.querySelector('[aria-label="业务闭环状态"]')).not.toBeNull();
       workspaceMocks.request.mockRejectedValue(new Error("SYNTHETIC_READ_FAILURE"));
       const date=host.querySelector<HTMLInputElement>('[aria-label="计划目标日"]')!;
       date.value="2026-09-22";await fireEvent.change(date);

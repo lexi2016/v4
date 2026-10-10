@@ -42,3 +42,35 @@ describe('US coverage diagnostics',()=>{
     expect(host.querySelector('img')).toBeNull();expect(host.textContent).toContain('<img');
   });
 });
+
+describe('grouped current US match cards',()=>{
+  const row=(hk:string,us:string)=>({hk_symbol:hk,hk_name:`示例${hk}`,us_symbol:us,change_pct:1.25,
+    relationship_type:'PRODUCT_PEER',reason:'同业产品研究线索，不证明供货关系。',maturity:'原阶段说明',
+    limitations:['目标日资格待确认'],official_sources:[{title:'公司官方报告',url:'https://example.com/very/long/report.pdf'},
+      {title:'不安全链接',url:'javascript:alert(1)'}]});
+  const mapping={coverage_diagnostics:diagnostics,daily_run:{status:'COMPLETED',matches:[
+    row('HK.00001','SYN_A'),row('HK.00001','SYN_B'),row('HK.00002','SYN_C'),row('HK.00003','SYN_D')]}};
+  it('groups four matches into three stocks without discarding either US clue or raw evidence',()=>{
+    const host=document.createElement('section');renderUsMappingCoverage(host,mapping);
+    expect(host.querySelectorAll('[data-us-hk-result]')).toHaveLength(3);
+    const first=host.querySelector('[data-us-hk-result="HK.00001"]')!;
+    expect(first.textContent).toContain('SYN_A +1.25% / SYN_B +1.25%');
+    expect(first.textContent).toContain('产品同业（非供货关系）');
+    expect(first.querySelectorAll('a')).toHaveLength(1);
+    expect(first.querySelector('a')?.textContent).toBe('公司官方报告');
+    expect(first.querySelector('a')?.getAttribute('rel')).toContain('noopener');
+    expect(first.querySelector('details')?.open).toBe(false);
+    expect(first.querySelector('pre')?.textContent).toContain('javascript:alert(1)');
+    expect(host.querySelector(':scope > details')?.open).toBe(false);
+    expect(host.querySelector(':scope > details pre')?.textContent).toContain('coverage_diagnostics');
+  });
+  it('distinguishes scoped valid empty from unavailable and clears prior cards',()=>{
+    const host=document.createElement('section');renderUsMappingCoverage(host,mapping);
+    renderUsMappingCoverage(host,{...mapping,daily_run:{status:'VALID_EMPTY',matches:[]}});
+    expect(host.querySelectorAll('[data-us-hk-result]')).toHaveLength(0);
+    expect(host.textContent).toContain('本次已审关系范围内无匹配港股');
+    renderUsMappingCoverage(host,{...mapping,coverage_diagnostics:{...diagnostics,status:'CANNOT_CONFIRM'}});
+    expect(host.querySelectorAll('[data-us-hk-result]')).toHaveLength(0);
+    expect(host.textContent).toContain('本次没有可展示的已确认匹配结果，数量未知');
+  });
+});

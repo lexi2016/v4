@@ -1,3 +1,4 @@
+import { beijingTime, strategySummary } from './managerStrategySummary';
 import { renderUsMappingCoverage } from './usMappingCoverage';
 import { renderReboundPanelObservation } from './reboundPanelObservation';
 import { renderAnnouncementReview } from './announcementObservation.js';
@@ -25,7 +26,7 @@ const WORKSPACE_REQUEST_TIMEOUT_MS = 180_000;
 const laneNames: Record<string, string> = {STAGE:'阶段固定池', CATALYST:'补充催化产物', CLOSE:'尾盘量价', CLOSE_RECAPTURE:'盘后补采（研究观察）', MATERIAL:'既有材料发现'};
 const short=(value:string,limit=240)=>value.length>limit?value.slice(0,limit)+'…':value;
 const text = (value: unknown, absent = '未提供') => typeof value === 'string' && value ? value : absent;
-const timeText = (value: unknown) => typeof value==='string' && /T/.test(value) ? value.slice(5,16).replace('T',' ')+' 港时' : '未提供';
+const timeText = beijingTime;
 const numberText = (value: unknown, digits = 4) => typeof value === 'number' && Number.isFinite(value) ? value.toFixed(digits) : '未知';
 const scalarText = (value: unknown, absent = '未提供') => typeof value === 'number' && Number.isFinite(value) ? String(value) : text(value, absent);
 
@@ -119,12 +120,12 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   const paragraph = (label: string, values: string[]) => el('p',`${label}：${values.join('；')}`);
   const panel = el('section','','manager-catalyst-observations'); panel.setAttribute('aria-label','本计划研究关注');
   const header = el('header'); header.append(el('h2','本计划研究关注'));
-  const style=el('style',`.manager-catalyst-observations{min-width:0;overflow-wrap:anywhere}.manager-catalyst-observations header{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.manager-catalyst-observations h2{flex-basis:100%}.manager-catalyst-observations article{min-width:0;border:1px solid #d4dde4;border-radius:8px;padding:14px;margin:12px 0}.manager-catalyst-observations pre{white-space:pre-wrap;overflow-wrap:anywhere}.manager-catalyst-observations blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid #8098a9}.manager-catalyst-observations select{max-width:100%}.manager-catalyst-observations details{margin:8px 0}.manager-catalyst-observations summary{cursor:pointer}.manager-catalyst-observations button,.manager-catalyst-observations input{min-height:36px}`);
+  const style=el('style',`.manager-catalyst-observations{min-width:0;overflow-wrap:anywhere}.manager-catalyst-observations header{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.manager-catalyst-observations h2{flex-basis:100%}.manager-catalyst-observations article{min-width:0;border:1px solid #d4dde4;border-radius:8px;padding:14px;margin:12px 0}.manager-catalyst-observations pre{white-space:pre-wrap;overflow-wrap:anywhere}.manager-catalyst-observations blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid #8098a9}.manager-us-result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}.manager-us-result-grid article{margin:0}.manager-us-result-grid a{display:inline-block;max-width:100%;margin-right:8px}.manager-catalyst-observations select{max-width:100%}.manager-catalyst-observations details{margin:8px 0}.manager-catalyst-observations summary{cursor:pointer}.manager-catalyst-observations button,.manager-catalyst-observations input{min-height:36px}`);
   const readButton = el('button','读取更新'); readButton.type='button';
   const refreshButton = el('button','用既有材料生成计划'); refreshButton.type='button';
   const dateLabel=el('label','计划目标日：');const planDate=el('input');planDate.type='date';planDate.setAttribute('aria-label','计划目标日');
   planDate.value=`${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}`;
-  dateLabel.append(planDate,el('small','独立于原Stage来源日期；URL用 plan_date 保存计划日，date 仍表示Stage来源日。'));
+  dateLabel.append(planDate);
   const viewLabel=el('label','读取口径：');const viewSelect=el('select');viewSelect.setAttribute('aria-label','历史或现在回看');
   for(const [key,label] of [['auto','当时历史 / 当日预览'],['dynamic','现在回看（可能含后续消息）']]) {
     const option=el('option',label);option.value=key;viewSelect.append(option);
@@ -132,7 +133,8 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   viewSelect.value=view;
   viewLabel.append(viewSelect);
   const cancelButton=el('button','取消本次读取');cancelButton.type='button';cancelButton.hidden=true;
-  header.append(dateLabel,readButton,refreshButton,viewLabel,cancelButton);
+  const planActions=el('details');planActions.append(el('summary','计划操作'),refreshButton,el('p','计划日独立于原Stage来源日期；生成计划不代表正式选股。'));
+  header.append(dateLabel,readButton,viewLabel,cancelButton,planActions);
   const status = el('p'); status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
   const dailyChannels=el('section');renderDailyChannels(dailyChannels,undefined,displayBindings());
   const runs = el('div','','manager-catalyst-cards'); runs.setAttribute('aria-label','三路运行状态');
@@ -172,9 +174,22 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   const auditBody = el('div'); audit.append(auditBody);
   const themeDetails=el('details');themeDetails.dataset.policyDetails='true';themeDetails.append(el('summary','政策与产业线索：适用公司、原文及缺口'),themes);
   const provenance=el('details');provenance.append(el('summary','原owner状态与公司原始分类'),runSummary,runDetails,companyEvents);
-  // One entry for stock attention. Source lists remain audit/context, not rivals.
-  panel.append(style,header,status,dailyChannels,announcementAnalysisSection,businessStatus,researchFocus,closeRecapture,decisionSummary,filters,stocks,background,researchAttentionSection,usMappingCoverage,themeDetails,strategy,panelObservation,announcementSection,provenance,
-    el('p','仅研究：事件成立与行情承接、BUY准入分开。未核同口径量价不报触发价；不因高开远离可靠参考位追入，也不预设一定回踩。未读取仓位、未发订单。','decision-safety'),audit);
+  const resultDates=el('p');resultDates.setAttribute('aria-label','研究数据日期');
+  const announcementGroup=el('details');announcementGroup.dataset.strategySummary='ANNOUNCEMENT';
+  const announcementSummary=el('summary',strategySummary(undefined,'ANNOUNCEMENT'));
+  let analysisReadFailed=false;
+  const updateAnnouncementSummary=()=>{announcementSummary.textContent=strategySummary(currentValue,'ANNOUNCEMENT')+(analysisReadFailed?' · 解析服务读取失败，详情内保留原因':'');};
+  announcementGroup.append(announcementSummary,announcementAnalysisSection);
+  const legacyAnnouncement=el('details');legacyAnnouncement.append(el('summary','原始公告目录与有限范围补采操作'),announcementSection);
+  announcementGroup.append(legacyAnnouncement);
+  const oversoldGroup=el('details');oversoldGroup.dataset.strategySummary='OVERSOLD';
+  const oversoldSummary=el('summary',strategySummary(undefined,'OVERSOLD'));
+  oversoldGroup.append(oversoldSummary,strategy,panelObservation);
+  const originalDetails=el('details');originalDetails.dataset.originalResearch='true';
+  originalDetails.append(el('summary','其他研究材料与分路状态（各自口径，非 US 映射结论）'),
+    el('p','以下旧研究关注、HK_CONNECT与材料诊断各有独立口径；本次已审 US 关系的评估结果以上方美股映射区为准，不能用其他分路的未评估状态替代。'),dailyChannels,businessStatus,researchFocus,closeRecapture,decisionSummary,filters,stocks,background,researchAttentionSection,themeDetails,provenance,audit,el('p','仅研究：事件成立与行情承接、BUY准入分开。未核同口径量价不报触发价；不因高开远离可靠参考位追入，也不预设一定回踩。未读取仓位、未发订单。'));
+  panel.append(style,header,status,resultDates,announcementGroup,oversoldGroup,usMappingCoverage,
+    el('p','研究结果不等于正式选股；目标日资格与自然运行尚待验证。未发出交易指令。','decision-safety'),originalDetails);
   host.replaceChildren(panel);
 
   function lane(row: WorkspaceLane): HTMLElement {
@@ -475,12 +490,17 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   function render(value: ManagerWorkspace): void {
     // Input identity is retained for audit; it is not a stock ranking.
     currentValue=value;loadedView=view;
+    updateAnnouncementSummary();
+    oversoldSummary.textContent=strategySummary(value,'OVERSOLD');
+    const bindings=displayBindings();
+    const usMarket=(value.us_market_attention||{}) as JsonObject;
+    resultDates.textContent=`计划目标日 ${value.target_trade_date} · 港股来源日 ${bindings.selection_date} · 公告日 ${bindings.announcement_date} · 美股交易日 ${text(usMarket.expected_us_session,'未知')}`;
     renderDailyChannels(dailyChannels,value.daily_channels,displayBindings());
     renderResearchAttention(researchAttentionSection,value.research_attention as ResearchAttention|undefined,value.us_market_attention as UsMarketAttention|undefined,value.selection_diagnostics as SelectionDiagnostics|undefined,value.us_mapping_research as UsMappingResearch|undefined);
     panel.dataset.inputIdentity=value.input_identity; panel.dataset.targetDate=value.target_trade_date;panel.dataset.readState='READY';
     renderCloseRecapture(value);
     renderReboundPanelObservation(panelObservation,value.rebound_panel_observation);
-    renderUsMappingCoverage(usMappingCoverage,value.us_mapping_research);
+    renderUsMappingCoverage(usMappingCoverage,value.us_mapping_research ?? {});
     const ctx=(value.plan_context || {}) as JsonObject;const product=(value.plan_product || {}) as JsonObject;
     const read=(value.read_context || {}) as JsonObject;
     const planAttempt=(value.workspace_plan_attempt || {}) as JsonObject;
@@ -554,6 +574,9 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   }
   function clearResults(): void {
     currentValue=null;loadedView=null;decisionSummary.textContent='候选和风险数量未知';
+    resultDates.textContent='正在读取数据日期';
+    updateAnnouncementSummary();
+    oversoldSummary.textContent=strategySummary(undefined,'OVERSOLD');
     filterCount.textContent='读取中 · 数量未知';background.hidden=true;runSummary.textContent='';
     for(const node of [stocks,backgroundBody,companyEvents,runs,themes,auditBody,businessStatus,researchFocus,closeRecapture])node.replaceChildren();
     renderDailyChannels(dailyChannels,undefined,displayBindings());
@@ -602,6 +625,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   }
   async function loadAnnouncementAnalysis(targetDate:string):Promise<void>{
     const id=++analysisSequence;analysisController?.abort();
+    analysisReadFailed=false;updateAnnouncementSummary();
     const current=new AbortController();analysisController=current;
     renderAnnouncementAnalysis(announcementAnalysisSection,undefined,analysisPublicationDate,'正在读取公告解析结果',selectAnalysisDate);
     try{
@@ -612,6 +636,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
       if(disposed||id!==analysisSequence||date!==targetDate||current.signal.aborted)return;
       const message=error instanceof Error?error.message:'ANNOUNCEMENT_ANALYSIS_READ_FAILED';
       renderAnnouncementAnalysis(announcementAnalysisSection,undefined,analysisPublicationDate,message,selectAnalysisDate);
+      analysisReadFailed=true;updateAnnouncementSummary();
     }
   }
   async function updateAnnouncementReview():Promise<void>{
