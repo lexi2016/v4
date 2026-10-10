@@ -104,7 +104,7 @@ def _request(value):
             trade_date(value[key])
     if value['action'] == 'refresh' and (value['selection_date'] is not None or value['announcement_date'] is not None):
         raise ValueError('MANAGER_REFRESH_USES_ORIGINAL_TARGET_BINDINGS')
-    exact_keys(value['inputs'], ('manager', 'materials', 'us', 'archives') if 'archives' in value['inputs'] else ('manager', 'materials', 'us'))
+    exact_keys(value['inputs'], ('manager','materials','us')+tuple(key for key in ('archives','native_master') if key in value['inputs']))
     roots = []
     for name, binding in value['inputs'].items():
         exact_keys(binding, ('root', 'files'))
@@ -117,6 +117,8 @@ def _request(value):
         for relative, digest in binding['files'].items():
             common._relative(root, relative)
             sha(digest)
+            if name=='native_master' and not relative.startswith('assets/hk_security_master/'):
+                raise ValueError('MANAGER_NATIVE_MASTER_INPUT_PATH')
             if name == 'archives':
                 from v5_shadow.archive_reader import PATTERN
                 if relative != 'manifest.json' and not re.fullmatch(PATTERN, relative):
@@ -250,7 +252,7 @@ def _snapshot(binding):
 
 
 def _identity():
-    names = ('us_mapping_scope.py', 'announcement_offline_reader.py', 'manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('native_identity_reader.py', 'hk_preselection.py', 'us_mapping_scope.py', 'announcement_offline_reader.py', 'manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
@@ -324,6 +326,16 @@ def _assemble(request):
         except (OSError,ValueError,KeyError,TypeError,subprocess.TimeoutExpired) as error:
             offline_error=str(error) if isinstance(error,ValueError) else 'OFFLINE_MANAGER_READ_FAILED:'+type(error).__name__
     workspace = load_owner()
+    native_identity_readback=None
+    if 'native_master' in roots:
+        from v5_shadow.native_identity_reader import read_private as read_native,install_transport as install_native
+        from v4.manager_research.workspace_plan import plan_context
+        native_day=plan_context(request['target_date'],now=aware(request['now']))['market_session']
+        try:
+            native_identity_readback=read_native(dict(root=str(roots['native_master']),files=request['inputs']['native_master']['files']),native_day)
+        except (OSError,ValueError,KeyError,TypeError,subprocess.TimeoutExpired) as error:
+            native_identity_readback=dict(error=str(error) if isinstance(error,ValueError) else 'NATIVE_IDENTITY_READ_FAILED:'+type(error).__name__)
+        install_native(roots['native_master'],native_day,native_identity_readback)
     if membership_readback is not None:
         install_transport(roots['membership'],membership_readback)
     store_module = importlib.import_module('v4.manager_research.store')
@@ -361,7 +373,7 @@ def _assemble(request):
         observation_reader=None, _close_observation_reader=None,
         _existing_research_source=source_proxy(archive_readback) if archive_readback is not None else None,
         _catalyst_data_root=None, _catalyst_news_owner_root=None, _workspace_ledger_root=None,
-        _workspace_security_master_root=None, _workspace_screen_authority_root=None,
+        _workspace_security_master_root=roots.get('native_master'), _workspace_screen_authority_root=None,
         _workspace_us_market_reader=bridge.ResearchPeripheralUsMarketReader(roots['us']) if snapshots['us'] else None,
         get_catalyst_observations=lambda date: dict(status='CANNOT_CONFIRM', target_trade_date=date,
             cards=[], gaps=['V5_CATALYST_OWNER_NOT_BOUND'], **workspace.FLAGS))
@@ -492,6 +504,9 @@ def _assemble(request):
         coverage_basis='BOUND_FILES_AND_ORIGINAL_MANIFEST_NOT_FULL_MARKET')
     return dict(schema_version='v5.manager_plan.v1', payload=payload, readback=readback, archive_readback=archive_diagnostics,
         membership_readback=membership_readback,
+        native_identity_readback=None if native_identity_readback is None else dict(
+            error=native_identity_readback.get('error'),owner_source_sha256=native_identity_readback.get('owner_source_sha256'),
+            manifest=native_identity_readback.get('manifest'),role='REFERENCE_SESSION_IDENTITY_NOT_TARGET_CONNECT_MEMBERSHIP'),
         announcement_offline_readback=None if request.get('announcement_offline_owner') is None else dict(
             status='VERIFIED_READ_TRANSPORT' if offline_error is None else 'CANNOT_CONFIRM',
             error=offline_error,binding=request['announcement_offline_owner'],
