@@ -42,3 +42,9 @@
 未发生自动审批拒绝；上述是只读操作返回的OS权限不足或日志不存在，未申请扩权。官方七天状态恢复窗口不是此次idle timeout原因证据；本报告未自行推定该原因。
 
 准确本地输出：/workspace/v5-evidence/disconnect-20261010/readonly-sample.json、log-access-sample.json、service-readonly-check.json。SHA/字节索引见disconnect-evidence-index.json。已有V5真实链工作固定于ROUND3.md；数据授权、原公告路径闭包、US正常网络许可及超跌原历史/资格仍是实质依赖，不以本诊断消除。
+
+## 第三次通知：有前后boot/PID基线的连续性核验
+
+父线程10:15:49 UTC收到同环境disconnected；本环境10:16:30.010584—.055619 UTC立即取证调用成功。boot_id与10:06:33样本逐字相同；uptime由4180.15增至4776.86秒。PID473 start_ticks1120、原6919/6920/6921为174001/174002/174002、新11864为404331及11865/11866/11867为404337，全部与前次样本一致。两gateway18896/19096普通auto GET200，响应SHA仍133a1f218d533028b1c04372839a80bdefda9740acc263a59d3928fc4272e9e0。没有重启、重配或新建环境。
+
+此次可明确报告“前后boot_id/PID/start_ticks一致”；前两次仍只能引用既有事后证据，不能回填boot样本。通知至此次成功取证约41秒，不等于实际断连时长。连续性证据仍不能确定平台transport关闭原因，也不排除透明暂停/恢复。准确输出third-event-continuity.json已加入同目录证据索引。
