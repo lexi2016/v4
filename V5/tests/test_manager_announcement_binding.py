@@ -139,7 +139,7 @@ class ManagerAnnouncementRealOwnerTests(unittest.TestCase):
         item = self.reviewed_pair(result['payload'])
         self.assertEqual(result['readback']['status'], 'MATCHED')
         run = result['readback']['run_id']
-        saved = json.loads((self.output/'workspace_plans/20261008'/f'{run}.json').read_bytes())
+        saved = json.loads((self.output/result['readback']['store_relative']/'workspace_plans/20261008'/f'{run}.json').read_bytes())
         self.assertEqual(result['readback']['attempt']['run_id'], run)
         self.assertEqual(saved['execution_kind'], 'MANUAL_REFRESH')
         self.assertEqual(self.reviewed_pair(saved['workspace'])['product_sha256'], item['product_sha256'])

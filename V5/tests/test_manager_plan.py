@@ -69,8 +69,10 @@ class ManagerPlanAdapterTests(unittest.TestCase):
         self.request['action']='refresh';result=run_manager_plan(self.request)
         self.assertEqual(result['readback']['status'],'MATCHED')
         run=result['readback']['run_id']
-        plan=json.loads((self.output/'workspace_plans/20261008'/f'{run}.json').read_bytes())
-        attempt=json.loads((self.output/'workspace_plan_runs/20261008'/f'{run}.json').read_bytes())
+        store=self.output/result['readback']['store_relative']
+        self.assertEqual(result['readback']['store_relative'],'current_recovery')
+        plan=json.loads((store/'workspace_plans/20261008'/f'{run}.json').read_bytes())
+        attempt=json.loads((store/'workspace_plan_runs/20261008'/f'{run}.json').read_bytes())
         self.assertEqual(plan['run_id'],attempt['run_id'])
         self.assertEqual(result['readback']['attempt'],attempt)
         self.assertEqual(plan['sha256'],sha256_json({k:v for k,v in plan.items() if k!='sha256'}))
@@ -87,7 +89,7 @@ class ManagerPlanAdapterTests(unittest.TestCase):
 
     def test_same_run_terminal_tampering_is_rejected_on_real_readback(self):
         self.request['action']='refresh';saved=run_manager_plan(self.request)
-        path=self.output/'workspace_plan_runs/20261008'/(saved['readback']['run_id']+'.json')
+        path=self.output/saved['readback']['store_relative']/'workspace_plan_runs/20261008'/(saved['readback']['run_id']+'.json')
         attempt=json.loads(path.read_bytes());attempt['run_id']='2'*32;attempt.pop('sha256')
         attempt['sha256']=sha256_json(attempt);path.write_bytes(canonical_bytes(attempt))
         self.request['action']='read';value=run_manager_plan(self.request)['payload']
@@ -99,7 +101,7 @@ class ManagerPlanAdapterTests(unittest.TestCase):
         before=self.files()
         self.request.update(action='read',now='2026-10-09T10:05:00+08:00')
         second=run_manager_plan(self.request)['payload']
-        self.assertEqual(second['plan_product']['status'],'CURRENT')
+        self.assertEqual(second['plan_product']['status'],'CURRENT_RECOVERY')
         self.assertTrue(second['plan_product']['consumed'])
         self.assertEqual(second['plan_product']['run_id'],first['plan_product']['run_id'])
         self.assertEqual(second['input_identity'],first['input_identity'])

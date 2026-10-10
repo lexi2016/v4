@@ -10,10 +10,12 @@ from v5_shadow.digests import sha256_json
 from v5_shadow.manager_plan import run_manager_plan
 from test_manager_rebound_observation import ManagerReboundObservationTests
 from test_rebound_observation import raw_row
+from synthetic_worker_clock import synthetic_worker_clock
 
 
 class ManagerPanelObservationTests(unittest.TestCase):
     def setUp(self):
+        self.enterContext(synthetic_worker_clock({'manager_plan':'2026-10-09T13:06:00+00:00'}))
         fixture=ManagerReboundObservationTests();fixture.setUp();self.addCleanup(fixture.doCleanups)
         self.fixture=fixture;self.request=copy.deepcopy(fixture.request);self.request.pop('rebound_owner')
         self.root=fixture.root/'panel-observation';self.root.mkdir()
@@ -139,3 +141,9 @@ class ManagerPanelObservationTests(unittest.TestCase):
         payload={'materials':[{'source_row':{}} for _ in range(84000)],'rebound_panel_observation':summary}
         _parse_response(canonical_bytes(payload),manager_workspace=True)
         self.assertIsNone(summary['eligible_screen'])
+
+    def test_same_saved_panel_is_hidden_on_next_calendar_day(self):
+        with synthetic_worker_clock({'manager_plan':'2026-10-10T13:06:00+00:00'}):
+            result=run_manager_plan(self.request)['payload']['rebound_panel_observation']
+        self.assertIsNone(result['row_summary'])
+        self.assertIn('OBSERVATION_CURRENT_READ_HIDDEN_FOR_HISTORICAL_VIEW',result['reason_codes'])

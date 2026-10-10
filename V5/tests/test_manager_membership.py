@@ -7,16 +7,21 @@ import unittest
 import test_hk_membership_recovery as fixtures
 from v5_shadow.manager_plan import run_manager_plan
 from v5_shadow.membership_reader import OWNER_SHA
+from unittest.mock import patch
+from synthetic_worker_clock import synthetic_worker_clock, clock_at
 
 class ManagerMembershipTests(unittest.TestCase):
     def setUp(self):
+        # Fixed synthetic trading day, not today's possibly closed HK session.
+        self.enterContext(synthetic_worker_clock({'hk_membership_recovery':'2026-10-09T07:00:00+00:00'}))
+        self.enterContext(patch.object(fixtures,'datetime',clock_at('2026-10-09T06:59:00+00:00')))
         fixture=fixtures.MembershipRecoveryTests();fixture.setUp();self.addCleanup(fixture.doCleanups)
         self.fixture=fixture;published=fixture.run_value();self.published=published
         inputs={}
         for name in ('manager','materials','us'):
             path=fixture.root/name;path.mkdir();inputs[name]=dict(root=str(path),files={})
         output=fixture.root/'plans';output.mkdir();(output/'.v5-manager-plan-root').write_text('v5.manager-plan-root.v1\n')
-        self.request=dict(target_date=fixture.day,now=datetime.now(timezone.utc).isoformat(),action='read',view='dynamic',selection_date=None,announcement_date=None,inputs=inputs,rebound=None,manager_output_root=str(output),membership=dict(root=str(fixture.output),files=published['files'],authority_owner_sha256=OWNER_SHA,require_v2=True))
+        self.request=dict(target_date=fixture.day,now='2026-10-09T07:01:00+00:00',action='read',view='dynamic',selection_date=None,announcement_date=None,inputs=inputs,rebound=None,manager_output_root=str(output),membership=dict(root=str(fixture.output),files=published['files'],authority_owner_sha256=OWNER_SHA,require_v2=True))
 
     def test_698_bound_members_reach_original_scope_without_binding_master(self):
         result=run_manager_plan(self.request)
@@ -52,3 +57,8 @@ class ManagerMembershipTests(unittest.TestCase):
         self.request['action']='refresh';result=run_manager_plan(self.request)
         self.assertEqual(result['readback']['status'],'MATCHED')
         self.assertIn('TARGET_DATE_CAPTURED_HK_CONNECT_AUTHORITY_V2',json.dumps(result['payload']))
+
+    def test_closed_target_still_rejected_by_original_plan_gate(self):
+        request=copy.deepcopy(self.request);request.pop('membership');request['target_date']='20261010'
+        with self.assertRaisesRegex(ValueError,'PLAN_TARGET_NOT_VERIFIED_HK_TRADING_SESSION'):
+            run_manager_plan(request)

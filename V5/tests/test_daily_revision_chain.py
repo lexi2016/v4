@@ -75,3 +75,30 @@ print(json.dumps(create))
             self.assertEqual(saved['readback']['run_id'],page['payload']['plan_product']['run_id'])
             self.assertEqual(saved['readback']['plan_sha256'],page['payload']['plan_product']['sha256'])
             self.assertEqual(saved['announcement_offline_readback']['consumption']['status'],'CONSUMED')
+            self.assertEqual(page['announcement_offline_readback']['consumption']['status'],'CONSUMED')
+            self.assertEqual(saved['payload']['plan_product']['status'],'CURRENT_RECOVERY')
+            self.assertEqual(page['payload']['read_context']['mode'],'CURRENT_RECOVERY')
+            self.assertFalse(page['payload']['read_context']['historical_eligible'])
+            self.assertEqual(saved['announcement_offline_readback']['consumption']['product_sha256'],
+                page['announcement_offline_readback']['consumption']['product_sha256'])
+
+    def test_removed_admitted_revision_input_refuses_current_recovery_readback(self):
+        from v5_shadow.manager_plan import run_manager_plan
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary).resolve();inputs={}
+            for name in ('manager','materials','us'):
+                path=root/name;path.mkdir();inputs[name]=dict(root=str(path),files={})
+            output=root/'plans';output.mkdir();(output/'.v5-manager-plan-root').write_bytes(b'v5.manager-plan-root.v1\n')
+            request=dict(target_date='20261009',now=datetime.now(timezone.utc).isoformat(),action='refresh',view='auto',
+                selection_date=None,announcement_date=None,inputs=inputs,rebound=None,
+                manager_output_root=str(output),announcement_offline_owner=self.binding)
+            saved=run_manager_plan(request)
+            self.assertEqual(saved['announcement_offline_readback']['consumption']['status'],'CONSUMED')
+            before={str(path):path.read_bytes() for path in output.rglob('*') if path.is_file()}
+            request.pop('announcement_offline_owner')
+            page=run_manager_plan(dict(request,action='read'))['payload']
+            self.assertEqual(page['plan_product']['status'],'STALE_INPUTS_CHANGED')
+            self.assertFalse(page['plan_product']['consumed'])
+            self.assertEqual(page['plan_product']['run_id'],saved['readback']['run_id'])
+            self.assertNotEqual(page['input_identity'],saved['payload']['input_identity'])
+            self.assertEqual(before,{str(path):path.read_bytes() for path in output.rglob('*') if path.is_file()})

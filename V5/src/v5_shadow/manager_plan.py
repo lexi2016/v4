@@ -258,6 +258,37 @@ def _identity():
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
 
 
+def _plan_store_scope(request, hk):
+    """Separate late current research from the original historical plan store."""
+    output = no_symlinks(Path(request['manager_output_root']))
+    past = request['target_date'] < aware(request['now']).astimezone(hk).strftime('%Y%m%d')
+    if past and (request['action'] == 'refresh' or request['view'] in ('auto', 'dynamic')):
+        recovery = no_symlinks(output / 'current_recovery')
+        head = no_symlinks(recovery / 'workspace_plans' / request['target_date'] / 'latest.json')
+        # A different target's recovery, or an uncommitted directory, cannot
+        # hide this target's original historical qualification result.
+        if request['action'] == 'refresh' or head.exists():
+            return recovery, True
+    return output, False
+
+
+def _mark_current_recovery(payload, request):
+    """Describe a native dynamic read truthfully without changing its plan SHA."""
+    product = payload.get('plan_product', {})
+    if product.get('status') == 'CURRENT' and product.get('consumed') is True:
+        product.update(status='CURRENT_RECOVERY', owner_status='CURRENT')
+    product['historical_eligible'] = False
+    payload['read_context'].update(mode='CURRENT_RECOVERY',
+        requested_view=request['view'], owner_view='dynamic', read_as_of=request['now'],
+        historical_eligible=False, v5_contract='v5.manager_current_recovery.v1')
+    payload['observation_mode'] = ('CURRENT_RECOVERY_PLAN_READBACK'
+        if product.get('consumed') is True else 'CURRENT_RECOVERY_PREVIEW')
+    # These channels were already checked by the original owner before the
+    # response-only status discriminator above. Keep its execution references
+    # and stock/admission results; add the same explicit nonhistorical scope.
+    payload['daily_channels'].update(read_scope='CURRENT_RECOVERY', historical_eligible=False)
+
+
 def _assemble(request):
     request = _request(request)
     snapshots = {name: _snapshot(binding) for name, binding in request['inputs'].items()}
@@ -342,7 +373,11 @@ def _assemble(request):
     material_module = importlib.import_module('v4.manager_research.materials')
     bridge = importlib.import_module('v4.manager_research.us_market_bridge')
     io = importlib.import_module('infrastructure.owned_io')
-    output = Path(request['manager_output_root'])
+    output, current_recovery = _plan_store_scope(request, workspace.HK)
+    if current_recovery and request['action'] == 'refresh':
+        # Original dir-fd I/O creates only the new store. Neither old plans nor
+        # their exact-date latest pointers are used as a recovery destination.
+        io.SafeRoot(request['manager_output_root']).ensure_directory('current_recovery')
     # Construct only the original read/write primitives, without the service
     # pool or the original constructor's jobs/products/receipts mkdir side effects.
     def plan_store():
@@ -428,9 +463,24 @@ def _assemble(request):
         readback = dict(status='MATCHED', run_id=saved['run_id'], plan_sha256=saved['sha256'],
                         attempt=attempt, input_identity=saved['input_identity'])
     else:
-        payload = workspace.get_workspace(service, request['target_date'], now=now, view=request['view'],
+        owner_view = 'dynamic' if current_recovery else request['view']
+        if current_recovery:
+            original_plan_attempt = workspace.verified_plan_attempt
+            def recovery_plan_attempt(store, saved):
+                attempt = original_plan_attempt(store, saved)
+                if attempt is None:
+                    raise ValueError('CURRENT_RECOVERY_EXACT_OWNER_ATTEMPT_MISSING')
+                return attempt
+            # The original manual legacy path allows no journal. A new
+            # recovery requires its exact journal before native readback and
+            # daily channel projections can describe any saved consumption.
+            workspace.verified_plan_attempt = recovery_plan_attempt
+        payload = workspace.get_workspace(service, request['target_date'], now=now, view=owner_view,
             selection_date=request['selection_date'], announcement_date=request['announcement_date'])
         readback = dict(status='READ_ONLY', plan_product=payload.get('plan_product'))
+    readback['store_relative'] = 'current_recovery' if current_recovery else '.'
+    if current_recovery:
+        _mark_current_recovery(payload, request)
     from v5_shadow.us_mapping_scope import describe_scope
     mapping_payload=payload.get('us_mapping_research')
     if isinstance(mapping_payload,dict):
@@ -547,8 +597,9 @@ def run_manager_plan(request):
 def publish_workspace_read(request, config, *, expected_generation):
     """Explicit publication; HTTP GET only serves this committed generation.
 
-    Keep the exact query identity: auto is actually computed with view=auto,
-    never relabel a dynamic preview as history or populate unrelated dates.
+    Keep the exact query identity. Auto may explicitly select a committed
+    CURRENT_RECOVERY dynamic read for that target; it never labels it history
+    or populates unrelated dates. Explicit history retains the original gate.
     """
     if request['action'] != 'read':
         raise ValueError('MANAGER_API_REQUIRES_READ_RESULT')

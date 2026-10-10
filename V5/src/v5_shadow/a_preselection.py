@@ -260,6 +260,17 @@ def _guard(lanes):
         # alias while importing the frozen V1.9.2 reader.  Bind it to the
         # platform timezone database target; never trust a configurable TZPATH.
         alias=Path('/usr/share/zoneinfo/UTC')
+        # Linux packages UTC as one fixed alias to a regular trusted file.
+        # This is not permission to traverse arbitrary zoneinfo or caller links.
+        linux_target=Path('/usr/share/zoneinfo/Etc/UTC')
+        if candidate in (alias,linux_target):
+            try:
+                if (alias.is_symlink() and os.readlink(alias)=='Etc/UTC'
+                        and no_symlinks(linux_target)==linux_target
+                        and stat.S_ISREG(linux_target.stat().st_mode)):
+                    return linux_target
+            except (OSError,ValueError):
+                pass
         database=Path('/private/var/db/timezone/tz')
         if candidate==alias:
             if not alias.parent.is_symlink():return None
