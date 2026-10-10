@@ -1,0 +1,83 @@
+{
+  "schema_version": "v5.rebound_admission_handoff_package.v1",
+  "classification": "PRIVATE_REVIEW_PACKAGE_NOT_ADMISSION_EVIDENCE",
+  "files_excluding_this_manifest": [
+    {
+      "path": "MINIMAL_ISSUE.md",
+      "sha256": "d3eb760d9b429762f1a9f4982033d09f5402d4501d5eb0154afa438e5c79ac6b",
+      "size_bytes": 4540
+    },
+    {
+      "path": "RUNS.md",
+      "sha256": "8d712010ad0f8063f01ff329120f493fd16deb792d1cb2c70a1180d5cee4e243",
+      "size_bytes": 2901
+    },
+    {
+      "path": "SOURCE_ROUTES.md",
+      "sha256": "78d876ce883fda2a1fe16b06661040e817db8478b9818148159d72b9ec39243e",
+      "size_bytes": 7499
+    },
+    {
+      "path": "START_HERE.md",
+      "sha256": "512639fbda02e5bee5ce55e6c76f8c5e5dde4a169706dc32c741e9feea27d186",
+      "size_bytes": 2251
+    },
+    {
+      "path": "evidence/command-log.json",
+      "sha256": "2dd0f1ef314374a6badb29a6af9d9540b8d1792e2518bebd82c2c53b627c8028",
+      "size_bytes": 5404
+    },
+    {
+      "path": "evidence/synthetic-run.json",
+      "sha256": "bd934e35bb392861077076dd376b1aea61cb817c3349d99e688a2307e296d1b6",
+      "size_bytes": 567
+    },
+    {
+      "path": "source/CHANGE_MANIFEST.json",
+      "sha256": "1d9c724c9b35d54a5a4384fa52103c0517f44de10976b175e6b749db02c53668",
+      "size_bytes": 724
+    },
+    {
+      "path": "source/README.md",
+      "sha256": "f2021366666146bc9dafee1bdc80de88cf68c65fa567e43fd2dd0697f6a6e3c7",
+      "size_bytes": 1193
+    },
+    {
+      "path": "source/date-storage-compat.patch",
+      "sha256": "6ea3ee7054dfeedee4d061225b35cef40c9f540251da399141f4d291b24b22e8",
+      "size_bytes": 8552
+    },
+    {
+      "path": "source/rebound_panel_repair.py",
+      "sha256": "9f547b8d2307b847b3d284eff2e5914d715283a06eb427044074b34bdc3114da",
+      "size_bytes": 43121
+    },
+    {
+      "path": "source/test_rebound_date_compat.py",
+      "sha256": "4f707476683c18bc9a55cef77b6e3ab7f26f0da391cd23021ae9877768035135",
+      "size_bytes": 4688
+    },
+    {
+      "path": "synthetic/README.md",
+      "sha256": "df502807090016ce4d6c99c75f01f0ae84b4fb1ec68e6b90081a25be6b03c0f5",
+      "size_bytes": 776
+    },
+    {
+      "path": "synthetic/synthetic_raw_cell_gate.py",
+      "sha256": "5f711261d8dee3e1e940d23dce9470dbe00836b72cada0beaffb641b8c1ba259",
+      "size_bytes": 1839
+    },
+    {
+      "path": "verify_package.py",
+      "sha256": "51f073f062fe4c62e35f739bd04fb93a2245023f0bd6e00acf09b333c54d5505",
+      "size_bytes": 3584
+    }
+  ],
+  "file_count_excluding_manifest": 14,
+  "exclusion_policy": {
+    "no_raw_market_rows_or_capture_files": true,
+    "no_full_membership_dump": true,
+    "no_credentials_or_sdk_logs": true,
+    "no_parquet_database_key_or_certificate_files": true
+  }
+}

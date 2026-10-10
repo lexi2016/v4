@@ -1,0 +1,23 @@
+{
+  "command": [
+    "python3",
+    "-I",
+    "-B",
+    "chat-handoff-staging/handoff/v5-rebound-admission-20261010/synthetic/synthetic_raw_cell_gate.py"
+  ],
+  "exit_code": 0,
+  "stdout": {
+    "classification": "SYNTHETIC_CODE_FIX_REPRO_ONLY",
+    "code": "SYNTH.00001",
+    "exact_matches": 9,
+    "mismatches": 2,
+    "missing": 56,
+    "normalization_applied": false,
+    "not_business_evidence": true,
+    "price_or_volume_unit_proven": false,
+    "raw_presence": 11,
+    "required_cells": 67,
+    "result": "PENDING",
+    "source_and_owner_proof": false
+  }
+}

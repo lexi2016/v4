@@ -1,0 +1,107 @@
+{
+  "schema_version": "v5.rebound_admission_handoff_command_log.v1",
+  "scope": "summarized existing evidence plus this package's standalone synthetic run; no business rerun",
+  "commands": [
+    {
+      "classification": "DATE_STORAGE_REGRESSION_PRIOR_RUN",
+      "argv": [
+        "/Users/lexi/Documents/Codex/2026-10-08/task/V5-test-1167ed3/venv/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "test_rebound_date_compat",
+        "test_rebound_owner_identity",
+        "test_rebound_panel_repair",
+        "test_rebound_raw_repair",
+        "test_rebound_admission",
+        "test_rebound_observation",
+        "-v"
+      ],
+      "exit_code": 0,
+      "result": "104 tests: 103 passed, 0 failed/errors, 1 skipped; skip requires real private native capture/approval binding",
+      "evidence_scope": "synthetic and frozen-reader tests only; not formal admission"
+    },
+    {
+      "classification": "ACTUAL_RECORDED_CURRENT_TARGET_OBSERVATION",
+      "argv": [
+        "/Users/lexi/Documents/Codex/2026-10-08/task/V5-test-1167ed3/venv/bin/python",
+        "-I",
+        "-B",
+        "/Users/lexi/Documents/Codex/2026-10-10/task/rebound-admission-local-r1/V5/src/v5_shadow/rebound_observation.py",
+        "--request",
+        "/Users/lexi/Documents/Codex/2026-10-10/task/rebound-admission-local-r1/evidence/observation-request-current-20261010.json",
+        "--output-root",
+        "/Users/lexi/Documents/Codex/2026-10-10/task/rebound-admission-local-r1/observations/current-20261010"
+      ],
+      "exit_code": 0,
+      "run_id": "158fc60a8926409d8e6e47963f6f2841",
+      "artifact_sha256": "bdbbb83118b78296e94f27945632453d3f1423d6c03dc5d41c248118f6801cd1",
+      "result": "CANNOT_CONFIRM; ValueError:OBSERVATION_PANEL_BINDING; no selection published"
+    },
+    {
+      "classification": "HISTORICAL_SYNTHETIC_OBSERVATION",
+      "argv": [
+        "/Users/lexi/Documents/Codex/2026-10-08/task/V5-test-1167ed3/venv/bin/python",
+        "-I",
+        "-B",
+        "/Users/lexi/Documents/Codex/2026-10-10/task/rebound-admission-local-r1/V5/src/v5_shadow/rebound_observation.py",
+        "--request",
+        "/Users/lexi/Documents/Codex/2026-10-10/task/rebound-admission-local-r1/evidence/observation-request-historical-synthetic-20261009.json",
+        "--output-root",
+        "/Users/lexi/Documents/Codex/2026-10-10/task/rebound-admission-local-r1/observations/historical-synthetic-20261009"
+      ],
+      "exit_code": 0,
+      "run_id": "a27af4fc3f6e435b8bd3f5ebb54659e4",
+      "artifact_sha256": "637c0d3a6ce461c952523da8d7dbb551deca299ccc2824a182da272e163164ec",
+      "result": "SYNTHETIC_TEST; arithmetic only; strict=0, near=1, excluded=0, unresolved=694; not admitted"
+    },
+    {
+      "classification": "HISTORICAL_RAW_PANEL_CELL_COMPARISON",
+      "argv": [
+        "/Users/lexi/Documents/Codex/2026-10-08/task/V5-test-1167ed3/venv/bin/python",
+        "-I",
+        "-B",
+        "rebound-admission-local-r1/evidence/build_readback_and_gap_package.py"
+      ],
+      "exit_code": 0,
+      "result": "67 required cells; 11 raw presence; 9 exact; 2 mismatches; 56 missing; no value normalization"
+    },
+    {
+      "classification": "CAPTURE_AND_PUBLICATION_LOGICAL_DIGEST_CHECK",
+      "command_text": "Locked CPython 3.14.6 one-shot read-only check using the original hk_membership_recovery.sha256_json and hk_universe_preflight._sha256 helpers; remove each logical self-digest field before recomputation.",
+      "exit_code": 0,
+      "result": "capture logical digest and publication logical digest match; cross references agree; file-byte hashes separately recorded; no observer/admission rerun",
+      "exact_argv": "not recorded in source command log; not reconstructed here"
+    },
+    {
+      "classification": "THIS_PACKAGE_FICTIONAL_CELL_REPRO",
+      "argv": [
+        "python3",
+        "-I",
+        "-B",
+        "chat-handoff-staging/handoff/v5-rebound-admission-20261010/synthetic/synthetic_raw_cell_gate.py"
+      ],
+      "exit_code": 0,
+      "result_path": "evidence/synthetic-run.json",
+      "result": "SYNTHETIC_CODE_FIX_REPRO_ONLY; 67 required, 11 presence, 9 exact, 2 mismatch, 56 missing; PENDING"
+    },
+    {
+      "classification": "PACKAGE_EXCLUSION_SCAN_INITIAL_ATTEMPT",
+      "command_text": "python3 -I -B chat-handoff-staging/handoff/v5-rebound-admission-20261010/verify_package.py --build && python3 -I -B chat-handoff-staging/handoff/v5-rebound-admission-20261010/verify_package.py",
+      "exit_code": 1,
+      "result": "Initial scanner flagged its own embedded private-key marker strings; scan corrected to exclude only the verifier source itself from content-marker matching. Build succeeded."
+    },
+    {
+      "classification": "PACKAGE_EXCLUSION_SCAN_FINAL",
+      "command_text": "python3 -I -B chat-handoff-staging/handoff/v5-rebound-admission-20261010/verify_package.py --build && python3 -I -B chat-handoff-staging/handoff/v5-rebound-admission-20261010/verify_package.py",
+      "exit_code": 0,
+      "result": "All manifest hashes matched; excluded names/extensions and private-key markers passed; no unexpected large files."
+    }
+  ],
+  "not_run": [
+    "No new observer or admission command",
+    "No data acquisition, quota query, Futu request, or TDX updater",
+    "No production source, V4/8873, active pointer, scheduler, permission, credential, or order change",
+    "No manager consumption"
+  ]
+}
