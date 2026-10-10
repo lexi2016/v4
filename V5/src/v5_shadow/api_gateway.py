@@ -131,6 +131,8 @@ def load_frontend(root,manifest):
 def create_gateway(config,host='127.0.0.1',port=0,frontend=None):
     if host!='127.0.0.1':raise ValueError('LOOPBACK_ONLY')
     config=validate_config(config);routes={r['path']:r for r in config['routes']}
+    manager_read_only=not any(r['module_id']=='manager' and 'POST' in r['methods']
+                             for r in config['routes'])
     capacities={k:threading.BoundedSemaphore(v['max_inflight']) for k,v in config['modules'].items()}
     class Handler(BaseHTTPRequestHandler):
         def setup(self):
@@ -144,10 +146,11 @@ def create_gateway(config,host='127.0.0.1',port=0,frontend=None):
             self.input_watchdog.cancel()
             super().finish()
         def log_message(self,*args):pass
-        def reply(self,status,payload,raw=False):
+        def reply(self,status,payload,raw=False,workspace_read_only=False):
             data=payload if raw else canonical_bytes(payload)
             self.send_response(status);self.send_header('Content-Type','application/json; charset=utf-8')
             self.send_header('Content-Length',str(len(data)));self.send_header('Cache-Control','no-store')
+            if workspace_read_only:self.send_header('X-V5-Workspace-Access','READ_ONLY')
             self.send_header('X-Content-Type-Options','nosniff');self.end_headers()
             try:self.wfile.write(data)
             except (BrokenPipeError,ConnectionResetError):pass
@@ -236,7 +239,9 @@ def create_gateway(config,host='127.0.0.1',port=0,frontend=None):
                 data=b''.join(chunks)
                 _parse_response(data, manager_workspace=_manager_response(
                     name, parsed.path, self.command, response.status))
-                self.reply(response.status,data,raw=True)
+                self.reply(response.status,data,raw=True,workspace_read_only=(
+                    name=='manager' and parsed.path==MANAGER_WORKSPACE_PATH
+                    and manager_read_only))
             except (TimeoutError,socket.timeout):self.error(504,'MODULE_TIMEOUT',name)
             except (OSError,http.client.HTTPException):self.error(504 if expired.is_set() else 502,'MODULE_TIMEOUT' if expired.is_set() else 'MODULE_UNAVAILABLE',name)
             except (ValueError,UnicodeError,RecursionError):self.error(502,'MODULE_RESPONSE_INVALID',name)

@@ -23,6 +23,7 @@ vi.mock("../api/managerAnnouncementAnalysis.js", async (importOriginal) => ({
 
 import { groupThemeMappings, mountCatalystObservations } from "./catalystObservationPanel";
 import { validateManagerWorkspace, type JsonObject, type ManagerWorkspace, type ReboundScreen } from "../api/managerWorkspace";
+import { testFlags, workspaceFixture } from "./dailyChannels.testHelper";
 
 const makeLane = (lane: "STAGE" | "CATALYST" | "CLOSE") => ({
   lane, owner: `SIMULATED_${lane}`, state: "NOT_RUN", target_date: "20260921",
@@ -643,8 +644,28 @@ describe("catalyst workspace runtime boundary", () => {
   });
 
   it("reuses the validated refresh response instead of issuing a second same-date GET", async () => {
-    workspaceMocks.request.mockResolvedValue(workspaceBase);
-    workspaceMocks.refresh.mockResolvedValue(workspaceBase);
+    window.history.replaceState({}, "", "/?date=20260921&view=dynamic");
+    const initial = workspaceFixture({ plan_date: "20260921", selection_date: "20260921", announcement_date: "20260921" }, false);
+    // Keep this legacy no-projection caller, with a complete synthetic owner
+    // response admitted by the real API client instead of a product mock.
+    const saved = structuredClone(initial);
+    saved.plan_product = { status: "CURRENT", consumed: true, run_id: "1".repeat(32), sha256: "2".repeat(64),
+      generated_at: "2026-10-10T03:04:05+00:00", execution_kind: "MANUAL_REFRESH",
+      original_owner: "ManagerResearchJobService.refresh_workspace_plan" };
+    saved.workspace_plan_attempt = { ...testFlags, schema_version: "v4.manager_research.workspace_attempt.v1",
+      sha256: "5".repeat(64), state: "PARTIAL", target_trade_date: "20260921",
+      run_id: "1".repeat(32), input_identity: saved.input_identity, execution_kind: "MANUAL_REFRESH",
+      owner: "ManagerResearchJobService.refresh_workspace_plan", failure_reasons: ["SYNTHETIC_SCOPE_GAP"],
+      started_at: "2026-10-10T03:04:00+00:00", finished_at: "2026-10-10T03:04:06+00:00" };
+    const actualApi = await vi.importActual<typeof import("../api/managerWorkspace.js")>("../api/managerWorkspace.js");
+    workspaceMocks.request.mockImplementation(actualApi.requestManagerWorkspace);
+    workspaceMocks.refresh.mockImplementation(actualApi.refreshManagerWorkspace);
+    const methods: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (!String(input).includes("/workspace")) return { ok: false, status: 503 } as Response;
+      methods.push(init?.method ?? "GET");
+      return new Response(JSON.stringify(init?.method === "POST" ? saved : initial), { status: 200 });
+    }));
     const host = document.createElement("div");
     document.body.append(host);
     const dispose = mountCatalystObservations(host, "20260921");
@@ -658,7 +679,9 @@ describe("catalyst workspace runtime boundary", () => {
     await waitFor(() => expect(generate.disabled).toBe(false));
     await fireEvent.click(generate);
     await waitFor(() => expect(workspaceMocks.refresh).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(host.querySelector(".manager-catalyst-observations")?.getAttribute("data-generation-state")).toBe("VERIFIED"));
     expect(workspaceMocks.request).not.toHaveBeenCalled();
+    expect(methods).toEqual(["GET", "POST"]);
     dispose();
   });
 

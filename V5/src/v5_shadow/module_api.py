@@ -193,6 +193,7 @@ def create_module_server(value,host='127.0.0.1',port=0):
             self.send_header('Content-Type','application/json; charset=utf-8');self.send_header('Content-Length',str(len(data)))
             self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff')
             self.send_header('X-V5-Module',config['module_id']);self.send_header('X-V5-Release',config['release_id'])
+            if config['module_id']=='manager':self.send_header('X-V5-Workspace-Access','READ_ONLY')
             if digest:self.send_header('X-V5-Record-SHA256',digest)
             self.end_headers()
             try:

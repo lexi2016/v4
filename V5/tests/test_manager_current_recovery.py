@@ -179,17 +179,28 @@ class ManagerCurrentRecoveryTests(unittest.TestCase):
         journal.with_name('latest.json').unlink()
         self.assert_missing_recovery_journal_rejected(saved)
 
-    def test_same_day_manual_legacy_missing_journal_keeps_original_compatibility(self):
+    def test_same_day_manual_missing_journal_keeps_fresh_preview_without_consumption(self):
         request = dict(self.request, now='2026-10-09T08:45:00+08:00')
+        fresh = run_manager_plan(dict(request, action='read'))['payload']
         saved = run_manager_plan(request)
         journal = self.output / 'workspace_plan_runs' / '20261009' / (saved['readback']['run_id'] + '.json')
         journal.unlink()
         journal.with_name('latest.json').unlink()
         before = self.snapshot()
         page = run_manager_plan(dict(request, action='read'))['payload']
-        self.assertEqual(page['plan_product']['status'], 'CURRENT')
-        self.assertTrue(page['plan_product']['consumed'])
+        self.assertEqual(page['plan_product']['status'], 'OWNER_ATTEMPT_UNVERIFIED')
+        self.assertEqual(page['plan_product']['reason'], 'MANAGER_EXACT_OWNER_ATTEMPT_MISSING')
+        self.assertFalse(page['plan_product']['consumed'])
         self.assertEqual(page['plan_product']['run_id'], saved['readback']['run_id'])
+        self.assertEqual(page['plan_product']['sha256'], saved['readback']['plan_sha256'])
+        self.assertIsNone(page['workspace_plan_attempt'])
+        for name in ('stocks', 'materials', 'announcement_reviewed_analysis', 'input_identity'):
+            self.assertEqual(page[name], fresh[name], name)
+        for channel in page['daily_channels']['channels']:
+            if channel['channel'] in ('HK_CONNECT', 'OVERSOLD'):
+                self.assertIsNone(channel['run_id'])
+                self.assertIsNone(channel['product_sha256'])
+                self.assertEqual(channel['attempt_status'], 'NOT_VERIFIED')
         self.assertEqual(self.snapshot(), before)
 
     def test_changed_bound_input_bytes_still_fail_sha_admission(self):

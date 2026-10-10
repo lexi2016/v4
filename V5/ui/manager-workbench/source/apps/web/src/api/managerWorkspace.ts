@@ -1417,7 +1417,7 @@ export function validateManagerWorkspace(raw: unknown, date: string, expectedBin
   if (value.date_bindings !== undefined) {
     const bindings = validateWorkspaceDateBindings(value.date_bindings, date, expectedBindings);
     if (value.daily_channels !== undefined) validateDailyChannels(value.daily_channels, bindings, value);
-  } else if (value.daily_channels !== undefined) throw new Error('WORKSPACE_DAILY_DATE_BINDING_INVALID');
+  } else if (value.daily_channels !== undefined || expectedBindings !== undefined) throw new Error('WORKSPACE_DAILY_DATE_BINDING_INVALID');
   return value as unknown as ManagerWorkspace;
 }
 async function parseWorkspaceResponse(response: Response, date: string, expectedBindings?: WorkspaceRequestDateBindings): Promise<ManagerWorkspace> {
@@ -1428,6 +1428,12 @@ async function parseWorkspaceResponse(response: Response, date: string, expected
     throw error; // actual transport/body-read failures remain distinguishable
   }
   return validateManagerWorkspace(raw,date,expectedBindings);
+}
+// Transport metadata only tightens UI admission. A payload field cannot grant
+// write access or remove the read-only identity of a validated response.
+const readOnlyWorkspaceResponses = new WeakSet<ManagerWorkspace>();
+export function isManagerWorkspaceReadOnly(value: ManagerWorkspace): boolean {
+  return readOnlyWorkspaceResponses.has(value);
 }
 export async function requestManagerWorkspace(date: string, signal: AbortSignal, view: WorkspaceView = 'auto', bindings?: WorkspaceRequestDateBindings): Promise<ManagerWorkspace> {
   if (normalizedWorkspaceDay(date) !== date) throw new Error('WORKSPACE_DATE_REQUIRED');
@@ -1463,6 +1469,7 @@ export async function requestManagerWorkspace(date: string, signal: AbortSignal,
   const read=object(value.read_context); // an old backend cannot silently provide a historical dynamic view
   if ((view==='historical' && read.mode!=='HISTORICAL_AS_OF') ||
       (view==='dynamic' && read.mode!=='CURRENT_DYNAMIC_PREVIEW')) throw new Error('WORKSPACE_VIEW_MISMATCH');
+  if (response.headers?.get('X-V5-Workspace-Access') === 'READ_ONLY') readOnlyWorkspaceResponses.add(value);
   return value;
 }
 
@@ -1493,11 +1500,43 @@ export async function refreshManagerAnnouncements(date: string, signal: AbortSig
 }
 
 /** Explicit user action: original owner reuses existing input, never a crawler. */
-export async function refreshManagerWorkspace(date: string, signal: AbortSignal): Promise<ManagerWorkspace> {
-  if (!/^\d{8}$/.test(date)) throw new Error('WORKSPACE_DATE_REQUIRED');
-  const response = await fetch(`/api/v4/manager/research/workspace/refresh?date=${encodeURIComponent(date)}`, {
+export async function refreshManagerWorkspace(date: string, signal: AbortSignal, bindings?: WorkspaceRequestDateBindings): Promise<ManagerWorkspace> {
+  if (normalizedWorkspaceDay(date) !== date) throw new Error('WORKSPACE_DATE_REQUIRED');
+  const query = new URLSearchParams({ date });
+  if (bindings !== undefined) {
+    if (!bindings || typeof bindings !== 'object' || Array.isArray(bindings)) throw new Error('WORKSPACE_DAILY_DATE_BINDING_INVALID');
+    for (const key of ['selection_date', 'announcement_date'] as const) {
+      if (bindings[key] === undefined) continue;
+      const selected = normalizedWorkspaceDay(bindings[key]);
+      if (selected === null) throw new Error('WORKSPACE_DAILY_DATE_BINDING_INVALID');
+      query.set(key, selected);
+    }
+  }
+  const response = await fetch(`/api/v4/manager/research/workspace/refresh?${query}`, {
     method: 'POST', signal, credentials: 'same-origin', cache: 'no-store',
   });
   if (!response.ok) throw new Error(`WORKSPACE_REFRESH_HTTP_${response.status}`);
-  return await parseWorkspaceResponse(response, date);
+  const value = await parseWorkspaceResponse(response, date, bindings);
+  const product = value.plan_product; const attempt = value.workspace_plan_attempt;
+  if (!isJsonObject(product) || !['CURRENT','ALREADY_MATERIALIZED','PRESERVED_SCHEDULED_PREOPEN'].includes(String(product.status)) ||
+      product.consumed !== true || product.original_owner !== 'ManagerResearchJobService.refresh_workspace_plan' ||
+      typeof product.run_id !== 'string' || !/^[0-9a-f]{32}$/.test(product.run_id) ||
+      !researchSha(product.sha256) || explicitTimestamp(product.generated_at) === null)
+    throw new Error('WORKSPACE_REFRESH_PRODUCT_INVALID');
+  // The original owner verifies the sealed bytes. This client checks the
+  // serialized terminal identity and chronology before consuming the response.
+  if (!isJsonObject(attempt) || attempt.schema_version !== 'v4.manager_research.workspace_attempt.v1' ||
+      !researchSha(attempt.sha256) || !['SUCCEEDED','SUCCEEDED_EMPTY','PARTIAL'].includes(String(attempt.state)) ||
+      !['MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'].includes(String(attempt.execution_kind)) ||
+      !Array.isArray(attempt.failure_reasons) || (attempt.state === 'PARTIAL') !== (attempt.failure_reasons.length > 0) ||
+      attempt.run_id !== product.run_id || attempt.target_trade_date !== date ||
+      attempt.input_identity !== value.input_identity || attempt.execution_kind !== product.execution_kind ||
+      attempt.owner !== product.original_owner)
+    throw new Error('WORKSPACE_REFRESH_TERMINAL_INVALID');
+  const started = explicitTimestamp(attempt.started_at), finished = explicitTimestamp(attempt.finished_at);
+  const generated = explicitTimestamp(product.generated_at);
+  if (started === null || finished === null || generated === null || started > generated || generated > finished)
+    throw new Error('WORKSPACE_REFRESH_TERMINAL_INVALID');
+  safe(attempt);
+  return value;
 }

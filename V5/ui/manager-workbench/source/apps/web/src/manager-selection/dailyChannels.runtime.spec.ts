@@ -2,7 +2,7 @@ import { fireEvent, waitFor } from '@testing-library/vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { requestManagerWorkspace, validateManagerWorkspace, type JsonObject } from '../api/managerWorkspace';
 import { mountCatalystObservations } from './catalystObservationPanel';
-import { testBindings, workspaceFixture } from './dailyChannels.testHelper';
+import { testBindings, testFlags, workspaceFixture } from './dailyChannels.testHelper';
 
 const ok = (value: unknown) => ({ ok: true, status: 200, json: async () => value }) as Response;
 const noAnnouncements = () => ({ ok: false, status: 503 }) as Response;
@@ -119,19 +119,30 @@ describe('first-screen independent research channels', () => {
     }
   });
 
-  it('reloads the selected canonical GET after manual generation and does not claim a scheduled run', async () => {
-    window.history.replaceState({}, '', '/?date=20261006&plan_date=20261008&announcement_date=20261007');
+  it('consumes the selected complete POST once and does not claim a scheduled run', async () => {
+    window.history.replaceState({}, '', '/?date=20261006&plan_date=20261008&announcement_date=20261007&view=dynamic');
+    // Explicit synthetic saved product + original-owner terminal envelope.
+    const saved = workspaceFixture();
+    saved.plan_product = { status: 'CURRENT', consumed: true, run_id: '1'.repeat(32), sha256: '2'.repeat(64),
+      generated_at: '2026-10-10T03:04:05+00:00', execution_kind: 'MANUAL_REFRESH',
+      original_owner: 'ManagerResearchJobService.refresh_workspace_plan' };
+    saved.workspace_plan_attempt = { ...testFlags, schema_version: 'v4.manager_research.workspace_attempt.v1',
+      sha256: '5'.repeat(64), state: 'PARTIAL', target_trade_date: testBindings.plan_date,
+      run_id: '1'.repeat(32), input_identity: saved.input_identity, execution_kind: 'MANUAL_REFRESH',
+      owner: 'ManagerResearchJobService.refresh_workspace_plan', failure_reasons: ['SYNTHETIC_SCOPE_GAP'],
+      started_at: '2026-10-10T03:04:00+00:00', finished_at: '2026-10-10T03:04:06+00:00' };
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      if (String(input).includes('/workspace/refresh?')) return ok(workspaceFixture(testBindings, false));
+      if (String(input).includes('/workspace/refresh?')) return ok(saved);
       return String(input).includes('/workspace?') ? ok(workspaceFixture()) : noAnnouncements();
     }); vi.stubGlobal('fetch', fetchMock);
     const host = document.createElement('div'); document.body.append(host); dispose = mountCatalystObservations(host, '20261008');
     const button = [...host.querySelectorAll('button')].find(node => node.textContent === '用既有材料生成计划')!;
     await waitFor(() => expect(button.disabled).toBe(false)); await fireEvent.click(button);
-    await waitFor(() => expect(fetchMock.mock.calls.filter(call => String(call[0]).includes('/workspace?'))).toHaveLength(2));
+    await waitFor(() => expect(host.querySelector('.manager-catalyst-observations')?.getAttribute('data-generation-state')).toBe('VERIFIED'));
     const workspaceCalls = fetchMock.mock.calls.filter(call => String(call[0]).includes('/workspace'));
-    expect(workspaceCalls.map(call => call[1]?.method)).toEqual(['GET', 'POST', 'GET']);
-    expect(String(workspaceCalls[2][0])).toContain('announcement_date=20261007');
+    expect(workspaceCalls.map(call => call[1]?.method)).toEqual(['GET', 'POST']);
+    expect(Object.fromEntries(new URL(String(workspaceCalls[1][0]), 'http://localhost').searchParams))
+      .toEqual({ date: '20261008', selection_date: '20261006', announcement_date: '20261007' });
     expect(host.querySelector('[data-daily-channels]')?.textContent).not.toContain('自然运行已验收');
     expect(host.querySelector('[data-daily-channels]')?.textContent).not.toContain('定时运行已完成');
   });

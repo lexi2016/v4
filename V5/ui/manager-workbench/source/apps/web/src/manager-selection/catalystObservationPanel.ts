@@ -12,7 +12,7 @@ import { normalizedWorkspaceDay, readDailyDateBindings, renderDailyChannels, sam
  * Cross-date/view and source failures clear cards. Same-view re-read may retain
  * an explicitly labelled previous qualified result; it is never relabelled current.
  */
-import { requestManagerAnnouncements, refreshManagerAnnouncements, requestManagerWorkspace, refreshManagerWorkspace, type ManagerWorkspace, type WorkspaceLane, type JsonObject, type ReboundScreen } from '../api/managerWorkspace.js';
+import { requestManagerAnnouncements, refreshManagerAnnouncements, requestManagerWorkspace, refreshManagerWorkspace, isManagerWorkspaceReadOnly, type ManagerWorkspace, type WorkspaceLane, type JsonObject, type ReboundScreen } from '../api/managerWorkspace.js';
 import { requestManagerAnnouncementAnalysis } from '../api/managerAnnouncementAnalysis.js';
 import { renderAnnouncementAnalysis } from './announcementAnalysis.js';
 
@@ -105,6 +105,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   let announcementRefreshTimer:ReturnType<typeof setTimeout>|undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let currentValue: ManagerWorkspace | null = null;
+  let generationUnconfirmed = false;
   const readView=(value:string|null):'auto'|'dynamic'=>value==='dynamic'?'dynamic':'auto';
   let view = readView(params.get('view'));
   let loadedView: 'auto'|'dynamic' | null = null;
@@ -122,7 +123,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   const header = el('header'); header.append(el('h2','本计划研究关注'));
   const style=el('style',`.manager-catalyst-observations{min-width:0;overflow-wrap:anywhere}.manager-catalyst-observations header{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.manager-catalyst-observations h2{flex-basis:100%}.manager-catalyst-observations article{min-width:0;border:1px solid #d4dde4;border-radius:8px;padding:14px;margin:12px 0}.manager-catalyst-observations pre{white-space:pre-wrap;overflow-wrap:anywhere}.manager-catalyst-observations blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid #8098a9}.manager-us-result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}.manager-us-result-grid article{margin:0}.manager-us-result-grid a{display:inline-block;max-width:100%;margin-right:8px}.manager-catalyst-observations select{max-width:100%}.manager-catalyst-observations details{margin:8px 0}.manager-catalyst-observations summary{cursor:pointer}.manager-catalyst-observations button,.manager-catalyst-observations input{min-height:36px}`);
   const readButton = el('button','读取更新'); readButton.type='button';
-  const refreshButton = el('button','用既有材料生成计划'); refreshButton.type='button';
+  const refreshButton = el('button','用既有材料生成计划'); refreshButton.type='button'; refreshButton.disabled=true;
   const dateLabel=el('label','计划目标日：');const planDate=el('input');planDate.type='date';planDate.setAttribute('aria-label','计划目标日');
   planDate.value=`${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}`;
   dateLabel.append(planDate);
@@ -683,11 +684,27 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
     if(/WORKSPACE_/.test(message))return ['来源、日期或工作台合同校验失败；已清除旧结果，须核查原owner证据后重读。',true];
     return ['网络连接或响应读取失败；可检查连接后重新读取。',false];
   }
+  function refreshBlockReason(): string {
+    if(generationUnconfirmed)return '上一次生成结果待原run终态核验；重新读取不会自动重试生成。';
+    if(!currentValue || currentValue.target_trade_date!==date || loadedView!==view || panel.dataset.readState!=='READY')
+      return '须先成功读取本计划日与口径的完整结果，才能确认生成入口。';
+    if(isManagerWorkspaceReadOnly(currentValue))return '此V5入口只读消费已发布结果；计划生成由原owner执行。';
+    const read=(currentValue.read_context || {}) as JsonObject;
+    const parts=new Intl.DateTimeFormat('en',{timeZone:'Asia/Hong_Kong',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts();
+    const today=['year','month','day'].map(type=>parts.find(part=>part.type===type)?.value).join('');
+    if(read.mode==='HISTORICAL_AS_OF' || view!=='dynamic' && date<today)
+      return '当时历史只读；生成现在回看计划须先显式切换口径。';
+    if(read.mode!=='CURRENT_DYNAMIC_PREVIEW' || read.contract!=='20260923.workspace-history-read.r1' ||
+        !['VERIFIED','VERIFIED_WITH_GAPS'].includes(String(read.status)))
+      return '读取上下文尚未完整核验，不能开放生成。';
+    return '';
+  }
   async function load(refresh: boolean): Promise<void> {
+    if(refresh && refreshBlockReason())return;
     const id=++sequence;controller?.abort();clearTimeout(timer);controller=new AbortController();const current=controller;
     const requestedDate=date;const requestedView=view;let timedOut=false;
     const requestedBindings:WorkspaceDateBindings={plan_date:requestedDate,selection_date:selectionDate,announcement_date:publicationDate};
-    const hadDailyExtension=currentValue?.daily_channels!==undefined;
+    const bindFirstRead=explicitDates;
     timer=setTimeout(()=>{timedOut=true;current.abort();},WORKSPACE_REQUEST_TIMEOUT_MS);
     const priorRead=(currentValue?.read_context || {}) as JsonObject;
     const keep=!!currentValue && currentValue.target_trade_date===date && loadedView===view &&
@@ -698,22 +715,19 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
     readButton.disabled=true;refreshButton.disabled=true;cancelButton.hidden=false;
     status.textContent=(keep?`计划 ${date}：以下为上次合格结果（非本次新结果）；正在更新。 `:`计划 ${date}：正在核对历史计划/来源，数量未知。 `)+
       (refresh?'原经理owner仅用既有材料生成计划，不抓取。':'本次为只读，不生成、不采集。');
-    let refreshFailure='';let refreshedValue: ManagerWorkspace | null = null;
+    if(!refresh && generationUnconfirmed)panel.dataset.generationState='CANNOT_CONFIRM';
     try {
+      let value: ManagerWorkspace;
       if(refresh){
-        try { refreshedValue=await refreshManagerWorkspace(requestedDate,current.signal); }
-        catch(error){if(current.signal.aborted)throw error;refreshFailure=failureKind(error,false,false)[0];}
+        generationUnconfirmed=true;panel.dataset.generationState='RUNNING';
+        value=bindFirstRead
+          ? await refreshManagerWorkspace(requestedDate,current.signal,requestedBindings)
+          : await refreshManagerWorkspace(requestedDate,current.signal);
+      } else {
+        value=bindFirstRead
+          ? await requestManagerWorkspace(requestedDate,current.signal,requestedView,requestedBindings)
+          : await requestManagerWorkspace(requestedDate,current.signal,requestedView);
       }
-      if(disposed || id!==sequence)return;
-      if(current.signal.aborted)throw new DOMException('Workspace read aborted','AbortError');
-      // Legacy callers keep their 3-argument read and legacy successful POST.
-      // Once the optional projection is available, its selected dates must be
-      // read through the canonical GET; POST does not bind those query days.
-      const bindFirstRead=explicitDates;
-      const requireCanonical=explicitDates || hadDailyExtension || refreshedValue?.daily_channels!==undefined || requestedView!=='auto';
-      let value=refreshedValue && !requireCanonical ? refreshedValue : bindFirstRead
-        ? await requestManagerWorkspace(requestedDate,current.signal,requestedView,requestedBindings)
-        : await requestManagerWorkspace(requestedDate,current.signal,requestedView);
       if(disposed || id!==sequence)return;
       if(current.signal.aborted)throw new DOMException('Workspace read aborted','AbortError');
       if(value.daily_channels!==undefined){
@@ -732,20 +746,29 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
       }
       if(current.signal.aborted)throw new DOMException('Workspace read aborted','AbortError');
       if(!disposed && id===sequence && date===requestedDate && view===requestedView){
-        render(value);if(refreshFailure)status.textContent+=` 本次生成失败：${refreshFailure} 以下仅为重新核验的读取状态。`;
+        render(value);
+        if(refresh){generationUnconfirmed=false;panel.dataset.generationState='VERIFIED';}
+        else if(generationUnconfirmed)status.textContent+=' 上一次生成结果仍待原run终态核验；本次只读不判定该次生成成败。';
       }
     } catch(error){
       if(!disposed && id===sequence && date===requestedDate && view===requestedView){
         const [message,sourceFailure]=failureKind(error,timedOut,current.signal.aborted);
-        if(sourceFailure || !keep){clearResults();panel.dataset.readState='FAILED';filterCount.textContent='读取未完成 · 数量未知';}
-        else {panel.dataset.readState='STALE';filterCount.textContent='上次结果 · 本次读取未完成';}
-        status.textContent=`计划 ${date}：${message}`+(keep&&!sourceFailure?' 以下保留上次合格结果，不代表本次成功。':' 未显示旧日或未核验股票。');
+        if(refresh){
+          if(sourceFailure || !keep)clearResults();
+          panel.dataset.readState='CANNOT_CONFIRM';panel.dataset.generationState='CANNOT_CONFIRM';
+          filterCount.textContent=keep&&!sourceFailure?'上次结果 · 本次生成终态待核':'本次生成终态待核 · 数量未知';
+          status.textContent=`计划 ${date}：本次生成结果未知；${timedOut?'已达180秒并停止等待。':current.signal.aborted?'已取消等待。':'未收到可核验的成功响应。'} 请先由原owner按本次run核验保存产品与同run终态，再读取；未自动重试生成。`+
+            (keep&&!sourceFailure?' 以下仅保留上次合格结果。':' 未显示未核验结果。');
+        } else {
+          if(sourceFailure || !keep){clearResults();panel.dataset.readState='FAILED';filterCount.textContent='读取未完成 · 数量未知';}
+          else {panel.dataset.readState='STALE';filterCount.textContent='上次结果 · 本次读取未完成';}
+          status.textContent=`计划 ${date}：${message}`+(keep&&!sourceFailure?' 以下保留上次合格结果，不代表本次成功。':' 未显示旧日或未核验股票。');
+        }
       }
     } finally {
       if(!disposed && id===sequence){
         clearTimeout(timer);readButton.disabled=false;cancelButton.hidden=true;
-        refreshButton.disabled=((currentValue?.read_context || {}) as JsonObject).mode==='HISTORICAL_AS_OF';
-        refreshButton.title=refreshButton.disabled?'当时历史只读；生成现在回看计划须先显式切换口径。':'';
+        const blocked=refreshBlockReason();refreshButton.disabled=!!blocked;refreshButton.title=blocked;
       }
     }
   }

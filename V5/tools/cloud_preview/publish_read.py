@@ -1,7 +1,7 @@
 """Publish one real auto read to new private module roots. No refresh or capture."""
 import argparse, hashlib, json
 from pathlib import Path
-from v5_shadow.manager_plan import run_manager_plan, publish_workspace_read
+from v5_shadow.manager_plan import publish_workspace_read
 
 
 def main():
@@ -18,10 +18,6 @@ def main():
     request = json.loads(args.request.read_bytes())
     if request['action'] != 'read' or request['view'] != 'auto':
         raise ValueError('ACTUAL_AUTO_READ_REQUIRED')
-    read = run_manager_plan(request)
-    plan = read['payload']['plan_product']
-    if plan.get('run_id') != args.expected_run or plan.get('consumed') is not True:
-        raise ValueError('SAVED_RUN_NOT_CONSUMED')
     frontend = args.frontend_root.resolve(strict=True)
     manifest = {str(p.relative_to(frontend)): hashlib.sha256(p.read_bytes()).hexdigest()
                 for p in frontend.rglob('*') if p.is_file()}
@@ -39,9 +35,9 @@ def main():
         configs[module] = dict(schema_version='v5.module_api.v1', module_id=module,
                               release_id=args.release_id, data_root=str(data), routes=routes)
         (root / (module + '.json')).write_text(json.dumps(configs[module], indent=2))
-    result = publish_workspace_read(request, configs['manager'], expected_generation=None)
-    if result['result']['payload']['plan_product'] != plan:
-        raise ValueError('PUBLICATION_READ_CHANGED')
+    result = publish_workspace_read(request, configs['manager'], expected_generation=None,
+                                    expected_run_id=args.expected_run)
+    plan = result['result']['payload']['plan_product']
     gateway = dict(schema_version='v5.api_gateway.v1',
                    modules={m: dict(port=18897+i, timeout_seconds=15, max_inflight=4,
                                     release_id=args.release_id) for i, m in enumerate(configs)},

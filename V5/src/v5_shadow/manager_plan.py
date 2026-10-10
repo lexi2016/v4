@@ -380,11 +380,63 @@ def _assemble(request):
         io.SafeRoot(request['manager_output_root']).ensure_directory('current_recovery')
     # Construct only the original read/write primitives, without the service
     # pool or the original constructor's jobs/products/receipts mkdir side effects.
-    def plan_store():
+    def plan_store(*, run_id=None):
+        if run_id is not None and (not isinstance(run_id, str) or not re.fullmatch(r'[0-9a-f]{32}', run_id)):
+            raise ValueError('MANAGER_EXACT_PLAN_RUN_ID')
         store = store_module.ManagerResearchStore.__new__(store_module.ManagerResearchStore)
         store.root = output; store._io = io.SafeRoot(output)
         store._lock = threading.RLock(); store._held = threading.local()
+        if run_id is not None:
+            # Route only this product read through the original store/validator.
+            # Journal and source reads retain their existing exact paths.
+            read = store._read
+            latest = output / 'workspace_plans' / request['target_date'] / 'latest.json'
+            def exact_read(path):
+                return read(latest.with_name(run_id + '.json') if path == latest else path)
+            store._read = exact_read
         return store
+
+    def exact_plan_readback(product, input_identity, *, require_attempt=True):
+        run_id = product.get('run_id')
+        if not isinstance(run_id, str) or not re.fullmatch(r'[0-9a-f]{32}', run_id):
+            raise ValueError('MANAGER_EXACT_PLAN_RUN_ID')
+        independent = plan_store(run_id=run_id)
+        saved = workspace._read_plan(independent, request['target_date'])
+        if (saved is None or saved['run_id'] != run_id
+                or saved['sha256'] != product.get('sha256')
+                or saved['input_identity'] != input_identity):
+            raise ValueError('MANAGER_INDEPENDENT_PLAN_READBACK_MISMATCH')
+        attempt = workspace.verified_plan_attempt(independent, saved)
+        if require_attempt and attempt is None:
+            raise ValueError('MANAGER_INDEPENDENT_PLAN_READBACK_MISMATCH')
+        return saved, attempt
+
+    def latest_observation(exact):
+        observation = dict(status='CANNOT_CONFIRM', observed_at=datetime.now(timezone.utc).isoformat(),
+            run_id=None, plan_sha256=None, matches_exact_run=None, attempt=None)
+        try:
+            latest = workspace._read_plan(plan_store(), request['target_date'])
+            if latest is None:
+                observation['status'] = 'MISSING'
+                return observation
+            observation.update(run_id=latest['run_id'], plan_sha256=latest['sha256'])
+            # A different pointer is not evidence that its own run completed.
+            # Reuse the same exact product and terminal gate for that run too.
+            _, attempt = exact_plan_readback(latest, latest['input_identity'])
+            observation.update(status='VERIFIED', attempt=attempt,
+                matches_exact_run=(latest['run_id'] == exact['run_id'] and latest['sha256'] == exact['sha256']))
+        except Exception as error:
+            # This observation cannot undo a completed exact owner readback.
+            observation['reason'] = (str(error) if re.fullmatch(r'[A-Z][A-Z0-9_]{0,127}', str(error))
+                                     else 'MANAGER_LATEST_READ_FAILED:' + type(error).__name__)
+        return observation
+
+    def bind_plan_attempt(payload, attempt):
+        if 'workspace_plan_attempt' not in payload or payload['workspace_plan_attempt'] != attempt:
+            payload['workspace_plan_attempt'] = attempt
+            from v4.manager_research.workspace_daily_channels import build_daily_channels
+            payload['daily_channels'] = build_daily_channels(payload)
+
     durable = plan_store()
     class OwnerStore(store_module.ManagerResearchStore):
         def _read(self, path):
@@ -452,16 +504,11 @@ def _assemble(request):
     now = aware(request['now'])
     if request['action'] == 'refresh':
         payload = workspace.refresh_workspace_plan(service, request['target_date'], now=now)
-        independent = plan_store()
-        saved = workspace._read_plan(independent, request['target_date'])
-        attempt = workspace.verified_plan_attempt(independent, saved)
-        if (attempt is None or saved['run_id'] != attempt['run_id']
-                or saved['run_id'] != payload['plan_product']['run_id']
-                or saved['sha256'] != payload['plan_product']['sha256']
-                or saved['input_identity'] != payload['input_identity']):
-            raise ValueError('MANAGER_INDEPENDENT_PLAN_READBACK_MISMATCH')
+        saved, attempt = exact_plan_readback(payload['plan_product'], payload['input_identity'])
+        bind_plan_attempt(payload, attempt)
         readback = dict(status='MATCHED', run_id=saved['run_id'], plan_sha256=saved['sha256'],
-                        attempt=attempt, input_identity=saved['input_identity'])
+                        attempt=attempt, input_identity=saved['input_identity'],
+                        latest_observation=latest_observation(saved))
     else:
         owner_view = 'dynamic' if current_recovery else request['view']
         if current_recovery:
@@ -478,6 +525,28 @@ def _assemble(request):
         payload = workspace.get_workspace(service, request['target_date'], now=now, view=owner_view,
             selection_date=request['selection_date'], announcement_date=request['announcement_date'])
         readback = dict(status='READ_ONLY', plan_product=payload.get('plan_product'))
+        if (payload.get('plan_product', {}).get('consumed') is True
+                and payload.get('read_context', {}).get('mode') != 'HISTORICAL_AS_OF'):
+            saved, attempt = exact_plan_readback(payload['plan_product'], payload['input_identity'],
+                                                require_attempt=False)
+            observed_attempt = payload.get('workspace_plan_attempt')
+            if attempt is None:
+                # Legacy manual compatibility does not prove a same-run
+                # terminal. Keep the original owners' fresh read-only preview.
+                product = dict(payload['plan_product'], status='OWNER_ATTEMPT_UNVERIFIED', consumed=False,
+                               reason='MANAGER_EXACT_OWNER_ATTEMPT_MISSING')
+                payload = workspace.get_workspace(service, request['target_date'], now=now, view=owner_view,
+                    include_saved=False, selection_date=request['selection_date'],
+                    announcement_date=request['announcement_date'])
+                payload.update(plan_product=product, observation_mode='READ_ONLY_EXISTING_OWNER_PREVIEW')
+                readback['plan_product'] = product
+            bind_plan_attempt(payload, attempt)
+            readback.update(run_id=saved['run_id'], plan_sha256=saved['sha256'],
+                attempt=attempt, input_identity=saved['input_identity'],
+                latest_attempt_observation=dict(observed_at=datetime.now(timezone.utc).isoformat(),
+                    attempt=observed_attempt,
+                    scope='ORIGINAL_OWNER_LATEST_JOURNAL_NOT_EXACT_PRODUCT_TERMINAL'),
+                latest_observation=latest_observation(saved))
     readback['store_relative'] = 'current_recovery' if current_recovery else '.'
     if current_recovery:
         _mark_current_recovery(payload, request)
@@ -594,7 +663,7 @@ def run_manager_plan(request):
     return value
 
 
-def publish_workspace_read(request, config, *, expected_generation):
+def publish_workspace_read(request, config, *, expected_generation, expected_run_id=None):
     """Explicit publication; HTTP GET only serves this committed generation.
 
     Keep the exact query identity. Auto may explicitly select a committed
@@ -603,8 +672,18 @@ def publish_workspace_read(request, config, *, expected_generation):
     """
     if request['action'] != 'read':
         raise ValueError('MANAGER_API_REQUIRES_READ_RESULT')
+    if expected_run_id is not None and (not isinstance(expected_run_id, str)
+            or not re.fullmatch(r'[0-9a-f]{32}', expected_run_id)):
+        raise ValueError('MANAGER_EXPECTED_RUN_ID')
     from v5_shadow.module_artifacts import publish_generation
     result = run_manager_plan(request)
+    if expected_run_id is not None:
+        product = result['payload'].get('plan_product') or {}
+        attempt = result['payload'].get('workspace_plan_attempt') or {}
+        if (product.get('run_id') != expected_run_id or product.get('consumed') is not True
+                or attempt.get('run_id') != expected_run_id
+                or attempt.get('state') not in {'SUCCEEDED', 'SUCCEEDED_EMPTY', 'PARTIAL'}):
+            raise ValueError('SAVED_RUN_NOT_CONSUMED')
     query = dict(date=request['target_date'], view=request['view'])
     for key in ('selection_date', 'announcement_date'):
         if request[key] is not None:
