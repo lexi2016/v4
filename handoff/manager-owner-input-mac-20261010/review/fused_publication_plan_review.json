@@ -1,0 +1,68 @@
+{
+  "P0": 0,
+  "P1": 0,
+  "P2": 1,
+  "acceptance_boundary": {
+    "api_ui_natural_verification": "NOT_RUN",
+    "current_loaded_pid_at_execute": "CANNOT_CONFIRM_BY_REVIEWER; execution preflight must bind current process identity",
+    "execute_command": "NOT_RUN_BY_REVIEWER",
+    "execute_must_revalidate_under_shared_lock": "REQUIRED_BY_PINNED_STAGE_R5_WRAPPER_AND_ISSUE32_PUBLISHER",
+    "owner_selection_behavior": "CANNOT_CONFIRM",
+    "plan_ready": "PASS_FOR_PREPARED_PLAN_BOUND_TO_CURRENT_STAGE_R5_BASE_ONLY"
+  },
+  "adapter_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tools/deployment/fused_publication_adapter.py",
+  "adapter_sha256": "30685f5cdf66af3f620f1b494673f1bacc140d0b8f10df67358a90bee929d156",
+  "behavior_status": "BEHAVIOR_VERIFIED=PASS_READ_ONLY_BASE_DELTA_AND_LOCKED_PREFLIGHT_ENTRY; EXECUTION_DEPLOYMENT_API_UI_NATURAL=NOT_RUN",
+  "candidate_inventory_sha256": "fe0c88e75a039380a0cc02435bdc5a082064094d235882abfd8e04827da3ff1c",
+  "checks": {
+    "active_plist_matches_current_stage_r5_base": "PASS",
+    "active_plist_sha256": "6cb00de89be004b8bba2981be437d241c3d2abf431965593ac37589f991a99a3",
+    "adapter_rebase_patch_sha256": "0773d1e8a32a26006677838283daf89907a9872863f18b474eabade64d5a4d29",
+    "adapter_sha256": "30685f5cdf66af3f620f1b494673f1bacc140d0b8f10df67358a90bee929d156",
+    "base_application_inventory_entry_count": 1021,
+    "base_application_inventory_sha256": "7a93420049f0558c4efda2feb05cd5831e4efc5a15b92fb2b445eb46a30dafe8",
+    "base_comparison_receipt_sha256": "3432aa9c312f93ac08c0b65af6523235fd0c6a69ebd4c4fc2ea8816809c4526b",
+    "base_manifest_sha256": "a162a878c01b89f6769710f83bc0907467a05bf18d6e5838b760c7c83efe72d6",
+    "base_release_id": "stage-research-r4-20261009",
+    "candidate_delta_sha256": "9d233206918204cb30394345dd540ab6a771cc304ad39ed2e5e90e9252ef1a22",
+    "candidate_inventory_sha256": "fe0c88e75a039380a0cc02435bdc5a082064094d235882abfd8e04827da3ff1c",
+    "candidate_manifest_sha256": "fd7f21af0205b9d25a8ab5d33592aff42bf76c0419799b7c1724b94a286aeb86",
+    "delta_scope": "PASS_19=MANAGER_16+STATIC_3; STAGE_CHANGED_0; STAGE_REVIEWED_PRESERVED_9",
+    "entry_regression_test_patch_sha256": "fa826f36c4292282e167108513bfa82112a0f3ca8e438283742a82f1a647f1aa",
+    "execute_fix_patch_sha256": "821591a91d86d3048a3c19062f3f85869206bb4169eaf2821f5acbbb903b9a53",
+    "execute_read_binding_fix": "PASS wrapper._read(PLAN_PATH); previous implementation publisher._read caused AttributeError before lock",
+    "focused_tests": "PASS_2_OF_2_PINNED_V3_5_MAC_PYTHON",
+    "history_readbacks": "NOT_RERUN_BY_REVIEWER_IN_THIS_INCREMENTAL_REVIEW; previous frozen evidence reused",
+    "issue32_pre_rebase_artifacts": "PASS_ARCHIVED_PLAN_MANIFEST_DELTA_STAGED_PLIST_HASHES_MATCH",
+    "plan_adapter_binding": "PASS",
+    "plan_sha256": "189e964aa35d51e437b979ab424281d3543fb8864126ab6bd815a3ed6b38b9f2",
+    "prior_issue32_plan_not_executed": "PASS_PRESERVED_AS_OLD_BASE_ONLY",
+    "protected_stage_source_paths": "PASS_9_OF_9_IDENTICAL_BYTES_AND_MODES",
+    "rebase_and_plan_not_deployed": true,
+    "rebase_receipt_sha256": "c08b7327d5380af3432e00bbf067bdce9a51035840f3d55abf8d72e474ce7479",
+    "research_only_flags": "PASS_RESEARCH_ONLY_TRUE_PRODUCTION_BUY_ORDERS_FALSE",
+    "stage_r4_source_tree_equals_active_stage_r5": "PASS_1021_ENTRIES_ZERO_DIFFERENCES",
+    "staged_plist_sha256": "4fcf8eb8b7c15dc4e418facff454d7b1772c2362a255c0a8e0548023ef022067",
+    "unchanged_candidate_test_matrices": "NOT_RERUN_BY_REVIEWER; candidate app inventory unchanged from previously reviewed source"
+  },
+  "decision": "PASS",
+  "nonblocking_findings": [
+    {
+      "evidence": "Adapter validates review receipt content bindings but does not require receipt_path to equal the plan-declared review_gate.receipt_path.",
+      "follow_up": "Carry as accepted backlog; enforce exact path in a later scoped hardening batch.",
+      "id": "REVIEW_RECEIPT_PATH_NOT_ENFORCED",
+      "impact": "Current handoff uses the declared path and exact content SHA; this does not invalidate the new base-bound plan.",
+      "priority": "P2"
+    }
+  ],
+  "plan_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/deployment/verified-publication-plan.json",
+  "plan_sha256": "189e964aa35d51e437b979ab424281d3543fb8864126ab6bd815a3ed6b38b9f2",
+  "review_status": "REVIEWED=PASS_STAGE_R5_BASE_BOUND_PLAN_AND_EXECUTE_ENTRY",
+  "reviewed_at_utc": "2026-10-10T02:56:36Z",
+  "reviewer_identity": "/root/three_channel_mac_review (independent reviewer)",
+  "schema_version": "v4.fused_stage_manager_independent_publication_review.v1",
+  "test_commands": [
+    "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tests/test_fused_publication_adapter.py' -v FusedPublicationAdapterTests.test_stage_r5_rebase_keeps_stage_sources_as_base_and_limits_delta FusedPublicationAdapterTests.test_execute_enters_locked_preflight_before_any_operation_write"
+  ],
+  "test_status": "TESTED=PASS_2_FOCUSED"
+}

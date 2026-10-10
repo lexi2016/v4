@@ -1,0 +1,119 @@
+{
+  "schema_version": "v4.manager.fused_source_references.v1",
+  "purpose": "All 16 manager source bytes already exist in the fixed parent commit; no duplicate source upload.",
+  "sources": [
+    {
+      "runtime_relative_path": "apps/api/v35_api/manager_research_router.py",
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "git_blob_sha": "d332ac9d0aa71ec30d7381396a845064687baba0",
+      "repository_path": "handoff/manager-three-channel-repair-20261009/after/api_r3_candidate/apps/api/v35_api/manager_research_router.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "apps/web/src/api/managerWorkspace.ts",
+      "sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "git_blob_sha": "427177891f85d35b1766cada0b67d045f39e6733",
+      "repository_path": "handoff/manager-validator-restoration-20261009-r1/after/apps/web/src/api/managerWorkspace.ts",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "git_blob_sha": "4083650551048eabd38662d31b4314f6fb084b74",
+      "repository_path": "handoff/manager-workbench-repair-20261008/after/apps/web/src/manager-selection/dailyChannels.ts",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+      "git_blob_sha": "0acf933f1385625220a2e8255f9c7dc8fc0d0a1b",
+      "repository_path": "handoff/manager-daily-r3-repair-20261009/after/api_current/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "ops/run_manager_announcement_cycle.py",
+      "sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "git_blob_sha": "e492fcb3d3e2487288d5b4e57e6bee40916892cd",
+      "repository_path": "handoff/manager-daily-r3-repair-20261009/after/api_current/ops/run_manager_announcement_cycle.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "ops/run_manager_daily_announcement.py",
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "git_blob_sha": "6ceaa9fa3fd4e4b5aec9edaa75d535a28d123b22",
+      "repository_path": "handoff/manager-three-channel-repair-20261009/after/api_r3_candidate/ops/run_manager_daily_announcement.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "git_blob_sha": "fc423c7de5cf774fd473849c6d02b55220f8e187",
+      "repository_path": "handoff/manager-three-channel-repair-20261009/after/api_r3_candidate/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "v4/manager_research/plan_owner_dispatch.py",
+      "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "git_blob_sha": "aa3fa59ca4903d7c6384fbcc86fc21e4c852165d",
+      "repository_path": "handoff/manager-three-channel-repair-20261009/after/api_r3_candidate/v4/manager_research/plan_owner_dispatch.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "v4/manager_research/service.py",
+      "sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "git_blob_sha": "141624c44cb7a2b76d6ad1761852396e1fa8f8f2",
+      "repository_path": "handoff/manager-daily-automation-repair-20261008-r1/after/api/v4/manager_research/service.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "v4/manager_research/us_mapping_research.py",
+      "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "git_blob_sha": "e0fc26de11bdff6b77577b067ecf15f0dc929f12",
+      "repository_path": "handoff/manager-daily-automation-repair-20261008-r1/after/api/v4/manager_research/us_mapping_research.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "v4/manager_research/workspace_announcements.py",
+      "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "git_blob_sha": "cb3ed21a604bd80adbb5eef8681666e8f176f6e3",
+      "repository_path": "handoff/manager-three-channel-repair-20261009/after/api_r3_candidate/v4/manager_research/workspace_announcements.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "v4/manager_research/workspace_history.py",
+      "sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "git_blob_sha": "02d455e8d3ec8ff0c50e2cf34b6acdff206cf756",
+      "repository_path": "handoff/manager-daily-automation-repair-20261008-r1/after/api/v4/manager_research/workspace_history.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "v4/manager_research/workspace_plan.py",
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "git_blob_sha": "fdefb3b0bcebc69bb58da2a6127db9b298738a9e",
+      "repository_path": "handoff/manager-three-channel-repair-20261009/after/api_r3_candidate/v4/manager_research/workspace_plan.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "v4/manager_research/workspace_plan_autorun.py",
+      "sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "git_blob_sha": "dcab179e3cc291991e14e426adf8093fb31b71ef",
+      "repository_path": "handoff/manager-daily-r3-repair-20261009/after/api_current/v4/manager_research/workspace_plan_autorun.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "v4/manager_research/connect_selection.py",
+      "sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+      "git_blob_sha": "3877243c32060e70a2335d49ebd50c9b7b5e4b8d",
+      "repository_path": "handoff/manager-owner-input-integration-20261009-r1/after/v4/manager_research/connect_selection.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    },
+    {
+      "runtime_relative_path": "v4/manager_research/workspace.py",
+      "sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+      "git_blob_sha": "db3749798c7ea90d7ad0bb13df730704a73c2e0b",
+      "repository_path": "handoff/manager-owner-input-integration-20261009-r1/after/v4/manager_research/workspace.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf"
+    }
+  ]
+}
+

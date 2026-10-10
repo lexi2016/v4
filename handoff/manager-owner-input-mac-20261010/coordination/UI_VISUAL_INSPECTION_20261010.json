@@ -1,0 +1,52 @@
+{
+  "schema_version": "v4.manager.visual_inspection.v1",
+  "inspector": "root via in-app browser",
+  "url": "http://127.0.0.1:8873/manager-selection/?date=20261009",
+  "target_date": "20261009",
+  "announcement_date_visible": "20261008",
+  "view_selected": "现在回看（可能含后续消息）",
+  "captured_request": {
+    "method": "GET",
+    "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261009&view=dynamic"
+  },
+  "observed": {
+    "plan_status": "STALE_INPUTS_CHANGED",
+    "execution_kind": "MANUAL_REFRESH",
+    "three_channel_summary_visible": false,
+    "announcement_status": "NOT_RUN / NOT_RUN; not imported",
+    "us_upper_card": "尚未评估",
+    "us_daily_mapping": "VALID_EMPTY; 4 reviewed relations; 0 matches; limited reviewed scope",
+    "hk_status": "CANNOT_CONFIRM / TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED",
+    "research_input_rows": 693,
+    "research_selected_rows": 0,
+    "research_pending_rows": 693,
+    "ledger_gaps": 695,
+    "layout": "100 raw observation rows appear before the main research result sections"
+  },
+  "UI_VERIFIED": "FAIL",
+  "root_cause": {
+    "confirmed_trigger": "current projection input identity differs from saved plan identity",
+    "excluded": "date_bindings, semantic version and research_cutoff are identical",
+    "specific_changed_input_field": "CANNOT_CONFIRM",
+    "independent_receipt": "review/deployment/post_publication_runtime_review_20261010.json",
+    "receipt_sha256": "272ff3dfa5f4e03f57e2cbe6c8cb10f46f4063fc29b38115c874fc0739c4cd17"
+  },
+  "mutations": "read-only UI reload and view selection; no POST from browser",
+  "screenshots": [
+    {
+      "filename": "live_manager_visual_20261010.jpg",
+      "sha256": "f8039d009dce035b9d405512dc57744f3901354537269552e4b6c5a95a0bd616",
+      "local_only": true
+    },
+    {
+      "filename": "live_manager_us_mapping_visual_20261010.jpg",
+      "sha256": "ad8216d470cb28e670fdf9d22506e74631414197d595aea34b7dc239344ec249",
+      "local_only": true
+    },
+    {
+      "filename": "live_manager_pending_visual_20261010.jpg",
+      "sha256": "3fa782e4d087cb57fba171aaf09600f48a7d09b051cc7d88262e1d713f4399c9",
+      "local_only": true
+    }
+  ]
+}

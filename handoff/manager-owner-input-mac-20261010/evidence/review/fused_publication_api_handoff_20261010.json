@@ -1,0 +1,178 @@
+{
+  "base_and_rebase": {
+    "base_active_api_plist_sha256": "6cb00de89be004b8bba2981be437d241c3d2abf431965593ac37589f991a99a3",
+    "base_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/candidate/mac_apply_20261010_r5_02/integration/candidate/stage-research-r4-20261009/app",
+    "base_manifest_sha256": "a162a878c01b89f6769710f83bc0907467a05bf18d6e5838b760c7c83efe72d6",
+    "base_release_id": "stage-research-r4-20261009",
+    "candidate_inventory_sha256": "fe0c88e75a039380a0cc02435bdc5a082064094d235882abfd8e04827da3ff1c",
+    "candidate_manifest_sha256": "fd7f21af0205b9d25a8ab5d33592aff42bf76c0419799b7c1724b94a286aeb86",
+    "exact_runtime_delta_count": 19,
+    "issue32_artifacts_preserved_not_executed": true,
+    "manager_source_count": 16,
+    "r5_source_tree_comparison_status": "READ_ONLY_COMPARISON_PASS",
+    "r5_source_tree_entries": 1021,
+    "r5_source_tree_inventory_sha256": "7a93420049f0558c4efda2feb05cd5831e4efc5a15b92fb2b445eb46a30dafe8",
+    "rebase_receipt": {
+      "path": "evidence/review/fused_publication_stage_r5_rebase_receipt.json",
+      "sha256": "c08b7327d5380af3432e00bbf067bdce9a51035840f3d55abf8d72e474ce7479"
+    },
+    "rebuilt_static_count": 3,
+    "source_comparison_receipt": {
+      "path": "evidence/review/stage_r5_source_base_comparison.json",
+      "sha256": "3432aa9c312f93ac08c0b65af6523235fd0c6a69ebd4c4fc2ea8816809c4526b"
+    },
+    "stage_changed_source_count": 0,
+    "stage_reviewed_paths_preserved": 9,
+    "superseded_issue32_plan_sha256": "f00d7150a8accbb50176e0315478aa6a5ce9ff00e1165f50577dccc8e2e79f4f"
+  },
+  "generated_at_utc": "2026-10-10T03:04:01.111198+00:00",
+  "github_sync": {
+    "fixed_reference": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+    "reason": "This E scope only authorizes candidate, deployment, evidence and handoff paths; the list is for parent integration on the selected repository branch.",
+    "status": "NARROW_SYNC_LIST_PREPARED; NO_COMMIT_OR_PUSH_BY_THIS_WRITER"
+  },
+  "independent_plan_review": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 1,
+    "decision": "PASS",
+    "focused_tests": "TESTED=PASS_2_FOCUSED",
+    "nonblocking_finding": "REVIEW_RECEIPT_PATH_NOT_ENFORCED",
+    "plan_sha256": "189e964aa35d51e437b979ab424281d3543fb8864126ab6bd815a3ed6b38b9f2",
+    "receipt": {
+      "path": "review/fused_publication_plan_review.json",
+      "sha256": "ab85c4ad5ba2309dc5197b4072bf2c848bb680230157cc308d40c49dfcae6b8c"
+    },
+    "review_status": "REVIEWED=PASS_STAGE_R5_BASE_BOUND_PLAN_AND_EXECUTE_ENTRY",
+    "reviewer_identity": "/root/three_channel_mac_review (independent reviewer)"
+  },
+  "owner_refresh": {
+    "actual_at_utc": "2026-10-10T02:59:26.509389+00:00",
+    "channels": [
+      {
+        "candidate_count": null,
+        "channel": "ANNOUNCEMENT",
+        "gap_count": 1,
+        "pending_count": null,
+        "product_sha256": null,
+        "row_count": 0,
+        "run_id": null,
+        "status": "CANNOT_CONFIRM"
+      },
+      {
+        "candidate_count": null,
+        "channel": "HK_CONNECT",
+        "gap_count": 2,
+        "pending_count": null,
+        "product_sha256": "38eaad4b3d8adfd4738fa0bb4e6ef5ab969414447450e485614f384f48aab991",
+        "row_count": 0,
+        "run_id": "3bc75d1beea24036850b1af0f4d5f395",
+        "status": "CANNOT_CONFIRM"
+      },
+      {
+        "candidate_count": null,
+        "channel": "OVERSOLD",
+        "gap_count": 695,
+        "pending_count": 693,
+        "product_sha256": "38eaad4b3d8adfd4738fa0bb4e6ef5ab969414447450e485614f384f48aab991",
+        "row_count": 0,
+        "run_id": "3bc75d1beea24036850b1af0f4d5f395",
+        "status": "PARTIAL"
+      }
+    ],
+    "consistency": {
+      "get_channel_summaries_equal": true,
+      "http_200_all_three": true,
+      "post_get_run_date_sha_match": true,
+      "research_safety_flags_pass": true
+    },
+    "date_bindings": {
+      "announcement_date": "20261008",
+      "plan_date": "20261009",
+      "selection_date": "20261009"
+    },
+    "detailed_local_summary_receipt": {
+      "path": "evidence/review/fused_owner_refresh_readback_20261009.json",
+      "sha256": "7aaab99d45e1213fabe0a7b6279c334ecf07d2489d2fa676e01c4e7e5cfb45d3"
+    },
+    "natural_run_verified": false,
+    "plan_identity": {
+      "attempt_status": "PARTIAL",
+      "formal_recommendation_count": 0,
+      "owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "product_sha256": "38eaad4b3d8adfd4738fa0bb4e6ef5ab969414447450e485614f384f48aab991",
+      "run_id": "3bc75d1beea24036850b1af0f4d5f395",
+      "status": "CURRENT"
+    },
+    "request_count": {
+      "GET": 2,
+      "POST": 1
+    },
+    "research_only_flags": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    },
+    "us_mapping": {
+      "artifact_sha256": "208ff75aff1c6f6aeee4a41ce1846971e1d97c8e93f2f3bef5c2776d7efdf66e",
+      "run_id": "feda7f0209c74d7f8e27be3cee3908ef",
+      "status": "VALID_EMPTY"
+    }
+  },
+  "publication_failures": [
+    {
+      "error": "AttributeError: module _stage_original_publisher_a427aecbf51244f8a23b8149ef65c6cb has no attribute _read",
+      "failure_receipt": {
+        "path": "evidence/review/fused_publication_first_execute_failure.json",
+        "sha256": "5e4b96e9d2113bf6ff243350445f29af085409ba7fab63d94c2f71860559e9f9"
+      },
+      "mutation_occurred": false,
+      "phase": "superseded Issue32-base execute attempt",
+      "status": "FAILED_BEFORE_RELEASE_LOCK_OR_MUTATION"
+    },
+    {
+      "cause": "Adapter requires resolved absolute receipt path; retried once with exact absolute path.",
+      "error": "INDEPENDENT_REVIEW_RECEIPT_REQUIRED",
+      "mutation_occurred": false,
+      "phase": "Stage R5-base execute attempt with relative review path",
+      "status": "FAILED_CLOSED_BEFORE_LOCK_OR_OPERATION_WRITE"
+    }
+  ],
+  "release_identity": {
+    "application_inventory_sha256": "fe0c88e75a039380a0cc02435bdc5a082064094d235882abfd8e04827da3ff1c",
+    "last_verified_at_utc": "2026-10-10T02:58:15+00:00",
+    "loaded_pid": "10321",
+    "loaded_state": "running",
+    "manifest_sha256": "fd7f21af0205b9d25a8ab5d33592aff42bf76c0419799b7c1724b94a286aeb86",
+    "operation_receipt": {
+      "path": "deployment/operations/d19e0504aaf74090b7ec1ac96f8ac205/operation_receipt.json",
+      "sha256": "77fbbb4cca009d6cfa9524488cbe3315098cb560a5b0199dbf14bc9a9bf55e47"
+    },
+    "operation_status": "STAGE_API_SWITCHED_AND_READBACK_VERIFIED",
+    "release_id": "stage_r4_manager_r2_owner_input_r1_fused_r1",
+    "root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app"
+  },
+  "research_only_flags": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.fused_publication_api_handoff.v1",
+  "ui_observation": {
+    "source": "parent direct browser observation after the API readback",
+    "status": "FAIL_PENDING_INDEPENDENT_CAUSE_REVIEW",
+    "summary": "Explicit 20261009 page refresh showed STALE_INPUTS_CHANGED/MANUAL_REFRESH and omitted the three-channel summary; US VALID_EMPTY and 693 pending remained visible. Reviewer is comparing request bindings and the actual input difference."
+  },
+  "writer_status": {
+    "API_VERIFIED": "PASS_SAME_RUN_DATE_SHA_AND_CHANNEL_SUMMARY_ON_TWO_GETS",
+    "BEHAVIOR_VERIFIED": "PENDING_INDEPENDENT_POST_PUBLICATION_REVIEW",
+    "DEPLOYED": "PASS_LOCAL_API_ONLY_SWITCH",
+    "IMPLEMENTED": "FUSED_CANDIDATE_PUBLISHED_TO_LOCAL_8873",
+    "NATURAL_VERIFIED": false,
+    "REVIEWED": "PLAN_PASS; POST_PUBLICATION_BEHAVIOR_REVIEW_PENDING",
+    "TESTED": "REVIEWER_PLAN_AND_TWO_FOCUSED_ADAPTER_TESTS_PASS; PRIOR_FUSED_APP_CHECKS_REUSED_UNCHANGED",
+    "UI_VERIFIED": "FAIL_PENDING_INDEPENDENT_CAUSE_REVIEW"
+  }
+}

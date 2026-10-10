@@ -1,0 +1,65 @@
+{
+  "schema_version": "independent_fused_candidate_review.v1",
+  "status": "PASS_FROZEN_SOURCE_AND_TARGETED_SYNTHETIC_CHECKS",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app",
+  "reviewed_sha256": {
+    "independent_rerun_receipt": "90d304da82ca6a7de26ff8006803ffcbbd506f1fb3cb8d20492c4a803f3b41cc",
+    "source_fusion_receipt": "903ed11b57be3bf7d3d3ec6c053086e4a5f1225f887bbb6c9c2e0938dab6084f",
+    "candidate_acceptance_receipt": "3fbe18f361cccc352ed171ac47d3c2ad712007b0544d58e09402891fb173df7c",
+    "candidate_inventory": "f7ddf861579e2812a8ef6d77f50da8598afff3df19c3e1e3410c42157843d67d",
+    "build_receipt": "45656c2ed670c8cee1d0f477c7d3b6ac14ad7f223762af86c3ecc9e1829d1455",
+    "targeted_check_receipt": "3242c1b94ff92b7200ab126ceee56442ff2a9bfe79f8bd243b4e26d1b647fb85"
+  },
+  "findings": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "frozen_source": {
+    "reviewed": "PASS",
+    "stage_to_fused_source_paths": 16,
+    "extra_or_missing_paths": 0,
+    "stage_reviewed_sources_preserved": 9,
+    "issue32_router_service_preserved": true,
+    "workspace_merge_order": "R2_THEN_OWNER_R1",
+    "final_candidate_inventory_count": 1022,
+    "final_candidate_inventory_sha256": "fe0c88e75a039380a0cc02435bdc5a082064094d235882abfd8e04827da3ff1c"
+  },
+  "tested": {
+    "status": "PASS",
+    "independent_vite_rebuild_matches_candidate_dist": true,
+    "vue_tsc": "PASS",
+    "vitest": {
+      "tests": 25,
+      "failures": 0
+    },
+    "python": {
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "candidate_module_imports": 7,
+    "all_imports_under_candidate": true,
+    "candidate_tree_unchanged": true
+  },
+  "behavior": {
+    "synthetic_contracts": "PASS",
+    "real_owner_selection": "CANNOT_CONFIRM",
+    "live_api": "NOTRUN",
+    "live_ui": "NOTRUN",
+    "natural_run": "NOTRUN"
+  },
+  "release_gate": {
+    "status": "CANNOT_CONFIRM",
+    "reason": "Stage publisher historical-result-protection validation and fresh Stage R4 release handoff/runtime identity remain outstanding; no deploy readiness claim."
+  },
+  "mutations": {
+    "production_source": false,
+    "business_state": false,
+    "service_or_launchagent": false,
+    "network_or_live_api": false
+  },
+  "report_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/review/deployment/independent_fused_candidate_review_20261010.md",
+  "reviewer_rerun_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/review/deployment/r1_independent_rerun_retry2/independent_review_rerun_receipt.json"
+}

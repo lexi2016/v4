@@ -1,0 +1,18 @@
+{
+  "active_api_plist_matches_frozen_baseline": true,
+  "active_api_plist_sha256_after_failure": "c88e4069f6deb467a204b4510824e62b15cb8fc11dfa7892a43e5ec8eaed8ec4",
+  "command": "python3 -B tools/deployment/fused_publication_adapter.py execute --plan-sha256 3e9175279d7722514603f83c8ee436b75b9b241d75862e387c726aa97dd8c4ca --current-plist-sha256 c88e4069f6deb467a204b4510824e62b15cb8fc11dfa7892a43e5ec8eaed8ec4 --staged-plist-sha256 dae8a7f8be2a50eef0287da88c97b5647e9911192488a1f0e4ac6486e93685ac --review-receipt /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/review/fused_publication_plan_review.json --review-receipt-sha256 9990c27c1f5cae4e4e0f925b656137f5afaab3a3d37d36ffe5d2e111ca71177b --confirmation SWITCH_API_ONLY_TO_FUSED_STAGE_R4_MANAGER_R2_OWNER_INPUT_R1",
+  "error": "AttributeError: module _stage_original_publisher_a427aecbf51244f8a23b8149ef65c6cb has no attribute _read",
+  "exit_code": 1,
+  "failure_site": "fused_publication_adapter.py:561 before execute_stage_publication, lock acquisition, preflight, or mutation",
+  "frozen_plan_sha256": "3e9175279d7722514603f83c8ee436b75b9b241d75862e387c726aa97dd8c4ca",
+  "frozen_review_sha256": "9990c27c1f5cae4e4e0f925b656137f5afaab3a3d37d36ffe5d2e111ca71177b",
+  "research_only_flags": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.fused_publication_first_execute_failure.v1",
+  "status": "FAILED_BEFORE_RELEASE_LOCK_OR_MUTATION"
+}

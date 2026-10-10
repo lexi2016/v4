@@ -1,0 +1,223 @@
+{
+  "schema_version": "stage_r4_manager_r2_owner_input_r1_fused_targeted_checks.v1",
+  "status": "PASS",
+  "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app",
+  "environment": {
+    "python_path": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+    "python_version": "Python 3.14.6",
+    "node_path": "/Users/lexi/.local/node-v24.19.0/bin/node",
+    "node_version": "v24.19.0",
+    "vite_version": "7.3.6",
+    "pytest_version": "pytest 9.1.1"
+  },
+  "removed_project_environment_key_names": [],
+  "import_identity": {
+    "command_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/fused_targeted_checks_20261010_r1_retry4/logs/candidate_import_identity.log",
+    "modules": [
+      {
+        "module": "apps.api.v35_api.app",
+        "file": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps/api/v35_api/app.py",
+        "sha256": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8",
+        "under_candidate": true
+      },
+      {
+        "module": "apps.api.v35_api.manager_research_router",
+        "file": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps/api/v35_api/manager_research_router.py",
+        "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+        "under_candidate": true
+      },
+      {
+        "module": "stage_center.consumer",
+        "file": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/stage_center/consumer.py",
+        "sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+        "under_candidate": true
+      },
+      {
+        "module": "stage_center.research_read_binding",
+        "file": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/stage_center/research_read_binding.py",
+        "sha256": "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05",
+        "under_candidate": true
+      },
+      {
+        "module": "v4.manager_research.workspace",
+        "file": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/v4/manager_research/workspace.py",
+        "sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+        "under_candidate": true
+      },
+      {
+        "module": "v4.manager_research.connect_selection",
+        "file": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/v4/manager_research/connect_selection.py",
+        "sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+        "under_candidate": true
+      },
+      {
+        "module": "v4.manager_research.service",
+        "file": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/v4/manager_research/service.py",
+        "sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+        "under_candidate": true
+      }
+    ],
+    "all_modules_loaded_from_candidate": true
+  },
+  "commands": [
+    {
+      "name": "candidate_import_identity",
+      "command": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "-B",
+        "-c",
+        "\nimport hashlib, importlib, json, sys\nfrom pathlib import Path\nroot=Path(sys.argv[1]).resolve(); sys.path.insert(0,str(root))\nnames=['apps.api.v35_api.app','apps.api.v35_api.manager_research_router','stage_center.consumer','stage_center.research_read_binding','v4.manager_research.workspace','v4.manager_research.connect_selection','v4.manager_research.service']\nrows=[]\nfor name in names:\n m=importlib.import_module(name); p=Path(m.__file__).resolve(); raw=p.read_bytes()\n rows.append({'module':name,'file':str(p),'sha256':hashlib.sha256(raw).hexdigest(),'under_candidate':p.is_relative_to(root)})\nprint(json.dumps(rows,ensure_ascii=False))\n",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app",
+      "started_at_utc": "2026-10-10T02:16:17.207314+00:00",
+      "ended_at_utc": "2026-10-10T02:16:17.572683+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/fused_targeted_checks_20261010_r1_retry4/logs/candidate_import_identity.log",
+      "log_sha256": "8585efed3815af20794a1cf72ca5dc59576e7e350abc1dc70b52927415459540",
+      "junit_path": null,
+      "junit_sha256": null,
+      "junit": null
+    },
+    {
+      "name": "changed_manager_sources_typecheck",
+      "command": [
+        "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/.bin/vue-tsc",
+        "--noEmit",
+        "--project",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tools/deployment/tsconfig_fused_manager_sources.json"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps/web",
+      "started_at_utc": "2026-10-10T02:16:17.577152+00:00",
+      "ended_at_utc": "2026-10-10T02:16:17.900566+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/fused_targeted_checks_20261010_r1_retry4/logs/changed_manager_sources_typecheck.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "junit_path": null,
+      "junit_sha256": null,
+      "junit": null
+    },
+    {
+      "name": "manager_selection_and_daily_automation_vitest",
+      "command": [
+        "/Users/lexi/.local/node-v24.19.0/bin/node",
+        "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tools/deployment/fused_candidate_vitest_config_retry4.mjs"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tests/fused_candidate_ui_20261010_r1_retry4/apps/web",
+      "started_at_utc": "2026-10-10T02:16:17.900979+00:00",
+      "ended_at_utc": "2026-10-10T02:16:18.940867+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/fused_targeted_checks_20261010_r1_retry4/logs/manager_selection_and_daily_automation_vitest.log",
+      "log_sha256": "f97fedfa8e880c5b43e704ebd942305644440e6f68b715eb4151236a2afe8911",
+      "junit_path": null,
+      "junit_sha256": null,
+      "junit": null
+    },
+    {
+      "name": "fused_candidate_python_app_tests",
+      "command": [
+        "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--tb=short",
+        "--color=no",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/fused_targeted_checks_20261010_r1_retry4/tmp/pytest",
+        "--junitxml=/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/fused_targeted_checks_20261010_r1_retry4/logs/pytest_manager_app_plan_and_hk_wiring/junit.xml",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tests/owner_input_r1/package/tests/tests/test_manager_app_plan_identity_20261009.py",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tests/owner_input_r1/package/tests/tests/test_manager_hk_authority_app_wiring_20261009.py"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app",
+      "started_at_utc": "2026-10-10T02:16:18.944565+00:00",
+      "ended_at_utc": "2026-10-10T02:16:20.811089+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/fused_targeted_checks_20261010_r1_retry4/logs/fused_candidate_python_app_tests.log",
+      "log_sha256": "e75c57bcf7b895c0b590526c9c8797d3e0f4fc53b716672c4ee1780fc2fdd01c",
+      "junit_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/fused_targeted_checks_20261010_r1_retry4/logs/pytest_manager_app_plan_and_hk_wiring/junit.xml",
+      "junit_sha256": "c1b395bd3edff98453f42f482266a27cc615c7a17a4c721699e9687e86dca8c4",
+      "junit": {
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "temporary_dependency_link": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps/web/node_modules",
+    "target": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules",
+    "removed": true
+  },
+  "ui_test_source_bindings": [
+    {
+      "harness_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tests/fused_candidate_ui_20261010_r1_retry4/apps/web/src/api/managerWorkspace.ts",
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps/web/src/api/managerWorkspace.ts",
+      "sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f"
+    },
+    {
+      "harness_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tests/fused_candidate_ui_20261010_r1_retry4/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+      "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47"
+    },
+    {
+      "harness_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tests/fused_candidate_ui_20261010_r1_retry4/apps/web/src/manager-selection/dailyChannels.ts",
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps/web/src/manager-selection/dailyChannels.ts",
+      "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc"
+    }
+  ],
+  "ui_test_source_bindings_valid": true,
+  "ui_test_support_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tests/fused_candidate_ui_20261010_r1_retry4",
+  "ui_test_support_files_sha256": {
+    "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+    "apps/web/src/api/managerWorkspace.threeChannel.spec.ts": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4",
+    "apps/web/src/manager-selection/dailyChannels.testHelper.ts": "ff2e22d33fe61fc8c44e3c524f2a192b55bb5ee1a6330eadc0ca3373c546f3f0",
+    "tests/manager_daily_ui_owner_fixture.py": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+    "tests/manager_three_channel_ui_fixture.py": "daa0f15977adc17591ac0e45c3597f87dc24c1e2b2f99a82fef69b24c1df5336",
+    "tests/r3_scoped_loader.py": "02366f958e893448b4325f864a9b86151956fb8f480b980193dd2489c82345db",
+    "tests/test_manager_three_channel_hk_reader.py": "d037d4f43559e45d23f92b63a27317f2e5587b1b86649fbb9e6198a62618e7e5",
+    "tests/test_manager_us_mapping_isolation_20261008.py": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb"
+  },
+  "ui_harness_dependency_link": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tests/fused_candidate_ui_20261010_r1_retry4/apps/web/node_modules",
+    "target": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules",
+    "removed": true
+  },
+  "canonical_dependency_caches_before": {
+    "vite": {
+      "exists": true,
+      "mtime_ns": 1789880500122829359,
+      "mode": 493
+    },
+    "vite_temp": {
+      "exists": true,
+      "mtime_ns": 1791551669342752986,
+      "mode": 493
+    }
+  },
+  "canonical_dependency_caches_after": {
+    "vite": {
+      "exists": true,
+      "mtime_ns": 1789880500122829359,
+      "mode": 493
+    },
+    "vite_temp": {
+      "exists": true,
+      "mtime_ns": 1791551669342752986,
+      "mode": 493
+    }
+  },
+  "canonical_dependency_caches_unchanged": true,
+  "candidate_tree_inventory_sha256_before": "c01f85460701b54da9f4b8ad7e0dd05e699df7a0a95815a56734f975caa5faa1",
+  "candidate_tree_inventory_sha256_after": "c01f85460701b54da9f4b8ad7e0dd05e699df7a0a95815a56734f975caa5faa1",
+  "candidate_tree_unchanged_during_checks": true,
+  "candidate_tree_drift": [],
+  "all_command_exit_codes_zero": true,
+  "service_or_launchagent_changed": false,
+  "business_state_changed": false
+}

@@ -1,0 +1,98 @@
+{
+  "schema_version": "owner_input_full_matrix_comparison.v1",
+  "status": "PASS",
+  "execution_valid": true,
+  "focused_regression_pass": true,
+  "nonfocused_failure_sets_unchanged": true,
+  "baseline_total_tests": 295,
+  "candidate_total_tests": 295,
+  "baseline_total_passed": 275,
+  "baseline_total_failures": 20,
+  "candidate_total_passed": 278,
+  "candidate_total_failures": 17,
+  "failure_delta": -3,
+  "groups": {
+    "focused_20": {
+      "test_count": 20,
+      "baseline_passed": 17,
+      "baseline_failures": 3,
+      "candidate_passed": 20,
+      "candidate_failures": 0,
+      "failure_ids_unchanged": false,
+      "resolved_failure_ids": [
+        [
+          "tests.test_manager_app_plan_identity_20261009",
+          "test_app_immutable_authority_read_clock_does_not_stale_plan",
+          "failure"
+        ],
+        [
+          "tests.test_manager_app_plan_identity_20261009",
+          "test_app_persisted_availability_change_stales_plan_with_same_read_clock",
+          "failure"
+        ],
+        [
+          "tests.test_manager_app_plan_identity_20261009",
+          "test_scheduled_dispatch_cannot_reuse_saved_other_selection_binding",
+          "failure"
+        ]
+      ],
+      "new_failure_ids": [],
+      "baseline_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/baseline_295_workspace_r2/focused_20/pytest.log",
+      "candidate_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/candidate_295_workspace_r2/focused_20/pytest.log",
+      "baseline_junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/baseline_295_workspace_r2/focused_20/junit.xml",
+      "candidate_junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/candidate_295_workspace_r2/focused_20/junit.xml"
+    },
+    "adjacent_owner_contracts": {
+      "test_count": 113,
+      "baseline_passed": 112,
+      "baseline_failures": 1,
+      "candidate_passed": 112,
+      "candidate_failures": 1,
+      "failure_ids_unchanged": true,
+      "resolved_failure_ids": [],
+      "new_failure_ids": [],
+      "baseline_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/baseline_295_workspace_r2/adjacent_owner_contracts/pytest.log",
+      "candidate_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/candidate_295_workspace_r2/adjacent_owner_contracts/pytest.log",
+      "baseline_junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/baseline_295_workspace_r2/adjacent_owner_contracts/junit.xml",
+      "candidate_junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/candidate_295_workspace_r2/adjacent_owner_contracts/junit.xml"
+    },
+    "supplied_regressions": {
+      "test_count": 103,
+      "baseline_passed": 88,
+      "baseline_failures": 15,
+      "candidate_passed": 88,
+      "candidate_failures": 15,
+      "failure_ids_unchanged": true,
+      "resolved_failure_ids": [],
+      "new_failure_ids": [],
+      "baseline_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/baseline_295_workspace_r2/supplied_regressions/pytest.log",
+      "candidate_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/candidate_295_workspace_r2/supplied_regressions/pytest.log",
+      "baseline_junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/baseline_295_workspace_r2/supplied_regressions/junit.xml",
+      "candidate_junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/candidate_295_workspace_r2/supplied_regressions/junit.xml"
+    },
+    "existing_announcement": {
+      "test_count": 59,
+      "baseline_passed": 58,
+      "baseline_failures": 1,
+      "candidate_passed": 58,
+      "candidate_failures": 1,
+      "failure_ids_unchanged": true,
+      "resolved_failure_ids": [],
+      "new_failure_ids": [],
+      "baseline_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/baseline_295_workspace_r2/existing_announcement/pytest.log",
+      "candidate_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/candidate_295_workspace_r2/existing_announcement/pytest.log",
+      "baseline_junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/baseline_295_workspace_r2/existing_announcement/junit.xml",
+      "candidate_junit": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/test_runs/candidate_295_workspace_r2/existing_announcement/junit.xml"
+    }
+  },
+  "source_delta_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/candidate_delta_receipt.json",
+    "sha256": "ade7e1828e4762841dbd80a0b8cbb46a8aa21f21d62552395c7dc04d336d9524"
+  },
+  "workspace_roots_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/workspace_test_roots_validated_r2_receipt.json",
+    "sha256": "46a095101fd03a180bd5089faf2133bc63ae37846fe069e7932b9c1b3a78c525"
+  },
+  "baseline_run_receipt_sha256": "904a30f34772eec616c25e010e128522982d5f6e474ab6b0d16d137d81e3a2c2",
+  "candidate_run_receipt_sha256": "87d3f55bd1e4798d3e1f6279152f95e0027f1a91050dc3faee23dfdfaed3a582"
+}

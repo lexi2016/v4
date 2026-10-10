@@ -1,0 +1,142 @@
+{
+  "schema_version": "owner_input_mac_acceptance.v1",
+  "status": {
+    "IMPLEMENTED": "PASS",
+    "TESTED": "FOCUSED_20_PASS; FULL_MATRIX_DELTA_PASS_WITH_17_CANDIDATE_FAILURES",
+    "REVIEWED": "PENDING",
+    "INTEGRATED": "NOT_RUN",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN",
+    "UI_VERIFIED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "scope": "isolated local candidate and Mac validation only; no live service or state action",
+  "source_zip": {
+    "path": "/Users/lexi/Downloads/V4_MANAGER_OWNER_INPUT_INTEGRATION_20261009_R1.zip",
+    "bytes": 590907,
+    "sha256": "5e2374c11899c8cb5a101a7e5e7d125960426126ef529caec710724ba20ad579",
+    "payload_count": 133,
+    "payload_verified": true,
+    "r2_context_count": 16
+  },
+  "fixed_git": {
+    "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+    "parent": "a7f5d09fb19de10564925757207977aadc080cc1"
+  },
+  "base_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/owner_input_r1/app",
+  "candidate_delta": {
+    "status": "PASS",
+    "full_delta_exact": true,
+    "files": [
+      {
+        "path": "v4/manager_research/connect_selection.py",
+        "before_sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+        "after_sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+        "before_bytes": 17496,
+        "after_bytes": 17511,
+        "additions": 3,
+        "deletions": 3
+      },
+      {
+        "path": "v4/manager_research/workspace.py",
+        "before_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+        "after_sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+        "before_bytes": 76034,
+        "after_bytes": 76133,
+        "additions": 1,
+        "deletions": 0
+      }
+    ],
+    "additions": 4,
+    "deletions": 3,
+    "regular_files_before": 1025,
+    "regular_files_after": 1025,
+    "protected_issue32_paths_unchanged": [
+      "apps/api/v35_api/app.py",
+      "apps/api/v35_api/preselection_router.py",
+      "apps/api/v35_api/preselection_service.py"
+    ]
+  },
+  "python_environment": {
+    "executable": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+    "version": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+    "packages": {
+      "pytest": "9.1.1",
+      "fastapi": "0.141.1",
+      "starlette": "1.6.0",
+      "httpx": "0.28.1",
+      "pandas": "3.0.6",
+      "numpy": "2.5.3",
+      "pyarrow": "24.0.0",
+      "pydantic": "2.13.4"
+    }
+  },
+  "tests": {
+    "candidate_focused_20": {
+      "tests": 20,
+      "passed": 20,
+      "failures": 0,
+      "exit_code": 0,
+      "receipt": "evidence/owner_input_r1/test_runs/candidate_focused_20/run_receipt.json",
+      "receipt_sha256": "e1b30fa3b4f2f2f47dc91f0605cd5b7010ffdc9ef623f11b5e7125214eaba62a"
+    },
+    "baseline_full_295": {
+      "passed": 275,
+      "failures": 20,
+      "receipt": "evidence/owner_input_r1/test_runs/baseline_295_workspace_r2/run_receipt.json",
+      "receipt_sha256": "904a30f34772eec616c25e010e128522982d5f6e474ab6b0d16d137d81e3a2c2"
+    },
+    "candidate_full_295": {
+      "passed": 278,
+      "failures": 17,
+      "receipt": "evidence/owner_input_r1/test_runs/candidate_295_workspace_r2/run_receipt.json",
+      "receipt_sha256": "87d3f55bd1e4798d3e1f6279152f95e0027f1a91050dc3faee23dfdfaed3a582"
+    },
+    "full_matrix_comparison": {
+      "status": "PASS",
+      "failure_delta": -3,
+      "nonfocused_failure_sets_unchanged": true,
+      "receipt": "evidence/owner_input_r1/full_matrix_comparison.json",
+      "receipt_sha256": "61fefc7f2ab245b1807f66a99a8ee7276a9b5d56cb3563a237d0e69dfec0be01"
+    },
+    "known_unchanged_failures": {
+      "adjacent_owner_contracts": 1,
+      "supplied_regressions": 15,
+      "existing_announcement": 1,
+      "focused_candidate": 0
+    }
+  },
+  "functional_evidence": {
+    "status": "SYNTHETIC_ISOLATED_ONLY",
+    "test": "test_existing_registered_product_imports_through_create_app_and_revalidates_bytes",
+    "transport": "in-process FastAPI TestClient; external socket connect is forbidden by test",
+    "state": "temporary synthetic fixture roots; not live owner data"
+  },
+  "announcement_cli_diagnostic": {
+    "receipt": "evidence/owner_input_r1/announcement_cli_sha_check_v2.json",
+    "receipt_sha256": "ec6543c693aab8d90f998a66117b23ed061aa79f92a84f8c9d5abc1c9560db19",
+    "original_owner_cli_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+    "candidate_r2_cli_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+    "candidate_workspace_announcements_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+    "source_overwritten": false
+  },
+  "cannot_confirm": [
+    "20261009 live owner-input completeness and natural owner-run result",
+    "active API/runtime binding and candidate loaded identity",
+    "live selected-date manager API/UI and Stage behavior",
+    "20261009 announcement capture and Reader/Reviewer evidence",
+    "full HK Connect V2 owner artifact chain/cutoff and security-master readiness",
+    "market-screen master/panel and volume-unit owner evidence",
+    "current scheduler/dispatch/journal attempt receipt"
+  ],
+  "report": "handoff/OWNER_INPUT_MAC_R1_WRITER_HANDOFF.md",
+  "evidence_receipts": {
+    "zip_ingest": "evidence/owner_input_r1/zip_ingest_receipt.json",
+    "candidate_delta": "evidence/owner_input_r1/candidate_delta_receipt.json",
+    "baseline_run": "evidence/owner_input_r1/test_runs/baseline_295_workspace_r2/run_receipt.json",
+    "candidate_run": "evidence/owner_input_r1/test_runs/candidate_295_workspace_r2/run_receipt.json",
+    "comparison": "evidence/owner_input_r1/full_matrix_comparison.json",
+    "candidate_focused_run": "evidence/owner_input_r1/test_runs/candidate_focused_20/run_receipt.json"
+  }
+}

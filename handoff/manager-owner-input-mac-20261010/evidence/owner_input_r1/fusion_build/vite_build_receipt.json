@@ -1,0 +1,152 @@
+{
+  "schema_version": "stage_r4_manager_r2_owner_input_r1_web_build.v1",
+  "started_at_utc": "2026-10-10T02:08:51.946954+00:00",
+  "ended_at_utc": "2026-10-10T02:08:52.998726+00:00",
+  "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps",
+  "candidate_web_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps/web",
+  "command": [
+    "/Users/lexi/.local/node-v24.19.0/bin/node",
+    "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vite/bin/vite.js",
+    "build",
+    "--config",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tools/deployment/fused_candidate_vite_config.mjs"
+  ],
+  "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps/web",
+  "exit_code": 0,
+  "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/owner_input_r1/fusion_build/vite_build.log",
+  "log_sha256": "ef19dd9050259dc88a1e4cd6b7bfb1b9599a1f3dfff12eaf64d07b0797e2ce13",
+  "vite_config_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tools/deployment/fused_candidate_vite_config.mjs",
+  "vite_config_sha256": "b35d5fea04c341fc800787ff98960fe940305cdee6e104816ffabdb9c5fbbe4b",
+  "node_path": "/Users/lexi/.local/node-v24.19.0/bin/node",
+  "node_version": "v24.19.0",
+  "vite_path": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vite/bin/vite.js",
+  "vite_version": "7.3.6",
+  "package_contract_hashes": {
+    "package.json": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+    "package-lock.json": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+    "vite.config.ts": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+    "tsconfig.json": "aeb4f907263b28da51895370935cecf1152aec0f142e191b90d5877e3b37aebe"
+  },
+  "candidate_package_contract_matches_existing_environment": true,
+  "manager_workspace_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+  "daily_channels_sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+  "source_unchanged_during_build": true,
+  "source_inventory_sha256_before": "5812ccdd38f3c3fdedb30ae58c280c6327fa825683cdcffc38c338c3a8343306",
+  "source_inventory_sha256_after": "5812ccdd38f3c3fdedb30ae58c280c6327fa825683cdcffc38c338c3a8343306",
+  "dependency_link_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/apps/web/node_modules",
+  "dependency_link_target": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules",
+  "dependency_link_removed_after_build": true,
+  "canonical_dependency_cache_before": {
+    "exists": true,
+    "mtime_ns": 1789880500122829359,
+    "inventory": {
+      "deps/_metadata.json": [
+        "file",
+        352,
+        "197f06ae4215075c113cfcdc7db5b686cae432806edc88803751a23a2923b6f5"
+      ],
+      "deps/package.json": [
+        "file",
+        23,
+        "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+      ],
+      "deps/vue.js": [
+        "file",
+        389680,
+        "8a467ddf9f82ff70480e03c8f5112705359f9a13500ab1ff497cf25185ce3ce6"
+      ],
+      "deps/vue.js.map": [
+        "file",
+        688898,
+        "cb5249e88038ece16b3e9b78f329892deb73c1b3390257c2b26f5f8c32022827"
+      ],
+      "vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json": [
+        "file",
+        7094,
+        "eff93aec034b9438b7be68370c433c0ed7e70cf5f58baa6d0ea4ff715afa06d2"
+      ]
+    }
+  },
+  "canonical_dependency_cache_after": {
+    "exists": true,
+    "mtime_ns": 1789880500122829359,
+    "inventory": {
+      "deps/_metadata.json": [
+        "file",
+        352,
+        "197f06ae4215075c113cfcdc7db5b686cae432806edc88803751a23a2923b6f5"
+      ],
+      "deps/package.json": [
+        "file",
+        23,
+        "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+      ],
+      "deps/vue.js": [
+        "file",
+        389680,
+        "8a467ddf9f82ff70480e03c8f5112705359f9a13500ab1ff497cf25185ce3ce6"
+      ],
+      "deps/vue.js.map": [
+        "file",
+        688898,
+        "cb5249e88038ece16b3e9b78f329892deb73c1b3390257c2b26f5f8c32022827"
+      ],
+      "vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json": [
+        "file",
+        7094,
+        "eff93aec034b9438b7be68370c433c0ed7e70cf5f58baa6d0ea4ff715afa06d2"
+      ]
+    }
+  },
+  "canonical_dependency_cache_unchanged": true,
+  "canonical_vite_temp_cache_before": {
+    "exists": true,
+    "mtime_ns": 1791551669342752986,
+    "inventory": {}
+  },
+  "canonical_vite_temp_cache_after": {
+    "exists": true,
+    "mtime_ns": 1791551669342752986,
+    "inventory": {}
+  },
+  "canonical_vite_temp_cache_unchanged": true,
+  "dist_before_count": 11,
+  "dist_before_inventory_sha256": "7fe126fff1d23cd8f844adb8c02bd91ce3b528fa96dbbcde9d2490b39a00bad9",
+  "dist_after_count": 11,
+  "dist_after_bytes": 819396,
+  "dist_after_inventory_sha256": "cfd24a34a7b48323b86cf22236d4b641684fc49289232414b80e7127300788ed",
+  "dist_added_or_changed_paths": [
+    "assets/managerSelection-BeTXz3Ut.js",
+    "assets/managerSelection-CSQV7t8e.js",
+    "manager-selection/index.html"
+  ],
+  "dist_removed_paths": [
+    "assets/managerSelection-CSQV7t8e.js"
+  ],
+  "html_asset_references": {
+    "index.html": [
+      "/assets/main-9VMLjO9N.js",
+      "/assets/runtime-dom.esm-bundler-BLwL_Z7B.js",
+      "/assets/research_lane-t0CPXntR.js",
+      "/assets/main-yh5BoGEs.css"
+    ],
+    "manager-selection/index.html": [
+      "/assets/managerSelection-BeTXz3Ut.js",
+      "/assets/runtime-dom.esm-bundler-BLwL_Z7B.js",
+      "/assets/research_lane-t0CPXntR.js",
+      "/assets/managerSelection-Yq6F4Lqr.css"
+    ],
+    "daily-research-command/index.html": [
+      "/assets/dailyResearchCommand-RtNjV2wa.js",
+      "/assets/runtime-dom.esm-bundler-BLwL_Z7B.js",
+      "/assets/dailyResearchCommand-D7J2FMsY.css"
+    ]
+  },
+  "missing_html_assets": [],
+  "all_expected_entrypoints_and_assets_present": true,
+  "build_mode": "clean_output_directory; candidate-only",
+  "service_or_launchagent_changed": false,
+  "canonical_source_changed": false,
+  "business_state_changed": false,
+  "temporary_cleanup_error": null
+}

@@ -1,0 +1,138 @@
+{
+  "schema_version": "v4.manager_post_publication_independent_review.v1",
+  "reviewed_at_local_approx": "2026-10-10 11:04 Asia/Shanghai",
+  "scope": "Read-only review of the published fused release identity, current exact-date workspace GET, and UI stale-state evidence. No POST, source edit, service operation, or test rerun.",
+  "status": "PARTIAL_ACCEPTANCE_FAIL",
+  "release_identity": {
+    "operation_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/deployment/operations/d19e0504aaf74090b7ec1ac96f8ac205/operation_receipt.json",
+    "operation_receipt_sha256": "77fbbb4cca009d6cfa9524488cbe3315098cb560a5b0199dbf14bc9a9bf55e47",
+    "operation_status": "STAGE_API_SWITCHED_AND_READBACK_VERIFIED",
+    "pid": 10321,
+    "pid_running_after_get": true,
+    "listen_address": "127.0.0.1:8873",
+    "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app",
+    "process_env_identity": {
+      "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app",
+      "V35_RELEASE_ID": "stage_r4_manager_r2_owner_input_r1_fused_r1",
+      "V35_RELEASE_MANIFEST_SHA256": "fd7f21af0205b9d25a8ab5d33592aff42bf76c0419799b7c1724b94a286aeb86"
+    },
+    "active_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "active_plist_sha256": "4fcf8eb8b7c15dc4e418facff454d7b1772c2362a255c0a8e0548023ef022067",
+    "candidate_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/release-manifest.json",
+    "candidate_manifest_sha256": "fd7f21af0205b9d25a8ab5d33592aff42bf76c0419799b7c1724b94a286aeb86",
+    "candidate_inventory": {
+      "helper_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/local_fix/r4_mac_fix_20261010_r5/release_tools/after/ops/api_release_integration.py",
+      "helper_sha256": "5325f7a81acadb4016385416c88319e4baab0a26974ac19ed17dd7debb7e0f29",
+      "entry_count_actual": 1022,
+      "entry_count_manifest": 1022,
+      "aggregate_sha256_actual": "fe0c88e75a039380a0cc02435bdc5a082064094d235882abfd8e04827da3ff1c",
+      "aggregate_sha256_manifest": "fe0c88e75a039380a0cc02435bdc5a082064094d235882abfd8e04827da3ff1c",
+      "entries_exact_match": true
+    },
+    "safety_flags": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "writer_readback": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/evidence/review/fused_owner_refresh_readback_20261009.json",
+    "sha256": "7aaab99d45e1213fabe0a7b6279c334ecf07d2489d2fa676e01c4e7e5cfb45d3",
+    "status": "API_READBACK_PASS",
+    "generated_at_utc": "2026-10-10T02:59:26.509389+00:00",
+    "calls": [
+      {"method": "POST", "http_status": 200, "label": "owner_refresh", "plan_status": "CURRENT", "run_id": "3bc75d1beea24036850b1af0f4d5f395", "product_sha256": "38eaad4b3d8adfd4738fa0bb4e6ef5ab969414447450e485614f384f48aab991", "date_bindings": {"plan_date": "20261009", "selection_date": "20261009", "announcement_date": "20261008"}},
+      {"method": "GET", "http_status": 200, "label": "readback_1", "plan_status": "CURRENT", "run_id": "3bc75d1beea24036850b1af0f4d5f395", "product_sha256": "38eaad4b3d8adfd4738fa0bb4e6ef5ab969414447450e485614f384f48aab991", "date_bindings": {"plan_date": "20261009", "selection_date": "20261009", "announcement_date": "20261008"}},
+      {"method": "GET", "http_status": 200, "label": "readback_2", "plan_status": "CURRENT", "run_id": "3bc75d1beea24036850b1af0f4d5f395", "product_sha256": "38eaad4b3d8adfd4738fa0bb4e6ef5ab969414447450e485614f384f48aab991", "date_bindings": {"plan_date": "20261009", "selection_date": "20261009", "announcement_date": "20261008"}}
+    ],
+    "raw_request_urls_recorded": false,
+    "channel_evidence": {
+      "formal_recommendation_count": 0,
+      "ANNOUNCEMENT": "CANNOT_CONFIRM / ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED",
+      "HK_CONNECT": "CANNOT_CONFIRM / HK_UNIVERSE_V2_ARTIFACT_MISSING; membership unverified",
+      "OVERSOLD": "PARTIAL; source/volume evidence incomplete"
+    },
+    "natural_run_verified": false
+  },
+  "independent_live_get": {
+    "request": "GET http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261009&view=dynamic",
+    "request_count": 1,
+    "http_status": 200,
+    "response_bytes": 15037791,
+    "response_body_sha256": null,
+    "response_body_sha256_note": "The one response was summarized in-session and not persisted; body digest is CANNOT_CONFIRM.",
+    "target_trade_date": "20261009",
+    "current_input_identity": "e0f5ed6853fd464903104bf226af96ea595aacca35f1f3f7b45c8bd843165c5f",
+    "saved_input_identity": "4b7da917cb344f71fcf336e397a9f31122a45b78bd30f5a3a2b1a4494dd0727e",
+    "current_semantic_version": "20260921.manager-semantic.r3.v1",
+    "saved_semantic_version": "20260921.manager-semantic.r3.v1",
+    "current_date_bindings": {"plan_date": "20261009", "selection_date": "20261009", "announcement_date": "20261008"},
+    "saved_date_bindings": {"plan_date": "20261009", "selection_date": "20261009", "announcement_date": "20261008"},
+    "current_research_cutoff": "2026-10-10T10:59:17.490838+08:00",
+    "saved_research_cutoff": "2026-10-10T10:59:17.490838+08:00",
+    "plan_product": {
+      "status": "STALE_INPUTS_CHANGED",
+      "run_id": "3bc75d1beea24036850b1af0f4d5f395",
+      "product_sha256": "38eaad4b3d8adfd4738fa0bb4e6ef5ab969414447450e485614f384f48aab991",
+      "execution_kind": "MANUAL_REFRESH",
+      "consumed": false
+    },
+    "workspace_plan_attempt": {"state": "PARTIAL", "run_id": "3bc75d1beea24036850b1af0f4d5f395"},
+    "read_context": {"status": "VERIFIED_WITH_GAPS", "mode": "CURRENT_DYNAMIC_PREVIEW"},
+    "market_screen": {"status": "READY_WITH_GAPS", "gap_count": 695},
+    "research_attention": {"status": "READY_WITH_GAPS", "gap_count": 2723},
+    "saved_plan_file_sha256_before_get": "42ffe059781333dddaf5dead93416ae168b7a90fa265b178a8912441d79f3d12",
+    "saved_plan_file_sha256_after_get": "42ffe059781333dddaf5dead93416ae168b7a90fa265b178a8912441d79f3d12",
+    "attempt_file_sha256_after_get": "5e9cfceb70912162864f8540c671aae3e0b150ca45b6608ac9554bf66a6fc171"
+  },
+  "request_binding_comparison": {
+    "browser_dom_trace_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/coordination/live_manager_stale_20261010.txt",
+    "browser_dom_trace_sha256": "288502a0352f49075d42a68d4a6424b3c8636cdad74deba50db4e177fddf8d0f",
+    "browser_request_recorded_by_parent": "GET /api/v4/manager/research/workspace?date=20261009&view=dynamic",
+    "candidate_frontend_get": "apps/web/src/manager-selection/catalystObservationPanel.ts:637 calls requestManagerWorkspace(requestedDate, signal, requestedView) without explicit bindings; apps/web/src/api/managerWorkspace.ts:1652-1667 sends date and view, adding selection_date/announcement_date only when bindings are supplied.",
+    "candidate_frontend_post": "apps/web/src/manager-selection/catalystObservationPanel.ts:632 calls refreshManagerWorkspace(requestedDate, signal) without explicit bindings; apps/web/src/api/managerWorkspace.ts:1702-1716 sends date, adding optional date bindings only when supplied.",
+    "writer_raw_url": "CANNOT_CONFIRM: compact Writer readback stores method, effective response date_bindings, and hashes, but not raw URL/query strings.",
+    "date_binding_mismatch": false,
+    "input_identity_mismatch": true,
+    "identity_change_component": "CANNOT_CONFIRM: current response body was not persisted; available evidence establishes a changed projection identity, not which source field or whether a volatile identity component changed."
+  },
+  "ui_evidence": {
+    "dom_trace_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/coordination/live_manager_stale_20261010.txt",
+    "dom_trace_sha256": "288502a0352f49075d42a68d4a6424b3c8636cdad74deba50db4e177fddf8d0f",
+    "screen_paths": [
+      "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/coordination/live_manager_visual_20261010.jpg",
+      "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/coordination/live_manager_us_mapping_visual_20261010.jpg",
+      "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/coordination/live_manager_pending_visual_20261010.jpg"
+    ],
+    "observed": [
+      "Plan date is 20261009 and selected view is dynamic/current review.",
+      "Page shows STALE_INPUTS_CHANGED / MANUAL_REFRESH / VERIFIED_WITH_GAPS and formal Stage recommendations 0.",
+      "US summary says not evaluated while a separate daily mapping panel says VALID_EMPTY for four reviewed relations and zero matches; their scopes differ in the DOM copy, so direct contradiction is CANNOT_CONFIRM.",
+      "Oversold ledger shows 693 unresolved; screen has 695 gap entries.",
+      "Parent visual inspection reports no three-channel summary on the first screen and the 100-row market display pushes core findings lower; this is an acceptance/readability observation, not a source-code defect finding in this review."
+    ]
+  },
+  "risk_review": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      "Acceptance blocker: the current exact-date page does not present the saved run as CURRENT/consumed; live GET returns STALE_INPUTS_CHANGED and consumed=false. Date bindings, semantic version, and research cutoff match the saved plan; input_identity differs. Exact changed input component CANNOT_CONFIRM."
+    ]
+  },
+  "acceptance": {
+    "REVIEWED": "PASS for deployed release identity and response provenance",
+    "DEPLOYED": "PASS: PID, active plist, process root, release manifest, and 1022-entry candidate inventory match",
+    "API_VERIFIED": "PARTIAL: one read-only GET returned 200 with correct target/run/date bindings, but the saved plan was STALE_INPUTS_CHANGED and consumed=false",
+    "UI_VERIFIED": "FAIL_TARGET: captured page shows stale product and does not establish current saved-plan consumption",
+    "BEHAVIOR_VERIFIED": "FAIL_TARGET_ACCEPTANCE: same owner run was CURRENT in its immediate receipt but was stale in the later current GET/UI",
+    "TESTED": "NOT_RUN in this post-publication review; prior frozen source and focused-test receipts were reused because candidate SHA/inventory are unchanged",
+    "NATURAL_VERIFIED": "NOT_RUN",
+    "CANNOT_CONFIRM": [
+      "which source field or identity component changed between the immediate Writer GETs and current UI read",
+      "raw Writer POST/GET URLs because the compact readback receipt omits them",
+      "hash of the single live GET response body because it was not persisted",
+      "full business acceptance, since announcement import and HK target authority remain incomplete and 693 oversold items remain unresolved"
+    ]
+  }
+}

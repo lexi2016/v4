@@ -1,0 +1,142 @@
+{
+  "active_base": {
+    "api_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "api_plist_sha256": "6cb00de89be004b8bba2981be437d241c3d2abf431965593ac37589f991a99a3",
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/candidate/mac_apply_20261010_r5_02/integration/candidate/stage-research-r4-20261009/app",
+    "application_inventory_entry_count": 1021,
+    "application_inventory_sha256": "7a93420049f0558c4efda2feb05cd5831e4efc5a15b92fb2b445eb46a30dafe8",
+    "release_id": "stage-research-r4-20261009",
+    "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/candidate/mac_apply_20261010_r5_02/integration/candidate/stage-research-r4-20261009/release-manifest.json",
+    "release_manifest_sha256": "a162a878c01b89f6769710f83bc0907467a05bf18d6e5838b760c7c83efe72d6",
+    "release_root": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/candidate/mac_apply_20261010_r5_02/integration/candidate/stage-research-r4-20261009"
+  },
+  "candidate_vs_current_stage_delta": {
+    "entry_count": 19,
+    "exact_paths": [
+      "apps/api/v35_api/manager_research_router.py",
+      "apps/web/dist/assets/managerSelection-BeTXz3Ut.js",
+      "apps/web/dist/assets/managerSelection-CSQV7t8e.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/api/managerWorkspace.ts",
+      "apps/web/src/manager-selection/dailyChannels.ts",
+      "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "ops/run_manager_announcement_cycle.py",
+      "ops/run_manager_daily_announcement.py",
+      "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "v4/manager_research/connect_selection.py",
+      "v4/manager_research/plan_owner_dispatch.py",
+      "v4/manager_research/service.py",
+      "v4/manager_research/us_mapping_research.py",
+      "v4/manager_research/workspace.py",
+      "v4/manager_research/workspace_announcements.py",
+      "v4/manager_research/workspace_history.py",
+      "v4/manager_research/workspace_plan.py",
+      "v4/manager_research/workspace_plan_autorun.py"
+    ],
+    "manager_source_count": 16,
+    "rebuilt_static_count": 3,
+    "stage_reviewed_source_path_count": 9,
+    "stage_source_change_count": 0
+  },
+  "current_stage_r5_app": {
+    "entry_count": 1021,
+    "inventory_sha256": "7a93420049f0558c4efda2feb05cd5831e4efc5a15b92fb2b445eb46a30dafe8"
+  },
+  "current_stage_r5_release_manifest_sha256": "a162a878c01b89f6769710f83bc0907467a05bf18d6e5838b760c7c83efe72d6",
+  "current_stage_r5_release_root": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/candidate/mac_apply_20261010_r5_02/integration/candidate/stage-research-r4-20261009",
+  "frozen_stage_r4_app": {
+    "entry_count": 1021,
+    "inventory_sha256": "7a93420049f0558c4efda2feb05cd5831e4efc5a15b92fb2b445eb46a30dafe8"
+  },
+  "frozen_stage_r4_release_manifest_sha256": "3a9febc7363554ac11466dca7f13b27e5e43c4eeaf8467e94de03dd31341adfa",
+  "frozen_stage_r4_release_root": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/candidate/mac_apply_20261010_r4_fix_01/integration/candidate/stage-research-r4-20261009",
+  "fused_candidate": {
+    "entry_count": 1022,
+    "inventory_sha256": "fe0c88e75a039380a0cc02435bdc5a082064094d235882abfd8e04827da3ff1c"
+  },
+  "generated_at_utc": "2026-10-10T02:53:39.959402+00:00",
+  "protected_stage_source_paths": [
+    {
+      "new_mode": "0444",
+      "new_sha256": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8",
+      "old_mode": "0444",
+      "old_sha256": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8",
+      "path": "apps/api/v35_api/app.py",
+      "same": true
+    },
+    {
+      "new_mode": "0444",
+      "new_sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f",
+      "old_mode": "0444",
+      "old_sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f",
+      "path": "apps/web/src/App.vue",
+      "same": true
+    },
+    {
+      "new_mode": "0444",
+      "new_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "old_mode": "0444",
+      "old_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "same": true
+    },
+    {
+      "new_mode": "0444",
+      "new_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "old_mode": "0444",
+      "old_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "path": "apps/web/src/contracts/runtime.ts",
+      "same": true
+    },
+    {
+      "new_mode": "0644",
+      "new_sha256": "dd8f728d7d6a2e7a55046528c203caa3530977503d5a6fea939569ff88517c55",
+      "old_mode": "0644",
+      "old_sha256": "dd8f728d7d6a2e7a55046528c203caa3530977503d5a6fea939569ff88517c55",
+      "path": "stage_center/approved_research_read.json",
+      "same": true
+    },
+    {
+      "new_mode": "0644",
+      "new_sha256": "a1a962a7dfa0a4fbc0f53d2927dfc212db21a4ca5f676a616ed970c31368ac4b",
+      "old_mode": "0644",
+      "old_sha256": "a1a962a7dfa0a4fbc0f53d2927dfc212db21a4ca5f676a616ed970c31368ac4b",
+      "path": "stage_center/approved_research_read.sha256",
+      "same": true
+    },
+    {
+      "new_mode": "0444",
+      "new_sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "old_mode": "0444",
+      "old_sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "path": "stage_center/consumer.py",
+      "same": true
+    },
+    {
+      "new_mode": "0444",
+      "new_sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "old_mode": "0444",
+      "old_sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "path": "stage_center/execution_evidence.py",
+      "same": true
+    },
+    {
+      "new_mode": "0644",
+      "new_sha256": "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05",
+      "old_mode": "0644",
+      "old_sha256": "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05",
+      "path": "stage_center/research_read_binding.py",
+      "same": true
+    }
+  ],
+  "research_only_flags": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.fused_stage_r5_source_base_comparison.v1",
+  "stage_app_changed_path_count": 0,
+  "stage_app_changed_paths": [],
+  "status": "READ_ONLY_COMPARISON_PASS"
+}
