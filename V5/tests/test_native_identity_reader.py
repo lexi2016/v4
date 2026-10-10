@@ -1,4 +1,6 @@
 """Synthetic original-owner identity transport and actual workspace integration."""
+from datetime import datetime,timezone
+import copy
 import hashlib
 import json
 from pathlib import Path
@@ -68,3 +70,52 @@ publish_hk_security_master(Path(sys.argv[2]),trade_date='20261008',
         discovery=result['payload']['material_discovery_evidence']
         self.assertIsNone(discovery['identity_witness'])
         self.assertTrue(any('NATIVE_IDENTITY_READ_FAILED' in gap for gap in discovery['gaps']))
+
+    def recovery_request(self):
+        request=self.manager_request()
+        request.update(now=datetime.now(timezone.utc).isoformat(),view='auto')
+        self.assertGreater(request['now'][:10],'2026-10-09')
+        return request
+
+    def test_crossday_current_recovery_with_native_binding_keeps_same_run(self):
+        request=self.recovery_request()
+        before={p:p.read_bytes() for p in self.native.rglob('*') if p.is_file()}
+        saved=run_manager_plan(request)
+        page=run_manager_plan(dict(request,action='read'))['payload']
+        self.assertEqual(page['plan_product']['status'],'CURRENT_RECOVERY')
+        self.assertTrue(page['plan_product']['consumed'])
+        self.assertFalse(page['plan_product']['historical_eligible'])
+        self.assertEqual(page['plan_product']['run_id'],saved['readback']['run_id'])
+        self.assertEqual(page['plan_product']['sha256'],saved['readback']['plan_sha256'])
+        discovery=page['material_discovery_evidence']
+        self.assertEqual(discovery['coverage']['identity_row_count'],1)
+        self.assertEqual(discovery['identity_witness']['source_date'],'20261008')
+        self.assertEqual(discovery['identity_witness']['role'],'REFERENCE_SESSION_IDENTITY_NOT_TARGET_CONNECT_MEMBERSHIP')
+        self.assertFalse(page['production_allowed']);self.assertFalse(page['orders_sent'])
+        self.assertEqual(before,{p:p.read_bytes() for p in self.native.rglob('*') if p.is_file()})
+
+    def test_crossday_native_bad_binding_sha_rejected_before_save(self):
+        request=self.recovery_request();request=copy.deepcopy(request)
+        name=next(iter(request['inputs']['native_master']['files']))
+        request['inputs']['native_master']['files'][name]='0'*64
+        with self.assertRaisesRegex(ValueError,'MANAGER_INPUT_SHA_OR_LIMIT'):run_manager_plan(request)
+        self.assertFalse((self.root/'output/current_recovery').exists())
+
+    def test_crossday_other_target_cannot_consume_wrong_native_session(self):
+        request=self.recovery_request();request['target_date']='20261008'
+        result=run_manager_plan(request)['payload']
+        discovery=result['material_discovery_evidence']
+        self.assertIsNone(discovery['identity_witness'])
+        self.assertTrue(any('NATIVE_IDENTITY_READ_FAILED' in gap for gap in discovery['gaps']))
+        self.assertFalse(result['production_allowed']);self.assertFalse(result['orders_sent'])
+
+    def test_crossday_resealed_outer_binding_cannot_forge_native_identity(self):
+        request=self.recovery_request()
+        manifest=next(self.native.rglob('manifest.json'))
+        value=json.loads(manifest.read_bytes());value['trade_date']='20261007'
+        manifest.write_text(json.dumps(value))
+        self.binding['files'][str(manifest.relative_to(self.native))]=hashlib.sha256(manifest.read_bytes()).hexdigest()
+        result=run_manager_plan(request)['payload'];discovery=result['material_discovery_evidence']
+        self.assertIsNone(discovery['identity_witness'])
+        self.assertTrue(any('NATIVE_IDENTITY_READ_FAILED' in gap for gap in discovery['gaps']))
+        self.assertFalse(result['production_allowed']);self.assertFalse(result['orders_sent'])
