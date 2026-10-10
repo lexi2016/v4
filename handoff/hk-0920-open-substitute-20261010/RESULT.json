@@ -1,0 +1,49 @@
+{
+  "status": "DEPLOYED_API_UI_VERIFIED",
+  "date": "20261009",
+  "stage": "STAGE_0925",
+  "source_window": "09:30–09:35",
+  "actual_source_cutoff": "2026-10-09 09:35:00",
+  "input_rows": 100,
+  "missing_rows": 0,
+  "selected_rows": 10,
+  "run_id": "run-e161399acaa56b637557b8db",
+  "backfill_run_id": "c44b03fa94115911bc4aaa44d2152712",
+  "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+  "source_raw_sha256": "e0923241fd5172ac547019aa013190b74c2aee6ee218ace1b0001620f2bf6eb4",
+  "source_pool_sha256": "ad12cffc5ea14925d705c5519ec4d35dfe82f4bf665dfff98d3daf487103d94c",
+  "observed_union_stage_coverage": "7/7",
+  "observed_union_rows": 70,
+  "observed_union_unique_codes": 32,
+  "close_top20_hits": 6,
+  "other_stage_results_preserved": true,
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canonical_status_preserved": true,
+  "release_id": "hk-0920-open-substitute-20261010-r1",
+  "release_manifest_sha256": "e93d9117e1472f3b38874a68b1bba3cbf6a8e36f17e40158e3dd39fa876aba01",
+  "review_receipt_sha256": "4471f719921cb976fd3faffc866430ca8a99b564ad67dd35e8f47c9c7ad345e1",
+  "tests": {
+    "independent_backend": "3 passed",
+    "independent_ui": "2 passed",
+    "vite_build": "PASS",
+    "full_app_spec": "NOT_RUN missing legacy fixtures",
+    "typecheck": "4 pre-existing errors in unrelated specs",
+    "extra_frozen_regression": "CANNOT_CONFIRM pre-existing provider SHA contract mismatch"
+  },
+  "deployed_changes": "Generated SelectionStore artifact and narrow UI source/time display; active API backend modules preserved. Stage8 helper changes are offline-only.",
+  "limitations": [
+    "Historical substitute, not exact09:20 auction or natural-time selection",
+    "Formal eligibility/PIT remains unverified",
+    "Formal metrics card remains unavailable; observed union now covers all7 stages"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "natural_verified": false,
+  "ui_screenshots": [
+    "integration/UI_0920_AFTER.png",
+    "integration/UI_CLOSE_AFTER.png"
+  ]
+}
