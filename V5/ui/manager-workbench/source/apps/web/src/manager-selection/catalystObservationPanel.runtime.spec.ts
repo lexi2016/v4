@@ -1,4 +1,4 @@
-import { fireEvent, waitFor } from "@testing-library/vue";
+import { fireEvent, waitFor, within } from "@testing-library/vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -648,7 +648,13 @@ describe("catalyst workspace runtime boundary", () => {
     const dispose = mountCatalystObservations(host, "20260921");
     await waitFor(() => expect(workspaceMocks.request).toHaveBeenCalledTimes(1));
     workspaceMocks.request.mockClear();
-    await fireEvent.click(host.querySelector("button:nth-of-type(2)") as HTMLButtonElement);
+    const planActions = [...host.querySelectorAll<HTMLDetailsElement>("details")]
+      .find(node => node.querySelector(":scope > summary")?.textContent === "计划操作")!;
+    expect(planActions).toBeDefined();
+    planActions.open = true;
+    const generate = within(planActions).getByRole("button", { name: "用既有材料生成计划", exact: true }) as HTMLButtonElement;
+    await waitFor(() => expect(generate.disabled).toBe(false));
+    await fireEvent.click(generate);
     await waitFor(() => expect(workspaceMocks.refresh).toHaveBeenCalledTimes(1));
     expect(workspaceMocks.request).not.toHaveBeenCalled();
     dispose();

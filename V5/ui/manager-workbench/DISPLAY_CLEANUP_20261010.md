@@ -78,3 +78,16 @@ target 20261009 analysis 200 (E observations). These are not zero-result claims.
 Old page had many empty-result blocks, not empty-string titles; old general US
 material scope and daily reviewed relation scope are different. This follow-up
 only fixes rendering initialization and test typing; no service or algorithm edits.
+
+## Refresh test selector follow-up
+
+E reported `1f3e218265646ab2f6b8e47c01c6357fac8c3e8b`: 61 PASS / 1 FAIL;
+typecheck/build and headless desktop/mobile/navigation PASS; not published.
+The remaining refresh test selected `button:nth-of-type(2)`, which now refers to
+cancel after the layout change. The test now opens the named plan-actions details,
+uses its scoped accessible button name, and waits until that button is enabled.
+The original single-refresh and no-second-GET assertions remain unchanged. No
+product source changes. Text scan found no other indexed button selector in this
+overlay's source/tests; other button queries already select names or data attributes.
+Cloud verification remains manifest hashes/diff only; no product test run. E should
+repeat the same complete test/type/build and visual acceptance before publication.
