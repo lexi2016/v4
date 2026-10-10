@@ -1,0 +1,679 @@
+{
+  "scope": "M18 existing acceptance supplement; no business code/config changes, no refresh/capture/test replay",
+  "code_commit": "6daed6271313b5ae5324c8948f163258ab8d1fa3",
+  "delivery_commit": "19e37dcec266fd25c49e06e3bfad979e4fb55d55",
+  "identity": {
+    "checked_at": "2026-10-10T15:12:51.386179+00:00",
+    "services": [
+      {
+        "name": "manager",
+        "pid": 83037,
+        "port": 60036,
+        "ps_exit": 0,
+        "command": "83037 /Users/lexi/Documents/Codex/2026-10-10/task/m18-6daed627-source/V5/.venv/bin/python -B -m v5_shadow.module_api --config /Users/lexi/Documents/Codex/2026-10-10/task/m18-publication/manager.json --port 0"
+      },
+      {
+        "name": "announcement",
+        "pid": 83038,
+        "port": 60037,
+        "ps_exit": 0,
+        "command": "83038 /Users/lexi/Documents/Codex/2026-10-10/task/m18-6daed627-source/V5/.venv/bin/python -B -m v5_shadow.module_api --config /Users/lexi/Documents/Codex/2026-10-10/task/m18-publication/announcement.json --port 0"
+      },
+      {
+        "name": "gateway",
+        "pid": 83255,
+        "port": 61796,
+        "ps_exit": 0,
+        "command": "83255 /Users/lexi/Documents/Codex/2026-10-10/task/m18-6daed627-source/V5/.venv/bin/python -B -m v5_shadow.api_gateway --config /Users/lexi/Documents/Codex/2026-10-10/task/m18-publication/gateway.json --port 61796 --frontend-root /Users/lexi/Documents/Codex/2026-10-10/task/m18-web-fixed/dist --frontend-manifest /Users/lexi/Documents/Codex/2026-10-10/task/m18-publication/frontend.json"
+      }
+    ],
+    "files_sha256": {
+      "m18-publication/gateway.json": "8015cf68daeb609742fa763d9c948910aff03d34f5241d56ba107b4e6892f925",
+      "m18-publication/manager.json": "7af1d98541bac8541fb8436cd73f603e25d2c037201d8325555317d217d15611",
+      "m18-publication/announcement.json": "a5ec0d50fda36c93c856cd78e393d6d1cd60a04eed124b41b71e138b3686956b",
+      "m18-publication/frontend.json": "1ebb1c88f1b2b8d95c3ecdac0cc2c7304fcd35bc39812f49affefdc54bbfa08e",
+      "m18-publication/manager/active.json": "bd8ce3dec7f0f4bee8793b628a03ad8c5248067223349d9e84a02d10a13518f5",
+      "m18-publication/announcement/active.json": "3087e33c21f4930ccebe291dee81709c9842f6633363160599c921b4cd6457a2"
+    },
+    "plan": {
+      "consumed": true,
+      "execution_kind": "MANUAL_REFRESH",
+      "generated_at": "2026-10-10T02:24:48.215061+00:00",
+      "historical_eligible": false,
+      "last_checked_at": "2026-10-10T22:58:35.799462+08:00",
+      "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "owner_status": "CURRENT",
+      "run_id": "5b4feaf7ef7d4d13bec639e90b6d3db0",
+      "sha256": "56556a67ddc1a562e82b38e750be92fcfda070945397cc4eacffd1c79f42bcf0",
+      "status": "CURRENT_RECOVERY"
+    },
+    "read": {
+      "as_of": "2026-10-10T10:24:38.186229+08:00",
+      "candidate_count_known": false,
+      "contract": "20260923.workspace-history-read.r1",
+      "historical_eligible": false,
+      "mode": "CURRENT_RECOVERY",
+      "owner_view": "dynamic",
+      "read_as_of": "2026-10-10T14:58:35.799462+00:00",
+      "requested_view": "auto",
+      "status": "VERIFIED_WITH_GAPS",
+      "v5_contract": "v5.manager_current_recovery.v1"
+    },
+    "terminal": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "execution_kind": "MANUAL_REFRESH",
+      "finished_at": "2026-10-10T02:24:48.568883+00:00",
+      "input_identity": "39346fe197bf4c55172333d7ff5f550a876ab5a5753bbdbb41480ce9f776330c",
+      "last_success_at": "2026-10-10T02:24:48.215061+00:00",
+      "orders_sent": false,
+      "owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "production_allowed": false,
+      "run_id": "5b4feaf7ef7d4d13bec639e90b6d3db0",
+      "schema_version": "v4.manager_research.workspace_attempt.v1",
+      "sha256": "1fa22b5d8616edba05082191eb2a7c1dfce83a4d0d23b13c2d689a8ac4336e77",
+      "started_at": "2026-10-10T02:24:38.186229+00:00",
+      "state": "PARTIAL",
+      "success_scope": "EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE",
+      "target_trade_date": "20261009"
+    },
+    "announcement": {
+      "product_sha256": "56acef75f660cc76c6f0482b200dd604a282f95d4520de2f2d7eb56d6c47185a",
+      "article_classification": {
+        "NOT_ASSESSED": 94,
+        "NOT_SELECTED": 270,
+        "CONDITIONAL_WATCH": 26,
+        "SELECTED_EVENT": 2,
+        "SELECTED_EARNINGS": 0
+      },
+      "article_count": 392,
+      "text_insufficient_gate_count": 91,
+      "issuer_counts": {
+        "stock_count": 281,
+        "selected_stock_count": 2,
+        "conditional_watch_count": 26,
+        "not_selected_stock_count": 182,
+        "not_assessed_stock_count": 71
+      }
+    }
+  },
+  "before_after_switch": {
+    "status": "DEPLOYED_API_STATIC_VERIFIED",
+    "old_pid": 94191,
+    "old_args": [
+      "/Users/lexi/Documents/Codex/2026-10-08/task/V5-test-1167ed3/venv/bin/python",
+      "-B",
+      "-m",
+      "v5_shadow.api_gateway",
+      "--config",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/v5-original-ui-preview-20261008/gateway-config.json",
+      "--port",
+      "61796",
+      "--frontend-root",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/display-cleanup-e9c94a13/dist",
+      "--frontend-manifest",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/display-cleanup-e9c94a13/frontend-manifest.json"
+    ],
+    "old_cwd": "/Users/lexi/Documents/Codex/2026-10-05/task-3/current-us-preview-20261012/V5",
+    "new_args": [
+      "/Users/lexi/Documents/Codex/2026-10-10/task/m18-6daed627-source/V5/.venv/bin/python",
+      "-B",
+      "-m",
+      "v5_shadow.api_gateway",
+      "--config",
+      "/Users/lexi/Documents/Codex/2026-10-10/task/m18-publication/gateway.json",
+      "--port",
+      "61796",
+      "--frontend-root",
+      "/Users/lexi/Documents/Codex/2026-10-10/task/m18-web-fixed/dist",
+      "--frontend-manifest",
+      "/Users/lexi/Documents/Codex/2026-10-10/task/m18-publication/frontend.json"
+    ],
+    "new_cwd": "/Users/lexi/Documents/Codex/2026-10-10/task/m18-6daed627-source/V5",
+    "code_commit": "6daed6271313b5ae5324c8948f163258ab8d1fa3",
+    "preserved_before": {
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/v5-original-ui-preview-20261008/gateway-config.json": "ee45c30bf29a8cec29c56a3087a410c9b1828fb12cc6fcc276aa612547bbe96f",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/display-cleanup-e9c94a13/frontend-manifest.json": "3700286810d72dfcdf58dd66ce5841c5681da23c5788037c1c19a900e8dad628",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/current-us-preview-20261012/preview/manager-module/active.json": "7af520182dba1c867b2e8784a6ecc34a79fd579919657e7d1cdbe2eb5f72bc9a"
+    },
+    "visual_verified": false,
+    "new_pid": 83255,
+    "switched_at": "2026-10-10T15:04:47.543981+00:00",
+    "static_files": 11,
+    "preserved_unchanged": true,
+    "run_id": "5b4feaf7ef7d4d13bec639e90b6d3db0",
+    "terminal_state": "PARTIAL"
+  },
+  "old_frontend_manifest": {
+    "index.html": "ed14c353204314e1f43ea61c07f3b99000d2ff0723a00d9fa04cb1430dc50f1f",
+    "daily-research-command/index.html": "f6f6aaf37a5f0410e4a4d09126a58f56a4b1a4179c75afe9d1fd8082ec38d7e3",
+    "manager-selection/index.html": "8c5f1f80b9e3ac0a86598c55be5e42591babe98b4fe54bb261cb386cd1e71f4b",
+    "assets/runtime-dom.esm-bundler-DbWIV8fp.js": "dce427bd8b438d0a9302ce5d97742802ea0e5b681993c8b283a41ac09fe2333f",
+    "assets/main--nDwAtcC.js": "83123028856e532c951c5f0d56767f8bf26dc8b4fd4643f0fb7c74f6a6446991",
+    "assets/research_lane-t0CPXntR.js": "8651472ec9b303719d201e466e997fc2fadfc2f7169ec1a07c6ded932659f95b",
+    "assets/main-BiiXRoI_.css": "49540003caea9403acac82bed79d344c40bbdaec5688dad95b65370d3a0eaea7",
+    "assets/dailyResearchCommand-BaVMW5CH.js": "2212d4d31520d48a07cb0f5c30fb92839aa4be6807b1ce5565d485537ebe2547",
+    "assets/managerSelection-Yq6F4Lqr.css": "c69af4fd024e050e8e13de4e4e172e9b16601b637366eb84cf68623d965a5b8c",
+    "assets/managerSelection-CmP-fVJg.js": "7daf847eecd965015b2725e62ef6c9a25f392a7384ca517a1bd42a9ced509588",
+    "assets/dailyResearchCommand-D7J2FMsY.css": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa"
+  },
+  "current_frontend_manifest": {
+    "index.html": "e2a60d0900c8179b1d8782363bcf463eed94ee8b08f019c71583dab9bc166800",
+    "daily-research-command/index.html": "b068de1d29bb04f861c31c67064071fc6f5b914b0d39ab7a6a070df3f9d7b751",
+    "manager-selection/index.html": "1fdd8b71a5f5a96a7abfda18dfc80c2cb7657de343993bbee64338a92c65a5d7",
+    "assets/managerSelection-DPqeaKxb.css": "937acb35ff2f5318182c43b1c045db2545b98d8486a17319913dde28331e83f5",
+    "assets/runtime-dom.esm-bundler-DbWIV8fp.js": "dce427bd8b438d0a9302ce5d97742802ea0e5b681993c8b283a41ac09fe2333f",
+    "assets/research_lane-t0CPXntR.js": "8651472ec9b303719d201e466e997fc2fadfc2f7169ec1a07c6ded932659f95b",
+    "assets/managerSelection-1eJa9jOe.js": "878453e83c173ee32fa7c161bdb5841fa91a3a07c69cef7833a798dee4c87ac6",
+    "assets/main-BiiXRoI_.css": "49540003caea9403acac82bed79d344c40bbdaec5688dad95b65370d3a0eaea7",
+    "assets/main-Cprhra41.js": "a0239b69686556324bbf1e5baedee648b5eb1ababcf469b4429f5863a7ec1b17",
+    "assets/dailyResearchCommand-BaVMW5CH.js": "2212d4d31520d48a07cb0f5c30fb92839aa4be6807b1ce5565d485537ebe2547",
+    "assets/dailyResearchCommand-D7J2FMsY.css": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa"
+  },
+  "engineering": {
+    "python": {
+      "command": [
+        "/Users/lexi/Documents/Codex/2026-10-10/task/m18-6daed627-source/V5/.venv/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "-v",
+        "test_module01_exact_run",
+        "test_module01_announcement_contract",
+        "test_module01_publish_read",
+        "test_module01_http_readonly",
+        "test_module01_ui_overlay",
+        "test_manager_response_budget",
+        "test_manager_current_recovery",
+        "test_announcement_analysis_api",
+        "test_module_artifacts",
+        "test_module_api",
+        "test_api_gateway"
+      ],
+      "TMPDIR": "/Users/lexi/Documents/Codex/2026-10-10/task/m18-test-tmp",
+      "started_at": "2026-10-10T14:59:49.859595+00:00",
+      "finished_at": "2026-10-10T15:00:51.683913+00:00",
+      "exit_code": 0
+    },
+    "python_count": 135,
+    "web": [
+      {
+        "command": [
+          "npm",
+          "exec",
+          "--yes",
+          "--package=npm@11.9.0",
+          "--",
+          "npm",
+          "--version"
+        ],
+        "exit_code": 1,
+        "started_at": "2026-10-10T14:58:55.588123+00:00",
+        "finished_at": "2026-10-10T15:00:05.748603+00:00"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--",
+          "src/api/managerWorkspace.module01.spec.ts",
+          "src/manager-selection/catalystObservationPanel.module01.spec.ts",
+          "src/manager-selection/dailyChannels.v5Bindings.spec.ts",
+          "src/manager-selection/catalystViewNavigation.spec.ts"
+        ],
+        "exit_code": 0,
+        "started_at": "2026-10-10T15:00:05.749123+00:00",
+        "finished_at": "2026-10-10T15:00:07.455379+00:00"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--",
+          "src/api/managerWorkspace.currentRecovery.spec.ts"
+        ],
+        "exit_code": 0,
+        "started_at": "2026-10-10T15:00:07.455708+00:00",
+        "finished_at": "2026-10-10T15:00:08.381098+00:00"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "typecheck"
+        ],
+        "exit_code": 0,
+        "started_at": "2026-10-10T15:00:08.381709+00:00",
+        "finished_at": "2026-10-10T15:00:10.674106+00:00"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "exit_code": 0,
+        "started_at": "2026-10-10T15:00:10.674432+00:00",
+        "finished_at": "2026-10-10T15:00:11.956191+00:00"
+      }
+    ],
+    "web_counts": {
+      "targeted": 51,
+      "real_current_recovery": 3
+    },
+    "patch": {
+      "package_files": 119,
+      "package_sha_ok": true,
+      "commands": [
+        {
+          "cmd": [
+            "git",
+            "apply",
+            "--check",
+            "/Users/lexi/Documents/Codex/2026-10-10/task/m18-delivery-19e37dce/reverse.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "cmd": [
+            "git",
+            "apply",
+            "/Users/lexi/Documents/Codex/2026-10-10/task/m18-delivery-19e37dce/reverse.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "cmd": [
+            "/Users/lexi/Documents/Codex/2026-10-08/task/V5-test-1167ed3/venv/bin/python",
+            "-B",
+            "/Users/lexi/Documents/Codex/2026-10-10/task/m18-delivery-19e37dce/verify_preimage.py",
+            "--repo-root",
+            "/Users/lexi/Documents/Codex/2026-10-10/task/m18-reverse-check",
+            "--phase",
+            "before"
+          ],
+          "exit_code": 0
+        },
+        {
+          "cmd": [
+            "git",
+            "apply",
+            "--check",
+            "/Users/lexi/Documents/Codex/2026-10-10/task/m18-delivery-19e37dce/runtime.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "cmd": [
+            "git",
+            "apply",
+            "/Users/lexi/Documents/Codex/2026-10-10/task/m18-delivery-19e37dce/runtime.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "cmd": [
+            "/Users/lexi/Documents/Codex/2026-10-08/task/V5-test-1167ed3/venv/bin/python",
+            "-B",
+            "/Users/lexi/Documents/Codex/2026-10-10/task/m18-delivery-19e37dce/verify_preimage.py",
+            "--repo-root",
+            "/Users/lexi/Documents/Codex/2026-10-10/task/m18-reverse-check",
+            "--phase",
+            "after"
+          ],
+          "exit_code": 0
+        }
+      ]
+    },
+    "http_validator": [
+      {
+        "name": "gateway-workspace",
+        "status": "PASS",
+        "run": "5b4feaf7ef7d4d13bec639e90b6d3db0"
+      },
+      {
+        "name": "us",
+        "status": "PASS",
+        "run": "51ee71f4e9954b4bb294af5924bf095a"
+      },
+      {
+        "name": "history",
+        "status": "PASS",
+        "run": null
+      },
+      {
+        "name": "old",
+        "status": "PASS",
+        "run": "2b1f5907eff44341869049532e269709"
+      }
+    ],
+    "post_validator": [
+      {
+        "name": "live-workspace",
+        "status": "PASS",
+        "keys": 55
+      },
+      {
+        "name": "post-gateway-workspace",
+        "status": "PASS",
+        "keys": 55
+      },
+      {
+        "name": "post-history",
+        "status": "PASS",
+        "keys": 33
+      },
+      {
+        "name": "post-us",
+        "status": "PASS",
+        "keys": 54
+      },
+      {
+        "name": "post-old",
+        "status": "PASS",
+        "keys": 54
+      }
+    ]
+  },
+  "post_deployment_21": {
+    "status": "PASS",
+    "at": "2026-10-10T15:08:34.024478+00:00",
+    "checks": [
+      {
+        "name": "gateway-workspace",
+        "status": 200,
+        "sha256": "cb82dcebe5c7f51d95fcec47d29f59da3183d59173c23ecd6ce8ffcbc9948f5b",
+        "identical_to_candidate": true,
+        "path": "/api/v4/manager/research/workspace?date=20261009&view=auto"
+      },
+      {
+        "name": "history",
+        "status": 200,
+        "sha256": "e917eb628b0531b2accdd8350755d44218dfe5f248b92f81fa777abed60137ae",
+        "identical_to_candidate": true,
+        "path": "/api/v4/manager/research/workspace?date=20261009&view=historical"
+      },
+      {
+        "name": "us",
+        "status": 200,
+        "sha256": "a76e9be73a6af9b541a9c608fa7c8befa4628038fe7fd3b060e7c0df24e07d87",
+        "identical_to_candidate": true,
+        "path": "/api/v4/manager/research/workspace?date=20261012&view=dynamic"
+      },
+      {
+        "name": "old",
+        "status": 200,
+        "sha256": "eec277adb930584b44b9bbea8ed28374928d92ed1796f3ea84dac2217b80c4c1",
+        "identical_to_candidate": true,
+        "path": "/api/v4/manager/research/workspace?date=20261008&view=dynamic"
+      },
+      {
+        "name": "analysis",
+        "status": 200,
+        "sha256": "df5b3ac83e9d99d24cad6614f027101991e12faaa25a321eada068d06da14c7d",
+        "identical_to_candidate": true,
+        "path": "/api/v4/manager/research/announcements/analysis?date=20261009"
+      },
+      {
+        "name": "analysis-explicit",
+        "status": 200,
+        "sha256": "6cd624a4fd3e7545e2e92a0223d2407f8396f2016cc009869afeba901f0692be",
+        "identical_to_candidate": true,
+        "path": "/api/v4/manager/research/announcements/analysis?date=20261009&publication_date=20261008"
+      },
+      {
+        "name": "old-analysis",
+        "status": 200,
+        "sha256": "29b9fc9aa757296f13a050527e94c775d6288b6035ee2d7b92b60e0f403d2d35",
+        "identical_to_candidate": true,
+        "path": "/api/v4/manager/research/announcements/analysis?date=20261008"
+      },
+      {
+        "name": "list",
+        "status": 503,
+        "sha256": "1f14c8c0deb7364048a11d165f9ede27c753422e877be2cb1885a4f686c5453a",
+        "identical_to_candidate": true,
+        "path": "/api/v4/manager/research/announcements?date=20261009"
+      },
+      {
+        "name": "selection",
+        "status": 503,
+        "sha256": "1f14c8c0deb7364048a11d165f9ede27c753422e877be2cb1885a4f686c5453a",
+        "identical_to_candidate": true,
+        "path": "/api/v4/manager/research/announcements/selection?date=20261009"
+      },
+      {
+        "name": "static-0",
+        "status": 200,
+        "sha256": "e2a60d0900c8179b1d8782363bcf463eed94ee8b08f019c71583dab9bc166800",
+        "identical_to_candidate": true,
+        "path": "/index.html"
+      },
+      {
+        "name": "static-1",
+        "status": 200,
+        "sha256": "b068de1d29bb04f861c31c67064071fc6f5b914b0d39ab7a6a070df3f9d7b751",
+        "identical_to_candidate": true,
+        "path": "/daily-research-command/index.html"
+      },
+      {
+        "name": "static-2",
+        "status": 200,
+        "sha256": "1fdd8b71a5f5a96a7abfda18dfc80c2cb7657de343993bbee64338a92c65a5d7",
+        "identical_to_candidate": true,
+        "path": "/manager-selection/index.html"
+      },
+      {
+        "name": "static-3",
+        "status": 200,
+        "sha256": "937acb35ff2f5318182c43b1c045db2545b98d8486a17319913dde28331e83f5",
+        "identical_to_candidate": true,
+        "path": "/assets/managerSelection-DPqeaKxb.css"
+      },
+      {
+        "name": "static-4",
+        "status": 200,
+        "sha256": "dce427bd8b438d0a9302ce5d97742802ea0e5b681993c8b283a41ac09fe2333f",
+        "identical_to_candidate": true,
+        "path": "/assets/runtime-dom.esm-bundler-DbWIV8fp.js"
+      },
+      {
+        "name": "static-5",
+        "status": 200,
+        "sha256": "8651472ec9b303719d201e466e997fc2fadfc2f7169ec1a07c6ded932659f95b",
+        "identical_to_candidate": true,
+        "path": "/assets/research_lane-t0CPXntR.js"
+      },
+      {
+        "name": "static-6",
+        "status": 200,
+        "sha256": "878453e83c173ee32fa7c161bdb5841fa91a3a07c69cef7833a798dee4c87ac6",
+        "identical_to_candidate": true,
+        "path": "/assets/managerSelection-1eJa9jOe.js"
+      },
+      {
+        "name": "static-7",
+        "status": 200,
+        "sha256": "49540003caea9403acac82bed79d344c40bbdaec5688dad95b65370d3a0eaea7",
+        "identical_to_candidate": true,
+        "path": "/assets/main-BiiXRoI_.css"
+      },
+      {
+        "name": "static-8",
+        "status": 200,
+        "sha256": "a0239b69686556324bbf1e5baedee648b5eb1ababcf469b4429f5863a7ec1b17",
+        "identical_to_candidate": true,
+        "path": "/assets/main-Cprhra41.js"
+      },
+      {
+        "name": "static-9",
+        "status": 200,
+        "sha256": "2212d4d31520d48a07cb0f5c30fb92839aa4be6807b1ce5565d485537ebe2547",
+        "identical_to_candidate": true,
+        "path": "/assets/dailyResearchCommand-BaVMW5CH.js"
+      },
+      {
+        "name": "static-10",
+        "status": 200,
+        "sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa",
+        "identical_to_candidate": true,
+        "path": "/assets/dailyResearchCommand-D7J2FMsY.css"
+      },
+      {
+        "name": "page",
+        "status": 200,
+        "sha256": "1fdd8b71a5f5a96a7abfda18dfc80c2cb7657de343993bbee64338a92c65a5d7",
+        "identical_to_candidate": true,
+        "path": "/manager-selection/?date=20261009&plan_date=20261009&view=auto"
+      }
+    ],
+    "get_cas_unchanged": true,
+    "protected_and_live_pids": {
+      "61796": "83255",
+      "8873": "81797",
+      "8910": "1311"
+    },
+    "rollback_inputs_unchanged": true,
+    "visual_verified": false
+  },
+  "additional_page_requests": [
+    {
+      "path": "/api/v4/manager/research/announcements?date=20261008",
+      "status": 503,
+      "sha256": "1f14c8c0deb7364048a11d165f9ede27c753422e877be2cb1885a4f686c5453a",
+      "reason_codes": [
+        "MODULE_RESULT_NOT_AVAILABLE"
+      ]
+    },
+    {
+      "path": "/api/v3/research/selection?target_trade_date=20261009",
+      "status": 404,
+      "sha256": "e8d9121c99a5920d93d836f4f60f34a20c0d98c34c235e4e9c2792f963f9031b",
+      "reason_codes": [
+        "ROUTE_NOT_CONFIGURED"
+      ]
+    },
+    {
+      "path": "/api/v3/preselection-pools?date=20261009&limit=200",
+      "status": 404,
+      "sha256": "e8d9121c99a5920d93d836f4f60f34a20c0d98c34c235e4e9c2792f963f9031b",
+      "reason_codes": [
+        "ROUTE_NOT_CONFIGURED"
+      ]
+    },
+    {
+      "path": "/api/v3/manager/stage-selection?date=20261009&stage=STAGE_0935_0940&limit=50&market=HK_CONNECT",
+      "status": 404,
+      "sha256": "e8d9121c99a5920d93d836f4f60f34a20c0d98c34c235e4e9c2792f963f9031b",
+      "reason_codes": [
+        "ROUTE_NOT_CONFIGURED"
+      ]
+    },
+    {
+      "path": "/api/v4/manager/research?date=20261009",
+      "status": 404,
+      "sha256": "e8d9121c99a5920d93d836f4f60f34a20c0d98c34c235e4e9c2792f963f9031b",
+      "reason_codes": [
+        "ROUTE_NOT_CONFIGURED"
+      ]
+    },
+    {
+      "path": "/api/v3/research/lane?research_date=20261009",
+      "status": 404,
+      "sha256": "e8d9121c99a5920d93d836f4f60f34a20c0d98c34c235e4e9c2792f963f9031b",
+      "reason_codes": [
+        "ROUTE_NOT_CONFIGURED"
+      ]
+    },
+    {
+      "path": "/api/v4/manager/workbench-research?date=20261009&market=HK_CONNECT&slot=1530",
+      "status": 404,
+      "sha256": "e8d9121c99a5920d93d836f4f60f34a20c0d98c34c235e4e9c2792f963f9031b",
+      "reason_codes": [
+        "ROUTE_NOT_CONFIGURED"
+      ]
+    },
+    {
+      "path": "/api/v3/research/selection/manager-decision?target_trade_date=20261009",
+      "status": 404,
+      "sha256": "e8d9121c99a5920d93d836f4f60f34a20c0d98c34c235e4e9c2792f963f9031b",
+      "reason_codes": [
+        "ROUTE_NOT_CONFIGURED"
+      ]
+    }
+  ],
+  "browser": {
+    "checked_at": "2026-10-10T15:12:51.386179+00:00",
+    "direct_tool": "mcp__cua_repl.js",
+    "tool_present": true,
+    "action": "await cua.getState();",
+    "result": "js execution timed out; kernel reset, rerun your request",
+    "elapsed_seconds": 31.6448,
+    "usable_iab_session_confirmed": false,
+    "prior_iab_result": "Browser is not available: iab",
+    "prior_native_app_result": "access denied; not retried",
+    "chrome_used": false,
+    "cloud_localhost_used": false,
+    "visual_status": "NOT_VERIFIED"
+  },
+  "rollback": {
+    "status": "PREPARED",
+    "old_pid": 94191,
+    "old_args": [
+      "/Users/lexi/Documents/Codex/2026-10-08/task/V5-test-1167ed3/venv/bin/python",
+      "-B",
+      "-m",
+      "v5_shadow.api_gateway",
+      "--config",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/v5-original-ui-preview-20261008/gateway-config.json",
+      "--port",
+      "61796",
+      "--frontend-root",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/display-cleanup-e9c94a13/dist",
+      "--frontend-manifest",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/display-cleanup-e9c94a13/frontend-manifest.json"
+    ],
+    "old_cwd": "/Users/lexi/Documents/Codex/2026-10-05/task-3/current-us-preview-20261012/V5",
+    "new_args": [
+      "/Users/lexi/Documents/Codex/2026-10-10/task/m18-6daed627-source/V5/.venv/bin/python",
+      "-B",
+      "-m",
+      "v5_shadow.api_gateway",
+      "--config",
+      "/Users/lexi/Documents/Codex/2026-10-10/task/m18-publication/gateway.json",
+      "--port",
+      "61796",
+      "--frontend-root",
+      "/Users/lexi/Documents/Codex/2026-10-10/task/m18-web-fixed/dist",
+      "--frontend-manifest",
+      "/Users/lexi/Documents/Codex/2026-10-10/task/m18-publication/frontend.json"
+    ],
+    "new_cwd": "/Users/lexi/Documents/Codex/2026-10-10/task/m18-6daed627-source/V5",
+    "code_commit": "6daed6271313b5ae5324c8948f163258ab8d1fa3",
+    "preserved_before": {
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/v5-original-ui-preview-20261008/gateway-config.json": "ee45c30bf29a8cec29c56a3087a410c9b1828fb12cc6fcc276aa612547bbe96f",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/display-cleanup-e9c94a13/frontend-manifest.json": "3700286810d72dfcdf58dd66ce5841c5681da23c5788037c1c19a900e8dad628",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/current-us-preview-20261012/preview/manager-module/active.json": "7af520182dba1c867b2e8784a6ecc34a79fd579919657e7d1cdbe2eb5f72bc9a"
+    },
+    "visual_verified": false
+  },
+  "source_evidence_sha256": {
+    "FINAL_REPORT.md": "6b80f9df15ea492dc3986d71ea996c407bfdac4c805afeb6e0ac790ab1e89410",
+    "RESULT.json": "f0ea2af3ed896d497e1ac1531313065f9f0b52a2584788db34cbc44294bb3908",
+    "switch-receipt.json": "2bd9eaca32084f7a8d1e4cc7c8f0676d7d36cf05a291420d94892f10b68a59a0",
+    "post-deployment-readback.json": "7b1ab90889c1738d9be40c740cd1416b0d726a38f62d7100bce66b79824ee4ec",
+    "python-targeted-real-tmp.log": "5324993c1016681b5a8950c107e4e1091c57d36c1b9652223efa43ca1e01891b",
+    "web-1.log": "c11828f2d18554426828aa0375a36808a9fb0880a0bf1ab8aca0292a01a9bbae",
+    "web-2.log": "b7159b7e3676b0a2103b2a61b14aea94a9a70114b9230dc05a0b108c8d17108d",
+    "web-3.log": "16b4018cae57fe1052ea85fd680aa74ae29b25bcd0cded804c7a52cb0c66ec91",
+    "web-4.log": "278dc44c9467f9122c966ef7f3f5a5b1732a9ef4fdf65387666913dba438e01c"
+  },
+  "page_status": "PARTIAL_API_ONLY_NOT_FULL_PAGE_VERIFIED",
+  "natural_status": "NOT_VERIFIED",
+  "local_supplement_command_exit_codes": {
+    "initial_ps_sandbox": 1,
+    "escalated_readonly_identity_and_8_gets": 0
+  }
+}
