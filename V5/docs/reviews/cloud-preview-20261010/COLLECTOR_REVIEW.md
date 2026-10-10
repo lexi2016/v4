@@ -6,7 +6,7 @@
 
 最终18/18通过，exit0，2.294秒；包括8个既有transport测试及10个collector测试。新增负测覆盖额外__init__、legacy及namespace pyc、带有效原头的被替换缓存、外部同名包、spec.origin篡改与namespace.__path__篡改；正常缓存可以原样保留。
 
-新增正向合成链：同一个guarded transport的1份Tencent格式报价及5份RSS响应→原CLI→原三件套→原ResearchPeripheralStore.read_exact逐字相等；33报价、24行业行全部READY、RSS非空，原read前后目录全部文件SHA不变，订单/production仍false。测试socket/DNS实际调用被审计钩子拒绝，实际拒绝域名没有再请求。此前12/12仅含拒绝链，不应称为完整成功采集验证；本次正向也只是合成，不是现实网络/业务/自然接续验收。
+新增正向合成链：同一个guarded transport的1份Tencent格式报价及5份RSS响应→原CLI→原三件套→原ResearchPeripheralStore.read_exact读回内容相等，读前后文件SHA不变；33报价、24行业行全部READY、RSS非空，原read前后目录全部文件SHA不变，订单/production仍false。测试socket/DNS实际调用被审计钩子拒绝，实际拒绝域名没有再请求。此前12/12仅含拒绝链，不应称为完整成功采集验证；本次正向也只是合成，不是现实网络/业务/自然接续验收。
 
 补证：父线程10:07:37在另一云端桌面19096、tab5实际看到version1页面并markDeliverable，旧18896保持；title“经理选股工作台·V4”是原UI字样，不是切换现役V4。本容器未自行操作Chrome，也未把该云端桌面验收称作Mac IAB。Library version1及其源码bd3d4fb、数据PARTIAL不变，本轮collector修复没有页面字节变化，无需重复打包。
 
