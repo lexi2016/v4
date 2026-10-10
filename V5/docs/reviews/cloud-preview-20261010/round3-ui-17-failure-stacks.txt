@@ -1,0 +1,213 @@
+Full failed-node blocks, ANSI removed; Mac username and cloud roots redacted. Missing inputs remain failures.
+
+ FAIL  src/api/managerWorkspace.announcementReview.spec.ts > exact-publication-day announcement review time contract > accepts the full saved 20261002 payload when retrieval follows the query coverage cutoff
+Error: ENOENT: no such file or directory, open '/PRIVATE_MAC_USER/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/announcement_deployment/ANNOUNCEMENTS_20261002.json'
+ ❯ load src/api/managerWorkspace.announcementReview.spec.ts:8:57
+      6|
+      7| const evidenceRoot=process.env.V5_ANNOUNCEMENT_REVIEW_FIXTURES || '/Us…
+      8| const load=(date:string):AnnouncementReview=>JSON.parse(readFileSync(j…
+       |                                                         ^
+      9| const time=(value:unknown):number=>Date.parse(String(value));
+     10|
+ ❯ src/api/managerWorkspace.announcementReview.spec.ts:15:21
+
+
+ FAIL  src/api/managerWorkspace.announcementReview.spec.ts > exact-publication-day announcement review time contract > accepts the full saved 20261001 payload when retrieval follows the query coverage cutoff
+Error: ENOENT: no such file or directory, open '/PRIVATE_MAC_USER/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/announcement_deployment/ANNOUNCEMENTS_20261001.json'
+ ❯ load src/api/managerWorkspace.announcementReview.spec.ts:8:57
+      6|
+      7| const evidenceRoot=process.env.V5_ANNOUNCEMENT_REVIEW_FIXTURES || '/Us…
+      8| const load=(date:string):AnnouncementReview=>JSON.parse(readFileSync(j…
+       |                                                         ^
+      9| const time=(value:unknown):number=>Date.parse(String(value));
+     10|
+ ❯ src/api/managerWorkspace.announcementReview.spec.ts:15:21
+
+
+ FAIL  src/api/managerWorkspace.announcementReview.spec.ts > exact-publication-day announcement review time contract > still rejects an announcement published after the source coverage cutoff
+Error: ENOENT: no such file or directory, open '/PRIVATE_MAC_USER/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/announcement_deployment/ANNOUNCEMENTS_20261002.json'
+ ❯ load src/api/managerWorkspace.announcementReview.spec.ts:8:57
+      6|
+      7| const evidenceRoot=process.env.V5_ANNOUNCEMENT_REVIEW_FIXTURES || '/Us…
+      8| const load=(date:string):AnnouncementReview=>JSON.parse(readFileSync(j…
+       |                                                         ^
+      9| const time=(value:unknown):number=>Date.parse(String(value));
+     10|
+ ❯ src/api/managerWorkspace.announcementReview.spec.ts:28:19
+
+
+ FAIL  src/api/managerWorkspace.announcementReview.spec.ts > exact-publication-day announcement review time contract > retains explicit timezone and publication-before-acquisition checks
+Error: ENOENT: no such file or directory, open '/PRIVATE_MAC_USER/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/announcement_deployment/ANNOUNCEMENTS_20261002.json'
+ ❯ load src/api/managerWorkspace.announcementReview.spec.ts:8:57
+      6|
+      7| const evidenceRoot=process.env.V5_ANNOUNCEMENT_REVIEW_FIXTURES || '/Us…
+      8| const load=(date:string):AnnouncementReview=>JSON.parse(readFileSync(j…
+       |                                                         ^
+      9| const time=(value:unknown):number=>Date.parse(String(value));
+     10|
+ ❯ src/api/managerWorkspace.announcementReview.spec.ts:39:22
+
+
+ FAIL  src/api/managerWorkspace.currentRecovery.spec.ts > CURRENT_RECOVERY source-bound read > accepts the saved real recovery payload without changing its plan SHA
+Error: ENOENT: no such file or directory, open '/workspace/v5-build/apps/evidence/manager-read-publication.json'
+ ❯ fixture src/api/managerWorkspace.currentRecovery.spec.ts:5:30
+      3| import { afterEach, describe, expect, it, vi } from 'vitest';
+      4| import { validateManagerWorkspace, requestManagerWorkspace } from './m…
+      5| const fixture=()=>JSON.parse(readFileSync(resolve(process.env.V5_REAL_…
+       |                              ^
+      6| afterEach(()=>vi.unstubAllGlobals());
+      7| describe('CURRENT_RECOVERY source-bound read',()=>{
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts:9:13
+
+
+ FAIL  src/api/managerWorkspace.currentRecovery.spec.ts > CURRENT_RECOVERY source-bound read > rejects incomplete or falsely historical recovery identities
+Error: ENOENT: no such file or directory, open '/workspace/v5-build/apps/evidence/manager-read-publication.json'
+ ❯ fixture src/api/managerWorkspace.currentRecovery.spec.ts:5:30
+      3| import { afterEach, describe, expect, it, vi } from 'vitest';
+      4| import { validateManagerWorkspace, requestManagerWorkspace } from './m…
+      5| const fixture=()=>JSON.parse(readFileSync(resolve(process.env.V5_REAL_…
+       |                              ^
+      6| afterEach(()=>vi.unstubAllGlobals());
+      7| describe('CURRENT_RECOVERY source-bound read',()=>{
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts:14:14
+
+
+ FAIL  src/api/managerWorkspace.currentRecovery.spec.ts > CURRENT_RECOVERY source-bound read > accepts ordinary auto and refuses explicit historical or dynamic relabeling
+AssertionError: promise rejected "Error: ENOENT: no such file or directory,… { …(4) }" instead of resolving
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts:21:65
+     19|   vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify(fix…
+     20|   const signal=new AbortController().signal;
+     21|   await expect(requestManagerWorkspace('20261009',signal,'auto')).reso…
+       |                                                                 ^
+     22|   await expect(requestManagerWorkspace('20261009',signal,'historical')…
+     23|   await expect(requestManagerWorkspace('20261009',signal,'dynamic')).r…
+
+Caused by: Error: ENOENT: no such file or directory, open '/workspace/v5-build/apps/evidence/manager-read-publication.json'
+ ❯ fixture src/api/managerWorkspace.currentRecovery.spec.ts:5:30
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts:19:68
+ ❯ requestManagerWorkspace src/api/managerWorkspace.ts:1444:26
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts:21:16
+
+
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > keeps the requested-day manual HK observation compact until all 100 rows are expanded
+Error: ENOENT: no such file or directory, open '/workspace/v5-build/tests/fixtures/manager_current_observation_20261002/FIXTURE_BINDING.json'
+ ❯ readPinnedManualObservationFixture src/manager-selection/catalystObservationPanel.runtime.spec.ts:108:24
+    106| const readPinnedManualObservationFixture = (name: "close_recapture.jso…
+    107|   const fixtureRoot = process.env.V5_MANUAL_OBSERVATION_FIXTURES || re…
+    108|   const bindingBytes = readFileSync(resolve(fixtureRoot, "FIXTURE_BIND…
+       |                        ^
+    109|   expect(createHash('sha256').update(bindingBytes).digest('hex')).toBe…
+    110|   const binding = JSON.parse(bindingBytes.toString('utf8'));
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:522:21
+
+
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > renders Eastmoney evidence from the selected-date daily owner review
+Error: ENOENT: no such file or directory, open '/PRIVATE_MAC_USER/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integration/workspace_after.json'
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:666:28
+    664|
+    665|   it("renders Eastmoney evidence from the selected-date daily owner re…
+    666|     const raw = JSON.parse(readFileSync(
+       |                            ^
+    667|       process.env.V5_EASTMONEY_WORKSPACE_FIXTURE || "/PRIVATE_MAC_USER/Deskt…
+    668|       "utf8",
+
+
+ FAIL  src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts > actual Oct 2 owner projection through the Manager DTO and renderer > validates and renders the complete owner-derived 689-row selection
+Error: ORIGINAL_OCT2_RESEARCH_SELECTION_PROJECTION_REQUIRED
+ ❯ src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts:15:28
+     13| describe('actual Oct 2 owner projection through the Manager DTO and re…
+     14|   it('validates and renders the complete owner-derived 689-row selecti…
+     15|     if(!artifactPath)throw new Error('ORIGINAL_OCT2_RESEARCH_SELECTION…
+       |                            ^
+     16|     const compressed=readFileSync(artifactPath);
+     17|     const artifact=JSON.parse(gunzipSync(compressed).toString('utf8'));
+
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > uses the target date in the research selection heading and accessible label
+Error: ENOENT: no such file or directory, open '/CLOUD_WEB/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:44:13
+
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > keeps unavailable screen coverage unknown rather than rendering an observed zero
+Error: ENOENT: no such file or directory, open '/CLOUD_WEB/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:54:13
+
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > does not attach a fixed date when the selection ledger is absent
+Error: ENOENT: no such file or directory, open '/CLOUD_WEB/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:75:13
+
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > validates and renders the complete ledger beyond the old 30-card cap
+Error: ENOENT: no such file or directory, open '/CLOUD_WEB/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:83:13
+
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > rejects duplicate stock decisions and broken row accounting
+Error: ENOENT: no such file or directory, open '/CLOUD_WEB/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:94:21
+
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > binds a strict research selection to the existing attention card priority
+Error: ENOENT: no such file or directory, open '/CLOUD_WEB/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:103:13
+
+
+ FAIL  src/manager-selection/__tests__/workspaceAfterReadback.spec.ts > actual Eastmoney owner workspace readback > validates the complete owner response and renders the announcement lane
+Error: ENOENT: no such file or directory, open '/PRIVATE_MAC_USER/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integration/workspace_after.json'
+ ❯ src/manager-selection/__tests__/workspaceAfterReadback.spec.ts:10:32
+      8| describe('actual Eastmoney owner workspace readback', () => {
+      9|   it('validates the complete owner response and renders the announceme…
+     10|     const payload = JSON.parse(readFileSync(workspaceFixture, 'utf8'));
+       |                                ^
+     11|     expect(() => validateManagerWorkspace(payload, '20260929')).not.to…
+     12|
+

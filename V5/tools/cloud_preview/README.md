@@ -94,3 +94,17 @@ locks, IO, upstream HTTP status handling, parsing, and exit codes stay original.
 There is no automatic capture or retry. Previously denied real targets were
 **not** requested to test this change; tests use injected synthetic openers.
 The entry's `--help` was checked without collection.
+
+
+The pinned collector rejects extra source files, legacy bytecode, unlisted
+packages and symlinks. A dedicated finder restricts original package imports to
+the declared modules/namespaces and audits module origins. Verified source bytes
+are compiled directly; existing valid-source `__pycache__` files are tolerated
+but never loaded or rewritten, including a cache with a poisoned body.
+Synthetic success coverage separately exercises five RSS responses plus all
+33 quotes/24 industry rows, original publication and original exact-date readback.
+It is not evidence of a successful real network capture.
+
+The 689-row original UI test needs BOTH `OCT2_RESEARCH_SELECTION_PROJECTION`
+(the original gzip projection) and `V5_ISSUE8R2_OBSERVATIONS` (the original owner
+observations JSON); providing the projection alone does not satisfy its fixture.
