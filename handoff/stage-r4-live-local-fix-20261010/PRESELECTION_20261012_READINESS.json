@@ -1,0 +1,52 @@
+{
+  "target_date": "20261012",
+  "signal_date": "20261009",
+  "auditor": "/root/oct12_preselection_readiness",
+  "review_type": "read_only_lineage_and_loaded_scheduler_contract",
+  "A": {
+    "main_pool_rows": 120,
+    "fupan_rows": 59,
+    "stage7_rows": 10,
+    "hourly_research_rows": 221,
+    "source_rows": 410,
+    "deduplicated_codes": 371,
+    "status": "CONTRACT_ELIGIBLE_PENDING_ACTUAL_MATERIALIZATION",
+    "partial_pools_globally_block": false,
+    "stage7_label": "Prior-session descriptive classification, not target-day outcome",
+    "manifest_sha256": "a5aef4f54aac7943056126cc1ae2fac85923a5963b626d99981725d3392509a7",
+    "main_artifact_sha256": "1d1d8af7c4d6a4f6b2ba5da3d67c995a73872e73dc6adddb2210d56172de5d5a"
+  },
+  "HK": {
+    "formal_d1_rows": 100,
+    "status": "READY_FORMAL_D1_TOP100",
+    "manifest_sha256": "20fb5182d751e75beb80b8c97c42eba4b1d1660084b321d8a69d9ed877f9c571",
+    "artifact_sha256": "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d",
+    "security_master_rows": 693,
+    "security_master_trade_date": "20261009"
+  },
+  "root_receipt_check": "Main A and formal HK manifest/artifact SHA and rowcounts read back match auditor",
+  "scheduler": {
+    "service": "com.lexi.stage-center.scheduler",
+    "loaded_release": "20261003-hk-binding-wrapper-r3",
+    "status": "LOADED_OLD_CANDIDATE_PATH",
+    "natural_verification": "NATURAL_SLOT_UNVERIFIED",
+    "last_exit_code": 0,
+    "source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "contract": "strict snapshot accepts valid partial lanes and full nonempty verified aggregate; limit100000"
+  },
+  "actual_input_consumer_test": {
+    "status": "PASS",
+    "receipt": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/V4_STAGE_RESEARCH_R4_MAC_20261009/evidence/review/STAGE_20261012_ACTUAL_INPUT_CANARY.json",
+    "sha256": "3aa04644c086c78041dc07ef65bf4e3a3c102b940003a69ba99963d7af77fc0d",
+    "A_rows": 371,
+    "HK_rows": 100,
+    "A_blocking_reasons": [],
+    "scope": "byte-identical isolated copies, actual loaded Stage consumer modules; no official pointer publication or future natural run"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

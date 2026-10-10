@@ -17,6 +17,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import sys
 from types import SimpleNamespace
 from typing import Any, Mapping
@@ -108,6 +109,13 @@ def case(monkeypatch, tmp_path):
     runtime = helper.runtime.__wrapped__(monkeypatch, tmp_path)
     api_root = tmp_path / "api_source"
     shutil.copytree(AFTER, api_root)
+    # copytree preserves the reviewed package's read-only source modes. Only
+    # this fixture-owned copy is made writable where API tests intentionally
+    # mutate it; the package source remains byte- and mode-identical.
+    for relative in ("apps/api/v35_api/app.py", "stage_center/consumer.py",
+                     "stage_center/execution_evidence.py", "stage_center/research_read_binding.py"):
+        path = api_root / relative
+        path.chmod(stat.S_IMODE(path.stat().st_mode) | stat.S_IWUSR)
     load("stage_center.execution_evidence", api_root / "stage_center/execution_evidence.py", monkeypatch)
     consumer = load("stage_center.consumer", api_root / "stage_center/consumer.py", monkeypatch)
     history = runtime.store

@@ -23,12 +23,13 @@ import uuid
 from urllib.parse import urlencode
 
 sys.dont_write_bytecode = True
-SCHEMA = 'V4_STAGE_API_PUBLICATION_PLAN_V1'
+SCHEMA = 'V4_STAGE_API_PUBLICATION_PLAN_V2'
 PUBLISHER_SHA256 = '864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25'
 OLD_GUARD_SHA256 = '1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050'
 STAGE_GUARD_SHA256 = '5325f7a81acadb4016385416c88319e4baab0a26974ac19ed17dd7debb7e0f29'
 COORDINATOR_SHA256 = '442a90b4c0832ff9fec193865e7fc0a00be32fce002e8728fe49edf413d23fa2'
 BINDING_HELPER_SHA256 = 'c564dbdb739f239c8243f3dd38705d73a2998ff11e0757b50899e80503daedc9'
+STAGE_CONTRACTS_SHA256 = '6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d'
 CURRENT_API_APP_SHA256 = '5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5'
 READER_SOURCES = {
     'apps/api/v35_api/app.py': 'a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8',
@@ -156,6 +157,26 @@ def _load_publisher(path):
     return _module(path, PUBLISHER_SHA256, '_stage_original_publisher')
 
 
+def _stage_specs():
+    package_root = Path(__file__).resolve().parents[1]
+    contracts_path = package_root / 'test_support/r3/test_support/stage_base_app/stage_center/contracts.py'
+    contracts = _module(contracts_path, STAGE_CONTRACTS_SHA256, '_stage_contracts')
+    stages = getattr(contracts, 'EIGHT_STAGES', None)
+    _check(isinstance(stages, tuple) and stages, 'STAGE_CONTRACTS_INVALID')
+    stage_ids = tuple(getattr(stage, 'stage_id', None) for stage in stages)
+    _check(all(isinstance(stage_id, str) and stage_id for stage_id in stage_ids)
+           and len(set(stage_ids)) == len(stage_ids), 'STAGE_CONTRACTS_INVALID')
+    api_markets = {'A_SHARE': 'A', 'HK_CONNECT': 'HK'}
+    result = {}
+    for stage in stages:
+        markets = getattr(stage, 'markets', None)
+        _check(isinstance(markets, tuple) and markets
+               and all(market in api_markets for market in markets)
+               and len(set(markets)) == len(markets), 'STAGE_CONTRACTS_MARKET_INVALID')
+        result[stage.stage_id] = frozenset(api_markets[market] for market in markets)
+    return result
+
+
 def _safe_flags(value):
     _check(all(value.get(key) is expected for key, expected in FLAGS.items()), 'RESEARCH_SAFETY_FLAGS_INVALID')
 
@@ -238,10 +259,11 @@ def _history(root):
                    if re.fullmatch('[0-9]{8}', p.name) and _path(p, directory=True))
     pairs = set()
     target = (APPROVED_RESEARCH_RUN['trade_date'], APPROVED_RESEARCH_RUN['stage_id'])
+    allowed_stages = _stage_specs()
     for row in entries.values():
         day, stage = row.get('trade_date'), row.get('stage_id')
         _check(isinstance(day, str) and re.fullmatch('[0-9]{8}', day)
-               and isinstance(stage, str) and re.fullmatch('STAGE_[0-9]{4}_[0-9]{4}', stage), 'HISTORICAL_SELECTION_IDENTITY_INVALID')
+               and isinstance(stage, str) and stage in allowed_stages, 'HISTORICAL_SELECTION_IDENTITY_INVALID')
         if (day, stage) != target:
             pairs.add((day, stage))
     _check(dates and pairs, 'HISTORICAL_SELECTIONS_REQUIRED')
@@ -262,7 +284,11 @@ def _history_semantics(payload):
            'HISTORICAL_FINANCIAL_SAFETY_CHANGED')
     _financial_tree_flags(payload)
     markets = payload.get('markets')
-    _check(isinstance(markets, dict) and set(markets) == {'A', 'HK'}, 'HISTORY_MARKET_BOUNDARY_INVALID')
+    _check(isinstance(markets, dict), 'HISTORY_MARKET_BOUNDARY_INVALID')
+    stage_id = payload.get('stage_id')
+    stage_markets = _stage_specs().get(stage_id) if isinstance(stage_id, str) else None
+    _check(stage_markets is not None, 'HISTORY_STAGE_IDENTITY_INVALID')
+    _check(set(markets) == stage_markets, 'HISTORY_MARKET_BOUNDARY_INVALID')
     return {'trade_date': payload.get('trade_date'), 'stage_id': payload.get('stage_id'),
         'financial_flags': {key: {'present': key in payload, 'value': payload.get(key)} for key in FLAGS},
         'markets': {market: {**{key: lane.get(key) for key in _HISTORY_LANE_KEYS},
@@ -275,8 +301,45 @@ def _history_http(publisher, history):
     for day, stage in history['pairs']:
         value = _history_semantics(_request(publisher, day, stage))
         _check(value['trade_date'] == day and value['stage_id'] == stage, 'HISTORY_RESPONSE_DATE_STAGE_MISMATCH')
-        records.append({'trade_date': day, 'stage_id': stage, 'semantic_sha256': _sha(_json(value))})
+        records.append(_history_http_record(day, stage, value))
     return records
+
+
+def _history_http_record(day, stage, value):
+    research_only = value['financial_flags']['RESEARCH_ONLY']
+    without_research_only = deepcopy(value)
+    without_research_only['financial_flags'].pop('RESEARCH_ONLY')
+    return {'trade_date': day, 'stage_id': stage,
+        'semantic_sha256': _sha(_json(value)),
+        'research_only': research_only,
+        'semantic_sha256_without_research_only': _sha(_json(without_research_only))}
+
+
+def _history_http_matches(actual, expected):
+    record_keys = {'trade_date', 'stage_id', 'semantic_sha256', 'research_only',
+                   'semantic_sha256_without_research_only'}
+    if not isinstance(actual, list) or not isinstance(expected, list) or len(actual) != len(expected):
+        return False
+    for current, baseline in zip(actual, expected):
+        if not isinstance(current, dict) or not isinstance(baseline, dict):
+            return False
+        if set(current) != record_keys or set(baseline) != record_keys:
+            return False
+        if current == baseline:
+            continue
+        if current['trade_date'] != baseline['trade_date'] or current['stage_id'] != baseline['stage_id']:
+            return False
+        baseline_flag, current_flag = baseline['research_only'], current['research_only']
+        if not isinstance(baseline_flag, dict) or set(baseline_flag) != {'present', 'value'}:
+            return False
+        if not isinstance(current_flag, dict) or set(current_flag) != {'present', 'value'}:
+            return False
+        if (baseline_flag['present'] is not False or baseline_flag['value'] is not None
+                or current_flag['present'] is not True or current_flag['value'] is not True
+                or current['semantic_sha256_without_research_only']
+                != baseline['semantic_sha256_without_research_only']):
+            return False
+    return True
 
 
 def _binding(publisher, plan):
@@ -388,7 +451,8 @@ def _preflight(plan, plan_path, plan_sha, *, lease=None):
     _check(_binding(publisher, plan) == plan['research_binding'], 'RESEARCH_BINDING_CHANGED')
     _check(_static(guard, Path(plan['target']['app_root'])) == plan['static_http'], 'CANDIDATE_STATIC_CHANGED')
     readonly = publisher._verify_readonly_guards(plan)
-    _check(_history_http(publisher, plan['history']) == plan['historical_http'], 'HISTORICAL_STAGE_READBACK_CHANGED')
+    _check(_history_http_matches(_history_http(publisher, plan['history']), plan['historical_http']),
+           'HISTORICAL_STAGE_READBACK_CHANGED')
     _check(_plan(plan_path, plan_sha) == plan, 'PUBLICATION_PLAN_CHANGED')
     if lease is not None:
         publisher._require_release_lock(lease)
@@ -557,8 +621,7 @@ def _research_http(publisher, plan):
         for row, original in zip(rows, actual_rows):
             _check(row.get('code') == original.get('code') and row.get('rank') == original.get('rank')
                    and row.get('score') == original.get('score'), 'RESEARCH_HTTP_ROW_IDENTITY_MISMATCH')
-            unified_expected.append((wire, row.get('code'), row.get('rank'), row.get('score'),
-                                     document['trade_date'], document['stage_id']))
+            unified_expected.append((wire, row.get('code'), row.get('rank'), row.get('score')))
         if lane.get('selected_rows') is None:
             _check(wire == 'HK' and lane.get('observation_count') == envelope['selected_rows'], 'RESEARCH_HTTP_OBSERVATION_COUNT_MISMATCH')
         else:
@@ -576,9 +639,19 @@ def _research_http(publisher, plan):
             _check(trio.get(key) == bound[key], 'RESEARCH_HTTP_TRIO_SHA_MISMATCH')
         counts[market] = len(rows)
     unified = payload.get('unified_rows')
-    _check(isinstance(unified, list) and [(row.get('market'), row.get('code'), row.get('rank'), row.get('score'),
-           row.get('trade_date'), row.get('stage_id')) for row in unified] == unified_expected,
-           'RESEARCH_HTTP_UNIFIED_ROWS_MISMATCH')
+    unified_matches = isinstance(unified, list) and len(unified) == len(unified_expected)
+    if unified_matches:
+        for row, expected in zip(unified, unified_expected):
+            if not isinstance(row, dict):
+                unified_matches = False
+                break
+            identity = (row.get('market'), row.get('code'), row.get('rank'), row.get('score'))
+            envelope_matches = all(key not in row or row[key] == document[key]
+                                   for key in ('trade_date', 'stage_id'))
+            if identity != expected or not envelope_matches:
+                unified_matches = False
+                break
+    _check(unified_matches, 'RESEARCH_HTTP_UNIFIED_ROWS_MISMATCH')
     selected_a, selected_hk = markets['A'].get('selected_rows'), markets['HK'].get('selected_rows')
     total = None if selected_a is None or selected_hk is None else selected_a + selected_hk
     _check(payload.get('selected_a_rows') == selected_a and payload.get('selected_hk_rows') == selected_hk
@@ -626,7 +699,8 @@ def _runtime_verify(publisher, guard, plan, lease):
         status, raw = publisher._http_get(row['url'])
         _check(status == 200 and _sha(raw) == row['sha256'], 'CANDIDATE_STATIC_HTTP_MISMATCH:' + row['url'])
     history = _history_http(publisher, plan['history'])
-    _check(history == plan['historical_http'] and _history(plan['history']['root']) == plan['history'], 'HISTORICAL_STAGE_READBACK_CHANGED')
+    _check(_history_http_matches(history, plan['historical_http'])
+           and _history(plan['history']['root']) == plan['history'], 'HISTORICAL_STAGE_READBACK_CHANGED')
     publisher._verify_readonly_guards(plan)
     _sources(plan)
     _stage_verify(publisher, guard, plan, lease=lease, active_pointer='candidate')

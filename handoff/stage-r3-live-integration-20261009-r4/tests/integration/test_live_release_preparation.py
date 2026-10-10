@@ -71,6 +71,8 @@ def case(tmp_path,monkeypatch):
     package=tmp_path/'package';package.mkdir()
     api_after=package/'after/api';shutil.copytree(research.api_root,api_after)
     helper=api_after/'stage_center/research_read_binding.py'
+    for path in (helper, api_after/'apps/api/v35_api/app.py'):
+        path.chmod(stat.S_IMODE(path.stat().st_mode) | stat.S_IWUSR)
     text=re.sub(r'APPROVED_RESEARCH_RUN = \{.*?\n\}\nR3_READER_SHA256',
                 'APPROVED_RESEARCH_RUN = '+repr(research.binding_module.APPROVED_RESEARCH_RUN)+'\nR3_READER_SHA256',
                 helper.read_text(),count=1,flags=re.S)

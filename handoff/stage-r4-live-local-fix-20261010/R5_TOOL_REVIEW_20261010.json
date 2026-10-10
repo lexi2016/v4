@@ -1,0 +1,408 @@
+{
+  "actual_r4_to_r5_delta": {
+    "all_changed_modes_preserved": true,
+    "behavioral_files": [
+      "tools/stage_api_release.py",
+      "tests/integration/test_stage_api_release.py"
+    ],
+    "changed_files": [
+      {
+        "mode_unchanged": true,
+        "path": "tools/stage_api_release.py",
+        "r4": {
+          "bytes": 54320,
+          "mode": "0o644",
+          "path": "tools/stage_api_release.py",
+          "sha256": "d839757029961e3ca663738fd357a5da5d4f5cf659f1c99f6a9babce8e29bc5c"
+        },
+        "r5": {
+          "bytes": 56220,
+          "mode": "0o644",
+          "path": "tools/stage_api_release.py",
+          "sha256": "f9aee4ff7770174d6671df7cdf9e5815fcf184c41788bb13d3c6e76b111b1f02"
+        }
+      },
+      {
+        "mode_unchanged": true,
+        "path": "tests/integration/test_stage_api_release.py",
+        "r4": {
+          "bytes": 30734,
+          "mode": "0o644",
+          "path": "tests/integration/test_stage_api_release.py",
+          "sha256": "61012565c28923a91872fe5c9f80f4512ffbb40b37a74f62757313c37206f35c"
+        },
+        "r5": {
+          "bytes": 36663,
+          "mode": "0o644",
+          "path": "tests/integration/test_stage_api_release.py",
+          "sha256": "b2665c205a69fb9d139a6bb94c36e6ebba610e01b32a5c4b08016023edff1360"
+        }
+      },
+      {
+        "mode_unchanged": true,
+        "path": "DELIVERY_MANIFEST.json",
+        "r4": {
+          "bytes": 49866,
+          "mode": "0o644",
+          "path": "DELIVERY_MANIFEST.json",
+          "sha256": "136f69171cec1852a3adca34fb4e69e4adf2536dc66021c34626fad3b14fbee8"
+        },
+        "r5": {
+          "bytes": 49866,
+          "mode": "0o644",
+          "path": "DELIVERY_MANIFEST.json",
+          "sha256": "7e64c57187e79a1d55f992cc749d6df1d8fe3d85cbce069b4f45716fe1eb0ede"
+        }
+      },
+      {
+        "mode_unchanged": true,
+        "path": "SHA256SUMS",
+        "r4": {
+          "bytes": 31520,
+          "mode": "0o644",
+          "path": "SHA256SUMS",
+          "sha256": "efed7419bbd0c66fb76d454df22f224335c50f9ed56a00d4480da1cb39995d6c"
+        },
+        "r5": {
+          "bytes": 31520,
+          "mode": "0o644",
+          "path": "SHA256SUMS",
+          "sha256": "2a0380af1a2995e5a12b1d345bf24ab7e54b4bf0a420aa840f8a34ace32117b0"
+        }
+      },
+      {
+        "mode_unchanged": true,
+        "path": "SOURCE_MAP.json",
+        "r4": {
+          "bytes": 8420,
+          "mode": "0o644",
+          "path": "SOURCE_MAP.json",
+          "sha256": "54fb5b71417edbcbb45c2a28bf69581c1d64220a2d08b08d4ff0b22cd5f21bef"
+        },
+        "r5": {
+          "bytes": 8420,
+          "mode": "0o644",
+          "path": "SOURCE_MAP.json",
+          "sha256": "85ed225fd76ef05d61600bd03fc2783d0f4efe81c468632215edaf157a3afba2"
+        }
+      },
+      {
+        "mode_unchanged": true,
+        "path": "TEST_EXPECTATIONS.json",
+        "r4": {
+          "bytes": 54266,
+          "mode": "0o644",
+          "path": "TEST_EXPECTATIONS.json",
+          "sha256": "c9c241c343f203b6155addbbce7dadd8b8da93920a1424df94c42fdb2302b279"
+        },
+        "r5": {
+          "bytes": 55822,
+          "mode": "0o644",
+          "path": "TEST_EXPECTATIONS.json",
+          "sha256": "5f99d6bb0990c30b2debb959f88802622e7c9a244191f3bc1b7ad43dcbab4bb4"
+        }
+      }
+    ],
+    "integrity_metadata_files": [
+      "DELIVERY_MANIFEST.json",
+      "SHA256SUMS",
+      "SOURCE_MAP.json",
+      "TEST_EXPECTATIONS.json"
+    ],
+    "new_or_removed_files": [],
+    "test_sha256": "b2665c205a69fb9d139a6bb94c36e6ebba610e01b32a5c4b08016023edff1360",
+    "tool_sha256": "f9aee4ff7770174d6671df7cdf9e5815fcf184c41788bb13d3c6e76b111b1f02"
+  },
+  "behavior_verified": false,
+  "deployment_executed_by_reviewer": false,
+  "deployment_ready": false,
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "independent_tests": {
+    "environment": {
+      "pytest": "9.1.1",
+      "python": "3.14.6",
+      "python_executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "uid": 501
+    },
+    "initial_invocation_note": "One initial direct focused pytest invocation omitted R4_TOOL_ROOT and failed to load the test fixture; it is not counted as a test result. The correct frozen-root invocation passed all 13. The initial invocation created runtime cache artifacts in the candidate tree; those exact reviewer-generated cache files were removed, and final package verifier returned PASS.",
+    "pytest_environment": "PYTHONDONTWRITEBYTECODE=1; PYTEST_DISABLE_PLUGIN_AUTOLOAD=1; R4_TOOL_ROOT and R4_PUBLICATION_REFERENCE_ROOT pinned to this package; integration roots pinned to this package; output and basetemp outside package under E/evidence/review.",
+    "results": {
+      "focused_new_cases": {
+        "errors": 0,
+        "failures": 0,
+        "junit_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/evidence/review/r5-independent-20261010/focused-13.junit.xml",
+        "junit_sha256": "bdaaa438dd2533d73e91197bbd42f39342d847a1f68a6c7235444964e7662fdd",
+        "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/evidence/review/r5-independent-20261010/focused-13.log",
+        "log_sha256": "31c583cc6b34fce0a950a32633716dfbc4eae6be892ef959128e316ad3d470b4",
+        "passed": 13,
+        "skipped": 0,
+        "tests": 13
+      },
+      "integration_suite": {
+        "errors": 0,
+        "failures": 0,
+        "junit_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/evidence/review/r5-independent-20261010/integration111.junit.xml",
+        "junit_sha256": "3a65938c0aee37114d3f10127746fbb0253480ff9426ff1679422a31d4e83794",
+        "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/evidence/review/r5-independent-20261010/integration111.log",
+        "log_sha256": "c7078ed1e5c0841a6bf81eb21bd55e762a11760ce0f0c2c1c2711dd07648ca9f",
+        "passed": 111,
+        "skipped": 0,
+        "tests": 111
+      }
+    }
+  },
+  "package_integrity": {
+    "delivery_files": 268,
+    "delivery_manifest_sha256": "7e64c57187e79a1d55f992cc749d6df1d8fe3d85cbce069b4f45716fe1eb0ede",
+    "expected_suite_counts": {
+      "api": 129,
+      "integration": 111,
+      "release": 152,
+      "review_gates": 42,
+      "ui": 70
+    },
+    "expected_total": 504,
+    "failures": [],
+    "source_map_sha256": "85ed225fd76ef05d61600bd03fc2783d0f4efe81c468632215edaf157a3afba2",
+    "test_expectations_sha256": "5f99d6bb0990c30b2debb959f88802622e7c9a244191f3bc1b7ad43dcbab4bb4",
+    "verification_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/evidence/review/r5-independent-20261010/package-verify.json",
+    "verification_sha256": "387ca557c4d074e40da6a05fb31e3e0b0bab6c08d9feac8db4522b434d53cfa0",
+    "verification_status": "PASS",
+    "write_performed": false
+  },
+  "package_root": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/local_fix/r4_mac_fix_20261010_r5",
+  "protected_business_trees": {
+    "all_exact": true,
+    "baseline_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/local_fix/evidence/PROTECTED_BUSINESS_TREE_BASELINE_20261010.json",
+    "baseline_sha256": "fb48682cbf9263c099ded4cccc8435ea4b6a1334a8cdcadde43efe55d05e181f",
+    "trees": {
+      "after/api": {
+        "baseline_file_count": 4,
+        "file_count": 4,
+        "matches_frozen_baseline_exactly": true,
+        "observed_entries": [
+          {
+            "bytes": 327298,
+            "mode": "0o644",
+            "path": "after/api/apps/api/v35_api/app.py",
+            "sha256": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8"
+          },
+          {
+            "bytes": 35451,
+            "mode": "0o644",
+            "path": "after/api/stage_center/consumer.py",
+            "sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207"
+          },
+          {
+            "bytes": 25837,
+            "mode": "0o644",
+            "path": "after/api/stage_center/execution_evidence.py",
+            "sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b"
+          },
+          {
+            "bytes": 23771,
+            "mode": "0o644",
+            "path": "after/api/stage_center/research_read_binding.py",
+            "sha256": "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05"
+          }
+        ]
+      },
+      "after/ui": {
+        "baseline_file_count": 3,
+        "file_count": 3,
+        "matches_frozen_baseline_exactly": true,
+        "observed_entries": [
+          {
+            "bytes": 123582,
+            "mode": "0o644",
+            "path": "after/ui/apps/web/src/App.vue",
+            "sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f"
+          },
+          {
+            "bytes": 8779,
+            "mode": "0o644",
+            "path": "after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+            "sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d"
+          },
+          {
+            "bytes": 4723,
+            "mode": "0o644",
+            "path": "after/ui/apps/web/src/contracts/runtime.ts",
+            "sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980"
+          }
+        ]
+      },
+      "release_tools": {
+        "baseline_file_count": 18,
+        "file_count": 18,
+        "matches_frozen_baseline_exactly": true,
+        "observed_entries": [
+          {
+            "bytes": 65190,
+            "mode": "0o644",
+            "path": "release_tools/after/ops/api_release_integration.py",
+            "sha256": "5325f7a81acadb4016385416c88319e4baab0a26974ac19ed17dd7debb7e0f29"
+          },
+          {
+            "bytes": 37416,
+            "mode": "0o644",
+            "path": "release_tools/after/ops/build_release_candidate.py",
+            "sha256": "33bd9f8b4dd1803e0ff583a7763576374b83f89d38bac6ca0249316f17a10404"
+          },
+          {
+            "bytes": 41262,
+            "mode": "0o644",
+            "path": "release_tools/after/ops/build_release_candidate_stage.py",
+            "sha256": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df"
+          },
+          {
+            "bytes": 19809,
+            "mode": "0o644",
+            "path": "release_tools/after/ops/create_api_module_delta.py",
+            "sha256": "594a537982c8e060d29158445468a5cfd6af585f3b78c7872fe7625bf6f8012d"
+          },
+          {
+            "bytes": 22797,
+            "mode": "0o644",
+            "path": "release_tools/after/ops/prepare_api_only_cutover.py",
+            "sha256": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c"
+          },
+          {
+            "bytes": 11775,
+            "mode": "0o644",
+            "path": "release_tools/after/ops/release_candidate_audit.py",
+            "sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf"
+          },
+          {
+            "bytes": 980,
+            "mode": "0o644",
+            "path": "release_tools/after/ops/release_candidate_ports.py",
+            "sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4"
+          },
+          {
+            "bytes": 11977,
+            "mode": "0o644",
+            "path": "release_tools/after/ops/release_candidate_sources.py",
+            "sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738"
+          },
+          {
+            "bytes": 17695,
+            "mode": "0o644",
+            "path": "release_tools/after/ops/stage_service_overlay_contract.py",
+            "sha256": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838"
+          },
+          {
+            "bytes": 57781,
+            "mode": "0o644",
+            "path": "release_tools/before/ops/api_release_integration.py",
+            "sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050"
+          },
+          {
+            "bytes": 36367,
+            "mode": "0o644",
+            "path": "release_tools/before/ops/build_release_candidate.py",
+            "sha256": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6"
+          },
+          {
+            "bytes": 41262,
+            "mode": "0o644",
+            "path": "release_tools/before/ops/build_release_candidate_stage.py",
+            "sha256": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df"
+          },
+          {
+            "bytes": 6580,
+            "mode": "0o644",
+            "path": "release_tools/before/ops/create_api_module_delta.py",
+            "sha256": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072"
+          },
+          {
+            "bytes": 22797,
+            "mode": "0o644",
+            "path": "release_tools/before/ops/prepare_api_only_cutover.py",
+            "sha256": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c"
+          },
+          {
+            "bytes": 11775,
+            "mode": "0o644",
+            "path": "release_tools/before/ops/release_candidate_audit.py",
+            "sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf"
+          },
+          {
+            "bytes": 980,
+            "mode": "0o644",
+            "path": "release_tools/before/ops/release_candidate_ports.py",
+            "sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4"
+          },
+          {
+            "bytes": 11977,
+            "mode": "0o644",
+            "path": "release_tools/before/ops/release_candidate_sources.py",
+            "sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738"
+          },
+          {
+            "bytes": 17695,
+            "mode": "0o644",
+            "path": "release_tools/before/ops/stage_service_overlay_contract.py",
+            "sha256": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838"
+          }
+        ]
+      }
+    }
+  },
+  "result": "TOOL_READY_NEW_PLAN_REVIEW_REQUIRED",
+  "reused_unchanged_scope_receipts": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/evidence/review/R4_REV4_DEPLOYMENT_READY_REVIEW_20261010.json",
+      "scope": "unchanged R4 API/UI/history and release preflight only; prior deployment attempt subsequently rolled back",
+      "sha256": "aaecb2af051906dd8048d5618d526864d3c11c60fd20f1aa268873283f985511"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/evidence/review/r2-local-20261010-r4-unifiedrows/integration.junit.xml",
+      "scope": "prior R4 integration subset; current R5 integration111 independently rerun",
+      "sha256": "a8d39e1e5ebf98a2f5e0c1f798af294b932e3b962ba5154f2670eeb4f8478cf5"
+    }
+  ],
+  "review_status": "REVIEWED",
+  "reviewed_at_utc": "2026-10-10T02:26:30Z",
+  "reviewer": "/root/r2_local_review",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "source_or_service_mutation_performed": false
+  },
+  "schema": "V4_STAGE_R5_INDEPENDENT_TOOL_REVIEW_V1",
+  "scope_clarification": {
+    "disposition": "PRE_EXISTING_OUT_OF_SCOPE",
+    "observation": "An unknown top-level HTTP envelope key is ignored by the existing historical semantic projection.",
+    "r4_vs_r5_probe": {
+      "input": "Same valid STAGE_0925 payload; candidate adds only top-level UNRELATED_NEW_FIELD=unexpected.",
+      "r4_projection_equal": true,
+      "r4_record_equal": true,
+      "r5_matcher_accepts": true,
+      "r5_projection_equal": true,
+      "r5_record_equal": true,
+      "schema": "R4_R5_PROJECTION_BOUNDARY_COMPARISON_V1",
+      "scope_disposition": "PRE_EXISTING_OUT_OF_SCOPE_PER_REVISION_5_PROJECTION_BOUNDARY_CLARIFICATION"
+    },
+    "reason": "The same exact payload probe produces equal semantic projections and exact records under frozen R4 and R5. This preserves the R4 projection boundary; no new raw-envelope unknown-key gate is authorized."
+  },
+  "scope_file": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/coordination/LOCAL_FIX_SCOPE_20261010.md",
+    "revision": "REVISION_5 plus R5_FROZEN_UI_SOURCE_DECISION and REVISION_5_PROJECTION_BOUNDARY_CLARIFICATION",
+    "sha256": "4a92ba6cdbd09559e95acc60f37ee2893076be5bfef6623334f4f89b620b3000"
+  },
+  "semantic_review": {
+    "actual_113_pair_plan": "CANNOT_CONFIRM pending the new R5 publication plan; R4 executed plan is not reused.",
+    "actual_service_and_ui": "CANNOT_CONFIRM pending whichever authorized release identity is actually published and fresh API/UI readback.",
+    "allowed_delta": "Historical matcher allows exactly baseline RESEARCH_ONLY absent (present=false,value=null) to candidate present=true,value=true, conditioned on equal date/stage and equal semantic SHA after removing that field.",
+    "protected_cases": "Independent cases verify false or other safety flags rejected; existing true removed/changed-to-null and baseline explicit null rejected; lane field, row code/name/order, date, stage, and date-stage pair ordering changes rejected.",
+    "target_behavior": "CANNOT_CONFIRM pending 20261009/STAGE_0930_0935 API/UI and 20261012 preselection acceptance."
+  },
+  "test_status": "TESTED"
+}

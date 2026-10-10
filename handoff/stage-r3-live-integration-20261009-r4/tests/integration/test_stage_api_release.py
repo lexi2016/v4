@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import plistlib
 import shutil
+import subprocess
 import sys
 import stat
 from types import SimpleNamespace
@@ -38,6 +39,162 @@ def load(name, path, monkeypatch):
 def dump(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + '\n')
+
+
+def _history_fixture(tmp_path, day, stage):
+    root = tmp_path / 'history'
+    (root / 'selection_runs' / day).mkdir(parents=True)
+    dump(root / 'selection_latest.json', {'entries': {'fixture': {'trade_date': day, 'stage_id': stage}}})
+    return root
+
+
+def test_history_accepts_exact_0925_stage_contract(tmp_path, monkeypatch):
+    tool = load('_stage_history_0925', TOOLS / 'stage_api_release.py', monkeypatch)
+    result = tool._history(_history_fixture(tmp_path, '20260911', 'STAGE_0925'))
+    assert result['pairs'] == [['20260911', 'STAGE_0925']]
+
+
+def test_history_rejects_unknown_stage_contract_value(tmp_path, monkeypatch):
+    tool = load('_stage_history_unknown', TOOLS / 'stage_api_release.py', monkeypatch)
+    with pytest.raises(ValueError, match='HISTORICAL_SELECTION_IDENTITY_INVALID'):
+        tool._history(_history_fixture(tmp_path, '20260911', 'STAGE_9999_9999'))
+
+
+def _history_semantics_fixture(stage, market_keys):
+    return {'trade_date': '20260911', 'stage_id': stage,
+        'production_allowed': False, 'buy_gate_updated': False, 'orders_sent': False,
+        'markets': {key: {'rows': []} for key in market_keys}}
+
+
+_MISSING = object()
+
+
+def _history_projection_payload(*, trade_date='20260911', stage_id='STAGE_0925',
+                                 research_only=_MISSING, a_rows=None, a_source_rows=2):
+    a_rows = a_rows or []
+    payload = {'trade_date': trade_date, 'stage_id': stage_id,
+        'production_allowed': False, 'buy_gate_updated': False, 'orders_sent': False,
+        'markets': {
+            'A': {'market': 'A', 'run_id': 'a-run', 'artifact_id': 'a-artifact',
+                'algorithm_sha256': 'a' * 64, 'raw_artifact_sha256': 'b' * 64,
+                'selection_status': 'PARTIAL_WITH_ROWS', 'source_status': 'PARTIAL_WITH_ROWS',
+                'source_rows': a_source_rows, 'requested_rows': 2, 'selected_rows': len(a_rows),
+                'observation_count': 0, 'rows': a_rows},
+            'HK': {'market': 'HK', 'run_id': 'hk-run', 'artifact_id': 'hk-artifact',
+                'algorithm_sha256': 'c' * 64, 'raw_artifact_sha256': 'd' * 64,
+                'selection_status': 'PARTIAL_WITH_ROWS', 'source_status': 'PARTIAL_WITH_ROWS',
+                'source_rows': 0, 'requested_rows': 0, 'selected_rows': 0,
+                'observation_count': 0, 'rows': []}}}
+    if research_only is not _MISSING:
+        payload['RESEARCH_ONLY'] = research_only
+    return payload
+
+
+def _history_http_record(tool, payload):
+    value = tool._history_semantics(payload)
+    return tool._history_http_record(value['trade_date'], value['stage_id'], value)
+
+
+def _history_test_rows():
+    return [
+        {'code': 'A.000001', 'symbol': '000001', 'name': 'one', 'market': 'A', 'rank': 1,
+         'score': 1.0, 'selection_rank': 1, 'source_mode': 'FIXTURE',
+         'trade_date': '20260911', 'stage_id': 'STAGE_0925'},
+        {'code': 'A.000002', 'symbol': '000002', 'name': 'two', 'market': 'A', 'rank': 2,
+         'score': 0.5, 'selection_rank': 2, 'source_mode': 'FIXTURE',
+         'trade_date': '20260911', 'stage_id': 'STAGE_0925'},
+    ]
+
+
+def test_historical_projection_allows_only_additive_true_research_flag(monkeypatch):
+    tool = load('_history_projection_additive_flag', TOOLS / 'stage_api_release.py', monkeypatch)
+    baseline = _history_http_record(tool, _history_projection_payload())
+    candidate = _history_http_record(tool, _history_projection_payload(research_only=True))
+    same_flag_baseline = _history_http_record(tool, _history_projection_payload(research_only=True))
+    assert tool._history_http_matches([candidate], [baseline]) is True
+    assert tool._history_http_matches([baseline], [baseline]) is True
+    assert tool._history_http_matches([same_flag_baseline], [same_flag_baseline]) is True
+
+
+@pytest.mark.parametrize('case', [
+    'existing_flag_removed', 'existing_flag_changed_to_null', 'baseline_explicit_null',
+    'lane_field_changed', 'row_code_changed', 'row_name_changed', 'row_order_changed',
+    'trade_date_changed', 'stage_changed',
+], ids=(
+    'existing_flag_removed', 'existing_flag_changed_to_null', 'baseline_explicit_null',
+    'other_projection_lane_field', 'row_code', 'row_name', 'row_order', 'date', 'stage'))
+def test_historical_projection_rejects_non_additive_flag_or_any_other_change(case, monkeypatch):
+    tool = load('_history_projection_reject_drift', TOOLS / 'stage_api_release.py', monkeypatch)
+    rows = _history_test_rows()
+    baseline_flag = True if case in {'existing_flag_removed', 'existing_flag_changed_to_null'} else _MISSING
+    baseline = _history_http_record(tool, _history_projection_payload(research_only=baseline_flag, a_rows=rows))
+    candidate_flag = True
+    candidate_date, candidate_stage = '20260911', 'STAGE_0925'
+    candidate_rows = deepcopy(rows)
+    candidate_source_rows = 2
+    if case == 'existing_flag_removed':
+        candidate_flag = _MISSING
+    elif case == 'existing_flag_changed_to_null':
+        candidate_flag = None
+    elif case == 'baseline_explicit_null':
+        baseline = _history_http_record(tool, _history_projection_payload(research_only=None, a_rows=rows))
+    elif case == 'lane_field_changed':
+        candidate_source_rows = 3
+    elif case == 'row_code_changed':
+        candidate_rows[0]['code'] = 'A.000009'
+    elif case == 'row_name_changed':
+        candidate_rows[0]['name'] = 'changed'
+    elif case == 'row_order_changed':
+        candidate_rows.reverse()
+    elif case == 'trade_date_changed':
+        candidate_date = '20260912'
+    elif case == 'stage_changed':
+        candidate_stage = 'STAGE_0930_0935'
+    candidate = _history_http_record(tool, _history_projection_payload(
+        trade_date=candidate_date, stage_id=candidate_stage, research_only=candidate_flag,
+        a_rows=candidate_rows, a_source_rows=candidate_source_rows))
+    assert tool._history_http_matches([candidate], [baseline]) is False
+
+
+@pytest.mark.parametrize(('key', 'value', 'error'), [
+    ('RESEARCH_ONLY', False, 'HISTORICAL_RESEARCH_FLAG_CHANGED'),
+    ('production_allowed', True, 'HISTORICAL_FINANCIAL_SAFETY_CHANGED'),
+], ids=('explicit_research_only_false', 'other_financial_safety_flag'))
+def test_historical_projection_rejects_false_or_changed_financial_flags(key, value, error, monkeypatch):
+    tool = load('_history_projection_unsafe_flag', TOOLS / 'stage_api_release.py', monkeypatch)
+    payload = _history_projection_payload()
+    payload[key] = value
+    with pytest.raises(ValueError, match=error):
+        tool._history_semantics(payload)
+
+
+def test_historical_projection_keeps_date_stage_pair_order_strict(monkeypatch):
+    tool = load('_history_projection_pair_order', TOOLS / 'stage_api_release.py', monkeypatch)
+    first = _history_http_record(tool, _history_projection_payload(research_only=True))
+    second = _history_http_record(tool, _history_projection_payload(
+        trade_date='20260912', research_only=True))
+    assert tool._history_http_matches([first, second], [first, second]) is True
+    assert tool._history_http_matches([second, first], [first, second]) is False
+
+
+@pytest.mark.parametrize(('stage', 'market_keys'), [
+    ('STAGE_0925', ('A', 'HK')), ('STAGE_1545_1555', ('HK',)),
+], ids=('0925_a_and_hk', '1545_hk_only'))
+def test_history_semantics_matches_stage_market_contract(stage, market_keys, monkeypatch):
+    tool = load('_stage_market_contract', TOOLS / 'stage_api_release.py', monkeypatch)
+    result = tool._history_semantics(_history_semantics_fixture(stage, market_keys))
+    assert set(result['markets']) == set(market_keys)
+
+
+@pytest.mark.parametrize(('stage', 'market_keys', 'error'), [
+    ('STAGE_1545_1555', ('A', 'HK'), 'HISTORY_MARKET_BOUNDARY_INVALID'),
+    ('STAGE_1545_1555', ('OTHER',), 'HISTORY_MARKET_BOUNDARY_INVALID'),
+    ('STAGE_UNKNOWN', ('HK',), 'HISTORY_STAGE_IDENTITY_INVALID'),
+], ids=('unexpected_a_lane', 'unknown_api_market', 'unknown_stage'))
+def test_history_semantics_rejects_stage_market_contract_drift(stage, market_keys, error, monkeypatch):
+    tool = load('_stage_market_contract_reject', TOOLS / 'stage_api_release.py', monkeypatch)
+    with pytest.raises(ValueError, match=error):
+        tool._history_semantics(_history_semantics_fixture(stage, market_keys))
 
 
 @pytest.fixture
@@ -107,8 +264,38 @@ def publication(tmp_path, monkeypatch):
     old_identity = publisher._identity_from_plist(case.pointer.read_bytes())
     candidate_identity = {'V35_APP_ROOT': result['candidate_app'],
         'V35_RELEASE_ID': case.args['release_id'], 'V35_RELEASE_MANIFEST_SHA256': result['manifest_sha256']}
+    real_subprocess_run = subprocess.run
+    test_owned_root = tmp_path.resolve()
+
+    def run_test_owned_xattr(command, **kwargs):
+        args = command[1:]
+        if len(args) == 1:
+            target_arg = args[0]
+        elif len(args) == 3 and args[0] == '-px' and args[1]:
+            target_arg = args[2]
+        elif len(args) == 4 and args[0] == '-wx' and args[1]:
+            target_arg = args[3]
+        else:
+            raise AssertionError('UNEXPECTED_XATTR_ARGUMENTS:' + repr(args))
+        target = Path(target_arg)
+        if not target.is_absolute() or target.is_symlink():
+            raise AssertionError('TEST_XATTR_TARGET_MUST_BE_ABSOLUTE_NON_SYMLINK')
+        try:
+            resolved = target.resolve(strict=True)
+            resolved.relative_to(test_owned_root)
+        except (OSError, ValueError) as exc:
+            raise AssertionError('TEST_XATTR_TARGET_OUTSIDE_TMP_ROOT:' + str(target)) from exc
+        if not resolved.is_file():
+            raise AssertionError('TEST_XATTR_TARGET_MUST_BE_REGULAR_FILE:' + str(resolved))
+        return real_subprocess_run(command, **kwargs)
 
     def run(command, **kwargs):
+        if not isinstance(command, (list, tuple)) or not command:
+            raise AssertionError('UNEXPECTED_SUBPROCESS_COMMAND:' + repr(command))
+        if command[0] == '/usr/bin/xattr':
+            return run_test_owned_xattr(command, **kwargs)
+        if command[0] != str(publisher.LAUNCHCTL):
+            raise AssertionError('UNEXPECTED_SUBPROCESS_EXECUTABLE:' + repr(command[0]))
         action = command[1]
         if action == 'print':
             if state.role == 'candidate' and state.startup_absent:
@@ -245,6 +432,60 @@ def test_execute_and_manual_rollback_reuse_original_transaction(publication):
     restored = rollback(case, prepared, result)
     assert restored['status'] == 'ROLLED_BACK_TO_PREIMAGE'
     assert case.pointer.read_bytes() == case.before and case.state.role == 'base'
+
+
+def _target_research_payload(case):
+    return case.route(date='20261009', stage='STAGE_0930_0935', limit=50)
+
+
+def _run_research_http(case, payload, monkeypatch):
+    prepared = prepare(case)
+    plan = json.loads(Path(prepared['plan_path']).read_text())
+    raw = json.dumps(payload).encode()
+    monkeypatch.setattr(case.publisher, '_http_get', lambda path: (200, raw))
+    return case.tool._research_http(case.publisher, plan)
+
+
+def test_research_http_accepts_hk_observation_rows_without_redundant_envelope(publication, monkeypatch):
+    case = publication
+    payload = _target_research_payload(case)
+    hk_rows = [row for row in payload['unified_rows'] if row.get('market') == 'HK']
+    assert len(hk_rows) == 10
+    for row in hk_rows:
+        row.pop('trade_date', None)
+        row.pop('stage_id', None)
+    result = _run_research_http(case, payload, monkeypatch)
+    assert result['status'] == 'EXACT_APPROVED_RESEARCH_HTTP_VERIFIED'
+    assert result['market_row_counts'] == {'A_SHARE': 10, 'HK_CONNECT': 10}
+
+
+@pytest.mark.parametrize(('field', 'value'), [
+    ('trade_date', '20261008'), ('stage_id', 'STAGE_0925'),
+], ids=('date_conflict', 'stage_conflict'))
+def test_research_http_rejects_explicit_unified_row_envelope_conflict(publication, monkeypatch, field, value):
+    case = publication
+    payload = _target_research_payload(case)
+    hk_row = next(row for row in payload['unified_rows'] if row.get('market') == 'HK')
+    hk_row[field] = value
+    with pytest.raises(ValueError, match='RESEARCH_HTTP_UNIFIED_ROWS_MISMATCH'):
+        _run_research_http(case, payload, monkeypatch)
+
+
+def test_research_http_rejects_unified_row_identity_drift(publication, monkeypatch):
+    case = publication
+    payload = _target_research_payload(case)
+    payload['unified_rows'][0]['code'] = 'A.BAD'
+    with pytest.raises(ValueError, match='RESEARCH_HTTP_UNIFIED_ROWS_MISMATCH'):
+        _run_research_http(case, payload, monkeypatch)
+
+
+def test_research_http_rejects_unified_row_order_drift(publication, monkeypatch):
+    case = publication
+    payload = _target_research_payload(case)
+    payload['unified_rows'][0], payload['unified_rows'][1] = (
+        payload['unified_rows'][1], payload['unified_rows'][0])
+    with pytest.raises(ValueError, match='RESEARCH_HTTP_UNIFIED_ROWS_MISMATCH'):
+        _run_research_http(case, payload, monkeypatch)
 
 
 @pytest.mark.parametrize('fault', ['run', 'safety', 'reader', 'row', 'count', 'natural', 'static', 'history', 'history_safety'])

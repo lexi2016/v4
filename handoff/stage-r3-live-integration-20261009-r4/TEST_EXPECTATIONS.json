@@ -1,7 +1,7 @@
 {
   "RESEARCH_ONLY": true,
   "buy_gate_updated": false,
-  "expectation_basis": "FROZEN_REVIEWED_TEST_DEFINITIONS_AND_AUTHOR_CASE_IDENTITIES_BEFORE_FULL_PACKAGE_RUN",
+  "expectation_basis": "R4_R5_FROZEN_CASES_PLUS_13_HISTORICAL_RESEARCH_ONLY_COMPATIBILITY_REGRESSIONS",
   "expected_case_ids": {
     "api": [
       "r3/test_legacy_execution_evidence::test_boolean_one_is_not_a_selected_row_count[binding]",
@@ -187,6 +187,26 @@
       "test_stage_api_release::test_execute_and_manual_rollback_reuse_original_transaction",
       "test_stage_api_release::test_existing_historical_natural_evidence_is_not_reclassified",
       "test_stage_api_release::test_explicit_confirmation_and_expected_hashes_are_required",
+      "test_stage_api_release::test_historical_projection_allows_only_additive_true_research_flag",
+      "test_stage_api_release::test_historical_projection_keeps_date_stage_pair_order_strict",
+      "test_stage_api_release::test_historical_projection_rejects_false_or_changed_financial_flags[explicit_research_only_false]",
+      "test_stage_api_release::test_historical_projection_rejects_false_or_changed_financial_flags[other_financial_safety_flag]",
+      "test_stage_api_release::test_historical_projection_rejects_non_additive_flag_or_any_other_change[baseline_explicit_null]",
+      "test_stage_api_release::test_historical_projection_rejects_non_additive_flag_or_any_other_change[date]",
+      "test_stage_api_release::test_historical_projection_rejects_non_additive_flag_or_any_other_change[existing_flag_changed_to_null]",
+      "test_stage_api_release::test_historical_projection_rejects_non_additive_flag_or_any_other_change[existing_flag_removed]",
+      "test_stage_api_release::test_historical_projection_rejects_non_additive_flag_or_any_other_change[other_projection_lane_field]",
+      "test_stage_api_release::test_historical_projection_rejects_non_additive_flag_or_any_other_change[row_code]",
+      "test_stage_api_release::test_historical_projection_rejects_non_additive_flag_or_any_other_change[row_name]",
+      "test_stage_api_release::test_historical_projection_rejects_non_additive_flag_or_any_other_change[row_order]",
+      "test_stage_api_release::test_historical_projection_rejects_non_additive_flag_or_any_other_change[stage]",
+      "test_stage_api_release::test_history_accepts_exact_0925_stage_contract",
+      "test_stage_api_release::test_history_rejects_unknown_stage_contract_value",
+      "test_stage_api_release::test_history_semantics_matches_stage_market_contract[0925_a_and_hk]",
+      "test_stage_api_release::test_history_semantics_matches_stage_market_contract[1545_hk_only]",
+      "test_stage_api_release::test_history_semantics_rejects_stage_market_contract_drift[unexpected_a_lane]",
+      "test_stage_api_release::test_history_semantics_rejects_stage_market_contract_drift[unknown_api_market]",
+      "test_stage_api_release::test_history_semantics_rejects_stage_market_contract_drift[unknown_stage]",
       "test_stage_api_release::test_manager_history_bytes_modes_and_result_flags_survive_switch_and_rollback",
       "test_stage_api_release::test_manual_rollback_after_candidate_corruption_does_not_require_candidate",
       "test_stage_api_release::test_preflight_drift_has_no_service_action[history]",
@@ -196,6 +216,11 @@
       "test_stage_api_release::test_preflight_drift_has_no_service_action[scheduler]",
       "test_stage_api_release::test_preflight_drift_has_no_service_action[staged]",
       "test_stage_api_release::test_prepare_preserves_manager_history_and_has_no_service_actions",
+      "test_stage_api_release::test_research_http_accepts_hk_observation_rows_without_redundant_envelope",
+      "test_stage_api_release::test_research_http_rejects_explicit_unified_row_envelope_conflict[date_conflict]",
+      "test_stage_api_release::test_research_http_rejects_explicit_unified_row_envelope_conflict[stage_conflict]",
+      "test_stage_api_release::test_research_http_rejects_unified_row_identity_drift",
+      "test_stage_api_release::test_research_http_rejects_unified_row_order_drift",
       "test_stage_api_release::test_resume_after_failed_base_bootstrap_with_absent_pointer",
       "test_stage_api_release::test_rollback_rejects_tampered_proofs_before_service_action[backup]",
       "test_stage_api_release::test_rollback_rejects_tampered_proofs_before_service_action[plan]",
@@ -495,7 +520,7 @@
   },
   "expected_tests": {
     "api": 129,
-    "integration": 86,
+    "integration": 111,
     "release": 152,
     "review_gates": 42,
     "ui": 70
@@ -509,14 +534,14 @@
       "test_support/r3/checks/api/tests/conftest.py": "bc6edcce17a48907fc30f35ecaffefa295ad40ba4294741e1e16afb6fceb9762",
       "test_support/r3/checks/api/tests/test_legacy_execution_evidence.py": "125365c467ba8ada66dbc731bb46f41c34d9ed0357587d9ebfeff19c1b98d824",
       "test_support/r3/checks/api/tests/test_research_readback.py": "70b535e956c27486b4e46826b7cd2142ab5e590ee00a802f837aeac082189c83",
-      "tests/api/conftest.py": "cada8d11959fee307e04096c15671803c75c6973f0d074228b9fc49f1d7b9da6",
+      "tests/api/conftest.py": "05de0a191cb35a754bc9bb51ea0985717948edba8c8deba2505edca040381fcf",
       "tests/api/test_preparation_and_legacy.py": "0b5b542c9e7e9afd6fd20d0029387044b4d2f426b72c756bf160df0b40eb0db9",
       "tests/api/test_research_read_binding.py": "83b59c968511b055e3f2274f6fcc0effa0b06ddb08b524366f42e723f05974dd"
     },
     "integration": {
-      "tests/integration/test_live_release_preparation.py": "11114206d1aa8080835b714cb73f415def241e60dc5200e8643d171dde3a3eeb",
+      "tests/integration/test_live_release_preparation.py": "3f56f4dde7efe261c086c03056f5868114f328ff79ed47b8a024931e15e1a064",
       "tests/integration/test_package_integrity.py": "8e867c5b22ab41586a12aa1390ba44eb6ae947d0fd0f7784a464c5db1c8e796c",
-      "tests/integration/test_stage_api_release.py": "4c2e1c8ba0a8d4f400e161fc7a444fcbc75dbfff8b917fc638f8681c024d6466",
+      "tests/integration/test_stage_api_release.py": "b2665c205a69fb9d139a6bb94c36e6ebba610e01b32a5c4b08016023edff1360",
       "tests/integration/test_stage_ui_build.py": "3d254cc350d251b9ab734e3b2d3dd221ffbcf0caa170c60997028366657ff54e"
     },
     "release": {
@@ -546,5 +571,5 @@
       "tests/ui/ssr_harness.mjs": "9ae11328c5af3e3bcaef823baab8239abe31707ad3e90ed5a37fe7e3792ae76a"
     }
   },
-  "total_expected_tests": 479
+  "total_expected_tests": 504
 }
