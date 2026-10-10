@@ -21,7 +21,7 @@ PYTHONPATH=/workspace/v5-runtime/us-owner timeout 180 V5/.venv/bin/python -B -m 
  --data-root /workspace/v5-runtime/us-cloud --trade-date 20261009 --capture-phase POST_CLOSE --allow-late-post-close --timeout 10
 ```
 
-原迟到窗口校验通过；真实 capture 时间 `2026-10-10T09:00:16Z`，capture id `f54d25d3d6f71030d818f181`。腾讯和五个 RSS 来源均失败；回执错误 `Tunnel connection failed: 403 Forbidden`。没有更换代理、扩大网络权限、伪造价格或再次采集。原程序 exit 0 但 `operation_status=NO_LANE_READY`、`market_snapshot_status=CANNOT_CONFIRM`，**exit 0 不代表数据成功**。原 owner 返回 `ORIGINAL_TIME_CAPTURE=true` 同时 `CONTROLLED_LATE_POST_CLOSE/late=true`；本报告按实际触发记手动迟到恢复，natural_verified=false，不改写 owner 字段。新产物保存三文件，未覆盖历史392批。
+原迟到窗口校验通过；真实 capture 时间 `2026-10-10T09:00:16Z`，capture id `f54d25d3d6f71030d818f181`。腾讯和五个 RSS 来源均失败；回执错误 `Tunnel connection failed: 403 Forbidden`。这是代理CONNECT隧道建立失败，尚未取得上游HTTP响应，不能归因上游站点拒绝；具体网络规则待正常环境网络配置核实。没有更换代理、扩大网络权限、伪造价格或再次采集。原程序 **exit 2**，`operation_status=NO_LANE_READY`、`market_snapshot_status=CANNOT_CONFIRM`。2026-10-10增量审查纠正：初版报告误把shell尾部tail命令的exit 0写成采集程序退出码；原`us-capture-4.exit`始终为`2\n`，SHA256 `53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3`，原证据未改。原 owner 返回 `ORIGINAL_TIME_CAPTURE=true` 同时 `CONTROLLED_LATE_POST_CLOSE/late=true`；本报告按实际触发记手动迟到恢复，natural_verified=false，不改写 owner 字段。新产物保存三文件，未覆盖历史392批。
 
 随后真实失败产物进入 V5 `current_us_research`，target `20261012`；原 US run `92999408fd0a4560ac96858f142f99b4`。US无可用输入，不能解释为四键或全市场有效空。materials为空且明确缺源，native master未绑定，未伪造材料。
 
