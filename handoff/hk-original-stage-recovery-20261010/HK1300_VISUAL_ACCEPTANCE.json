@@ -1,0 +1,24 @@
+{
+  "trade_date": "20261009",
+  "stage_id": "STAGE_1300_1315",
+  "A_rows": 10,
+  "HK_observation_rows": 10,
+  "HK_requested_rows": 100,
+  "HK_source_rows": 100,
+  "HK_missing": 0,
+  "runner_receipt_verified": true,
+  "backfill_run_id": "c82392cc90f647b08126474f6990dcfc",
+  "API_VERIFIED": true,
+  "UI_VERIFIED": true,
+  "NATURAL_VERIFIED": false,
+  "formal_membership": "CANNOT_CONFIRM",
+  "UI_notes": [
+    "Existing horizontal overflow and long technical warning text remain visible; no frontend changes in this recovery."
+  ],
+  "evidence": [
+    "API_AFTER.json",
+    "UI_AFTER.txt",
+    "UI_AFTER_HK.png",
+    "UI_AFTER_SUMMARY.png"
+  ]
+}

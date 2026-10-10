@@ -1,0 +1,44 @@
+{
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "github_base": "d1ddbf9d3542ab17b67e6999ce6aa55d044a5e87",
+  "actual_api_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app",
+  "actual_stage_root": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R3_MAC_20261009/candidate/mac_apply_20261009_r3_01/stage_app",
+  "trade_date": "20261009",
+  "signal_date": "20261008",
+  "newly_recovered_stages": [
+    "STAGE_1300_1315",
+    "STAGE_0935_0940",
+    "STAGE_0940_0945",
+    "STAGE_0945_1030",
+    "STAGE_1445_1500"
+  ],
+  "preserved_0930": true,
+  "visible_minute_stages": 6,
+  "HK_rows_per_visible_stage": 10,
+  "newly_collected_each": {
+    "requested": 100,
+    "completed": 100,
+    "missing": 0
+  },
+  "canonical_code_changes": "New filtering implementation reverted to exact pre-task bytes; no new business code retained.",
+  "REVIEWED": true,
+  "TESTED": "Independent original-selector replays matched all five new outputs.",
+  "INTEGRATED": true,
+  "API_VERIFIED": true,
+  "UI_VERIFIED": true,
+  "NATURAL_VERIFIED": false,
+  "formal_HK_membership": "CANNOT_CONFIRM",
+  "unrecoverable_in_original_route": [
+    "STAGE_0925",
+    "STAGE_1545_1555"
+  ],
+  "review_receipts": {
+    "1300": "777d871f276e6854e497968241719f5a7b3d52c1871e993fc8c2c6b0469b7c24",
+    "remaining_four": "a274790e415d1d766264e675138a37ee710a67ffa74e78f46ea94bd0ed47472c"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

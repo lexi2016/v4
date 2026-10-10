@@ -1,0 +1,132 @@
+{
+  "checked_at": "2026-10-10T19:07:43.733160+08:00",
+  "four_minute_stage_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ROW_ISOLATION_20261010/earliest_stable/remaining_original_hk_minute_stages/MULTI_STAGE_RESULT.json",
+    "physical_sha256": "c4bf82ce27ae008f49847fe9b64176cc7edd2e1c9d257d7cd6eb1c6d966b33e1"
+  },
+  "hk_auction_stage_0925": {
+    "historical_fetch_supported": "NO through the original live Futu 09:20 snapshot collector after its 09:19:59 cutoff; only an existing exact-date CSV/replay file is reusable.",
+    "latest_existing_exact_capture": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter/20261008/hkconnect_0920_auction_second_filter_20261008.csv",
+      "sha256": "adee50ee3e1e5a9d8e422f6a9e649fbd92a4afb586cd4a5fb5803fc2d5548a04"
+    },
+    "original_route": "Read exact-date hkconnect_0920_auction_second_filter_20261009.csv from configured opening_second_filter root; if absent, read the V3 HK stage replay provider exact-date CSV. Direct Futu snapshot collector is live only and rejects launches after 09:19:59.",
+    "query_error": "FileNotFoundError: HK-connect stage replay directory not found: /Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_references/20261009/STAGE_0925",
+    "read_only_original_provider_query": "HkConnectStageReplayProvider.snapshot(symbols=[HK.00001], trade_date=20261009, stage_id=STAGE_0925, cutoff_at=2026-10-09T09:19:59)",
+    "runner_receipt_cannot_confirm": [
+      "HK D1 status must be STRICT_0_2_READY"
+    ],
+    "runner_receipt_status": "HK_CONNECT CANNOT_CONFIRM",
+    "source_files": [
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260920-manager-r2-stage-research-consumption-candidate/app/upstreams/v3_shared_data/shared_data/hk_auction_0920.py",
+        "sha256": "c1d2df6e1712b4ce16c673ef4313b23936925f50a1ea2a9932f6b01bd08685e"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R3_MAC_20261009/candidate/mac_apply_20261009_r3_01/stage_app/stage_center/_live_collectors_parts/hk_auction.py",
+        "sha256": "7658e15fbaffeb0846dad2eecc31c079f22968892c149385673eb6fa373e6dea"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R3_MAC_20261009/candidate/mac_apply_20261009_r3_01/stage_app/stage_center/_live_collectors_parts/hk_replay.py",
+        "sha256": "89456aaf429390a41604dc3d9f564c23f9ec6d7a36e2a5ec32948f9d53b9a108"
+      }
+    ],
+    "source_hashes": {
+      "hk_auction_0920_py": "c1d2df6e1712b4ce16c673ef4313b23936925f50a1ea2aa9932f6b01bd08685e",
+      "r3_hk_auction_adapter_py": "7658e15fbaffeb0846dad2eecc31c079f22968892c149385673eb6fa373e6dea",
+      "r3_hk_replay_py": "89456aaf429390a41604dc3d9f564c23f9ec6d7a36e2a5ec32948f9d53b9a108"
+    },
+    "source_not_invoked_due_to_input_validation": true,
+    "source_paths_checked": [
+      {
+        "exists": false,
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter/hkconnect_0920_auction_second_filter_20261009.csv"
+      },
+      {
+        "exists": false,
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter/20261009/hkconnect_0920_auction_second_filter_20261009.csv"
+      },
+      {
+        "exists": false,
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter/0920_auction_second_filter/hkconnect_0920_auction_second_filter_20261009.csv"
+      },
+      {
+        "exists": false,
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_references/20261009/STAGE_0925"
+      },
+      {
+        "exists": true,
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_0925/receipt.json",
+        "sha256": "adbea512e47e2b1a30eb6bf74fa493ec59e080d933d556c402f91625a06fed4e"
+      }
+    ],
+    "status": "CANNOT_CONFIRM"
+  },
+  "loaded_runtime_config": {
+    "hk_auction_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter",
+    "hk_stage_replay_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_references",
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260921-pools-acquisition-stage/app/stage_center_tick_config.json",
+    "raw_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw",
+    "sha256": "5a90b819e8c7342430e18a58d6472d7b96fe829078b98df26cec6eb778aa7c37"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.hk_20261009_original_route_source_gaps.v1",
+  "stage8": {
+    "first_failed_layer": "EXACT_SELECTION_INPUT_BINDING",
+    "historical_fetch_supported": "NO in the original Stage8 RT_DATA path; it requires same-day now/date and pre-captured active snapshot. Only the archived exact-date replay CSV can serve a backfill.",
+    "hk_cannot_confirm": [
+      "HK D1 status must be STRICT_0_2_READY"
+    ],
+    "original_route": "STAGE_1545_1555 -> v3_hkconnect_stage8_rtd_data_replay; reads exact-date aggregated RT_DATA CSV via HkConnectStageReplayProvider. Natural route only consumes pre-captured same-day Futu full-scan plus 15:45-15:55 RT_DATA; historical_backfill disables the natural precapture path.",
+    "query_error": "FileNotFoundError: HK-connect stage replay directory not found: /Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_references/20261009/STAGE_1545_1555",
+    "read_only_original_provider_query": "HkConnectStageReplayProvider.snapshot(symbols=[HK.00001], trade_date=20261009, stage_id=STAGE_1545_1555, cutoff_at=2026-10-09T15:55:00)",
+    "runner_receipt_error": "all market collectors returned zero-row CANNOT_CONFIRM",
+    "runner_receipt_status": "CANNOT_CONFIRM",
+    "source_files": [
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R3_MAC_20261009/candidate/mac_apply_20261009_r3_01/stage_app/stage_center/hk_stage8/rtdata.py",
+        "sha256": "a85317c29df499162c7c805be19e89e198f77ad1d51811912da0c29d27bb8547"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R3_MAC_20261009/candidate/mac_apply_20261009_r3_01/stage_app/infrastructure/hkconnect_stage_replay_provider.py",
+        "sha256": "cbd6704b33963907262af10d1252de18c394fe1c4d6f3ae91746707a1c16b08f"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R3_MAC_20261009/candidate/mac_apply_20261009_r3_01/stage_app/stage_center/_live_collectors_parts/hk_replay.py",
+        "sha256": "89456aaf429390a41604dc3d9f564c23f9ec6d7a36e2a5ec32948f9d53b9a108"
+      }
+    ],
+    "source_hashes": {
+      "hk_replay_py": "89456aaf429390a41604dc3d9f564c23f9ec6d7a36e2a5ec32948f9d53b9a108",
+      "replay_provider_py": "cbd6704b33963907262af10d1252de18c394fe1c4d6f3ae91746707a1c16b08f",
+      "rtdata_py": "a85317c29df499162c7c805be19e89e198f77ad1d51811912da0c29d27bb8547"
+    },
+    "source_paths_checked": [
+      {
+        "exists": false,
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_references/20261009/STAGE_1545_1555"
+      },
+      {
+        "exists": false,
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.hk_active_snapshots/20261009/STAGE_1545_1555/snapshot.json"
+      },
+      {
+        "exists": true,
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_1545_1555/receipt.json",
+        "sha256": "d972bf5f0b8e6ce17fd80ba00457478a63938a9048a378b1108171055b34c968"
+      }
+    ],
+    "status": "CANNOT_CONFIRM",
+    "write_performed": false
+  },
+  "target": {
+    "market": "HK_CONNECT",
+    "signal_date": "20261008",
+    "trade_date": "20261009"
+  }
+}

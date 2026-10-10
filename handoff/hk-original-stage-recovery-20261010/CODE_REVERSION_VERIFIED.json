@@ -1,0 +1,45 @@
+{
+  "files": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "equals_task_preimage": true,
+      "sha256": "1690ee57e4aedbfa93fd57a88666d3d7b86792a012ef55249f6fd17a82b408f7"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "equals_task_preimage": true,
+      "sha256": "27da90f0e623e45fa1a27af7dcc3b6e5e1ff2320bae1c61bd903ed82050beb89"
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/materialize_hk_0_2.py",
+      "equals_task_preimage": true,
+      "sha256": "e26e880f72271d7ea9e55aee4df937fa1d22564c3d286ead9f9f07e5fa4b6c9d"
+    },
+    {
+      "path": "ops/ensure_hk_security_master.py",
+      "equals_task_preimage": true,
+      "sha256": "a0f9fd0e2fb438f03109714a41cf3a10b61a85579498e1ceec87126df2d3c319"
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/hk_pool.py",
+      "equals_task_preimage": true,
+      "sha256": "c62dc3c81f9ba98f1363f0ad307fb91e9ae0d79b80db2d874ca95a044acbefcd"
+    },
+    {
+      "path": "infrastructure/preselection_pool_store.py",
+      "equals_task_preimage": true,
+      "sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef"
+    },
+    {
+      "path": "stage_center/_runner_parts/hk_input_validation.py",
+      "equals_task_preimage": true,
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735"
+    },
+    {
+      "path": "stage_center/runner.py",
+      "equals_task_preimage": true,
+      "sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48"
+    }
+  ],
+  "new_test_no_longer_active": true
+}
