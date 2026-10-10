@@ -1,0 +1,148 @@
+{
+  "schema_version": "v4.recovery_a1300_projection_review.v1",
+  "reviewed_at_utc": "2026-10-10T04:13:45+00:00",
+  "reviewer": "/root/r2_local_review",
+  "scope": {
+    "frozen_scope_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/coordination/RECOVERY_ALL_STAGES_20261010_SCOPE.json",
+    "frozen_scope_sha256": "8eebfd8d523debf33e6424d2fd4bd55bfdf60e99c277605bfd79f2fb9f952141",
+    "subscope": "A1300 historical hourly archive projection only; HK and official Stage runner/replay remain outside this review",
+    "review_output_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/review/A1300_PROJECTION_REVIEW_20261010.json"
+  },
+  "decision": {
+    "review_status": "PASS",
+    "REVIEWED": "PASS",
+    "TESTED": "PASS",
+    "BEHAVIOR_VERIFIED": "PASS_PROJECTION_ONLY",
+    "official_stage_replay": "NOT_RUN",
+    "natural_result": "CANNOT_CONFIRM",
+    "P0": 0,
+    "P1": 0,
+    "P2": 1,
+    "P2_blocking": false
+  },
+  "files": [
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/domains/research.py",
+      "before_sha256": "b77cc0d3c9ec36eeee3e6cab207945a783b0352a703efdb5c8e2f7f17966506f",
+      "after_sha256": "b784915ade13720032732921ebc7f219efa420452cf8cd57d42b6e3bad6c9860",
+      "mode": "0o644",
+      "diff_summary": "Adds generic source-bound report_entity_audit warning projection; old 20260929 special branch unchanged."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/stage_center/research_context.py",
+      "sha256": "b02d7aec8574105f2b1bd4be73c739814153d5011fa18ecc63327bb86c51d3fc",
+      "mode": "0o644",
+      "review": "Unchanged preimage; existing exact hourly source consumer exercised."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/tests/test_stage_historical_research_projection.py",
+      "before_sha256": "d787131197385fe44de517c011203e0892530b8a7dd12f3ac0221a3a253b3b79",
+      "after_sha256": "ea51d1054c30b2db8f22fac67080e3e07b382b42979e8ca76055826998670e0a",
+      "mode": "0o644",
+      "diff_summary": "Reconstruction assertion and one generic valid/unbound-source-path test."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/tests/test_stage_research_context_v4.py",
+      "preexisting_untracked": true,
+      "scope_addition": "test-only assertion update",
+      "preimage_sha256": "e65ef87dc31bfa69a929ecf8dccd05fb731c574d0c6c16ed360621df0d8438a4",
+      "candidate_sha256": "5985bdf2d2ebe294a94a68d23249808ee3954b6a5517b6264bcf863b143a72cd",
+      "mode": "0o644",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/code_preimages/tests/test_stage_research_context_v4.diff",
+      "diff_sha256": "8e99c8708684eade73feae240a5a963b6d06a1107b3240876571935a9ca18e83",
+      "delta_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/code_preimages/tests/test_stage_research_context_v4.delta_manifest.json",
+      "delta_manifest_sha256": "95e579cb5f9f569a38084db8a0eb999805933851fdaeed68088753ff61051c85",
+      "diff_verified_as_one_assertion": true
+    }
+  ],
+  "preimages": {
+    "source_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/code_preimages/MANIFEST.json",
+    "source_manifest_sha256": "fb7c46be1abe58e8725b6b6d47749aa05a8c9b50594ce0dace7c1cdf82e48b6b",
+    "projector_preimage_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/code_preimages/domains/research.py",
+    "projector_preimage_sha256": "b77cc0d3c9ec36eeee3e6cab207945a783b0352a703efdb5c8e2f7f17966506f",
+    "untracked_test_preimage_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/code_preimages/tests/test_stage_research_context_v4.py",
+    "untracked_test_preimage_sha256": "e65ef87dc31bfa69a929ecf8dccd05fb731c574d0c6c16ed360621df0d8438a4"
+  },
+  "tests": {
+    "environment": {
+      "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "python_version": "3.14.6",
+      "pytest_version": "9.1.1"
+    },
+    "historical_projection_file": {
+      "command": "python -B -m pytest -q tests/test_stage_historical_research_projection.py -p no:cacheprovider",
+      "result": "4 passed in 0.14s",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/review/r2-local-a1300-projection-20261010/focused.log",
+      "log_sha256": "566b533769efda184c621fadcbb3499a3de7b732897627c27b430e8565082bbb",
+      "junit_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/review/r2-local-a1300-projection-20261010/focused.junit.xml",
+      "junit_sha256": "c9199a9b0329a8b22f59eef2b80d742f51a80983e70db72182f24f326b6ea647"
+    },
+    "changed_untracked_test_only": {
+      "command": "python -B -m pytest -q tests/test_stage_research_context_v4.py::test_exact_20260929_report_role_warnings_are_source_bound_and_non_blocking -p no:cacheprovider --basetemp=<review>/legacy_projection_delta_tmp",
+      "result": "1 passed in 0.05s",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/review/r2-local-a1300-projection-20261010/legacy_projection_delta.log",
+      "log_sha256": "5b19689a97d618d5cdfce632de67285a8efa3c57100a80350a5bb7ca9e05ae34",
+      "junit_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/review/r2-local-a1300-projection-20261010/legacy_projection_delta.junit.xml",
+      "junit_sha256": "3e5c7fbfdeae0afff4bbb22bc2dc1c48b9c3be06f81a7f40d093d91fe26c9afd"
+    },
+    "combined_independent_focused_result": "5 passed across the two non-overlapping runs; no full suite repeated"
+  },
+  "independent_behavior": {
+    "candidate_readback_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/a1300_projection_03/PROJECTION_READBACK.json",
+    "candidate_readback_sha256": "289a95bb2f18800cc5be53fb6c2f86ade8c20148b74d1ab5f9ca9e8d6f690292",
+    "candidate_source_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/a1300_projection_03/research/hourly/source/02cb795ed9b60ab8159026dabf89b075037bcdb47522b9a58f3a8a2609543a1c.json",
+    "source_sha256": "02cb795ed9b60ab8159026dabf89b075037bcdb47522b9a58f3a8a2609543a1c",
+    "source_sha_matches_receipt": true,
+    "candidate_archive_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/a1300_projection_03/research/hourly/live/20261009/1300.json",
+    "candidate_archive_sha256": "60c48b9ca51f0f6003ca5914d55c3c204d9de70b02488af814d36ebb0c37547a",
+    "producer_run_status": "SUCCEEDED",
+    "date": "20261009",
+    "slot": "1300",
+    "mode": "LIVE historical replay; not a natural run",
+    "preimage_projector_canonical_sha256": "61c61cadb2ebac81cb6881bf5b4309bc5779a7ef374ba714aeeca41453e28f1e",
+    "current_projector_and_candidate_archive_canonical_sha256": "60c48b9ca51f0f6003ca5914d55c3c204d9de70b02488af814d36ebb0c37547a",
+    "current_projector_equals_candidate_archive": true,
+    "old_to_current_non_gap_fields_equal": true,
+    "preimage_cannot_confirm_count": 1,
+    "current_and_candidate_cannot_confirm_count": 9,
+    "all_preimage_gaps_preserved": true,
+    "additional_source_audit_warnings": 8,
+    "hourly_source_consumer": {
+      "functions": "_verified_hourly_slot + _bound_source_rows",
+      "cutoff": "13:15:00",
+      "selected_slot": "1300",
+      "payload_and_source_SHA_verified": true,
+      "source_rows": 22,
+      "source_evidence_rows": 22,
+      "source_gaps": [],
+      "projection_compat_warning_count": 0
+    },
+    "safety_flags": {
+      "write_policy": "read_only",
+      "recommendation_status": "RESEARCH_ONLY",
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "findings": [
+    {
+      "priority": "P2",
+      "blocking": false,
+      "title": "Generic audit validator would benefit from additional negative-case assertions",
+      "evidence": [
+        "domains/research.py:147-193 checks audit shape, manifest/date-slot binding, evidence-ID uniqueness, and affected-code equality.",
+        "tests/test_stage_historical_research_projection.py:173-205 tests the valid summary and one undeclared source_path; tests/test_stage_research_context_v4.py:400-405 rejects ineligible evidence. Count/aggregate mismatch, duplicate evidence IDs, and malformed manifest/date-slot cases lack direct negative assertions."
+      ],
+      "impact": "Non-blocking coverage note only. No target behavior defect found; the exact hash-bound 20261009/1300 source rebuilds the candidate and passes the existing hourly source consumer."
+    }
+  ],
+  "limitations": [
+    "This review proves the archive projection and read-only hourly source consumer only. It does not prove an official Stage selection artifact was published or replayed, API/UI readback, or natural-session behavior."
+  ],
+  "reviewer_mutations": {
+    "canonical_code_or_tests_modified": false,
+    "candidate_or_formal_data_modified": false,
+    "services_modified": false
+  }
+}

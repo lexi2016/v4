@@ -1,0 +1,89 @@
+{
+  "schema_version": "v4.hk_candidate_contract_review.v1",
+  "reviewer": "/root/r2_local_review",
+  "reviewed_at": "2026-10-10",
+  "scope": "Frozen HK Top100 retrospective candidate contract review; read-only source and evidence review.",
+  "candidate": {
+    "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/hk_0_2_score_01/candidate_receipt.json",
+    "receipt_sha256": "adcaa31e445010a02208d6006ead15e5876433d2f8bfd7598f8f358ae33e69ef",
+    "rows_sha256": "ad12cffc5ea14925d705c5519ec4d35dfe82f4bf665dfff98d3daf487103d94c",
+    "candidate_shape": {
+      "signal_date": "20261008",
+      "target_date": "20261009",
+      "unique_scored_rows": 100,
+      "reconstructed_eligible_codes": 698,
+      "signal_session_codes_present": 695,
+      "eligibility_status": "RECONSTRUCTED_ASOF_CANDIDATE_PIT_UNVERIFIED",
+      "missing_signal_session_bars": 3,
+      "top100_missing_pre_close": 3,
+      "top100_missing_names": 17,
+      "october_9_price_substitution": false,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "verdict": {
+    "standalone_research_candidate": "CONDITIONALLY_SUPPORTED",
+    "current_standard_stage_preselection": "BLOCKED_BY_EXISTING_CONTRACT",
+    "strict_0_2_ready": "NOT_ESTABLISHED",
+    "split_date_schema_gap": "NOT_THE_BLOCKER_FOR_20261008_SIGNAL_TO_20261009_TARGET; existing validators support explicit split-date provenance",
+    "market_cap": "NOT_REQUIRED_OR_CONSUMED_BY_THE_INSPECTED_HK_0_2_SCORE_AND_STAGE_MEMBERSHIP_CONTRACT; broader business requirement CANNOT_CONFIRM",
+    "name_fields": "DISPLAY_METADATA_GAP; not eligibility evidence, but strict publisher rejects placeholders"
+  },
+  "findings": [
+    {
+      "priority": "P1",
+      "title": "The candidate cannot enter the current authoritative HK Stage D-1 path as WATCH_ONLY without changing the contract.",
+      "evidence": [
+        "stage_center/_runner_parts/hk_input_validation.py:67-86 requires canonical target/stage eligibility, status STRICT_0_2_READY, false safety flags, and exactly 100 rows.",
+        "stage_center/_runner_parts/hk_input_validation.py:168-201 binds source role SHARED_VERIFIED_HK_0_2 and validates split-date provenance when dates differ.",
+        "stage_center/selection.py:89-93 names exact-date STRICT_0_2_READY Top100 as the HK selection membership contract.",
+        "upstreams/v3_shared_data/shared_data/hk_0_2.py:1051-1085 requires strict semantics, no cannot_confirm, complete non-placeholder names, and a verified security-master capture on the eligibility source date.",
+        "Candidate receipt says publication NOT_ATTEMPTED because no verified 20261008 security-master capture exists; eligibility remains reconstructed/PIT-unverified."
+      ],
+      "impact": "A WATCH_ONLY label and false trade-safety flags do not grant Stage eligibility. Marking this incomplete candidate stage_selection_eligible=true or STRICT_0_2_READY would erase the known epistemic boundary. It may remain a separate research candidate with its caveats, but the current Stage replay consumer must reject it."
+    },
+    {
+      "priority": "P2",
+      "title": "The scorer's row defaults do not preserve the candidate's known gaps unless the envelope carries them.",
+      "evidence": [
+        "upstreams/v3_shared_data/shared_data/hk_0_2.py:1028-1037 labels rows WATCH_ONLY and production_allowed=false, but also sets cannot_confirm to an empty string and d1_freshness_status to PASS.",
+        "Candidate receipt lines 4-8 and 45-90 preserve PIT uncertainty, three missing signal-session bars, three Top100 missing pre_close values, and 17 missing names at the candidate-receipt level."
+      ],
+      "impact": "A downstream candidate artifact must carry the receipt's uncertainty and missingness in its envelope/provenance and must not treat scorer row defaults as proof that the gaps are absent. No code in the reviewed candidate was changed."
+    }
+  ],
+  "field_assessment": {
+    "eligibility_and_pit": "Material gap: eligibility set is retrospective reconstructed candidate; PIT is unverified. The candidate's 100 rows are scores among observed signal-session panel members; three of 698 eligible codes lack that session bar, so completeness of Top100 versus all eligible codes CANNOT_CONFIRM.",
+    "prices": "Material gaps: three eligible codes have no 20261008 signal-session bar and three Top100 rows lack pre_close. No 20261009 substitution occurred. Their effect on candidate ranking/tradability is CANNOT_CONFIRM.",
+    "names": "Seventeen Top100 names are blank. Names are observable metadata and cannot validate membership; the existing strict publisher separately rejects missing/name-code placeholders.",
+    "market_cap": "The inspected _OUTPUT_FIELDS and scorer/publisher/Stage membership path do not require or consume market_cap; its absence is not a demonstrated blocker for this current contract. Any separate user-facing requirement is CANNOT_CONFIRM."
+  },
+  "compatibility_analysis": {
+    "pool_store": "PreselectionPoolStore has optional target_date, signal_date, stage_selection_eligible, historical_provenance and a cannot_confirm list; historical provenance v2 and split-date v1 are modeled. This does not make a WATCH_ONLY artifact Stage-eligible.",
+    "producer": "score_frozen_hk_0_2 accepts an eligible-code set, but materialize_frozen_hk_0_2 loads that set from the verified security master, then calls the strict publisher. The publisher rejects known gaps and requires the verified capture.",
+    "stage_research_replay": "The existing historical observation route produces WATCH_ONLY/NO_BUY rows from a manifest-bound after-fact observation and can be invoked for historical stage/date tuples, but it still starts from _build_hk_d1_binding, whose exact D-1 input must satisfy the strict 0.2 status/eligibility contract. The explicit 0930 pinned exceptions are date/hash-bound; the generic manifest-bound observation path does not relax the D-1 pool contract."
+  },
+  "test_evidence": {
+    "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m pytest -p no:cacheprovider -q tests/test_hk_historical_observation_contract.py::test_manifest_bound_partial_observation_publishes_and_verifies",
+    "assertion_observation": "pytest emitted one passing-test dot before shutdown",
+    "process_result": "FAIL_PROCESS_TEARDOWN",
+    "exit_code": 1,
+    "failure": "pytest cleanup raised PermissionError while deleting a pytest-owned temporary directory containing read-only runtime_graph/snapshots files; full test-process PASS CANNOT_CONFIRM.",
+    "interpretation": "This existing test demonstrates WATCH_ONLY/NO_BUY for a manifest-bound after-fact raw observation, not acceptance of a WATCH_ONLY D-1 pool as Stage preselection."
+  },
+  "p0": [],
+  "p1": ["Candidate cannot be consumed as current authoritative Stage D-1 preselection without a distinct explicit research-only contract; do not promote it to STRICT_0_2_READY or stage_selection_eligible=true."],
+  "p2": ["Candidate receipt gaps are not reflected in scorer row cannot_confirm/freshness defaults unless a downstream envelope preserves them."],
+  "review_status": "REVIEWED",
+  "behavior_verified": "CANNOT_CONFIRM",
+  "test_status": "CANNOT_CONFIRM",
+  "scope_compliance": {
+    "source_written": false,
+    "formal_pool_written": false,
+    "stage_replayed": false,
+    "service_touched": false,
+    "output_written_only_to_allowed_review_path": true
+  }
+}
