@@ -1,0 +1,285 @@
+{
+  "schema_version": "v4.other_stages_diagnosis.v1",
+  "created_at_utc": "2026-10-10T03:06:41+00:00",
+  "review_status": "READ_ONLY_DIAGNOSIS_COMPLETE",
+  "target": {
+    "trade_date": "20261009",
+    "release_id": "stage_r4_manager_r2_owner_input_r1_fused_r1",
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app",
+    "launchd_label": "com.lexi.v35.api-only",
+    "pid": 10321,
+    "listener": "127.0.0.1:8873",
+    "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/release-manifest.json",
+    "release_manifest_sha256": "fd7f21af0205b9d25a8ab5d33592aff42bf76c0419799b7c1724b94a286aeb86"
+  },
+  "read_only": true,
+  "service_or_data_mutations_performed": false,
+  "api_observation": {
+    "endpoint": "/api/v3/workbench/stage?date=20261009&stage=<stage_id>&limit=50",
+    "all_eight_responses_http_status": 200,
+    "stage_gets_after_fusion": [
+      {
+        "stage_id": "STAGE_0925",
+        "response_sha256": "2f0187861af2f8f2dded6d0e085abc0b4d815fc9dcbf74076ad1b0da9b9567ea",
+        "api_status": "PARTIAL_WITH_ROWS",
+        "a_share": {
+          "display_rows": 10,
+          "source_rows": 205,
+          "requested_rows": 216
+        },
+        "hk_connect": {
+          "display_rows": 0,
+          "formal_selection_status": "CANNOT_CONFIRM",
+          "reason": "exact-date HK D1 pool is not STRICT_0_2_READY"
+        }
+      },
+      {
+        "stage_id": "STAGE_0930_0935",
+        "response_sha256": "580dc7e59a03323557857924d3095dc5e416ef54ee2d39d381c2aa63db1798d8",
+        "api_status": "PARTIAL_WITH_ROWS",
+        "a_share": {
+          "display_rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216
+        },
+        "hk_connect": {
+          "observation_rows": 10,
+          "formal_selection_status": "CANNOT_CONFIRM",
+          "display_status": "OBSERVATION_UNVERIFIED",
+          "run_id": "run-cfbdc9b36a7308da178d193a",
+          "artifact_id": "selection-cfbdc9b36a7308da178d193a",
+          "research_backfill_run_id": "85e29661ecd848fe9b8344ea59279e86"
+        }
+      },
+      {
+        "stage_id": "STAGE_0935_0940",
+        "response_sha256": "f5ccfd5f42840ad11d2a3f890b43f36bbcfda1087faa02a4d3bd87651fe74fe6",
+        "api_status": "PARTIAL_WITH_ROWS",
+        "a_share": {
+          "display_rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216
+        },
+        "hk_connect": {
+          "display_rows": 0,
+          "formal_selection_status": "CANNOT_CONFIRM",
+          "reason": "exact-date HK D1 pool is not STRICT_0_2_READY"
+        }
+      },
+      {
+        "stage_id": "STAGE_0940_0945",
+        "response_sha256": "ba4441203d22745a7d35a2cdd3bfe5395982ea5791033374e02cb60a2302a1bb",
+        "api_status": "PARTIAL_WITH_ROWS",
+        "a_share": {
+          "display_rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216
+        },
+        "hk_connect": {
+          "display_rows": 0,
+          "formal_selection_status": "CANNOT_CONFIRM",
+          "reason": "exact-date HK D1 pool is not STRICT_0_2_READY"
+        }
+      },
+      {
+        "stage_id": "STAGE_0945_1030",
+        "response_sha256": "329aace84b2854f70e8307f0ef106a9acd034fc934d69d8fe5efcbacc95b9b57",
+        "api_status": "PARTIAL_WITH_ROWS",
+        "a_share": {
+          "display_rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216
+        },
+        "hk_connect": {
+          "display_rows": 0,
+          "formal_selection_status": "CANNOT_CONFIRM",
+          "reason": "exact-date HK D1 pool is not STRICT_0_2_READY"
+        }
+      },
+      {
+        "stage_id": "STAGE_1300_1315",
+        "response_sha256": "8b6394fce469e1bd9a0871f5e8e63b92b47259fb029ef6643a9421bd0af35a18",
+        "api_status": "CANNOT_CONFIRM",
+        "a_share": {
+          "display_rows": 0,
+          "source_rows": 206,
+          "requested_rows": 216,
+          "reason": "RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH"
+        },
+        "hk_connect": {
+          "display_rows": 0,
+          "formal_selection_status": "CANNOT_CONFIRM",
+          "reason": "exact-date HK D1 pool is not STRICT_0_2_READY"
+        }
+      },
+      {
+        "stage_id": "STAGE_1445_1500",
+        "response_sha256": "3087364c74915e4bc0893fe528aac796a3a5505d2651dc43776dcb18d027f8d0",
+        "api_status": "PARTIAL_WITH_ROWS",
+        "a_share": {
+          "display_rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216
+        },
+        "hk_connect": {
+          "display_rows": 0,
+          "formal_selection_status": "CANNOT_CONFIRM",
+          "reason": "exact-date HK D1 pool is not STRICT_0_2_READY"
+        }
+      },
+      {
+        "stage_id": "STAGE_1545_1555",
+        "response_sha256": "601859fdc3e75d25ac8527119357f1615503d30fc18a2b85b729da0fb0891f78",
+        "api_status": "CANNOT_CONFIRM",
+        "a_share": "NOT_APPLICABLE",
+        "hk_connect": {
+          "display_rows": 0,
+          "formal_selection_status": "CANNOT_CONFIRM",
+          "reason": "exact-date HK D1 pool is not STRICT_0_2_READY"
+        }
+      }
+    ],
+    "most_recent_independent_recheck": {
+      "stage_id": "STAGE_0935_0940",
+      "http_status": 200,
+      "response_sha256": "f5ccfd5f42840ad11d2a3f890b43f36bbcfda1087faa02a4d3bd87651fe74fe6",
+      "matches_post_fusion_baseline_sha256": true
+    }
+  },
+  "artifact_chain": {
+    "selection_latest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_latest.json",
+    "selection_latest_sha256": "bfb0ad6b3f5d2261c03fd8db71bf27c3912f581807c7904a2e6fc02217785cd0",
+    "formal_a_share_entries_present": [
+      "20261009/STAGE_0925/A_SHARE",
+      "20261009/STAGE_0930_0935/A_SHARE",
+      "20261009/STAGE_0935_0940/A_SHARE",
+      "20261009/STAGE_0940_0945/A_SHARE",
+      "20261009/STAGE_0945_1030/A_SHARE",
+      "20261009/STAGE_1445_1500/A_SHARE"
+    ],
+    "formal_a_share_entry_absent": "20261009/STAGE_1300_1315/A_SHARE",
+    "formal_hk_connect_entries_present": [],
+    "stage_execution_receipts": [
+      {
+        "stage_id": "STAGE_0925",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_0925/receipt.json",
+        "sha256": "adbea512e47e2b1a30eb6bf74fa493ec59e080d933d556c402f91625a06fed4e"
+      },
+      {
+        "stage_id": "STAGE_0930_0935",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_0930_0935/receipt.json",
+        "sha256": "32ed85ea440af64bf9d2ca1232f44eaba507840a9a42c31506be409d511fc5cb"
+      },
+      {
+        "stage_id": "STAGE_0935_0940",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_0935_0940/receipt.json",
+        "sha256": "9b0598794dc1dca91bd917d09b8f4af10f02f1e1a81e5867de5aa7a778b8ba00"
+      },
+      {
+        "stage_id": "STAGE_0940_0945",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_0940_0945/receipt.json",
+        "sha256": "916afbf4c23ac6c2125098306fd8300b5a48e72f9630d3e368c723309bab2557"
+      },
+      {
+        "stage_id": "STAGE_0945_1030",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_0945_1030/receipt.json",
+        "sha256": "a55103f2268b41aaffd763fbae96625d547f5d98fdf0eaeea228125082f3c8b8"
+      },
+      {
+        "stage_id": "STAGE_1300_1315",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_1300_1315/receipt.json",
+        "sha256": "af12aec64fe84ff6c9342d772f8ecf5758c600deca5c7c44c64683495721e100"
+      },
+      {
+        "stage_id": "STAGE_1445_1500",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_1445_1500/receipt.json",
+        "sha256": "de985697d988255bce1b271f2d47560e9fcca1e27f2326be804493b50d0fa2ce"
+      },
+      {
+        "stage_id": "STAGE_1545_1555",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_1545_1555/receipt.json",
+        "sha256": "d972bf5f0b8e6ce17fd80ba00457478a63938a9048a378b1108171055b34c968"
+      }
+    ],
+    "approved_0930_research_binding": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app/stage_center/approved_research_read.json",
+      "sha256": "dd8f728d7d6a2e7a55046528c203caa3530977503d5a6fea939569ff88517c55",
+      "mode": "APPROVED_CURRENT_DAY_RESEARCH_READ_ONLY",
+      "trade_date": "20261009",
+      "stage_id": "STAGE_0930_0935",
+      "backfill_run_id": "85e29661ecd848fe9b8344ea59279e86",
+      "run_manifest_sha256": "9b5df949141ed1533cb7a71e2c46bebe341bea663f5f966bda16225754e89857",
+      "source_map_sha256": "3ec3e7774119bd106185c03be0b5c572b6fe2ca4148b93379d8b116a72994457",
+      "selection_run_ids": {
+        "A_SHARE": "run-2688466a1ae4464ba7237f0b",
+        "HK_CONNECT": "run-cfbdc9b36a7308da178d193a"
+      },
+      "selected_rows_each": 10,
+      "execution_verified": false,
+      "natural_verified": false,
+      "RESEARCH_ONLY": true,
+      "formal_hk_selection_latest_entry_present": false
+    }
+  },
+  "root_causes": {
+    "hk_formal_selection": {
+      "exact_pool_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261009/hkconnect_d1_top100.json",
+      "sha256": "3d00fc3ebd27df59724d808277d256d4636aedde1d0c3dc620a34c99fa166f7f",
+      "producer_id": "graph_expected_missing_v1",
+      "source_role": "EXPECTED_MISSING",
+      "status": "CANNOT_CONFIRM",
+      "row_count": 0,
+      "manifest_sha256": "834728767c54188bd945bd0f90fe7e3393d969d76fc9a07f66aa09e50325bf9c",
+      "receipt_sha256": "de4422c1367561988f1fa56dfb6cd7215cf65f19e99943f345fbbf4804708f51",
+      "runner_failure_reason": "HK D1 status must be STRICT_0_2_READY",
+      "wrong_date_pool_20261008": {
+        "status": "STRICT_0_2_READY",
+        "row_count": 100,
+        "sha256": "62d7716c51978a8e2b55c8aa423ae72691da1385fb80b97df35da714addee09b",
+        "used_as_fallback": false
+      },
+      "accountable_human_or_team": "CANNOT_CONFIRM; no owner identity is present in the exact-date pool/manifest/receipt"
+    },
+    "a_share_1300": {
+      "runner_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_1300_1315/receipt.json",
+      "runner_receipt_sha256": "af12aec64fe84ff6c9342d772f8ecf5758c600deca5c7c44c64683495721e100",
+      "status": "CANNOT_CONFIRM",
+      "first_failed_layer": "EXACT_SELECTION_INPUT_BINDING",
+      "error": "RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH",
+      "hourly_payload_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/1300.json",
+      "hourly_payload_sha256": "60c48b9ca51f0f6003ca5914d55c3c204d9de70b02488af814d36ebb0c37547a",
+      "hourly_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261009/1300.json",
+      "hourly_receipt_sha256": "26451b5dff65ebc83059d3cc9d7aa928b2de5fe7dff564a59657ecf2f4d5f618",
+      "source_witness_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/source/02cb795ed9b60ab8159026dabf89b075037bcdb47522b9a58f3a8a2609543a1c.json",
+      "source_witness_sha256_expected_and_observed": "02cb795ed9b60ab8159026dabf89b075037bcdb47522b9a58f3a8a2609543a1c",
+      "stored_projection_sha256": "60c48b9ca51f0f6003ca5914d55c3c204d9de70b02488af814d36ebb0c37547a",
+      "recomputed_projection_sha256": "61c61cadb2ebac81cb6881bf5b4309bc5779a7ef374ba714aeeca41453e28f1e",
+      "projection_equal": false,
+      "only_differing_top_level_field": "cannot_confirm",
+      "stored_cannot_confirm_count": 9,
+      "recomputed_cannot_confirm_count": 1,
+      "extra_diagnostics": "7 REPORT_ROLE_EVIDENCE_EXCLUDED symbol-specific diagnostics are stored in the archive but absent from the projection rebuilt from the exact hash-bound source; symbol values omitted.",
+      "a_share_selection_latest_artifact_published": false,
+      "validation_owner_module": "stage_center/research_context.py::_bound_source_rows",
+      "upstream_owner": "V4 hourly research archive publisher/source projector; accountable team identity CANNOT_CONFIRM"
+    },
+    "a_share_other_stages": {
+      "STAGE_0925": "A top 10 displayed from 205/216 source rows; the exact-date auction source reports 11 auction rows missing, status remains PARTIAL_WITH_ROWS.",
+      "STAGE_0930_0935": "A top 10 displayed from 206/216 source rows.",
+      "STAGE_0935_0940": "A top 10 displayed from 206/216 source rows.",
+      "STAGE_0940_0945": "A top 10 displayed from 206/216 source rows.",
+      "STAGE_0945_1030": "A top 10 displayed from 206/216 source rows.",
+      "STAGE_1445_1500": "A top 10 displayed from 206/216 source rows.",
+      "A_source_warning": "PyTDX exact-date/window coverage remains incomplete and premarket/name overlays are unavailable; these warnings preserve PARTIAL_WITH_ROWS and do not erase the published A top 10."
+    }
+  },
+  "unified_direction_and_owner": "Keep one exact-date/date-market-stage formal Stage contract and one status vocabulary across all eight stages. A/HK may retain their necessary source-specific readiness checks: A-share uses its exact PyTDX/research inputs; HK formal selection needs the exact-date strict D-1 Top100. The 0930 HK research binding remains an observation-only backfill and is not formal Stage output. Repair ownership is upstream: the exact-date HK D-1 pool publisher (currently recorded as graph_expected_missing_v1) and the V4 hourly archive publisher/source-projector for the 1300 cannot_confirm drift. The responsible human/team identity is CANNOT_CONFIRM because the artifacts do not encode it.",
+  "ui_readback": "CANNOT_CONFIRM_BY_THIS_REVIEWER; browser/UI was not used in this read-only diagnosis. Parent-provided UI observations are separate evidence.",
+  "execution_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "no_collection_or_replay_performed": true
+  }
+}
