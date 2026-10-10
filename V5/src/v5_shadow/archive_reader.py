@@ -20,13 +20,15 @@ DESCRIPTOR=BASE/'contracts/archive_reader_source_manifest.json'
 PIN='33a4b671c4b2b6b89db2c3e8bed7efdc8d1ee8fc983ff005d2ade2692d47b2a4'
 ARCHIVE_PATTERN=r'(?:receipts/)?research/(?:archives/[0-9]{8}|hourly/live/[0-9]{8}/[0-9]{4})\.json'
 from v5_shadow.archive_article_v2 import CAPTURE_PATTERN, INPUT_PATTERN
-PATTERN='(?:'+ARCHIVE_PATTERN+'|'+CAPTURE_PATTERN+'|'+INPUT_PATTERN+')'
+from v5_shadow.archive_builder_v1 import BUILDER_PATTERN, builder_identity
+PATTERN='(?:'+ARCHIVE_PATTERN+'|'+CAPTURE_PATTERN+'|'+INPUT_PATTERN+'|'+BUILDER_PATTERN+')'
 
 
 def article_v2_identity():
     return sha256_json({
         'adapter':hashlib.sha256((BASE/'src/v5_shadow/archive_article_v2.py').read_bytes()).hexdigest(),
         'producer_manifest':hashlib.sha256((BASE/'producers/archive-acquisition-v2/manifest.json').read_bytes()).hexdigest(),
+        'builder':builder_identity(),
     })
 
 

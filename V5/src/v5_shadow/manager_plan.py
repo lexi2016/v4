@@ -252,7 +252,7 @@ def _snapshot(binding):
 
 
 def _identity():
-    names = ('native_identity_reader.py', 'hk_preselection.py', 'us_mapping_scope.py', 'announcement_offline_reader.py', 'manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'archive_article_v2.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('native_identity_reader.py', 'hk_preselection.py', 'us_mapping_scope.py', 'announcement_offline_reader.py', 'manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'archive_article_v2.py', 'archive_builder_v1.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}

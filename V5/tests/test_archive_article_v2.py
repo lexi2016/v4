@@ -1,4 +1,8 @@
-"""Mac-only closed-chain candidate. No real CLI, provider, credentials or production root."""
+"""NOT_RUN: Mac-only closed-chain candidates; no real provider or production root.
+
+Every positive v2 archive comes from the original collector and full builder.
+Only the bounded external acquisition response and analyzer are synthetic.
+"""
 import copy
 from datetime import datetime, timedelta
 import hashlib
@@ -11,7 +15,7 @@ import unittest
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 import test_archive_acquisition_producer as producer_tests
-import test_manager_archive_reader as legacy_tests
+from v5_shadow.archive_builder_v1 import run_build
 from v5_shadow.archive_article_v2 import SCHEMA
 from v5_shadow.archive_reader import read_private
 from v5_shadow.digests import canonical_bytes
@@ -31,7 +35,7 @@ class ArticleV2ChainTests(unittest.TestCase):
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
-        self.root = Path(self.tmp.name)
+        self.root = Path(self.tmp.name).resolve()
         self.capture_root = self.root/'capture'; self.capture_root.mkdir()
         (self.capture_root/'.v5-archive-acquisition').write_bytes(b'v5.archive-acquisition.v2\n')
         self.output = self.root/'archive'; self.output.mkdir()
@@ -42,40 +46,57 @@ class ArticleV2ChainTests(unittest.TestCase):
         self.published = (self.base - timedelta(hours=1)).replace(microsecond=123456).isoformat()
         self.times = [(self.base + timedelta(microseconds=i+1)).isoformat() for i in range(4)]
         self.topic_id = '12345678901234567'
-        # Keep the explicit US symbol in the same subject/action clause: the
-        # frozen owner parser splits clauses at Chinese commas and will not
-        # carry an issuer across a separate beneficiary clause.
-        self.body = '合成科技与 NASDAQ:AVGO 签署光模块供货协议并交付光互连设备。此处仅为独立测试合成正文，没有真实业务含义。'
-        self.raw_topic = dict(topic_id=self.topic_id, create_time=self.published, content=self.body)
+        self.body = self.synthetic_body(direct=True)
+        self.build_capture(self.capture_root, self.body)
+
+    @staticmethod
+    def synthetic_body(direct):
+        clause = ('合成科技与 NASDAQ:AVGO 签署光模块供货协议并交付光互连设备。'
+                  if direct else '合成科技签署光模块产品供货合同并交付光互连设备。')
+        # The real collector appends title to content_head, the normalizer keeps
+        # 280 characters, and evidence_sentence selects the issuer's first
+        # sentence. A long body keeps every excerpt within the acquired prose.
+        return clause + '此处仅为独立测试合成正文，没有真实业务含义。' * 20
+
+    def build_capture(self, capture_root, body):
+        """Produce a fresh immutable positive run; never called by invoke()."""
+        self.capture_root = capture_root
+        self.body = body
+        self.raw_topic = dict(topic_id=self.topic_id, create_time=self.published, content=body)
         self.summary_topic = dict(topic_id=self.topic_id, create_time=self.published, title='合成研究标题',
-            content_head=self.body[:240], evidence=self.body, companies=[dict(code='00001', name='合成科技')],
+            content_head=body[:240], evidence=body, companies=[dict(code='00001', name='合成科技')],
             themes=[dict(theme='Optical')])
-        completed = subprocess.CompletedProcess([], 0, json.dumps({'topics':[self.raw_topic], 'has_more':False}), '')
-        # Exercise the REAL pagination and materialize functions. Only external
-        # process and deterministic classifier are synthetic substitutes.
+        completed = subprocess.CompletedProcess([], 0,
+            json.dumps({'topics':[self.raw_topic], 'has_more':False}), '')
+        # REAL pagination/materialize; only the external process and analyzer
+        # are substitutes. The original collector/builder runs in its own CLI.
         with patch.object(self.owner, '_acquisition_clock', side_effect=self.times):
-            status = self.owner.materialize_zsxq_hourly_delta(data_root=self.capture_root,
+            status = self.owner.materialize_zsxq_hourly_delta(data_root=capture_root,
                 trade_date=self.day, slot='0900', now=self.base, groups=[('123', 'synthetic')],
                 process_runner=lambda *a, **k: completed,
                 analyzer=lambda *a: {'effective_topic_count':1, 'effective_topics':[self.summary_topic]})
-        self.ref = {k:status['acquisition_evidence_v2'][k] for k in ('path','sha256','bytes')}
-        self.files = {str(p.relative_to(self.capture_root)): hashlib.sha256(p.read_bytes()).hexdigest()
-                      for p in (self.capture_root/'external_sources').rglob('*') if p.is_file()}
-        helper = legacy_tests.ArchiveWiringTests('test_source_sha_mismatch_fails_before_workspace')
-        helper.setUp(); self.addCleanup(helper.doCleanups)
-        self.original = copy.deepcopy(helper.payload)
-        self.original.update(archive_date=self.day, source_generated_at=self.published)
-        article = self.original['articles'][0]
-        article.update(archive_date=self.day, stock_code='00001', stock_name='合成科技', source_type='zsxq',
-            source_name='知识星球', source_title='合成研究标题', theme='Optical', evidence_sentence=self.body,
-            url='https://wx.zsxq.com/dweb2/index/topic_detail/'+self.topic_id,
-            source_path_sha256=hashlib.sha256(status['status_path'].encode()).hexdigest(),
-            published_at=datetime.fromisoformat(self.published).isoformat(timespec='seconds'),
-            collected_at=self.published, first_seen_at=self.published)
-        self.original['stock_pool'][0].update(archive_date=self.day, stock_code='00001',
-            collected_at=self.published, first_seen_at=self.published)
-        self.request = dict(capture_root=str(self.capture_root), capture_files=self.files,
-            receipt=self.ref, archive_v1=self.original, output_root=str(self.output))
+        receipt = {k:status['acquisition_evidence_v2'][k] for k in ('path','sha256','bytes')}
+        files = {str(p.relative_to(capture_root)): hashlib.sha256(p.read_bytes()).hexdigest()
+                 for p in (capture_root/'external_sources').rglob('*') if p.is_file()}
+        status_raw = (capture_root/status['status_path']).read_bytes()
+        self.status_ref = dict(path=status['status_path'],
+            sha256=hashlib.sha256(status_raw).hexdigest(), bytes=len(status_raw))
+        files[self.status_ref['path']] = self.status_ref['sha256']
+        built = run_build(dict(capture_root=str(capture_root), capture_files=files,
+            receipt=receipt, status=self.status_ref))
+        self.assertFalse(built['natural_verified'])
+        self.assertEqual(built['capture_root'], str(capture_root))
+        self.assertEqual(built['receipt'], receipt)
+        self.files = built['capture_files']
+        self.ref = built['receipt']
+        self.builder_source = built['builder_source']
+        self.builder_receipt = built['builder_receipt']
+        self.original = built['archive_v1']
+        self.assertEqual(len(self.original['articles']), 1)
+        self.assertIn(self.original['articles'][0]['evidence_sentence'], body)
+        self.request = {key:built[key] for key in (
+            'capture_root', 'capture_files', 'receipt', 'builder_source', 'builder_receipt')}
+        self.request.update(archive_v1=self.original, output_root=str(self.output))
 
     def invoke(self, request=None):
         process = subprocess.run([sys.executable, '-I', '-B', str(BASE/'src/v5_shadow/archive_article_v2.py')],
@@ -144,6 +165,10 @@ publish_hk_security_master(Path(sys.argv[2]),trade_date=sys.argv[3],
         result = self.publish(); binding = result['archive_binding']
         checked = read_private(self.output, binding)
         payload = checked['records'][self.day+'/']['payload']
+        for ref in (self.builder_source, self.builder_receipt):
+            self.assertIn(ref['path'], binding['files'])
+            self.assertEqual(binding['files'][ref['path']], ref['sha256'])
+            self.assertEqual((self.output/ref['path']).read_bytes(), before[self.capture_root/ref['path']])
         self.assertEqual(payload['schema_version'], SCHEMA)
         article = payload['articles'][0]
         self.assertEqual(article['retrieved_at'], self.times[1])  # page end, not batch start
@@ -227,16 +252,33 @@ publish_hk_security_master(Path(sys.argv[2]),trade_date=sys.argv[3],
         self.assertNotEqual(process.returncode,0);self.assertIn('OUTPUT_NOT_FRESH',value['reason'])
         self.assertEqual(before,{p:p.read_bytes() for p in self.output.rglob('*') if p.is_file()})
 
-    def test_consumer_revalidates_article_fields_even_if_archive_receipt_rehashed(self):
-        value=self.publish();binding=value['archive_binding']
-        name='research/archives/'+self.day+'.json';receipt_name='receipts/'+name
-        payload=json.loads((self.output/name).read_bytes());payload['articles'][0]['body_text']='替换正文'
-        raw=canonical_bytes(payload);(self.output/name).write_bytes(raw);sha=hashlib.sha256(raw).hexdigest()
-        receipt=json.loads((self.output/receipt_name).read_bytes());receipt['payload_sha256']=sha
+    def rewrite_published_payload(self, binding, payload):
+        """Explicit reader attack: rehash all three original store outer files."""
+        name='research/archives/'+self.day+'.json'; receipt_name='receipts/'+name
+        raw=canonical_bytes(payload); (self.output/name).write_bytes(raw)
+        digest=hashlib.sha256(raw).hexdigest()
+        receipt=json.loads((self.output/receipt_name).read_bytes())
+        receipt['payload_sha256']=digest
+        # Original ResearchArchiveStore._receipt copies these three fields.
+        # Recreate them from the attacked payload to keep its receipt exact.
+        for field in ('source_input_sha256', 'article_count', 'stock_pool_count'):
+            receipt[field]=payload[field]
         (self.output/receipt_name).write_bytes(canonical_bytes(receipt))
-        (self.output/'manifest.json').write_bytes(canonical_bytes({name:sha}))
-        for changed in (name,receipt_name,'manifest.json'):
+        manifest=json.loads((self.output/'manifest.json').read_bytes())
+        manifest[name]=digest
+        (self.output/'manifest.json').write_bytes(canonical_bytes(manifest))
+        for changed in (name, receipt_name, 'manifest.json'):
             binding['files'][changed]=hashlib.sha256((self.output/changed).read_bytes()).hexdigest()
+        # The attack must reach rebuilt v2 comparison with valid outer
+        # hashes and the receipt shape produced by the original store.
+        self.assertEqual(receipt['payload_sha256'], digest)
+        self.assertEqual(manifest[name], digest)
+
+    def test_consumer_revalidates_article_fields_even_if_archive_receipt_rehashed(self):
+        value=self.publish(); binding=value['archive_binding']
+        name='research/archives/'+self.day+'.json'
+        payload=json.loads((self.output/name).read_bytes()); payload['articles'][0]['body_text']='替换正文'
+        self.rewrite_published_payload(binding, payload)
         result=read_private(self.output,binding)
         self.assertIn('ARTICLE_OR_PAYLOAD_CHANGED',result['records'][self.day+'/']['error']['message'])
 
@@ -308,11 +350,12 @@ publish_hk_security_master(Path(sys.argv[2]),trade_date=sys.argv[3],
             self._rewrite_capture_payload(name,value)
         self.rejected('RESPONSE_GROUP_MISMATCH')
 
-    def bind_synthetic_us_owner(self, request):
+    def bind_synthetic_us_owner(self, request, session=None):
         from v5_shadow.current_us_research import _context_at
         context=_context_at(request['target_date'],request['now'])
         root=Path(request['inputs']['us']['root'])
-        captured=datetime.strptime(context['us_session_date'],'%Y%m%d').replace(
+        session = session or context['us_session_date']
+        captured=datetime.strptime(session,'%Y%m%d').replace(
             hour=16,minute=17,tzinfo=ZoneInfo('America/New_York'))
         self.assertLessEqual(captured,datetime.fromisoformat(request['now']),
             'Synthetic POST_CLOSE fixture requires this session window to have elapsed')
@@ -344,9 +387,8 @@ payload=dict(schema_version='v3_5.research_peripheral.v1',trade_date=session,sou
 ResearchPeripheralStore(Path(sys.argv[2])).publish(payload)
 """
         process=subprocess.run([sys.executable,'-I','-B','-c',script,str(BASE/'src'),str(root),
-            context['us_session_date'],captured.isoformat()],capture_output=True,text=True,timeout=60)
+            session,captured.isoformat()],capture_output=True,text=True,timeout=60)
         self.assertEqual(process.returncode,0,process.stderr)
-        session=context['us_session_date']
         names=['research/peripherals/manifest.json','research/peripherals/'+session+'/external_finance.json',
                'receipts/research/peripherals/'+session+'/external_finance.json']
         request['inputs']['us']['files']={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in names}
@@ -366,29 +408,48 @@ ResearchPeripheralStore(Path(sys.argv[2])).publish(payload)
         self.assertEqual(saved['readback']['plan_sha256'],read['payload']['plan_product']['sha256'])
         self.assertEqual(diag,read['payload']['us_market_attention']['mapping_diagnostics'])
         self.assertFalse(saved['natural_verified'])
-
-    def _replace_bound_article_body(self, body):
-        for name in [n for n in self.files if '/pages/' in n or n.endswith('/zsxq_recent_topics.json')]:
-            value=json.loads((self.capture_root/name).read_bytes())
-            (value.get('topics') or value.get('topics_brief'))[0]['content']=body
-            self._rewrite_capture_payload(name,value)
-        name=next(n for n in self.files if n.endswith('/zsxq_summary.json'))
-        value=json.loads((self.capture_root/name).read_bytes())
-        value['effective_topics'][0].update(content_head=body[:240],evidence=body)
-        self._rewrite_capture_payload(name,value)
-        self.original['articles'][0]['evidence_sentence']=body
+        return diag
 
     def test_industry_material_mapping_needs_no_explicit_us_or_etf_ticker(self):
-        body='合成科技签署光模块产品供货合同并交付光互连设备。此处仅为独立测试合成正文，没有真实业务含义。'
-        self._replace_bound_article_body(body)
+        before = {p:p.read_bytes() for p in self.capture_root.rglob('*') if p.is_file()}
+        fresh = self.root/'industry_capture'; fresh.mkdir()
+        (fresh/'.v5-archive-acquisition').write_bytes(b'v5.archive-acquisition.v2\n')
+        self.build_capture(fresh, self.synthetic_body(direct=False))
+        self.assertNotIn('AVGO', self.body)
         self._assert_original_mapping_roundtrip(direct=False)
+        self.assertTrue(all(path.read_bytes() == raw for path, raw in before.items()))
+
+    def test_old_us_session_remains_input_missing_with_valid_new_archive(self):
+        imported = self.publish(); request = self.manager_request(imported['archive_binding'])
+        self.bind_native_identity(request)
+        from v5_shadow.current_us_research import _context_at
+        expected = _context_at(request['target_date'], request['now'])['us_session_date']
+        # This is a real original owner artifact for a distinct old session;
+        # publishing a valid archive cannot make that artifact current.
+        old = (datetime.strptime(expected, '%Y%m%d') - timedelta(days=7)).strftime('%Y%m%d')
+        self.bind_synthetic_us_owner(request, session=old)
+        saved = run_manager_plan(request)
+        self.assertEqual(saved['payload']['us_market_attention']['status'], 'INPUT_MISSING')
+        self.assertEqual(saved['archive_readback']['validated_artifacts'], 1)
+        read = run_manager_plan({**request, 'action':'read'})
+        self.assertEqual(read['payload']['us_market_attention']['status'], 'INPUT_MISSING')
+        self.assertEqual(saved['readback']['run_id'], read['payload']['plan_product']['run_id'])
+        self.assertEqual(saved['readback']['plan_sha256'], read['payload']['plan_product']['sha256'])
+        self.assertFalse(saved['natural_verified'])
 
     def test_explicit_us_relation_reaches_original_direct_mapping_and_same_run(self):
         self._assert_original_mapping_roundtrip(direct=True)
 
     def test_symbol_in_following_clause_is_not_attributed_to_hk_issuer(self):
-        body='合成科技签署光模块产品供货合同，向 NASDAQ:AVGO 供应光互连设备。此处仅为独立测试合成正文，没有真实业务含义。'
-        self._replace_bound_article_body(body)
-        # The owner parser splits at Chinese commas; a later beneficiary clause
-        # must not acquire the HK issuer as the subject of an AVGO relation.
-        self._assert_original_mapping_roundtrip(direct=False)
+        before = {p:p.read_bytes() for p in self.capture_root.rglob('*') if p.is_file()}
+        fresh = self.root/'cross_clause_capture'; fresh.mkdir()
+        (fresh/'.v5-archive-acquisition').write_bytes(b'v5.archive-acquisition.v2\n')
+        body = ('合成科技签署光模块产品供货合同，向 NASDAQ:AVGO 供应光互连设备。' +
+                '此处仅为独立测试合成正文，没有真实业务含义。' * 20)
+        self.build_capture(fresh, body)
+        self.assertIn('NASDAQ:AVGO', self.body)
+        diag = self._assert_original_mapping_roundtrip(direct=False)
+        avgo = next(row for row in diag['individual'] if row['symbol'] == 'AVGO')
+        self.assertEqual(avgo['accepted_mapping_count'], 0, diag)
+        self.assertEqual(avgo['reason'], 'NO_STRUCTURED_HK_US_RELATION', diag)
+        self.assertTrue(all(path.read_bytes() == raw for path, raw in before.items()))
