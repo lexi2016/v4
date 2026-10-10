@@ -1,5 +1,12 @@
 # 给Chat的M16任务
 
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
+
 请把原经理候选公开资料job生命周期接入V5，交付实际可应用最小代码。以固定源码为事实，首先给原owner/完整依赖SHA→V5已有或拟新增路径→任务/产物/API/页面映射。不要把M18 workspace只读投影当job执行，也不扩成新研究平台。
 
 ## 实现要求

@@ -1,5 +1,12 @@
 # 请实现原15号模块美股到港股映射
 
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
+
 你只负责原M15，不接管M03采集、M02港股来源、M04归档生产或M18经理/API/前端。用户按原18模块分别开Chat；原编号和P0—P5不变。请复用既有源码审查，直接交M15最小候选，不重做整库审查，也不只返回另一份泛化方案。嘻嘻负责Mac落地独验，跨模块问题由集成者转交对应owner。
 
 先读START_HERE.md、SOURCE_INDEX.md。代码观察基线固定f7cb731c384ee6890a87d16c19a5b5a621779477；其他固定commit只作具体语义donor。未知Mac前像不妨碍基于该固定目标交候选，但安装前必须逐文件核对。

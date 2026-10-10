@@ -1,5 +1,12 @@
 # 给Chat的M12任务
 
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
+
 请交付视频FUPAN具体最小代码候选，而不是视频重写方案。按SOURCE_MAP先核原owner和真实活动绑定，再给V4 donor→V5目标/输入/产物/API的逐节点表。video_fupan_daily等路径明确标拟新增。
 
 ## 必须保留原链

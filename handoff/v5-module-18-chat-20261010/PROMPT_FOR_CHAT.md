@@ -1,4 +1,11 @@
 # 给Chat的独立编码任务：M18经理保存和普通读回
+
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
 你负责原总计划模块18的交接或续修。请先确认唯一写入者：用户已把旧9cac0ff跨13→18任务交给原Chat，正在修manager same-run/latest及共享UI的只读、日期、取消。若你就是该Chat，请把本包作为边界补充继续同一候选；若是新Chat，先接收和审查该固定候选，未明确移交前禁止重做这几项或修改同一文件。收到候选后逐项标已解决、需适配、剩余阻断，只对获移交的缺口编码。请读同包START_HERE、SOURCE_MAP、ACCEPTANCE，交完整候选而非另起重复方案。Chat编写方案/代码，嘻嘻负责现有Mac应用、实测、页面验收和精确回传。
 
 ## 先交清楚映射，再编码

@@ -1,5 +1,12 @@
 # M03编码任务：原US来源采集与精确三文件接续
 
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
+
 你只负责原V5 M03。请读START_HERE及SOURCE_MAP，直接返回最小代码候选和可复查证据，不再交一份泛化整库审查。用户分工是Chat写方案和具体代码，嘻嘻在现有Mac落地并独立验收；不要求你能连Mac。
 
 ## 必须先确认

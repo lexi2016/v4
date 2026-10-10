@@ -10,7 +10,7 @@
 
 - S：`hk_close_review.py::run_hk_close_review`调用原`build_native_close_review`，只接受录制/合成输入；DECLARED_UNIVERSE_ONLY、来源/PIT未证，缺模型/阶段归因降CANNOT_CONFIRM，保留legacy_status。
 - S：`review_bridge.py::run_review_bridge`只读已发布的`close_reviews/<date>.json`、对应receipt、manifest，明确`v5_computation_performed=False`、`natural_verified=False`。真实旧成品读到20/100不证明新日计算或自动更新。
-- S：原`collect_close_snapshot`可复用已验同日snapshot，否则只允许当前日期且16:10后新采；原`build_close_review`读取snapshot、exact-date Top100与七阶段并`ReviewStore.publish_native`。这两ops不在当前hk_close算法capsule内，接生产要补完整闭包与活动绑定。
+- S：原`collect_close_snapshot`可复用已验同日snapshot，否则只允许当前日期且16:10后新采；原`build_close_review`读取snapshot、exact-date Top100与七阶段并`ReviewStore.publish_native`。这两ops及原store/预选reader/阶段selection相关固定原件已附源码包，但未纳入当前hk_close算法capsule。Chat可据原件继续静态接线与冻结收录候选；实际启用前核活动绑定。
 - S：冻结catalog的HK槽是`1610`；`daily_close_plan`对半日只给SCHEDULE_BINDING_UNVERIFIED。`hk_close_review`回放代码虽有12:10半日边界，绝不是已证活动半日采集/触发合同，不能据此启用半日。
 - R：44b514a桥接曾Mac6/6、旧副本20/100/0并缺7；旧10/8 16:12:07成功仍缺七阶段；迁移计划最新仍称新计算与七阶段证据未齐。本包未复跑。
 - U：当前Mac源/collector绑定、真实成员与资格来源、七阶段完整性、普通review发布根、半日活动合同。
@@ -41,3 +41,7 @@ M02收盘集合/价格与成员资格证据；M06目标日Top100完整100行和�
 - 需要公共接口时输出接口变更请求：请求ID、模块/owner、固定前像commit+路径+SHA、具体函数/路由、旧/新schema和示例、调用方、日期/状态/安全语义、兼容性、双方测试、发布顺序与回滚。统一集成者单写并返回新的固定基线；本Chat随后rebase最小差异。
 - 不新增18套服务器、页面或平行调度。原UI通过只读兼容层读已提交产物；GET、刷新、返回、日期切换不得暗中生成或采集。不要为HTTP空重复采已有成功数据。
 - 不交易、不下单、不修改BUY门，不扩凭据、安全权限或网络权限。未知与失败不能填0；合法空须完整可验证输入。研究资格、原拒绝码、PARTIAL/CANNOT_CONFIRM保留。
+
+## 可直接读取的源码附件
+
+`v5-module10-source-20261010.zip`附固定F现有目标/测试/manifest、hk_close与review_readback完整胶囊、canonical收盘collector/build/store及必要reader参考。普通Chat可直接读取并继续代码候选，现场数据、半日活动合同与真实启用在Mac验证前核。附件README明确仍未带的共享依赖和运行环境，不以源码存在冒充部署。

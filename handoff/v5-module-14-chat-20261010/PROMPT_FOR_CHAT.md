@@ -1,4 +1,11 @@
 # 给Chat的独立编码任务：M14超跌真实准入与两门闭环
+
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
 请负责原总计划M14，直接交可审查完整代码候选，不再交泛泛优化方案。先读本包固定来源和已有候选，登记唯一写入者。Chat写代码；嘻嘻统一在现有Mac做精确前像应用、实测、页面验收，再把失败交回本Chat。
 
 ## 第一步，先去重和定位

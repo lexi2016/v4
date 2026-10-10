@@ -5,7 +5,7 @@
 路径简写：`C/` = `handoff/v4-running-source-20261005/canonical/`。以下GitHub路径均相对于`lexi2016/v4`仓库根；固定源码不是Mac活动路径。
 
 - 原模型donor：manifest记来源`9dfa50346357b6dc4b2463a30dcbf3718fce2f03`、`canonical/domains/a_share_close_model.py`；F中的`V5/vendor/a_close_baseline/domains/a_share_close_model.py::build_close_model`为已读原件。目标`V5/src/v5_shadow/a_close_review.py::_assemble`只封装原模型，不是原生产者完整替代。
-- 原生产路径已读：`C/ops/build_a_share_close_review.py::build_review_from_panel`，读取`panel_pointer`→`build_close_model`→`build_close_review_chain`→`build_a_share_review`→`AShareReviewStore.import_review/replace_review`。这里的调用链由已读caller确认；其未列入a_close manifest的callee闭包须继续核原件，不能声称全已搬迁。
+- 原生产路径已读：`C/ops/build_a_share_close_review.py::build_review_from_panel`，读取`panel_pointer`→`build_close_model`→`build_close_review_chain`→`build_a_share_review`→`AShareReviewStore.import_review/replace_review`。这里的调用链由已读caller确认；其未列入a_close manifest的review/chain/store/owned_path固定canonical原件现已附；Chat可以直接据此设计冻结收录候选，不声称已搬迁或部署。
 - 原节点与槽参考已读：`C/ops/run_v35_close_review_slot.py`、`C/ops/run_v35_close_review_node.py::run_node`。部分节点属于M12；仅消费其正式产物，不把整份视频节点runner纳入M09写入域。
 - 新生产适配`V5/src/v5_shadow/a_close_daily.py`：F查询404，为计划新增点。输出只在A模块私有根，原AShareReviewStore的真实publish/reader目录与活动绑定待Mac核；复用前必须验证完整source closure。
 - 冻结`V5/vendor/daily_schedule_baseline/contracts/runtime_workloads.json`中workload_id=`a_share_close_review`，slots=`1605,1710`，run_policy=`A_SHARE_TRADE_DAY`、session_requirement=`POST_CLOSE`、target/signal日期角色BUSINESS_DATE；命令指向原`ops.build_a_share_close_review`。

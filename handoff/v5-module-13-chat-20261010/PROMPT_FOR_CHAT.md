@@ -1,5 +1,12 @@
 # 请交独立 M13 的完整代码候选
 
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
+
 你是18个模块 Chat 中的第13号，只负责原总计划“公告研究与选股”。请先读本包 START_HERE、SOURCE_MAP、ACCEPTANCE，再基于固定源码交方案与具体代码。不要再做全仓泛化审查，也不要只交另一份计划。
 
 分工：你负责唯一 M13 代码候选和后续必要修复；嘻嘻统一接收所有模块候选、处理共享集成，并在既有 Mac 环境落地、测试、验收和精确回传。你不部署、不切换端口、不操作现役 V4，不替其他 Chat 修改业务。

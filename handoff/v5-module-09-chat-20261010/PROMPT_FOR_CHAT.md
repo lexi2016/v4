@@ -1,5 +1,12 @@
 # 给Chat的任务：M09 A收盘复盘
 
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
+
 你负责原M09/P3的A收盘复盘候选。保持原模型与V4；Chat只交方案代码，嘻嘻负责现有Mac落地与独立验证。
 
 1. 先映射原`build_review_from_panel`→模型→close_chain/AShareReviewStore→普通review读取。现有`a_close_review.py`仅作固定原模型等价基线；必须列完整正式产品清单和writer闭包缺口，不用纯model JSON替代整条复盘。

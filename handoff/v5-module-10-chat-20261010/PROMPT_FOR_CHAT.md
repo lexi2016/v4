@@ -1,5 +1,12 @@
 # 给Chat的任务：M10 HK收盘复盘
 
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
+
 你负责原M10/P3的HK收盘复盘候选，只交方案和代码，嘻嘻负责Mac落地独验。以旧成品桥接作为兼容对照，目标是原新日collector→原算法→原publisher→普通read/API/页面。
 
 1. 将已有`run_review_bridge`、录制`run_hk_close_review`和真实新日生产分别列明。不要用bridge输出或合成600行称新日计算；列原collector/CloseSnapshotStore、PreselectionPoolStore、stage reader、ReviewStore的完整调用闭包和活动root。

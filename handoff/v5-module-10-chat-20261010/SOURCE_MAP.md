@@ -7,7 +7,7 @@
 - 原算法donor：`9dfa50346357b6dc4b2463a30dcbf3718fce2f03`的`canonical/domains/close_review.py`；F固定副本`V5/vendor/hk_close_baseline/domains/close_review.py::build_native_close_review`已读。现有目标`hk_close_review.py::_assemble`是回放wrapper；新增`hk_close_daily.py`为生产适配（F查询404）。
 - 原新日collector已读：`C/ops/collect_hkconnect_close_snapshot.py::collect_close_snapshot`，先验证已有同日snapshot可复用，否则当前日且FINAL_CLOSE_CUTOFF=16:10，依原Connect板块集合取得行情后要求coverage。源码的quantity阈值不能取代M02权威成员/取得时间证据。
 - 原producer已读：`C/ops/build_close_review.py::build_close_review`→`CloseSnapshotStore.read_snapshot`→`PreselectionPoolStore.read_pool(trade_date,'hkconnect_d1_top100')`→原模型/七阶段reader→`build_native_close_review`→`ReviewStore.publish_native(expected_sha256=...)`。缺或非法预选原实现标模型来源缺口，不回退旧NativeDataStore/其他日期。
-- 原publisher/store部分已列`hk_close_source_manifest`，ops producer/collector不在该manifest内。按真实owner闭包核齐、由统一集成者冻结新来源；不为凑运行复制任意canonical整目录。
+- 原publisher/store部分已列`hk_close_source_manifest`，ops producer/collector不在该manifest内。固定canonical collector/build/store/预选reader与阶段selection原件已附，可直接审查静态依赖并提出收录候选；由统一集成者冻结新来源，不为凑运行复制任意canonical整目录。
 - 旧结果reader已读：`review_bridge.py`使用独立`review_readback_baseline`与source manifest，验证payload/receipt/manifest并只读投影；这三个输入必须保持原字节与source identity，不能把它改成执行器或把source_origin_verified提升。
 - HK复盘原七阶段是STAGE_0925、STAGE_0930_0935、STAGE_0935_0940、STAGE_0940_0945、STAGE_0945_1030、STAGE_1300_1315、STAGE_1445_1500；Stage8不在此集。缺阶段使用None，空列表仅是声明空，需额外源证才算真空。
 - 冻结catalog：workload_id=`hk_connect_close_review`，slot=`1610`，run_policy=`HK_SECURITIES_TRADE_DAY`，session_requirement=`POST_CLOSE`，命令原`ops.build_close_review`；日历与Connect资格不是一个门。

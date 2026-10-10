@@ -1,5 +1,12 @@
 # 给Chat的任务：M08 HK阶段选股
 
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
+
 你负责原M08/P3的HK阶段代码候选。先读取同包固定来源；只交方案与代码，由嘻嘻在Mac独验落地。
 
 1. 建普通four-lane、HK竞价、Stage8矩阵：原collector/selector、池和资格身份、窗口/cutoff、实际writer/receipt、普通API/页面。先从已核普通路径贯通，再用已附独立入口原件补全静态调用闭包；部署前核活动合同。不要根据09:25共享ID推断HK竞价等同A。

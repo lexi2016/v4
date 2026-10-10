@@ -12,7 +12,7 @@
 - S：原`build_a_share_close_review.py::build_review_from_panel`读取指定panel精确日期，构造原模型与close_chain并使用AShareReviewStore的import/replace。这个生产者不在当前仅三文件的`a_close`模型capsule闭包内，不能把纯model计算称完整正式复盘。
 - S：冻结runtime catalog的A槽为`1605`、`1710`；`daily_close_plan.py`只规划不执行，明确run_status=NOT_RUN。模型15:30 as_of标签和wrapper的15:30输入下限不是执行槽，也不是严格15:00 PIT证据。
 - R：迁移计划报告A核心回放有证，新日完整正式输出未证；旧17:11:41成功、PARTIAL_STAGE_EVIDENCE及正式多产物缺失按历史保留。
-- U：Mac活动全panel/成员完整性、原AShareReviewStore完整闭包与根、两个槽真实触发、A/H共用复盘路由的发布隔离、M12正式产物实到情况。
+- U：Mac活动全panel/成员完整性、原AShareReviewStore活动版本/根、两个槽真实触发、A/H共用复盘路由的发布隔离、M12正式产物实到情况。
 
 ## 本模块写入白名单
 
@@ -40,3 +40,7 @@ M01面板/全声明集合与真实时间、M07同日各阶段已提交引用、M
 - 需要公共接口时输出接口变更请求：请求ID、模块/owner、固定前像commit+路径+SHA、具体函数/路由、旧/新schema和示例、调用方、日期/状态/安全语义、兼容性、双方测试、发布顺序与回滚。统一集成者单写并返回新的固定基线；本Chat随后rebase最小差异。
 - 不新增18套服务器、页面或平行调度。原UI通过只读兼容层读已提交产物；GET、刷新、返回、日期切换不得暗中生成或采集。不要为HTTP空重复采已有成功数据。
 - 不交易、不下单、不修改BUY门，不扩凭据、安全权限或网络权限。未知与失败不能填0；合法空须完整可验证输入。研究资格、原拒绝码、PARTIAL/CANNOT_CONFIRM保留。
+
+## 可直接读取的源码附件
+
+`v5-module09-source-20261010.zip`已附固定F的现有目标/测试/manifest、模型capsule和原panel producer、review/chain/store相关原字节。Chat无需私有GitHub访问，可继续静态方案、代码和失败用例；仅真实数据/现场绑定在Mac执行前核。原测试所需完整应用依赖与Mac数据没有冒充已附或已验，详见附件README。

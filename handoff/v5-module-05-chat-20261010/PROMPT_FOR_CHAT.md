@@ -1,5 +1,12 @@
 # M05编码任务 · 从现有六lane/七来源到原池发布与阶段消费
 
+## 必须使用用户指定的 Superpowers 插件
+
+用户明确指定已安装的 Superpowers（plugin://superpowers@openai-curated-remote）。本会话须实际选择并使用该插件的相关技能，不能只在正文写插件名称当作已调用。先按 using-superpowers 判断应使用的流程；修复按 systematic-debugging，必要设计/计划在本模块范围内完成，再按 test-driven-development、requesting-code-review 与 verification-before-completion交代码和可核验证据。复用既有总体计划，不再发起全仓设计或仅交第二份计划。
+
+如果本会话无法访问该插件，说明实际入口/可见限制，不声称已启用；把这一问题回传嘻嘻。仍如实区分候选、静态检查、实际测试和Mac验收，禁止伪造执行。
+
+
 你只做原M05。已完成research接线及历史29/29+3项独审，不重新实现hourly，也不要停留在再加wrapper数测试数。先读SOURCE_MAP和历史证据，直接交基于f7cb最小候选。
 
 ## 最小分批
