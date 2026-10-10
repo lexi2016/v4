@@ -1,0 +1,63 @@
+{
+  "classification": "PROPOSAL_ONLY / LIVE_API_UI_NOT_RUN",
+  "changed_production_files": [
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "before_sha256": "6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355",
+      "after_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "delivery_before_matches": true,
+      "delivery_after_matches": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "before_sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "after_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "delivery_before_matches": true,
+      "delivery_after_matches": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/businessStatus.ts",
+      "before_sha256": "36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90",
+      "after_sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
+      "delivery_before_matches": true,
+      "delivery_after_matches": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "before_sha256": "3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698",
+      "after_sha256": "6d93d766c93da20130a5f0ac673820e6d27267c563742420ce6fbe2718adf4b6",
+      "delivery_before_matches": true,
+      "delivery_after_matches": true
+    }
+  ],
+  "preserved_workspace_validator": {
+    "path": "apps/web/src/api/managerWorkspace.ts",
+    "sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+    "byte_identical": true
+  },
+  "preserved_daily_validation_prefix": {
+    "path": "apps/web/src/manager-selection/dailyChannels.ts",
+    "boundary": "before const element =",
+    "sha256": "21646e72222200d64095fe6f0e7a9116f30a082eedba8c13ef95bb599907df67",
+    "bytes": 13755,
+    "byte_identical": true
+  },
+  "test_files": [
+    {
+      "path": "tests/frontend/runtime.test.mjs",
+      "sha256": "dd752dd82ed50a2d45a686f9df7e08e412166c36c06e5171cf4593d154df3030"
+    },
+    {
+      "path": "tests/frontend/fixtures.mjs",
+      "sha256": "7d29a5617b1516e14f5e40cda577ed04d30d26ee2545af85face3dc2f126d6b4"
+    },
+    {
+      "path": "tests/frontend/portable-browser.mjs",
+      "sha256": "90e7b1f5524b94ceac2a69ed93365b399bad902b9c0cea8a4d73a1dcaa42b5ee"
+    }
+  ],
+  "runner": {
+    "path": "tools/run_frontend_tests.mjs",
+    "sha256": "d49c480e9a216c3a78e68d932a2252f06fa12161eed9c46a97a597fc212cbce7"
+  }
+}

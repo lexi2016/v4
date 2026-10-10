@@ -1,0 +1,42 @@
+{
+  "synthetic_offline_tests_only": true,
+  "production_change": false,
+  "sources": [
+    {
+      "module": "api/managerWorkspace.ts",
+      "origin": "supplied immutable baseline",
+      "source": "input_snapshot/package/code/current_fused_app/apps/web/src/api/managerWorkspace.ts",
+      "sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f"
+    },
+    {
+      "module": "manager-selection/announcementObservation.ts",
+      "origin": "supplied immutable baseline",
+      "source": "input_snapshot/package/code/current_fused_app/apps/web/src/manager-selection/announcementObservation.ts",
+      "sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c"
+    },
+    {
+      "module": "manager-selection/announcementAnalysis.ts",
+      "origin": "supplied immutable baseline",
+      "source": "input_snapshot/package/code/current_fused_app/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327"
+    },
+    {
+      "module": "api/managerAnnouncementAnalysis.ts",
+      "origin": "read-only pinned Git recovery; test support only",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "git_blob": "c69bacde41c0af509be6816d2835eea5111dd021",
+      "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "repository": "lexi2016/v4",
+      "repository_path": "handoff/manager-daily-automation-repair-20261009-r2/dependencies/web_original/apps/web/src/api/managerAnnouncementAnalysis.ts"
+    },
+    {
+      "module": "manager-selection/adapters/workspaceDecision.ts",
+      "origin": "read-only pinned Git recovery; test support only",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "git_blob": "0871bfde4fcd9d8917b95006b5f5d743b81c696c",
+      "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+      "repository": "lexi2016/v4",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/apps/web/src/manager-selection/adapters/workspaceDecision.ts"
+    }
+  ]
+}

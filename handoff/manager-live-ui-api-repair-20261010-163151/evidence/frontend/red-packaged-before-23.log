@@ -1,0 +1,421 @@
+SYNTHETIC_OFFLINE_TEST_ONLY: before; no live API, market capture, owner run, or application state writes.
+(node:25) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Synthetic offline runtime: Node v24.19.0; Playwright 1.62.1; Chromium 153.0.8010.0; optional CJK font false
+✖ real panel visibly renders all three response-bound channels while the saved plan remains stale (4321.795114ms)
+✖ real panel distinguishes validated candidates and a validated empty set with visible run and product identities (537.241289ms)
+✖ all three daily statuses are in the first 670-by-900 viewport after the plan consumption status (220.432026ms)
+✖ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count 4 (536.992471ms)
+✖ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count 7 (291.73786ms)
+✖ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count null (199.303884ms)
+✖ core plan and research results precede a collapsed audit retaining all 100 raw rows on repeated renders (494.467461ms)
+✖ a date change clears the prior daily display and renders the new response date bindings (328.607603ms)
+✖ preserved validator rejects workspace target mismatch and the real panel clears prior candidates (330.538393ms)
+✖ preserved validator rejects workspace plan binding mismatch and the real panel clears prior candidates (533.866824ms)
+✖ preserved validator rejects announcement date mismatch and the real panel clears prior candidates (596.188642ms)
+✖ preserved validator rejects HK selection date mismatch and the real panel clears prior candidates (510.282359ms)
+✖ preserved validator rejects oversold target date mismatch and the real panel clears prior candidates (292.16909ms)
+✖ preserved validator rejects plan run mismatch and the real panel clears prior candidates (526.072909ms)
+✖ preserved validator rejects source SHA mismatch and the real panel clears prior candidates (314.988545ms)
+✖ preserved validator rejects research-only flag disabled and the real panel clears prior candidates (248.178081ms)
+✖ preserved validator rejects production enabled and the real panel clears prior candidates (294.164844ms)
+✖ preserved validator rejects BUY gate changed and the real panel clears prior candidates (467.355432ms)
+✖ preserved validator rejects orders sent and the real panel clears prior candidates (671.270536ms)
+✖ preserved validator rejects stale plan presented as consumed channel run and the real panel clears prior candidates (683.936383ms)
+✖ legacy response without daily date bindings remains readable with explicit unknown channel dates (399.819523ms)
+✖ stale diagnostics without supported component evidence remain CANNOT_CONFIRM (220.263772ms)
+✖ refresh uses one validated response for the plan and daily summary without another GET (296.081439ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 0
+ℹ fail 23
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13749.902921
+
+✖ failing tests:
+
+test at delivery/tests/frontend/runtime.test.mjs:144:1
+✖ real panel visibly renders all three response-bound channels while the saved plan remains stale (4321.795114ms)
+  AssertionError [ERR_ASSERTION]: The existing panel must wire the daily-channel renderer
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:149:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:177:1
+✖ real panel distinguishes validated candidates and a validated empty set with visible run and product identities (537.241289ms)
+  AssertionError [ERR_ASSERTION]: Daily results must be mounted by the real panel
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:184:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:201:1
+✖ all three daily statuses are in the first 670-by-900 viewport after the plan consumption status (220.432026ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:204:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:216:3
+✖ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count 4 (536.992471ms)
+  AssertionError [ERR_ASSERTION]: Upper status must name the assessment/completeness scope
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:222:12)
+      at runNextTicks (node:internal/process/task_queues:65:5)
+      at process.processImmediate (node:internal/timers:502:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:216:3
+✖ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count 7 (291.73786ms)
+  AssertionError [ERR_ASSERTION]: Upper status must name the assessment/completeness scope
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:222:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:216:3
+✖ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count null (199.303884ms)
+  AssertionError [ERR_ASSERTION]: Upper status must name the assessment/completeness scope
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:222:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:237:1
+✖ core plan and research results precede a collapsed audit retaining all 100 raw rows on repeated renders (494.467461ms)
+  AssertionError [ERR_ASSERTION]: All existing raw stock observations need one outer expandable audit
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:242:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:270:1
+✖ a date change clears the prior daily display and renders the new response date bindings (328.607603ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:280:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects workspace target mismatch and the real panel clears prior candidates (330.538393ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects workspace plan binding mismatch and the real panel clears prior candidates (533.866824ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects announcement date mismatch and the real panel clears prior candidates (596.188642ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects HK selection date mismatch and the real panel clears prior candidates (510.282359ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects oversold target date mismatch and the real panel clears prior candidates (292.16909ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects plan run mismatch and the real panel clears prior candidates (526.072909ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects source SHA mismatch and the real panel clears prior candidates (314.988545ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects research-only flag disabled and the real panel clears prior candidates (248.178081ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects production enabled and the real panel clears prior candidates (294.164844ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects BUY gate changed and the real panel clears prior candidates (467.355432ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects orders sent and the real panel clears prior candidates (671.270536ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:301:3
+✖ preserved validator rejects stale plan presented as consumed channel run and the real panel clears prior candidates (683.936383ms)
+  AssertionError [ERR_ASSERTION]: Failed contract should expose unknown channels without old results
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:317:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:326:1
+✖ legacy response without daily date bindings remains readable with explicit unknown channel dates (399.819523ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:331:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:337:1
+✖ stale diagnostics without supported component evidence remain CANNOT_CONFIRM (220.263772ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:342:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at delivery/tests/frontend/runtime.test.mjs:348:1
+✖ refresh uses one validated response for the plan and daily summary without another GET (296.081439ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/delivery/tests/frontend/runtime.test.mjs:354:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

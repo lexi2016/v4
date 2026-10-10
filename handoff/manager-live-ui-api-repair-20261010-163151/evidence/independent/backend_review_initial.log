@@ -1,0 +1,18 @@
+COMMAND: python3 work/evidence/test_backend_review.py
+EXIT_CODE: 1
+STDOUT:
+STDERR:
+test_scheduled_reuse_must_not_consume_legacy_same_identity_product (__main__.IndependentBackendReview.test_scheduled_reuse_must_not_consume_legacy_same_identity_product) ... FAIL
+
+======================================================================
+FAIL: test_scheduled_reuse_must_not_consume_legacy_same_identity_product (__main__.IndependentBackendReview.test_scheduled_reuse_must_not_consume_legacy_same_identity_product)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/evidence/test_backend_review.py", line 94, in test_scheduled_reuse_must_not_consume_legacy_same_identity_product
+    self.assertFalse(product.get("consumed") is True and product.get("run_id") == legacy["run_id"],
+AssertionError: True is not false : Legacy same-identity plan was reused as consumed despite failing ordinary readback: {'status': 'ALREADY_MATERIALIZED', 'run_id': '22222222222222222222222222222222', 'generated_at': '2026-10-09T08:00:00+08:00', 'sha256': 'dc524ffb714ea105bc06861951cb9538bb0769acb0a9d5a6746563383537c1b0', 'execution_kind': 'SCHEDULED_MORNING', 'consumed': True, 'original_owner': 'ManagerResearchJobService.refresh_workspace_plan', 'execution_context': None, 'run_readback': {'status': 'VERIFIED', 'target_trade_date': '20261009', 'run_id': '22222222222222222222222222222222', 'artifact_sha256': 'dc524ffb714ea105bc06861951cb9538bb0769acb0a9d5a6746563383537c1b0', 'input_identity': '94a0bf5058a052c8349a1e86e2e50236505c0b14b839563949354d3cc3ca46d4', 'owner': 'ManagerResearchJobService.refresh_workspace_plan', 'read_at': '2026-10-09T08:05:00+08:00', 'owner_attempt_run_id': '22222222222222222222222222222222', 'owner_attempt_sha256': 'e33c83391ab5c3f3dd490c5b6f041733cb78e40c49c68520be7dda1217be41d8', 'owner_attempt_state': 'PARTIAL', 'owner_finished_at': '2026-10-09T08:00:00+08:00'}}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.027s
+
+FAILED (failures=1)

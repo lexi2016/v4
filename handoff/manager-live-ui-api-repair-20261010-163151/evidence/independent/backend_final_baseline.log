@@ -1,0 +1,209 @@
+COMMAND: python3 -m unittest discover -s work/backend -p test_*.py -v
+WORKSPACE_SOURCE_ROOT: /workspace/scratch/38943af1e5bc/work/backend/baseline
+EXIT_CODE: 1
+STDOUT:
+STDERR:
+test_after_cutoff_daily_artifact_is_not_added_to_plan_identity (test_mapping_cutoff_identity.MappingCutoffIdentity.test_after_cutoff_daily_artifact_is_not_added_to_plan_identity) ... ok
+test_archive_projection_keeps_exact_original_binding_and_source_row (test_plan_semantic_identity.SemanticIdentityRegression.test_archive_projection_keeps_exact_original_binding_and_source_row) ... ok
+test_consumed_payload_receipt_entry_date_root_and_path_remain_sensitive (test_plan_semantic_identity.SemanticIdentityRegression.test_consumed_payload_receipt_entry_date_root_and_path_remain_sensitive) ... ok
+test_date_and_semantic_version_guards_still_reject (test_plan_semantic_identity.SemanticIdentityRegression.test_date_and_semantic_version_guards_still_reject) ... 
+  test_date_and_semantic_version_guards_still_reject (test_plan_semantic_identity.SemanticIdentityRegression.test_date_and_semantic_version_guards_still_reject) (field='date_bindings') ... FAIL
+  test_date_and_semantic_version_guards_still_reject (test_plan_semantic_identity.SemanticIdentityRegression.test_date_and_semantic_version_guards_still_reject) (field='semantic_version') ... FAIL
+test_earlier_read_cutoff_cannot_consume_later_plan (test_plan_semantic_identity.SemanticIdentityRegression.test_earlier_read_cutoff_cannot_consume_later_plan) ... FAIL
+test_genuine_change_is_stale_with_source_backed_component_diagnostics (test_plan_semantic_identity.SemanticIdentityRegression.test_genuine_change_is_stale_with_source_backed_component_diagnostics) ... FAIL
+test_legacy_plan_requires_owner_refresh_even_if_hash_is_copied (test_plan_semantic_identity.SemanticIdentityRegression.test_legacy_plan_requires_owner_refresh_even_if_hash_is_copied) ... FAIL
+test_manifest_only_readback_remains_current_same_run_product_date (test_plan_semantic_identity.SemanticIdentityRegression.test_manifest_only_readback_remains_current_same_run_product_date) ... FAIL
+test_missing_exact_owner_attempt_still_prevents_consumption (test_plan_semantic_identity.SemanticIdentityRegression.test_missing_exact_owner_attempt_still_prevents_consumption) ... ok
+test_product_hash_and_research_only_flags_still_fail_closed (test_plan_semantic_identity.SemanticIdentityRegression.test_product_hash_and_research_only_flags_still_fail_closed) ... ok
+test_semantic_availability_and_content_remain_sensitive (test_plan_semantic_identity.SemanticIdentityRegression.test_semantic_availability_and_content_remain_sensitive) ... ok
+test_unconsumed_registry_entry_change_keeps_actual_projection_identity (test_plan_semantic_identity.SemanticIdentityRegression.test_unconsumed_registry_entry_change_keeps_actual_projection_identity) ... FAIL
+test_unproven_binding_and_business_content_do_not_gain_exemption (test_plan_semantic_identity.SemanticIdentityRegression.test_unproven_binding_and_business_content_do_not_gain_exemption) ... ok
+test_unrelated_registry_change_keeps_consumed_material_identity (test_plan_semantic_identity.SemanticIdentityRegression.test_unrelated_registry_change_keeps_consumed_material_identity) ... FAIL
+test_admitted_card_global_registry_change_does_not_invalidate_attention (test_research_attention_identity.AttentionIdentityRegression.test_admitted_card_global_registry_change_does_not_invalidate_attention) ... FAIL
+test_consumed_card_payload_receipt_and_availability_still_invalidate (test_research_attention_identity.AttentionIdentityRegression.test_consumed_card_payload_receipt_and_availability_still_invalidate) ... ok
+test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan (test_scheduled_identity_compatibility.ScheduledIdentityCompatibility.test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan) ... 
+  test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan (test_scheduled_identity_compatibility.ScheduledIdentityCompatibility.test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan) (execution_kind='SCHEDULED_PREOPEN') ... FAIL
+  test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan (test_scheduled_identity_compatibility.ScheduledIdentityCompatibility.test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan) (execution_kind='SCHEDULED_MORNING') ... FAIL
+test_both_existing_scheduled_reuse_entries_reject_legacy_plan (test_scheduled_identity_compatibility.ScheduledIdentityCompatibility.test_both_existing_scheduled_reuse_entries_reject_legacy_plan) ... 
+  test_both_existing_scheduled_reuse_entries_reject_legacy_plan (test_scheduled_identity_compatibility.ScheduledIdentityCompatibility.test_both_existing_scheduled_reuse_entries_reject_legacy_plan) (execution_kind='SCHEDULED_PREOPEN') ... FAIL
+  test_both_existing_scheduled_reuse_entries_reject_legacy_plan (test_scheduled_identity_compatibility.ScheduledIdentityCompatibility.test_both_existing_scheduled_reuse_entries_reject_legacy_plan) (execution_kind='SCHEDULED_MORNING') ... FAIL
+test_entire_identity_chain_preserves_same_saved_run_on_registry_only_change (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_entire_identity_chain_preserves_same_saved_run_on_registry_only_change) ... FAIL
+test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate) ... 
+  test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate) (extension='announcement') ... FAIL
+  test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate) (extension='daily_mapping') ... FAIL
+test_real_leaf_changes_explain_staleness_through_actual_outer_components (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_real_leaf_changes_explain_staleness_through_actual_outer_components) ... 
+  test_real_leaf_changes_explain_staleness_through_actual_outer_components (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_real_leaf_changes_explain_staleness_through_actual_outer_components) (change='payload_sha256') ... FAIL
+  test_real_leaf_changes_explain_staleness_through_actual_outer_components (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_real_leaf_changes_explain_staleness_through_actual_outer_components) (change='receipt_sha256') ... FAIL
+  test_real_leaf_changes_explain_staleness_through_actual_outer_components (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_real_leaf_changes_explain_staleness_through_actual_outer_components) (change='available_at') ... FAIL
+
+======================================================================
+FAIL: test_date_and_semantic_version_guards_still_reject (test_plan_semantic_identity.SemanticIdentityRegression.test_date_and_semantic_version_guards_still_reject) (field='date_bindings')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_plan_semantic_identity.py", line 240, in test_date_and_semantic_version_guards_still_reject
+    self.assertIn(key, {row['component'] for row in diagnostics.get('changed_components', [])})
+AssertionError: 'date_bindings' not found in set()
+
+======================================================================
+FAIL: test_date_and_semantic_version_guards_still_reject (test_plan_semantic_identity.SemanticIdentityRegression.test_date_and_semantic_version_guards_still_reject) (field='semantic_version')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_plan_semantic_identity.py", line 240, in test_date_and_semantic_version_guards_still_reject
+    self.assertIn(key, {row['component'] for row in diagnostics.get('changed_components', [])})
+AssertionError: 'semantic_version' not found in set()
+
+======================================================================
+FAIL: test_earlier_read_cutoff_cannot_consume_later_plan (test_plan_semantic_identity.SemanticIdentityRegression.test_earlier_read_cutoff_cannot_consume_later_plan)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_plan_semantic_identity.py", line 252, in test_earlier_read_cutoff_cannot_consume_later_plan
+    self.assertIn('research_cutoff', {row['component'] for row in diagnostics.get('changed_components', [])})
+AssertionError: 'research_cutoff' not found in set()
+
+======================================================================
+FAIL: test_genuine_change_is_stale_with_source_backed_component_diagnostics (test_plan_semantic_identity.SemanticIdentityRegression.test_genuine_change_is_stale_with_source_backed_component_diagnostics)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_plan_semantic_identity.py", line 204, in test_genuine_change_is_stale_with_source_backed_component_diagnostics
+    self.assertIsInstance(diagnostics, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_legacy_plan_requires_owner_refresh_even_if_hash_is_copied (test_plan_semantic_identity.SemanticIdentityRegression.test_legacy_plan_requires_owner_refresh_even_if_hash_is_copied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_plan_semantic_identity.py", line 220, in test_legacy_plan_requires_owner_refresh_even_if_hash_is_copied
+    self.assertFalse(got['plan_product']['consumed'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_manifest_only_readback_remains_current_same_run_product_date (test_plan_semantic_identity.SemanticIdentityRegression.test_manifest_only_readback_remains_current_same_run_product_date)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_plan_semantic_identity.py", line 161, in test_manifest_only_readback_remains_current_same_run_product_date
+    self.assertEqual(got['plan_product']['status'], 'CURRENT')
+AssertionError: 'STALE_INPUTS_CHANGED' != 'CURRENT'
+- STALE_INPUTS_CHANGED
++ CURRENT
+
+
+======================================================================
+FAIL: test_unconsumed_registry_entry_change_keeps_actual_projection_identity (test_plan_semantic_identity.SemanticIdentityRegression.test_unconsumed_registry_entry_change_keeps_actual_projection_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_plan_semantic_identity.py", line 111, in test_unconsumed_registry_entry_change_keeps_actual_projection_identity
+    self.assertEqual(before['input_identity'], after['input_identity'])
+AssertionError: '15ecc0ca7f772409895cd5d13a0a39d4ed47ef6d034f624c6d3542e04317369c' != '3729464fb2caa5dd13005d50a712baa0d35f61a16f0b0d1534d9f29f047495ff'
+- 15ecc0ca7f772409895cd5d13a0a39d4ed47ef6d034f624c6d3542e04317369c
++ 3729464fb2caa5dd13005d50a712baa0d35f61a16f0b0d1534d9f29f047495ff
+
+
+======================================================================
+FAIL: test_unrelated_registry_change_keeps_consumed_material_identity (test_plan_semantic_identity.SemanticIdentityRegression.test_unrelated_registry_change_keeps_consumed_material_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_plan_semantic_identity.py", line 150, in test_unrelated_registry_change_keeps_consumed_material_identity
+    self.assertEqual(relation_input([before])['input_identity'], relation_input([after])['input_identity'])
+AssertionError: 'bbd8aef0fd49a4d0a52a36f4a03aed950dccf62d4c782a5305cc1e4e132ed378' != 'b31a8adf6199affc65766e9a8fcc3221c37f67e58f03443b3ef94e5bc74cf4d2'
+- bbd8aef0fd49a4d0a52a36f4a03aed950dccf62d4c782a5305cc1e4e132ed378
++ b31a8adf6199affc65766e9a8fcc3221c37f67e58f03443b3ef94e5bc74cf4d2
+
+
+======================================================================
+FAIL: test_admitted_card_global_registry_change_does_not_invalidate_attention (test_research_attention_identity.AttentionIdentityRegression.test_admitted_card_global_registry_change_does_not_invalidate_attention)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_research_attention_identity.py", line 32, in test_admitted_card_global_registry_change_does_not_invalidate_attention
+    self.assertEqual(a['input_identity'], b['input_identity'])
+AssertionError: '9975f3342f50f05bf764136c96cdd9554db13f38fe59cc69019391797cad7bf8' != 'f49abf35bf9cd390eea4c74f2f860d038d720e1c8441f93d2499418e0f4380ad'
+- 9975f3342f50f05bf764136c96cdd9554db13f38fe59cc69019391797cad7bf8
++ f49abf35bf9cd390eea4c74f2f860d038d720e1c8441f93d2499418e0f4380ad
+
+
+======================================================================
+FAIL: test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan (test_scheduled_identity_compatibility.ScheduledIdentityCompatibility.test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan) (execution_kind='SCHEDULED_PREOPEN')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_scheduled_identity_compatibility.py", line 93, in test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan
+    self.assertIsInstance(diagnostics, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan (test_scheduled_identity_compatibility.ScheduledIdentityCompatibility.test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan) (execution_kind='SCHEDULED_MORNING')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_scheduled_identity_compatibility.py", line 93, in test_both_existing_scheduled_reuse_entries_keep_compatible_v2_plan
+    self.assertIsInstance(diagnostics, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_both_existing_scheduled_reuse_entries_reject_legacy_plan (test_scheduled_identity_compatibility.ScheduledIdentityCompatibility.test_both_existing_scheduled_reuse_entries_reject_legacy_plan) (execution_kind='SCHEDULED_PREOPEN')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_scheduled_identity_compatibility.py", line 75, in test_both_existing_scheduled_reuse_entries_reject_legacy_plan
+    self.assertFalse(got['plan_product'].get('consumed') is True
+AssertionError: True is not false : The saved legacy run must not be promoted to consumed.
+
+======================================================================
+FAIL: test_both_existing_scheduled_reuse_entries_reject_legacy_plan (test_scheduled_identity_compatibility.ScheduledIdentityCompatibility.test_both_existing_scheduled_reuse_entries_reject_legacy_plan) (execution_kind='SCHEDULED_MORNING')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_scheduled_identity_compatibility.py", line 75, in test_both_existing_scheduled_reuse_entries_reject_legacy_plan
+    self.assertFalse(got['plan_product'].get('consumed') is True
+AssertionError: True is not false : The saved legacy run must not be promoted to consumed.
+
+======================================================================
+FAIL: test_entire_identity_chain_preserves_same_saved_run_on_registry_only_change (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_entire_identity_chain_preserves_same_saved_run_on_registry_only_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_workspace_identity_integration.py", line 82, in test_entire_identity_chain_preserves_same_saved_run_on_registry_only_change
+    self.assertEqual(initial['input_identity'], current['input_identity'])
+AssertionError: 'e848ea96e84d0f5c7acf0111daff7d179e29f3bdd2f2f7442b0c6f0398e7172b' != 'a50c3b6eb0adcf7cddf6043419322f2f5b84bee32e31548e364bd43f70a9138f'
+- e848ea96e84d0f5c7acf0111daff7d179e29f3bdd2f2f7442b0c6f0398e7172b
++ a50c3b6eb0adcf7cddf6043419322f2f5b84bee32e31548e364bd43f70a9138f
+
+
+======================================================================
+FAIL: test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate) (extension='announcement')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_workspace_identity_integration.py", line 131, in test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate
+    self.assertIsInstance(diagnostics, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate) (extension='daily_mapping')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_workspace_identity_integration.py", line 131, in test_independent_announcement_and_daily_mapping_identity_extensions_still_invalidate
+    self.assertIsInstance(diagnostics, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_real_leaf_changes_explain_staleness_through_actual_outer_components (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_real_leaf_changes_explain_staleness_through_actual_outer_components) (change='payload_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_workspace_identity_integration.py", line 113, in test_real_leaf_changes_explain_staleness_through_actual_outer_components
+    self.assertIsInstance(diagnostics, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_real_leaf_changes_explain_staleness_through_actual_outer_components (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_real_leaf_changes_explain_staleness_through_actual_outer_components) (change='receipt_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_workspace_identity_integration.py", line 113, in test_real_leaf_changes_explain_staleness_through_actual_outer_components
+    self.assertIsInstance(diagnostics, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_real_leaf_changes_explain_staleness_through_actual_outer_components (test_workspace_identity_integration.WorkspaceIdentityIntegration.test_real_leaf_changes_explain_staleness_through_actual_outer_components) (change='available_at')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/38943af1e5bc/work/backend/test_workspace_identity_integration.py", line 113, in test_real_leaf_changes_explain_staleness_through_actual_outer_components
+    self.assertIsInstance(diagnostics, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+----------------------------------------------------------------------
+Ran 21 tests in 0.106s
+
+FAILED (failures=19)

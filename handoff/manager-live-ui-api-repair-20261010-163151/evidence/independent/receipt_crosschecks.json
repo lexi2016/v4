@@ -1,0 +1,549 @@
+{
+  "status": "PASS_PACKAGE_RECEIPT_CROSSCHECKS",
+  "execution_boundary": "RECEIPT_METADATA_AND_SOURCE_BYTES_ONLY; PROPOSAL_ONLY / LIVE_API_UI_NOT_RUN",
+  "checks": [
+    {
+      "name": "fixed_reference_count",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:apps/api/v35_api/manager_research_router.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:apps/web/src/api/managerWorkspace.ts",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:apps/web/src/manager-selection/dailyChannels.ts",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:infrastructure/scheduling/manager_announcement_supervisor.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:ops/run_manager_announcement_cycle.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:ops/run_manager_daily_announcement.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:v4/manager_research/plan_owner_dispatch.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:v4/manager_research/service.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:v4/manager_research/us_mapping_research.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:v4/manager_research/workspace_announcements.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:v4/manager_research/workspace_history.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:v4/manager_research/workspace_plan.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:v4/manager_research/workspace_plan_autorun.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:v4/manager_research/connect_selection.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_source_bytes:v4/manager_research/workspace.py",
+      "pass": true
+    },
+    {
+      "name": "fixed_reference_commit_consistency",
+      "pass": true
+    },
+    {
+      "name": "immediate_request_order_and_status",
+      "pass": true
+    },
+    {
+      "name": "immediate_and_later_run_product_date_agree",
+      "pass": true
+    },
+    {
+      "name": "later_stale_and_identity_diff",
+      "pass": true
+    },
+    {
+      "name": "later_semantic_version_and_cutoff_equal",
+      "pass": true
+    },
+    {
+      "name": "live_saved_file_and_counterfactual_same_plan_bytes",
+      "pass": true
+    },
+    {
+      "name": "handoff_plan_identity_agrees",
+      "pass": true
+    },
+    {
+      "name": "deployed_channel_projection_agrees",
+      "pass": true
+    },
+    {
+      "name": "counterfactual_40_unique_leaf_metadata_pairs",
+      "pass": true
+    },
+    {
+      "name": "counterfactual_leaf_entry_payload_equality",
+      "pass": true
+    },
+    {
+      "name": "counterfactual_1970_count_claims_agree",
+      "pass": true
+    },
+    {
+      "name": "counterfactual_identity_claims_agree",
+      "pass": true
+    },
+    {
+      "name": "counterfactual_is_distinct_from_live_identity",
+      "pass": true
+    },
+    {
+      "name": "counterfactual_unique_live_cause_unconfirmed",
+      "pass": true
+    },
+    {
+      "name": "corrected_isolated_run_distinct",
+      "pass": true
+    },
+    {
+      "name": "corrected_isolated_product_agrees",
+      "pass": true
+    },
+    {
+      "name": "corrected_isolated_stays_partial",
+      "pass": true
+    },
+    {
+      "name": "corrected_isolated_us_finance_ready_without_snapshot",
+      "pass": true
+    },
+    {
+      "name": "corrected_screen_pending_gaps_and_units",
+      "pass": true
+    },
+    {
+      "name": "visual_receipt_runtime_source_sha",
+      "pass": true
+    },
+    {
+      "name": "three_screenshot_hashes",
+      "pass": true
+    },
+    {
+      "name": "frontend_loaded_browser_bundle_unconfirmed",
+      "pass": true
+    },
+    {
+      "name": "frontend_historical_synthetic_not_mount_acceptance",
+      "pass": true
+    },
+    {
+      "name": "research_safety_receipt_consistency",
+      "pass": true
+    },
+    {
+      "name": "recovered_identity_exact_bytes:infrastructure/research_lane_source.py",
+      "pass": true
+    },
+    {
+      "name": "recovered_identity_exact_bytes:v4/manager_research/existing_materials.py",
+      "pass": true
+    },
+    {
+      "name": "recovered_identity_exact_bytes:v4/manager_research/workspace_projection.py",
+      "pass": true
+    }
+  ],
+  "source_counts": {
+    "total": 57,
+    "by_type": {
+      "deployed_candidate_ui_or_api_context": 9,
+      "fixed_16_source_reference": 16,
+      "previous_reviewed_reference_snapshot": 32
+    },
+    "current_fused_app": 25
+  },
+  "fixed_reference_checks": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "ops/run_manager_daily_announcement.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "sha256_and_git_blob_match": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "sha256_and_git_blob_match": true
+    }
+  ],
+  "identity_source_presence": [
+    {
+      "path": "infrastructure/research_lane_source.py",
+      "present_in_supplied_package": false,
+      "receipt_sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "supplied_sha256": null
+    },
+    {
+      "path": "v4/manager_research/existing_materials.py",
+      "present_in_supplied_package": false,
+      "receipt_sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "supplied_sha256": null
+    },
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "present_in_supplied_package": false,
+      "receipt_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "supplied_sha256": null
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "present_in_supplied_package": true,
+      "receipt_sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+      "supplied_sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0"
+    }
+  ],
+  "recovered_identity_source_checks": [
+    {
+      "runtime_path": "infrastructure/research_lane_source.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/research_lane_source.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "git_blob_sha": "fe5545af263b12d435c6a69999a75b4a32444dd6",
+      "sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "actual_bytes_match_both_hashes": true
+    },
+    {
+      "runtime_path": "v4/manager_research/existing_materials.py",
+      "repository_path": "handoff/v4-running-source-20261005/api/v4/manager_research/existing_materials.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "git_blob_sha": "37d68758dc987a919ffb28fee3c35cdde8d7c6aa",
+      "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "actual_bytes_match_both_hashes": true
+    },
+    {
+      "runtime_path": "v4/manager_research/workspace_projection.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_projection.py",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "git_blob_sha": "5799baef183dd4a93bdbc24c817a5df3d9e3cc33",
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "actual_bytes_match_both_hashes": true
+    }
+  ],
+  "recovery_manifest_sha256_at_audit": "f848333b7663414f229e829c95538d212f28c9d9183e2c31675703cad160cdad",
+  "missing_direct_local_imports": {
+    "apps.api.v35_api.baimao_router": [
+      "apps/api/v35_api/app.py"
+    ],
+    "apps.api.v35_api.manager_workbench_router": [
+      "apps/api/v35_api/app.py"
+    ],
+    "apps.api.v35_api.preselection_router": [
+      "apps/api/v35_api/app.py"
+    ],
+    "apps.api.v35_api.preselection_service": [
+      "apps/api/v35_api/app.py"
+    ],
+    "apps.api.v35_api.research_lane_router": [
+      "apps/api/v35_api/app.py"
+    ],
+    "apps.api.v35_api.research_router": [
+      "apps/api/v35_api/app.py"
+    ],
+    "apps.api.v35_api.review_router": [
+      "apps/api/v35_api/app.py"
+    ],
+    "apps.api.v35_api.runtime_graph_router": [
+      "apps/api/v35_api/app.py"
+    ],
+    "apps.api.v35_api.runtime_router": [
+      "apps/api/v35_api/app.py"
+    ],
+    "infrastructure.data_store": [
+      "apps/api/v35_api/app.py"
+    ],
+    "infrastructure.futu_quote_provider": [
+      "apps/api/v35_api/app.py"
+    ],
+    "infrastructure.hkconnect_close_store": [
+      "v4/manager_research/workspace_plan.py"
+    ],
+    "infrastructure.hkconnect_stage_replay_provider": [
+      "apps/api/v35_api/app.py"
+    ],
+    "infrastructure.manager_input_attestation": [
+      "v4/manager_research/workspace_plan.py"
+    ],
+    "infrastructure.opening_second_filter_store": [
+      "apps/api/v35_api/app.py"
+    ],
+    "infrastructure.owned_io": [
+      "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "v4/manager_research/plan_owner_dispatch.py",
+      "v4/manager_research/workspace.py",
+      "v4/manager_research/workspace_plan.py"
+    ],
+    "infrastructure.research_lane_source": [
+      "apps/api/v35_api/app.py"
+    ],
+    "infrastructure.review_store": [
+      "apps/api/v35_api/app.py"
+    ],
+    "infrastructure.scheduling.dispatcher": [
+      "apps/api/v35_api/app.py"
+    ],
+    "infrastructure.scheduling.execution_ledger": [
+      "v4/manager_research/workspace.py"
+    ],
+    "infrastructure.stage_quote_provider": [
+      "apps/api/v35_api/app.py"
+    ],
+    "infrastructure.stage_store": [
+      "apps/api/v35_api/app.py"
+    ],
+    "infrastructure.tdx_minute_replay_provider": [
+      "apps/api/v35_api/app.py"
+    ],
+    "upstreams.v3_shared_data.shared_data.hashing": [
+      "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "v4/manager_research/workspace_announcements.py"
+    ],
+    "upstreams.v3_shared_data.shared_data.paths": [
+      "upstreams/v3_shared_data/shared_data/hk_security_master.py"
+    ],
+    "upstreams.v3_shared_data.shared_data.store": [
+      "upstreams/v3_shared_data/shared_data/hk_security_master.py"
+    ],
+    "v4.manager_research.activation_canary": [
+      "infrastructure/scheduling/manager_announcement_supervisor.py"
+    ],
+    "v4.manager_research.announcement_analysis": [
+      "apps/api/v35_api/manager_research_router.py",
+      "ops/run_manager_daily_announcement.py",
+      "v4/manager_research/service.py",
+      "v4/manager_research/workspace.py",
+      "v4/manager_research/workspace_announcements.py"
+    ],
+    "v4.manager_research.announcement_autorun": [
+      "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "ops/run_manager_announcement_cycle.py",
+      "v4/manager_research/workspace_announcements.py"
+    ],
+    "v4.manager_research.announcement_catalog": [
+      "v4/manager_research/workspace_announcements.py"
+    ],
+    "v4.manager_research.announcement_materials": [
+      "v4/manager_research/workspace_announcements.py",
+      "v4/manager_research/workspace_plan.py"
+    ],
+    "v4.manager_research.announcement_observation": [
+      "v4/manager_research/workspace.py"
+    ],
+    "v4.manager_research.announcement_selection": [
+      "ops/run_manager_daily_announcement.py",
+      "v4/manager_research/workspace_announcements.py"
+    ],
+    "v4.manager_research.announcement_source": [
+      "v4/manager_research/workspace_announcements.py"
+    ],
+    "v4.manager_research.cache_contract": [
+      "v4/manager_research/service.py"
+    ],
+    "v4.manager_research.catalyst_observations": [
+      "v4/manager_research/service.py",
+      "v4/manager_research/workspace.py"
+    ],
+    "v4.manager_research.catalyst_projection": [
+      "v4/manager_research/service.py"
+    ],
+    "v4.manager_research.connect_capture_adapter": [
+      "v4/manager_research/connect_selection.py"
+    ],
+    "v4.manager_research.contracts": [
+      "v4/manager_research/service.py",
+      "v4/manager_research/us_mapping_research.py"
+    ],
+    "v4.manager_research.errors": [
+      "v4/manager_research/service.py"
+    ],
+    "v4.manager_research.event_source": [
+      "v4/manager_research/service.py"
+    ],
+    "v4.manager_research.existing_materials": [
+      "v4/manager_research/workspace.py"
+    ],
+    "v4.manager_research.financial_projection": [
+      "v4/manager_research/service.py"
+    ],
+    "v4.manager_research.hkex_provider": [
+      "ops/run_manager_announcement_cycle.py",
+      "v4/manager_research/workspace_announcements.py"
+    ],
+    "v4.manager_research.materials": [
+      "ops/run_manager_announcement_cycle.py"
+    ],
+    "v4.manager_research.ports": [
+      "v4/manager_research/service.py"
+    ],
+    "v4.manager_research.reader_source": [
+      "v4/manager_research/service.py"
+    ],
+    "v4.manager_research.recommendation": [
+      "v4/manager_research/service.py"
+    ],
+    "v4.manager_research.research_attention": [
+      "v4/manager_research/workspace.py"
+    ],
+    "v4.manager_research.safety": [
+      "v4/manager_research/service.py",
+      "v4/manager_research/us_mapping_research.py",
+      "v4/manager_research/workspace_history.py"
+    ],
+    "v4.manager_research.stage_read_timing": [
+      "v4/manager_research/workspace.py"
+    ],
+    "v4.manager_research.store": [
+      "apps/api/v35_api/manager_research_router.py",
+      "ops/run_manager_announcement_cycle.py",
+      "v4/manager_research/service.py"
+    ],
+    "v4.manager_research.us_market_bridge": [
+      "v4/manager_research/us_mapping_research.py",
+      "v4/manager_research/workspace.py",
+      "v4/manager_research/workspace_history.py"
+    ],
+    "v4.manager_research.workspace_actions": [
+      "v4/manager_research/workspace_plan.py"
+    ],
+    "v4.manager_research.workspace_daily_channels": [
+      "v4/manager_research/workspace.py"
+    ],
+    "v4.manager_research.workspace_discovery": [
+      "v4/manager_research/workspace.py"
+    ],
+    "v4.manager_research.workspace_projection": [
+      "apps/api/v35_api/manager_research_router.py",
+      "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "ops/run_manager_announcement_cycle.py",
+      "ops/run_manager_daily_announcement.py",
+      "v4/manager_research/connect_selection.py",
+      "v4/manager_research/plan_owner_dispatch.py",
+      "v4/manager_research/us_mapping_research.py",
+      "v4/manager_research/workspace.py",
+      "v4/manager_research/workspace_announcements.py",
+      "v4/manager_research/workspace_history.py",
+      "v4/manager_research/workspace_plan.py",
+      "v4/manager_research/workspace_plan_autorun.py"
+    ],
+    "v4.manager_research.workspace_read_control": [
+      "apps/api/v35_api/manager_research_router.py",
+      "v4/manager_research/service.py",
+      "v4/manager_research/workspace.py",
+      "v4/manager_research/workspace_announcements.py",
+      "v4/manager_research/workspace_history.py",
+      "v4/manager_research/workspace_plan.py"
+    ],
+    "v4.manager_research.workspace_semantics": [
+      "v4/manager_research/workspace_history.py"
+    ]
+  },
+  "missing_direct_local_import_count": 59,
+  "package_limitations": [
+    "No saved 1,970-material plan/raw source_rows array",
+    "No original payload/receipt bytes for the 40 bound artifacts",
+    "No previous global manifest bytes",
+    "No 15,037,791-byte live GET body or digest",
+    "No browser-loaded bundle bytes/digest",
+    "No full runtime dependency tree or original package/build lockfiles"
+  ],
+  "historical_report_caveats": {
+    "root_cause_report_projection_cited_sha256": "dda047f7a8ee6b9a442ee7ae7ebf175d1edf6d0856430e5a03c4e1802e4b4805",
+    "packaged_projection_sha256": "0438d5b55e06bc36483edcdb4b98c801924431522a3b2b50ab855fc9dda4b7b7",
+    "cited_projection_matches_current_file": false,
+    "non_sha256_length_hex_citations": [
+      "56ae0ce08a533c6e752716108b075f40fbcebd6bfb7075d626ffcb7fd4db9fb"
+    ],
+    "machine_receipt_first_leaf_receipt_sha256": "56ae0ce08a533c6e752716108b075f40fbcebd6bfb7075d626ffcb7fd4db9fb5"
+  },
+  "warnings": [
+    "Receipt agreement does not recompute historical raw owner bytes or reproduce the historical live mismatch.",
+    "Git blob ID equality binds bytes to the supplied reference metadata; this audit did not independently contact GitHub to verify commit reachability.",
+    "The supplied reproduction script records EXPECTED_PLAN_SHA but does not assert it; its archived receipt's actual and expected hashes agree. It was inspected, not executed."
+  ]
+}

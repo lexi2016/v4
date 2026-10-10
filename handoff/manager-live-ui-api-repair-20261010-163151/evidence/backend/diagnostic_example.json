@@ -1,0 +1,298 @@
+{
+  "evidence_kind": "ISOLATED_SYNTHETIC_API_SHAPE_NOT_LIVE_RECEIPT",
+  "target_trade_date": "20261009",
+  "date_bindings": {
+    "plan_date": "20261009",
+    "selection_date": "20261009",
+    "announcement_date": "20261008"
+  },
+  "plan_product": {
+    "status": "STALE_INPUTS_CHANGED",
+    "run_id": "11111111111111111111111111111111",
+    "generated_at": "2026-10-10T09:00:00+08:00",
+    "sha256": "9dae9d89edbec5a5d66aad5c8c4c802bd4520b1e02ba82591fdd69c4eb2cea41",
+    "execution_kind": "MANUAL_REFRESH",
+    "execution_context": null,
+    "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+    "last_checked_at": "2026-10-10T09:00:00+08:00",
+    "consumed": false,
+    "input_identity_diagnostics": {
+      "schema_version": "v4.manager_research.input_identity_diagnostics.v1",
+      "input_identity_schema": "v4.manager_research.input_identity.v2",
+      "status": "CHANGED",
+      "saved_input_identity": "ca92d68534b6ce0489f44095b1c267b6f35a1d67294b8a899644b9646f5b6df6",
+      "current_input_identity": "8009e544385f4c95d951829093501e95b9220cee11831fcda39e62cbe7a18948",
+      "changed_components": [
+        {
+          "component": "gated_projection",
+          "saved_sha256": "7d61ce9041b1683ebe51f647ee019e61efc4d06c3cdf94c4d603aae03deb6a45",
+          "current_sha256": "ecfb66e2f650f5936315aa1206325917324de17a4c4a6161dbeedb98844ef235",
+          "saved_sources": [],
+          "current_sources": []
+        },
+        {
+          "component": "projection.discovery_rejections",
+          "saved_sha256": "a4e7ef2a536efb8360ec4608e03bf06d153e242621758f2da6aafa4844c5b1c3",
+          "current_sha256": "d0ebabf408a2ff47444e661147674cabf8d85e21c00c5579b4cbfce01a872281",
+          "saved_sources": [
+            {
+              "source_root": "/ISOLATED/research",
+              "source_date": "20261008",
+              "source_id": "V35_RESEARCH_DATA_ROOT",
+              "status": "VERIFIED",
+              "slot": "",
+              "mode": "LIVE",
+              "manifest_path": "manifest.json",
+              "recommendation_status": "RESEARCH_ONLY",
+              "write_policy": "read_only",
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "payload_path": "research/archives/20261008.json",
+              "manifest_entry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "receipt_path": "receipts/research/archives/20261008.json",
+              "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          ],
+          "current_sources": [
+            {
+              "source_root": "/ISOLATED/research",
+              "source_date": "20261008",
+              "source_id": "V35_RESEARCH_DATA_ROOT",
+              "status": "VERIFIED",
+              "slot": "",
+              "mode": "LIVE",
+              "manifest_path": "manifest.json",
+              "recommendation_status": "RESEARCH_ONLY",
+              "write_policy": "read_only",
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "payload_path": "research/archives/20261008.json",
+              "manifest_entry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "receipt_path": "receipts/research/archives/20261008.json",
+              "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          ]
+        },
+        {
+          "component": "projection.materials",
+          "saved_sha256": "820b27e9ee43ec1a3508fbf533a2a826791ff0a05e156827c1b00a7b312a57c6",
+          "current_sha256": "073f736b161fb066d5e69fef004853fbce1ff1ab1bfb381062f5cef49d09da5f",
+          "saved_sources": [
+            {
+              "source_root": "/ISOLATED/research",
+              "source_date": "20261008",
+              "source_id": "V35_RESEARCH_DATA_ROOT",
+              "status": "VERIFIED",
+              "slot": "",
+              "mode": "LIVE",
+              "manifest_path": "manifest.json",
+              "recommendation_status": "RESEARCH_ONLY",
+              "write_policy": "read_only",
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "payload_path": "research/archives/20261008.json",
+              "manifest_entry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "receipt_path": "receipts/research/archives/20261008.json",
+              "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          ],
+          "current_sources": [
+            {
+              "source_root": "/ISOLATED/research",
+              "source_date": "20261008",
+              "source_id": "V35_RESEARCH_DATA_ROOT",
+              "status": "VERIFIED",
+              "slot": "",
+              "mode": "LIVE",
+              "manifest_path": "manifest.json",
+              "recommendation_status": "RESEARCH_ONLY",
+              "write_policy": "read_only",
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "payload_path": "research/archives/20261008.json",
+              "manifest_entry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "receipt_path": "receipts/research/archives/20261008.json",
+              "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          ]
+        },
+        {
+          "component": "research_attention.material_cards",
+          "saved_sha256": "11f69123083c7b3a7f676129c4d8557c04332fd1ec2415897449e8737a2221e7",
+          "current_sha256": "7c15fdf80ca800e340e75c50c08ecd3a32d80cf8904e6746ebcb2c3e19fa8551",
+          "saved_sources": [
+            {
+              "source_root": "/ISOLATED/research",
+              "source_date": "20261008",
+              "source_id": "V35_RESEARCH_DATA_ROOT",
+              "status": "VERIFIED",
+              "slot": "",
+              "mode": "LIVE",
+              "manifest_path": "manifest.json",
+              "recommendation_status": "RESEARCH_ONLY",
+              "write_policy": "read_only",
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "payload_path": "research/archives/20261008.json",
+              "manifest_entry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "receipt_path": "receipts/research/archives/20261008.json",
+              "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          ],
+          "current_sources": [
+            {
+              "source_root": "/ISOLATED/research",
+              "source_date": "20261008",
+              "source_id": "V35_RESEARCH_DATA_ROOT",
+              "status": "VERIFIED",
+              "slot": "",
+              "mode": "LIVE",
+              "manifest_path": "manifest.json",
+              "recommendation_status": "RESEARCH_ONLY",
+              "write_policy": "read_only",
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "payload_path": "research/archives/20261008.json",
+              "manifest_entry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "receipt_path": "receipts/research/archives/20261008.json",
+              "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          ]
+        },
+        {
+          "component": "research_attention.material_input",
+          "saved_sha256": "2e8b662abc84f059bbaa78f314ac359e478b66f4a02f80c6a787390b1f68449b",
+          "current_sha256": "2407283a57f148efcf752a4803f04b74a55e51abc0a1f2a6691edd1377b4b6b7",
+          "saved_sources": [
+            {
+              "source_root": "/ISOLATED/research",
+              "source_date": "20261008",
+              "source_id": "V35_RESEARCH_DATA_ROOT",
+              "status": "VERIFIED",
+              "slot": "",
+              "mode": "LIVE",
+              "manifest_path": "manifest.json",
+              "recommendation_status": "RESEARCH_ONLY",
+              "write_policy": "read_only",
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "payload_path": "research/archives/20261008.json",
+              "manifest_entry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "receipt_path": "receipts/research/archives/20261008.json",
+              "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          ],
+          "current_sources": [
+            {
+              "source_root": "/ISOLATED/research",
+              "source_date": "20261008",
+              "source_id": "V35_RESEARCH_DATA_ROOT",
+              "status": "VERIFIED",
+              "slot": "",
+              "mode": "LIVE",
+              "manifest_path": "manifest.json",
+              "recommendation_status": "RESEARCH_ONLY",
+              "write_policy": "read_only",
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "payload_path": "research/archives/20261008.json",
+              "manifest_entry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "receipt_path": "receipts/research/archives/20261008.json",
+              "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          ]
+        },
+        {
+          "component": "research_attention.projection",
+          "saved_sha256": "b66f393548b3dd6da607a3954d95d2af85e9b6255905ba598558f46373314b9e",
+          "current_sha256": "21ad88f86ece842793e81c6df877456af56cff60da35a9e7b3fd530ef23bc7ed",
+          "saved_sources": [
+            {
+              "source_root": "/ISOLATED/research",
+              "source_date": "20261008",
+              "source_id": "V35_RESEARCH_DATA_ROOT",
+              "status": "VERIFIED",
+              "slot": "",
+              "mode": "LIVE",
+              "manifest_path": "manifest.json",
+              "recommendation_status": "RESEARCH_ONLY",
+              "write_policy": "read_only",
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "payload_path": "research/archives/20261008.json",
+              "manifest_entry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "receipt_path": "receipts/research/archives/20261008.json",
+              "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          ],
+          "current_sources": [
+            {
+              "source_root": "/ISOLATED/research",
+              "source_date": "20261008",
+              "source_id": "V35_RESEARCH_DATA_ROOT",
+              "status": "VERIFIED",
+              "slot": "",
+              "mode": "LIVE",
+              "manifest_path": "manifest.json",
+              "recommendation_status": "RESEARCH_ONLY",
+              "write_policy": "read_only",
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "payload_path": "research/archives/20261008.json",
+              "manifest_entry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "receipt_path": "receipts/research/archives/20261008.json",
+              "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          ]
+        }
+      ]
+    },
+    "run_readback": {
+      "status": "CANNOT_CONFIRM",
+      "target_trade_date": "20261009",
+      "run_id": "11111111111111111111111111111111",
+      "artifact_sha256": "9dae9d89edbec5a5d66aad5c8c4c802bd4520b1e02ba82591fdd69c4eb2cea41",
+      "input_identity": "ca92d68534b6ce0489f44095b1c267b6f35a1d67294b8a899644b9646f5b6df6",
+      "owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "read_at": "2026-10-10T09:00:00+08:00",
+      "owner_attempt_run_id": null,
+      "owner_attempt_sha256": null,
+      "owner_attempt_state": null,
+      "owner_finished_at": null
+    }
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

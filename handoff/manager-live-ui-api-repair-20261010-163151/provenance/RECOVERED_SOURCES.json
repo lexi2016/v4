@@ -1,0 +1,284 @@
+{
+  "repository": "lexi2016/v4",
+  "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+  "note": "Exact recovered files included in repair/test packet; fixed test dependencies are not fresh live-source attestations.",
+  "files": [
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/research_lane_source.py",
+      "git_blob_sha": "fe5545af263b12d435c6a69999a75b4a32444dd6",
+      "bytes": 24125,
+      "sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "packaged_paths": [
+        "reference/infrastructure/research_lane_source.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/api/v4/manager_research/existing_materials.py",
+      "git_blob_sha": "37d68758dc987a919ffb28fee3c35cdde8d7c6aa",
+      "bytes": 30245,
+      "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "packaged_paths": [
+        "reference/v4/manager_research/existing_materials.py",
+        "test_support/python/v4/manager_research/existing_materials.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_projection.py",
+      "git_blob_sha": "5799baef183dd4a93bdbc24c817a5df3d9e3cc33",
+      "bytes": 30841,
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "packaged_paths": [
+        "before/v4/manager_research/workspace_projection.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/manager-daily-automation-repair-20261009-r2/dependencies/web_original/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "git_blob_sha": "c69bacde41c0af509be6816d2835eea5111dd021",
+      "bytes": 19705,
+      "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "packaged_paths": [
+        "test_support/frontend/src/api/managerAnnouncementAnalysis.ts"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+      "git_blob_sha": "0871bfde4fcd9d8917b95006b5f5d743b81c696c",
+      "bytes": 9195,
+      "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+      "packaged_paths": [
+        "test_support/frontend/src/manager-selection/adapters/workspaceDecision.ts"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_semantics.py",
+      "git_blob_sha": "438a5c0198f39000a645323a3177cf1964ca4cbb",
+      "bytes": 33731,
+      "sha256": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+      "runtime_relative_path": "v4/manager_research/workspace_semantics.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/workspace_semantics.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_briefing.py",
+      "git_blob_sha": "7c61130742f98fffd19a7b3c5c80d0765368d216",
+      "bytes": 32275,
+      "sha256": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+      "runtime_relative_path": "v4/manager_research/workspace_briefing.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/workspace_briefing.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_read_control.py",
+      "git_blob_sha": "2ef88175e1a232d669dc23a05f35c48e27309bcf",
+      "bytes": 10927,
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "runtime_relative_path": "v4/manager_research/workspace_read_control.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/workspace_read_control.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_discovery.py",
+      "git_blob_sha": "d27203bc60a41534f312907d8f6cd6d5e3628b1f",
+      "bytes": 23129,
+      "sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+      "runtime_relative_path": "v4/manager_research/workspace_discovery.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/workspace_discovery.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/manager-daily-r3-repair-20261009/after/api_current/v4/manager_research/workspace_daily_channels.py",
+      "git_blob_sha": "a203b4b11e81af2cbda02f8050b09d4597425aa2",
+      "bytes": 13586,
+      "sha256": "e5a74449f211c9e8ecfb4f886317db2263d524f0e29fa7912c9094928a5c6bab",
+      "runtime_relative_path": "v4/manager_research/workspace_daily_channels.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/workspace_daily_channels.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/api/v4/manager_research/research_attention.py",
+      "git_blob_sha": "c3edf3996d77247615da563c4309dac8967113bc",
+      "bytes": 43072,
+      "sha256": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa",
+      "runtime_relative_path": "v4/manager_research/research_attention.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "before/v4/manager_research/research_attention.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/announcement_materials.py",
+      "git_blob_sha": "fbd174f760613d5388cc2683235cf2e57048741b",
+      "bytes": 10727,
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "runtime_relative_path": "v4/manager_research/announcement_materials.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/announcement_materials.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/research_evidence.py",
+      "git_blob_sha": "ec5d612601508f91ede01e07d0fff9426930c275",
+      "bytes": 28636,
+      "sha256": "d2539b676d5779d9369fd8aba187c0565fcc38dbb0e89596d1248668fda4a7d5",
+      "runtime_relative_path": "v4/manager_research/research_evidence.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/research_evidence.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/attention_decision.py",
+      "git_blob_sha": "deae8d18c88682eb8e06593603485dcab043b4be",
+      "bytes": 9179,
+      "sha256": "4b84e0469a5267771ccfe9f9f5040fc829e82f7a1b24afdeed11ebef0cb7d640",
+      "runtime_relative_path": "v4/manager_research/attention_decision.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/attention_decision.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/api/v4/manager_research/issuer_us_relations.py",
+      "git_blob_sha": "6912b6c7d2b18f95da0827e1b3829c707039f9d2",
+      "bytes": 15558,
+      "sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+      "runtime_relative_path": "v4/manager_research/issuer_us_relations.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/issuer_us_relations.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/evidence_identity.py",
+      "git_blob_sha": "f29fdc0361647d842de5b4b90ee2cae715361ebc",
+      "bytes": 5276,
+      "sha256": "6ff16b31c8e23f3bbceea7acc22cf866afc29db6f9f67158381cec2c23b3d053",
+      "runtime_relative_path": "v4/manager_research/evidence_identity.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/evidence_identity.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/api/v4/manager_research/announcement_observation.py",
+      "git_blob_sha": "9e28c8b939fccc3f82da89d19a0f9dc157a26b92",
+      "bytes": 5599,
+      "sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54",
+      "runtime_relative_path": "v4/manager_research/announcement_observation.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/announcement_observation.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/stage_read_timing.py",
+      "git_blob_sha": "0a84b3bd9ca47610b287adf98338bc748b0a8c54",
+      "bytes": 4332,
+      "sha256": "bfbab170b4e8b32e1bdd0405282825989f0382aeb41e6044fe22d0fdeca6ae38",
+      "runtime_relative_path": "v4/manager_research/stage_read_timing.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/stage_read_timing.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/contracts.py",
+      "git_blob_sha": "643abdd5bff9a196bb993275e5f57bea79881e90",
+      "bytes": 12756,
+      "sha256": "d90f0027a8383f20a299e3058d69716e62737e9e5300afc61a8ef2ed949d402f",
+      "runtime_relative_path": "v4/manager_research/contracts.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/contracts.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/safety.py",
+      "git_blob_sha": "117439469386ffb3d58c9d047766c6c5cccbd06a",
+      "bytes": 3272,
+      "sha256": "c82fcdee6845e765783584f5ac46a9d4ca6b6b9fda1c3c2e919c17ab17c7f3e8",
+      "runtime_relative_path": "v4/manager_research/safety.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/v4/manager_research/safety.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/contracts/stages.py",
+      "git_blob_sha": "41bf1ba5de290c23a22695d9454b4991976c3e39",
+      "bytes": 2036,
+      "sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+      "runtime_relative_path": "contracts/stages.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/contracts/stages.py"
+      ]
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/trading_safety.py",
+      "git_blob_sha": "5f10cfb51cb3dacd327447475964e0f6867ee89f",
+      "bytes": 2597,
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "runtime_relative_path": "infrastructure/trading_safety.py",
+      "authority": "FIXED_REPOSITORY_TEST_DEPENDENCY_NOT_NEW_LIVE_READ",
+      "packaged_paths": [
+        "test_support/python/infrastructure/trading_safety.py"
+      ]
+    }
+  ]
+}

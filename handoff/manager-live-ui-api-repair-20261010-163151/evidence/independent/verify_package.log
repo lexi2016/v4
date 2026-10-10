@@ -1,0 +1,9 @@
+COMMAND: python3 tools/verify_package.py
+CWD: /workspace/scratch/38943af1e5bc/input_snapshot/package
+EXIT_CODE: 0
+STDOUT:
+SOURCE_SNAPSHOT_MANIFEST.json=PASS (57 files)
+EVIDENCE_MANIFEST=PASS (19 files)
+PACKAGE_FILES=85
+ZIP_CONSISTENCY=NOT_AVAILABLE (no sibling ZIP; package file manifest verified)
+STDERR:

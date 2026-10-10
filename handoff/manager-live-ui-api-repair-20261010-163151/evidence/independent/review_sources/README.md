@@ -1,0 +1,3 @@
+# Exact independent review source copies
+
+These scripts are archived as the exact review source used in the logged workspace commands. Their original paths were `work/evidence/<filename>` in the task workspace. They read the original `input_snapshot/package`, `candidate`, `work/backend/baseline`, and/or `recovery_sources` layout as their source declares; those original inputs are not reproduced here. Do not interpret these source copies as deployment or Mac commands. The portable proposal regression runners are separately provided under `tools/`. No live owners, API, UI, market providers, or state are exercised by these tests.

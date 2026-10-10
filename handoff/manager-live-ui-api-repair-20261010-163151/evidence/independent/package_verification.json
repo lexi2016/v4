@@ -1,0 +1,44 @@
+{
+  "provided_commands": [
+    {
+      "check": "verify_package",
+      "command": [
+        "python3",
+        "tools/verify_package.py"
+      ],
+      "exit_code": 0,
+      "stdout": "SOURCE_SNAPSHOT_MANIFEST.json=PASS (57 files)\nEVIDENCE_MANIFEST=PASS (19 files)\nPACKAGE_FILES=85\nZIP_CONSISTENCY=NOT_AVAILABLE (no sibling ZIP; package file manifest verified)\n",
+      "stderr": ""
+    },
+    {
+      "check": "check_evidence_contract",
+      "command": [
+        "python3",
+        "tests/check_evidence_contract.py"
+      ],
+      "exit_code": 0,
+      "stdout": "REAL_EVIDENCE_CONTRACT=PASS; no live owner/API/UI behavior was exercised\n",
+      "stderr": ""
+    }
+  ],
+  "original_zip": {
+    "archive_path": "upload/V4_MANAGER_LIVE_UI_API_PROBLEM_20261010(2).zip",
+    "archive_bytes": 1037157,
+    "archive_sha256": "c8e8f42a108d144ab2a8182c516b7c0173f55cde8566d3d630709151303b5da4",
+    "archive_members": 85,
+    "unique_member_paths": 85,
+    "expected_members": 85,
+    "member_set_equal": true,
+    "bad_crc_member": null,
+    "mismatches": [],
+    "every_member_matches_package_manifest": true
+  },
+  "standalone_report": {
+    "standalone_bytes": 10955,
+    "package_report_bytes": 10955,
+    "standalone_sha256": "83d25c253e8705ca6b87fca280e667c6548dcb942d530640d1a5a40b9aeeeec3",
+    "package_report_sha256": "83d25c253e8705ca6b87fca280e667c6548dcb942d530640d1a5a40b9aeeeec3",
+    "byte_equal": true
+  },
+  "execution_boundary": "READ_ONLY_PACKAGE_VALIDATION; NO_OWNER_API_UI_CODE_EXECUTION"
+}

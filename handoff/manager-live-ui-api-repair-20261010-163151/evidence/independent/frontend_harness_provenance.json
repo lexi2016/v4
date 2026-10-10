@@ -1,0 +1,20 @@
+{
+  "scope": "SYNTHETIC_OFFLINE_PANEL_ONLY; LIVE_API_UI_NOT_RUN",
+  "original_test": "work/frontend/runtime.test.mjs",
+  "original_test_sha256": "dd752dd82ed50a2d45a686f9df7e08e412166c36c06e5171cf4593d154df3030",
+  "original_fixture": "work/frontend/fixtures.mjs",
+  "original_fixture_sha256": "7d29a5617b1516e14f5e40cda577ed04d30d26ee2545af85face3dc2f126d6b4",
+  "fixture_copy_byte_identical": true,
+  "independent_copy": "work/evidence/frontend_independent.test.mjs",
+  "independent_copy_sha256": "337cd5ae82354722d7ce1f6b89ebddc90315a43549fce43575a34afd23dd2f00",
+  "changes": [
+    "Read-only browser launcher writes only under work/evidence",
+    "Byte-identical final frozen synthetic fixture copied locally",
+    "Support/dependency/font paths selected through original suite env parameters",
+    "Original 23 test cases unchanged",
+    "One independent literal markup / no DOM injection probe appended"
+  ],
+  "production_sources": "candidate/apps/web/src; actual full fetch/parser/panel path",
+  "original_test_case_count": 23,
+  "independent_added_test_case_count": 1
+}

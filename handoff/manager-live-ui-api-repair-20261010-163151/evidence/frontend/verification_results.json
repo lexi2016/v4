@@ -1,0 +1,74 @@
+{
+  "classification": "PROPOSAL_ONLY / LIVE_API_UI_NOT_RUN",
+  "cwd": "/workspace/scratch/38943af1e5bc",
+  "node": "v24.19.0",
+  "playwright": "1.62.1",
+  "chromium_npm_package": "153.0.0",
+  "browser_version": "153.0.8010.0",
+  "exact_lock_install_command": "npm ci --prefix work/frontend/package-runtime --ignore-scripts --no-audit --no-fund",
+  "exact_lock_install_observed_exit_code": 0,
+  "results": [
+    {
+      "log": "red-baseline-22.log",
+      "observed_exit_code": 1,
+      "tests": 22,
+      "pass": 0,
+      "fail": 22,
+      "cancelled": 0,
+      "skipped": 0,
+      "command_or_historical_context": "Initial 22-case TDD run against immutable baseline using work/frontend/runtime.test.mjs and FRONTEND_SOURCE_ROOT; this historical test version preceded the additional narrow-viewport case.",
+      "sha256": "700bcf4e21913512d55d87d22d3de50fad0e3d02a5fd85b403b0225b1cc59bac"
+    },
+    {
+      "log": "red-narrow-1.log",
+      "observed_exit_code": 1,
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "command_or_historical_context": "Additional narrow-viewport test against the intermediate layout; separate history, not the final suite.",
+      "sha256": "6f229939c1ea2f5522a78e91c656f9ca47dcd8342981919d6f6acfb0298f51c1"
+    },
+    {
+      "log": "red-packaged-before-23.log",
+      "observed_exit_code": 1,
+      "tests": 23,
+      "pass": 0,
+      "fail": 23,
+      "cancelled": 0,
+      "skipped": 0,
+      "command_or_historical_context": "env -u FRONTEND_CJK_FONT_ROOT -u FRONTEND_ARTIFACT_DIR FRONTEND_RUNTIME_DEPS=\"$PWD/work/frontend/package-runtime\" FRONTEND_PORTABLE_CHROMIUM=1 node delivery/tools/run_frontend_tests.mjs before > delivery/evidence/frontend/red-packaged-before-23.log 2>&1",
+      "sha256": "6982adfad42b44b5b1b161351d451e52b6761d6a67ec16ce574315fbccd8c826"
+    },
+    {
+      "log": "green-after-23.log",
+      "observed_exit_code": 0,
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "command_or_historical_context": "FRONTEND_RUNTIME_DEPS=\"$PWD/work/frontend/runtime-deps\" FRONTEND_PORTABLE_CHROMIUM=1 FRONTEND_CJK_FONT_ROOT=\"$PWD/work/frontend/runtime-deps/node_modules/@fontsource/noto-sans-sc\" FRONTEND_ARTIFACT_DIR=\"$PWD/delivery/evidence/frontend\" node delivery/tools/run_frontend_tests.mjs after > delivery/evidence/frontend/green-after-23.log 2>&1",
+      "sha256": "9944c9fb4f24ba92c782e03860931d321075d4765d24ce3def693c39b9516394"
+    },
+    {
+      "log": "green-after-no-font-23.log",
+      "observed_exit_code": 0,
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "command_or_historical_context": "env -u FRONTEND_CJK_FONT_ROOT -u FRONTEND_ARTIFACT_DIR FRONTEND_RUNTIME_DEPS=\"$PWD/work/frontend/package-runtime\" FRONTEND_PORTABLE_CHROMIUM=1 node delivery/tools/run_frontend_tests.mjs after > delivery/evidence/frontend/green-after-no-font-23.log 2>&1",
+      "sha256": "440f28fb61ddaf344d86d63a121925c51ba81d93c04b82707cb7401c2d66445e"
+    },
+    {
+      "log": "project-suite-not-run.log",
+      "observed_exit_code": 254,
+      "classification": "NOT_RUN: missing candidate/apps/web/package.json before suite execution",
+      "command": "npm test --prefix candidate/apps/web",
+      "sha256": "0b150aacc52a4815b16e221bcc901e7f76fb9c13adadeaa157fc67f0b004c566"
+    }
+  ]
+}

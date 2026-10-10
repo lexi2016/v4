@@ -1,0 +1,191 @@
+{
+  "status": "PASS",
+  "supplied_file_count": 25,
+  "source_changes_allowlist": [
+    "apps/web/src/manager-selection/businessStatus.ts",
+    "apps/web/src/manager-selection/catalystObservationPanel.ts",
+    "apps/web/src/manager-selection/dailyChannels.ts",
+    "apps/web/src/manager-selection/researchAttention.ts",
+    "v4/manager_research/research_attention.py",
+    "v4/manager_research/workspace.py",
+    "v4/manager_research/workspace_identity.py",
+    "v4/manager_research/workspace_projection.py"
+  ],
+  "files": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "supplied_sha256": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8",
+      "candidate_sha256": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "supplied_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "candidate_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "supplied_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "candidate_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "supplied_sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "candidate_sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/announcementObservation.ts",
+      "supplied_sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+      "candidate_sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/businessStatus.ts",
+      "supplied_sha256": "36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90",
+      "candidate_sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
+      "expected_changed": true,
+      "bytes_unchanged": false
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "supplied_sha256": "1e4e634dd47b89c0d09ca40a1c36df9d57fe1c2123bc1d98e3a5fb8bcb2ee645",
+      "candidate_sha256": "1e4e634dd47b89c0d09ca40a1c36df9d57fe1c2123bc1d98e3a5fb8bcb2ee645",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "supplied_sha256": "6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355",
+      "candidate_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "expected_changed": true,
+      "bytes_unchanged": false
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "supplied_sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "candidate_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "expected_changed": true,
+      "bytes_unchanged": false
+    },
+    {
+      "path": "apps/web/src/manager-selection/main.ts",
+      "supplied_sha256": "769df8d97df6c27785cbaa248b80fb6cc447cfe3afbd627e32fe925d2065b843",
+      "candidate_sha256": "769df8d97df6c27785cbaa248b80fb6cc447cfe3afbd627e32fe925d2065b843",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "supplied_sha256": "3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698",
+      "candidate_sha256": "6d93d766c93da20130a5f0ac673820e6d27267c563742420ce6fbe2718adf4b6",
+      "expected_changed": true,
+      "bytes_unchanged": false
+    },
+    {
+      "path": "apps/web/src/views/ManagerSelectionView.vue",
+      "supplied_sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+      "candidate_sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "supplied_sha256": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+      "candidate_sha256": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "supplied_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "candidate_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "ops/run_manager_daily_announcement.py",
+      "supplied_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "candidate_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "supplied_sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "candidate_sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "supplied_sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+      "candidate_sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "supplied_sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "candidate_sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "supplied_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "candidate_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "supplied_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "candidate_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "supplied_sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+      "candidate_sha256": "cfebac45b599c5e99cf5fa07b3511959025165576566a894ba092bce084b638e",
+      "expected_changed": true,
+      "bytes_unchanged": false
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "supplied_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "candidate_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "supplied_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "candidate_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "supplied_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "candidate_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "supplied_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "candidate_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "expected_changed": false,
+      "bytes_unchanged": true
+    }
+  ]
+}

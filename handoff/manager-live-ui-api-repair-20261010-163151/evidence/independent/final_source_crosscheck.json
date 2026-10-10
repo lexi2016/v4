@@ -1,0 +1,98 @@
+{
+  "status": "PASS_FINAL_REVIEWED_SOURCE_BYTES",
+  "scope": "PROPOSAL_ONLY / LIVE_API_UI_NOT_RUN",
+  "reviewed_identity_checks": [
+    {
+      "path": "v4/manager_research/workspace_identity.py",
+      "reviewed_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+      "final_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+      "unchanged_since_review": true
+    },
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "reviewed_sha256": "5eb3276cd8514253b8e47cbe801c2d052a3080c76113809315d9334a852d1ffa",
+      "final_sha256": "5eb3276cd8514253b8e47cbe801c2d052a3080c76113809315d9334a852d1ffa",
+      "unchanged_since_review": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "reviewed_sha256": "cfebac45b599c5e99cf5fa07b3511959025165576566a894ba092bce084b638e",
+      "final_sha256": "cfebac45b599c5e99cf5fa07b3511959025165576566a894ba092bce084b638e",
+      "unchanged_since_review": true
+    },
+    {
+      "path": "v4/manager_research/research_attention.py",
+      "reviewed_sha256": "452025514aa0238d5209472081cfd59a484402a54ba893217b79e55bad277750",
+      "final_sha256": "452025514aa0238d5209472081cfd59a484402a54ba893217b79e55bad277750",
+      "unchanged_since_review": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "reviewed_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "final_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "unchanged_since_review": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "reviewed_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "final_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "unchanged_since_review": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/businessStatus.ts",
+      "reviewed_sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
+      "final_sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
+      "unchanged_since_review": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "reviewed_sha256": "6d93d766c93da20130a5f0ac673820e6d27267c563742420ce6fbe2718adf4b6",
+      "final_sha256": "6d93d766c93da20130a5f0ac673820e6d27267c563742420ce6fbe2718adf4b6",
+      "unchanged_since_review": true
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "reviewed_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "final_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "unchanged_since_review": true
+    },
+    {
+      "path": "infrastructure/research_lane_source.py",
+      "supplied_live_source_pin": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "final_sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "unchanged": true
+    },
+    {
+      "path": "v4/manager_research/existing_materials.py",
+      "supplied_live_source_pin": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "final_sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "unchanged": true
+    }
+  ],
+  "protected_supplied_files_count": 20,
+  "protected_supplied_files_byte_identical": [
+    "apps/api/v35_api/app.py",
+    "apps/api/v35_api/manager_research_router.py",
+    "apps/web/src/api/managerWorkspace.ts",
+    "apps/web/src/manager-selection/announcementAnalysis.ts",
+    "apps/web/src/manager-selection/announcementObservation.ts",
+    "apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+    "apps/web/src/manager-selection/main.ts",
+    "apps/web/src/views/ManagerSelectionView.vue",
+    "infrastructure/scheduling/manager_announcement_supervisor.py",
+    "ops/run_manager_announcement_cycle.py",
+    "ops/run_manager_daily_announcement.py",
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+    "v4/manager_research/connect_selection.py",
+    "v4/manager_research/plan_owner_dispatch.py",
+    "v4/manager_research/service.py",
+    "v4/manager_research/us_mapping_research.py",
+    "v4/manager_research/workspace_announcements.py",
+    "v4/manager_research/workspace_history.py",
+    "v4/manager_research/workspace_plan.py",
+    "v4/manager_research/workspace_plan_autorun.py"
+  ],
+  "rendered_source_hashes_still_match": true,
+  "remaining_material_defects_found": [],
+  "conditional_before_image": "research_attention.py fixed-commit SHA256 must be reconciled against actual Mac bytes before later application"
+}

@@ -1,0 +1,569 @@
+diff --git a/apps/web/src/manager-selection/businessStatus.ts b/apps/web/src/manager-selection/businessStatus.ts
+index 966c42b..72b7ad5 100644
+--- a/apps/web/src/manager-selection/businessStatus.ts
++++ b/apps/web/src/manager-selection/businessStatus.ts
+@@ -127,7 +127,13 @@ export function businessStatusRows(value:ManagerWorkspace):BusinessStatusRow[]{
+   const relationInputCount=typeof materialInput.research_relation_material_card_count==='number'
+     ?`；关系评估输入 ${materialInput.research_relation_material_card_count} 张` : '';
+   const reasonDetail=reason?`；${reason}`:'';
+-  const usDetail=`美股来源${sourceLabel}；行业上涨 ${industryN??'未知'} 个／个股上涨 ${individualN??'未知'} 个；${relationCountText}${sourceCounts}${connectCounts}${relationInputCount}${reasonDetail}${recheckDetail}`;
++  const usDetail=`评估范围：同一目标日美股时段快照与双来源/PIT关系材料。美股来源${sourceLabel}；行业上涨 ${industryN??'未知'} 个／个股上涨 ${individualN??'未知'} 个；${relationCountText}${sourceCounts}${connectCounts}${relationInputCount}${reasonDetail}${recheckDetail}`;
++  const daily=object(object(value.us_mapping_research).daily_run),dailyCoverage=object(daily.coverage);
++  const reviewedCount=safeCount(dailyCoverage.reviewed_us_symbol_count);
++  const dailyScope=reviewedCount===null?'数量未知':`${reviewedCount} 项`;
++  const dailyState=text(daily.status,'CANNOT_CONFIRM');
++  const dailyCount=['COMPLETED','VALID_EMPTY'].includes(dailyState)?safeCount(dailyCoverage.matched_hk_relation_count):null;
++  const dailyDetail=`目标港股交易日 ${text(daily.target_trade_date,'未知')}；美股来源日 ${text(daily.us_session_date,'未知')}；匹配 ${dailyCount===null?'数量未知':`${dailyCount} 条`}。仅此已审关系范围，不代表全市场；不代表美股评估/完整度已完成。`;
+   const usNext=assessment==='NOT_EVALUATED'
+     ?'等待同一目标日期的完整美股时段快照与关系材料输入，再开始评估；缺失输入不代表合格关系为零。'
+     :assessment==='INSUFFICIENT'
+@@ -154,7 +160,8 @@ export function businessStatusRows(value:ManagerWorkspace):BusinessStatusRow[]{
+   return [
+     {label:'计划',state:planState,detail:planDetail,next:planNext},
+     {label:'HKEX独立公告观察',state:annState,detail:annDetail,next:annNext},
+-    {label:'美股',state:US_ASSESSMENT_LABELS[assessment],detail:usDetail,next:usNext},
++    {label:'美股评估/完整度',state:US_ASSESSMENT_LABELS[assessment],detail:usDetail,next:usNext},
++    {label:`每日 US-HK 已审映射（${dailyScope}）`,state:dailyState,detail:dailyDetail,next:'按同一日期核对已审关系范围、原来源身份与映射回读；完整度仍按相邻评估状态核验。'},
+     {label:'研究关注',state:attentionStatus,detail:`只读研究优先级；原screen/Stage/BUY不变。`,next:'继续核对证据时间、来源与缺口；不把分数当买入排名。'},
+     ...laneRows,
+   ];
+diff --git a/apps/web/src/manager-selection/catalystObservationPanel.ts b/apps/web/src/manager-selection/catalystObservationPanel.ts
+index 9f0284e..e01c064 100644
+--- a/apps/web/src/manager-selection/catalystObservationPanel.ts
++++ b/apps/web/src/manager-selection/catalystObservationPanel.ts
+@@ -1,5 +1,6 @@
+ import { renderAnnouncementReview } from './announcementObservation.js';
+ import { renderResearchAttention } from './researchAttention.js';
++import { renderDailyChannels } from './dailyChannels.js';
+ import type { ResearchAttention, UsMappingResearch, UsMarketAttention } from '../api/managerWorkspace.js';
+ import { businessStatusRows } from './businessStatus.js';
+ /** Stock-keyed panel inside the EXISTING ManagerSelectionView host.
+@@ -125,9 +126,13 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   const cancelButton=el('button','取消本次读取');cancelButton.type='button';cancelButton.hidden=true;
+   header.append(dateLabel,readButton,refreshButton,viewLabel,cancelButton);
+   const status = el('p'); status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
++  style.textContent+='.manager-catalyst-observations .business-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}.manager-catalyst-observations .business-status-row{margin:0}';
++  const planIdentity=el('section');planIdentity.setAttribute('aria-label','计划输入身份核对');planIdentity.hidden=true;
++  const dailyChannelsSection=el('section');renderDailyChannels(dailyChannelsSection,undefined);
+   const runs = el('div','','manager-catalyst-cards'); runs.setAttribute('aria-label','三路运行状态');
+   const runSummary=el('p');runSummary.setAttribute('aria-label','三路状态摘要');
+   const decisionSummary=el('p','','decision-summary');decisionSummary.setAttribute('aria-label','当前候选摘要');
++  const planStatus=el('section','','manager-plan-status');planStatus.setAttribute('aria-label','计划消费状态');
+   const businessStatus=el('section','','business-status');businessStatus.setAttribute('aria-label','业务闭环状态');
+   const researchFocus=el('section','','manager-research-focus');researchFocus.setAttribute('aria-label','次日重点研究名单');
+   const closeRecapture=el('section','','manager-close-recapture');closeRecapture.setAttribute('aria-label','盘后补采研究观察');
+@@ -146,6 +151,9 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   const stocks = el('div','','manager-catalyst-cards'); stocks.setAttribute('aria-label','去重股票');
+   const screen = el('section'); screen.setAttribute('aria-label','REBOUND_V3量价筛选');
+   const background=el('details');background.dataset.background='true';const backgroundSummary=el('summary','其余背景与量价观察');const backgroundBody=el('div');background.append(backgroundSummary,backgroundBody);
++  const rawObservations=el('details');rawObservations.dataset.rawObservations='true';
++  const rawObservationsSummary=el('summary','原始股票观察与来源审计（数量未知）');
++  rawObservations.append(rawObservationsSummary,filters,stocks,background);
+   const strategySummary=el('summary','超跌反弹选股（独立策略；与15:30尾盘来源分开）');
+   const strategy=el('details');strategy.dataset.reboundStrategy='true';strategy.open=false;strategy.append(strategySummary,screen);
+   const researchAttentionSection=el('section');
+@@ -160,8 +168,8 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   const auditBody = el('div'); audit.append(auditBody);
+   const themeDetails=el('details');themeDetails.dataset.policyDetails='true';themeDetails.append(el('summary','政策与产业线索：适用公司、原文及缺口'),themes);
+   const provenance=el('details');provenance.append(el('summary','原owner状态与公司原始分类'),runSummary,runDetails,companyEvents);
+-  // One entry for stock attention. Source lists remain audit/context, not rivals.
+-  panel.append(style,header,status,announcementAnalysisSection,businessStatus,researchFocus,closeRecapture,decisionSummary,filters,stocks,background,researchAttentionSection,themeDetails,strategy,announcementSection,provenance,
++  // Core status and results precede the complete, initially collapsed stock audit.
++  panel.append(style,header,status,planStatus,planIdentity,dailyChannelsSection,businessStatus,researchFocus,researchAttentionSection,strategy,decisionSummary,rawObservations,closeRecapture,announcementAnalysisSection,themeDetails,announcementSection,provenance,
+     el('p','仅研究：事件成立与行情承接、BUY准入分开。未核同口径量价不报触发价；不因高开远离可靠参考位追入，也不预设一定回踩。未读取仓位、未发订单。','decision-safety'),audit);
+   host.replaceChildren(panel);
+ 
+@@ -463,11 +471,23 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   function render(value: ManagerWorkspace): void {
+     // Input identity is retained for audit; it is not a stock ranking.
+     currentValue=value;loadedView=view;
++    // Both fields came through the same workspace response/date/run validator.
++    renderDailyChannels(dailyChannelsSection,value.daily_channels,value.date_bindings);
+     renderResearchAttention(researchAttentionSection,value.research_attention as ResearchAttention|undefined,value.us_market_attention as UsMarketAttention|undefined,
+       value.selection_diagnostics,value.us_mapping_research as UsMappingResearch|undefined);
+     panel.dataset.inputIdentity=value.input_identity; panel.dataset.targetDate=value.target_trade_date;panel.dataset.readState='READY';
+     renderCloseRecapture(value);
+     const ctx=(value.plan_context || {}) as JsonObject;const product=(value.plan_product || {}) as JsonObject;
++    planIdentity.replaceChildren();planIdentity.hidden=product.status!=='STALE_INPUTS_CHANGED';
++    if(!planIdentity.hidden){
++      const raw=product.input_identity_diagnostics;
++      const diagnostic=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw as JsonObject:undefined;
++      const components=diagnostic?.status==='CHANGED'&&Array.isArray(diagnostic.changed_components)
++        ?diagnostic.changed_components.filter(row=>row&&typeof row==='object'&&!Array.isArray(row))
++          .map(row=>text((row as JsonObject).component,'')).filter(Boolean):[];
++      planIdentity.append(el('p',`保存计划 ${text(product.status)}；consumed=${typeof product.consumed==='boolean'?String(product.consumed):'CANNOT_CONFIRM'}；变化组件：${components.length?components.join('；'):'CANNOT_CONFIRM（缺少可定位的保存/当前组件证据）'}。计划消费仍按原身份校验。`),
++        details('计划输入差异：保存/当前 SHA 与来源',diagnostic??{status:'CANNOT_CONFIRM',reason:'INPUT_IDENTITY_DIAGNOSTICS_NOT_PROVIDED'}));
++    }
+     const read=(value.read_context || {}) as JsonObject;
+     const planAttempt=(value.workspace_plan_attempt || {}) as JsonObject;
+     const historical=read.mode==='HISTORICAL_AS_OF';
+@@ -480,7 +500,8 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+       (view==='dynamic'?'现在回看（含后续信息，非当时已知）':savedDraft?'次日研究预览（已保存草案；未正式冻结）':
+         savedFreeze?'盘前计划已冻结（原owner产物）':'当日动态预览（非历史冻结计划）');
+     status.textContent=`计划 ${date} · ${label} ｜ 材料截至 ${timeText(ctx.research_cutoff)} ｜ 行情基准 ${text(ctx.market_session)}，${ctx.market_data_verified===true?'原行情已核':'原行情未核'}（非晚间实时行情）。`;
+-    businessStatus.replaceChildren(...businessStatusRows(value).map(row=>{const item=el('article','','business-status-row');item.append(el('strong',`${row.label}：${row.state}`),el('p',row.detail),el('p',`下一步：${row.next}`));return item;}));
++    const statusRows=businessStatusRows(value).map(row=>{const item=el('article','','business-status-row');item.append(el('strong',`${row.label}：${row.state}`),el('p',row.detail),el('p',`下一步：${row.next}`));return item;});
++    planStatus.replaceChildren(...statusRows.slice(0,1));businessStatus.replaceChildren(...statusRows.slice(1));
+     const decisionCounts=decisionSummaryCounts(value);
+     decisionSummary.textContent=`研究窗口 ${timeText(ctx.focus_window_start)}—${timeText(ctx.research_cutoff)}；按当前最终展示分类 ${decisionCounts.current}只公司/产业研究，${decisionCounts.background}只背景/原量价（原focus ${value.focus_symbols.length}只，保持不变）。先核具体变化，再核预期；同组未比较收益，不是Top排名。`;
+     if(read.candidate_count_known===false) decisionSummary.textContent=`研究窗口 ${timeText(ctx.focus_window_start)}—${timeText(ctx.research_cutoff)}；候选、风险和覆盖未知，不是已成功扫描后的零候选。${read.reason?historyReason(read.reason):'须补齐原owner证据。'}`;
+@@ -492,6 +513,8 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+     const announcementAttempt=(announcements.latest_attempt || {}) as JsonObject;
+     if(announcementAttempt.started_at)runSummary.textContent+=` 公告最近尝试 ${text(announcementAttempt.started_at)} · ${states[String(announcementAttempt.state)] || text(announcementAttempt.state)}。`;
+     runs.replaceChildren(...value.lanes.map(lane));renderScreen(value.market_screen);
++    rawObservations.open=false;
++    rawObservationsSummary.textContent=`原始股票观察与来源审计（${value.stocks.length} 行，全部保留）`;
+     renderStocks(value);
+     if(read.candidate_count_known===false)filterCount.textContent='覆盖未知 · 不是0候选';
+     themes.replaceChildren(el('h3','今日主题研究线索'),el('p',text(value.briefing.headline)),el('p',text(value.briefing.ordering_explanation)));
+@@ -541,7 +564,10 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   function clearResults(): void {
+     currentValue=null;loadedView=null;decisionSummary.textContent='候选和风险数量未知';
+     filterCount.textContent='读取中 · 数量未知';background.hidden=true;runSummary.textContent='';
+-    for(const node of [stocks,backgroundBody,companyEvents,runs,themes,auditBody,businessStatus,researchFocus,closeRecapture])node.replaceChildren();
++    rawObservations.open=false;rawObservationsSummary.textContent='原始股票观察与来源审计（数量未知）';
++    planIdentity.hidden=true;
++    for(const node of [stocks,backgroundBody,companyEvents,runs,themes,auditBody,planStatus,businessStatus,planIdentity,researchFocus,closeRecapture])node.replaceChildren();
++    renderDailyChannels(dailyChannelsSection,undefined);
+     renderScreen(undefined);
+     renderResearchAttention(researchAttentionSection,undefined,undefined);
+     delete panel.dataset.inputIdentity;delete panel.dataset.targetDate;panel.dataset.readState='LOADING';
+diff --git a/apps/web/src/manager-selection/dailyChannels.ts b/apps/web/src/manager-selection/dailyChannels.ts
+index 4083650..0c6fd46 100644
+--- a/apps/web/src/manager-selection/dailyChannels.ts
++++ b/apps/web/src/manager-selection/dailyChannels.ts
+@@ -187,29 +187,38 @@ const diagnosticDetails = (value: unknown): HTMLDetailsElement => {
+ };
+ 
+ /** First-screen stock/reason/date/run view; strings are always text nodes, including diagnostics. */
+-export function renderDailyChannels(host: HTMLElement, raw: DailyChannels | undefined, bindings: WorkspaceDateBindings): void {
++export function renderDailyChannels(host: HTMLElement, raw: DailyChannels | undefined, bindings?: WorkspaceDateBindings): void {
+   host.dataset.dailyChannels = 'true'; host.setAttribute('aria-label', '每日三路研究结果');
+   const heading = element('h3', '每日三路研究结果');
+-  const dates = element('p', `来源/选股日 ${bindings.selection_date} · 公告日 ${bindings.announcement_date} · 计划日 ${bindings.plan_date}`);
++  const dates = element('p', bindings
++    ? `来源/选股日 ${bindings.selection_date} · 公告日 ${bindings.announcement_date} · 计划日 ${bindings.plan_date}`
++    : '三路日期绑定未提供 · CANNOT_CONFIRM');
+   dates.dataset.dailyBindings = 'true';
+   const grid = element('div', '', 'manager-daily-grid');
+-  const style = element('style', '.manager-daily-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}.manager-daily-grid>article{margin:0;min-width:0}.manager-daily-grid h4,.manager-daily-grid h5{margin:0 0 8px}.manager-daily-grid p{margin:7px 0}.manager-daily-rows{padding-left:20px;max-height:440px;overflow:auto}.manager-daily-rows li{margin:12px 0;overflow-wrap:anywhere}.manager-daily-meta{font-size:.9em;color:#4c5b68}');
++  const style = element('style', '.manager-daily-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}.manager-daily-grid>article{margin:0;min-width:0}.manager-daily-grid h4,.manager-daily-grid h5{margin:0 0 8px}.manager-daily-grid p{margin:7px 0}.manager-daily-rows{padding-left:20px;max-height:440px;overflow:auto}.manager-daily-rows li{margin:12px 0;overflow-wrap:anywhere}.manager-daily-meta{font-size:.9em;color:#4c5b68}');
+   host.replaceChildren(style, heading, dates, element('p', '来源/选股日用于展示；港股通资格仍核对计划日的权威输入。'), grid);
+   let value: DailyChannels | undefined; let failure = '尚未提供三路结果合同';
+   if (raw !== undefined) {
+-    try { value = validateDailyChannels(raw, bindings); }
++    try { if (!bindings) fail('DATE_BINDING_INVALID'); value = validateDailyChannels(raw, bindings); }
+     catch (error) { failure = `三路结果合同未通过校验：${error instanceof Error ? error.message : 'WORKSPACE_DAILY_INVALID'}`; }
+   }
+   for (const id of channelIds) {
+     const channel = value?.channels.find(item => item.channel === id);
+-    const article = element('article'); article.dataset.dailyChannel = id; article.dataset.dailyStatus = channel?.status ?? 'UNVERIFIED';
+-    article.append(element('h4', channelNames[id]), element('strong', channel ? statusNames[channel.status] : '尚未核实'));
++    const article = element('article'); article.dataset.dailyChannel = id; article.dataset.dailyStatus = channel?.status ?? 'CANNOT_CONFIRM';
++    article.append(element('h4', `${id} · ${channelNames[id]}`),
++      element('strong', `${channel?.status ?? 'CANNOT_CONFIRM'} · ${channel ? statusNames[channel.status] : '尚未核实'}`));
+     const candidateText = channel?.candidate_count !== null && channel?.candidate_count !== undefined ? `候选 ${channel.candidate_count} 只` : '候选数量未知';
+     const pendingText = channel?.pending_count !== null && channel?.pending_count !== undefined ? `待核 ${channel.pending_count}` : '待核数量未知';
+     article.append(element('p', `${candidateText}${channel?.watch_count !== undefined ? ` · 观察 ${channel.watch_count}` : ''} · ${pendingText}`));
+     article.append(element('p', `数据日 ${channel?.data_date ?? '未核实'}`, 'manager-daily-meta'));
++    article.append(element('p', `原 owner ${channel?.owner ?? 'CANNOT_CONFIRM'}`, 'manager-daily-meta'));
+     article.append(element('p', `运行编号 ${channel?.run_id ?? '未提供/待核'} · ${channel ? executionNames[channel.execution_kind] : '生成运行未核实'}`, 'manager-daily-meta'));
++    article.append(element('p', `产物 SHA256 ${channel?.product_sha256 ?? 'CANNOT_CONFIRM'} · 输入身份 ${channel?.input_identity ?? 'CANNOT_CONFIRM'}`, 'manager-daily-meta'));
+     if (channel?.generated_at) article.append(element('p', `产物时间 ${channel.generated_at}`, 'manager-daily-meta'));
++    if (channel) {
++      const shownGaps = channel.gaps.slice(0, 3);
++      article.append(element('p', `缺口 ${channel.gaps.length} 项${shownGaps.length ? `：${shownGaps.join('；')}` : '；状态仍按原 owner 结果显示'}${channel.gaps.length > shownGaps.length ? '；其余缺口完整保留在来源详情' : ''}`));
++    }
+     if (channel?.rows.length) {
+       const list = element('ol', '', 'manager-daily-rows');
+       for (const row of channel.rows) {
+@@ -217,12 +226,13 @@ export function renderDailyChannels(host: HTMLElement, raw: DailyChannels | unde
+         item.append(element('h5', `${row.name} · ${row.symbol}`),
+           element('p', row.selection_status === 'SELECTED' ? '研究候选' : row.selection_status === 'NEAR_CONDITION' ? '接近条件观察' : '条件观察'),
+           element('p', row.reason ?? '选入理由未提供/待核'),
+-          element('p', `数据日 ${row.data_date ?? '未核实'} · 运行编号 ${row.run_id ?? '未提供/待核'}`, 'manager-daily-meta'));
++          element('p', `数据日 ${row.data_date ?? '未核实'} · 运行编号 ${row.run_id ?? '未提供/待核'}`, 'manager-daily-meta'),
++          element('p', `产物 SHA256 ${row.product_sha256 ?? 'CANNOT_CONFIRM'} · 来源引用 ${row.source_refs.length} 项（完整保留在来源详情）`, 'manager-daily-meta'));
+         list.append(item);
+       }
+       article.append(list);
+     } else article.append(element('p', channel?.status === 'READY_EMPTY' ? '原 owner 已核空集。' : channel ? '当前没有可展示的已核候选，待核记录见详情。' : failure));
+-    article.append(element('p', '自然时段运行验收：未核实。', 'manager-daily-meta'), diagnosticDetails(channel ?? { status: 'UNVERIFIED', reason: failure, date_bindings: bindings }));
++    article.append(element('p', '自然时段运行验收：CANNOT_CONFIRM（未核实）。', 'manager-daily-meta'), diagnosticDetails(channel ?? { status: 'CANNOT_CONFIRM', reason: failure, date_bindings: bindings }));
+     grid.append(article);
+   }
+   host.append(element('p', '仅研究 · 未更新 BUY 准入 · 未发订单。', 'manager-daily-meta'));
+diff --git a/apps/web/src/manager-selection/researchAttention.ts b/apps/web/src/manager-selection/researchAttention.ts
+index 2fe7b10..06da6f0 100644
+--- a/apps/web/src/manager-selection/researchAttention.ts
++++ b/apps/web/src/manager-selection/researchAttention.ts
+@@ -211,14 +211,17 @@ function renderUsMappingResearch(host:HTMLElement, mapping?:UsMappingResearch):v
+   box.append(el('h4','美股 → 港股业务关系研究（只读研究，不是选股或 BUY）'));
+   if(!mapping){box.append(el('p','映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。'));host.append(box);return;}
+   const daily=mapping.daily_run;
++  const reviewedCount=object(daily.coverage).reviewed_us_symbol_count;
++  const dailyScope=typeof reviewedCount==='number'&&Number.isSafeInteger(reviewedCount)&&reviewedCount>=0?`${reviewedCount} 项`:'数量未知';
++  box.append(el('h5',`每日 US-HK 已审映射（${dailyScope}）`));
+   box.append(el('p',`日常流程：${daily.status}；目标港股交易日 ${dateLabel(daily.target_trade_date)}；美股来源日 ${dateLabel(daily.us_session_date)}；cutoff ${text(daily.research_cutoff)}；关系结果按日期单独保存并要求回读。`));
+   if(daily.status==='NOT_RUN')box.append(el('p','该目标日尚无日常映射产物；数量未知，不等于没有匹配。'));
+-  else if(daily.status==='VALID_EMPTY')box.append(el('p','完整来源已检查当前4个已审阅美股关系，匹配为0；这只表示该小型已审关系范围为空，不代表全市场或其他关系为空。'));
++  else if(daily.status==='VALID_EMPTY')box.append(el('p',`已核日常来源在当前已审关系范围（${dailyScope}）内匹配为0；这只表示该已审关系范围为空，不代表全市场或其他关系为空，也不代表美股评估/完整度已完成。`));
+   else if(daily.status==='FAILED'||daily.status==='INPUT_MISSING'||daily.status==='CANNOT_CONFIRM')
+     box.append(el('p',`来源或回读未闭环，匹配数量未知；${daily.gaps.join('；')||'CANNOT_CONFIRM'}。`));
+   else if(daily.status==='PARTIAL')
+     box.append(el('p',`输入覆盖不完整，不能把当前行数当作完整匹配数；${daily.gaps.join('；')||'来源部分缺失'}。`));
+-  else box.append(el('p',`已评估 ${String(daily.matches.length)} 条已审关系命中。范围来自固定33只配置美股中的4只已审阅关系，不是全市场扫描。目标日Connect资格仍未知。`));
++  else box.append(el('p',`已评估 ${String(daily.matches.length)} 条已审关系命中。范围仅为当前已审关系（${dailyScope}），不代表全市场扫描或美股评估/完整度已完成。目标日Connect资格仍未知。`));
+   if(daily.matches.length)renderMappingRows(box,daily.matches,'按日美股到港股研究映射');
+   const reviewed=mapping.reviewed_research;
+   if(reviewed){
+diff --git a/v4/manager_research/research_attention.py b/v4/manager_research/research_attention.py
+index c3edf39..fde9fb5 100644
+--- a/v4/manager_research/research_attention.py
++++ b/v4/manager_research/research_attention.py
+@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
+ from typing import Any, Mapping, Sequence
+ 
+ from .workspace_projection import FLAGS, digest, timestamp
++from .workspace_identity import semantic_digest
+ from .research_evidence import US_LABEL_TO_MANAGER_THEMES, collect_attention_evidence
+ from .attention_decision import attention_sort_key, enrich_attention_card
+ 
+@@ -714,7 +715,7 @@ def build_research_attention(
+         "announcement_status": (announcement_observation or {}).get("status") if isinstance(announcement_observation, Mapping) else None,
+         "announcement_capture_runs": (announcement_observation or {}).get("capture_runs") if isinstance(announcement_observation, Mapping) else None,
+         "us_source_identity": (us_market or {}).get("source_identity") if isinstance(us_market, Mapping) else None,
+-        "attention_cards_digest": digest(cards),
++        "attention_cards_digest": semantic_digest(cards),
+         "research_selection_digest": research_selection["decision_identity"],
+         "observation_only_digest": digest(observation_only),
+         "input_diagnostics_digest": digest(input_diagnostics),
+diff --git a/v4/manager_research/workspace.py b/v4/manager_research/workspace.py
+index db37497..bcdd133 100644
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -17,6 +17,8 @@ from .existing_materials import read_existing_materials
+ from .workspace_discovery import read_discovery, read_material_discovery
+ from .workspace_plan import plan_context, read_plan_quotes, read_rebound_screen
+ from .workspace_projection import FLAGS, HK, build_workspace, date_token, digest, timestamp
++from .workspace_identity import (INPUT_IDENTITY_SCHEMA, semantic_digest, identity_component,
++    input_identity_diagnostics)
+ from .workspace_read_control import (
+     WorkspaceReadError,
+     phase,
+@@ -445,7 +447,7 @@ def _research_relation_material_input(
+             continue
+         key = str(row.get('reason') or 'UNKNOWN')
+         rejection_counts[key] = rejection_counts.get(key, 0) + 1
+-    input_identity = digest({
++    input_identity = semantic_digest({
+         'selection_materials': selection_materials,
+         'relation_cards': relation_cards,
+         'target_connect_membership': {
+@@ -766,6 +768,9 @@ def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, c
+     with phase('pure_workspace_projection'):
+         value = project(service, 'workspace_projection', [date, inputs], lambda: build_workspace(date, **inputs))
+     value=gate_workspace(value,connect_scope)
++    value['input_identity_components']['connect_scope']=identity_component(
++        [connect_scope.get('identity'),'HK_CONNECT_RESEARCH_SCOPE_V2',connect_scope.get('calendar_applicability')],
++        sources=[deepcopy(dict(connect_scope.get('source') or {}))])
+     from .stage_read_timing import project_stage_read_timing
+     timing=project_stage_read_timing(stage,date,timestamp(context['research_cutoff']),
+         attempt=attempts.get('STAGE'),ledger_verified_empty=stage_ledger_verified_empty)
+@@ -835,9 +840,16 @@ def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, c
+         material_cards=research_relation_cards, themes=value.get('themes', []),
+         announcement_observation=scoped_announcement_lane, us_market=us_market,
+     )
++    value['input_identity_components'].update({
++        'research_attention.projection':identity_component(research_attention['input_identity'],
++            sources=identity_component(research_attention)['sources']),
++        'research_attention.material_input':identity_component(relation_material_input['input_identity'],
++            sources=identity_component(selection_materials)['sources']),
++        'research_attention.material_cards':identity_component(research_relation_cards),
++    })
+     research_attention['input_identity']=digest([
+         research_attention.get('input_identity'),relation_material_input['input_identity'],
+-        digest(research_relation_cards),
++        semantic_digest(research_relation_cards),
+     ])
+     value['repair_contract']='R9_ANNOUNCEMENT_BODY_CONNECT_CONSUMER_V1'
+     value['research_attention'] = research_attention
+@@ -879,18 +891,31 @@ def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, c
+         'write_back_to_existing_rank': False,
+     }
+     identity_extensions = [value['input_identity'], research_attention['input_identity'],announcement_inputs['input_identity']]
++    components = value['input_identity_components']
++    components['gated_projection']=identity_component(value['input_identity'])
++    components['announcement_inputs']=identity_component(announcement_inputs['input_identity'],
++        sources=identity_component(announcement_inputs)['sources'])
+     reviewed_analysis = announcement_inputs.get('reviewed_analysis')
+     if isinstance(reviewed_analysis, Mapping):
+         identity_extensions.append(reviewed_analysis.get('input_identity'))
++        components['announcement_reviewed_analysis']=identity_component(reviewed_analysis.get('input_identity'),
++            sources=identity_component(reviewed_analysis)['sources'])
+     if announcement_review.get('product_identity'):
+         identity_extensions.append(announcement_review['product_identity']['sha256'])
++        components['announcement_product']=identity_component(announcement_review['product_identity']['sha256'],
++            sources=[deepcopy(dict(announcement_review['product_identity']))])
+     us_identity = us_market.get('source_identity') if isinstance(us_market, Mapping) else None
+     if isinstance(us_identity, Mapping) and isinstance(us_identity.get('payload_sha256'), str):
+         identity_extensions.append(us_identity['payload_sha256'])
++        components['us_market_payload']=identity_component(us_identity['payload_sha256'],
++            sources=[deepcopy(dict(us_identity))])
+     # The saved daily US mapping is a separate research reference. It is
+     # admitted into this plan identity only after the same exact plan cutoff.
+     mapping_read, mapping_research, mapping_identities = _daily_mapping_plan_reference(service, date, context)
+     identity_extensions.extend(mapping_identities)
++    components['us_mapping_daily_reference']=identity_component(mapping_identities,
++        sources=[deepcopy(mapping_research)] if mapping_identities else [])
++    value['input_identity_schema'] = INPUT_IDENTITY_SCHEMA
+     value['us_mapping_research'] = deepcopy(mapping_read)
+     value['owner_chain']['us_mapping_daily_plan_reference'] = mapping_research
+     value['input_identity'] = digest(identity_extensions)
+@@ -1018,7 +1043,9 @@ def _readback_plan(store: Any,date: str,current: dict, *, read_at: Any = None) -
+     except _ERROR_TYPES as exc:
+         # Tampered/stale stored results never hide a freshly verified read-only
+         # projection, and are NOT presented as successfully read back.
+-        current['plan_product']=dict(status='READBACK_FAILED',reason=type(exc).__name__)
++        current['plan_product']=dict(status='READBACK_FAILED',reason=type(exc).__name__,consumed=False,
++            input_identity_diagnostics=dict(status='CANNOT_CONFIRM',
++                reason='STORED_PLAN_VERIFICATION_FAILED',changed_components=[]))
+         return current
+     read_time = (read_at.astimezone(HK) if isinstance(read_at, datetime)
+                  and read_at.tzinfo is not None and read_at.utcoffset() is not None
+@@ -1033,7 +1060,9 @@ def _readback_plan(store: Any,date: str,current: dict, *, read_at: Any = None) -
+     bindings_match = (saved_bindings is None and current_bindings is None) or (
+         isinstance(saved_bindings, Mapping) and isinstance(current_bindings, Mapping)
+         and dict(saved_bindings) == dict(current_bindings))
+-    same=(saved is not None and not after_cutoff and saved['input_identity']==current['input_identity']
++    identity_diagnostics=input_identity_diagnostics(
++        (saved or {}).get('workspace'),current,after_cutoff=after_cutoff)
++    same=(saved is not None and identity_diagnostics['status']=='MATCH' and not after_cutoff and saved['input_identity']==current['input_identity']
+           and saved['workspace'].get('semantic_version')==current.get('semantic_version')
+           and bindings_match)
+     plan_attempt_error = None
+@@ -1063,6 +1092,7 @@ def _readback_plan(store: Any,date: str,current: dict, *, read_at: Any = None) -
+         execution_context=deepcopy(saved.get('execution_context')) if saved else None,
+         original_owner='ManagerResearchJobService.refresh_workspace_plan',
+         last_checked_at=read_time.isoformat() if read_time is not None else _now(),consumed=same,
++        input_identity_diagnostics=identity_diagnostics,
+         run_readback=_plan_run_readback(saved,verified_attempt,
+             read_at=read_time.isoformat() if read_time is not None else _now(),verified=same))
+     if plan_attempt_error:
+@@ -1165,7 +1195,12 @@ def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kin
+                             us_market_request_context=us_market_request_context,**workspace_dates)
+                 except _ERROR_TYPES as exc:
+                     preparation_error=exc
++                prepared_cutoff=timestamp((prepared or {}).get('plan_context',{}).get('research_cutoff'))
++                reuse_diagnostics=input_identity_diagnostics(existing_workspace,prepared or {},
++                    after_cutoff=bool(existing_cutoff is None or prepared_cutoff is None
++                        or existing_cutoff>prepared_cutoff))
+                 if (prepared is not None and same_owner_attempt
++                        and reuse_diagnostics['status']=='MATCH'
+                         and existing.get('execution_kind') == execution_kind
+                         and existing['input_identity']==prepared['input_identity']
+                         and existing_workspace.get('semantic_version')==prepared.get('semantic_version')
+@@ -1179,6 +1214,7 @@ def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kin
+                     value['plan_product']=dict(status='ALREADY_MATERIALIZED',run_id=existing.get('run_id'),
+                         generated_at=existing.get('generated_at'),sha256=existing.get('sha256'),
+                         execution_kind=existing['execution_kind'], consumed=True,
++                        input_identity_diagnostics=reuse_diagnostics,
+                         original_owner='ManagerResearchJobService.refresh_workspace_plan',
+                         execution_context=deepcopy(existing.get('execution_context')),
+                         run_readback=_plan_run_readback(existing,prior_product_attempt,
+diff --git a/v4/manager_research/workspace_identity.py b/v4/manager_research/workspace_identity.py
+new file mode 100644
+index 0000000..5299d06
+--- /dev/null
++++ b/v4/manager_research/workspace_identity.py
+@@ -0,0 +1,150 @@
++"""Semantic identity for already verified workspace inputs; no owner reads.
++
++Only the global registry fingerprint of a complete V3.5 research binding is
++provenance. All other binding fields and all original source_row content remain
++semantic. This does not admit or verify an artifact: original readers still do.
++"""
++from __future__ import annotations
++
++from copy import deepcopy
++from datetime import datetime
++import hashlib
++import json
++from pathlib import PurePosixPath
++import re
++from typing import Any, Mapping
++
++INPUT_IDENTITY_SCHEMA = 'v4.manager_research.input_identity.v2'
++_SHA = re.compile(r'[0-9a-f]{64}')
++
++
++def _digest(value: Any) -> str:
++    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
++        separators=(',', ':'), allow_nan=False).encode()).hexdigest()
++
++
++def _registry_binding(value: Mapping[str, Any]) -> bool:
++    """Recognize only the exact read-only research-owner binding contract."""
++    if (value.get('source_id') != 'V35_RESEARCH_DATA_ROOT'
++            or value.get('status') != 'VERIFIED'
++            or value.get('manifest_path') != 'manifest.json'
++            or value.get('write_policy') != 'read_only'
++            or value.get('recommendation_status') != 'RESEARCH_ONLY'
++            or any(value.get(key) is not False for key in
++                   ('production_allowed', 'buy_gate_updated', 'orders_sent'))
++            or not all(_SHA.fullmatch(str(value.get(key, ''))) for key in
++                       ('payload_sha256', 'receipt_sha256', 'manifest_sha256'))):
++        return False
++    root = PurePosixPath(str(value.get('source_root', '')))
++    date = str(value.get('source_date', ''))
++    slot, mode = value.get('slot'), value.get('mode')
++    if (not root.is_absolute() or '..' in root.parts or not re.fullmatch(r'\d{8}', date)
++            or mode not in {'LIVE', 'REPLAY', 'BACKFILL'} or not isinstance(slot, str)):
++        return False
++    try:
++        datetime.strptime(date, '%Y%m%d')
++    except ValueError:
++        return False
++    if slot and (not re.fullmatch(r'\d{4}', slot) or int(slot[:2]) > 23 or int(slot[2:]) > 59):
++        return False
++    payload = (f'research/hourly/{mode.lower()}/{date}/{slot}.json' if slot
++               else f'research/archives/{date}.json')
++    return (value.get('payload_path') == payload
++            and value.get('receipt_path') == 'receipts/' + payload
++            and value.get('manifest_entry_sha256', value['payload_sha256']) == value['payload_sha256'])
++
++
++def semantic_value(value: Any, *, binding: bool = False) -> Any:
++    if isinstance(value, Mapping):
++        registry = binding and _registry_binding(value)
++        return {key: (deepcopy(child) if key in {'source_row', 'original_source_row', 'content'}
++                      else semantic_value(child, binding=key in {'source_refs', 'input_bindings'}))
++                for key, child in value.items()
++                if not (registry and key == 'manifest_sha256')}
++    if isinstance(value, (list, tuple)):
++        return [semantic_value(child, binding=binding) for child in value]
++    return value
++
++
++def semantic_digest(value: Any) -> str:
++    return _digest(semantic_value(value))
++
++
++def _source_refs(value: Any) -> list[dict]:
++    refs: dict[str, dict] = {}
++    def visit(node: Any) -> None:
++        if isinstance(node, Mapping):
++            if _registry_binding(node):
++                refs[_digest(node)] = deepcopy(dict(node))
++            for key, child in node.items():
++                if key in {'source_row', 'original_source_row', 'content'}:
++                    continue
++                if key == 'source_refs' and isinstance(child, (list, tuple)):
++                    for ref in child:
++                        if isinstance(ref, Mapping):
++                            refs[_digest(ref)] = deepcopy(dict(ref))
++                else:
++                    visit(child)
++        elif isinstance(node, (list, tuple)):
++            for child in node:
++                visit(child)
++    visit(value)
++    return [refs[key] for key in sorted(refs)]
++
++
++def identity_component(value: Any, *, sources: list[dict] | None = None) -> dict:
++    return dict(sha256=semantic_digest(value),
++                sources=deepcopy(sources) if sources is not None else _source_refs(value))
++
++
++def identity_components_valid(value: Mapping[str, Any]) -> bool:
++    components = value.get('input_identity_components')
++    return bool(value.get('input_identity_schema') == INPUT_IDENTITY_SCHEMA
++        and isinstance(components, Mapping) and components
++        and all(isinstance(key, str) and key and isinstance(component, Mapping)
++            and _SHA.fullmatch(str(component.get('sha256', '')))
++            and isinstance(component.get('sources'), list)
++            and all(isinstance(ref, Mapping) for ref in component['sources'])
++            for key, component in components.items()))
++
++
++def input_identity_diagnostics(saved: Mapping[str, Any] | None, current: Mapping[str, Any],
++                               *, after_cutoff: bool = False) -> dict:
++    """Compare sealed saved components with this read; never rewrite identities."""
++    saved = saved if isinstance(saved, Mapping) else {}
++    result = dict(schema_version='v4.manager_research.input_identity_diagnostics.v1',
++        input_identity_schema=INPUT_IDENTITY_SCHEMA, status='CANNOT_CONFIRM',
++        saved_input_identity=saved.get('input_identity'),
++        current_input_identity=current.get('input_identity'), changed_components=[])
++    changes = result['changed_components']
++    for key in ('date_bindings', 'semantic_version'):
++        if saved.get(key) != current.get(key):
++            changes.append(dict(component=key, saved_value=deepcopy(saved.get(key)),
++                current_value=deepcopy(current.get(key)),
++                saved_sha256=_digest(saved.get(key)), current_sha256=_digest(current.get(key)),
++                saved_sources=[], current_sources=[]))
++    if after_cutoff:
++        before = saved.get('plan_context', {}).get('research_cutoff')
++        after = current.get('plan_context', {}).get('research_cutoff')
++        changes.append(dict(component='research_cutoff', saved_value=before, current_value=after,
++            saved_sha256=_digest(before), current_sha256=_digest(after), saved_sources=[], current_sources=[]))
++    if not identity_components_valid(saved):
++        result['reason'] = 'SAVED_IDENTITY_COMPONENTS_UNAVAILABLE_OWNER_REFRESH_REQUIRED'
++        return result
++    if not identity_components_valid(current):
++        result['reason'] = 'CURRENT_IDENTITY_COMPONENTS_UNAVAILABLE'
++        return result
++    before, after = saved['input_identity_components'], current['input_identity_components']
++    for key in sorted(set(before) | set(after)):
++        old, new = before.get(key, {}), after.get(key, {})
++        if old.get('sha256') != new.get('sha256'):
++            changes.append(dict(component=key, saved_sha256=old.get('sha256'),
++                current_sha256=new.get('sha256'), saved_sources=deepcopy(old.get('sources', [])),
++                current_sources=deepcopy(new.get('sources', []))))
++    if changes:
++        result['status'] = 'CHANGED'
++    elif saved.get('input_identity') != current.get('input_identity'):
++        result['reason'] = 'IDENTITY_CHANGED_WITHOUT_DIAGNOSTIC_COMPONENT'
++    else:
++        result['status'] = 'MATCH'
++    return result
+diff --git a/v4/manager_research/workspace_projection.py b/v4/manager_research/workspace_projection.py
+index 5799bae..a815c4c 100644
+--- a/v4/manager_research/workspace_projection.py
++++ b/v4/manager_research/workspace_projection.py
+@@ -14,6 +14,7 @@ import re
+ from typing import Any, Mapping, Sequence
+ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+ from zoneinfo import ZoneInfo
++from .workspace_identity import INPUT_IDENTITY_SCHEMA, semantic_digest, identity_component
+ 
+ FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
+ SCHEMA = 'v4.manager_research.workspace.v1'
+@@ -474,6 +475,12 @@ def build_workspace(date: str, *, catalyst: Mapping[str, Any], materials: Sequen
+             attempt=attempts.get(lane),next_plan=plans.get(lane)))
+     screen = deepcopy(dict(market_screen)) if isinstance(market_screen, Mapping) else None
+     screen_summary_counts = _market_screen_summary_counts(screen)
++    # Hash semantic input bindings; original rows/refs below keep provenance.
++    identity_inputs = dict(decision_projection_version='20260921.manager-decision-ux.a1',
++        semantic_version=SEMANTIC_VERSION,catalyst=catalyst,materials=materials,stage=stage,close=close,
++        discovered_cards=discovered_cards,discovery_rejections=discovery_rejections,price_quotes=price_quotes,
++        market_screen=screen,
++        plan_context={k:v for k,v in context.items() if k!='research_cutoff'} if plan_context else None)
+     result= dict(schema_version=SCHEMA,semantic_version=SEMANTIC_VERSION,rejected_relations=rejected_relations,
+         decision_projection_version='20260921.manager-decision-ux.a1',
+         target_trade_date=date,stocks=ordered_stocks,themes=theme_rows,lanes=lanes,
+@@ -489,10 +496,10 @@ def build_workspace(date: str, *, catalyst: Mapping[str, Any], materials: Sequen
+                      market_screen_near_count=screen_summary_counts[1],
+                      market_screen_card_count=screen_summary_counts[2]),
+         replacement_context='COMPARISON_ONLY_NO_POSITION_READ',
+-        input_identity=digest(dict(decision_projection_version='20260921.manager-decision-ux.a1',semantic_version=SEMANTIC_VERSION,catalyst=catalyst,materials=materials,stage=stage,close=close,
+-            discovered_cards=discovered_cards,discovery_rejections=discovery_rejections,price_quotes=price_quotes,
+-            market_screen=screen,
+-            plan_context={k:v for k,v in context.items() if k!='research_cutoff'} if plan_context else None)),
++        input_identity=semantic_digest(identity_inputs),
++        input_identity_schema=INPUT_IDENTITY_SCHEMA,
++        input_identity_components={'projection.'+key:identity_component(value)
++            for key,value in identity_inputs.items()},
+         plan_context=context,
+         browser_consumption='NOT_ACKNOWLEDGED_BY_SERVER',**FLAGS)
+     if screen is not None:

@@ -1,0 +1,42 @@
+COMMAND: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node --test work/evidence/frontend_independent.test.mjs
+ENV: {'FRONTEND_PORTABLE_CHROMIUM': '1', 'FRONTEND_ARTIFACT_DIR': '/workspace/scratch/38943af1e5bc/work/evidence/frontend-independent-artifacts', 'FRONTEND_SUPPORT_ROOT': '/workspace/scratch/38943af1e5bc/work/frontend/support', 'FRONTEND_RUNTIME_DEPS': '/workspace/scratch/38943af1e5bc/work/frontend/runtime-deps', 'FRONTEND_CJK_FONT_ROOT': '/workspace/scratch/38943af1e5bc/work/frontend/runtime-deps/node_modules/@fontsource/noto-sans-sc'}
+SCOPE: SYNTHETIC_OFFLINE_PANEL_ONLY; LIVE_API_UI_NOT_RUN
+EXIT_CODE: 0
+STDOUT:
+(node:13) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Synthetic offline runtime: Node v24.19.0; Playwright 1.62.1; Chromium 153.0.8010.0; optional CJK font true
+✔ real panel visibly renders all three response-bound channels while the saved plan remains stale (1512.982239ms)
+✔ real panel distinguishes validated candidates and a validated empty set with visible run and product identities (865.729714ms)
+✔ all three daily statuses are in the first 670-by-900 viewport after the plan consumption status (905.478512ms)
+✔ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count 4 (877.317353ms)
+✔ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count 7 (725.938203ms)
+✔ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count null (690.558581ms)
+✔ core plan and research results precede a collapsed audit retaining all 100 raw rows on repeated renders (797.00555ms)
+✔ a date change clears the prior daily display and renders the new response date bindings (509.059988ms)
+✔ preserved validator rejects workspace target mismatch and the real panel clears prior candidates (785.184213ms)
+✔ preserved validator rejects workspace plan binding mismatch and the real panel clears prior candidates (516.701093ms)
+✔ preserved validator rejects announcement date mismatch and the real panel clears prior candidates (534.950523ms)
+✔ preserved validator rejects HK selection date mismatch and the real panel clears prior candidates (526.224702ms)
+✔ preserved validator rejects oversold target date mismatch and the real panel clears prior candidates (499.277436ms)
+✔ preserved validator rejects plan run mismatch and the real panel clears prior candidates (489.37118ms)
+✔ preserved validator rejects source SHA mismatch and the real panel clears prior candidates (475.99054ms)
+✔ preserved validator rejects research-only flag disabled and the real panel clears prior candidates (755.828524ms)
+✔ preserved validator rejects production enabled and the real panel clears prior candidates (461.072083ms)
+✔ preserved validator rejects BUY gate changed and the real panel clears prior candidates (819.959753ms)
+✔ preserved validator rejects orders sent and the real panel clears prior candidates (611.53128ms)
+✔ preserved validator rejects stale plan presented as consumed channel run and the real panel clears prior candidates (657.275141ms)
+✔ legacy response without daily date bindings remains readable with explicit unknown channel dates (449.407569ms)
+✔ stale diagnostics without supported component evidence remain CANNOT_CONFIRM (667.021154ms)
+✔ refresh uses one validated response for the plan and daily summary without another GET (740.699049ms)
+✔ independent probe: external strings stay text in rows, gaps, source and identity details (1048.99536ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17301.456701
+
+STDERR:

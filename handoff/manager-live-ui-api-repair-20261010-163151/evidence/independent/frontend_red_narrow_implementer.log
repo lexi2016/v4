@@ -1,0 +1,38 @@
+(node:12) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ all three daily statuses are in the first 670-by-900 viewport after the plan consumption status (627.760596ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 965.710302
+
+✖ failing tests:
+
+test at work/frontend/runtime.test.mjs:169:1
+✖ all three daily statuses are in the first 670-by-900 viewport after the plan consumption status (627.760596ms)
+  AssertionError [ERR_ASSERTION]: Each channel status must be visible before the secondary status/detail sections
+  + actual - expected
+  
+    [
+  +   false,
+  +   false,
+  +   false
+  -   true,
+  -   true,
+  -   true
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/38943af1e5bc/work/frontend/runtime.test.mjs:175:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ false, false, false ],
+    expected: [ true, true, true ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

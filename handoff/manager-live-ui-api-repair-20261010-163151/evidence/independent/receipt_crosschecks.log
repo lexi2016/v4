@@ -1,0 +1,6 @@
+COMMAND: python3 work/evidence/audit_package_evidence.py
+CWD: /workspace/scratch/38943af1e5bc
+EXIT_CODE: 0
+STDOUT:
+{"status": "PASS_PACKAGE_RECEIPT_CROSSCHECKS", "checks": 44, "failures": [], "missing_direct_local_import_count": 59, "output": "/workspace/scratch/38943af1e5bc/work/evidence/receipt_crosschecks.json"}
+STDERR:

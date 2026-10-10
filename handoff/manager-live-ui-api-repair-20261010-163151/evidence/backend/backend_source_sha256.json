@@ -1,0 +1,55 @@
+{
+  "status": "PROPOSAL_ONLY",
+  "live_api_ui": "LIVE_API_UI_NOT_RUN",
+  "python": "3.12.14",
+  "environment": "Linux isolated workspace; no Mac roots; no running owner/service connection",
+  "source": [
+    {
+      "path": "v4/manager_research/workspace.py",
+      "status": "MODIFIED",
+      "before_sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+      "after_sha256": "cfebac45b599c5e99cf5fa07b3511959025165576566a894ba092bce084b638e",
+      "before_live_evidence_pin": true
+    },
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "status": "MODIFIED",
+      "before_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "after_sha256": "5eb3276cd8514253b8e47cbe801c2d052a3080c76113809315d9334a852d1ffa",
+      "before_live_evidence_pin": true
+    },
+    {
+      "path": "v4/manager_research/research_attention.py",
+      "status": "MODIFIED",
+      "before_sha256": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa",
+      "after_sha256": "452025514aa0238d5209472081cfd59a484402a54ba893217b79e55bad277750",
+      "before_live_evidence_pin": false
+    },
+    {
+      "path": "v4/manager_research/workspace_identity.py",
+      "status": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+      "before_live_evidence_pin": false
+    },
+    {
+      "path": "infrastructure/research_lane_source.py",
+      "status": "UNCHANGED",
+      "before_sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "after_sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "before_live_evidence_pin": true
+    },
+    {
+      "path": "v4/manager_research/existing_materials.py",
+      "status": "UNCHANGED",
+      "before_sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "after_sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "before_live_evidence_pin": true
+    }
+  ],
+  "historical_unique_live_changed_field": "CANNOT_CONFIRM",
+  "regression_tests": 21,
+  "regression_result": "PASS",
+  "baseline_red_assertion_failures_including_subtests": 19,
+  "full_repository_suite": "NOT_RUN: pytest unavailable and full repository test/config snapshot absent"
+}

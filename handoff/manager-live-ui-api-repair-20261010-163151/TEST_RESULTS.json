@@ -1,0 +1,50 @@
+{
+  "status": "PROPOSAL_ONLY / LIVE_API_UI_NOT_RUN",
+  "backend": {
+    "methods": 21,
+    "after": "PASS",
+    "before": "EXPECTED_FAIL",
+    "before_assertion_failures_including_subcases": 19,
+    "before_errors": 0,
+    "receipt": "evidence/backend/portable_results.json"
+  },
+  "frontend": {
+    "methods": 23,
+    "after": "PASS",
+    "before": "EXPECTED_FAIL",
+    "before_assertion_failures": 23,
+    "receipt": "evidence/frontend/verification_results.json"
+  },
+  "independent_browser": {
+    "tests": 24,
+    "overlapping_implementation_tests": 23,
+    "additional_literal_text_probe": 1,
+    "result": "PASS",
+    "log": "evidence/independent/frontend_independent_suite.log"
+  },
+  "input_audit": {
+    "assertions": 44,
+    "result": "PASS",
+    "receipt": "evidence/independent/receipt_crosschecks.json"
+  },
+  "viewport": {
+    "sizes": [
+      "1600x1200",
+      "1280x800",
+      "670x900",
+      "669x848"
+    ],
+    "result": "PASS_OFFLINE_SYNTHETIC_PANEL_ONLY",
+    "receipt": "evidence/independent/viewport_geometry.json"
+  },
+  "patch_roundtrip": {
+    "result": "PASS_EXACT_BEFORE_AFTER_BEFORE",
+    "files": 8,
+    "receipt": "evidence/root/patch_roundtrip.json"
+  },
+  "repository_python_suite": "NOT_RUN: pytest missing before collection; full repository snapshot absent",
+  "repository_frontend_suite": "NOT_RUN: package.json absent; no original full build/typecheck",
+  "live_owner_api_ui_natural_session": "NOT_RUN",
+  "historical_unique_live_cause": "CANNOT_CONFIRM",
+  "no_double_counting": "Reruns and independent reuse of implementation tests are not additional distinct test cases."
+}

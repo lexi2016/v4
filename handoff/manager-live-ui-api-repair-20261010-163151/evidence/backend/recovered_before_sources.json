@@ -1,0 +1,50 @@
+{
+  "schema_version": "v4.manager_repair.backend_recovered_source_provenance.v1",
+  "source_scope": "Recovered original bytes only; fixed source does not prove current live source. Three entries match independent supplied report SHA pins; research_attention requires explicit before-image reconciliation on a differing owner file.",
+  "files": [
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/research_lane_source.py",
+      "git_blob_sha": "fe5545af263b12d435c6a69999a75b4a32444dd6",
+      "bytes": 24125,
+      "sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "runtime_relative_path": "infrastructure/research_lane_source.py",
+      "package_path": "reference/infrastructure/research_lane_source.py",
+      "matches_supplied_live_report_sha_pin": true
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/api/v4/manager_research/existing_materials.py",
+      "git_blob_sha": "37d68758dc987a919ffb28fee3c35cdde8d7c6aa",
+      "bytes": 30245,
+      "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "runtime_relative_path": "v4/manager_research/existing_materials.py",
+      "package_path": "reference/v4/manager_research/existing_materials.py",
+      "matches_supplied_live_report_sha_pin": true
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_projection.py",
+      "git_blob_sha": "5799baef183dd4a93bdbc24c817a5df3d9e3cc33",
+      "bytes": 30841,
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "runtime_relative_path": "v4/manager_research/workspace_projection.py",
+      "package_path": "before/v4/manager_research/workspace_projection.py",
+      "matches_supplied_live_report_sha_pin": true
+    },
+    {
+      "repository": "lexi2016/v4",
+      "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "repository_path": "handoff/v4-running-source-20261005/api/v4/manager_research/research_attention.py",
+      "git_blob_sha": "c3edf3996d77247615da563c4309dac8967113bc",
+      "bytes": 43072,
+      "sha256": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa",
+      "runtime_relative_path": "v4/manager_research/research_attention.py",
+      "package_path": "before/v4/manager_research/research_attention.py",
+      "matches_supplied_live_report_sha_pin": false
+    }
+  ]
+}

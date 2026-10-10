@@ -1,0 +1,137 @@
+{
+  "status": "PROPOSAL_ONLY / LIVE_API_UI_NOT_RUN",
+  "files": [
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+      "after_sha256": "cfebac45b599c5e99cf5fa07b3511959025165576566a894ba092bce084b638e",
+      "status": "MODIFIED",
+      "before_provenance": {
+        "kind": "UPLOADED_FIXED_SOURCE",
+        "package_path": "code/current_fused_app/v4/manager_research/workspace.py",
+        "supplied_snapshot_hash_verified": true
+      },
+      "after_authority": "OFFLINE_REPAIR_CANDIDATE_NOT_LIVE"
+    },
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "before_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "after_sha256": "5eb3276cd8514253b8e47cbe801c2d052a3080c76113809315d9334a852d1ffa",
+      "status": "MODIFIED",
+      "before_provenance": {
+        "kind": "FIXED_GIT_BLOB",
+        "repository": "lexi2016/v4",
+        "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+        "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_projection.py",
+        "git_blob_sha": "5799baef183dd4a93bdbc24c817a5df3d9e3cc33",
+        "matches_supplied_live_report_sha_pin": true
+      },
+      "after_authority": "OFFLINE_REPAIR_CANDIDATE_NOT_LIVE"
+    },
+    {
+      "path": "v4/manager_research/research_attention.py",
+      "before_sha256": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa",
+      "after_sha256": "452025514aa0238d5209472081cfd59a484402a54ba893217b79e55bad277750",
+      "status": "MODIFIED",
+      "before_provenance": {
+        "kind": "FIXED_GIT_BLOB",
+        "repository": "lexi2016/v4",
+        "commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+        "repository_path": "handoff/v4-running-source-20261005/api/v4/manager_research/research_attention.py",
+        "git_blob_sha": "c3edf3996d77247615da563c4309dac8967113bc",
+        "matches_supplied_live_report_sha_pin": false
+      },
+      "after_authority": "OFFLINE_REPAIR_CANDIDATE_NOT_LIVE"
+    },
+    {
+      "path": "v4/manager_research/workspace_identity.py",
+      "before_sha256": null,
+      "after_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+      "status": "ADDED",
+      "before_provenance": {
+        "kind": "NEW_FILE_EXPECTED_ABSENT"
+      },
+      "after_authority": "OFFLINE_REPAIR_CANDIDATE_NOT_LIVE"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "before_sha256": "6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355",
+      "after_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "status": "MODIFIED",
+      "before_provenance": {
+        "kind": "UPLOADED_FIXED_SOURCE",
+        "package_path": "code/current_fused_app/apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "supplied_snapshot_hash_verified": true,
+        "browser_loaded_bundle_match": "CANNOT_CONFIRM"
+      },
+      "after_authority": "OFFLINE_REPAIR_CANDIDATE_NOT_LIVE"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "before_sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "after_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "status": "MODIFIED",
+      "before_provenance": {
+        "kind": "UPLOADED_FIXED_SOURCE",
+        "package_path": "code/current_fused_app/apps/web/src/manager-selection/dailyChannels.ts",
+        "supplied_snapshot_hash_verified": true,
+        "browser_loaded_bundle_match": "CANNOT_CONFIRM"
+      },
+      "after_authority": "OFFLINE_REPAIR_CANDIDATE_NOT_LIVE"
+    },
+    {
+      "path": "apps/web/src/manager-selection/businessStatus.ts",
+      "before_sha256": "36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90",
+      "after_sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
+      "status": "MODIFIED",
+      "before_provenance": {
+        "kind": "UPLOADED_FIXED_SOURCE",
+        "package_path": "code/current_fused_app/apps/web/src/manager-selection/businessStatus.ts",
+        "supplied_snapshot_hash_verified": true,
+        "browser_loaded_bundle_match": "CANNOT_CONFIRM"
+      },
+      "after_authority": "OFFLINE_REPAIR_CANDIDATE_NOT_LIVE"
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "before_sha256": "3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698",
+      "after_sha256": "6d93d766c93da20130a5f0ac673820e6d27267c563742420ce6fbe2718adf4b6",
+      "status": "MODIFIED",
+      "before_provenance": {
+        "kind": "UPLOADED_FIXED_SOURCE",
+        "package_path": "code/current_fused_app/apps/web/src/manager-selection/researchAttention.ts",
+        "supplied_snapshot_hash_verified": true,
+        "browser_loaded_bundle_match": "CANNOT_CONFIRM"
+      },
+      "after_authority": "OFFLINE_REPAIR_CANDIDATE_NOT_LIVE"
+    }
+  ],
+  "baseline_repository_commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+  "baseline_kind": "UPLOADED_FUSED_SOURCE_PLUS_EXACT_RECOVERED_PINS; NOT_FULL_REPOSITORY_CHECKOUT",
+  "unchanged_preconditions": [
+    {
+      "path": "infrastructure/research_lane_source.py",
+      "sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "package_path": "reference/infrastructure/research_lane_source.py",
+      "purpose": "UNCHANGED_ORIGINAL_OWNER_OR_RESPONSE_VALIDATOR"
+    },
+    {
+      "path": "v4/manager_research/existing_materials.py",
+      "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "package_path": "reference/v4/manager_research/existing_materials.py",
+      "purpose": "UNCHANGED_ORIGINAL_OWNER_OR_RESPONSE_VALIDATOR"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "package_path": "reference/apps/web/src/api/managerWorkspace.ts",
+      "purpose": "UNCHANGED_ORIGINAL_OWNER_OR_RESPONSE_VALIDATOR"
+    }
+  ],
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

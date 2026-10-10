@@ -1,0 +1,35 @@
+SYNTHETIC_OFFLINE_TEST_ONLY: after; no live API, market capture, owner run, or application state writes.
+(node:25) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Synthetic offline runtime: Node v24.19.0; Playwright 1.62.1; Chromium 153.0.8010.0; optional CJK font true
+✔ real panel visibly renders all three response-bound channels while the saved plan remains stale (3490.483285ms)
+✔ real panel distinguishes validated candidates and a validated empty set with visible run and product identities (653.636387ms)
+✔ all three daily statuses are in the first 670-by-900 viewport after the plan consumption status (599.226569ms)
+✔ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count 4 (404.094486ms)
+✔ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count 7 (620.178166ms)
+✔ US assessment and the daily mapping are adjacent, distinct scopes with reviewed count null (467.464691ms)
+✔ core plan and research results precede a collapsed audit retaining all 100 raw rows on repeated renders (718.851391ms)
+✔ a date change clears the prior daily display and renders the new response date bindings (707.051754ms)
+✔ preserved validator rejects workspace target mismatch and the real panel clears prior candidates (420.029082ms)
+✔ preserved validator rejects workspace plan binding mismatch and the real panel clears prior candidates (424.634019ms)
+✔ preserved validator rejects announcement date mismatch and the real panel clears prior candidates (642.801004ms)
+✔ preserved validator rejects HK selection date mismatch and the real panel clears prior candidates (677.687872ms)
+✔ preserved validator rejects oversold target date mismatch and the real panel clears prior candidates (433.953903ms)
+✔ preserved validator rejects plan run mismatch and the real panel clears prior candidates (728.728586ms)
+✔ preserved validator rejects source SHA mismatch and the real panel clears prior candidates (403.568616ms)
+✔ preserved validator rejects research-only flag disabled and the real panel clears prior candidates (465.888988ms)
+✔ preserved validator rejects production enabled and the real panel clears prior candidates (715.020559ms)
+✔ preserved validator rejects BUY gate changed and the real panel clears prior candidates (671.077686ms)
+✔ preserved validator rejects orders sent and the real panel clears prior candidates (417.243076ms)
+✔ preserved validator rejects stale plan presented as consumed channel run and the real panel clears prior candidates (462.200026ms)
+✔ legacy response without daily date bindings remains readable with explicit unknown channel dates (390.166407ms)
+✔ stale diagnostics without supported component evidence remain CANNOT_CONFIRM (380.486785ms)
+✔ refresh uses one validated response for the plan and daily summary without another GET (768.802708ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16022.089319
