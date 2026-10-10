@@ -1,0 +1,349 @@
+{
+  "schema": "a1300_recovery_final_api_independent_review_v1",
+  "reviewed_at_utc": "2026-10-10T06:21:33+00:00",
+  "scope": {
+    "date": "20261009",
+    "stage": "STAGE_1300_1315",
+    "backfill_run_id": "67f131d7732641659c89837dbfd7ea16",
+    "reviewer_role": "r2_local_review",
+    "read_only": true,
+    "purpose": "independent post-promotion live API, artifact and date matrix verification"
+  },
+  "verdict": {
+    "status": "API_VERIFIED_BEHAVIOR_VERIFIED_RESEARCH_PARTIAL",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "API_VERIFIED": true,
+    "BEHAVIOR_VERIFIED": true,
+    "UI_VERIFIED": "PARENT_SEPARATE_READBACK",
+    "NATURAL_SLOT": "NATURAL_SLOT_UNVERIFIED",
+    "promoted": true,
+    "application_source_deployed": false
+  },
+  "pinned_evidence": {
+    "execution_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/execution/a1300_backfill_promotion_20261010_01/PROMOTION_EXECUTION_RECEIPT.json",
+      "sha256": "1c5f1d8610f1095081553afc420dbde21ebdd962145c8f74db835ae9b3fa2857",
+      "status": "PROMOTED_API_VERIFIED"
+    },
+    "plan_v3_sha256": "6ea6ab601fd84b4f2f246e5073af76af3b6b5b76258a925cbd88177ca1141737",
+    "independent_plan_review_sha256": "5f961bec95d1d267ea1ad5c724fda74a17dac2a5c0f650800c03a277a6e9e0b1",
+    "writer_api_body_sha256": "7173752e082d85a4f0b0879f5baa8a56c6f962ccfb228249317661f53d9ed852",
+    "fresh_api_body_sha256": "3db8a3f907f5086e2d3115c94a785eebbb8c8303c19c9ba67ec32e74ce065c66",
+    "fresh_api_parsed_json_matches_writer_readback": true
+  },
+  "runtime_identity": {
+    "pid": 10321,
+    "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app",
+    "listener": "127.0.0.1:8873",
+    "pid_cwd_listener_match_execution_receipt": true,
+    "current_source_hashes": {
+      "api_app": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8",
+      "api_consumer": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "api_selection": "31e80e068890be03957920870719030463262c78911953541be3074f8650d4c9",
+      "api_web": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f"
+    },
+    "source_hashes_equal_before_and_after_receipt": true
+  },
+  "published_artifacts": {
+    "run_id": "67f131d7732641659c89837dbfd7ea16",
+    "same_key_candidates": [
+      {
+        "backfill_run_id": "67f131d7732641659c89837dbfd7ea16",
+        "run_id": "run-2e40cc6a40d0e6d3c65d8f72",
+        "artifact_sha256": "447b8447e6dbc2cc761b576d8e0d90ebd4cebc259bd9766e56ecf268a1b4f6ba"
+      }
+    ],
+    "same_key_exactly_one": true,
+    "candidate_vs_live_trees": {
+      "raw": {
+        "files": 4,
+        "bytes_sha_mode_equal": true
+      },
+      "receipts": {
+        "files": 2,
+        "bytes_sha_mode_equal": true
+      },
+      "selection": {
+        "files": 4,
+        "bytes_sha_mode_equal": true
+      }
+    },
+    "raw_receipt_selection_order_confirmed_from_execution_receipt": [
+      "raw",
+      "receipts",
+      "selection"
+    ],
+    "standard_selection_latest_sha256": "bfb0ad6b3f5d2261c03fd8db71bf27c3912f581807c7904a2e6fc02217785cd0",
+    "standard_selection_latest_unchanged": true,
+    "prior_a_results": {
+      "count": 51,
+      "baseline_file_hashes_and_sizes_equal": true,
+      "physical_missing": 0,
+      "physical_changed": 0,
+      "manifest_sha256": "3d67e1f8b1be86513eec6ce57791466f255525f5d1e308f7ad0be98b31189fea"
+    },
+    "runner_receipt_sha256": "03caa6aa0d552e6339fd8dbe9ddc5949dab2694f55659275503508efd4eb0fbc"
+  },
+  "live_1300_api": {
+    "url": "http://127.0.0.1:8873/api/v3/workbench/stage?date=20261009&stage=STAGE_1300_1315&limit=50",
+    "http_status": 200,
+    "response_sha256": "3db8a3f907f5086e2d3115c94a785eebbb8c8303c19c9ba67ec32e74ce065c66",
+    "trade_date": "20261009",
+    "stage_id": "STAGE_1300_1315",
+    "overall_status": "PARTIAL_WITH_ROWS",
+    "selection_mode": "BACKFILL",
+    "selection_run_id": "run-2e40cc6a40d0e6d3c65d8f72",
+    "backfill_run_id": "67f131d7732641659c89837dbfd7ea16",
+    "rows": 10,
+    "source_rows": 206,
+    "requested_rows": 216,
+    "coverage_ratio": 0.9537037037037037,
+    "runner_receipt_verified": true,
+    "runner_receipt_status": "VERIFIED",
+    "selection_artifact_sha256": "447b8447e6dbc2cc761b576d8e0d90ebd4cebc259bd9766e56ecf268a1b4f6ba",
+    "live_api_rows_match_artifact_order_code_rank_score": true,
+    "name_authority_applied": 10,
+    "name_authority_missing": 0,
+    "partial_research_gap_count": 252,
+    "HK_status": "CANNOT_CONFIRM",
+    "HK_rows": 0,
+    "safety": {
+      "write_performed": false,
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "stage_api_matrix": {
+    "trade_date": "20261009",
+    "count": 8,
+    "all_http_200": true,
+    "all_reads_write_performed_false": true,
+    "all_safety_flags_research_only": true,
+    "stages": [
+      {
+        "stage": "STAGE_0925",
+        "http_status": 200,
+        "response_sha256": "2f0187861af2f8f2dded6d0e085abc0b4d815fc9dcbf74076ad1b0da9b9567ea",
+        "A": {
+          "rows": 10,
+          "source_rows": 205,
+          "requested_rows": 216,
+          "status": "PARTIAL_WITH_ROWS",
+          "run_id": "run-c9942f671877c4011d4c3c98"
+        },
+        "HK": {
+          "rows": 0,
+          "status": "CANNOT_CONFIRM",
+          "reason": "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+        },
+        "write_performed": false,
+        "safety": {
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      },
+      {
+        "stage": "STAGE_0930_0935",
+        "http_status": 200,
+        "response_sha256": "580dc7e59a03323557857924d3095dc5e416ef54ee2d39d381c2aa63db1798d8",
+        "A": {
+          "rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216,
+          "status": "PARTIAL_WITH_ROWS",
+          "run_id": "run-2688466a1ae4464ba7237f0b",
+          "backfill_run_id": "85e29661ecd848fe9b8344ea59279e86"
+        },
+        "HK": {
+          "rows": 10,
+          "source_rows": 695,
+          "requested_rows": 695,
+          "status": "PARTIAL_WITH_ROWS",
+          "run_id": "run-cfbdc9b36a7308da178d193a",
+          "backfill_run_id": "85e29661ecd848fe9b8344ea59279e86",
+          "membership": "CANNOT_CONFIRM",
+          "reason": "HK_CURRENT_DAY_RESEARCH_MEMBERSHIP_CANNOT_CONFIRM",
+          "formal_d1": "CANNOT_CONFIRM"
+        },
+        "write_performed": false,
+        "safety": {
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      },
+      {
+        "stage": "STAGE_0935_0940",
+        "http_status": 200,
+        "response_sha256": "f5ccfd5f42840ad11d2a3f890b43f36bbcfda1087faa02a4d3bd87651fe74fe6",
+        "A": {
+          "rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216,
+          "status": "PARTIAL_WITH_ROWS",
+          "run_id": "run-219ec0b0ce51d5b77f5ea3ec"
+        },
+        "HK": {
+          "rows": 0,
+          "status": "CANNOT_CONFIRM",
+          "reason": "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+        },
+        "write_performed": false,
+        "safety": {
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      },
+      {
+        "stage": "STAGE_0940_0945",
+        "http_status": 200,
+        "response_sha256": "ba4441203d22745a7d35a2cdd3bfe5395982ea5791033374e02cb60a2302a1bb",
+        "A": {
+          "rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216,
+          "status": "PARTIAL_WITH_ROWS",
+          "run_id": "run-cb844e6aec82dfe6bc86daf7"
+        },
+        "HK": {
+          "rows": 0,
+          "status": "CANNOT_CONFIRM",
+          "reason": "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+        },
+        "write_performed": false,
+        "safety": {
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      },
+      {
+        "stage": "STAGE_0945_1030",
+        "http_status": 200,
+        "response_sha256": "329aace84b2854f70e8307f0ef106a9acd034fc934d69d8fe5efcbacc95b9b57",
+        "A": {
+          "rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216,
+          "status": "PARTIAL_WITH_ROWS",
+          "run_id": "run-772135897034b22b165620e5"
+        },
+        "HK": {
+          "rows": 0,
+          "status": "CANNOT_CONFIRM",
+          "reason": "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+        },
+        "write_performed": false,
+        "safety": {
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      },
+      {
+        "stage": "STAGE_1300_1315",
+        "http_status": 200,
+        "response_sha256": "3db8a3f907f5086e2d3115c94a785eebbb8c8303c19c9ba67ec32e74ce065c66",
+        "A": {
+          "rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216,
+          "status": "PARTIAL_WITH_ROWS",
+          "run_id": "run-2e40cc6a40d0e6d3c65d8f72",
+          "backfill_run_id": "67f131d7732641659c89837dbfd7ea16",
+          "runner_receipt_verified": true
+        },
+        "HK": {
+          "rows": 0,
+          "status": "CANNOT_CONFIRM",
+          "reason": "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+        },
+        "write_performed": false,
+        "safety": {
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      },
+      {
+        "stage": "STAGE_1445_1500",
+        "http_status": 200,
+        "response_sha256": "3087364c74915e4bc0893fe528aac796a3a5505d2651dc43776dcb18d027f8d0",
+        "A": {
+          "rows": 10,
+          "source_rows": 206,
+          "requested_rows": 216,
+          "status": "PARTIAL_WITH_ROWS",
+          "run_id": "run-c65bd9bf5e640b8559e86941"
+        },
+        "HK": {
+          "rows": 0,
+          "status": "CANNOT_CONFIRM",
+          "reason": "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+        },
+        "write_performed": false,
+        "safety": {
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      },
+      {
+        "stage": "STAGE_1545_1555",
+        "http_status": 200,
+        "response_sha256": "601859fdc3e75d25ac8527119357f1615503d30fc18a2b85b729da0fb0891f78",
+        "A": {
+          "applicable": false,
+          "rows": 0,
+          "status": "NOT_APPLICABLE"
+        },
+        "HK": {
+          "rows": 0,
+          "status": "CANNOT_CONFIRM",
+          "reason": "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+        },
+        "write_performed": false,
+        "safety": {
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      }
+    ],
+    "summary": {
+      "A_applicable_stages_with_10_rows": [
+        "STAGE_0925",
+        "STAGE_0930_0935",
+        "STAGE_0935_0940",
+        "STAGE_0940_0945",
+        "STAGE_0945_1030",
+        "STAGE_1300_1315",
+        "STAGE_1445_1500"
+      ],
+      "A_1545": "NOT_APPLICABLE",
+      "HK_0930_observation_rows": 10,
+      "HK_0930_formal_membership": "CANNOT_CONFIRM",
+      "other_HK_stages": "CANNOT_CONFIRM_no_rows"
+    }
+  },
+  "findings": [],
+  "cannot_confirm": [
+    "Formal HK D-1 eligibility/pool remains unavailable for 20261009; the 09:30 HK observation is not formal membership evidence.",
+    "Natural-slot execution is unverified.",
+    "This reviewer did not perform browser UI readback; parent reports a separate refreshed UI readback."
+  ]
+}

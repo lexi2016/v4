@@ -1,0 +1,109 @@
+{
+  "schema": "a1300_backfill_promotion_plan_v3_independent_review_v1",
+  "reviewed_at_utc": "2026-10-10T05:56:36+00:00",
+  "scope": {
+    "date": "20261009",
+    "stage": "STAGE_1300_1315",
+    "backfill_run_id": "67f131d7732641659c89837dbfd7ea16",
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/stage_runner_canary_04_corrected_morning_binding",
+    "reviewer_role": "r2_local_review",
+    "writer_role": "r2_local_integrator",
+    "read_only": true,
+    "review_kind": "final plan-only review; no promotion, candidate rerun, live service, HTTP, browser, or natural-slot action"
+  },
+  "artifacts": {
+    "plan_v3": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/stage_runner_canary_04_corrected_morning_binding/evidence/PROMOTION_API_BINDING_PLAN_V3.json",
+      "sha256": "6ea6ab601fd84b4f2f246e5073af76af3b6b5b76258a925cbd88177ca1141737",
+      "status": "PREPARED_NOT_PROMOTED"
+    },
+    "superseded_plan_v2_sha256": "7fc135a3220faf8c611b121cfdd13e4d36482a708ba014f8983956e6513937ba",
+    "superseded_plan_v1_sha256": "6e4e91c2e6c6ac16444371bf2b98ef9116b82e8c0c412a2d3b900e5ef57dadab",
+    "candidate_inventory_sha256": "aa928d03ce464cc89dba190e422745220fdf782492ee8bc0fbdcca9658ae6fea",
+    "prior_independent_candidate_review": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/evidence/review/A1300_BACKFILL_PROMOTION_REVIEW_20261010.json",
+      "sha256": "26125f9fb8ced6cc4a6913d583c44706f99b616431215b2d8d90e95a5b01dd30",
+      "reused_without_rerun": true
+    }
+  },
+  "verdict": {
+    "status": "PASS_PLAN_ONLY",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "reviewed": true,
+    "behavior_verified": {
+      "status": "REUSED_PRIOR_RECEIPT",
+      "candidate": "BEHAVIOR_VERIFIED_RESEARCH_PARTIAL",
+      "this_turn_rerun": false
+    },
+    "plan_ready_for_parent_execution": true,
+    "deployed": false
+  },
+  "evidence": {
+    "integrity": {
+      "plan_v1_v2_v3_and_candidate_inventory_hashes_match_pins": true,
+      "pinned_lock_and_reader_sources_match": {
+        "R3_runner_py": "ea9909bb4f39c4248032771aedd9611a852353e940451e0b0c7273bde8c26345",
+        "R3_slot_lock_py": "f90d3c8e3fba34d157bf45e1f544e9169a575931a3f2f33340e97c25879f5c1d",
+        "R3_interprocess_lock_py": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+        "active_api_selection_py": "31e80e068890be03957920870719030463262c78911953541be3074f8650d4c9",
+        "active_api_consumer_py": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+        "active_api_app_py": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8"
+      },
+      "candidate_behavior_receipt_sha256": "26125f9fb8ced6cc4a6913d583c44706f99b616431215b2d8d90e95a5b01dd30"
+    },
+    "publication_contract": {
+      "concurrency_limit_explicit": "base Stage/SelectionStore locks cover cooperating normal-root writers only; distinct backfill IDs are not globally serialized",
+      "same_key_cas": "zero candidates immediately before visibility commit; immediately after commit exactly the candidate run ID",
+      "reader_gate": "ordinary GET /api/v3/workbench/stage?date=20261009&stage=STAGE_1300_1315&limit=50 must return exact run, 10 A_SHARE rows, runner_receipt_verified=true",
+      "visibility_order": [
+        "raw",
+        "runner receipts",
+        "selection last"
+      ],
+      "rollback_order": [
+        "quarantine only this run selection first",
+        "quarantine only this run receipts",
+        "quarantine only this run raw"
+      ],
+      "restore_order": [
+        "raw",
+        "receipts",
+        "selection last",
+        "repeat same-key scan and exact-run API check"
+      ],
+      "selection_latest_and_existing_a_results": "selection_latest SHA pinned unchanged; all 51 prior A result hashes pinned unchanged"
+    },
+    "exact_paths": {
+      "quarantine_paths": {
+        "selection": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/.promotion-quarantine/67f131d7732641659c89837dbfd7ea16/selection",
+        "receipts": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/.promotion-quarantine/67f131d7732641659c89837dbfd7ea16/receipts",
+        "raw": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.promotion-quarantine/67f131d7732641659c89837dbfd7ea16/raw"
+      },
+      "all_three_targets_currently_absent": true,
+      "all_three_staging_roots_currently_absent": true,
+      "all_three_quarantine_paths_currently_absent_and_not_symlinks": true,
+      "quarantine_paths_are_run_scoped_and_outside_backfill_scan_roots": true,
+      "nearest_existing_stage_root_device_ids": {
+        "selection": 16777234,
+        "receipts": 16777234,
+        "raw": 16777234
+      }
+    },
+    "candidate_scope_preserved": {
+      "A_SHARE": "PARTIAL_WITH_ROWS; 10 selected from 206 source rows of 216 requested; name overlay 10/10; research evidence gaps retained",
+      "HK_CONNECT": "CANNOT_CONFIRM; strict D1 not ready; no HK selection artifact",
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "natural_verified": false
+    }
+  },
+  "findings": [],
+  "cannot_confirm": [
+    "No live promotion, current API HTTP read, browser UI readback, or natural-slot behavior was performed in this plan-only review.",
+    "The no-overwrite transfer primitive is specified as fail-if-target-appears, but no implementation was exercised; execution must honor that contract."
+  ]
+}

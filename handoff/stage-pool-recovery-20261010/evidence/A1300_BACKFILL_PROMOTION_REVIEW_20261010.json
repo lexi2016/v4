@@ -1,0 +1,109 @@
+{
+  "schema": "a1300_backfill_promotion_independent_review_v1",
+  "reviewed_at_utc": "2026-10-10T05:42:50Z",
+  "scope": {
+    "date": "20261009",
+    "stage": "STAGE_1300_1315",
+    "backfill_run_id": "67f131d7732641659c89837dbfd7ea16",
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/stage_runner_canary_04_corrected_morning_binding",
+    "frozen_scope_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/coordination/RECOVERY_ALL_STAGES_20261010_SCOPE.json",
+    "writer_role": "r2_local_integrator",
+    "reviewer_role": "r2_local_review",
+    "review_is_read_only": true
+  },
+  "artifacts": {
+    "promotion_plan": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/stage_runner_canary_04_corrected_morning_binding/evidence/PROMOTION_API_BINDING_PLAN.json",
+      "sha256": "6e4e91c2e6c6ac16444371bf2b98ef9116b82e8c0c412a2d3b900e5ef57dadab"
+    },
+    "candidate_consumer_readback": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/stage_runner_canary_04_corrected_morning_binding/evidence/STANDARD_CONSUMER_CANDIDATE_READBACK.json",
+      "sha256": "d9e9908bc4b6546909ff3ab3cfe78bd3bc3f28127fd6a61aa4b1db8d1f061059"
+    },
+    "stage_runner_result": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/stage_runner_canary_04_corrected_morning_binding/evidence/STAGE_1300_BACKFILL_RESULT.json",
+      "sha256": "03caa6aa0d552e6339fd8dbe9ddc5949dab2694f55659275503508efd4eb0fbc"
+    },
+    "candidate_file_manifest": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/recovery_20261009_all_stages_20261010/candidate/stage_runner_canary_04_corrected_morning_binding/evidence/CANARY_FILE_MANIFEST_FINAL.json",
+      "sha256": "aa928d03ce464cc89dba190e422745220fdf782492ee8bc0fbdcca9658ae6fea",
+      "entries_independently_verified": 28
+    }
+  },
+  "candidate_verdict": {
+    "status": "BEHAVIOR_VERIFIED_RESEARCH_PARTIAL",
+    "p0": 0,
+    "p1": 0,
+    "a_share": {
+      "status": "PARTIAL_WITH_ROWS",
+      "selected_rows": 10,
+      "source_rows": 206,
+      "requested_rows": 216,
+      "selection_run_id": "run-2e40cc6a40d0e6d3c65d8f72",
+      "artifact_id": "selection-2e40cc6a40d0e6d3c65d8f72",
+      "raw_artifact_sha256": "7b727d95a64953c3b21ab92cc49e5bf6f62f41e9b4ae681836a618fba7c64c68",
+      "runner_receipt_status": "VERIFIED",
+      "name_authority_applied_count": 10,
+      "name_authority_missing_count": 0,
+      "partial_evidence_preserved": true
+    },
+    "hk_connect": {
+      "status": "CANNOT_CONFIRM",
+      "selected_rows": 0,
+      "reason": "HK D1 status must be STRICT_0_2_READY"
+    },
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "independent_behavior_check": {
+      "status": "PASS",
+      "method": "direct read-only StageSelectionConsumer.get(trade_date, stage_id, allow_backfill=True) with candidate selection and receipt roots plus configured A-name pool root",
+      "source_consumer_sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "output": "A result matches 10 selected rows / PARTIAL_WITH_ROWS, exact run/artifact/raw identity, runner receipt VERIFIED, exact-date names 10/10; HK remains CANNOT_CONFIRM; no write performed"
+    }
+  },
+  "promotion_plan_verdict": {
+    "status": "PLAN_BLOCKED_PENDING_REVISION",
+    "p2": 1,
+    "finding": {
+      "id": "P2_PUBLICATION_VISIBILITY_AND_ROLLBACK_UNDERSPECIFIED",
+      "evidence": [
+        "Frozen scope STOP_RULE requires CAS/shared locks for any later necessary local publication.",
+        "PROMOTION_API_BINDING_PLAN.future_transfer_plan_after_independent_review_and_parent_authorization requires no-overwrite copying but specifies no CAS/shared lock or staging/visibility order; it also says to move directories to a run-specific quarantine outside API scan roots without an exact quarantine path.",
+        "Loaded API app.py:4949-4952 delegates ordinary reads to StageSelectionConsumer.get(..., allow_backfill=True). Consumer.py:526-599 discovers run-scoped selection backfills and retains candidates even when runner receipt is not yet verified, appending BACKFILL_RUNNER_RECEIPT_CANNOT_CONFIRM; consumer.py:698-700 returns a single such candidate."
+      ],
+      "impact": "A reader can observe selected rows while a multi-tree copy is incomplete; the row output remains explicitly CANNOT_CONFIRM for receipt verification, but plan does not satisfy frozen lock/CAS publication discipline or provide a verifiable exact rollback destination.",
+      "required_plan_delta": "Name the applicable shared lock/CAS and preconditions; stage outside scanned roots; make raw and runner receipts visible before atomically exposing selection namespace; specify an exact run-specific same-volume quarantine/restore path outside API scan roots."
+    },
+    "no_other_p0_p1_p2_findings": true
+  },
+  "route_and_preflight": {
+    "loaded_api_app_sha256": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8",
+    "ordinary_route": "GET /api/v3/workbench/stage -> shared_selection_consumer.get(selected, stage, allow_backfill=True)",
+    "approved_research_binding": "20261009/STAGE_0930_0935 only; no 1300 match",
+    "legacy_exact_binding": "no 20261009/STAGE_1300_1315 entry in inspected loaded app source",
+    "backfill_scan": "114 existing namespace directories; 0 advertise the exact 20261009/STAGE_1300_1315/A_SHARE key",
+    "live_preflight_at_review": {
+      "listener_pid": 10321,
+      "listener": "127.0.0.1:8873",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/candidate/stage_r4_manager_r2_owner_input_r1_fused_r1/app",
+      "target_run_directories_absent": {
+        "raw": true,
+        "selection": true,
+        "receipts": true
+      },
+      "selection_latest_sha256": "bfb0ad6b3f5d2261c03fd8db71bf27c3912f581807c7904a2e6fc02217785cd0",
+      "selection_latest_target_key_present": false
+    }
+  },
+  "acceptance_limits": {
+    "candidate_source_tests": "NOT_RERUN_REQUESTED; candidate/source and projection tests unchanged for this plan review",
+    "live_http": "CANNOT_CONFIRM; not called in this review phase",
+    "browser_ui": "CANNOT_CONFIRM; not called in this review phase",
+    "natural_slot": "CANNOT_CONFIRM; historical replay only",
+    "publication": "NOT_EXECUTED"
+  }
+}
