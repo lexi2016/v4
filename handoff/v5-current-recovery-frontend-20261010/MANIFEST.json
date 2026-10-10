@@ -1,0 +1,88 @@
+{
+  "schema_version": "v5.frontend_current_recovery_handoff.v1",
+  "repository": "lexi2016/v4",
+  "recorded_frontend_release": "e9c94a13a1407449a16b3fa731bd0ef46867cf34",
+  "package_parent": "e9c94a13a1407449a16b3fa731bd0ef46867cf34",
+  "patch_sha256": "757fff2254cdb714946f6efdeb4675c86bbc97ea41f5df0556bd290348bd9804",
+  "patch_matches_full_images": true,
+  "cloud_branch_observed": "b328263dce1ac095340ff62454e8d35893f8720e",
+  "cloud_branch_modified": false,
+  "files": [
+    {
+      "path": "before/web/src/api/managerWorkspace.ts",
+      "sha256": "83f68557306054430a2e9a9f97bca53da9b746493ca2be95aad7c22a00cbc5af",
+      "git_blob": "9e455de34db7ffae2c282e9dda1d24455bccf29c",
+      "bytes": 102045,
+      "baseline_commit_match": [
+        "V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.ts"
+      ]
+    },
+    {
+      "path": "after/web/src/api/managerWorkspace.ts",
+      "sha256": "d4781eb4a5a211dd68afa0cc90f3d380e5de60d401cf180ae087c20aadea47f7",
+      "git_blob": "cbff7d4661ead5eeca49426db85d6c088ac980e1",
+      "bytes": 103210
+    },
+    {
+      "path": "before/web/src/manager-selection/dailyChannels.ts",
+      "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "git_blob": "4083650551048eabd38662d31b4314f6fb084b74",
+      "bytes": 18449,
+      "baseline_commit_match": []
+    },
+    {
+      "path": "after/web/src/manager-selection/dailyChannels.ts",
+      "sha256": "dab30efb663a07f297ccf58eb3b68a07e452c4d822088ec653ba40ebd5ec9a32",
+      "git_blob": "5f7beb215c71c3c2235902431cc41c9b92ddb8cb",
+      "bytes": 19631
+    },
+    {
+      "path": "before/web/src/manager-selection/catalystObservationPanel.ts",
+      "sha256": "44807aedac1ad62d39ed599f3d1cdbf1818cc2b5c6c2ee4973834ab78c733f60",
+      "git_blob": "b2a8d41a1c7fe0555e86f22b6bdb0ec58e3abe7a",
+      "bytes": 70170,
+      "baseline_commit_match": [
+        "V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.ts"
+      ]
+    },
+    {
+      "path": "after/web/src/manager-selection/catalystObservationPanel.ts",
+      "sha256": "81190e870e80a98a4c54357bab35e16b8bafba9c0065d0afb63eb90a16c5168b",
+      "git_blob": "d1eff24632f71df767742a79c23fa852c571e9c2",
+      "bytes": 70264
+    },
+    {
+      "path": "after/web/src/api/managerWorkspace.currentRecovery.spec.ts",
+      "sha256": "7b1d659f25828c22af189e63d36d439f1e23a383a0712957d644dfec534df0b7",
+      "git_blob": "3a2e779f023d9486017751a2769adbd17ccecfeb",
+      "bytes": 2040
+    },
+    {
+      "path": "v5-candidate-source-diff-20261010.patch",
+      "sha256": "757fff2254cdb714946f6efdeb4675c86bbc97ea41f5df0556bd290348bd9804",
+      "bytes": 8314
+    }
+  ],
+  "absent_before": [
+    "web/src/api/managerWorkspace.currentRecovery.spec.ts"
+  ],
+  "baseline_caveat": "dailyChannels.ts before-image exists in Mac release source but is absent from the pinned e9c94a13 Git tree; do not describe this as a clean patch against that Git commit. Use exact before-image SHA for merge preconditions.",
+  "test_caveat": "Original unchanged test loads ../evidence/manager-read-publication.json and asserts a real saved run/SHA. This fixture is NOT included. Test is not self-contained or synthetic. Cloud must explicitly adapt test inputs in its own subsequent change; this handoff does not fabricate a replacement.",
+  "excluded": [
+    "real announcement bodies",
+    "semantic catalogs",
+    "article decisions",
+    "manager-read-publication.json",
+    "credentials",
+    "local configs",
+    "built frontend",
+    "runtime products"
+  ],
+  "validation": {
+    "mechanical_diff": true,
+    "secret_pattern_scan": "No private-key, GitHub-token, API-key, AWS-key, credential-assignment or /Users/ path matches in eight payload files.",
+    "product_tests_rerun": false,
+    "browser_test": false,
+    "deployment": false
+  }
+}

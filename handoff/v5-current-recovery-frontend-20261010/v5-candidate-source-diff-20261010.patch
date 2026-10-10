@@ -1,0 +1,97 @@
+--- e9/api/managerWorkspace.ts
++++ candidate/api/managerWorkspace.ts
+@@ -221,12 +221,26 @@
+   if (value.read_context === undefined) return; // legacy POST/caller compatibility, not GET admission
+   const read = object(value.read_context); const ctx = object(value.plan_context);
+   const status = String(read.status); const historical = read.mode === 'HISTORICAL_AS_OF';
+-  if (!['HISTORICAL_AS_OF','CURRENT_DYNAMIC_PREVIEW'].includes(String(read.mode)) ||
++  if (!['HISTORICAL_AS_OF','CURRENT_DYNAMIC_PREVIEW','CURRENT_RECOVERY'].includes(String(read.mode)) ||
+       !['VERIFIED','VERIFIED_WITH_GAPS','NOT_MATERIALIZED','SOURCE_FAILED'].includes(status) ||
+       read.contract !== '20260923.workspace-history-read.r1' || typeof read.candidate_count_known !== 'boolean' ||
+       typeof read.as_of !== 'string' || read.as_of !== ctx.research_cutoff ||
+       ctx.plan_trade_date !== value.target_trade_date || !Number.isFinite(Date.parse(read.as_of)))
+     throw new Error('WORKSPACE_READ_CONTEXT_INVALID');
++  const recoveryProduct=object(value.plan_product);
++  if (read.mode==='CURRENT_RECOVERY' || recoveryProduct.status==='CURRENT_RECOVERY') {
++    const readAt=typeof read.read_as_of==='string'?Date.parse(read.read_as_of):NaN;
++    const generated=typeof recoveryProduct.generated_at==='string'?Date.parse(recoveryProduct.generated_at):NaN;
++    if (read.mode!=='CURRENT_RECOVERY' || read.v5_contract!=='v5.manager_current_recovery.v1' ||
++        read.requested_view!=='auto' || read.owner_view!=='dynamic' || read.historical_eligible!==false ||
++        !['VERIFIED','VERIFIED_WITH_GAPS'].includes(status) || !Number.isFinite(readAt) ||
++        !Number.isFinite(generated) || readAt<generated ||
++        recoveryProduct.status!=='CURRENT_RECOVERY' || recoveryProduct.owner_status!=='CURRENT' ||
++        recoveryProduct.consumed!==true || recoveryProduct.historical_eligible!==false ||
++        typeof recoveryProduct.run_id!=='string' || !/^[0-9a-f]{32}$/.test(recoveryProduct.run_id) ||
++        typeof recoveryProduct.sha256!=='string' || !/^[0-9a-f]{64}$/.test(recoveryProduct.sha256))
++      throw new Error('WORKSPACE_CURRENT_RECOVERY_INVALID');
++  }
+   const stocks=value.stocks as JsonObject[];
+   if (['NOT_MATERIALIZED','SOURCE_FAILED'].includes(status)) {
+     if (stocks.length || read.candidate_count_known !== false || object(value.plan_product).consumed !== false)
+--- e9/manager-selection/dailyChannels.ts
++++ candidate/manager-selection/dailyChannels.ts
+@@ -95,7 +95,24 @@
+ function validatePlanRun(channel: RecordValue, workspace: RecordValue): void {
+   if (channel.run_id === null) return;
+   const product = object(workspace.plan_product); const attempt = object(workspace.workspace_plan_attempt);
+-  if (!['CURRENT', 'ALREADY_MATERIALIZED', 'PRESERVED_SCHEDULED_PREOPEN'].includes(String(product.status)) || product.consumed !== true ||
++  // A recovered plan is valid here only after the workspace read context
++  // proves this is the current auto/dynamic view, never a historical plan.
++  const recovery = product.status === 'CURRENT_RECOVERY' && (() => {
++    const rawRead = workspace.read_context;
++    if (!rawRead || typeof rawRead !== 'object' || Array.isArray(rawRead)) return false;
++    const read = rawRead as RecordValue;
++    const readAt = typeof read.read_as_of === 'string' ? Date.parse(read.read_as_of) : NaN;
++    const generatedAt = typeof product.generated_at === 'string' ? Date.parse(product.generated_at) : NaN;
++    return read.mode === 'CURRENT_RECOVERY' &&
++      read.contract === '20260923.workspace-history-read.r1' &&
++      read.v5_contract === 'v5.manager_current_recovery.v1' &&
++      read.requested_view === 'auto' && read.owner_view === 'dynamic' &&
++      read.historical_eligible === false &&
++      ['VERIFIED', 'VERIFIED_WITH_GAPS'].includes(String(read.status)) &&
++      Number.isFinite(readAt) && Number.isFinite(generatedAt) && readAt >= generatedAt &&
++      product.owner_status === 'CURRENT' && product.consumed === true && product.historical_eligible === false;
++  })();
++  if ((!['CURRENT', 'ALREADY_MATERIALIZED', 'PRESERVED_SCHEDULED_PREOPEN'].includes(String(product.status)) && !recovery) || product.consumed !== true ||
+       product.original_owner !== 'ManagerResearchJobService.refresh_workspace_plan' ||
+       product.run_id !== channel.run_id || attempt.run_id !== channel.run_id || product.sha256 !== channel.product_sha256 ||
+       product.generated_at !== channel.generated_at || product.execution_kind !== channel.execution_kind || attempt.execution_kind !== channel.execution_kind ||
+--- e9/manager-selection/catalystObservationPanel.ts
++++ candidate/manager-selection/catalystObservationPanel.ts
+@@ -511,7 +511,7 @@
+     const savedFreeze=!historical&&product.status==='CURRENT'&&attemptMatches&&planAttempt.execution_kind==='SCHEDULED_PREOPEN';
+     renderResearchFocus(value,savedDraft,savedFreeze,historical);
+     const label=historical ? (missing?'当时历史：缺少合格保存计划':sourceFailed?'当时历史：来源校验失败，拒绝旧计划':'当时历史：保存计划已重验') :
+-      (view==='dynamic'?'现在回看（含后续信息，非当时已知）':savedDraft?'次日研究预览（已保存草案；未正式冻结）':
++      (read.mode==='CURRENT_RECOVERY'?'跨日恢复研究计划（现在回看，非当时可用）':view==='dynamic'?'现在回看（含后续信息，非当时已知）':savedDraft?'次日研究预览（已保存草案；未正式冻结）':
+         savedFreeze?'盘前计划已冻结（原owner产物）':'当日动态预览（非历史冻结计划）');
+     status.textContent=`计划 ${date} · ${label} ｜ 材料截至 ${timeText(ctx.research_cutoff)} ｜ 行情基准 ${text(ctx.market_session)}，${ctx.market_data_verified===true?'原行情已核':'原行情未核'}（非晚间实时行情）。`;
+     businessStatus.replaceChildren(...businessStatusRows(value).map(row=>{const item=el('article','','business-status-row');item.append(el('strong',`${row.label}：${row.state}`),el('p',row.detail),el('p',`下一步：${row.next}`));return item;}));
+--- e9/api/managerWorkspace.currentRecovery.spec.ts
++++ candidate/api/managerWorkspace.currentRecovery.spec.ts
+@@ -0,0 +1,25 @@
++import { readFileSync } from 'node:fs';
++import { resolve } from 'node:path';
++import { afterEach, describe, expect, it, vi } from 'vitest';
++import { validateManagerWorkspace, requestManagerWorkspace } from './managerWorkspace';
++const fixture=()=>JSON.parse(readFileSync(resolve('../evidence/manager-read-publication.json'),'utf8')).result.payload;
++afterEach(()=>vi.unstubAllGlobals());
++describe('CURRENT_RECOVERY source-bound read',()=>{
++ it('accepts the saved real recovery payload without changing its plan SHA',()=>{
++  const raw=fixture();const result=validateManagerWorkspace(raw,'20261009');
++  expect(result.plan_product).toMatchObject({status:'CURRENT_RECOVERY',run_id:'5b4feaf7ef7d4d13bec639e90b6d3db0',sha256:'56556a67ddc1a562e82b38e750be92fcfda070945397cc4eacffd1c79f42bcf0',consumed:true,historical_eligible:false});
++ });
++ it('rejects incomplete or falsely historical recovery identities',()=>{
++  for(const [where,key,value] of [['read_context','v5_contract','wrong'],['read_context','historical_eligible',true],['read_context','requested_view','historical'],['read_context','owner_view','historical'],['read_context','read_as_of',null],['plan_product','consumed',false],['plan_product','historical_eligible',true],['plan_product','sha256','bad'],['plan_product','run_id',null],['plan_product','status','CURRENT']]){
++   const raw=fixture();raw[where as string][key as string]=value;
++   expect(()=>validateManagerWorkspace(raw,'20261009')).toThrow(/WORKSPACE_/);
++  }
++ });
++ it('accepts ordinary auto and refuses explicit historical or dynamic relabeling',async()=>{
++  vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify(fixture()),{status:200})));
++  const signal=new AbortController().signal;
++  await expect(requestManagerWorkspace('20261009',signal,'auto')).resolves.toBeTruthy();
++  await expect(requestManagerWorkspace('20261009',signal,'historical')).rejects.toThrow('WORKSPACE_VIEW_MISMATCH');
++  await expect(requestManagerWorkspace('20261009',signal,'dynamic')).rejects.toThrow('WORKSPACE_VIEW_MISMATCH');
++ });
++});
