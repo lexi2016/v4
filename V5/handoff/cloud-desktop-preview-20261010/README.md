@@ -12,6 +12,8 @@ Linux/macOS Python3.10+标准库即可运行。此包是已运行界面和不可
 
 只绑定loopback，三个端口18896/18897/18898须空闲，可改--port，另两端口自动+1/+2。Ctrl-C仅停止本次子进程。若有端口冲突请选新端口，不停旧服务。不要开放公网或关闭Host/Origin规则。
 
-页面和经理API字节已与原云端18896逐字比较一致。原run b28fae24e8c446e199fa5a0743cb8c55；plan SHA b4c3beaa2b4de866426f7ed4898d6274c02899171b701759280882e465937a75；PARTIAL/MANUAL_REFRESH，stocks=0/materials=0来自真实缺源响应，不是构造的成功空集。公告API仍503；其他未配置模块可能显示缺源。只应验此日期，不把旧日期空缺当业务完成。
+新版页面包含Mac最小CURRENT_RECOVERY修复；经理API沿用原云端18896同一不可变响应，未引入新业务数据。原run b28fae24e8c446e199fa5a0743cb8c55；plan SHA b4c3beaa2b4de866426f7ed4898d6274c02899171b701759280882e465937a75；PARTIAL/MANUAL_REFRESH，stocks=0/materials=0来自真实缺源响应，不是构造的成功空集。公告API仍503；其他未配置模块可能显示缺源。只应验此日期，不把旧日期空缺当业务完成。
 
-包不自动打开浏览器，用户指定的内置浏览器验收仍需父线程实际执行；本包HTTP验证不能代替视觉验收。FILES.json记录包内每个文件的SHA，启动时核对；PROVENANCE.json记录源码及静态身份。不要修改响应伪造业务结果。
+包不自动打开浏览器，旧版已由父线程在云端桌面CDP Chromium验过首屏；本新版视觉仍需父线程实际执行；本包HTTP验证不能代替视觉验收。FILES.json记录包内每个文件的SHA，启动时核对；PROVENANCE.json记录源码及静态身份。不要修改响应伪造业务结果。
+
+本版源码提交：bd3d4fb5dec0c92b9d67bae323fd6e2ebe82a074。请在新的独立目录、空闲端口启动，例如 --port 19096；保留用户正在看的旧包服务。完整业务仍受原数据与准入阻塞。

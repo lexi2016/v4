@@ -76,3 +76,9 @@ V5_REBOUND_REPAIR_ORIGINAL_TESTS=1 PYTHONPATH=V5/src:V5/tests V5/.venv/bin/pytho
 ```
 
 原始日志包含此前红测/失败版本，并未用最终结果覆盖。新静态包视觉仍待父线程云端桌面另目录另端口验收。
+
+## 新包与运行边界
+
+源码固定bd3d4fb5dec0c92b9d67bae323fd6e2ebe82a074。新包259974字节，SHA256 cfce0ebd725d3c6284da19b4f25bb77ead3ab727ea2887e00e6ef6193290bfc0。既有Library文件libfile_db3a0d77f7cc8191a4b03874cb82e0e2已更新到version1；file_id=file_000000006c6481f5a39f383cd4ca0a24，私有路径/preview.tar.gz。旧桌面展开目录和运行进程未修改。
+
+本容器新包已启动：http://127.0.0.1:19096/manager-selection/?date=20261012，子服务19097/19098。启动命令python3 /workspace/v5-portable-round3/serve.py --port 19096；进程身份见round3-processes.txt。10:04:34 UTC验证全部11个静态文件SHA及经理API；经理响应与旧18896逐字相同（SHA133a1f218d533028b1c04372839a80bdefda9740acc263a59d3928fc4272e9e0），公告仍503。没有本容器跨桌面转发URL，父线程应下载version1到新目录、另端口启动，再用其云端桌面浏览器验新静态包。HTTP不代替视觉。

@@ -1,0 +1,11 @@
+   6919       1 Sat Oct 10 09:25:53 2026 /workspace/v5-cloud/V5/.venv/bin/python -B -m v5_shadow.module_api --config /workspace/v5-runtime/config/manager.json --port 18897
+   6920       1 Sat Oct 10 09:25:53 2026 /workspace/v5-cloud/V5/.venv/bin/python -B -m v5_shadow.module_api --config /workspace/v5-runtime/config/announcement.json --port 18898
+   6921       1 Sat Oct 10 09:25:53 2026 /workspace/v5-cloud/V5/.venv/bin/python -B -m v5_shadow.api_gateway --config /workspace/v5-runtime/config/gateway.json --port 18896 --frontend-root /workspace/v5-build/apps/web/dist --frontend-manifest /workspace/v5-runtime/config/frontend.json
+   8180    8175 Sat Oct 10 09:34:34 2026 python3 /workspace/v5-portable-stage/serve.py --port 18996
+   8181    8180 Sat Oct 10 09:34:34 2026 /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 -B -m v5_shadow.module_api --config /tmp/v5-readonly-preview-mv2epq9k/manager.json --port 18997
+   8182    8180 Sat Oct 10 09:34:34 2026 /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 -B -m v5_shadow.module_api --config /tmp/v5-readonly-preview-mv2epq9k/announcement.json --port 18998
+   8183    8180 Sat Oct 10 09:34:34 2026 /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 -B -m v5_shadow.api_gateway --config /tmp/v5-readonly-preview-mv2epq9k/gateway.json --port 18996 --frontend-root /workspace/v5-portable-stage/web --frontend-manifest /workspace/v5-portable-stage/config/frontend.json
+  11864   11859 Sat Oct 10 10:04:16 2026 python3 /workspace/v5-portable-round3/serve.py --port 19096
+  11865   11864 Sat Oct 10 10:04:16 2026 /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 -B -m v5_shadow.module_api --config /tmp/v5-readonly-preview-o2ix9e9g/manager.json --port 19097
+  11866   11864 Sat Oct 10 10:04:16 2026 /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 -B -m v5_shadow.module_api --config /tmp/v5-readonly-preview-o2ix9e9g/announcement.json --port 19098
+  11867   11864 Sat Oct 10 10:04:16 2026 /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 -B -m v5_shadow.api_gateway --config /tmp/v5-readonly-preview-o2ix9e9g/gateway.json --port 19096 --frontend-root /workspace/v5-portable-round3/web --frontend-manifest /workspace/v5-portable-round3/config/frontend.json
