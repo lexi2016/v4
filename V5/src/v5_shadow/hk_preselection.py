@@ -126,7 +126,9 @@ def _assemble(request):
     reader_module=importlib.import_module('upstreams.v3_shared_data.shared_data.hk_0_2')
     master_module=importlib.import_module('upstreams.v3_shared_data.shared_data.hk_security_master')
     validator=importlib.import_module('infrastructure.preselection_pool_store').validate_pool_artifact
-    lane=dict(input_root=request['input_root'],files=request['files'])
+    # The shared guard consumes a complete A-lane descriptor, even for this
+    # HK-only reader. Keep the lane tagged as v1.9.2 without adding A dates.
+    lane=dict(kind='v192',input_root=request['input_root'],paths={},files=request['files'])
     select=common._guard([lane]);select(lane);root=no_symlinks(request['input_root'])
     base=dict(schema_version=SCHEMA,target_date=request['target_date'],signal_date=request['signal_date'],
               eligibility_source_date=request['eligibility_source_date'],research_cutoff=request['research_cutoff'],
