@@ -1,0 +1,33 @@
+{
+  "schema": "selection-reuse-candidate-baseline.v1",
+  "captured_at_utc": "2026-10-10T14:36:55.249768+00:00",
+  "process": {
+    "pid": 74722,
+    "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_HK_0920_ACTUAL_BACKFILL_20261010/integrated_release/hk-0920-open-substitute-20261010-r1/app",
+    "listener": "127.0.0.1:8873"
+  },
+  "active_release_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_0920_ACTUAL_BACKFILL_20261010/integrated_release/hk-0920-open-substitute-20261010-r1",
+  "release_id": "hk-0920-open-substitute-20261010-r1",
+  "release_manifest_sha256": "e93d9117e1472f3b38874a68b1bba3cbf6a8e36f17e40158e3dd39fa876aba01",
+  "application_inventory": {
+    "aggregate_sha256": "57f4053424b0e603257af3cca261362cea2f15961ffa8f13c8794275384f9f99",
+    "entry_count": 1024
+  },
+  "copy": {
+    "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/candidate/active-8873-e93d9117/app",
+    "files": 1024,
+    "all_paths_and_hashes_match_inventory": true
+  },
+  "target_before": {
+    "ops/run_manager_daily_announcement.py": {
+      "bytes": 42910,
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "readback_marker_present": true
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "bytes": 107076,
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+    }
+  },
+  "scope": "read-only active identity capture and isolated copy only; no API call, service action, owner/Stage data read, or deployment"
+}

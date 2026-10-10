@@ -1,0 +1,96 @@
+{
+  "schema": "v4_manager_selection_ledger_contract_r5_writer_receipt.v1",
+  "status": "READY_FOR_REVIEW",
+  "active_readonly_source": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/integrated_release/manager-independent-lanes-20261011-r4/app",
+  "candidate_app": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ledger-contract-r5/candidate/app",
+  "candidate_copy_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ledger-contract-r5/tests/candidate_copy_receipt.json",
+  "candidate_copy_receipt_sha256": "dbd3f9b626232b5964f9353aa4f9020dd0596293db2e21faf7ada308e9a7659b",
+  "baseline_tree_identity_sha256": "3368aa5bfbc672d40d7911b053fb3054e3c2d37aed6d954408d06fb73c043c58",
+  "baseline_app_entries": 1142,
+  "candidate_app_entries": 1142,
+  "candidate_delta": {
+    "changed": [
+      "v4/manager_research/research_attention.py"
+    ],
+    "added": [],
+    "missing": [],
+    "pass": true
+  },
+  "source_change": {
+    "path": "v4/manager_research/research_attention.py",
+    "before_sha256": "452025514aa0238d5209472081cfd59a484402a54ba893217b79e55bad277750",
+    "after_sha256": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+    "patch_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ledger-contract-r5/tests/research_attention.ledger-contract-r5.patch",
+    "patch_sha256": "5dd2a3818114112c039a63757fabc42b5a8e105640f42dabd8079891c0aa6263"
+  },
+  "test": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ledger-contract-r5/tests/test_research_selection_ledger_r5.py",
+    "sha256": "e05e0fb619989271bbb7c152654312682e502942f4e23961517b3211924e0c0e",
+    "fixture_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/final-workspace-readback-1.json",
+    "fixture_sha256": "899906b5f2e7c1b24eb4f9caca34d7adab3067ec8c1d44e88122bb83e77a072f",
+    "result": "PASS 5/5 focused; PASS 10, SKIP 1 with existing ledger suite"
+  },
+  "observed_failure_before_fix": {
+    "readback_decisions": 693,
+    "decision_status": "UNRESOLVED for all 693",
+    "reason_code": "REBOUND_SCREEN_ROW_SOURCE_REFS_UNVERIFIED",
+    "source_group_counts": {
+      "strict": 214,
+      "near": 286,
+      "pending": 34,
+      "excluded": 159,
+      "screen_unresolved": 0
+    },
+    "source_input_identity": "25e24dd8430757310ba524a8dfc680a5a8ecd05e91dd6e57701f3e201c1a5f8d"
+  },
+  "verified_projection_behavior": {
+    "selected_count": 214,
+    "near_watch_count": 286,
+    "excluded_count": 159,
+    "unresolved_count": 34,
+    "pending_remains_unresolved": 34,
+    "invalid_payload_sha_stays_unresolved": true,
+    "invalid_artifact_sha_stays_unresolved": true,
+    "missing_manifest_sha_stays_unresolved": true,
+    "row_session_mismatch_stays_unresolved": true,
+    "relative_ratio_status": "RELATIVE_RATIO_ONLY_UNIT_UNKNOWN",
+    "absolute_unit_status": "NOT_PROVEN",
+    "relative_comparability_status": "VERIFIED_SAME_RESPONSE_RAW_FIELD_UNIT_UNKNOWN",
+    "screen_input_unchanged": true,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "formal_selection_input": false
+  },
+  "verification": [
+    {
+      "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m pytest -p no:cacheprovider -q /Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ledger-contract-r5/tests/test_research_selection_ledger_r5.py",
+      "result": "PASS; 5 tests"
+    },
+    {
+      "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m pytest -p no:cacheprovider --basetemp=/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ledger-contract-r5/tests/pytest-basetemp-r5-final -q tests/test_manager_research_selection_ledger.py /Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ledger-contract-r5/tests/test_research_selection_ledger_r5.py",
+      "result": "PASS; 10 passed, 1 skipped; exact temporary basetemp under tests was removed after run"
+    },
+    {
+      "command": "same combined pytest invocation before --basetemp was specified",
+      "result": "test bodies showed 10 passed, 1 skipped, then pytest teardown failed with PermissionError during cleanup of a global pytest temp path under /private/var/folders; no manual changes to that path were made"
+    }
+  ],
+  "not_performed": [
+    "screen producer recomputation",
+    "data supplementation",
+    "source review",
+    "frontend changes",
+    "service/API writes",
+    "deployment",
+    "Git operations"
+  ],
+  "cannot_confirm": [
+    "independent reviewer verdict",
+    "integrated UI/API readback after candidate incorporation",
+    "deployed behavior",
+    "natural-period behavior"
+  ],
+  "resolved_test_environment_issue": "Default pytest cleanup reported PermissionError for an existing global temp path. A process-root basetemp retry passed. Whether any pre-error cleanup removed contents is CANNOT_CONFIRM."
+}

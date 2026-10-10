@@ -1,0 +1,36 @@
+--- a/v4/manager_research/research_attention.py
++++ b/v4/manager_research/research_attention.py
+@@ -312,14 +312,28 @@
+         if not isinstance(ref, Mapping):
+             return False
+         if not all(isinstance(ref.get(key), str) and ref.get(key) for key in
+-                   ("owner", "payload_path", "manifest_path")):
++                   ("owner", "manifest_path")):
+             return False
+-        payload_sha = ref.get("payload_sha256")
+         manifest_sha = ref.get("manifest_sha256")
+-        if (not isinstance(payload_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", payload_sha)
+-                or not isinstance(manifest_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", manifest_sha)):
++        if not isinstance(manifest_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", manifest_sha):
+             return False
+-        seen.add((payload_sha, manifest_sha))
++
++        content_sha = None
++        for path_key, sha_key in (("payload_path", "payload_sha256"),
++                                  ("artifact_path", "artifact_sha256")):
++            pair_present = path_key in ref or sha_key in ref
++            source_path = ref.get(path_key)
++            source_sha = ref.get(sha_key)
++            pair_valid = (isinstance(source_path, str) and bool(source_path.strip())
++                          and isinstance(source_sha, str)
++                          and re.fullmatch(r"[0-9a-f]{64}", source_sha))
++            if pair_present and not pair_valid:
++                return False
++            if pair_valid and content_sha is None:
++                content_sha = source_sha
++        if content_sha is None:
++            return False
++        seen.add((content_sha, manifest_sha))
+     return len(seen) >= 2
+ 
+ 

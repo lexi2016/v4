@@ -1,0 +1,51 @@
+{
+  "added_paths": {
+    "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": {
+      "bytes": 35128,
+      "sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c"
+    }
+  },
+  "baseline_entry_count": 1137,
+  "baseline_tree_identity_sha256": "86887792ba2705b45782cbdf40da32bd91d3b32e2efdcebaa03ee551a88237bd",
+  "candidate_entry_count": 1138,
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/oversold-repair-r3/candidate/app",
+  "candidate_tree_identity_sha256": "0a1356bd2449b1b3513d15df7eb672806d2e837cfd44878c3e93bf005c6d3b57",
+  "changed_paths": {
+    "ops/run_manager_daily_announcement.py": {
+      "after_bytes": 43298,
+      "after_sha256": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+      "before_bytes": 42910,
+      "before_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38"
+    },
+    "v4/manager_research/announcement_analysis.py": {
+      "after_bytes": 71392,
+      "after_sha256": "e741cddd8c8deff1064ed384f8a570c507d36efbede1c58058329558d0837615",
+      "before_bytes": 68733,
+      "before_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f"
+    },
+    "v4/manager_research/workspace_announcements.py": {
+      "after_bytes": 169869,
+      "after_sha256": "6ef92cce3970170f3454c73a890cbbdfb49186d2d47b5260d2454c8838fd1da1",
+      "before_bytes": 167803,
+      "before_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b"
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "after_bytes": 108998,
+      "after_sha256": "1e48b8145550f8c53b540a4912c492491610ea7ac5928eab50d2f1ca8b895ae0",
+      "before_bytes": 107076,
+      "before_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+    }
+  },
+  "current_active_generated_cache_count": 42,
+  "current_active_noncache_tree_identity_sha256": "86887792ba2705b45782cbdf40da32bd91d3b32e2efdcebaa03ee551a88237bd",
+  "other_paths_exact_match": 1133,
+  "patch_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/oversold-repair-r3/ACTIVE_TO_R3_REBASE.patch",
+  "patch_sha256": "415a445b2474e252002d695797f55252a5df00aca153a5f703c65b41e427633b",
+  "removed_paths": [],
+  "schema": "v4.manager_selection_reuse_r3_copy_delta.v1",
+  "source_release_manifest_sha256": "f75a15172f615f51e54ebdd6c1b1274f499d79242313d8c5122690f027a97a19",
+  "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-three-stage-usable-20261010-r2/app",
+  "status": "PASS_ONLY_APPROVED_PATHS_DIFFER_FROM_FROZEN_ACTIVE_COPY",
+  "unapproved_added_paths": [],
+  "unapproved_changed_paths": []
+}

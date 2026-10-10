@@ -1,0 +1,71 @@
+{
+  "baseline_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/integrated_release/manager-independent-lanes-20261011-r4/app/v4/manager_research/research_attention.py",
+  "baseline_sha256": "452025514aa0238d5209472081cfd59a484402a54ba893217b79e55bad277750",
+  "behavior": {
+    "all_rows_accounted_once": true,
+    "baseline_statuses": {
+      "UNRESOLVED": 693
+    },
+    "candidate_rows": 693,
+    "candidate_statuses": {
+      "EXCLUDED": 159,
+      "NEAR_WATCH": 286,
+      "SELECTED": 214,
+      "UNRESOLVED": 34
+    },
+    "input_rows": 693,
+    "screen_group_counts": {
+      "excluded": 159,
+      "near": 286,
+      "pending": 34,
+      "strict": 214
+    }
+  },
+  "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/integrated_release/manager-independent-lanes-20261011-r5/app/v4/manager_research/research_attention.py",
+  "candidate_sha256": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+  "decision": "PASS",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "fixture_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/final-workspace-readback-1.json",
+  "fixture_sha256": "899906b5f2e7c1b24eb4f9caca34d7adab3067ec8c1d44e88122bb83e77a072f",
+  "independent_test_result": {
+    "command": "Python 3.5-mac; PYTHONDONTWRITEBYTECODE=1; -B; pytest -p no:cacheprovider; dedicated --basetemp under ledger-contract-r5/reviewer/pytest-basetemp-r5",
+    "failed": 0,
+    "passed": 5,
+    "result": "PASS"
+  },
+  "limitations": [
+    "Saved offline readback verifies candidate module behavior only; API/UI, deployment, natural-run behavior, and date/PIT suitability are not established by this review."
+  ],
+  "patch_sha256": "5dd2a3818114112c039a63757fabc42b5a8e105640f42dabd8079891c0aa6263",
+  "reviewer_identity": "codex-independent-reviewer:/root/manager_repair_review",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "formal_selection_input": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.manager_research.ledger_contract_independent_review.v1",
+  "scope": "R5 derived research-selection ledger source-ref contract and saved workspace readback behavior only",
+  "source_refs": {
+    "dual_form_refs_observed": 0,
+    "each_row_has_at_least_two_distinct_content_manifest_sha_pairs": true,
+    "forms": {
+      "artifact_path_artifact_sha256": 693,
+      "payload_path_sha256": 1386
+    },
+    "invalid_rows": 0,
+    "rows_checked": 693,
+    "valid_rows": 693
+  },
+  "test_file": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ledger-contract-r5/tests/test_research_selection_ledger_r5.py",
+  "test_file_sha256": "e05e0fb619989271bbb7c152654312682e502942f4e23961517b3211924e0c0e",
+  "unit_contract": {
+    "absolute_volume_unit": "NOT_PROVEN",
+    "relative_ratio": "RELATIVE_RATIO_ONLY_UNIT_UNKNOWN"
+  }
+}

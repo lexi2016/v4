@@ -1,0 +1,139 @@
+{
+  "RESEARCH_ONLY": true,
+  "actual_runtime_source_root": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/integrated_release/manager-independent-lanes-20261011-r5/app",
+  "announcement": {
+    "catalog_articles": 392,
+    "conditional_watch_articles": 44,
+    "conditional_watch_source_codes": 32,
+    "distinct_source_codes": 281,
+    "not_assessed_articles": 107,
+    "not_assessed_source_codes": 73,
+    "not_selected_articles": 183,
+    "not_selected_source_codes": 121,
+    "product_sha256": "4f9217564ab3110125b1f3808a4c344d417c2eee9008fe504c0a4205eca6f6b7",
+    "selected_articles": 58,
+    "selected_source_codes": 55
+  },
+  "announcement_publication_date": "2026-10-08",
+  "buy_gate_updated": false,
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "generated_at": "2026-10-10T17:38:59.938664+00:00",
+  "github_base_commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+  "github_branch": "codex/manager-selection-reuse-mac-20261010-r1",
+  "orders_sent": false,
+  "oversold": {
+    "accounted_input_row_count": 693,
+    "excluded_count": 159,
+    "input_row_count": 693,
+    "near_watch_count": 286,
+    "selected_count": 214,
+    "source_group_counts": {
+      "excluded": 159,
+      "near": 286,
+      "pending": 34,
+      "screen_unresolved": 0,
+      "strict": 214
+    },
+    "unique_decision_count": 693,
+    "unresolved_count": 34
+  },
+  "plan": {
+    "execution_kind": "MANUAL_REFRESH",
+    "input_identity": "f4021410dd6dbedc567199f5c6cc2f790c3f2fe2bc7a4a4351d1a87301d995ec",
+    "read_status": "VERIFIED_WITH_GAPS",
+    "run_id": "e5dccb9eaa224a19b3888dceef98f394",
+    "sha256": "7535db92d13544a356f698b3633bec7a38429401deb21a144461dab1a936bbc8"
+  },
+  "production_allowed": false,
+  "proof_sha256": {
+    "deployment-ledger-r5/execution_receipt.json": "4c257b092630dcbf37614a3a50bc38462bce2631e6efa1f7e988ba90cda980a9",
+    "evidence/final-r5-workspace-readback-1.json": "b9c8ed15c3c7624b8a0895e42eeb74db4cd8acd26ed0a25a24e37c17529faa72",
+    "evidence/final-r5-workspace-readback-2.json": "30c4da2e2971de65fc1bbfe78e0307c56a572352cbe874090ed54ff2f1801353",
+    "ledger-contract-r5/reviewer/independent_review.json": "b9a3548529fdf31a20337f7a247c81a85ee2a6ec295002899dd053c2db9e90fe",
+    "ledger-contract-r5/reviewer/publication_review.json": "7b784ddd1ee733a403e85eedad631eb721c4bc0a720cda8d13aee1698f2c2283",
+    "oversold-repair-r3/reviewer/publication_review.json": "7b1ea93b31ab418bf63b69eafcfd10184937e4d50516d7dd465424ac8ef5d910",
+    "semantic/registration_envelope_receipt.json": "ef40c4f6530ceacf7d478df903535b1561139d9ddf146a9b95ac57061ae51ebd",
+    "semantic/reviewer/reviewer_output.json": "2d4181852832c9c523db85199f5f8a6c1a6a32097df2e712400563bcc485777d",
+    "ui-contract-r4/reviewer/publication_review.json": "197dc970111398acef2d6cfd23fe2343a5f9d10ddcd2f8cb1ae2cdc0c19d587d",
+    "ui/final-r5-workspace.jpg": "12ecfab6623b19ebe612c79a8658da3f756d409a8a7c665940c5dbc6c8142f8d",
+    "ui/final-r5-workspace.txt": "ec3293147d9abe30b140fb2830baf3fbc8ee4e6099e7852814a83f6337112575"
+  },
+  "remaining_gaps": [
+    "Announcement source/capture/semantic gaps remain separate from excluded routine/duplicate material.",
+    "Oversold: 3 incomplete six-session supplements and 31 incomplete high60 histories remain unresolved.",
+    "Absolute volume unit remains NOT_PROVEN; only verified same-response relative ratios admitted.",
+    "Historical reconstruction uses later captures; not original-date PIT or natural slot acceptance.",
+    "Formal HK Connect membership and Stage are separate and remain CANNOT_CONFIRM in this manager readback.",
+    "Full US market relationship coverage is not established by the four reviewed relations."
+  ],
+  "runtime_manifest_sha256": "fd83ccd7bf15c432f8749609835b2b053d23d1541f565920b06808fa6baa46ec",
+  "runtime_release": "manager-independent-lanes-20261011-r5",
+  "schema_version": "v4.manager_independent_lanes_delivery.v1",
+  "scope": "Manager announcement, reviewed US-HK mapping, and oversold retrospective research for 20261009",
+  "source_deltas": {
+    "apps/web/src/api/managerWorkspace.ts": {
+      "after_sha256": "cb68be0a47f09e36829e1276fcd0d6a862790762bb1691165474d383deb53e9c",
+      "before_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f"
+    },
+    "ops/run_manager_daily_announcement.py": {
+      "after_sha256": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+      "before_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38"
+    },
+    "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": {
+      "after_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "before_sha256": null
+    },
+    "v4/manager_research/announcement_analysis.py": {
+      "after_sha256": "e741cddd8c8deff1064ed384f8a570c507d36efbede1c58058329558d0837615",
+      "before_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f"
+    },
+    "v4/manager_research/research_attention.py": {
+      "after_sha256": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+      "before_sha256": "452025514aa0238d5209472081cfd59a484402a54ba893217b79e55bad277750"
+    },
+    "v4/manager_research/workspace_announcements.py": {
+      "after_sha256": "6ef92cce3970170f3454c73a890cbbdfb49186d2d47b5260d2454c8838fd1da1",
+      "before_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b"
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "after_sha256": "1e48b8145550f8c53b540a4912c492491610ea7ac5928eab50d2f1ca8b895ae0",
+      "before_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+    }
+  },
+  "states": {
+    "API_VERIFIED": true,
+    "BEHAVIOR_VERIFIED": true,
+    "DEPLOYED": true,
+    "IMPLEMENTED": true,
+    "INTEGRATED": true,
+    "NATURAL_VERIFIED": false,
+    "PIT": "CANNOT_CONFIRM",
+    "REVIEWED": true,
+    "TESTED": true,
+    "UI_VERIFIED": true,
+    "natural_slot": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "target_trade_date": "20261009",
+  "us_hk_reviewed_mapping": {
+    "matches": 0,
+    "reviewed_relation_scope": 4,
+    "scope_is_not_whole_market": true,
+    "status": "VALID_EMPTY"
+  },
+  "verification": {
+    "frontend_build": "PASS",
+    "full_project_vue_tsc": "NOT_CLEAN: 4 diagnostics in untouched test files; targeted changed module compile PASS",
+    "independent_focused_tests": {
+      "r3_decimal": 1,
+      "r3_partial_and_ratio": 4,
+      "r3_shared_data_helper": 7,
+      "r4_frontend_actual_readback_and_negatives": 4,
+      "r5_ledger_actual_readback_and_negatives": 5
+    },
+    "node": "24.19.0",
+    "python": "3.14.6",
+    "python_executable": "/Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python",
+    "two_api_reads": "same plan run, product SHA, input identity MATCH and ledger coverage",
+    "ui": "Actual reloaded R4 frontend, unchanged in R5, consumed R5 regenerated plan and displayed matching counts"
+  }
+}

@@ -1,0 +1,47 @@
+--- a/apps/web/src/api/managerWorkspace.ts
++++ b/apps/web/src/api/managerWorkspace.ts
+@@ -798,17 +798,24 @@
+   return Array.isArray(value) && value.length > 0 && value.every(isJsonObject);
+ }
+ 
++function sourceContentIdentitySha(ref: JsonObject): string | null {
++  const payloadFieldsPresent = ref.payload_path !== undefined || ref.payload_sha256 !== undefined;
++  const payloadSha = researchText(ref.payload_path) && researchSha(ref.payload_sha256) ? ref.payload_sha256 : null;
++  if (payloadFieldsPresent && payloadSha === null) return null;
++  const artifactFieldsPresent = ref.artifact_path !== undefined || ref.artifact_sha256 !== undefined;
++  const artifactSha = researchText(ref.artifact_path) && researchSha(ref.artifact_sha256) ? ref.artifact_sha256 : null;
++  if (artifactFieldsPresent && artifactSha === null) return null;
++  return payloadSha ?? artifactSha;
++}
++
+ function validTrendEvidence(row: JsonObject, screenSession: string | null): boolean {
+   return row.evidence_class === 'VERIFIED_SCREEN_HISTORY_TREND' && screenSession !== null &&
+     sessionDay(row.verified_session) === screenSession &&
+     typeof row.recent_3_session_return_pct === 'number' && Number.isFinite(row.recent_3_session_return_pct) && row.recent_3_session_return_pct > 0 &&
+     typeof row.recent_5_session_return_pct === 'number' && Number.isFinite(row.recent_5_session_return_pct) && row.recent_5_session_return_pct > 0 &&
+     nonEmptyObjectRecords(row.source_refs) && row.source_refs.every(ref =>
+-      typeof ref.owner === 'string' && !!ref.owner.trim() &&
+-      typeof ref.payload_path === 'string' && !!ref.payload_path.trim() &&
+-      /^[0-9a-f]{64}$/.test(String(ref.payload_sha256)) &&
+-      typeof ref.manifest_path === 'string' && !!ref.manifest_path.trim() &&
+-      /^[0-9a-f]{64}$/.test(String(ref.manifest_sha256)));
++      researchText(ref.owner) && sourceContentIdentitySha(ref) !== null &&
++      researchText(ref.manifest_path) && researchSha(ref.manifest_sha256));
+ }
+ 
+ function validUsIndustryMapping(row: JsonObject, start: number, cutoff: number): boolean {
+@@ -1240,10 +1247,10 @@
+     records(refs);
+     const identities=new Set<string>();
+     for(const ref of refs){
+-      const owner=ref.owner,payload=ref.payload_sha256,manifest=ref.manifest_sha256;
+-      researchContract(researchText(owner) && researchText(ref.payload_path) && researchText(ref.manifest_path) &&
+-        researchSha(payload) && researchSha(manifest),'RESEARCH_SELECTION_SOURCE_REF');
+-      identities.add(`${payload}:${manifest}`);
++      const contentSha=sourceContentIdentitySha(ref),manifest=ref.manifest_sha256;
++      researchContract(researchText(ref.owner) && contentSha !== null && researchText(ref.manifest_path) &&
++        researchSha(manifest),'RESEARCH_SELECTION_SOURCE_REF');
++      identities.add(`${contentSha}:${manifest}`);
+     }
+     if(required)researchContract(refs.length>=2 && identities.size>=2,'RESEARCH_SELECTION_SOURCE_REF_COUNT');
+   };

@@ -1,0 +1,92 @@
+{
+  "schema": "canonical-selection-reuse-integration-receipt.v1",
+  "status": "READY_FOR_REVIEW",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "process_root": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1",
+  "changed_canonical_files": [
+    {
+      "path": "ops/run_manager_daily_announcement.py",
+      "before_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "after_sha256": "47f7fabf43c8acb7dbf1d784396d093c2835e15b23d1d90d294824a3303b7057",
+      "before_bytes": 42929,
+      "after_bytes": 43325,
+      "after_snapshot": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/canonical-integration/after/ops/run_manager_daily_announcement.py"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "before_sha256": "ef0269a8510b9168e2d135de6c1b4d28146a22d0d691aee8dd3fe80f95a698f0",
+      "after_sha256": "2bd3c2391be79d1331b40d50e5aaeedb2cfb280bcef4b70cabf2993dbe579c48",
+      "before_bytes": 97369,
+      "after_bytes": 97518,
+      "after_snapshot": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/canonical-integration/after/v4/manager_research/workspace_plan.py"
+    }
+  ],
+  "delta_patch": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/canonical-integration/CANONICAL_TWO_FILE_DELTA.patch",
+    "sha256": "81f2198d522767fb31302d6d328af166f1eba6ff708984a94714c911db07e696",
+    "bytes": 4073
+  },
+  "active_candidate_frozen_check": {
+    "ops/run_manager_daily_announcement.py": {
+      "actual_sha256": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+      "receipt_sha256": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+      "matches_receipt": true
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "actual_sha256": "89d2f93201aa5284ab4d7bde5d9facc73834057d1d9cf7f9bbd6cd4ca5b95c3d",
+      "receipt_sha256": "89d2f93201aa5284ab4d7bde5d9facc73834057d1d9cf7f9bbd6cd4ca5b95c3d",
+      "matches_receipt": true
+    }
+  },
+  "verification": [
+    {
+      "name": "reviewed_build_identity_rebind",
+      "status": "PASS",
+      "command": "PYTHONPATH='/Users/lexi/Desktop/学习/v4_app' PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider '/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/V4_SELECTION_REUSE_REPAIR_20261010_R1/tests/targeted/test_selection_reuse_announcement.py::test_reviewed_build_reuses_registered_identity' --tb=short --basetemp='/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/tmp/pytest-canonical-build-reviewed'",
+      "result": "5 passed in 0.16s",
+      "working_directory": "/Users/lexi/Desktop/学习/v4_app"
+    },
+    {
+      "name": "canonical_decimal_cutoff_behavior",
+      "status": "PASS",
+      "command": "PYTHONPATH='/Users/lexi/Desktop/学习/v4_app' PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider '/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/canonical-integration/tests/test_canonical_decimal_cutoff.py' --tb=short --basetemp='/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/tmp/pytest-canonical-decimal'",
+      "result": "4 passed in 0.20s",
+      "coverage": "before canonical snapshot reproduces 0.28 <= 0.8*0.35 as false; after exact equality true for 0.28/0.35 and 0.56/0.70, above false, below true, missing close remains unknown",
+      "working_directory": "/Users/lexi/Desktop/学习/v4_app"
+    },
+    {
+      "name": "active-generation-oversold-fixture-incompatibility",
+      "status": "FAIL_EXPECTED_COMPATIBILITY_GAP",
+      "command": "PYTHONPATH='/Users/lexi/Desktop/学习/v4_app' PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider '/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/V4_SELECTION_REUSE_REPAIR_20261010_R1/tests/targeted/test_selection_reuse_announcement.py::test_reviewed_build_reuses_registered_identity' '/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/V4_SELECTION_REUSE_REPAIR_20261010_R1/tests/targeted/test_selection_reuse_oversold.py' --tb=short --basetemp='/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/tmp/pytest-canonical-integration'",
+      "result": "5 passed, 5 failed because active-generation fixture patches screen_context absent from canonical older workspace_plan; canonical-focused replacement test passes",
+      "working_directory": "/Users/lexi/Desktop/学习/v4_app"
+    }
+  ],
+  "readback_integration": {
+    "status": "CANNOT_CONFIRM",
+    "behavior": "kept canonical runner readback fail-closed and unchanged",
+    "reason": "canonical API response contract has source_catalog summary and owner_import_receipt but does not expose active-B consumption_validation; the verified helper is absent from canonical workspace_announcements and that path is outside the two-file scope. Parent directed no downgraded runner-side compatibility implementation; defer readback integration until API owner contract is separately authorized."
+  },
+  "scope": {
+    "business_source_changes": 2,
+    "process_only_test_files": [
+      "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/canonical-integration/tests/test_canonical_decimal_cutoff.py"
+    ],
+    "active_app_changed": false,
+    "deployment_or_api_ui_acceptance": "NOT_RUN"
+  },
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "supporting_tests": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/canonical-integration/tests/test_canonical_decimal_cutoff.py",
+      "sha256": "4752b68010c8daf25726428332c3effe1a4eb410f7aae721cad31be3a5ffe5b1",
+      "bytes": 3974,
+      "location": "process root only; not part of canonical source diff"
+    }
+  ]
+}

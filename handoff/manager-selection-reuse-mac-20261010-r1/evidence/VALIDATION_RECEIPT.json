@@ -1,0 +1,55 @@
+{
+  "schema": "selection-reuse-candidate-validation.v1",
+  "release_id": "hk-0920-open-substitute-20261010-r1",
+  "release_manifest_sha256": "e93d9117e1472f3b38874a68b1bba3cbf6a8e36f17e40158e3dd39fa876aba01",
+  "application_inventory_aggregate_sha256": "57f4053424b0e603257af3cca261362cea2f15961ffa8f13c8794275384f9f99",
+  "target_trade_date": "20261009",
+  "publication_date": "2026-10-08",
+  "baseline_reproduction": "Targeted suite on frozen active baseline: 7 failed, 18 passed; five announcement product binding cases and two exact 80 percent boundary cases failed as expected; active-B readback cases passed.",
+  "after_patch": {
+    "status": "PASS",
+    "command": "PYTHONPATH=<candidate app> PYTHONDONTWRITEBYTECODE=1 <project Python> -B -m pytest -q -p no:cacheprovider <issue package>/tests/targeted <issue package>/tests/upstream_reference --tb=short --basetemp=<E>/tmp/pytest-after-active-candidate",
+    "result": "42 passed in 1.10s",
+    "baseline_defect_reproduction": "Targeted suite on frozen active baseline: 7 failed, 18 passed; five announcement product binding cases and two exact 80 percent boundary cases failed as expected; active-B readback cases passed."
+  },
+  "non_target_validation": {
+    "status": "PASS",
+    "active_manifest_sha256": "e93d9117e1472f3b38874a68b1bba3cbf6a8e36f17e40158e3dd39fa876aba01",
+    "inventory_aggregate_sha256": "57f4053424b0e603257af3cca261362cea2f15961ffa8f13c8794275384f9f99",
+    "inventory_entry_count": 1024,
+    "candidate_file_count": 1024,
+    "unchanged_file_count": 1022,
+    "changed_file_count": 2,
+    "changed_files": [
+      {
+        "path": "ops/run_manager_daily_announcement.py",
+        "before_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+        "after_sha256": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+        "after_bytes": 43298
+      },
+      {
+        "path": "v4/manager_research/workspace_plan.py",
+        "before_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+        "after_sha256": "89d2f93201aa5284ab4d7bde5d9facc73834057d1d9cf7f9bbd6cd4ca5b95c3d",
+        "after_bytes": 107225
+      }
+    ],
+    "unexpected_non_target_changes": [],
+    "active_b_readback_function_byte_identical": true,
+    "active_b_readback_function_sha256": "f49d41e71a3546025ea82c40e77137b337248260d3b013be1aee2e0b00531332",
+    "app_tree_matches_current_inventory_except_two_target_files": true
+  },
+  "live_api_ui_or_owner_data": {
+    "status": "NOT_RUN",
+    "owner_input_restoration": "parent-coordinated",
+    "reason": "writer scope ends at isolated candidate/review handoff; no service/API/UI/owner data action"
+  },
+  "exact_delta_artifact": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/candidate/active-8873-e93d9117/ACTIVE_BASE_DELTA.patch",
+    "sha256": "4d2d94414b5c80fa3d4e2aae6caa736252541f6f7cc070a31ecd25feb4321c2e",
+    "only_paths": [
+      "ops/run_manager_daily_announcement.py",
+      "v4/manager_research/workspace_plan.py"
+    ]
+  }
+}

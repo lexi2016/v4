@@ -1,0 +1,1035 @@
+--- active/ops/run_manager_daily_announcement.py
++++ candidate/ops/run_manager_daily_announcement.py
+@@ -152,8 +152,14 @@
+         receipt = _load(args.review_receipt)
+         receipt = validate_agent_judgment_receipt(receipt, {**product, "agent_judgment_receipt": receipt})
+         product["agent_judgment_receipt"] = receipt
++        # The receipt participates in the base identity, just as in
++        # register-handoff. Rebind the same validated decisions to that base.
++        selection_extension = product.pop("stock_selection", None)
+         product.pop("sha256", None)
+         product["sha256"] = digest(product)
++        if selection_extension is not None:
++            product = attach_extension(product,
++                make_extension(product, selection_extension["article_decisions"]))
+         validate_agent_judgment_receipt(receipt, product)
+         _write_exclusive(args.out, product)
+     result = {
+--- active/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py
++++ candidate/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py
+@@ -0,0 +1,708 @@
++"""Research-only PyTDX daily-bar supplement owned by the HK0.2 updater.
++
++This sidecar preserves native category-4 ``trade`` values and binds every
++capture to the exact immutable HK0.2 panel and HK security-master revision.
++It never mutates the canonical panel pointer or applies volume/unit conversion.
++"""
++from __future__ import annotations
++
++import csv
++import fcntl
++import hashlib
++import json
++import math
++import os
++import tempfile
++from datetime import date, datetime, timezone
++from pathlib import Path
++from typing import Any, Callable, Mapping, Sequence
++
++from .paths import resolve_under, validate_date
++
++POINTER_SCHEMA = "v3_shared_data.hk_0_2_daily_supplement_pointer.v1"
++MANIFEST_SCHEMA = "v3_shared_data.hk_0_2_daily_supplement_manifest.v2"
++CAPTURE_SCHEMA = "v3_shared_data.hk_0_2_daily_supplement_capture.v2"
++CATEGORY_DAILY = 4
++MARKET_HK = 71
++START_OFFSET = 0
++BAR_COUNT = 6
++SOURCE_HOST = "119.97.142.130"
++SOURCE_PORT = 7721
++SAFETY = {"research_only": True, "production_allowed": False,
++          "buy_gate_updated": False, "orders_sent": False}
++
++
++def _canonical(value: Any) -> bytes:
++    return json.dumps(value, ensure_ascii=False, sort_keys=True,
++                      separators=(",", ":"), allow_nan=False).encode("utf-8")
++
++
++def _sha(data: bytes) -> str:
++    return hashlib.sha256(data).hexdigest()
++
++
++def _clock() -> datetime:
++    return datetime.now(timezone.utc)
++
++
++def _time_text(value: datetime) -> str:
++    if value.tzinfo is None:
++        raise ValueError("HK_DAILY_SUPPLEMENT_NAIVE_CLOCK")
++    return value.astimezone(timezone.utc).isoformat(timespec="microseconds")
++
++
++def _timestamp(value: Any) -> datetime:
++    if not isinstance(value, str) or not value.strip():
++        raise ValueError("HK_DAILY_SUPPLEMENT_TIME_MISSING")
++    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
++    if parsed.tzinfo is None:
++        raise ValueError("HK_DAILY_SUPPLEMENT_TIME_NAIVE")
++    return parsed.astimezone(timezone.utc)
++
++
++def _finite(value: Any, *, positive: bool = False) -> float:
++    if isinstance(value, bool):
++        raise ValueError("HK_DAILY_SUPPLEMENT_NUMBER_INVALID")
++    try:
++        number = float(value)
++    except (TypeError, ValueError, OverflowError) as error:
++        raise ValueError("HK_DAILY_SUPPLEMENT_NUMBER_INVALID") from error
++    if not math.isfinite(number) or (number <= 0 if positive else number < 0):
++        raise ValueError("HK_DAILY_SUPPLEMENT_NUMBER_INVALID")
++    return number
++
++
++def requested_sessions(target_date: str) -> tuple[list[str], str]:
++    """Return target plus its five immediately preceding full HK sessions."""
++    target_date = validate_date(target_date)
++    from contracts.trading_calendar import (
++        CALENDAR_PATH, TradingDayState, load_market_calendar,
++        previous_session, resolve_market_states,
++    )
++
++    calendar_bytes = CALENDAR_PATH.read_bytes()
++    calendar = load_market_calendar()
++    if resolve_market_states(calendar, target_date)["hk_securities"] != TradingDayState.FULL_TRADING_DAY:
++        raise ValueError("HK_DAILY_SUPPLEMENT_TARGET_NOT_FULL_SESSION")
++    previous: list[str] = []
++    cursor = target_date
++    while len(previous) < 5:
++        cursor = previous_session(calendar, cursor, market="hk_securities")
++        if resolve_market_states(calendar, cursor)["hk_securities"] == TradingDayState.FULL_TRADING_DAY:
++            previous.append(cursor)
++    if CALENDAR_PATH.read_bytes() != calendar_bytes:
++        raise ValueError("HK_DAILY_SUPPLEMENT_CALENDAR_CHANGED")
++    return sorted(previous) + [target_date], _sha(calendar_bytes)
++
++
++def _safe_identity_path(root: Path, absolute: str | Path) -> str:
++    path = Path(absolute).resolve()
++    path.relative_to(root.resolve())
++    relative = path.relative_to(root.resolve()).as_posix()
++    resolve_under(root, relative)
++    return relative
++
++
++def _read_panel_identity(authority_root: Path, target_date: str) -> dict[str, Any]:
++    asset_root = authority_root / "assets" / "hk_0_2"
++    pointer = json.loads((asset_root / "panel_latest.json").read_bytes())
++    manifest_rel = str(pointer.get("manifest_relative") or "")
++    manifest_path = resolve_under(asset_root, manifest_rel)
++    manifest_raw = manifest_path.read_bytes()
++    manifest = json.loads(manifest_raw)
++    if (manifest.get("asset_schema_version") != "v3_shared_data.hk_0_2_panel_asset.v2"
++            or manifest.get("source_contract") != "tdx_vipdoc_71_day+verified_zero_trade_repairs"
++            or manifest.get("panel_max_date") != target_date
++            or manifest.get("research_only") is not True
++            or manifest.get("production_allowed") is not False
++            or manifest.get("buy_gate_updated") is not False
++            or manifest.get("orders_sent") is not False):
++        raise ValueError("HK_DAILY_SUPPLEMENT_PANEL_IDENTITY_INVALID")
++    panel_rel = str(manifest.get("panel_relative") or "")
++    panel_path = resolve_under(asset_root, panel_rel)
++    panel_raw = panel_path.read_bytes()
++    panel_sha = _sha(panel_raw)
++    if panel_sha != manifest.get("panel_sha256"):
++        raise ValueError("HK_DAILY_SUPPLEMENT_PANEL_SHA_MISMATCH")
++    return {
++        "panel_manifest_relative": f"assets/hk_0_2/{manifest_rel}",
++        "panel_manifest_sha256": _sha(manifest_raw),
++        "manifest_prepared_at": manifest.get("manifest_prepared_at"),
++        "panel_relative": f"assets/hk_0_2/{panel_rel}",
++        "panel_sha256": panel_sha,
++        "panel_max_date": target_date,
++    }
++
++
++def _read_master_identity(authority_root: Path, target_date: str) -> tuple[dict[str, Any], list[str]]:
++    from .hk_security_master import load_verified_hk_security_master
++
++    rows, manifest = load_verified_hk_security_master(authority_root, target_date)
++    asset_root = authority_root / "assets" / "hk_security_master"
++    latest = json.loads((asset_root / "latest.json").read_bytes())
++    entry = latest["entries"][target_date]
++    manifest_rel = str(entry["manifest_relative"])
++    manifest_raw = resolve_under(asset_root, manifest_rel).read_bytes()
++    artifact_rel = str(manifest["artifact_relative"])
++    artifact_raw = resolve_under(asset_root, artifact_rel).read_bytes()
++    codes = sorted(rows)
++    return ({
++        "manifest_relative": f"assets/hk_security_master/{manifest_rel}",
++        "manifest_sha256": _sha(manifest_raw),
++        "artifact_relative": f"assets/hk_security_master/{artifact_rel}",
++        "artifact_sha256": _sha(artifact_raw),
++        "run_id": str(manifest["run_id"]),
++        "trade_date": target_date,
++        "row_count": len(codes),
++        "universe_codes_sha256": _sha(_canonical(codes)),
++        "captured_at": manifest.get("captured_at"),
++    }, codes)
++
++
++def normalize_canary_codes(values: Sequence[str] | None) -> list[str] | None:
++    """Normalize a deliberately small explicit HK security-master subset."""
++    if values is None:
++        return None
++    tokens = [part.strip().upper() for value in values for part in str(value).split(",")]
++    if not tokens or any(not token for token in tokens):
++        raise ValueError("HK_DAILY_SUPPLEMENT_CANARY_CODES_INVALID")
++    normalized: list[str] = []
++    for token in tokens:
++        code = token[3:] if token.startswith("HK.") else token
++        if len(code) != 5 or not code.isascii() or not code.isdigit():
++            raise ValueError("HK_DAILY_SUPPLEMENT_CANARY_CODES_INVALID")
++        normalized.append("HK." + code)
++    if len(set(normalized)) != len(normalized):
++        raise ValueError("HK_DAILY_SUPPLEMENT_CANARY_CODES_DUPLICATE")
++    if len(normalized) > 3:
++        raise ValueError("HK_DAILY_SUPPLEMENT_CANARY_CODES_LIMIT_EXCEEDED")
++    return sorted(normalized)
++
++
++def _bar_date(row: Mapping[str, Any]) -> str:
++    raw_date = row.get("datetime")
++    if raw_date:
++        parsed = datetime.strptime(str(raw_date)[:10], "%Y-%m-%d").date()
++    else:
++        parsed = date(int(row["year"]), int(row["month"]), int(row["day"]))
++    return parsed.strftime("%Y%m%d")
++
++
++def _decode_bar(row: Mapping[str, Any], target_date: str,
++                requested: set[str]) -> dict[str, Any] | None:
++    day = _bar_date(row)
++    if day > target_date:
++        raise ValueError("HK_DAILY_SUPPLEMENT_FUTURE_ROW")
++    if day not in requested:
++        return None
++    open_, high = _finite(row.get("open"), positive=True), _finite(row.get("high"), positive=True)
++    low, close = _finite(row.get("low"), positive=True), _finite(row.get("close"), positive=True)
++    trade = _finite(row.get("trade"), positive=False)
++    amount = _finite(row.get("amount"), positive=False) if row.get("amount") is not None else None
++    if high < max(open_, low, close) or low > min(open_, high, close):
++        raise ValueError("HK_DAILY_SUPPLEMENT_OHLC_INVALID")
++    return {"trade_date": day, "open": open_, "high": high, "low": low,
++            "close": close, "trade": trade, "amount": amount,
++            "native_fields": {"volume_field": "trade", "amount_field": "amount",
++                              "scale_applied": 1, "volume_unit": None,
++                              "volume_unit_status": "NOT_PROVEN",
++                              "price_basis": "NOT_PROVEN"}}
++
++
++def _connect() -> tuple[Any, str]:
++    from pytdx.exhq import TdxExHq_API
++
++    api = TdxExHq_API(heartbeat=False, auto_retry=False, raise_exception=True)
++    if not api.connect(SOURCE_HOST, SOURCE_PORT, time_out=2.0):
++        try:
++            api.disconnect()
++        finally:
++            raise ConnectionError("HK_DAILY_SUPPLEMENT_TDX_CONNECT_FAILED")
++    return api, f"{SOURCE_HOST}:{SOURCE_PORT}"
++
++
++def fetch_hk_daily_bars(
++    codes: Sequence[str],
++    *,
++    start: int = START_OFFSET,
++    count: int = BAR_COUNT,
++    request_context: Mapping[str, Any] | None = None,
++    connector: Callable[[], tuple[Any, str]] = _connect,
++    clock: Callable[[], datetime] = _clock,
++) -> dict[str, Any]:
++    """Fetch immutable raw category-4 / market-71 responses for HK codes.
++
++    This is the shared low-level request used by the bounded sidecar and the
++    existing HK daily producer.  It deliberately does not interpret dates,
++    apply volume conversion, write a pointer, or choose a source fallback.
++    """
++    if isinstance(start, bool) or not isinstance(start, int) or start < 0:
++        raise ValueError("HK_DAILY_SUPPLEMENT_START_INVALID")
++    if isinstance(count, bool) or not isinstance(count, int) or count < 1:
++        raise ValueError("HK_DAILY_SUPPLEMENT_COUNT_INVALID")
++    selected: list[str] = []
++    for value in codes:
++        token = str(value).strip().upper()
++        if token.startswith("HK."):
++            token = token[3:]
++        if len(token) != 5 or not token.isascii() or not token.isdigit():
++            raise ValueError("HK_DAILY_SUPPLEMENT_CODE_INVALID")
++        selected.append(token)
++    if not selected or len(selected) != len(set(selected)):
++        raise ValueError("HK_DAILY_SUPPLEMENT_CODE_SET_INVALID")
++    extra_request = dict(request_context or {})
++    if set(extra_request) & {"category", "market", "code", "start", "count"}:
++        raise ValueError("HK_DAILY_SUPPLEMENT_REQUEST_CONTEXT_INVALID")
++
++    api, host = connector()
++    records: list[dict[str, Any]] = []
++    try:
++        for code in selected:
++            request = {
++                "category": CATEGORY_DAILY,
++                "market": MARKET_HK,
++                "code": code,
++                "start": start,
++                "count": count,
++                **extra_request,
++            }
++            request_started = clock()
++            try:
++                response = api.get_instrument_bars(
++                    CATEGORY_DAILY, MARKET_HK, code, start, count
++                ) or []
++                acquired = clock()
++                raw_rows = [dict(row) for row in response]
++                records.append({
++                    "code": f"HK.{code}",
++                    "status": "RESPONSE_CAPTURED",
++                    "error_code": None,
++                    "request": request,
++                    "request_sha256": _sha(_canonical(request)),
++                    "request_started_at": _time_text(request_started),
++                    "response_acquired_at": _time_text(acquired),
++                    "request_finished_at": _time_text(clock()),
++                    "returned_count": len(raw_rows),
++                    "source_rows": raw_rows,
++                    "response_sha256": _sha(_canonical(raw_rows)),
++                })
++            except Exception as error:
++                finished = clock()
++                records.append({
++                    "code": f"HK.{code}",
++                    "status": "QUERY_FAILED",
++                    "error_code": "HK_DAILY_SUPPLEMENT_QUERY_FAILED",
++                    "request": request,
++                    "request_sha256": _sha(_canonical(request)),
++                    "request_started_at": _time_text(request_started),
++                    "response_acquired_at": _time_text(finished),
++                    "request_finished_at": _time_text(finished),
++                    "returned_count": 0,
++                    "source_rows": [],
++                    "response_sha256": _sha(_canonical([])),
++                    "error_type": type(error).__name__,
++                })
++    finally:
++        api.disconnect()
++    return {
++        "provider": "PYTDX_EXHQ",
++        "host": host,
++        "category": CATEGORY_DAILY,
++        "market": MARKET_HK,
++        "method": "get_instrument_bars",
++        "start": start,
++        "count": count,
++        "records": records,
++    }
++
++
++def _write_atomic(path: Path, data: bytes, *, replace: bool) -> None:
++    path.parent.mkdir(parents=True, exist_ok=True)
++    fd, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
++    try:
++        with os.fdopen(fd, "wb") as handle:
++            handle.write(data)
++            handle.flush()
++            os.fsync(handle.fileno())
++        if not replace and path.exists():
++            raise FileExistsError(path.name)
++        os.replace(name, path)
++    finally:
++        if os.path.exists(name):
++            os.unlink(name)
++
++
++def _pointer_bytes(pointer_path: Path) -> bytes | None:
++    try:
++        return pointer_path.read_bytes()
++    except FileNotFoundError:
++        return None
++
++
++def capture_daily_supplement(
++    authority_root: Path | str,
++    *,
++    target_date: str,
++    canary_codes: Sequence[str] | None = None,
++    connector: Callable[[], tuple[Any, str]] = _connect,
++    clock: Callable[[], datetime] = _clock,
++) -> dict[str, Any]:
++    """Capture one exact master universe into an immutable sidecar run.
++
++    Calling this function performs network reads and writes only the daily
++    sidecar namespace. The normal HK0.2 panel and ``panel_latest`` are untouched.
++    """
++    target_date = validate_date(target_date)
++    canary_codes = normalize_canary_codes(canary_codes)
++    root = Path(authority_root).expanduser().resolve()
++    sessions, calendar_sha = requested_sessions(target_date)
++    panel = _read_panel_identity(root, target_date)
++    master, codes = _read_master_identity(root, target_date)
++    if not codes:
++        raise ValueError("HK_DAILY_SUPPLEMENT_EMPTY_SECURITY_MASTER")
++    selected_codes = codes if canary_codes is None else canary_codes
++    if canary_codes is not None and not set(canary_codes).issubset(codes):
++        raise ValueError("HK_DAILY_SUPPLEMENT_CANARY_CODE_OUTSIDE_MASTER")
++    capture_started_at = clock()
++    capture_started_utc = _timestamp(_time_text(capture_started_at))
++    parent_times = (
++        _timestamp(panel.get("manifest_prepared_at")),
++        _timestamp(master.get("captured_at")),
++    )
++    if any(value > capture_started_utc for value in parent_times):
++        raise ValueError("HK_DAILY_SUPPLEMENT_PARENT_AFTER_CAPTURE_START")
++    asset_root = root / "assets" / "hk_0_2"
++    pointer_rel = f"daily_supplements/pointers/{target_date}.json"
++    pointer_path = resolve_under(asset_root, pointer_rel)
++    if canary_codes is None:
++        prior_pointer = _pointer_bytes(pointer_path)
++        prior_doc = json.loads(prior_pointer) if prior_pointer is not None else None
++        prior_manifest_sha = str((prior_doc or {}).get("manifest_sha256") or "") or None
++    else:
++        prior_pointer = None
++        prior_manifest_sha = None
++
++    fetched = fetch_hk_daily_bars(
++        selected_codes,
++        start=START_OFFSET,
++        count=BAR_COUNT,
++        request_context={"requested_sessions": sessions},
++        connector=connector,
++        clock=clock,
++    )
++    records: list[dict[str, Any]] = []
++    for raw_record in fetched["records"]:
++        code = raw_record["code"]
++        if raw_record["status"] == "QUERY_FAILED":
++            records.append({
++                **raw_record,
++                "missing_sessions": list(sessions),
++                "bars": [],
++            })
++            continue
++        raw_rows = raw_record["source_rows"]
++        bars: list[dict[str, Any]] = []
++        seen: set[str] = set()
++        error_code = None
++        try:
++            source_dates = [_bar_date(row) for row in raw_rows]
++            if len(set(source_dates)) != len(source_dates):
++                raise ValueError("HK_DAILY_SUPPLEMENT_DUPLICATE_DATE")
++            for row in raw_rows:
++                bar = _decode_bar(row, target_date, set(sessions))
++                if bar is not None:
++                    seen.add(bar["trade_date"])
++                    bars.append(bar)
++        except (ValueError, KeyError, TypeError, OverflowError) as error:
++            error_code = str(error) if str(error).startswith("HK_DAILY_SUPPLEMENT_") else "HK_DAILY_SUPPLEMENT_ROW_INVALID"
++            bars = []
++        missing = [day for day in sessions if day not in seen]
++        status = "INVALID" if error_code else ("PENDING" if missing else "READY")
++        records.append({
++            **raw_record,
++            "status": status,
++            "error_code": error_code,
++            "bars": bars,
++            "missing_sessions": missing,
++        })
++
++    prepared_at = clock()
++    prepared_utc = _timestamp(_time_text(prepared_at))
++    if prepared_utc < capture_started_utc:
++        raise ValueError("HK_DAILY_SUPPLEMENT_CAPTURE_TIME_ORDER_INVALID")
++    for record in records:
++        times = [_timestamp(record[key]) for key in
++                 ("request_started_at", "response_acquired_at", "request_finished_at")]
++        if not capture_started_utc <= times[0] <= times[1] <= times[2] <= prepared_utc:
++            raise ValueError("HK_DAILY_SUPPLEMENT_CAPTURE_TIME_ORDER_INVALID")
++    statuses = [record["status"] for record in records]
++    status = "READY" if all(value == "READY" for value in statuses) else "PARTIAL_WITH_PENDING"
++    capture_scope = "FULL_MASTER" if canary_codes is None else "CANARY"
++    raw_capture = {
++        "schema_version": CAPTURE_SCHEMA, "target_date": target_date,
++        "requested_sessions": sessions, "calendar_sha256": calendar_sha,
++        "capture_scope": capture_scope, "canary_codes": canary_codes,
++        "capture_started_at": _time_text(capture_started_at),
++        "capture_prepared_at": _time_text(prepared_at),
++        "source": {"provider": "PYTDX_EXHQ", "host": fetched["host"],
++                   "category": CATEGORY_DAILY, "market": MARKET_HK,
++                   "method": "get_instrument_bars", "start": START_OFFSET,
++                   "count": BAR_COUNT},
++        "records": records, **SAFETY,
++    }
++    raw_bytes = _canonical(raw_capture)
++    raw_sha = _sha(raw_bytes)
++    run_id = _sha(_canonical({"target_date": target_date, "raw_capture_sha256": raw_sha,
++                              "panel": panel, "master": master,
++                              "selected_codes": selected_codes}))[:24]
++    run_rel = (f"daily_supplements/runs/{target_date}/{run_id}" if canary_codes is None
++               else f"daily_supplements/canary_staging/{target_date}/{run_id}")
++    raw_rel = f"{run_rel}/raw_capture.json"
++    manifest_rel = f"{run_rel}/manifest.json"
++    manifest = {
++        "schema_version": MANIFEST_SCHEMA, "status": status,
++        "target_date": target_date, "run_id": run_id,
++        "raw_capture_relative": raw_rel, "raw_capture_sha256": raw_sha,
++        "requested_sessions": sessions, "calendar_sha256": calendar_sha,
++        "capture_scope": capture_scope, "canary_codes": canary_codes,
++        "capture_started_at": _time_text(capture_started_at),
++        "prepared_at": _time_text(prepared_at), "provider": "PYTDX_EXHQ",
++        "method": "get_instrument_bars", "category": CATEGORY_DAILY,
++        "market": MARKET_HK, "start": START_OFFSET, "count": BAR_COUNT,
++        "code_count": len(selected_codes), "master_code_count": len(codes),
++        "selected_codes": selected_codes,
++        "selected_codes_sha256": _sha(_canonical(selected_codes)),
++        "universe_codes_sha256": master["universe_codes_sha256"],
++        "panel_identity": panel, "security_master_identity": master,
++        "record_status_counts": {key: statuses.count(key) for key in sorted(set(statuses))},
++        "publication_status": ("OFFICIAL_DAILY_POINTER_CAS" if canary_codes is None
++                               else "CANARY_STAGED_NOT_CONSUMER_READABLE"),
++        **SAFETY,
++    }
++    manifest_bytes = _canonical(manifest)
++    manifest_sha = _sha(manifest_bytes)
++
++    run_root = resolve_under(asset_root, run_rel)
++    if canary_codes is not None:
++        # Canary captures are immutable and have no date pointer, so a partial
++        # subset can never be read as the full owner input by the consumer.
++        staged_at = clock()
++        if _timestamp(_time_text(staged_at)) < prepared_utc:
++            raise ValueError("HK_DAILY_SUPPLEMENT_CAPTURE_TIME_ORDER_INVALID")
++        manifest["staged_at"] = _time_text(staged_at)
++        manifest_bytes = _canonical(manifest)
++        manifest_sha = _sha(manifest_bytes)
++        run_root.mkdir(parents=True, exist_ok=False)
++        _write_atomic(resolve_under(asset_root, raw_rel), raw_bytes, replace=False)
++        _write_atomic(resolve_under(asset_root, manifest_rel), manifest_bytes, replace=False)
++        return {"status": "CANARY_STAGED", "capture_status": status,
++                "publication_status": "CANARY_STAGED_NOT_CONSUMER_READABLE",
++                "target_date": target_date, "run_id": run_id,
++                "manifest_relative": manifest_rel, "manifest_sha256": manifest_sha,
++                "raw_capture_sha256": raw_sha, "code_count": len(selected_codes),
++                "master_code_count": len(codes), "selected_codes": selected_codes,
++                "record_status_counts": manifest["record_status_counts"], **SAFETY}
++
++    # The lock makes the official pointer replacement a compare-and-swap
++    # against the exact bytes observed before acquisition. The panel pointer
++    # is outside this sidecar namespace.
++    lock_path = resolve_under(asset_root, f"daily_supplements/pointers/.{target_date}.lock")
++    lock_path.parent.mkdir(parents=True, exist_ok=True)
++    with lock_path.open("a+b") as lock:
++        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
++        if _pointer_bytes(pointer_path) != prior_pointer:
++            raise ValueError("HK_DAILY_SUPPLEMENT_POINTER_CAS_CONFLICT")
++        run_root.mkdir(parents=True, exist_ok=False)
++        _write_atomic(resolve_under(asset_root, raw_rel), raw_bytes, replace=False)
++        _write_atomic(resolve_under(asset_root, manifest_rel), manifest_bytes, replace=False)
++        published_at = clock()
++        if _timestamp(_time_text(published_at)) < prepared_utc:
++            raise ValueError("HK_DAILY_SUPPLEMENT_CAPTURE_TIME_ORDER_INVALID")
++        pointer = {
++            "schema_version": POINTER_SCHEMA, "target_date": target_date,
++            "run_id": run_id, "manifest_relative": manifest_rel,
++            "manifest_sha256": manifest_sha, "raw_capture_relative": raw_rel,
++            "raw_capture_sha256": raw_sha, "published_at": _time_text(published_at),
++            "previous_manifest_sha256": prior_manifest_sha,
++            "panel_identity": panel, "security_master_identity": master,
++            **SAFETY,
++        }
++        _write_atomic(pointer_path, _canonical(pointer), replace=True)
++        fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
++    return {"status": status, "target_date": target_date, "run_id": run_id,
++            "manifest_relative": manifest_rel, "manifest_sha256": manifest_sha,
++            "raw_capture_sha256": raw_sha, "code_count": len(selected_codes),
++            "record_status_counts": manifest["record_status_counts"], **SAFETY}
++
++
++def read_verified_daily_supplement(
++    authority_root: Path | str,
++    *,
++    target_date: str,
++    requested: list[str],
++    research_cutoff: str,
++    expected_panel: Mapping[str, Any],
++    expected_master: Mapping[str, Any],
++    expected_codes: list[str],
++) -> dict[str, Any] | None:
++    """Read one stable exact-date sidecar; absent pointer returns ``None``."""
++    target_date = validate_date(target_date)
++    cutoff = _timestamp(research_cutoff)
++    exact_sessions, calendar_sha = requested_sessions(target_date)
++    if requested != exact_sessions:
++        raise ValueError("HK_DAILY_SUPPLEMENT_REQUESTED_SESSIONS_INVALID")
++    root = Path(authority_root).expanduser().resolve()
++    asset_root = root / "assets" / "hk_0_2"
++    pointer_rel = f"daily_supplements/pointers/{target_date}.json"
++    pointer_path = resolve_under(asset_root, pointer_rel)
++    try:
++        pointer_raw = pointer_path.read_bytes()
++    except FileNotFoundError:
++        return None
++    pointer = json.loads(pointer_raw)
++    if (pointer.get("schema_version") != POINTER_SCHEMA
++            or pointer.get("target_date") != target_date
++            or pointer.get("production_allowed") is not False
++            or pointer.get("buy_gate_updated") is not False
++            or pointer.get("orders_sent") is not False
++            or pointer.get("research_only") is not True
++            or pointer.get("panel_identity", {}).get("panel_sha256") != expected_panel.get("panel_sha256")
++            or pointer.get("panel_identity", {}).get("panel_manifest_sha256") != expected_panel.get("panel_manifest_sha256")
++            or pointer.get("panel_identity", {}).get("manifest_prepared_at") != expected_panel.get("manifest_prepared_at")
++            or pointer.get("security_master_identity", {}).get("manifest_sha256") != expected_master.get("manifest_sha256")
++            or pointer.get("security_master_identity", {}).get("artifact_sha256") != expected_master.get("artifact_sha256")
++            or pointer.get("security_master_identity", {}).get("captured_at") != expected_master.get("captured_at")):
++        raise ValueError("HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID")
++    if _timestamp(pointer.get("published_at")) > cutoff:
++        raise ValueError("HK_DAILY_SUPPLEMENT_POINTER_AFTER_CUTOFF")
++    manifest_rel = str(pointer.get("manifest_relative") or "")
++    raw_rel = str(pointer.get("raw_capture_relative") or "")
++    manifest_raw = resolve_under(asset_root, manifest_rel).read_bytes()
++    raw_raw = resolve_under(asset_root, raw_rel).read_bytes()
++    if _sha(manifest_raw) != pointer.get("manifest_sha256") or _sha(raw_raw) != pointer.get("raw_capture_sha256"):
++        raise ValueError("HK_DAILY_SUPPLEMENT_CHECKSUM_MISMATCH")
++    manifest, capture = json.loads(manifest_raw), json.loads(raw_raw)
++    if (manifest.get("schema_version") != MANIFEST_SCHEMA
++            or manifest.get("target_date") != target_date
++            or manifest.get("run_id") != pointer.get("run_id")
++            or manifest.get("raw_capture_relative") != raw_rel
++            or manifest.get("raw_capture_sha256") != pointer.get("raw_capture_sha256")
++            or manifest.get("requested_sessions") != requested
++            or manifest.get("calendar_sha256") != calendar_sha
++            or manifest.get("capture_scope") != "FULL_MASTER"
++            or manifest.get("canary_codes") is not None
++            or manifest.get("provider") != "PYTDX_EXHQ"
++            or manifest.get("method") != "get_instrument_bars"
++            or manifest.get("category") != CATEGORY_DAILY
++            or manifest.get("market") != MARKET_HK
++            or manifest.get("start") != START_OFFSET
++            or manifest.get("count") != BAR_COUNT
++            or manifest.get("research_only") is not True
++            or manifest.get("production_allowed") is not False
++            or manifest.get("buy_gate_updated") is not False
++            or manifest.get("orders_sent") is not False
++            or capture.get("schema_version") != CAPTURE_SCHEMA
++            or capture.get("target_date") != target_date
++            or capture.get("requested_sessions") != requested
++            or capture.get("calendar_sha256") != calendar_sha
++            or capture.get("capture_scope") != "FULL_MASTER"
++            or capture.get("canary_codes") is not None
++            or capture.get("research_only") is not True
++            or capture.get("production_allowed") is not False
++            or capture.get("buy_gate_updated") is not False
++            or capture.get("orders_sent") is not False
++            or capture.get("source") != {
++                "provider": "PYTDX_EXHQ", "host": f"{SOURCE_HOST}:{SOURCE_PORT}",
++                "category": CATEGORY_DAILY, "market": MARKET_HK,
++                "method": "get_instrument_bars", "start": START_OFFSET,
++                "count": BAR_COUNT,
++            }
++            or manifest.get("panel_identity") != pointer.get("panel_identity")
++            or manifest.get("security_master_identity") != pointer.get("security_master_identity")):
++        raise ValueError("HK_DAILY_SUPPLEMENT_MANIFEST_CONTRACT_INVALID")
++    prepared = _timestamp(manifest.get("prepared_at"))
++    capture_started = _timestamp(manifest.get("capture_started_at"))
++    panel_ready = _timestamp(manifest.get("panel_identity", {}).get("manifest_prepared_at"))
++    master_ready = _timestamp(manifest.get("security_master_identity", {}).get("captured_at"))
++    if (prepared > cutoff or capture_started > prepared
++            or panel_ready > capture_started or master_ready > capture_started
++            or _timestamp(capture.get("capture_started_at")) != capture_started
++            or _timestamp(capture.get("capture_prepared_at")) != prepared
++            or _timestamp(pointer.get("published_at")) < prepared):
++        raise ValueError("HK_DAILY_SUPPLEMENT_PREPARED_AFTER_CUTOFF")
++    if (manifest.get("code_count") != len(expected_codes)
++            or manifest.get("master_code_count") != len(expected_codes)
++            or manifest.get("selected_codes") != sorted(expected_codes)
++            or manifest.get("selected_codes_sha256") != _sha(_canonical(sorted(expected_codes)))
++            or manifest.get("universe_codes_sha256") != _sha(_canonical(sorted(expected_codes)))):
++        raise ValueError("HK_DAILY_SUPPLEMENT_UNIVERSE_MISMATCH")
++    records = capture.get("records")
++    if not isinstance(records, list) or [r.get("code") for r in records] != sorted(expected_codes):
++        raise ValueError("HK_DAILY_SUPPLEMENT_RECORD_UNIVERSE_INVALID")
++    by_code: dict[str, Any] = {}
++    for record in records:
++        code = record["code"]
++        request = record.get("request")
++        if (request.get("category") != CATEGORY_DAILY or request.get("market") != MARKET_HK
++                or request.get("code") != code.split(".", 1)[1]
++                or request.get("start") != START_OFFSET or request.get("count") != BAR_COUNT
++                or request.get("requested_sessions") != requested
++                or record.get("request_sha256") != _sha(_canonical(request))
++                or record.get("response_sha256") != _sha(_canonical(record.get("source_rows")))):
++            raise ValueError("HK_DAILY_SUPPLEMENT_REQUEST_OR_RESPONSE_INVALID")
++        source_rows = record.get("source_rows")
++        if not isinstance(source_rows, list) or record.get("returned_count") != len(source_rows):
++            raise ValueError("HK_DAILY_SUPPLEMENT_SOURCE_ROWS_INVALID")
++        times = [_timestamp(record[key]) for key in
++                 ("request_started_at", "response_acquired_at", "request_finished_at")]
++        if not capture_started <= times[0] <= times[1] <= times[2] <= prepared or any(value > cutoff for value in times):
++            raise ValueError("HK_DAILY_SUPPLEMENT_RECORD_TIME_INVALID")
++        bars = record.get("bars")
++        if record.get("status") not in {"READY", "PENDING", "INVALID", "QUERY_FAILED"}:
++            raise ValueError("HK_DAILY_SUPPLEMENT_RECORD_STATUS_INVALID")
++        if record.get("status") in {"INVALID", "QUERY_FAILED"} and bars:
++            raise ValueError("HK_DAILY_SUPPLEMENT_INVALID_CODE_HAS_BARS")
++        seen: set[str] = set()
++        for bar in bars or []:
++            day = bar.get("trade_date")
++            if day not in requested or day > target_date or day in seen:
++                raise ValueError("HK_DAILY_SUPPLEMENT_BAR_DATE_INVALID")
++            seen.add(day)
++            if (bar.get("native_fields", {}).get("scale_applied") != 1
++                    or bar.get("native_fields", {}).get("volume_unit_status") != "NOT_PROVEN"
++                    or bar.get("native_fields", {}).get("volume_unit") is not None):
++                raise ValueError("HK_DAILY_SUPPLEMENT_BAR_UNIT_INVALID")
++        if record.get("status") in {"READY", "PENDING"}:
++            source_dates = [_bar_date(row) for row in source_rows]
++            if len(set(source_dates)) != len(source_dates):
++                raise ValueError("HK_DAILY_SUPPLEMENT_DUPLICATE_SOURCE_DATE")
++            decoded = [bar for row in source_rows
++                       if (bar := _decode_bar(row, target_date, set(requested))) is not None]
++            if _canonical(decoded) != _canonical(bars):
++                raise ValueError("HK_DAILY_SUPPLEMENT_NORMALIZED_ROWS_MISMATCH")
++            missing = [day for day in requested if day not in seen]
++            expected_status = "READY" if not missing else "PENDING"
++            if record.get("status") != expected_status or record.get("missing_sessions") != missing:
++                raise ValueError("HK_DAILY_SUPPLEMENT_MISSING_SESSION_STATUS_INVALID")
++        by_code[code] = record
++    status_counts = {key: sum(record.get("status") == key for record in records)
++                     for key in sorted({record.get("status") for record in records})}
++    aggregate_status = ("READY" if status_counts == {"READY": len(expected_codes)}
++                        else "PARTIAL_WITH_PENDING")
++    if (manifest.get("record_status_counts") != status_counts
++            or manifest.get("status") != aggregate_status
++            or capture.get("source", {}).get("host") != f"{SOURCE_HOST}:{SOURCE_PORT}"):
++        raise ValueError("HK_DAILY_SUPPLEMENT_AGGREGATE_OR_SOURCE_INVALID")
++    if (pointer_path.read_bytes() != pointer_raw
++            or resolve_under(asset_root, manifest_rel).read_bytes() != manifest_raw
++            or resolve_under(asset_root, raw_rel).read_bytes() != raw_raw):
++        raise ValueError("HK_DAILY_SUPPLEMENT_CHANGED_DURING_READ")
++    return {"status": manifest["status"], "target_date": target_date,
++            "requested_sessions": requested, "manifest": manifest,
++            "pointer": pointer, "records": by_code,
++            "manifest_sha256": _sha(manifest_raw),
++            "raw_capture_sha256": _sha(raw_raw)}
++
++
++__all__ = ["capture_daily_supplement", "read_verified_daily_supplement",
++           "requested_sessions", "normalize_canary_codes"]
+--- active/v4/manager_research/announcement_analysis.py
++++ candidate/v4/manager_research/announcement_analysis.py
+@@ -421,6 +421,11 @@
+                 "body_text_sha256": row.get("body_text_sha256"),
+                 "pdf_sha256": pdf.get("sha256"),
+                 "capture_receipt_sha256": failure.get("receipt_sha256") if isinstance(failure, Mapping) else None,
++                "capture_page_summary": ({
++                    "content_api_pages_captured": failure.get("content_api_pages_captured"),
++                    "content_api_page_total": failure.get("content_api_page_total"),
++                } if isinstance(failure, Mapping)
++                    and "content_api_pages_captured" in failure else None),
+             }
+         validated_terminal, failure_bindings = _validated_terminal_body_capture(
+             terminal_body_capture, projected_body_rows, set(record_by_code))
+@@ -631,6 +636,10 @@
+                 "status": "BODY_CAPTURE_FAILED",
+                 "error_code": body_capture_failure.get("error_code"),
+                 "receipt_sha256": body_capture_failure.get("receipt_sha256"),
++                **({
++                    "content_api_pages_captured": body_capture_failure.get("content_api_pages_captured"),
++                    "content_api_page_total": body_capture_failure.get("content_api_page_total"),
++                } if "content_api_pages_captured" in body_capture_failure else {}),
+             },
+             "selection_status": "NOT_ASSESSED",
+             "RESEARCH_ONLY": True,
+@@ -708,7 +717,7 @@
+ 
+ def _validated_terminal_body_capture(value: Mapping[str, Any] | None,
+                                      body_by_code: Mapping[str, Mapping[str, Any]],
+-                                     expected_codes: set[str]) -> tuple[dict[str, Any] | None, dict[str, dict[str, str]]]:
++                                     expected_codes: set[str]) -> tuple[dict[str, Any] | None, dict[str, dict[str, Any]]]:
+     failed_rows = {code for code, row in body_by_code.items()
+                    if row.get("body_status") == "BODY_CAPTURE_FAILED"}
+     if value is None:
+@@ -720,7 +729,7 @@
+     failures_raw = value.get("failed_articles")
+     if not isinstance(failures_raw, list):
+         raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_INVALID")
+-    failures: dict[str, dict[str, str]] = {}
++    failures: dict[str, dict[str, Any]] = {}
+     for item in failures_raw:
+         if not isinstance(item, Mapping):
+             raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_INVALID")
+@@ -732,7 +741,26 @@
+                 or not isinstance(receipt_sha, str)
+                 or re.fullmatch(r"[0-9a-f]{64}", receipt_sha) is None):
+             raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_INVALID")
+-        failures[code] = {"error_code": error_code.strip(), "receipt_sha256": receipt_sha}
++        failure_binding: dict[str, Any] = {
++            "error_code": error_code.strip(), "receipt_sha256": receipt_sha,
++        }
++        if ("content_api_pages_captured" in item
++                or "content_api_page_total" in item):
++            captured = item.get("content_api_pages_captured")
++            page_total = item.get("content_api_page_total")
++            if type(captured) is not int or captured < 0:
++                raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_INVALID")
++            if captured == 0:
++                if page_total is not None:
++                    raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_INVALID")
++            elif type(page_total) is not int or page_total < captured:
++                raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_INVALID")
++            if captured:
++                failure_binding.update({
++                    "content_api_pages_captured": captured,
++                    "content_api_page_total": page_total,
++                })
++        failures[code] = failure_binding
+     counts = value.get("body_status_counts")
+     status = value.get("status")
+     if (value.get("schema_version") != "v4.manager_research.announcement_terminal_body_capture.v1"
+@@ -762,11 +790,27 @@
+         raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_INVALID")
+     for code, body in body_by_code.items():
+         if code in failures:
++            binding = failures[code]
++            pages = body.get("pages")
++            captured = binding.get("content_api_pages_captured", 0)
++            if captured:
++                page_total = binding["content_api_page_total"]
++                source_pages_match = (isinstance(pages, list) and len(pages) == captured
++                                      and body.get("content_page_count") == page_total)
++                projected_summary_match = (
++                    pages == [] and body.get("content_page_count") is None
++                    and body.get("capture_page_summary") == {
++                        "content_api_pages_captured": captured,
++                        "content_api_page_total": page_total,
++                    })
++                page_binding_valid = source_pages_match or projected_summary_match
++            else:
++                page_binding_valid = pages == [] and body.get("content_page_count") is None
+             if (body.get("body_status") != "BODY_CAPTURE_FAILED"
+-                    or body.get("pages") != [] or body.get("content_page_count") is not None
++                    or not page_binding_valid
+                     or body.get("body_text") is not None or body.get("body_text_sha256") is not None
+                     or body.get("pdf_sha256") is not None
+-                    or body.get("capture_receipt_sha256") != failures[code]["receipt_sha256"]):
++                    or body.get("capture_receipt_sha256") != binding["receipt_sha256"]):
+                 raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_FAILURE_ROW_INVALID")
+         elif body.get("body_status") != "COMPLETE_CONTENT_API_BODY":
+             raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_STATUS_INVALID")
+@@ -1018,6 +1062,8 @@
+                 or len(listing_codes) != len(listing["source_issuer_codes"])):
+             raise ValueError("ANNOUNCEMENT_ANALYSIS_SOURCE_ISSUER_BINDING_MISMATCH")
+         if code in body_capture_failures:
++            if body_capture_failures[code].get("content_api_pages_captured", 0):
++                _verify_body_source_rows(body, code, publication)
+             continue
+         _verify_body_source_rows(body, code, publication)
+ 
+--- active/v4/manager_research/workspace_announcements.py
++++ candidate/v4/manager_research/workspace_announcements.py
+@@ -1777,6 +1777,34 @@
+     return path
+ 
+ 
++def _failed_capture_page_counts(receipt: Mapping[str, Any], body_row: Mapping[str, Any],
++                                original: Mapping[str, Any], art_code: str,
++                                publication: str) -> tuple[int, int | None]:
++    """Validate retained partial page evidence without upgrading a failed body."""
++    captured = receipt.get('content_api_pages_captured')
++    pages = body_row.get('pages')
++    original_pages = original.get('content_api_pages')
++    if (type(captured) is not int or captured < 0
++            or not isinstance(pages, list) or not isinstance(original_pages, list)
++            or len(pages) != captured or original_pages != pages):
++        raise ValueError('ANNOUNCEMENT_BODY_CAPTURE_FAILURE_PAGES_INVALID')
++    if captured == 0:
++        if body_row.get('content_page_count') is not None or original_pages != []:
++            raise ValueError('ANNOUNCEMENT_BODY_CAPTURE_FAILURE_PAGES_INVALID')
++        return 0, None
++
++    reported_total = body_row.get('content_page_count')
++    page_totals = [page.get('page_total') if isinstance(page, Mapping) else None
++                   for page in pages]
++    if (type(reported_total) is not int or reported_total < captured
++            or len(page_totals) != captured
++            or any(type(total) is not int or total != reported_total for total in page_totals)):
++        raise ValueError('ANNOUNCEMENT_BODY_CAPTURE_FAILURE_PAGE_TOTAL_INVALID')
++    from .announcement_analysis import _verify_body_source_rows
++    _verify_body_source_rows(body_row, art_code, publication)
++    return captured, reported_total
++
++
+ def validate_terminal_body_capture(evidence: Path, catalog_read: Mapping[str, Any],
+                                    target: str, publication: str,
+                                    *, expected_run_id: str | None = None) -> dict[str, Any]:
+@@ -1945,10 +1973,14 @@
+             raise ValueError('ANNOUNCEMENT_BODY_CAPTURE_ARTICLE_SOURCE_BINDING_INVALID')
+         if status == 'BODY_CAPTURE_FAILED':
+             error_code = receipt.get('error_code')
+-            if (not isinstance(error_code, str) or not error_code.strip()
+-                    or receipt.get('content_api_pages_captured') != 0
+-                    or body_row.get('pages') != []
+-                    or body_row.get('content_page_count') is not None
++            if not isinstance(error_code, str) or not error_code.strip():
++                raise ValueError('ANNOUNCEMENT_BODY_CAPTURE_FAILURE_RECEIPT_INVALID')
++            try:
++                captured_pages, reported_page_total = _failed_capture_page_counts(
++                    receipt, body_row, original, code, publication)
++            except ValueError as exc:
++                raise ValueError('ANNOUNCEMENT_BODY_CAPTURE_FAILURE_RECEIPT_INVALID') from exc
++            if (body_row.get('pages') is None
+                     or body_row.get('body_text') is not None
+                     or body_row.get('body_text_sha256') is not None
+                     or body_row.get('pdf_sha256') is not None
+@@ -1958,13 +1990,20 @@
+                     or body_row.get('transport_first_hkex_publication_time') != 'CANNOT_CONFIRM'
+                     or original.get('body_text') is not None
+                     or original.get('body_text_sha256') is not None
+-                    or original.get('content_api_pages') != []
+                     or original.get('pdf') is not None
+                     or original.get('semantic_status') != 'NOT_REVIEWED'
+                     or original.get('original_point_in_time_availability') != 'CANNOT_CONFIRM'
+                     or original.get('first_hkex_publication_time') != 'CANNOT_CONFIRM'):
+                 raise ValueError('ANNOUNCEMENT_BODY_CAPTURE_FAILURE_RECEIPT_INVALID')
+-            failures[code] = {'error_code': error_code.strip(), 'receipt_sha256': artifact_sha}
++            failure_binding = {
++                'error_code': error_code.strip(), 'receipt_sha256': artifact_sha,
++            }
++            if captured_pages:
++                failure_binding.update({
++                    'content_api_pages_captured': captured_pages,
++                    'content_api_page_total': reported_page_total,
++                })
++            failures[code] = failure_binding
+         else:
+             if (receipt.get('error_code') is not None
+                     or not isinstance(body_row.get('pages'), list) or not body_row.get('pages')
+--- active/v4/manager_research/workspace_plan.py
++++ candidate/v4/manager_research/workspace_plan.py
+@@ -964,14 +964,18 @@
+ 
+ def _screen_supplement_volume_evidence(supplement: Mapping[str, Any],
+                                        required_sessions: list[str]) -> dict:
+-    """The native six-bar reader verifies identity, while units stay unknown."""
+-    return dict(status='NOT_PROVEN', unit_status='NOT_PROVEN', unit=None,
++    """Prove only same-response ratios; keep the absolute volume unit unknown."""
++    manifest = supplement.get('manifest') if isinstance(supplement.get('manifest'), Mapping) else {}
++    return dict(status='RELATIVE_RATIO_ONLY_UNIT_UNKNOWN', unit_status='NOT_PROVEN', unit=None,
+         scale_applied=1, source='PYTDX_EXHQ_CATEGORY_4_MARKET_71', native_field='trade',
+         required_sessions=list(required_sessions), scope='ALL_SIX_REQUIRED_SESSIONS',
+         source_sha256=supplement['raw_capture_sha256'],
+         manifest_sha256=supplement['manifest_sha256'],
+-        same_source_status='SIX_NATIVE_BARS_SAME_SOURCE_UNIT_NOT_ATTESTED',
+-        gaps=['SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN'])
++        source_run_id=manifest.get('run_id'),
++        source_method=manifest.get('method'),
++        relative_comparability_status='VERIFIED_SAME_RESPONSE_RAW_FIELD_UNIT_UNKNOWN',
++        same_source_status='VERIFIED_SAME_RESPONSE_RAW_FIELD_UNIT_UNKNOWN',
++        gaps=[])
+ 
+ 
+ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any]) -> dict:
+@@ -1205,6 +1209,25 @@
+             volume_evidence = (supplement_volume_evidence if use_supplement_volume
+                                else panel_volume_evidence)
+             volume_proven = volume_evidence['status'] == 'OWNER_VERIFIED'
++            relative_volume_verified = (
++                use_supplement_volume
++                and volume_evidence.get('relative_comparability_status')
++                    == 'VERIFIED_SAME_RESPONSE_RAW_FIELD_UNIT_UNKNOWN'
++            )
++            volume_comparable = volume_proven or relative_volume_verified
++            if use_supplement_volume:
++                supplement_manifest = (supplement or {}).get('manifest') or {}
++                supplement_record = supplement_records.get(code) or {}
++                volume_evidence = dict(volume_evidence,
++                    target_date=(supplement or {}).get('target_date'),
++                    code=code,
++                    request_sha256=supplement_record.get('request_sha256'),
++                    response_sha256=supplement_record.get('response_sha256'),
++                    source_method=supplement_manifest.get('method'),
++                    category=supplement_manifest.get('category'),
++                    market=supplement_manifest.get('market'),
++                    scale_applied=1,
++                )
+             if not current:
+                 current = {
+                     'code_norm': code, 'name': (master_names.get(code) or {}).get('name') or code,
+@@ -1272,9 +1295,12 @@
+                               and previous20_mean not in (None, 0) else None)
+             close_position = ((close - low) / (high - low)
+                               if close is not None and low is not None and high is not None and high > low else None)
+-            oversold = (bool(close <= _REBOUND_OVERSOLD_RATIO * prior60_high)
+-                        if prior60_high is not None and close is not None else None)
+-            if (volume_proven and current_volume is not None and previous5_mean not in (None, 0)
++            from decimal import Decimal
++            oversold_cutoff = (Decimal(str(_REBOUND_OVERSOLD_RATIO)) * Decimal(str(prior60_high))
++                               if prior60_high is not None else None)
++            oversold = (bool(Decimal(str(close)) <= oversold_cutoff)
++                        if oversold_cutoff is not None and close is not None else None)
++            if (volume_comparable and current_volume is not None and previous5_mean not in (None, 0)
+                     and len(valid_vol5) == 5 and all(value is not None for value in valid_vol5)):
+                 from decimal import Decimal
+                 volume_flag = bool(
+@@ -1293,7 +1319,7 @@
+                                   and not duplicate_previous5_dates and len(valid_vol5) == 5
+                                   and previous5_mean not in (None, 0))
+             unknown_reasons = []
+-            if not volume_proven:
++            if not volume_comparable:
+                 unknown_reasons.append('VOLUME_UNIT_OR_SCALE_NOT_PROVEN')
+                 gaps.extend(volume_evidence['gaps'])
+             if count60 < 60:
+@@ -1331,7 +1357,7 @@
+                 unknown_reasons.append('DAILY_SUPPLEMENT_CODE_' + str(supplement_record.get('status')))
+             numeric_history_complete = (complete_prior60 and complete_previous5 and close is not None
+                                         and current_volume is not None)
+-            history_status = ('KNOWN' if numeric_history_complete and volume_proven else 'PARTIAL_UNKNOWN')
++            history_status = ('KNOWN' if numeric_history_complete and volume_comparable else 'PARTIAL_UNKNOWN')
+             strict = bool(history_status == 'KNOWN' and oversold is True and volume_flag is True)
+             known_gate_count = int(oversold is not None) + int(volume_flag is not None)
+             passing_gate_count = int(oversold is True) + int(volume_flag is True)
+@@ -1377,9 +1403,11 @@
+                                    if supplement_record is not None else None),
+                 prior60_session_count=count60, previous5_session_count=valid_previous5_count,
+                 previous20_session_count=int(len(previous20)), prior60_session_high=prior60_high,
+-                oversold_cutoff_80pct_prior60_high=(0.8 * prior60_high if prior60_high is not None else None),
++                oversold_cutoff_80pct_prior60_high=(float(oversold_cutoff) if oversold_cutoff is not None else None),
+                 previous5_mean_volume=previous5_mean, volume_ratio_5d=volume_ratio,
+-                volume_ratio_status='OWNER_VERIFIED' if volume_proven else 'UNVERIFIED_UNIT_OR_SCALE',
++                volume_ratio_status=('OWNER_VERIFIED' if volume_proven else
++                                     'RELATIVE_RATIO_ONLY_UNIT_UNKNOWN' if relative_volume_verified else
++                                     'UNVERIFIED_UNIT_OR_SCALE'),
+                 volume_ratio_current_to_previous5_mean=volume_ratio,
+                 previous20_mean_volume_background=previous20_mean,
+                 volume_ratio_20d_background=volume_ratio20,
+@@ -1413,6 +1441,8 @@
+                                else 'V4_SHARED_HK_0_2_PANEL_AUTHORITY'),
+                 volume_unit_status=volume_evidence['unit_status'],
+                 volume_scale_applied=volume_evidence['scale_applied'],
++                volume_relative_comparability_status=volume_evidence.get(
++                    'relative_comparability_status', 'NOT_PROVEN'),
+                 volume_provenance=volume_evidence,
+                 research_boundary='RESEARCH_ONLY; no buy/sell/order conclusion',
+             )
+@@ -1492,7 +1522,8 @@
+                                trading_calendar_sha256=history_sessions['calendar_sha256'],
+                                screen_phase=context['screen_phase'],
+                                screen_session_policy=context['screen_session_policy'],
+-                               volume_gate_policy='ORIGINAL_OWNER_UNIT_AND_SCALE_PROOF_REQUIRED',
++                               volume_gate_policy=('SAME_RESPONSE_SIX_BAR_RELATIVE_COMPARABILITY;'
++                                                   'ABSOLUTE_UNIT_REMAINS_NOT_PROVEN'),
+                                observation_only=['amount_hkd', 'rebound_close_vs_low_pct']))
+         coverage = dict(counts_known=True,
+                         input_candidate_count=len(rows), history_complete_count=len(rows)-len(pending),

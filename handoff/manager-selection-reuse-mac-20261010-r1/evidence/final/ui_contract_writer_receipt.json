@@ -1,0 +1,63 @@
+{
+  "schema": "v4_manager_workspace_ui_contract_r4_writer_receipt.v1",
+  "status": "READY_FOR_REVIEW",
+  "candidate_app": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ui-contract-r4/candidate/app",
+  "active_readonly_source": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/integrated_release/manager-independent-lanes-20261010-r3/app",
+  "candidate_copy_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ui-contract-r4/candidate_copy_receipt.json",
+  "baseline_tree_identity_sha256": "1fa1d3ac107028435be79c2895059d52ee259ecec15b090090922ea8f1eefb14",
+  "baseline_app_entries": 1142,
+  "candidate_app_entries": 1142,
+  "candidate_delta": {
+    "changed": [
+      "apps/web/src/api/managerWorkspace.ts"
+    ],
+    "added": [],
+    "missing": [],
+    "pass": true
+  },
+  "source_change": {
+    "path": "apps/web/src/api/managerWorkspace.ts",
+    "before_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+    "after_sha256": "cb68be0a47f09e36829e1276fcd0d6a862790762bb1691165474d383deb53e9c",
+    "patch_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ui-contract-r4/tests/managerWorkspace.readback.r4.patch",
+    "patch_sha256": "c60572b634a38805ec8044de09d19b17481842adef3448f13658728814e0ba8c"
+  },
+  "regression_test": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ui-contract-r4/tests/managerWorkspace.readback.r4.spec.ts",
+    "sha256": "8658587d23cda6c1de42c1eff287087cde57a3e35c09d575482ced9f040cdf1a",
+    "fixture_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/final-workspace-readback-1.json",
+    "fixture_sha256": "899906b5f2e7c1b24eb4f9caca34d7adab3067ec8c1d44e88122bb83e77a072f",
+    "result": "PASS 4/4 new readback/date/safety tests; combined with existing attention API tests PASS 15/15"
+  },
+  "verification": [
+    {
+      "command": "vitest run --config /Users/lexi/Desktop/学习/v4_app/apps/web/vite.config.ts --root /Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ui-contract-r4 tests/managerWorkspace.readback.r4.spec.ts candidate/app/apps/web/src/api/managerWorkspace.attention.spec.ts --reporter=verbose",
+      "result": "PASS; 2 files, 15 tests"
+    },
+    {
+      "command": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --lib ES2022,DOM /Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ui-contract-r4/candidate/app/apps/web/src/api/managerWorkspace.ts",
+      "result": "PASS"
+    },
+    {
+      "command": "vite build --config /Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ui-contract-r4/candidate/app/apps/web/vite.config.ts --outDir /Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ui-contract-r4/tests/build-check-20261011-final --emptyOutDir",
+      "result": "PASS; 111 modules; generated output removed after check"
+    },
+    {
+      "command": "vue-tsc --noEmit --project /Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/ui-contract-r4/candidate/app/apps/web/tsconfig.json",
+      "result": "CANNOT_CONFIRM clean full-project typecheck; command reports 4 diagnostics in untouched tests only: managerWorkspace.attention.spec.ts lines 242,245 (mapping possibly undefined) and ManagerSelectionView.spec.ts lines 4,6 (unused @ts-expect-error). No diagnostics in changed managerWorkspace.ts."
+    }
+  ],
+  "target_behavior": "The saved 20261009 workspace readback with panel, security-master, and daily-supplement source refs validates; complete payload or artifact path+SHA pairs are accepted, incomplete/malformed pairs remain rejected. Requested date mismatch and production_allowed=true remain fail-closed.",
+  "not_performed": [
+    "browser UI against deployed service",
+    "API/UI deployment or service changes",
+    "owner refresh",
+    "Git operations"
+  ],
+  "cannot_confirm": [
+    "independent reviewer verdict",
+    "browser UI behavior after reload",
+    "deployed/API verification",
+    "natural-period verification"
+  ]
+}
