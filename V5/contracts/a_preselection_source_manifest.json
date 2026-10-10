@@ -249,6 +249,78 @@
       "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
       "variant": "api",
       "snapshot_path": "handoff/v4-running-source-20261005/canonical/contracts/market_calendar_2026.json"
+    },
+    {
+      "relative_path": "domains/_preselection_materializer_parts/hourly_pool.py",
+      "sha256": "d4f808dab2639b02c08cf2619057cad4454f72b1e9b95703805360c7f8f56dad",
+      "bytes": 6834,
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "variant": "canonical",
+      "snapshot_path": "handoff/v4-running-source-20261005/canonical/domains/_preselection_materializer_parts/hourly_pool.py"
+    },
+    {
+      "relative_path": "infrastructure/research_store.py",
+      "sha256": "4460d35b5d22b2f80bac7699f532d033fd514b57ddebc33bff6242d14e6f9dcc",
+      "bytes": 37441,
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "variant": "canonical",
+      "snapshot_path": "handoff/v4-running-source-20261005/canonical/infrastructure/research_store.py"
+    },
+    {
+      "relative_path": "infrastructure/_research_store_parts/hourly_sources.py",
+      "sha256": "8400178047633fe507f0f552f31231c63c0aa6224d3db29cbb197ea73627b3c5",
+      "bytes": 6743,
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "variant": "canonical",
+      "snapshot_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_store_parts/hourly_sources.py"
+    },
+    {
+      "relative_path": "infrastructure/_research_store_parts/hourly_publish.py",
+      "sha256": "d2700f97f21b579f20faf9b6f9ae2d960f2e4849b0d738f482e2b4330a820b6d",
+      "bytes": 11198,
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "variant": "canonical",
+      "snapshot_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_store_parts/hourly_publish.py"
+    },
+    {
+      "relative_path": "infrastructure/_research_store_parts/schema_values.py",
+      "sha256": "9d5366706c8f602adc2709e3c8d310b45a78c649ef05cef5c4c4a92f3619dc7f",
+      "bytes": 2377,
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "variant": "canonical",
+      "snapshot_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_store_parts/schema_values.py"
+    },
+    {
+      "relative_path": "infrastructure/_research_store_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527,
+      "source_commit": "02dbca5353a22c2e9ca55c1250b2cf9279800949",
+      "variant": "byte-identical-reuse",
+      "snapshot_path": "V5/vendor/a_preselection_baseline/domains/_preselection_materializer_parts/_namespace.py"
+    },
+    {
+      "relative_path": "contracts/research_day_product.py",
+      "sha256": "3efe626bc78c69fd607a43f4c8b109590aeef9ff48dbde0643e5f82c9c77ba7c",
+      "bytes": 21637,
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "variant": "canonical",
+      "snapshot_path": "handoff/v4-running-source-20261005/canonical/contracts/research_day_product.py"
+    },
+    {
+      "relative_path": "contracts/research.py",
+      "sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "bytes": 13060,
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "variant": "canonical",
+      "snapshot_path": "handoff/v4-running-source-20261005/canonical/contracts/research.py"
+    },
+    {
+      "relative_path": "domains/research_day_product.py",
+      "sha256": "cff2745ee6f7740756d9f93559b08650bbd8d84b9c8dddab85ee397df9498800",
+      "bytes": 12948,
+      "source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+      "variant": "canonical",
+      "snapshot_path": "handoff/v4-running-source-20261005/canonical/domains/research_day_product.py"
     }
   ]
 }

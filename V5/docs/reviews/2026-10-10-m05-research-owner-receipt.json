@@ -1,0 +1,135 @@
+{
+  "archived_owner_parity": {
+    "20261009_artifact_sha256": "0a7f3a0103209d3166135d546c0f5261df124084a080c1ed32d32e703b0845b2",
+    "20261009_rows": 211,
+    "20261012_artifact_sha256": "588cf0ac73f23c29bf0628372dabfe7a4f8cce4f2fa0aa02beefbc218c58c916",
+    "20261012_rows": 152,
+    "20261012_scope": "Friday-only archived replay; incomplete Monday window",
+    "candidate_implementation_sha256": "705534230375dc0fd237acb5c203c84f5bcfd2c405210caee85aef4e2f13426d",
+    "data_kind": "RECORDED_INPUT_REPLAY",
+    "inventory_sha256": "4aacbd14687a312671a01a5cc39f53ed2c3b59551232474ebe7d8695eee2d71c",
+    "natural_verified": false,
+    "point_in_time_verified": false,
+    "preview_and_selector_archived": false,
+    "reader_verified_entries": 32,
+    "regular_files": 65
+  },
+  "branch": "v5/module-isolation-20261008",
+  "candidate_status_from_reconstructed_head": [
+    " M V5/contracts/a_preselection_source_manifest.json",
+    " M V5/src/v5_shadow/a_preselection.py",
+    " M V5/tests/test_a_preselection.py",
+    "?? V5/docs/",
+    "?? V5/src/v5_shadow/__pycache__/",
+    "?? V5/vendor/a_preselection_baseline/contracts/research.py",
+    "?? V5/vendor/a_preselection_baseline/contracts/research_day_product.py",
+    "?? V5/vendor/a_preselection_baseline/domains/_preselection_materializer_parts/hourly_pool.py",
+    "?? V5/vendor/a_preselection_baseline/domains/research_day_product.py",
+    "?? V5/vendor/a_preselection_baseline/infrastructure/_research_store_parts/",
+    "?? V5/vendor/a_preselection_baseline/infrastructure/research_store.py"
+  ],
+  "external_actions": {
+    "commit": false,
+    "deployment": false,
+    "push": false
+  },
+  "local_head_is_remote_base": false,
+  "local_reconstructed_head": "c8ef453b2bf7f7c083e06fe2bf3bdb0c7da304c9",
+  "remote_base_commit": "02dbca5353a22c2e9ca55c1250b2cf9279800949",
+  "remote_base_tree": "d3d92e0a959d4534a603d55fa0b8058cc6ef2e6d",
+  "repository": "lexi2016/v4",
+  "source_capsule": {
+    "all_entry_sha256_and_size_match": true,
+    "canonical_identity_sha256": "d0fddbcaa1d5eb22f50edd5d651976b8bc2643122bc951b31733448dea8e23e4",
+    "entries": 40,
+    "frozen_hourly_pool_sha256": "d4f808dab2639b02c08cf2619057cad4454f72b1e9b95703805360c7f8f56dad",
+    "frozen_research_store_sha256": "4460d35b5d22b2f80bac7699f532d033fd514b57ddebc33bff6242d14e6f9dcc",
+    "raw_descriptor_sha256": "f9b9ebc9fd6a6b08c81f31399c187026aa2cf7259c521a6a02e3c1e82d7f6dee"
+  },
+  "source_file_sha256_before_after": {
+    "after": {
+      "V5/contracts/a_preselection_source_manifest.json": {
+        "bytes": 16025,
+        "sha256": "f9b9ebc9fd6a6b08c81f31399c187026aa2cf7259c521a6a02e3c1e82d7f6dee"
+      },
+      "V5/docs/A_PRESELECTION.md": {
+        "bytes": 4422,
+        "sha256": "71408fc4f2c41ea64aa39b4329e3b855be0be0ecc77dd309abc5af90c3ade6b2"
+      },
+      "V5/src/v5_shadow/a_preselection.py": {
+        "bytes": 28549,
+        "sha256": "ab023e461aa816064347d5619e07276d635f24db5d7aacf693034d2903a72472"
+      },
+      "V5/tests/test_a_preselection.py": {
+        "bytes": 58079,
+        "sha256": "f1f3fb47fa7e683da403fc8f7d2ac5830cb50777b0536ea6a4ea2e48b10cfdb6"
+      }
+    },
+    "before": {
+      "V5/contracts/a_preselection_source_manifest.json": {
+        "git_blob_sha1": "eaa56acf70cc235f84d68bf2afe261bd24327268",
+        "sha256": "cadf8b1d7e26ccc89e8f244fda856a8d897d24cb846c96086498634b83e5ba8c",
+        "source": "reconstructed-base bytes; Git blob SHA matches fixed source-tree.json"
+      },
+      "V5/docs/A_PRESELECTION.md": {
+        "git_blob_sha1": "82c8ef5ad9bbf418ab3dc8bb2bdd1f4171bd1ec3",
+        "sha256": "9c06c876d81708f4a070fd7f8020056b4c252d952434f21b03cc39039d4a6020",
+        "source": "GitHub fetch_blob at pinned recursive tree blob; content hash verified"
+      },
+      "V5/src/v5_shadow/a_preselection.py": {
+        "git_blob_sha1": "79e2b6a1b74645d771a3f17b5b4dcac8d47aa305",
+        "sha256": "b59be8d5f205ad056c8fb6d118a384d4c3755427d3fcb6d420ae97c7de9718f3",
+        "source": "reconstructed-base bytes; Git blob SHA matches fixed source-tree.json"
+      },
+      "V5/tests/test_a_preselection.py": {
+        "git_blob_sha1": "5565ad240188271740a189ef4dc0ef44cae6a9b5",
+        "sha256": "88df9c9539f4af6480cbfca998b64e4cf193cc8cfd3cc64545ceb13f44288b71",
+        "source": "reconstructed-base bytes; Git blob SHA matches fixed source-tree.json"
+      }
+    }
+  },
+  "source_tree_entries": 2665,
+  "source_tree_truncated": false,
+  "status": "READY_FOR_REVIEW",
+  "verification": {
+    "evidence_sha256": {
+      "M05_FINAL_FULL_PINNED.log": "82e7fda63c81af64a2df5f9277b6691167ed8f611811de24a1a087169f8cbada",
+      "M05_FULL_PRE_FIX_FAIL.log": "273545261a2cb43bb9b327966ceb38215c48f1763029b0adb326251c81c06b5c",
+      "M05_REAL_OWNER_DIFF.json": "375246498f138e8231b8daba7e83212a9f09372072b498b81795a37b7ae0667e",
+      "M05_REAL_OWNER_DIFF_FINAL.log": "3f55d81ad265d4b604d6822a05e3c8712858bb3adeb4388500b5ebd75e630272",
+      "M05_WRONG_DATE_TARGETED.log": "5f2bcbb0ba8481aaf456ff68ba9e899586fa961abf1bf35b2bc2fa0da1efbaa7",
+      "M05_SCHEMA_ISOLATION_RED.log": "b89eb001b40eb9b62def5c3cd9c63418b66a04ed786b10cc63ce72c9c2ad22f5",
+      "M05_SCHEMA_ISOLATION_POST_FIX.log": "6e45d8c7772f9956974eb7fd25affabbfa9f4423d300addce8d4babd295922da",
+      "M05_RESEARCH_JSON_ROOT_RED.log": "0f22584e7332f58bb828a379e7aad6e15041b94c443a2d90df1b74232bbcee5c",
+      "M05_RESEARCH_JSON_SHAPES_GREEN.log": "ec5135dba39acc393faa7ce18c582e37bfeb4f1c5c29be29d4534cc1978039b1"
+    },
+    "full_suite_command": "PYTHONPATH=/Users/lexi/Documents/Codex/2026-10-10/task-4/candidate/V5/src /Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python3 -B -m unittest discover -s /Users/lexi/Documents/Codex/2026-10-10/task-4/candidate/V5/tests -p test_a_preselection.py",
+    "full_suite_exit_code": 0,
+    "full_suite_log": "evidence/M05_FINAL_FULL_PINNED.log",
+    "full_suite_result": "29 tests passed",
+    "pre_fix_failure_retained": "evidence/M05_FULL_PRE_FIX_FAIL.log",
+    "real_owner_diff_log": "evidence/M05_REAL_OWNER_DIFF_FINAL.log",
+    "real_owner_diff_report": "evidence/M05_REAL_OWNER_DIFF.json",
+    "wrong_date_test": "test_misfiled_hourly_archive_date_is_refused_without_preview_fallback",
+    "wrong_date_test_log": "evidence/M05_WRONG_DATE_TARGETED.log",
+    "wrong_date_test_uses_valid_sha_bound_preview_pair": true,
+    "schema_isolation_test": "test_sha_bound_schema_invalid_hourly_isolated_from_five_healthy_lanes",
+    "schema_red_log": "evidence/M05_SCHEMA_ISOLATION_RED.log",
+    "schema_green_log": "evidence/M05_SCHEMA_ISOLATION_POST_FIX.log",
+    "input_shape_test": "test_sha_bound_hourly_json_root_shapes_isolated_from_five_healthy_lanes",
+    "input_shape_cases": [
+      "JSON list root with payload digest, manifest digest, and hand-built receipt bound to the same bytes",
+      "JSON int root with payload digest, manifest digest, and hand-built receipt bound to the same bytes",
+      "articles object instead of required list",
+      "stock_pool object instead of required list",
+      "article mapping with invalid fields",
+      "source_counts list instead of mapping",
+      "dedupe_key_fields integer exercising the frozen validator non-iterable TypeError"
+    ],
+    "input_shape_red_log": "evidence/M05_RESEARCH_JSON_ROOT_RED.log",
+    "input_shape_green_log": "evidence/M05_RESEARCH_JSON_SHAPES_GREEN.log",
+    "input_shape_result": "all malformed research inputs isolated; five healthy lanes accepted; status PARTIAL; row_count=5",
+    "preview_pair_direct_owner_result": "RAW_SOURCE; one row; preview owner not called on hourly input refusal",
+    "validator_error_allowlist_audit": "all literal ValueErrors in the fixed research validator surface are covered; dynamic messages use finite enumerated fields; unknown ValueError/TypeError, WorkerBoundaryViolation, and arbitrary exceptions remain fatal"
+  }
+}
