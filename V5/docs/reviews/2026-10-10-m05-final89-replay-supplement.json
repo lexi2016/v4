@@ -1,0 +1,243 @@
+{
+  "bounded_real_input_discovery": {
+    "exact_reference_check": "The archive root manifest, state/data root manifest, and four manifests in task-3 inputs were checked for an exact research_preview.json, selector.json, or .parquet source reference; none pointed to another location. The task-3 manifest selector_version entry is not a file pointer.",
+    "finding": "No qualifying existing preview+selector pair was locatable in these three roots. This is not a whole-machine absence claim.",
+    "matching_named_files_by_root": {
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/inputs-20261008": [],
+      "/Users/lexi/Documents/Codex/2026-10-08/task/V5-archive-input-20261009T065822Z": [],
+      "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data": [
+        {
+          "bytes": 91,
+          "filesystem_mtime_utc": "2026-08-08T14:38:51+00:00",
+          "kind": "preview_json",
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/.daily_tmp/research_preview.json",
+          "sha256": "2558dabc0bb4ace0cc502fe506cd5aa092bbad687541f8db60bd827427ff70d9"
+        }
+      ]
+    },
+    "owner_contract": "build_research_preview_pool(preview_path, selector_path, trade_date) reads the JSON preview and a Parquet selector with ts_code/name/trade_date; source SHA is SHA256(preview_file_SHA + selector_file_SHA). The function itself requires no separate manifest/receipt.",
+    "parquet_regular_file_count_by_root": {
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/inputs-20261008": 0,
+      "/Users/lexi/Documents/Codex/2026-10-08/task/V5-archive-input-20261009T065822Z": 0,
+      "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data": 0
+    },
+    "resulting_limit": "No real preview fallback diff was run; the two fresh recorded replays were accepted by the hourly owner path with preview and selector declared None.",
+    "roots_checked": [
+      "/Users/lexi/Documents/Codex/2026-10-08/task/V5-archive-input-20261009T065822Z",
+      "/Users/lexi/Documents/Codex/2026-10-05/task-3/inputs-20261008",
+      "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data"
+    ],
+    "unpaired_existing_preview": {
+      "bytes": 91,
+      "captured_or_generated_time_provenance_present": false,
+      "eligible_selector_pair_in_scanned_roots": false,
+      "filesystem_mtime_utc": "2026-08-08T14:38:51+00:00",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/.daily_tmp/research_preview.json",
+      "raw_row_data_written": false,
+      "sha256": "2558dabc0bb4ace0cc502fe506cd5aa092bbad687541f8db60bd827427ff70d9",
+      "top_level_keys": [
+        "high_priority_candidates",
+        "research_views_pending_review",
+        "source_updates"
+      ],
+      "top_level_time_or_date_fields": {}
+    }
+  },
+  "evidence_files": {
+    "bounded_input_discovery": {
+      "path": "review/final89/M05_FINAL89_INPUT_DISCOVERY.json",
+      "sha256": "c9534529a77a63e002b1a8f9db40989ea4e3109b412ea1e4fed48efab3b7fcec"
+    },
+    "discovery_script": {
+      "path": "review/final89/m05_final89_input_discovery.py",
+      "sha256": "187b08bdc4e7d23228d433f9485b23682f0d3f8d34959104b1643023e4aa0b05"
+    },
+    "input_inventory": {
+      "path": "review/final89/input-inventory.json",
+      "sha256": "5b59486419d5554e7bb02838b0de0e48613a21c35f213accaf54e3b2ee404a97"
+    },
+    "replay_report": {
+      "path": "review/final89/M05_FINAL89_REPLAY.json",
+      "sha256": "70024af895e504266d4ec188225a82508fd5bc41f41b466754a64be1e4377347"
+    },
+    "replay_script": {
+      "path": "review/final89/m05_final89_replay.py",
+      "sha256": "77836a36f99aa3ee0d2ba1162103a1a923ff9714403d9905f41b8be016aa30cb"
+    },
+    "validated_pair_provenance": {
+      "path": "review/final89/M05_FINAL89_INPUT_PROVENANCE.json",
+      "sha256": "2ff5c62939688d1107c70b15ef0991b90bdcc0be5ce13fa9a37a0ac1f4bd36ab"
+    }
+  },
+  "historical_monday_window": {
+    "calendar_result_preserved": true,
+    "candidate_target": "20260928",
+    "extra_diff_run": false,
+    "owner_valid_slots_by_date": {
+      "20260924": [
+        "0830",
+        "0900",
+        "1000",
+        "1100",
+        "1200",
+        "1300",
+        "1400",
+        "1500",
+        "1700",
+        "1800",
+        "1900",
+        "2100",
+        "2300"
+      ],
+      "20260928": [
+        "0830",
+        "0900",
+        "1000",
+        "1100",
+        "1200",
+        "1300",
+        "1400",
+        "1500",
+        "1600",
+        "1800",
+        "2000",
+        "2100",
+        "2200",
+        "2300"
+      ]
+    },
+    "pit_eligible": false,
+    "signal_date": "20260924",
+    "target_date_slots_at_or_after_exclusive_end": [
+      "0900",
+      "1000",
+      "1100",
+      "1200",
+      "1300",
+      "1400",
+      "1500",
+      "1600",
+      "1800",
+      "2000",
+      "2100",
+      "2200",
+      "2300"
+    ],
+    "why_not_pit": "Owner enumerates all target-date slots, including those at/after the 09:00 exclusive end, and includes them in source SHA. The corresponding receipt time-field set is empty for these files; no as-of availability snapshot was found in the three checked roots. Filesystem mtime and source_generated_at do not establish availability time.",
+    "window_local_plus08": [
+      "2026-09-24T00:00:00+08:00",
+      "2026-09-28T09:00:00+08:00"
+    ]
+  },
+  "product_identity": {
+    "adapter_sha256": "ab023e461aa816064347d5619e07276d635f24db5d7aacf693034d2903a72472",
+    "branch": "v5/module-isolation-20261008",
+    "candidate_source_identity": "49/49 files match published Git blobs per controller evidence; actual adapter and manifest rechecked during replay",
+    "identity_evidence_path": "evidence/M05_FINAL89_LOCAL_IDENTITY.json",
+    "identity_evidence_sha256": "75eaf95ec0067fc8c9aa4d7925a577e535f2f82ad7ca197488c50829fb747676",
+    "pinned_owner_hourly_pool_sha256": "d4f808dab2639b02c08cf2619057cad4454f72b1e9b95703805360c7f8f56dad",
+    "pinned_owner_research_store_sha256": "4460d35b5d22b2f80bac7699f532d033fd514b57ddebc33bff6242d14e6f9dcc",
+    "published_commit": "89ea56f0ce7c0270df9228d6d50b7e57d4ce5176",
+    "published_tree": "d10db657f8fb3f0b9b1966507f8e55b3a73b20c7",
+    "repository": "lexi2016/v4",
+    "source_manifest_sha256": "f9b9ebc9fd6a6b08c81f31399c187026aa2cf7259c521a6a02e3c1e82d7f6dee"
+  },
+  "receipt_type": "M05_FINAL89_INDEPENDENT_REVIEW_SUPPLEMENT",
+  "replay": {
+    "archive_root": "/Users/lexi/Documents/Codex/2026-10-08/task/V5-archive-input-20261009T065822Z/research-data",
+    "command": "/Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python3 -B /Users/lexi/Documents/Codex/2026-10-10/task-4/review/final89/m05_final89_replay.py",
+    "exit_code": 0,
+    "input_regular_files": 65,
+    "interpreter": {
+      "executable": "/Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python3",
+      "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+      "version": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]"
+    },
+    "inventory_sha256_after": "4aacbd14687a312671a01a5cc39f53ed2c3b59551232474ebe7d8695eee2d71c",
+    "inventory_sha256_before": "4aacbd14687a312671a01a5cc39f53ed2c3b59551232474ebe7d8695eee2d71c",
+    "inventory_unchanged": true,
+    "natural_verified": false,
+    "owner_and_v5_source_sha_equal": true,
+    "payload_receipt_pairs": 32,
+    "point_in_time_verified": false,
+    "results": [
+      {
+        "artifact_sha256": "0a7f3a0103209d3166135d546c0f5261df124084a080c1ed32d32e703b0845b2",
+        "cannot_confirm_count": 82,
+        "cannot_confirm_reason_sha256": "be4dc89a6429cd2274d989256dc712decf92335bd68ac27a8617e4446ccf2187",
+        "ordered_identity_ids_sha256": "24fd1bfe42cb256ad31d4ba8e81c7081da3e6603642e7d0da4b1d484a6256728",
+        "ordered_rows_sha256": "28d58150b25e47ce55f146ffd2b2ac8592ee33f34011d22a7f823bd8eeec6eb7",
+        "ordered_scores_counts_sha256": "0ed1954b6d26b02cdfcb4851c9b5848af1a32faba7a4f2b449b601eb827d009e",
+        "owner_call_utc": [
+          "2026-10-10T07:15:06.634091+00:00",
+          "2026-10-10T07:15:06.728313+00:00"
+        ],
+        "owner_status": "RESEARCH_RECOMMENDATION_POOL_READY",
+        "owner_window_local_plus08": [
+          "2026-10-08T08:30:00+08:00",
+          "2026-10-09T08:30:00+08:00"
+        ],
+        "rows_owner_v5": [
+          211,
+          211
+        ],
+        "scope_note": "Recorded hourly archive replay; source SHA covers the owner-enumerated input slots including post-cutoff source bytes; not PIT/natural verification.",
+        "signal_date": "20261008",
+        "source_path_equal": true,
+        "source_sha256": "bd2da8a8729c82d9d0c6f510c190d2960b154c8b8eb1f6a4d912a622de8c7bae",
+        "source_sha256_equal": true,
+        "target_date": "20261009",
+        "target_weekday": "Friday",
+        "v5_call_utc": [
+          "2026-10-10T07:15:06.728321+00:00",
+          "2026-10-10T07:15:07.187424+00:00"
+        ],
+        "v5_lane_accepted": true,
+        "v5_status": "RESEARCH_RECOMMENDATION_POOL_READY",
+        "whole_artifact_equal": true
+      },
+      {
+        "artifact_sha256": "588cf0ac73f23c29bf0628372dabfe7a4f8cce4f2fa0aa02beefbc218c58c916",
+        "cannot_confirm_count": 50,
+        "cannot_confirm_reason_sha256": "8c2605d3063ff25fe4b707ed1acdb18afe17e1a4761cf2a65e03f8813cbde6a1",
+        "ordered_identity_ids_sha256": "67532633cf8eff907b403a113253f1d046af94e45f2d9d26ac293e359bd660e7",
+        "ordered_rows_sha256": "65afe222bc0058f0e0d6d833cf78919f77bef57861bf070cc8e243ece026e6ba",
+        "ordered_scores_counts_sha256": "3c01a52fe442f54c02f0f679737ce4c81d2b98ba14fa8fb3f78e06c64871490a",
+        "owner_call_utc": [
+          "2026-10-10T07:15:07.191795+00:00",
+          "2026-10-10T07:15:07.229548+00:00"
+        ],
+        "owner_status": "RESEARCH_RECOMMENDATION_POOL_READY",
+        "owner_window_local_plus08": [
+          "2026-10-09T00:00:00+08:00",
+          "2026-10-12T09:00:00+08:00"
+        ],
+        "rows_owner_v5": [
+          152,
+          152
+        ],
+        "scope_note": "Friday-only archive replay; the Monday 20261012 window is incomplete because no Monday 20261012 source existed at replay time; not PIT/natural verification.",
+        "signal_date": "20261009",
+        "source_path_equal": true,
+        "source_sha256": "c391fcdd213b183b6f3e04d82b4d9955b1831d5d1c82b3a58ef760499b1dd78c",
+        "source_sha256_equal": true,
+        "target_date": "20261012",
+        "target_weekday": "Monday",
+        "v5_call_utc": [
+          "2026-10-10T07:15:07.229558+00:00",
+          "2026-10-10T07:15:07.578605+00:00"
+        ],
+        "v5_lane_accepted": true,
+        "v5_status": "RESEARCH_RECOMMENDATION_POOL_READY",
+        "whole_artifact_equal": true
+      }
+    ],
+    "run_elapsed_seconds": 0.944514,
+    "run_finished_utc": "2026-10-10T07:15:07.578605+00:00",
+    "run_started_utc": "2026-10-10T07:15:06.634091+00:00",
+    "source_kind": "RECORDED_INPUT_REPLAY",
+    "symlinks": 0
+  },
+  "review_status": "REVIEWED_DIRECT_OWNER_V5_RECORDED_REPLAY_EXACT; INPUT_AVAILABILITY_LIMITED",
+  "scope": "Independent review evidence only. No product/test edit, source download, V4 publication, service/pool/BUY/M04/M15/61796 operation, or raw row data included."
+}
