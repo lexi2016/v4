@@ -1,0 +1,87 @@
+{
+  "fixture_root": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+  "data_kind": "INVENTED_OFFLINE_ACTUAL_ROUTER_RESPONSES",
+  "export_environment": "TASK1_BACKEND_FIXTURE_ROOT",
+  "git_payload": false,
+  "fixtures": [
+    {
+      "name": "consumed_availability_rejected.json",
+      "sha256": "6c432975a9e0ecc41a9c2c69dfab15751b5e33c038a62b071a46665541e5c2a2",
+      "plan_status": "STALE_INPUTS_CHANGED",
+      "consumed": false,
+      "diagnostic_status": "CHANGED",
+      "changed_components": [
+        "material_source:bb4fbd0f04baab3d30a4a2fd9e06b04c4c2264b20f3e6504d0c111847cbf4254",
+        "outer.research_attention",
+        "outer.workspace_projection",
+        "projection.discovered_cards",
+        "projection.materials"
+      ],
+      "provenance_change_count": 1,
+      "reason_codes": []
+    },
+    {
+      "name": "consumed_content_changed.json",
+      "sha256": "df421361e0b0944cab552e297f60f84029a3f278a938742c879b6090581ee3b0",
+      "plan_status": "STALE_INPUTS_CHANGED",
+      "consumed": false,
+      "diagnostic_status": "CHANGED",
+      "changed_components": [
+        "material_source:566c0669f402815548a330af6c2aca9b967344a92bd4905679f8b9b2d4ab38d0",
+        "outer.research_attention",
+        "outer.workspace_projection",
+        "projection.discovered_cards",
+        "projection.materials"
+      ],
+      "provenance_change_count": 1,
+      "reason_codes": []
+    },
+    {
+      "name": "date_bindings_changed.json",
+      "sha256": "7861043cd67a0eda13bcea73f54095e0b15cf178303008963232c0731dcddf81",
+      "plan_status": "STALE_INPUTS_CHANGED",
+      "consumed": false,
+      "diagnostic_status": "CHANGED",
+      "changed_components": [
+        "date_bindings",
+        "outer.workspace_projection",
+        "projection.market_screen",
+        "projection.plan_context"
+      ],
+      "provenance_change_count": 0,
+      "reason_codes": []
+    },
+    {
+      "name": "legacy_missing_components.json",
+      "sha256": "56fb64009b184288f9fd03332803189bd3dab103cb9e25afa602e9cb4c507e53",
+      "plan_status": "STALE_INPUTS_CHANGED",
+      "consumed": false,
+      "diagnostic_status": "CANNOT_CONFIRM",
+      "changed_components": [],
+      "provenance_change_count": 0,
+      "reason_codes": [
+        "SAVED_COMPONENT_METADATA_MISSING"
+      ]
+    },
+    {
+      "name": "manifest_only_match.json",
+      "sha256": "6b158e87bfa285645fe63fea7599f80c16fc05c90cf600feefa148e91b145b09",
+      "plan_status": "CURRENT",
+      "consumed": true,
+      "diagnostic_status": "MATCH",
+      "changed_components": [],
+      "provenance_change_count": 1,
+      "reason_codes": []
+    },
+    {
+      "name": "materialized_catalyst_manifest_only_match.json",
+      "sha256": "0a0fcbdfa6b6b20f4c46553bba30775ccebea6fcc3c1cc484ccb94917fe4f03e",
+      "plan_status": "CURRENT",
+      "consumed": true,
+      "diagnostic_status": "MATCH",
+      "changed_components": [],
+      "provenance_change_count": 1,
+      "reason_codes": []
+    }
+  ]
+}

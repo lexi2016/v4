@@ -1,0 +1,223 @@
+{
+  "logs": [
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-build.log",
+      "sha256": "93e2ce4c36d7ddabc3e4ad9496d5559237102a48b0dd20c9e6061099f2ef72af",
+      "bytes": 781,
+      "head": [
+        "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.",
+        "",
+        "> v3-5-web@0.1.0 build",
+        "> vite build",
+        "",
+        "vite v7.3.6 building client environment for production..."
+      ],
+      "tail": [
+        "    at getRollupError (file:///workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/rollup/dist/es/shared/parseAst.js:317:41)",
+        "    at error (file:///workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/rollup/dist/es/shared/parseAst.js:313:42)",
+        "    at ModuleLoader.loadEntryModule (file:///workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/rollup/dist/es/shared/node-entry.js:21951:20)",
+        "    at async Promise.all (index 1)"
+      ],
+      "complete_log_in_package": true,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    },
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-introduced-originals.log",
+      "sha256": "0545602011eab7ab99a129b7ded72cc1030f73053eef69f067d27f06a7ba1480",
+      "bytes": 842,
+      "head": [
+        "============================= test session starts ==============================",
+        "platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+        "rootdir: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+        "configfile: pyproject.toml",
+        "plugins: anyio-4.14.2",
+        "collecting ... collected 2 items"
+      ],
+      "tail": [
+        "tests/test_manager_history_control_r1.py::test_projection_memo_capacity_bytes_ttl_and_exceptions PASSED [100%]",
+        "",
+        "- generated xml file: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-introduced-originals.xml -",
+        "============================== 2 passed in 0.30s ==============================="
+      ],
+      "complete_log_in_package": true,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    },
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-npm-test.log",
+      "sha256": "d708ef09b37c19b7ed0db6eb90c64a69e9db03a564838b8274e64c9add845b57",
+      "bytes": 189760,
+      "head": [
+        "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.",
+        "",
+        "> v3-5-web@0.1.0 test",
+        "> vitest run --config /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/vitest.integration.config.mjs --reporter=default --reporter=json --outputFile.json=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-vitest.json",
+        "",
+        ""
+      ],
+      "tail": [
+        "   Start at  10:31:31",
+        "   Duration  62.76s (transform 2.88s, setup 0ms, import 4.27s, tests 28.92s, environment 20.36s)",
+        "",
+        "JSON report written to /workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-vitest.json"
+      ],
+      "complete_log_in_package": false,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    },
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-pytest.log",
+      "sha256": "d5ce327f6a5a4daf6bcfbdac6c6a0da73de7db0896e18e88251defba90888865",
+      "bytes": 1096679,
+      "head": [
+        "============================= test session starts ==============================",
+        "platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0",
+        "rootdir: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+        "configfile: pyproject.toml",
+        "testpaths: tests",
+        "plugins: anyio-4.14.2"
+      ],
+      "tail": [
+        "ERROR tests/test_manager_r3_hk_continuation.py::test_actual_hk_entry_original_owner_roundtrip_and_final_gate[False]",
+        "ERROR tests/test_manager_r3_hk_continuation.py::test_actual_hk_entry_original_owner_roundtrip_and_final_gate[True]",
+        "ERROR tests/test_manager_r3_hk_continuation.py::test_actual_hk02_missing_supplement_owner_remains_unavailable",
+        "= 302 failed, 1241 passed, 20 skipped, 1 warning, 33 errors in 84.26s (0:01:24) ="
+      ],
+      "complete_log_in_package": false,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    },
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-typecheck.log",
+      "sha256": "8a52b88a732399811d28902d5284bb6ab3adbed223233ee0a57f2b18a1323266",
+      "bytes": 458,
+      "head": [
+        "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.",
+        "",
+        "> v3-5-web@0.1.0 typecheck",
+        "> vue-tsc --noEmit",
+        "",
+        "src/App.vue(6,26): error TS2307: Cannot find module './views/ResearchView.vue' or its corresponding type declarations."
+      ],
+      "tail": [
+        "",
+        "src/App.vue(6,26): error TS2307: Cannot find module './views/ResearchView.vue' or its corresponding type declarations.",
+        "src/views/ManagerSelectionView.spec.ts(4,1): error TS2578: Unused '@ts-expect-error' directive.",
+        "src/views/ManagerSelectionView.spec.ts(6,1): error TS2578: Unused '@ts-expect-error' directive."
+      ],
+      "complete_log_in_package": true,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    },
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-build.log",
+      "sha256": "400a99abd6fd2c17afd227c4e40557d35d3b12ee465fe02d95f992d9742a3551",
+      "bytes": 782,
+      "head": [
+        "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.",
+        "",
+        "> v3-5-web@0.1.0 build",
+        "> vite build",
+        "",
+        "vite v7.3.6 building client environment for production..."
+      ],
+      "tail": [
+        "    at getRollupError (file:///workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/rollup/dist/es/shared/parseAst.js:317:41)",
+        "    at error (file:///workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/rollup/dist/es/shared/parseAst.js:313:42)",
+        "    at ModuleLoader.loadEntryModule (file:///workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/rollup/dist/es/shared/node-entry.js:21951:20)",
+        "    at async Promise.all (index 1)"
+      ],
+      "complete_log_in_package": true,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    },
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-focused-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "head": [],
+      "tail": [],
+      "complete_log_in_package": false,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    },
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-introduced-originals.log",
+      "sha256": "8b2dc024dc18588d157a0f18b1ebce327f2fd5f2e305453d3d0e9c087c2113ef",
+      "bytes": 1966,
+      "head": [
+        "============================= test session starts ==============================",
+        "platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+        "rootdir: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+        "configfile: pyproject.toml",
+        "plugins: anyio-4.14.2",
+        "collecting ... collected 2 items"
+      ],
+      "tail": [
+        "- generated xml file: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-introduced-originals.xml -",
+        "=========================== short test summary info ============================",
+        "FAILED tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history - ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED",
+        "========================= 1 failed, 1 passed in 0.43s =========================="
+      ],
+      "complete_log_in_package": true,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    },
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-npm-test.log",
+      "sha256": "dae6016a4545a073b99f78d808cff407fe1a6ea456d40211cc8de707b9175f98",
+      "bytes": 66472,
+      "head": [
+        "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.",
+        "",
+        "> v3-5-web@0.1.0 test",
+        "> vitest run --config /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/vitest.integration.config.mjs --reporter=default --reporter=json --outputFile.json=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-vitest.json",
+        "",
+        ""
+      ],
+      "tail": [
+        "   Start at  10:31:31",
+        "   Duration  51.69s (transform 2.88s, setup 0ms, import 4.28s, tests 19.56s, environment 18.62s)",
+        "",
+        "JSON report written to /workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-vitest.json"
+      ],
+      "complete_log_in_package": false,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    },
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-pytest.log",
+      "sha256": "9460c91eb10c8c4356bcfaf82e54274fdcd176b8c28a21a1f10b3cf4c0494027",
+      "bytes": 1080980,
+      "head": [
+        "============================= test session starts ==============================",
+        "platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0",
+        "rootdir: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+        "configfile: pyproject.toml",
+        "testpaths: tests",
+        "plugins: anyio-4.14.2"
+      ],
+      "tail": [
+        "ERROR tests/test_manager_r3_hk_continuation.py::test_actual_hk_entry_original_owner_roundtrip_and_final_gate[False]",
+        "ERROR tests/test_manager_r3_hk_continuation.py::test_actual_hk_entry_original_owner_roundtrip_and_final_gate[True]",
+        "ERROR tests/test_manager_r3_hk_continuation.py::test_actual_hk02_missing_supplement_owner_remains_unavailable",
+        "= 288 failed, 1255 passed, 20 skipped, 1 warning, 33 errors in 85.29s (0:01:25) ="
+      ],
+      "complete_log_in_package": false,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    },
+    {
+      "actual_log": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-typecheck.log",
+      "sha256": "8a52b88a732399811d28902d5284bb6ab3adbed223233ee0a57f2b18a1323266",
+      "bytes": 458,
+      "head": [
+        "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.",
+        "",
+        "> v3-5-web@0.1.0 typecheck",
+        "> vue-tsc --noEmit",
+        "",
+        "src/App.vue(6,26): error TS2307: Cannot find module './views/ResearchView.vue' or its corresponding type declarations."
+      ],
+      "tail": [
+        "",
+        "src/App.vue(6,26): error TS2307: Cannot find module './views/ResearchView.vue' or its corresponding type declarations.",
+        "src/views/ManagerSelectionView.spec.ts(4,1): error TS2578: Unused '@ts-expect-error' directive.",
+        "src/views/ManagerSelectionView.spec.ts(6,1): error TS2578: Unused '@ts-expect-error' directive."
+      ],
+      "complete_log_in_package": true,
+      "note": "Full large output stays local; named failures are retained in final-validation.json."
+    }
+  ]
+}

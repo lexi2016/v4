@@ -1,0 +1,52 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/apps/web
+
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts (12 tests | 3 failed) 603ms
+     × shows the first changed source with saved/current SHA while keeping the complete component list expandable 49ms
+     × labels manifest-only diagnostics as provenance and does not promote them to a stale reason 59ms
+     × keeps unavailable identity-difference evidence explicitly CANNOT_CONFIRM and supports older DTOs 48ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts > current fused manager panel repair through validated HTTP mount > shows the first changed source with saved/current SHA while keeping the complete component list expandable
+AssertionError: the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts:142:37
+    140|     };
+    141|     const host = await mount(raw), diagnostic = host.querySelector('[d…
+    142|     expect(diagnostic?.textContent).toContain('CHANGED');
+       |                                     ^
+    143|     const visible = diagnostic?.querySelector('[data-first-identity-ch…
+    144|     expect(visible?.textContent).toContain('synthetic-consumed-source'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts > current fused manager panel repair through validated HTTP mount > labels manifest-only diagnostics as provenance and does not promote them to a stale reason
+AssertionError: the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts:161:37
+    159|     };
+    160|     const host = await mount(raw), diagnostic = host.querySelector('[d…
+    161|     expect(diagnostic?.textContent).toContain('MATCH'); expect(diagnos…
+       |                                     ^
+    162|     expect(diagnostic?.textContent).toContain('不作为陈旧原因'); expect(diagn…
+    163|     const provenance = diagnostic?.querySelector('details[data-identit…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts > current fused manager panel repair through validated HTTP mount > keeps unavailable identity-difference evidence explicitly CANNOT_CONFIRM and supports older DTOs
+AssertionError: the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts:175:37
+    173|     };
+    174|     const host = await mount(raw), diagnostic = host.querySelector('[d…
+    175|     expect(diagnostic?.textContent).toContain('CANNOT_CONFIRM'); expec…
+       |                                     ^
+    176|     expect(diagnostic?.textContent).toContain('不能定位'); expect(diagnost…
+    177|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 9 passed (12)
+   Start at  10:03:18
+   Duration  1.70s (transform 290ms, setup 0ms, import 490ms, tests 603ms, environment 453ms)
+

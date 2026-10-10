@@ -1,0 +1,14 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> v3-5-web@0.1.0 build
+> vite build
+
+vite v7.3.6 building client environment for production...
+✓ 0 modules transformed.
+✗ Build failed in 53ms
+error during build:
+Could not resolve entry module "daily-research-command/index.html".
+    at getRollupError (file:///workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/rollup/dist/es/shared/parseAst.js:317:41)
+    at error (file:///workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/rollup/dist/es/shared/parseAst.js:313:42)
+    at ModuleLoader.loadEntryModule (file:///workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/rollup/dist/es/shared/node-entry.js:21951:20)
+    at async Promise.all (index 1)

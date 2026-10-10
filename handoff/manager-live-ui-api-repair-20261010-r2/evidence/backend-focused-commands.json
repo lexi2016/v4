@@ -1,0 +1,326 @@
+[
+  {
+    "label": "task-1-red-final-v3",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/tests/test_manager_semantic_identity_20261010.py",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-red-final-v3-tmp"
+    ],
+    "exit_status": 1,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-red-final-v3.log"
+  },
+  {
+    "label": "task-1-green-final-v3",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "TASK1_BACKEND_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_semantic_identity_20261010.py",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-green-final-v3-tmp"
+    ],
+    "exit_status": 0,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-green-final-v3.log"
+  },
+  {
+    "label": "task-1-regressions-baseline",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_workspace_targeted_r2.py",
+      "tests/test_manager_plan_identity_r2.py",
+      "tests/test_manager_plan_readback_issue24.py",
+      "tests/test_manager_workspace_owner_20261008.py",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-regressions-baseline-tmp"
+    ],
+    "exit_status": 1,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-regressions-baseline.log"
+  },
+  {
+    "label": "task-1-regressions-final-v3",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_workspace_targeted_r2.py",
+      "tests/test_manager_plan_identity_r2.py",
+      "tests/test_manager_plan_readback_issue24.py",
+      "tests/test_manager_workspace_owner_20261008.py",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-regressions-final-v3-tmp"
+    ],
+    "exit_status": 1,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-regressions-final-v3.log"
+  },
+  {
+    "label": "task-1-metadata-shape-red",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_semantic_identity_20261010.py",
+      "-k",
+      "source_extra_field or provenance_shape",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-metadata-shape-red-tmp"
+    ],
+    "exit_status": 1,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-metadata-shape-red.log"
+  },
+  {
+    "label": "task-1-legacy-diagnostic-red",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_semantic_identity_20261010.py",
+      "-k",
+      "both_legacy",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-legacy-diagnostic-red-tmp"
+    ],
+    "exit_status": 1,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-legacy-diagnostic-red.log"
+  },
+  {
+    "label": "task-1-catalyst-red",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_semantic_identity_20261010.py",
+      "-k",
+      "materialized_archive_catalyst or archive_projection_boundary",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-catalyst-red-tmp"
+    ],
+    "exit_status": 1,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-catalyst-red.log",
+    "qualification": "Initial RED includes one test-only wrong native asset-root path; corrected before production edit. Use catalyst-red-valid for clean RED."
+  },
+  {
+    "label": "task-1-catalyst-red-valid",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_semantic_identity_20261010.py",
+      "-k",
+      "materialized_archive_catalyst or archive_projection_boundary",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-catalyst-red-valid-tmp"
+    ],
+    "exit_status": 1,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-catalyst-red-valid.log",
+    "archive_catalyst_source_sha256": "968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71",
+    "test_sha256": "bf16a6d5e94cc2d70e92735a6e69da998afc960569bda6d908c3712d4237ae42"
+  },
+  {
+    "label": "task-1-catalyst-green",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_semantic_identity_20261010.py",
+      "-k",
+      "materialized_archive_catalyst or archive_projection_boundary",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-catalyst-green-tmp"
+    ],
+    "exit_status": 0,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-catalyst-green.log"
+  },
+  {
+    "label": "task-1-red-final-v4",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/tests/test_manager_semantic_identity_20261010.py",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-red-final-v4-tmp"
+    ],
+    "exit_status": 1,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-red-final-v4.log"
+  },
+  {
+    "label": "task-1-green-final-v4",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "TASK1_BACKEND_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_semantic_identity_20261010.py",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-green-final-v4-tmp"
+    ],
+    "exit_status": 0,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-green-final-v4.log"
+  },
+  {
+    "label": "task-1-independent-catalyst-green",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/test_independent_catalyst_registry_only.py",
+      "-vv",
+      "--tb=short",
+      "-s",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-independent-catalyst-green-tmp"
+    ],
+    "exit_status": 0,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-independent-catalyst-green.log"
+  },
+  {
+    "label": "task-1-regressions-final-v4",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app"
+    },
+    "command": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_workspace_targeted_r2.py",
+      "tests/test_manager_plan_identity_r2.py",
+      "tests/test_manager_plan_readback_issue24.py",
+      "tests/test_manager_workspace_owner_20261008.py",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-regressions-final-v4-tmp"
+    ],
+    "exit_status": 1,
+    "stdout_stderr": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/task-1-regressions-final-v4.log"
+  }
+]

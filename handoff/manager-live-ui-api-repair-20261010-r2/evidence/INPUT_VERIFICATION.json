@@ -1,0 +1,30 @@
+{
+  "input_zip": "/workspace/scratch/0e089a11ee60/upload/V4_MANAGER_LIVE_UI_API_PROBLEM_20261010.zip",
+  "sha256": "c8e8f42a108d144ab2a8182c516b7c0173f55cde8566d3d630709151303b5da4",
+  "bytes": 1037157,
+  "members": 85,
+  "crc": "PASS",
+  "all_member_bytes_equal_extracted_package": "PASS",
+  "commands": [
+    {
+      "command": [
+        "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+        "-B",
+        "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/input/package/tools/verify_package.py"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/input/package",
+      "exit_code": 0,
+      "output": "SOURCE_SNAPSHOT_MANIFEST.json=PASS (57 files)\nEVIDENCE_MANIFEST=PASS (19 files)\nPACKAGE_FILES=85\nZIP_CONSISTENCY=NOT_AVAILABLE (no sibling ZIP; package file manifest verified)\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+        "-B",
+        "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/input/package/tests/check_evidence_contract.py"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/input/package",
+      "exit_code": 0,
+      "output": "REAL_EVIDENCE_CONTRACT=PASS; no live owner/API/UI behavior was exercised\n"
+    }
+  ]
+}

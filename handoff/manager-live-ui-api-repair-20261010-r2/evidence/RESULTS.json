@@ -1,0 +1,160 @@
+{
+  "schema": "v4.manager_live_ui_api_repair_results.v1",
+  "artifact_revision": "20261010_R2",
+  "candidate": "PROPOSAL_ONLY",
+  "fixed_baseline_commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+  "stage_status": {
+    "source_candidate": "IMPLEMENTED_FROZEN_9_FILES",
+    "independent_backend_review": "PASS_SCOPED_P2_RESOLVED",
+    "independent_frontend_review": "APPROVE_SCOPED_P3_LABEL_RESOLVED",
+    "independent_whole_change_review": "APPROVE_SCOPED",
+    "offline_isolated_manager_router_service_and_child_panel": "PASS_SCOPED_6_ACTUAL_SYNTHETIC_DTOS",
+    "complete_project_backend_tests": "FAIL",
+    "complete_project_frontend_tests": "FAIL",
+    "complete_parent_manager_view": "FAIL_5_CASES",
+    "complete_project_typecheck": "FAIL",
+    "complete_release_build": "FAIL",
+    "deployment": "NOT_RUN",
+    "live_api_ui": "NOT_RUN",
+    "natural_session": "NOT_RUN",
+    "python_3_14_or_newer": "NOT_RUN",
+    "declared_python_floor": "NOT_MET",
+    "historical_live_unique_changed_component": "CANNOT_CONFIRM",
+    "historical_auto_view_provenance_invariance": "NOT_PROVEN",
+    "extra_archive_file_deployed_preimage": "CANNOT_CONFIRM_MAC_SHA_REQUIRED",
+    "browser_loaded_bundle_sha": "CANNOT_CONFIRM"
+  },
+  "test_results": {
+    "backend_new": {
+      "baseline": {
+        "pass": 40,
+        "fail": 16
+      },
+      "candidate": {
+        "pass": 56,
+        "fail": 0
+      }
+    },
+    "frontend_new": {
+      "baseline": {
+        "pass": 10,
+        "fail": 34
+      },
+      "candidate": {
+        "pass": 44,
+        "fail": 0
+      },
+      "groups": {
+        "identity_diagnostic": 23,
+        "synthetic_actual_panel_mount": 15,
+        "actual_backend_dto_validator_panel": 6
+      }
+    },
+    "original_issue8r2_guard_tests": {
+      "baseline": {
+        "pass": 76,
+        "fail": 0
+      },
+      "candidate": {
+        "pass": 76,
+        "fail": 0
+      },
+      "assertions_or_fixtures_changed": false
+    },
+    "backend_full": {
+      "baseline": {
+        "pass": 1241,
+        "fail": 302,
+        "skip": 20,
+        "error": 33
+      },
+      "candidate": {
+        "pass": 1255,
+        "fail": 288,
+        "skip": 20,
+        "error": 33
+      }
+    },
+    "frontend_full": {
+      "baseline": {
+        "pass": 332,
+        "fail": 60,
+        "skip": 1,
+        "suite_load_errors": 4
+      },
+      "candidate": {
+        "pass": 372,
+        "fail": 20,
+        "skip": 1,
+        "suite_load_errors": 4
+      }
+    },
+    "strict_changed_typescript": "PASS",
+    "old_related_backend_modules": {
+      "baseline": {
+        "pass": 100,
+        "fail": 16
+      },
+      "candidate": {
+        "pass": 100,
+        "fail": 16
+      }
+    },
+    "independent_materialized_catalyst_original_probe": {
+      "before_correction": {
+        "fail": 1
+      },
+      "after_correction": {
+        "pass": 1
+      }
+    },
+    "independent_actual_bound_late_input": {
+      "baseline": {
+        "pass": 1
+      },
+      "candidate": {
+        "pass": 1
+      },
+      "old_preopen_plan_bytes_preserved": true
+    }
+  },
+  "retained_original_test_delta": {
+    "backend_candidate_only_full_run_failures": [
+      {
+        "id": "tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history",
+        "classification": "LEGACY_FIXTURE_NEW_COMPONENT_METADATA_CONTRACT_CONFLICT",
+        "single_rerun": "BASELINE_PASS_CANDIDATE_FAIL",
+        "independent_actual_bound_source_control": "PASS_BOTH"
+      },
+      {
+        "id": "tests/test_manager_history_control_r1.py::test_projection_memo_capacity_bytes_ttl_and_exceptions",
+        "classification": "OBSERVED_TIMING_SENSITIVE_15MS_TTL",
+        "single_rerun": "PASS_BOTH",
+        "full_run_failure_preserved": true
+      }
+    ],
+    "frontend_original_resolved": 7,
+    "frontend_original_shared_failures": 19,
+    "frontend_candidate_only_original_failure": "catalystObservationPanel.runtime.spec.ts: reuses the validated refresh response instead of issuing a second same-date GET",
+    "frontend_candidate_only_original_classification": "OLD_POST_REUSE_EXPECTATION_VS_SELECTED_CANONICAL_GET",
+    "changed_old_tests": false
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "stage_or_vibe_changes": false,
+    "owner_data_capture_import_or_backfill": false
+  },
+  "source_truth": "SOURCE_MANIFEST.json",
+  "detailed_validation": "final-validation.json",
+  "independent_review": "final-whole-change-review.md",
+  "git_target": {
+    "repository": "lexi2016/v4",
+    "branch": "chat/manager-live-ui-api-repair-20261010-r2",
+    "scope": "APPEND_ONLY_NEW_HANDOFF_AND_ZIP",
+    "preserved_parallel_r1_commit": "8c8e35d9d53431c9082dec49f4976e363c275765",
+    "merge_deploy_or_ref_update_to_existing_branch": false
+  }
+}

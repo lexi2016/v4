@@ -1,0 +1,86 @@
+{
+  "status": "PASS",
+  "scope": "PACKAGE_AND_ISOLATED_SOURCE_BYTES_ONLY",
+  "production_patch_file_count": 9,
+  "patch_applies_to_exact_before_and_reproduces_all_after_bytes": true,
+  "dangling_new_helper_path_rejected": true,
+  "checker_sha256": "b590d9cd015eaa7419ff838c3d3aebd359856d6a0c0e9e530d03e39cdbf567b2",
+  "patch_sha256": "d078eb55dd07d07456df71740f8f5cf434defd33586acfb124704cff6de4b111",
+  "manifest_state": "PRE_FINAL_REVIEW_PACKAGING; final manifest checked again after remaining report additions",
+  "commands": [
+    {
+      "label": "valid-package-before",
+      "argv": [
+        "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+        "-B",
+        "/workspace/scratch/0e089a11ee60/v4/handoff/manager-live-ui-api-repair-20261010-r1/tools/verify_handoff.py",
+        "--target-root",
+        "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/handoff-byte-verification/app",
+        "--target-state",
+        "before"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/v4/handoff/manager-live-ui-api-repair-20261010-r1",
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS_BYTE_VERIFICATION\",\n  \"package_file_count\": 72,\n  \"production_file_count\": 9,\n  \"target_root\": \"/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/handoff-byte-verification/app\",\n  \"target_state\": \"before\",\n  \"target_results\": [\n    {\n      \"path\": \"v4/manager_research/workspace_projection.py\",\n      \"expected_sha256\": \"027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200\",\n      \"actual_sha256\": \"027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200\",\n      \"match\": true\n    },\n    {\n      \"path\": \"v4/manager_research/workspace.py\",\n      \"expected_sha256\": \"7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0\",\n      \"actual_sha256\": \"7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0\",\n      \"match\": true\n    },\n    {\n      \"path\": \"v4/manager_research/workspace_identity.py\",\n      \"expected_sha256\": null,\n      \"actual_sha256\": null,\n      \"match\": true\n    },\n    {\n      \"path\": \"v4/manager_research/archive_catalyst_inputs.py\",\n      \"expected_sha256\": \"968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71\",\n      \"actual_sha256\": \"968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/api/managerWorkspace.ts\",\n      \"expected_sha256\": \"2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f\",\n      \"actual_sha256\": \"2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/catalystObservationPanel.ts\",\n      \"expected_sha256\": \"6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355\",\n      \"actual_sha256\": \"6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/businessStatus.ts\",\n      \"expected_sha256\": \"36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90\",\n      \"actual_sha256\": \"36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/researchAttention.ts\",\n      \"expected_sha256\": \"3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698\",\n      \"actual_sha256\": \"3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/dailyChannels.ts\",\n      \"expected_sha256\": \"c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc\",\n      \"actual_sha256\": \"c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc\",\n      \"match\": true\n    }\n  ],\n  \"failures\": [],\n  \"writes\": 0,\n  \"deployment_api_ui_natural_acceptance\": \"NOT_RUN\",\n  \"note\": \"Source byte comparison only; the fixed-Git archive preimage still requires Mac owner verification.\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "label": "dangling-new-helper-is-not-absent",
+      "argv": [
+        "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+        "-B",
+        "/workspace/scratch/0e089a11ee60/v4/handoff/manager-live-ui-api-repair-20261010-r1/tools/verify_handoff.py",
+        "--target-root",
+        "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/handoff-byte-verification/app",
+        "--target-state",
+        "before"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/v4/handoff/manager-live-ui-api-repair-20261010-r1",
+      "exit_code": 1,
+      "stdout": "{\n  \"status\": \"FAIL\",\n  \"package_file_count\": 72,\n  \"production_file_count\": 9,\n  \"target_root\": \"/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/handoff-byte-verification/app\",\n  \"target_state\": \"before\",\n  \"target_results\": [\n    {\n      \"path\": \"v4/manager_research/workspace_projection.py\",\n      \"expected_sha256\": \"027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200\",\n      \"actual_sha256\": \"027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200\",\n      \"match\": true\n    },\n    {\n      \"path\": \"v4/manager_research/workspace.py\",\n      \"expected_sha256\": \"7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0\",\n      \"actual_sha256\": \"7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0\",\n      \"match\": true\n    },\n    {\n      \"path\": \"v4/manager_research/workspace_identity.py\",\n      \"expected_sha256\": null,\n      \"actual_sha256\": null,\n      \"match\": false\n    },\n    {\n      \"path\": \"v4/manager_research/archive_catalyst_inputs.py\",\n      \"expected_sha256\": \"968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71\",\n      \"actual_sha256\": \"968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/api/managerWorkspace.ts\",\n      \"expected_sha256\": \"2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f\",\n      \"actual_sha256\": \"2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/catalystObservationPanel.ts\",\n      \"expected_sha256\": \"6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355\",\n      \"actual_sha256\": \"6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/businessStatus.ts\",\n      \"expected_sha256\": \"36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90\",\n      \"actual_sha256\": \"36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/researchAttention.ts\",\n      \"expected_sha256\": \"3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698\",\n      \"actual_sha256\": \"3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/dailyChannels.ts\",\n      \"expected_sha256\": \"c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc\",\n      \"actual_sha256\": \"c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc\",\n      \"match\": true\n    }\n  ],\n  \"failures\": [\n    {\n      \"path\": \"v4/manager_research/workspace_identity.py\",\n      \"reason\": \"TARGET_SOURCE_MISMATCH\"\n    }\n  ],\n  \"writes\": 0,\n  \"deployment_api_ui_natural_acceptance\": \"NOT_RUN\",\n  \"note\": \"Source byte comparison only; the fixed-Git archive preimage still requires Mac owner verification.\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "label": "git-apply-check",
+      "argv": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/0e089a11ee60/v4/handoff/manager-live-ui-api-repair-20261010-r1/PATCH.diff"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/handoff-byte-verification/app",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "git-apply-isolated",
+      "argv": [
+        "git",
+        "apply",
+        "/workspace/scratch/0e089a11ee60/v4/handoff/manager-live-ui-api-repair-20261010-r1/PATCH.diff"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/handoff-byte-verification/app",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "valid-package-after",
+      "argv": [
+        "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+        "-B",
+        "/workspace/scratch/0e089a11ee60/v4/handoff/manager-live-ui-api-repair-20261010-r1/tools/verify_handoff.py",
+        "--target-root",
+        "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/handoff-byte-verification/app",
+        "--target-state",
+        "after"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/v4/handoff/manager-live-ui-api-repair-20261010-r1",
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS_BYTE_VERIFICATION\",\n  \"package_file_count\": 72,\n  \"production_file_count\": 9,\n  \"target_root\": \"/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/handoff-byte-verification/app\",\n  \"target_state\": \"after\",\n  \"target_results\": [\n    {\n      \"path\": \"v4/manager_research/workspace_projection.py\",\n      \"expected_sha256\": \"54e98d1d46c24719906dfef0ae4fe9f11524d7e8cb02c66126877fb15bb54f4c\",\n      \"actual_sha256\": \"54e98d1d46c24719906dfef0ae4fe9f11524d7e8cb02c66126877fb15bb54f4c\",\n      \"match\": true\n    },\n    {\n      \"path\": \"v4/manager_research/workspace.py\",\n      \"expected_sha256\": \"9a01a023f9c4244ba13a0d23c3f0f36e9e6e90db9d88073e3a4bf94bb7b8fa67\",\n      \"actual_sha256\": \"9a01a023f9c4244ba13a0d23c3f0f36e9e6e90db9d88073e3a4bf94bb7b8fa67\",\n      \"match\": true\n    },\n    {\n      \"path\": \"v4/manager_research/workspace_identity.py\",\n      \"expected_sha256\": \"bc4e516b98e518190dfa76277598cefc3da7b096610eebd5d3d32d2536acd0c6\",\n      \"actual_sha256\": \"bc4e516b98e518190dfa76277598cefc3da7b096610eebd5d3d32d2536acd0c6\",\n      \"match\": true\n    },\n    {\n      \"path\": \"v4/manager_research/archive_catalyst_inputs.py\",\n      \"expected_sha256\": \"3a16ba2b996156ff923ce601d247c98778a546bae874850e1603ea7fcb8c5ae3\",\n      \"actual_sha256\": \"3a16ba2b996156ff923ce601d247c98778a546bae874850e1603ea7fcb8c5ae3\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/api/managerWorkspace.ts\",\n      \"expected_sha256\": \"3dd4771366b5aa5e377024a94785c33159b89e396fde80f12f4a6a4cb4e7b7d5\",\n      \"actual_sha256\": \"3dd4771366b5aa5e377024a94785c33159b89e396fde80f12f4a6a4cb4e7b7d5\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/catalystObservationPanel.ts\",\n      \"expected_sha256\": \"dc01e30151193e4e22966ba1621770b7e9c907b215acbd987da3244c7ba7011a\",\n      \"actual_sha256\": \"dc01e30151193e4e22966ba1621770b7e9c907b215acbd987da3244c7ba7011a\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/businessStatus.ts\",\n      \"expected_sha256\": \"f55b62da1af832386182752912f908bd387bc2b53f0351e56b7350267e83e9c0\",\n      \"actual_sha256\": \"f55b62da1af832386182752912f908bd387bc2b53f0351e56b7350267e83e9c0\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/researchAttention.ts\",\n      \"expected_sha256\": \"f250918be48647c0f3c1028e48ce4fa943922833797594dd67f95ebf08625baa\",\n      \"actual_sha256\": \"f250918be48647c0f3c1028e48ce4fa943922833797594dd67f95ebf08625baa\",\n      \"match\": true\n    },\n    {\n      \"path\": \"apps/web/src/manager-selection/dailyChannels.ts\",\n      \"expected_sha256\": \"b7ad877a63d688709a3bb47f832f84fbaf7856ebb4c3888aa19beae8c7da529c\",\n      \"actual_sha256\": \"b7ad877a63d688709a3bb47f832f84fbaf7856ebb4c3888aa19beae8c7da529c\",\n      \"match\": true\n    }\n  ],\n  \"failures\": [],\n  \"writes\": 0,\n  \"deployment_api_ui_natural_acceptance\": \"NOT_RUN\",\n  \"note\": \"Source byte comparison only; the fixed-Git archive preimage still requires Mac owner verification.\"\n}\n",
+      "stderr": ""
+    }
+  ],
+  "owner_service_or_business_state_touched": false
+}

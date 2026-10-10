@@ -1,0 +1,233 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/apps/web
+
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts (15 tests | 1 failed | 14 skipped) 1118ms
+     × does not admit a late bound response after the user cancels the active read 1117ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts > current fused manager panel repair through validated HTTP mount > does not admit a late bound response after the user cancels the active read
+AssertionError: expected 'READY' to be 'FAILED' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261009"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m独立于原Stage来源日期；URL用 plan_date 保存计划日，date 仍表示Stage来源日。[0m
+            [36m</small>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtitle[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m用既有材料生成计划[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261009 · 当日动态预览（非历史冻结计划） ｜ 材料截至 10-08 08:00 港时 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。[0m
+        [36m</p>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"业务闭环状态"[39m
+          [33mclass[39m=[32m"business-status"[39m
+        [36m>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"business-status-row"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划：冻结产物已陈旧[0m
+            [36m</strong>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mSTALE_INPUTS_CHANGED；执行类型或运行身份未匹配；读取 VERIFIED[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m下一步：在合法盘前冻结窗口由现有 Manager owner 物化；晚间不得补成盘前。[0m
+            [36m</p>[39m
+          [36m</article>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"business-status-row"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mHKEX独立公告观察：未读取[0m
+            [36m</strong>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m当前历史响应未提供 HKEX 公告 owner observation；不能解释为未运行或 0 条公告。[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m下一步：读取同一目标日期的 HKEX 官方 owner observation/receipt；缺字段不能推断未运行。[0m
+            [36m</p>[39m
+          [36m</article>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"business-status-row"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m美股输入评估／完整度：尚未评估[0m
+            [36m</strong>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m美股来源尚未读取；行业上涨 未知 个／个股上涨 未知 个；合格关系尚未计算[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m下一步：等待同一目标日期的完整美股时段快照与关系材料输入，再开始评估；缺失输入不代表合格关系为零。[0m
+            [36m</p>[39m
+          [36m</article>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"business-status-row"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m研究关注：CANNOT_CONFIRM[0m
+            [36m</strong>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m只读研究优先级；原screen/Stage/BUY不变。[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m下一步：继续核对证据时间、来源与缺口；不把分数当买入排名。[0m
+            [36m</p>[39m
+          [36m</article>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"business-status-row"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mStage：未运行[0m
+            [36m</strong>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mNOT_RUN；产物状态 未知；时段 未知；最近成功 未记录；最近尝试 未记录[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m下一步：按原owner补齐/复验该lane产物；历史缺件不得用当前输入回填。[0m
+            [36m</p>[39m
+          [36m</article>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"business-status-row"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m材料：未运行[0m
+            [36m</strong>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mNOT_RUN；最近成功 未记录；最近尝试 未记录[0m
+            [36m</p>[39m
+            [36m<p[39m
+              ...
+
+Expected: "FAILED"
+Received: "READY"
+
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts:153:119
+    151|     await fireEvent.click(cancel);
+    152|     resolveRead({ ok: true, status: 200, json: async () => fixture() }…
+    153|     await waitFor(() => expect(host.querySelector('.manager-catalyst-o…
+       |                                                                                                                       ^
+    154|     expect(host.querySelector('[data-daily-symbol]')).toBeNull(); expe…
+    155|   });
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../../../../../../work/web_runtime/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../../../../../../work/web_runtime/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../../../../../../work/web_runtime/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 14 skipped (15)
+   Start at  10:07:11
+   Duration  2.05s (transform 239ms, setup 0ms, import 394ms, tests 1.12s, environment 406ms)
+

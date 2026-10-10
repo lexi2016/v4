@@ -1,0 +1,34 @@
+[
+  {
+    "side": "baseline",
+    "command": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python -B -m pytest -p no:cacheprovider -q -s /workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/test_final_review_bound_late_input.py --basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/whole-review-baseline-late-input-tmp",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app"
+    },
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+    "exit_code": 0,
+    "started_utc": "2026-10-10T08:37:24.593710+00:00",
+    "finished_utc": "2026-10-10T08:37:25.297223+00:00",
+    "log": "review/whole-review-baseline-late-input.log",
+    "log_sha256": "da2b4c2a135d635dee628a780600b076d7004fc1594157e42e5c95f2ca491440",
+    "probe_sha256": "48588485b18da6237feed3f4f26f3695dcc782f606f7b32a13040b2971bf2566"
+  },
+  {
+    "side": "candidate",
+    "command": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python -B -m pytest -p no:cacheprovider -q -s /workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/test_final_review_bound_late_input.py --basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/whole-review-candidate-late-input-tmp",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app"
+    },
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "exit_code": 0,
+    "started_utc": "2026-10-10T08:37:25.297549+00:00",
+    "finished_utc": "2026-10-10T08:37:25.983928+00:00",
+    "log": "review/whole-review-candidate-late-input.log",
+    "log_sha256": "0f867caa494f657f7314b2c0bf0e099a8c81424146064ce2f2079697618a940c",
+    "probe_sha256": "48588485b18da6237feed3f4f26f3695dcc782f606f7b32a13040b2971bf2566"
+  }
+]

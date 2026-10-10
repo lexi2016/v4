@@ -1,0 +1,28 @@
+{
+  "status": "PASS_CONFIG_PARITY",
+  "effective": {
+    "root": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/apps/web",
+    "cacheDir": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/config-parity-cache",
+    "test": {
+      "environment": "jsdom",
+      "globals": false,
+      "maxWorkers": 1,
+      "minWorkers": 1,
+      "fileParallelism": false
+    },
+    "plugins": [
+      "vite:vue"
+    ]
+  },
+  "actual_config_sha256": "ec8d70b8e2a8cf6aabfa833f3a4c6a2bce302145c626992d983ae42fd70f5769",
+  "portable_config_sha256": "555bd75365c772e25049a53955341002cb2f81a9bdd397790cf5ddb40fba382d",
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "--input-type=module",
+    "-",
+    "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/vitest.integration.config.mjs",
+    "/workspace/scratch/0e089a11ee60/v4/handoff/manager-live-ui-api-repair-20261010-r1/tools/vitest.handoff.config.mjs"
+  ],
+  "stdin_script": "import assert from 'node:assert/strict';\nimport { pathToFileURL } from 'node:url';\nconst actual = (await import(pathToFileURL(process.argv[2]).href)).default;\nconst portable = (await import(pathToFileURL(process.argv[3]).href)).default;\nconst signature = x => ({root:x.root, cacheDir:x.cacheDir, test:x.test, plugins:x.plugins.map(p=>p.name)});\nassert.deepEqual(signature(actual), signature(portable));\nconsole.log(JSON.stringify({status:'PASS_CONFIG_PARITY',effective:signature(portable)}));\n",
+  "exit_code": 0
+}

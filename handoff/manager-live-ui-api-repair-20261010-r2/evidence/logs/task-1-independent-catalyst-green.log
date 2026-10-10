@@ -1,0 +1,16 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python
+rootdir: /workspace/scratch/0e089a11ee60/live_ui_api_20261010
+plugins: anyio-4.14.2
+collecting ... collected 1 item
+
+../../../review/test_independent_catalyst_registry_only.py::test_registry_only_update_with_materialized_catalyst_is_current {"after_consumed": true, "after_status": "CURRENT", "before_status": "CURRENT", "case": "registry_only_materialized_catalyst", "catalyst_gaps": [], "changed_component_ids": [], "get_side_effects": "NONE", "identity_changed": false, "payload_receipt_unchanged": true, "provenance_changes": 1}
+PASSED
+
+=============================== warnings summary ===============================
+review/test_independent_catalyst_registry_only.py::test_registry_only_update_with_materialized_catalyst_is_current
+  /workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 1 passed, 1 warning in 0.73s =========================

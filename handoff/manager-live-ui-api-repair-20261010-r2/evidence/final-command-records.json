@@ -1,0 +1,348 @@
+[
+  {
+    "name": "final-baseline-build",
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm",
+      "run",
+      "build"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-vite-cache /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm run build",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/apps/web",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:32:40.606488+00:00",
+    "end_utc": "2026-10-10T08:32:40.976359+00:00",
+    "duration_seconds": 0.37,
+    "exit_code": 1,
+    "log": "evidence/logs/final-baseline-build.log"
+  },
+  {
+    "name": "final-baseline-introduced-originals",
+    "argv": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history",
+      "tests/test_manager_history_control_r1.py::test_projection_memo_capacity_bytes_ttl_and_exceptions",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-introduced-originals-tmp",
+      "--junitxml=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-introduced-originals.xml"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-vite-cache /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python -B -m pytest tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history tests/test_manager_history_control_r1.py::test_projection_memo_capacity_bytes_ttl_and_exceptions -vv --tb=short -p no:cacheprovider --basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-introduced-originals-tmp --junitxml=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-introduced-originals.xml",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:34:00.186368+00:00",
+    "end_utc": "2026-10-10T08:34:00.853553+00:00",
+    "duration_seconds": 0.667,
+    "exit_code": 0,
+    "log": "evidence/logs/final-baseline-introduced-originals.log"
+  },
+  {
+    "name": "final-baseline-npm-test",
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm",
+      "test",
+      "--",
+      "--config",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/vitest.integration.config.mjs",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile.json=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-vitest.json"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-vite-cache /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm test -- --config /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/vitest.integration.config.mjs --reporter=default --reporter=json --outputFile.json=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-vitest.json",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/apps/web",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:31:31.054024+00:00",
+    "end_utc": "2026-10-10T08:32:34.473273+00:00",
+    "duration_seconds": 63.419,
+    "exit_code": 1,
+    "log": "evidence/logs/final-baseline-npm-test.log"
+  },
+  {
+    "name": "final-baseline-pytest",
+    "argv": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "--continue-on-collection-errors",
+      "--basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-pytest-tmp",
+      "--junitxml=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-pytest.xml"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-vite-cache /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python -B -m pytest -p no:cacheprovider --continue-on-collection-errors --basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-pytest-tmp --junitxml=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-pytest.xml",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:31:31.053105+00:00",
+    "end_utc": "2026-10-10T08:32:56.809918+00:00",
+    "duration_seconds": 85.757,
+    "exit_code": 1,
+    "log": "evidence/logs/final-baseline-pytest.log"
+  },
+  {
+    "name": "final-baseline-typecheck",
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm",
+      "run",
+      "typecheck"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-vite-cache /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm run typecheck",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/apps/web",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-baseline-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:32:34.473661+00:00",
+    "end_utc": "2026-10-10T08:32:40.606032+00:00",
+    "duration_seconds": 6.132,
+    "exit_code": 2,
+    "log": "evidence/logs/final-baseline-typecheck.log"
+  },
+  {
+    "name": "final-candidate-build",
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm",
+      "run",
+      "build"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm run build",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/apps/web",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:32:31.906943+00:00",
+    "end_utc": "2026-10-10T08:32:32.521904+00:00",
+    "duration_seconds": 0.615,
+    "exit_code": 1,
+    "log": "evidence/logs/final-candidate-build.log"
+  },
+  {
+    "name": "final-candidate-focused-tsc",
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--strict",
+      "--skipLibCheck",
+      "--target",
+      "ES2022",
+      "--module",
+      "ESNext",
+      "--moduleResolution",
+      "Bundler",
+      "--lib",
+      "ES2022,DOM,DOM.Iterable",
+      "--types",
+      "vitest/globals,node",
+      "src/api/managerWorkspace.ts",
+      "src/api/managerWorkspace.identityDiagnostic.spec.ts",
+      "src/manager-selection/catalystObservationPanel.ts",
+      "src/manager-selection/businessStatus.ts",
+      "src/manager-selection/researchAttention.ts",
+      "src/manager-selection/dailyChannels.ts",
+      "src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts",
+      "src/manager-selection/catalystObservationPanel.backendDto.runtime.spec.ts"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/typescript/bin/tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --lib ES2022,DOM,DOM.Iterable --types vitest/globals,node src/api/managerWorkspace.ts src/api/managerWorkspace.identityDiagnostic.spec.ts src/manager-selection/catalystObservationPanel.ts src/manager-selection/businessStatus.ts src/manager-selection/researchAttention.ts src/manager-selection/dailyChannels.ts src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts src/manager-selection/catalystObservationPanel.backendDto.runtime.spec.ts",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/apps/web",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:32:32.523169+00:00",
+    "end_utc": "2026-10-10T08:32:34.834459+00:00",
+    "duration_seconds": 2.311,
+    "exit_code": 0,
+    "log": "evidence/logs/final-candidate-focused-tsc.log"
+  },
+  {
+    "name": "final-candidate-introduced-originals",
+    "argv": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history",
+      "tests/test_manager_history_control_r1.py::test_projection_memo_capacity_bytes_ttl_and_exceptions",
+      "-vv",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-introduced-originals-tmp",
+      "--junitxml=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-introduced-originals.xml"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python -B -m pytest tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history tests/test_manager_history_control_r1.py::test_projection_memo_capacity_bytes_ttl_and_exceptions -vv --tb=short -p no:cacheprovider --basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-introduced-originals-tmp --junitxml=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-introduced-originals.xml",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:34:00.854262+00:00",
+    "end_utc": "2026-10-10T08:34:01.676244+00:00",
+    "duration_seconds": 0.822,
+    "exit_code": 1,
+    "log": "evidence/logs/final-candidate-introduced-originals.log"
+  },
+  {
+    "name": "final-candidate-npm-test",
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm",
+      "test",
+      "--",
+      "--config",
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/vitest.integration.config.mjs",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile.json=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-vitest.json"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm test -- --config /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/vitest.integration.config.mjs --reporter=default --reporter=json --outputFile.json=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-vitest.json",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/apps/web",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:31:31.054654+00:00",
+    "end_utc": "2026-10-10T08:32:23.370846+00:00",
+    "duration_seconds": 52.316,
+    "exit_code": 1,
+    "log": "evidence/logs/final-candidate-npm-test.log"
+  },
+  {
+    "name": "final-candidate-pytest",
+    "argv": [
+      "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "--continue-on-collection-errors",
+      "--basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-pytest-tmp",
+      "--junitxml=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-pytest.xml"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python -B -m pytest -p no:cacheprovider --continue-on-collection-errors --basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-pytest-tmp --junitxml=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-pytest.xml",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:31:31.053630+00:00",
+    "end_utc": "2026-10-10T08:32:57.797749+00:00",
+    "duration_seconds": 86.744,
+    "exit_code": 1,
+    "log": "evidence/logs/final-candidate-pytest.log"
+  },
+  {
+    "name": "final-candidate-typecheck",
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm",
+      "run",
+      "typecheck"
+    ],
+    "command": "PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app PLAN_AUDIT_APP_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python V4_BACKEND_UI_FIXTURE_ROOT=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm run typecheck",
+    "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/apps/web",
+    "environment": {
+      "PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin:/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/.bin:/root/.codex/tmp/arg0/codex-arg0B0vpyB:/opt/codex/codex-path:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/override:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/bin/fallback",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+      "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+      "V4_BACKEND_UI_FIXTURE_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/backend-ui-fixtures",
+      "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/final-candidate-vite-cache"
+    },
+    "cleared_inherited_task_env_names": [],
+    "start_utc": "2026-10-10T08:32:23.371292+00:00",
+    "end_utc": "2026-10-10T08:32:31.906201+00:00",
+    "duration_seconds": 8.535,
+    "exit_code": 2,
+    "log": "evidence/logs/final-candidate-typecheck.log"
+  }
+]

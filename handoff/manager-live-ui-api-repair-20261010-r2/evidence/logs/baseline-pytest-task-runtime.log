@@ -1,0 +1,118 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.14.2
+collected 1532 items / 8 errors
+
+==================================== ERRORS ====================================
+______________ ERROR collecting tests/test_close_review_slice.py _______________
+ImportError while importing test module '/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/tests/test_close_review_slice.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_close_review_slice.py:7: in <module>
+    from apps.api.v35_api.app import create_app
+apps/api/v35_api/app.py:39: in <module>
+    from stage_center.research_read_binding import ApprovedResearchReadBinding, ResearchReadError
+E   ModuleNotFoundError: No module named 'stage_center.research_read_binding'
+____________ ERROR collecting tests/test_hk_close_daily_binding.py _____________
+ImportError while importing test module '/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/tests/test_hk_close_daily_binding.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_hk_close_daily_binding.py:8: in <module>
+    from apps.api.v35_api.app import create_app
+apps/api/v35_api/app.py:39: in <module>
+    from stage_center.research_read_binding import ApprovedResearchReadBinding, ResearchReadError
+E   ModuleNotFoundError: No module named 'stage_center.research_read_binding'
+_________ ERROR collecting tests/test_hk_expected_missing_recovery.py __________
+ImportError while importing test module '/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/tests/test_hk_expected_missing_recovery.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_hk_expected_missing_recovery.py:12: in <module>
+    from apps.api.v35_api.app import create_app
+apps/api/v35_api/app.py:39: in <module>
+    from stage_center.research_read_binding import ApprovedResearchReadBinding, ResearchReadError
+E   ModuleNotFoundError: No module named 'stage_center.research_read_binding'
+__________ ERROR collecting tests/test_hk_prefix_panel_projection.py ___________
+ImportError while importing test module '/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/tests/test_hk_prefix_panel_projection.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_hk_prefix_panel_projection.py:11: in <module>
+    from apps.api.v35_api.review_router import (
+E   ImportError: cannot import name '_read_hk_prefix_research_asset' from 'apps.api.v35_api.review_router' (/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/apps/api/v35_api/review_router.py)
+____ ERROR collecting tests/test_manager_app_announcement_chain_20261009.py ____
+ImportError while importing test module '/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/tests/test_manager_app_announcement_chain_20261009.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_app_announcement_chain_20261009.py:16: in <module>
+    from apps.api.v35_api import app as app_module
+apps/api/v35_api/app.py:39: in <module>
+    from stage_center.research_read_binding import ApprovedResearchReadBinding, ResearchReadError
+E   ModuleNotFoundError: No module named 'stage_center.research_read_binding'
+_________ ERROR collecting tests/test_manager_catalyst_observations.py _________
+ImportError while importing test module '/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/tests/test_manager_catalyst_observations.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_catalyst_observations.py:8: in <module>
+    from apps.api.v35_api.app import create_app
+apps/api/v35_api/app.py:39: in <module>
+    from stage_center.research_read_binding import ApprovedResearchReadBinding, ResearchReadError
+E   ModuleNotFoundError: No module named 'stage_center.research_read_binding'
+__________ ERROR collecting tests/test_manager_materializer_rework.py __________
+ImportError while importing test module '/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/tests/test_manager_materializer_rework.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_materializer_rework.py:12: in <module>
+    from apps.api.v35_api.app import create_app
+apps/api/v35_api/app.py:39: in <module>
+    from stage_center.research_read_binding import ApprovedResearchReadBinding, ResearchReadError
+E   ModuleNotFoundError: No module named 'stage_center.research_read_binding'
+_________ ERROR collecting tests/test_manager_overlay_supersession.py __________
+ImportError while importing test module '/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/tests/test_manager_overlay_supersession.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_overlay_supersession.py:14: in <module>
+    from ops.build_manager_source_successor_proof import build_proof, canonical_bytes
+E   ModuleNotFoundError: No module named 'ops.build_manager_source_successor_proof'
+=============================== warnings summary ===============================
+../../../../four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/test_close_review_slice.py
+ERROR tests/test_hk_close_daily_binding.py
+ERROR tests/test_hk_expected_missing_recovery.py
+ERROR tests/test_hk_prefix_panel_projection.py
+ERROR tests/test_manager_app_announcement_chain_20261009.py
+ERROR tests/test_manager_catalyst_observations.py
+ERROR tests/test_manager_materializer_rework.py
+ERROR tests/test_manager_overlay_supersession.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 8 errors during collection !!!!!!!!!!!!!!!!!!!!
+========================= 1 warning, 8 errors in 5.68s =========================

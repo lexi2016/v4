@@ -1,0 +1,236 @@
+{
+  "time_utc": "2026-10-10T08:32:00.312722+00:00",
+  "python_executable": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python",
+  "python_real_path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12",
+  "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python_project_requires": ">=3.14",
+  "python_project_floor_status": "NOT_MET",
+  "uv_lock_sha256": "d203f9c5f381d0aef47f8bd74030683b9a6ba994e55a723d45a3d82fb8a460df",
+  "locked_dependencies": [
+    {
+      "name": "annotated-doc",
+      "locked": "0.0.5",
+      "installed": "0.0.5",
+      "match": true
+    },
+    {
+      "name": "annotated-types",
+      "locked": "0.8.0",
+      "installed": "0.8.0",
+      "match": true
+    },
+    {
+      "name": "anyio",
+      "locked": "4.14.2",
+      "installed": "4.14.2",
+      "match": true
+    },
+    {
+      "name": "certifi",
+      "locked": "2026.7.22",
+      "installed": "2026.7.22",
+      "match": true
+    },
+    {
+      "name": "charset-normalizer",
+      "locked": "3.5.1",
+      "installed": "3.5.1",
+      "match": true
+    },
+    {
+      "name": "click",
+      "locked": "8.4.2",
+      "installed": "8.4.2",
+      "match": true
+    },
+    {
+      "name": "colorama",
+      "locked": "0.4.6",
+      "installed": "0.4.6",
+      "match": true
+    },
+    {
+      "name": "fastapi",
+      "locked": "0.141.1",
+      "installed": "0.141.1",
+      "match": true
+    },
+    {
+      "name": "h11",
+      "locked": "0.16.0",
+      "installed": "0.16.0",
+      "match": true
+    },
+    {
+      "name": "httpcore",
+      "locked": "1.0.9",
+      "installed": "1.0.9",
+      "match": true
+    },
+    {
+      "name": "httpx",
+      "locked": "0.28.1",
+      "installed": "0.28.1",
+      "match": true
+    },
+    {
+      "name": "idna",
+      "locked": "3.19",
+      "installed": "3.19",
+      "match": true
+    },
+    {
+      "name": "iniconfig",
+      "locked": "2.3.0",
+      "installed": "2.3.0",
+      "match": true
+    },
+    {
+      "name": "numpy",
+      "locked": "2.5.3",
+      "installed": "2.5.3",
+      "match": true
+    },
+    {
+      "name": "packaging",
+      "locked": "26.3",
+      "installed": "26.3",
+      "match": true
+    },
+    {
+      "name": "pandas",
+      "locked": "3.0.6",
+      "installed": "3.0.6",
+      "match": true
+    },
+    {
+      "name": "pluggy",
+      "locked": "1.6.0",
+      "installed": "1.6.0",
+      "match": true
+    },
+    {
+      "name": "pyarrow",
+      "locked": "24.0.0",
+      "installed": "24.0.0",
+      "match": true
+    },
+    {
+      "name": "pydantic",
+      "locked": "2.13.4",
+      "installed": "2.13.4",
+      "match": true
+    },
+    {
+      "name": "pydantic-core",
+      "locked": "2.46.4",
+      "installed": "2.46.4",
+      "match": true
+    },
+    {
+      "name": "pygments",
+      "locked": "2.21.0",
+      "installed": "2.21.0",
+      "match": true
+    },
+    {
+      "name": "pytest",
+      "locked": "9.1.1",
+      "installed": "9.1.1",
+      "match": true
+    },
+    {
+      "name": "python-dateutil",
+      "locked": "2.9.0.post0",
+      "installed": "2.9.0.post0",
+      "match": true
+    },
+    {
+      "name": "requests",
+      "locked": "2.34.2",
+      "installed": "2.34.2",
+      "match": true
+    },
+    {
+      "name": "six",
+      "locked": "1.17.0",
+      "installed": "1.17.0",
+      "match": true
+    },
+    {
+      "name": "starlette",
+      "locked": "1.6.0",
+      "installed": "1.6.0",
+      "match": true
+    },
+    {
+      "name": "typing-extensions",
+      "locked": "4.16.0",
+      "installed": "4.16.0",
+      "match": true
+    },
+    {
+      "name": "typing-inspection",
+      "locked": "0.4.4",
+      "installed": "0.4.4",
+      "match": true
+    },
+    {
+      "name": "tzdata",
+      "locked": "2026.4",
+      "installed": "2026.4",
+      "match": true
+    },
+    {
+      "name": "urllib3",
+      "locked": "2.8.0",
+      "installed": "2.8.0",
+      "match": true
+    },
+    {
+      "name": "uvicorn",
+      "locked": "0.52.4",
+      "installed": "0.52.4",
+      "match": true
+    }
+  ],
+  "locked_match_count": 31,
+  "locked_dependency_count": 31,
+  "node_executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+  "node_version": "v24.19.0",
+  "npm_version": "11.9.0",
+  "frontend_packages": {
+    "@vitejs/plugin-vue": "6.0.8",
+    "@types/node": "24.13.3",
+    "@testing-library/vue": "8.1.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10",
+    "vite": "7.3.6",
+    "vue": "3.5.40",
+    "vue-tsc": "3.3.8",
+    "jsdom": "28.1.0"
+  },
+  "frontend_dependencies_root": "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules",
+  "vitest_config": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/vitest.integration.config.mjs",
+  "vitest_config_sha256": "ec8d70b8e2a8cf6aabfa833f3a4c6a2bce302145c626992d983ae42fd70f5769",
+  "live_identity": "OFFLINE_ISOLATED_CONTAINER; NOT_MAC; NOT_LIVE8873",
+  "canonical_source_not_accessed": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app",
+  "fixed_git_commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+  "deployed_release_context_not_container_identity": "stage_r4_manager_r2_owner_input_r1_fused_r1",
+  "lock_virtual_project": {
+    "name": "v3-5",
+    "version": "0.1.0",
+    "source": "virtual .",
+    "installed_distribution_required": false
+  },
+  "process_timezone": {
+    "TZ_environment": "Europe/Oslo",
+    "tzname": [
+      "CET",
+      "CEST"
+    ],
+    "current_local_utc_offset_seconds": 7200.0,
+    "execution_receipt_clock": "UTC; individual test logs show inherited local timezone"
+  }
+}

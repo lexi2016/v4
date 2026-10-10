@@ -1,0 +1,498 @@
+{
+  "schema_version": "v4.manager_live_ui_api_whole_change_review.v1",
+  "reviewed_at_utc": "2026-10-10T08:47:36.782456+00:00",
+  "reviewer": "independent final whole-change reviewer",
+  "verdict": "APPROVE_SCOPED",
+  "specification_verdict": "PASS_SCOPED",
+  "code_quality_verdict": "APPROVE_SCOPED",
+  "acceptance_scope": "TESTED_OFFLINE_CODE_PROPOSAL_ONLY",
+  "candidate_status": "PROPOSAL_ONLY",
+  "full_project_status": "FAIL_RETAINED",
+  "production_readiness": "NOT_ESTABLISHED",
+  "baseline_commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+  "baseline_tree": "21e0e3ae3cd9434ae95400b4ed2abbd0c16ff1bd",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "actual_test_root": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+  "baseline_test_root": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+  "patch_sha256": "d078eb55dd07d07456df71740f8f5cf434defd33586acfb124704cff6de4b111",
+  "source_manifest_sha256": "af84a5eb4093f1ad25657382b5ecf631f8261c7aee5b3c7c2ea3d9089c9b37b6",
+  "source_sha_verification": "PASS_ALL9_CANDIDATE_BASELINE_AND_HANDOFF_BYTES",
+  "paired_production_difference_count": 9,
+  "production_sources": [
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "before_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "after_sha256": "54e98d1d46c24719906dfef0ae4fe9f11524d7e8cb02c66126877fb15bb54f4c",
+      "preimage_evidence": {
+        "kind": "UPLOADED_PREVIOUS_REFERENCE_BYTES_MATCH_REPORTED_FUSED_SOURCE_SHA",
+        "input_bundle_path": "code/previous_reference/r1_20261007_announcement_consumer/v4/manager_research/workspace_projection.py",
+        "reported_sha_source": "evidence/root_cause_report_20261010.md",
+        "note": "Not one of the25 current_fused source files; exact bytes also match fixed Git."
+      }
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+      "after_sha256": "9a01a023f9c4244ba13a0d23c3f0f36e9e6e90db9d88073e3a4bf94bb7b8fa67",
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    },
+    {
+      "path": "v4/manager_research/workspace_identity.py",
+      "before_sha256": null,
+      "after_sha256": "bc4e516b98e518190dfa76277598cefc3da7b096610eebd5d3d32d2536acd0c6",
+      "preimage_evidence": {
+        "kind": "NEW"
+      }
+    },
+    {
+      "path": "v4/manager_research/archive_catalyst_inputs.py",
+      "before_sha256": "968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71",
+      "after_sha256": "3a16ba2b996156ff923ce601d247c98778a546bae874850e1603ea7fcb8c5ae3",
+      "preimage_evidence": {
+        "kind": "FIXED_GIT_PREIMAGE_ONLY",
+        "deployed_preimage": "CANNOT_CONFIRM_MAC_SHA_CHECK_REQUIRED",
+        "note": "Incremental independent review finding; this file is absent from the25 uploaded current_fused sources and its deployed SHA was not supplied."
+      }
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "before_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "after_sha256": "3dd4771366b5aa5e377024a94785c33159b89e396fde80f12f4a6a4cb4e7b7d5",
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "before_sha256": "6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355",
+      "after_sha256": "dc01e30151193e4e22966ba1621770b7e9c907b215acbd987da3244c7ba7011a",
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    },
+    {
+      "path": "apps/web/src/manager-selection/businessStatus.ts",
+      "before_sha256": "36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90",
+      "after_sha256": "f55b62da1af832386182752912f908bd387bc2b53f0351e56b7350267e83e9c0",
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "before_sha256": "3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698",
+      "after_sha256": "f250918be48647c0f3c1028e48ce4fa943922833797594dd67f95ebf08625baa",
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "before_sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "after_sha256": "b7ad877a63d688709a3bb47f832f84fbaf7856ebb4c3888aa19beae8c7da529c",
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    }
+  ],
+  "new_regression_sources": [
+    {
+      "path": "tests/test_manager_semantic_identity_20261010.py",
+      "package_path": "regression/tests/test_manager_semantic_identity_20261010.py",
+      "sha256": "bf16a6d5e94cc2d70e92735a6e69da998afc960569bda6d908c3712d4237ae42",
+      "bytes": 31713,
+      "original_baseline": "ABSENT; test-only copies added to paired baseline for final validation"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.identityDiagnostic.spec.ts",
+      "package_path": "regression/apps/web/src/api/managerWorkspace.identityDiagnostic.spec.ts",
+      "sha256": "323cd9aff13e09e5a7753e4f45bc29f61f12ec7509f662118f8b21d5a3e1f032",
+      "bytes": 6175,
+      "original_baseline": "ABSENT; test-only copies added to paired baseline for final validation"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts",
+      "package_path": "regression/apps/web/src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts",
+      "sha256": "05f31ebc81b41ea52dde12ef834e56fd71043ce159113e1bfef741a0f470275c",
+      "bytes": 16566,
+      "original_baseline": "ABSENT; test-only copies added to paired baseline for final validation"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.backendDto.runtime.spec.ts",
+      "package_path": "regression/apps/web/src/manager-selection/catalystObservationPanel.backendDto.runtime.spec.ts",
+      "sha256": "b08218ab27bde6628dc54d75889369543fd5e8a4ec429339c55de3943139d1f8",
+      "bytes": 4618,
+      "original_baseline": "ABSENT; test-only copies added to paired baseline for final validation"
+    }
+  ],
+  "open_production_findings": [],
+  "resolved_review_findings": [
+    {
+      "severity": "P3",
+      "scope": "HANDOFF_READ_ONLY_CHECKER_OUTSIDE_PRODUCTION_PATCH",
+      "path": "tools/verify_handoff.py",
+      "lines": [
+        61,
+        76
+      ],
+      "finding": "Expected-absent checks previously accepted a dangling symlink because Path.exists() is false for that entry.",
+      "reproduction": "Place a dangling symlink at the new workspace_identity.py path, pointing inside an isolated target root, then check --target-state before.",
+      "resolution": "Both expected-absent checks now count exists() or is_symlink(). Actual code was independently reread.",
+      "old_sha256": "5ad6457fdfeaa9202ced4f6728e18056fd51153ee69f79440855cd584f1a0643",
+      "fixed_sha256": "b590d9cd015eaa7419ff838c3d3aebd359856d6a0c0e9e530d03e39cdbf567b2",
+      "status": "RESOLVED_CODE_AND_ROOT_PROBE_EVIDENCE_INSPECTED",
+      "root_runtime_checker_probe": "PASS_EXPECTED_DANGLING_SYMLINK_REJECTION; ROOT_EXECUTED_RECEIPT_INSPECTED"
+    }
+  ],
+  "test_evidence": {
+    "execution_owner_of_full_runs": "separate final validation agent; raw results independently parsed by this reviewer",
+    "backend_full": {
+      "baseline": {
+        "failed": 302,
+        "passed": 1241,
+        "skipped": 20,
+        "errors": 33
+      },
+      "candidate": {
+        "failed": 288,
+        "passed": 1255,
+        "skipped": 20,
+        "errors": 33
+      },
+      "both_exit_code": 1,
+      "collection_errors_each": 8,
+      "setup_errors_each": 25
+    },
+    "backend_new56": {
+      "baseline": {
+        "failed": 16,
+        "passed": 40
+      },
+      "candidate": {
+        "failed": 0,
+        "passed": 56
+      }
+    },
+    "frontend_full": {
+      "baseline": {
+        "failed": 60,
+        "passed": 332,
+        "skipped": 1
+      },
+      "candidate": {
+        "failed": 20,
+        "passed": 372,
+        "skipped": 1
+      },
+      "common_load_failures": 4,
+      "both_exit_code": 1
+    },
+    "frontend_new44": {
+      "baseline": {
+        "failed": 34,
+        "passed": 10
+      },
+      "candidate": {
+        "failed": 0,
+        "passed": 44
+      },
+      "actual_router_dto_mount_cases": 6
+    },
+    "original_issue8r2_guards": {
+      "baseline_passed": 76,
+      "candidate_passed": 76,
+      "byte_identical": true,
+      "spec_sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873"
+    },
+    "whole_app_typecheck": {
+      "baseline_exit_code": 2,
+      "candidate_exit_code": 2,
+      "same_error_lines": 3
+    },
+    "whole_app_build": {
+      "baseline_exit_code": 1,
+      "candidate_exit_code": 1,
+      "common_error": "Could not resolve entry module daily-research-command/index.html"
+    },
+    "candidate_focused_strict_tsc": {
+      "exit_code": 0,
+      "status": "PASS_FOCUSED_ONLY"
+    },
+    "whole_parent_manager_integration": "5_FAIL_RETAINED",
+    "independent_bound_late_material_probe": {
+      "baseline_passed": 1,
+      "candidate_passed": 1,
+      "receipts": [
+        {
+          "side": "baseline",
+          "command": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python -B -m pytest -p no:cacheprovider -q -s /workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/test_final_review_bound_late_input.py --basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/whole-review-baseline-late-input-tmp",
+          "environment": {
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+            "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app"
+          },
+          "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+          "exit_code": 0,
+          "started_utc": "2026-10-10T08:37:24.593710+00:00",
+          "finished_utc": "2026-10-10T08:37:25.297223+00:00",
+          "log": "review/whole-review-baseline-late-input.log",
+          "log_sha256": "da2b4c2a135d635dee628a780600b076d7004fc1594157e42e5c95f2ca491440",
+          "probe_sha256": "48588485b18da6237feed3f4f26f3695dcc782f606f7b32a13040b2971bf2566"
+        },
+        {
+          "side": "candidate",
+          "command": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python -B -m pytest -p no:cacheprovider -q -s /workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/test_final_review_bound_late_input.py --basetemp=/workspace/scratch/0e089a11ee60/live_ui_api_20261010/review/whole-review-candidate-late-input-tmp",
+          "environment": {
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONPATH": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+            "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app"
+          },
+          "cwd": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+          "exit_code": 0,
+          "started_utc": "2026-10-10T08:37:25.297549+00:00",
+          "finished_utc": "2026-10-10T08:37:25.983928+00:00",
+          "log": "review/whole-review-candidate-late-input.log",
+          "log_sha256": "0f867caa494f657f7314b2c0bf0e099a8c81424146064ce2f2079697618a940c",
+          "probe_sha256": "48588485b18da6237feed3f4f26f3695dcc782f606f7b32a13040b2971bf2566"
+        }
+      ],
+      "scope": "One synthetic verified archive/material; original catch-up owner path; no identity/metadata monkeypatch; no live/nonempty-catalyst/PIT claim"
+    }
+  },
+  "original_failure_classification": [
+    {
+      "nodeid": "tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history",
+      "status": "FAIL_RETAINED",
+      "classification": "LEGACY_FIXTURE_NEW_METADATA_CONTRACT_CONFLICT",
+      "evidence": "Lines 367-370 rewrite only final input_identity. New metadata remains sealed to former identity; candidate rejects with WORKSPACE_PLAN_SAVE_READBACK_FAILED. Paired original rerun preserves failure; separate actual-bound-input control passes both."
+    },
+    {
+      "nodeid": "tests/test_manager_history_control_r1.py::test_projection_memo_capacity_bytes_ttl_and_exceptions",
+      "status": "FULL_RUN_FAIL_RETAINED_SEQUENTIAL_RERUN_PASS_BOTH",
+      "classification": "TIMING_SENSITIVE_OBSERVED_FAILURE",
+      "evidence": "15ms TTL, real sleep/clock; identical memo implementation; candidate full run entry expired to zero, sequential targeted run passes on both roots."
+    },
+    {
+      "nodeid": "src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > reuses the validated refresh response instead of issuing a second same-date GET",
+      "status": "FAIL_RETAINED",
+      "classification": "AUTHORIZED_POST_THEN_SELECTED_GET_CONTRACT_CONFLICT",
+      "evidence": "Old expectation requires POST preview reuse; new selected canonical GET behavior and dedicated mount control pass."
+    }
+  ],
+  "production_identity_write_scan": {
+    "method": "AST scan for input_identity subscript assignments and update calls plus caller/identity text search and surrounding-source inspection",
+    "roots": [
+      "v4",
+      "apps/api",
+      "ops",
+      "infrastructure",
+      "contracts",
+      "domains",
+      "runtime_layers",
+      "stage_center",
+      "upstreams"
+    ],
+    "parse_errors": 0,
+    "post_final_seal_workspace_identity_rewrite_found": false,
+    "extension_path": "connect_selection.py:216 -> workspace.py:914-916 reseal -> get_workspace date-bindings snapshot at workspace.py:528-530",
+    "other_writes": "Separate Stage research-job products/observations, per-channel identities, announcement attempts, daily mapping references and owner attempt records.",
+    "scope_limit": "Available fixed export and support only; unseen Mac code cannot be certified."
+  },
+  "limitations": {
+    "historical_live_changed_field": "CANNOT_CONFIRM",
+    "unique_live_cause": "CANNOT_CONFIRM",
+    "historical_auto_view_provenance_invariance": "NOT_PROVEN",
+    "materialized_catalyst_fixed_reader_test": "1_BOUND_ARTIFACT_0_CLOCK_ADMITTED_MATERIALS",
+    "explicit_clock_nonempty_card_test": "SYNTHETIC_READER_OUTPUT_PROJECTION_BOUNDARY_ONLY",
+    "archive_catalyst_deployed_preimage": "CANNOT_CONFIRM_MAC_SHA_CHECK_REQUIRED",
+    "full_create_app": "CANNOT_CONFIRM_MISSING_SOURCE_SUPPORT",
+    "python_project_floor": "NOT_MET_ACTUAL3.12.14_VS_REQUIRED3.14",
+    "mac_python314": "NOT_RUN",
+    "deployment": "NOT_RUN",
+    "live_api_ui": "LIVE_API_UI_NOT_RUN",
+    "browser_loaded_bundle_sha": "CANNOT_CONFIRM",
+    "natural_session": "NOT_RUN",
+    "source_data_authority_and_pit": "UNCHANGED_GAPS_NOT_CLOSED",
+    "git_sync": "ROOT_OWNED_NOT_REVIEWER_CERTIFIED"
+  },
+  "evidence": [
+    {
+      "root": "handoff",
+      "path": "SOURCE_MANIFEST.json",
+      "sha256": "af84a5eb4093f1ad25657382b5ecf631f8261c7aee5b3c7c2ea3d9089c9b37b6"
+    },
+    {
+      "root": "handoff",
+      "path": "PATCH.diff",
+      "sha256": "d078eb55dd07d07456df71740f8f5cf434defd33586acfb124704cff6de4b111"
+    },
+    {
+      "root": "handoff",
+      "path": "README.md",
+      "sha256": "85a1946b6cd944a56d4ce0241a2adbc1526c4b2fe6b33b4cc6d712f41dbc2c6e"
+    },
+    {
+      "root": "handoff",
+      "path": "REPRODUCE.md",
+      "sha256": "fa204e7f4c1596697357d3284baf698e1218988544520e2d2b5d23444574485b"
+    },
+    {
+      "root": "handoff",
+      "path": "tools/verify_handoff.py",
+      "sha256": "b590d9cd015eaa7419ff838c3d3aebd359856d6a0c0e9e530d03e39cdbf567b2"
+    },
+    {
+      "root": "handoff",
+      "path": "evidence/final-validation.md",
+      "sha256": "c73acf7b437ae1e77b2a480df580c06eb219143ede4779923d6a6132d41f565a"
+    },
+    {
+      "root": "handoff",
+      "path": "evidence/final-validation.json",
+      "sha256": "cb89e2c22ea9eff8c557d29f5ddc5d5cbfe008c2414a0547be5d8ed0a3953027"
+    },
+    {
+      "root": "task",
+      "path": "review/final-runtime.json",
+      "sha256": "0e464b6744c53de9790f9e2a58a8993e324e14f62edbc93e7d2e6218bb98f8e3"
+    },
+    {
+      "root": "task",
+      "path": "review/final-test-assembly.json",
+      "sha256": "2fd7e2df23378565f501747b55d7b761f7418331d11badd20711713fc09cf90e"
+    },
+    {
+      "root": "task",
+      "path": "review/final-command-records.json",
+      "sha256": "88d9e4c72214b2d2daab6abf3b64f15d1c10c70d9cee412fe63b77de694f1224"
+    },
+    {
+      "root": "task",
+      "path": "review/final-backend-fixtures.json",
+      "sha256": "6ad0463b5742a7ae893e1c0299b88dee296f74c8f3c36d6c665dbc1e85ee35f0"
+    },
+    {
+      "root": "task",
+      "path": "review/task-1-independent-review.md",
+      "sha256": "4aa6c2e48e7db7f858981b5fea966776102671fc0ba29e2d796e808add49e538"
+    },
+    {
+      "root": "task",
+      "path": "review/task-2-independent-review.md",
+      "sha256": "c94aa0c0da19465b0d958ef9dbef9090618bffd08721b4890586d9761b07a1e8"
+    },
+    {
+      "root": "task",
+      "path": "review/whole-review-bound-late-input.json",
+      "sha256": "551fc4cfdf4f3c618cd0add36428731240c2f126061b38d2ee403250934908d3"
+    },
+    {
+      "root": "task",
+      "path": "review/test_final_review_bound_late_input.py",
+      "sha256": "48588485b18da6237feed3f4f26f3695dcc782f606f7b32a13040b2971bf2566"
+    },
+    {
+      "root": "task",
+      "path": "review/whole-review-baseline-late-input.log",
+      "sha256": "da2b4c2a135d635dee628a780600b076d7004fc1594157e42e5c95f2ca491440"
+    },
+    {
+      "root": "task",
+      "path": "review/whole-review-candidate-late-input.log",
+      "sha256": "0f867caa494f657f7314b2c0bf0e099a8c81424146064ce2f2079697618a940c"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-baseline-pytest.xml",
+      "sha256": "4f3adfb82d2723429de5976a1eed72a5da7cc5ddb2b02369d9eeb0d672328239"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-candidate-pytest.xml",
+      "sha256": "9ab5345175e8e3b7737042a28940bda8b21e7b7635ab143a8ea35880d42dbc75"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-baseline-vitest.json",
+      "sha256": "dba0bd4c2f648329bd98c81c9d4e159e963c694433136596d1546e97dcdd9236"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-candidate-vitest.json",
+      "sha256": "8e8c46d2ad8f8b962776755fd45776adec7dbef34c252959eb5a79eb2713ca6d"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-baseline-typecheck.log",
+      "sha256": "8a52b88a732399811d28902d5284bb6ab3adbed223233ee0a57f2b18a1323266"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-candidate-typecheck.log",
+      "sha256": "8a52b88a732399811d28902d5284bb6ab3adbed223233ee0a57f2b18a1323266"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-baseline-build.log",
+      "sha256": "93e2ce4c36d7ddabc3e4ad9496d5559237102a48b0dd20c9e6061099f2ef72af"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-candidate-build.log",
+      "sha256": "400a99abd6fd2c17afd227c4e40557d35d3b12ee465fe02d95f992d9742a3551"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-candidate-focused-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-baseline-introduced-originals.log",
+      "sha256": "0545602011eab7ab99a129b7ded72cc1030f73053eef69f067d27f06a7ba1480"
+    },
+    {
+      "root": "task",
+      "path": "evidence/logs/final-candidate-introduced-originals.log",
+      "sha256": "8b2dc024dc18588d157a0f18b1ebce327f2fd5f2e305453d3d0e9c087c2113ef"
+    },
+    {
+      "root": "handoff",
+      "path": "evidence/package-tool-verification.json",
+      "sha256": "5cb2b4439f6fc8b9fbeae0d1c5177f7619f51c4e148c65cac29f53372fb620c9"
+    },
+    {
+      "root": "handoff",
+      "path": "evidence/config-parity.json",
+      "sha256": "2f3420301823ad8a63d484a0f7c20a7d38128a2f3f0e55b871036f507639bbe4"
+    }
+  ],
+  "reviewer_actions": {
+    "production_edits": 0,
+    "existing_test_edits": 0,
+    "git_operations": 0,
+    "network_calls": 0,
+    "live_owner_calls": 0,
+    "service_operations": 0,
+    "broad_test_reruns": 0,
+    "new_targeted_probe_runs": 2
+  },
+  "handoff_root": "/workspace/scratch/0e089a11ee60/v4/handoff/manager-live-ui-api-repair-20261010-r2",
+  "branch": "chat/manager-live-ui-api-repair-20261010-r2",
+  "parallel_r1_disposition": {
+    "status": "ROOT_REPORTED_PRESERVED_NOT_INTEGRATED",
+    "existing_commit": "8c8e35d9d53431c9082dec49f4976e363c275765",
+    "scope": "The independent R1 handoff candidate is outside this code review; this review continues to use fixed baseline c0fc35c7b39502f49e43c2e75139dad7822091cf. No reviewer Git verification or operation."
+  },
+  "package_tool_checks": {
+    "status": "ROOT_EXECUTED_RECEIPT_INDEPENDENTLY_INSPECTED_PASS",
+    "exact_before_paths": 9,
+    "exact_after_paths": 9,
+    "dangling_new_helper_rejected": true,
+    "patch_reproduces_all_after_bytes": true,
+    "portable_vue_config_parity": "PASS",
+    "command_path_note": "Existing R1 command paths are the actual pre-rename executions and are not rewritten. Final R2 package inventory/readback is separately root-owned."
+  }
+}

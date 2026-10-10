@@ -1,0 +1,211 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python
+rootdir: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collecting ... collected 56 items
+
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_unconsumed_manifest_entry_does_not_change_identity FAILED [  1%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_real_reader_rejects_changed_or_unverified_artifact[payload] PASSED [  3%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_real_reader_rejects_changed_or_unverified_artifact[receipt] PASSED [  5%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_real_reader_rejects_changed_or_unverified_artifact[manifest_entry] PASSED [  7%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_real_reader_rejects_changed_or_unverified_artifact[archive_date] PASSED [  8%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_content_changes_identity_or_is_rejected[source_title-\u661f\u6d77\u79d1\u6280\u4e1a\u52a1\u8bb0\u5f55\uff1a\u65b0\u589e\u7ea6\u675f-False] PASSED [ 10%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_content_changes_identity_or_is_rejected[available_at-2026-10-08T17:02:00+08:00-True] PASSED [ 12%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_content_changes_identity_or_is_rejected[market-A_SHARE-True] PASSED [ 14%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_content_changes_identity_or_is_rejected[manifest_sha256-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc-True] PASSED [ 16%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_projected_availability_change_remains_semantic PASSED [ 17%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_binding_changes_remain_semantic[payload_sha256-1111111111111111111111111111111111111111111111111111111111111111] PASSED [ 19%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_binding_changes_remain_semantic[receipt_sha256-2222222222222222222222222222222222222222222222222222222222222222] PASSED [ 21%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_binding_changes_remain_semantic[source_date-20261007] PASSED [ 23%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_binding_changes_remain_semantic[payload_path-research/archives/20261007.json] PASSED [ 25%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_binding_changes_remain_semantic[receipt_path-receipts/research/archives/20261007.json] PASSED [ 26%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_binding_changes_remain_semantic[source_root-/isolated/other-owner] PASSED [ 28%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_consumed_binding_changes_remain_semantic[mode-REPLAY] PASSED [ 30%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_same_named_manifest_field_inside_semantic_content_is_preserved[source_row] PASSED [ 32%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_same_named_manifest_field_inside_semantic_content_is_preserved[original_source_row] PASSED [ 33%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_same_named_manifest_field_inside_semantic_content_is_preserved[other_content] PASSED [ 35%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_unrecognized_source_reference_is_not_normalized PASSED [ 37%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_owner_saved_plan_stays_current_after_global_only_update FAILED [ 39%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_scheduled_plan_global_only_update_does_not_republish FAILED [ 41%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_true_stale_readback_locates_consumed_source_without_raw_payload[source_title-\u661f\u6d77\u79d1\u6280\u4e1a\u52a1\u8bb0\u5f55\uff1a\u65b0\u589e\u7ea6\u675f] FAILED [ 42%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_true_stale_readback_locates_consumed_source_without_raw_payload[available_at-2026-10-08T17:02:00+08:00] FAILED [ 44%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_legacy_plan_without_component_metadata_is_not_forced_current FAILED [ 46%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_both_legacy_dtos_keep_optional_diagnostic_absent PASSED [ 48%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[checksum] FAILED [ 50%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[identity] FAILED [ 51%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[component_hash] FAILED [ 53%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[source_extra_field] FAILED [ 55%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[provenance_shape] FAILED [ 57%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_date_binding_stale_diagnostic_remains_explicit FAILED [ 58%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current FAILED [ 60%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots FAILED [ 62%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[resealed_content] PASSED [ 64%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[unsealed_payload] PASSED [ 66%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[receipt] PASSED [ 67%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[manifest_entry] PASSED [ 69%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[availability] PASSED [ 71%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[artifact_removed] PASSED [ 73%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[source_lost] PASSED [ 75%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[payload_sha256-1111111111111111111111111111111111111111111111111111111111111111] PASSED [ 76%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[receipt_sha256-2222222222222222222222222222222222222222222222222222222222222222] PASSED [ 78%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[source_date-20261007] PASSED [ 80%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[payload_path-research/archives/20261007.json] PASSED [ 82%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[receipt_path-receipts/research/archives/20261007.json] PASSED [ 83%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[source_root-/isolated/rebound-owner] PASSED [ 85%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[mode-REPLAY] PASSED [ 87%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[source_id-ANOTHER_OWNER] PASSED [ 89%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[status-CANNOT_CONFIRM] PASSED [ 91%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[manifest_sha256-not-a-sha] PASSED [ 92%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance FAILED [ 94%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_native_identity_loss_still_fails_closed FAILED [ 96%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_acquisition_change_is_not_provenance[available_at] PASSED [ 98%]
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_acquisition_change_is_not_provenance[retrieved_at] PASSED [100%]
+
+=================================== FAILURES ===================================
+___________ test_unconsumed_manifest_entry_does_not_change_identity ____________
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:138: in test_unconsumed_manifest_entry_does_not_change_identity
+    assert old_view["input_identity"] == new_view["input_identity"]
+E   AssertionError: assert '30a33854d9df633c16483ac27b1e8ee8d53cc6ad1bd40f8adbedf8d666e9837d' == 'ed7dbac4ba4b2155440ba8b258254291d5734bdb8e106676ec5f9475530eab37'
+E     
+E     - ed7dbac4ba4b2155440ba8b258254291d5734bdb8e106676ec5f9475530eab37
+E     + 30a33854d9df633c16483ac27b1e8ee8d53cc6ad1bd40f8adbedf8d666e9837d
+_________ test_owner_saved_plan_stays_current_after_global_only_update _________
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:246: in test_owner_saved_plan_stays_current_after_global_only_update
+    assert current["plan_product"]["status"] == "CURRENT"
+E   AssertionError: assert 'STALE_INPUTS_CHANGED' == 'CURRENT'
+E     
+E     - CURRENT
+E     + STALE_INPUTS_CHANGED
+__________ test_scheduled_plan_global_only_update_does_not_republish ___________
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:271: in test_scheduled_plan_global_only_update_does_not_republish
+    assert repeated["plan_product"]["status"] == "ALREADY_MATERIALIZED"
+E   AssertionError: assert 'CURRENT' == 'ALREADY_MATERIALIZED'
+E     
+E     - ALREADY_MATERIALIZED
+E     + CURRENT
+_ test_true_stale_readback_locates_consumed_source_without_raw_payload[source_title-\u661f\u6d77\u79d1\u6280\u4e1a\u52a1\u8bb0\u5f55\uff1a\u65b0\u589e\u7ea6\u675f] _
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:285: in test_true_stale_readback_locates_consumed_source_without_raw_payload
+    assert saved["workspace"]["input_identity_components"]["input_identity"] == saved["input_identity"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'input_identity_components'
+_ test_true_stale_readback_locates_consumed_source_without_raw_payload[available_at-2026-10-08T17:02:00+08:00] _
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:285: in test_true_stale_readback_locates_consumed_source_without_raw_payload
+    assert saved["workspace"]["input_identity_components"]["input_identity"] == saved["input_identity"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'input_identity_components'
+______ test_legacy_plan_without_component_metadata_is_not_forced_current _______
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:312: in test_legacy_plan_without_component_metadata_is_not_forced_current
+    assert current["plan_product"]["consumed"] is False
+E   assert True is False
+____ test_invalid_saved_component_metadata_cannot_authorize_reuse[checksum] ____
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:345: in test_invalid_saved_component_metadata_cannot_authorize_reuse
+    metadata = saved["workspace"]["input_identity_components"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'input_identity_components'
+____ test_invalid_saved_component_metadata_cannot_authorize_reuse[identity] ____
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:345: in test_invalid_saved_component_metadata_cannot_authorize_reuse
+    metadata = saved["workspace"]["input_identity_components"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'input_identity_components'
+_ test_invalid_saved_component_metadata_cannot_authorize_reuse[component_hash] _
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:345: in test_invalid_saved_component_metadata_cannot_authorize_reuse
+    metadata = saved["workspace"]["input_identity_components"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'input_identity_components'
+_ test_invalid_saved_component_metadata_cannot_authorize_reuse[source_extra_field] _
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:345: in test_invalid_saved_component_metadata_cannot_authorize_reuse
+    metadata = saved["workspace"]["input_identity_components"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'input_identity_components'
+_ test_invalid_saved_component_metadata_cannot_authorize_reuse[provenance_shape] _
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:345: in test_invalid_saved_component_metadata_cannot_authorize_reuse
+    metadata = saved["workspace"]["input_identity_components"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'input_identity_components'
+_____________ test_date_binding_stale_diagnostic_remains_explicit ______________
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:376: in test_date_binding_stale_diagnostic_remains_explicit
+    diagnostic = changed["plan_product"]["input_identity_diagnostic"]
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'input_identity_diagnostic'
+_ test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current _
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:413: in test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current
+    assert service.get_catalyst_observations(DATE) == captured
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/service.py:386: in get_catalyst_observations
+    return read(self.store, self._material_store, target_trade_date,
+v4/manager_research/catalyst_observations.py:480: in read
+    actual=project_archive_catalysts(archive_source,ctx,security_master_root,frozen=previous['snapshot'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/archive_catalyst_inputs.py:69: in project_archive_catalysts
+    if frozen is not None and selected!=frozen['selections'][index]:raise ValueError('ARCHIVE_CATALYST_SOURCE_CHANGED')
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+_ test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots __
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:444: in test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots
+    assert service.get_catalyst_observations(DATE) == captured
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/service.py:386: in get_catalyst_observations
+    return read(self.store, self._material_store, target_trade_date,
+v4/manager_research/catalyst_observations.py:480: in read
+    actual=project_archive_catalysts(archive_source,ctx,security_master_root,frozen=previous['snapshot'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/archive_catalyst_inputs.py:69: in project_archive_catalysts
+    if frozen is not None and selected!=frozen['selections'][index]:raise ValueError('ARCHIVE_CATALYST_SOURCE_CHANGED')
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+____ test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance ____
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:568: in test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance
+    assert service.get_catalyst_observations(DATE) == captured
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/service.py:386: in get_catalyst_observations
+    return read(self.store, self._material_store, target_trade_date,
+v4/manager_research/catalyst_observations.py:480: in read
+    actual=project_archive_catalysts(archive_source,ctx,security_master_root,frozen=previous['snapshot'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/archive_catalyst_inputs.py:69: in project_archive_catalysts
+    if frozen is not None and selected!=frozen['selections'][index]:raise ValueError('ARCHIVE_CATALYST_SOURCE_CHANGED')
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+___ test_archive_projection_boundary_native_identity_loss_still_fails_closed ___
+../../candidate/app/tests/test_manager_semantic_identity_20261010.py:581: in test_archive_projection_boundary_native_identity_loss_still_fails_closed
+    with pytest.raises(ValueError, match="ARCHIVE_CATALYST_IDENTITY_CHANGED"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'ARCHIVE_CATALYST_IDENTITY_CHANGED'
+E     Actual message: 'ARCHIVE_CATALYST_SOURCE_CHANGED'
+=============================== warnings summary ===============================
+tests/test_manager_semantic_identity_20261010.py::test_owner_saved_plan_stays_current_after_global_only_update
+  /workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_unconsumed_manifest_entry_does_not_change_identity - AssertionError: assert '30a33854d9df633c16483ac27b1e8ee8d53cc6ad1bd40f8adbedf8d666e9837d' == 'ed7dbac4ba4b2155440ba8b258254291d5734bdb8e106676ec5f9475530eab37'
+  
+  - ed7dbac4ba4b2155440ba8b258254291d5734bdb8e106676ec5f9475530eab37
+  + 30a33854d9df633c16483ac27b1e8ee8d53cc6ad1bd40f8adbedf8d666e9837d
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_owner_saved_plan_stays_current_after_global_only_update - AssertionError: assert 'STALE_INPUTS_CHANGED' == 'CURRENT'
+  
+  - CURRENT
+  + STALE_INPUTS_CHANGED
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_scheduled_plan_global_only_update_does_not_republish - AssertionError: assert 'CURRENT' == 'ALREADY_MATERIALIZED'
+  
+  - ALREADY_MATERIALIZED
+  + CURRENT
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_true_stale_readback_locates_consumed_source_without_raw_payload[source_title-\u661f\u6d77\u79d1\u6280\u4e1a\u52a1\u8bb0\u5f55\uff1a\u65b0\u589e\u7ea6\u675f] - KeyError: 'input_identity_components'
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_true_stale_readback_locates_consumed_source_without_raw_payload[available_at-2026-10-08T17:02:00+08:00] - KeyError: 'input_identity_components'
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_legacy_plan_without_component_metadata_is_not_forced_current - assert True is False
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[checksum] - KeyError: 'input_identity_components'
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[identity] - KeyError: 'input_identity_components'
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[component_hash] - KeyError: 'input_identity_components'
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[source_extra_field] - KeyError: 'input_identity_components'
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[provenance_shape] - KeyError: 'input_identity_components'
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_date_binding_stale_diagnostic_remains_explicit - KeyError: 'input_identity_diagnostic'
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current - ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots - ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance - ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+FAILED ../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_native_identity_loss_still_fails_closed - AssertionError: Regex pattern did not match.
+  Expected regex: 'ARCHIVE_CATALYST_IDENTITY_CHANGED'
+  Actual message: 'ARCHIVE_CATALYST_SOURCE_CHANGED'
+=================== 16 failed, 40 passed, 1 warning in 5.54s ===================

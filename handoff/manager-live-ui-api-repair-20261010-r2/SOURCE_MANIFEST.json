@@ -1,0 +1,291 @@
+{
+  "schema": "v4.manager_live_ui_api_repair_sources.v1",
+  "status": "PROPOSAL_ONLY",
+  "repository": "lexi2016/v4",
+  "branch": "chat/manager-live-ui-api-repair-20261010-r2",
+  "baseline_commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+  "baseline_tree": "21e0e3ae3cd9434ae95400b4ed2abbd0c16ff1bd",
+  "input_zip_sha256": "c8e8f42a108d144ab2a8182c516b7c0173f55cde8566d3d630709151303b5da4",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "tested_baseline_root": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app",
+  "tested_candidate_root": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app",
+  "reported_deployed_release": {
+    "id": "stage_r4_manager_r2_owner_input_r1_fused_r1",
+    "pid": 10321,
+    "manifest_sha256": "fd7f21af0205b9d25a8ab5d33592aff42bf76c0419799b7c1724b94a286aeb86",
+    "source": "user problem package; retrospective receipt, not checked from this environment"
+  },
+  "new_deployment": "NOT_RUN",
+  "production_files": [
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "before_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "after_sha256": "54e98d1d46c24719906dfef0ae4fe9f11524d7e8cb02c66126877fb15bb54f4c",
+      "after_bytes": 31382,
+      "preimage": {
+        "path": "v4/manager_research/workspace_projection.py",
+        "bytes": 30841,
+        "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+        "git_blob_sha": "5799baef183dd4a93bdbc24c817a5df3d9e3cc33",
+        "role": "FIXED_GIT_TEST_SUPPORT",
+        "repository_paths": [
+          "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/workspace_projection.py",
+          "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_projection.py"
+        ],
+        "input_bundle_path": null
+      },
+      "preimage_evidence": {
+        "kind": "UPLOADED_PREVIOUS_REFERENCE_BYTES_MATCH_REPORTED_FUSED_SOURCE_SHA",
+        "input_bundle_path": "code/previous_reference/r1_20261007_announcement_consumer/v4/manager_research/workspace_projection.py",
+        "reported_sha_source": "evidence/root_cause_report_20261010.md",
+        "note": "Not one of the25 current_fused source files; exact bytes also match fixed Git."
+      }
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+      "after_sha256": "9a01a023f9c4244ba13a0d23c3f0f36e9e6e90db9d88073e3a4bf94bb7b8fa67",
+      "after_bytes": 78454,
+      "preimage": {
+        "path": "v4/manager_research/workspace.py",
+        "bytes": 76133,
+        "sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+        "git_blob_sha": "db3749798c7ea90d7ad0bb13df730704a73c2e0b",
+        "role": "UPLOADED_FIXED_FUSED_SOURCE",
+        "repository_paths": [
+          "handoff/manager-owner-input-integration-20261009-r1/after/v4/manager_research/workspace.py"
+        ],
+        "input_bundle_path": "code/current_fused_app/v4/manager_research/workspace.py"
+      },
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    },
+    {
+      "path": "v4/manager_research/workspace_identity.py",
+      "before_sha256": null,
+      "after_sha256": "bc4e516b98e518190dfa76277598cefc3da7b096610eebd5d3d32d2536acd0c6",
+      "after_bytes": 11541,
+      "preimage": {
+        "role": "NEW"
+      },
+      "preimage_evidence": {
+        "kind": "NEW"
+      }
+    },
+    {
+      "path": "v4/manager_research/archive_catalyst_inputs.py",
+      "before_sha256": "968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71",
+      "after_sha256": "3a16ba2b996156ff923ce601d247c98778a546bae874850e1603ea7fcb8c5ae3",
+      "after_bytes": 7656,
+      "preimage": {
+        "path": "v4/manager_research/archive_catalyst_inputs.py",
+        "bytes": 6278,
+        "sha256": "968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71",
+        "git_blob_sha": "91901e86fcd2bf9d09391c47c2c1963c1dbb27b3",
+        "role": "FIXED_GIT_TEST_SUPPORT",
+        "repository_paths": [
+          "handoff/v4-running-source-20261005/canonical/v4/manager_research/archive_catalyst_inputs.py"
+        ],
+        "input_bundle_path": null
+      },
+      "preimage_evidence": {
+        "kind": "FIXED_GIT_PREIMAGE_ONLY",
+        "deployed_preimage": "CANNOT_CONFIRM_MAC_SHA_CHECK_REQUIRED",
+        "note": "Incremental independent review finding; this file is absent from the25 uploaded current_fused sources and its deployed SHA was not supplied."
+      }
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "before_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "after_sha256": "3dd4771366b5aa5e377024a94785c33159b89e396fde80f12f4a6a4cb4e7b7d5",
+      "after_bytes": 123956,
+      "preimage": {
+        "path": "apps/web/src/api/managerWorkspace.ts",
+        "bytes": 119467,
+        "sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+        "git_blob_sha": "427177891f85d35b1766cada0b67d045f39e6733",
+        "role": "UPLOADED_FIXED_FUSED_SOURCE",
+        "repository_paths": [
+          "handoff/manager-validator-restoration-20261009-r1/after/apps/web/src/api/managerWorkspace.ts"
+        ],
+        "input_bundle_path": "code/current_fused_app/apps/web/src/api/managerWorkspace.ts"
+      },
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "before_sha256": "6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355",
+      "after_sha256": "dc01e30151193e4e22966ba1621770b7e9c907b215acbd987da3244c7ba7011a",
+      "after_bytes": 62380,
+      "preimage": {
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "bytes": 60954,
+        "sha256": "6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355",
+        "git_blob_sha": "9f0284ec0e49689a759b2e5f8a2efe0ad7362a15",
+        "role": "UPLOADED_FIXED_FUSED_SOURCE",
+        "repository_paths": [],
+        "input_bundle_path": "code/current_fused_app/apps/web/src/manager-selection/catalystObservationPanel.ts"
+      },
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    },
+    {
+      "path": "apps/web/src/manager-selection/businessStatus.ts",
+      "before_sha256": "36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90",
+      "after_sha256": "f55b62da1af832386182752912f908bd387bc2b53f0351e56b7350267e83e9c0",
+      "after_bytes": 18392,
+      "preimage": {
+        "path": "apps/web/src/manager-selection/businessStatus.ts",
+        "bytes": 15103,
+        "sha256": "36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90",
+        "git_blob_sha": "966c42b77b878a347420296dc9f37538164db3cb",
+        "role": "UPLOADED_FIXED_FUSED_SOURCE",
+        "repository_paths": [],
+        "input_bundle_path": "code/current_fused_app/apps/web/src/manager-selection/businessStatus.ts"
+      },
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "before_sha256": "3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698",
+      "after_sha256": "f250918be48647c0f3c1028e48ce4fa943922833797594dd67f95ebf08625baa",
+      "after_bytes": 26019,
+      "preimage": {
+        "path": "apps/web/src/manager-selection/researchAttention.ts",
+        "bytes": 25899,
+        "sha256": "3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698",
+        "git_blob_sha": "2fe7b10a4cef02239ca076b2fb42d18ccdb32b4f",
+        "role": "UPLOADED_FIXED_FUSED_SOURCE",
+        "repository_paths": [],
+        "input_bundle_path": "code/current_fused_app/apps/web/src/manager-selection/researchAttention.ts"
+      },
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "before_sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "after_sha256": "b7ad877a63d688709a3bb47f832f84fbaf7856ebb4c3888aa19beae8c7da529c",
+      "after_bytes": 18837,
+      "preimage": {
+        "path": "apps/web/src/manager-selection/dailyChannels.ts",
+        "bytes": 18449,
+        "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+        "git_blob_sha": "4083650551048eabd38662d31b4314f6fb084b74",
+        "role": "UPLOADED_FIXED_FUSED_SOURCE",
+        "repository_paths": [
+          "handoff/manager-workbench-repair-20261008/after/apps/web/src/manager-selection/dailyChannels.ts"
+        ],
+        "input_bundle_path": "code/current_fused_app/apps/web/src/manager-selection/dailyChannels.ts"
+      },
+      "preimage_evidence": {
+        "kind": "UPLOADED_FIXED_FUSED_SOURCE"
+      }
+    }
+  ],
+  "new_regression_files": [
+    {
+      "path": "tests/test_manager_semantic_identity_20261010.py",
+      "package_path": "regression/tests/test_manager_semantic_identity_20261010.py",
+      "sha256": "bf16a6d5e94cc2d70e92735a6e69da998afc960569bda6d908c3712d4237ae42",
+      "bytes": 31713,
+      "original_baseline": "ABSENT; test-only copies added to paired baseline for final validation"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.identityDiagnostic.spec.ts",
+      "package_path": "regression/apps/web/src/api/managerWorkspace.identityDiagnostic.spec.ts",
+      "sha256": "323cd9aff13e09e5a7753e4f45bc29f61f12ec7509f662118f8b21d5a3e1f032",
+      "bytes": 6175,
+      "original_baseline": "ABSENT; test-only copies added to paired baseline for final validation"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts",
+      "package_path": "regression/apps/web/src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts",
+      "sha256": "05f31ebc81b41ea52dde12ef834e56fd71043ce159113e1bfef741a0f470275c",
+      "bytes": 16566,
+      "original_baseline": "ABSENT; test-only copies added to paired baseline for final validation"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.backendDto.runtime.spec.ts",
+      "package_path": "regression/apps/web/src/manager-selection/catalystObservationPanel.backendDto.runtime.spec.ts",
+      "sha256": "b08218ab27bde6628dc54d75889369543fd5e8a4ec429339c55de3943139d1f8",
+      "bytes": 4618,
+      "original_baseline": "ABSENT; test-only copies added to paired baseline for final validation"
+    }
+  ],
+  "unchanged_identity_chain": [
+    {
+      "path": "infrastructure/research_lane_source.py",
+      "sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "preimage": {
+        "path": "infrastructure/research_lane_source.py",
+        "bytes": 24125,
+        "sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+        "git_blob_sha": "fe5545af263b12d435c6a69999a75b4a32444dd6",
+        "role": "FIXED_GIT_TEST_SUPPORT",
+        "repository_paths": [
+          "handoff/v4-running-source-20261005/canonical/infrastructure/research_lane_source.py"
+        ],
+        "input_bundle_path": null
+      }
+    },
+    {
+      "path": "v4/manager_research/existing_materials.py",
+      "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "preimage": {
+        "path": "v4/manager_research/existing_materials.py",
+        "bytes": 30245,
+        "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+        "git_blob_sha": "37d68758dc987a919ffb28fee3c35cdde8d7c6aa",
+        "role": "FIXED_GIT_TEST_SUPPORT",
+        "repository_paths": [
+          "handoff/v4-running-source-20261005/api/v4/manager_research/existing_materials.py"
+        ],
+        "input_bundle_path": null
+      }
+    },
+    {
+      "path": "v4/manager_research/catalyst_observations.py",
+      "sha256": "9b1b4ecabc635c24580ba85fc293911f635ad056b8bf49a5feaa3adc1db5057f",
+      "preimage": {
+        "path": "v4/manager_research/catalyst_observations.py",
+        "bytes": 27868,
+        "sha256": "9b1b4ecabc635c24580ba85fc293911f635ad056b8bf49a5feaa3adc1db5057f",
+        "git_blob_sha": "3fdd9eac88a95a53bf9b19da5f7877ce6581f243",
+        "role": "FIXED_GIT_TEST_SUPPORT",
+        "repository_paths": [
+          "handoff/v4-running-source-20261005/canonical/v4/manager_research/catalyst_observations.py"
+        ],
+        "input_bundle_path": null
+      }
+    },
+    {
+      "path": "contracts/research.py",
+      "sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "preimage": {
+        "path": "contracts/research.py",
+        "bytes": 13060,
+        "sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+        "git_blob_sha": "7b0e212950a878169f64849a7a7dae29797c3f84",
+        "role": "FIXED_GIT_TEST_SUPPORT",
+        "repository_paths": [
+          "handoff/v4-running-source-20261005/canonical/contracts/research.py"
+        ],
+        "input_bundle_path": null
+      }
+    }
+  ],
+  "patch_sha256": "d078eb55dd07d07456df71740f8f5cf434defd33586acfb124704cff6de4b111",
+  "parallel_branch_preserved": {
+    "branch": "chat/manager-live-ui-api-repair-20261010-r1",
+    "observed_commit": "8c8e35d9d53431c9082dec49f4976e363c275765",
+    "not_merged_or_modified": true
+  }
+}

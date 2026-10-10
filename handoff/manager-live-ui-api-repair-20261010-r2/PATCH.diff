@@ -1,0 +1,752 @@
+--- a/v4/manager_research/workspace_projection.py
++++ b/v4/manager_research/workspace_projection.py
+@@ -14,6 +14,9 @@
+ from typing import Any, Mapping, Sequence
+ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+ from zoneinfo import ZoneInfo
++from .workspace_identity import (
++    IDENTITY_CONTRACT, component_snapshot, restore_material_provenance, semantic_materials,
++)
+ 
+ FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
+ SCHEMA = 'v4.manager_research.workspace.v1'
+@@ -204,6 +207,8 @@
+                     market_screen: Mapping[str, Any] | None = None,
+                     discovery_rejections: Sequence[Mapping[str,Any]] = ()) -> dict:
+     date = date_token(date)
++    original_materials = materials
++    materials = semantic_materials(materials)
+     gaps = list(source_gaps)
+     if plan_context is not None and plan_context.get('plan_trade_date') != date:
+         raise ValueError('WORKSPACE_PLAN_TARGET_MISMATCH')
+@@ -474,6 +479,12 @@
+             attempt=attempts.get(lane),next_plan=plans.get(lane)))
+     screen = deepcopy(dict(market_screen)) if isinstance(market_screen, Mapping) else None
+     screen_summary_counts = _market_screen_summary_counts(screen)
++    identity_inputs = dict(identity_contract=IDENTITY_CONTRACT,
++        decision_projection_version='20260921.manager-decision-ux.a1', semantic_version=SEMANTIC_VERSION,
++        catalyst=catalyst, materials=materials, stage=stage, close=close,
++        discovered_cards=discovered_cards, discovery_rejections=discovery_rejections, price_quotes=price_quotes,
++        market_screen=screen,
++        plan_context={k:v for k,v in context.items() if k!='research_cutoff'} if plan_context else None)
+     result= dict(schema_version=SCHEMA,semantic_version=SEMANTIC_VERSION,rejected_relations=rejected_relations,
+         decision_projection_version='20260921.manager-decision-ux.a1',
+         target_trade_date=date,stocks=ordered_stocks,themes=theme_rows,lanes=lanes,
+@@ -489,12 +500,11 @@
+                      market_screen_near_count=screen_summary_counts[1],
+                      market_screen_card_count=screen_summary_counts[2]),
+         replacement_context='COMPARISON_ONLY_NO_POSITION_READ',
+-        input_identity=digest(dict(decision_projection_version='20260921.manager-decision-ux.a1',semantic_version=SEMANTIC_VERSION,catalyst=catalyst,materials=materials,stage=stage,close=close,
+-            discovered_cards=discovered_cards,discovery_rejections=discovery_rejections,price_quotes=price_quotes,
+-            market_screen=screen,
+-            plan_context={k:v for k,v in context.items() if k!='research_cutoff'} if plan_context else None)),
++        input_identity=digest(identity_inputs),
+         plan_context=context,
+         browser_consumption='NOT_ACKNOWLEDGED_BY_SERVER',**FLAGS)
+     if screen is not None:
+         result['market_screen'] = screen
+-    return result
++    result['input_identity_components'] = component_snapshot(result['input_identity'],
++        {'projection.' + key: value for key, value in identity_inputs.items()}, materials=original_materials)
++    return restore_material_provenance(result, original_materials)
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -17,6 +17,10 @@
+ from .workspace_discovery import read_discovery, read_material_discovery
+ from .workspace_plan import plan_context, read_plan_quotes, read_rebound_screen
+ from .workspace_projection import FLAGS, HK, build_workspace, date_token, digest, timestamp
++from .workspace_identity import (
++    compare_components, component_snapshot, components_allow_reuse,
++    restore_material_provenance, semantic_materials,
++)
+ from .workspace_read_control import (
+     WorkspaceReadError,
+     phase,
+@@ -521,6 +525,9 @@
+     result = _compute_workspace(service, date, include_saved=False, context=context,
+         us_market_request_context=us_market_request_context)
+     result['date_bindings'] = bindings
++    if 'input_identity_components' in result:
++        result['input_identity_components'] = component_snapshot(result['input_identity'],
++            {'date_bindings': bindings}, previous=result['input_identity_components'])
+     if include_saved:
+         result = _readback_plan(service.store, date, result, read_at=clock)
+     result['read_context'] = dict(mode='CURRENT_DYNAMIC_PREVIEW',
+@@ -696,7 +703,11 @@
+                 status='CANNOT_CONFIRM',input_identity=digest([reason]),**FLAGS)
+     with phase('target_connect_authority'):
+         connect_scope=read_scope(context)
+-    selection_materials=[*existing['materials'],*announcement_inputs['materials']]
++    original_selection_materials=[*existing['materials'],*announcement_inputs['materials']]
++    # Normalize before derived relation IDs and attention hashes are created.
++    # Original rows/bindings stay available for the final read-only provenance
++    # overlay; no owner validator or artifact is replaced by this projection.
++    selection_materials=semantic_materials(original_selection_materials)
+     with phase('material_discovery'):
+         material_discovery=read_material_discovery(selection_materials,context,
+             getattr(service,'_workspace_security_master_root',None),
+@@ -879,21 +890,31 @@
+         'write_back_to_existing_rank': False,
+     }
+     identity_extensions = [value['input_identity'], research_attention['input_identity'],announcement_inputs['input_identity']]
++    extension_components = {'outer.workspace_projection': value['input_identity'],
++        'outer.research_attention': research_attention['input_identity'],
++        'outer.announcement_inputs': announcement_inputs['input_identity']}
+     reviewed_analysis = announcement_inputs.get('reviewed_analysis')
+     if isinstance(reviewed_analysis, Mapping):
+         identity_extensions.append(reviewed_analysis.get('input_identity'))
++        extension_components['outer.announcement_reviewed_analysis'] = reviewed_analysis.get('input_identity')
+     if announcement_review.get('product_identity'):
+         identity_extensions.append(announcement_review['product_identity']['sha256'])
++        extension_components['outer.announcement_product'] = announcement_review['product_identity']['sha256']
+     us_identity = us_market.get('source_identity') if isinstance(us_market, Mapping) else None
+     if isinstance(us_identity, Mapping) and isinstance(us_identity.get('payload_sha256'), str):
+         identity_extensions.append(us_identity['payload_sha256'])
++        extension_components['outer.us_market_payload'] = us_identity['payload_sha256']
+     # The saved daily US mapping is a separate research reference. It is
+     # admitted into this plan identity only after the same exact plan cutoff.
+     mapping_read, mapping_research, mapping_identities = _daily_mapping_plan_reference(service, date, context)
+     identity_extensions.extend(mapping_identities)
++    extension_components['outer.us_mapping_plan_reference'] = mapping_identities
+     value['us_mapping_research'] = deepcopy(mapping_read)
+     value['owner_chain']['us_mapping_daily_plan_reference'] = mapping_research
+     value['input_identity'] = digest(identity_extensions)
++    value['input_identity_components'] = component_snapshot(value['input_identity'], extension_components,
++        previous=value.get('input_identity_components'), materials=original_selection_materials)
++    value = restore_material_provenance(value, original_selection_materials)
+     if include_saved:
+         with phase('saved_plan_comparison'):
+             return _readback_plan(service.store,date,value)
+@@ -1033,9 +1054,10 @@
+     bindings_match = (saved_bindings is None and current_bindings is None) or (
+         isinstance(saved_bindings, Mapping) and isinstance(current_bindings, Mapping)
+         and dict(saved_bindings) == dict(current_bindings))
++    identity_diagnostic = compare_components((saved or {}).get('workspace') or {}, current)
+     same=(saved is not None and not after_cutoff and saved['input_identity']==current['input_identity']
+           and saved['workspace'].get('semantic_version')==current.get('semantic_version')
+-          and bindings_match)
++          and bindings_match and components_allow_reuse(saved['workspace'], current, identity_diagnostic))
+     plan_attempt_error = None
+     verified_attempt = None
+     if same:
+@@ -1044,6 +1066,9 @@
+         except _ERROR_TYPES as exc:
+             plan_attempt_error = str(exc) if re.fullmatch(r'[A-Z][A-Z0-9_]{0,127}',str(exc)) else type(exc).__name__
+             same = False
++    if after_cutoff or plan_attempt_error:
++        identity_diagnostic['status'] = 'CANNOT_CONFIRM'
++        identity_diagnostic['reason_codes'].append('PLAN_AFTER_READ_CUTOFF' if after_cutoff else 'OWNER_ATTEMPT_UNVERIFIED')
+     value=deepcopy(saved['workspace']) if same else current
+     # Persisted stock plans do not freeze live owner execution status. An
+     # unchanged material fingerprint must not conceal a later failed attempt.
+@@ -1051,7 +1076,7 @@
+         # Eligibility diagnostics describe this read's owner binding, not the
+         # saved plan's binding. Refresh them without changing its identity,
+         # run_id or sealed bytes; the existing deep-copy overlay stays read-only.
+-        for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','owner_chain','announcement_review','announcement_observation','announcement_reviewed_analysis','us_market_attention','research_attention','stage_read_timing','repair_contract','selection_diagnostics','date_bindings'):
++        for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','owner_chain','announcement_review','announcement_observation','announcement_reviewed_analysis','us_market_attention','research_attention','stage_read_timing','repair_contract','selection_diagnostics','date_bindings','input_identity_components'):
+             if key in current:value[key]=deepcopy(current[key])
+         value['us_mapping_research'] = _overlay_us_mapping_attempt(
+             saved['workspace'], current, saved['workspace'].get('plan_context', {}).get('research_cutoff'))
+@@ -1065,6 +1090,9 @@
+         last_checked_at=read_time.isoformat() if read_time is not None else _now(),consumed=same,
+         run_readback=_plan_run_readback(saved,verified_attempt,
+             read_at=read_time.isoformat() if read_time is not None else _now(),verified=same))
++    if ('input_identity_components' in current
++            or 'input_identity_components' in ((saved or {}).get('workspace') or {})):
++        value['plan_product']['input_identity_diagnostic'] = identity_diagnostic
+     if plan_attempt_error:
+         value['plan_product']['reason'] = plan_attempt_error
+     value['workspace_plan_attempt']=attempt
+@@ -1170,6 +1198,7 @@
+                         and existing['input_identity']==prepared['input_identity']
+                         and existing_workspace.get('semantic_version')==prepared.get('semantic_version')
+                         and existing_workspace.get('date_bindings')==prepared.get('date_bindings')
++                        and components_allow_reuse(existing_workspace, prepared)
+                         and existing_cutoff is not None and existing_cutoff<=now
+                         and existing_generated is not None and existing_cutoff is not None
+                         and existing_generated<=now
+--- /dev/null
++++ b/v4/manager_research/workspace_identity.py
+@@ -0,0 +1,221 @@
++"""Consumed-artifact fingerprints; registry provenance is never source content.
++
++This module does not read or validate artifacts. Only exact V35 archive
++bindings already emitted by the original verified reader have a provenance
++exception, and only at a material's top-level ``source_refs`` boundary.
++"""
++from __future__ import annotations
++
++from copy import deepcopy
++import hashlib
++import json
++import re
++from typing import Any, Mapping, Sequence
++
++IDENTITY_CONTRACT = 'CONSUMED_ARTIFACTS_V1'
++COMPONENT_SCHEMA = 'v4.manager_input_identity_components.v1'
++DIAGNOSTIC_SCHEMA = 'v4.manager_input_identity_diagnostic.v1'
++_SHA = re.compile(r'[0-9a-f]{64}')
++
++
++def _digest(value: Any) -> str:
++    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
++        separators=(',', ':'), allow_nan=False).encode()).hexdigest()
++
++
++def _archive_ref(ref: Any) -> bool:
++    if not isinstance(ref, Mapping):
++        return False
++    date, slot, mode = ref.get('source_date'), ref.get('slot'), ref.get('mode')
++    if (ref.get('source_id') != 'V35_RESEARCH_DATA_ROOT' or ref.get('status') != 'VERIFIED'
++            or not isinstance(date, str) or not re.fullmatch(r'\d{8}', date)
++            or not isinstance(slot, str) or mode not in {'LIVE', 'REPLAY', 'BACKFILL'}
++            or not isinstance(ref.get('source_root'), str)
++            or ref.get('write_policy') != 'read_only'
++            or any(ref.get(key) is not False for key in ('production_allowed', 'buy_gate_updated', 'orders_sent'))):
++        return False
++    if slot and (not re.fullmatch(r'\d{4}', slot) or int(slot[:2]) > 23 or int(slot[2:]) > 59):
++        return False
++    path = (f'research/hourly/{mode.lower()}/{date}/{slot}.json'
++            if slot else f'research/archives/{date}.json')
++    return (ref.get('payload_path') == path and ref.get('receipt_path') == 'receipts/' + path
++        and ref.get('manifest_path') == 'manifest.json'
++        and all(isinstance(ref.get(key), str) and _SHA.fullmatch(ref[key])
++                for key in ('payload_sha256', 'receipt_sha256', 'manifest_sha256')))
++
++
++def semantic_materials(materials: Sequence[Mapping[str, Any]]) -> list[dict]:
++    """Copy only the known material binding boundary; never walk source rows."""
++    result = deepcopy(list(materials))
++    for material in result:
++        if not isinstance(material, Mapping) or not isinstance(material.get('source_refs'), list):
++            continue
++        for ref in material['source_refs']:
++            if _archive_ref(ref):
++                ref.pop('manifest_sha256')
++    return result
++
++
++def restore_material_provenance(value: Any, materials: Sequence[Mapping[str, Any]]) -> Any:
++    """Overlay original refs on derived DTOs after their identities are fixed.
++
++    The saved/UI material rows retain their original contract. Arbitrary
++    material fields and original source bodies are copied without traversal.
++    This adds read provenance only; it cannot promote a material or a plan.
++    """
++    refs, material_keys = {}, {}
++    for material in materials:
++        if not isinstance(material, Mapping):
++            continue
++        if material.get('material_id'):
++            material_keys.setdefault(str(material['material_id']), set()).update(material)
++        for ref in material.get('source_refs') or []:
++            if _archive_ref(ref):
++                semantic = {key: item for key, item in ref.items() if key != 'manifest_sha256'}
++                refs[_digest(semantic)] = dict(ref)
++
++    def visit(item: Any) -> Any:
++        if isinstance(item, list):
++            return [visit(child) for child in item]
++        if not isinstance(item, Mapping):
++            return deepcopy(item)
++        protected = material_keys.get(str(item.get('material_id') or ''), set())
++        result = {}
++        for key, child in item.items():
++            if key == 'source_refs' and isinstance(child, list):
++                result[key] = [deepcopy(refs.get(_digest(ref), ref)) for ref in child]
++            elif key in {'source_row', 'original_source_row'} or key in protected:
++                result[key] = deepcopy(child)
++            else:
++                result[key] = visit(child)
++        return result
++
++    return visit(value) if refs else deepcopy(value)
++
++
++def material_components(materials: Sequence[Mapping[str, Any]]) -> list[dict]:
++    """One small, stable locator per consumed artifact, never raw source rows."""
++    groups = {}
++    for material, semantic in zip(materials, semantic_materials(materials)):
++        if not isinstance(material, Mapping):
++            continue
++        for ref in material.get('source_refs') or []:
++            if not _archive_ref(ref):
++                continue
++            source = {key: ref[key] for key in ('source_id', 'source_date', 'payload_path', 'receipt_path', 'slot', 'mode')}
++            source['source_root_sha256'] = _digest(ref['source_root'])
++            component_id = 'material_source:' + _digest(source)
++            group = groups.setdefault(component_id, {'source': source, 'records': [], 'provenance': {}})
++            group['records'].append(semantic)
++            group['provenance'] = {key: ref[key] for key in ('manifest_path', 'manifest_sha256')}
++    return [dict(component_id=key, sha256=_digest(group['records']),
++                 source=group['source'], provenance=group['provenance'])
++            for key, group in sorted(groups.items())]
++
++
++def component_snapshot(identity: str, values: Mapping[str, Any], *,
++                       previous: Mapping[str, Any] | None = None,
++                       materials: Sequence[Mapping[str, Any]] = ()) -> dict:
++    components = {row['component_id']: deepcopy(row) for row in (previous or {}).get('components', [])}
++    components.update({key: dict(component_id=key, sha256=_digest(value)) for key, value in values.items()})
++    components.update({row['component_id']: row for row in material_components(materials)})
++    result = dict(schema_version=COMPONENT_SCHEMA, identity_contract=IDENTITY_CONTRACT,
++        input_identity=identity, components=[components[key] for key in sorted(components)])
++    result['sha256'] = _digest(result)
++    return result
++
++
++def _valid_component(row: Any) -> bool:
++    if (not isinstance(row, Mapping) or set(row) - {'component_id', 'sha256', 'source', 'provenance'}
++            or not isinstance(row.get('component_id'), str)
++            or not re.fullmatch(r'[a-z][a-z0-9_.:]{0,159}', row['component_id'])
++            or not isinstance(row.get('sha256'), str) or not _SHA.fullmatch(row['sha256'])):
++        return False
++    if 'source' not in row:
++        return 'provenance' not in row and not row['component_id'].startswith('material_source:')
++    source, provenance = row['source'], row.get('provenance')
++    keys = {'source_id', 'source_date', 'source_root_sha256', 'payload_path', 'receipt_path', 'slot', 'mode'}
++    if (not isinstance(source, Mapping) or set(source) != keys
++            or any(not isinstance(value, str) for value in source.values())
++            or source['source_id'] != 'V35_RESEARCH_DATA_ROOT'
++            or not re.fullmatch(r'\d{8}', source['source_date'])
++            or not _SHA.fullmatch(source['source_root_sha256'])
++            or source['mode'] not in {'LIVE', 'REPLAY', 'BACKFILL'}
++            or not isinstance(provenance, Mapping)
++            or set(provenance) != {'manifest_path', 'manifest_sha256'}
++            or provenance['manifest_path'] != 'manifest.json'
++            or not isinstance(provenance['manifest_sha256'], str)
++            or not _SHA.fullmatch(provenance['manifest_sha256'])):
++        return False
++    date, slot, mode = source['source_date'], source['slot'], source['mode']
++    if slot and (not re.fullmatch(r'\d{4}', slot) or int(slot[:2]) > 23 or int(slot[2:]) > 59):
++        return False
++    path = (f'research/hourly/{mode.lower()}/{date}/{slot}.json'
++            if slot else f'research/archives/{date}.json')
++    return (source['payload_path'] == path and source['receipt_path'] == 'receipts/' + path
++        and row['component_id'] == 'material_source:' + _digest(source))
++
++
++def _verified_components(workspace: Mapping[str, Any], side: str) -> tuple[dict, str | None]:
++    metadata = workspace.get('input_identity_components')
++    if metadata is None:
++        return {}, side + '_COMPONENT_METADATA_MISSING'
++    if not isinstance(metadata, Mapping):
++        return {}, side + '_COMPONENT_METADATA_INVALID'
++    components = metadata.get('components')
++    if (metadata.get('schema_version') != COMPONENT_SCHEMA
++            or metadata.get('identity_contract') != IDENTITY_CONTRACT
++            or metadata.get('input_identity') != workspace.get('input_identity')
++            or not isinstance(components, list)
++            or metadata.get('sha256') != _digest({key: value for key, value in metadata.items() if key != 'sha256'})):
++        return {}, side + '_COMPONENT_METADATA_INVALID'
++    result = {}
++    for row in components:
++        if not _valid_component(row) or row['component_id'] in result:
++            return {}, side + '_COMPONENT_METADATA_INVALID'
++        result[row['component_id']] = row
++    return result, None
++
++
++def compare_components(saved: Mapping[str, Any], current: Mapping[str, Any]) -> dict:
++    result = dict(schema_version=DIAGNOSTIC_SCHEMA, status='CANNOT_CONFIRM',
++        saved_input_identity=saved.get('input_identity'), current_input_identity=current.get('input_identity'),
++        reason_codes=[], changed_components=[], provenance_changes=[])
++    before, before_error = _verified_components(saved, 'SAVED')
++    after, after_error = _verified_components(current, 'CURRENT')
++    result['reason_codes'] = [error for error in (before_error, after_error) if error]
++    if result['reason_codes']:
++        return result
++    for key in sorted(set(before) | set(after)):
++        old, new = before.get(key, {}), after.get(key, {})
++        source = deepcopy(new.get('source') or old.get('source'))
++        if old.get('sha256') != new.get('sha256'):
++            row = dict(component_id=key, change='CHANGED' if old and new else 'ADDED' if new else 'REMOVED',
++                saved_sha256=old.get('sha256'), current_sha256=new.get('sha256'))
++            if source:
++                row['source'] = source
++            result['changed_components'].append(row)
++        old_provenance, new_provenance = old.get('provenance', {}), new.get('provenance', {})
++        if old_provenance != new_provenance:
++            row = dict(component_id=key,
++                saved_manifest_sha256=old_provenance.get('manifest_sha256'),
++                current_manifest_sha256=new_provenance.get('manifest_sha256'))
++            if source:
++                row['source'] = source
++            result['provenance_changes'].append(row)
++    if result['changed_components']:
++        result['status'] = 'CHANGED'
++    elif result['saved_input_identity'] == result['current_input_identity']:
++        result['status'] = 'MATCH'
++    else:
++        result['reason_codes'] = ['UNATTRIBUTED_INPUT_IDENTITY_CHANGE']
++    return result
++
++
++def components_allow_reuse(saved: Mapping[str, Any], current: Mapping[str, Any], diagnostic: Mapping[str, Any] | None = None) -> bool:
++    # Optional metadata preserves legacy DTO callers' existing exact-equality
++    # guard. A newly computed workspace always has metadata and requires the
++    # saved side to verify; an old plan is never reinterpreted as a new one.
++    if 'input_identity_components' not in saved and 'input_identity_components' not in current:
++        return True
++    return (diagnostic or compare_components(saved, current)).get('status') == 'MATCH'
+--- a/v4/manager_research/archive_catalyst_inputs.py
++++ b/v4/manager_research/archive_catalyst_inputs.py
+@@ -12,9 +12,35 @@
+ from .workspace_discovery import read_material_discovery
+ from .workspace_projection import date_token, timestamp
+ from .evidence_identity import acquisition_is_within_window
++from .workspace_identity import _archive_ref
+ 
+ SCHEMA='v4.manager_research.archive_catalyst_inputs.v1'
+ _ERRORS=(ImportError,OSError,ValueError,TypeError,KeyError,RuntimeError)
++
++
++def _replay_selection(selected, previous, items):
++    """Retain capture provenance only after the exact consumed binding agrees."""
++    if selected == previous:
++        return selected, items
++    current_binding = selected.get('binding')
++    prior_binding = previous.get('binding') if isinstance(previous, Mapping) else None
++    if not _archive_ref(current_binding) or not _archive_ref(prior_binding):
++        raise ValueError('ARCHIVE_CATALYST_SOURCE_CHANGED')
++    current_semantic, prior_semantic = deepcopy(selected), deepcopy(previous)
++    current_semantic['binding'].pop('manifest_sha256')
++    prior_semantic['binding'].pop('manifest_sha256')
++    if current_semantic != prior_semantic:
++        raise ValueError('ARCHIVE_CATALYST_SOURCE_CHANGED')
++    # _read_archive already revalidated the current payload, receipt and exact
++    # date/path. Replay must reproduce the sealed snapshot AND derived cards /
++    # rejections, retaining their historical registry provenance. No source-row
++    # content is normalized, and no newly enumerated source can enter replay.
++    rebound = deepcopy(items)
++    for row in rebound:
++        if row.get('source_refs') != [current_binding]:
++            raise ValueError('ARCHIVE_CATALYST_SOURCE_CHANGED')
++        row['source_refs'] = [deepcopy(prior_binding)]
++    return deepcopy(previous), rebound
+ 
+ 
+ def _clock_error(row,context):
+@@ -66,7 +92,8 @@
+             selected={'date':day,'slot':slot,'binding':deepcopy(binding),'error':None}
+         except _ERRORS as exc:
+             selected={'date':day,'slot':slot,'binding':None,'error':type(exc).__name__};items=[];missing=['ARCHIVE_ARTIFACT_READ_FAILED:'+day+':'+(slot or 'daily')+':'+type(exc).__name__]
+-        if frozen is not None and selected!=frozen['selections'][index]:raise ValueError('ARCHIVE_CATALYST_SOURCE_CHANGED')
++        if frozen is not None:
++            selected,items=_replay_selection(selected,frozen['selections'][index],items)
+         selections.append(selected);rows.extend(items);gaps.extend(missing)
+     valid=[];rejected=[]
+     for row in rows:
+--- a/apps/web/src/api/managerWorkspace.ts
++++ b/apps/web/src/api/managerWorkspace.ts
+@@ -176,6 +176,18 @@
+   observation_only?: IndependentAnnouncementObservations; input_diagnostics?: ResearchInputDiagnostics;
+   research_selection?: ResearchSelectionLedger;
+ }
++export interface ManagerInputIdentitySource extends JsonObject {
++  source_id: string; source_date: string; source_root_sha256: string;
++  payload_path: string; receipt_path: string; slot: string; mode: 'LIVE'|'REPLAY'|'BACKFILL';
++}
++export interface ManagerInputIdentityDiagnostic extends JsonObject {
++  schema_version: 'v4.manager_input_identity_diagnostic.v1'; status: 'MATCH'|'CHANGED'|'CANNOT_CONFIRM';
++  saved_input_identity: string|null; current_input_identity: string|null; reason_codes: string[];
++  changed_components: (JsonObject & { component_id: string; change: 'CHANGED'|'ADDED'|'REMOVED';
++    saved_sha256: string|null; current_sha256: string|null; source?: ManagerInputIdentitySource })[];
++  provenance_changes: (JsonObject & { component_id: string; source?: ManagerInputIdentitySource;
++    saved_manifest_sha256: string|null; current_manifest_sha256: string|null })[];
++}
+ export interface ManagerWorkspace extends JsonObject {
+   semantic_version: '20260921.manager-semantic.r3.v1'; focus_symbols: string[];
+   briefing: JsonObject; company_events: JsonObject[]; rejected_relations: JsonObject[];
+@@ -186,7 +198,8 @@
+   market_screen?: ReboundScreen; market_screen_evidence?: JsonObject;
+   us_market_attention?: UsMarketAttention; research_attention?: ResearchAttention;
+   us_mapping_research?: UsMappingResearch;
+-  plan_product?: JsonObject; workspace_plan_attempt?: JsonObject; plan_context?: JsonObject;
++  plan_product?: JsonObject & { input_identity_diagnostic?: ManagerInputIdentityDiagnostic };
++  workspace_plan_attempt?: JsonObject; plan_context?: JsonObject;
+   selection_diagnostics?: SelectionDiagnostics;
+   date_bindings?: WorkspaceDateBindings; daily_channels?: DailyChannels;
+ }
+@@ -1041,9 +1054,65 @@
+       researchContract(readback.artifact_sha256 === expected.sha256, 'RESEARCH_RUN_READBACK_IDENTITY');
+   }
+ }
++function validateInputIdentityDiagnostic(raw: unknown, workspace: JsonObject, product: JsonObject): void {
++  const code = 'INPUT_IDENTITY_DIAGNOSTIC';
++  const record = (value: unknown): JsonObject => {
++    researchContract(value && typeof value === 'object' && !Array.isArray(value), code);
++    return value as JsonObject;
++  };
++  const value = record(raw);
++  const hashOrNull = (hash: unknown) => hash === null || researchSha(hash);
++  researchContract(value.schema_version === 'v4.manager_input_identity_diagnostic.v1' &&
++    ['MATCH','CHANGED','CANNOT_CONFIRM'].includes(String(value.status)) &&
++    hashOrNull(value.saved_input_identity) && hashOrNull(value.current_input_identity) &&
++    (value.current_input_identity === null || value.current_input_identity === workspace.input_identity) &&
++    Array.isArray(value.reason_codes) && value.reason_codes.every(researchText) &&
++    Array.isArray(value.changed_components) && Array.isArray(value.provenance_changes), code);
++  const source = (rawSource: unknown) => {
++    if (rawSource === undefined) return;
++    const s = record(rawSource);
++    const relativePath = (path: unknown) => researchText(path) &&
++      !path.startsWith('/') && !path.includes('\\') && !path.split('/').includes('..');
++    researchContract(researchText(s.source_id) && sessionDay(s.source_date) &&
++      researchSha(s.source_root_sha256) && relativePath(s.payload_path) && relativePath(s.receipt_path) &&
++      typeof s.slot === 'string' && /^(?:|(?:[01]\d|2[0-3])[0-5]\d)$/.test(s.slot) &&
++      ['LIVE','REPLAY','BACKFILL'].includes(String(s.mode)), code + '_SOURCE');
++  };
++  const changed = value.changed_components as unknown[];
++  const provenance = value.provenance_changes as unknown[];
++  const changeIds = new Set<string>();
++  for (const rawChange of changed) {
++    const c = record(rawChange);
++    researchContract(researchText(c.component_id) && !changeIds.has(c.component_id) &&
++      hashOrNull(c.saved_sha256) && hashOrNull(c.current_sha256) &&
++      (c.change === 'CHANGED' ? researchSha(c.saved_sha256) && researchSha(c.current_sha256) && c.saved_sha256 !== c.current_sha256 :
++        c.change === 'ADDED' ? c.saved_sha256 === null && researchSha(c.current_sha256) :
++          c.change === 'REMOVED' && researchSha(c.saved_sha256) && c.current_sha256 === null), code + '_CHANGE');
++    changeIds.add(c.component_id); source(c.source);
++  }
++  const provenanceIds = new Set<string>();
++  for (const rawChange of provenance) {
++    const c = record(rawChange);
++    researchContract(researchText(c.component_id) && !provenanceIds.has(c.component_id) &&
++      hashOrNull(c.saved_manifest_sha256) && hashOrNull(c.current_manifest_sha256) &&
++      c.saved_manifest_sha256 !== c.current_manifest_sha256, code + '_PROVENANCE');
++    provenanceIds.add(c.component_id); source(c.source);
++  }
++  if (value.status === 'MATCH') {
++    researchContract(researchSha(value.saved_input_identity) &&
++      value.saved_input_identity === value.current_input_identity && changed.length === 0, code + '_MATCH');
++  } else {
++    researchContract(product.consumed !== true, code + '_CONSUMPTION');
++    if (value.status === 'CHANGED') researchContract(researchSha(value.saved_input_identity) &&
++      researchSha(value.current_input_identity) && changed.length > 0, code + '_CHANGED');
++    else researchContract((value.reason_codes as string[]).length > 0, code + '_UNCERTAIN');
++  }
++}
+ function validatePlanProductReadback(workspace: JsonObject): void {
+   if (workspace.plan_product === undefined) return;
+   const product = object(workspace.plan_product);
++  if (product.input_identity_diagnostic !== undefined)
++    validateInputIdentityDiagnostic(product.input_identity_diagnostic, workspace, product);
+   if (product.execution_context !== undefined && product.execution_context !== null)
+     validateResearchExecutionContext(product.execution_context);
+   if (product.run_readback === undefined) return;
+--- a/apps/web/src/manager-selection/catalystObservationPanel.ts
++++ b/apps/web/src/manager-selection/catalystObservationPanel.ts
+@@ -1,13 +1,14 @@
+ import { renderAnnouncementReview } from './announcementObservation.js';
+ import { renderResearchAttention } from './researchAttention.js';
+ import type { ResearchAttention, UsMappingResearch, UsMarketAttention } from '../api/managerWorkspace.js';
+-import { businessStatusRows } from './businessStatus.js';
++import { businessStatusRows, renderPlanInputIdentityDiagnostic } from './businessStatus.js';
++import { normalizedWorkspaceDay, renderDailyChannels, validateWorkspaceDateBindings } from './dailyChannels.js';
+ /** Stock-keyed panel inside the EXISTING ManagerSelectionView host.
+  * The original Stage table/rank/BUY gate remain outside this DOM boundary.
+  * Cross-date/view and source failures clear cards. Same-view re-read may retain
+  * an explicitly labelled previous qualified result; it is never relabelled current.
+  */
+-import { requestManagerAnnouncements, refreshManagerAnnouncements, requestManagerWorkspace, refreshManagerWorkspace, type ManagerWorkspace, type WorkspaceLane, type JsonObject, type ReboundScreen } from '../api/managerWorkspace.js';
++import { requestManagerAnnouncements, refreshManagerAnnouncements, requestManagerWorkspace, refreshManagerWorkspace, type ManagerWorkspace, type WorkspaceLane, type JsonObject, type ReboundScreen, type WorkspaceRequestDateBindings } from '../api/managerWorkspace.js';
+ import { requestManagerAnnouncementAnalysis } from '../api/managerAnnouncementAnalysis.js';
+ import { renderAnnouncementAnalysis } from './announcementAnalysis.js';
+ 
+@@ -80,16 +81,19 @@
+ }
+ 
+ export function mountCatalystObservations(host: HTMLElement, initialDate: string): () => void {
+-  // The page date selects publication-day evidence; plan_date selects only the workspace plan.
++  // plan_date selects the workspace plan; date remains the Stage/source day.
+   const params=new URLSearchParams(window.location.search);
+-  const requestedPublicationDate=params.get('date');
+-  const publicationDate=requestedPublicationDate && /^\d{8}$/.test(requestedPublicationDate)
+-    ? requestedPublicationDate : initialDate;
++  // The Stage/source day is independent of the plan. Without a publication
++  // override the original owner supplies the prior-HK-day default.
++  const requestBindings:WorkspaceRequestDateBindings={
++    selection_date:params.get('selection_date')??params.get('date')??initialDate,
++    announcement_date:params.get('announcement_date')??params.get('publication_date')??undefined,
++  };
++  const publicationDate=normalizedWorkspaceDay(requestBindings.announcement_date)
++    ??normalizedWorkspaceDay(params.get('date'))??initialDate;
+   const requestedPlanDate=params.get('plan_date');
+   let date=requestedPlanDate && /^\d{8}$/.test(requestedPlanDate) ? requestedPlanDate : initialDate;
+-  const requestedAnalysisDate=params.get('announcement_date');
+-  let analysisPublicationDate=requestedAnalysisDate && /^\d{8}$/.test(requestedAnalysisDate)
+-    ? requestedAnalysisDate : undefined;
++  let analysisPublicationDate=normalizedWorkspaceDay(requestBindings.announcement_date)??undefined;
+   let analysisSequence=0;let analysisController:AbortController|null=null;
+   let disposed = false; let sequence = 0; let controller: AbortController | null = null;
+   const announcementController=new AbortController();
+@@ -129,6 +133,7 @@
+   const runSummary=el('p');runSummary.setAttribute('aria-label','三路状态摘要');
+   const decisionSummary=el('p','','decision-summary');decisionSummary.setAttribute('aria-label','当前候选摘要');
+   const businessStatus=el('section','','business-status');businessStatus.setAttribute('aria-label','业务闭环状态');
++  const dailyChannelsSection=el('section');
+   const researchFocus=el('section','','manager-research-focus');researchFocus.setAttribute('aria-label','次日重点研究名单');
+   const closeRecapture=el('section','','manager-close-recapture');closeRecapture.setAttribute('aria-label','盘后补采研究观察');
+   const filters=el('div','','decision-filters');filters.setAttribute('aria-label','关注来源筛选');
+@@ -160,8 +165,10 @@
+   const auditBody = el('div'); audit.append(auditBody);
+   const themeDetails=el('details');themeDetails.dataset.policyDetails='true';themeDetails.append(el('summary','政策与产业线索：适用公司、原文及缺口'),themes);
+   const provenance=el('details');provenance.append(el('summary','原owner状态与公司原始分类'),runSummary,runDetails,companyEvents);
++  const rawObservationAudit=el('details');rawObservationAudit.dataset.rawObservationAudit='true';
++  rawObservationAudit.append(el('summary','完整原始观察与来源审计（展开查看）'),closeRecapture);
+   // One entry for stock attention. Source lists remain audit/context, not rivals.
+-  panel.append(style,header,status,announcementAnalysisSection,businessStatus,researchFocus,closeRecapture,decisionSummary,filters,stocks,background,researchAttentionSection,themeDetails,strategy,announcementSection,provenance,
++  panel.append(style,header,status,businessStatus,dailyChannelsSection,researchAttentionSection,researchFocus,announcementAnalysisSection,decisionSummary,filters,stocks,background,themeDetails,strategy,announcementSection,rawObservationAudit,provenance,
+     el('p','仅研究：事件成立与行情承接、BUY准入分开。未核同口径量价不报触发价；不因高开远离可靠参考位追入，也不预设一定回踩。未读取仓位、未发订单。','decision-safety'),audit);
+   host.replaceChildren(panel);
+ 
+@@ -463,10 +470,16 @@
+   function render(value: ManagerWorkspace): void {
+     // Input identity is retained for audit; it is not a stock ranking.
+     currentValue=value;loadedView=view;
++    // The validated response is the authority for channel dates. Legacy DTOs
++    // supply no verified channel counts; the renderer keeps them unknown.
++    renderDailyChannels(dailyChannelsSection,value.daily_channels,value.date_bindings || {
++      plan_date:value.target_trade_date,selection_date:value.target_trade_date,announcement_date:publicationDate,
++    });
+     renderResearchAttention(researchAttentionSection,value.research_attention as ResearchAttention|undefined,value.us_market_attention as UsMarketAttention|undefined,
+       value.selection_diagnostics,value.us_mapping_research as UsMappingResearch|undefined);
+     panel.dataset.inputIdentity=value.input_identity; panel.dataset.targetDate=value.target_trade_date;panel.dataset.readState='READY';
+     renderCloseRecapture(value);
++    rawObservationAudit.open=false;
+     const ctx=(value.plan_context || {}) as JsonObject;const product=(value.plan_product || {}) as JsonObject;
+     const read=(value.read_context || {}) as JsonObject;
+     const planAttempt=(value.workspace_plan_attempt || {}) as JsonObject;
+@@ -480,7 +493,8 @@
+       (view==='dynamic'?'现在回看（含后续信息，非当时已知）':savedDraft?'次日研究预览（已保存草案；未正式冻结）':
+         savedFreeze?'盘前计划已冻结（原owner产物）':'当日动态预览（非历史冻结计划）');
+     status.textContent=`计划 ${date} · ${label} ｜ 材料截至 ${timeText(ctx.research_cutoff)} ｜ 行情基准 ${text(ctx.market_session)}，${ctx.market_data_verified===true?'原行情已核':'原行情未核'}（非晚间实时行情）。`;
+-    businessStatus.replaceChildren(...businessStatusRows(value).map(row=>{const item=el('article','','business-status-row');item.append(el('strong',`${row.label}：${row.state}`),el('p',row.detail),el('p',`下一步：${row.next}`));return item;}));
++    businessStatus.replaceChildren(...businessStatusRows(value).map(row=>{const item=el('article','','business-status-row');item.append(el('strong',`${row.displayLabel||row.label}：${row.state}`),el('p',row.detail),el('p',`下一步：${row.next}`));
++      if(row.label==='计划')renderPlanInputIdentityDiagnostic(item,product.input_identity_diagnostic);return item;}));
+     const decisionCounts=decisionSummaryCounts(value);
+     decisionSummary.textContent=`研究窗口 ${timeText(ctx.focus_window_start)}—${timeText(ctx.research_cutoff)}；按当前最终展示分类 ${decisionCounts.current}只公司/产业研究，${decisionCounts.background}只背景/原量价（原focus ${value.focus_symbols.length}只，保持不变）。先核具体变化，再核预期；同组未比较收益，不是Top排名。`;
+     if(read.candidate_count_known===false) decisionSummary.textContent=`研究窗口 ${timeText(ctx.focus_window_start)}—${timeText(ctx.research_cutoff)}；候选、风险和覆盖未知，不是已成功扫描后的零候选。${read.reason?historyReason(read.reason):'须补齐原owner证据。'}`;
+@@ -541,7 +555,8 @@
+   function clearResults(): void {
+     currentValue=null;loadedView=null;decisionSummary.textContent='候选和风险数量未知';
+     filterCount.textContent='读取中 · 数量未知';background.hidden=true;runSummary.textContent='';
+-    for(const node of [stocks,backgroundBody,companyEvents,runs,themes,auditBody,businessStatus,researchFocus,closeRecapture])node.replaceChildren();
++    for(const node of [stocks,backgroundBody,companyEvents,runs,themes,auditBody,businessStatus,researchFocus,closeRecapture,dailyChannelsSection])node.replaceChildren();
++    rawObservationAudit.open=false;
+     renderScreen(undefined);
+     renderResearchAttention(researchAttentionSection,undefined,undefined);
+     delete panel.dataset.inputIdentity;delete panel.dataset.targetDate;panel.dataset.readState='LOADING';
+@@ -626,15 +641,17 @@
+     readButton.disabled=true;refreshButton.disabled=true;cancelButton.hidden=false;
+     status.textContent=(keep?`计划 ${date}：以下为上次合格结果（非本次新结果）；正在更新。 `:`计划 ${date}：正在核对历史计划/来源，数量未知。 `)+
+       (refresh?'原经理owner仅用既有材料生成计划，不抓取。':'本次为只读，不生成、不采集。');
+-    let refreshFailure='';let refreshedValue: ManagerWorkspace | null = null;
++    let refreshFailure='';
+     try {
+       if(refresh){
+-        try { refreshedValue=await refreshManagerWorkspace(requestedDate,current.signal); }
++        try { await refreshManagerWorkspace(requestedDate,current.signal,requestBindings); }
+         catch(error){if(current.signal.aborted)throw error;refreshFailure=failureKind(error,false,false)[0];}
+       }
+-      // Reuse successful POST once. Failed POST permits one canonical read,
+-      // with no retry/poll loop or implicit collection.
+-      const value=refreshedValue || await requestManagerWorkspace(requestedDate,current.signal,requestedView);
++      // One canonical GET uses the selected view and channel dates after a
++      // manual POST. No retry/poll loop or implicit collection is introduced.
++      const value=await requestManagerWorkspace(requestedDate,current.signal,requestedView,requestBindings);
++      if(current.signal.aborted)throw new Error('WORKSPACE_READ_CANCELLED');
++      if(value.date_bindings)validateWorkspaceDateBindings(value.date_bindings,requestedDate,requestBindings);
+       if(!disposed && id===sequence && date===requestedDate && view===requestedView){
+         render(value);if(refreshFailure)status.textContent+=` 本次生成失败：${refreshFailure} 以下仅为重新核验的读取状态。`;
+       }
+--- a/apps/web/src/manager-selection/businessStatus.ts
++++ b/apps/web/src/manager-selection/businessStatus.ts
+@@ -1,9 +1,45 @@
+ import type { JsonObject, ManagerWorkspace } from '../api/managerWorkspace.js';
+ 
+-export interface BusinessStatusRow {label:string;state:string;detail:string;next:string;}
++export interface BusinessStatusRow {label:string;displayLabel?:string;state:string;detail:string;next:string;}
+ const object=(value:unknown):JsonObject=>value&&typeof value==='object'&&!Array.isArray(value)?value as JsonObject:{};
+ const text=(value:unknown,fallback='')=>typeof value==='string'&&value.trim()?value:fallback;
+ const safeCount=(value:unknown):number|null=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0?value:null;
++
++/** Optional, already validated difference receipt; never alters plan admission. */
++export function renderPlanInputIdentityDiagnostic(host:HTMLElement,raw:unknown):void{
++  if(!raw || typeof raw!=='object' || Array.isArray(raw))return;
++  const diagnostic=object(raw);
++  const element=(tag:'section'|'p'|'details'|'summary',content='')=>{const node=document.createElement(tag);node.textContent=content;return node;};
++  const rows=(value:unknown)=>Array.isArray(value)?value.map(object):[];
++  const changes=rows(diagnostic.changed_components),provenance=rows(diagnostic.provenance_changes);
++  const box=element('section');box.dataset.planInputDiagnostic='true';box.setAttribute('aria-label','计划输入身份差异凭证');
++  box.append(element('p',`计划输入身份核对：${text(diagnostic.status,'CANNOT_CONFIRM')}`));
++  const reasons=Array.isArray(diagnostic.reason_codes)?diagnostic.reason_codes.filter(value=>typeof value==='string') as string[]:[];
++  if(reasons.length)box.append(element('p',`核对原因：${reasons.join('；')}`));
++  if(diagnostic.status==='CANNOT_CONFIRM')box.append(element('p','差异证据未闭环，不能定位已变化来源；不据此识别原历史运行的原因。'));
++  const component=(row:JsonObject,provenanceOnly=false)=>{
++    const item=element('section');const source=object(row.source);
++    item.append(element('p',`组件 ${text(row.component_id,'未提供')} · ${provenanceOnly?'仅 provenance':text(row.change,'未提供')}`));
++    if(Object.keys(source).length)item.append(element('p',`来源 ${text(source.source_id,'未提供')}；来源日 ${text(source.source_date,'未提供')}；payload 路径 ${text(source.payload_path,'未提供')}；receipt 路径 ${text(source.receipt_path,'未提供')}`),
++      element('p',`来源根路径指纹 SHA-256 ${text(source.source_root_sha256,'未提供')}；slot ${text(source.slot,'未提供')}；mode ${text(source.mode,'未提供')}`));
++    item.append(element('p',`保存 ${provenanceOnly?'manifest ':''}SHA-256 ${text(provenanceOnly?row.saved_manifest_sha256:row.saved_sha256,'未提供')}；当前 ${provenanceOnly?'manifest ':''}SHA-256 ${text(provenanceOnly?row.current_manifest_sha256:row.current_sha256,'未提供')}`));
++    return item;
++  };
++  if(diagnostic.status==='CHANGED'&&changes.length){
++    const first=changes.find(row=>Object.keys(object(row.source)).length)||changes[0];
++    const visible=component(first);visible.dataset.firstIdentityChange='true';box.append(visible);
++  }
++  const complete=(title:string,list:JsonObject[],provenanceOnly:boolean)=>{
++    const details=element('details') as HTMLDetailsElement;
++    if(provenanceOnly)details.dataset.identityProvenance='true';else details.dataset.identityChanges='true';
++    details.append(element('summary',`${title}（${list.length}）`));
++    let loaded=false;details.addEventListener('toggle',()=>{if(details.open&&!loaded){loaded=true;details.append(...list.map(row=>component(row,provenanceOnly)));}});
++    box.append(details);
++  };
++  if(changes.length)complete('全部语义输入差异',changes,false);
++  if(provenance.length)complete('来源登记指纹变化（仅 provenance；不作为陈旧原因）',provenance,true);
++  host.append(box);
++}
+ 
+ function usAssessmentState(mapping:JsonObject):'NOT_EVALUATED'|'INSUFFICIENT'|'ASSESSED_ZERO'|'ASSESSED_WITH_RELATIONS'{
+   const state=mapping.assessment_state;
+@@ -154,7 +190,7 @@
+   return [
+     {label:'计划',state:planState,detail:planDetail,next:planNext},
+     {label:'HKEX独立公告观察',state:annState,detail:annDetail,next:annNext},
+-    {label:'美股',state:US_ASSESSMENT_LABELS[assessment],detail:usDetail,next:usNext},
++    {label:'美股',displayLabel:'美股输入评估／完整度',state:US_ASSESSMENT_LABELS[assessment],detail:usDetail,next:usNext},
+     {label:'研究关注',state:attentionStatus,detail:`只读研究优先级；原screen/Stage/BUY不变。`,next:'继续核对证据时间、来源与缺口；不把分数当买入排名。'},
+     ...laneRows,
+   ];
+--- a/apps/web/src/manager-selection/researchAttention.ts
++++ b/apps/web/src/manager-selection/researchAttention.ts
+@@ -208,12 +208,12 @@
+ }
+ function renderUsMappingResearch(host:HTMLElement, mapping?:UsMappingResearch):void{
+   const box=el('section');box.className='us-mapping-research';box.dataset.usMappingResearch='';box.setAttribute('aria-label','美股到港股业务关系研究');
+-  box.append(el('h4','美股 → 港股业务关系研究（只读研究，不是选股或 BUY）'));
++  box.append(el('h4','每日 US-HK 已审映射 · 美股 → 港股业务关系研究（只读研究，不是选股或 BUY）'));
+   if(!mapping){box.append(el('p','映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。'));host.append(box);return;}
+   const daily=mapping.daily_run;
+   box.append(el('p',`日常流程：${daily.status}；目标港股交易日 ${dateLabel(daily.target_trade_date)}；美股来源日 ${dateLabel(daily.us_session_date)}；cutoff ${text(daily.research_cutoff)}；关系结果按日期单独保存并要求回读。`));
+   if(daily.status==='NOT_RUN')box.append(el('p','该目标日尚无日常映射产物；数量未知，不等于没有匹配。'));
+-  else if(daily.status==='VALID_EMPTY')box.append(el('p','完整来源已检查当前4个已审阅美股关系，匹配为0；这只表示该小型已审关系范围为空，不代表全市场或其他关系为空。'));
++  else if(daily.status==='VALID_EMPTY')box.append(el('p',`当前 ${String(daily.coverage.reviewed_us_symbol_count??'数量未知')} 个已审关系，匹配为0；这只表示该小型已审关系范围为空，不代表全市场或其他关系为空，也不代表美股输入评估／完整度已通过。`));
+   else if(daily.status==='FAILED'||daily.status==='INPUT_MISSING'||daily.status==='CANNOT_CONFIRM')
+     box.append(el('p',`来源或回读未闭环，匹配数量未知；${daily.gaps.join('；')||'CANNOT_CONFIRM'}。`));
+   else if(daily.status==='PARTIAL')
+--- a/apps/web/src/manager-selection/dailyChannels.ts
++++ b/apps/web/src/manager-selection/dailyChannels.ts
+@@ -209,6 +209,11 @@
+     article.append(element('p', `${candidateText}${channel?.watch_count !== undefined ? ` · 观察 ${channel.watch_count}` : ''} · ${pendingText}`));
+     article.append(element('p', `数据日 ${channel?.data_date ?? '未核实'}`, 'manager-daily-meta'));
+     article.append(element('p', `运行编号 ${channel?.run_id ?? '未提供/待核'} · ${channel ? executionNames[channel.execution_kind] : '生成运行未核实'}`, 'manager-daily-meta'));
++    if (channel) {
++      article.append(element('p', `原 owner ${channel.owner}`, 'manager-daily-meta'),
++        element('p', `产物 SHA-256 ${channel.product_sha256 ?? '未提供/待核'} · 输入身份 ${channel.input_identity ?? '未提供/待核'}`, 'manager-daily-meta'));
++      if (channel.gaps.length) article.append(element('p', `缺口：${channel.gaps.join('；')}`));
++    }
+     if (channel?.generated_at) article.append(element('p', `产物时间 ${channel.generated_at}`, 'manager-daily-meta'));
+     if (channel?.rows.length) {
+       const list = element('ol', '', 'manager-daily-rows');

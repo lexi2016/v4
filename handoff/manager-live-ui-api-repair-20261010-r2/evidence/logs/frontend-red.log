@@ -1,0 +1,83 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/apps/web
+
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts (7 tests | 4 failed) 312ms
+     × renders all three channels from one validated workspace even when the saved plan is stale 141ms
+     × places plan and core research before a collapsed audit containing every original observation row 50ms
+     × labels US input assessment separately from four reviewed daily US-HK relations 50ms
+     × keeps older optional DTOs readable while displaying unknown channel counts 45ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts > current fused manager panel repair through validated HTTP mount > renders all three channels from one validated workspace even when the saved plan is stale
+AssertionError: expected  to have a length of 3 but got +0
+
+- Expected
++ Received
+
+- 3
++ 0
+
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts:53:59
+     51|     const raw = fixture(); expect(() => validateManagerWorkspace(raw, …
+     52|     const host = await mount(raw);
+     53|     expect(host.querySelectorAll('[data-daily-channel]')).toHaveLength…
+       |                                                           ^
+     54|     expect(host.querySelector('[data-daily-bindings]')?.textContent).t…
+     55|     const announcement = host.querySelector('[data-daily-channel="ANNO…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts > current fused manager panel repair through validated HTTP mount > places plan and core research before a collapsed audit containing every original observation row
+AssertionError: expected null not to be null
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts:73:23
+     71|     const raw = fixture(), before = JSON.stringify(raw); const host = …
+     72|     const audit = host.querySelector('details[data-raw-observation-aud…
+     73|     expect(audit).not.toBeNull(); expect(audit.open).toBe(false);
+       |                       ^
+     74|     precedes(host.querySelector('[aria-label="业务闭环状态"]')!, host.queryS…
+     75|     precedes(host.querySelector('[data-daily-channels]')!, audit);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts > current fused manager panel repair through validated HTTP mount > labels US input assessment separately from four reviewed daily US-HK relations
+AssertionError: expected '计划：冻结产物已陈旧STALE_INPUTS_CHANGED；执行类型或运…' to contain '美股输入评估／完整度：尚未评估'
+
+Expected: "美股输入评估／完整度：尚未评估"
+Received: "计划：冻结产物已陈旧STALE_INPUTS_CHANGED；执行类型或运行身份未匹配；读取 VERIFIED下一步：在合法盘前冻结窗口由现有 Manager owner 物化；晚间不得补成盘前。HKEX独立公告观察：未读取当前历史响应未提供 HKEX 公告 owner observation；不能解释为未运行或 0 条公告。下一步：读取同一目标日期的 HKEX 官方 owner observation/receipt；缺字段不能推断未运行。美股：尚未评估美股来源尚未读取；行业上涨 未知 个／个股上涨 未知 个；合格关系尚未计算下一步：等待同一目标日期的完整美股时段快照与关系材料输入，再开始评估；缺失输入不代表合格关系为零。研究关注：CANNOT_CONFIRM只读研究优先级；原screen/Stage/BUY不变。下一步：继续核对证据时间、来源与缺口；不把分数当买入排名。Stage：未运行NOT_RUN；产物状态 未知；时段 未知；最近成功 未记录；最近尝试 未记录下一步：按原owner补齐/复验该lane产物；历史缺件不得用当前输入回填。材料：未运行NOT_RUN；最近成功 未记录；最近尝试 未记录下一步：按原owner补齐/复验该lane产物；历史缺件不得用当前输入回填。15:30：未运行NOT_RUN；最近成功 未记录；最近尝试 未记录下一步：按原owner补齐/复验该lane产物；历史缺件不得用当前输入回填。"
+
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts:90:70
+     88|   it('labels US input assessment separately from four reviewed daily U…
+     89|     const host = await mount();
+     90|     expect(host.querySelector('[aria-label="业务闭环状态"]')?.textContent).t…
+       |                                                                      ^
+     91|     const mapping = host.querySelector('[data-us-mapping-research]');
+     92|     expect(mapping?.querySelector('h4')?.textContent).toContain('每日 US…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts > current fused manager panel repair through validated HTTP mount > keeps older optional DTOs readable while displaying unknown channel counts
+AssertionError: expected  to have a length of 3 but got +0
+
+- Expected
++ Received
+
+- 3
++ 0
+
+ ❯ src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts:112:59
+    110|     const raw = fixture(); delete raw.daily_channels; delete raw.date_…
+    111|     const host = await mount(raw);
+    112|     expect(host.querySelectorAll('[data-daily-channel]')).toHaveLength…
+       |                                                           ^
+    113|     for (const card of host.querySelectorAll('[data-daily-channel]')) {
+    114|       expect(card.textContent).toContain('候选数量未知'); expect(card.textCo…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 3 passed (7)
+   Start at  09:57:44
+   Duration  1.30s (transform 226ms, setup 0ms, import 402ms, tests 312ms, environment 420ms)
+

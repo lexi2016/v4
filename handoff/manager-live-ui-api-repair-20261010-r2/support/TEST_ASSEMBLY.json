@@ -1,0 +1,97 @@
+{
+  "scope": "OFFLINE_TEST_ASSEMBLY_ONLY",
+  "production_changed": false,
+  "time_utc": "2026-10-10T08:30:10.764508+00:00",
+  "fixed_inputs": [
+    {
+      "kind": "original76",
+      "source": "/workspace/scratch/0e089a11ee60/v4/handoff/manager-validator-restoration-20261009-r1/tests/apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
+      "fixed_commit": "c0fc35c7b39502f49e43c2e75139dad7822091cf",
+      "tree_sha": "21e0e3ae3cd9434ae95400b4ed2abbd0c16ff1bd",
+      "git_blob_sha1": "a37994c4a54b4fec2d1a4b5ff8969e17ade60592",
+      "sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873",
+      "bytes": 16344
+    },
+    {
+      "kind": "fixed_fixture",
+      "root": "baseline",
+      "path": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "git_blob_sha1": "7decbc76298a57a1c0c6e05caeb1125517bbe42a",
+      "sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525",
+      "bytes": 4410
+    },
+    {
+      "kind": "fixed_fixture",
+      "root": "baseline",
+      "path": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json",
+      "git_blob_sha1": "5ef20fed9a3f31a1ac5df9a2b7b1af71263f7c60",
+      "sha256": "0a56e12d5a56e7534b9a484e8bc2443677a2abeb5d3a9feea56ac0d641b2dce8",
+      "bytes": 50645
+    },
+    {
+      "kind": "fixed_fixture",
+      "root": "candidate",
+      "path": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "git_blob_sha1": "7decbc76298a57a1c0c6e05caeb1125517bbe42a",
+      "sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525",
+      "bytes": 4410
+    },
+    {
+      "kind": "fixed_fixture",
+      "root": "candidate",
+      "path": "/workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json",
+      "git_blob_sha1": "5ef20fed9a3f31a1ac5df9a2b7b1af71263f7c60",
+      "sha256": "0a56e12d5a56e7534b9a484e8bc2443677a2abeb5d3a9feea56ac0d641b2dce8",
+      "bytes": 50645
+    }
+  ],
+  "added": [
+    {
+      "root": "baseline",
+      "path": "apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
+      "sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873",
+      "origin": "original76_fixed_git"
+    },
+    {
+      "root": "candidate",
+      "path": "apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
+      "sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873",
+      "origin": "original76_fixed_git"
+    },
+    {
+      "root": "baseline",
+      "path": "tests/test_manager_semantic_identity_20261010.py",
+      "sha256": "bf16a6d5e94cc2d70e92735a6e69da998afc960569bda6d908c3712d4237ae42",
+      "origin": "new_focused_test_copied_exact"
+    },
+    {
+      "root": "baseline",
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts",
+      "sha256": "05f31ebc81b41ea52dde12ef834e56fd71043ce159113e1bfef741a0f470275c",
+      "origin": "new_focused_test_copied_exact"
+    },
+    {
+      "root": "baseline",
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.backendDto.runtime.spec.ts",
+      "sha256": "b08218ab27bde6628dc54d75889369543fd5e8a4ec429339c55de3943139d1f8",
+      "origin": "new_focused_test_copied_exact"
+    }
+  ],
+  "identical_focused_test_paths": [
+    "tests/test_manager_semantic_identity_20261010.py",
+    "apps/web/src/api/managerWorkspace.identityDiagnostic.spec.ts",
+    "apps/web/src/manager-selection/catalystObservationPanel.liveRepair.runtime.spec.ts",
+    "apps/web/src/manager-selection/catalystObservationPanel.backendDto.runtime.spec.ts"
+  ],
+  "existing_original_spec": "apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
+  "excluded_inventory_dirs": [
+    "__pycache__",
+    "node_modules",
+    ".git",
+    ".pytest_cache",
+    ".vite",
+    "dist"
+  ],
+  "source_before": "review/final-source-before.json",
+  "source_pretest": "review/final-source-pretest.json"
+}

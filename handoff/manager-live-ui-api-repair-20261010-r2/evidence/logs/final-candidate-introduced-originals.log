@@ -1,0 +1,25 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python
+rootdir: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collecting ... collected 2 items
+
+tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history FAILED [ 50%]
+tests/test_manager_history_control_r1.py::test_projection_memo_capacity_bytes_ttl_and_exceptions PASSED [100%]
+
+=================================== FAILURES ===================================
+__ test_late_input_advances_same_day_plan_without_overwriting_preopen_history __
+tests/test_manager_daily_automation_20261008.py:374: in test_late_input_advances_same_day_plan_without_overwriting_preopen_history
+    result = cycle.run_same_day_catchup_plan(service, "20261008",
+ops/run_manager_announcement_cycle.py:361: in run_same_day_catchup_plan
+    value=service.refresh_workspace_plan(target,execution_kind='MANUAL_REFRESH',now=local,
+v4/manager_research/service.py:475: in refresh_workspace_plan
+    return refresh_workspace_plan(self, target_trade_date, execution_kind=execution_kind, now=now,
+v4/manager_research/workspace.py:1283: in refresh_workspace_plan
+    raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+E   ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED
+- generated xml file: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-candidate-introduced-originals.xml -
+=========================== short test summary info ============================
+FAILED tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history - ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED
+========================= 1 failed, 1 passed in 0.43s ==========================

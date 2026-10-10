@@ -1,0 +1,92 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python
+rootdir: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/candidate/app
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collecting ... collected 56 items / 33 deselected / 23 selected
+
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current FAILED [  4%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots FAILED [  8%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[resealed_content] PASSED [ 13%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[unsealed_payload] PASSED [ 17%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[receipt] PASSED [ 21%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[manifest_entry] PASSED [ 26%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[availability] PASSED [ 30%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[artifact_removed] PASSED [ 34%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_consumed_source_changes[source_lost] PASSED [ 39%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[payload_sha256-1111111111111111111111111111111111111111111111111111111111111111] PASSED [ 43%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[receipt_sha256-2222222222222222222222222222222222222222222222222222222222222222] PASSED [ 47%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[source_date-20261007] PASSED [ 52%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[payload_path-research/archives/20261007.json] PASSED [ 56%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[receipt_path-receipts/research/archives/20261007.json] PASSED [ 60%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[source_root-/isolated/rebound-owner] PASSED [ 65%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[mode-REPLAY] PASSED [ 69%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[source_id-ANOTHER_OWNER] PASSED [ 73%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[status-CANNOT_CONFIRM] PASSED [ 78%]
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_rejects_resealed_frozen_binding_changes[manifest_sha256-not-a-sha] PASSED [ 82%]
+tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance FAILED [ 86%]
+tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_native_identity_loss_still_fails_closed FAILED [ 91%]
+tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_acquisition_change_is_not_provenance[available_at] PASSED [ 95%]
+tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_acquisition_change_is_not_provenance[retrieved_at] PASSED [100%]
+
+=================================== FAILURES ===================================
+_ test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current _
+tests/test_manager_semantic_identity_20261010.py:413: in test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current
+    assert service.get_catalyst_observations(DATE) == captured
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/service.py:386: in get_catalyst_observations
+    return read(self.store, self._material_store, target_trade_date,
+v4/manager_research/catalyst_observations.py:480: in read
+    actual=project_archive_catalysts(archive_source,ctx,security_master_root,frozen=previous['snapshot'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/archive_catalyst_inputs.py:69: in project_archive_catalysts
+    if frozen is not None and selected!=frozen['selections'][index]:raise ValueError('ARCHIVE_CATALYST_SOURCE_CHANGED')
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+_ test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots __
+tests/test_manager_semantic_identity_20261010.py:444: in test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots
+    assert service.get_catalyst_observations(DATE) == captured
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/service.py:386: in get_catalyst_observations
+    return read(self.store, self._material_store, target_trade_date,
+v4/manager_research/catalyst_observations.py:480: in read
+    actual=project_archive_catalysts(archive_source,ctx,security_master_root,frozen=previous['snapshot'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/archive_catalyst_inputs.py:69: in project_archive_catalysts
+    if frozen is not None and selected!=frozen['selections'][index]:raise ValueError('ARCHIVE_CATALYST_SOURCE_CHANGED')
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+____ test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance ____
+tests/test_manager_semantic_identity_20261010.py:568: in test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance
+    assert service.get_catalyst_observations(DATE) == captured
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/service.py:386: in get_catalyst_observations
+    return read(self.store, self._material_store, target_trade_date,
+v4/manager_research/catalyst_observations.py:480: in read
+    actual=project_archive_catalysts(archive_source,ctx,security_master_root,frozen=previous['snapshot'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/archive_catalyst_inputs.py:69: in project_archive_catalysts
+    if frozen is not None and selected!=frozen['selections'][index]:raise ValueError('ARCHIVE_CATALYST_SOURCE_CHANGED')
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+___ test_archive_projection_boundary_native_identity_loss_still_fails_closed ___
+tests/test_manager_semantic_identity_20261010.py:581: in test_archive_projection_boundary_native_identity_loss_still_fails_closed
+    with pytest.raises(ValueError, match="ARCHIVE_CATALYST_IDENTITY_CHANGED"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'ARCHIVE_CATALYST_IDENTITY_CHANGED'
+E     Actual message: 'ARCHIVE_CATALYST_SOURCE_CHANGED'
+=============================== warnings summary ===============================
+tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current
+  /workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current - ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+FAILED tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots - ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+FAILED tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance - ValueError: ARCHIVE_CATALYST_SOURCE_CHANGED
+FAILED tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_native_identity_loss_still_fails_closed - AssertionError: Regex pattern did not match.
+  Expected regex: 'ARCHIVE_CATALYST_IDENTITY_CHANGED'
+  Actual message: 'ARCHIVE_CATALYST_SOURCE_CHANGED'
+============ 4 failed, 19 passed, 33 deselected, 1 warning in 3.82s ============

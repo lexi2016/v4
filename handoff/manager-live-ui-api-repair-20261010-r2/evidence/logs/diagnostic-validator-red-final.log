@@ -1,0 +1,99 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app/apps/web
+
+ ❯ src/api/managerWorkspace.identityDiagnostic.spec.ts (23 tests | 16 failed) 19ms
+     × rejects unknown schema rather than rendering a misleading source diagnosis 5ms
+     × rejects unknown status rather than rendering a misleading source diagnosis 1ms
+     × rejects unbound current identity rather than rendering a misleading source diagnosis 1ms
+     × rejects invalid saved identity rather than rendering a misleading source diagnosis 1ms
+     × rejects false MATCH rather than rendering a misleading source diagnosis 0ms
+     × rejects missing changed evidence rather than rendering a misleading source diagnosis 0ms
+     × rejects non-list changed evidence rather than rendering a misleading source diagnosis 0ms
+     × rejects duplicate component rather than rendering a misleading source diagnosis 0ms
+     × rejects equal changed fingerprints rather than rendering a misleading source diagnosis 1ms
+     × rejects unsupported added fingerprint rather than rendering a misleading source diagnosis 0ms
+     × rejects bad source date rather than rendering a misleading source diagnosis 0ms
+     × rejects source path traversal rather than rendering a misleading source diagnosis 0ms
+     × rejects source root unbound rather than rendering a misleading source diagnosis 0ms
+     × rejects unexplained uncertainty rather than rendering a misleading source diagnosis 0ms
+     × rejects consumption when the component evidence reports a changed input 0ms
+     × rejects a malformed provenance fingerprint even when semantic inputs match 0ms
+
+ Test Files  1 failed (1)
+      Tests  16 failed | 7 passed (23)
+   Start at  10:07:53
+   Duration  798ms (transform 124ms, setup 0ms, import 145ms, tests 19ms, environment 426ms)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 16 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects unknown schema rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects unknown status rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects unbound current identity rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects invalid saved identity rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects false MATCH rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects missing changed evidence rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects non-list changed evidence rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects duplicate component rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects equal changed fingerprints rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects unsupported added fingerprint rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects bad source date rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects source path traversal rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects source root unbound rather than rendering a misleading source diagnosis
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects unexplained uncertainty rather than rendering a misleading source diagnosis
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ src/api/managerWorkspace.identityDiagnostic.spec.ts:63:71
+     61|   ])('rejects %s rather than rendering a misleading source diagnosis',…
+     62|     const value = fixture(); mutate(diagnostic(value));
+     63|     expect(() => validateManagerWorkspace(value, bindings.plan_date)).…
+       |                                                                       ^
+     64|   });
+     65|   it('rejects consumption when the component evidence reports a change…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯
+
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects consumption when the component evidence reports a changed input
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ src/api/managerWorkspace.identityDiagnostic.spec.ts:67:71
+     65|   it('rejects consumption when the component evidence reports a change…
+     66|     const value = fixture(); (value.plan_product as JsonObject).consum…
+     67|     expect(() => validateManagerWorkspace(value, bindings.plan_date)).…
+       |                                                                       ^
+     68|   });
+     69|   it('rejects a malformed provenance fingerprint even when semantic in…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/16]⎯
+
+ FAIL  src/api/managerWorkspace.identityDiagnostic.spec.ts > source-bound plan identity diagnostics at the workspace boundary > rejects a malformed provenance fingerprint even when semantic inputs match
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ src/api/managerWorkspace.identityDiagnostic.spec.ts:73:71
+     71|       component_id: 'artifact:synthetic-consumed-leaf', source: { ...s…
+     72|       saved_manifest_sha256: 'e'.repeat(64), current_manifest_sha256: …
+     73|     expect(() => validateManagerWorkspace(value, bindings.plan_date)).…
+       |                                                                       ^
+     74|   });
+     75|   it('still rejects an unsafe workspace carrying a valid diagnosis', (…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/16]⎯
+

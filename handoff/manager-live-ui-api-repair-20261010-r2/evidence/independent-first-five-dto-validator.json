@@ -1,0 +1,32 @@
+{
+  "kind": "INDEPENDENT_BACKEND_DTO_CONSUMER_PROBE",
+  "runtime": "v24.19.0",
+  "source": "actual saved synthetic backend DTOs",
+  "results": [
+    {
+      "fixture": "consumed_availability_rejected.json",
+      "status": "PASS",
+      "mutated": false
+    },
+    {
+      "fixture": "consumed_content_changed.json",
+      "status": "PASS",
+      "mutated": false
+    },
+    {
+      "fixture": "date_bindings_changed.json",
+      "status": "PASS",
+      "mutated": false
+    },
+    {
+      "fixture": "legacy_missing_components.json",
+      "status": "PASS",
+      "mutated": false
+    },
+    {
+      "fixture": "manifest_only_match.json",
+      "status": "PASS",
+      "mutated": false
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "task-1-regressions-baseline": {
+    "summary": "======================== 16 failed, 100 passed in 3.44s ========================",
+    "failures": [
+      "tests/test_manager_workspace_targeted_r2.py::test_half_day_close_is_native_and_can_anchor_window",
+      "tests/test_manager_workspace_targeted_r2.py::test_missing_half_day_close_is_an_explicit_calendar_gap",
+      "tests/test_manager_workspace_targeted_r2.py::test_rebound_screen_binds_panel_recovery_to_latest_native_previous5_session",
+      "tests/test_manager_workspace_targeted_r2.py::test_two_character_unique_chinese_issuer_in_delimited_title",
+      "tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u5357\\u65b9\\u6e2f\\u80a1\\u901a\\u7ea2\\u5229\\u653f\\u7b56\\u53d8\\u5316-master2-expected2]",
+      "tests/test_manager_workspace_targeted_r2.py::test_native_name_separate_source_positions_keep_both_issuers",
+      "tests/test_manager_plan_identity_r2.py::test_scheduled_existing_plan_is_not_reused_when_inputs_changed",
+      "tests/test_manager_plan_identity_r2.py::test_scheduled_same_inputs_do_not_double_publish",
+      "tests/test_manager_plan_identity_r2.py::test_autorun_cannot_shortcut_stale_plan_by_timestamp_alone",
+      "tests/test_manager_plan_readback_issue24.py::test_legacy_over_64_mib_is_read_losslessly_without_rewrite",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]"
+    ]
+  },
+  "task-1-red-final-v3": {
+    "summary": "=================== 12 failed, 21 passed, 1 warning in 2.56s ===================",
+    "failures": [
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_unconsumed_manifest_entry_does_not_change_identity",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_owner_saved_plan_stays_current_after_global_only_update",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_scheduled_plan_global_only_update_does_not_republish",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_true_stale_readback_locates_consumed_source_without_raw_payload[source_title-\\u661f\\u6d77\\u79d1\\u6280\\u4e1a\\u52a1\\u8bb0\\u5f55\\uff1a\\u65b0\\u589e\\u7ea6\\u675f]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_true_stale_readback_locates_consumed_source_without_raw_payload[available_at-2026-10-08T17:02:00+08:00]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_legacy_plan_without_component_metadata_is_not_forced_current",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[checksum]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[identity]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[component_hash]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[source_extra_field]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[provenance_shape]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_date_binding_stale_diagnostic_remains_explicit"
+    ]
+  },
+  "task-1-green-final-v3": {
+    "summary": "======================== 33 passed, 1 warning in 3.36s =========================",
+    "failures": []
+  },
+  "task-1-regressions-final-v3": {
+    "summary": "======================== 16 failed, 100 passed in 3.74s ========================",
+    "failures": [
+      "tests/test_manager_workspace_targeted_r2.py::test_half_day_close_is_native_and_can_anchor_window",
+      "tests/test_manager_workspace_targeted_r2.py::test_missing_half_day_close_is_an_explicit_calendar_gap",
+      "tests/test_manager_workspace_targeted_r2.py::test_rebound_screen_binds_panel_recovery_to_latest_native_previous5_session",
+      "tests/test_manager_workspace_targeted_r2.py::test_two_character_unique_chinese_issuer_in_delimited_title",
+      "tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u5357\\u65b9\\u6e2f\\u80a1\\u901a\\u7ea2\\u5229\\u653f\\u7b56\\u53d8\\u5316-master2-expected2]",
+      "tests/test_manager_workspace_targeted_r2.py::test_native_name_separate_source_positions_keep_both_issuers",
+      "tests/test_manager_plan_identity_r2.py::test_scheduled_existing_plan_is_not_reused_when_inputs_changed",
+      "tests/test_manager_plan_identity_r2.py::test_scheduled_same_inputs_do_not_double_publish",
+      "tests/test_manager_plan_identity_r2.py::test_autorun_cannot_shortcut_stale_plan_by_timestamp_alone",
+      "tests/test_manager_plan_readback_issue24.py::test_legacy_over_64_mib_is_read_losslessly_without_rewrite",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]"
+    ]
+  },
+  "task-1-metadata-shape-red": {
+    "summary": "================= 2 failed, 30 deselected, 1 warning in 1.33s ==================",
+    "failures": [
+      "tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[source_extra_field]",
+      "tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[provenance_shape]"
+    ]
+  },
+  "task-1-legacy-diagnostic-red": {
+    "summary": "================= 1 failed, 32 deselected, 1 warning in 0.73s ==================",
+    "failures": [
+      "tests/test_manager_semantic_identity_20261010.py::test_both_legacy_dtos_keep_optional_diagnostic_absent"
+    ]
+  },
+  "legacy_delta": {
+    "introduced": [],
+    "resolved": [],
+    "baseline": "task-1-regressions-baseline",
+    "candidate": "task-1-regressions-final-v4"
+  },
+  "task-1-catalyst-red": {
+    "summary": "============ 4 failed, 19 passed, 33 deselected, 1 warning in 3.75s ============",
+    "failures": [
+      "tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current",
+      "tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots",
+      "tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance",
+      "tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_native_identity_loss_still_fails_closed"
+    ]
+  },
+  "task-1-catalyst-red-valid": {
+    "summary": "============ 4 failed, 19 passed, 33 deselected, 1 warning in 3.82s ============",
+    "failures": [
+      "tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current",
+      "tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots",
+      "tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance",
+      "tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_native_identity_loss_still_fails_closed"
+    ]
+  },
+  "task-1-catalyst-green": {
+    "summary": "================= 23 passed, 33 deselected, 1 warning in 3.34s =================",
+    "failures": []
+  },
+  "task-1-red-final-v4": {
+    "summary": "=================== 16 failed, 40 passed, 1 warning in 5.54s ===================",
+    "failures": [
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_unconsumed_manifest_entry_does_not_change_identity",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_owner_saved_plan_stays_current_after_global_only_update",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_scheduled_plan_global_only_update_does_not_republish",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_true_stale_readback_locates_consumed_source_without_raw_payload[source_title-\\u661f\\u6d77\\u79d1\\u6280\\u4e1a\\u52a1\\u8bb0\\u5f55\\uff1a\\u65b0\\u589e\\u7ea6\\u675f]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_true_stale_readback_locates_consumed_source_without_raw_payload[available_at-2026-10-08T17:02:00+08:00]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_legacy_plan_without_component_metadata_is_not_forced_current",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[checksum]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[identity]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[component_hash]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[source_extra_field]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_invalid_saved_component_metadata_cannot_authorize_reuse[provenance_shape]",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_date_binding_stale_diagnostic_remains_explicit",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_global_only_keeps_full_replay_and_plan_current",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_materialized_archive_catalyst_frozen_replay_never_enumerates_new_slots",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_nonempty_cards_keep_frozen_provenance",
+      "../../candidate/app/tests/test_manager_semantic_identity_20261010.py::test_archive_projection_boundary_native_identity_loss_still_fails_closed"
+    ]
+  },
+  "task-1-green-final-v4": {
+    "summary": "======================== 56 passed, 1 warning in 6.26s =========================",
+    "failures": []
+  },
+  "task-1-independent-catalyst-green": {
+    "summary": "========================= 1 passed, 1 warning in 0.73s =========================",
+    "failures": []
+  },
+  "task-1-regressions-final-v4": {
+    "summary": "======================== 16 failed, 100 passed in 4.02s ========================",
+    "failures": [
+      "tests/test_manager_workspace_targeted_r2.py::test_half_day_close_is_native_and_can_anchor_window",
+      "tests/test_manager_workspace_targeted_r2.py::test_missing_half_day_close_is_an_explicit_calendar_gap",
+      "tests/test_manager_workspace_targeted_r2.py::test_rebound_screen_binds_panel_recovery_to_latest_native_previous5_session",
+      "tests/test_manager_workspace_targeted_r2.py::test_two_character_unique_chinese_issuer_in_delimited_title",
+      "tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u5357\\u65b9\\u6e2f\\u80a1\\u901a\\u7ea2\\u5229\\u653f\\u7b56\\u53d8\\u5316-master2-expected2]",
+      "tests/test_manager_workspace_targeted_r2.py::test_native_name_separate_source_positions_keep_both_issuers",
+      "tests/test_manager_plan_identity_r2.py::test_scheduled_existing_plan_is_not_reused_when_inputs_changed",
+      "tests/test_manager_plan_identity_r2.py::test_scheduled_same_inputs_do_not_double_publish",
+      "tests/test_manager_plan_identity_r2.py::test_autorun_cannot_shortcut_stale_plan_by_timestamp_alone",
+      "tests/test_manager_plan_readback_issue24.py::test_legacy_over_64_mib_is_read_losslessly_without_rewrite",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]",
+      "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]"
+    ]
+  },
+  "materialized_catalyst_coverage": {
+    "real_fixed_store": "Daily/hourly exact schema continues to reject acquisition-clock extras; missing clocks are isolated. Real original owner refresh/read/router/plan/global-only and source-negative controls PASS.",
+    "projection_boundary": "Explicit-clock synthetic reader-output boundary tests exercise nonempty cards, original native master, full owner replay equality, native identity loss and out-of-window acquisition rejection. They do not establish extended ResearchArchiveStore support.",
+    "catalyst_observations_changed": false,
+    "frozen_replay_enumerates_new_sources": false,
+    "live_or_mac_acceptance": "NOT_RUN"
+  }
+}

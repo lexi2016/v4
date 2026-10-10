@@ -1,0 +1,12 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/0e089a11ee60/live_ui_api_20261010/runtime/bin/python
+rootdir: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/work/baseline/app
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collecting ... collected 2 items
+
+tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history PASSED [ 50%]
+tests/test_manager_history_control_r1.py::test_projection_memo_capacity_bytes_ttl_and_exceptions PASSED [100%]
+
+- generated xml file: /workspace/scratch/0e089a11ee60/live_ui_api_20261010/evidence/logs/final-baseline-introduced-originals.xml -
+============================== 2 passed in 0.30s ===============================
