@@ -1,0 +1,53 @@
+{
+  "baseline_commit": "4a8063eb3ac4bdbbb30bd7659c5a38c4b32e6d28",
+  "candidate_commit": "7115f65267a1496d0ca8214cc14130f8c2b65d87",
+  "product_tests": "NOT_RUN",
+  "mac_status": "OFFLINE",
+  "source_files": {
+    "V5/src/v5_shadow/archive_article_v2.py": {
+      "before_sha256": "086d9491d7b846fab73852f04279d459c6dc5a5025140880085e2888e653f3f0",
+      "after_sha256": "aafb3ce8081636d10869e141f3417fc42b5168e74677386cb055fd90c4c29f71",
+      "changed": true
+    },
+    "V5/src/v5_shadow/archive_reader.py": {
+      "before_sha256": "f272004e6f8f480dd4ce5d6d2b96d1356ac14976ab5b20bb3d81cc52af39dcef",
+      "after_sha256": "f272004e6f8f480dd4ce5d6d2b96d1356ac14976ab5b20bb3d81cc52af39dcef",
+      "changed": false
+    },
+    "V5/tests/test_archive_article_v2.py": {
+      "before_sha256": "826caae656b5767110ac49d1529f4d55b4aa3b9947658719ec36bd2e680cc9f4",
+      "after_sha256": "a59dab278f38f86f4f367d7bd03342506bc2d88cd03a992b5636c7f42ff853fe",
+      "changed": true
+    },
+    "V5/tests/test_archive_acquisition_producer.py": {
+      "before_sha256": "6df308f31ff1b66fd9582799f24413ef032aeddc46f804b3f6c06d81e8a84855",
+      "after_sha256": "6df308f31ff1b66fd9582799f24413ef032aeddc46f804b3f6c06d81e8a84855",
+      "changed": false
+    },
+    "V5/tests/test_manager_archive_reader.py": {
+      "before_sha256": "beaf07b10a807cd7435339c5e934b1bdbd9f59631a14e00d98e47029a7115647",
+      "after_sha256": "beaf07b10a807cd7435339c5e934b1bdbd9f59631a14e00d98e47029a7115647",
+      "changed": false
+    },
+    "V5/producers/archive-acquisition-v2/manifest.json": {
+      "before_sha256": "a184e5b328b1fb9ad2989cd7b28b38f38b95e960c598fd4ca96723d2ae66e513",
+      "after_sha256": "b8d5c725068d2f11e88ace17877fec3bfc6ea7fba01e3734b7c446c7c16757c2",
+      "changed": true
+    },
+    "V5/vendor/archive_reader_baseline/contracts/research.py": {
+      "before_sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "after_sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "changed": false
+    },
+    "handoff/v4-running-source-20261005/canonical/domains/research.py": {
+      "before_sha256": "b77cc0d3c9ec36eeee3e6cab207945a783b0352a703efdb5c8e2f7f17966506f",
+      "after_sha256": "b77cc0d3c9ec36eeee3e6cab207945a783b0352a703efdb5c8e2f7f17966506f",
+      "changed": false
+    },
+    "handoff/v4-running-source-20261005/canonical/ops/collect_hourly_research_input.py": {
+      "before_sha256": "767eaae79e2436284c0cf73626fd114a92448d3aff37b69c378862aae141a7fa",
+      "after_sha256": "767eaae79e2436284c0cf73626fd114a92448d3aff37b69c378862aae141a7fa",
+      "changed": false
+    }
+  }
+}
