@@ -1,0 +1,768 @@
+COMMAND: ["npm", "test", "--", "--maxWorkers=2"]
+V5_MODULE01_HTTP_RECEIPT: /workspace/scratch/d021d1397d6f/v5_module01/tmp/http-fixture/http-receipt.json
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> v3-5-web@0.1.0 test
+> vitest run --maxWorkers=2
+
+
+ RUN  v4.1.10 /workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts (22 tests | 1 failed) 1391ms
+     × reloads the selected canonical GET after manual generation and does not claim a scheduled run 1032ms
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts (21 tests | 3 failed) 1780ms
+     × keeps the requested-day manual HK observation compact until all 100 rows are expanded 6ms
+     × reuses the validated refresh response instead of issuing a second same-date GET 1189ms
+     × renders Eastmoney evidence from the selected-date daily owner review 1ms
+ ❯ src/api/cloudRecoveryContract.spec.ts (3 tests | 3 failed) 14ms
+     × accepts the exact generated owner run and SHA without historical promotion 4ms
+     × rejects broken context, provenance, date and same-run identities 1ms
+     × admits ordinary auto but rejects historical and dynamic relabeling 8ms
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts (3 tests | 3 failed) 13ms
+     × accepts the saved real recovery payload without changing its plan SHA 4ms
+     × rejects incomplete or falsely historical recovery identities 1ms
+     × accepts ordinary auto and refuses explicit historical or dynamic relabeling 7ms
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts (6 tests | 6 failed) 10ms
+     × uses the target date in the research selection heading and accessible label 6ms
+     × keeps unavailable screen coverage unknown rather than rendering an observed zero 1ms
+     × does not attach a fixed date when the selection ledger is absent 1ms
+     × validates and renders the complete ledger beyond the old 30-card cap 0ms
+     × rejects duplicate stock decisions and broken row accounting 0ms
+     × binds a strict research selection to the existing attention card priority 1ms
+ ❯ src/manager-selection/cloudActualReadback.spec.ts (1 test | 1 failed) 10ms
+   × renders the saved cloud auto response with the same run and honest missing-source state 9ms
+ ❯ src/api/managerWorkspace.announcementReview.spec.ts (4 tests | 4 failed) 6ms
+     × accepts the full saved 20261002 payload when retrieval follows the query coverage cutoff 4ms
+     × accepts the full saved 20261001 payload when retrieval follows the query coverage cutoff 0ms
+     × still rejects an announcement published after the source coverage cutoff 0ms
+     × retains explicit timezone and publication-before-acquisition checks 0ms
+ ❯ src/manager-selection/__tests__/workspaceAfterReadback.spec.ts (1 test | 1 failed) 5ms
+     × validates the complete owner response and renders the announcement lane 3ms
+ ❯ src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts (1 test | 1 failed) 5ms
+     × validates and renders the complete owner-derived 689-row selection 4ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 23 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/cloudRecoveryContract.spec.ts > cloud CURRENT_RECOVERY synthetic owner response > accepts the exact generated owner run and SHA without historical promotion
+Error: SYNTHETIC_CURRENT_RECOVERY_TEST_RESPONSE_REQUIRED
+ ❯ envelope src/api/cloudRecoveryContract.spec.ts:7:17
+      5| const envelope=()=>{
+      6|  const path=process.env.V5_SYNTHETIC_CURRENT_RECOVERY_RESPONSE;
+      7|  if(!path)throw new Error('SYNTHETIC_CURRENT_RECOVERY_TEST_RESPONSE_RE…
+       |                 ^
+      8|  const value=JSON.parse(readFileSync(path,'utf8'));
+      9|  expect(value.kind).toBe('SYNTHETIC_EMPTY_OWNER_NOT_BUSINESS_EVIDENCE'…
+ ❯ src/api/cloudRecoveryContract.spec.ts:15:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/23]⎯
+
+ FAIL  src/api/cloudRecoveryContract.spec.ts > cloud CURRENT_RECOVERY synthetic owner response > rejects broken context, provenance, date and same-run identities
+Error: SYNTHETIC_CURRENT_RECOVERY_TEST_RESPONSE_REQUIRED
+ ❯ envelope src/api/cloudRecoveryContract.spec.ts:7:17
+      5| const envelope=()=>{
+      6|  const path=process.env.V5_SYNTHETIC_CURRENT_RECOVERY_RESPONSE;
+      7|  if(!path)throw new Error('SYNTHETIC_CURRENT_RECOVERY_TEST_RESPONSE_RE…
+       |                 ^
+      8|  const value=JSON.parse(readFileSync(path,'utf8'));
+      9|  expect(value.kind).toBe('SYNTHETIC_EMPTY_OWNER_NOT_BUSINESS_EVIDENCE'…
+ ❯ fixture src/api/cloudRecoveryContract.spec.ts:11:19
+ ❯ src/api/cloudRecoveryContract.spec.ts:29:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/23]⎯
+
+ FAIL  src/api/cloudRecoveryContract.spec.ts > cloud CURRENT_RECOVERY synthetic owner response > admits ordinary auto but rejects historical and dynamic relabeling
+AssertionError: promise rejected "Error: SYNTHETIC_CURRENT_RECOVERY_TEST_RE…" instead of resolving
+ ❯ src/api/cloudRecoveryContract.spec.ts:37:65
+     35|   vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify(fix…
+     36|   const signal=new AbortController().signal;
+     37|   await expect(requestManagerWorkspace('20261009',signal,'auto')).reso…
+       |                                                                 ^
+     38|   await expect(requestManagerWorkspace('20261009',signal,'historical')…
+     39|   await expect(requestManagerWorkspace('20261009',signal,'dynamic')).r…
+
+Caused by: Error: SYNTHETIC_CURRENT_RECOVERY_TEST_RESPONSE_REQUIRED
+ ❯ envelope src/api/cloudRecoveryContract.spec.ts:7:17
+ ❯ fixture src/api/cloudRecoveryContract.spec.ts:11:19
+ ❯ src/api/cloudRecoveryContract.spec.ts:35:68
+ ❯ requestManagerWorkspace src/api/managerWorkspace.ts:1450:26
+ ❯ src/api/cloudRecoveryContract.spec.ts:37:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/23]⎯
+
+ FAIL  src/api/managerWorkspace.announcementReview.spec.ts > exact-publication-day announcement review time contract > accepts the full saved 20261002 payload when retrieval follows the query coverage cutoff
+Error: ENOENT: no such file or directory, open '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/announcement_deployment/ANNOUNCEMENTS_20261002.json'
+ ❯ load src/api/managerWorkspace.announcementReview.spec.ts:8:57
+      6|
+      7| const evidenceRoot=process.env.V5_ANNOUNCEMENT_REVIEW_FIXTURES || '/Us…
+      8| const load=(date:string):AnnouncementReview=>JSON.parse(readFileSync(j…
+       |                                                         ^
+      9| const time=(value:unknown):number=>Date.parse(String(value));
+     10|
+ ❯ src/api/managerWorkspace.announcementReview.spec.ts:15:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/23]⎯
+
+ FAIL  src/api/managerWorkspace.announcementReview.spec.ts > exact-publication-day announcement review time contract > accepts the full saved 20261001 payload when retrieval follows the query coverage cutoff
+Error: ENOENT: no such file or directory, open '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/announcement_deployment/ANNOUNCEMENTS_20261001.json'
+ ❯ load src/api/managerWorkspace.announcementReview.spec.ts:8:57
+      6|
+      7| const evidenceRoot=process.env.V5_ANNOUNCEMENT_REVIEW_FIXTURES || '/Us…
+      8| const load=(date:string):AnnouncementReview=>JSON.parse(readFileSync(j…
+       |                                                         ^
+      9| const time=(value:unknown):number=>Date.parse(String(value));
+     10|
+ ❯ src/api/managerWorkspace.announcementReview.spec.ts:15:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/23]⎯
+
+ FAIL  src/api/managerWorkspace.announcementReview.spec.ts > exact-publication-day announcement review time contract > still rejects an announcement published after the source coverage cutoff
+Error: ENOENT: no such file or directory, open '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/announcement_deployment/ANNOUNCEMENTS_20261002.json'
+ ❯ load src/api/managerWorkspace.announcementReview.spec.ts:8:57
+      6|
+      7| const evidenceRoot=process.env.V5_ANNOUNCEMENT_REVIEW_FIXTURES || '/Us…
+      8| const load=(date:string):AnnouncementReview=>JSON.parse(readFileSync(j…
+       |                                                         ^
+      9| const time=(value:unknown):number=>Date.parse(String(value));
+     10|
+ ❯ src/api/managerWorkspace.announcementReview.spec.ts:28:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/23]⎯
+
+ FAIL  src/api/managerWorkspace.announcementReview.spec.ts > exact-publication-day announcement review time contract > retains explicit timezone and publication-before-acquisition checks
+Error: ENOENT: no such file or directory, open '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/announcement_deployment/ANNOUNCEMENTS_20261002.json'
+ ❯ load src/api/managerWorkspace.announcementReview.spec.ts:8:57
+      6|
+      7| const evidenceRoot=process.env.V5_ANNOUNCEMENT_REVIEW_FIXTURES || '/Us…
+      8| const load=(date:string):AnnouncementReview=>JSON.parse(readFileSync(j…
+       |                                                         ^
+      9| const time=(value:unknown):number=>Date.parse(String(value));
+     10|
+ ❯ src/api/managerWorkspace.announcementReview.spec.ts:39:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/23]⎯
+
+ FAIL  src/api/managerWorkspace.currentRecovery.spec.ts > CURRENT_RECOVERY source-bound read > accepts the saved real recovery payload without changing its plan SHA
+Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/frontend/evidence/manager-read-publication.json'
+ ❯ fixture src/api/managerWorkspace.currentRecovery.spec.ts:5:30
+      3| import { afterEach, describe, expect, it, vi } from 'vitest';
+      4| import { validateManagerWorkspace, requestManagerWorkspace } from './m…
+      5| const fixture=()=>JSON.parse(readFileSync(resolve(process.env.V5_REAL_…
+       |                              ^
+      6| afterEach(()=>vi.unstubAllGlobals());
+      7| describe('CURRENT_RECOVERY source-bound read',()=>{
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts:9:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/23]⎯
+
+ FAIL  src/api/managerWorkspace.currentRecovery.spec.ts > CURRENT_RECOVERY source-bound read > rejects incomplete or falsely historical recovery identities
+Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/frontend/evidence/manager-read-publication.json'
+ ❯ fixture src/api/managerWorkspace.currentRecovery.spec.ts:5:30
+      3| import { afterEach, describe, expect, it, vi } from 'vitest';
+      4| import { validateManagerWorkspace, requestManagerWorkspace } from './m…
+      5| const fixture=()=>JSON.parse(readFileSync(resolve(process.env.V5_REAL_…
+       |                              ^
+      6| afterEach(()=>vi.unstubAllGlobals());
+      7| describe('CURRENT_RECOVERY source-bound read',()=>{
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts:14:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/23]⎯
+
+ FAIL  src/api/managerWorkspace.currentRecovery.spec.ts > CURRENT_RECOVERY source-bound read > accepts ordinary auto and refuses explicit historical or dynamic relabeling
+AssertionError: promise rejected "Error: ENOENT: no such file or directory,… { …(4) }" instead of resolving
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts:21:65
+     19|   vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify(fix…
+     20|   const signal=new AbortController().signal;
+     21|   await expect(requestManagerWorkspace('20261009',signal,'auto')).reso…
+       |                                                                 ^
+     22|   await expect(requestManagerWorkspace('20261009',signal,'historical')…
+     23|   await expect(requestManagerWorkspace('20261009',signal,'dynamic')).r…
+
+Caused by: Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/frontend/evidence/manager-read-publication.json'
+ ❯ fixture src/api/managerWorkspace.currentRecovery.spec.ts:5:30
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts:19:68
+ ❯ requestManagerWorkspace src/api/managerWorkspace.ts:1450:26
+ ❯ src/api/managerWorkspace.currentRecovery.spec.ts:21:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { errno: -2, code: 'ENOENT', syscall: 'open', path: '/workspace/scratch/d021d1397d6f/v5_module01/support/frontend/evidence/manager-read-publication.json' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/23]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > keeps the requested-day manual HK observation compact until all 100 rows are expanded
+Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/tests/fixtures/manager_current_observation_20261002/FIXTURE_BINDING.json'
+ ❯ readPinnedManualObservationFixture src/manager-selection/catalystObservationPanel.runtime.spec.ts:108:24
+    106| const readPinnedManualObservationFixture = (name: "close_recapture.jso…
+    107|   const fixtureRoot = process.env.V5_MANUAL_OBSERVATION_FIXTURES || re…
+    108|   const bindingBytes = readFileSync(resolve(fixtureRoot, "FIXTURE_BIND…
+       |                        ^
+    109|   expect(createHash('sha256').update(bindingBytes).digest('hex')).toBe…
+    110|   const binding = JSON.parse(bindingBytes.toString('utf8'));
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:522:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/23]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > reuses the validated refresh response instead of issuing a second same-date GET
+AssertionError: expected true to be false // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20260921"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+            [33mopen[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划操作[0m
+            [36m</summary>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mtitle[39m=[32m"当时历史只读；生成现在回看计划须先显式切换口径。"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m用既有材料生成计划[0m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划日独立于原Stage来源日期；生成计划不代表正式选股。[0m
+            [36m</p>[39m
+          [36m</details>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20260921 · 当日动态预览（非历史冻结计划） ｜ 材料截至 未知 ｜ 行情基准 未提供，原行情未核（非晚间实时行情）。[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33maria-label[39m=[32m"研究数据日期"[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [0m计划目标日 20260921 · 港股来源日 20260921 · 公告日 20260921 · 美股交易日 未知[0m
+        [36m</p>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"ANNOUNCEMENT"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m公告 · 尚无可确认结果 · 研究候选 未知（展开查看）[0m
+          [36m</summary>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"历史公告解析成果"[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0m历史公告解析成果（Eastmoney HK 日期目录）[0m
+            [36m</h3>[39m
+            [36m<label>[39m
+              [0m公告日期：[0m
+              [36m<input[39m
+                [33maria-label[39m=[32m"公告日期"[39m
+                [33mtype[39m=[32m"date"[39m
+              [36m/>[39m
+              [36m<small>[39m
+                [0m留空时按计划日前一 HK 交易日读取；日期选择独立于计划日。[0m
+              [36m</small>[39m
+            [36m</label>[39m
+            [36m<p[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m2026-09-30（计划日前一 HK 交易日）｜尚未导入该日期的解析结果[0m
+            [36m</p>[39m
+            [36m<p>[39m
+              [0m所选公告日期的目录尚无可核验读回（NOT_RUN / NOT_RUN）；数量未知，不显示为 0 条。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mdata-announcement-stock-selection[39m=[32m"true"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m公告选股结果（事后研究）[0m
+              [36m</h3>[39m
+              [36m<p>[39m
+                [0m股票研究判定：NOT_ASSESSED。该日期没有经校验的选股判定产物；不能据此推断为零只入选，也不沿用其他日期结果。[0m
+              [36m</p>[39m
+            [36m</section>[39m
+            [36m<p>[39m
+              [0m所选日期没有已校验的完整解析产物；不能解释为零公告或零解析。缺口：ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED。[0m
+            [36m</p>[39m
+          [36m</section>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m原始公告目录与有限范围补采操作[0m
+            [36m</summary>[39m
+            [36m<section[39m
+              [33maria-label[39m=[32m"按公告日读取的 HKEX 官方目录"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-announcement-date[39m=[32m"20260921"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m按公告日读取的 HKEX 官方目录（独立研究观察）[0m
+              [36m</h3>[39m
+              [36m<button[39m
+                [33mdata-refresh-announcement-date[39m=[32m"20260921"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m更新所选公告日（每轮最多3家发行人）[0m
+              [36m</button>[39m
+              [36m<p[39m
+                [33mrole[39m=[32m"status"[39m
+              [36m>[39m
+                [0m20260921（Asia/Hong_Kong）｜部分覆盖｜1 条已观察公告，仅为当前读回记录，不是全市场公告总数。[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0m来源查询覆盖截止：2026-09-21T23:00:00+08:00。没有真实来源截止时间时保留未知，不以当前页面时间代替。[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0m已查询发行人 3；有效目录响应 3；失败 0；尚未查询 0。服务端目录是否穷尽：UNVERIFIED。[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0m公告日按香港日历日筛选；公告观察与计划日期、超跌筛选、重点排名及 BUY 准入分开。[0m
+              [36m</p>[39m
+              [36m<p>[39m
+                [0m覆盖缺口（1）：OFFICIAL_DIRECTORY_SERVER_PAGINATION_EXHAUSTION_UN...
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:658:51
+    656|     planActions.open = true;
+    657|     const generate = within(planActions).getByRole("button", { name: "…
+    658|     await waitFor(() => expect(generate.disabled).toBe(false));
+       |                                                   ^
+    659|     await fireEvent.click(generate);
+    660|     await waitFor(() => expect(workspaceMocks.refresh).toHaveBeenCalle…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../canonical/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/23]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > renders Eastmoney evidence from the selected-date daily owner review
+Error: ENOENT: no such file or directory, open '/Users/lexi/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integration/workspace_after.json'
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:666:28
+    664|
+    665|   it("renders Eastmoney evidence from the selected-date daily owner re…
+    666|     const raw = JSON.parse(readFileSync(
+       |                            ^
+    667|       process.env.V5_EASTMONEY_WORKSPACE_FIXTURE || "/Users/lexi/Deskt…
+    668|       "utf8",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/23]⎯
+
+ FAIL  src/manager-selection/cloudActualReadback.spec.ts > renders the saved cloud auto response with the same run and honest missing-source state
+Error: V5_CLOUD_WORKSPACE_RESPONSE_REQUIRED
+ ❯ src/manager-selection/cloudActualReadback.spec.ts:9:18
+      7| it('renders the saved cloud auto response with the same run and honest…
+      8|  const path=process.env.V5_CLOUD_WORKSPACE_RESPONSE;
+      9|  if(!path) throw new Error('V5_CLOUD_WORKSPACE_RESPONSE_REQUIRED');
+       |                  ^
+     10|  const payload=JSON.parse(readFileSync(path,'utf8'));
+     11|  expect(payload.plan_product.consumed).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/23]⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > reloads the selected canonical GET after manual generation and does not claim a scheduled run
+AssertionError: expected true to be false // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划操作[0m
+            [36m</summary>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mtitle[39m=[32m"当时历史只读；生成现在回看计划须先显式切换口径。"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m用既有材料生成计划[0m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划日独立于原Stage来源日期；生成计划不代表正式选股。[0m
+            [36m</p>[39m
+          [36m</details>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 当日动态预览（非历史冻结计划） ｜ 材料截至 2026/10/08 08:00 北京时间 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33maria-label[39m=[32m"研究数据日期"[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [0m计划目标日 20261008 · 港股来源日 20261006 · 公告日 20261007 · 美股交易日 未知[0m
+        [36m</p>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"ANNOUNCEMENT"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m公告 · 研究结果已读回 · 研究候选 1 只（展开查看） · 解析服务读取失败，详情内保留原因[0m
+          [36m</summary>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"历史公告解析成果"[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0m历史公告解析成果（Eastmoney HK 日期目录）[0m
+            [36m</h3>[39m
+            [36m<label>[39m
+              [0m公告日期：[0m
+              [36m<input[39m
+                [33maria-label[39m=[32m"公告日期"[39m
+                [33mtype[39m=[32m"date"[39m
+              [36m/>[39m
+              [36m<small>[39m
+                [0m留空时按计划日前一 HK 交易日读取；日期选择独立于计划日。[0m
+              [36m</small>[39m
+            [36m</label>[39m
+            [36m<p[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m公告解析结果未能读回；覆盖数量未知（ANNOUNCEMENT_ANALYSIS_HTTP_503）。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mdata-announcement-stock-selection[39m=[32m"true"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m公告选股结果（事后研究）[0m
+              [36m</h3>[39m
+              [36m<p>[39m
+                [0m股票研究判定：NOT_ASSESSED。该日期没有经校验的选股判定产物；不能据此推断为零只入选，也不沿用其他日期结果。[0m
+              [36m</p>[39m
+            [36m</section>[39m
+          [36m</section>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m原始公告目录与有限范围补采操作[0m
+            [36m</summary>[39m
+            [36m<section[39m
+              [33maria-label[39m=[32m"按公告日读取的 HKEX 官方目录"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-announcement-date[39m=[32m"20261007"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m按公告日读取的 HKEX 官方目录（独立研究观察）[0m
+              [36m</h3>[39m
+              [36m<button[39m
+                [33mdata-refresh-announcement-date[39m=[32m"20261007"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m更新所选公告日（每轮最多3家发行人）[0m
+              [36m</button>[39m
+              [36m<p>[39m
+                [0m20261007 ｜ 公告读取失败，覆盖数量未知（ANNOUNCEMENT_HTTP_503）；覆盖数量未知，不是0条。[0m
+              [36m</p>[39m
+              [36m<details>[39m
+                [36m<summary>[39m
+                  [0m读取状态[0m
+                [36m</summary>[39m
+              [36m</details>[39m
+            [36m</section>[39m
+          [36m</details>[39m
+        [36m</details>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"OVERSOLD"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m超跌反弹 · 部分结果，仍有缺口 · 研究候选 未知（展开查看）[0m
+          [36m</summary>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-rebound-strategy[39m=[32m"true"[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [3...
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:130:49
+    128|     const host = document.createElement('div'); document.body.append(h…
+    129|     const button = [...host.querySelectorAll('button')].find(node => n…
+    130|     await waitFor(() => expect(button.disabled).toBe(false)); await fi…
+       |                                                 ^
+    131|     await waitFor(() => expect(fetchMock.mock.calls.filter(call => Str…
+    132|     const workspaceCalls = fetchMock.mock.calls.filter(call => String(…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../canonical/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/23]⎯
+
+ FAIL  src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts > actual Oct 2 owner projection through the Manager DTO and renderer > validates and renders the complete owner-derived 689-row selection
+Error: ORIGINAL_OCT2_RESEARCH_SELECTION_PROJECTION_REQUIRED
+ ❯ src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts:15:28
+     13| describe('actual Oct 2 owner projection through the Manager DTO and re…
+     14|   it('validates and renders the complete owner-derived 689-row selecti…
+     15|     if(!artifactPath)throw new Error('ORIGINAL_OCT2_RESEARCH_SELECTION…
+       |                            ^
+     16|     const compressed=readFileSync(artifactPath);
+     17|     const artifact=JSON.parse(gunzipSync(compressed).toString('utf8'));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/23]⎯
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > uses the target date in the research selection heading and accessible label
+Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:44:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/23]⎯
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > keeps unavailable screen coverage unknown rather than rendering an observed zero
+Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:54:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/23]⎯
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > does not attach a fixed date when the selection ledger is absent
+Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:75:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/23]⎯
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > validates and renders the complete ledger beyond the old 30-card cap
+Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:83:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/23]⎯
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > rejects duplicate stock decisions and broken row accounting
+Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:94:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/23]⎯
+
+ FAIL  src/manager-selection/__tests__/researchSelectionLedger.spec.ts > 10/2 research selection ledger > binds a strict research selection to the existing attention card priority
+Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json'
+ ❯ readOwnerObservations src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:8:34
+      6| function readOwnerObservations(): OwnerObservation[] {
+      7|   const path=process.env.V5_ISSUE8R2_OBSERVATIONS || resolve(process.c…
+      8|   const value:unknown=JSON.parse(readFileSync(path,'utf8'));
+       |                                  ^
+      9|   if(!Array.isArray(value)||value.some(row=>!row||typeof row!=='object…
+     10|     throw new Error('ORIGINAL_ISSUE8R2_OBSERVATIONS_INVALID');
+ ❯ fixture src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts:22:31
+ ❯ src/manager-selection/__tests__/researchSelectionLedger.spec.ts:103:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/23]⎯
+
+ FAIL  src/manager-selection/__tests__/workspaceAfterReadback.spec.ts > actual Eastmoney owner workspace readback > validates the complete owner response and renders the announcement lane
+Error: ENOENT: no such file or directory, open '/Users/lexi/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integration/workspace_after.json'
+ ❯ src/manager-selection/__tests__/workspaceAfterReadback.spec.ts:10:32
+      8| describe('actual Eastmoney owner workspace readback', () => {
+      9|   it('validates the complete owner response and renders the announceme…
+     10|     const payload = JSON.parse(readFileSync(workspaceFixture, 'utf8'));
+       |                                ^
+     11|     expect(() => validateManagerWorkspace(payload, '20260929')).not.to…
+     12|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/23]⎯
+
+
+ Test Files  9 failed | 31 passed (40)
+      Tests  23 failed | 442 passed (465)
+   Start at  16:22:03
+   Duration  73.22s (transform 3.31s, setup 0ms, import 7.62s, tests 88.93s, environment 18.77s)
+
+
+EXIT_CODE: 1

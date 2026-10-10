@@ -1,0 +1,1808 @@
+COMMAND: npm test -- src/api/managerWorkspace.module01.spec.ts
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> v3-5-web@0.1.0 test
+> vitest run src/api/managerWorkspace.module01.spec.ts
+
+
+ RUN  v4.1.10 /workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled
+
+ ❯ src/api/managerWorkspace.module01.spec.ts (25 tests | 13 failed) 41ms
+     × rejects an incomplete terminal envelope: missing schema 8ms
+     × rejects an incomplete terminal envelope: different schema 2ms
+     × rejects an incomplete terminal envelope: missing terminal SHA 1ms
+     × rejects an incomplete terminal envelope: malformed terminal SHA 1ms
+     × rejects an incomplete terminal envelope: missing start 1ms
+     × rejects an incomplete terminal envelope: start without timezone 1ms
+     × rejects an incomplete terminal envelope: missing finish 1ms
+     × rejects an incomplete terminal envelope: finish without timezone 2ms
+     × rejects an incomplete terminal envelope: finish before start 1ms
+     × rejects an incomplete terminal envelope: product before start 1ms
+     × rejects an incomplete terminal envelope: product after finish 1ms
+     × rejects an incomplete terminal envelope: missing failure reasons 1ms
+     × rejects a matching but unrecognized product and terminal execution kind 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: missing schema
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:04:06+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "started_at": "2026-10-10T03:04:00+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: different schema
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:04:06+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "workspace_attempt.v0",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "started_at": "2026-10-10T03:04:00+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: missing terminal SHA
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:04:06+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "started_at": "2026-10-10T03:04:00+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: malformed terminal SHA
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:04:06+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "not-a-sha256",
++     "started_at": "2026-10-10T03:04:00+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: missing start
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:04:06+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: start without timezone
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:04:06+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "started_at": "2026-10-10T03:04:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: missing finish
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "started_at": "2026-10-10T03:04:00+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: finish without timezone
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:04:06",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "started_at": "2026-10-10T03:04:00+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: finish before start
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:03:59+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "started_at": "2026-10-10T03:04:00+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: product before start
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:04:06+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "started_at": "2026-10-10T03:04:05.500000+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: product after finish
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:04:05.100000+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "started_at": "2026-10-10T03:04:00+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects an incomplete terminal envelope: missing failure reasons
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "MANUAL_REFRESH",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "MANUAL_REFRESH",
++     "finished_at": "2026-10-10T03:04:06+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "started_at": "2026-10-10T03:04:00+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:114:95
+    112|     Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+    113|     vi.stubGlobal('fetch', async () => ok(value));
+    114|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    115|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/13]⎯
+
+ FAIL  src/api/managerWorkspace.module01.spec.ts > module 01 original POST contract admission > rejects a matching but unrecognized product and terminal execution kind
+AssertionError: promise resolved "{ RESEARCH_ONLY: true, …(22) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "RESEARCH_ONLY": true,
++   "briefing": {
++     "headline": "",
++     "ordering_explanation": "",
++   },
++   "buy_gate_updated": false,
++   "company_events": [],
++   "focus_symbols": [],
++   "gaps": [],
++   "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "lanes": [
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "STAGE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_STAGE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CATALYST",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CATALYST",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++     {
++       "execution_kind": "READ_ONLY",
++       "failure_reasons": [],
++       "input_coverage": {},
++       "lane": "CLOSE",
++       "last_attempt_at": null,
++       "last_success_at": null,
++       "next_plan": null,
++       "owner": "SYNTHETIC_CLOSE",
++       "run_id": null,
++       "schedule_status": "UNBOUND",
++       "state": "NOT_RUN",
++       "stock_count": null,
++       "target_date": "20261008",
++     },
++   ],
++   "materials": [],
++   "orders_sent": false,
++   "owner_chain": {},
++   "plan_context": {
++     "focus_window_start": "2026-10-07T16:10:00+08:00",
++     "market_data_verified": false,
++     "market_session": "20261007",
++     "plan_trade_date": "20261008",
++     "research_cutoff": "2026-10-08T08:00:00+08:00",
++   },
++   "plan_product": {
++     "consumed": true,
++     "execution_kind": "UNKNOWN_KIND",
++     "generated_at": "2026-10-10T03:04:05.123456+00:00",
++     "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "run_id": "11111111111111111111111111111111",
++     "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
++     "status": "CURRENT",
++   },
++   "production_allowed": false,
++   "read_context": {
++     "as_of": "2026-10-08T08:00:00+08:00",
++     "candidate_count_known": true,
++     "contract": "20260923.workspace-history-read.r1",
++     "mode": "CURRENT_DYNAMIC_PREVIEW",
++     "status": "VERIFIED",
++   },
++   "rejected_relations": [],
++   "schema_version": "v4.manager_research.workspace.v1",
++   "semantic_version": "20260921.manager-semantic.r3.v1",
++   "stocks": [],
++   "summary": {
++     "formal_recommendation_count": 0,
++     "relation_count": 0,
++     "reused_material_count": 0,
++     "stock_count": 0,
++     "theme_count": 0,
++   },
++   "target_trade_date": "20261008",
++   "themes": [],
++   "workspace_plan_attempt": {
++     "RESEARCH_ONLY": true,
++     "buy_gate_updated": false,
++     "execution_kind": "UNKNOWN_KIND",
++     "failure_reasons": [
++       "SYNTHETIC_SCOPE_GAP",
++     ],
++     "finished_at": "2026-10-10T03:04:06+00:00",
++     "input_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "orders_sent": false,
++     "owner": "ManagerResearchJobService.refresh_workspace_plan",
++     "production_allowed": false,
++     "run_id": "11111111111111111111111111111111",
++     "schema_version": "v4.manager_research.workspace_attempt.v1",
++     "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
++     "started_at": "2026-10-10T03:04:00+00:00",
++     "state": "PARTIAL",
++     "target_trade_date": "20261008",
++   },
+  }
+
+ ❯ src/api/managerWorkspace.module01.spec.ts:123:95
+    121|     (value.workspace_plan_attempt as JsonObject).execution_kind = 'UNK…
+    122|     vi.stubGlobal('fetch', async () => ok(value));
+    123|     await expect(refreshManagerWorkspace(testBindings.plan_date, new A…
+       |                                                                                               ^
+    124|       .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+    125|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/13]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  13 failed | 12 passed (25)
+   Start at  16:26:25
+   Duration  957ms (transform 167ms, setup 0ms, import 190ms, tests 41ms, environment 500ms)
+
+
+EXIT_CODE: 1

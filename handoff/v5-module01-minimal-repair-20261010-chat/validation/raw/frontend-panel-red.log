@@ -1,0 +1,1654 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> v3-5-web@0.1.0 test
+> vitest run src/manager-selection/catalystObservationPanel.module01.spec.ts
+
+
+ RUN  v4.1.10 /workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts (14 tests | 14 failed) 7553ms
+     × keeps V5 read-only after a fully valid response even when payload text claims write access 111ms
+     × does not enable generation after first GET failure 19ms
+     × does not enable generation after missing read_context 16ms
+     × enforces historical read-only at the event handler as well as the button 23ms
+     × requires explicit dynamic view before generating for an older target date 21ms
+     × renders the one validated POST result without borrowing a later GET publication 1038ms
+     × retains true execution timestamps when explicitly looking back dynamically 1029ms
+     × does not classify network error as a failed owner run or automatically GET/retry POST 1030ms
+     × does not classify HTTP 503 as a failed owner run or automatically GET/retry POST 1032ms
+     × does not classify wrong date response as a failed owner run or automatically GET/retry POST 1036ms
+     × suppresses a POST that completes after cancellation and reports unknown outcome 1103ms
+     × keeps the 180-second timeout bounded without declaring an unknown write FAILED 27ms
+     × does not render a late POST after changing date 34ms
+     × does not render a late POST after changing view 1033ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 generation admission > keeps V5 read-only after a fully valid response even when payload text claims write access
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:74:31
+     72|     const { panel, generate, requests } = mount(() => ok(value, true));
+     73|     await ready(panel);
+     74|     expect(generate.disabled).toBe(true);
+       |                               ^
+     75|     expect(generate.title).toContain('只读');
+     76|     generate.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 generation admission > does not enable generation after first GET failure
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 generation admission > does not enable generation after missing read_context
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:85:31
+     83|     const { panel, generate, requests } = mount(() => kind === 'first …
+     84|     await waitFor(() => expect(panel.dataset.readState).toBe('FAILED')…
+     85|     expect(generate.disabled).toBe(true);
+       |                               ^
+     86|     generate.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+     87|     await Promise.resolve();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 generation admission > enforces historical read-only at the event handler as well as the button
+AssertionError: expected [ 'GET', 'POST' ] to deeply equal [ 'GET' ]
+
+- Expected
++ Received
+
+  [
+    "GET",
++   "POST",
+  ]
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:97:53
+     95|     generate.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+     96|     await Promise.resolve();
+     97|     expect(requests.map(request => request.method)).toEqual(['GET']);
+       |                                                     ^
+     98|   });
+     99|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 generation admission > requires explicit dynamic view before generating for an older target date
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:104:31
+    102|     const { panel, generate } = mount(() => ok(readWorkspace()), '?pla…
+    103|     await ready(panel);
+    104|     expect(generate.disabled).toBe(true);
+       |                               ^
+    105|   });
+    106| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 successful POST consumption > renders the one validated POST result without borrowing a later GET publication
+AssertionError: expected '公告研究结果已核候选 1 只 · 观察 0 · 待核数量未知数据日 202…' to contain '本次 POST 的合成原研究理由'
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划操作[0m
+            [36m</summary>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+              [33mtitle[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m用既有材料生成计划[0m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划日独立于原Stage来源日期；生成计划不代表正式选股。[0m
+            [36m</p>[39m
+          [36m</details>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 现在回看（含后续信息，非当时已知） ｜ 材料截至 2026/10/10 11:03 北京时间 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33maria-label[39m=[32m"研究数据日期"[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [0m计划目标日 20261008 · 港股来源日 20261006 · 公告日 20261007 · 美股交易日 未知[0m
+        [36m</p>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"ANNOUNCEMENT"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m公告 · 研究结果已读回 · 研究候选 1 只（展开查看） · 解析服务读取失败，详情内保留原因[0m
+          [36m</summary>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"历史公告解析成果"[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0m历史公告解析成果（Eastmoney HK 日期目录）[0m
+            [36m</h3>[39m
+            [36m<label>[39m
+              [0m公告日期：[0m
+              [36m<input[39m
+                [33maria-label[39m=[32m"公告日期"[39m
+                [33mtype[39m=[32m"date"[39m
+              [36m/>[39m
+              [36m<small>[39m
+                [0m留空时按计划日前一 HK 交易日读取；日期选择独立于计划日。[0m
+              [36m</small>[39m
+            [36m</label>[39m
+            [36m<p[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m公告解析结果未能读回；覆盖数量未知（ANNOUNCEMENT_ANALYSIS_HTTP_503）。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mdata-announcement-stock-selection[39m=[32m"true"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m公告选股结果（事后研究）[0m
+              [36m</h3>[39m
+              [36m<p>[39m
+                [0m股票研究判定：NOT_ASSESSED。该日期没有经校验的选股判定产物；不能据此推断为零只入选，也不沿用其他日期结果。[0m
+              [36m</p>[39m
+            [36m</section>[39m
+          [36m</section>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m原始公告目录与有限范围补采操作[0m
+            [36m</summary>[39m
+            [36m<section[39m
+              [33maria-label[39m=[32m"按公告日读取的 HKEX 官方目录"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-announcement-date[39m=[32m"20261007"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m按公告日读取的 HKEX 官方目录（独立研究观察）[0m
+              [36m</h3>[39m
+              [36m<button[39m
+                [33mdata-refresh-announcement-date[39m=[32m"20261007"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m更新所选公告日（每轮最多3家发行人）[0m
+              [36m</button>[39m
+              [36m<p>[39m
+                [0m20261007 ｜ 公告读取失败，覆盖数量未知（ANNOUNCEMENT_HTTP_503）；覆盖数量未知，不是0条。[0m
+              [36m</p>[39m
+              [36m<details>[39m
+                [36m<summary>[39m
+                  [0m读取状态[0m
+                [36m</summary>[39m
+              [36m</details>[39m
+            [36m</section>[39m
+          [36m</details>[39m
+        [36m</details>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"OVERSOLD"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m超跌反弹 · 部分结果，仍有缺口 · 研究候选 未知（展开查看）[0m
+          [36m</summary>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-rebound-strategy[39m=[32m"true"[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m超跌反弹选股（独立策略；与15:30尾盘来源分开） · 当前无独立筛选读回[0m...
+
+Expected: "本次 POST 的合成原研究理由"
+Received: "公告研究结果已核候选 1 只 · 观察 0 · 待核数量未知数据日 20261007运行编号 synthetic-import-run · 原公告 owner 导入，触发方式未分类产物时间 2026-10-08T07:05:00+08:00合成公告公司 · HK.00001研究候选另一请求推进 latest 的合成结果数据日 20261007 · 运行编号 synthetic-import-run自然时段运行验收：未核实。来源、运行与缺件详情"
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:114:104
+    112|       ? ok(savedWorkspace()) : ok(++reads === 1 ? readWorkspace() : sa…
+    113|     await ready(panel); expect(generate.disabled).toBe(false); await t…
+    114|     await waitFor(() => expect(host.querySelector('[data-daily-channel…
+       |                                                                                                        ^
+    115|     expect(requests.map(request => request.method)).toEqual(['GET', 'P…
+    116|     expect(Object.fromEntries(requests[1].url.searchParams)).toEqual({
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../canonical/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 successful POST consumption > retains true execution timestamps when explicitly looking back dynamically
+AssertionError: expected undefined to be 'VERIFIED' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划操作[0m
+            [36m</summary>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+              [33mtitle[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m用既有材料生成计划[0m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划日独立于原Stage来源日期；生成计划不代表正式选股。[0m
+            [36m</p>[39m
+          [36m</details>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 现在回看（含后续信息，非当时已知） ｜ 材料截至 2026/10/10 11:03 北京时间 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33maria-label[39m=[32m"研究数据日期"[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [0m计划目标日 20261008 · 港股来源日 20261006 · 公告日 20261007 · 美股交易日 未知[0m
+        [36m</p>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"ANNOUNCEMENT"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m公告 · 研究结果已读回 · 研究候选 1 只（展开查看） · 解析服务读取失败，详情内保留原因[0m
+          [36m</summary>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"历史公告解析成果"[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0m历史公告解析成果（Eastmoney HK 日期目录）[0m
+            [36m</h3>[39m
+            [36m<label>[39m
+              [0m公告日期：[0m
+              [36m<input[39m
+                [33maria-label[39m=[32m"公告日期"[39m
+                [33mtype[39m=[32m"date"[39m
+              [36m/>[39m
+              [36m<small>[39m
+                [0m留空时按计划日前一 HK 交易日读取；日期选择独立于计划日。[0m
+              [36m</small>[39m
+            [36m</label>[39m
+            [36m<p[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m公告解析结果未能读回；覆盖数量未知（ANNOUNCEMENT_ANALYSIS_HTTP_503）。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mdata-announcement-stock-selection[39m=[32m"true"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m公告选股结果（事后研究）[0m
+              [36m</h3>[39m
+              [36m<p>[39m
+                [0m股票研究判定：NOT_ASSESSED。该日期没有经校验的选股判定产物；不能据此推断为零只入选，也不沿用其他日期结果。[0m
+              [36m</p>[39m
+            [36m</section>[39m
+          [36m</section>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m原始公告目录与有限范围补采操作[0m
+            [36m</summary>[39m
+            [36m<section[39m
+              [33maria-label[39m=[32m"按公告日读取的 HKEX 官方目录"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-announcement-date[39m=[32m"20261007"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m按公告日读取的 HKEX 官方目录（独立研究观察）[0m
+              [36m</h3>[39m
+              [36m<button[39m
+                [33mdata-refresh-announcement-date[39m=[32m"20261007"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m更新所选公告日（每轮最多3家发行人）[0m
+              [36m</button>[39m
+              [36m<p>[39m
+                [0m20261007 ｜ 公告读取失败，覆盖数量未知（ANNOUNCEMENT_HTTP_503）；覆盖数量未知，不是0条。[0m
+              [36m</p>[39m
+              [36m<details>[39m
+                [36m<summary>[39m
+                  [0m读取状态[0m
+                [36m</summary>[39m
+              [36m</details>[39m
+            [36m</section>[39m
+          [36m</details>[39m
+        [36m</details>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"OVERSOLD"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m超跌反弹 · 部分结果，仍有缺口 · 研究候选 未知（展开查看）[0m
+          [36m</summary>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-rebound-strategy[39m=[32m"true"[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m超跌反弹选股（独立策略；与15:30尾盘来源分开） · 当前无独立筛选读回[0m...
+
+- Expected:
+"VERIFIED"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:126:63
+    124|     const { panel, host, generate } = mount(request => ok(request.meth…
+    125|     await ready(panel); await trigger(generate);
+    126|     await waitFor(() => expect(panel.dataset.generationState).toBe('VE…
+       |                                                               ^
+    127|     const audit = [...host.querySelectorAll('details')].find(node => n…
+    128|     audit.open = true; audit.dispatchEvent(new Event('toggle'));
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../canonical/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 unknown write outcome and stale responses > does not classify network error as a failed owner run or automatically GET/retry POST
+AssertionError: expected undefined to be 'CANNOT_CONFIRM' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划操作[0m
+            [36m</summary>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+              [33mtitle[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m用既有材料生成计划[0m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划日独立于原Stage来源日期；生成计划不代表正式选股。[0m
+            [36m</p>[39m
+          [36m</details>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 现在回看（含后续信息，非当时已知） ｜ 材料截至 2026/10/10 11:03 北京时间 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。 本次生成失败：网络连接或响应读取失败；可检查连接后重新读取。 以下仅为重新核验的读取状态。[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33maria-label[39m=[32m"研究数据日期"[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [0m计划目标日 20261008 · 港股来源日 20261006 · 公告日 20261007 · 美股交易日 未知[0m
+        [36m</p>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"ANNOUNCEMENT"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m公告 · 研究结果已读回 · 研究候选 1 只（展开查看） · 解析服务读取失败，详情内保留原因[0m
+          [36m</summary>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"历史公告解析成果"[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0m历史公告解析成果（Eastmoney HK 日期目录）[0m
+            [36m</h3>[39m
+            [36m<label>[39m
+              [0m公告日期：[0m
+              [36m<input[39m
+                [33maria-label[39m=[32m"公告日期"[39m
+                [33mtype[39m=[32m"date"[39m
+              [36m/>[39m
+              [36m<small>[39m
+                [0m留空时按计划日前一 HK 交易日读取；日期选择独立于计划日。[0m
+              [36m</small>[39m
+            [36m</label>[39m
+            [36m<p[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m公告解析结果未能读回；覆盖数量未知（ANNOUNCEMENT_ANALYSIS_HTTP_503）。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mdata-announcement-stock-selection[39m=[32m"true"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m公告选股结果（事后研究）[0m
+              [36m</h3>[39m
+              [36m<p>[39m
+                [0m股票研究判定：NOT_ASSESSED。该日期没有经校验的选股判定产物；不能据此推断为零只入选，也不沿用其他日期结果。[0m
+              [36m</p>[39m
+            [36m</section>[39m
+          [36m</section>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m原始公告目录与有限范围补采操作[0m
+            [36m</summary>[39m
+            [36m<section[39m
+              [33maria-label[39m=[32m"按公告日读取的 HKEX 官方目录"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-announcement-date[39m=[32m"20261007"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m按公告日读取的 HKEX 官方目录（独立研究观察）[0m
+              [36m</h3>[39m
+              [36m<button[39m
+                [33mdata-refresh-announcement-date[39m=[32m"20261007"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m更新所选公告日（每轮最多3家发行人）[0m
+              [36m</button>[39m
+              [36m<p>[39m
+                [0m20261007 ｜ 公告读取失败，覆盖数量未知（ANNOUNCEMENT_HTTP_503）；覆盖数量未知，不是0条。[0m
+              [36m</p>[39m
+              [36m<details>[39m
+                [36m<summary>[39m
+                  [0m读取状态[0m
+                [36m</summary>[39m
+              [36m</details>[39m
+            [36m</section>[39m
+          [36m</details>[39m
+        [36m</details>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"OVERSOLD"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m超跌反弹 · 部分结果，仍有缺口 · 研究候选 未知（展开查看）[0m
+          [36m</summary>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-rebound-strategy[39m=[32m"true"[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+             ...
+
+- Expected:
+"CANNOT_CONFIRM"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:148:63
+    146|     });
+    147|     await ready(panel); await trigger(generate);
+    148|     await waitFor(() => expect(panel.dataset.generationState).toBe('CA…
+       |                                                               ^
+    149|     expect(panel.dataset.readState).not.toBe('FAILED');
+    150|     expect(host.querySelector('[role="status"]')?.textContent).toConta…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../canonical/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 unknown write outcome and stale responses > does not classify HTTP 503 as a failed owner run or automatically GET/retry POST
+AssertionError: expected undefined to be 'CANNOT_CONFIRM' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划操作[0m
+            [36m</summary>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+              [33mtitle[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m用既有材料生成计划[0m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划日独立于原Stage来源日期；生成计划不代表正式选股。[0m
+            [36m</p>[39m
+          [36m</details>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 现在回看（含后续信息，非当时已知） ｜ 材料截至 2026/10/10 11:03 北京时间 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。 本次生成失败：服务暂不可用；具体原因尚未确认，可稍后重新读取。 以下仅为重新核验的读取状态。[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33maria-label[39m=[32m"研究数据日期"[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [0m计划目标日 20261008 · 港股来源日 20261006 · 公告日 20261007 · 美股交易日 未知[0m
+        [36m</p>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"ANNOUNCEMENT"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m公告 · 研究结果已读回 · 研究候选 1 只（展开查看） · 解析服务读取失败，详情内保留原因[0m
+          [36m</summary>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"历史公告解析成果"[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0m历史公告解析成果（Eastmoney HK 日期目录）[0m
+            [36m</h3>[39m
+            [36m<label>[39m
+              [0m公告日期：[0m
+              [36m<input[39m
+                [33maria-label[39m=[32m"公告日期"[39m
+                [33mtype[39m=[32m"date"[39m
+              [36m/>[39m
+              [36m<small>[39m
+                [0m留空时按计划日前一 HK 交易日读取；日期选择独立于计划日。[0m
+              [36m</small>[39m
+            [36m</label>[39m
+            [36m<p[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m公告解析结果未能读回；覆盖数量未知（ANNOUNCEMENT_ANALYSIS_HTTP_503）。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mdata-announcement-stock-selection[39m=[32m"true"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m公告选股结果（事后研究）[0m
+              [36m</h3>[39m
+              [36m<p>[39m
+                [0m股票研究判定：NOT_ASSESSED。该日期没有经校验的选股判定产物；不能据此推断为零只入选，也不沿用其他日期结果。[0m
+              [36m</p>[39m
+            [36m</section>[39m
+          [36m</section>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m原始公告目录与有限范围补采操作[0m
+            [36m</summary>[39m
+            [36m<section[39m
+              [33maria-label[39m=[32m"按公告日读取的 HKEX 官方目录"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-announcement-date[39m=[32m"20261007"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m按公告日读取的 HKEX 官方目录（独立研究观察）[0m
+              [36m</h3>[39m
+              [36m<button[39m
+                [33mdata-refresh-announcement-date[39m=[32m"20261007"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m更新所选公告日（每轮最多3家发行人）[0m
+              [36m</button>[39m
+              [36m<p>[39m
+                [0m20261007 ｜ 公告读取失败，覆盖数量未知（ANNOUNCEMENT_HTTP_503）；覆盖数量未知，不是0条。[0m
+              [36m</p>[39m
+              [36m<details>[39m
+                [36m<summary>[39m
+                  [0m读取状态[0m
+                [36m</summary>[39m
+              [36m</details>[39m
+            [36m</section>[39m
+          [36m</details>[39m
+        [36m</details>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"OVERSOLD"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m超跌反弹 · 部分结果，仍有缺口 · 研究候选 未知（展开查看）[0m
+          [36m</summary>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-rebound-strategy[39m=[32m"true"[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+            ...
+
+- Expected:
+"CANNOT_CONFIRM"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:148:63
+    146|     });
+    147|     await ready(panel); await trigger(generate);
+    148|     await waitFor(() => expect(panel.dataset.generationState).toBe('CA…
+       |                                                               ^
+    149|     expect(panel.dataset.readState).not.toBe('FAILED');
+    150|     expect(host.querySelector('[role="status"]')?.textContent).toConta…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../canonical/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 unknown write outcome and stale responses > does not classify wrong date response as a failed owner run or automatically GET/retry POST
+AssertionError: expected undefined to be 'CANNOT_CONFIRM' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划操作[0m
+            [36m</summary>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+              [33mtitle[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m用既有材料生成计划[0m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划日独立于原Stage来源日期；生成计划不代表正式选股。[0m
+            [36m</p>[39m
+          [36m</details>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 现在回看（含后续信息，非当时已知） ｜ 材料截至 2026/10/10 11:03 北京时间 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。 本次生成失败：来源、日期或工作台合同校验失败；已清除旧结果，须核查原owner证据后重读。 以下仅为重新核验的读取状态。[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33maria-label[39m=[32m"研究数据日期"[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [0m计划目标日 20261008 · 港股来源日 20261006 · 公告日 20261007 · 美股交易日 未知[0m
+        [36m</p>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"ANNOUNCEMENT"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m公告 · 研究结果已读回 · 研究候选 1 只（展开查看） · 解析服务读取失败，详情内保留原因[0m
+          [36m</summary>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"历史公告解析成果"[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0m历史公告解析成果（Eastmoney HK 日期目录）[0m
+            [36m</h3>[39m
+            [36m<label>[39m
+              [0m公告日期：[0m
+              [36m<input[39m
+                [33maria-label[39m=[32m"公告日期"[39m
+                [33mtype[39m=[32m"date"[39m
+              [36m/>[39m
+              [36m<small>[39m
+                [0m留空时按计划日前一 HK 交易日读取；日期选择独立于计划日。[0m
+              [36m</small>[39m
+            [36m</label>[39m
+            [36m<p[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m公告解析结果未能读回；覆盖数量未知（ANNOUNCEMENT_ANALYSIS_HTTP_503）。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mdata-announcement-stock-selection[39m=[32m"true"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m公告选股结果（事后研究）[0m
+              [36m</h3>[39m
+              [36m<p>[39m
+                [0m股票研究判定：NOT_ASSESSED。该日期没有经校验的选股判定产物；不能据此推断为零只入选，也不沿用其他日期结果。[0m
+              [36m</p>[39m
+            [36m</section>[39m
+          [36m</section>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m原始公告目录与有限范围补采操作[0m
+            [36m</summary>[39m
+            [36m<section[39m
+              [33maria-label[39m=[32m"按公告日读取的 HKEX 官方目录"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-announcement-date[39m=[32m"20261007"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m按公告日读取的 HKEX 官方目录（独立研究观察）[0m
+              [36m</h3>[39m
+              [36m<button[39m
+                [33mdata-refresh-announcement-date[39m=[32m"20261007"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m更新所选公告日（每轮最多3家发行人）[0m
+              [36m</button>[39m
+              [36m<p>[39m
+                [0m20261007 ｜ 公告读取失败，覆盖数量未知（ANNOUNCEMENT_HTTP_503）；覆盖数量未知，不是0条。[0m
+              [36m</p>[39m
+              [36m<details>[39m
+                [36m<summary>[39m
+                  [0m读取状态[0m
+                [36m</summary>[39m
+              [36m</details>[39m
+            [36m</section>[39m
+          [36m</details>[39m
+        [36m</details>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"OVERSOLD"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m超跌反弹 · 部分结果，仍有缺口 · 研究候选 未知（展开查看）[0m
+          [36m</summary>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-rebound-strategy[39m=[32m"true"[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39...
+
+- Expected:
+"CANNOT_CONFIRM"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:148:63
+    146|     });
+    147|     await ready(panel); await trigger(generate);
+    148|     await waitFor(() => expect(panel.dataset.generationState).toBe('CA…
+       |                                                               ^
+    149|     expect(panel.dataset.readState).not.toBe('FAILED');
+    150|     expect(host.querySelector('[role="status"]')?.textContent).toConta…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../canonical/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 unknown write outcome and stale responses > suppresses a POST that completes after cancellation and reports unknown outcome
+AssertionError: expected undefined to be 'CANNOT_CONFIRM' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"STALE"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划操作[0m
+            [36m</summary>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+              [33mtitle[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m用既有材料生成计划[0m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划日独立于原Stage来源日期；生成计划不代表正式选股。[0m
+            [36m</p>[39m
+          [36m</details>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008：已取消本次读取；可重新读取。 以下保留上次合格结果，不代表本次成功。[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33maria-label[39m=[32m"研究数据日期"[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [0m计划目标日 20261008 · 港股来源日 20261006 · 公告日 20261007 · 美股交易日 未知[0m
+        [36m</p>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"ANNOUNCEMENT"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m公告 · 研究结果已读回 · 研究候选 1 只（展开查看） · 解析服务读取失败，详情内保留原因[0m
+          [36m</summary>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"历史公告解析成果"[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0m历史公告解析成果（Eastmoney HK 日期目录）[0m
+            [36m</h3>[39m
+            [36m<label>[39m
+              [0m公告日期：[0m
+              [36m<input[39m
+                [33maria-label[39m=[32m"公告日期"[39m
+                [33mtype[39m=[32m"date"[39m
+              [36m/>[39m
+              [36m<small>[39m
+                [0m留空时按计划日前一 HK 交易日读取；日期选择独立于计划日。[0m
+              [36m</small>[39m
+            [36m</label>[39m
+            [36m<p[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m公告解析结果未能读回；覆盖数量未知（ANNOUNCEMENT_ANALYSIS_HTTP_503）。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mdata-announcement-stock-selection[39m=[32m"true"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m公告选股结果（事后研究）[0m
+              [36m</h3>[39m
+              [36m<p>[39m
+                [0m股票研究判定：NOT_ASSESSED。该日期没有经校验的选股判定产物；不能据此推断为零只入选，也不沿用其他日期结果。[0m
+              [36m</p>[39m
+            [36m</section>[39m
+          [36m</section>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m原始公告目录与有限范围补采操作[0m
+            [36m</summary>[39m
+            [36m<section[39m
+              [33maria-label[39m=[32m"按公告日读取的 HKEX 官方目录"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-announcement-date[39m=[32m"20261007"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m按公告日读取的 HKEX 官方目录（独立研究观察）[0m
+              [36m</h3>[39m
+              [36m<button[39m
+                [33mdata-refresh-announcement-date[39m=[32m"20261007"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m更新所选公告日（每轮最多3家发行人）[0m
+              [36m</button>[39m
+              [36m<p>[39m
+                [0m20261007 ｜ 公告读取失败，覆盖数量未知（ANNOUNCEMENT_HTTP_503）；覆盖数量未知，不是0条。[0m
+              [36m</p>[39m
+              [36m<details>[39m
+                [36m<summary>[39m
+                  [0m读取状态[0m
+                [36m</summary>[39m
+              [36m</details>[39m
+            [36m</section>[39m
+          [36m</details>[39m
+        [36m</details>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"OVERSOLD"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m超跌反弹 · 部分结果，仍有缺口 · 研究候选 未知（展开查看）[0m
+          [36m</summary>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-rebound-strategy[39m=[32m"true"[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m超跌反弹选股（独立策略；与15:30尾盘来源分开） · 当前无独立筛选读回[0m
+            [36m</summary>[39m
+            ...
+
+- Expected:
+"CANNOT_CONFIRM"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:164:63
+    162|     await trigger(cancel); expect(requests[1].signal?.aborted).toBe(tr…
+    163|     pending.resolve(ok(savedWorkspace('不应渲染的已取消合成结果')));
+    164|     await waitFor(() => expect(panel.dataset.generationState).toBe('CA…
+       |                                                               ^
+    165|     expect(host.textContent).not.toContain('不应渲染的已取消合成结果');
+    166|     expect(host.querySelector('[role="status"]')?.textContent).toConta…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../canonical/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 unknown write outcome and stale responses > keeps the 180-second timeout bounded without declaring an unknown write FAILED
+AssertionError: expected undefined to be 'CANNOT_CONFIRM' // Object.is equality
+
+- Expected:
+"CANNOT_CONFIRM"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:177:43
+    175|     await vi.advanceTimersByTimeAsync(180_000);
+    176|     expect(requests[1].signal?.aborted).toBe(true);
+    177|     expect(panel.dataset.generationState).toBe('CANNOT_CONFIRM');
+       |                                           ^
+    178|     expect(panel.dataset.readState).not.toBe('FAILED');
+    179|     expect(host.querySelector('[role="status"]')?.textContent).toConta…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 unknown write outcome and stale responses > does not render a late POST after changing date
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:202:31
+    200|     await Promise.resolve(); await Promise.resolve(); await Promise.re…
+    201|     expect(host.textContent).not.toContain('不应渲染的旧日期或旧口径合成结果');
+    202|     expect(generate.disabled).toBe(true);
+       |                               ^
+    203|     expect(requests.map(request => request.method)).toEqual(['GET', 'P…
+    204|     if (change === 'date') expect(panel.dataset.targetDate).toBe('2026…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.module01.spec.ts > module 01 unknown write outcome and stale responses > does not render a late POST after changing view
+AssertionError: expected 'FAILED' to be 'READY' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-read-state[39m=[32m"FAILED"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划操作[0m
+            [36m</summary>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+              [33mtitle[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m用既有材料生成计划[0m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划日独立于原Stage来源日期；生成计划不代表正式选股。[0m
+            [36m</p>[39m
+          [36m</details>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008：来源、日期或工作台合同校验失败；已清除旧结果，须核查原owner证据后重读。 未显示旧日或未核验股票。[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33maria-label[39m=[32m"研究数据日期"[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [0m正在读取数据日期[0m
+        [36m</p>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"ANNOUNCEMENT"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m公告 · 尚无可确认结果 · 研究候选 未知（展开查看） · 解析服务读取失败，详情内保留原因[0m
+          [36m</summary>[39m
+          [36m<section[39m
+            [33maria-label[39m=[32m"历史公告解析成果"[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0m历史公告解析成果（Eastmoney HK 日期目录）[0m
+            [36m</h3>[39m
+            [36m<label>[39m
+              [0m公告日期：[0m
+              [36m<input[39m
+                [33maria-label[39m=[32m"公告日期"[39m
+                [33mtype[39m=[32m"date"[39m
+              [36m/>[39m
+              [36m<small>[39m
+                [0m留空时按计划日前一 HK 交易日读取；日期选择独立于计划日。[0m
+              [36m</small>[39m
+            [36m</label>[39m
+            [36m<p[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m公告解析结果未能读回；覆盖数量未知（ANNOUNCEMENT_ANALYSIS_HTTP_503）。[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33mdata-announcement-stock-selection[39m=[32m"true"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m公告选股结果（事后研究）[0m
+              [36m</h3>[39m
+              [36m<p>[39m
+                [0m股票研究判定：NOT_ASSESSED。该日期没有经校验的选股判定产物；不能据此推断为零只入选，也不沿用其他日期结果。[0m
+              [36m</p>[39m
+            [36m</section>[39m
+          [36m</section>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m原始公告目录与有限范围补采操作[0m
+            [36m</summary>[39m
+            [36m<section[39m
+              [33maria-label[39m=[32m"按公告日读取的 HKEX 官方目录"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-announcement-date[39m=[32m"20261007"[39m
+            [36m>[39m
+              [36m<h3>[39m
+                [0m按公告日读取的 HKEX 官方目录（独立研究观察）[0m
+              [36m</h3>[39m
+              [36m<button[39m
+                [33mdata-refresh-announcement-date[39m=[32m"20261007"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0m更新所选公告日（每轮最多3家发行人）[0m
+              [36m</button>[39m
+              [36m<p>[39m
+                [0m20261007 ｜ 公告读取失败，覆盖数量未知（ANNOUNCEMENT_HTTP_503）；覆盖数量未知，不是0条。[0m
+              [36m</p>[39m
+              [36m<details>[39m
+                [36m<summary>[39m
+                  [0m读取状态[0m
+                [36m</summary>[39m
+              [36m</details>[39m
+            [36m</section>[39m
+          [36m</details>[39m
+        [36m</details>[39m
+        [36m<details[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-strategy-summary[39m=[32m"OVERSOLD"[39m
+        [36m>[39m
+          [36m<summary[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m超跌反弹 · 尚无可确认结果 · 研究候选 未知（展开查看）[0m
+          [36m</summary>[39m
+          [36m<details[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-rebound-strategy[39m=[32m"true"[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m超跌反弹选股（独立策略；与15:30尾盘来源分开） · 当前无独立筛选读回[0m
+            [36m</summary>[39m
+            [36m<section[39m
+              [33maria-label[39m=[32m"REBOUND_V3量价筛选"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[3...
+
+Expected: "READY"
+Received: "FAILED"
+
+ ❯ src/manager-selection/catalystObservationPanel.module01.spec.ts:62:99
+     60|   return { host, generate, panel, requests };
+     61| };
+     62| const ready = async (panel: HTMLElement) => { await waitFor(() => expe…
+       |                                                                                                   ^
+     63| const trigger = async (button: HTMLButtonElement) => { await fireEvent…
+     64| afterEach(() => {
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../canonical/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../canonical/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/14]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  14 failed (14)
+   Start at  16:13:34
+   Duration  8.60s (transform 288ms, setup 0ms, import 464ms, tests 7.55s, environment 435ms)
+

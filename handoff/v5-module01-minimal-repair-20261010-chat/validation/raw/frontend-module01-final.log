@@ -1,0 +1,14 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> v3-5-web@0.1.0 test
+> vitest run src/api/managerWorkspace.module01.spec.ts src/manager-selection/catalystObservationPanel.module01.spec.ts src/api/managerWorkspace.module01.http.spec.ts
+
+
+ RUN  v4.1.10 /workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled
+
+
+ Test Files  3 passed (3)
+      Tests  44 passed (44)
+   Start at  16:33:26
+   Duration  1.39s (transform 380ms, setup 0ms, import 647ms, tests 461ms, environment 1.41s)
+

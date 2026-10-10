@@ -1,0 +1,31 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> v3-5-web@0.1.0 test
+> vitest run src/api/managerWorkspace.module01.http.spec.ts
+
+
+ RUN  v4.1.10 /workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled
+
+ ❯ src/api/managerWorkspace.module01.http.spec.ts (3 tests | 1 failed) 16ms
+     × runs the real fetch response path once with the captured gateway body and headers 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.module01.http.spec.ts > module 01 actual HTTP DTO through complete frontend admission > runs the real fetch response path once with the captured gateway body and headers
+TypeError: fetchManagerWorkspace is not a function
+ ❯ src/api/managerWorkspace.module01.http.spec.ts:49:25
+     47|       return new Response(JSON.stringify(gateway.body), { status: gate…
+     48|     });
+     49|     const value = await fetchManagerWorkspace(receipt.request.target_d…
+       |                         ^
+     50|     expect(calls).toBe(1);
+     51|     expect(value.plan_product.run_id).toBe(receipt.manager_run);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  16:17:34
+   Duration  754ms (transform 126ms, setup 0ms, import 154ms, tests 16ms, environment 443ms)
+

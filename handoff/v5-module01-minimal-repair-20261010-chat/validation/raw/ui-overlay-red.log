@@ -1,0 +1,52 @@
+test_changed_daily_channel_remains_rejected_before_any_write (test_module01_ui_overlay.Module01OverlayTests.test_changed_daily_channel_remains_rejected_before_any_write) ... FAIL
+test_reapplying_verified_current_candidate_succeeds_without_byte_changes (test_module01_ui_overlay.Module01OverlayTests.test_reapplying_verified_current_candidate_succeeds_without_byte_changes) ... FAIL
+test_unexpected_overlay_source_bytes_are_rejected_before_any_write (test_module01_ui_overlay.Module01OverlayTests.test_unexpected_overlay_source_bytes_are_rejected_before_any_write) ... FAIL
+test_unmodified_dependency_pin_still_rejects_drift (test_module01_ui_overlay.Module01OverlayTests.test_unmodified_dependency_pin_still_rejects_drift) ... FAIL
+
+======================================================================
+FAIL: test_changed_daily_channel_remains_rejected_before_any_write (test_module01_ui_overlay.Module01OverlayTests.test_changed_daily_channel_remains_rejected_before_any_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_ui_overlay.py", line 62, in test_changed_daily_channel_remains_rejected_before_any_write
+    self.assertIn('UI_BASE_FILE_MISMATCH:src/manager-selection/dailyChannels.ts', result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'UI_BASE_FILE_MISMATCH:src/manager-selection/dailyChannels.ts' not found in 'Traceback (most recent call last):\n  File "/tmp/module01-overlay-8merrg_o/package/apply_candidate.py", line 48, in <module>\n    if __name__==\'__main__\':main()\n                            ~~~~^^\n  File "/tmp/module01-overlay-8merrg_o/package/apply_candidate.py", line 26, in main\n    raise ValueError(\'UI_BASE_DEPENDENCY_MISMATCH:\'+relative)\nValueError: UI_BASE_DEPENDENCY_MISMATCH:src/manager-selection/dailyChannels.ts\n'
+
+======================================================================
+FAIL: test_reapplying_verified_current_candidate_succeeds_without_byte_changes (test_module01_ui_overlay.Module01OverlayTests.test_reapplying_verified_current_candidate_succeeds_without_byte_changes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_ui_overlay.py", line 51, in test_reapplying_verified_current_candidate_succeeds_without_byte_changes
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "/tmp/module01-overlay-0pnyeqpr/package/apply_candidate.py", line 48, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/tmp/module01-overlay-0pnyeqpr/package/apply_candidate.py", line 26, in main
+    raise ValueError('UI_BASE_DEPENDENCY_MISMATCH:'+relative)
+ValueError: UI_BASE_DEPENDENCY_MISMATCH:src/manager-selection/dailyChannels.ts
+
+
+======================================================================
+FAIL: test_unexpected_overlay_source_bytes_are_rejected_before_any_write (test_module01_ui_overlay.Module01OverlayTests.test_unexpected_overlay_source_bytes_are_rejected_before_any_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_ui_overlay.py", line 81, in test_unexpected_overlay_source_bytes_are_rejected_before_any_write
+    self.assertIn('UI_OVERLAY_SOURCE_MISMATCH:' + row['path'], result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'UI_OVERLAY_SOURCE_MISMATCH:src/api/managerWorkspace.ts' not found in 'Traceback (most recent call last):\n  File "/tmp/module01-overlay-3gj31c8l/package/apply_candidate.py", line 48, in <module>\n    if __name__==\'__main__\':main()\n                            ~~~~^^\n  File "/tmp/module01-overlay-3gj31c8l/package/apply_candidate.py", line 26, in main\n    raise ValueError(\'UI_BASE_DEPENDENCY_MISMATCH:\'+relative)\nValueError: UI_BASE_DEPENDENCY_MISMATCH:src/manager-selection/dailyChannels.ts\n'
+
+======================================================================
+FAIL: test_unmodified_dependency_pin_still_rejects_drift (test_module01_ui_overlay.Module01OverlayTests.test_unmodified_dependency_pin_still_rejects_drift)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_ui_overlay.py", line 71, in test_unmodified_dependency_pin_still_rejects_drift
+    self.assertIn('UI_BASE_DEPENDENCY_MISMATCH:src/manager-selection/dailyChannels.testHelper.ts', result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'UI_BASE_DEPENDENCY_MISMATCH:src/manager-selection/dailyChannels.testHelper.ts' not found in 'Traceback (most recent call last):\n  File "/tmp/module01-overlay-qaed7v6a/package/apply_candidate.py", line 48, in <module>\n    if __name__==\'__main__\':main()\n                            ~~~~^^\n  File "/tmp/module01-overlay-qaed7v6a/package/apply_candidate.py", line 26, in main\n    raise ValueError(\'UI_BASE_DEPENDENCY_MISMATCH:\'+relative)\nValueError: UI_BASE_DEPENDENCY_MISMATCH:src/manager-selection/dailyChannels.ts\n'
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.219s
+
+FAILED (failures=4)

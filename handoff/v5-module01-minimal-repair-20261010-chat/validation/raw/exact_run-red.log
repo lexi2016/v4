@@ -1,0 +1,92 @@
+test_completed_exact_run_survives_another_real_refresh_advancing_latest (test_module01_exact_run.ExactManagerRunTests.test_completed_exact_run_survives_another_real_refresh_advancing_latest) ... FAIL
+test_exact_filename_cannot_borrow_another_valid_run (test_module01_exact_run.ExactManagerRunTests.test_exact_filename_cannot_borrow_another_valid_run) ... ok
+test_exact_product_date_is_checked_even_when_latest_copy_is_valid (test_module01_exact_run.ExactManagerRunTests.test_exact_product_date_is_checked_even_when_latest_copy_is_valid) ... FAIL
+test_exact_product_sha_is_checked_even_when_latest_copy_is_valid (test_module01_exact_run.ExactManagerRunTests.test_exact_product_sha_is_checked_even_when_latest_copy_is_valid) ... FAIL
+test_invalid_latest_does_not_invalidate_completed_exact_run (test_module01_exact_run.ExactManagerRunTests.test_invalid_latest_does_not_invalidate_completed_exact_run) ... FAIL
+test_matching_latest_is_observed_with_its_own_terminal (test_module01_exact_run.ExactManagerRunTests.test_matching_latest_is_observed_with_its_own_terminal) ... ERROR
+test_missing_exact_terminal_cannot_borrow_latest_terminal (test_module01_exact_run.ExactManagerRunTests.test_missing_exact_terminal_cannot_borrow_latest_terminal) ... ok
+test_missing_latest_does_not_invalidate_completed_exact_run (test_module01_exact_run.ExactManagerRunTests.test_missing_latest_does_not_invalidate_completed_exact_run) ... FAIL
+test_ordinary_read_keeps_exact_product_terminal_and_native_channel_identity (test_module01_exact_run.ExactManagerRunTests.test_ordinary_read_keeps_exact_product_terminal_and_native_channel_identity) ... FAIL
+test_other_run_without_its_exact_terminal_is_not_reported_verified (test_module01_exact_run.ExactManagerRunTests.test_other_run_without_its_exact_terminal_is_not_reported_verified) ... FAIL
+test_other_runs_terminal_cannot_validate_exact_product (test_module01_exact_run.ExactManagerRunTests.test_other_runs_terminal_cannot_validate_exact_product) ... ok
+test_returned_run_id_cannot_escape_exact_date_directory (test_module01_exact_run.ExactManagerRunTests.test_returned_run_id_cannot_escape_exact_date_directory) ... ok
+
+======================================================================
+ERROR: test_matching_latest_is_observed_with_its_own_terminal (test_module01_exact_run.ExactManagerRunTests.test_matching_latest_is_observed_with_its_own_terminal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 182, in test_matching_latest_is_observed_with_its_own_terminal
+    latest = result['readback']['latest_observation']
+             ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'latest_observation'
+
+======================================================================
+FAIL: test_completed_exact_run_survives_another_real_refresh_advancing_latest (test_module01_exact_run.ExactManagerRunTests.test_completed_exact_run_survives_another_real_refresh_advancing_latest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 167, in test_completed_exact_run_survives_another_real_refresh_advancing_latest
+    self.assertTrue(body['ok'], body.get('error'))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : ValueError:MANAGER_INDEPENDENT_PLAN_READBACK_MISMATCH
+
+======================================================================
+FAIL: test_exact_product_date_is_checked_even_when_latest_copy_is_valid (test_module01_exact_run.ExactManagerRunTests.test_exact_product_date_is_checked_even_when_latest_copy_is_valid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 220, in test_exact_product_date_is_checked_even_when_latest_copy_is_valid
+    self.assertFalse(body['ok'], 'Exact product date was hidden by its valid latest copy')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : Exact product date was hidden by its valid latest copy
+
+======================================================================
+FAIL: test_exact_product_sha_is_checked_even_when_latest_copy_is_valid (test_module01_exact_run.ExactManagerRunTests.test_exact_product_sha_is_checked_even_when_latest_copy_is_valid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 215, in test_exact_product_sha_is_checked_even_when_latest_copy_is_valid
+    self.assertFalse(body['ok'], 'Exact product corruption was hidden by its valid latest copy')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : Exact product corruption was hidden by its valid latest copy
+
+======================================================================
+FAIL: test_invalid_latest_does_not_invalidate_completed_exact_run (test_module01_exact_run.ExactManagerRunTests.test_invalid_latest_does_not_invalidate_completed_exact_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 197, in test_invalid_latest_does_not_invalidate_completed_exact_run
+    self.assertTrue(body['ok'], body.get('error'))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : ValueError:WORKSPACE_STORED_PLAN_INVALID
+
+======================================================================
+FAIL: test_missing_latest_does_not_invalidate_completed_exact_run (test_module01_exact_run.ExactManagerRunTests.test_missing_latest_does_not_invalidate_completed_exact_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 189, in test_missing_latest_does_not_invalidate_completed_exact_run
+    self.assertTrue(body['ok'], body.get('error'))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : TypeError:'NoneType' object is not subscriptable
+
+======================================================================
+FAIL: test_ordinary_read_keeps_exact_product_terminal_and_native_channel_identity (test_module01_exact_run.ExactManagerRunTests.test_ordinary_read_keeps_exact_product_terminal_and_native_channel_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 270, in test_ordinary_read_keeps_exact_product_terminal_and_native_channel_identity
+    self.assertEqual(payload['workspace_plan_attempt']['run_id'], first['readback']['run_id'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '2bcc502b20904d0dbeab51560af667ed' != '7ada3a8ca70c41808aa0524dc5343324'
+- 2bcc502b20904d0dbeab51560af667ed
++ 7ada3a8ca70c41808aa0524dc5343324
+
+
+======================================================================
+FAIL: test_other_run_without_its_exact_terminal_is_not_reported_verified (test_module01_exact_run.ExactManagerRunTests.test_other_run_without_its_exact_terminal_is_not_reported_verified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 206, in test_other_run_without_its_exact_terminal_is_not_reported_verified
+    self.assertTrue(body['ok'], body.get('error'))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : ValueError:MANAGER_INDEPENDENT_PLAN_READBACK_MISMATCH
+
+----------------------------------------------------------------------
+Ran 12 tests in 9.876s
+
+FAILED (failures=7, errors=1)

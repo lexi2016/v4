@@ -1,0 +1,15 @@
+test_separate_refresh_post_route_does_not_mark_workspace_read_only (test_module01_http_readonly.Module01ReadOnlyHttpTests.test_separate_refresh_post_route_does_not_mark_workspace_read_only) ... FAIL
+
+======================================================================
+FAIL: test_separate_refresh_post_route_does_not_mark_workspace_read_only (test_module01_http_readonly.Module01ReadOnlyHttpTests.test_separate_refresh_post_route_does_not_mark_workspace_read_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_http_readonly.py", line 105, in test_separate_refresh_post_route_does_not_mark_workspace_read_only
+    self.assertNotIn('X-V5-Workspace-Access', headers)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'X-V5-Workspace-Access' unexpectedly found in {'Server': 'BaseHTTP/0.6 Python/3.14.6', 'Date': 'Sat, 10 Oct 2026 14:25:51 GMT', 'Content-Type': 'application/json; charset=utf-8', 'Content-Length': '146', 'Cache-Control': 'no-store', 'X-V5-Workspace-Access': 'READ_ONLY', 'X-Content-Type-Options': 'nosniff'}
+
+----------------------------------------------------------------------
+Ran 1 test in 1.005s
+
+FAILED (failures=1)

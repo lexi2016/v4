@@ -1,0 +1,14 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v4/manager/research/workspace",
+    "status": 200,
+    "workspace_access": "READ_ONLY"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v4/manager/research/workspace/refresh",
+    "status": 200,
+    "workspace_access": null
+  }
+]

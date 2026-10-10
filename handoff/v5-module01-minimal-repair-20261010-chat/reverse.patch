@@ -1,0 +1,2266 @@
+diff --git b/V5/src/v5_shadow/api_gateway.py a/V5/src/v5_shadow/api_gateway.py
+index ecda315f6c67c8e18e473fad9d91c77487aa9d37..c5677fb59a4847a24f16a12d5412fce293168fc0 100644
+--- b/V5/src/v5_shadow/api_gateway.py
++++ a/V5/src/v5_shadow/api_gateway.py
+@@ -131,8 +131,6 @@ def load_frontend(root,manifest):
+ def create_gateway(config,host='127.0.0.1',port=0,frontend=None):
+     if host!='127.0.0.1':raise ValueError('LOOPBACK_ONLY')
+     config=validate_config(config);routes={r['path']:r for r in config['routes']}
+-    manager_read_only=not any(r['module_id']=='manager' and 'POST' in r['methods']
+-                             for r in config['routes'])
+     capacities={k:threading.BoundedSemaphore(v['max_inflight']) for k,v in config['modules'].items()}
+     class Handler(BaseHTTPRequestHandler):
+         def setup(self):
+@@ -146,11 +144,10 @@ def create_gateway(config,host='127.0.0.1',port=0,frontend=None):
+             self.input_watchdog.cancel()
+             super().finish()
+         def log_message(self,*args):pass
+-        def reply(self,status,payload,raw=False,workspace_read_only=False):
++        def reply(self,status,payload,raw=False):
+             data=payload if raw else canonical_bytes(payload)
+             self.send_response(status);self.send_header('Content-Type','application/json; charset=utf-8')
+             self.send_header('Content-Length',str(len(data)));self.send_header('Cache-Control','no-store')
+-            if workspace_read_only:self.send_header('X-V5-Workspace-Access','READ_ONLY')
+             self.send_header('X-Content-Type-Options','nosniff');self.end_headers()
+             try:self.wfile.write(data)
+             except (BrokenPipeError,ConnectionResetError):pass
+@@ -239,9 +236,7 @@ def create_gateway(config,host='127.0.0.1',port=0,frontend=None):
+                 data=b''.join(chunks)
+                 _parse_response(data, manager_workspace=_manager_response(
+                     name, parsed.path, self.command, response.status))
+-                self.reply(response.status,data,raw=True,workspace_read_only=(
+-                    name=='manager' and parsed.path==MANAGER_WORKSPACE_PATH
+-                    and manager_read_only))
++                self.reply(response.status,data,raw=True)
+             except (TimeoutError,socket.timeout):self.error(504,'MODULE_TIMEOUT',name)
+             except (OSError,http.client.HTTPException):self.error(504 if expired.is_set() else 502,'MODULE_TIMEOUT' if expired.is_set() else 'MODULE_UNAVAILABLE',name)
+             except (ValueError,UnicodeError,RecursionError):self.error(502,'MODULE_RESPONSE_INVALID',name)
+diff --git b/V5/src/v5_shadow/manager_plan.py a/V5/src/v5_shadow/manager_plan.py
+index c31f6d14e8b38abb6f6f6fe5c77f552d1eb675b4..5e05f82ec6d2d88f47e79d19e5caf433a0143f2c 100644
+--- b/V5/src/v5_shadow/manager_plan.py
++++ a/V5/src/v5_shadow/manager_plan.py
+@@ -380,63 +380,11 @@ def _assemble(request):
+         io.SafeRoot(request['manager_output_root']).ensure_directory('current_recovery')
+     # Construct only the original read/write primitives, without the service
+     # pool or the original constructor's jobs/products/receipts mkdir side effects.
+-    def plan_store(*, run_id=None):
+-        if run_id is not None and (not isinstance(run_id, str) or not re.fullmatch(r'[0-9a-f]{32}', run_id)):
+-            raise ValueError('MANAGER_EXACT_PLAN_RUN_ID')
++    def plan_store():
+         store = store_module.ManagerResearchStore.__new__(store_module.ManagerResearchStore)
+         store.root = output; store._io = io.SafeRoot(output)
+         store._lock = threading.RLock(); store._held = threading.local()
+-        if run_id is not None:
+-            # Route only this product read through the original store/validator.
+-            # Journal and source reads retain their existing exact paths.
+-            read = store._read
+-            latest = output / 'workspace_plans' / request['target_date'] / 'latest.json'
+-            def exact_read(path):
+-                return read(latest.with_name(run_id + '.json') if path == latest else path)
+-            store._read = exact_read
+         return store
+-
+-    def exact_plan_readback(product, input_identity, *, require_attempt=True):
+-        run_id = product.get('run_id')
+-        if not isinstance(run_id, str) or not re.fullmatch(r'[0-9a-f]{32}', run_id):
+-            raise ValueError('MANAGER_EXACT_PLAN_RUN_ID')
+-        independent = plan_store(run_id=run_id)
+-        saved = workspace._read_plan(independent, request['target_date'])
+-        if (saved is None or saved['run_id'] != run_id
+-                or saved['sha256'] != product.get('sha256')
+-                or saved['input_identity'] != input_identity):
+-            raise ValueError('MANAGER_INDEPENDENT_PLAN_READBACK_MISMATCH')
+-        attempt = workspace.verified_plan_attempt(independent, saved)
+-        if require_attempt and attempt is None:
+-            raise ValueError('MANAGER_INDEPENDENT_PLAN_READBACK_MISMATCH')
+-        return saved, attempt
+-
+-    def latest_observation(exact):
+-        observation = dict(status='CANNOT_CONFIRM', observed_at=datetime.now(timezone.utc).isoformat(),
+-            run_id=None, plan_sha256=None, matches_exact_run=None, attempt=None)
+-        try:
+-            latest = workspace._read_plan(plan_store(), request['target_date'])
+-            if latest is None:
+-                observation['status'] = 'MISSING'
+-                return observation
+-            observation.update(run_id=latest['run_id'], plan_sha256=latest['sha256'])
+-            # A different pointer is not evidence that its own run completed.
+-            # Reuse the same exact product and terminal gate for that run too.
+-            _, attempt = exact_plan_readback(latest, latest['input_identity'])
+-            observation.update(status='VERIFIED', attempt=attempt,
+-                matches_exact_run=(latest['run_id'] == exact['run_id'] and latest['sha256'] == exact['sha256']))
+-        except Exception as error:
+-            # This observation cannot undo a completed exact owner readback.
+-            observation['reason'] = (str(error) if re.fullmatch(r'[A-Z][A-Z0-9_]{0,127}', str(error))
+-                                     else 'MANAGER_LATEST_READ_FAILED:' + type(error).__name__)
+-        return observation
+-
+-    def bind_plan_attempt(payload, attempt):
+-        if 'workspace_plan_attempt' not in payload or payload['workspace_plan_attempt'] != attempt:
+-            payload['workspace_plan_attempt'] = attempt
+-            from v4.manager_research.workspace_daily_channels import build_daily_channels
+-            payload['daily_channels'] = build_daily_channels(payload)
+-
+     durable = plan_store()
+     class OwnerStore(store_module.ManagerResearchStore):
+         def _read(self, path):
+@@ -504,11 +452,16 @@ def _assemble(request):
+     now = aware(request['now'])
+     if request['action'] == 'refresh':
+         payload = workspace.refresh_workspace_plan(service, request['target_date'], now=now)
+-        saved, attempt = exact_plan_readback(payload['plan_product'], payload['input_identity'])
+-        bind_plan_attempt(payload, attempt)
++        independent = plan_store()
++        saved = workspace._read_plan(independent, request['target_date'])
++        attempt = workspace.verified_plan_attempt(independent, saved)
++        if (attempt is None or saved['run_id'] != attempt['run_id']
++                or saved['run_id'] != payload['plan_product']['run_id']
++                or saved['sha256'] != payload['plan_product']['sha256']
++                or saved['input_identity'] != payload['input_identity']):
++            raise ValueError('MANAGER_INDEPENDENT_PLAN_READBACK_MISMATCH')
+         readback = dict(status='MATCHED', run_id=saved['run_id'], plan_sha256=saved['sha256'],
+-                        attempt=attempt, input_identity=saved['input_identity'],
+-                        latest_observation=latest_observation(saved))
++                        attempt=attempt, input_identity=saved['input_identity'])
+     else:
+         owner_view = 'dynamic' if current_recovery else request['view']
+         if current_recovery:
+@@ -525,28 +478,6 @@ def _assemble(request):
+         payload = workspace.get_workspace(service, request['target_date'], now=now, view=owner_view,
+             selection_date=request['selection_date'], announcement_date=request['announcement_date'])
+         readback = dict(status='READ_ONLY', plan_product=payload.get('plan_product'))
+-        if (payload.get('plan_product', {}).get('consumed') is True
+-                and payload.get('read_context', {}).get('mode') != 'HISTORICAL_AS_OF'):
+-            saved, attempt = exact_plan_readback(payload['plan_product'], payload['input_identity'],
+-                                                require_attempt=False)
+-            observed_attempt = payload.get('workspace_plan_attempt')
+-            if attempt is None:
+-                # Legacy manual compatibility does not prove a same-run
+-                # terminal. Keep the original owners' fresh read-only preview.
+-                product = dict(payload['plan_product'], status='OWNER_ATTEMPT_UNVERIFIED', consumed=False,
+-                               reason='MANAGER_EXACT_OWNER_ATTEMPT_MISSING')
+-                payload = workspace.get_workspace(service, request['target_date'], now=now, view=owner_view,
+-                    include_saved=False, selection_date=request['selection_date'],
+-                    announcement_date=request['announcement_date'])
+-                payload.update(plan_product=product, observation_mode='READ_ONLY_EXISTING_OWNER_PREVIEW')
+-                readback['plan_product'] = product
+-            bind_plan_attempt(payload, attempt)
+-            readback.update(run_id=saved['run_id'], plan_sha256=saved['sha256'],
+-                attempt=attempt, input_identity=saved['input_identity'],
+-                latest_attempt_observation=dict(observed_at=datetime.now(timezone.utc).isoformat(),
+-                    attempt=observed_attempt,
+-                    scope='ORIGINAL_OWNER_LATEST_JOURNAL_NOT_EXACT_PRODUCT_TERMINAL'),
+-                latest_observation=latest_observation(saved))
+     readback['store_relative'] = 'current_recovery' if current_recovery else '.'
+     if current_recovery:
+         _mark_current_recovery(payload, request)
+@@ -663,7 +594,7 @@ def run_manager_plan(request):
+     return value
+ 
+ 
+-def publish_workspace_read(request, config, *, expected_generation, expected_run_id=None):
++def publish_workspace_read(request, config, *, expected_generation):
+     """Explicit publication; HTTP GET only serves this committed generation.
+ 
+     Keep the exact query identity. Auto may explicitly select a committed
+@@ -672,18 +603,8 @@ def publish_workspace_read(request, config, *, expected_generation, expected_run
+     """
+     if request['action'] != 'read':
+         raise ValueError('MANAGER_API_REQUIRES_READ_RESULT')
+-    if expected_run_id is not None and (not isinstance(expected_run_id, str)
+-            or not re.fullmatch(r'[0-9a-f]{32}', expected_run_id)):
+-        raise ValueError('MANAGER_EXPECTED_RUN_ID')
+     from v5_shadow.module_artifacts import publish_generation
+     result = run_manager_plan(request)
+-    if expected_run_id is not None:
+-        product = result['payload'].get('plan_product') or {}
+-        attempt = result['payload'].get('workspace_plan_attempt') or {}
+-        if (product.get('run_id') != expected_run_id or product.get('consumed') is not True
+-                or attempt.get('run_id') != expected_run_id
+-                or attempt.get('state') not in {'SUCCEEDED', 'SUCCEEDED_EMPTY', 'PARTIAL'}):
+-            raise ValueError('SAVED_RUN_NOT_CONSUMED')
+     query = dict(date=request['target_date'], view=request['view'])
+     for key in ('selection_date', 'announcement_date'):
+         if request[key] is not None:
+diff --git b/V5/src/v5_shadow/module_api.py a/V5/src/v5_shadow/module_api.py
+index d9d3f5f2ac06cb7802fade58829d00d6ca93c091..3fdea5f256b2dc70df141a0e70dbbc1396abb859 100644
+--- b/V5/src/v5_shadow/module_api.py
++++ a/V5/src/v5_shadow/module_api.py
+@@ -193,7 +193,6 @@ def create_module_server(value,host='127.0.0.1',port=0):
+             self.send_header('Content-Type','application/json; charset=utf-8');self.send_header('Content-Length',str(len(data)))
+             self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff')
+             self.send_header('X-V5-Module',config['module_id']);self.send_header('X-V5-Release',config['release_id'])
+-            if config['module_id']=='manager':self.send_header('X-V5-Workspace-Access','READ_ONLY')
+             if digest:self.send_header('X-V5-Record-SHA256',digest)
+             self.end_headers()
+             try:
+diff --git b/V5/tests/module01_export_http.py a/V5/tests/module01_export_http.py
+deleted file mode 100644
+index f132f412fc288c2daf5afc2670edad4a78a8cbdc..0000000000000000000000000000000000000000
+--- b/V5/tests/module01_export_http.py
++++ /dev/null
+@@ -1,99 +0,0 @@
+-"""Export actual HTTP DTO bytes from the explicitly synthetic original owner.
+-
+-This driver reuses an already saved synthetic run, publishes one ordinary auto
+-read into a fresh private root, and closes its ephemeral loopback servers.
+-It never accepts the real Mac 392 fixture as synthetic evidence.
+-"""
+-import argparse
+-import copy
+-from datetime import datetime, timezone
+-import hashlib
+-import json
+-from pathlib import Path
+-import threading
+-from urllib.parse import urlencode
+-from urllib.request import urlopen
+-
+-from v5_shadow.api_gateway import create_gateway
+-from v5_shadow.digests import canonical_bytes
+-from v5_shadow.manager_plan import ROUTE, publish_workspace_read
+-from v5_shadow.module_api import create_module_server
+-
+-
+-def snapshot(roots):
+-    return {str(path): hashlib.sha256(path.read_bytes()).hexdigest()
+-            for root in roots for path in root.rglob('*') if path.is_file()}
+-
+-
+-def export_http(fixture_path, expected_run, output):
+-    fixture = json.loads(Path(fixture_path).read_bytes())
+-    provenance = fixture['provenance']
+-    if (provenance.get('fixture_kind') != 'SYNTHETIC_ORIGINAL_OWNER_INPUTS'
+-            or provenance.get('real_392_reused') is not False
+-            or sum(provenance.get('decisions', {}).values()) != 4):
+-        raise ValueError('MODULE01_EXPLICIT_SYNTHETIC_FIXTURE_REQUIRED')
+-    output = Path(output).absolute()
+-    output.mkdir(parents=True, exist_ok=False)
+-    request = copy.deepcopy(fixture['request'])
+-    request.update(action='read', view='auto', now=datetime.now(timezone.utc).isoformat())
+-    module_root = output / 'module'
+-    module_root.mkdir()
+-    (module_root / '.v5-module-root').write_text('v5.module-root.v1:manager\n')
+-    config = dict(schema_version='v5.module_api.v1', module_id='manager', release_id='module01-synthetic-http',
+-                  data_root=str(module_root), routes=[ROUTE])
+-    published = publish_workspace_read(request, config, expected_generation=None, expected_run_id=expected_run)
+-    module = create_module_server(config)
+-    gateway_config = dict(schema_version='v5.api_gateway.v1',
+-        modules={'manager': dict(port=module.server_port, timeout_seconds=5,
+-                                 max_inflight=2, release_id=config['release_id'])},
+-        routes=[dict(path=ROUTE, module_id='manager', methods=['GET'])])
+-    gateway = create_gateway(gateway_config)
+-    servers = [module, gateway]
+-    for server in servers:
+-        threading.Thread(target=server.serve_forever, daemon=True).start()
+-    roots = [Path(binding['root']) for binding in request['inputs'].values()]
+-    roots += [Path(request['manager_output_root']), module_root]
+-    before = snapshot(roots)
+-    responses = []
+-    try:
+-        query = urlencode({'date': request['target_date'], 'view': request['view']})
+-        for name, server in zip(('module', 'gateway'), servers, strict=True):
+-            url = 'http://127.0.0.1:' + str(server.server_port) + ROUTE + '?' + query
+-            with urlopen(url, timeout=10) as response:
+-                raw = response.read()
+-                body = json.loads(raw)
+-                headers = dict(response.headers)
+-                if (response.status != 200 or headers.get('X-V5-Workspace-Access') != 'READ_ONLY'
+-                        or body != published['result']['payload']):
+-                    raise AssertionError('MODULE01_HTTP_RESPONSE_MISMATCH')
+-                responses.append(dict(surface=name, method='GET', url=url, status=response.status,
+-                    headers=headers, body=body, body_sha256=hashlib.sha256(raw).hexdigest()))
+-        if snapshot(roots) != before:
+-            raise AssertionError('MODULE01_HTTP_GET_CHANGED_SOURCE_OR_PRODUCT_BYTES')
+-    finally:
+-        for server in reversed(servers):
+-            server.shutdown()
+-            server.server_close()
+-    receipt = dict(schema_version='v5.module01.synthetic_http_receipt.v1',
+-        fixture_kind=provenance['fixture_kind'], real_392_reused=False, provenance=provenance,
+-        request={'target_date': request['target_date'], 'view': request['view']},
+-        manager_run=published['result']['payload']['plan_product']['run_id'],
+-        manager_plan_sha256=published['result']['payload']['plan_product']['sha256'],
+-        manager_readback=published['result']['readback'],
+-        implementation_identity=published['result']['implementation_identity'],
+-        publication=published['publication'], responses=responses,
+-        http_get_before_after_bytes_equal=True, local_servers_closed=True,
+-        natural_verified=False, mac_business_acceptance='NOT_RUN')
+-    (output / 'http-receipt.json').write_bytes(canonical_bytes(receipt))
+-    print(json.dumps(dict(receipt=str(output / 'http-receipt.json'), run_id=receipt['manager_run'],
+-        plan_sha256=receipt['manager_plan_sha256'], http_surfaces=[r['surface'] for r in responses],
+-        http_get_before_after_bytes_equal=True, real_392_reused=False)))
+-
+-
+-if __name__ == '__main__':
+-    parser = argparse.ArgumentParser(description=__doc__)
+-    parser.add_argument('--fixture', required=True, type=Path)
+-    parser.add_argument('--expected-run', required=True)
+-    parser.add_argument('--out', required=True, type=Path)
+-    args = parser.parse_args()
+-    export_http(args.fixture, args.expected_run, args.out)
+diff --git b/V5/tests/module01_owner_fixture.py a/V5/tests/module01_owner_fixture.py
+deleted file mode 100644
+index 5618b183e9ad27122f461790e94de0bb21c27aa6..0000000000000000000000000000000000000000
+--- b/V5/tests/module01_owner_fixture.py
++++ /dev/null
+@@ -1,226 +0,0 @@
+-"""Synthetic announcement inputs made by the pinned original V5 owner.
+-
+-The provider-injection pattern is adapted from the fixed original fixture:
+-  commit 1a699a040c0b2cd467726bca5ccc7847182cb975
+-  V5/handoff/announcement-budget-red-20261009/tests/test_v5_private_owner.py
+-  Git blob d77163606682a83313487453aa599ed97bea1703
+-
+-Only the transport response is synthetic. Catalog parsing, body persistence,
+-handoff registration, review binding, import, and subsequent consumer reads
+-use the target source capsules. No actual network or original Mac data is used.
+-"""
+-from __future__ import annotations
+-
+-import copy
+-from datetime import datetime, timezone
+-import hashlib
+-import json
+-from pathlib import Path
+-import re
+-import shutil
+-import subprocess
+-import sys
+-
+-BASE = Path(__file__).resolve().parents[1]
+-SRC = BASE / "src"
+-if str(SRC) not in sys.path:
+-    sys.path.insert(0, str(SRC))
+-
+-TARGET = "20261009"
+-PUBLICATION = "2026-10-08"
+-SYNTHETIC_REASON = "SYNTHETIC_MODULE01_CONTRACT_FIXTURE_NOT_INVESTMENT_RESEARCH"
+-FIXTURE_SOURCE = {
+-    "commit": "1a699a040c0b2cd467726bca5ccc7847182cb975",
+-    "path": "V5/handoff/announcement-budget-red-20261009/tests/test_v5_private_owner.py",
+-    "git_blob_sha": "d77163606682a83313487453aa599ed97bea1703",
+-    "adapted_function": "V5PrivateOwnerTests.test_complete_catalog_and_all_21_bodies_share_one_budget",
+-    "target_commit": "f7cb731c384ee6890a87d16c19a5b5a621779477",
+-    "fixture_kind": "SYNTHETIC_ORIGINAL_OWNER_INPUTS",
+-    "real_392_reused": False,
+-}
+-
+-
+-def _sha(raw: bytes) -> str:
+-    return hashlib.sha256(raw).hexdigest()
+-
+-
+-def _dump(path: Path, value: object) -> None:
+-    path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+-
+-
+-def _worker(root: Path) -> dict:
+-    """Run original owner setup in a fresh process, keeping its imports local."""
+-    from v5_shadow.announcement_offline_reader import APP, sources, install_consumer_contract
+-
+-    sources()
+-    sys.path.insert(0, str(APP))
+-    from ops.run_v5_private_announcement import PrivateOwner, SENTINEL_BASE
+-    from ops import run_manager_daily_announcement as daily
+-    from v4.manager_research import workspace_announcements as announcements
+-    from v4.manager_research.hkex_provider import HkexOfficialProvider
+-    from v4.manager_research.ports import SourceResponse
+-    from v4.manager_research.workspace_projection import digest
+-    from urllib.parse import parse_qs, urlencode, urlsplit
+-    from types import SimpleNamespace
+-
+-    install_consumer_contract(announcements)
+-
+-    def deny_network(event, args):
+-        if event.startswith("socket.") or event in {"subprocess.Popen", "os.system"}:
+-            raise RuntimeError("MODULE01_SYNTHETIC_FIXTURE_NETWORK_FORBIDDEN")
+-
+-    sys.addaudithook(deny_network)
+-    private_parent = root / "private"
+-    private_parent.mkdir()
+-    forbidden = root / "untouched"
+-    forbidden.mkdir()
+-    (forbidden / "sentinel").write_bytes(b"UNTOUCHED_SYNTHETIC_BOUNDARY\n")
+-    owner_root = private_parent / "owner"
+-    rows = [dict(art_code=f"AN202610080001{i:04d}", notice_date=PUBLICATION + " 00:00:00",
+-        display_time=PUBLICATION + " 12:00:00:000", title=f"Synthetic Module 01 notice {i}",
+-        codes=[dict(market_code="116", ann_type="H", stock_code=f"{i:05d}",
+-                    short_name=f"Synthetic Issuer {i}")]) for i in range(1, 5)]
+-
+-    def transport(url, **kwargs):
+-        query = parse_qs(urlsplit(url).query)
+-        if urlsplit(url).path == "/api/security/ann":
+-            page = int(query["page_index"][0])
+-            data = dict(list=rows if page == 1 else [], page_index=page, page_size=20, total_hits=len(rows))
+-        elif urlsplit(url).path == "/api/content/ann":
+-            article = query["art_code"][0]
+-            row = next(row for row in rows if row["art_code"] == article)
+-            code = row["codes"][0]["stock_code"]
+-            data = dict(art_code=article, notice_title=row["title"], notice_date=row["notice_date"],
+-                notice_content=f"{SYNTHETIC_REASON}. Synthetic article {article}.", page_size=1,
+-                security=[dict(market_uni="116", stock=code)])
+-        else:
+-            raise AssertionError("UNEXPECTED_SYNTHETIC_PROVIDER_ROUTE:" + urlsplit(url).path)
+-        return SourceResponse(url=url, final_url=url, status_code=200,
+-            body=json.dumps({"success": 1, "data": data}).encode(),
+-            headers={"Content-Type": "application/json"}, retrieved_at="2026-10-09T00:00:00+00:00")
+-
+-    def factory(**kwargs):
+-        return HkexOfficialProvider(transport=lambda *args, **kw: (_ for _ in ()).throw(
+-            AssertionError("UNEXPECTED_HKEX_TRANSPORT")), eastmoney_transport=transport, **kwargs)
+-
+-    owner = PrivateOwner(owner_root, private_parent, [forbidden], provider_factory=factory,
+-                         initialize=True, capture_enabled=True)
+-    captured = owner.execute(["capture", "--target-date", TARGET, "--publication-date", PUBLICATION])
+-    if captured["status"] != "PASS_COMPLETE_CONTENT_API_BODIES_ALL_ROWS":
+-        raise AssertionError(captured)
+-    evidence = owner_root / "announcement_agent_runs" / captured["evidence_run_id"] / "evidence"
+-    catalog = owner.get_announcement_date_catalog(TARGET, PUBLICATION)
+-    semantic_path = owner_root / "synthetic_semantic_catalog.json"
+-    semantic = dict(schema="v4.announcement-semantic-catalog.v2", status="PASS_SYNTHETIC_TEST_ONLY",
+-        target_research_date=TARGET, target_notice_date=PUBLICATION, row_count=len(rows), records=[
+-            dict(art_code=row["art_code"], title=row["title"], issuer_codes=row["source_issuer_codes"],
+-                 security_scope="HK_EQUITY", factual_summary=SYNTHETIC_REASON,
+-                 classification="SYNTHETIC_TEST_ONLY")
+-            for row in catalog["catalog"]["manager_consumer_rows"]])
+-    _dump(semantic_path, semantic)
+-    terminal = announcements.validate_terminal_body_capture(evidence, catalog, TARGET, PUBLICATION,
+-        expected_run_id=captured["evidence_run_id"])
+-    build_args = SimpleNamespace(target_date=TARGET, publication_date=PUBLICATION,
+-        catalog_read=str(evidence / "catalog_read.json"), semantic_catalog=str(semantic_path),
+-        body_corpus=str(evidence / "body_corpus.json"), out=None, decisions=None, review_receipt=None)
+-    base = daily._build(build_args, reviewed=False, include_product=True,
+-                        terminal_body_capture=terminal)["product"]
+-    outcomes = [("SELECTED_EVENT", "OPERATING_EVENT"), ("CONDITIONAL_WATCH", "CONDITIONAL_WATCH"),
+-                ("NOT_SELECTED", "NOT_SELECTED"), ("NOT_ASSESSED", "NOT_ASSESSED")]
+-    decisions = [dict(art_code=row["art_code"], issuer_codes=[i["code"] for i in row["issuer_codes"]],
+-        security_scope=row["security_scope"], semantic_record_sha256=row["semantic_record_sha256"],
+-        body_record_sha256=row["body_record_sha256"], disposition=disposition,
+-        selection_basis=basis, reason=f"{SYNTHETIC_REASON}: {disposition}", risk_notes=["SYNTHETIC_ONLY"])
+-        for row, (disposition, basis) in zip(base["records"], outcomes, strict=True)]
+-    decisions_path = owner_root / "synthetic_decisions.json"
+-    _dump(decisions_path, {"article_decisions": decisions})
+-    reviewer_path = owner_root / "synthetic_reviewer.json"
+-    _dump(reviewer_path, dict(schema_version="v4.manager_research.announcement_agent_review.v1",
+-        review_conclusion="PASS", target_trade_date=TARGET, publication_date=PUBLICATION,
+-        evidence_run_id=captured["evidence_run_id"], decision_status="EXPLICIT_DISPOSITIONS",
+-        decision_payload_sha256=digest(decisions), reader_identity="synthetic-module01-reader",
+-        reviewer_identity="synthetic-module01-independent-reviewer", reviewed_at="2026-10-09T00:01:00+00:00",
+-        catalog_product_sha256=catalog["catalog"]["sha256"], semantic_catalog_sha256=_sha(semantic_path.read_bytes()),
+-        body_corpus_sha256=_sha((evidence / "body_corpus.json").read_bytes())))
+-    registered = owner.execute(["register-handoff", "--target-date", TARGET,
+-        "--publication-date", PUBLICATION, "--evidence-run-id", captured["evidence_run_id"],
+-        "--semantic-catalog", str(semantic_path), "--reviewer-output", str(reviewer_path),
+-        "--decisions", str(decisions_path), "--parent-task-id", "synthetic-module01-fixture",
+-        "--reader-identity", "synthetic-module01-reader",
+-        "--reviewer-identity", "synthetic-module01-independent-reviewer"])
+-    imported = owner.execute(["import", "--evidence-run-id", captured["evidence_run_id"]])
+-    owner_readback = owner.request(SENTINEL_BASE, "/api/v4/manager/research/announcements/analysis?" +
+-        urlencode({"date": TARGET, "publication_date": PUBLICATION}))
+-    consumption = announcements.read_analysis_consumption(owner, TARGET, PUBLICATION,
+-        cutoff=datetime.now(timezone.utc).isoformat(), analysis_readback=owner_readback)
+-    if consumption["status"] != "CONSUMED":
+-        raise AssertionError(consumption)
+-    # Root binding is declared once. Only bytes actually needed by the original
+-    # announcement readers are copied into the independent bound input roots.
+-    manager = root / "manager"
+-    manager.mkdir()
+-    for name in ("workspace_announcements", "workspace_announcement_runs", "announcement_agent_runs"):
+-        shutil.copytree(owner_root / name, manager / name)
+-    materials = root / "materials"
+-    shutil.copytree(owner_root / "materials", materials)
+-    source_bytes = {}
+-    for relative in ("ops/run_v5_private_announcement.py", "ops/run_manager_daily_announcement.py",
+-            "v4/manager_research/workspace_announcements.py", "v4/manager_research/announcement_analysis.py",
+-            "v4/manager_research/announcement_selection.py"):
+-        raw = (APP / relative).read_bytes()
+-        source_bytes[relative] = dict(sha256=_sha(raw), git_blob_sha=hashlib.sha1(
+-            b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest())
+-    if (forbidden / "sentinel").read_bytes() != b"UNTOUCHED_SYNTHETIC_BOUNDARY\n":
+-        raise AssertionError("SYNTHETIC_BOUNDARY_CHANGED")
+-    sources()
+-    return dict(owner_readback=owner_readback, consumption=consumption, catalog=catalog,
+-        provenance=dict(FIXTURE_SOURCE, target_owner_files=source_bytes,
+-            capture_status=captured["status"], register_status=registered["status"], import_status=imported["status"],
+-            decisions={key: sum(d["disposition"] == key for d in decisions)
+-                       for key in ("SELECTED_EVENT", "SELECTED_PERFORMANCE", "CONDITIONAL_WATCH", "NOT_SELECTED", "NOT_ASSESSED")}))
+-
+-
+-def create_manager_fixture(root: Path) -> dict:
+-    """Create reusable synthetic owner inputs; return manager and bridge requests."""
+-    root = Path(root).resolve()
+-    root.mkdir(parents=True, exist_ok=True)
+-    child = subprocess.run([sys.executable, "-I", "-B", str(Path(__file__).resolve()), "--worker", str(root)],
+-                           capture_output=True, text=True, timeout=120)
+-    if child.returncode:
+-        raise AssertionError("MODULE01_ORIGINAL_OWNER_FIXTURE_FAILED\n" + child.stdout + child.stderr)
+-    result = json.loads(child.stdout.splitlines()[-1])
+-    inputs = {}
+-    for name in ("manager", "materials", "us"):
+-        path = root / name
+-        path.mkdir(exist_ok=True)
+-        inputs[name] = dict(root=str(path), files={str(p.relative_to(path)): _sha(p.read_bytes())
+-                           for p in path.rglob("*") if p.is_file() and (name != "materials" or re.fullmatch(
+-                               r"(?:blobs/[0-9a-f]{64}|index/[0-9a-f]{64}\.json)", str(p.relative_to(path))))})
+-    output = root / "plans"
+-    output.mkdir()
+-    (output / ".v5-manager-plan-root").write_text("v5.manager-plan-root.v1\n")
+-    request = dict(target_date=TARGET, now=datetime.now(timezone.utc).isoformat(), action="refresh", view="dynamic",
+-        selection_date=None, announcement_date=None, inputs=inputs, rebound=None, manager_output_root=str(output))
+-    # The bridge's public binding intentionally admits a smaller input set.
+-    bridge_manager = {name: digest for name, digest in inputs["manager"]["files"].items()
+-        if name.startswith(("workspace_announcements/", "workspace_announcement_runs/")) or re.fullmatch(
+-            r"announcement_agent_runs/[0-9a-f]{32}/evidence/(?:[A-Za-z0-9_.-]+\.json|body_batch/bodies/AN[A-Z0-9]{8,32}\.json)", name)}
+-    bridge_request = dict(target_date=TARGET, publication_date=PUBLICATION, manager_root=inputs["manager"]["root"],
+-        materials_root=inputs["materials"]["root"], manager_files=bridge_manager, material_files=inputs["materials"]["files"])
+-    result.update(request=request, announcement_request=bridge_request)
+-    return result
+-
+-
+-def create_manager_dto(root: Path) -> dict:
+-    """Return the actual target run_manager_plan result and its synthetic inputs."""
+-    from v5_shadow.manager_plan import run_manager_plan
+-    fixture = create_manager_fixture(root)
+-    result = run_manager_plan(copy.deepcopy(fixture["request"]))
+-    return dict(fixture=fixture, result=result)
+-
+-
+-if __name__ == "__main__":
+-    if len(sys.argv) == 3 and sys.argv[1] == "--worker":
+-        print(json.dumps(_worker(Path(sys.argv[2])), ensure_ascii=False))
+-    else:
+-        raise SystemExit("Use create_manager_fixture(root) or create_manager_dto(root) from tests.")
+diff --git b/V5/tests/test_manager_current_recovery.py a/V5/tests/test_manager_current_recovery.py
+index 94422de690fdeacfebc9721a8ee14afc1fe4d0a5..42d61b7afe8d1a1b0f62a3ac21264cc01e60f9db 100644
+--- b/V5/tests/test_manager_current_recovery.py
++++ a/V5/tests/test_manager_current_recovery.py
+@@ -179,28 +179,17 @@ class ManagerCurrentRecoveryTests(unittest.TestCase):
+         journal.with_name('latest.json').unlink()
+         self.assert_missing_recovery_journal_rejected(saved)
+ 
+-    def test_same_day_manual_missing_journal_keeps_fresh_preview_without_consumption(self):
++    def test_same_day_manual_legacy_missing_journal_keeps_original_compatibility(self):
+         request = dict(self.request, now='2026-10-09T08:45:00+08:00')
+-        fresh = run_manager_plan(dict(request, action='read'))['payload']
+         saved = run_manager_plan(request)
+         journal = self.output / 'workspace_plan_runs' / '20261009' / (saved['readback']['run_id'] + '.json')
+         journal.unlink()
+         journal.with_name('latest.json').unlink()
+         before = self.snapshot()
+         page = run_manager_plan(dict(request, action='read'))['payload']
+-        self.assertEqual(page['plan_product']['status'], 'OWNER_ATTEMPT_UNVERIFIED')
+-        self.assertEqual(page['plan_product']['reason'], 'MANAGER_EXACT_OWNER_ATTEMPT_MISSING')
+-        self.assertFalse(page['plan_product']['consumed'])
++        self.assertEqual(page['plan_product']['status'], 'CURRENT')
++        self.assertTrue(page['plan_product']['consumed'])
+         self.assertEqual(page['plan_product']['run_id'], saved['readback']['run_id'])
+-        self.assertEqual(page['plan_product']['sha256'], saved['readback']['plan_sha256'])
+-        self.assertIsNone(page['workspace_plan_attempt'])
+-        for name in ('stocks', 'materials', 'announcement_reviewed_analysis', 'input_identity'):
+-            self.assertEqual(page[name], fresh[name], name)
+-        for channel in page['daily_channels']['channels']:
+-            if channel['channel'] in ('HK_CONNECT', 'OVERSOLD'):
+-                self.assertIsNone(channel['run_id'])
+-                self.assertIsNone(channel['product_sha256'])
+-                self.assertEqual(channel['attempt_status'], 'NOT_VERIFIED')
+         self.assertEqual(self.snapshot(), before)
+ 
+     def test_changed_bound_input_bytes_still_fail_sha_admission(self):
+diff --git b/V5/tests/test_module01_announcement_contract.py a/V5/tests/test_module01_announcement_contract.py
+deleted file mode 100644
+index 4dab799ba39d4488864b6db9818f416721317b11..0000000000000000000000000000000000000000
+--- b/V5/tests/test_module01_announcement_contract.py
++++ /dev/null
+@@ -1,188 +0,0 @@
+-"""Original-owner announcement contracts for the first V5 delivery module.
+-
+-All inputs are synthetic and created by the target owner. These tests are
+-regressions for existing equivalent behavior, not a Mac 392-decision receipt.
+-"""
+-import copy
+-from datetime import datetime, timezone
+-import hashlib
+-import json
+-from pathlib import Path
+-import shutil
+-import tempfile
+-import unittest
+-
+-from module01_owner_fixture import create_manager_fixture, PUBLICATION, TARGET, SYNTHETIC_REASON
+-from v5_shadow.announcement_analysis_api import response_record
+-from v5_shadow.announcement_bridge import run_announcement_bridge
+-from v5_shadow.announcement_offline_reader import APP, PIN, sources
+-from v5_shadow.digests import canonical_bytes, sha256_json
+-from v5_shadow.manager_plan import run_manager_plan
+-
+-
+-class Module01AnnouncementContracts(unittest.TestCase):
+-    @classmethod
+-    def setUpClass(cls):
+-        cls.tmp = tempfile.TemporaryDirectory(prefix="module01-synthetic-announcements-")
+-        cls.addClassCleanup(cls.tmp.cleanup)
+-        cls.root = Path(cls.tmp.name).resolve()
+-        cls.fixture = create_manager_fixture(cls.root)
+-
+-    def copied_bridge(self, root):
+-        request = copy.deepcopy(self.fixture["announcement_request"])
+-        for root_key, files_key, name in (("manager_root", "manager_files", "manager"),
+-                                          ("materials_root", "material_files", "materials")):
+-            dest = Path(root) / name
+-            dest.mkdir()
+-            for relative in request[files_key]:
+-                path = dest / relative
+-                path.parent.mkdir(parents=True, exist_ok=True)
+-                path.write_bytes((Path(request[root_key]) / relative).read_bytes())
+-            request[root_key] = str(dest)
+-        return request
+-
+-    def source_snapshot(self):
+-        return {group: {name: (Path(binding["root"]) / name).read_bytes() for name in binding["files"]}
+-                for group, binding in self.fixture["request"]["inputs"].items()}
+-
+-    def announcement(self, payload):
+-        channels = {row["channel"]: row for row in payload["daily_channels"]["channels"]}
+-        return channels["ANNOUNCEMENT"]
+-
+-    def test_original_owner_keeps_decisions_separate_from_selected_stocks(self):
+-        selection = self.fixture["owner_readback"]["analysis"]["stock_selection"]
+-        self.assertEqual(selection["status"], "VERIFIED")
+-        self.assertEqual(len(selection["article_decisions"]), 4)
+-        self.assertEqual(selection["stock_count"], 4)
+-        self.assertEqual(selection["selected_stock_count"], 1)
+-        self.assertEqual(selection["conditional_watch_count"], 1)
+-        self.assertEqual(selection["not_selected_stock_count"], 1)
+-        self.assertEqual(selection["not_assessed_stock_count"], 1)
+-        self.assertEqual(self.fixture["consumption"]["status"], "CONSUMED")
+-        self.assertFalse(self.fixture["provenance"]["real_392_reused"])
+-
+-    def test_bridge_runs_original_catalog_and_handoff_readers_without_input_changes(self):
+-        before = self.source_snapshot()
+-        result = run_announcement_bridge(copy.deepcopy(self.fixture["announcement_request"]))
+-        self.assertEqual(result["payload"]["analysis"], self.fixture["owner_readback"]["analysis"])
+-        self.assertEqual(result["catalog"]["readback"]["derivation"], "REPARSED_FROM_SHARED_MATERIAL_STORE")
+-        self.assertEqual(result["payload"]["consumption_validation"]["validation_status"], "VERIFIED")
+-        self.assertFalse(result["payload"]["consumption_validation"]["consumed"])
+-        self.assertEqual(result["payload"]["consumption_validation"]["cutoff_status"], "NOT_REQUESTED")
+-        self.assertTrue(any(name.endswith("/reader_output.json") for name in result["original_reader_accesses"]["manager"]))
+-        self.assertTrue(any(name.startswith("blobs/") for name in result["original_reader_accesses"]["materials"]))
+-        self.assertFalse(result["natural_verified"])
+-        self.assertFalse(result["source_origin_verified"])
+-        self.assertEqual(self.source_snapshot(), before)
+-
+-    def test_healthy_announcement_survives_missing_us_connect_and_rebound_inputs(self):
+-        before = self.source_snapshot()
+-        request = copy.deepcopy(self.fixture["request"])
+-        request["now"] = datetime.now(timezone.utc).isoformat()
+-        result = run_manager_plan(request)
+-        payload = result["payload"]
+-        self.assertEqual(result["readback"]["status"], "MATCHED")
+-        self.assertEqual(payload["us_market_attention"]["status"], "INPUT_MISSING")
+-        channels = {row["channel"]: row for row in payload["daily_channels"]["channels"]}
+-        announcement = channels["ANNOUNCEMENT"]
+-        self.assertEqual(announcement["candidate_count"], 1)
+-        self.assertEqual(announcement["watch_count"], 1)
+-        self.assertEqual(announcement["pending_count"], 1)
+-        self.assertEqual(announcement["status"], "PARTIAL")
+-        self.assertEqual({row["symbol"] for row in announcement["rows"]}, {"HK.00001", "HK.00002"})
+-        self.assertEqual(channels["HK_CONNECT"]["status"], "CANNOT_CONFIRM")
+-        self.assertEqual(channels["OVERSOLD"]["status"], "CANNOT_CONFIRM")
+-        self.assertTrue(channels["HK_CONNECT"]["gaps"])
+-        self.assertTrue(channels["OVERSOLD"]["gaps"])
+-        for row in announcement["rows"]:
+-            self.assertIn(SYNTHETIC_REASON, row["reason"])
+-            self.assertTrue(row["source_refs"])
+-            self.assertEqual(row["data_date"], PUBLICATION.replace("-", ""))
+-            self.assertEqual(row["target_trade_date"], TARGET)
+-            self.assertEqual(row["product_sha256"], self.fixture["consumption"]["product_sha256"])
+-        for key in ("production_allowed", "buy_gate_updated", "orders_sent"):
+-            self.assertIs(payload[key], False)
+-        self.assertFalse(result["natural_verified"])
+-        self.assertEqual(self.source_snapshot(), before)
+-        request.update(action="read", now=datetime.now(timezone.utc).isoformat())
+-        reread = run_manager_plan(request)
+-        self.assertEqual(reread["payload"]["plan_product"]["run_id"], result["readback"]["run_id"])
+-        self.assertTrue(reread["payload"]["plan_product"]["consumed"])
+-        self.assertEqual(self.announcement(reread["payload"])["rows"], announcement["rows"])
+-
+-    def test_resealed_outer_material_pin_cannot_hide_changed_original_source(self):
+-        with tempfile.TemporaryDirectory(prefix="module01-source-tamper-") as tmp:
+-            request = self.copied_bridge(tmp)
+-            source = self.fixture["owner_readback"]["analysis"]["records"][0]["listing_source"]["source_ref"]
+-            name = "blobs/" + source["blob_sha256"]
+-            path = Path(request["materials_root"]) / name
+-            raw = path.read_bytes() + b" changed original source"
+-            path.write_bytes(raw)
+-            request["material_files"][name] = hashlib.sha256(raw).hexdigest()
+-            with self.assertRaises(ValueError):
+-                run_announcement_bridge(request)
+-
+-    def test_resealed_outer_body_pin_still_fails_original_handoff_verification(self):
+-        with tempfile.TemporaryDirectory(prefix="module01-body-tamper-") as tmp:
+-            request = self.copied_bridge(tmp)
+-            name = next(name for name in request["manager_files"] if "/body_batch/bodies/" in name)
+-            path = Path(request["manager_root"]) / name
+-            raw = path.read_bytes() + b" "
+-            path.write_bytes(raw)
+-            request["manager_files"][name] = hashlib.sha256(raw).hexdigest()
+-            result = run_announcement_bridge(request)
+-            consumption = result["payload"]["consumption_validation"]
+-            self.assertEqual(consumption["validation_status"], "CANNOT_CONFIRM")
+-            self.assertEqual(consumption["failure_stage"], "REGISTERED_HANDOFF")
+-            self.assertFalse(consumption["consumed"])
+-            self.assertEqual(consumption["research_references"], [])
+-
+-    def test_resealed_owner_receipt_cannot_borrow_another_parent(self):
+-        with tempfile.TemporaryDirectory(prefix="module01-receipt-tamper-") as tmp:
+-            request = self.copied_bridge(tmp)
+-            name = next(name for name in request["manager_files"] if name.endswith("/owner_import_receipt.v1.json"))
+-            path = Path(request["manager_root"]) / name
+-            receipt = json.loads(path.read_bytes())
+-            receipt["parent_task_id"] = "synthetic-different-parent"
+-            receipt["sha256"] = sha256_json({key: value for key, value in receipt.items() if key != "sha256"})
+-            raw = canonical_bytes(receipt)
+-            path.write_bytes(raw)
+-            request["manager_files"][name] = hashlib.sha256(raw).hexdigest()
+-            with self.assertRaisesRegex(ValueError, "PARENT_BINDING"):
+-                run_announcement_bridge(request)
+-
+-    def test_missing_registered_handoff_never_becomes_verified_consumption(self):
+-        with tempfile.TemporaryDirectory(prefix="module01-handoff-missing-") as tmp:
+-            request = self.copied_bridge(tmp)
+-            for name in list(request["manager_files"]):
+-                if name.startswith("announcement_agent_runs/"):
+-                    del request["manager_files"][name]
+-            result = run_announcement_bridge(request)
+-            self.assertEqual(result["payload"]["analysis"]["status"], "VERIFIED")
+-            consumption = result["payload"]["consumption_validation"]
+-            self.assertEqual(consumption["validation_status"], "CANNOT_CONFIRM")
+-            self.assertFalse(consumption["consumed"])
+-            self.assertEqual(consumption["research_references"], [])
+-
+-    def test_actual_analysis_dto_rejects_wrong_date_or_default_relabel(self):
+-        result = dict(analysis=copy.deepcopy(self.fixture["owner_readback"]), request_sha256="a" * 64)
+-        config = dict(module_id="announcements", release_id="module01-synthetic")
+-        record = response_record(result, config, {"date": TARGET, "publication_date": PUBLICATION})
+-        self.assertEqual(record["payload"], self.fixture["owner_readback"])
+-        with self.assertRaisesRegex(ValueError, "QUERY_DATE_MISMATCH"):
+-            response_record(result, config, {"date": TARGET, "publication_date": "2026-10-07"})
+-        with self.assertRaisesRegex(ValueError, "QUERY_BASIS_MISMATCH"):
+-            response_record(result, config, {"date": TARGET})
+-
+-    def test_original_owner_source_pin_rejects_a_changed_capsule_file(self):
+-        with tempfile.TemporaryDirectory(prefix="module01-capsule-tamper-") as tmp:
+-            copy_root = Path(tmp) / "capsule"
+-            shutil.copytree(APP, copy_root)
+-            path = copy_root / "v4/manager_research/announcement_analysis.py"
+-            path.write_bytes(path.read_bytes() + b"\n# synthetic tamper\n")
+-            with self.assertRaisesRegex(ValueError, "OFFLINE_MANAGER_APP_BYTES"):
+-                sources(copy_root, PIN)
+-
+-
+-if __name__ == "__main__":
+-    unittest.main()
+diff --git b/V5/tests/test_module01_exact_run.py a/V5/tests/test_module01_exact_run.py
+deleted file mode 100644
+index 6f5521da196c3eaed6ce8f530bcf86282f869bcc..0000000000000000000000000000000000000000
+--- b/V5/tests/test_module01_exact_run.py
++++ /dev/null
+@@ -1,333 +0,0 @@
+-"""Real pinned owner/store interleavings; empty inputs are not business evidence.
+-
+-The test seams only pause or corrupt an isolated durable result after the real
+-owner has returned. No replacement owner, store, validator, or source reader is
+-used. Reverting the exact reader makes a completed A fail when B advances latest;
+-reverting the ordinary-read binding displays B's journal beside A's product.
+-"""
+-import json
+-import os
+-from pathlib import Path
+-import selectors
+-import subprocess
+-import sys
+-import tempfile
+-import unittest
+-
+-from v5_shadow.digests import canonical_bytes, sha256_json
+-from v5_shadow.manager_plan import run_manager_plan
+-
+-
+-SOURCE = Path(__file__).resolve().parents[1] / 'src'
+-CHILD = r'''
+-import json
+-import os
+-from pathlib import Path
+-import sys
+-sys.path.insert(0, sys.argv[1])
+-from v5_shadow import manager_plan
+-from v5_shadow.digests import canonical_bytes
+-
+-request = json.loads(sys.stdin.buffer.readline())
+-mode = sys.argv[2]
+-load_owner = manager_plan.load_owner
+-
+-def instrument_owner():
+-    owner = load_owner()
+-    if mode == 'pause_read':
+-        read_plan = owner._read_plan
+-        paused = False
+-        def pause_after_plan(store, date):
+-            nonlocal paused
+-            saved = read_plan(store, date)
+-            if not paused:
+-                paused = True
+-                sys.stderr.write('EXACT_RUN_READ_PAUSED\n')
+-                sys.stderr.flush()
+-                if sys.stdin.buffer.readline() != b'CONTINUE\n':
+-                    raise ValueError('TEST_READ_HANDSHAKE_FAILED')
+-            return saved
+-        owner._read_plan = pause_after_plan
+-        return owner
+-    refresh = owner.refresh_workspace_plan
+-    def after_real_save(service, date, **kwargs):
+-        first = refresh(service, date, **kwargs)
+-        run = first['plan_product']['run_id']
+-        root, _ = manager_plan._plan_store_scope(request, owner.HK)
+-        plans = service.store.root / 'workspace_plans' / date
+-        journals = service.store.root / 'workspace_plan_runs' / date
+-        if mode in {'advance_latest', 'other_terminal_missing', 'borrow_terminal',
+-                    'wrong_exact_run', 'return_other_attempt'}:
+-            second = refresh(service, date, **kwargs)
+-            other = second['plan_product']['run_id']
+-            if mode == 'return_other_attempt':
+-                first['workspace_plan_attempt'] = second['workspace_plan_attempt']
+-                first['daily_channels'] = second['daily_channels']
+-            elif mode == 'other_terminal_missing':
+-                os.unlink(root / 'workspace_plan_runs' / date / (other + '.json'))
+-            elif mode == 'borrow_terminal':
+-                borrowed = service.store._read(journals / (other + '.json'))
+-                service.store._write_atomic(journals / (run + '.json'), borrowed)
+-            elif mode == 'wrong_exact_run':
+-                borrowed = service.store._read(plans / (other + '.json'))
+-                os.unlink(root / 'workspace_plans' / date / (run + '.json'))
+-                service.store._write_atomic(plans / (run + '.json'), borrowed)
+-        elif mode == 'missing_terminal':
+-            os.unlink(root / 'workspace_plan_runs' / date / (run + '.json'))
+-        elif mode == 'missing_latest':
+-            os.unlink(root / 'workspace_plans' / date / 'latest.json')
+-        elif mode == 'invalid_latest':
+-            invalid = service.store._read(plans / 'latest.json')
+-            invalid['sha256'] = '0' * 64
+-            service.store._write_atomic(plans / 'latest.json', invalid)
+-        elif mode in {'invalid_exact_sha', 'wrong_exact_date'}:
+-            invalid = service.store._read(plans / (run + '.json'))
+-            if mode == 'invalid_exact_sha':
+-                invalid['sha256'] = '0' * 64
+-            else:
+-                invalid['target_trade_date'] = '20261007'
+-                invalid['workspace']['target_trade_date'] = '20261007'
+-                invalid['sha256'] = owner.digest({k: v for k, v in invalid.items() if k != 'sha256'})
+-            os.unlink(root / 'workspace_plans' / date / (run + '.json'))
+-            service.store._write_atomic(plans / (run + '.json'), invalid)
+-        elif mode == 'unsafe_returned_run':
+-            first['plan_product']['run_id'] = '../outside'
+-        return first
+-    owner.refresh_workspace_plan = after_real_save
+-    return owner
+-
+-manager_plan.load_owner = instrument_owner
+-try:
+-    value = manager_plan._assemble(request)
+-    print(canonical_bytes(dict(ok=True, value=value)).decode())
+-except Exception as error:
+-    print(canonical_bytes(dict(ok=False, error=type(error).__name__ + ':' + str(error))).decode())
+-    raise SystemExit(1)
+-'''
+-
+-
+-class ExactManagerRunTests(unittest.TestCase):
+-    def setUp(self):
+-        temporary = tempfile.TemporaryDirectory(prefix='v5-module01-exact-')
+-        self.addCleanup(temporary.cleanup)
+-        self.root = Path(temporary.name).resolve()
+-        inputs = {}
+-        for name in ('manager', 'materials', 'us'):
+-            path = self.root / name
+-            path.mkdir()
+-            inputs[name] = dict(root=str(path), files={})
+-        self.output = self.root / 'plans'
+-        self.output.mkdir()
+-        (self.output / '.v5-manager-plan-root').write_bytes(b'v5.manager-plan-root.v1\n')
+-        self.request = dict(target_date='20261008', now='2026-10-09T10:00:00+08:00',
+-            action='refresh', view='dynamic', selection_date=None, announcement_date=None,
+-            inputs=inputs, rebound=None, manager_output_root=str(self.output))
+-
+-    def child_command(self, mode):
+-        cache = tempfile.TemporaryDirectory(prefix='v5-exact-child-')
+-        self.addCleanup(cache.cleanup)
+-        return [sys.executable, '-I', '-B', '-X', 'pycache_prefix=' + cache.name,
+-                '-c', CHILD, str(SOURCE), mode]
+-
+-    def refresh_with(self, mode):
+-        result = subprocess.run(self.child_command(mode), input=canonical_bytes(self.request) + b'\n',
+-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=90,
+-            env={key: value for key, value in os.environ.items() if not key.startswith('V4_')})
+-        try:
+-            body = json.loads(result.stdout)
+-        except ValueError:
+-            self.fail('Child did not return JSON: ' + result.stderr.decode(errors='replace'))
+-        self.assertEqual(result.returncode, 0 if body['ok'] else 1, result.stderr.decode(errors='replace'))
+-        return body
+-
+-    def saved_plan(self, result):
+-        readback = result['readback']
+-        root = self.output / readback['store_relative']
+-        path = root / 'workspace_plans' / self.request['target_date'] / (readback['run_id'] + '.json')
+-        return json.loads(path.read_bytes())
+-
+-    def assert_exact(self, result):
+-        payload, readback = result['payload'], result['readback']
+-        saved = self.saved_plan(result)
+-        self.assertEqual(readback['status'], 'MATCHED')
+-        self.assertEqual(readback['run_id'], payload['plan_product']['run_id'])
+-        self.assertEqual(readback['plan_sha256'], payload['plan_product']['sha256'])
+-        self.assertEqual(saved['sha256'], readback['plan_sha256'])
+-        self.assertEqual(saved['sha256'], sha256_json({k: v for k, v in saved.items() if k != 'sha256'}))
+-        self.assertEqual(readback['attempt']['run_id'], saved['run_id'])
+-        self.assertEqual(payload['workspace_plan_attempt'], readback['attempt'])
+-        self.assertEqual(payload['plan_context'], saved['workspace']['plan_context'])
+-        self.assertEqual(payload['date_bindings'], saved['workspace']['date_bindings'])
+-        self.assertEqual(payload['input_identity'], saved['input_identity'])
+-        for key in ('natural_verified', 'production_allowed', 'buy_gate_updated', 'orders_sent'):
+-            self.assertIs(result[key], False)
+-        for key in ('production_allowed', 'buy_gate_updated', 'orders_sent'):
+-            self.assertIs(saved[key], False)
+-
+-    def test_completed_exact_run_survives_another_real_refresh_advancing_latest(self):
+-        body = self.refresh_with('advance_latest')
+-        self.assertTrue(body['ok'], body.get('error'))
+-        result = body['value']
+-        self.assert_exact(result)
+-        latest = result['readback'].get('latest_observation')
+-        self.assertIsInstance(latest, dict, 'Completed refresh must report its separate latest observation')
+-        self.assertEqual(latest['status'], 'VERIFIED')
+-        self.assertIs(latest['matches_exact_run'], False)
+-        self.assertNotEqual(latest['run_id'], result['readback']['run_id'])
+-        self.assertEqual(latest['attempt']['run_id'], latest['run_id'])
+-        self.assertTrue(latest['observed_at'])
+-
+-    def test_matching_latest_is_observed_with_its_own_terminal(self):
+-        body = self.refresh_with('none')
+-        self.assertTrue(body['ok'], body.get('error'))
+-        result = body['value']
+-        self.assert_exact(result)
+-        latest = result['readback'].get('latest_observation')
+-        self.assertIsInstance(latest, dict, 'Completed refresh must report its separate latest observation')
+-        self.assertEqual(latest['status'], 'VERIFIED')
+-        self.assertIs(latest['matches_exact_run'], True)
+-        self.assertEqual(latest['attempt'], result['readback']['attempt'])
+-
+-    def test_refresh_response_uses_verified_exact_terminal_if_returned_journal_is_other_run(self):
+-        body = self.refresh_with('return_other_attempt')
+-        self.assertTrue(body['ok'], body.get('error'))
+-        self.assert_exact(body['value'])
+-        for channel in body['value']['payload']['daily_channels']['channels']:
+-            if channel['channel'] in {'HK_CONNECT', 'OVERSOLD'}:
+-                self.assertEqual(channel['run_id'], body['value']['readback']['run_id'])
+-                self.assertEqual(channel['product_sha256'], body['value']['readback']['plan_sha256'])
+-
+-    def test_same_day_read_without_exact_terminal_keeps_fresh_preview_unverified(self):
+-        request = dict(self.request, now='2026-10-08T08:45:00+08:00')
+-        read_request = dict(request, action='read')
+-        fresh = run_manager_plan(read_request)['payload']
+-        saved = run_manager_plan(request)
+-        self.assertEqual(saved['readback']['store_relative'], '.')
+-        journal = self.output / 'workspace_plan_runs' / request['target_date'] / (saved['readback']['run_id'] + '.json')
+-        journal.unlink()
+-        self.assertTrue(journal.with_name('latest.json').is_file())
+-        before = {str(p.relative_to(self.output)): p.read_bytes()
+-                  for p in self.output.rglob('*') if p.is_file()}
+-        result = run_manager_plan(read_request)
+-        payload = result['payload']
+-        self.assertFalse(payload['plan_product']['consumed'])
+-        self.assertEqual(payload['plan_product']['status'], 'OWNER_ATTEMPT_UNVERIFIED')
+-        self.assertEqual(payload['plan_product']['reason'], 'MANAGER_EXACT_OWNER_ATTEMPT_MISSING')
+-        self.assertEqual(payload['plan_product']['run_id'], saved['readback']['run_id'])
+-        self.assertEqual(payload['plan_product']['sha256'], saved['readback']['plan_sha256'])
+-        self.assertIsNone(payload['workspace_plan_attempt'])
+-        for name in ('stocks', 'materials', 'announcement_reviewed_analysis', 'input_identity'):
+-            self.assertEqual(payload[name], fresh[name], name)
+-        self.assertEqual(payload['read_context']['mode'], 'CURRENT_DYNAMIC_PREVIEW')
+-        for channel in payload['daily_channels']['channels']:
+-            if channel['channel'] in {'HK_CONNECT', 'OVERSOLD'}:
+-                self.assertIsNone(channel['run_id'])
+-                self.assertIsNone(channel['product_sha256'])
+-                self.assertEqual(channel['attempt_status'], 'NOT_VERIFIED')
+-        after = {str(p.relative_to(self.output)): p.read_bytes()
+-                 for p in self.output.rglob('*') if p.is_file()}
+-        self.assertEqual(after, before)
+-
+-    def test_missing_latest_does_not_invalidate_completed_exact_run(self):
+-        body = self.refresh_with('missing_latest')
+-        self.assertTrue(body['ok'], body.get('error'))
+-        self.assert_exact(body['value'])
+-        latest = body['value']['readback']['latest_observation']
+-        self.assertEqual(latest['status'], 'MISSING')
+-        self.assertIsNone(latest['matches_exact_run'])
+-
+-    def test_invalid_latest_does_not_invalidate_completed_exact_run(self):
+-        body = self.refresh_with('invalid_latest')
+-        self.assertTrue(body['ok'], body.get('error'))
+-        self.assert_exact(body['value'])
+-        latest = body['value']['readback']['latest_observation']
+-        self.assertEqual(latest['status'], 'CANNOT_CONFIRM')
+-        self.assertIsNone(latest['matches_exact_run'])
+-        self.assertIsNone(latest['run_id'])
+-
+-    def test_other_run_without_its_exact_terminal_is_not_reported_verified(self):
+-        body = self.refresh_with('other_terminal_missing')
+-        self.assertTrue(body['ok'], body.get('error'))
+-        self.assert_exact(body['value'])
+-        latest = body['value']['readback']['latest_observation']
+-        self.assertEqual(latest['status'], 'CANNOT_CONFIRM')
+-        self.assertNotEqual(latest['run_id'], body['value']['readback']['run_id'])
+-        self.assertIsNone(latest['attempt'])
+-
+-    def test_exact_product_sha_is_checked_even_when_latest_copy_is_valid(self):
+-        body = self.refresh_with('invalid_exact_sha')
+-        self.assertFalse(body['ok'], 'Exact product corruption was hidden by its valid latest copy')
+-        self.assertIn('WORKSPACE_STORED_PLAN_INVALID', body['error'])
+-
+-    def test_exact_product_date_is_checked_even_when_latest_copy_is_valid(self):
+-        body = self.refresh_with('wrong_exact_date')
+-        self.assertFalse(body['ok'], 'Exact product date was hidden by its valid latest copy')
+-        self.assertIn('WORKSPACE_STORED_PLAN_INVALID', body['error'])
+-
+-    def test_exact_filename_cannot_borrow_another_valid_run(self):
+-        body = self.refresh_with('wrong_exact_run')
+-        self.assertFalse(body['ok'])
+-        self.assertIn('MANAGER_INDEPENDENT_PLAN_READBACK_MISMATCH', body['error'])
+-
+-    def test_missing_exact_terminal_cannot_borrow_latest_terminal(self):
+-        body = self.refresh_with('missing_terminal')
+-        self.assertFalse(body['ok'])
+-        self.assertIn('MANAGER_INDEPENDENT_PLAN_READBACK_MISMATCH', body['error'])
+-
+-    def test_other_runs_terminal_cannot_validate_exact_product(self):
+-        body = self.refresh_with('borrow_terminal')
+-        self.assertFalse(body['ok'])
+-        self.assertIn('READBACK_MISMATCH', body['error'])
+-
+-    def test_returned_run_id_cannot_escape_exact_date_directory(self):
+-        body = self.refresh_with('unsafe_returned_run')
+-        self.assertFalse(body['ok'])
+-        self.assertIn('MANAGER_', body['error'])
+-        self.assertFalse((self.root / 'outside').exists())
+-
+-    def test_ordinary_read_keeps_exact_product_terminal_and_native_channel_identity(self):
+-        first = run_manager_plan(self.request)
+-        read_request = dict(self.request, action='read')
+-        process = subprocess.Popen(self.child_command('pause_read'), stdin=subprocess.PIPE,
+-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+-            env={key: value for key, value in os.environ.items() if not key.startswith('V4_')})
+-        self.addCleanup(lambda: process.kill() if process.poll() is None else None)
+-        process.stdin.write(canonical_bytes(read_request) + b'\n')
+-        process.stdin.flush()
+-        with selectors.DefaultSelector() as selector:
+-            selector.register(process.stderr, selectors.EVENT_READ)
+-            self.assertTrue(selector.select(timeout=30), 'Real reader did not reach the product-read seam')
+-            marker = process.stderr.readline()
+-        self.assertEqual(marker, b'EXACT_RUN_READ_PAUSED\n', marker.decode(errors='replace'))
+-        second = run_manager_plan(self.request)
+-        before = {str(p.relative_to(self.output)): p.read_bytes()
+-                  for p in self.output.rglob('*') if p.is_file()}
+-        stdout, stderr = process.communicate(input=b'CONTINUE\n', timeout=90)
+-        self.assertEqual(process.returncode, 0, stderr.decode(errors='replace') + stdout.decode(errors='replace'))
+-        body = json.loads(stdout)
+-        self.assertTrue(body['ok'], body.get('error'))
+-        result = body['value']
+-        payload = result['payload']
+-        self.assertNotEqual(first['readback']['run_id'], second['readback']['run_id'])
+-        self.assertEqual(payload['plan_product']['run_id'], first['readback']['run_id'])
+-        self.assertEqual(payload['plan_product']['sha256'], first['readback']['plan_sha256'])
+-        self.assertEqual(payload['workspace_plan_attempt']['run_id'], first['readback']['run_id'])
+-        self.assertEqual(payload['input_identity'], first['payload']['input_identity'])
+-        self.assertEqual(payload['plan_context'], first['payload']['plan_context'])
+-        self.assertEqual(payload['date_bindings'], first['payload']['date_bindings'])
+-        self.assertEqual(payload['read_context']['mode'], 'CURRENT_RECOVERY')
+-        for channel in payload['daily_channels']['channels']:
+-            if channel['channel'] in {'HK_CONNECT', 'OVERSOLD'}:
+-                self.assertEqual(channel['run_id'], first['readback']['run_id'])
+-                self.assertEqual(channel['product_sha256'], first['readback']['plan_sha256'])
+-                self.assertFalse(channel['natural_run_verified'])
+-        self.assertEqual(result['readback']['latest_attempt_observation']['attempt']['run_id'],
+-                         second['readback']['run_id'])
+-        self.assertEqual(result['readback']['latest_observation']['run_id'], second['readback']['run_id'])
+-        after = {str(p.relative_to(self.output)): p.read_bytes()
+-                 for p in self.output.rglob('*') if p.is_file()}
+-        self.assertEqual(after, before)
+-
+-
+-if __name__ == '__main__':
+-    unittest.main()
+diff --git b/V5/tests/test_module01_http_readonly.py a/V5/tests/test_module01_http_readonly.py
+deleted file mode 100644
+index 0db662c09008b397452c31711bacf351a36329f8..0000000000000000000000000000000000000000
+--- b/V5/tests/test_module01_http_readonly.py
++++ /dev/null
+@@ -1,126 +0,0 @@
+-"""Real module/store/gateway HTTP capability; all records are synthetic."""
+-import json
+-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+-from pathlib import Path
+-import tempfile
+-import threading
+-import unittest
+-from urllib.error import HTTPError
+-from urllib.request import Request, urlopen
+-
+-from v5_shadow.api_gateway import MANAGER_WORKSPACE_PATH, create_gateway
+-from v5_shadow.digests import sha256_json
+-from v5_shadow.module_api import create_module_server
+-from v5_shadow.module_artifacts import publish_generation
+-
+-
+-class Module01ReadOnlyHttpTests(unittest.TestCase):
+-    def setUp(self):
+-        temporary = tempfile.TemporaryDirectory()
+-        self.addCleanup(temporary.cleanup)
+-        root = Path(temporary.name).resolve()
+-        (root / '.v5-module-root').write_text('v5.module-root.v1:manager\n')
+-        self.query = {'date': '20261009', 'view': 'auto'}
+-        self.payload = {'label': 'SYNTHETIC_HTTP_CAPABILITY_RECORD',
+-                        'RESEARCH_ONLY': True, 'production_allowed': False,
+-                        'buy_gate_updated': False, 'orders_sent': False}
+-        self.config = dict(schema_version='v5.module_api.v1', module_id='manager',
+-                           release_id='module01-synthetic', data_root=str(root),
+-                           routes=[MANAGER_WORKSPACE_PATH])
+-        record = dict(schema_version='v5.module_response.v1', module_id='manager',
+-                      release_id=self.config['release_id'], path=MANAGER_WORKSPACE_PATH,
+-                      query=self.query, payload=self.payload,
+-                      payload_sha256=sha256_json(self.payload), source_input_sha256='a' * 64,
+-                      data_kind='SYNTHETIC', generated_at='2026-10-09T10:00:00+08:00',
+-                      status_code=200)
+-        publish_generation(self.config, [record], expected_generation=None)
+-        self.module = self.serve(create_module_server(self.config))
+-
+-    def serve(self, server):
+-        threading.Thread(target=server.serve_forever, daemon=True).start()
+-        self.addCleanup(server.server_close)
+-        self.addCleanup(server.shutdown)
+-        return server
+-
+-    def gateway(self, methods=('GET',)):
+-        config = dict(schema_version='v5.api_gateway.v1',
+-                      modules={'manager': dict(port=self.module.server_port,
+-                          timeout_seconds=3, max_inflight=2, release_id=self.config['release_id'])},
+-                      routes=[dict(path=MANAGER_WORKSPACE_PATH, module_id='manager', methods=list(methods))])
+-        return self.serve(create_gateway(config))
+-
+-    def request(self, server, *, method='GET', query='date=20261009&view=auto'):
+-        url = 'http://127.0.0.1:' + str(server.server_port) + MANAGER_WORKSPACE_PATH + '?' + query
+-        request = Request(url, method=method)
+-        try:
+-            response = urlopen(request, timeout=5)
+-        except HTTPError as error:
+-            response = error
+-        with response:
+-            return response.status, dict(response.headers), json.load(response)
+-
+-    def test_direct_module_reports_read_only_without_changing_saved_payload(self):
+-        status, headers, payload = self.request(self.module)
+-        self.assertEqual(status, 200)
+-        self.assertEqual(headers.get('X-V5-Workspace-Access'), 'READ_ONLY')
+-        self.assertEqual(payload, self.payload)
+-
+-    def test_get_only_manager_gateway_reports_read_only(self):
+-        status, headers, payload = self.request(self.gateway())
+-        self.assertEqual(status, 200)
+-        self.assertEqual(headers.get('X-V5-Workspace-Access'), 'READ_ONLY')
+-        self.assertEqual(payload, self.payload)
+-
+-    def test_generic_post_capable_route_does_not_claim_get_only_capability(self):
+-        status, headers, payload = self.request(self.gateway(('GET', 'POST')))
+-        self.assertEqual(status, 200)
+-        self.assertNotIn('X-V5-Workspace-Access', headers)
+-        self.assertEqual(payload, self.payload)
+-
+-    def test_separate_refresh_post_route_does_not_mark_workspace_read_only(self):
+-        # The legacy API writes on /workspace/refresh, not the GET path itself.
+-        # Exercise a real writable upstream so a false capability is observable.
+-        payload = self.payload
+-        class LegacyOwner(BaseHTTPRequestHandler):
+-            def log_message(self, *args):
+-                pass
+-            def reply(self):
+-                raw = json.dumps(payload).encode()
+-                self.send_response(200)
+-                self.send_header('Content-Type', 'application/json')
+-                self.send_header('Content-Length', str(len(raw)))
+-                self.end_headers()
+-                self.wfile.write(raw)
+-            do_GET = reply
+-            do_POST = reply
+-        owner = self.serve(ThreadingHTTPServer(('127.0.0.1', 0), LegacyOwner))
+-        gateway = self.serve(create_gateway(dict(schema_version='v5.api_gateway.v1',
+-            modules={'manager': dict(port=owner.server_port, timeout_seconds=3,
+-                max_inflight=2, release_id='module01-synthetic-legacy')},
+-            routes=[dict(path=MANAGER_WORKSPACE_PATH, module_id='manager', methods=['GET']),
+-                dict(path=MANAGER_WORKSPACE_PATH + '/refresh', module_id='manager', methods=['POST'])])))
+-        status, headers, body = self.request(gateway)
+-        self.assertEqual(status, 200)
+-        self.assertEqual(body, self.payload)
+-        self.assertNotIn('X-V5-Workspace-Access', headers)
+-        request = Request('http://127.0.0.1:' + str(gateway.server_port)
+-                          + MANAGER_WORKSPACE_PATH + '/refresh', method='POST')
+-        with urlopen(request, timeout=5) as response:
+-            self.assertEqual(response.status, 200)
+-            self.assertEqual(json.load(response), self.payload)
+-
+-    def test_module_and_get_only_gateway_keep_post_disabled(self):
+-        for server in (self.module, self.gateway()):
+-            with self.subTest(port=server.server_port):
+-                status, _, payload = self.request(server, method='POST')
+-                self.assertEqual(status, 405)
+-                self.assertEqual(payload['status'], 'CANNOT_CONFIRM')
+-
+-    def test_missing_saved_query_stays_unconfirmed(self):
+-        status, _, payload = self.request(self.gateway(), query='date=20261008&view=auto')
+-        self.assertEqual(status, 503)
+-        self.assertEqual(payload['status'], 'CANNOT_CONFIRM')
+-
+-
+-if __name__ == '__main__':
+-    unittest.main()
+diff --git b/V5/tests/test_module01_publish_read.py a/V5/tests/test_module01_publish_read.py
+deleted file mode 100644
+index 8dfe464132f98e6fae48a42c0b729900b3dfccd7..0000000000000000000000000000000000000000
+--- b/V5/tests/test_module01_publish_read.py
++++ /dev/null
+@@ -1,96 +0,0 @@
+-"""Existing publication CLI: pin the consumed run before publishing once."""
+-import contextlib
+-import copy
+-import importlib.util
+-import io
+-import json
+-from pathlib import Path
+-import sys
+-import tempfile
+-import unittest
+-from unittest.mock import patch
+-
+-from v5_shadow import manager_plan
+-from v5_shadow.digests import canonical_bytes
+-from v5_shadow.module_api import _config, read_response
+-
+-BASE = Path(__file__).resolve().parents[1]
+-
+-
+-class Module01SavedPublicationTests(unittest.TestCase):
+-    def setUp(self):
+-        temporary = tempfile.TemporaryDirectory(prefix='module01-publish-')
+-        self.addCleanup(temporary.cleanup)
+-        self.root = Path(temporary.name).resolve()
+-        inputs = {}
+-        for name in ('manager', 'materials', 'us'):
+-            path = self.root / name
+-            path.mkdir()
+-            inputs[name] = dict(root=str(path), files={})
+-        output = self.root / 'plans'
+-        output.mkdir()
+-        (output / '.v5-manager-plan-root').write_text('v5.manager-plan-root.v1\n')
+-        self.request = dict(target_date='20261009', now='2026-10-10T10:00:00+08:00',
+-            action='refresh', view='dynamic', selection_date=None, announcement_date=None,
+-            inputs=inputs, rebound=None, manager_output_root=str(output))
+-        self.original_run = manager_plan.run_manager_plan
+-        self.saved = self.original_run(copy.deepcopy(self.request))
+-        self.read = dict(self.request, action='read', view='auto')
+-        self.request_path = self.root / 'read-request.json'
+-        self.request_path.write_bytes(canonical_bytes(self.read))
+-        self.frontend = self.root / 'built-test-frontend'
+-        self.frontend.mkdir()
+-        (self.frontend / 'index.html').write_bytes(b'<p>SYNTHETIC_PUBLISH_CLI_STATIC_INPUT</p>')
+-        self.publication_root = self.root / 'publication'
+-        spec = importlib.util.spec_from_file_location('module01_existing_publish_tool', BASE / 'tools/cloud_preview/publish_read.py')
+-        self.tool = importlib.util.module_from_spec(spec)
+-        spec.loader.exec_module(self.tool)
+-
+-    def argv(self, run):
+-        return ['publish_read.py', '--request', str(self.request_path), '--expected-run', run,
+-                '--out', str(self.publication_root), '--frontend-root', str(self.frontend),
+-                '--release-id', 'module01-synthetic']
+-
+-    def test_another_real_save_after_verified_read_does_not_change_publication(self):
+-        calls = []
+-        second = []
+-
+-        def read_then_advance(request):
+-            result = self.original_run(request)
+-            calls.append(copy.deepcopy(request))
+-            if len(calls) == 1:
+-                second.append(self.original_run(copy.deepcopy(self.request)))
+-            return result
+-
+-        with patch.object(self.tool, 'run_manager_plan', read_then_advance, create=True), \
+-             patch.object(manager_plan, 'run_manager_plan', read_then_advance), \
+-             patch.object(sys, 'argv', self.argv(self.saved['readback']['run_id'])), \
+-             contextlib.redirect_stdout(io.StringIO()):
+-            try:
+-                self.tool.main()
+-            except ValueError as error:
+-                self.fail('The already verified saved run was not published: ' + str(error))
+-        self.assertEqual(len(calls), 1, 'Publishing one verified read must not read latest again')
+-        self.assertNotEqual(second[0]['readback']['run_id'], self.saved['readback']['run_id'])
+-        config = json.loads((self.publication_root / 'manager.json').read_bytes())
+-        config, fd = _config(config)
+-        try:
+-            record, _ = read_response(config, fd, manager_plan.ROUTE,
+-                                      {'date': self.read['target_date'], 'view': 'auto'})
+-        finally:
+-            import os
+-            os.close(fd)
+-        self.assertEqual(record['payload']['plan_product']['run_id'], self.saved['readback']['run_id'])
+-        self.assertEqual(record['payload']['plan_product']['sha256'], self.saved['readback']['plan_sha256'])
+-        self.assertEqual(record['payload']['workspace_plan_attempt']['run_id'], self.saved['readback']['run_id'])
+-
+-    def test_wrong_expected_run_cannot_create_a_published_generation(self):
+-        with patch.object(sys, 'argv', self.argv('f' * 32)), contextlib.redirect_stdout(io.StringIO()):
+-            with self.assertRaisesRegex(ValueError, 'SAVED_RUN_NOT_CONSUMED'):
+-                self.tool.main()
+-        self.assertEqual(list(self.publication_root.rglob('active.json')), [])
+-        self.assertEqual(list(self.publication_root.rglob('generations/*.json')), [])
+-
+-
+-if __name__ == '__main__':
+-    unittest.main()
+diff --git b/V5/tests/test_module01_ui_overlay.py a/V5/tests/test_module01_ui_overlay.py
+deleted file mode 100644
+index 6b9899ef3adf33e6d17f671a9a204d3f7ed5b216..0000000000000000000000000000000000000000
+--- b/V5/tests/test_module01_ui_overlay.py
++++ /dev/null
+@@ -1,86 +0,0 @@
+-"""Run the original guarded installer on disposable, exact-source candidates.
+-
+-V5_MODULE01_WEB_ROOT points to the assembled original frontend dependency tree.
+-It provides three pinned unchanged dependencies; no fixture replacements exist.
+-"""
+-import hashlib
+-import json
+-import os
+-from pathlib import Path
+-import shutil
+-import subprocess
+-import sys
+-import tempfile
+-import unittest
+-
+-BASE = Path(__file__).resolve().parents[1] / 'ui/manager-workbench'
+-
+-
+-@unittest.skipUnless(os.environ.get('V5_MODULE01_WEB_ROOT'), 'Original assembled web dependency root required')
+-class Module01OverlayTests(unittest.TestCase):
+-    def setUp(self):
+-        temporary = tempfile.TemporaryDirectory(prefix='module01-overlay-')
+-        self.addCleanup(temporary.cleanup)
+-        root = Path(temporary.name)
+-        self.package = root / 'package'
+-        shutil.copytree(BASE, self.package)
+-        self.manifest = json.loads((self.package / 'overlay-manifest.json').read_bytes())
+-        self.web = root / 'web'
+-        self.web.mkdir()
+-        (self.web / '.v5-ui-candidate').write_text('v5.ui-candidate.v1\n')
+-        for relative in self.manifest['unchanged']:
+-            source = Path(os.environ['V5_MODULE01_WEB_ROOT']) / relative
+-            target = self.web / relative
+-            target.parent.mkdir(parents=True, exist_ok=True)
+-            shutil.copyfile(source, target)
+-        for row in self.manifest['changes']:
+-            target = self.web / row['path']
+-            target.parent.mkdir(parents=True, exist_ok=True)
+-            shutil.copyfile(self.package / row['source'], target)
+-
+-    def apply(self):
+-        return subprocess.run([sys.executable, '-B', str(self.package / 'apply_candidate.py'),
+-            '--web-root', str(self.web)], capture_output=True, text=True, timeout=30)
+-
+-    def snapshot(self):
+-        return {str(p.relative_to(self.web)): p.read_bytes() for p in self.web.rglob('*') if p.is_file()}
+-
+-    def test_reapplying_verified_current_candidate_succeeds_without_byte_changes(self):
+-        before = self.snapshot()
+-        result = self.apply()
+-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+-        self.assertEqual(self.snapshot(), before)
+-        report = json.loads(result.stdout)
+-        self.assertEqual(report['status'], 'SOURCE_OVERLAY_APPLIED_NOT_TESTED_OR_BUILT')
+-
+-    def test_changed_daily_channel_remains_rejected_before_any_write(self):
+-        path = self.web / 'src/manager-selection/dailyChannels.ts'
+-        path.write_bytes(path.read_bytes() + b'\n// synthetic unexpected drift\n')
+-        before = self.snapshot()
+-        result = self.apply()
+-        self.assertNotEqual(result.returncode, 0)
+-        self.assertIn('UI_BASE_FILE_MISMATCH:src/manager-selection/dailyChannels.ts', result.stderr)
+-        self.assertEqual(self.snapshot(), before)
+-
+-    def test_unmodified_dependency_pin_still_rejects_drift(self):
+-        path = self.web / 'src/manager-selection/dailyChannels.testHelper.ts'
+-        path.write_bytes(path.read_bytes() + b'\n// synthetic dependency drift\n')
+-        before = self.snapshot()
+-        result = self.apply()
+-        self.assertNotEqual(result.returncode, 0)
+-        self.assertIn('UI_BASE_DEPENDENCY_MISMATCH:src/manager-selection/dailyChannels.testHelper.ts', result.stderr)
+-        self.assertEqual(self.snapshot(), before)
+-
+-    def test_unexpected_overlay_source_bytes_are_rejected_before_any_write(self):
+-        row = self.manifest['changes'][0]
+-        source = self.package / row['source']
+-        source.write_bytes(source.read_bytes() + b'\n// synthetic overlay drift\n')
+-        before = self.snapshot()
+-        result = self.apply()
+-        self.assertNotEqual(result.returncode, 0)
+-        self.assertIn('UI_OVERLAY_SOURCE_MISMATCH:' + row['path'], result.stderr)
+-        self.assertEqual(self.snapshot(), before)
+-
+-
+-if __name__ == '__main__':
+-    unittest.main()
+diff --git b/V5/tools/cloud_preview/publish_read.py a/V5/tools/cloud_preview/publish_read.py
+index 1919380683ddcc746e25a0397a7f8d772e3fcc82..a72f3a728971766b4e214843996c02ac3e85eb16 100644
+--- b/V5/tools/cloud_preview/publish_read.py
++++ a/V5/tools/cloud_preview/publish_read.py
+@@ -1,7 +1,7 @@
+ """Publish one real auto read to new private module roots. No refresh or capture."""
+ import argparse, hashlib, json
+ from pathlib import Path
+-from v5_shadow.manager_plan import publish_workspace_read
++from v5_shadow.manager_plan import run_manager_plan, publish_workspace_read
+ 
+ 
+ def main():
+@@ -18,6 +18,10 @@ def main():
+     request = json.loads(args.request.read_bytes())
+     if request['action'] != 'read' or request['view'] != 'auto':
+         raise ValueError('ACTUAL_AUTO_READ_REQUIRED')
++    read = run_manager_plan(request)
++    plan = read['payload']['plan_product']
++    if plan.get('run_id') != args.expected_run or plan.get('consumed') is not True:
++        raise ValueError('SAVED_RUN_NOT_CONSUMED')
+     frontend = args.frontend_root.resolve(strict=True)
+     manifest = {str(p.relative_to(frontend)): hashlib.sha256(p.read_bytes()).hexdigest()
+                 for p in frontend.rglob('*') if p.is_file()}
+@@ -35,9 +39,9 @@ def main():
+         configs[module] = dict(schema_version='v5.module_api.v1', module_id=module,
+                               release_id=args.release_id, data_root=str(data), routes=routes)
+         (root / (module + '.json')).write_text(json.dumps(configs[module], indent=2))
+-    result = publish_workspace_read(request, configs['manager'], expected_generation=None,
+-                                    expected_run_id=args.expected_run)
+-    plan = result['result']['payload']['plan_product']
++    result = publish_workspace_read(request, configs['manager'], expected_generation=None)
++    if result['result']['payload']['plan_product'] != plan:
++        raise ValueError('PUBLICATION_READ_CHANGED')
+     gateway = dict(schema_version='v5.api_gateway.v1',
+                    modules={m: dict(port=18897+i, timeout_seconds=15, max_inflight=4,
+                                     release_id=args.release_id) for i, m in enumerate(configs)},
+diff --git b/V5/ui/manager-workbench/overlay-manifest.json a/V5/ui/manager-workbench/overlay-manifest.json
+index 973646382e6cacd09188d30961a9fbf9cd3ce928..cce2f7a742665b3c53ffb3f55c6c606bb3456aeb 100644
+--- b/V5/ui/manager-workbench/overlay-manifest.json
++++ a/V5/ui/manager-workbench/overlay-manifest.json
+@@ -6,22 +6,22 @@
+       "path": "src/api/managerWorkspace.ts",
+       "source": "source/apps/web/src/api/managerWorkspace.ts",
+       "before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+-      "after_sha256": "478611369d9ee2e82874810def1aaf6618da7fbd337d4709199cc872f5a9c0b8",
+-      "previous_candidate_sha256": "fd5e8a0371d49127862381c8eccf6a014c4a8459b74ab0d938f8bf93aeeac5f1"
++      "after_sha256": "fd5e8a0371d49127862381c8eccf6a014c4a8459b74ab0d938f8bf93aeeac5f1",
++      "previous_candidate_sha256": "e1e7c465d9cbc51a3f524906fe17c987e4a01b7917f9f327c72a5526e9b7ef7e"
+     },
+     {
+       "path": "src/manager-selection/catalystObservationPanel.ts",
+       "source": "source/apps/web/src/manager-selection/catalystObservationPanel.ts",
+       "before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+-      "after_sha256": "c7de6cfdaa38f7721d20d00ddbf9eb35a729c7eadc6b17058c6dbf744ddabb74",
+-      "previous_candidate_sha256": "81190e870e80a98a4c54357bab35e16b8bafba9c0065d0afb63eb90a16c5168b"
++      "after_sha256": "81190e870e80a98a4c54357bab35e16b8bafba9c0065d0afb63eb90a16c5168b",
++      "previous_candidate_sha256": "44807aedac1ad62d39ed599f3d1cdbf1818cc2b5c6c2ee4973834ab78c733f60"
+     },
+     {
+       "path": "src/manager-selection/dailyChannels.runtime.spec.ts",
+       "source": "source/apps/web/src/manager-selection/dailyChannels.runtime.spec.ts",
+       "before_sha256": "c300e175a184a6a9e365c5d99a2977ea8cc8c8eed27fbedb3291785a83bd640e",
+-      "after_sha256": "9b6fec6e2d5596ff54f9e6bc5639fa73f74e29fdddbc039cd1b18e777e9096af",
+-      "previous_candidate_sha256": "26c7e976edb7f67505f2f2568105e0ad3d53a543c946b04fb91bdfb1842480da"
++      "after_sha256": "26c7e976edb7f67505f2f2568105e0ad3d53a543c946b04fb91bdfb1842480da",
++      "previous_candidate_sha256": "b265029e9e862724b938af818316a369c2a09ca8870b1778ceaceef35cd0aa66"
+     },
+     {
+       "path": "src/manager-selection/dailyChannels.v5Bindings.spec.ts",
+@@ -33,8 +33,8 @@
+       "path": "src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+       "source": "source/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+       "before_sha256": "9ed39eebf1983c6287b25232839d68c6bfca684b3701a0dab080b8f5ed5e31a4",
+-      "after_sha256": "659c1439acbf43c5d5559f6db4a8726cfe2912203019d5b2c4799169992e6e87",
+-      "previous_candidate_sha256": "d15fcb23fa44f4c31264dbfdbf630de2ad5d2d69983098eaa41d45fd39fc83af"
++      "after_sha256": "d15fcb23fa44f4c31264dbfdbf630de2ad5d2d69983098eaa41d45fd39fc83af",
++      "previous_candidate_sha256": "51ff0b9ef5b62ce01efeaa2eac73e7d51f2d3136a5e3f77b1797175083d764a4"
+     },
+     {
+       "path": "src/manager-selection/catalystViewNavigation.spec.ts",
+@@ -129,27 +129,10 @@
+       "source": "source/apps/web/src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts",
+       "before_sha256": "bc8917ca6bb877d69b186afa5d688780f06b16993f5075035187c3ea971d0e53",
+       "after_sha256": "7104df12a03baa267bd81500c7fece58ed8b6062a122242e94146797c6f00f93"
+-    },
+-    {
+-      "path": "src/api/managerWorkspace.module01.spec.ts",
+-      "source": "source/apps/web/src/api/managerWorkspace.module01.spec.ts",
+-      "before_sha256": null,
+-      "after_sha256": "c75196eaa42d55198865461a376cbf42d8f610941609f6d928ab5e7c1caf2c72"
+-    },
+-    {
+-      "path": "src/api/managerWorkspace.module01.http.spec.ts",
+-      "source": "source/apps/web/src/api/managerWorkspace.module01.http.spec.ts",
+-      "before_sha256": null,
+-      "after_sha256": "79bd270b21190c3bf5fd3860f3dc77022c6815aea08e8064fc2b94ed97782fe1"
+-    },
+-    {
+-      "path": "src/manager-selection/catalystObservationPanel.module01.spec.ts",
+-      "source": "source/apps/web/src/manager-selection/catalystObservationPanel.module01.spec.ts",
+-      "before_sha256": null,
+-      "after_sha256": "74c06a77bed8dac2ce119041af30a4b84d638053eef50ebcd19db2d7db72a66e"
+     }
+   ],
+   "unchanged": {
++    "src/manager-selection/dailyChannels.ts": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+     "src/manager-selection/dailyChannels.testHelper.ts": "ff2e22d33fe61fc8c44e3c524f2a192b55bb5ee1a6330eadc0ca3373c546f3f0",
+     "src/views/ManagerSelectionView.vue": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+     "src/manager-selection/dailyChannels.spec.ts": "4bc77f9a73881decf160814b90dc84124d5dc8eede9304f8011047d752f19ef3"
+diff --git b/V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.module01.http.spec.ts a/V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.module01.http.spec.ts
+deleted file mode 100644
+index 963a38d97d370f5f9c7c997c229814b0b0b40311..0000000000000000000000000000000000000000
+--- b/V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.module01.http.spec.ts
++++ /dev/null
+@@ -1,58 +0,0 @@
+-import { readFileSync } from 'node:fs';
+-import { afterEach, describe, expect, it, vi } from 'vitest';
+-import { isManagerWorkspaceReadOnly, requestManagerWorkspace, validateManagerWorkspace } from './managerWorkspace';
+-
+-// The file is produced by tests/module01_export_http.py using the original
+-// owner, immutable store, actual module API and gateway. It is never the Mac
+-// 392-decision fixture. Without that explicit artifact this suite is NOT_RUN.
+-const path = process.env.V5_MODULE01_HTTP_RECEIPT;
+-afterEach(() => { vi.unstubAllGlobals(); });
+-
+-describe.skipIf(!path)('module 01 actual HTTP DTO through complete frontend admission', () => {
+-  const receipt = path ? JSON.parse(readFileSync(path, 'utf8')) : null;
+-
+-  it('keeps both real HTTP surfaces identical and binds the complete saved-run DTO', () => {
+-    expect(receipt.fixture_kind).toBe('SYNTHETIC_ORIGINAL_OWNER_INPUTS');
+-    expect(receipt.real_392_reused).toBe(false);
+-    expect(receipt.http_get_before_after_bytes_equal).toBe(true);
+-    expect(receipt.local_servers_closed).toBe(true);
+-    expect(receipt.responses.map((row: { surface: string }) => row.surface)).toEqual(['module', 'gateway']);
+-    for (const row of receipt.responses) {
+-      expect(row.status).toBe(200);
+-      expect(row.headers['X-V5-Workspace-Access']).toBe('READ_ONLY');
+-      // Do not simplify the validator or insert missing fields into its input.
+-      const value = validateManagerWorkspace(row.body, receipt.request.target_date);
+-      expect(value.plan_product).toMatchObject({ run_id: receipt.manager_run,
+-        sha256: receipt.manager_plan_sha256, consumed: true });
+-      expect(value.workspace_plan_attempt).toMatchObject({ run_id: receipt.manager_run });
+-      expect(value.production_allowed).toBe(false);
+-      expect(value.orders_sent).toBe(false);
+-      const announcement = value.daily_channels?.channels.find(channel => channel.channel === 'ANNOUNCEMENT');
+-      expect(announcement?.candidate_count).toBe(1);
+-      expect(announcement?.watch_count).toBe(1);
+-      expect(announcement?.pending_count).toBe(1);
+-      expect(announcement?.rows.map(row => row.symbol)).toEqual(['HK.00001', 'HK.00002']);
+-      expect(announcement?.rows.every(row => row.source_refs.length > 0)).toBe(true);
+-    }
+-    expect(receipt.responses[0].body_sha256).toBe(receipt.responses[1].body_sha256);
+-  });
+-
+-  it('runs the real fetch response path once with the captured gateway body and headers', async () => {
+-    const gateway = receipt.responses[1];
+-    let calls = 0;
+-    vi.stubGlobal('fetch', async () => {
+-      calls++;
+-      return new Response(JSON.stringify(gateway.body), { status: gateway.status, headers: gateway.headers });
+-    });
+-    const value = await requestManagerWorkspace(receipt.request.target_date, new AbortController().signal, 'auto');
+-    expect(calls).toBe(1);
+-    expect(value.plan_product).toMatchObject({ run_id: receipt.manager_run });
+-    expect(value.workspace_plan_attempt).toMatchObject({ run_id: receipt.manager_run });
+-    expect(isManagerWorkspaceReadOnly(value)).toBe(true);
+-  });
+-
+-  it('rejects wrong publication binding against the captured complete DTO', () => {
+-    expect(() => validateManagerWorkspace(receipt.responses[1].body, receipt.request.target_date,
+-      { announcement_date: '20261007' })).toThrow(/WORKSPACE_DAILY_DATE_BINDING_MISMATCH/);
+-  });
+-});
+diff --git b/V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.module01.spec.ts a/V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.module01.spec.ts
+deleted file mode 100644
+index 9dcc1722749bcb3e3c47bcc5e61538b779ff5618..0000000000000000000000000000000000000000
+--- b/V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.module01.spec.ts
++++ /dev/null
+@@ -1,128 +0,0 @@
+-import { afterEach, describe, expect, it, vi } from 'vitest';
+-import { refreshManagerWorkspace, validateManagerWorkspace, type JsonObject } from './managerWorkspace';
+-import { testBindings, testFlags, workspaceFixture } from '../manager-selection/dailyChannels.testHelper';
+-
+-// Portable synthetic contract tests. This is not the Mac saved-run fixture and
+-// does not replace managerWorkspace.currentRecovery.spec.ts.
+-const savedWorkspace = (extension = true) => {
+-  const value = workspaceFixture(testBindings, extension);
+-  value.plan_product = { status: 'CURRENT', consumed: true, run_id: '1'.repeat(32),
+-    sha256: '2'.repeat(64), generated_at: '2026-10-10T03:04:05.123456+00:00',
+-    execution_kind: 'MANUAL_REFRESH', original_owner: 'ManagerResearchJobService.refresh_workspace_plan' };
+-  value.workspace_plan_attempt = { ...testFlags, schema_version: 'v4.manager_research.workspace_attempt.v1',
+-    sha256: '5'.repeat(64), state: 'PARTIAL', target_trade_date: testBindings.plan_date,
+-    run_id: '1'.repeat(32), input_identity: value.input_identity, execution_kind: 'MANUAL_REFRESH',
+-    owner: 'ManagerResearchJobService.refresh_workspace_plan', failure_reasons: ['SYNTHETIC_SCOPE_GAP'],
+-    started_at: '2026-10-10T03:04:00+00:00', finished_at: '2026-10-10T03:04:06+00:00' };
+-  return value;
+-};
+-const ok = (value: unknown): Response => new Response(JSON.stringify(value), {
+-  status: 200, headers: { 'Content-Type': 'application/json' },
+-});
+-afterEach(() => { vi.unstubAllGlobals(); });
+-
+-describe('module 01 original POST contract admission', () => {
+-  it('sends independent selected days on the existing POST and consumes the full valid response', async () => {
+-    const calls: { url: URL; method: string | undefined }[] = [];
+-    const value = savedWorkspace();
+-    vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+-      calls.push({ url: new URL(String(input), 'http://localhost'), method: init?.method });
+-      return ok(value);
+-    });
+-    const result = await refreshManagerWorkspace(testBindings.plan_date, new AbortController().signal,
+-      { selection_date: '2026-10-06', announcement_date: '2026-10-07' });
+-    expect(result.plan_product).toEqual(value.plan_product);
+-    expect(calls.map(call => [call.url.pathname, call.method])).toEqual([
+-      ['/api/v4/manager/research/workspace/refresh', 'POST'],
+-    ]);
+-    expect(Object.fromEntries(calls[0].url.searchParams)).toEqual({
+-      date: '20261008', selection_date: '20261006', announcement_date: '20261007',
+-    });
+-  });
+-
+-  it('rejects a successful POST body for another requested publication day', async () => {
+-    vi.stubGlobal('fetch', async () => ok(savedWorkspace()));
+-    await expect(refreshManagerWorkspace(testBindings.plan_date, new AbortController().signal,
+-      { selection_date: '20261006', announcement_date: '20261006' }))
+-      .rejects.toThrow('WORKSPACE_DAILY_DATE_BINDING_MISMATCH');
+-  });
+-
+-  it('rejects a missing response binding when a selected-day request requires one', async () => {
+-    vi.stubGlobal('fetch', async () => ok(savedWorkspace(false)));
+-    await expect(refreshManagerWorkspace(testBindings.plan_date, new AbortController().signal,
+-      { selection_date: '20261006', announcement_date: '20261007' }))
+-      .rejects.toThrow('WORKSPACE_DAILY_DATE_BINDING_INVALID');
+-  });
+-
+-  it('does not let the full validator bypass explicit bindings when the optional projection is absent', () => {
+-    expect(() => validateManagerWorkspace(savedWorkspace(false), testBindings.plan_date,
+-      { announcement_date: '20261007' })).toThrow('WORKSPACE_DAILY_DATE_BINDING_INVALID');
+-  });
+-
+-  it('rejects an impossible plan day before sending any POST', async () => {
+-    let requests = 0;
+-    vi.stubGlobal('fetch', async () => { requests++; return ok(savedWorkspace()); });
+-    await expect(refreshManagerWorkspace('20260230', new AbortController().signal))
+-      .rejects.toThrow('WORKSPACE_DATE_REQUIRED');
+-    expect(requests).toBe(0);
+-  });
+-
+-  it('preserves the existing two-argument POST for a complete legacy result without date projection', async () => {
+-    const value = savedWorkspace(false);
+-    vi.stubGlobal('fetch', async () => ok(value));
+-    await expect(refreshManagerWorkspace(testBindings.plan_date, new AbortController().signal))
+-      .resolves.toEqual(value);
+-  });
+-
+-  it.each([
+-    ['missing terminal', (value: JsonObject) => { delete value.workspace_plan_attempt; }],
+-    ['another run terminal', (value: JsonObject) => { (value.workspace_plan_attempt as JsonObject).run_id = '3'.repeat(32); }],
+-    ['running rather than terminal', (value: JsonObject) => { (value.workspace_plan_attempt as JsonObject).state = 'RUNNING'; }],
+-    ['different input identity', (value: JsonObject) => { (value.workspace_plan_attempt as JsonObject).input_identity = '4'.repeat(64); }],
+-    ['unconsumed product', (value: JsonObject) => { (value.plan_product as JsonObject).consumed = false; }],
+-  ])('does not declare a successful POST from %s', async (_name, mutate) => {
+-    const value = savedWorkspace(false); mutate(value);
+-    vi.stubGlobal('fetch', async () => ok(value));
+-    await expect(refreshManagerWorkspace(testBindings.plan_date, new AbortController().signal))
+-      .rejects.toThrow(/WORKSPACE_REFRESH_(?:PRODUCT|TERMINAL)_INVALID/);
+-  });
+-
+-  it('keeps the original safety validator on a POST with matching dates and terminal', async () => {
+-    const value = savedWorkspace(); value.orders_sent = true;
+-    vi.stubGlobal('fetch', async () => ok(value));
+-    await expect(refreshManagerWorkspace(testBindings.plan_date, new AbortController().signal, testBindings))
+-      .rejects.toThrow('WORKSPACE_SAFETY_INVALID');
+-  });
+-
+-  it.each([
+-    ['missing schema', { schema_version: undefined }],
+-    ['different schema', { schema_version: 'workspace_attempt.v0' }],
+-    ['missing terminal SHA', { sha256: undefined }],
+-    ['malformed terminal SHA', { sha256: 'not-a-sha256' }],
+-    ['missing start', { started_at: undefined }],
+-    ['start without timezone', { started_at: '2026-10-10T03:04:00' }],
+-    ['missing finish', { finished_at: undefined }],
+-    ['finish without timezone', { finished_at: '2026-10-10T03:04:06' }],
+-    ['finish before start', { finished_at: '2026-10-10T03:03:59+00:00' }],
+-    ['product before start', { started_at: '2026-10-10T03:04:05.500000+00:00' }],
+-    ['product after finish', { finished_at: '2026-10-10T03:04:05.100000+00:00' }],
+-    ['missing failure reasons', { failure_reasons: undefined }],
+-    ['partial without a recorded gap', { failure_reasons: [] }],
+-    ['success with partial failure reasons', { state: 'SUCCEEDED' }],
+-  ])('rejects an incomplete terminal envelope: %s', async (_name, fields) => {
+-    const value = savedWorkspace(false);
+-    Object.assign(value.workspace_plan_attempt as JsonObject, fields);
+-    vi.stubGlobal('fetch', async () => ok(value));
+-    await expect(refreshManagerWorkspace(testBindings.plan_date, new AbortController().signal))
+-      .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+-  });
+-
+-  it('rejects a matching but unrecognized product and terminal execution kind', async () => {
+-    const value = savedWorkspace(false);
+-    (value.plan_product as JsonObject).execution_kind = 'UNKNOWN_KIND';
+-    (value.workspace_plan_attempt as JsonObject).execution_kind = 'UNKNOWN_KIND';
+-    vi.stubGlobal('fetch', async () => ok(value));
+-    await expect(refreshManagerWorkspace(testBindings.plan_date, new AbortController().signal))
+-      .rejects.toThrow('WORKSPACE_REFRESH_TERMINAL_INVALID');
+-  });
+-});
+diff --git b/V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.ts a/V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.ts
+index f3910142cc6d50a05e16e292ed0bbab4677107cb..ce4e697ea0c90cbf25df06b7eab505ce94192e06 100644
+--- b/V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.ts
++++ a/V5/ui/manager-workbench/source/apps/web/src/api/managerWorkspace.ts
+@@ -1417,7 +1417,7 @@ export function validateManagerWorkspace(raw: unknown, date: string, expectedBin
+   if (value.date_bindings !== undefined) {
+     const bindings = validateWorkspaceDateBindings(value.date_bindings, date, expectedBindings);
+     if (value.daily_channels !== undefined) validateDailyChannels(value.daily_channels, bindings, value);
+-  } else if (value.daily_channels !== undefined || expectedBindings !== undefined) throw new Error('WORKSPACE_DAILY_DATE_BINDING_INVALID');
++  } else if (value.daily_channels !== undefined) throw new Error('WORKSPACE_DAILY_DATE_BINDING_INVALID');
+   return value as unknown as ManagerWorkspace;
+ }
+ async function parseWorkspaceResponse(response: Response, date: string, expectedBindings?: WorkspaceRequestDateBindings): Promise<ManagerWorkspace> {
+@@ -1429,12 +1429,6 @@ async function parseWorkspaceResponse(response: Response, date: string, expected
+   }
+   return validateManagerWorkspace(raw,date,expectedBindings);
+ }
+-// Transport metadata only tightens UI admission. A payload field cannot grant
+-// write access or remove the read-only identity of a validated response.
+-const readOnlyWorkspaceResponses = new WeakSet<ManagerWorkspace>();
+-export function isManagerWorkspaceReadOnly(value: ManagerWorkspace): boolean {
+-  return readOnlyWorkspaceResponses.has(value);
+-}
+ export async function requestManagerWorkspace(date: string, signal: AbortSignal, view: WorkspaceView = 'auto', bindings?: WorkspaceRequestDateBindings): Promise<ManagerWorkspace> {
+   if (normalizedWorkspaceDay(date) !== date) throw new Error('WORKSPACE_DATE_REQUIRED');
+   const query = new URLSearchParams({ date, view });
+@@ -1469,7 +1463,6 @@ export async function requestManagerWorkspace(date: string, signal: AbortSignal,
+   const read=object(value.read_context); // an old backend cannot silently provide a historical dynamic view
+   if ((view==='historical' && read.mode!=='HISTORICAL_AS_OF') ||
+       (view==='dynamic' && read.mode!=='CURRENT_DYNAMIC_PREVIEW')) throw new Error('WORKSPACE_VIEW_MISMATCH');
+-  if (response.headers?.get('X-V5-Workspace-Access') === 'READ_ONLY') readOnlyWorkspaceResponses.add(value);
+   return value;
+ }
+ 
+@@ -1500,43 +1493,11 @@ export async function refreshManagerAnnouncements(date: string, signal: AbortSig
+ }
+ 
+ /** Explicit user action: original owner reuses existing input, never a crawler. */
+-export async function refreshManagerWorkspace(date: string, signal: AbortSignal, bindings?: WorkspaceRequestDateBindings): Promise<ManagerWorkspace> {
+-  if (normalizedWorkspaceDay(date) !== date) throw new Error('WORKSPACE_DATE_REQUIRED');
+-  const query = new URLSearchParams({ date });
+-  if (bindings !== undefined) {
+-    if (!bindings || typeof bindings !== 'object' || Array.isArray(bindings)) throw new Error('WORKSPACE_DAILY_DATE_BINDING_INVALID');
+-    for (const key of ['selection_date', 'announcement_date'] as const) {
+-      if (bindings[key] === undefined) continue;
+-      const selected = normalizedWorkspaceDay(bindings[key]);
+-      if (selected === null) throw new Error('WORKSPACE_DAILY_DATE_BINDING_INVALID');
+-      query.set(key, selected);
+-    }
+-  }
+-  const response = await fetch(`/api/v4/manager/research/workspace/refresh?${query}`, {
++export async function refreshManagerWorkspace(date: string, signal: AbortSignal): Promise<ManagerWorkspace> {
++  if (!/^\d{8}$/.test(date)) throw new Error('WORKSPACE_DATE_REQUIRED');
++  const response = await fetch(`/api/v4/manager/research/workspace/refresh?date=${encodeURIComponent(date)}`, {
+     method: 'POST', signal, credentials: 'same-origin', cache: 'no-store',
+   });
+   if (!response.ok) throw new Error(`WORKSPACE_REFRESH_HTTP_${response.status}`);
+-  const value = await parseWorkspaceResponse(response, date, bindings);
+-  const product = value.plan_product; const attempt = value.workspace_plan_attempt;
+-  if (!isJsonObject(product) || !['CURRENT','ALREADY_MATERIALIZED','PRESERVED_SCHEDULED_PREOPEN'].includes(String(product.status)) ||
+-      product.consumed !== true || product.original_owner !== 'ManagerResearchJobService.refresh_workspace_plan' ||
+-      typeof product.run_id !== 'string' || !/^[0-9a-f]{32}$/.test(product.run_id) ||
+-      !researchSha(product.sha256) || explicitTimestamp(product.generated_at) === null)
+-    throw new Error('WORKSPACE_REFRESH_PRODUCT_INVALID');
+-  // The original owner verifies the sealed bytes. This client checks the
+-  // serialized terminal identity and chronology before consuming the response.
+-  if (!isJsonObject(attempt) || attempt.schema_version !== 'v4.manager_research.workspace_attempt.v1' ||
+-      !researchSha(attempt.sha256) || !['SUCCEEDED','SUCCEEDED_EMPTY','PARTIAL'].includes(String(attempt.state)) ||
+-      !['MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'].includes(String(attempt.execution_kind)) ||
+-      !Array.isArray(attempt.failure_reasons) || (attempt.state === 'PARTIAL') !== (attempt.failure_reasons.length > 0) ||
+-      attempt.run_id !== product.run_id || attempt.target_trade_date !== date ||
+-      attempt.input_identity !== value.input_identity || attempt.execution_kind !== product.execution_kind ||
+-      attempt.owner !== product.original_owner)
+-    throw new Error('WORKSPACE_REFRESH_TERMINAL_INVALID');
+-  const started = explicitTimestamp(attempt.started_at), finished = explicitTimestamp(attempt.finished_at);
+-  const generated = explicitTimestamp(product.generated_at);
+-  if (started === null || finished === null || generated === null || started > generated || generated > finished)
+-    throw new Error('WORKSPACE_REFRESH_TERMINAL_INVALID');
+-  safe(attempt);
+-  return value;
++  return await parseWorkspaceResponse(response, date);
+ }
+diff --git b/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.module01.spec.ts a/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.module01.spec.ts
+deleted file mode 100644
+index 424ecde8909735ffe1210a3089cbf53ad411e8cb..0000000000000000000000000000000000000000
+--- b/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.module01.spec.ts
++++ /dev/null
+@@ -1,209 +0,0 @@
+-import { fireEvent, waitFor } from '@testing-library/vue';
+-import { afterEach, describe, expect, it, vi } from 'vitest';
+-import { mountCatalystObservations } from './catalystObservationPanel';
+-import { testBindings, testFlags, workspaceFixture } from './dailyChannels.testHelper';
+-import type { JsonObject, ManagerWorkspace } from '../api/managerWorkspace';
+-
+-// Real API/validator/panel/renderers with synthetic HTTP input only. No product
+-// functions or original helpers are mocked; no Mac saved-run fixture is used.
+-const generatedAt = '2026-10-10T03:04:05.123456+00:00';
+-const cutoff = '2026-10-10T03:03:00+00:00';
+-const readWorkspace = (bindings = testBindings): ManagerWorkspace => {
+-  const value = workspaceFixture(bindings);
+-  (value.plan_context as JsonObject).research_cutoff = cutoff;
+-  (value.read_context as JsonObject).as_of = cutoff;
+-  return value;
+-};
+-const savedWorkspace = (reason = '本次 POST 的合成原研究理由'): ManagerWorkspace => {
+-  const value = readWorkspace();
+-  value.plan_product = { status: 'CURRENT', consumed: true, run_id: '1'.repeat(32),
+-    sha256: '2'.repeat(64), generated_at: generatedAt, execution_kind: 'MANUAL_REFRESH',
+-    original_owner: 'ManagerResearchJobService.refresh_workspace_plan' };
+-  value.workspace_plan_attempt = { ...testFlags, schema_version: 'v4.manager_research.workspace_attempt.v1',
+-    sha256: '5'.repeat(64), state: 'PARTIAL', target_trade_date: testBindings.plan_date,
+-    run_id: '1'.repeat(32), input_identity: value.input_identity, execution_kind: 'MANUAL_REFRESH',
+-    owner: 'ManagerResearchJobService.refresh_workspace_plan', failure_reasons: ['SYNTHETIC_SCOPE_GAP'],
+-    started_at: '2026-10-10T03:04:00+00:00', finished_at: '2026-10-10T03:04:06+00:00' };
+-  value.daily_channels!.channels[0].rows[0].reason = reason;
+-  return value;
+-};
+-const historicalWorkspace = (): ManagerWorkspace => {
+-  const value = workspaceFixture(testBindings);
+-  value.read_context = { ...(value.read_context as JsonObject), mode: 'HISTORICAL_AS_OF',
+-    status: 'NOT_MATERIALIZED', candidate_count_known: false };
+-  value.plan_product = { status: 'NOT_MATERIALIZED', consumed: false };
+-  return value;
+-};
+-const ok = (value: unknown, readOnly = false): Response => new Response(JSON.stringify(value), {
+-  status: 200, headers: { 'Content-Type': 'application/json', ...(readOnly ? { 'X-V5-Workspace-Access': 'READ_ONLY' } : {}) },
+-});
+-const unavailable = (): Response => new Response(JSON.stringify({ status: 'CANNOT_CONFIRM',
+-  reason_codes: ['MODULE_RESULT_NOT_AVAILABLE'] }), { status: 503 });
+-const deferred = <T>() => {
+-  let resolve!: (value: T) => void;
+-  const promise = new Promise<T>(done => { resolve = done; });
+-  return { promise, resolve };
+-};
+-type Request = { url: URL; method: string; signal: AbortSignal | null | undefined };
+-let dispose: (() => void) | undefined;
+-const mount = (handler: (request: Request) => Promise<Response> | Response,
+-  query = '?plan_date=20261008&selection_date=20261006&announcement_date=20261007&view=dynamic') => {
+-  const requests: Request[] = [];
+-  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+-    const request = { url: new URL(String(input), 'http://localhost'), method: init?.method ?? 'GET', signal: init?.signal };
+-    if (!request.url.pathname.includes('/workspace')) return unavailable();
+-    requests.push(request); return handler(request);
+-  });
+-  window.history.replaceState({}, '', `/${query}`);
+-  const host = document.createElement('div'); document.body.append(host);
+-  dispose = mountCatalystObservations(host, '20261008');
+-  const generate = [...host.querySelectorAll('button')].find(node => node.textContent === '用既有材料生成计划')!;
+-  const panel = host.querySelector<HTMLElement>('.manager-catalyst-observations')!;
+-  return { host, generate, panel, requests };
+-};
+-const ready = async (panel: HTMLElement) => { await waitFor(() => expect(panel.dataset.readState).toBe('READY')); };
+-const trigger = async (button: HTMLButtonElement) => { await fireEvent.click(button); };
+-afterEach(() => {
+-  dispose?.(); dispose = undefined; vi.useRealTimers(); vi.unstubAllGlobals();
+-  window.history.replaceState({}, '', '/'); document.body.replaceChildren();
+-});
+-
+-describe('module 01 generation admission', () => {
+-  it('keeps V5 read-only after a fully valid response even when payload text claims write access', async () => {
+-    const value = readWorkspace(); value.workspace_access = 'READ_WRITE';
+-    const { panel, generate, requests } = mount(() => ok(value, true));
+-    await ready(panel);
+-    expect(generate.disabled).toBe(true);
+-    expect(generate.title).toContain('只读');
+-    generate.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+-    await Promise.resolve();
+-    expect(requests.map(request => request.method)).toEqual(['GET']);
+-  });
+-
+-  it.each(['first GET failure', 'missing read_context'] as const)('does not enable generation after %s', async kind => {
+-    const value = readWorkspace(); if (kind === 'missing read_context') delete value.read_context;
+-    const { panel, generate, requests } = mount(() => kind === 'first GET failure' ? unavailable() : ok(value));
+-    await waitFor(() => expect(panel.dataset.readState).toBe('FAILED'));
+-    expect(generate.disabled).toBe(true);
+-    generate.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+-    await Promise.resolve();
+-    expect(requests.map(request => request.method)).toEqual(['GET']);
+-  });
+-
+-  it('enforces historical read-only at the event handler as well as the button', async () => {
+-    const { panel, generate, requests } = mount(() => ok(historicalWorkspace()), '?plan_date=20261008');
+-    await ready(panel);
+-    expect(generate.disabled).toBe(true);
+-    generate.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+-    await Promise.resolve();
+-    expect(requests.map(request => request.method)).toEqual(['GET']);
+-  });
+-
+-  it('requires explicit dynamic view before generating for an older target date', async () => {
+-    vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-10T04:00:00Z'));
+-    const { panel, generate } = mount(() => ok(readWorkspace()), '?plan_date=20261008');
+-    await ready(panel);
+-    expect(generate.disabled).toBe(true);
+-  });
+-});
+-
+-describe('module 01 successful POST consumption', () => {
+-  it('renders the one validated POST result without borrowing a later GET publication', async () => {
+-    let reads = 0;
+-    const { panel, host, generate, requests } = mount(request => request.method === 'POST'
+-      ? ok(savedWorkspace()) : ok(++reads === 1 ? readWorkspace() : savedWorkspace('另一请求推进 latest 的合成结果')));
+-    await ready(panel); expect(generate.disabled).toBe(false); await trigger(generate);
+-    await waitFor(() => expect(host.querySelector('[data-daily-channel="ANNOUNCEMENT"]')?.textContent).toContain('本次 POST 的合成原研究理由'));
+-    expect(requests.map(request => request.method)).toEqual(['GET', 'POST']);
+-    expect(Object.fromEntries(requests[1].url.searchParams)).toEqual({
+-      date: '20261008', selection_date: '20261006', announcement_date: '20261007',
+-    });
+-    expect(host.textContent).not.toContain('另一请求推进 latest');
+-    expect(panel.dataset.generationState).toBe('VERIFIED');
+-  });
+-
+-  it('retains true execution timestamps when explicitly looking back dynamically', async () => {
+-    const { panel, host, generate } = mount(request => ok(request.method === 'POST' ? savedWorkspace() : readWorkspace()));
+-    await ready(panel); await trigger(generate);
+-    await waitFor(() => expect(panel.dataset.generationState).toBe('VERIFIED'));
+-    const audit = [...host.querySelectorAll('details')].find(node => node.querySelector('summary')?.textContent === '计划日期与冻结/预览的精确时点')!;
+-    audit.open = true; audit.dispatchEvent(new Event('toggle'));
+-    const value = JSON.parse(audit.querySelector('pre')!.textContent!);
+-    expect(value.plan_context.research_cutoff).toBe(cutoff);
+-    expect(value.plan_product.generated_at).toBe(generatedAt);
+-    expect(value.plan_product.run_id).toBe('1'.repeat(32));
+-    expect(host.querySelector('[role="status"]')?.textContent).toContain('现在回看');
+-    expect(host.querySelector('[role="status"]')?.textContent).not.toContain('当时已知计划');
+-  });
+-});
+-
+-describe('module 01 unknown write outcome and stale responses', () => {
+-  it.each(['network error', 'HTTP 503', 'wrong date response'] as const)('does not classify %s as a failed owner run or automatically GET/retry POST', async failure => {
+-    const { panel, host, generate, requests } = mount(request => {
+-      if (request.method === 'GET') return ok(readWorkspace());
+-      if (failure === 'network error') throw new TypeError('synthetic connection lost');
+-      if (failure === 'HTTP 503') return unavailable();
+-      const value = savedWorkspace(); value.date_bindings!.announcement_date = '20261006';
+-      return ok(value);
+-    });
+-    await ready(panel); await trigger(generate);
+-    await waitFor(() => expect(panel.dataset.generationState).toBe('CANNOT_CONFIRM'));
+-    expect(panel.dataset.readState).not.toBe('FAILED');
+-    expect(host.querySelector('[role="status"]')?.textContent).toContain('生成结果未知');
+-    expect(host.querySelector('[role="status"]')?.textContent).not.toContain('本次生成失败');
+-    expect(generate.disabled).toBe(true);
+-    generate.dispatchEvent(new MouseEvent('click', { bubbles: true })); await Promise.resolve();
+-    expect(requests.map(request => request.method)).toEqual(['GET', 'POST']);
+-  });
+-
+-  it('suppresses a POST that completes after cancellation and reports unknown outcome', async () => {
+-    const pending = deferred<Response>();
+-    const { panel, host, generate, requests } = mount(request => request.method === 'POST' ? pending.promise : ok(readWorkspace()));
+-    await ready(panel); await trigger(generate);
+-    const cancel = [...host.querySelectorAll('button')].find(node => node.textContent === '取消本次读取')!;
+-    await trigger(cancel); expect(requests[1].signal?.aborted).toBe(true);
+-    pending.resolve(ok(savedWorkspace('不应渲染的已取消合成结果')));
+-    await waitFor(() => expect(panel.dataset.generationState).toBe('CANNOT_CONFIRM'));
+-    expect(host.textContent).not.toContain('不应渲染的已取消合成结果');
+-    expect(host.querySelector('[role="status"]')?.textContent).toContain('生成结果未知');
+-    expect(requests.map(request => request.method)).toEqual(['GET', 'POST']);
+-  });
+-
+-  it('keeps the 180-second timeout bounded without declaring an unknown write FAILED', async () => {
+-    const { panel, host, generate, requests } = mount(request => request.method === 'GET' ? ok(readWorkspace())
+-      : new Promise<Response>((_resolve, reject) => request.signal!.addEventListener('abort',
+-        () => reject(new DOMException('synthetic timeout', 'AbortError')), { once: true })));
+-    await ready(panel); vi.useFakeTimers(); await trigger(generate);
+-    await vi.advanceTimersByTimeAsync(180_000);
+-    expect(requests[1].signal?.aborted).toBe(true);
+-    expect(panel.dataset.generationState).toBe('CANNOT_CONFIRM');
+-    expect(panel.dataset.readState).not.toBe('FAILED');
+-    expect(host.querySelector('[role="status"]')?.textContent).toContain('生成结果未知');
+-    expect(requests.map(request => request.method)).toEqual(['GET', 'POST']);
+-  });
+-
+-  it.each(['date', 'view'] as const)('does not render a late POST after changing %s', async change => {
+-    const pending = deferred<Response>(); let reads = 0;
+-    const { panel, host, generate, requests } = mount(request => {
+-      if (request.method === 'POST') return pending.promise;
+-      if (++reads === 1) return ok(readWorkspace());
+-      return ok(change === 'date' ? readWorkspace({ ...testBindings, plan_date: '20261009' }) : historicalWorkspace());
+-    });
+-    await ready(panel); await trigger(generate);
+-    if (change === 'date') {
+-      const input = host.querySelector<HTMLInputElement>('input[aria-label="计划目标日"]')!;
+-      input.value = '2026-10-09'; await fireEvent.change(input);
+-    } else {
+-      const select = host.querySelector<HTMLSelectElement>('select[aria-label="历史或现在回看"]')!;
+-      select.value = 'auto'; await fireEvent.change(select);
+-    }
+-    await ready(panel); expect(requests[1].signal?.aborted).toBe(true);
+-    pending.resolve(ok(savedWorkspace('不应渲染的旧日期或旧口径合成结果')));
+-    await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+-    expect(host.textContent).not.toContain('不应渲染的旧日期或旧口径合成结果');
+-    expect(generate.disabled).toBe(true);
+-    expect(requests.map(request => request.method)).toEqual(['GET', 'POST', 'GET']);
+-    if (change === 'date') expect(panel.dataset.targetDate).toBe('20261009');
+-    else expect(host.querySelector('[role="status"]')?.textContent).toContain('当时历史');
+-  });
+-});
+diff --git b/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts a/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts
+index 3cd1b884644e878c2c2b93ed106af11345dd609f..040aa27733eb238af2bd5543e8a41a66f11f6d03 100644
+--- b/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts
++++ a/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts
+@@ -23,7 +23,6 @@ vi.mock("../api/managerAnnouncementAnalysis.js", async (importOriginal) => ({
+ 
+ import { groupThemeMappings, mountCatalystObservations } from "./catalystObservationPanel";
+ import { validateManagerWorkspace, type JsonObject, type ManagerWorkspace, type ReboundScreen } from "../api/managerWorkspace";
+-import { testFlags, workspaceFixture } from "./dailyChannels.testHelper";
+ 
+ const makeLane = (lane: "STAGE" | "CATALYST" | "CLOSE") => ({
+   lane, owner: `SIMULATED_${lane}`, state: "NOT_RUN", target_date: "20260921",
+@@ -644,28 +643,8 @@ describe("catalyst workspace runtime boundary", () => {
+   });
+ 
+   it("reuses the validated refresh response instead of issuing a second same-date GET", async () => {
+-    window.history.replaceState({}, "", "/?date=20260921&view=dynamic");
+-    const initial = workspaceFixture({ plan_date: "20260921", selection_date: "20260921", announcement_date: "20260921" }, false);
+-    // Keep this legacy no-projection caller, with a complete synthetic owner
+-    // response admitted by the real API client instead of a product mock.
+-    const saved = structuredClone(initial);
+-    saved.plan_product = { status: "CURRENT", consumed: true, run_id: "1".repeat(32), sha256: "2".repeat(64),
+-      generated_at: "2026-10-10T03:04:05+00:00", execution_kind: "MANUAL_REFRESH",
+-      original_owner: "ManagerResearchJobService.refresh_workspace_plan" };
+-    saved.workspace_plan_attempt = { ...testFlags, schema_version: "v4.manager_research.workspace_attempt.v1",
+-      sha256: "5".repeat(64), state: "PARTIAL", target_trade_date: "20260921",
+-      run_id: "1".repeat(32), input_identity: saved.input_identity, execution_kind: "MANUAL_REFRESH",
+-      owner: "ManagerResearchJobService.refresh_workspace_plan", failure_reasons: ["SYNTHETIC_SCOPE_GAP"],
+-      started_at: "2026-10-10T03:04:00+00:00", finished_at: "2026-10-10T03:04:06+00:00" };
+-    const actualApi = await vi.importActual<typeof import("../api/managerWorkspace.js")>("../api/managerWorkspace.js");
+-    workspaceMocks.request.mockImplementation(actualApi.requestManagerWorkspace);
+-    workspaceMocks.refresh.mockImplementation(actualApi.refreshManagerWorkspace);
+-    const methods: string[] = [];
+-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+-      if (!String(input).includes("/workspace")) return { ok: false, status: 503 } as Response;
+-      methods.push(init?.method ?? "GET");
+-      return new Response(JSON.stringify(init?.method === "POST" ? saved : initial), { status: 200 });
+-    }));
++    workspaceMocks.request.mockResolvedValue(workspaceBase);
++    workspaceMocks.refresh.mockResolvedValue(workspaceBase);
+     const host = document.createElement("div");
+     document.body.append(host);
+     const dispose = mountCatalystObservations(host, "20260921");
+@@ -679,9 +658,7 @@ describe("catalyst workspace runtime boundary", () => {
+     await waitFor(() => expect(generate.disabled).toBe(false));
+     await fireEvent.click(generate);
+     await waitFor(() => expect(workspaceMocks.refresh).toHaveBeenCalledTimes(1));
+-    await waitFor(() => expect(host.querySelector(".manager-catalyst-observations")?.getAttribute("data-generation-state")).toBe("VERIFIED"));
+     expect(workspaceMocks.request).not.toHaveBeenCalled();
+-    expect(methods).toEqual(["GET", "POST"]);
+     dispose();
+   });
+ 
+diff --git b/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.ts a/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.ts
+index 4a79d4f09fe31234ceb721f96ba1c4f1e7c4cd2d..d1eff24632f71df767742a79c23fa852c571e9c2 100644
+--- b/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.ts
++++ a/V5/ui/manager-workbench/source/apps/web/src/manager-selection/catalystObservationPanel.ts
+@@ -12,7 +12,7 @@ import { normalizedWorkspaceDay, readDailyDateBindings, renderDailyChannels, sam
+  * Cross-date/view and source failures clear cards. Same-view re-read may retain
+  * an explicitly labelled previous qualified result; it is never relabelled current.
+  */
+-import { requestManagerAnnouncements, refreshManagerAnnouncements, requestManagerWorkspace, refreshManagerWorkspace, isManagerWorkspaceReadOnly, type ManagerWorkspace, type WorkspaceLane, type JsonObject, type ReboundScreen } from '../api/managerWorkspace.js';
++import { requestManagerAnnouncements, refreshManagerAnnouncements, requestManagerWorkspace, refreshManagerWorkspace, type ManagerWorkspace, type WorkspaceLane, type JsonObject, type ReboundScreen } from '../api/managerWorkspace.js';
+ import { requestManagerAnnouncementAnalysis } from '../api/managerAnnouncementAnalysis.js';
+ import { renderAnnouncementAnalysis } from './announcementAnalysis.js';
+ 
+@@ -105,7 +105,6 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   let announcementRefreshTimer:ReturnType<typeof setTimeout>|undefined;
+   let timer: ReturnType<typeof setTimeout> | undefined;
+   let currentValue: ManagerWorkspace | null = null;
+-  let generationUnconfirmed = false;
+   const readView=(value:string|null):'auto'|'dynamic'=>value==='dynamic'?'dynamic':'auto';
+   let view = readView(params.get('view'));
+   let loadedView: 'auto'|'dynamic' | null = null;
+@@ -123,7 +122,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   const header = el('header'); header.append(el('h2','本计划研究关注'));
+   const style=el('style',`.manager-catalyst-observations{min-width:0;overflow-wrap:anywhere}.manager-catalyst-observations header{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.manager-catalyst-observations h2{flex-basis:100%}.manager-catalyst-observations article{min-width:0;border:1px solid #d4dde4;border-radius:8px;padding:14px;margin:12px 0}.manager-catalyst-observations pre{white-space:pre-wrap;overflow-wrap:anywhere}.manager-catalyst-observations blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid #8098a9}.manager-us-result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}.manager-us-result-grid article{margin:0}.manager-us-result-grid a{display:inline-block;max-width:100%;margin-right:8px}.manager-catalyst-observations select{max-width:100%}.manager-catalyst-observations details{margin:8px 0}.manager-catalyst-observations summary{cursor:pointer}.manager-catalyst-observations button,.manager-catalyst-observations input{min-height:36px}`);
+   const readButton = el('button','读取更新'); readButton.type='button';
+-  const refreshButton = el('button','用既有材料生成计划'); refreshButton.type='button'; refreshButton.disabled=true;
++  const refreshButton = el('button','用既有材料生成计划'); refreshButton.type='button';
+   const dateLabel=el('label','计划目标日：');const planDate=el('input');planDate.type='date';planDate.setAttribute('aria-label','计划目标日');
+   planDate.value=`${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}`;
+   dateLabel.append(planDate);
+@@ -684,27 +683,11 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+     if(/WORKSPACE_/.test(message))return ['来源、日期或工作台合同校验失败；已清除旧结果，须核查原owner证据后重读。',true];
+     return ['网络连接或响应读取失败；可检查连接后重新读取。',false];
+   }
+-  function refreshBlockReason(): string {
+-    if(generationUnconfirmed)return '上一次生成结果待原run终态核验；重新读取不会自动重试生成。';
+-    if(!currentValue || currentValue.target_trade_date!==date || loadedView!==view || panel.dataset.readState!=='READY')
+-      return '须先成功读取本计划日与口径的完整结果，才能确认生成入口。';
+-    if(isManagerWorkspaceReadOnly(currentValue))return '此V5入口只读消费已发布结果；计划生成由原owner执行。';
+-    const read=(currentValue.read_context || {}) as JsonObject;
+-    const parts=new Intl.DateTimeFormat('en',{timeZone:'Asia/Hong_Kong',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts();
+-    const today=['year','month','day'].map(type=>parts.find(part=>part.type===type)?.value).join('');
+-    if(read.mode==='HISTORICAL_AS_OF' || view!=='dynamic' && date<today)
+-      return '当时历史只读；生成现在回看计划须先显式切换口径。';
+-    if(read.mode!=='CURRENT_DYNAMIC_PREVIEW' || read.contract!=='20260923.workspace-history-read.r1' ||
+-        !['VERIFIED','VERIFIED_WITH_GAPS'].includes(String(read.status)))
+-      return '读取上下文尚未完整核验，不能开放生成。';
+-    return '';
+-  }
+   async function load(refresh: boolean): Promise<void> {
+-    if(refresh && refreshBlockReason())return;
+     const id=++sequence;controller?.abort();clearTimeout(timer);controller=new AbortController();const current=controller;
+     const requestedDate=date;const requestedView=view;let timedOut=false;
+     const requestedBindings:WorkspaceDateBindings={plan_date:requestedDate,selection_date:selectionDate,announcement_date:publicationDate};
+-    const bindFirstRead=explicitDates;
++    const hadDailyExtension=currentValue?.daily_channels!==undefined;
+     timer=setTimeout(()=>{timedOut=true;current.abort();},WORKSPACE_REQUEST_TIMEOUT_MS);
+     const priorRead=(currentValue?.read_context || {}) as JsonObject;
+     const keep=!!currentValue && currentValue.target_trade_date===date && loadedView===view &&
+@@ -715,21 +698,24 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+     readButton.disabled=true;refreshButton.disabled=true;cancelButton.hidden=false;
+     status.textContent=(keep?`计划 ${date}：以下为上次合格结果（非本次新结果）；正在更新。 `:`计划 ${date}：正在核对历史计划/来源，数量未知。 `)+
+       (refresh?'原经理owner仅用既有材料生成计划，不抓取。':'本次为只读，不生成、不采集。');
+-    if(!refresh && generationUnconfirmed)panel.dataset.generationState='CANNOT_CONFIRM';
++    let refreshFailure='';let refreshedValue: ManagerWorkspace | null = null;
+     try {
+-      let value: ManagerWorkspace;
+       if(refresh){
+-        generationUnconfirmed=true;panel.dataset.generationState='RUNNING';
+-        value=bindFirstRead
+-          ? await refreshManagerWorkspace(requestedDate,current.signal,requestedBindings)
+-          : await refreshManagerWorkspace(requestedDate,current.signal);
+-      } else {
+-        value=bindFirstRead
+-          ? await requestManagerWorkspace(requestedDate,current.signal,requestedView,requestedBindings)
+-          : await requestManagerWorkspace(requestedDate,current.signal,requestedView);
++        try { refreshedValue=await refreshManagerWorkspace(requestedDate,current.signal); }
++        catch(error){if(current.signal.aborted)throw error;refreshFailure=failureKind(error,false,false)[0];}
+       }
+       if(disposed || id!==sequence)return;
+       if(current.signal.aborted)throw new DOMException('Workspace read aborted','AbortError');
++      // Legacy callers keep their 3-argument read and legacy successful POST.
++      // Once the optional projection is available, its selected dates must be
++      // read through the canonical GET; POST does not bind those query days.
++      const bindFirstRead=explicitDates;
++      const requireCanonical=explicitDates || hadDailyExtension || refreshedValue?.daily_channels!==undefined || requestedView!=='auto';
++      let value=refreshedValue && !requireCanonical ? refreshedValue : bindFirstRead
++        ? await requestManagerWorkspace(requestedDate,current.signal,requestedView,requestedBindings)
++        : await requestManagerWorkspace(requestedDate,current.signal,requestedView);
++      if(disposed || id!==sequence)return;
++      if(current.signal.aborted)throw new DOMException('Workspace read aborted','AbortError');
+       if(value.daily_channels!==undefined){
+         if(bindFirstRead && !sameDailyDateBindings(value.date_bindings,requestedBindings))
+           throw new Error('WORKSPACE_DAILY_DATE_BINDING_MISMATCH');
+@@ -746,29 +732,20 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+       }
+       if(current.signal.aborted)throw new DOMException('Workspace read aborted','AbortError');
+       if(!disposed && id===sequence && date===requestedDate && view===requestedView){
+-        render(value);
+-        if(refresh){generationUnconfirmed=false;panel.dataset.generationState='VERIFIED';}
+-        else if(generationUnconfirmed)status.textContent+=' 上一次生成结果仍待原run终态核验；本次只读不判定该次生成成败。';
++        render(value);if(refreshFailure)status.textContent+=` 本次生成失败：${refreshFailure} 以下仅为重新核验的读取状态。`;
+       }
+     } catch(error){
+       if(!disposed && id===sequence && date===requestedDate && view===requestedView){
+         const [message,sourceFailure]=failureKind(error,timedOut,current.signal.aborted);
+-        if(refresh){
+-          if(sourceFailure || !keep)clearResults();
+-          panel.dataset.readState='CANNOT_CONFIRM';panel.dataset.generationState='CANNOT_CONFIRM';
+-          filterCount.textContent=keep&&!sourceFailure?'上次结果 · 本次生成终态待核':'本次生成终态待核 · 数量未知';
+-          status.textContent=`计划 ${date}：本次生成结果未知；${timedOut?'已达180秒并停止等待。':current.signal.aborted?'已取消等待。':'未收到可核验的成功响应。'} 请先由原owner按本次run核验保存产品与同run终态，再读取；未自动重试生成。`+
+-            (keep&&!sourceFailure?' 以下仅保留上次合格结果。':' 未显示未核验结果。');
+-        } else {
+-          if(sourceFailure || !keep){clearResults();panel.dataset.readState='FAILED';filterCount.textContent='读取未完成 · 数量未知';}
+-          else {panel.dataset.readState='STALE';filterCount.textContent='上次结果 · 本次读取未完成';}
+-          status.textContent=`计划 ${date}：${message}`+(keep&&!sourceFailure?' 以下保留上次合格结果，不代表本次成功。':' 未显示旧日或未核验股票。');
+-        }
++        if(sourceFailure || !keep){clearResults();panel.dataset.readState='FAILED';filterCount.textContent='读取未完成 · 数量未知';}
++        else {panel.dataset.readState='STALE';filterCount.textContent='上次结果 · 本次读取未完成';}
++        status.textContent=`计划 ${date}：${message}`+(keep&&!sourceFailure?' 以下保留上次合格结果，不代表本次成功。':' 未显示旧日或未核验股票。');
+       }
+     } finally {
+       if(!disposed && id===sequence){
+         clearTimeout(timer);readButton.disabled=false;cancelButton.hidden=true;
+-        const blocked=refreshBlockReason();refreshButton.disabled=!!blocked;refreshButton.title=blocked;
++        refreshButton.disabled=((currentValue?.read_context || {}) as JsonObject).mode==='HISTORICAL_AS_OF';
++        refreshButton.title=refreshButton.disabled?'当时历史只读；生成现在回看计划须先显式切换口径。':'';
+       }
+     }
+   }
+diff --git b/V5/ui/manager-workbench/source/apps/web/src/manager-selection/dailyChannels.runtime.spec.ts a/V5/ui/manager-workbench/source/apps/web/src/manager-selection/dailyChannels.runtime.spec.ts
+index 8f46c2a92f4378cd8f31355d769900ce105b9860..1a3360486f5937fa453491681206d32b89960f87 100644
+--- b/V5/ui/manager-workbench/source/apps/web/src/manager-selection/dailyChannels.runtime.spec.ts
++++ a/V5/ui/manager-workbench/source/apps/web/src/manager-selection/dailyChannels.runtime.spec.ts
+@@ -2,7 +2,7 @@ import { fireEvent, waitFor } from '@testing-library/vue';
+ import { afterEach, describe, expect, it, vi } from 'vitest';
+ import { requestManagerWorkspace, validateManagerWorkspace, type JsonObject } from '../api/managerWorkspace';
+ import { mountCatalystObservations } from './catalystObservationPanel';
+-import { testBindings, testFlags, workspaceFixture } from './dailyChannels.testHelper';
++import { testBindings, workspaceFixture } from './dailyChannels.testHelper';
+ 
+ const ok = (value: unknown) => ({ ok: true, status: 200, json: async () => value }) as Response;
+ const noAnnouncements = () => ({ ok: false, status: 503 }) as Response;
+@@ -119,30 +119,19 @@ describe('first-screen independent research channels', () => {
+     }
+   });
+ 
+-  it('consumes the selected complete POST once and does not claim a scheduled run', async () => {
+-    window.history.replaceState({}, '', '/?date=20261006&plan_date=20261008&announcement_date=20261007&view=dynamic');
+-    // Explicit synthetic saved product + original-owner terminal envelope.
+-    const saved = workspaceFixture();
+-    saved.plan_product = { status: 'CURRENT', consumed: true, run_id: '1'.repeat(32), sha256: '2'.repeat(64),
+-      generated_at: '2026-10-10T03:04:05+00:00', execution_kind: 'MANUAL_REFRESH',
+-      original_owner: 'ManagerResearchJobService.refresh_workspace_plan' };
+-    saved.workspace_plan_attempt = { ...testFlags, schema_version: 'v4.manager_research.workspace_attempt.v1',
+-      sha256: '5'.repeat(64), state: 'PARTIAL', target_trade_date: testBindings.plan_date,
+-      run_id: '1'.repeat(32), input_identity: saved.input_identity, execution_kind: 'MANUAL_REFRESH',
+-      owner: 'ManagerResearchJobService.refresh_workspace_plan', failure_reasons: ['SYNTHETIC_SCOPE_GAP'],
+-      started_at: '2026-10-10T03:04:00+00:00', finished_at: '2026-10-10T03:04:06+00:00' };
++  it('reloads the selected canonical GET after manual generation and does not claim a scheduled run', async () => {
++    window.history.replaceState({}, '', '/?date=20261006&plan_date=20261008&announcement_date=20261007');
+     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+-      if (String(input).includes('/workspace/refresh?')) return ok(saved);
++      if (String(input).includes('/workspace/refresh?')) return ok(workspaceFixture(testBindings, false));
+       return String(input).includes('/workspace?') ? ok(workspaceFixture()) : noAnnouncements();
+     }); vi.stubGlobal('fetch', fetchMock);
+     const host = document.createElement('div'); document.body.append(host); dispose = mountCatalystObservations(host, '20261008');
+     const button = [...host.querySelectorAll('button')].find(node => node.textContent === '用既有材料生成计划')!;
+     await waitFor(() => expect(button.disabled).toBe(false)); await fireEvent.click(button);
+-    await waitFor(() => expect(host.querySelector('.manager-catalyst-observations')?.getAttribute('data-generation-state')).toBe('VERIFIED'));
++    await waitFor(() => expect(fetchMock.mock.calls.filter(call => String(call[0]).includes('/workspace?'))).toHaveLength(2));
+     const workspaceCalls = fetchMock.mock.calls.filter(call => String(call[0]).includes('/workspace'));
+-    expect(workspaceCalls.map(call => call[1]?.method)).toEqual(['GET', 'POST']);
+-    expect(Object.fromEntries(new URL(String(workspaceCalls[1][0]), 'http://localhost').searchParams))
+-      .toEqual({ date: '20261008', selection_date: '20261006', announcement_date: '20261007' });
++    expect(workspaceCalls.map(call => call[1]?.method)).toEqual(['GET', 'POST', 'GET']);
++    expect(String(workspaceCalls[2][0])).toContain('announcement_date=20261007');
+     expect(host.querySelector('[data-daily-channels]')?.textContent).not.toContain('自然运行已验收');
+     expect(host.querySelector('[data-daily-channels]')?.textContent).not.toContain('定时运行已完成');
+   });

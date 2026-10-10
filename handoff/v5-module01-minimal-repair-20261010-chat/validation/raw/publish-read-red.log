@@ -1,0 +1,26 @@
+test_another_real_save_after_verified_read_does_not_change_publication (test_module01_publish_read.Module01SavedPublicationTests.test_another_real_save_after_verified_read_does_not_change_publication) ... FAIL
+test_wrong_expected_run_cannot_create_a_published_generation (test_module01_publish_read.Module01SavedPublicationTests.test_wrong_expected_run_cannot_create_a_published_generation) ... ok
+
+======================================================================
+FAIL: test_another_real_save_after_verified_read_does_not_change_publication (test_module01_publish_read.Module01SavedPublicationTests.test_another_real_save_after_verified_read_does_not_change_publication)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_publish_read.py", line 70, in test_another_real_save_after_verified_read_does_not_change_publication
+    self.tool.main()
+    ~~~~~~~~~~~~~~^^
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tools/cloud_preview/publish_read.py", line 44, in main
+    raise ValueError('PUBLICATION_READ_CHANGED')
+ValueError: PUBLICATION_READ_CHANGED
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_publish_read.py", line 72, in test_another_real_save_after_verified_read_does_not_change_publication
+    self.fail('The already verified saved run was not published: ' + str(error))
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: The already verified saved run was not published: PUBLICATION_READ_CHANGED
+
+----------------------------------------------------------------------
+Ran 2 tests in 4.120s
+
+FAILED (failures=1)

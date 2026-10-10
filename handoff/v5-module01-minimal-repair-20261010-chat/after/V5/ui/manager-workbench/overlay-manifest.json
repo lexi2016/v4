@@ -1,0 +1,157 @@
+{
+  "base_commit": "2fdf754c3cc9d52d24a46c8634a822c747faee0a",
+  "source_commit": "8342862f05ca9f6516f51b3164b6110651e5af77",
+  "changes": [
+    {
+      "path": "src/api/managerWorkspace.ts",
+      "source": "source/apps/web/src/api/managerWorkspace.ts",
+      "before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+      "after_sha256": "478611369d9ee2e82874810def1aaf6618da7fbd337d4709199cc872f5a9c0b8",
+      "previous_candidate_sha256": "fd5e8a0371d49127862381c8eccf6a014c4a8459b74ab0d938f8bf93aeeac5f1"
+    },
+    {
+      "path": "src/manager-selection/catalystObservationPanel.ts",
+      "source": "source/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+      "after_sha256": "c7de6cfdaa38f7721d20d00ddbf9eb35a729c7eadc6b17058c6dbf744ddabb74",
+      "previous_candidate_sha256": "81190e870e80a98a4c54357bab35e16b8bafba9c0065d0afb63eb90a16c5168b"
+    },
+    {
+      "path": "src/manager-selection/dailyChannels.runtime.spec.ts",
+      "source": "source/apps/web/src/manager-selection/dailyChannels.runtime.spec.ts",
+      "before_sha256": "c300e175a184a6a9e365c5d99a2977ea8cc8c8eed27fbedb3291785a83bd640e",
+      "after_sha256": "9b6fec6e2d5596ff54f9e6bc5639fa73f74e29fdddbc039cd1b18e777e9096af",
+      "previous_candidate_sha256": "26c7e976edb7f67505f2f2568105e0ad3d53a543c946b04fb91bdfb1842480da"
+    },
+    {
+      "path": "src/manager-selection/dailyChannels.v5Bindings.spec.ts",
+      "source": "next-tests/dailyChannels.v5Bindings.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "5f54165ed165f1e3599d5f4a9f60d50ebb5148f5de941b4a4106a7554c239ffb"
+    },
+    {
+      "path": "src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "source": "source/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "before_sha256": "9ed39eebf1983c6287b25232839d68c6bfca684b3701a0dab080b8f5ed5e31a4",
+      "after_sha256": "659c1439acbf43c5d5559f6db4a8726cfe2912203019d5b2c4799169992e6e87",
+      "previous_candidate_sha256": "d15fcb23fa44f4c31264dbfdbf630de2ad5d2d69983098eaa41d45fd39fc83af"
+    },
+    {
+      "path": "src/manager-selection/catalystViewNavigation.spec.ts",
+      "source": "next-tests/catalystViewNavigation.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "d4471189e2593e44b0aea7a0169af2f93ccde5cf9e0082f11ae465a358a4eccd"
+    },
+    {
+      "path": "src/manager-selection/reboundPanelObservation.ts",
+      "source": "source/apps/web/src/manager-selection/reboundPanelObservation.ts",
+      "before_sha256": null,
+      "after_sha256": "8a151ac0537c27bb35f06cb59a49035adde0e9f9a7ea341e26f4de5052075b71",
+      "previous_candidate_sha256": "beb9b1fa952f21af6887b184689f60cb8718fb06baeec38d5948e3e005bd4b20"
+    },
+    {
+      "path": "src/manager-selection/reboundPanelObservation.spec.ts",
+      "source": "next-tests/reboundPanelObservation.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "154fd2f4e760b6e624dd1530478fb80811d850738542ede2ded6c0617cc23395",
+      "previous_candidate_sha256": "f1329ce749e27b5c82ca16506cbfe8ecd36a87dec335bb1cc17e57bf6673adea"
+    },
+    {
+      "path": "src/manager-selection/usMappingCoverage.ts",
+      "source": "source/apps/web/src/manager-selection/usMappingCoverage.ts",
+      "before_sha256": null,
+      "after_sha256": "ffe41f768d2ab73528d4e20809267722a5eac5cd01216a429bae171af6df6e2f",
+      "previous_candidate_sha256": "250d4059f7d3e726275109f626bcf0cdf8c7719904f2e5dcf2ea59a7aedfebbe"
+    },
+    {
+      "path": "src/manager-selection/usMappingCoverage.spec.ts",
+      "source": "next-tests/usMappingCoverage.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "13273df7d40daebc11d389f85f5d9b3e2de4d43b0e42767c13d9e5dd170938bc",
+      "previous_candidate_sha256": "13fb992e2573d288bc2333b4654120a4bcdcaf8d3001a2b301e468439d2504db"
+    },
+    {
+      "path": "src/manager-selection/managerStrategySummary.ts",
+      "source": "source/apps/web/src/manager-selection/managerStrategySummary.ts",
+      "before_sha256": null,
+      "after_sha256": "ed1a441baf3581d313b70cf18b45a4eb43d2a27c280bf5885a26d4c10cc785be"
+    },
+    {
+      "path": "src/manager-selection/managerStrategySummary.spec.ts",
+      "source": "next-tests/managerStrategySummary.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "94dc760bd6d70e4811086ceca4c0121b85be2f53de4b9a406bacf307e0adb402"
+    },
+    {
+      "path": "src/manager-selection/__tests__/businessChainR2.spec.ts",
+      "source": "source/apps/web/src/manager-selection/__tests__/businessChainR2.spec.ts",
+      "before_sha256": "5339998598fb03e21cb8a6af5e7fa9f4b74d67c4791db0a6a47972959a7b1e0e",
+      "after_sha256": "9973f5be27a3bdcd45a3ab37975c451a4d82fee2fd1b39958de6ad55086a43a6"
+    },
+    {
+      "path": "src/views/ManagerSelectionView.spec.ts",
+      "source": "source/apps/web/src/views/ManagerSelectionView.spec.ts",
+      "before_sha256": "6c96928161d86f475d970661223d6bc8602bb3ae98fbbeacc68a989f6d360e8b",
+      "after_sha256": "d81f713237ab937231d87cde6b982d3e555160c7135db2dfb95fc6c4d2016a14"
+    },
+    {
+      "path": "src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "source": "source/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "before_sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525",
+      "after_sha256": "1c6f3d33c8e224fab2bbef8f1e0139843aece29c07692253f7d2c6fe0404be0d"
+    },
+    {
+      "path": "src/api/managerWorkspace.announcementReview.spec.ts",
+      "source": "source/apps/web/src/api/managerWorkspace.announcementReview.spec.ts",
+      "before_sha256": "f7c2b70e40a9bd776eb2e2426a3e04b24ed1f6eabe274f22fcf1ddabf5699a49",
+      "after_sha256": "aae9e414956b98f3ec44c2fe15ea8d3c8ad17ccb008bff919e65d3a516d8568e"
+    },
+    {
+      "path": "src/manager-selection/__tests__/workspaceAfterReadback.spec.ts",
+      "source": "source/apps/web/src/manager-selection/__tests__/workspaceAfterReadback.spec.ts",
+      "before_sha256": "aa3eed26c55613bff9fc4efd382de0896bfe2e833118bb3158d4c179ce030c13",
+      "after_sha256": "ee5dc76c5cfa79b3aa9334aa6e45580891da8008129e3274068934232aa429f1"
+    },
+    {
+      "path": "src/manager-selection/dailyChannels.ts",
+      "source": "source/apps/web/src/manager-selection/dailyChannels.ts",
+      "before_sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "after_sha256": "dab30efb663a07f297ccf58eb3b68a07e452c4d822088ec653ba40ebd5ec9a32"
+    },
+    {
+      "path": "src/api/managerWorkspace.currentRecovery.spec.ts",
+      "source": "source/apps/web/src/api/managerWorkspace.currentRecovery.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "1605f5792c3ad1a370f4c203beaaf9c5f3d1a273cbd7475f69d6a091cd309737"
+    },
+    {
+      "path": "src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts",
+      "source": "source/apps/web/src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts",
+      "before_sha256": "bc8917ca6bb877d69b186afa5d688780f06b16993f5075035187c3ea971d0e53",
+      "after_sha256": "7104df12a03baa267bd81500c7fece58ed8b6062a122242e94146797c6f00f93"
+    },
+    {
+      "path": "src/api/managerWorkspace.module01.spec.ts",
+      "source": "source/apps/web/src/api/managerWorkspace.module01.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "c75196eaa42d55198865461a376cbf42d8f610941609f6d928ab5e7c1caf2c72"
+    },
+    {
+      "path": "src/api/managerWorkspace.module01.http.spec.ts",
+      "source": "source/apps/web/src/api/managerWorkspace.module01.http.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "79bd270b21190c3bf5fd3860f3dc77022c6815aea08e8064fc2b94ed97782fe1"
+    },
+    {
+      "path": "src/manager-selection/catalystObservationPanel.module01.spec.ts",
+      "source": "source/apps/web/src/manager-selection/catalystObservationPanel.module01.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "74c06a77bed8dac2ce119041af30a4b84d638053eef50ebcd19db2d7db72a66e"
+    }
+  ],
+  "unchanged": {
+    "src/manager-selection/dailyChannels.testHelper.ts": "ff2e22d33fe61fc8c44e3c524f2a192b55bb5ee1a6330eadc0ca3373c546f3f0",
+    "src/views/ManagerSelectionView.vue": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+    "src/manager-selection/dailyChannels.spec.ts": "4bc77f9a73881decf160814b90dc84124d5dc8eede9304f8011047d752f19ef3"
+  }
+}

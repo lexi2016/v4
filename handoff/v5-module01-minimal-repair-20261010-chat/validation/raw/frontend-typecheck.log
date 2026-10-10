@@ -1,0 +1,13 @@
+COMMAND: ["npm", "run", "typecheck"]
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> v3-5-web@0.1.0 typecheck
+> vue-tsc --noEmit
+
+src/api/managerWorkspace.module01.http.spec.ts(4,10): error TS2724: '"./managerWorkspace"' has no exported member named 'fetchManagerWorkspace'. Did you mean 'ManagerWorkspace'?
+src/api/managerWorkspace.module01.http.spec.ts(26,14): error TS18046: 'value.plan_product' is of type 'unknown'.
+src/api/managerWorkspace.module01.http.spec.ts(27,14): error TS18046: 'value.plan_product' is of type 'unknown'.
+src/api/managerWorkspace.module01.http.spec.ts(28,14): error TS18046: 'value.plan_product' is of type 'unknown'.
+src/api/managerWorkspace.module01.http.spec.ts(29,44): error TS2339: Property 'run_id' does not exist on type '{}'.
+
+EXIT_CODE: 2

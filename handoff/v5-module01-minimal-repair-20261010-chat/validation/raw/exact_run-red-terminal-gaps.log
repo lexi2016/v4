@@ -1,0 +1,41 @@
+test_completed_exact_run_survives_another_real_refresh_advancing_latest (test_module01_exact_run.ExactManagerRunTests.test_completed_exact_run_survives_another_real_refresh_advancing_latest) ... ok
+test_exact_filename_cannot_borrow_another_valid_run (test_module01_exact_run.ExactManagerRunTests.test_exact_filename_cannot_borrow_another_valid_run) ... ok
+test_exact_product_date_is_checked_even_when_latest_copy_is_valid (test_module01_exact_run.ExactManagerRunTests.test_exact_product_date_is_checked_even_when_latest_copy_is_valid) ... ok
+test_exact_product_sha_is_checked_even_when_latest_copy_is_valid (test_module01_exact_run.ExactManagerRunTests.test_exact_product_sha_is_checked_even_when_latest_copy_is_valid) ... ok
+test_invalid_latest_does_not_invalidate_completed_exact_run (test_module01_exact_run.ExactManagerRunTests.test_invalid_latest_does_not_invalidate_completed_exact_run) ... ok
+test_matching_latest_is_observed_with_its_own_terminal (test_module01_exact_run.ExactManagerRunTests.test_matching_latest_is_observed_with_its_own_terminal) ... ok
+test_missing_exact_terminal_cannot_borrow_latest_terminal (test_module01_exact_run.ExactManagerRunTests.test_missing_exact_terminal_cannot_borrow_latest_terminal) ... ok
+test_missing_latest_does_not_invalidate_completed_exact_run (test_module01_exact_run.ExactManagerRunTests.test_missing_latest_does_not_invalidate_completed_exact_run) ... ok
+test_ordinary_read_keeps_exact_product_terminal_and_native_channel_identity (test_module01_exact_run.ExactManagerRunTests.test_ordinary_read_keeps_exact_product_terminal_and_native_channel_identity) ... ok
+test_other_run_without_its_exact_terminal_is_not_reported_verified (test_module01_exact_run.ExactManagerRunTests.test_other_run_without_its_exact_terminal_is_not_reported_verified) ... ok
+test_other_runs_terminal_cannot_validate_exact_product (test_module01_exact_run.ExactManagerRunTests.test_other_runs_terminal_cannot_validate_exact_product) ... ok
+test_refresh_response_uses_verified_exact_terminal_if_returned_journal_is_other_run (test_module01_exact_run.ExactManagerRunTests.test_refresh_response_uses_verified_exact_terminal_if_returned_journal_is_other_run) ... FAIL
+test_returned_run_id_cannot_escape_exact_date_directory (test_module01_exact_run.ExactManagerRunTests.test_returned_run_id_cannot_escape_exact_date_directory) ... ok
+test_same_day_read_without_exact_terminal_keeps_fresh_preview_unverified (test_module01_exact_run.ExactManagerRunTests.test_same_day_read_without_exact_terminal_keeps_fresh_preview_unverified) ... FAIL
+
+======================================================================
+FAIL: test_refresh_response_uses_verified_exact_terminal_if_returned_journal_is_other_run (test_module01_exact_run.ExactManagerRunTests.test_refresh_response_uses_verified_exact_terminal_if_returned_journal_is_other_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 194, in test_refresh_response_uses_verified_exact_terminal_if_returned_journal_is_other_run
+    self.assert_exact(body['value'])
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 158, in assert_exact
+    self.assertEqual(payload['workspace_plan_attempt'], readback['attempt'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'RES[559 chars]:10.191521+00:00', 'input_coverage': {'attempt[2474 chars]008'} != {'RES[559 chars]:10.153890+00:00', 'input_coverage': {'attempt[2474 chars]008'}
+Diff is 5436 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_same_day_read_without_exact_terminal_keeps_fresh_preview_unverified (test_module01_exact_run.ExactManagerRunTests.test_same_day_read_without_exact_terminal_keeps_fresh_preview_unverified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_exact_run.py", line 213, in test_same_day_read_without_exact_terminal_keeps_fresh_preview_unverified
+    self.assertFalse(payload['plan_product']['consumed'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 14 tests in 13.901s
+
+FAILED (failures=2)

@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "records": [
+    {
+      "command": [
+        "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/.venv/bin/python",
+        "/workspace/scratch/d021d1397d6f/v5_module01/work/handoff/v5-module01-minimal-repair-20261010-chat/verify_preimage.py",
+        "--repo-root",
+        "/workspace/scratch/d021d1397d6f/v5_module01/baseline",
+        "--phase",
+        "before"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"phase\": \"before\",\n  \"repo_root\": \"/workspace/scratch/d021d1397d6f/v5_module01/baseline\",\n  \"code_commit\": \"6daed6271313b5ae5324c8948f163258ab8d1fa3\",\n  \"files\": 20,\n  \"writes_performed\": false,\n  \"failures\": []\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/.venv/bin/python",
+        "/workspace/scratch/d021d1397d6f/v5_module01/work/handoff/v5-module01-minimal-repair-20261010-chat/verify_preimage.py",
+        "--repo-root",
+        "/workspace/scratch/d021d1397d6f/v5_module01/work",
+        "--phase",
+        "after"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"phase\": \"after\",\n  \"repo_root\": \"/workspace/scratch/d021d1397d6f/v5_module01/work\",\n  \"code_commit\": \"6daed6271313b5ae5324c8948f163258ab8d1fa3\",\n  \"files\": 20,\n  \"writes_performed\": false,\n  \"failures\": []\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/.venv/bin/python",
+        "/workspace/scratch/d021d1397d6f/v5_module01/work/handoff/v5-module01-minimal-repair-20261010-chat/verify_preimage.py",
+        "--repo-root",
+        "/workspace/scratch/d021d1397d6f/v5_module01/tmp/module01-preimage-ig3mwfhl",
+        "--phase",
+        "before"
+      ],
+      "exit_code": 1,
+      "stdout": "{\n  \"status\": \"FAIL\",\n  \"phase\": \"before\",\n  \"repo_root\": \"/workspace/scratch/d021d1397d6f/v5_module01/tmp/module01-preimage-ig3mwfhl\",\n  \"code_commit\": \"6daed6271313b5ae5324c8948f163258ab8d1fa3\",\n  \"files\": 20,\n  \"writes_performed\": false,\n  \"failures\": [\n    \"SHA_OR_SIZE_MISMATCH:/workspace/scratch/d021d1397d6f/v5_module01/tmp/module01-preimage-ig3mwfhl/V5/src/v5_shadow/api_gateway.py\",\n    \"GIT_BLOB_MISMATCH:/workspace/scratch/d021d1397d6f/v5_module01/tmp/module01-preimage-ig3mwfhl/V5/src/v5_shadow/api_gateway.py\"\n  ]\n}\n",
+      "stderr": "",
+      "expected_rejection": true,
+      "target_bytes_unchanged": true
+    }
+  ]
+}

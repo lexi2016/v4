@@ -1,0 +1,28 @@
+test_direct_module_reports_read_only_without_changing_saved_payload (test_module01_http_readonly.Module01ReadOnlyHttpTests.test_direct_module_reports_read_only_without_changing_saved_payload) ... FAIL
+test_generic_post_capable_route_does_not_claim_get_only_capability (test_module01_http_readonly.Module01ReadOnlyHttpTests.test_generic_post_capable_route_does_not_claim_get_only_capability) ... ok
+test_get_only_manager_gateway_reports_read_only (test_module01_http_readonly.Module01ReadOnlyHttpTests.test_get_only_manager_gateway_reports_read_only) ... FAIL
+test_missing_saved_query_stays_unconfirmed (test_module01_http_readonly.Module01ReadOnlyHttpTests.test_missing_saved_query_stays_unconfirmed) ... ok
+test_module_and_get_only_gateway_keep_post_disabled (test_module01_http_readonly.Module01ReadOnlyHttpTests.test_module_and_get_only_gateway_keep_post_disabled) ... ok
+
+======================================================================
+FAIL: test_direct_module_reports_read_only_without_changing_saved_payload (test_module01_http_readonly.Module01ReadOnlyHttpTests.test_direct_module_reports_read_only_without_changing_saved_payload)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_http_readonly.py", line 64, in test_direct_module_reports_read_only_without_changing_saved_payload
+    self.assertEqual(headers.get('X-V5-Workspace-Access'), 'READ_ONLY')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'READ_ONLY'
+
+======================================================================
+FAIL: test_get_only_manager_gateway_reports_read_only (test_module01_http_readonly.Module01ReadOnlyHttpTests.test_get_only_manager_gateway_reports_read_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_http_readonly.py", line 70, in test_get_only_manager_gateway_reports_read_only
+    self.assertEqual(headers.get('X-V5-Workspace-Access'), 'READ_ONLY')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'READ_ONLY'
+
+----------------------------------------------------------------------
+Ran 5 tests in 3.037s
+
+FAILED (failures=2)

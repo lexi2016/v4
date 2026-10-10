@@ -1,0 +1,64 @@
+test_actual_analysis_dto_rejects_wrong_date_or_default_relabel (test_module01_announcement_contract.Module01AnnouncementContracts.test_actual_analysis_dto_rejects_wrong_date_or_default_relabel) ... ok
+test_bridge_runs_original_catalog_and_handoff_readers_without_input_changes (test_module01_announcement_contract.Module01AnnouncementContracts.test_bridge_runs_original_catalog_and_handoff_readers_without_input_changes) ... ERROR
+test_healthy_announcement_survives_missing_us_connect_and_rebound_inputs (test_module01_announcement_contract.Module01AnnouncementContracts.test_healthy_announcement_survives_missing_us_connect_and_rebound_inputs) ... ERROR
+test_missing_registered_handoff_never_becomes_verified_consumption (test_module01_announcement_contract.Module01AnnouncementContracts.test_missing_registered_handoff_never_becomes_verified_consumption) ... ERROR
+test_original_owner_keeps_decisions_separate_from_selected_stocks (test_module01_announcement_contract.Module01AnnouncementContracts.test_original_owner_keeps_decisions_separate_from_selected_stocks) ... ok
+test_original_owner_source_pin_rejects_a_changed_capsule_file (test_module01_announcement_contract.Module01AnnouncementContracts.test_original_owner_source_pin_rejects_a_changed_capsule_file) ... ok
+test_resealed_outer_material_pin_cannot_hide_changed_original_source (test_module01_announcement_contract.Module01AnnouncementContracts.test_resealed_outer_material_pin_cannot_hide_changed_original_source) ... ok
+test_resealed_owner_receipt_cannot_borrow_another_parent (test_module01_announcement_contract.Module01AnnouncementContracts.test_resealed_owner_receipt_cannot_borrow_another_parent) ... FAIL
+
+======================================================================
+ERROR: test_bridge_runs_original_catalog_and_handoff_readers_without_input_changes (test_module01_announcement_contract.Module01AnnouncementContracts.test_bridge_runs_original_catalog_and_handoff_readers_without_input_changes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_announcement_contract.py", line 66, in test_bridge_runs_original_catalog_and_handoff_readers_without_input_changes
+    result = run_announcement_bridge(copy.deepcopy(self.fixture["announcement_request"]))
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/src/v5_shadow/announcement_bridge.py", line 216, in run_announcement_bridge
+    request=_request(request);identity=_identity()
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/src/v5_shadow/announcement_bridge.py", line 60, in _request
+    elif not re.fullmatch(r'(blobs/[0-9a-f]{64}|index/[0-9a-f]{64}\.json)',name):raise ValueError('ANNOUNCEMENT_MATERIAL_PATH')
+                                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: ANNOUNCEMENT_MATERIAL_PATH
+
+======================================================================
+ERROR: test_healthy_announcement_survives_missing_us_connect_and_rebound_inputs (test_module01_announcement_contract.Module01AnnouncementContracts.test_healthy_announcement_survives_missing_us_connect_and_rebound_inputs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_announcement_contract.py", line 82, in test_healthy_announcement_survives_missing_us_connect_and_rebound_inputs
+    result = run_manager_plan(request)
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/src/v5_shadow/manager_plan.py", line 576, in run_manager_plan
+    request = _request(request); identity = _identity()
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/src/v5_shadow/manager_plan.py", line 132, in _request
+    raise ValueError('MANAGER_MATERIAL_INPUT_PATH')
+ValueError: MANAGER_MATERIAL_INPUT_PATH
+
+======================================================================
+ERROR: test_missing_registered_handoff_never_becomes_verified_consumption (test_module01_announcement_contract.Module01AnnouncementContracts.test_missing_registered_handoff_never_becomes_verified_consumption)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_announcement_contract.py", line 144, in test_missing_registered_handoff_never_becomes_verified_consumption
+    result = run_announcement_bridge(request)
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/src/v5_shadow/announcement_bridge.py", line 216, in run_announcement_bridge
+    request=_request(request);identity=_identity()
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/src/v5_shadow/announcement_bridge.py", line 60, in _request
+    elif not re.fullmatch(r'(blobs/[0-9a-f]{64}|index/[0-9a-f]{64}\.json)',name):raise ValueError('ANNOUNCEMENT_MATERIAL_PATH')
+                                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: ANNOUNCEMENT_MATERIAL_PATH
+
+======================================================================
+FAIL: test_resealed_owner_receipt_cannot_borrow_another_parent (test_module01_announcement_contract.Module01AnnouncementContracts.test_resealed_owner_receipt_cannot_borrow_another_parent)
+----------------------------------------------------------------------
+ValueError: ANNOUNCEMENT_MATERIAL_PATH
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/d021d1397d6f/v5_module01/work/V5/tests/test_module01_announcement_contract.py", line 135, in test_resealed_owner_receipt_cannot_borrow_another_parent
+    with self.assertRaisesRegex(ValueError, "PARENT_BINDING"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "PARENT_BINDING" does not match "ANNOUNCEMENT_MATERIAL_PATH"
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.263s
+
+FAILED (failures=1, errors=3)

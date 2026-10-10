@@ -1,0 +1,49 @@
+COMMAND: npm test -- src/api/managerWorkspace.module01.spec.ts src/manager-selection/catalystObservationPanel.module01.spec.ts src/manager-selection/catalystObservationPanel.runtime.spec.ts src/manager-selection/dailyChannels.runtime.spec.ts src/api/managerWorkspace.module01.http.spec.ts --maxWorkers=2
+V5_MODULE01_HTTP_RECEIPT: /workspace/scratch/d021d1397d6f/v5_module01/tmp/http-fixture/http-receipt.json
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> v3-5-web@0.1.0 test
+> vitest run src/api/managerWorkspace.module01.spec.ts src/manager-selection/catalystObservationPanel.module01.spec.ts src/manager-selection/catalystObservationPanel.runtime.spec.ts src/manager-selection/dailyChannels.runtime.spec.ts src/api/managerWorkspace.module01.http.spec.ts --maxWorkers=2
+
+
+ RUN  v4.1.10 /workspace/scratch/d021d1397d6f/v5_module01/support/frontend/assembled
+
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts (21 tests | 2 failed) 916ms
+     × keeps the requested-day manual HK observation compact until all 100 rows are expanded 28ms
+     × renders Eastmoney evidence from the selected-date daily owner review 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > keeps the requested-day manual HK observation compact until all 100 rows are expanded
+Error: ENOENT: no such file or directory, open '/workspace/scratch/d021d1397d6f/v5_module01/support/tests/fixtures/manager_current_observation_20261002/FIXTURE_BINDING.json'
+ ❯ readPinnedManualObservationFixture src/manager-selection/catalystObservationPanel.runtime.spec.ts:109:24
+    107| const readPinnedManualObservationFixture = (name: "close_recapture.jso…
+    108|   const fixtureRoot = process.env.V5_MANUAL_OBSERVATION_FIXTURES || re…
+    109|   const bindingBytes = readFileSync(resolve(fixtureRoot, "FIXTURE_BIND…
+       |                        ^
+    110|   expect(createHash('sha256').update(bindingBytes).digest('hex')).toBe…
+    111|   const binding = JSON.parse(bindingBytes.toString('utf8'));
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:523:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > renders Eastmoney evidence from the selected-date daily owner review
+Error: ENOENT: no such file or directory, open '/Users/lexi/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integration/workspace_after.json'
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:689:28
+    687|
+    688|   it("renders Eastmoney evidence from the selected-date daily owner re…
+    689|     const raw = JSON.parse(readFileSync(
+       |                            ^
+    690|       process.env.V5_EASTMONEY_WORKSPACE_FIXTURE || "/Users/lexi/Deskt…
+    691|       "utf8",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  2 failed | 85 passed (87)
+   Start at  16:27:25
+   Duration  3.76s (transform 789ms, setup 0ms, import 1.50s, tests 2.05s, environment 2.80s)
+
+
+EXIT_CODE: 1

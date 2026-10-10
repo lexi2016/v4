@@ -1,0 +1,90 @@
+{
+  "schema_version": "v5.module01.synthetic_http_receipt.v1",
+  "fixture_kind": "SYNTHETIC_ORIGINAL_OWNER_INPUTS",
+  "real_392_reused": false,
+  "request": {
+    "target_date": "20261009",
+    "view": "auto"
+  },
+  "manager_run": "5685e9708c734ddda582338cfd45f849",
+  "manager_plan_sha256": "687b7f94142c888c10e6de86e29c2372d3037e691461b4420558c0c0b33ca05a",
+  "implementation_identity": {
+    "__init__.py": "c53107e04e471793978e7ea517445a937bf46fd8f3005452e34f683712c1774c",
+    "a_preselection.py": "e666660830b2f088c51ba00b9fafdefcf966efb798c25a5c21b18ba1c74aa74b",
+    "announcement_bridge.py": "1fd9b3f03fb471c04e0750c1fa2a674dc87a1fb9a242c7f2657345f7931643b5",
+    "announcement_offline_reader.py": "efafa5e930e1a82473d88de22f8b424f526f43037c8f0e2bead7852da423d08d",
+    "api_gateway.py": "21f90aed9fb73d18874d3ec41a153c1a6dcab3189e5ee3a8c2afa4f3f8baa5ee",
+    "archive_article_v2.py": "4b2fc99427ac9a69073e2761ee9f9d3e74a864c3b80c7e69eed6d505b9921371",
+    "archive_builder_v1.py": "7f8cff5dfb4fe66663d7dd9f7901089e802ef53b55b10e1c003f6e2300ebdd74",
+    "archive_reader.py": "3bc1bd71266a7a64314233eb4229a3cceaffde476bd39d608d4f9ddbc2eb6c28",
+    "composition.py": "258462c4ee53a3ee7acc4f8e0e0f35b4b20994f9ec4dd6ee48f37a6a68c981b0",
+    "contracts.py": "eee026873e0d765fcedf52077daea823edf6ee7013f37c106c82b66a4582d85a",
+    "digests.py": "134b1a13b7ff677afef6f556e2a750d94cc54a396cbdcff111c5d67e645280e5",
+    "health.py": "aef544f99f0b677ce892cf78fb710c2b0b5effef456a6a1fade4f94c15ff9ff5",
+    "hk_membership_recovery.py": "3bc29c177adee3f4a663307ec033eb677bc6aa87d8c54ccf654531e610300d0e",
+    "hk_preselection.py": "00ccdaa1890675335836351d33c4fea5f9458a8dd287e3724efb9f0cb0fb1b21",
+    "legacy_adapter.py": "e32da9076680ab6d8add87e8f7095a31df61517b3d268bbf3db13a7c9f1d4c31",
+    "manager_panel_observation.py": "ef5144fa13e844e4045522304bdb34b28ae367c5f57ae48a5303f9b8c13071fd",
+    "manager_plan.py": "c9a95dabbdacd6a0028974132ac80a6836cd7801910dd945575a0cfcd8622e81",
+    "manager_plan_gate.py": "71a29c4d13ea6d36bfb0cd74eb5617f5485e95b609965d6f5d8e513c910364ea",
+    "manager_plan_io.py": "55188270be31f27fe1169e4aae1cc7e9a0e1db87b11b780d2e0778060b0572cb",
+    "membership_reader.py": "fc6dfacb2d965728b643dea51c7093904c1f970c78986edc2aa2cfb1927efbac",
+    "module_api.py": "9a0fc23a18b7499961fa14d57fb097dc293f64f27c6f87b5bc0354921784e510",
+    "module_artifacts.py": "07c1ab119367abbdb73363ca4f4d0af2d05e3bbef5e02be911a77a6a31f02e17",
+    "native_identity_reader.py": "cad3c545b99d4153c725a24a702eb7c2511564ac3871e93ea10dd72247b4239b",
+    "provider_evidence.py": "e1dc88fa0095ebd17c274290340b562f8a03ef41bf8bfadf713d4a58452948e5",
+    "rebound_observation.py": "ecf2473791bddea11ac307472a0564193518fb121e15eaf17d7e6a2ff4e8041b",
+    "rebound_owner.py": "9b454daf67fed315f3d7e204dcc35c961805d929300d56b3a641246a839c8fe3",
+    "registry_observation.py": "ed1411d2f06eb0cc301c7b07208935e2a4cb7bd2ba4fa65f918c53232c3e0107",
+    "shadow_store.py": "22011825da517a5e7603b2393724ed4e5de29b5e94fdfe08712fea1cd2978b0b",
+    "source_capsule.py": "be0dfb967916e0ff699306b8aa80d222cf48c5031d8de84f8b2aa55a9eb6d2a9",
+    "us_mapping_scope.py": "388e542e1dcd4ea8f5c6d6be8048d140609fc4194bbde57ff5a8137f183475ae"
+  },
+  "http_get_before_after_bytes_equal": true,
+  "local_servers_closed": true,
+  "natural_verified": false,
+  "mac_business_acceptance": "NOT_RUN",
+  "original_receipt_sha256": "d84c3daed2507c1e0613d69015c45a18fc9a959ac6426a56ab8c52f8dda6ba12",
+  "responses": [
+    {
+      "body_sha256": "4160ae70afc55e7a012b4d97acd040233c1e0522683594d673315f7e5e5591c1",
+      "headers": {
+        "Cache-Control": "no-store",
+        "Content-Length": "63972",
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Sat, 10 Oct 2026 14:32:34 GMT",
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "X-Content-Type-Options": "nosniff",
+        "X-V5-Module": "manager",
+        "X-V5-Record-SHA256": "3b7079874ad2333d2df8ea2e220f445b5418432f7c8e269ad2875b2e4e41d186",
+        "X-V5-Release": "module01-synthetic-http",
+        "X-V5-Workspace-Access": "READ_ONLY"
+      },
+      "method": "GET",
+      "status": 200,
+      "surface": "module"
+    },
+    {
+      "body_sha256": "4160ae70afc55e7a012b4d97acd040233c1e0522683594d673315f7e5e5591c1",
+      "headers": {
+        "Cache-Control": "no-store",
+        "Content-Length": "63972",
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Sat, 10 Oct 2026 14:32:34 GMT",
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "X-Content-Type-Options": "nosniff",
+        "X-V5-Workspace-Access": "READ_ONLY"
+      },
+      "method": "GET",
+      "status": 200,
+      "surface": "gateway"
+    }
+  ],
+  "decisions": {
+    "selected": 1,
+    "watch": 1,
+    "not_selected": 1,
+    "not_assessed": 1
+  },
+  "full_body_not_uploaded": "Original raw response and plans remain private test artifacts; reproducible original owner driver/test source is delivered."
+}

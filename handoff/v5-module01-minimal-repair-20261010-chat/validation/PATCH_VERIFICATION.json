@@ -1,0 +1,58 @@
+{
+  "status": "PASS",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/d021d1397d6f/v5_module01/work/handoff/v5-module01-minimal-repair-20261010-chat/runtime.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "/workspace/scratch/d021d1397d6f/v5_module01/work/handoff/v5-module01-minimal-repair-20261010-chat/runtime.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "phase": "after",
+      "all_files_match": true,
+      "files": 20
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/d021d1397d6f/v5_module01/work/handoff/v5-module01-minimal-repair-20261010-chat/reverse.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "/workspace/scratch/d021d1397d6f/v5_module01/work/handoff/v5-module01-minimal-repair-20261010-chat/reverse.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "phase": "before",
+      "all_files_match": true,
+      "files": 20
+    }
+  ],
+  "disposable_copy_removed": true
+}
