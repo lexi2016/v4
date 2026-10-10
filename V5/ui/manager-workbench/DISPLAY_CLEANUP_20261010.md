@@ -91,3 +91,26 @@ product source changes. Text scan found no other indexed button selector in this
 overlay's source/tests; other button queries already select names or data attributes.
 Cloud verification remains manifest hashes/diff only; no product test run. E should
 repeat the same complete test/type/build and visual acceptance before publication.
+
+## Testing Library option correction
+
+E reported `55377ed7ac2993337f2cb892cc717732c5419f84`: 62/62 PASS and build PASS,
+but typecheck TS2769 at the getByRole options. Remove only `exact: true`; keep the
+string name, scoped details lookup, enabled wait and all refresh/result assertions.
+
+API verification before this edit: both available checked-in web package-lock.json
+files (v4-running-source-20261005/canonical and hk-close-daily-20261007/candidate)
+pin @testing-library/vue 8.1.0 and @testing-library/dom 9.3.4. No installed local
+Testing Library declarations were found. Read the lock-resolved registry archives
+in memory and verified their sha512 integrity against the locks; no install or
+package execution. Vue types/index.d.ts re-exports DOM queries; DOM types/queries.d.ts
+ByRoleOptions supports name but not exact. dist/queries/role.js passes the accessible
+name to matches; dist/matches.js compares a string matcher by strict equality.
+Thus the string name retains exact accessible-name matching without that option.
+This verifies the available locked API, not an independent inspection of Mac's
+node_modules; E's TS2769 agrees with the checked types.
+
+Cloud: one-option diff and manifest hashes checked; product tests/type/build NOT_RUN.
+E previously verified 86 product source/11 build files equal 1f3e2182; no product
+bytes change in this correction. Prior visual evidence may be reused per E, but
+publication remains pending successful typecheck and E's final acceptance.

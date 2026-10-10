@@ -652,7 +652,7 @@ describe("catalyst workspace runtime boundary", () => {
       .find(node => node.querySelector(":scope > summary")?.textContent === "计划操作")!;
     expect(planActions).toBeDefined();
     planActions.open = true;
-    const generate = within(planActions).getByRole("button", { name: "用既有材料生成计划", exact: true }) as HTMLButtonElement;
+    const generate = within(planActions).getByRole("button", { name: "用既有材料生成计划" }) as HTMLButtonElement;
     await waitFor(() => expect(generate.disabled).toBe(false));
     await fireEvent.click(generate);
     await waitFor(() => expect(workspaceMocks.refresh).toHaveBeenCalledTimes(1));
