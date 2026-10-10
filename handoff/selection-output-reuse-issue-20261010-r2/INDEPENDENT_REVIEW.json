@@ -1,0 +1,136 @@
+{
+  "schema_version": "v4.selection_output_reuse_issue.independent_review.v1",
+  "reviewer_identity": "/root/manager_repair_review",
+  "reviewed_on": "2026-10-10",
+  "review_scope": "Frozen R2 issue-package delivery usability and evidence facts only; no business code, service, data, owner run, or legacy project tests.",
+  "package_verdict": {
+    "status": "PASS",
+    "status_scope": "PACKAGE_READY_FOR_CHAT_DIAGNOSIS_AND_MINIMAL_PATCH",
+    "details": "The revised package includes byte-identified current and historical manager-workspace source snapshots, copied focused tests, a package-local synthetic contract fixture, exact lane-specific trace steps, and explicit limits on claims that require Mac-only owner data. It is no longer dependent on Mac absolute paths and excerpts as its only code material."
+  },
+  "package_identity": {
+    "root": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_OUTPUT_REUSE_ISSUE_20261010_R2",
+    "source_manifest_sha256": "6299bc95a6b26bece730fd7a02f8bd320327a68d3403d9494c3bac2aaa71a3e0",
+    "package_sha256sums_sha256": "1c11dc7895733778f2928883457d76844d4d1a8b8a30f87a05d7259ac94a759f",
+    "source_snapshots": {
+      "count": 40,
+      "current_live_release_files": 23,
+      "historical_r2_release_files": 15,
+      "upstream_reference_test_files": 2,
+      "copied_hashes_match_manifest": true,
+      "original_source_hashes_and_bytes_independently_match": true
+    },
+    "package_inventory": {
+      "listed_artifacts": 46,
+      "checksum_entries": 47,
+      "package_files_including_manifest_and_checksum_file": 48,
+      "all_listed_artifact_hashes_and_bytes_match": true,
+      "checksum_entries_match_artifacts_plus_source_manifest": true,
+      "unlisted_or_missing_files": []
+    }
+  },
+  "target_behavior_and_current_evidence": {
+    "plan_ui_api_repair": "PASS",
+    "actionable_stock_selection": "FAIL",
+    "target_trade_date": "20261009",
+    "selection_date": "20261009",
+    "announcement_publication_date": "2026-10-08",
+    "plan_status": "CURRENT",
+    "execution_kind": "MANUAL_REFRESH",
+    "run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+    "date_bindings": {
+      "selection_date": "20261009",
+      "announcement_date": "20261008",
+      "plan_date": "20261009"
+    },
+    "verified_candidate_rows": 0,
+    "channels": [
+      {
+        "channel": "ANNOUNCEMENT",
+        "status": "CANNOT_CONFIRM",
+        "verified_rows": 0,
+        "run_id": null,
+        "gap": "ANNOUNCEMENT_EXACT_DATE_PRODUCT_NOT_CONSUMED"
+      },
+      {
+        "channel": "HK_CONNECT",
+        "status": "CANNOT_CONFIRM",
+        "verified_rows": 0,
+        "gap": "HK_UNIVERSE_V2_ARTIFACT_MISSING; TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED"
+      },
+      {
+        "channel": "OVERSOLD",
+        "status": "PARTIAL",
+        "verified_rows": 0,
+        "pending_count": 693,
+        "gap_count": 695,
+        "notable_gap": "REBOUND_HISTORY_VOLUME_UNIT_NOT_PROVEN"
+      }
+    ],
+    "formal_stage_artifact": "CANNOT_CONFIRM",
+    "historical_positive_baseline": {
+      "scope": "ANNOUNCEMENT_ARTICLE_DECISIONS_ONLY",
+      "status": "VERIFIED",
+      "target_trade_date": "20261008",
+      "publication_date": "2026-10-07",
+      "run_id": "3f9d37a643060b57992167f3df05d987",
+      "product_sha256": "8b1e906db2cdcb8784d9658085aa4f1aa0711a8711b83a38c9ee8d7567151157",
+      "article_decisions": 613,
+      "selected_event": 33,
+      "selected_performance": 4,
+      "selected_decisions_total": 37,
+      "unique_hk_source_codes": 33,
+      "not_assessed": 79,
+      "not_three_channel_or_buy_success": true
+    },
+    "20260930_three_channel_success_claim": "CANNOT_CONFIRM",
+    "cross_date_rebind_or_threshold_relaxation_instructions": "PROHIBITED"
+  },
+  "evidence_provenance": {
+    "external_referenced_files": 5,
+    "external_file_hashes_and_bytes_independently_match_manifest": true,
+    "independent_get_body": {
+      "bytes": 16410445,
+      "sha256": "5f56cc06c38f7c196f2a2047b1aa5caa6f27e628c5a6c4ced700ed4d96f53952",
+      "persisted": false
+    },
+    "separate_saved_owner_readback": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/ui/owner-readback.json",
+      "bytes": 16410447,
+      "sha256": "6c0fe13667f5872a10cb83608bd29c1f4a7acdfa3c12e10af75cae2d7e40bdbc",
+      "included_in_package": false,
+      "distinct_from_independent_get_body": true
+    },
+    "no_raw_market_data_or_large_response_body_in_package": true,
+    "README_clarifies_external_readback_and_unpersisted_get_distinction": true
+  },
+  "tests": {
+    "reviewer_rerun": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_synthetic_package_contract.py -v",
+      "status": "PASS",
+      "tests_passed": 4,
+      "scope": "Synthetic fixture field-contract consistency only; not application behavior or real owner evidence."
+    },
+    "upstream_reference_test_copies": {
+      "files": 2,
+      "byte_identical_to_v4_tests": true,
+      "status": "NOT_RUN_PER_FROZEN_SCOPE",
+      "documented_prerequisite": "Complete V4 checkout and project dependencies."
+    },
+    "historical_real_owner_reproduction": "NOT_REPRODUCIBLE_FROM_PACKAGE",
+    "live_owner_service_api_or_natural_period_rerun": "NOT_RUN_PER_FROZEN_SCOPE"
+  },
+  "risk_review": {
+    "confirmed_P0_findings": [],
+    "confirmed_P1_findings": [],
+    "confirmed_P2_findings": [],
+    "CANNOT_CONFIRM": [
+      "Exact current producer/input root cause for each blocked lane and formal Stage artifact; the package correctly identifies consumer branches and exact owner fields to verify but does not contain live state or owner data.",
+      "Fresh reproduction of the historical real 33-code announcement result; original catalog, reviewer output, article decisions, and owner data are explicitly excluded.",
+      "User-mentioned 2026-09-30 three-channel success claim.",
+      "Natural-period output."
+    ],
+    "known_test_boundary": "Application behavior tests require a complete V4 checkout and project dependencies; the package-local synthetic test is explicitly not presented as business acceptance."
+  },
+  "business_repair_status": "NOT_REPAIRED_OR_CLAIMED_BY_THIS_PACKAGE_REVIEW"
+}

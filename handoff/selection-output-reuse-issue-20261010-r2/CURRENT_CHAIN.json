@@ -1,0 +1,119 @@
+{
+  "schema_version": "v4.selection_output_reuse_issue.current_chain.v2",
+  "package_status": "READY_FOR_REVIEW",
+  "business_acceptance_status": "FAIL",
+  "overall_status": "REPAIR_TARGET_PASS_ACTIONABLE_STOCK_SELECTION_FAIL",
+  "reviewed_at": "2026-10-10",
+  "current_run": {
+    "release_id": "manager-live-ui-api-20261010-r1",
+    "release_manifest_sha256": "d46288254c7ad735d809759dc52edd590e74175abbb70d59614691da470450bd",
+    "runtime_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+    "pid": "54741",
+    "state": "running",
+    "plan_date": "20261009",
+    "selection_date": "20261009",
+    "announcement_date_or_publication_binding": "20261008",
+    "expected_announcement_pair": {"target_trade_date": "20261009", "publication_date": "2026-10-08"},
+    "plan_status": "CURRENT",
+    "execution_kind": "MANUAL_REFRESH",
+    "run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+    "plan_sha256": "b214575cdcd0a5afbe0522a6be05f646871f74f4dbe4061172f3121250617e38",
+    "input_identity": "7afb68936f644a1360095844672d84d85c178f9f1b56ef8e7023f609236c2983",
+    "owner_attempt_state": "PARTIAL",
+    "page_read_context": "VERIFIED_WITH_GAPS"
+  },
+  "readback_evidence": {
+    "independent_get": {
+      "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261009&view=dynamic&selection_date=20261009&announcement_date=20261008",
+      "http_status": 200,
+      "body_bytes": 16410445,
+      "body_sha256": "5f56cc06c38f7c196f2a2047b1aa5caa6f27e628c5a6c4ced700ed4d96f53952",
+      "persisted": false,
+      "bindings": {"selection_date": "20261009", "announcement_date": "20261008", "plan_date": "20261009"}
+    },
+    "saved_owner_readback": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/ui/owner-readback.json",
+      "bytes": 16410447,
+      "sha256": "6c0fe13667f5872a10cb83608bd29c1f4a7acdfa3c12e10af75cae2d7e40bdbc",
+      "included_in_package": false,
+      "relation_to_get": "distinct saved owner readback; not the independent GET body"
+    }
+  },
+  "current_chain_locations": {
+    "api": {"file": "source/current-live-release/app/apps/api/v35_api/manager_research_router.py", "function": "read_manager_workspace", "source_line": 207, "calls": "service.get_workspace(target, **workspace_args)"},
+    "service": {"file": "source/current-live-release/app/v4/manager_research/service.py", "functions": ["get_workspace", "refresh_workspace_plan"]},
+    "consumer": {"file": "source/current-live-release/app/v4/manager_research/workspace.py", "functions": ["get_workspace", "_compute_workspace"], "source_lines": [482, 666]},
+    "daily_channels": {"file": "source/current-live-release/app/v4/manager_research/workspace_daily_channels.py", "function": "build_daily_channels", "source_line": 79},
+    "ui": {"file": "source/current-live-release/app/apps/web/src/manager-selection/catalystObservationPanel.ts", "function": "render", "source_line": 471}
+  },
+  "actual_stock_selection": {
+    "status": "FAIL",
+    "reason": "No verified candidate rows and no verified formal Stage artifact.",
+    "counts": {"stock_count": 0, "focus_count": 0, "formal_recommendation_count": 0, "market_screen_card_count": 0, "market_screen_strict_count": 0, "market_screen_near_count": 0},
+    "formal_stage": {"lane_state": "UNVERIFIED", "artifact_status": "CANNOT_CONFIRM", "consumer": "workspace._compute_workspace -> service.observation_reader.read(date) -> _reader_value(..., 'STAGE'); _stage_attempt reads exact-date LIVE execution ledger receipts"},
+    "channels": [
+      {
+        "channel": "ANNOUNCEMENT",
+        "status": "CANNOT_CONFIRM",
+        "verified_rows": 0,
+        "candidate_count": null,
+        "pending_count": null,
+        "gaps": ["ANNOUNCEMENT_EXACT_DATE_PRODUCT_NOT_CONSUMED"],
+        "consumer_path": ["workspace_daily_channels.build_daily_channels", "workspace_announcements.read_analysis_consumption", "announcement_analysis.product_path"],
+        "current_expected_pair": {"target_trade_date": "20261009", "publication_date": "2026-10-08"},
+        "historical_pair": {"target_trade_date": "20261008", "publication_date": "2026-10-07", "run_id": "3f9d37a643060b57992167f3df05d987", "product_sha256": "8b1e906db2cdcb8784d9658085aa4f1aa0711a8711b83a38c9ee8d7567151157"},
+        "must_verify_fields": ["requested target_trade_date", "requested publication_date", "product target_trade_date", "product publication_date", "product sha256", "source_manifest_sha256", "evidence_run_id", "agent_judgment_receipt sha256", "owner_import_receipt sha256", "readback target/publication/product SHA", "selection_status", "not_assessed_stock_count"],
+        "root_cause_status": "CANNOT_CONFIRM",
+        "prohibited": "Do not rebind/relabel the historical target 20261008 publication 2026-10-07 product to current target 20261009 publication 2026-10-08."
+      },
+      {
+        "channel": "HK_CONNECT",
+        "status": "CANNOT_CONFIRM",
+        "verified_rows": 0,
+        "candidate_count": null,
+        "run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+        "gaps": ["HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING", "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED"],
+        "consumer_path": ["workspace._compute_workspace", "connect_selection.read_scope", "domains.manager_research_evidence.read_universe_evidence(require_v2=True)"],
+        "must_verify_fields": ["V4_MANAGER_UNIVERSE_ROOT", "V4_MANAGER_UNIVERSE_OWNER_ROOT", "V4_MANAGER_UNIVERSE_OWNER_SHA256", "artifact schema/version", "target source_date", "market=HK_CONNECT", "source SHA", "acquired_at", "available_at", "research_cutoff", "sorted unique target membership codes", "authority_reader_binding source_code_ref/source_code_sha256"],
+        "producer_owner_status": "CANNOT_CONFIRM"
+      },
+      {
+        "channel": "OVERSOLD",
+        "status": "PARTIAL",
+        "verified_rows": 0,
+        "candidate_count": null,
+        "pending_count": 693,
+        "gap_count": 695,
+        "observed_gaps": ["REBOUND_HISTORY_VOLUME_UNIT_NOT_PROVEN", "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001", "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00002"],
+        "consumer_path": ["workspace._compute_workspace", "workspace_plan.read_rebound_screen", "_read_hk02_panel_witness", "_screen_panel_volume_evidence", "rebound_native_evidence"],
+        "must_verify_fields": ["screen authority root binding", "panel_path", "panel manifest/panel SHA", "market_session and research_cutoff", "prior60 exactly 60 sessions", "previous5 exactly 5 sessions", "required per-symbol history coverage", "native volume field/byte layout", "unit and scale attestation/source SHA", "security-master same-day identity"],
+        "historical_input_owner_status": "CANNOT_CONFIRM"
+      }
+    ]
+  },
+  "fixed_pool_contract_for_formal_stage": {
+    "A": {"pool": "complete same-day a_all_pool_rows", "date_binding": "target_trade_date"},
+    "HK": {"pool": "exact prior-trading-day canonical D-1 Top100", "date_binding": "verified prior HK trading session"},
+    "current_artifact_status": "CANNOT_CONFIRM",
+    "must_verify_fields": ["pool schema/market/date", "source manifest and SHA", "membership row count/identity", "Stage run and receipt", "artifact SHA", "consumer target date", "readback status"]
+  },
+  "historical_positive_baseline": {
+    "status": "VERIFIED_HISTORICAL_ANNOUNCEMENT_ONLY",
+    "target_trade_date": "20261008",
+    "publication_date": "2026-10-07",
+    "owner": "ManagerResearchJobService.import_announcement_analysis",
+    "run_id": "3f9d37a643060b57992167f3df05d987",
+    "product_sha256": "8b1e906db2cdcb8784d9658085aa4f1aa0711a8711b83a38c9ee8d7567151157",
+    "owner_receipt_file_sha256": "9ba65441e965cb343c10205477a6c6d520883a50bf0e8ce5d1c31a9577889de4",
+    "owner_receipt_internal_sha256": "72f441e94b05e43519c1b6b2cd2c0f8c247c526fbb2088fe61422f11a71666a6",
+    "summary": {"article_decisions": 613, "selected_event": 33, "selected_performance": 4, "selected_decisions_total": 37, "unique_hk_security_codes": 33, "not_assessed": 79},
+    "limit": "Announcement article/security decisions only. Not current 20261009 output, not HK_CONNECT/OVERSOLD/Stage evidence; fresh reproduction NOT_REPRODUCIBLE_FROM_PACKAGE."
+  },
+  "unverified_claims": [
+    {"claim": "2026-09-30 three-channel independent success", "status": "CANNOT_CONFIRM", "evidence_status": "not verified by this package or cited E live-acceptance evidence", "do_not_conflate_with": ["2026-10-08 announcement-only historical positive", "2026-10-09 current zero verified rows"]}
+  ],
+  "safety": {"RESEARCH_ONLY": true, "production_allowed": false, "buy_gate_updated": false, "orders_sent": false},
+  "natural_period_status": "NOT_RUN",
+  "historical_real_reproduction": "NOT_REPRODUCIBLE_FROM_PACKAGE",
+  "root_cause_status": "CANNOT_CONFIRM"
+}

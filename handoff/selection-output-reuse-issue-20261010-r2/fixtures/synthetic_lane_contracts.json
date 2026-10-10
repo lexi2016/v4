@@ -1,0 +1,115 @@
+{
+  "schema_version": "v4.selection_output_reuse_issue.synthetic_contract_fixtures.v1",
+  "data_class": "SYNTHETIC_ONLY_NOT_REAL_MARKET_OR_OWNER_EVIDENCE",
+  "announcement": {
+    "positive": {
+      "request": {
+        "target_trade_date": "20261009",
+        "publication_date": "2026-10-08"
+      },
+      "product": {
+        "target_trade_date": "20261009",
+        "publication_date": "2026-10-08",
+        "product_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expected": "EXACT_PAIR_MATCH"
+    },
+    "negative_cross_date_rebind": {
+      "request": {
+        "target_trade_date": "20261009",
+        "publication_date": "2026-10-08"
+      },
+      "product": {
+        "target_trade_date": "20261008",
+        "publication_date": "2026-10-07",
+        "product_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "run_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "expected": "REJECT_TARGET_AND_PUBLICATION_MISMATCH"
+    },
+    "historical_real_baseline_reference_only": {
+      "target_trade_date": "20261008",
+      "publication_date": "2026-10-07",
+      "product_sha256": "8b1e906db2cdcb8784d9658085aa4f1aa0711a8711b83a38c9ee8d7567151157",
+      "note": "real old receipt reference; does not enter synthetic test"
+    }
+  },
+  "hk_connect": {
+    "positive": {
+      "target_trade_date": "20261009",
+      "artifact_schema": "v2",
+      "market": "HK_CONNECT",
+      "source_date": "20261009",
+      "acquired_at": "2026-10-09T08:00:00+08:00",
+      "available_at": "2026-10-09T08:01:00+08:00",
+      "research_cutoff": "2026-10-09T09:20:00+08:00",
+      "membership_codes": [
+        "SYNTH_HK_00001"
+      ],
+      "source_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "expected": "OWNER_VERIFIED"
+    },
+    "negative_missing_or_wrong_date": {
+      "target_trade_date": "20261009",
+      "artifact_schema": null,
+      "market": "HK_CONNECT",
+      "source_date": "20261008",
+      "membership_codes": [],
+      "expected": "CANNOT_CONFIRM"
+    }
+  },
+  "oversold": {
+    "positive": {
+      "market_session": "20261009",
+      "prior60_sessions": 60,
+      "previous5_sessions": 5,
+      "history_coverage": "COMPLETE",
+      "native_volume_field": "trade",
+      "volume_unit": "shares",
+      "unit_attestation_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "source_panel_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "expected": "INPUT_CONTRACT_COMPLETE"
+    },
+    "negative_unit_or_coverage_unknown": {
+      "market_session": "20261009",
+      "prior60_sessions": 41,
+      "previous5_sessions": 5,
+      "history_coverage": "INCOMPLETE",
+      "native_volume_field": "trade",
+      "volume_unit": null,
+      "unit_attestation_sha256": null,
+      "expected": "CANNOT_CONFIRM"
+    }
+  },
+  "stage": {
+    "positive_a": {
+      "target_trade_date": "20261009",
+      "pool_contract": "a_all_pool_rows",
+      "pool_date": "20261009",
+      "pool_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "stage_run_id": "cccccccccccccccccccccccccccccccc",
+      "artifact_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "expected": "DATE_AND_POOL_BOUND"
+    },
+    "positive_hk": {
+      "target_trade_date": "20261009",
+      "pool_contract": "CANONICAL_D1_TOP100",
+      "pool_date": "20261008",
+      "membership_count": 100,
+      "pool_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "stage_run_id": "dddddddddddddddddddddddddddddddd",
+      "artifact_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "expected": "DATE_AND_POOL_BOUND"
+    },
+    "negative_generic_or_wrong_date": {
+      "target_trade_date": "20261009",
+      "pool_contract": "FULL_MARKET_GENERIC",
+      "pool_date": "20261008",
+      "membership_count": null,
+      "stage_run_id": null,
+      "artifact_sha256": null,
+      "expected": "CANNOT_CONFIRM"
+    }
+  }
+}

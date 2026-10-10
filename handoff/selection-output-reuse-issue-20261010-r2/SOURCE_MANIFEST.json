@@ -1,0 +1,784 @@
+{
+  "schema_version": "v4.selection_output_reuse_issue.source_manifest.v2",
+  "package_root": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_OUTPUT_REUSE_ISSUE_20261010_R2",
+  "package_status": "READY_FOR_REVIEW_PENDING_INDEPENDENT_REVIEW",
+  "scope": "P only; no business source/config/data/service changes",
+  "source_snapshots": [
+    {
+      "destination": "source/current-live-release/app/apps/api/v35_api/manager_research_router.py",
+      "source_relative_path": "apps/api/v35_api/manager_research_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "source_bytes": 35556,
+      "copied_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "copied_bytes": 35556,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/apps/web/src/api/managerWorkspace.ts",
+      "source_relative_path": "apps/web/src/api/managerWorkspace.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "source_bytes": 119467,
+      "copied_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "copied_bytes": 119467,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "source_relative_path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "source_bytes": 63578,
+      "copied_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "copied_bytes": 63578,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/apps/web/src/manager-selection/dailyChannels.ts",
+      "source_relative_path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "source_bytes": 19467,
+      "copied_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "copied_bytes": 19467,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/service.py",
+      "source_relative_path": "v4/manager_research/service.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "source_bytes": 94921,
+      "copied_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "copied_bytes": 94921,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/workspace.py",
+      "source_relative_path": "v4/manager_research/workspace.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "cfebac45b599c5e99cf5fa07b3511959025165576566a894ba092bce084b638e",
+      "source_bytes": 78939,
+      "copied_sha256": "cfebac45b599c5e99cf5fa07b3511959025165576566a894ba092bce084b638e",
+      "copied_bytes": 78939,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/workspace_daily_channels.py",
+      "source_relative_path": "v4/manager_research/workspace_daily_channels.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "source_bytes": 12982,
+      "copied_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "copied_bytes": 12982,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/workspace_announcements.py",
+      "source_relative_path": "v4/manager_research/workspace_announcements.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "source_bytes": 167803,
+      "copied_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "copied_bytes": 167803,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/workspace_projection.py",
+      "source_relative_path": "v4/manager_research/workspace_projection.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "5eb3276cd8514253b8e47cbe801c2d052a3080c76113809315d9334a852d1ffa",
+      "source_bytes": 31241,
+      "copied_sha256": "5eb3276cd8514253b8e47cbe801c2d052a3080c76113809315d9334a852d1ffa",
+      "copied_bytes": 31241,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/workspace_plan.py",
+      "source_relative_path": "v4/manager_research/workspace_plan.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "source_bytes": 107076,
+      "copied_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "copied_bytes": 107076,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/connect_selection.py",
+      "source_relative_path": "v4/manager_research/connect_selection.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+      "source_bytes": 17511,
+      "copied_sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+      "copied_bytes": 17511,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/connect_capture_adapter.py",
+      "source_relative_path": "v4/manager_research/connect_capture_adapter.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "source_bytes": 19841,
+      "copied_sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "copied_bytes": 19841,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/workspace_identity.py",
+      "source_relative_path": "v4/manager_research/workspace_identity.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+      "source_bytes": 7296,
+      "copied_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+      "copied_bytes": 7296,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/workspace_read_control.py",
+      "source_relative_path": "v4/manager_research/workspace_read_control.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "source_bytes": 10927,
+      "copied_sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "copied_bytes": 10927,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/announcement_analysis.py",
+      "source_relative_path": "v4/manager_research/announcement_analysis.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "source_bytes": 68733,
+      "copied_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "copied_bytes": 68733,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/announcement_source.py",
+      "source_relative_path": "v4/manager_research/announcement_source.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "source_bytes": 47475,
+      "copied_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "copied_bytes": 47475,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/announcement_catalog.py",
+      "source_relative_path": "v4/manager_research/announcement_catalog.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "source_bytes": 30995,
+      "copied_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "copied_bytes": 30995,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/announcement_selection.py",
+      "source_relative_path": "v4/manager_research/announcement_selection.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "source_bytes": 16007,
+      "copied_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "copied_bytes": 16007,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/announcement_materials.py",
+      "source_relative_path": "v4/manager_research/announcement_materials.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "source_bytes": 10727,
+      "copied_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "copied_bytes": 10727,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/announcement_autorun.py",
+      "source_relative_path": "v4/manager_research/announcement_autorun.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "source_bytes": 21749,
+      "copied_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "copied_bytes": 21749,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/existing_materials.py",
+      "source_relative_path": "v4/manager_research/existing_materials.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "source_bytes": 30245,
+      "copied_sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "copied_bytes": 30245,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/v4/manager_research/workspace_discovery.py",
+      "source_relative_path": "v4/manager_research/workspace_discovery.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+      "source_bytes": 23129,
+      "copied_sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+      "copied_bytes": 23129,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/current-live-release/app/domains/manager_research_evidence.py",
+      "source_relative_path": "domains/manager_research_evidence.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "source_sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+      "source_bytes": 30848,
+      "copied_sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+      "copied_bytes": 30848,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/ops/run_manager_daily_announcement.py",
+      "source_relative_path": "ops/run_manager_daily_announcement.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "source_bytes": 42929,
+      "copied_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "copied_bytes": 42929,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/apps/api/v35_api/manager_research_router.py",
+      "source_relative_path": "apps/api/v35_api/manager_research_router.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "source_bytes": 25261,
+      "copied_sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "copied_bytes": 25261,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/service.py",
+      "source_relative_path": "v4/manager_research/service.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0",
+      "source_bytes": 93373,
+      "copied_sha256": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0",
+      "copied_bytes": 93373,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/workspace.py",
+      "source_relative_path": "v4/manager_research/workspace.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "54410b60fda347489b3b45299388d96e12177a5a20d004e4359aec532d99c10d",
+      "source_bytes": 53013,
+      "copied_sha256": "54410b60fda347489b3b45299388d96e12177a5a20d004e4359aec532d99c10d",
+      "copied_bytes": 53013,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/workspace_announcements.py",
+      "source_relative_path": "v4/manager_research/workspace_announcements.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "60839e20df9b61be04629481752ab3072a1088d229c87980e83059b590548e50",
+      "source_bytes": 155798,
+      "copied_sha256": "60839e20df9b61be04629481752ab3072a1088d229c87980e83059b590548e50",
+      "copied_bytes": 155798,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/workspace_projection.py",
+      "source_relative_path": "v4/manager_research/workspace_projection.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "source_bytes": 30841,
+      "copied_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "copied_bytes": 30841,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/workspace_plan.py",
+      "source_relative_path": "v4/manager_research/workspace_plan.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "be0d5e69ff72efd07d2caca4e68948245db4900a8c41f467e9c30f6899c044b1",
+      "source_bytes": 83579,
+      "copied_sha256": "be0d5e69ff72efd07d2caca4e68948245db4900a8c41f467e9c30f6899c044b1",
+      "copied_bytes": 83579,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/workspace_read_control.py",
+      "source_relative_path": "v4/manager_research/workspace_read_control.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "source_bytes": 10927,
+      "copied_sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "copied_bytes": 10927,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/announcement_analysis.py",
+      "source_relative_path": "v4/manager_research/announcement_analysis.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "21eb0cf37bfa6f3332f17ca7825a69eaa5bf9082b33d2e3de2d293e8bc3f0685",
+      "source_bytes": 68115,
+      "copied_sha256": "21eb0cf37bfa6f3332f17ca7825a69eaa5bf9082b33d2e3de2d293e8bc3f0685",
+      "copied_bytes": 68115,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/announcement_source.py",
+      "source_relative_path": "v4/manager_research/announcement_source.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "source_bytes": 47475,
+      "copied_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "copied_bytes": 47475,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/announcement_catalog.py",
+      "source_relative_path": "v4/manager_research/announcement_catalog.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "source_bytes": 30995,
+      "copied_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "copied_bytes": 30995,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/announcement_materials.py",
+      "source_relative_path": "v4/manager_research/announcement_materials.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "source_bytes": 10727,
+      "copied_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "copied_bytes": 10727,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/announcement_selection.py",
+      "source_relative_path": "v4/manager_research/announcement_selection.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "source_bytes": 16007,
+      "copied_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "copied_bytes": 16007,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/v4/manager_research/announcement_autorun.py",
+      "source_relative_path": "v4/manager_research/announcement_autorun.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "source_bytes": 21749,
+      "copied_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "copied_bytes": 21749,
+      "byte_identical": true
+    },
+    {
+      "destination": "source/historical-r2-release/app/domains/manager_research_evidence.py",
+      "source_relative_path": "domains/manager_research_evidence.py",
+      "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "source_sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+      "source_bytes": 30848,
+      "copied_sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+      "copied_bytes": 30848,
+      "byte_identical": true
+    },
+    {
+      "destination": "tests/upstream_reference/test_manager_announcement_analysis.py",
+      "source_relative_path": "tests/test_manager_announcement_analysis.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_sha256": "611758093044e1f4f299be4c8df1f52cffe0f6b43166860cba46df4e9c9eb626",
+      "source_bytes": 24223,
+      "copied_sha256": "611758093044e1f4f299be4c8df1f52cffe0f6b43166860cba46df4e9c9eb626",
+      "copied_bytes": 24223,
+      "byte_identical": true
+    },
+    {
+      "destination": "tests/upstream_reference/test_manager_announcement_daily_flow.py",
+      "source_relative_path": "tests/test_manager_announcement_daily_flow.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_sha256": "9d568e27280164194b2b49bf70c27c37feae1fc7941dcf65a0678ece14d8c1ac",
+      "source_bytes": 5615,
+      "copied_sha256": "9d568e27280164194b2b49bf70c27c37feae1fc7941dcf65a0678ece14d8c1ac",
+      "copied_bytes": 5615,
+      "byte_identical": true
+    }
+  ],
+  "test_source_notes": {
+    "upstream_reference_tests": "Exact byte copies of two synthetic-fixture project test files; included for downstream run after applying/inspecting code in the V4 checkout.",
+    "package_local_test": "Stdlib unittest checks synthetic contract fixture fields only; does not import or validate application behavior.",
+    "real_baseline_reproduction": "NOT_REPRODUCIBLE_FROM_PACKAGE: requires original owner catalog, reviewer receipt/output, actual decision product and source refs; not copied by design."
+  },
+  "external_evidence_refs": [
+    {
+      "name": "live_acceptance",
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/evidence/reviewer/live_acceptance.json",
+      "sha256": "5ce27fb0935c7526855be156bfa6674c12a1b09e526c73c1f28fb6a376db5007",
+      "bytes": 13319,
+      "copied_to_package": false,
+      "note": "acceptance receipt includes independent GET metadata and status summary; the GET body itself was not persisted here"
+    },
+    {
+      "name": "saved_owner_readback",
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/ui/owner-readback.json",
+      "sha256": "6c0fe13667f5872a10cb83608bd29c1f4a7acdfa3c12e10af75cae2d7e40bdbc",
+      "bytes": 16410447,
+      "copied_to_package": false,
+      "note": "metadata/hash only; file body excluded"
+    },
+    {
+      "name": "historical_owner_receipt",
+      "local_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20261008/eastmoney_date_catalog/20261007/owner_import_receipt.v1.json",
+      "sha256": "9ba65441e965cb343c10205477a6c6d520883a50bf0e8ce5d1c31a9577889de4",
+      "bytes": 636,
+      "copied_to_package": false,
+      "note": "metadata/hash only; file body excluded"
+    },
+    {
+      "name": "historical_analysis_product",
+      "local_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20261008/eastmoney_date_catalog/20261007/analysis.v1.json",
+      "sha256": "30546cf1c5efcf7a9f1b43e1f73e72c0f72e17bc0edfef1787b074fd6f3fc790",
+      "bytes": 3239875,
+      "copied_to_package": false,
+      "note": "metadata/hash only; file body excluded"
+    },
+    {
+      "name": "historical_runner_execution",
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/semantic/20261008-20261007/merged-r2/root_register_execution.json",
+      "sha256": "e220833808d1baa153f8f6bcd96a5e8be3ad9a9139a65a660137eb402fcdd88d",
+      "bytes": 2751,
+      "copied_to_package": false,
+      "note": "metadata/hash only; file body excluded"
+    }
+  ],
+  "test_commands": {
+    "package_local_from_package_root": "python3 -m unittest discover -s tests -p test_synthetic_package_contract.py -v",
+    "upstream_project_tests_from_package_root": "PROJECT_ROOT=/path/to/v4_app V4_PYTHON=/path/to/python-with-v4-project-dependencies PYTHONPATH=\"$PROJECT_ROOT\" \"$V4_PYTHON\" -m pytest -q \"$PWD/tests/upstream_reference/test_manager_announcement_analysis.py\" \"$PWD/tests/upstream_reference/test_manager_announcement_daily_flow.py\"",
+    "upstream_test_scope": "The second command needs a V4 checkout and project dependencies; it is not standalone package behavior validation."
+  },
+  "not_included": [
+    "real announcement catalog",
+    "real reviewer outputs",
+    "real article decisions",
+    "raw market inputs",
+    "3.24 MB real analysis product",
+    "16,410,445-byte independent GET body",
+    "16,410,447-byte saved owner-readback body"
+  ],
+  "unverified": [
+    "actual producer/root cause for each current lane gap",
+    "fresh reproduction of historical announcement-only 33-code result",
+    "2026-09-30 three-channel success claim",
+    "natural-period execution",
+    "formal Stage artifact/readback"
+  ],
+  "package_local_test": {
+    "path": "tests/test_synthetic_package_contract.py",
+    "fixture": "fixtures/synthetic_lane_contracts.json",
+    "command_from_package_root": "python3 -m unittest discover -s tests -p test_synthetic_package_contract.py -v",
+    "scope": "synthetic contract field checks only; no app behavior validation"
+  },
+  "upstream_project_tests": {
+    "files": [
+      "tests/upstream_reference/test_manager_announcement_analysis.py",
+      "tests/upstream_reference/test_manager_announcement_daily_flow.py"
+    ],
+    "command_from_package_root": "PROJECT_ROOT=/path/to/v4_app V4_PYTHON=/path/to/python-with-v4-project-dependencies PYTHONPATH=\"$PROJECT_ROOT\" \"$V4_PYTHON\" -m pytest -q \"$PWD/tests/upstream_reference/test_manager_announcement_analysis.py\" \"$PWD/tests/upstream_reference/test_manager_announcement_daily_flow.py\"",
+    "requires": "V4 checkout and project dependencies; tests execute against PROJECT_ROOT code, not a self-contained P source image",
+    "run_status": "NOT_RUN_BY_WRITER_PER_TASK"
+  },
+  "real_baseline_reproduction": "NOT_REPRODUCIBLE_FROM_PACKAGE: original real catalog, reviewer output, decisions and owner data are intentionally excluded.",
+  "dependency_boundary": "The package contains the focused current/historical manager-workspace source snapshots and two upstream synthetic-fixture tests, plus a stdlib-only synthetic contract test. It does not bundle the full V4 checkout, unrelated manager modules, external shared-data packages, installed project dependencies, live state, secrets/configuration or large owner inputs. Upstream tests require the complete V4 checkout and an interpreter with project dependencies.",
+  "package_artifacts": [
+    {
+      "path": "CURRENT_CHAIN.json",
+      "bytes": 8897,
+      "sha256": "ee32fb443fc4fcbe5f771273870ce48322bd150a064f5aa40e325c2f67404814",
+      "role": "issue_package_document"
+    },
+    {
+      "path": "README/CHAT_HANDOFF.md",
+      "bytes": 6027,
+      "sha256": "a2ca97455036244dab169f46805353556ef05574645332454e95181ddfc4d69b",
+      "role": "issue_package_document"
+    },
+    {
+      "path": "REUSE_MAP.md",
+      "bytes": 7571,
+      "sha256": "5bf7a92311125166eca81426149863d3ffa91c9377cc8b9b269e88bf7ba91222",
+      "role": "issue_package_document"
+    },
+    {
+      "path": "fixtures/synthetic_lane_contracts.json",
+      "bytes": 4147,
+      "sha256": "a7d3baa25a54e912ad36837fa6698449e8ae1940dfd7202782beb77ab753b654",
+      "role": "synthetic_fixture"
+    },
+    {
+      "path": "source/ANNOUNCEMENT_REUSE_EXCERPTS.md",
+      "bytes": 58653,
+      "sha256": "fc86e35f5067af48d5c1df04c333789b3777d3c5fade43cabe2ddd11c491ed56",
+      "role": "source_excerpt"
+    },
+    {
+      "path": "source/current-live-release/app/apps/api/v35_api/manager_research_router.py",
+      "bytes": 35556,
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/apps/web/src/api/managerWorkspace.ts",
+      "bytes": 119467,
+      "sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "bytes": 63578,
+      "sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/apps/web/src/manager-selection/dailyChannels.ts",
+      "bytes": 19467,
+      "sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/domains/manager_research_evidence.py",
+      "bytes": 30848,
+      "sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/announcement_analysis.py",
+      "bytes": 68733,
+      "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/announcement_autorun.py",
+      "bytes": 21749,
+      "sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/announcement_catalog.py",
+      "bytes": 30995,
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/announcement_materials.py",
+      "bytes": 10727,
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/announcement_selection.py",
+      "bytes": 16007,
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/announcement_source.py",
+      "bytes": 47475,
+      "sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/connect_capture_adapter.py",
+      "bytes": 19841,
+      "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/connect_selection.py",
+      "bytes": 17511,
+      "sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/existing_materials.py",
+      "bytes": 30245,
+      "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/service.py",
+      "bytes": 94921,
+      "sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/workspace.py",
+      "bytes": 78939,
+      "sha256": "cfebac45b599c5e99cf5fa07b3511959025165576566a894ba092bce084b638e",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/workspace_announcements.py",
+      "bytes": 167803,
+      "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/workspace_daily_channels.py",
+      "bytes": 12982,
+      "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/workspace_discovery.py",
+      "bytes": 23129,
+      "sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/workspace_identity.py",
+      "bytes": 7296,
+      "sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/workspace_plan.py",
+      "bytes": 107076,
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/workspace_projection.py",
+      "bytes": 31241,
+      "sha256": "5eb3276cd8514253b8e47cbe801c2d052a3080c76113809315d9334a852d1ffa",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/current-live-release/app/v4/manager_research/workspace_read_control.py",
+      "bytes": 10927,
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/apps/api/v35_api/manager_research_router.py",
+      "bytes": 25261,
+      "sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/domains/manager_research_evidence.py",
+      "bytes": 30848,
+      "sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/ops/run_manager_daily_announcement.py",
+      "bytes": 42929,
+      "sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/announcement_analysis.py",
+      "bytes": 68115,
+      "sha256": "21eb0cf37bfa6f3332f17ca7825a69eaa5bf9082b33d2e3de2d293e8bc3f0685",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/announcement_autorun.py",
+      "bytes": 21749,
+      "sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/announcement_catalog.py",
+      "bytes": 30995,
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/announcement_materials.py",
+      "bytes": 10727,
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/announcement_selection.py",
+      "bytes": 16007,
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/announcement_source.py",
+      "bytes": 47475,
+      "sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/service.py",
+      "bytes": 93373,
+      "sha256": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/workspace.py",
+      "bytes": 53013,
+      "sha256": "54410b60fda347489b3b45299388d96e12177a5a20d004e4359aec532d99c10d",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/workspace_announcements.py",
+      "bytes": 155798,
+      "sha256": "60839e20df9b61be04629481752ab3072a1088d229c87980e83059b590548e50",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/workspace_plan.py",
+      "bytes": 83579,
+      "sha256": "be0d5e69ff72efd07d2caca4e68948245db4900a8c41f467e9c30f6899c044b1",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/workspace_projection.py",
+      "bytes": 30841,
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "source/historical-r2-release/app/v4/manager_research/workspace_read_control.py",
+      "bytes": 10927,
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "role": "source_snapshot"
+    },
+    {
+      "path": "tests/test_synthetic_package_contract.py",
+      "bytes": 3088,
+      "sha256": "752883f8896a4c1226d9824ca095a700a83cbd89dc484b149c8df1498e96b407",
+      "role": "synthetic_test"
+    },
+    {
+      "path": "tests/upstream_reference/test_manager_announcement_analysis.py",
+      "bytes": 24223,
+      "sha256": "611758093044e1f4f299be4c8df1f52cffe0f6b43166860cba46df4e9c9eb626",
+      "role": "upstream_test_reference"
+    },
+    {
+      "path": "tests/upstream_reference/test_manager_announcement_daily_flow.py",
+      "bytes": 5615,
+      "sha256": "9d568e27280164194b2b49bf70c27c37feae1fc7941dcf65a0678ece14d8c1ac",
+      "role": "upstream_test_reference"
+    }
+  ],
+  "package_artifact_manifest_note": "SHA256 and byte count for every package file except this manifest and PACKAGE_SHA256SUMS.txt; PACKAGE_SHA256SUMS.txt covers every other file, including this manifest.",
+  "package_local_validation": {
+    "status": "PASS",
+    "command_from_package_root": "python3 -m unittest discover -s tests -p test_synthetic_package_contract.py -v",
+    "result": "Ran 4 tests in 0.000s; OK",
+    "tests": [
+      "test_announcement_requires_exact_target_and_publication_pair",
+      "test_hk_fixture_requires_target_dated_membership_and_cutoff",
+      "test_oversold_fixture_carries_complete_history_and_attested_units",
+      "test_stage_fixture_binds_market_specific_fixed_pools"
+    ],
+    "scope": "Synthetic fixture checks only; no application import, real input, or business behavior is exercised."
+  }
+}
