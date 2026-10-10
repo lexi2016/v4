@@ -1,0 +1,153 @@
+{
+  "schema_version": "r4.reviewer_history_enumeration_blocker.v1",
+  "reviewer": "r2_local_review",
+  "reviewed_at_local": "2026-10-10T09:05:05+08:00",
+  "scope": "READ_ONLY_DIAGNOSIS_OF_MAC_STEPS6_PREPARE_FAILURE; NO_SOURCE_OR_HISTORY_DATA_WRITES",
+  "failure": {
+    "status": "FAILED_CLOSED",
+    "reason": "HISTORICAL_SELECTION_IDENTITY_INVALID",
+    "live_state_after_error": "UNCHANGED",
+    "failure_receipt_sha256": "31e46af24f0cf07f6e987ebdfe3baed8653a375b0d3d2d87ee30faabc4bc730e",
+    "publication_plan_exists": false,
+    "publication_plan_path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/candidate/mac_apply_20261009_r4_01/integration/stage-publication/verified-publication-plan.json"
+  },
+  "history_root": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "selection_latest_sha256": "bfb0ad6b3f5d2261c03fd8db71bf27c3912f581807c7904a2e6fc02217785cd0",
+    "schema_version": "stage_center.selection.latest.v1",
+    "top_level_keys": [
+      "buy_gate_updated",
+      "entries",
+      "orders_sent",
+      "owner",
+      "production_allowed",
+      "schema_version"
+    ],
+    "entry_count": 149,
+    "valid_entry_count": 135,
+    "invalid_entry_count": 14,
+    "invalid_by_stage": {
+      "STAGE_0925": 14
+    },
+    "invalid_by_market": {
+      "A_SHARE": 5,
+      "HK_CONNECT": 9
+    },
+    "invalid_entries_identity_only": [
+      {
+        "entry_key": "20260911/STAGE_0925/A_SHARE",
+        "trade_date": "20260911",
+        "stage_id": "STAGE_0925",
+        "market": "A_SHARE"
+      },
+      {
+        "entry_key": "20260911/STAGE_0925/HK_CONNECT",
+        "trade_date": "20260911",
+        "stage_id": "STAGE_0925",
+        "market": "HK_CONNECT"
+      },
+      {
+        "entry_key": "20260914/STAGE_0925/A_SHARE",
+        "trade_date": "20260914",
+        "stage_id": "STAGE_0925",
+        "market": "A_SHARE"
+      },
+      {
+        "entry_key": "20260914/STAGE_0925/HK_CONNECT",
+        "trade_date": "20260914",
+        "stage_id": "STAGE_0925",
+        "market": "HK_CONNECT"
+      },
+      {
+        "entry_key": "20260921/STAGE_0925/HK_CONNECT",
+        "trade_date": "20260921",
+        "stage_id": "STAGE_0925",
+        "market": "HK_CONNECT"
+      },
+      {
+        "entry_key": "20260922/STAGE_0925/HK_CONNECT",
+        "trade_date": "20260922",
+        "stage_id": "STAGE_0925",
+        "market": "HK_CONNECT"
+      },
+      {
+        "entry_key": "20260923/STAGE_0925/HK_CONNECT",
+        "trade_date": "20260923",
+        "stage_id": "STAGE_0925",
+        "market": "HK_CONNECT"
+      },
+      {
+        "entry_key": "20260924/STAGE_0925/A_SHARE",
+        "trade_date": "20260924",
+        "stage_id": "STAGE_0925",
+        "market": "A_SHARE"
+      },
+      {
+        "entry_key": "20260924/STAGE_0925/HK_CONNECT",
+        "trade_date": "20260924",
+        "stage_id": "STAGE_0925",
+        "market": "HK_CONNECT"
+      },
+      {
+        "entry_key": "20260928/STAGE_0925/HK_CONNECT",
+        "trade_date": "20260928",
+        "stage_id": "STAGE_0925",
+        "market": "HK_CONNECT"
+      },
+      {
+        "entry_key": "20260929/STAGE_0925/HK_CONNECT",
+        "trade_date": "20260929",
+        "stage_id": "STAGE_0925",
+        "market": "HK_CONNECT"
+      },
+      {
+        "entry_key": "20261005/STAGE_0925/HK_CONNECT",
+        "trade_date": "20261005",
+        "stage_id": "STAGE_0925",
+        "market": "HK_CONNECT"
+      },
+      {
+        "entry_key": "20261008/STAGE_0925/A_SHARE",
+        "trade_date": "20261008",
+        "stage_id": "STAGE_0925",
+        "market": "A_SHARE"
+      },
+      {
+        "entry_key": "20261009/STAGE_0925/A_SHARE",
+        "trade_date": "20261009",
+        "stage_id": "STAGE_0925",
+        "market": "A_SHARE"
+      }
+    ]
+  },
+  "exact_gate": {
+    "source": "incoming/stage-r3-live-integration-20261009-r4/tools/stage_api_release.py",
+    "source_sha256": "6a3771b465f7ed8fb570050cba395f210c3eafa899252081c6b0aaa873dfda63",
+    "line": 244,
+    "condition": "stage must match STAGE_[0-9]{4}_[0-9]{4}; any selection_latest entry with stage_id STAGE_0925 fails HISTORICAL_SELECTION_IDENTITY_INVALID",
+    "observed_valid_business_stage": "STAGE_0925"
+  },
+  "why_r4_historical_reads_passed": {
+    "history_compare_status": "PASS",
+    "comparison_count": 18,
+    "candidate_route_stage_counts": {
+      "STAGE_0930_0935": 18
+    },
+    "mechanism": "SelectionStore._latest validates schema/owner/safety, then read_verified reads one exact date/stage/market key. STAGE_0925 is present in EIGHT_STAGES; the 18 comparisons read STAGE_0930_0935 and do not enumerate/validate unrelated STAGE_0925 entries."
+  },
+  "parameters_or_minimal_repair": {
+    "existing_prepare_parameters_can_resolve": false,
+    "reason": "prepare derives the authoritative history root from the active API plist; CLI has no history-filter or stage-validation override, and excluding/modifying entries would violate preservation scope.",
+    "minimum_tool_change": "Align historical identity validation with the existing exact EIGHT_STAGES allowlist (including STAGE_0925), add a focused test that accepts STAGE_0925 and rejects an unknown stage, then reseal/review the changed package tool bytes and rerun prepare/plan/preflight. Do not edit selection_latest or bypass the gate."
+  },
+  "sha256": {
+    "prepare_failure": "31e46af24f0cf07f6e987ebdfe3baed8653a375b0d3d2d87ee30faabc4bc730e",
+    "selection_latest": "bfb0ad6b3f5d2261c03fd8db71bf27c3912f581807c7904a2e6fc02217785cd0",
+    "stage_api_release": "6a3771b465f7ed8fb570050cba395f210c3eafa899252081c6b0aaa873dfda63",
+    "consumer_selection": "31e80e068890be03957920870719030463262c78911953541be3074f8650d4c9",
+    "consumer_contracts": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+    "history_compare": "e66b191f97431f239eb736d466040fbbed0e5459e76ad649ea0b4bf1198bb8c9"
+  },
+  "mutations_performed": [],
+  "479_suite_rerun": false
+}
