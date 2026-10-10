@@ -59,9 +59,9 @@ describe('grouped current US match cards',()=>{
     expect(first.querySelectorAll('a')).toHaveLength(1);
     expect(first.querySelector('a')?.textContent).toBe('公司官方报告');
     expect(first.querySelector('a')?.getAttribute('rel')).toContain('noopener');
-    expect(first.querySelector('details')?.open).toBe(false);
+    expect(first.querySelector<HTMLDetailsElement>('details')?.open).toBe(false);
     expect(first.querySelector('pre')?.textContent).toContain('javascript:alert(1)');
-    expect(host.querySelector(':scope > details')?.open).toBe(false);
+    expect(host.querySelector<HTMLDetailsElement>(':scope > details')?.open).toBe(false);
     expect(host.querySelector(':scope > details pre')?.textContent).toContain('coverage_diagnostics');
   });
   it('distinguishes scoped valid empty from unavailable and clears prior cards',()=>{

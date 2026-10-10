@@ -53,3 +53,28 @@ announcement/oversold each have one closed summary, and all original evidence an
 limited-capture controls remain accessible under details. Confirm failed reads,
 manual date changes and browser navigation do not retain stale cards. No cloud
 product tests/build/browser/owner runs or deployment were performed (NOT_RUN).
+
+## Mac failure and minimal follow-up
+
+E reported baseline `9a30826fb702f56d010ddab7ca6d8230fdda58c7`:
+28 PASS / 34 FAIL; typecheck FAIL; build PASS; not deployed. Desktop/mobile
+headless render lacked strategy/stock cards. Root cause: local summary DOM variable
+`strategySummary` shadowed the imported formatter; initialization called an element
+as a function. Rename only this DOM binding and all its references to
+`reboundStrategySummaryNode`. Formatter calls and business behavior stay unchanged.
+The scoped details selector inferred Element; both test details queries now use
+`querySelector<HTMLDetailsElement>` before reading `.open`. No assertions removed,
+weakened or skipped. Existing failing mount cases remain the regression coverage.
+
+Cloud static verification: import-versus-local declaration text scan across overlay
+TypeScript found no further overlaps; manifest digests and diff whitespace match.
+This scan is not a compiler. TypeScript/parser packages are unavailable locally;
+none installed. Product tests, typecheck, build and visual verification remain
+NOT_RUN here. E must repeat all commands above, its build and desktop/mobile checks.
+
+Known unrelated source/service limits retained: announcement selection 404
+ROUTE_NOT_CONFIGURED; target 20261012 analysis 503 MODULE_RESULT_NOT_AVAILABLE;
+target 20261009 analysis 200 (E observations). These are not zero-result claims.
+Old page had many empty-result blocks, not empty-string titles; old general US
+material scope and daily reviewed relation scope are different. This follow-up
+only fixes rendering initialization and test typing; no service or algorithm edits.

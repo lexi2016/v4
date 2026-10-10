@@ -159,8 +159,8 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   const panelObservation=el('section');panelObservation.setAttribute('aria-label','原面板数值观察');panelObservation.hidden=true;
   const screen = el('section'); screen.setAttribute('aria-label','REBOUND_V3量价筛选');
   const background=el('details');background.dataset.background='true';const backgroundSummary=el('summary','其余背景与量价观察');const backgroundBody=el('div');background.append(backgroundSummary,backgroundBody);
-  const strategySummary=el('summary','超跌反弹选股（独立策略；与15:30尾盘来源分开）');
-  const strategy=el('details');strategy.dataset.reboundStrategy='true';strategy.open=false;strategy.append(strategySummary,screen);
+  const reboundStrategySummaryNode=el('summary','超跌反弹选股（独立策略；与15:30尾盘来源分开）');
+  const strategy=el('details');strategy.dataset.reboundStrategy='true';strategy.open=false;strategy.append(reboundStrategySummaryNode,screen);
   const usMappingCoverage=el('section');usMappingCoverage.setAttribute('aria-label','US 关系覆盖范围');usMappingCoverage.hidden=true;
   const researchAttentionSection=el('section');
   renderResearchAttention(researchAttentionSection,undefined,undefined);
@@ -456,20 +456,20 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   function renderScreen(value: ReboundScreen | undefined): void {
     screen.replaceChildren(el('h3','REBOUND_V3 量价研究筛选'));
     if(!value){
-      strategySummary.textContent='超跌反弹选股（独立策略；与15:30尾盘来源分开） · 当前无独立筛选读回';
+      reboundStrategySummaryNode.textContent='超跌反弹选股（独立策略；与15:30尾盘来源分开） · 当前无独立筛选读回';
       screen.append(el('p','当前工作台未返回独立量价筛选；既有材料卡仍按原合同展示。'));return;
     }
     const screening=screeningStatus(value);
     screen.append(el('p',`${screening.label}；计划参考行情日 ${text(value.verified_session)}。`));
     screen.append(el('p','独立筛选准入：收盘≤此前60个完整港股交易日最高价的80%；当日完整成交量/此前5个完整港股交易日平均成交量≥1.5。成交额与收盘较当日低点的反弹幅度仅作观察。15:30观察与收盘确认分开；准入数据未知不计为近条件。'));
     if(!screening.complete){
-      strategySummary.textContent='超跌反弹选股（独立策略；与15:30尾盘来源分开） · 当前无法完整判定';
+      reboundStrategySummaryNode.textContent='超跌反弹选股（独立策略；与15:30尾盘来源分开） · 当前无法完整判定';
       screen.append(el('p',`原owner缺项：${value.gaps.map(g=>g==='HISTORY_EXACT_DATE_MARKET_NOT_VERIFIED'?'尚未验证本历史计划的exact-date行情；没有用最新行情代替。':g).join('；')}`),details('未完成筛选的原始计数与拒绝凭证（0不表示已扫描）',value));return;
     }
     if(value.gaps.length)screen.append(el('p',`筛选缺项：${value.gaps.join('；')}`));
     const strictCards=value.cards.filter(row=>String(row.classification)==='STRICT_REBOUND');
     const nearCards=value.cards.filter(row=>String(row.classification)==='NEAR_CONDITION');
-    strategySummary.textContent=`超跌反弹选股（独立策略；与15:30尾盘来源分开） · 严格${strictCards.length} · 近条件${nearCards.length} · 待核${value.pending.length}`;
+    reboundStrategySummaryNode.textContent=`超跌反弹选股（独立策略；与15:30尾盘来源分开） · 严格${strictCards.length} · 近条件${nearCards.length} · 待核${value.pending.length}`;
     screen.append(el('h4',`严格候选（${strictCards.length}）`),...strictCards.map(row=>screenCard(row)));
     screen.append(el('h4',`近条件候选（${nearCards.length}）`),...nearCards.map(row=>screenCard(row)));
     const pendingGroup=el('details','','manager-rebound-pending-history');
