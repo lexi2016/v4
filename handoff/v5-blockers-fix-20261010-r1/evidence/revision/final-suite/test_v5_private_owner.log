@@ -1,0 +1,16 @@
+COMMAND: /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -I tests/test_v5_private_owner.py
+START: 2026-10-10T01:53:35.830536+00:00
+test_403_is_persisted_and_blocks_a_new_instance (__main__.V5PrivateOwnerTests.test_403_is_persisted_and_blocks_a_new_instance) ... ok
+test_8873_and_bound_argument_overrides_are_rejected (__main__.V5PrivateOwnerTests.test_8873_and_bound_argument_overrides_are_rejected) ... ok
+test_capture_requires_explicit_enable (__main__.V5PrivateOwnerTests.test_capture_requires_explicit_enable) ... ok
+test_complete_catalog_and_all_21_bodies_share_one_budget (__main__.V5PrivateOwnerTests.test_complete_catalog_and_all_21_bodies_share_one_budget) ... ok
+test_import_cannot_bypass_registered_reader_and_reviewer_artifacts (__main__.V5PrivateOwnerTests.test_import_cannot_bypass_registered_reader_and_reviewer_artifacts) ... ok
+test_started_capture_cannot_be_reset_by_a_new_instance_or_date (__main__.V5PrivateOwnerTests.test_started_capture_cannot_be_reset_by_a_new_instance_or_date) ... ok
+test_v4_root_and_symlink_are_rejected_before_creation (__main__.V5PrivateOwnerTests.test_v4_root_and_symlink_are_rejected_before_creation) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 8.219s
+
+OK
+
+EXIT_CODE: 0

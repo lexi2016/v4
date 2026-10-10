@@ -1,0 +1,43 @@
+{
+  "candidate_summary": [
+    "Ran 480 tests in 82.261s",
+    "FAILED (failures=6, errors=19, skipped=5)"
+  ],
+  "baseline_subset_summary": [
+    "Ran 33 tests in 6.844s",
+    "FAILED (failures=6, errors=19)"
+  ],
+  "all_failure_and_error_names_reproduced_in_baseline": true,
+  "same_failure_and_error_names": [
+    "ERROR: setUpClass (test_manager_announcement_binding.ManagerAnnouncementRealOwnerTests)",
+    "ERROR: setUpClass (test_us_mapping_daily.UsMappingDailyTests)",
+    "ERROR: test_broken_receipt_rejected_even_when_raw_pin_updated (test_announcement_bridge.AnnouncementBridgeTests.test_broken_receipt_rejected_even_when_raw_pin_updated)",
+    "ERROR: test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner (test_announcement_bridge.AnnouncementBridgeTests.test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner)",
+    "ERROR: test_changed_raw_file_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_changed_raw_file_rejected)",
+    "ERROR: test_default_publication_uses_original_hk_session_rule (test_announcement_bridge.AnnouncementBridgeTests.test_default_publication_uses_original_hk_session_rule)",
+    "ERROR: test_explicit_compact_publication_date_keeps_same_material_day (test_announcement_bridge.AnnouncementBridgeTests.test_explicit_compact_publication_date_keeps_same_material_day)",
+    "ERROR: test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits (test_announcement_bridge.AnnouncementBridgeTests.test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits)",
+    "ERROR: test_missing_handoff_keeps_analysis_but_not_consumption_verified (test_announcement_bridge.AnnouncementBridgeTests.test_missing_handoff_keeps_analysis_but_not_consumption_verified)",
+    "ERROR: test_missing_raw_material_not_recollected (test_announcement_bridge.AnnouncementBridgeTests.test_missing_raw_material_not_recollected)",
+    "ERROR: test_original_reader_preserves_real_published_counts (test_announcement_bridge.AnnouncementBridgeTests.test_original_reader_preserves_real_published_counts)",
+    "ERROR: test_partial_new_binding_group_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_partial_new_binding_group_preserves_current_v4_rejection)",
+    "ERROR: test_private_snapshot_view_used_for_complete_handoff (test_announcement_bridge.AnnouncementBridgeTests.test_private_snapshot_view_used_for_complete_handoff)",
+    "ERROR: test_resealed_parent_mismatch_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_resealed_parent_mismatch_preserves_current_v4_rejection)",
+    "ERROR: test_source_files_stay_byte_identical (test_announcement_bridge.AnnouncementBridgeTests.test_source_files_stay_byte_identical)",
+    "ERROR: test_symlink_root_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_symlink_root_rejected)",
+    "ERROR: test_undeclared_handoff_on_disk_under_code_tree_is_not_read (test_announcement_bridge.AnnouncementBridgeTests.test_undeclared_handoff_on_disk_under_code_tree_is_not_read)",
+    "ERROR: test_wrong_publication_date_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_publication_date_cannot_fall_back)",
+    "ERROR: test_wrong_target_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_target_cannot_fall_back)",
+    "FAIL: test_changed_input_not_reused (test_review_guards.ReviewGuardsTests.test_changed_input_not_reused)",
+    "FAIL: test_forged_input_digest_rejected (test_review_guards.ReviewGuardsTests.test_forged_input_digest_rejected)",
+    "FAIL: test_future_master_rejected (test_review_guards.ReviewGuardsTests.test_future_master_rejected)",
+    "FAIL: test_missing_input_saved_as_unknown (test_worker_pipeline.WorkerPipelineTests.test_missing_input_saved_as_unknown)",
+    "FAIL: test_worker_commit_readback_and_repeat_same_run (test_worker_pipeline.WorkerPipelineTests.test_worker_commit_readback_and_repeat_same_run)",
+    "FAIL: test_worker_ignores_timestamp_cached_old_source (test_review_guards.ReviewGuardsTests.test_worker_ignores_timestamp_cached_old_source)"
+  ],
+  "reason_groups": {
+    "announcement_request_not_supplied": "17 test_announcement_bridge errors plus test_manager_announcement_binding.setUpClass error: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP",
+    "us_mapping_request_not_supplied": "test_us_mapping_daily.setUpClass error: V5_US_MAPPING_REQUEST_PATH_REQUIRED_NO_SKIP",
+    "runtime_launcher_identity_not_bound": "4 test_review_guards failures plus 2 test_worker_pipeline failures: RUNTIME_MODULE_ID_UNVERIFIED/RUNTIME_RELEASE_ID_UNVERIFIED precede expected test outcome"
+  }
+}

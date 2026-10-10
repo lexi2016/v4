@@ -1,0 +1,267 @@
+# CWD=/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5
+$ PYTHONPATH=src:tests /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -m unittest test_announcement_bridge test_manager_announcement_binding test_us_mapping_daily test_review_guards test_worker_pipeline -v
+test_broken_receipt_rejected_even_when_raw_pin_updated (test_announcement_bridge.AnnouncementBridgeTests.test_broken_receipt_rejected_even_when_raw_pin_updated) ... ERROR
+test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner (test_announcement_bridge.AnnouncementBridgeTests.test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner) ... ERROR
+test_changed_raw_file_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_changed_raw_file_rejected) ... ERROR
+test_default_publication_uses_original_hk_session_rule (test_announcement_bridge.AnnouncementBridgeTests.test_default_publication_uses_original_hk_session_rule) ... ERROR
+test_explicit_compact_publication_date_keeps_same_material_day (test_announcement_bridge.AnnouncementBridgeTests.test_explicit_compact_publication_date_keeps_same_material_day) ... ERROR
+test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits (test_announcement_bridge.AnnouncementBridgeTests.test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits) ... ERROR
+test_missing_handoff_keeps_analysis_but_not_consumption_verified (test_announcement_bridge.AnnouncementBridgeTests.test_missing_handoff_keeps_analysis_but_not_consumption_verified) ... ERROR
+test_missing_raw_material_not_recollected (test_announcement_bridge.AnnouncementBridgeTests.test_missing_raw_material_not_recollected) ... ERROR
+test_original_reader_preserves_real_published_counts (test_announcement_bridge.AnnouncementBridgeTests.test_original_reader_preserves_real_published_counts) ... ERROR
+test_partial_new_binding_group_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_partial_new_binding_group_preserves_current_v4_rejection) ... ERROR
+test_private_snapshot_view_used_for_complete_handoff (test_announcement_bridge.AnnouncementBridgeTests.test_private_snapshot_view_used_for_complete_handoff) ... ERROR
+test_resealed_parent_mismatch_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_resealed_parent_mismatch_preserves_current_v4_rejection) ... ERROR
+test_source_files_stay_byte_identical (test_announcement_bridge.AnnouncementBridgeTests.test_source_files_stay_byte_identical) ... ERROR
+test_symlink_root_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_symlink_root_rejected) ... ERROR
+test_undeclared_handoff_on_disk_under_code_tree_is_not_read (test_announcement_bridge.AnnouncementBridgeTests.test_undeclared_handoff_on_disk_under_code_tree_is_not_read) ... ERROR
+test_wrong_publication_date_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_publication_date_cannot_fall_back) ... ERROR
+test_wrong_target_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_target_cannot_fall_back) ... ERROR
+test_announcement_group_keeps_sixty_four_mib_limit (test_manager_announcement_binding.ManagerAnnouncementLimitTests.test_announcement_group_keeps_sixty_four_mib_limit) ... ok
+test_exact_corpus_path_accepts_observed_real_size_without_truncation (test_manager_announcement_binding.ManagerAnnouncementLimitTests.test_exact_corpus_path_accepts_observed_real_size_without_truncation) ... ok
+test_non_corpus_files_keep_sixteen_mib_limit (test_manager_announcement_binding.ManagerAnnouncementLimitTests.test_non_corpus_files_keep_sixteen_mib_limit) ... ok
+setUpClass (test_manager_announcement_binding.ManagerAnnouncementRealOwnerTests) ... ERROR
+setUpClass (test_us_mapping_daily.UsMappingDailyTests) ... ERROR
+test_actual_dependency_drift_not_attested_by_lock (test_review_guards.ReviewGuardsTests.test_actual_dependency_drift_not_attested_by_lock) ... ok
+test_changed_input_not_reused (test_review_guards.ReviewGuardsTests.test_changed_input_not_reused) ... FAIL
+test_cli_wrong_valid_ref_rejected (test_review_guards.ReviewGuardsTests.test_cli_wrong_valid_ref_rejected) ... ok
+test_failure_does_not_hit_success_cache (test_review_guards.ReviewGuardsTests.test_failure_does_not_hit_success_cache) ... ok
+test_failure_does_not_poison_success_cache (test_review_guards.ReviewGuardsTests.test_failure_does_not_poison_success_cache) ... ok
+test_forged_input_digest_rejected (test_review_guards.ReviewGuardsTests.test_forged_input_digest_rejected) ... FAIL
+test_future_master_rejected (test_review_guards.ReviewGuardsTests.test_future_master_rejected) ... FAIL
+test_new_directory_parents_synced_before_index (test_review_guards.ReviewGuardsTests.test_new_directory_parents_synced_before_index) ... ok
+test_worker_ignores_timestamp_cached_old_source (test_review_guards.ReviewGuardsTests.test_worker_ignores_timestamp_cached_old_source) ... FAIL
+test_wrong_valid_index_rejected (test_review_guards.ReviewGuardsTests.test_wrong_valid_index_rejected) ... ok
+test_code_drift_rejected_before_publication (test_worker_pipeline.WorkerPipelineTests.test_code_drift_rejected_before_publication) ... ok
+test_missing_input_saved_as_unknown (test_worker_pipeline.WorkerPipelineTests.test_missing_input_saved_as_unknown) ... FAIL
+test_worker_commit_readback_and_repeat_same_run (test_worker_pipeline.WorkerPipelineTests.test_worker_commit_readback_and_repeat_same_run) ... FAIL
+
+======================================================================
+ERROR: test_broken_receipt_rejected_even_when_raw_pin_updated (test_announcement_bridge.AnnouncementBridgeTests.test_broken_receipt_rejected_even_when_raw_pin_updated)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner (test_announcement_bridge.AnnouncementBridgeTests.test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_changed_raw_file_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_changed_raw_file_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_default_publication_uses_original_hk_session_rule (test_announcement_bridge.AnnouncementBridgeTests.test_default_publication_uses_original_hk_session_rule)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_explicit_compact_publication_date_keeps_same_material_day (test_announcement_bridge.AnnouncementBridgeTests.test_explicit_compact_publication_date_keeps_same_material_day)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits (test_announcement_bridge.AnnouncementBridgeTests.test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_missing_handoff_keeps_analysis_but_not_consumption_verified (test_announcement_bridge.AnnouncementBridgeTests.test_missing_handoff_keeps_analysis_but_not_consumption_verified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_missing_raw_material_not_recollected (test_announcement_bridge.AnnouncementBridgeTests.test_missing_raw_material_not_recollected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_original_reader_preserves_real_published_counts (test_announcement_bridge.AnnouncementBridgeTests.test_original_reader_preserves_real_published_counts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_partial_new_binding_group_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_partial_new_binding_group_preserves_current_v4_rejection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_private_snapshot_view_used_for_complete_handoff (test_announcement_bridge.AnnouncementBridgeTests.test_private_snapshot_view_used_for_complete_handoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_resealed_parent_mismatch_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_resealed_parent_mismatch_preserves_current_v4_rejection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_source_files_stay_byte_identical (test_announcement_bridge.AnnouncementBridgeTests.test_source_files_stay_byte_identical)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_symlink_root_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_symlink_root_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_undeclared_handoff_on_disk_under_code_tree_is_not_read (test_announcement_bridge.AnnouncementBridgeTests.test_undeclared_handoff_on_disk_under_code_tree_is_not_read)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_wrong_publication_date_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_publication_date_cannot_fall_back)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: test_wrong_target_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_target_cannot_fall_back)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_announcement_bridge.py", line 14, in setUp
+    if not path:raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: setUpClass (test_manager_announcement_binding.ManagerAnnouncementRealOwnerTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_manager_announcement_binding.py", line 78, in setUpClass
+    raise RuntimeError('V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP')
+RuntimeError: V5_ANNOUNCEMENT_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+ERROR: setUpClass (test_us_mapping_daily.UsMappingDailyTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_us_mapping_daily.py", line 17, in setUpClass
+    raise RuntimeError('V5_US_MAPPING_REQUEST_PATH_REQUIRED_NO_SKIP')
+RuntimeError: V5_US_MAPPING_REQUEST_PATH_REQUIRED_NO_SKIP
+
+======================================================================
+FAIL: test_changed_input_not_reused (test_review_guards.ReviewGuardsTests.test_changed_input_not_reused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_review_guards.py", line 46, in test_changed_input_not_reused
+    self.assertEqual(self.case.run_shadow()[0], 0)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3 != 0
+
+======================================================================
+FAIL: test_forged_input_digest_rejected (test_review_guards.ReviewGuardsTests.test_forged_input_digest_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_review_guards.py", line 43, in test_forged_input_digest_rejected
+    self.assertIn('INPUT_SNAPSHOT_MISMATCH', data['reason_codes'])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'INPUT_SNAPSHOT_MISMATCH' not found in ['RUNTIME_MODULE_ID_UNVERIFIED', 'RUNTIME_RELEASE_ID_UNVERIFIED', 'INPUT_UNVERIFIED']
+
+======================================================================
+FAIL: test_future_master_rejected (test_review_guards.ReviewGuardsTests.test_future_master_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_review_guards.py", line 94, in test_future_master_rejected
+    self.assertIn('MASTER_AFTER_CUTOFF',data['reason_codes'])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'MASTER_AFTER_CUTOFF' not found in ['RUNTIME_MODULE_ID_UNVERIFIED', 'RUNTIME_RELEASE_ID_UNVERIFIED', 'INPUT_UNVERIFIED']
+
+======================================================================
+FAIL: test_worker_ignores_timestamp_cached_old_source (test_review_guards.ReviewGuardsTests.test_worker_ignores_timestamp_cached_old_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_review_guards.py", line 126, in test_worker_ignores_timestamp_cached_old_source
+    self.assertIn('LEGACY_CONTRACT_MISMATCH',data['reason_codes'])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'LEGACY_CONTRACT_MISMATCH' not found in ['RUNTIME_MODULE_ID_UNVERIFIED', 'RUNTIME_RELEASE_ID_UNVERIFIED', 'INPUT_UNVERIFIED']
+
+======================================================================
+FAIL: test_missing_input_saved_as_unknown (test_worker_pipeline.WorkerPipelineTests.test_missing_input_saved_as_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_worker_pipeline.py", line 109, in test_missing_input_saved_as_unknown
+    self.assertEqual(code, 2, result)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: 3 != 2 : {'health': {'compatibility_status': 'COMPATIBLE', 'expected': {'code_manifest_sha256': '4e2a6fb561aa63c9aa91b1d9f4cbb5adcb61ec794f9672fa705374a215f0f452', 'dependency_lock_sha256': '7cb690f890cc28b6a79311f07e724f61c3dc4411494d480c0041f075f0825bfd', 'effective_config_sha256': 'bf34240abfdc97cedc817f293aa49b91457fe72e6102026f069593a941f4025b', 'module_id': 'rebound_shadow', 'python_minimum': '3.14', 'release_id': 'v5-rebound-shadow-r1', 'source_capsule_sha256': 'f859f3e60362cdbbbf9cfcb38cabfa2dc3f72c53346bdf4d9b0e280e2d2824c1'}, 'identity_status': 'UNVERIFIED', 'input_status': 'UNVERIFIED', 'observed': {'code_manifest_sha256': '4e2a6fb561aa63c9aa91b1d9f4cbb5adcb61ec794f9672fa705374a215f0f452', 'dependency_environment_json': '{"packages":[{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"2.5.3","name":"numpy","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/numpy/__init__.py","version":"2.5.3"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"2.3.3","name":"pandas","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/pandas/__init__.py","version":"2.3.3"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"24.0.0","name":"pyarrow","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/pyarrow/__init__.py","version":"24.0.0"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"2.9.0.post0","name":"python-dateutil","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/dateutil/__init__.py","version":"2.9.0.post0"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"2026.5","name":"pytz","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/pytz/__init__.py","version":"2026.5"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"1.17.0","name":"six","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/six.py","version":"1.17.0"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"2026.5","name":"tzdata","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/tzdata/__init__.py","version":"2026.5"}],"reason_codes":[],"status":"MATCH"}', 'dependency_environment_sha256': '1d18b4a5999c0ce47976305a0085509c400cbcf89d6ee3ea9aedc8a15440ba72', 'dependency_lock_sha256': '7cb690f890cc28b6a79311f07e724f61c3dc4411494d480c0041f075f0825bfd', 'effective_config_sha256': 'bf34240abfdc97cedc817f293aa49b91457fe72e6102026f069593a941f4025b', 'module_id': '', 'observed_at': '2026-10-10T01:41:14.618936+00:00', 'python_version': '3.14.6', 'release_id': '', 'source_capsule_sha256': 'f859f3e60362cdbbbf9cfcb38cabfa2dc3f72c53346bdf4d9b0e280e2d2824c1'}, 'reason_codes': ['RUNTIME_MODULE_ID_UNVERIFIED', 'RUNTIME_RELEASE_ID_UNVERIFIED', 'INPUT_UNVERIFIED'], 'schema_version': 'v5.health.v1'}, 'reason_codes': ['RUNTIME_MODULE_ID_UNVERIFIED', 'RUNTIME_RELEASE_ID_UNVERIFIED', 'INPUT_UNVERIFIED'], 'status': 'REJECTED'}
+
+======================================================================
+FAIL: test_worker_commit_readback_and_repeat_same_run (test_worker_pipeline.WorkerPipelineTests.test_worker_commit_readback_and_repeat_same_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/input/sources/ebe5944e/V5/tests/test_worker_pipeline.py", line 91, in test_worker_commit_readback_and_repeat_same_run
+    self.assertEqual(code, 0, first)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: 3 != 0 : {'health': {'compatibility_status': 'COMPATIBLE', 'expected': {'code_manifest_sha256': '4e2a6fb561aa63c9aa91b1d9f4cbb5adcb61ec794f9672fa705374a215f0f452', 'dependency_lock_sha256': '7cb690f890cc28b6a79311f07e724f61c3dc4411494d480c0041f075f0825bfd', 'effective_config_sha256': '8a8d65656f5a5ce088187652ddf3afe12059f21d6729155081e33d3907f46016', 'module_id': 'rebound_shadow', 'python_minimum': '3.14', 'release_id': 'v5-rebound-shadow-r1', 'source_capsule_sha256': 'f859f3e60362cdbbbf9cfcb38cabfa2dc3f72c53346bdf4d9b0e280e2d2824c1'}, 'identity_status': 'UNVERIFIED', 'input_status': 'UNVERIFIED', 'observed': {'code_manifest_sha256': '4e2a6fb561aa63c9aa91b1d9f4cbb5adcb61ec794f9672fa705374a215f0f452', 'dependency_environment_json': '{"packages":[{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"2.5.3","name":"numpy","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/numpy/__init__.py","version":"2.5.3"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"2.3.3","name":"pandas","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/pandas/__init__.py","version":"2.3.3"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"24.0.0","name":"pyarrow","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/pyarrow/__init__.py","version":"24.0.0"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"2.9.0.post0","name":"python-dateutil","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/dateutil/__init__.py","version":"2.9.0.post0"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"2026.5","name":"pytz","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/pytz/__init__.py","version":"2026.5"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"1.17.0","name":"six","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/six.py","version":"1.17.0"},{"installation_root":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages","metadata_version":"2026.5","name":"tzdata","origin":"/workspace/scratch/17ec887ca39d/runtime/v5-env/lib/python3.14/site-packages/tzdata/__init__.py","version":"2026.5"}],"reason_codes":[],"status":"MATCH"}', 'dependency_environment_sha256': '1d18b4a5999c0ce47976305a0085509c400cbcf89d6ee3ea9aedc8a15440ba72', 'dependency_lock_sha256': '7cb690f890cc28b6a79311f07e724f61c3dc4411494d480c0041f075f0825bfd', 'effective_config_sha256': '8a8d65656f5a5ce088187652ddf3afe12059f21d6729155081e33d3907f46016', 'module_id': '', 'observed_at': '2026-10-10T01:41:15.629631+00:00', 'python_version': '3.14.6', 'release_id': '', 'source_capsule_sha256': 'f859f3e60362cdbbbf9cfcb38cabfa2dc3f72c53346bdf4d9b0e280e2d2824c1'}, 'reason_codes': ['RUNTIME_MODULE_ID_UNVERIFIED', 'RUNTIME_RELEASE_ID_UNVERIFIED', 'INPUT_UNVERIFIED'], 'schema_version': 'v5.health.v1'}, 'reason_codes': ['RUNTIME_MODULE_ID_UNVERIFIED', 'RUNTIME_RELEASE_ID_UNVERIFIED', 'INPUT_UNVERIFIED'], 'status': 'REJECTED'}
+
+----------------------------------------------------------------------
+Ran 33 tests in 6.844s
+
+FAILED (failures=6, errors=19)
+
+EXIT_CODE=1

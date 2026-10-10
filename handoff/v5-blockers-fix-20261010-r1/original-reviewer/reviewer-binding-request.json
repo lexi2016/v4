@@ -1,0 +1,30 @@
+{
+  "authorizes_import": false,
+  "expected_decision_revision": {
+    "parent_owner_receipt_file_sha256": "6b5907c556b35b4e4a2c8a9928889b33d314369de31a7c6a12058f352c0525d0",
+    "parent_product_sha256": "e724d07b39e5b4fb3ccbb0b4536f4519b4badbfd3783cad7ee6506a7af242ad6",
+    "revision_id": "decision-r20261010-rebind-638bfee44529438d",
+    "source_recovery_receipt_sha256": "b7b37e5385cdb7f14edc711af3b9d4bfd708441ac1de290a24a2b086b0f37b0f",
+    "source_run_id": "16cc60afcb089f11690430b05853114c"
+  },
+  "frozen_inputs": {
+    "article_decisions_file_sha256": "37607c65e2d822298fe321f8c3278acaf0e33d56f3261fa48b098b6ef2e5a10f",
+    "article_decisions_logical_sha256": "e0094a54b123050c11870b8f1ed4a71bf768afd87ccb221605b135f846d468c8",
+    "original_reviewer_file_sha256": "981f89ebbcee269701ad69e4c346944f9da37cfcb1693032ca11de65c3e4eb29",
+    "semantic_catalog_file_sha256": "ec315a9470b92869dc5db928a29e52a7d83a67fd7b53925d65e36e83bcaaf8ba"
+  },
+  "return_contract": {
+    "original_fields": "Preserve all existing reviewer fields; supplement decision_revision only. Additional provenance fields may be added without changing original fields.",
+    "original_material": "Reuse the frozen semantic catalog and decisions byte for byte. Do not redo the 392-article semantic review.",
+    "provenance": "Verify the actual original reviewer, request identity, channel and returned file SHA through the existing review channel; JSON fields alone do not prove authorship.",
+    "required_artifacts": [
+      "actual_original_reviewer_output_file",
+      "new_reviewer_output_file_sha256",
+      "actual_review_channel_identity_and_task_receipt"
+    ]
+  },
+  "schema": "v5.revision_review_binding_request.v1",
+  "scope": "IMMUTABLE_REVISION_BINDING_ONLY",
+  "semantic_review_performed": false,
+  "status": "BLOCKED_AWAITING_ORIGINAL_REVIEWER"
+}

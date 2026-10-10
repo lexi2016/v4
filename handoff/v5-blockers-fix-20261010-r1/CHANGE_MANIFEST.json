@@ -1,0 +1,206 @@
+{
+  "schema": "v5.blockers_fix.source_increment.v1",
+  "baseline_handoff_commit": "46081f5bcfb5f0c9e63aaa8b2b7baf65ae191eff",
+  "recorded_at": "2026-10-10T02:02:19.544384+00:00",
+  "candidate_only": true,
+  "mac_private_acceptance": "NOT_RUN",
+  "integration_deployment_api_chrome_natural_acceptance": "NOT_RUN",
+  "original_reviewer_return": "BLOCKED_AWAITING_ORIGINAL_REVIEWER",
+  "actual_host_channel": "NOT_BOUND",
+  "components": [
+    {
+      "component": "manager",
+      "baseline_commit": "3d9541aca3e5d28e94109609940503cca239b9fe",
+      "baseline_repository_path": "V5",
+      "baseline_files": 598,
+      "candidate_files": 603,
+      "changed_existing": 8,
+      "added": 5,
+      "unchanged_original": 590,
+      "protected_paths_unchanged": 464,
+      "changes": [
+        {
+          "path": "docs/CURRENT_RECOVERY_PLAN_20261010.md",
+          "change": "ADDED",
+          "before_sha256": null,
+          "after_sha256": "6b8f68848ccc3ec96ed8da24dca1a8924fbd8b7c1f8140224381c59ecd1d1354",
+          "before_bytes": null,
+          "after_bytes": 3677
+        },
+        {
+          "path": "docs/CURRENT_RECOVERY_RESULT_20261010.md",
+          "change": "ADDED",
+          "before_sha256": null,
+          "after_sha256": "e3c7af77c94160345bc9abc61e992cdd7fa5db402db6b5d82fa8e7da0ad671f3",
+          "before_bytes": null,
+          "after_bytes": 6794
+        },
+        {
+          "path": "src/v5_shadow/daily_announcement_revision.py",
+          "change": "MODIFIED",
+          "before_sha256": "bc7906a08a101ae8bbc5bb53ce438643d9385b9ba3a3135ffe3a2f7bcc5bd9bd",
+          "after_sha256": "30ce8a2bd4ee292a5f2db828041d9d6fb7d008e57b736a62209d8fe0de511c09",
+          "before_bytes": 3664,
+          "after_bytes": 3879
+        },
+        {
+          "path": "src/v5_shadow/daily_dispatch.py",
+          "change": "MODIFIED",
+          "before_sha256": "a7d0a9bfe672fd670ee3c7504a0b25c1a0365498c0520b71d16e38bc93cae240",
+          "after_sha256": "144fcc04effa244297cbc7529cbc27c495b05d3f8ecea23ecd53367a8989c34b",
+          "before_bytes": 3438,
+          "after_bytes": 3907
+        },
+        {
+          "path": "src/v5_shadow/daily_owner_adapters.py",
+          "change": "MODIFIED",
+          "before_sha256": "4bb109ef0a83be48a631bc295fbf2819a88f54b425eac0c21976ebb6b6dac762",
+          "after_sha256": "c56434d24ddc7c8cb77eb6ed640d4a02628d22a84d26d8fc6fc7608c20fcab41",
+          "before_bytes": 5047,
+          "after_bytes": 5073
+        },
+        {
+          "path": "src/v5_shadow/daily_review_handoff.py",
+          "change": "ADDED",
+          "before_sha256": null,
+          "after_sha256": "19aacbf65ca0bea7760745335e4a4cc69e774503f972741e78966a30f61f7ff9",
+          "before_bytes": null,
+          "after_bytes": 13307
+        },
+        {
+          "path": "src/v5_shadow/daily_tick.py",
+          "change": "MODIFIED",
+          "before_sha256": "d206b5497ddc37f0b66427cdc78b4b0c6984e5df7f1242a85aa7e05118137623",
+          "after_sha256": "3e31d50c8e56d6066e5064a5433c27adbf28d647ad8f04ac70f4a6e1b29811da",
+          "before_bytes": 7072,
+          "after_bytes": 7378
+        },
+        {
+          "path": "src/v5_shadow/manager_plan.py",
+          "change": "MODIFIED",
+          "before_sha256": "cf4d734c3b210cb5cd70d75e3d5f089c31cd347f347e3d1784b8791bb2475612",
+          "after_sha256": "a028774183c5cc877f56976b094a6280e99bcf5f88cba2d8d75e2ac6a6f45b29",
+          "before_bytes": 35266,
+          "after_bytes": 38416
+        },
+        {
+          "path": "tests/test_daily_review_handoff.py",
+          "change": "ADDED",
+          "before_sha256": null,
+          "after_sha256": "2e0c7f26616bc13fc0cc78b3ba8feada25bf621c61886597f9e6ed43fbcf0647",
+          "before_bytes": null,
+          "after_bytes": 16472
+        },
+        {
+          "path": "tests/test_daily_revision_chain.py",
+          "change": "MODIFIED",
+          "before_sha256": "8966b2d1fd30aa463a357ac2641ad5f16b655b0cc634c9c54783b945d4fc5500",
+          "after_sha256": "c48f48208e435e90ec45c1c2e13aeba2f7ee1f40778fb317c9f2353199aab79d",
+          "before_bytes": 4903,
+          "after_bytes": 7096
+        },
+        {
+          "path": "tests/test_manager_announcement_binding.py",
+          "change": "MODIFIED",
+          "before_sha256": "382290c3d0bc49ae9cd437e57f3e6d126597b1ed0946e9b14bdcdb444635b17d",
+          "after_sha256": "6854ea830ee4b8ea54b3434c2b679931e16004a35e21024be9dda2a97b7011ed",
+          "before_bytes": 8657,
+          "after_bytes": 8694
+        },
+        {
+          "path": "tests/test_manager_current_recovery.py",
+          "change": "ADDED",
+          "before_sha256": null,
+          "after_sha256": "3025bd745836b5d251d366facd0ca37efd594586e5d451237fc0e75cd36fe030",
+          "before_bytes": null,
+          "after_bytes": 13657
+        },
+        {
+          "path": "tests/test_manager_plan.py",
+          "change": "MODIFIED",
+          "before_sha256": "6925315dfe8f3d3dc8b7409d2bcdd3be4e5354c3170b009f8adf0ec1b9d88f2a",
+          "after_sha256": "0ce157f8f89044ee650ada50d60a7263b95cd10636b3791bd2cebcc753beba09",
+          "before_bytes": 7815,
+          "after_bytes": 7993
+        }
+      ],
+      "patch_sha256": "6bc785ba4bb05408f9828238391b8736e4940ed1441578ea1004318885056400"
+    },
+    {
+      "component": "rebound",
+      "baseline_commit": "ebe5944ecfbec2f6a161793d7c11946dea063e57",
+      "baseline_repository_path": "V5",
+      "baseline_files": 515,
+      "candidate_files": 516,
+      "changed_existing": 1,
+      "added": 1,
+      "unchanged_original": 514,
+      "protected_paths_unchanged": 403,
+      "changes": [
+        {
+          "path": "src/v5_shadow/rebound_panel_repair.py",
+          "change": "MODIFIED",
+          "before_sha256": "1fa7d530b7b1fe7190a0e33990c82e0d26292a6c98f02d72dc942b455bd6ac94",
+          "after_sha256": "8c912de834dfaebaa0a0973fbe015cf65d2326e06de2a0677918e00df5a696a8",
+          "before_bytes": 38678,
+          "after_bytes": 40572
+        },
+        {
+          "path": "tests/test_rebound_owner_identity.py",
+          "change": "ADDED",
+          "before_sha256": null,
+          "after_sha256": "182ca1a555443f39b546838f724895b968b4b5ecebc13bc11e15cdf6f4cf00d6",
+          "before_bytes": null,
+          "after_bytes": 11619
+        }
+      ],
+      "patch_sha256": "c166fa8da641ab3f006575c48b686446cd8e40b803444bfae3b3154519d830db"
+    },
+    {
+      "component": "revision",
+      "baseline_commit": "e06d143e881c66c22053a5c594b9c0be21d5be34",
+      "baseline_repository_path": "V5/handoff/announcement-budget-red-20261009",
+      "baseline_files": 64,
+      "candidate_files": 68,
+      "changed_existing": 0,
+      "added": 4,
+      "unchanged_original": 64,
+      "protected_paths_unchanged": 0,
+      "changes": [
+        {
+          "path": "REVISION_REVIEW_BINDING_HANDOFF.md",
+          "change": "ADDED",
+          "before_sha256": null,
+          "after_sha256": "f0a008ee2e203d1a09d423458271ad2bf700a20cb38e42fc5b2f530d0b7bcf5d",
+          "before_bytes": null,
+          "after_bytes": 10974
+        },
+        {
+          "path": "tests/test_revision_review_gate.py",
+          "change": "ADDED",
+          "before_sha256": null,
+          "after_sha256": "547ed901b5546bf98a1adc8c9a3ae71a131b1a7f3e13919d12763cbec0fdff8d",
+          "before_bytes": null,
+          "after_bytes": 4907
+        },
+        {
+          "path": "tests/test_revision_review_tool.py",
+          "change": "ADDED",
+          "before_sha256": null,
+          "after_sha256": "03d0215cb16b789e58849494ff56fc2ec992532b1fbc1d5b9ded85b87e63c722",
+          "before_bytes": null,
+          "after_bytes": 16124
+        },
+        {
+          "path": "tools/review_revision_binding.py",
+          "change": "ADDED",
+          "before_sha256": null,
+          "after_sha256": "a0e3cdc493a48a20e1247705d4e3ff9b2291be779a334bff9a5f320e4db14176",
+          "before_bytes": null,
+          "after_bytes": 11186
+        }
+      ],
+      "patch_sha256": "45cdc725f426deed2ce5c082113d2ea22ecefe234ccedfce9f696cfebc4ef2bc"
+    }
+  ]
+}

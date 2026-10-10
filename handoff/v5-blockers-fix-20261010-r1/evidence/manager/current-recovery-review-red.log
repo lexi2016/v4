@@ -1,0 +1,51 @@
+{
+  "phase": "RED_MISSING_RECOVERY_JOURNAL",
+  "started_at": "2026-10-10T01:51:59.825262+00:00",
+  "command": [
+    "/workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python",
+    "-B",
+    "-m",
+    "unittest",
+    "test_manager_current_recovery.ManagerCurrentRecoveryTests.test_missing_exact_recovery_journal_is_rejected_despite_latest_journal",
+    "test_manager_current_recovery.ManagerCurrentRecoveryTests.test_missing_exact_and_latest_recovery_journals_are_rejected",
+    "test_manager_current_recovery.ManagerCurrentRecoveryTests.test_same_day_manual_legacy_missing_journal_keeps_original_compatibility",
+    "-v"
+  ],
+  "cwd": "/workspace/scratch/17ec887ca39d/work/interface/V5",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "source_sha256": "1d9cd3ea0622a180f4a696b623029ad9ff871f7680804e61ef3ef1eeb4d45735",
+  "test_sha256": "3025bd745836b5d251d366facd0ca37efd594586e5d451237fc0e75cd36fe030",
+  "exit_code": 1
+}
+test_missing_exact_recovery_journal_is_rejected_despite_latest_journal (test_manager_current_recovery.ManagerCurrentRecoveryTests.test_missing_exact_recovery_journal_is_rejected_despite_latest_journal) ... FAIL
+test_missing_exact_and_latest_recovery_journals_are_rejected (test_manager_current_recovery.ManagerCurrentRecoveryTests.test_missing_exact_and_latest_recovery_journals_are_rejected) ... FAIL
+test_same_day_manual_legacy_missing_journal_keeps_original_compatibility (test_manager_current_recovery.ManagerCurrentRecoveryTests.test_same_day_manual_legacy_missing_journal_keeps_original_compatibility) ... ok
+
+======================================================================
+FAIL: test_missing_exact_recovery_journal_is_rejected_despite_latest_journal (test_manager_current_recovery.ManagerCurrentRecoveryTests.test_missing_exact_recovery_journal_is_rejected_despite_latest_journal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/interface/V5/tests/test_manager_current_recovery.py", line 173, in test_missing_exact_recovery_journal_is_rejected_despite_latest_journal
+    self.assert_missing_recovery_journal_rejected(saved)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/17ec887ca39d/work/interface/V5/tests/test_manager_current_recovery.py", line 154, in assert_missing_recovery_journal_rejected
+    self.assertFalse(page['plan_product']['consumed'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_missing_exact_and_latest_recovery_journals_are_rejected (test_manager_current_recovery.ManagerCurrentRecoveryTests.test_missing_exact_and_latest_recovery_journals_are_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/interface/V5/tests/test_manager_current_recovery.py", line 180, in test_missing_exact_and_latest_recovery_journals_are_rejected
+    self.assert_missing_recovery_journal_rejected(saved)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/17ec887ca39d/work/interface/V5/tests/test_manager_current_recovery.py", line 154, in assert_missing_recovery_journal_rejected
+    self.assertFalse(page['plan_product']['consumed'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 3 tests in 4.325s
+
+FAILED (failures=2)

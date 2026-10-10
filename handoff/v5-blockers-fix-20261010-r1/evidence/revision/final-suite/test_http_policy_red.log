@@ -1,0 +1,18 @@
+COMMAND: /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -I tests/test_http_policy_red.py
+START: 2026-10-10T01:53:25.037590+00:00
+test_200_html_captcha_stops_batch_without_caching_challenge (__main__.HttpPolicyRed.test_200_html_captcha_stops_batch_without_caching_challenge) ... ok
+test_403_is_hard_stop_not_a_retry_after_permission (__main__.HttpPolicyRed.test_403_is_hard_stop_not_a_retry_after_permission) ... ok
+test_429_seconds_preserves_cooldown_and_blocks_other_urls (__main__.HttpPolicyRed.test_429_seconds_preserves_cooldown_and_blocks_other_urls) ... ok
+test_503_http_date_preserves_cooldown (__main__.HttpPolicyRed.test_503_http_date_preserves_cooldown) ... ok
+test_announcement_json_mentioning_captcha_is_not_a_challenge (__main__.HttpPolicyRed.test_announcement_json_mentioning_captcha_is_not_a_challenge) ... ok
+test_implicit_catalog_budget_releases_each_successful_request (__main__.HttpPolicyRed.test_implicit_catalog_budget_releases_each_successful_request) ... ok
+test_malformed_retry_after_stops_without_inventing_wait (__main__.HttpPolicyRed.test_malformed_retry_after_stops_without_inventing_wait) ... ok
+test_provider_bound_policy_covers_catalog_calls_without_explicit_budget (__main__.HttpPolicyRed.test_provider_bound_policy_covers_catalog_calls_without_explicit_budget) ... ok
+test_returned_429_response_is_charged_but_not_cached (__main__.HttpPolicyRed.test_returned_429_response_is_charged_but_not_cached) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.020s
+
+OK
+
+EXIT_CODE: 0

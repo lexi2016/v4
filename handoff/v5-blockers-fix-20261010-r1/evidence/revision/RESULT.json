@@ -1,0 +1,121 @@
+{
+  "schema": "v5.revision_binding_candidate_result.v1",
+  "recorded_at": "2026-10-10T01:55:27.217885+00:00",
+  "source_ref": "e06d143e881c66c22053a5c594b9c0be21d5be34",
+  "source_repository_path": "V5/handoff/announcement-budget-red-20261009",
+  "status": "STRUCTURAL_CANDIDATE_TESTED_BUSINESS_BLOCKED",
+  "business_status": "BLOCKED_AWAITING_ORIGINAL_REVIEWER",
+  "original_core_changed": false,
+  "original_core_sha256": "d78898559a8b46e7ec7edd344bc3352871d1f360db75fe62d6545c0532b9ab64",
+  "all_64_original_files_unchanged": true,
+  "gate_tests": {
+    "test_methods": 8,
+    "rejection_subcases": 25,
+    "result": "PASS",
+    "mutator_guarded": true,
+    "parent_tree_and_bytes_unchanged": true,
+    "fixture": "SYNTHETIC_TWO_ARTICLES_ONLY"
+  },
+  "helper_tests": {
+    "initial_delivery": {
+      "red": {
+        "tests": 12,
+        "failures": 12,
+        "cause": "Requested helper did not exist; original create gate was already correct."
+      },
+      "green": {
+        "tests": 12,
+        "passed": 12
+      }
+    },
+    "review_feedback_red": {
+      "tests_run": 20,
+      "failed_subcases": 18,
+      "failing_test_methods": 6,
+      "cause": "Original field type drift, exact decimal value drift, and non-standard JSON numbers were not rejected.",
+      "log": "evidence/strict-json-red.log"
+    },
+    "final_green": {
+      "tests_run": 20,
+      "passed": 20,
+      "log": "evidence/strict-json-green.log"
+    }
+  },
+  "locked_suite": {
+    "runtime": "Python 3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "test_files": 13,
+    "tests_run": 126,
+    "passed": 126,
+    "failed": 0,
+    "skipped": 0,
+    "logs": "evidence/locked-suite-strict-json/"
+  },
+  "original_review_return_received": false,
+  "actual_new_reviewer_sha256": null,
+  "semantic_review_performed": false,
+  "real_create_import_readback": "NOT_RUN",
+  "mac_private_acceptance": "NOT_RUN",
+  "api_ui_deploy": "NOT_RUN",
+  "github_write": "NOT_RUN",
+  "whole_zip_verified": false,
+  "source_note": "Fixed original-ref per-file retrieval. REVIEW_FIX.md and SOURCE_MANIFEST.json differ from redacted ZIP manifest. No whole-ZIP claim.",
+  "request": {
+    "status": "BLOCKED_AWAITING_ORIGINAL_REVIEWER",
+    "request_only": true,
+    "semantic_review_performed": false,
+    "sent_to_reviewer": false,
+    "revision_created": false,
+    "private_mac_revision_id_absence_checked": false,
+    "revision_id": "decision-r20261010-rebind-638bfee44529438d",
+    "request_file_sha256": "98464a39323fd332e29dbed82344b9e9c5eefed75fede37ec7dca8c93991845c",
+    "request_file": "reviewer-binding-request.json",
+    "command": [
+      "/workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python",
+      "-B",
+      "-I",
+      "/workspace/scratch/17ec887ca39d/work/revision/bundle/tools/review_revision_binding.py",
+      "request",
+      "--revision-id",
+      "decision-r20261010-rebind-638bfee44529438d"
+    ],
+    "created_at": "2026-10-10T01:39:42.659955+00:00"
+  },
+  "source_increment": [
+    {
+      "path": "tools/review_revision_binding.py",
+      "change": "ADDED",
+      "sha256": "a0e3cdc493a48a20e1247705d4e3ff9b2291be779a334bff9a5f320e4db14176"
+    },
+    {
+      "path": "tests/test_revision_review_gate.py",
+      "change": "ADDED",
+      "sha256": "547ed901b5546bf98a1adc8c9a3ae71a131b1a7f3e13919d12763cbec0fdff8d"
+    },
+    {
+      "path": "tests/test_revision_review_tool.py",
+      "change": "ADDED",
+      "sha256": "03d0215cb16b789e58849494ff56fc2ec992532b1fbc1d5b9ded85b87e63c722"
+    },
+    {
+      "path": "REVISION_REVIEW_BINDING_HANDOFF.md",
+      "change": "ADDED",
+      "sha256": "f0a008ee2e203d1a09d423458271ad2bf700a20cb38e42fc5b2f530d0b7bcf5d"
+    }
+  ],
+  "strict_json_review_fix": {
+    "status": "FIXED_AND_TESTED",
+    "source_report": "evidence/independent-review-field-type-drift-before.json",
+    "source_report_sha256": "0733ccc2ab95319b27a509e18367a873a1da918ec101e91126122e36509fecb0",
+    "changes": [
+      "Parse JSON decimal numbers with Decimal to preserve exact values.",
+      "Reject NaN, Infinity and -Infinity at request, original reviewer and returned reviewer JSON entry points.",
+      "Compare original fields and binding recursively with exact concrete types and values."
+    ],
+    "added_test_methods": 8,
+    "before_helper_sha256": "aa2e16e9677688824efe985b75f4b3fc8be67b3ba561c1ee07c356c35231d1f1",
+    "after_helper_sha256": "a0e3cdc493a48a20e1247705d4e3ff9b2291be779a334bff9a5f320e4db14176",
+    "semantic_or_decisions_digest_changed": false,
+    "original_64_files_changed": false
+  }
+}

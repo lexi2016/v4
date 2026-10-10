@@ -1,0 +1,28 @@
+$ PYTHONPATH=src:tests /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -m unittest test_rebound_owner_identity.FrozenOwnerIdentityTests.test_frozen_loader_passes_before_code_inspection -v
+test_frozen_loader_passes_before_code_inspection (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_frozen_loader_passes_before_code_inspection) ... FAIL
+
+======================================================================
+FAIL: test_frozen_loader_passes_before_code_inspection (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_frozen_loader_passes_before_code_inspection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/rebound/V5/tests/test_rebound_owner_identity.py", line 56, in test_frozen_loader_passes_before_code_inspection
+    self.child("repair._verify_owner(owner)\n")
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/17ec887ca39d/work/rebound/V5/tests/test_rebound_owner_identity.py", line 50, in child
+    self.assertEqual(process.returncode, 0, process.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 11, in <module>
+    repair._verify_owner(owner)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/17ec887ca39d/work/rebound/V5/src/v5_shadow/rebound_panel_repair.py", line 76, in _verify_owner
+    raise ValueError('REPAIR_OWNER_FUNCTION_MODIFIED')
+ValueError: REPAIR_OWNER_FUNCTION_MODIFIED
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.506s
+
+FAILED (failures=1)
+
+EXIT_CODE=1

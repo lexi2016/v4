@@ -1,0 +1,129 @@
+COMMAND: /workspace/scratch/17ec887ca39d/runtime/python/cpython-3.14.6-linux-x86_64-gnu/bin/python3.14 -B -I tests/test_revision_review_tool.py
+START: 2026-10-10T01:36:35.242518+00:00
+test_cli_emits_read_only_request_with_the_fixed_real_pins (__main__.RevisionReviewToolTests.test_cli_emits_read_only_request_with_the_fixed_real_pins) ... FAIL
+test_cli_rejects_request_file_sha_mismatch (__main__.RevisionReviewToolTests.test_cli_rejects_request_file_sha_mismatch) ... FAIL
+test_duplicate_json_keys_are_rejected (__main__.RevisionReviewToolTests.test_duplicate_json_keys_are_rejected) ... FAIL
+test_each_changed_frozen_input_is_blocked (__main__.RevisionReviewToolTests.test_each_changed_frozen_input_is_blocked) ... FAIL
+test_invalid_request_values_are_rejected (__main__.RevisionReviewToolTests.test_invalid_request_values_are_rejected) ... FAIL
+test_missing_wrong_and_extra_binding_are_blocked (__main__.RevisionReviewToolTests.test_missing_wrong_and_extra_binding_are_blocked) ... FAIL
+test_new_returned_file_requires_its_explicit_sha (__main__.RevisionReviewToolTests.test_new_returned_file_requires_its_explicit_sha) ... FAIL
+test_original_fields_cannot_change_while_adding_binding (__main__.RevisionReviewToolTests.test_original_fields_cannot_change_while_adding_binding) ... FAIL
+test_pending_review_stays_blocked_without_writes (__main__.RevisionReviewToolTests.test_pending_review_stays_blocked_without_writes) ... FAIL
+test_request_contains_binding_and_pins_without_becoming_a_reviewer (__main__.RevisionReviewToolTests.test_request_contains_binding_and_pins_without_becoming_a_reviewer) ... FAIL
+test_symlink_inputs_are_rejected_without_writes (__main__.RevisionReviewToolTests.test_symlink_inputs_are_rejected_without_writes) ... FAIL
+test_valid_structure_does_not_claim_original_authorship_or_semantic_review (__main__.RevisionReviewToolTests.test_valid_structure_does_not_claim_original_authorship_or_semantic_review) ... FAIL
+
+======================================================================
+FAIL: test_cli_emits_read_only_request_with_the_fixed_real_pins (__main__.RevisionReviewToolTests.test_cli_emits_read_only_request_with_the_fixed_real_pins)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_cli_rejects_request_file_sha_mismatch (__main__.RevisionReviewToolTests.test_cli_rejects_request_file_sha_mismatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_duplicate_json_keys_are_rejected (__main__.RevisionReviewToolTests.test_duplicate_json_keys_are_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_each_changed_frozen_input_is_blocked (__main__.RevisionReviewToolTests.test_each_changed_frozen_input_is_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_invalid_request_values_are_rejected (__main__.RevisionReviewToolTests.test_invalid_request_values_are_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_missing_wrong_and_extra_binding_are_blocked (__main__.RevisionReviewToolTests.test_missing_wrong_and_extra_binding_are_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_new_returned_file_requires_its_explicit_sha (__main__.RevisionReviewToolTests.test_new_returned_file_requires_its_explicit_sha)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_original_fields_cannot_change_while_adding_binding (__main__.RevisionReviewToolTests.test_original_fields_cannot_change_while_adding_binding)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_pending_review_stays_blocked_without_writes (__main__.RevisionReviewToolTests.test_pending_review_stays_blocked_without_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_request_contains_binding_and_pins_without_becoming_a_reviewer (__main__.RevisionReviewToolTests.test_request_contains_binding_and_pins_without_becoming_a_reviewer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_symlink_inputs_are_rejected_without_writes (__main__.RevisionReviewToolTests.test_symlink_inputs_are_rejected_without_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+======================================================================
+FAIL: test_valid_structure_does_not_claim_original_authorship_or_semantic_review (__main__.RevisionReviewToolTests.test_valid_structure_does_not_claim_original_authorship_or_semantic_review)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/revision/bundle/tests/test_revision_review_tool.py", line 25, in setUp
+    self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : read-only revision reviewer request/preflight tool is absent
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.002s
+
+FAILED (failures=12)
+
+EXIT_CODE: 1

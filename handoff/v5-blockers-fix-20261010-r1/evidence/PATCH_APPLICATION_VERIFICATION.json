@@ -1,0 +1,28 @@
+{
+  "checks": [
+    {
+      "component": "manager",
+      "git_apply_check": true,
+      "git_apply": true,
+      "complete_candidate_byte_equal": true,
+      "verified_files": 603,
+      "baseline_bytes_unchanged": true
+    },
+    {
+      "component": "rebound",
+      "git_apply_check": true,
+      "git_apply": true,
+      "complete_candidate_byte_equal": true,
+      "verified_files": 516,
+      "baseline_bytes_unchanged": true
+    },
+    {
+      "component": "revision",
+      "git_apply_check": true,
+      "git_apply": true,
+      "complete_candidate_byte_equal": true,
+      "verified_files": 68,
+      "baseline_bytes_unchanged": true
+    }
+  ]
+}

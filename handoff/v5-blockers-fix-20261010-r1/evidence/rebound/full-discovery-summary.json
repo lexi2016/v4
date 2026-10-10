@@ -1,0 +1,49 @@
+{
+  "summary": [
+    "Ran 480 tests in 82.261s",
+    "FAILED (failures=6, errors=19, skipped=5)",
+    "EXIT_CODE=1"
+  ],
+  "failures_and_errors": [
+    "ERROR: test_broken_receipt_rejected_even_when_raw_pin_updated (test_announcement_bridge.AnnouncementBridgeTests.test_broken_receipt_rejected_even_when_raw_pin_updated)",
+    "ERROR: test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner (test_announcement_bridge.AnnouncementBridgeTests.test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner)",
+    "ERROR: test_changed_raw_file_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_changed_raw_file_rejected)",
+    "ERROR: test_default_publication_uses_original_hk_session_rule (test_announcement_bridge.AnnouncementBridgeTests.test_default_publication_uses_original_hk_session_rule)",
+    "ERROR: test_explicit_compact_publication_date_keeps_same_material_day (test_announcement_bridge.AnnouncementBridgeTests.test_explicit_compact_publication_date_keeps_same_material_day)",
+    "ERROR: test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits (test_announcement_bridge.AnnouncementBridgeTests.test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits)",
+    "ERROR: test_missing_handoff_keeps_analysis_but_not_consumption_verified (test_announcement_bridge.AnnouncementBridgeTests.test_missing_handoff_keeps_analysis_but_not_consumption_verified)",
+    "ERROR: test_missing_raw_material_not_recollected (test_announcement_bridge.AnnouncementBridgeTests.test_missing_raw_material_not_recollected)",
+    "ERROR: test_original_reader_preserves_real_published_counts (test_announcement_bridge.AnnouncementBridgeTests.test_original_reader_preserves_real_published_counts)",
+    "ERROR: test_partial_new_binding_group_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_partial_new_binding_group_preserves_current_v4_rejection)",
+    "ERROR: test_private_snapshot_view_used_for_complete_handoff (test_announcement_bridge.AnnouncementBridgeTests.test_private_snapshot_view_used_for_complete_handoff)",
+    "ERROR: test_resealed_parent_mismatch_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_resealed_parent_mismatch_preserves_current_v4_rejection)",
+    "ERROR: test_source_files_stay_byte_identical (test_announcement_bridge.AnnouncementBridgeTests.test_source_files_stay_byte_identical)",
+    "ERROR: test_symlink_root_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_symlink_root_rejected)",
+    "ERROR: test_undeclared_handoff_on_disk_under_code_tree_is_not_read (test_announcement_bridge.AnnouncementBridgeTests.test_undeclared_handoff_on_disk_under_code_tree_is_not_read)",
+    "ERROR: test_wrong_publication_date_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_publication_date_cannot_fall_back)",
+    "ERROR: test_wrong_target_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_target_cannot_fall_back)",
+    "ERROR: setUpClass (test_manager_announcement_binding.ManagerAnnouncementRealOwnerTests)",
+    "ERROR: setUpClass (test_us_mapping_daily.UsMappingDailyTests)",
+    "FAIL: test_changed_input_not_reused (test_review_guards.ReviewGuardsTests.test_changed_input_not_reused)",
+    "FAIL: test_forged_input_digest_rejected (test_review_guards.ReviewGuardsTests.test_forged_input_digest_rejected)",
+    "FAIL: test_future_master_rejected (test_review_guards.ReviewGuardsTests.test_future_master_rejected)",
+    "FAIL: test_worker_ignores_timestamp_cached_old_source (test_review_guards.ReviewGuardsTests.test_worker_ignores_timestamp_cached_old_source)",
+    "FAIL: test_missing_input_saved_as_unknown (test_worker_pipeline.WorkerPipelineTests.test_missing_input_saved_as_unknown)",
+    "FAIL: test_worker_commit_readback_and_repeat_same_run (test_worker_pipeline.WorkerPipelineTests.test_worker_commit_readback_and_repeat_same_run)"
+  ],
+  "skip_lines": [
+    "test_extracted_arithmetic_matches_original_owner_for_every_mutation (test_rebound_observation.ReboundObservationOriginalMacCandidates.test_extracted_arithmetic_matches_original_owner_for_every_mutation) ... skipped 'Mac opt-in only: original owner needs Python 3.14+ and locked dependencies'",
+    "test_panel_only_original_run_persists_native_observations_without_master (test_rebound_observation.ReboundObservationOriginalMacCandidates.test_panel_only_original_run_persists_native_observations_without_master) ... skipped 'Mac opt-in only: original owner needs Python 3.14+ and locked dependencies'",
+    "test_original_owner_groups_survive_unverified_research_projection_and_readback (test_rebound_owner.ReboundOriginalOwnerMacCandidates.test_original_owner_groups_survive_unverified_research_projection_and_readback) ... skipped 'Mac original-owner test requires explicit opt-in and Python 3.14+ locked runtime'",
+    "test_real_frozen_owner_identity_and_modified_function_rejection (test_rebound_panel_repair.ReboundPanelRepairOriginalMacCandidates.test_real_frozen_owner_identity_and_modified_function_rejection) ... skipped 'Mac explicit original-owner opt-in only'",
+    "test_real_model_assets_and_approved_raw_repair_only_in_private_copy (test_rebound_panel_repair.ReboundPanelRepairOriginalMacCandidates.test_real_model_assets_and_approved_raw_repair_only_in_private_copy) ... skipped 'Mac explicit original-owner opt-in only'"
+  ],
+  "warnings": [
+    "test_corrupted_artifact_cannot_render_success (test_readonly_web.ReadonlyWebTests.test_corrupted_artifact_cannot_render_success) ... /workspace/scratch/17ec887ca39d/runtime/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 409: 'Conflict'>",
+    "test_readonly_and_localhost_only (test_readonly_web.ReadonlyWebTests.test_readonly_and_localhost_only) ... /workspace/scratch/17ec887ca39d/runtime/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 405: 'Method Not Allowed'>",
+    "test_wrong_date_and_traversal_rejected (test_readonly_web.ReadonlyWebTests.test_wrong_date_and_traversal_rejected) ... /workspace/scratch/17ec887ca39d/runtime/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>",
+    "/workspace/scratch/17ec887ca39d/runtime/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>",
+    "test_raw_record_publish_preserves_old_values_native_trade_and_reuses_receipt (test_rebound_panel_repair.ReboundPanelRepairSyntheticCandidates.test_raw_record_publish_preserves_old_values_native_trade_and_reuses_receipt) ... /workspace/scratch/17ec887ca39d/work/rebound/V5/src/v5_shadow/rebound_panel_repair.py:345: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.",
+    "/workspace/scratch/17ec887ca39d/work/rebound/V5/src/v5_shadow/rebound_panel_repair.py:349: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation."
+  ]
+}

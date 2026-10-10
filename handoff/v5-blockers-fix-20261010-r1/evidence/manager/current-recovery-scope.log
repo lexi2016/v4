@@ -1,0 +1,110 @@
+{
+  "changes": [
+    {
+      "path": "src/v5_shadow/manager_plan.py",
+      "before_sha256": "1d9cd3ea0622a180f4a696b623029ad9ff871f7680804e61ef3ef1eeb4d45735",
+      "after_sha256": "a028774183c5cc877f56976b094a6280e99bcf5f88cba2d8d75e2ac6a6f45b29"
+    },
+    {
+      "path": "tests/test_manager_current_recovery.py",
+      "before_sha256": "186850a2f1f3cce46c7ba40af5ce0d8ed51943a96d34929a3029d71413fae034",
+      "after_sha256": "3025bd745836b5d251d366facd0ca37efd594586e5d451237fc0e75cd36fe030"
+    }
+  ],
+  "protected_paths": [
+    {
+      "path": "vendor",
+      "count": 447,
+      "mismatches": []
+    },
+    {
+      "path": "contracts",
+      "count": 17,
+      "mismatches": []
+    },
+    {
+      "path": "src/v5_shadow/manager_plan_io.py",
+      "count": 1,
+      "mismatches": []
+    }
+  ],
+  "production_change_scope": "Only current_recovery action=read exact-attempt enforcement before owner readback and daily channels",
+  "new_tests": [
+    "missing exact journal with latest present",
+    "missing exact and latest journals",
+    "same-day legacy compatibility control"
+  ]
+}
+--- before/src/v5_shadow/manager_plan.py
++++ after/src/v5_shadow/manager_plan.py
+@@ -452,6 +452,17 @@
+                         attempt=attempt, input_identity=saved['input_identity'])
+     else:
+         owner_view = 'dynamic' if current_recovery else request['view']
++        if current_recovery:
++            original_plan_attempt = workspace.verified_plan_attempt
++            def recovery_plan_attempt(store, saved):
++                attempt = original_plan_attempt(store, saved)
++                if attempt is None:
++                    raise ValueError('CURRENT_RECOVERY_EXACT_OWNER_ATTEMPT_MISSING')
++                return attempt
++            # The original manual legacy path allows no journal. A new
++            # recovery requires its exact journal before native readback and
++            # daily channel projections can describe any saved consumption.
++            workspace.verified_plan_attempt = recovery_plan_attempt
+         payload = workspace.get_workspace(service, request['target_date'], now=now, view=owner_view,
+             selection_date=request['selection_date'], announcement_date=request['announcement_date'])
+         readback = dict(status='READ_ONLY', plan_product=payload.get('plan_product'))
+--- before/tests/test_manager_current_recovery.py
++++ after/tests/test_manager_current_recovery.py
+@@ -148,6 +148,50 @@
+         self.assertEqual(page['read_context']['mode'], 'CURRENT_RECOVERY')
+         self.assertEqual(self.snapshot(), before)
+ 
++    def assert_missing_recovery_journal_rejected(self, saved):
++        before = self.snapshot()
++        page = self.read()['payload']
++        self.assertFalse(page['plan_product']['consumed'])
++        self.assertEqual(page['plan_product']['status'], 'OWNER_ATTEMPT_UNVERIFIED')
++        self.assertEqual(page['plan_product']['reason'], 'CURRENT_RECOVERY_EXACT_OWNER_ATTEMPT_MISSING')
++        self.assertEqual(page['plan_product']['run_id'], saved['readback']['run_id'])
++        self.assertEqual(page['plan_product']['sha256'], saved['readback']['plan_sha256'])
++        self.assertEqual(page['read_context']['mode'], 'CURRENT_RECOVERY')
++        for channel in page['daily_channels']['channels']:
++            if channel['channel'] in ('HK_CONNECT', 'OVERSOLD'):
++                self.assertIsNone(channel['run_id'])
++                self.assertIsNone(channel['product_sha256'])
++                self.assertEqual(channel['attempt_status'], 'NOT_VERIFIED')
++                self.assertEqual(channel['execution_kind'], 'READ_ONLY_EXISTING_OWNER_REPLAY')
++        self.assertEqual(self.snapshot(), before)
++
++    def test_missing_exact_recovery_journal_is_rejected_despite_latest_journal(self):
++        saved = run_manager_plan(self.request)
++        journal = self.output / 'current_recovery' / 'workspace_plan_runs' / '20261009' / (saved['readback']['run_id'] + '.json')
++        journal.unlink()
++        self.assertTrue(journal.with_name('latest.json').is_file())
++        self.assert_missing_recovery_journal_rejected(saved)
++
++    def test_missing_exact_and_latest_recovery_journals_are_rejected(self):
++        saved = run_manager_plan(self.request)
++        journal = self.output / 'current_recovery' / 'workspace_plan_runs' / '20261009' / (saved['readback']['run_id'] + '.json')
++        journal.unlink()
++        journal.with_name('latest.json').unlink()
++        self.assert_missing_recovery_journal_rejected(saved)
++
++    def test_same_day_manual_legacy_missing_journal_keeps_original_compatibility(self):
++        request = dict(self.request, now='2026-10-09T08:45:00+08:00')
++        saved = run_manager_plan(request)
++        journal = self.output / 'workspace_plan_runs' / '20261009' / (saved['readback']['run_id'] + '.json')
++        journal.unlink()
++        journal.with_name('latest.json').unlink()
++        before = self.snapshot()
++        page = run_manager_plan(dict(request, action='read'))['payload']
++        self.assertEqual(page['plan_product']['status'], 'CURRENT')
++        self.assertTrue(page['plan_product']['consumed'])
++        self.assertEqual(page['plan_product']['run_id'], saved['readback']['run_id'])
++        self.assertEqual(self.snapshot(), before)
++
+     def test_changed_bound_input_bytes_still_fail_sha_admission(self):
+         request = copy.deepcopy(self.request)
+         relative = 'workspace_announcements/20261009/latest.json'

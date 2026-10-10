@@ -1,0 +1,21 @@
+COMMAND: /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -I tests/test_provider_byte_accounting_red.py
+START: 2026-10-10T01:53:30.451552+00:00
+test_default_transport_over_limit_probe_is_charged (__main__.RealProviderByteAccountingRed.test_default_transport_over_limit_probe_is_charged) ... ok
+test_default_transport_partial_read_before_exception_is_charged (__main__.RealProviderByteAccountingRed.test_default_transport_partial_read_before_exception_is_charged) ... ok
+test_header_rejection_before_read_does_not_charge_unread_body (__main__.RealProviderByteAccountingRed.test_header_rejection_before_read_does_not_charge_unread_body) ... ok
+test_known_prebody_rejection_preserves_identity_and_allows_next_request (__main__.RealProviderByteAccountingRed.test_known_prebody_rejection_preserves_identity_and_allows_next_request) ... ok
+test_opaque_exception_or_invalid_body_marks_unknown_without_inventing_bytes (__main__.RealProviderByteAccountingRed.test_opaque_exception_or_invalid_body_marks_unknown_without_inventing_bytes) ... ok
+test_opener_provider_error_preserves_identity_and_marks_unknown (__main__.RealProviderByteAccountingRed.test_opener_provider_error_preserves_identity_and_marks_unknown) ... ok
+test_partial_unknown_consumption_retains_seven_and_blocks_next_transport (__main__.RealProviderByteAccountingRed.test_partial_unknown_consumption_retains_seven_and_blocks_next_transport) ... ok
+test_probe_cannot_read_one_byte_beyond_remaining_total_budget (__main__.RealProviderByteAccountingRed.test_probe_cannot_read_one_byte_beyond_remaining_total_budget) ... ok
+test_probe_cannot_spend_another_inflight_request_reservation (__main__.RealProviderByteAccountingRed.test_probe_cannot_spend_another_inflight_request_reservation) ... ok
+test_real_default_transport_success_is_counted_exactly_once (__main__.RealProviderByteAccountingRed.test_real_default_transport_success_is_counted_exactly_once) ... ok
+test_real_provider_rejected_final_url_still_charges_returned_body (__main__.RealProviderByteAccountingRed.test_real_provider_rejected_final_url_still_charges_returned_body) ... ok
+test_real_provider_rejected_oversize_response_is_charged (__main__.RealProviderByteAccountingRed.test_real_provider_rejected_oversize_response_is_charged) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.043s
+
+OK
+
+EXIT_CODE: 0

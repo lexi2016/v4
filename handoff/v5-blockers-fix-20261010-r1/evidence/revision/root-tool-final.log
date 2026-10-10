@@ -1,0 +1,25 @@
+test_boolean_and_numeric_type_drift_is_rejected (__main__.RevisionReviewToolTests.test_boolean_and_numeric_type_drift_is_rejected) ... ok
+test_cli_emits_read_only_request_with_the_fixed_real_pins (__main__.RevisionReviewToolTests.test_cli_emits_read_only_request_with_the_fixed_real_pins) ... ok
+test_cli_rejects_request_file_sha_mismatch (__main__.RevisionReviewToolTests.test_cli_rejects_request_file_sha_mismatch) ... ok
+test_decimal_value_drift_beyond_binary_float_precision_is_rejected (__main__.RevisionReviewToolTests.test_decimal_value_drift_beyond_binary_float_precision_is_rejected) ... ok
+test_duplicate_json_keys_are_rejected (__main__.RevisionReviewToolTests.test_duplicate_json_keys_are_rejected) ... ok
+test_each_changed_frozen_input_is_blocked (__main__.RevisionReviewToolTests.test_each_changed_frozen_input_is_blocked) ... ok
+test_equivalent_exact_decimal_spellings_remain_valid (__main__.RevisionReviewToolTests.test_equivalent_exact_decimal_spellings_remain_valid) ... ok
+test_invalid_request_values_are_rejected (__main__.RevisionReviewToolTests.test_invalid_request_values_are_rejected) ... ok
+test_missing_wrong_and_extra_binding_are_blocked (__main__.RevisionReviewToolTests.test_missing_wrong_and_extra_binding_are_blocked) ... ok
+test_nested_object_and_array_type_drift_is_rejected (__main__.RevisionReviewToolTests.test_nested_object_and_array_type_drift_is_rejected) ... ok
+test_new_returned_file_requires_its_explicit_sha (__main__.RevisionReviewToolTests.test_new_returned_file_requires_its_explicit_sha) ... ok
+test_nonstandard_numbers_in_original_reviewer_are_rejected (__main__.RevisionReviewToolTests.test_nonstandard_numbers_in_original_reviewer_are_rejected) ... ok
+test_nonstandard_numbers_in_request_json_are_rejected (__main__.RevisionReviewToolTests.test_nonstandard_numbers_in_request_json_are_rejected) ... ok
+test_nonstandard_numbers_in_returned_reviewer_are_rejected (__main__.RevisionReviewToolTests.test_nonstandard_numbers_in_returned_reviewer_are_rejected) ... ok
+test_original_fields_cannot_change_while_adding_binding (__main__.RevisionReviewToolTests.test_original_fields_cannot_change_while_adding_binding) ... ok
+test_pending_review_stays_blocked_without_writes (__main__.RevisionReviewToolTests.test_pending_review_stays_blocked_without_writes) ... ok
+test_request_contains_binding_and_pins_without_becoming_a_reviewer (__main__.RevisionReviewToolTests.test_request_contains_binding_and_pins_without_becoming_a_reviewer) ... ok
+test_symlink_inputs_are_rejected_without_writes (__main__.RevisionReviewToolTests.test_symlink_inputs_are_rejected_without_writes) ... ok
+test_unchanged_complex_json_types_and_values_remain_valid (__main__.RevisionReviewToolTests.test_unchanged_complex_json_types_and_values_remain_valid) ... ok
+test_valid_structure_does_not_claim_original_authorship_or_semantic_review (__main__.RevisionReviewToolTests.test_valid_structure_does_not_claim_original_authorship_or_semantic_review) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.081s
+
+OK

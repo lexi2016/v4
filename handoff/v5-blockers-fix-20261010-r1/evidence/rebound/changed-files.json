@@ -1,0 +1,38 @@
+{
+  "baseline_commit": "ebe5944ecfbec2f6a161793d7c11946dea063e57",
+  "baseline_files": 515,
+  "candidate_files": 516,
+  "changes": [
+    {
+      "after": {
+        "bytes": 40572,
+        "sha256": "8c912de834dfaebaa0a0973fbe015cf65d2326e06de2a0677918e00df5a696a8"
+      },
+      "before": {
+        "bytes": 38678,
+        "sha256": "1fa7d530b7b1fe7190a0e33990c82e0d26292a6c98f02d72dc942b455bd6ac94"
+      },
+      "path": "src/v5_shadow/rebound_panel_repair.py"
+    },
+    {
+      "after": {
+        "bytes": 11619,
+        "sha256": "182ca1a555443f39b546838f724895b968b4b5ecebc13bc11e15cdf6f4cf00d6"
+      },
+      "before": null,
+      "path": "tests/test_rebound_owner_identity.py"
+    }
+  ],
+  "module_code_manifest_sha256": {
+    "after": "fc40b2fce9d98dead732224b31f2d3d8cf77a0906a26191f1f41a4a18b834596",
+    "before": "4e2a6fb561aa63c9aa91b1d9f4cbb5adcb61ec794f9672fa705374a215f0f452"
+  },
+  "observation_runtime_identity_map_sha256": {
+    "after": "b2a0afd5cb206b10993af67e699bb060384e16ca8acc706f2cf432fb143ad82b",
+    "before": "4773caa21851c7715ce8924d5a417cb61b40b25e097d9cc84cd49ffda78d2955",
+    "changed_entry": "rebound_panel_repair.py"
+  },
+  "runtime_extension_identity": "rebound_observation._identity hashes rebound_panel_repair.py dynamically; all original owner/dependency/capsule pins remain unchanged",
+  "static_identity_manifests_changed": [],
+  "unchanged_existing_files": 514
+}

@@ -1,0 +1,56 @@
+{
+  "phase": "RED",
+  "started_at": "2026-10-10T01:35:42.153231+00:00",
+  "runtime": "Python 3.14.6",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "command": [
+    "/workspace/scratch/17ec887ca39d/runtime/python/cpython-3.14.6-linux-x86_64-gnu/bin/python3.14",
+    "-B",
+    "-m",
+    "unittest",
+    "test_manager_current_recovery.ManagerCurrentRecoveryTests.test_crossday_refresh_and_auto_read_keep_same_run_and_sha",
+    "test_daily_revision_chain",
+    "-v"
+  ],
+  "cwd": "/workspace/scratch/17ec887ca39d/work/crossday/V5",
+  "exit_code": 1
+}
+test_crossday_refresh_and_auto_read_keep_same_run_and_sha (test_manager_current_recovery.ManagerCurrentRecoveryTests.test_crossday_refresh_and_auto_read_keep_same_run_and_sha) ... FAIL
+test_original_manager_save_then_auto_read_consumes_revision (test_daily_revision_chain.DailyRevisionOriginalChainTests.test_original_manager_save_then_auto_read_consumes_revision) ... FAIL
+test_original_revision_commands_and_readonly_manager_transport (test_daily_revision_chain.DailyRevisionOriginalChainTests.test_original_revision_commands_and_readonly_manager_transport) ... ok
+test_removed_admitted_revision_input_refuses_current_recovery_readback (test_daily_revision_chain.DailyRevisionOriginalChainTests.test_removed_admitted_revision_input_refuses_current_recovery_readback) ... FAIL
+
+======================================================================
+FAIL: test_crossday_refresh_and_auto_read_keep_same_run_and_sha (test_manager_current_recovery.ManagerCurrentRecoveryTests.test_crossday_refresh_and_auto_read_keep_same_run_and_sha)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/crossday/V5/tests/test_manager_current_recovery.py", line 48, in test_crossday_refresh_and_auto_read_keep_same_run_and_sha
+    self.assertEqual(saved['readback']['run_id'], page['payload']['plan_product']['run_id'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '15f018a1c7324ab098eb5661d714f5da' != None
+
+======================================================================
+FAIL: test_original_manager_save_then_auto_read_consumes_revision (test_daily_revision_chain.DailyRevisionOriginalChainTests.test_original_manager_save_then_auto_read_consumes_revision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/crossday/V5/tests/test_daily_revision_chain.py", line 75, in test_original_manager_save_then_auto_read_consumes_revision
+    self.assertEqual(saved['readback']['run_id'],page['payload']['plan_product']['run_id'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '71b55ce942a3418898f7accad80622ac' != None
+
+======================================================================
+FAIL: test_removed_admitted_revision_input_refuses_current_recovery_readback (test_daily_revision_chain.DailyRevisionOriginalChainTests.test_removed_admitted_revision_input_refuses_current_recovery_readback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/crossday/V5/tests/test_daily_revision_chain.py", line 100, in test_removed_admitted_revision_input_refuses_current_recovery_readback
+    self.assertEqual(page['plan_product']['status'],'STALE_INPUTS_CHANGED')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'NOT_MATERIALIZED' != 'STALE_INPUTS_CHANGED'
+- NOT_MATERIALIZED
++ STALE_INPUTS_CHANGED
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 14.892s
+
+FAILED (failures=3)

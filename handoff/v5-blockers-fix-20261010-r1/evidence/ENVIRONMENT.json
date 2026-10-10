@@ -1,0 +1,26 @@
+{
+  "acceptance_scope": "Linux source-only and synthetic verification; Mac native/private-asset acceptance NOT_RUN",
+  "executable": "/workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python",
+  "explicit_opt_ins": {
+    "V5_REBOUND_OBSERVATION_ORIGINAL_TESTS": null,
+    "V5_REBOUND_OWNER_ORIGINAL_TESTS": null,
+    "V5_REBOUND_REPAIR_ORIGINAL_TESTS": null,
+    "V5_REBOUND_REPAIR_REAL_INPUT": null
+  },
+  "external_input_paths": {
+    "V5_ANNOUNCEMENT_REQUEST_PATH": null,
+    "V5_US_MAPPING_REQUEST_PATH": null
+  },
+  "gil_disabled_build": 0,
+  "implementation": "CPython",
+  "interpreter": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "machine": "x86_64",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "2.3.3",
+    "pyarrow": "24.0.0"
+  },
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "pyproject_sha256": "0a1824d3b255ee7f8391919254b2c21bf0deaf6da11a1b8cfc3e3a58c6fd4584",
+  "uv_lock_sha256": "7cb690f890cc28b6a79311f07e724f61c3dc4411494d480c0041f075f0825bfd"
+}

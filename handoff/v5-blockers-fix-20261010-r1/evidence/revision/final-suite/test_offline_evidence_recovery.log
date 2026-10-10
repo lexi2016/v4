@@ -1,0 +1,24 @@
+COMMAND: /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -I tests/test_offline_evidence_recovery.py
+START: 2026-10-10T01:53:28.118235+00:00
+test_authoritative_body_tampering_is_rejected (__main__.OfflineRecoveryTests.test_authoritative_body_tampering_is_rejected) ... ok
+test_boolean_to_integer_change_is_not_serialization (__main__.OfflineRecoveryTests.test_boolean_to_integer_change_is_not_serialization) ... ok
+test_capture_publishes_exact_authoritative_batch_bytes (__main__.OfflineRecoveryTests.test_capture_publishes_exact_authoritative_batch_bytes) ... ok
+test_changed_top_level_json_cannot_be_hidden_as_serialization (__main__.OfflineRecoveryTests.test_changed_top_level_json_cannot_be_hidden_as_serialization) ... ok
+test_expected_blocked_policy_sha_is_mandatory (__main__.OfflineRecoveryTests.test_expected_blocked_policy_sha_is_mandatory) ... ok
+test_forbidden_output_child_and_ancestor_are_rejected (__main__.OfflineRecoveryTests.test_forbidden_output_child_and_ancestor_are_rejected) ... ok
+test_missing_real_reader_output_remains_missing (__main__.OfflineRecoveryTests.test_missing_real_reader_output_remains_missing) ... ok
+test_nested_json_types_are_compared_strictly (__main__.OfflineRecoveryTests.test_nested_json_types_are_compared_strictly) ... ok
+test_recovery_root_and_descendants_cannot_initialize_network_owner (__main__.OfflineRecoveryTests.test_recovery_root_and_descendants_cannot_initialize_network_owner) ... ok
+test_serialization_only_recovery_keeps_originals_and_partial_status (__main__.OfflineRecoveryTests.test_serialization_only_recovery_keeps_originals_and_partial_status) ... ok
+test_source_app_file_must_match_manifest (__main__.OfflineRecoveryTests.test_source_app_file_must_match_manifest) ... ok
+test_source_app_manifest_bytes_must_match_trusted_874_anchor (__main__.OfflineRecoveryTests.test_source_app_manifest_bytes_must_match_trusted_874_anchor) ... ok
+test_wrong_identity_manifest_is_rejected (__main__.OfflineRecoveryTests.test_wrong_identity_manifest_is_rejected) ... ok
+test_wrong_policy_manifest_is_rejected_even_with_updated_expected_policy_sha (__main__.OfflineRecoveryTests.test_wrong_policy_manifest_is_rejected_even_with_updated_expected_policy_sha) ... ok
+test_wrong_source_identity_root_is_rejected (__main__.OfflineRecoveryTests.test_wrong_source_identity_root_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 1.367s
+
+OK
+
+EXIT_CODE: 0

@@ -1,0 +1,175 @@
+{
+  "candidate_sources_after": {
+    "daily_announcement_revision.py": "30ce8a2bd4ee292a5f2db828041d9d6fb7d008e57b736a62209d8fe0de511c09",
+    "daily_dispatch.py": "a7d0a9bfe672fd670ee3c7504a0b25c1a0365498c0520b71d16e38bc93cae240",
+    "daily_owner_adapters.py": "c56434d24ddc7c8cb77eb6ed640d4a02628d22a84d26d8fc6fc7608c20fcab41",
+    "daily_review_handoff.py": "0b7742306801669a198b0b9d7990901344aa51ab7a5e0ab7aec73be9b8a22325",
+    "daily_tick.py": "f611f096cbbba64557d11eb9ead2b2f5407d82bfe7d3cdcf12d36454eeb22ccc",
+    "manager_plan.py": "1d9cd3ea0622a180f4a696b623029ad9ff871f7680804e61ef3ef1eeb4d45735"
+  },
+  "candidate_sources_before": {
+    "daily_announcement_revision.py": "30ce8a2bd4ee292a5f2db828041d9d6fb7d008e57b736a62209d8fe0de511c09",
+    "daily_dispatch.py": "a7d0a9bfe672fd670ee3c7504a0b25c1a0365498c0520b71d16e38bc93cae240",
+    "daily_owner_adapters.py": "c56434d24ddc7c8cb77eb6ed640d4a02628d22a84d26d8fc6fc7608c20fcab41",
+    "daily_review_handoff.py": "0b7742306801669a198b0b9d7990901344aa51ab7a5e0ab7aec73be9b8a22325",
+    "daily_tick.py": "f611f096cbbba64557d11eb9ead2b2f5407d82bfe7d3cdcf12d36454eeb22ccc",
+    "manager_plan.py": "1d9cd3ea0622a180f4a696b623029ad9ff871f7680804e61ef3ef1eeb4d45735"
+  },
+  "candidate_sources_unchanged": true,
+  "input_changes_during_prior_lane": {
+    "durable_announcement_attempt_count": 1,
+    "durable_announcement_states": [
+      {
+        "attempts": [
+          {
+            "finished_at": "2026-10-10T01:49:03.699781+00:00",
+            "natural_verified": false,
+            "product_reference": null,
+            "readback_verified": false,
+            "reason_codes": [
+              "WAITING_REAL_REVISION_INPUT_FILES"
+            ],
+            "retry_safe_without_external_effect": false,
+            "run_id": "d43b0653b8414cab822499d93d7897bf",
+            "started_at": "2026-10-10T01:49:03.698609+00:00",
+            "status": "BLOCKED"
+          }
+        ],
+        "identity": {
+          "code_sha256": "8d2894f2980c164dc6536ce74e47d37dc04af3dde6e8be7e8f3861296e112fb6",
+          "config_sha256": "f78b7b46876f62684612bab8116c79e66431e02e9279ef9d44f1b3829ac5b20d",
+          "dependency_sha256": "21acad4f543295a98cd1e29d6568356a845aa2b4645584433769b8ed8f7e50af",
+          "input_sha256": "8690e6752aa7356a2960b9fee307ba6d537b16b4049ab51d100c459edeb7b628",
+          "lane": "announcement",
+          "research_cutoff": "2026-10-09T08:00:00+08:00",
+          "target_date": "20261009"
+        },
+        "identity_sha256": "79debc48916e3f78f5599881f9a0894f3c851bc8d7a520656d5dab72b074fdff",
+        "latest_success": null
+      }
+    ],
+    "lanes": [
+      {
+        "lane": "us_mapping",
+        "state": {
+          "attempts": [
+            {
+              "finished_at": "2026-10-10T01:49:03.698304+00:00",
+              "natural_verified": false,
+              "product_reference": null,
+              "readback_verified": false,
+              "reason_codes": [
+                "SYNTHETIC_FIRST_OWNER_RETURN"
+              ],
+              "retry_safe_without_external_effect": false,
+              "run_id": "41f8c04c2660407f8fc3aa35979a4492",
+              "started_at": "2026-10-10T01:49:03.698060+00:00",
+              "status": "BLOCKED"
+            }
+          ],
+          "identity": {
+            "code_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "config_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "dependency_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "input_sha256": "c09814a7cdc1228f540595aeb2c70ac568877557e64b5c6e3bc3cbf6b9f7b58e",
+            "lane": "us_mapping",
+            "research_cutoff": "2026-10-09T08:00:00+08:00",
+            "target_date": "20261009"
+          },
+          "identity_sha256": "18d9f81c553185be7f33037f062d632c97125ff799e41e84cfb16372b265a08b",
+          "latest_success": null
+        },
+        "status": "BLOCKED"
+      },
+      {
+        "lane": "announcement",
+        "state": {
+          "attempts": [
+            {
+              "finished_at": "2026-10-10T01:49:03.699781+00:00",
+              "natural_verified": false,
+              "product_reference": null,
+              "readback_verified": false,
+              "reason_codes": [
+                "WAITING_REAL_REVISION_INPUT_FILES"
+              ],
+              "retry_safe_without_external_effect": false,
+              "run_id": "d43b0653b8414cab822499d93d7897bf",
+              "started_at": "2026-10-10T01:49:03.698609+00:00",
+              "status": "BLOCKED"
+            }
+          ],
+          "identity": {
+            "code_sha256": "8d2894f2980c164dc6536ce74e47d37dc04af3dde6e8be7e8f3861296e112fb6",
+            "config_sha256": "f78b7b46876f62684612bab8116c79e66431e02e9279ef9d44f1b3829ac5b20d",
+            "dependency_sha256": "21acad4f543295a98cd1e29d6568356a845aa2b4645584433769b8ed8f7e50af",
+            "input_sha256": "8690e6752aa7356a2960b9fee307ba6d537b16b4049ab51d100c459edeb7b628",
+            "lane": "announcement",
+            "research_cutoff": "2026-10-09T08:00:00+08:00",
+            "target_date": "20261009"
+          },
+          "identity_sha256": "79debc48916e3f78f5599881f9a0894f3c851bc8d7a520656d5dab72b074fdff",
+          "latest_success": null
+        },
+        "status": "BLOCKED"
+      }
+    ]
+  },
+  "live_return_clock": {
+    "poll": {
+      "natural_verified": false,
+      "request_sha256": "c6a5529a1edbaa8eb9506c915d93f91a5f86d8e3bcea886a09a9765abb75db9e",
+      "retry_submission_automatically": false,
+      "status": "BLOCKED_INVALID_REVIEW_RETURN"
+    },
+    "submit": {
+      "natural_verified": false,
+      "request_sha256": "c6a5529a1edbaa8eb9506c915d93f91a5f86d8e3bcea886a09a9765abb75db9e",
+      "retry_submission_automatically": false,
+      "status": "BLOCKED_INVALID_REVIEW_RETURN"
+    }
+  },
+  "mismatched_semantic_source": {
+    "actual_semantic_sha256": "813d2285cdb3e8b3a45eb962ac84afb2ff94eac899d10fec8959a611f748e27d",
+    "preflight": {
+      "natural_verified": false,
+      "original_owner_verified": false,
+      "reason_codes": [],
+      "status": "READY_FOR_ORIGINAL_OWNER"
+    },
+    "reviewer_semantic_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "missing_recovery_journal": {
+    "both_journals_missing": {
+      "consumed": true,
+      "execution_kind": "MANUAL_REFRESH",
+      "generated_at": "2026-10-10T01:49:02.276702+00:00",
+      "historical_eligible": false,
+      "last_checked_at": "2026-10-10T09:49:01.685194+08:00",
+      "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "owner_status": "CURRENT",
+      "run_id": "955bf5d78e5f42638478daddb10c1dbc",
+      "sha256": "c0777984db177d5f8f3c90519e94dcbc68efa1f204dcefec01c223fd2f336a38",
+      "status": "CURRENT_RECOVERY"
+    },
+    "exact_journal_missing": {
+      "consumed": true,
+      "execution_kind": "MANUAL_REFRESH",
+      "generated_at": "2026-10-10T01:49:02.276702+00:00",
+      "historical_eligible": false,
+      "last_checked_at": "2026-10-10T09:49:01.685194+08:00",
+      "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "owner_status": "CURRENT",
+      "run_id": "955bf5d78e5f42638478daddb10c1dbc",
+      "sha256": "c0777984db177d5f8f3c90519e94dcbc68efa1f204dcefec01c223fd2f336a38",
+      "status": "CURRENT_RECOVERY"
+    },
+    "final_attempt": null,
+    "saved_plan_sha256": "c0777984db177d5f8f3c90519e94dcbc68efa1f204dcefec01c223fd2f336a38",
+    "saved_run_id": "955bf5d78e5f42638478daddb10c1dbc"
+  },
+  "observed_at": "2026-10-10T01:49:01.682044+00:00",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "synthetic_only": true
+}

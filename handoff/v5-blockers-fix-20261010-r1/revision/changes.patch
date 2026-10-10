@@ -1,0 +1,775 @@
+diff --git a/REVISION_REVIEW_BINDING_HANDOFF.md b/REVISION_REVIEW_BINDING_HANDOFF.md
+new file mode 100644
+--- /dev/null
++++ b/REVISION_REVIEW_BINDING_HANDOFF.md
+@@ -0,0 +1,121 @@
++# 原独审修订绑定：可调用请求与只读预检
++
++## 当前结论
++
++**业务状态仍为 `BLOCKED_AWAITING_ORIGINAL_REVIEWER`。** 本增量完成结构门禁调查、拒绝与零写入测试，以及独立可调用的请求/返回预检。没有重做392条正文、决定或语义审查，没有生成该批次的 reviewer PASS 文件，也没有执行真实 create/import。
++
++固定基线为 `e06d143e881c66c22053a5c594b9c0be21d5be34`，仓库路径是 `V5/handoff/announcement-budget-red-20261009`。`candidate/ops/run_v5_decision_revision.py` 的五字段字典全等校验已在新 revision 的锁、目录和 pending 清单写入前执行。缺字段属于原独审输入尚未覆盖新修订；不需要放宽这个门禁。本轮所有64个原文件字节保持不变，核心 SHA256 仍为 `d78898559a8b46e7ec7edd344bc3352871d1f360db75fe62d6545c0532b9ab64`。
++
++`tools/review_revision_binding.py` 是独立的标准库工具，不装入原 owner app，不更改 app manifest、原导入器、91项门禁或业务聚合。它输出请求或结构报告，不提交模型任务，也不证明审核者身份；真正的任务、通道、worker 身份和返回文件 SHA 必须经已有审核运行通道核实。
++
++## 已准备的具体请求
++
++交付件 `deliverables/reviewer-binding-request.json` 是可发给原独审的请求，不是可导入的 reviewer。
++
++- 修订 ID：`decision-r20261010-rebind-638bfee44529438d`。
++- 请求文件 SHA256：`98464a39323fd332e29dbed82344b9e9c5eefed75fede37ec7dca8c93991845c`。
++- 未发送给审核者；未创建 revision。Mac 私有根尚未检查该 ID 是否存在；真正 create 仍执行原不可复用检查。
++- 原独审的新 reviewer 文件与新文件 SHA：**尚未返回**。请求 SHA 不能用作 reviewer SHA。
++
++原独审须核对并补充以下精确对象。所有值都区分逻辑产品 SHA 与文件 SHA：
++
++```json
++{
++  "revision_id": "decision-r20261010-rebind-638bfee44529438d",
++  "parent_product_sha256": "e724d07b39e5b4fb3ccbb0b4536f4519b4badbfd3783cad7ee6506a7af242ad6",
++  "parent_owner_receipt_file_sha256": "6b5907c556b35b4e4a2c8a9928889b33d314369de31a7c6a12058f352c0525d0",
++  "source_recovery_receipt_sha256": "b7b37e5385cdb7f14edc711af3b9d4bfd708441ac1de290a24a2b086b0f37b0f",
++  "source_run_id": "16cc60afcb089f11690430b05853114c"
++}
++```
++
++独审交付须保留既有 reviewer 字段原值，补充顶层 `decision_revision`。可以新增来源说明字段；本预检禁止修改既有 `review_conclusion`、reader/reviewer 身份、决定摘要、旧 `reviewed_at` 等字段。新绑定审查的时间、任务与通道来源放在真实返回回执或新增来源字段，不把旧语义审查时间改写成新语义审查。
++
++原字段保持检查按 JSON 类型和值递归执行，覆盖对象和数组：`false` 不等于 `0`，`true` 不等于 `1`，整数 `392` 不等于小数 `392.0`。小数采用 Decimal 精确解析，`9007199254740993.0` 与 `9007199254740992.0` 不会因二进制浮点舍入被视为相同。类型和值一致、仅对象键序或等值小数写法不同的返回仍可通过结构检查。请求、原 reviewer 和返回 reviewer 三个 JSON 入口均拒绝 `NaN`、`Infinity`、`-Infinity` 和重复键。这些解析及比较只作用于新增预检工具，没有修改 semantic、decisions 或原 owner 的权威摘要算法。
++
++| 冻结输入 | 必须保持的摘要 |
++|---|---|
++| 原 reviewer 文件 SHA256 | `981f89ebbcee269701ad69e4c346944f9da37cfcb1693032ca11de65c3e4eb29` |
++| semantic 文件 SHA256 | `ec315a9470b92869dc5db928a29e52a7d83a67fd7b53925d65e36e83bcaaf8ba` |
++| 完整 decisions 文件 SHA256 | `37607c65e2d822298fe321f8c3278acaf0e33d56f3261fa48b098b6ef2e5a10f` |
++| 既有 decisions 逻辑 SHA256 | `e0094a54b123050c11870b8f1ed4a71bf768afd87ccb221605b135f846d468c8` |
++
++预检对 semantic 和 decisions 仅核对固定文件字节摘要，并核对原 reviewer 中已存在的逻辑决定摘要；不重算研究结论。原 `create` 与 `register-handoff` 继续负责规范化逻辑摘要和逐条业务门禁。
++
++## 可执行合同
++
++### 1. 生成另一份请求（仅在确需使用另一个新 ID 时）
++
++```sh
++python3.14 -B -I "$BUNDLE/tools/review_revision_binding.py" request \
++  --revision-id "$REVISION_ID"
++```
++
++输出仅写到 stdout。默认值是上表和五项冻结绑定；全部 expected pins 也可显式作为同名连字符参数传入，供别的固定批次使用。本批须核对请求中的值与上述冻结值完全一致。调用方保存 stdout 后固定请求文件 SHA；工具不写输入、不创建目录、不生成审核文件。
++
++`request` 退出码0只表示请求生成成功，JSON状态仍为 BLOCKED。该输出没有 `review_conclusion` 和顶层 `decision_revision`，不能冒用为审核返回。
++
++### 2. Mac 核对既有冻结输入，并显示等待状态
++
++`BUNDLE` 为本源码包根；`REVIEW_REQUEST` 为上面的请求文件。其余路径指向 Mac 已有的真实冻结文件，不使用脱敏诊断 JSON 代替原文件。
++
++```sh
++python3.14 -B -I "$BUNDLE/tools/review_revision_binding.py" inspect \
++  --request "$REVIEW_REQUEST" \
++  --request-sha256 98464a39323fd332e29dbed82344b9e9c5eefed75fede37ec7dca8c93991845c \
++  --original-reviewer "$ORIGINAL_REVIEWER" \
++  --semantic-catalog "$SEMANTIC_CATALOG" \
++  --decisions "$ARTICLE_DECISIONS"
++```
++
++未传返回 reviewer 时，核对冻结输入后输出 `BLOCKED_AWAITING_ORIGINAL_REVIEWER`，退出码2。不会消耗执行 attempt，也不会生成 revision；attempt 管理由上层任务通道负责。
++
++### 3. 原独审真实返回后预检新文件
++
++先通过已有审核通道核实实际原 reviewer、请求身份、任务/worker 与返回文件 SHA；没有这些来源证据时保持 BLOCKED。不得由集成器运行“补字段并写 PASS”的脚本。
++
++```sh
++python3.14 -B -I "$BUNDLE/tools/review_revision_binding.py" inspect \
++  --request "$REVIEW_REQUEST" \
++  --request-sha256 98464a39323fd332e29dbed82344b9e9c5eefed75fede37ec7dca8c93991845c \
++  --original-reviewer "$ORIGINAL_REVIEWER" \
++  --semantic-catalog "$SEMANTIC_CATALOG" \
++  --decisions "$ARTICLE_DECISIONS" \
++  --reviewer-output "$ACTUAL_RETURNED_REVIEWER" \
++  --reviewer-sha256 "$ACTUAL_RETURNED_REVIEWER_SHA"
++```
++
++| 预检状态 | 退出码 | 含义 |
++|---|---:|---|
++| `BLOCKED_AWAITING_ORIGINAL_REVIEWER` | 2 | 原输入满足固定摘要，尚无新 reviewer 返回 |
++| `BLOCKED` | 2 | 请求/输入 SHA、JSON、原记录或精确五项绑定不符合合同；`error_codes` 给出原因 |
++| `STRUCTURAL_BINDING_VERIFIED` | 0 | 文件字节、五项绑定和既有审核字段一致；仅代表结构验证 |
++
++即使结构验证退出0，报告仍明确 `authorship_verified=false`、`semantic_review_performed=false`、`authorizes_import=false`，并保留业务来源待验证状态。调用方只有在真实审核通道验明返回后，才可把新 reviewer 交给原流程；不能只凭该工具的退出码放行。新的 reviewer JSON 本身也不能证明作者是谁。
++
++### 4. 保留原 create → prepare → register → verify → import → readback
++
++真实输入须在原恢复根的独立 inputs 中保持各自固定字节。原步骤详见本目录未修改的 `DECISION_REVISION.md`。`create` 必须使用实际返回的 reviewer 文件 SHA、新请求中的同一个 revision ID、原 semantic/decisions SHA，以及原父产品/回执/recovery SHA。create 成功后核对新 manifest 文件 SHA，再运行后续原命令。
++
++如果 ID 已存在，或曾留下初始化失败目录，保留目录并选择新的 ID；新的 ID 必须重新取得原独审对该绑定的真实补充审查。禁止手动清空后复用、把 reviewer 改成另一个 ID 或覆盖旧产品。输入缺失/错配时不要进入真实 create 来制造失败目录。实际导入时间用于新 `available_at`；不回填旧计划或声称旧日历史可用。
++
++## 本轮验证证据
++
++正式环境：Linux x86_64，CPython **3.14.6**，`/workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python`；依赖环境由主任务按原 uv.lock 安装。不是 Mac 环境或 Mac 私有资产验收。
++
++- 原 e06d 98项与新增28项，共 **126/126 PASS、0 SKIP**，13个测试文件各自在独立进程执行。最终完整命令、时间与退出码见 `evidence/locked-suite-strict-json/`。初版118项结果保留在 `evidence/locked-suite/`，不能覆盖后续审查发现的问题。
++- 新增 `test_revision_review_gate.py`：8个测试方法、25个拒绝子场景。真实调用原 create 与原父验证；仅在写入方法、建目录与 kernel_lock 边界安装“若调用则失败”的检测，同时比较全部父文件字节和目录。缺绑定、5字段分别缺失/错配、额外字段、错误类型、旧 revision ID、6类错 SHA、错误决定摘要均在任何这些写入边界之前拒绝。
++- 新增 `test_revision_review_tool.py`：最终20项。初次 RED 为工具未存在时12项明确失败；初版实现后12项通过。该 RED 不表示原 create 存在漏洞，原门禁一直保持通过。
++- 独立结构审查随后发现初版 helper 使用 Python 宽松相等比较，可能接受布尔/整数/小数类型漂移及小数精度丢失；JSON 默认解析也接受非标准非有限数值。本轮先补8项回归，在旧 helper 上实测20个测试方法中的18个失败子场景，再以精确 Decimal 解析及递归类型和值比较修复，20项全部通过。证据为 `evidence/strict-json-red.log`、`evidence/strict-json-green.log`、`evidence/strict-json-gate-regression.log`。最终126项套件覆盖这次修复，不把初版118项通过等同于无审查问题。
++- 3.12.14上的原10+7项只是兼容性探测，正式结果以上述3.14.6为准。
++- `evidence/SOURCE_INVARIANCE.json` 列出64个原文件的前后 SHA，全部相同。新增工具、测试和本文不改变原 manifests。
++
++测试使用临时、明确标记 synthetic 的两条公告材料。测试目录清理后没有留下业务 reviewer；这些结果不能当作392条的独审、真实导入、API/UI或部署验收。
++
++## 仍需实际返回的内容
++
++原独审经已有通道补充审查上述精确绑定，交付新的 reviewer 文件、其实际 SHA256，以及可核对原审核者身份/任务/请求绑定的真实返回回执。随后由 Mac 运行原导入与反读验收。本轮未获得原 reviewer 原始字节、392正文、完整 decisions 或 Mac私有根，因此这些真实业务步骤均为 `NOT_RUN`；未更改任何业务 PASS、91项限制或392条决定。
++
++## 来源核验限制
++
++固定交接入口是 `46081f5bcfb5f0c9e63aaa8b2b7baf65ae191eff/handoff/v5-blockers-20261010/START_HERE.md` 及同目录两份验收说明。ZIP二进制未能下载；源码通过固定原 ref 的逐文件内容和摘要核对取得，不能称整 ZIP 已核验。`REVIEW_FIX.md`、`SOURCE_MANIFEST.json` 为原 ref 的合法原字节，和ZIP内脱敏摘要不同；不将它们冒称为ZIP字节。
+diff --git a/tests/test_revision_review_gate.py b/tests/test_revision_review_gate.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_revision_review_gate.py
+@@ -0,0 +1,117 @@
++"""Synthetic gate checks only; never a review of the frozen 392 decisions."""
++import copy
++import importlib.util
++import json
++from pathlib import Path
++import sys
++import unittest
++from unittest.mock import patch
++
++spec = importlib.util.spec_from_file_location(
++    'review_gate_support', Path(__file__).with_name('test_decision_revision.py'))
++support = importlib.util.module_from_spec(spec)
++sys.modules[spec.name] = support
++spec.loader.exec_module(support)
++
++
++class RevisionReviewGateTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        support.DecisionRevisionTests.setUpClass()
++
++    @classmethod
++    def tearDownClass(cls):
++        support.DecisionRevisionTests.tearDownClass()
++
++    def setUp(self):
++        self.fixture = support.DecisionRevisionTests()
++        self.fixture.setUp()
++        self.addCleanup(self.fixture.doCleanups)
++        self.reviewer = json.loads(self.fixture.reviewer.read_bytes())
++
++    def tearDown(self):
++        self.fixture.tearDown()
++
++    def snapshot(self):
++        return {
++            str(path.relative_to(self.fixture.parent)):
++                ('file', path.read_bytes()) if path.is_file() else ('directory', None)
++            for path in self.fixture.parent.rglob('*')
++        }
++
++    def reject_without_write(self, error='REVISION_REVIEW_BINDING_INVALID', **overrides):
++        from infrastructure.owned_io import SafeRoot
++        before = self.snapshot()
++        # Instrument only mutation boundaries; parent evidence and create are real.
++        with patch.object(SafeRoot, 'write_bytes', side_effect=AssertionError('write attempted')), \
++             patch.object(SafeRoot, 'ensure_directory', side_effect=AssertionError('mkdir attempted')), \
++             patch.object(SafeRoot, 'kernel_lock', side_effect=AssertionError('lock creation attempted')):
++            with self.assertRaisesRegex(ValueError, '^' + error + '$'):
++                self.fixture.create(**overrides)
++        self.assertEqual(self.snapshot(), before)
++        self.assertFalse((self.fixture.parent / 'decision_revisions').exists())
++
++    def write_reviewer(self, value):
++        support.support.dump(self.fixture.reviewer, value)
++
++    def test_absent_binding_is_rejected_before_any_mutator(self):
++        value = copy.deepcopy(self.reviewer)
++        del value['decision_revision']
++        self.write_reviewer(value)
++        self.reject_without_write()
++
++    def test_each_missing_binding_field_is_rejected_without_writes(self):
++        for name in self.reviewer['decision_revision']:
++            with self.subTest(field=name):
++                value = copy.deepcopy(self.reviewer)
++                del value['decision_revision'][name]
++                self.write_reviewer(value)
++                self.reject_without_write()
++
++    def test_each_mismatched_binding_field_is_rejected_without_writes(self):
++        for name in self.reviewer['decision_revision']:
++            with self.subTest(field=name):
++                value = copy.deepcopy(self.reviewer)
++                value['decision_revision'][name] = 'different-value'
++                self.write_reviewer(value)
++                self.reject_without_write()
++
++    def test_extra_binding_field_is_rejected_without_writes(self):
++        value = copy.deepcopy(self.reviewer)
++        value['decision_revision']['unreviewed_extra'] = 'not part of the binding'
++        self.write_reviewer(value)
++        self.reject_without_write()
++
++    def test_non_object_binding_is_rejected_without_writes(self):
++        for binding in (None, [], '', 0, True):
++            with self.subTest(binding=binding):
++                value = copy.deepcopy(self.reviewer)
++                value['decision_revision'] = binding
++                self.write_reviewer(value)
++                self.reject_without_write()
++
++    def test_previous_revision_binding_cannot_create_another_id(self):
++        self.reject_without_write(revision_id='synthetic-next-revision')
++
++    def test_wrong_parent_recovery_and_input_pins_are_rejected_without_writes(self):
++        errors = {
++            'parent_product_sha256': 'REVISION_PARENT_PIN_MISMATCH',
++            'parent_receipt_sha256': 'REVISION_PARENT_PIN_MISMATCH',
++            'recovery_sha256': 'OFFLINE_ANALYSIS_RECOVERY_SHA_MISMATCH',
++            'semantic_sha256': 'REVISION_INPUT_SHA_MISMATCH',
++            'reviewer_sha256': 'REVISION_INPUT_SHA_MISMATCH',
++            'decisions_sha256': 'REVISION_INPUT_SHA_MISMATCH',
++        }
++        for name, error in errors.items():
++            with self.subTest(pin=name):
++                self.reject_without_write(error, **{name: '0' * 64})
++
++    def test_changed_decision_digest_is_rejected_without_writes(self):
++        value = copy.deepcopy(self.reviewer)
++        value['decision_payload_sha256'] = '0' * 64
++        self.write_reviewer(value)
++        self.reject_without_write('REVISION_EXPLICIT_DECISIONS_REVIEW_REQUIRED')
++
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)
+diff --git a/tests/test_revision_review_tool.py b/tests/test_revision_review_tool.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_revision_review_tool.py
+@@ -0,0 +1,298 @@
++"""Read-only request/preflight tests with clearly synthetic review records."""
++import contextlib
++import copy
++import hashlib
++import importlib.util
++import io
++import json
++from pathlib import Path
++import tempfile
++import unittest
++
++TOOL = Path(__file__).resolve().parents[1] / 'tools/review_revision_binding.py'
++
++
++def sha(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def dump(path, value):
++    path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True) + '\n')
++
++
++class RevisionReviewToolTests(unittest.TestCase):
++    def setUp(self):
++        self.assertTrue(TOOL.is_file(), 'read-only revision reviewer request/preflight tool is absent')
++        spec = importlib.util.spec_from_file_location('revision_review_tool', TOOL)
++        self.tool = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(self.tool)
++        self.tmp = tempfile.TemporaryDirectory(prefix='synthetic-review-preflight-')
++        self.addCleanup(self.tmp.cleanup)
++        self.root = Path(self.tmp.name)
++        self.semantic = self.root / 'semantic.json'
++        self.decisions = self.root / 'decisions.json'
++        self.original = self.root / 'original-reviewer.json'
++        self.returned = self.root / 'returned-reviewer.json'
++        dump(self.semantic, {'synthetic_fixture_only': True, 'records': []})
++        dump(self.decisions, {'article_decisions': [{'synthetic_fixture_only': True}]})
++        self.binding = dict(
++            revision_id='synthetic-revision', parent_product_sha256='a' * 64,
++            parent_owner_receipt_file_sha256='b' * 64,
++            source_recovery_receipt_sha256='c' * 64, source_run_id='d' * 32)
++        self.original_value = dict(
++            review_conclusion='PASS', reader_identity='synthetic-reader',
++            reviewer_identity='synthetic-independent-reviewer',
++            evidence_run_id='d' * 32, decision_status='EXPLICIT_DISPOSITIONS',
++            decision_payload_sha256='e' * 64,
++            semantic_catalog_sha256=sha(self.semantic.read_bytes()),
++            reviewed_at='2026-10-09T12:00:00+00:00', synthetic_fixture_only=True)
++        dump(self.original, self.original_value)
++        self.pins = dict(original_reviewer_file_sha256=sha(self.original.read_bytes()),
++            semantic_catalog_file_sha256=sha(self.semantic.read_bytes()),
++            article_decisions_file_sha256=sha(self.decisions.read_bytes()),
++            article_decisions_logical_sha256='e' * 64)
++        self.request = self.tool.make_request(self.binding, self.pins)
++
++    def snapshot(self):
++        return {p.name: p.read_bytes() for p in self.root.iterdir() if p.is_file()}
++
++    def inspect(self, returned=True, returned_sha=None):
++        before = self.snapshot()
++        result = self.tool.inspect_review(self.request,
++            original_reviewer=self.original, semantic_catalog=self.semantic,
++            decisions=self.decisions, reviewer_output=self.returned if returned else None,
++            reviewer_sha256=returned_sha if returned_sha is not None else
++                sha(self.returned.read_bytes()) if returned and self.returned.exists() else None)
++        self.assertEqual(before, self.snapshot())
++        self.assertFalse((self.root / 'decision_revisions').exists())
++        return result
++
++    def make_returned(self, **changes):
++        value = copy.deepcopy(self.original_value)
++        value['decision_revision'] = copy.deepcopy(self.binding)
++        value.update(changes)
++        dump(self.returned, value)
++        return value
++
++    def test_request_contains_binding_and_pins_without_becoming_a_reviewer(self):
++        self.assertEqual(self.request['expected_decision_revision'], self.binding)
++        self.assertEqual(self.request['frozen_inputs'], self.pins)
++        self.assertEqual(self.request['status'], 'BLOCKED_AWAITING_ORIGINAL_REVIEWER')
++        self.assertNotIn('review_conclusion', self.request)
++        self.assertNotIn('decision_revision', self.request)
++        self.assertFalse(self.request['semantic_review_performed'])
++        self.assertFalse(self.request['authorizes_import'])
++
++    def test_pending_review_stays_blocked_without_writes(self):
++        result = self.inspect(returned=False)
++        self.assertEqual(result['status'], 'BLOCKED_AWAITING_ORIGINAL_REVIEWER')
++        self.assertFalse(result['authorizes_import'])
++
++    def test_valid_structure_does_not_claim_original_authorship_or_semantic_review(self):
++        self.make_returned()
++        result = self.inspect()
++        self.assertEqual(result['status'], 'STRUCTURAL_BINDING_VERIFIED')
++        self.assertFalse(result['authorship_verified'])
++        self.assertFalse(result['semantic_review_performed'])
++        self.assertFalse(result['authorizes_import'])
++        self.assertEqual(result['reviewer_file_sha256'], sha(self.returned.read_bytes()))
++
++    def test_original_fields_cannot_change_while_adding_binding(self):
++        for name, changed in (('reviewer_identity', 'other-reviewer'),
++                              ('decision_payload_sha256', 'f' * 64),
++                              ('reviewed_at', '2026-10-10T12:00:00+00:00')):
++            with self.subTest(field=name):
++                self.make_returned(**{name: changed})
++                self.assertIn('ORIGINAL_REVIEW_FIELDS_CHANGED', self.inspect()['error_codes'])
++
++    def test_boolean_and_numeric_type_drift_is_rejected(self):
++        for original, returned in ((False, 0), (True, 1), (392, 392.0), (392.0, 392)):
++            with self.subTest(original=original, returned=returned):
++                self.original_value['immutable_detail'] = original
++                dump(self.original, self.original_value)
++                self.pins['original_reviewer_file_sha256'] = sha(self.original.read_bytes())
++                self.request = self.tool.make_request(self.binding, self.pins)
++                self.make_returned(immutable_detail=returned)
++                result = self.inspect()
++                self.assertEqual(result['status'], 'BLOCKED')
++                self.assertIn('ORIGINAL_REVIEW_FIELDS_CHANGED', result['error_codes'])
++                self.assertEqual(result['changed_original_fields'], ['immutable_detail'])
++
++    def test_nested_object_and_array_type_drift_is_rejected(self):
++        cases = [
++            ({'body': {'complete': False}}, {'body': {'complete': 0}}),
++            ({'rows': [{'count': 392}]}, {'rows': [{'count': 392.0}]}),
++            ([{'flags': [True, False]}], [{'flags': [1, 0]}]),
++        ]
++        for original, returned in cases:
++            with self.subTest(original=original, returned=returned):
++                self.original_value['immutable_detail'] = original
++                dump(self.original, self.original_value)
++                self.pins['original_reviewer_file_sha256'] = sha(self.original.read_bytes())
++                self.request = self.tool.make_request(self.binding, self.pins)
++                self.make_returned(immutable_detail=returned)
++                result = self.inspect()
++                self.assertEqual(result['status'], 'BLOCKED')
++                self.assertIn('ORIGINAL_REVIEW_FIELDS_CHANGED', result['error_codes'])
++
++    def precise_review(self, original_token, returned_token):
++        original_raw = json.dumps(self.original_value, sort_keys=True)
++        self.original.write_text(original_raw[:-1] + ',"exact_number":' + original_token + '}\n')
++        self.pins['original_reviewer_file_sha256'] = sha(self.original.read_bytes())
++        self.request = self.tool.make_request(self.binding, self.pins)
++        self.make_returned()
++        returned_raw = self.returned.read_text().rstrip()
++        self.returned.write_text(returned_raw[:-1] + ',"exact_number":' + returned_token + '}\n')
++
++    def test_decimal_value_drift_beyond_binary_float_precision_is_rejected(self):
++        for original, returned in (
++                ('9007199254740993.0', '9007199254740992.0'),
++                ('1.0000000000000000001', '1.0')):
++            with self.subTest(original=original, returned=returned):
++                self.precise_review(original, returned)
++                result = self.inspect()
++                self.assertEqual(result['status'], 'BLOCKED')
++                self.assertIn('ORIGINAL_REVIEW_FIELDS_CHANGED', result['error_codes'])
++                self.assertEqual(result['changed_original_fields'], ['exact_number'])
++
++    def test_unchanged_complex_json_types_and_values_remain_valid(self):
++        self.original_value['immutable_detail'] = {
++            'flag': False, 'items': [None, True, 392, 392.0, '392', {'ratio': 1.25}]}
++        dump(self.original, self.original_value)
++        self.pins['original_reviewer_file_sha256'] = sha(self.original.read_bytes())
++        self.request = self.tool.make_request(self.binding, self.pins)
++        value = self.make_returned()
++        # Different object key order does not change JSON field types or values.
++        self.returned.write_text(json.dumps(value, sort_keys=False) + '\n')
++        result = self.inspect()
++        self.assertEqual(result['status'], 'STRUCTURAL_BINDING_VERIFIED')
++        self.assertFalse(result['authorship_verified'])
++        self.assertFalse(result['authorizes_import'])
++
++    def test_equivalent_exact_decimal_spellings_remain_valid(self):
++        self.precise_review('9007199254740993.0', '9007199254740993.00')
++        self.assertEqual(self.inspect()['status'], 'STRUCTURAL_BINDING_VERIFIED')
++
++    def test_nonstandard_numbers_in_returned_reviewer_are_rejected(self):
++        for token in ('NaN', 'Infinity', '-Infinity'):
++            with self.subTest(token=token):
++                self.make_returned()
++                raw = self.returned.read_text().rstrip()
++                self.returned.write_text(raw[:-1] + ',"new_provenance":' + token + '}\n')
++                result = self.inspect()
++                self.assertEqual(result['status'], 'BLOCKED')
++                self.assertIn('REVIEWER_JSON_INVALID', result['error_codes'])
++
++    def test_nonstandard_numbers_in_original_reviewer_are_rejected(self):
++        for token in ('NaN', 'Infinity', '-Infinity'):
++            with self.subTest(token=token):
++                raw = json.dumps(self.original_value, sort_keys=True)
++                self.original.write_text(raw[:-1] + ',"original_provenance":' + token + '}\n')
++                self.pins['original_reviewer_file_sha256'] = sha(self.original.read_bytes())
++                self.request = self.tool.make_request(self.binding, self.pins)
++                self.make_returned()
++                result = self.inspect()
++                self.assertEqual(result['status'], 'BLOCKED')
++                self.assertIn('ORIGINAL_REVIEWER_JSON_INVALID', result['error_codes'])
++
++    def test_nonstandard_numbers_in_request_json_are_rejected(self):
++        self.make_returned()
++        request_path = self.root / 'request.json'
++        for token in ('NaN', 'Infinity', '-Infinity'):
++            with self.subTest(token=token):
++                raw = json.dumps(self.request, sort_keys=True)
++                request_path.write_text(raw[:-1] + ',"request_note":' + token + '}\n')
++                output = io.StringIO()
++                before = self.snapshot()
++                with contextlib.redirect_stdout(output):
++                    rc = self.tool.main(['inspect', '--request', str(request_path),
++                        '--request-sha256', sha(request_path.read_bytes()),
++                        '--original-reviewer', str(self.original),
++                        '--semantic-catalog', str(self.semantic), '--decisions', str(self.decisions),
++                        '--reviewer-output', str(self.returned),
++                        '--reviewer-sha256', sha(self.returned.read_bytes())])
++                self.assertEqual(before, self.snapshot())
++                self.assertEqual(rc, 2)
++                self.assertIn('REQUEST_JSON_INVALID', json.loads(output.getvalue())['error_codes'])
++
++    def test_missing_wrong_and_extra_binding_are_blocked(self):
++        variants = [None, {**self.binding, 'revision_id': 'other-id'},
++                    {**self.binding, 'unreviewed_extra': True}]
++        for binding in variants:
++            with self.subTest(binding=binding):
++                self.make_returned(decision_revision=binding)
++                self.assertIn('REVISION_REVIEW_BINDING_INVALID', self.inspect()['error_codes'])
++
++    def test_new_returned_file_requires_its_explicit_sha(self):
++        self.make_returned()
++        self.assertIn('RETURNED_REVIEWER_SHA_MISMATCH',
++            self.inspect(returned_sha='0' * 64)['error_codes'])
++        before = self.snapshot()
++        result = self.tool.inspect_review(self.request,
++            original_reviewer=self.original, semantic_catalog=self.semantic,
++            decisions=self.decisions, reviewer_output=self.returned, reviewer_sha256=None)
++        self.assertIn('RETURNED_REVIEWER_SHA_REQUIRED', result['error_codes'])
++        self.assertEqual(before, self.snapshot())
++
++    def test_each_changed_frozen_input_is_blocked(self):
++        self.make_returned()
++        for path, error in ((self.original, 'ORIGINAL_REVIEWER_SHA_MISMATCH'),
++                            (self.semantic, 'SEMANTIC_CATALOG_SHA_MISMATCH'),
++                            (self.decisions, 'ARTICLE_DECISIONS_SHA_MISMATCH')):
++            raw = path.read_bytes()
++            with self.subTest(path=path.name):
++                path.write_bytes(raw + b' ')
++                self.assertIn(error, self.inspect()['error_codes'])
++            path.write_bytes(raw)
++
++    def test_duplicate_json_keys_are_rejected(self):
++        self.make_returned()
++        raw = self.returned.read_text().rstrip()
++        self.returned.write_text(raw[:-1] + ',"decision_revision":null}\n')
++        self.assertIn('REVIEWER_JSON_INVALID', self.inspect()['error_codes'])
++
++    def test_symlink_inputs_are_rejected_without_writes(self):
++        self.make_returned()
++        alias = self.root / 'alias-reviewer.json'
++        alias.symlink_to(self.returned)
++        result = self.tool.inspect_review(self.request,
++            original_reviewer=self.original, semantic_catalog=self.semantic,
++            decisions=self.decisions, reviewer_output=alias,
++            reviewer_sha256=sha(self.returned.read_bytes()))
++        self.assertIn('INPUT_SYMLINK_FORBIDDEN', result['error_codes'])
++
++    def test_cli_emits_read_only_request_with_the_fixed_real_pins(self):
++        output = io.StringIO()
++        with contextlib.redirect_stdout(output):
++            rc = self.tool.main(['request', '--revision-id', 'decision-r20261010-review'])
++        self.assertEqual(rc, 0)
++        result = json.loads(output.getvalue())
++        self.assertEqual(result['expected_decision_revision']['parent_product_sha256'],
++            'e724d07b39e5b4fb3ccbb0b4536f4519b4badbfd3783cad7ee6506a7af242ad6')
++        self.assertEqual(result['frozen_inputs']['original_reviewer_file_sha256'],
++            '981f89ebbcee269701ad69e4c346944f9da37cfcb1693032ca11de65c3e4eb29')
++        self.assertEqual(result['status'], 'BLOCKED_AWAITING_ORIGINAL_REVIEWER')
++
++    def test_cli_rejects_request_file_sha_mismatch(self):
++        request_path = self.root / 'request.json'
++        dump(request_path, self.request)
++        output = io.StringIO()
++        before = self.snapshot()
++        with contextlib.redirect_stdout(output):
++            rc = self.tool.main(['inspect', '--request', str(request_path),
++                '--request-sha256', '0' * 64, '--original-reviewer', str(self.original),
++                '--semantic-catalog', str(self.semantic), '--decisions', str(self.decisions)])
++        self.assertEqual(rc, 2)
++        self.assertIn('REQUEST_SHA_MISMATCH', json.loads(output.getvalue())['error_codes'])
++        self.assertEqual(before, self.snapshot())
++
++    def test_invalid_request_values_are_rejected(self):
++        for name, changed in (('revision_id', '../escape'),
++                              ('source_run_id', 'bad-run'),
++                              ('parent_product_sha256', 'BAD-PIN')):
++            with self.subTest(field=name), self.assertRaisesRegex(ValueError, 'REQUEST_INVALID'):
++                self.tool.make_request({**self.binding, name: changed}, self.pins)
++
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)
+diff --git a/tools/review_revision_binding.py b/tools/review_revision_binding.py
+new file mode 100644
+--- /dev/null
++++ b/tools/review_revision_binding.py
+@@ -0,0 +1,219 @@
++#!/usr/bin/env python3
++"""Emit a review request or inspect returned bytes; never create a reviewer or revision.
++
++This tool checks immutable structure only. Authentic reviewer identity and the
++task/transport receipt must be verified through the existing review channel.
++It never supplies semantic approval and never authorizes an import.
++"""
++from __future__ import annotations
++
++import argparse
++from decimal import Decimal, DecimalException
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import stat
++
++REQUEST_SCHEMA = 'v5.revision_review_binding_request.v1'
++REPORT_SCHEMA = 'v5.revision_review_binding_preflight.v1'
++BINDING_PINS = dict(
++    parent_product_sha256='e724d07b39e5b4fb3ccbb0b4536f4519b4badbfd3783cad7ee6506a7af242ad6',
++    parent_owner_receipt_file_sha256='6b5907c556b35b4e4a2c8a9928889b33d314369de31a7c6a12058f352c0525d0',
++    source_recovery_receipt_sha256='b7b37e5385cdb7f14edc711af3b9d4bfd708441ac1de290a24a2b086b0f37b0f',
++    source_run_id='16cc60afcb089f11690430b05853114c')
++FROZEN_INPUTS = dict(
++    original_reviewer_file_sha256='981f89ebbcee269701ad69e4c346944f9da37cfcb1693032ca11de65c3e4eb29',
++    semantic_catalog_file_sha256='ec315a9470b92869dc5db928a29e52a7d83a67fd7b53925d65e36e83bcaaf8ba',
++    article_decisions_file_sha256='37607c65e2d822298fe321f8c3278acaf0e33d56f3261fa48b098b6ef2e5a10f',
++    article_decisions_logical_sha256='e0094a54b123050c11870b8f1ed4a71bf768afd87ccb221605b135f846d468c8')
++
++
++class InputError(ValueError):
++    pass
++
++
++def _hex(value, count=64):
++    return isinstance(value, str) and re.fullmatch('[0-9a-f]{' + str(count) + '}', value) is not None
++
++
++def make_request(binding, frozen_inputs):
++    """Build a request, not a reviewer. Pins are explicit caller expectations."""
++    if (not isinstance(binding, dict) or set(binding) != {'revision_id', *BINDING_PINS}
++            or not isinstance(binding.get('revision_id'), str)
++            or not re.fullmatch('[a-z0-9][a-z0-9_-]{0,63}', binding['revision_id'])
++            or not _hex(binding.get('source_run_id'), 32)
++            or any(not _hex(binding.get(key)) for key in BINDING_PINS if key != 'source_run_id')
++            or not isinstance(frozen_inputs, dict) or set(frozen_inputs) != set(FROZEN_INPUTS)
++            or any(not _hex(value) for value in frozen_inputs.values())):
++        raise ValueError('REQUEST_INVALID')
++    return dict(
++        schema=REQUEST_SCHEMA, status='BLOCKED_AWAITING_ORIGINAL_REVIEWER',
++        scope='IMMUTABLE_REVISION_BINDING_ONLY',
++        expected_decision_revision=dict(binding), frozen_inputs=dict(frozen_inputs),
++        semantic_review_performed=False, authorizes_import=False,
++        return_contract=dict(
++            required_artifacts=['actual_original_reviewer_output_file',
++                'new_reviewer_output_file_sha256', 'actual_review_channel_identity_and_task_receipt'],
++            original_fields='Preserve all existing reviewer fields; supplement decision_revision only. '
++                'Additional provenance fields may be added without changing original fields.',
++            provenance='Verify the actual original reviewer, request identity, channel and returned file SHA '
++                'through the existing review channel; JSON fields alone do not prove authorship.',
++            original_material='Reuse the frozen semantic catalog and decisions byte for byte. '
++                'Do not redo the 392-article semantic review.'))
++
++
++def _report(status, errors=(), **details):
++    return dict(schema=REPORT_SCHEMA, status=status, scope='STRUCTURAL_BINDING_ONLY',
++        error_codes=list(errors), authorship_verified=False,
++        semantic_review_performed=False, authorizes_import=False,
++        business_status='BLOCKED_UNTIL_AUTHENTIC_ORIGINAL_REVIEWER_RETURN_IS_VERIFIED',
++        **details)
++
++
++def _read_pinned(path, expected, mismatch):
++    if not _hex(expected):
++        raise InputError('EXPECTED_SHA_INVALID')
++    path = Path(path).absolute()
++    # The importer's SafeRoot remains authoritative. This helper also refuses
++    # symlink inputs and non-regular files before consuming any returned bytes.
++    if any(part.is_symlink() for part in (path, *path.parents)):
++        raise InputError('INPUT_SYMLINK_FORBIDDEN')
++    try:
++        descriptor = os.open(path, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0)
++            | getattr(os, 'O_NONBLOCK', 0))
++        with os.fdopen(descriptor, 'rb') as handle:
++            if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
++                raise InputError('INPUT_NOT_REGULAR')
++            raw = handle.read(64 * 1024 * 1024 + 1)
++    except OSError as exc:
++        raise InputError('INPUT_READ_FAILED') from exc
++    if len(raw) > 64 * 1024 * 1024:
++        raise InputError('INPUT_TOO_LARGE')
++    if hashlib.sha256(raw).hexdigest() != expected:
++        raise InputError(mismatch)
++    return raw
++
++
++def _json_object(raw, code):
++    def reject_nonfinite(token):
++        raise ValueError('non-standard JSON number: ' + token)
++
++    def unique(pairs):
++        value = {}
++        for key, item in pairs:
++            if key in value:
++                raise ValueError('duplicate JSON key')
++            value[key] = item
++        return value
++    try:
++        value = json.loads(raw, object_pairs_hook=unique,
++            parse_float=Decimal, parse_constant=reject_nonfinite)
++        if not isinstance(value, dict):
++            raise ValueError('JSON object required')
++        return value
++    except (UnicodeError, ValueError, DecimalException) as exc:
++        raise InputError(code) from exc
++
++
++def _same_json_value(left, right):
++    """Compare JSON types and exact values, including nested decimal numbers."""
++    if type(left) is not type(right):
++        return False
++    if isinstance(left, dict):
++        return left.keys() == right.keys() and all(
++            _same_json_value(value, right[key]) for key, value in left.items())
++    if isinstance(left, list):
++        return len(left) == len(right) and all(
++            _same_json_value(a, b) for a, b in zip(left, right))
++    return left == right
++
++
++def inspect_review(request, *, original_reviewer, semantic_catalog, decisions,
++                   reviewer_output=None, reviewer_sha256=None):
++    """Read local inputs and return structural findings; perform no writes."""
++    try:
++        if not isinstance(request, dict) or request.get('schema') != REQUEST_SCHEMA:
++            raise InputError('REQUEST_INVALID')
++        binding = request.get('expected_decision_revision')
++        pins = request.get('frozen_inputs')
++        make_request(binding, pins)
++        original = _json_object(_read_pinned(original_reviewer,
++            pins['original_reviewer_file_sha256'], 'ORIGINAL_REVIEWER_SHA_MISMATCH'),
++            'ORIGINAL_REVIEWER_JSON_INVALID')
++        _read_pinned(semantic_catalog, pins['semantic_catalog_file_sha256'],
++            'SEMANTIC_CATALOG_SHA_MISMATCH')
++        # Byte identity is sufficient here; the original owner still validates
++        # the normalized logical digest and all per-article gates during create/register.
++        _read_pinned(decisions, pins['article_decisions_file_sha256'],
++            'ARTICLE_DECISIONS_SHA_MISMATCH')
++        reader = original.get('reader_identity')
++        reviewer = original.get('reviewer_identity')
++        if (original.get('review_conclusion') != 'PASS'
++                or original.get('evidence_run_id') != binding['source_run_id']
++                or original.get('decision_status') != 'EXPLICIT_DISPOSITIONS'
++                or original.get('decision_payload_sha256') != pins['article_decisions_logical_sha256']
++                or original.get('semantic_catalog_sha256') != pins['semantic_catalog_file_sha256']
++                or not isinstance(reader, str) or not reader.strip()
++                or not isinstance(reviewer, str) or not reviewer.strip() or reader == reviewer
++                or 'decision_revision' in original):
++            raise InputError('ORIGINAL_REVIEW_CONTRACT_INVALID')
++        details = dict(expected_decision_revision=dict(binding), frozen_inputs=dict(pins),
++            original_reviewer_identity=reviewer, original_reader_identity=reader,
++            frozen_input_bytes_verified=True)
++        if reviewer_output is None:
++            return _report('BLOCKED_AWAITING_ORIGINAL_REVIEWER', **details)
++        if not _hex(reviewer_sha256):
++            raise InputError('RETURNED_REVIEWER_SHA_REQUIRED')
++        returned = _json_object(_read_pinned(reviewer_output, reviewer_sha256,
++            'RETURNED_REVIEWER_SHA_MISMATCH'), 'REVIEWER_JSON_INVALID')
++        errors = []
++        if not _same_json_value(returned.get('decision_revision'), binding):
++            errors.append('REVISION_REVIEW_BINDING_INVALID')
++        changed = sorted(key for key, value in original.items()
++            if key not in returned or not _same_json_value(returned[key], value))
++        if changed:
++            errors.append('ORIGINAL_REVIEW_FIELDS_CHANGED')
++        if errors:
++            return _report('BLOCKED', errors, changed_original_fields=changed, **details)
++        return _report('STRUCTURAL_BINDING_VERIFIED', reviewer_file_sha256=reviewer_sha256,
++            original_reviewer_fields_unchanged=True, **details)
++    except (InputError, ValueError) as exc:
++        return _report('BLOCKED', [str(exc)])
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    commands = parser.add_subparsers(dest='command', required=True)
++    request_parser = commands.add_parser('request', help='Print a BLOCKED request; never print a reviewer')
++    request_parser.add_argument('--revision-id', required=True)
++    for name, default in {**BINDING_PINS, **FROZEN_INPUTS}.items():
++        request_parser.add_argument('--' + name.replace('_', '-'), default=default)
++    inspect_parser = commands.add_parser('inspect', help='Read and compare pinned files; never create a revision')
++    for name in ('request', 'request-sha256', 'original-reviewer', 'semantic-catalog', 'decisions'):
++        inspect_parser.add_argument('--' + name, required=True)
++    inspect_parser.add_argument('--reviewer-output')
++    inspect_parser.add_argument('--reviewer-sha256')
++    args = parser.parse_args(argv)
++    try:
++        if args.command == 'request':
++            result = make_request(dict(revision_id=args.revision_id,
++                **{key: getattr(args, key) for key in BINDING_PINS}),
++                {key: getattr(args, key) for key in FROZEN_INPUTS})
++            code = 0
++        else:
++            request = _json_object(_read_pinned(args.request, args.request_sha256,
++                'REQUEST_SHA_MISMATCH'), 'REQUEST_JSON_INVALID')
++            result = inspect_review(request, original_reviewer=args.original_reviewer,
++                semantic_catalog=args.semantic_catalog, decisions=args.decisions,
++                reviewer_output=args.reviewer_output, reviewer_sha256=args.reviewer_sha256)
++            code = 0 if result['status'] == 'STRUCTURAL_BINDING_VERIFIED' else 2
++    except (InputError, ValueError) as exc:
++        result, code = _report('BLOCKED', [str(exc)]), 2
++    print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
++    return code
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())

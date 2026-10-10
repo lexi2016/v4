@@ -1,0 +1,19 @@
+COMMAND: /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -I tests/test_decision_revision.py
+START: 2026-10-10T01:53:17.134908+00:00
+test_capture_and_input_overrides_are_rejected (__main__.DecisionRevisionTests.test_capture_and_input_overrides_are_rejected) ... ok
+test_changed_decision_input_is_rejected_before_registration (__main__.DecisionRevisionTests.test_changed_decision_input_is_rejected_before_registration) ... ok
+test_copied_source_tampering_is_rejected_before_registration (__main__.DecisionRevisionTests.test_copied_source_tampering_is_rejected_before_registration) ... ok
+test_failed_body_cannot_be_selected_by_revision (__main__.DecisionRevisionTests.test_failed_body_cannot_be_selected_by_revision) ... ok
+test_new_decision_import_preserves_old_product_and_same_capture_run (__main__.DecisionRevisionTests.test_new_decision_import_preserves_old_product_and_same_capture_run) ... ok
+test_old_or_wrong_revision_reviewer_is_rejected (__main__.DecisionRevisionTests.test_old_or_wrong_revision_reviewer_is_rejected) ... ok
+test_revision_id_reuse_never_overwrites (__main__.DecisionRevisionTests.test_revision_id_reuse_never_overwrites) ... ok
+test_wrong_input_file_sha_is_rejected (__main__.DecisionRevisionTests.test_wrong_input_file_sha_is_rejected) ... ok
+test_wrong_parent_product_or_receipt_pin_is_rejected (__main__.DecisionRevisionTests.test_wrong_parent_product_or_receipt_pin_is_rejected) ... ok
+test_wrong_reviewer_decision_payload_sha_is_rejected (__main__.DecisionRevisionTests.test_wrong_reviewer_decision_payload_sha_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 6.124s
+
+OK
+
+EXIT_CODE: 0

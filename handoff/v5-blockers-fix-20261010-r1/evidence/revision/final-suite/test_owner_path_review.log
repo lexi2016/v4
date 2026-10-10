@@ -1,0 +1,16 @@
+COMMAND: /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -I tests/test_owner_path_review.py
+START: 2026-10-10T01:53:30.086763+00:00
+test_date_round_trip_preserves_history_and_refuses_old_target (__main__.OwnerPathReview.test_date_round_trip_preserves_history_and_refuses_old_target) ... ok
+test_existing_nested_artifact_link_rejected_without_read_or_write (__main__.OwnerPathReview.test_existing_nested_artifact_link_rejected_without_read_or_write) ... ok
+test_finished_target_cannot_change_publication_to_reset_budget (__main__.OwnerPathReview.test_finished_target_cannot_change_publication_to_reset_budget) ... ok
+test_internal_derived_directory_link_rejected_before_capture (__main__.OwnerPathReview.test_internal_derived_directory_link_rejected_before_capture) ... ok
+test_late_directory_link_cannot_redirect_original_capture_mkdir (__main__.OwnerPathReview.test_late_directory_link_cannot_redirect_original_capture_mkdir) ... ok
+test_late_existing_artifact_link_is_not_followed_by_writer (__main__.OwnerPathReview.test_late_existing_artifact_link_is_not_followed_by_writer) ... ok
+test_publication_cannot_move_to_another_target_to_reset_budget (__main__.OwnerPathReview.test_publication_cannot_move_to_another_target_to_reset_budget) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.053s
+
+OK
+
+EXIT_CODE: 0

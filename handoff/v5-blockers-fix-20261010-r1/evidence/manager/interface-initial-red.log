@@ -1,0 +1,25 @@
+test_missing_binding_does_not_consume_attempt_even_when_files_exist (test_daily_review_handoff.DailyReviewHandoffTests.test_missing_binding_does_not_consume_attempt_even_when_files_exist) ... FAIL
+test_same_reader_reviewer_does_not_consume_attempt (test_daily_review_handoff.DailyReviewHandoffTests.test_same_reader_reviewer_does_not_consume_attempt) ... FAIL
+
+======================================================================
+FAIL: test_missing_binding_does_not_consume_attempt_even_when_files_exist (test_daily_review_handoff.DailyReviewHandoffTests.test_missing_binding_does_not_consume_attempt_even_when_files_exist)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/interface/V5/tests/test_daily_review_handoff.py", line 101, in test_missing_binding_does_not_consume_attempt_even_when_files_exist
+    self.assertEqual(calls,0,'invalid independent-review binding must block before owner claim')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : invalid independent-review binding must block before owner claim
+
+======================================================================
+FAIL: test_same_reader_reviewer_does_not_consume_attempt (test_daily_review_handoff.DailyReviewHandoffTests.test_same_reader_reviewer_does_not_consume_attempt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/interface/V5/tests/test_daily_review_handoff.py", line 108, in test_same_reader_reviewer_does_not_consume_attempt
+    self.assertEqual(calls,0,'same reader/reviewer must block before owner claim')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : same reader/reviewer must block before owner claim
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.033s
+
+FAILED (failures=2)

@@ -1,0 +1,63 @@
+test_bound_channel_submission_and_poll_reuse_exact_request (test_daily_review_handoff.DailyReviewHandoffTests.test_bound_channel_submission_and_poll_reuse_exact_request) ... ok
+test_default_clock_accepts_receipt_generated_during_submit_and_poll (test_daily_review_handoff.DailyReviewHandoffTests.test_default_clock_accepts_receipt_generated_during_submit_and_poll) ... 
+  test_default_clock_accepts_receipt_generated_during_submit_and_poll (test_daily_review_handoff.DailyReviewHandoffTests.test_default_clock_accepts_receipt_generated_during_submit_and_poll) (operation='submit_review_task') ... FAIL
+  test_default_clock_accepts_receipt_generated_during_submit_and_poll (test_daily_review_handoff.DailyReviewHandoffTests.test_default_clock_accepts_receipt_generated_during_submit_and_poll) (operation='poll_review_task') ... FAIL
+test_each_binding_field_and_decision_digest_are_checked_readonly (test_daily_review_handoff.DailyReviewHandoffTests.test_each_binding_field_and_decision_digest_are_checked_readonly) ... ok
+test_input_removed_by_previous_lane_blocks_before_actual_claim (test_daily_review_handoff.DailyReviewHandoffTests.test_input_removed_by_previous_lane_blocks_before_actual_claim) ... FAIL
+test_missing_binding_does_not_consume_attempt_even_when_files_exist (test_daily_review_handoff.DailyReviewHandoffTests.test_missing_binding_does_not_consume_attempt_even_when_files_exist) ... ok
+test_missing_channel_is_explicit_and_never_submits (test_daily_review_handoff.DailyReviewHandoffTests.test_missing_channel_is_explicit_and_never_submits) ... ok
+test_output_hash_symlink_and_outside_parent_are_rejected (test_daily_review_handoff.DailyReviewHandoffTests.test_output_hash_symlink_and_outside_parent_are_rejected) ... ok
+test_reviewer_semantic_hash_mismatch_does_not_consume_attempt (test_daily_review_handoff.DailyReviewHandoffTests.test_reviewer_semantic_hash_mismatch_does_not_consume_attempt) ... FAIL
+test_same_reader_reviewer_does_not_consume_attempt (test_daily_review_handoff.DailyReviewHandoffTests.test_same_reader_reviewer_does_not_consume_attempt) ... ok
+test_stale_review_output_identity_and_future_review_time_block (test_daily_review_handoff.DailyReviewHandoffTests.test_stale_review_output_identity_and_future_review_time_block) ... ok
+test_submission_error_is_unknown_and_does_not_retry (test_daily_review_handoff.DailyReviewHandoffTests.test_submission_error_is_unknown_and_does_not_retry) ... ok
+test_terminal_return_must_bind_actual_output_bytes_and_original_decisions (test_daily_review_handoff.DailyReviewHandoffTests.test_terminal_return_must_bind_actual_output_bytes_and_original_decisions) ... ok
+test_valid_explicit_files_remain_supported_without_claiming_external_service (test_daily_review_handoff.DailyReviewHandoffTests.test_valid_explicit_files_remain_supported_without_claiming_external_service) ... ok
+test_wrong_request_identity_heartbeat_and_failed_return_do_not_admit (test_daily_review_handoff.DailyReviewHandoffTests.test_wrong_request_identity_heartbeat_and_failed_return_do_not_admit) ... ok
+
+======================================================================
+FAIL: test_default_clock_accepts_receipt_generated_during_submit_and_poll (test_daily_review_handoff.DailyReviewHandoffTests.test_default_clock_accepts_receipt_generated_during_submit_and_poll) (operation='submit_review_task')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/interface/V5/tests/test_daily_review_handoff.py", line 232, in test_default_clock_accepts_receipt_generated_during_submit_and_poll
+    self.assertEqual(exchange(task,channel=ExistingChannel())['status'],'SUBMITTED')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'BLOCKED_INVALID_REVIEW_RETURN' != 'SUBMITTED'
+- BLOCKED_INVALID_REVIEW_RETURN
++ SUBMITTED
+
+
+======================================================================
+FAIL: test_default_clock_accepts_receipt_generated_during_submit_and_poll (test_daily_review_handoff.DailyReviewHandoffTests.test_default_clock_accepts_receipt_generated_during_submit_and_poll) (operation='poll_review_task')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/interface/V5/tests/test_daily_review_handoff.py", line 232, in test_default_clock_accepts_receipt_generated_during_submit_and_poll
+    self.assertEqual(exchange(task,channel=ExistingChannel())['status'],'SUBMITTED')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'BLOCKED_INVALID_REVIEW_RETURN' != 'SUBMITTED'
+- BLOCKED_INVALID_REVIEW_RETURN
++ SUBMITTED
+
+
+======================================================================
+FAIL: test_input_removed_by_previous_lane_blocks_before_actual_claim (test_daily_review_handoff.DailyReviewHandoffTests.test_input_removed_by_previous_lane_blocks_before_actual_claim)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/interface/V5/tests/test_daily_review_handoff.py", line 138, in test_input_removed_by_previous_lane_blocks_before_actual_claim
+    self.assertEqual(owner.call_count,0,'input waiting must be checked after prior lane and before claim')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : input waiting must be checked after prior lane and before claim
+
+======================================================================
+FAIL: test_reviewer_semantic_hash_mismatch_does_not_consume_attempt (test_daily_review_handoff.DailyReviewHandoffTests.test_reviewer_semantic_hash_mismatch_does_not_consume_attempt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/17ec887ca39d/work/interface/V5/tests/test_daily_review_handoff.py", line 116, in test_reviewer_semantic_hash_mismatch_does_not_consume_attempt
+    self.assertEqual(calls,0,'known semantic source mismatch must block before owner claim')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : known semantic source mismatch must block before owner claim
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.051s
+
+FAILED (failures=4)

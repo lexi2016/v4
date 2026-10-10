@@ -1,0 +1,21 @@
+{
+  "status": "BLOCKED_AWAITING_ORIGINAL_REVIEWER",
+  "request_only": true,
+  "semantic_review_performed": false,
+  "sent_to_reviewer": false,
+  "revision_created": false,
+  "private_mac_revision_id_absence_checked": false,
+  "revision_id": "decision-r20261010-rebind-638bfee44529438d",
+  "request_file_sha256": "98464a39323fd332e29dbed82344b9e9c5eefed75fede37ec7dca8c93991845c",
+  "request_file": "reviewer-binding-request.json",
+  "command": [
+    "/workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python",
+    "-B",
+    "-I",
+    "/workspace/scratch/17ec887ca39d/work/revision/bundle/tools/review_revision_binding.py",
+    "request",
+    "--revision-id",
+    "decision-r20261010-rebind-638bfee44529438d"
+  ],
+  "created_at": "2026-10-10T01:39:42.659955+00:00"
+}

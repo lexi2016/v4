@@ -1,0 +1,90 @@
+{
+  "candidate": {
+    "summary": [
+      "Ran 541 tests in 143.678s",
+      "FAILED (failures=7, errors=24, skipped=9)"
+    ],
+    "failures": [
+      "setUpClass (test_manager_announcement_binding.ManagerAnnouncementRealOwnerTests)",
+      "setUpClass (test_us_mapping_daily.UsMappingDailyTests)",
+      "test_698_bound_members_reach_original_scope_without_binding_master (test_manager_membership.ManagerMembershipTests.test_698_bound_members_reach_original_scope_without_binding_master)",
+      "test_bad_artifact_sha_is_an_explicit_missing_scope_not_global_lane_failure (test_manager_membership.ManagerMembershipTests.test_bad_artifact_sha_is_an_explicit_missing_scope_not_global_lane_failure)",
+      "test_broken_receipt_rejected_even_when_raw_pin_updated (test_announcement_bridge.AnnouncementBridgeTests.test_broken_receipt_rejected_even_when_raw_pin_updated)",
+      "test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner (test_announcement_bridge.AnnouncementBridgeTests.test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner)",
+      "test_changed_input_not_reused (test_review_guards.ReviewGuardsTests.test_changed_input_not_reused)",
+      "test_changed_raw_file_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_changed_raw_file_rejected)",
+      "test_date_guard_preserved_and_caller_now_not_observation_clock (test_manager_panel_observation.ManagerPanelObservationTests.test_date_guard_preserved_and_caller_now_not_observation_clock)",
+      "test_default_publication_uses_original_hk_session_rule (test_announcement_bridge.AnnouncementBridgeTests.test_default_publication_uses_original_hk_session_rule)",
+      "test_explicit_compact_publication_date_keeps_same_material_day (test_announcement_bridge.AnnouncementBridgeTests.test_explicit_compact_publication_date_keeps_same_material_day)",
+      "test_forged_input_digest_rejected (test_review_guards.ReviewGuardsTests.test_forged_input_digest_rejected)",
+      "test_future_master_rejected (test_review_guards.ReviewGuardsTests.test_future_master_rejected)",
+      "test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits (test_announcement_bridge.AnnouncementBridgeTests.test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits)",
+      "test_missing_handoff_keeps_analysis_but_not_consumption_verified (test_announcement_bridge.AnnouncementBridgeTests.test_missing_handoff_keeps_analysis_but_not_consumption_verified)",
+      "test_missing_input_saved_as_unknown (test_worker_pipeline.WorkerPipelineTests.test_missing_input_saved_as_unknown)",
+      "test_missing_raw_material_not_recollected (test_announcement_bridge.AnnouncementBridgeTests.test_missing_raw_material_not_recollected)",
+      "test_original_reader_preserves_real_published_counts (test_announcement_bridge.AnnouncementBridgeTests.test_original_reader_preserves_real_published_counts)",
+      "test_partial_new_binding_group_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_partial_new_binding_group_preserves_current_v4_rejection)",
+      "test_private_snapshot_view_used_for_complete_handoff (test_announcement_bridge.AnnouncementBridgeTests.test_private_snapshot_view_used_for_complete_handoff)",
+      "test_qualification_published_after_cutoff_remains_unverified (test_manager_membership.ManagerMembershipTests.test_qualification_published_after_cutoff_remains_unverified)",
+      "test_refresh_original_same_run_readback_retains_qualification (test_manager_membership.ManagerMembershipTests.test_refresh_original_same_run_readback_retains_qualification)",
+      "test_resealed_parent_mismatch_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_resealed_parent_mismatch_preserves_current_v4_rejection)",
+      "test_saved_rows_read_twice_without_recompute_or_formal_change (test_manager_panel_observation.ManagerPanelObservationTests.test_saved_rows_read_twice_without_recompute_or_formal_change)",
+      "test_source_files_stay_byte_identical (test_announcement_bridge.AnnouncementBridgeTests.test_source_files_stay_byte_identical)",
+      "test_symlink_root_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_symlink_root_rejected)",
+      "test_undeclared_handoff_on_disk_under_code_tree_is_not_read (test_announcement_bridge.AnnouncementBridgeTests.test_undeclared_handoff_on_disk_under_code_tree_is_not_read)",
+      "test_worker_commit_readback_and_repeat_same_run (test_worker_pipeline.WorkerPipelineTests.test_worker_commit_readback_and_repeat_same_run)",
+      "test_worker_ignores_timestamp_cached_old_source (test_review_guards.ReviewGuardsTests.test_worker_ignores_timestamp_cached_old_source)",
+      "test_wrong_publication_date_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_publication_date_cannot_fall_back)",
+      "test_wrong_target_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_target_cannot_fall_back)"
+    ]
+  },
+  "unchanged_baseline_failed_modules": {
+    "summary": [
+      "Ran 60 tests in 22.519s",
+      "FAILED (failures=7, errors=24)"
+    ],
+    "failures": [
+      "setUpClass (test_manager_announcement_binding.ManagerAnnouncementRealOwnerTests)",
+      "setUpClass (test_us_mapping_daily.UsMappingDailyTests)",
+      "test_698_bound_members_reach_original_scope_without_binding_master (test_manager_membership.ManagerMembershipTests.test_698_bound_members_reach_original_scope_without_binding_master)",
+      "test_bad_artifact_sha_is_an_explicit_missing_scope_not_global_lane_failure (test_manager_membership.ManagerMembershipTests.test_bad_artifact_sha_is_an_explicit_missing_scope_not_global_lane_failure)",
+      "test_broken_receipt_rejected_even_when_raw_pin_updated (test_announcement_bridge.AnnouncementBridgeTests.test_broken_receipt_rejected_even_when_raw_pin_updated)",
+      "test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner (test_announcement_bridge.AnnouncementBridgeTests.test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner)",
+      "test_changed_input_not_reused (test_review_guards.ReviewGuardsTests.test_changed_input_not_reused)",
+      "test_changed_raw_file_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_changed_raw_file_rejected)",
+      "test_date_guard_preserved_and_caller_now_not_observation_clock (test_manager_panel_observation.ManagerPanelObservationTests.test_date_guard_preserved_and_caller_now_not_observation_clock)",
+      "test_default_publication_uses_original_hk_session_rule (test_announcement_bridge.AnnouncementBridgeTests.test_default_publication_uses_original_hk_session_rule)",
+      "test_explicit_compact_publication_date_keeps_same_material_day (test_announcement_bridge.AnnouncementBridgeTests.test_explicit_compact_publication_date_keeps_same_material_day)",
+      "test_forged_input_digest_rejected (test_review_guards.ReviewGuardsTests.test_forged_input_digest_rejected)",
+      "test_future_master_rejected (test_review_guards.ReviewGuardsTests.test_future_master_rejected)",
+      "test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits (test_announcement_bridge.AnnouncementBridgeTests.test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits)",
+      "test_missing_handoff_keeps_analysis_but_not_consumption_verified (test_announcement_bridge.AnnouncementBridgeTests.test_missing_handoff_keeps_analysis_but_not_consumption_verified)",
+      "test_missing_input_saved_as_unknown (test_worker_pipeline.WorkerPipelineTests.test_missing_input_saved_as_unknown)",
+      "test_missing_raw_material_not_recollected (test_announcement_bridge.AnnouncementBridgeTests.test_missing_raw_material_not_recollected)",
+      "test_original_reader_preserves_real_published_counts (test_announcement_bridge.AnnouncementBridgeTests.test_original_reader_preserves_real_published_counts)",
+      "test_partial_new_binding_group_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_partial_new_binding_group_preserves_current_v4_rejection)",
+      "test_private_snapshot_view_used_for_complete_handoff (test_announcement_bridge.AnnouncementBridgeTests.test_private_snapshot_view_used_for_complete_handoff)",
+      "test_qualification_published_after_cutoff_remains_unverified (test_manager_membership.ManagerMembershipTests.test_qualification_published_after_cutoff_remains_unverified)",
+      "test_refresh_original_same_run_readback_retains_qualification (test_manager_membership.ManagerMembershipTests.test_refresh_original_same_run_readback_retains_qualification)",
+      "test_resealed_parent_mismatch_preserves_current_v4_rejection (test_announcement_bridge.AnnouncementBridgeTests.test_resealed_parent_mismatch_preserves_current_v4_rejection)",
+      "test_saved_rows_read_twice_without_recompute_or_formal_change (test_manager_panel_observation.ManagerPanelObservationTests.test_saved_rows_read_twice_without_recompute_or_formal_change)",
+      "test_source_files_stay_byte_identical (test_announcement_bridge.AnnouncementBridgeTests.test_source_files_stay_byte_identical)",
+      "test_symlink_root_rejected (test_announcement_bridge.AnnouncementBridgeTests.test_symlink_root_rejected)",
+      "test_undeclared_handoff_on_disk_under_code_tree_is_not_read (test_announcement_bridge.AnnouncementBridgeTests.test_undeclared_handoff_on_disk_under_code_tree_is_not_read)",
+      "test_worker_commit_readback_and_repeat_same_run (test_worker_pipeline.WorkerPipelineTests.test_worker_commit_readback_and_repeat_same_run)",
+      "test_worker_ignores_timestamp_cached_old_source (test_review_guards.ReviewGuardsTests.test_worker_ignores_timestamp_cached_old_source)",
+      "test_wrong_publication_date_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_publication_date_cannot_fall_back)",
+      "test_wrong_target_cannot_fall_back (test_announcement_bridge.AnnouncementBridgeTests.test_wrong_target_cannot_fall_back)"
+    ]
+  },
+  "same_failure_names": true,
+  "baseline_commit": "3d9541aca3e5d28e94109609940503cca239b9fe",
+  "final_candidate_source_hashes": {
+    "src/v5_shadow/daily_announcement_revision.py": "30ce8a2bd4ee292a5f2db828041d9d6fb7d008e57b736a62209d8fe0de511c09",
+    "src/v5_shadow/daily_dispatch.py": "144fcc04effa244297cbc7529cbc27c495b05d3f8ecea23ecd53367a8989c34b",
+    "src/v5_shadow/daily_owner_adapters.py": "c56434d24ddc7c8cb77eb6ed640d4a02628d22a84d26d8fc6fc7608c20fcab41",
+    "src/v5_shadow/daily_review_handoff.py": "19aacbf65ca0bea7760745335e4a4cc69e774503f972741e78966a30f61f7ff9",
+    "src/v5_shadow/daily_tick.py": "3e31d50c8e56d6066e5064a5433c27adbf28d647ad8f04ac70f4a6e1b29811da",
+    "src/v5_shadow/manager_plan.py": "a028774183c5cc877f56976b094a6280e99bcf5f88cba2d8d75e2ac6a6f45b29"
+  }
+}

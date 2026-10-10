@@ -1,0 +1,17 @@
+COMMAND: /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -I tests/test_revision_review_gate.py
+START: 2026-10-10T01:53:30.740471+00:00
+test_absent_binding_is_rejected_before_any_mutator (__main__.RevisionReviewGateTests.test_absent_binding_is_rejected_before_any_mutator) ... ok
+test_changed_decision_digest_is_rejected_without_writes (__main__.RevisionReviewGateTests.test_changed_decision_digest_is_rejected_without_writes) ... ok
+test_each_mismatched_binding_field_is_rejected_without_writes (__main__.RevisionReviewGateTests.test_each_mismatched_binding_field_is_rejected_without_writes) ... ok
+test_each_missing_binding_field_is_rejected_without_writes (__main__.RevisionReviewGateTests.test_each_missing_binding_field_is_rejected_without_writes) ... ok
+test_extra_binding_field_is_rejected_without_writes (__main__.RevisionReviewGateTests.test_extra_binding_field_is_rejected_without_writes) ... ok
+test_non_object_binding_is_rejected_without_writes (__main__.RevisionReviewGateTests.test_non_object_binding_is_rejected_without_writes) ... ok
+test_previous_revision_binding_cannot_create_another_id (__main__.RevisionReviewGateTests.test_previous_revision_binding_cannot_create_another_id) ... ok
+test_wrong_parent_recovery_and_input_pins_are_rejected_without_writes (__main__.RevisionReviewGateTests.test_wrong_parent_recovery_and_input_pins_are_rejected_without_writes) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 4.617s
+
+OK
+
+EXIT_CODE: 0

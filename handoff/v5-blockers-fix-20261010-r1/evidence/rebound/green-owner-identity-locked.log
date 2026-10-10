@@ -1,0 +1,26 @@
+$ PYTHONPATH=src:tests /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -m unittest test_rebound_owner_identity -v
+test_changed_function_constant_is_rejected_with_unchanged_bytecode (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_changed_function_constant_is_rejected_with_unchanged_bytecode) ... ok
+test_changed_nested_code_is_rejected_with_unchanged_outer_bytecode (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_changed_nested_code_is_rejected_with_unchanged_outer_bytecode) ... ok
+test_frozen_loader_passes_before_code_inspection (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_frozen_loader_passes_before_code_inspection) ... ok
+test_holding_and_releasing_owner_docstrings_preserves_identity (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_holding_and_releasing_owner_docstrings_preserves_identity) ... ok
+test_imported_callable_replacement_is_rejected (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_imported_callable_replacement_is_rejected) ... ok
+test_imported_helper_code_mutation_is_rejected (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_imported_helper_code_mutation_is_rejected) ... ok
+test_imported_helper_with_copied_globals_is_rejected (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_imported_helper_with_copied_globals_is_rejected) ... ok
+test_literal_module_constant_mutation_is_rejected (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_literal_module_constant_mutation_is_rejected) ... ok
+test_native_layout_mutation_is_rejected (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_native_layout_mutation_is_rejected) ... ok
+test_owner_function_with_copied_globals_is_rejected (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_owner_function_with_copied_globals_is_rejected) ... ok
+test_replaced_owner_function_is_rejected (test_rebound_owner_identity.FrozenOwnerIdentityTests.test_replaced_owner_function_is_rejected) ... ok
+test_all_18_immutable_code_fields_are_compared (test_rebound_owner_identity.StructuralCodeIdentityTests.test_all_18_immutable_code_fields_are_compared) ... ok
+test_equal_numeric_values_of_different_types_are_distinguished (test_rebound_owner_identity.StructuralCodeIdentityTests.test_equal_numeric_values_of_different_types_are_distinguished) ... ok
+test_float_and_complex_signed_zero_bits_are_distinguished (test_rebound_owner_identity.StructuralCodeIdentityTests.test_float_and_complex_signed_zero_bits_are_distinguished) ... ok
+test_nan_payloads_are_compared_by_bits (test_rebound_owner_identity.StructuralCodeIdentityTests.test_nan_payloads_are_compared_by_bits) ... ok
+test_nested_immutable_constant_values_compare_without_reference_identity (test_rebound_owner_identity.StructuralCodeIdentityTests.test_nested_immutable_constant_values_compare_without_reference_identity) ... ok
+test_reference_docstring_hold_release_does_not_change_code_identity (test_rebound_owner_identity.StructuralCodeIdentityTests.test_reference_docstring_hold_release_does_not_change_code_identity) ... ok
+test_unknown_or_mutable_constant_types_fail_closed (test_rebound_owner_identity.StructuralCodeIdentityTests.test_unknown_or_mutable_constant_types_fail_closed) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 5.760s
+
+OK
+
+EXIT_CODE=0

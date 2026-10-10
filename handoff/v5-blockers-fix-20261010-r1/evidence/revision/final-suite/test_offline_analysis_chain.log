@@ -1,0 +1,16 @@
+COMMAND: /workspace/scratch/17ec887ca39d/runtime/v5-env/bin/python -B -I tests/test_offline_analysis_chain.py
+START: 2026-10-10T01:53:25.308307+00:00
+test_capture_and_foreign_date_or_api_override_are_rejected (__main__.OfflineAnalysisChainTests.test_capture_and_foreign_date_or_api_override_are_rejected) ... ok
+test_changed_retained_pages_fail_product_readback_validation (__main__.OfflineAnalysisChainTests.test_changed_retained_pages_fail_product_readback_validation) ... ok
+test_failed_projection_cannot_be_promoted_to_assessed (__main__.OfflineAnalysisChainTests.test_failed_projection_cannot_be_promoted_to_assessed) ... ok
+test_import_without_registered_independent_review_is_rejected (__main__.OfflineAnalysisChainTests.test_import_without_registered_independent_review_is_rejected) ... ok
+test_prepare_verify_import_and_readback_keep_failed_pages_unassessed (__main__.OfflineAnalysisChainTests.test_prepare_verify_import_and_readback_keep_failed_pages_unassessed) ... ok
+test_reader_and_reviewer_identity_cannot_match (__main__.OfflineAnalysisChainTests.test_reader_and_reviewer_identity_cannot_match) ... ok
+test_wrong_recovery_receipt_sha_blocks_adoption (__main__.OfflineAnalysisChainTests.test_wrong_recovery_receipt_sha_blocks_adoption) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 2.490s
+
+OK
+
+EXIT_CODE: 0
