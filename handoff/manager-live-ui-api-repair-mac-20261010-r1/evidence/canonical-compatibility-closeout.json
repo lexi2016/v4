@@ -1,0 +1,66 @@
+{
+  "schema_version": "v4.manager_live_ui_api_repair.canonical_compatibility_closeout.v1",
+  "generated_at": "2026-10-10",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "scope": "canonical compatibility only; no active-source overlay, integrated_release, deployment, service, route, owner data, or Stage files touched",
+  "changes": [
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "sha256": "a87c0e40a20feeaf5377cdb1f267adba50a3cbccf12cf888329e2de9a68879df",
+      "bytes": 102104,
+      "summary": "threads optional expected selection/announcement bindings through workspace GET/refresh query serialization and response validation"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "sha256": "04ed9d4907b1bc7d12b05d0073ac0963bac7d159d653a14db13c08e5d000275f",
+      "bytes": 64526,
+      "summary": "re-reads current URL binding selection on each explicit workspace load; only passes expected bindings when explicitly selected"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "sha256": "819d5c21d146a95a5b0d8b21173d7169ba7aa99927200561e8ae127e453dcc24",
+      "bytes": 18931,
+      "summary": "separates request-explicit dates from page display fallback and rejects malformed nonempty date parameters"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.liveRepair.spec.ts",
+      "sha256": "d3e3f4f0c55c150179fc7b22da5a7e860b47f77e5ca7888a40a6e20d6f3a1feb",
+      "bytes": 6083,
+      "summary": "covers display fallback versus explicit dates, mismatch rejection, invalid date rejection, and optional API query serialization"
+    },
+    {
+      "path": "tests/test_manager_plan_identity_r2.py",
+      "sha256": "6b5a2e95ccfe10937eaa23a48df4a08ce5712bcf1a4e729547ba83ac1e9b1d0f",
+      "bytes": 7775,
+      "summary": "updates the two scheduled-plan fixtures to include valid semantic identity components, sealed owner attempt, scheduled execution kind, and controlled time; assertions remain behavioral"
+    }
+  ],
+  "baseline": {
+    "python_pair": "PASS 2/2 using tmp/canonical-before-python-baseline: copied v4 package with workspace.py, workspace_projection.py, research_attention.py replaced by before-canonical snapshot files",
+    "canonical_api_before": "CANNOT_CONFIRM: no canonical before copy for managerWorkspace.ts was captured; evidence/reviewer/frontend_before is an active-source reference, not canonical baseline",
+    "identity_test_before": "CANNOT_CONFIRM: untracked test file had no frozen before copy; pre-edit fixture lines were read during execution; parent authorized this fixture-only update",
+    "typecheck_reference": "CANNOT_CONFIRM exact canonical-before baseline; active-source frontend_before typecheck produced the four current diagnostics plus one unrelated HkCloseReviewPanel.status diagnostic; current edited files have no vue-tsc diagnostics"
+  },
+  "validation": [
+    {
+      "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -m pytest -q tests/test_manager_plan_identity_r2.py --basetemp=/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/tmp/canonical-plan-identity-final2 --tb=short",
+      "result": "PASS 9 passed; existing-plan fixture carries a sealed SCHEDULED_PREOPEN owner attempt and changes only input identity"
+    },
+    {
+      "command": "npm exec vitest -- run src/manager-selection/dailyChannels.liveRepair.spec.ts src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "result": "PASS 2 files, 22 tests"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS Vite build, 116 modules transformed"
+    },
+    {
+      "command": "npm exec vue-tsc -- --noEmit",
+      "result": "FAIL with 4 diagnostics only in unchanged specs: managerWorkspace.attention.spec.ts:242,245 mapping possibly undefined; ManagerSelectionView.spec.ts:4,6 unused @ts-expect-error"
+    }
+  ],
+  "unresolved": [
+    "No canonical service/router support was added for optional selection_date/announcement_date; explicit query bindings are now sent and response-checked, so unsupported server behavior fails closed.",
+    "Independent canonical Reviewer rerun remains required."
+  ]
+}

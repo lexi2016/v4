@@ -1,0 +1,78 @@
+{
+  "schema_version": "v4.manager_live_repair.mac_acceptance.v1",
+  "date": "2026-10-10",
+  "target_date": "20261009",
+  "announcement_date": "20261008",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_baseline_commit": "67a311411d7b3a5492d69a0c178c4498c6bf27e0",
+  "deployed_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+  "deployed_pid": 54741,
+  "plan_product": {
+    "status": "CURRENT",
+    "run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+    "generated_at": "2026-10-10T10:38:57.141739+00:00",
+    "sha256": "b214575cdcd0a5afbe0522a6be05f646871f74f4dbe4061172f3121250617e38",
+    "execution_kind": "MANUAL_REFRESH",
+    "execution_context": {
+      "finished_at": "2026-10-10T10:38:57.141739+00:00",
+      "natural_run_verified": false,
+      "research_cutoff_policy": "ACTUAL_OWNER_EXECUTION_CUTOFF_RETROSPECTIVE",
+      "scheduled_for": null,
+      "started_at": "2026-10-10T18:38:53.872346+08:00",
+      "timing": "RETROSPECTIVE",
+      "trigger_id": "bd1eb959e5b225d6b997dcf024bc576ed5fdc7f383ca5affbf5893e47fbb3d1b",
+      "trigger_kind": "MANUAL"
+    },
+    "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+    "last_checked_at": "2026-10-10T18:39:38.182638+08:00",
+    "consumed": true,
+    "input_identity_diagnostics": {
+      "schema_version": "v4.manager_research.input_identity_diagnostics.v1",
+      "input_identity_schema": "v4.manager_research.input_identity.v2",
+      "status": "MATCH",
+      "saved_input_identity": "7afb68936f644a1360095844672d84d85c178f9f1b56ef8e7023f609236c2983",
+      "current_input_identity": "7afb68936f644a1360095844672d84d85c178f9f1b56ef8e7023f609236c2983",
+      "changed_components": []
+    },
+    "run_readback": {
+      "status": "VERIFIED",
+      "target_trade_date": "20261009",
+      "run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+      "artifact_sha256": "b214575cdcd0a5afbe0522a6be05f646871f74f4dbe4061172f3121250617e38",
+      "input_identity": "7afb68936f644a1360095844672d84d85c178f9f1b56ef8e7023f609236c2983",
+      "owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "read_at": "2026-10-10T18:39:38.182638+08:00",
+      "owner_attempt_run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+      "owner_attempt_sha256": "db10bc6127de5e2259c6a67b659a985d32630289e9212852fa87e02e2845be96",
+      "owner_attempt_state": "PARTIAL",
+      "owner_finished_at": "2026-10-10T10:38:57.886304+00:00"
+    }
+  },
+  "selection_acceptance": "FAIL_NO_VERIFIED_CANDIDATES",
+  "natural_acceptance": "NATURAL_SLOT_UNVERIFIED",
+  "observed_browser_bundle": "http://127.0.0.1:8873/assets/managerSelection-BLWLswkk.js",
+  "served_bundle_sha256": "338ae7ec90fe72e2b4c094ae5f0f9fecc1ef0e3c079f3d15d21314a577a6faec",
+  "browser_bundle_body_hash": "CANNOT_CONFIRM: inspector response body evicted; URL observed, served static bytes independently checked by publication adapter",
+  "blockers": [
+    "ANNOUNCEMENT_EXACT_DATE_PRODUCT_NOT_CONSUMED",
+    "HK_UNIVERSE_V2_ARTIFACT_MISSING",
+    "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED",
+    "REBOUND_HISTORY_VOLUME_UNIT_NOT_PROVEN",
+    "693 oversold records unresolved; 695 gaps",
+    "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "local_evidence": {
+    "ui/owner-readback.json": "6c0fe13667f5872a10cb83608bd29c1f4a7acdfa3c12e10af75cae2d7e40bdbc",
+    "ui/after-dynamic.txt": "ab2782edec1b2336cf9a5b4bd640c56ba65ab065b6f641616d08fcf059e46be1",
+    "ui/after-dynamic.png": "2820b175030fc8317e2b3972a3f086cd445fcde74b20e011347ae75444f8ca08",
+    "deployment/execution_receipt.json": "2bfe3408c861be5a79d4a076644b14c38e9692f59dbecc7ea32c42028169b583",
+    "evidence/reviewer/publication_review.json": "0b5911d7b40930cd57631634a0365109b32ff0b2cd1b25c4616918a7e883f649"
+  }
+}

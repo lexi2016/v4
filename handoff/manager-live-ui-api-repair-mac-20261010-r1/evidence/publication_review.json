@@ -1,0 +1,58 @@
+{
+  "schema_version": "v4.fused_stage_manager_independent_publication_review.v1",
+  "reviewed_at": "2026-10-10",
+  "reviewer_verdict": "PASS",
+  "review_scope": "Frozen bounded repair code and publication identity. Live loaded API, browser UI, and natural-period acceptance remain separate.",
+  "candidate": {
+    "release_id": "manager-live-ui-api-20261010-r1",
+    "release_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1",
+    "manifest_sha256": "d46288254c7ad735d809759dc52edd590e74175abbb70d59614691da470450bd",
+    "delta_receipt_sha256": "0a6d8a3aed19193b4ab4d345bc0190f86a5f5961766c586219e60eff4e463215",
+    "plan_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/deployment/verified-publication-plan.json",
+    "plan_sha256": "bca5a0487b0a67913365f6a933bbe440278e292e7af468107ddb6436530bd0ac",
+    "application_inventory_sha256": "a168ff7ae27e57e7aee443c5c62e95f47bd49fb1d59c2f97ece76354b4c729ec",
+    "delta_path_count": 10,
+    "non_delta_entry_count": 1014
+  },
+  "checks": {
+    "plan_integration_adapter_bindings_match": true,
+    "delta_path_count_is_10_and_entries_match_source_paths": true,
+    "actual_candidate_delta_bytes_match_after_sha": true,
+    "independent_inventory_matches_manifest_sha": true,
+    "independent_inventory_matches_application_inventory_sha": true,
+    "changed_paths_equal_allowlist": true,
+    "non_delta_mismatch_count_zero": true,
+    "eight_source_paths_exact_zip_after": true
+  },
+  "focused_regression_tests": {
+    "configured_python_canonical_fixture": "PASS 9",
+    "integrated_candidate_backend": "PASS 21",
+    "cutoff_admission_probe": "PASS: unchanged consumed inputs CURRENT; newly admitted material STALE_INPUTS_CHANGED; zero store writes",
+    "frontend_daily_channels_spec": "PASS 2",
+    "focused_runtime_suite": "14 passed; 1 assertion also fails on frozen baseline, so no delta regression established"
+  },
+  "risk_findings": [],
+  "acceptance_evidence": {
+    "code_level_target_behavior": "PASS for focused backend, cutoff, and renderer regression checks",
+    "live_api": "CANNOT_CONFIRM",
+    "browser_stock_selection": "CANNOT_CONFIRM",
+    "natural_period": "NOT_RUN"
+  },
+  "limitations": [
+    "TEST_RESULTS.json declares LIVE_API_UI_NOT_RUN; this review does not claim deployment, live API, browser UI, or natural-period verification."
+  ],
+  "evidence_paths": [
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/deployment/verified-publication-plan.json",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/release-manifest.json",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/fused-stage-manager-delta-receipt.json",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/evidence/reviewer/inventory_independent_20261010.json",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/evidence/reviewer/canonical-compatibility-closeout.json"
+  ],
+  "decision": "PASS",
+  "reviewer_identity": "/root/manager_repair_review",
+  "plan_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/deployment/verified-publication-plan.json",
+  "plan_sha256": "bca5a0487b0a67913365f6a933bbe440278e292e7af468107ddb6436530bd0ac",
+  "adapter_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tools/deployment/fused_publication_adapter.py",
+  "adapter_sha256": "30685f5cdf66af3f620f1b494673f1bacc140d0b8f10df67358a90bee929d156",
+  "candidate_inventory_sha256": "a168ff7ae27e57e7aee443c5c62e95f47bd49fb1d59c2f97ece76354b4c729ec"
+}

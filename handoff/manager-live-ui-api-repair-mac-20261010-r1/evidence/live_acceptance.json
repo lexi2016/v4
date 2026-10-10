@@ -1,0 +1,285 @@
+{
+  "schema_version": "v4.fused_stage_manager_independent_live_acceptance.v1",
+  "reviewer_identity": "/root/manager_repair_review",
+  "reviewed_at": "2026-10-10",
+  "overall_status": "REPAIR_TARGET_PASS_ACTIONABLE_STOCK_SELECTION_FAIL",
+  "repair_target_behavior": {
+    "status": "PASS",
+    "details": "The 20261009 plan was manually generated from existing materials, is CURRENT after readback, and the three daily research channels render with consistent requested date bindings.",
+    "target_trade_date": "20261009",
+    "selection_date": "20261009",
+    "announcement_date": "20261008",
+    "plan_date": "20261009",
+    "plan_status": "CURRENT",
+    "execution_kind": "MANUAL_REFRESH",
+    "run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+    "plan_sha256": "b214575cdcd0a5afbe0522a6be05f646871f74f4dbe4061172f3121250617e38",
+    "input_identity": "7afb68936f644a1360095844672d84d85c178f9f1b56ef8e7023f609236c2983",
+    "input_identity_diagnostics": "MATCH",
+    "readback_status": "VERIFIED",
+    "readback_at": "2026-10-10T18:39:38.182638+08:00",
+    "owner_attempt_state": "PARTIAL",
+    "page_read_context": "VERIFIED_WITH_GAPS"
+  },
+  "actual_stock_selection": {
+    "status": "FAIL",
+    "reason": "The workbench has no verified candidate rows and no verified formal Stage artifact; it is not currently usable to select stocks.",
+    "summary": {
+      "stock_count": 0,
+      "focus_count": 0,
+      "formal_recommendation_count": 0,
+      "market_screen_card_count": 0,
+      "market_screen_strict_count": 0,
+      "market_screen_near_count": 0
+    },
+    "channels": [
+      {
+        "channel": "ANNOUNCEMENT",
+        "status": "CANNOT_CONFIRM",
+        "verified_rows": 0,
+        "candidate_count": null,
+        "pending_count": null,
+        "run_id": null,
+        "gaps": [
+          "ANNOUNCEMENT_EXACT_DATE_PRODUCT_NOT_CONSUMED"
+        ],
+        "total_gap_count": 1
+      },
+      {
+        "channel": "HK_CONNECT",
+        "status": "CANNOT_CONFIRM",
+        "verified_rows": 0,
+        "candidate_count": null,
+        "pending_count": null,
+        "run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+        "gaps": [
+          "HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING",
+          "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED"
+        ],
+        "total_gap_count": 2
+      },
+      {
+        "channel": "OVERSOLD",
+        "status": "PARTIAL",
+        "verified_rows": 0,
+        "candidate_count": null,
+        "pending_count": 693,
+        "run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+        "gaps": [
+          "REBOUND_HISTORY_VOLUME_UNIT_NOT_PROVEN",
+          "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+          "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00002"
+        ],
+        "total_gap_count": 695
+      }
+    ],
+    "stage": {
+      "lane_state": "UNVERIFIED",
+      "artifact_status": "CANNOT_CONFIRM",
+      "artifact_verified": false,
+      "execution_state": "DUE_RECEIPT_UNKNOWN",
+      "artifact_consumption": "NO_VERIFIED_PRODUCT",
+      "failure_reasons": [
+        "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+      ]
+    },
+    "interpretation": "ANNOUNCEMENT exact-date product was not consumed; HK_CONNECT target qualification lacks HK_UNIVERSE_V2_ARTIFACT and target membership evidence; OVERSOLD has 693 pending and 695 gaps including unproven history-volume units; Stage artifact is unavailable/invalid."
+  },
+  "publication": {
+    "execution_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/deployment/execution_receipt.json",
+    "execution_receipt_sha256": "2bfe3408c861be5a79d4a076644b14c38e9692f59dbecc7ea32c42028169b583",
+    "operation_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/deployment/operations/c58ad9062ba34229b3db80d4d507ed3c/operation_receipt.json",
+    "operation_receipt_sha256": "b791000f63a6aeeeca668c383abcd288384f6b8adaa62b6970833770799042f7",
+    "outer_to_inner_receipt_binding_matches": true,
+    "deployed": true,
+    "release_id": "manager-live-ui-api-20261010-r1",
+    "release_manifest_sha256": "d46288254c7ad735d809759dc52edd590e74175abbb70d59614691da470450bd",
+    "runtime": {
+      "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "V35_RELEASE_ID": "manager-live-ui-api-20261010-r1",
+      "V35_RELEASE_MANIFEST_SHA256": "d46288254c7ad735d809759dc52edd590e74175abbb70d59614691da470450bd",
+      "pid": "54741",
+      "state": "running"
+    },
+    "served_static_tree": {
+      "status": "BYTE_IDENTICAL_TO_REVIEWED_STATIC_TREE",
+      "verified_files": 12
+    },
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "browser_response_sha256": "CANNOT_CONFIRM"
+  },
+  "api_verification": {
+    "method": "GET",
+    "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261009&view=dynamic&selection_date=20261009&announcement_date=20261008",
+    "http_status": 200,
+    "body_bytes": 16410445,
+    "body_sha256": "5f56cc06c38f7c196f2a2047b1aa5caa6f27e628c5a6c4ced700ed4d96f53952",
+    "date_bindings": {
+      "selection_date": "20261009",
+      "announcement_date": "20261008",
+      "plan_date": "20261009"
+    },
+    "plan_product_status": "CURRENT",
+    "plan_run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+    "plan_artifact_sha256": "b214575cdcd0a5afbe0522a6be05f646871f74f4dbe4061172f3121250617e38",
+    "input_identity": "7afb68936f644a1360095844672d84d85c178f9f1b56ef8e7023f609236c2983",
+    "run_readback_status": "VERIFIED",
+    "readback_owner_attempt_state": "PARTIAL",
+    "response_persisted": false
+  },
+  "ui_verification": {
+    "url": "http://127.0.0.1:8873/manager-selection/?date=20261009",
+    "page_rendered": true,
+    "accessibility_snapshot_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/ui/after-dynamic.txt",
+    "accessibility_snapshot_sha256": "ab2782edec1b2336cf9a5b4bd640c56ba65ab065b6f641616d08fcf059e46be1",
+    "screenshot_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/ui/after-dynamic.png",
+    "screenshot_sha256": "2820b175030fc8317e2b3972a3f086cd445fcde74b20e011347ae75444f8ca08",
+    "saved_owner_readback_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/ui/owner-readback.json",
+    "saved_owner_readback_sha256": "6c0fe13667f5872a10cb83608bd29c1f4a7acdfa3c12e10af75cae2d7e40bdbc",
+    "reported_network_asset": "managerSelection-BLWLswkk.js",
+    "network_capture_reviewed_independently": "CANNOT_CONFIRM",
+    "note": "Browser CDP body was cleaned; no browser response-body hash is claimed."
+  },
+  "canonical_review": {
+    "release_delta_entry_count": 10,
+    "release_delta_after_hashes_match": true,
+    "canonical_closeout_entry_count": 5,
+    "canonical_closeout_final_hashes_match": true,
+    "unique_union_path_count": 13,
+    "release_delta_paths": [
+      {
+        "path": "apps/web/dist/assets/managerSelection-BLWLswkk.js",
+        "sha256": "338ae7ec90fe72e2b4c094ae5f0f9fecc1ef0e3c079f3d15d21314a577a6faec",
+        "matches_delta_after": true
+      },
+      {
+        "path": "apps/web/dist/manager-selection/index.html",
+        "sha256": "567fae57ebdab7234c7845ce166ce16c79f0e97b444c761152ef48a49dd17f60",
+        "matches_delta_after": true
+      },
+      {
+        "path": "apps/web/src/manager-selection/businessStatus.ts",
+        "sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
+        "matches_delta_after": true
+      },
+      {
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+        "matches_delta_after": true
+      },
+      {
+        "path": "apps/web/src/manager-selection/dailyChannels.ts",
+        "sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+        "matches_delta_after": true
+      },
+      {
+        "path": "apps/web/src/manager-selection/researchAttention.ts",
+        "sha256": "6d93d766c93da20130a5f0ac673820e6d27267c563742420ce6fbe2718adf4b6",
+        "matches_delta_after": true
+      },
+      {
+        "path": "v4/manager_research/research_attention.py",
+        "sha256": "452025514aa0238d5209472081cfd59a484402a54ba893217b79e55bad277750",
+        "matches_delta_after": true
+      },
+      {
+        "path": "v4/manager_research/workspace.py",
+        "sha256": "cfebac45b599c5e99cf5fa07b3511959025165576566a894ba092bce084b638e",
+        "matches_delta_after": true
+      },
+      {
+        "path": "v4/manager_research/workspace_identity.py",
+        "sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+        "matches_delta_after": true
+      },
+      {
+        "path": "v4/manager_research/workspace_projection.py",
+        "sha256": "5eb3276cd8514253b8e47cbe801c2d052a3080c76113809315d9334a852d1ffa",
+        "matches_delta_after": true
+      }
+    ],
+    "canonical_closeout_paths": [
+      {
+        "path": "apps/web/src/api/managerWorkspace.ts",
+        "sha256": "a87c0e40a20feeaf5377cdb1f267adba50a3cbccf12cf888329e2de9a68879df",
+        "matches_closeout": true
+      },
+      {
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "sha256": "04ed9d4907b1bc7d12b05d0073ac0963bac7d159d653a14db13c08e5d000275f",
+        "matches_closeout": true
+      },
+      {
+        "path": "apps/web/src/manager-selection/dailyChannels.ts",
+        "sha256": "819d5c21d146a95a5b0d8b21173d7169ba7aa99927200561e8ae127e453dcc24",
+        "matches_closeout": true
+      },
+      {
+        "path": "apps/web/src/manager-selection/dailyChannels.liveRepair.spec.ts",
+        "sha256": "d3e3f4f0c55c150179fc7b22da5a7e860b47f77e5ca7888a40a6e20d6f3a1feb",
+        "matches_closeout": true
+      },
+      {
+        "path": "tests/test_manager_plan_identity_r2.py",
+        "sha256": "6b5a2e95ccfe10937eaa23a48df4a08ce5712bcf1a4e729547ba83ac1e9b1d0f",
+        "matches_closeout": true
+      }
+    ],
+    "canonical_before_attribution": "CANNOT_CONFIRM",
+    "reason": "The closeout receipt records no canonical-before snapshot for managerWorkspace.ts or the updated identity fixture; final allowed-path hashes are verified, but complete canonical delta attribution is not proven.",
+    "closeout_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/evidence/canonical-compatibility-closeout.json",
+    "closeout_receipt_sha256": "b8cfdbbb893e6773e1cfd7663f596fc5e01c7fb6d30ddc7a640e1882dce0ead9"
+  },
+  "independent_tests": {
+    "canonical_vitest": {
+      "status": "PASS",
+      "tests": 22,
+      "files": 2,
+      "command": "npm exec vitest -- run src/manager-selection/dailyChannels.liveRepair.spec.ts src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "cwd": "/Users/lexi/Desktop/学习/v4_app/apps/web"
+    },
+    "frontend_build": {
+      "status": "PASS",
+      "modules_transformed": 116,
+      "command": "npm run build",
+      "cwd": "/Users/lexi/Desktop/学习/v4_app/apps/web"
+    },
+    "plan_identity_python_fixture": {
+      "status": "PASS",
+      "tests": 9,
+      "independent_run_previously_completed": true,
+      "fixture_sha256": "6b5a2e95ccfe10937eaa23a48df4a08ce5712bcf1a4e729547ba83ac1e9b1d0f",
+      "not_rerun_this_turn": true
+    },
+    "vue_tsc": {
+      "reviewer_run": "NOT_RUN",
+      "closeout_writer_result": "FAIL: 4 diagnostics reported in unchanged specs (managerWorkspace.attention.spec.ts:242,245; ManagerSelectionView.spec.ts:4,6)"
+    }
+  },
+  "risk_findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "CANNOT_CONFIRM": [
+      "Full canonical-before diff attribution: no frozen before snapshot is available for two closeout paths."
+    ]
+  },
+  "natural_period_status": "NOT_RUN",
+  "prior_publication_review": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/evidence/reviewer/publication_review.json",
+    "sha256": "0b5911d7b40930cd57631634a0365109b32ff0b2cd1b25c4616918a7e883f649",
+    "status": "PASS for frozen code/publication review; backend and cutoff checks were not rerun in this live-acceptance turn"
+  },
+  "evidence_paths": [
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/deployment/execution_receipt.json",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/deployment/operations/c58ad9062ba34229b3db80d4d507ed3c/operation_receipt.json",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/ui/after-dynamic.txt",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/ui/after-dynamic.png",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/ui/owner-readback.json",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/evidence/canonical-compatibility-closeout.json",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/evidence/reviewer/publication_review.json"
+  ]
+}
