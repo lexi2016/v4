@@ -1,0 +1,128 @@
+{
+  "schema_version": "r5_postpublication_api_ui_review.v1",
+  "status": "REVIEWED_PARTIAL_ACCEPTANCE",
+  "scope": "R5 post-publication read-only API/UI verification; no code or service mutation",
+  "reviewer": "/root/r2_local_review",
+  "active_api_identity": {
+    "launchd_label": "com.lexi.v35.api-only",
+    "pid": 8501,
+    "listening": "127.0.0.1:8873",
+    "process_start_local": "2026-10-10 10:45:17 Asia/Shanghai",
+    "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/candidate/mac_apply_20261010_r5_02/integration/candidate/stage-research-r4-20261009/app",
+    "release_id": "stage-research-r4-20261009",
+    "release_manifest_sha256": "a162a878c01b89f6769710f83bc0907467a05bf18d6e5838b760c7c83efe72d6",
+    "identity_unchanged_during_review": true
+  },
+  "live_preselection_api": {
+    "request": "GET /api/v3/preselection-pools?date=20261012&limit=200&offset=0",
+    "http_status": 200,
+    "response_sha256": "418487758ac61ac6e256e8c3c9cbfc7f72e485c1b5b7d41a5c84baeef81824bd",
+    "response_bytes": 5578858,
+    "trade_date": "20261012",
+    "pool_count": 7,
+    "total_row_count": 510,
+    "a_unique_codes": 371,
+    "hk_rows": 100,
+    "strict_0_2_status": "STRICT_0_2_READY",
+    "data_status": "PARTIAL_WITH_ROWS",
+    "hk_binding": {
+      "producer_id": "v3_shared_hk_0_2_consumer_v1",
+      "source_role": "SHARED_VERIFIED_HK_0_2",
+      "source_run_id": "20261012-hk-connect-d1-top100-0-2-d6f38622b186",
+      "source_sha256": "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d",
+      "artifact_raw_sha256": "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d",
+      "physical_status": "TRIO_VERIFIED",
+      "target_date": null,
+      "stage_selection_eligible": null,
+      "stage_reuse_status": "CANNOT_CONFIRM",
+      "cannot_confirm": [
+        "HK_D1_EXPLICIT_target_date_MISSING_OR_MISMATCH",
+        "HK_D1_EXPLICIT_stage_selection_eligible_NOT_TRUE"
+      ]
+    }
+  },
+  "source_contract_evidence": {
+    "api_source": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/candidate/mac_apply_20261010_r5_02/integration/candidate/stage-research-r4-20261009/app/domains/preselection.py",
+    "api_gate_lines": "318-321",
+    "api_gate": "requires pool-level target_date == requested date and stage_selection_eligible is True",
+    "stage_consumer_source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/hk_input_validation.py",
+    "stage_consumer_lines": "67-102",
+    "stage_consumer_gate": "for v3_5.preselection_pool.v1 permits absent top-level target_date/eligibility; validates fields when present and resolves exact trade date from envelope or row dates",
+    "reconciliation": "The isolated strict-consumer canary READY and live API CANNOT_CONFIRM are compatible outcomes from distinct contracts. The canary used test-owned byte-identical input copies and is not an official scheduled run or live readiness proof.",
+    "source_owner_for_missing_fields": "v3_shared_hk_0_2_consumer_v1 pool artifact contract",
+    "required_fields_at_pool_envelope": [
+      "target_date=20261012",
+      "stage_selection_eligible=true"
+    ]
+  },
+  "live_stage_api": {
+    "request": "GET /api/v3/workbench/stage?date=20261009&stage=STAGE_0930_0935&limit=50",
+    "http_status": 200,
+    "response_sha256": "580dc7e59a03323557857924d3095dc5e416ef54ee2d39d381c2aa63db1798d8",
+    "trade_date": "20261009",
+    "stage_id": "STAGE_0930_0935",
+    "status": "PARTIAL_WITH_ROWS",
+    "backfill_run_id": "85e29661ecd848fe9b8344ea59279e86",
+    "a_selected_rows": 10,
+    "a_source_rows": 206,
+    "hk_selected_rows": 10,
+    "hk_source_rows": 695,
+    "execution_verified": false,
+    "natural_verified": false,
+    "formal_hk_d1_membership_verified": false
+  },
+  "ui_and_natural_acceptance": {
+    "ui_verified": "CANNOT_CONFIRM",
+    "reason": "Independent CUA access to the root IAB surface could not be established in this reviewer context: getState timed out twice; getTab with browser 3 and createBrowserTab with iab reported unavailable; URL resolution selected Chrome extension browser 1, but hidden-tab capability was unavailable and getTab by URL timed out. No alternate UI driver was used and no user tab date was changed.",
+    "root_supplied_screenshot_used_as_independent_proof": false,
+    "natural_verified": "CANNOT_CONFIRM",
+    "scheduler_context": "com.lexi.stage-center.scheduler reports not running; no natural Stage run was observed.",
+    "cua_attempts": [
+      {
+        "api": "getState",
+        "result": "timeout at 30 seconds",
+        "count": 2
+      },
+      {
+        "api": "getTab(tabId=3,browser=3)",
+        "result": "browser unavailable"
+      },
+      {
+        "api": "createBrowserTab(browser=iab,visible=false,exact_requested_url)",
+        "result": "browser unavailable"
+      },
+      {
+        "api": "getBrowser(url=exact_requested_url)",
+        "result": "resolved Chrome extension browser id 1"
+      },
+      {
+        "api": "createBrowserTab(browser=1,visible=false,exact_requested_url)",
+        "result": "visibility capability unavailable"
+      },
+      {
+        "api": "getTab(url=exact_requested_url,browser=1)",
+        "result": "timeout at 30 seconds"
+      }
+    ]
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "classification": "readiness/metadata acceptance gap; no R5 code defect confirmed",
+        "evidence": "The live pool is physically trio-verified with 100 rows and row dates, but its top-level target_date and stage_selection_eligible are absent. The API therefore reports HK stage reuse CANNOT_CONFIRM.",
+        "impact": "20261012 HK pool stage-reuse readiness and natural Stage consumption remain unverified until the producer envelope supplies both explicit fields and a real eligible Stage run is observed."
+      }
+    ]
+  },
+  "acceptance": {
+    "REVIEWED": true,
+    "API_VERIFIED": true,
+    "BEHAVIOR_VERIFIED": "API binding response only; full API/UI behavior CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "source_or_service_mutated": false,
+    "tests_rerun": false
+  }
+}
