@@ -1,0 +1,49 @@
+{
+  "archive": {
+    "bytes": 1037157,
+    "members": 85,
+    "path": "ZIP/V4_MANAGER_LIVE_UI_API_PROBLEM_20261010.zip",
+    "sha256": "c8e8f42a108d144ab2a8182c516b7c0173f55cde8566d3d630709151303b5da4"
+  },
+  "backend_real_input_replay_off_mac": "NOT_RUN/UNAVAILABLE",
+  "behavior_acceptance": {
+    "business_behavior": "CANNOT_CONFIRM",
+    "focused_frontend_regression_tests": "NOT_RUN",
+    "live_api_ui_natural_run": "NOT_RUN"
+  },
+  "checks": {
+    "clean_extract_package_commands": "PASS",
+    "deployed_ui_api_context_count": 9,
+    "evidence_contract": "PASS",
+    "fixed_reference_count": 16,
+    "package_verifier": "PASS",
+    "previous_reference_count": 32,
+    "source_absolute_refs": {
+      "checked": 25,
+      "missing": 0,
+      "sha_mismatch": 0
+    },
+    "zip_integrity": "PASS"
+  },
+  "package_portable_checks": "PASS",
+  "report_sha256": "a16dcc089cb1bcc3dd8793349e67db797071a85fabd0792ce2184c10f504f70a",
+  "reviewer": "/root/three_channel_package_review",
+  "reviewer_independent_of_writer": true,
+  "risks": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "disposition": "Accepted non-blocking boundary under frozen no-raw-state scope; source and receipt locate the contributor, unique live cause remains CANNOT_CONFIRM.",
+        "evidence": [
+          "package/evidence/reproduce_global_manifest_identity_coupling.py:22-31",
+          "package/evidence/root_cause_report_20261010.md:41"
+        ],
+        "finding": "Real-data backend counterfactual replay is tied to Mac-only plan/app/data paths and unavailable off Mac because raw state is not bundled."
+      }
+    ]
+  },
+  "schema_version": "v4.manager.live_ui_api_package_review.v1",
+  "unique_live_cause": "CANNOT_CONFIRM",
+  "verdict": "REVIEWED=PASS_PACKAGE_DELIVERY_WITH_ACCEPTED_LIMITATION"
+}
