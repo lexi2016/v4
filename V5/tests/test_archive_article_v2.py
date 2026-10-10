@@ -42,7 +42,10 @@ class ArticleV2ChainTests(unittest.TestCase):
         self.published = (self.base - timedelta(hours=1)).replace(microsecond=123456).isoformat()
         self.times = [(self.base + timedelta(microseconds=i+1)).isoformat() for i in range(4)]
         self.topic_id = '12345678901234567'
-        self.body = '合成科技签署光模块产品供货合同，向 NASDAQ:AVGO 供应光互连设备。此处仅为独立测试合成正文，没有真实业务含义。'
+        # Keep the explicit US symbol in the same subject/action clause: the
+        # frozen owner parser splits clauses at Chinese commas and will not
+        # carry an issuer across a separate beneficiary clause.
+        self.body = '合成科技与 NASDAQ:AVGO 签署光模块供货协议并交付光互连设备。此处仅为独立测试合成正文，没有真实业务含义。'
         self.raw_topic = dict(topic_id=self.topic_id, create_time=self.published, content=self.body)
         self.summary_topic = dict(topic_id=self.topic_id, create_time=self.published, title='合成研究标题',
             content_head=self.body[:240], evidence=self.body, companies=[dict(code='00001', name='合成科技')],
@@ -364,8 +367,7 @@ ResearchPeripheralStore(Path(sys.argv[2])).publish(payload)
         self.assertEqual(diag,read['payload']['us_market_attention']['mapping_diagnostics'])
         self.assertFalse(saved['natural_verified'])
 
-    def test_industry_material_mapping_needs_no_explicit_us_or_etf_ticker(self):
-        body='合成科技签署光模块产品供货合同并交付光互连设备。此处仅为独立测试合成正文，没有真实业务含义。'
+    def _replace_bound_article_body(self, body):
         for name in [n for n in self.files if '/pages/' in n or n.endswith('/zsxq_recent_topics.json')]:
             value=json.loads((self.capture_root/name).read_bytes())
             (value.get('topics') or value.get('topics_brief'))[0]['content']=body
@@ -375,7 +377,18 @@ ResearchPeripheralStore(Path(sys.argv[2])).publish(payload)
         value['effective_topics'][0].update(content_head=body[:240],evidence=body)
         self._rewrite_capture_payload(name,value)
         self.original['articles'][0]['evidence_sentence']=body
+
+    def test_industry_material_mapping_needs_no_explicit_us_or_etf_ticker(self):
+        body='合成科技签署光模块产品供货合同并交付光互连设备。此处仅为独立测试合成正文，没有真实业务含义。'
+        self._replace_bound_article_body(body)
         self._assert_original_mapping_roundtrip(direct=False)
 
     def test_explicit_us_relation_reaches_original_direct_mapping_and_same_run(self):
         self._assert_original_mapping_roundtrip(direct=True)
+
+    def test_symbol_in_following_clause_is_not_attributed_to_hk_issuer(self):
+        body='合成科技签署光模块产品供货合同，向 NASDAQ:AVGO 供应光互连设备。此处仅为独立测试合成正文，没有真实业务含义。'
+        self._replace_bound_article_body(body)
+        # The owner parser splits at Chinese commas; a later beneficiary clause
+        # must not acquire the HK issuer as the subject of an AVGO relation.
+        self._assert_original_mapping_roundtrip(direct=False)
