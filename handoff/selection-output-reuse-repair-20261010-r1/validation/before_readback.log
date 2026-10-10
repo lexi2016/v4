@@ -1,0 +1,23 @@
+F.........                                                               [100%]
+=================================== FAILURES ===================================
+___________ test_original_cli_accepts_current_complete_owner_receipt ___________
+../repair_tests/test_selection_reuse_readback.py:45: in test_original_cli_accepts_current_complete_owner_receipt
+    result = readback()
+             ^^^^^^^^^^
+../repair_tests/test_selection_reuse_readback.py:39: in readback
+    return cli._readback(SimpleNamespace(target_date=TARGET,
+ops/run_manager_daily_announcement.py:652: in _readback
+    validated_receipt = validate_owner_analysis_import_receipt(receipt, product)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/workspace_announcements.py:2188: in validate_owner_analysis_import_receipt
+    raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID')
+E   ValueError: ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID
+=============================== warnings summary ===============================
+../python-deps/fastapi/testclient.py:1
+  /workspace/scratch/53ae4d14e489/work/python-deps/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../repair_tests/test_selection_reuse_readback.py::test_original_cli_accepts_current_complete_owner_receipt
+1 failed, 9 passed, 1 warning in 1.08s

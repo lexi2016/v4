@@ -1,0 +1,75 @@
+{
+  "schema_version": "v4.hk_connect.helper_verification.v1",
+  "scope": "SYNTHETIC_REVIEW_HELPER_CHECKS_ONLY_NO_LIVE_INPUT_OR_BUSINESS_ACCEPTANCE",
+  "verified_at_utc": "2026-10-10T12:37:25.751927+00:00",
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 /workspace/scratch/53ae4d14e489/agent-connect/verify_connect_helper.py",
+  "result": "PASS",
+  "check_count": 13,
+  "checks": [
+    {
+      "name": "two_empty_authority_roots_d1_not_configured",
+      "status": "PASS"
+    },
+    {
+      "name": "existing_d1_roots_preserved_original_fallback_executed",
+      "status": "PASS"
+    },
+    {
+      "name": "d1_relative_fails_closed_before_reader",
+      "status": "PASS"
+    },
+    {
+      "name": "d1_symlink_fails_closed_before_reader",
+      "status": "PASS"
+    },
+    {
+      "name": "market_session_missing_fails_closed_without_nested_output",
+      "status": "PASS"
+    },
+    {
+      "name": "market_session_nested_fails_closed_without_nested_output",
+      "status": "PASS"
+    },
+    {
+      "name": "market_session_bad_date_fails_closed_without_nested_output",
+      "status": "PASS"
+    },
+    {
+      "name": "calendar_sha_missing_fails_closed_without_nested_output",
+      "status": "PASS"
+    },
+    {
+      "name": "calendar_sha_nested_fails_closed_without_nested_output",
+      "status": "PASS"
+    },
+    {
+      "name": "calendar_sha_malformed_fails_closed_without_nested_output",
+      "status": "PASS"
+    },
+    {
+      "name": "existing_owner_pin_still_enforced",
+      "status": "PASS"
+    },
+    {
+      "name": "reviewed_consumer_source_sha_still_enforced",
+      "status": "PASS"
+    },
+    {
+      "name": "authority_diagnostic_allowlist_and_gap_scalar_guards",
+      "status": "PASS"
+    }
+  ],
+  "helper_sha256": "b333f542da12467bddb23d0b1ebec6fdfc1456bece9b840a6eff8f71a1e7514e",
+  "recipe_sha256": "c8b624aa1276a546c4a0c314a67814cbf55ca83e73945769e05e45458cc2f6b1",
+  "verification_script_sha256": "d8f62af95c73d895fe8dcf05cb37f3cff5fa88cf60c0b6ce9d4da047652c0eac",
+  "original_source_sha256": {
+    "/workspace/scratch/53ae4d14e489/work/app/v4/manager_research/connect_selection.py": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+    "/workspace/scratch/53ae4d14e489/work/app/domains/manager_research_evidence.py": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+    "/workspace/scratch/53ae4d14e489/agent-connect/reference/hk_universe_preflight.py": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941"
+  },
+  "original_source_unchanged": true,
+  "authority_inputs": "TWO_SYNTHETIC_EMPTY_AUTHORITY_ROOTS",
+  "d1_inputs": "SYNTHETIC_ABSENT_OR_EMPTY_RECEIPT_ROOTS;NO_RAW_CAPTURE_OR_DISPATCH_ROWS",
+  "live_data_read": false,
+  "production_configuration_changed": false
+}

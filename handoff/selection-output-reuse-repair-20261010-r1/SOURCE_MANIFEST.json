@@ -1,0 +1,41 @@
+{
+  "schema_version": "v4.selection_reuse_repair.source_manifest.v1",
+  "repository": "lexi2016/v4",
+  "base_commit": "e72607634d46146b0b6c0f4a0396f6b2939589f7",
+  "delivery_branch": "chat/selection-output-reuse-repair-20261010-r1",
+  "repository_delivery_path": "handoff/selection-output-reuse-repair-20261010-r1",
+  "input_zip_sha256": "58139f6c8576b9d3f972f40abdb6572aa7133d945e4dccc42a097c9d7bb2872e",
+  "scope": "THREE_REPRODUCED_DEFECTS_IN_TWO_FILES;BUSINESS_RESTORATION_NOT_VERIFIED",
+  "runtime_changes": [
+    {
+      "path": "ops/run_manager_daily_announcement.py",
+      "source_group": "historical-r2-release",
+      "supplied_source_path": "source/historical-r2-release/app/ops/run_manager_daily_announcement.py",
+      "supplied_original_source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "before_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "after_sha256": "a50bd2dc9bfe4bc671348d1bb3bacb54810db4d377abefb236689b0e6c2353e3",
+      "before_bytes": 42929,
+      "after_bytes": 43212,
+      "application_rule": "APPLY_ONLY_TO_EXACT_BEFORE_BYTES_IN_ISOLATED_CANDIDATE",
+      "live_source_identity": "NOT_VERIFIED_IN_THIS_SESSION"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "source_group": "current-live-release",
+      "supplied_source_path": "source/current-live-release/app/v4/manager_research/workspace_plan.py",
+      "supplied_original_source_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_LIVE_UI_API_REPAIR_MAC_20261010_R1/integrated_release/manager-live-ui-api-20261010-r1/app",
+      "before_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "after_sha256": "89d2f93201aa5284ab4d7bde5d9facc73834057d1d9cf7f9bbd6cd4ca5b95c3d",
+      "before_bytes": 107076,
+      "after_bytes": 107225,
+      "application_rule": "APPLY_ONLY_TO_EXACT_BEFORE_BYTES_IN_ISOLATED_CANDIDATE",
+      "live_source_identity": "NOT_VERIFIED_IN_THIS_SESSION"
+    }
+  ],
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

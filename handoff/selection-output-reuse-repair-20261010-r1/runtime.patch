@@ -1,0 +1,76 @@
+--- a/ops/run_manager_daily_announcement.py
++++ b/ops/run_manager_daily_announcement.py
+@@ -35,6 +35,7 @@
+ from v4.manager_research.workspace_announcements import (
+     validate_agent_judgment_receipt,
+     validate_owner_analysis_import_receipt,
++    validate_owner_analysis_readback,
+     validate_terminal_body_capture,
+ )
+ from v4.manager_research.workspace_projection import FLAGS, date_token, digest
+@@ -151,8 +152,14 @@
+         receipt = _load(args.review_receipt)
+         receipt = validate_agent_judgment_receipt(receipt, {**product, "agent_judgment_receipt": receipt})
+         product["agent_judgment_receipt"] = receipt
++        # The receipt participates in the base identity, just as in
++        # register-handoff. Rebind the same validated decisions to that base.
++        selection_extension = product.pop("stock_selection", None)
+         product.pop("sha256", None)
+         product["sha256"] = digest(product)
++        if selection_extension is not None:
++            product = attach_extension(product,
++                make_extension(product, selection_extension["article_decisions"]))
+         validate_agent_judgment_receipt(receipt, product)
+         _write_exclusive(args.out, product)
+     result = {
+@@ -638,12 +645,10 @@
+     if (result.get("target_trade_date") != target
+             or result.get("publication_date") != publication):
+         raise ValueError("ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_DATE_PAIR_MISMATCH")
+-    product = {"target_trade_date": target, "publication_date": publication,
+-        "sha256": analysis.get("product_sha256")}
+     receipt = result.get("owner_import_receipt")
+     if receipt is None:
+         raise ValueError("ANNOUNCEMENT_ANALYSIS_OWNER_IMPORT_RECEIPT_MISSING")
+-    validated_receipt = validate_owner_analysis_import_receipt(receipt, product)
++    validated_receipt = validate_owner_analysis_readback(result)
+     if (validated_receipt.get("target_trade_date") != target
+             or validated_receipt.get("publication_date") != publication
+             or validated_receipt.get("product_sha256") != analysis.get("product_sha256")):
+--- a/v4/manager_research/workspace_plan.py
++++ b/v4/manager_research/workspace_plan.py
+@@ -1272,11 +1272,13 @@
+                               and previous20_mean not in (None, 0) else None)
+             close_position = ((close - low) / (high - low)
+                               if close is not None and low is not None and high is not None and high > low else None)
+-            oversold = (bool(close <= _REBOUND_OVERSOLD_RATIO * prior60_high)
+-                        if prior60_high is not None and close is not None else None)
++            from decimal import Decimal
++            oversold_cutoff = (Decimal(str(_REBOUND_OVERSOLD_RATIO)) * Decimal(str(prior60_high))
++                               if prior60_high is not None else None)
++            oversold = (bool(Decimal(str(close)) <= oversold_cutoff)
++                        if oversold_cutoff is not None and close is not None else None)
+             if (volume_proven and current_volume is not None and previous5_mean not in (None, 0)
+                     and len(valid_vol5) == 5 and all(value is not None for value in valid_vol5)):
+-                from decimal import Decimal
+                 volume_flag = bool(
+                     Decimal(str(current_volume)) * Decimal('5')
+                     >= Decimal(str(_REBOUND_VOLUME_GATE))
+@@ -1347,7 +1349,7 @@
+                 else:
+                     failed_gate = 'oversold_close_le_80pct_prior60_high'
+                     failed_value = close
+-                    gate_value = _REBOUND_OVERSOLD_RATIO * prior60_high
++                    gate_value = float(oversold_cutoff)
+                 gate_gap_value = (abs(failed_value - gate_value)
+                                   if failed_value is not None and gate_value is not None else None)
+                 gate_gap_ratio = (gate_gap_value / abs(gate_value)
+@@ -1377,7 +1379,7 @@
+                                    if supplement_record is not None else None),
+                 prior60_session_count=count60, previous5_session_count=valid_previous5_count,
+                 previous20_session_count=int(len(previous20)), prior60_session_high=prior60_high,
+-                oversold_cutoff_80pct_prior60_high=(0.8 * prior60_high if prior60_high is not None else None),
++                oversold_cutoff_80pct_prior60_high=(float(oversold_cutoff) if oversold_cutoff is not None else None),
+                 previous5_mean_volume=previous5_mean, volume_ratio_5d=volume_ratio,
+                 volume_ratio_status='OWNER_VERIFIED' if volume_proven else 'UNVERIFIED_UNIT_OR_SCALE',
+                 volume_ratio_current_to_previous5_mean=volume_ratio,

@@ -1,0 +1,67 @@
+{
+  "schema_version": "v4.selection_reuse_repair.validation.v1",
+  "scope": "LOCAL_SOURCE_REPAIR_ONLY;LIVE_BUSINESS_ACCEPTANCE_BLOCKED",
+  "base_commit": "e72607634d46146b0b6c0f4a0396f6b2939589f7",
+  "target_trade_date": "20261009",
+  "publication_date": "2026-10-08",
+  "production_files_changed": 2,
+  "reproduced_defects_fixed": 3,
+  "main_suite": {
+    "new_targeted_cases": 25,
+    "supplied_upstream_cases": 17,
+    "passed": 42,
+    "failed": 0,
+    "warning_count": 1,
+    "log": "after_targeted_and_supplied.log"
+  },
+  "independent_final_before": {
+    "passed": 17,
+    "failed": 8,
+    "method": "Original _build, _readback and read_rebound_screen loaded in isolated process memory; no production disk replacement",
+    "log": "independent_before_25_final.log"
+  },
+  "independent_final_after": {
+    "passed": 25,
+    "failed": 0,
+    "log": "independent_after_25_final.log"
+  },
+  "extended_historical_reference": {
+    "before": {
+      "passed": 38,
+      "failed": 1
+    },
+    "after": {
+      "passed": 38,
+      "failed": 1
+    },
+    "unmodified_test": true,
+    "failure": "test_missing_original_archive_is_not_empty_connect_selection",
+    "cause": "Old synthetic read_scope fixture omits calendar_applicability; current consumer correctly emits HK_CONNECT_CALENDAR_UNVERIFIED / PARTIAL rather than expected READY"
+  },
+  "diagnostic_helper": {
+    "checks": 13,
+    "passed": 13,
+    "scope": "Synthetic absent/empty authority and D-1 roots, invalid root/context, source/pin/output boundary checks; no live authority"
+  },
+  "review": {
+    "critical_open": 0,
+    "important_open": 0,
+    "minor_limits": [
+      "Existing float output may round an extreme-precision Decimal cutoff; exact comparison remains correct"
+    ],
+    "record": "INDEPENDENT_REVIEW.md"
+  },
+  "application_and_rollback": "PASS;see PACKAGE_QA.json",
+  "mac_deployment": "NOT_RUN",
+  "real_current_pair_selection": "NOT_VERIFIED",
+  "real_historical_33_security_reproduction": "NOT_REPRODUCIBLE_FROM_PACKAGE",
+  "live_api_readback": "NOT_RUN",
+  "browser_reload": "NOT_RUN",
+  "natural_period": "NOT_RUN",
+  "stage_business_acceptance": "CANNOT_CONFIRM",
+  "september_30_three_channel_success": "CANNOT_CONFIRM",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
