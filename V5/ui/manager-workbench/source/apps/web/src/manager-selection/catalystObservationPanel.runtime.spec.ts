@@ -104,8 +104,10 @@ const workspaceWithScreen = (): ManagerWorkspace => ({
 }) as unknown as ManagerWorkspace;
 
 const readPinnedManualObservationFixture = (name: "close_recapture.json" | "close_recapture.candidates.json"): JsonObject => {
-  const fixtureRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../tests/fixtures/manager_current_observation_20261002");
-  const binding = JSON.parse(readFileSync(resolve(fixtureRoot, "FIXTURE_BINDING.json"), "utf8"));
+  const fixtureRoot = process.env.V5_MANUAL_OBSERVATION_FIXTURES || resolve(dirname(fileURLToPath(import.meta.url)), "../../../../tests/fixtures/manager_current_observation_20261002");
+  const bindingBytes = readFileSync(resolve(fixtureRoot, "FIXTURE_BINDING.json"));
+  expect(createHash('sha256').update(bindingBytes).digest('hex')).toBe('9e5fd49a35fa70aa8d2a85b4b06547fecaae5af9f9248fbffa99e5aa48b28c0c');
+  const binding = JSON.parse(bindingBytes.toString('utf8'));
   const bytes = readFileSync(resolve(fixtureRoot, name));
   expect(createHash("sha256").update(bytes).digest("hex")).toBe(binding.files[name].sha256);
   return JSON.parse(bytes.toString("utf8")) as JsonObject;
@@ -662,7 +664,7 @@ describe("catalyst workspace runtime boundary", () => {
 
   it("renders Eastmoney evidence from the selected-date daily owner review", async () => {
     const raw = JSON.parse(readFileSync(
-      "/Users/lexi/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integration/workspace_after.json",
+      process.env.V5_EASTMONEY_WORKSPACE_FIXTURE || "/Users/lexi/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integration/workspace_after.json",
       "utf8",
     ));
     workspaceMocks.request.mockImplementation(async () => validateManagerWorkspace(raw, "20260929"));

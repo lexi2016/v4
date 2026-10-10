@@ -49,9 +49,11 @@ def main():
     for name in ('manager-selection', 'daily-research-command'):
         page = root / name / 'index.html'
         page.parent.mkdir(exist_ok=True)
-        page.write_text(f'<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V5 云端隔离预览</title></head><body><div id="{name}"></div><script type="module" src="/src/{name}/main.ts"></script></body></html>\n')
+        title='经理选股工作台 · V4' if name=='manager-selection' else 'V5 云端隔离预览'
+        page.write_text(f'<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title></head><body><div id="{name}"></div><script type="module" src="/src/{name}/main.ts"></script></body></html>\n')
     (root/'tsconfig.cloud-product.json').write_text(json.dumps(dict(extends='./tsconfig.json', exclude=['node_modules','src/**/*.spec.ts','src/**/__tests__/**','src/**/*.testHelper.ts'])))
     (root/'src/manager-selection/cloudActualReadback.spec.ts').write_bytes(Path(__file__).with_name('cloudActualReadback.spec.ts').read_bytes())
+    (root/'src/api/cloudRecoveryContract.spec.ts').write_bytes(Path(__file__).with_name('cloudRecoveryContract.spec.ts').read_bytes())
     (root/'cloud-source-provenance.json').write_text(json.dumps(inventory, indent=2))
     print('SOURCE_ONLY: run locked npm install, tests, typecheck and build separately')
 

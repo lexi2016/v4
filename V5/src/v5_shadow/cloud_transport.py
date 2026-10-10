@@ -53,3 +53,19 @@ def run_original_us_cli(owner,owner_transport,argv,*,allow_network_capture=False
         return owner.main(argv)
     finally:
         for name,function in originals.items():setattr(owner,name,function)
+
+
+def main(argv=None):
+    """Explicit cloud entry; use an already SHA-admitted private owner PYTHONPATH."""
+    import sys
+    args=list(sys.argv[1:] if argv is None else argv)
+    if not args or args.pop(0)!='--allow-network-capture':
+        raise ValueError('V5_CLOUD_CAPTURE_EXPLICIT_AUTHORIZATION_REQUIRED')
+    if args and args[0]=='--':args.pop(0)
+    from ops import us_market_digest
+    from infrastructure import http_transport
+    return run_original_us_cli(us_market_digest,http_transport,args,allow_network_capture=True)
+
+
+if __name__=='__main__':
+    raise SystemExit(main())

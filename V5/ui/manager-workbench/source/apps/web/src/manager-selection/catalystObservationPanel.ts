@@ -511,7 +511,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
     const savedFreeze=!historical&&product.status==='CURRENT'&&attemptMatches&&planAttempt.execution_kind==='SCHEDULED_PREOPEN';
     renderResearchFocus(value,savedDraft,savedFreeze,historical);
     const label=historical ? (missing?'当时历史：缺少合格保存计划':sourceFailed?'当时历史：来源校验失败，拒绝旧计划':'当时历史：保存计划已重验') :
-      (view==='dynamic'?'现在回看（含后续信息，非当时已知）':savedDraft?'次日研究预览（已保存草案；未正式冻结）':
+      (read.mode==='CURRENT_RECOVERY'?'跨日恢复研究计划（现在回看，非当时可用）':view==='dynamic'?'现在回看（含后续信息，非当时已知）':savedDraft?'次日研究预览（已保存草案；未正式冻结）':
         savedFreeze?'盘前计划已冻结（原owner产物）':'当日动态预览（非历史冻结计划）');
     status.textContent=`计划 ${date} · ${label} ｜ 材料截至 ${timeText(ctx.research_cutoff)} ｜ 行情基准 ${text(ctx.market_session)}，${ctx.market_data_verified===true?'原行情已核':'原行情未核'}（非晚间实时行情）。`;
     businessStatus.replaceChildren(...businessStatusRows(value).map(row=>{const item=el('article','','business-status-row');item.append(el('strong',`${row.label}：${row.state}`),el('p',row.detail),el('p',`下一步：${row.next}`));return item;}));

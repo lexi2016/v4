@@ -91,3 +91,10 @@ class CloudCliBindingTests(unittest.TestCase):
             run_original_us_cli(module,owner,[],allow_network_capture=True)
         self.assertIs(module.materialize_us_market_phase,original)
         self.assertIs(module.materialize_us_historical_backfill,original)
+
+class CloudEntryTests(unittest.TestCase):
+    def test_missing_explicit_capture_flag_never_loads_owner(self):
+        from unittest.mock import patch
+        from v5_shadow.cloud_transport import main
+        with patch.dict(sys.modules,{'ops':None,'infrastructure':None}):
+            with self.assertRaisesRegex(ValueError,'EXPLICIT_AUTHORIZATION'):main([])

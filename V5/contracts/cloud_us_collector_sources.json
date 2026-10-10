@@ -1,0 +1,295 @@
+{
+  "schema_version": "v5.cloud_us_collector_sources.v1",
+  "source_commit": "164c010c7eaa1659db9bfed0ff5f123c7a39eefc",
+  "entry": "ops.us_market_digest",
+  "entries": [
+    {
+      "path": "contracts/__init__.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/contracts/__init__.py",
+      "sha256": "6334176641872990a56b559f965a9dc6d65f29ab0a0efc0752ef1a73fe42bc7d",
+      "bytes": 55
+    },
+    {
+      "path": "contracts/us_equity_calendar.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/contracts/us_equity_calendar.py",
+      "sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452",
+      "bytes": 3603
+    },
+    {
+      "path": "contracts/us_equity_calendar_2026.json",
+      "git_path": "handoff/v4-running-source-20261005/canonical/contracts/us_equity_calendar_2026.json",
+      "bytes": 603,
+      "sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f"
+    },
+    {
+      "path": "infrastructure/__init__.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/__init__.py",
+      "sha256": "46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b",
+      "bytes": 68
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "git_path": "V5/vendor/us_mapping_baseline/infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/envelope_validation.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/envelope_validation.py",
+      "sha256": "9b068a58500d557d34ccda6c6e08e9520d2989ae15a189e337498e184b37347f",
+      "bytes": 15267
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/historical_backfill.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/historical_backfill.py",
+      "sha256": "6852f000947b739c984b77ac7fedfe1baab07e3127c323e421ff13ab5445ea78",
+      "bytes": 5055
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "sha256": "7f6b3912b11c6c0af9e7027c57b564df1652c7b3c6a60b4690887e2ff62cb01e",
+      "bytes": 22416
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/primitives.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/primitives.py",
+      "sha256": "e113c739623317ce562b9c24703524f094f7f7b8b370041bbc0ee3efdc567a8a",
+      "bytes": 1195
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/publish_read.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/publish_read.py",
+      "sha256": "b51dea0a9c7b0e303f20e0fa76070e10008769592024ad062a032240fdfd3150",
+      "bytes": 7889
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/refresh_audit.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/refresh_audit.py",
+      "sha256": "438eb20519728758c84f825894a9804515aaa11cb3cbdf229caa93f147b8f16e",
+      "bytes": 6121
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/replacement.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/replacement.py",
+      "sha256": "7494d0633d749dfe62998239a4a1496de6d9d9575eac8990da827852bf2d3828",
+      "bytes": 5123
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/session_validation.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/session_validation.py",
+      "sha256": "48b6ec629083ff16ccaa9df4d0db50f1e43b2033edbcb10bed03d0b043a52145",
+      "bytes": 10545
+    },
+    {
+      "path": "infrastructure/data_store.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/data_store.py",
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "bytes": 10704
+    },
+    {
+      "path": "infrastructure/http_transport.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/http_transport.py",
+      "sha256": "b34f906be69051da0f0f5e2f4980bf9b4c310d88ad9fc1b50b3246fceffccc69",
+      "bytes": 9429
+    },
+    {
+      "path": "infrastructure/interprocess_lock.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/interprocess_lock.py",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "bytes": 7514
+    },
+    {
+      "path": "infrastructure/market_time.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/market_time.py",
+      "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+      "bytes": 960
+    },
+    {
+      "path": "infrastructure/owned_io.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "bytes": 9354
+    },
+    {
+      "path": "infrastructure/owned_path.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_path.py",
+      "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+      "bytes": 2251
+    },
+    {
+      "path": "infrastructure/research_peripheral_store.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/research_peripheral_store.py",
+      "sha256": "ec5ca1e32232946bacf04834d0ec0e0ed6e772ce1d3470fdb65b35522dc2faab",
+      "bytes": 15114
+    },
+    {
+      "path": "infrastructure/trading_safety.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/infrastructure/trading_safety.py",
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "bytes": 2597
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/_namespace.py",
+      "git_path": "V5/vendor/us_mapping_baseline/ops/_materialize_research_peripherals_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/ai_feeds.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/ai_feeds.py",
+      "sha256": "c58fc7c92051c61d32b52285bf170a869fab94a183218e2c36b2a220a3a47f01",
+      "bytes": 10219
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/cli.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/cli.py",
+      "sha256": "4935a2a7e258c11837b54c4cc795724f63cd4759f388a7a9988625d30be7dc23",
+      "bytes": 7912
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/entity_topics.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/entity_topics.py",
+      "sha256": "e3106c7600986f0f2265ad1b6d28d1360a642b5ae66908adeeaa6e0479760435",
+      "bytes": 2914
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/feed_admission.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/feed_admission.py",
+      "sha256": "22cad4c7e3cc84396462377101020092a004f91484a8994ee900e0a0cc23d4e6",
+      "bytes": 3941
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/feed_fetch.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/feed_fetch.py",
+      "sha256": "02bb9c6b116012968a8c6d55390ba1d6b7de64db1f37ef00c3d77843e46b0fdd",
+      "bytes": 3501
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/finance_payload.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/finance_payload.py",
+      "sha256": "1c9a69bc38619635a93829e853093b9d1d4adfee92eb8dbcb55e20c6fe31cf61",
+      "bytes": 8134
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/google_redirects.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/google_redirects.py",
+      "sha256": "9758936b73525823b8bec68eb6897ca0add7fc29c989834070e1de242a1f6b77",
+      "bytes": 4698
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/materialization.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/materialization.py",
+      "sha256": "a89c08a46628b9e2e83a1749ebba4a40bcdbc890ef4da0cd983a5a6a66501a79",
+      "bytes": 2049
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/rss_parse.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/rss_parse.py",
+      "sha256": "00b14a6564c01eb7e9f1f684faebb48a38e4257a29052b6253966af0456c96fe",
+      "bytes": 4446
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/schema_values.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/schema_values.py",
+      "sha256": "2647cfffb684d91f152358368244e49c07b33e73b36f9183ca130879f14e609c",
+      "bytes": 14001
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/translation_rows.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/translation_rows.py",
+      "sha256": "fd91c9b35ce45dd0eb0419d9a2818d3825170bb8b6d6f0cfa4df1c93a8f05e6d",
+      "bytes": 17694
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/translation_validation.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_materialize_research_peripherals_parts/translation_validation.py",
+      "sha256": "ac4fc66fbe842c3cba28291c4808018a0c898b29c5fcc264a4bdfcede3310291",
+      "bytes": 3528
+    },
+    {
+      "path": "ops/_us_market_digest_parts/_namespace.py",
+      "git_path": "V5/vendor/us_mapping_baseline/ops/_us_market_digest_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527
+    },
+    {
+      "path": "ops/_us_market_digest_parts/capture_merge.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/capture_merge.py",
+      "sha256": "ee76f91ad9aecadaf1f7bda12a71798c8d4446b5c91880612195e2635201709e",
+      "bytes": 5382
+    },
+    {
+      "path": "ops/_us_market_digest_parts/capture_metadata.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/capture_metadata.py",
+      "sha256": "b6f7fb81bc6aa90cb48e1196b868dc05033b99c9054e145f295014afc81528a3",
+      "bytes": 6199
+    },
+    {
+      "path": "ops/_us_market_digest_parts/cli_primitives.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/cli_primitives.py",
+      "sha256": "973b0f35e9e03082e15ab74ab7912068ef5fffdcf0bbe4d82b5a93d786d416c9",
+      "bytes": 10041
+    },
+    {
+      "path": "ops/_us_market_digest_parts/historical_payload.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/historical_payload.py",
+      "sha256": "f13767b18dcc3745e8f727f76b07d171b9e89987287e6e6e0f1e7313794e07b1",
+      "bytes": 5697
+    },
+    {
+      "path": "ops/_us_market_digest_parts/market_snapshot.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/market_snapshot.py",
+      "sha256": "649d1f706f7ddbe662191b876fa46102c7b3f0f1d7f9cb2f8039a4d8b8e6287e",
+      "bytes": 14768
+    },
+    {
+      "path": "ops/_us_market_digest_parts/phase_merge.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/phase_merge.py",
+      "sha256": "0503d21b0ed348c825da70a2fd650aacf2e52306c2c083a74ca5e4882c95d464",
+      "bytes": 7719
+    },
+    {
+      "path": "ops/_us_market_digest_parts/phase_payload.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/phase_payload.py",
+      "sha256": "23011471e0918b5ef97fb71749afde5d6d091238b756fe66fbf89d4c67686abe",
+      "bytes": 12153
+    },
+    {
+      "path": "ops/_us_market_digest_parts/phase_publication.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/phase_publication.py",
+      "sha256": "d6668723844000577eedb789914d03b005f6ee076f4d5161883d8fbf204d380f",
+      "bytes": 18565
+    },
+    {
+      "path": "ops/_us_market_digest_parts/quote_parsing.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/quote_parsing.py",
+      "sha256": "b2acf3b603248b13b8aed1b1e1da78fb64d2d9fa19b6d7d6e243fab8f7e6eb3e",
+      "bytes": 10597
+    },
+    {
+      "path": "ops/_us_market_digest_parts/session_windows.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/session_windows.py",
+      "sha256": "608f4fead6c1ed236fd3180d724c6698a380f53c81e5df7852a71a078f969759",
+      "bytes": 6350
+    },
+    {
+      "path": "ops/_us_market_digest_parts/snapshot_merge.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/_us_market_digest_parts/snapshot_merge.py",
+      "sha256": "2fdb99354861f5afbfad5cdcfef532050ed36720e474981cfddf69b1efbf4bf5",
+      "bytes": 2535
+    },
+    {
+      "path": "ops/materialize_research_peripherals.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/materialize_research_peripherals.py",
+      "sha256": "712fb09f36f47f1e821793b2ba94a612396d474eb688036d40061458805ca512",
+      "bytes": 31490
+    },
+    {
+      "path": "ops/us_market_digest.py",
+      "git_path": "handoff/v4-running-source-20261005/canonical/ops/us_market_digest.py",
+      "sha256": "5e814bc2ddffeec45a2ed7a593d3fa20128826c7c4951e0f10a95f3bdc0f552c",
+      "bytes": 33600
+    }
+  ]
+}

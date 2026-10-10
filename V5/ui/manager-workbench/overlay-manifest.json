@@ -6,15 +6,15 @@
       "path": "src/api/managerWorkspace.ts",
       "source": "source/apps/web/src/api/managerWorkspace.ts",
       "before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
-      "after_sha256": "e1e7c465d9cbc51a3f524906fe17c987e4a01b7917f9f327c72a5526e9b7ef7e",
-      "previous_candidate_sha256": "83f68557306054430a2e9a9f97bca53da9b746493ca2be95aad7c22a00cbc5af"
+      "after_sha256": "fd5e8a0371d49127862381c8eccf6a014c4a8459b74ab0d938f8bf93aeeac5f1",
+      "previous_candidate_sha256": "e1e7c465d9cbc51a3f524906fe17c987e4a01b7917f9f327c72a5526e9b7ef7e"
     },
     {
       "path": "src/manager-selection/catalystObservationPanel.ts",
       "source": "source/apps/web/src/manager-selection/catalystObservationPanel.ts",
       "before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
-      "after_sha256": "44807aedac1ad62d39ed599f3d1cdbf1818cc2b5c6c2ee4973834ab78c733f60",
-      "previous_candidate_sha256": "2375802f97ce2a6c2095d130365415bc5dedb82e75fac97e7f39efe51cb00844"
+      "after_sha256": "81190e870e80a98a4c54357bab35e16b8bafba9c0065d0afb63eb90a16c5168b",
+      "previous_candidate_sha256": "44807aedac1ad62d39ed599f3d1cdbf1818cc2b5c6c2ee4973834ab78c733f60"
     },
     {
       "path": "src/manager-selection/dailyChannels.runtime.spec.ts",
@@ -33,8 +33,8 @@
       "path": "src/manager-selection/catalystObservationPanel.runtime.spec.ts",
       "source": "source/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
       "before_sha256": "9ed39eebf1983c6287b25232839d68c6bfca684b3701a0dab080b8f5ed5e31a4",
-      "after_sha256": "51ff0b9ef5b62ce01efeaa2eac73e7d51f2d3136a5e3f77b1797175083d764a4",
-      "previous_candidate_sha256": "0e1758c55b3a77ecbb65a82f014feeb7d415744cba4c8f4437d3daf16614074d"
+      "after_sha256": "d15fcb23fa44f4c31264dbfdbf630de2ad5d2d69983098eaa41d45fd39fc83af",
+      "previous_candidate_sha256": "51ff0b9ef5b62ce01efeaa2eac73e7d51f2d3136a5e3f77b1797175083d764a4"
     },
     {
       "path": "src/manager-selection/catalystViewNavigation.spec.ts",
@@ -87,6 +87,48 @@
       "source": "source/apps/web/src/manager-selection/__tests__/businessChainR2.spec.ts",
       "before_sha256": "5339998598fb03e21cb8a6af5e7fa9f4b74d67c4791db0a6a47972959a7b1e0e",
       "after_sha256": "9973f5be27a3bdcd45a3ab37975c451a4d82fee2fd1b39958de6ad55086a43a6"
+    },
+    {
+      "path": "src/views/ManagerSelectionView.spec.ts",
+      "source": "source/apps/web/src/views/ManagerSelectionView.spec.ts",
+      "before_sha256": "6c96928161d86f475d970661223d6bc8602bb3ae98fbbeacc68a989f6d360e8b",
+      "after_sha256": "d81f713237ab937231d87cde6b982d3e555160c7135db2dfb95fc6c4d2016a14"
+    },
+    {
+      "path": "src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "source": "source/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "before_sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525",
+      "after_sha256": "1c6f3d33c8e224fab2bbef8f1e0139843aece29c07692253f7d2c6fe0404be0d"
+    },
+    {
+      "path": "src/api/managerWorkspace.announcementReview.spec.ts",
+      "source": "source/apps/web/src/api/managerWorkspace.announcementReview.spec.ts",
+      "before_sha256": "f7c2b70e40a9bd776eb2e2426a3e04b24ed1f6eabe274f22fcf1ddabf5699a49",
+      "after_sha256": "aae9e414956b98f3ec44c2fe15ea8d3c8ad17ccb008bff919e65d3a516d8568e"
+    },
+    {
+      "path": "src/manager-selection/__tests__/workspaceAfterReadback.spec.ts",
+      "source": "source/apps/web/src/manager-selection/__tests__/workspaceAfterReadback.spec.ts",
+      "before_sha256": "aa3eed26c55613bff9fc4efd382de0896bfe2e833118bb3158d4c179ce030c13",
+      "after_sha256": "ee5dc76c5cfa79b3aa9334aa6e45580891da8008129e3274068934232aa429f1"
+    },
+    {
+      "path": "src/manager-selection/dailyChannels.ts",
+      "source": "source/apps/web/src/manager-selection/dailyChannels.ts",
+      "before_sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "after_sha256": "dab30efb663a07f297ccf58eb3b68a07e452c4d822088ec653ba40ebd5ec9a32"
+    },
+    {
+      "path": "src/api/managerWorkspace.currentRecovery.spec.ts",
+      "source": "source/apps/web/src/api/managerWorkspace.currentRecovery.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "1605f5792c3ad1a370f4c203beaaf9c5f3d1a273cbd7475f69d6a091cd309737"
+    },
+    {
+      "path": "src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts",
+      "source": "source/apps/web/src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts",
+      "before_sha256": "bc8917ca6bb877d69b186afa5d688780f06b16993f5075035187c3ea971d0e53",
+      "after_sha256": "7104df12a03baa267bd81500c7fece58ed8b6062a122242e94146797c6f00f93"
     }
   ],
   "unchanged": {

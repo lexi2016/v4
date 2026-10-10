@@ -235,12 +235,26 @@ function validateReadContext(value: JsonObject): void {
   if (value.read_context === undefined) return; // legacy POST/caller compatibility, not GET admission
   const read = object(value.read_context); const ctx = object(value.plan_context);
   const status = String(read.status); const historical = read.mode === 'HISTORICAL_AS_OF';
-  if (!['HISTORICAL_AS_OF','CURRENT_DYNAMIC_PREVIEW'].includes(String(read.mode)) ||
+  if (!['HISTORICAL_AS_OF','CURRENT_DYNAMIC_PREVIEW','CURRENT_RECOVERY'].includes(String(read.mode)) ||
       !['VERIFIED','VERIFIED_WITH_GAPS','NOT_MATERIALIZED','SOURCE_FAILED'].includes(status) ||
       read.contract !== '20260923.workspace-history-read.r1' || typeof read.candidate_count_known !== 'boolean' ||
       typeof read.as_of !== 'string' || read.as_of !== ctx.research_cutoff ||
       ctx.plan_trade_date !== value.target_trade_date || !Number.isFinite(Date.parse(read.as_of)))
     throw new Error('WORKSPACE_READ_CONTEXT_INVALID');
+  const recoveryProduct=object(value.plan_product);
+  if (read.mode==='CURRENT_RECOVERY' || recoveryProduct.status==='CURRENT_RECOVERY') {
+    const readAt=typeof read.read_as_of==='string'?Date.parse(read.read_as_of):NaN;
+    const generated=typeof recoveryProduct.generated_at==='string'?Date.parse(recoveryProduct.generated_at):NaN;
+    if (read.mode!=='CURRENT_RECOVERY' || read.v5_contract!=='v5.manager_current_recovery.v1' ||
+        read.requested_view!=='auto' || read.owner_view!=='dynamic' || read.historical_eligible!==false ||
+        !['VERIFIED','VERIFIED_WITH_GAPS'].includes(status) || !Number.isFinite(readAt) ||
+        !Number.isFinite(generated) || readAt<generated ||
+        recoveryProduct.status!=='CURRENT_RECOVERY' || recoveryProduct.owner_status!=='CURRENT' ||
+        recoveryProduct.consumed!==true || recoveryProduct.historical_eligible!==false ||
+        typeof recoveryProduct.run_id!=='string' || !/^[0-9a-f]{32}$/.test(recoveryProduct.run_id) ||
+        typeof recoveryProduct.sha256!=='string' || !/^[0-9a-f]{64}$/.test(recoveryProduct.sha256))
+      throw new Error('WORKSPACE_CURRENT_RECOVERY_INVALID');
+  }
   const stocks=value.stocks as JsonObject[];
   if (['NOT_MATERIALIZED','SOURCE_FAILED'].includes(status)) {
     if (stocks.length || read.candidate_count_known !== false || object(value.plan_product).consumed !== false)
