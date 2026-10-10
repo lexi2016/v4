@@ -1,0 +1,56 @@
+[
+  {
+    "path": "/__v5/health",
+    "status": 200,
+    "bytes": 275,
+    "sha256": "25e6d6467e820b74f6bd3528e642d52533967a6cb5f383c1cc90f92706acf6c2"
+  },
+  {
+    "path": "/manager-selection/?date=20261012",
+    "status": 200,
+    "bytes": 573,
+    "sha256": "5be84b95698009a65a44c0a8e1cc653f0ce28f2688a3b6a496e3611170859e91"
+  },
+  {
+    "path": "/api/v4/manager/research/workspace?date=20261012&view=auto",
+    "status": 200,
+    "bytes": 48172,
+    "sha256": "133a1f218d533028b1c04372839a80bdefda9740acc263a59d3928fc4272e9e0",
+    "plan_product": {
+      "consumed": true,
+      "execution_kind": "MANUAL_REFRESH",
+      "generated_at": "2026-10-10T09:02:10.953245+00:00",
+      "last_checked_at": "2026-10-10T17:02:09.904888+08:00",
+      "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "run_id": "b28fae24e8c446e199fa5a0743cb8c55",
+      "sha256": "b4c3beaa2b4de866426f7ed4898d6274c02899171b701759280882e465937a75",
+      "status": "CURRENT"
+    }
+  },
+  {
+    "path": "/api/v4/manager/research/announcements/analysis?date=20261012",
+    "status": 503,
+    "bytes": 101,
+    "sha256": "1f14c8c0deb7364048a11d165f9ede27c753422e877be2cb1885a4f686c5453a",
+    "error": {
+      "module_id": "announcement",
+      "reason_codes": [
+        "MODULE_RESULT_NOT_AVAILABLE"
+      ],
+      "status": "CANNOT_CONFIRM"
+    }
+  },
+  {
+    "path": "/api/v4/manager/research/announcements/selection?date=20261012",
+    "status": 503,
+    "bytes": 101,
+    "sha256": "1f14c8c0deb7364048a11d165f9ede27c753422e877be2cb1885a4f686c5453a",
+    "error": {
+      "module_id": "announcement",
+      "reason_codes": [
+        "MODULE_RESULT_NOT_AVAILABLE"
+      ],
+      "status": "CANNOT_CONFIRM"
+    }
+  }
+]

@@ -57,6 +57,20 @@ export interface UsDailyMappingRun extends ResearchReadOnlyFlags {
   target_trade_date: string; status: 'NOT_RUN' | 'FAILED' | 'INPUT_MISSING' | 'CANNOT_CONFIRM' | 'PARTIAL' | 'COMPLETED' | 'VALID_EMPTY';
   run_id: string | null; generated_at: string | null; us_session_date: string | null; research_cutoff: string | null;
   coverage: JsonObject; matches: JsonObject[]; gaps: string[]; source_identity: JsonObject | null;
+  execution_context?: ResearchExecutionContext; run_readback?: ResearchRunReadback;
+}
+export type ResearchTriggerKind = 'SCHEDULED' | 'MANUAL' | 'UNKNOWN';
+export type ResearchExecutionTiming = 'ON_TIME' | 'LATE_CATCHUP' | 'RETROSPECTIVE' | 'UNCLASSIFIED';
+export interface ResearchExecutionContext extends JsonObject {
+  trigger_kind: ResearchTriggerKind; timing: ResearchExecutionTiming;
+  scheduled_for: string | null; started_at: string | null; finished_at: string | null;
+  natural_run_verified: false;
+}
+export interface ResearchRunReadback extends JsonObject {
+  status: 'VERIFIED' | 'CANNOT_CONFIRM'; target_trade_date: string | null;
+  run_id: string | null; artifact_sha256: string | null; owner: string; read_at: string | null;
+  input_identity?: string | null; owner_attempt_run_id?: string | null; owner_attempt_sha256?: string | null;
+  owner_attempt_state?: string | null; owner_finished_at?: string | null;
 }
 export interface UsMappingResearch extends ResearchReadOnlyFlags {
   schema_version: 'v4.manager_research.us_mapping_research.v1'; target_trade_date: string;

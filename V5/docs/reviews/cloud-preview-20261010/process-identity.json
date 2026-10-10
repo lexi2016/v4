@@ -1,0 +1,20 @@
+{
+  "gateway": {
+    "pid": 2925,
+    "ps": "2925 Sat Oct 10 09:03:36 2026 V5/.venv/bin/python -B -m v5_shadow.api_gateway --config /workspace/v5-runtime/config/gateway.json --port 18896 --frontend-root /workspace/v5-build/apps/web/dist --frontend-manifest /workspace/v5-runtime/config/frontend.json",
+    "launch_cwd": "/workspace/v5-cloud",
+    "actual_proc_cwd": "UNAVAILABLE_PROC_PERMISSION_DENIED"
+  },
+  "manager": {
+    "pid": 2923,
+    "ps": "2923 Sat Oct 10 09:03:36 2026 V5/.venv/bin/python -B -m v5_shadow.module_api --config /workspace/v5-runtime/config/manager.json --port 18897",
+    "launch_cwd": "/workspace/v5-cloud",
+    "actual_proc_cwd": "UNAVAILABLE_PROC_PERMISSION_DENIED"
+  },
+  "announcement": {
+    "pid": 2924,
+    "ps": "2924 Sat Oct 10 09:03:36 2026 V5/.venv/bin/python -B -m v5_shadow.module_api --config /workspace/v5-runtime/config/announcement.json --port 18898",
+    "launch_cwd": "/workspace/v5-cloud",
+    "actual_proc_cwd": "UNAVAILABLE_PROC_PERMISSION_DENIED"
+  }
+}
