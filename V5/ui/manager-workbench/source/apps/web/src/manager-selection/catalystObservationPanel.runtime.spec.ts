@@ -688,3 +688,30 @@ describe("catalyst workspace runtime boundary", () => {
     dispose();
   });
 });
+
+ it("wires US diagnostics from workspace and clears them on a failed date read", async () => {
+    workspaceMocks.request.mockResolvedValue({...workspaceBase,us_mapping_research:{
+      RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false,
+      schema_version:"v4.manager_research.us_mapping_research.v1",target_trade_date:"20260921",reviewed_research:null,
+      daily_run:{schema_version:"v4.manager_research.us_mapping_daily_run.v1",target_trade_date:"20260921",
+        status:"INPUT_MISSING",run_id:null,generated_at:null,us_session_date:null,research_cutoff:null,
+        coverage:{configured_us_universe_count:null,matched_relation_count:null,matched_hk_symbol_count:null,full_market_coverage:false},
+        matches:[],gaps:["SYNTHETIC_INPUT_MISSING"],source_identity:null},
+      coverage_diagnostics:{
+      schema_version:"v5.us_mapping_scope.v1",scope:"PINNED_REVIEWED_RELATIONS_WITHIN_CONFIGURED_US_SAMPLE",
+      status:"PARTIAL",full_market_coverage:false,formal_eligible:false,natural_verified:false,
+      reviewed_us_symbols:["SYN_ONLY"],reviewed_us_symbol_count:1,
+      configured_sample_count:37,rising_individual_count:6,assessed_rising_symbol_count:1,unassessed_rising_symbol_count:5}}});
+    const host=document.createElement("div");document.body.append(host);
+    const dispose=mountCatalystObservations(host,"20260921");
+    try {
+      await waitFor(()=>expect(host.querySelector('[aria-label="US 关系覆盖范围"]')?.textContent).toContain("配置样本 37"));
+      expect(host.querySelector('[aria-label="US 关系覆盖范围"]')?.textContent).toContain("SYN_ONLY");
+      workspaceMocks.request.mockRejectedValue(new Error("SYNTHETIC_READ_FAILURE"));
+      const date=host.querySelector<HTMLInputElement>('[aria-label="计划目标日"]')!;
+      date.value="2026-09-22";await fireEvent.change(date);
+      await waitFor(()=>expect(host.querySelector('[data-read-state]')?.getAttribute('data-read-state')).toBe('FAILED'));
+      expect(host.querySelector('[aria-label="US 关系覆盖范围"]')?.textContent).toBe("");
+      expect(host.querySelector<HTMLElement>('[aria-label="US 关系覆盖范围"]')?.hidden).toBe(true);
+    } finally {dispose();}
+  });

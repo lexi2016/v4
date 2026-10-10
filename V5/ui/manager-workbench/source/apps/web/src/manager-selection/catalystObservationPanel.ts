@@ -1,3 +1,4 @@
+import { renderUsMappingCoverage } from './usMappingCoverage';
 import { renderReboundPanelObservation } from './reboundPanelObservation';
 import { renderAnnouncementReview } from './announcementObservation.js';
 import { renderResearchAttention } from './researchAttention.js';
@@ -158,6 +159,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   const background=el('details');background.dataset.background='true';const backgroundSummary=el('summary','其余背景与量价观察');const backgroundBody=el('div');background.append(backgroundSummary,backgroundBody);
   const strategySummary=el('summary','超跌反弹选股（独立策略；与15:30尾盘来源分开）');
   const strategy=el('details');strategy.dataset.reboundStrategy='true';strategy.open=false;strategy.append(strategySummary,screen);
+  const usMappingCoverage=el('section');usMappingCoverage.setAttribute('aria-label','US 关系覆盖范围');usMappingCoverage.hidden=true;
   const researchAttentionSection=el('section');
   renderResearchAttention(researchAttentionSection,undefined,undefined);
   const announcementSection=el('section');
@@ -171,7 +173,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   const themeDetails=el('details');themeDetails.dataset.policyDetails='true';themeDetails.append(el('summary','政策与产业线索：适用公司、原文及缺口'),themes);
   const provenance=el('details');provenance.append(el('summary','原owner状态与公司原始分类'),runSummary,runDetails,companyEvents);
   // One entry for stock attention. Source lists remain audit/context, not rivals.
-  panel.append(style,header,status,dailyChannels,announcementAnalysisSection,businessStatus,researchFocus,closeRecapture,decisionSummary,filters,stocks,background,researchAttentionSection,themeDetails,strategy,panelObservation,announcementSection,provenance,
+  panel.append(style,header,status,dailyChannels,announcementAnalysisSection,businessStatus,researchFocus,closeRecapture,decisionSummary,filters,stocks,background,researchAttentionSection,usMappingCoverage,themeDetails,strategy,panelObservation,announcementSection,provenance,
     el('p','仅研究：事件成立与行情承接、BUY准入分开。未核同口径量价不报触发价；不因高开远离可靠参考位追入，也不预设一定回踩。未读取仓位、未发订单。','decision-safety'),audit);
   host.replaceChildren(panel);
 
@@ -478,6 +480,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
     panel.dataset.inputIdentity=value.input_identity; panel.dataset.targetDate=value.target_trade_date;panel.dataset.readState='READY';
     renderCloseRecapture(value);
     renderReboundPanelObservation(panelObservation,value.rebound_panel_observation);
+    renderUsMappingCoverage(usMappingCoverage,value.us_mapping_research);
     const ctx=(value.plan_context || {}) as JsonObject;const product=(value.plan_product || {}) as JsonObject;
     const read=(value.read_context || {}) as JsonObject;
     const planAttempt=(value.workspace_plan_attempt || {}) as JsonObject;
@@ -556,6 +559,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
     renderDailyChannels(dailyChannels,undefined,displayBindings());
     renderScreen(undefined);
     renderReboundPanelObservation(panelObservation,undefined);
+    renderUsMappingCoverage(usMappingCoverage,undefined);
     renderResearchAttention(researchAttentionSection,undefined,undefined);
     delete panel.dataset.inputIdentity;delete panel.dataset.targetDate;panel.dataset.readState='LOADING';
   }
