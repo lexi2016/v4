@@ -1,0 +1,52 @@
+{
+  "target_date": "20261009",
+  "baseline_git_commit": "d59a20bf8e0358b95da544b377a49412fd41f6e2",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_preexisting_changes_preserved": true,
+  "runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-three-stage-usable-20261010-r2/app",
+  "runtime_release": "hk-three-stage-usable-20261010-r2",
+  "runtime_pid": "95652",
+  "independent_review": "PASS",
+  "api_verified": true,
+  "ui_verified": true,
+  "served_static_files_verified": 11,
+  "stage_rows": {
+    "STAGE_0925": 10,
+    "STAGE_1545_1555": 10
+  },
+  "0920_substitute_actual_window": "09:30-09:35; cutoff09:35",
+  "close_model_rows": 100,
+  "close_model_top20_hits": 10,
+  "close_model_coverage_pct": 50,
+  "close_stages": 7,
+  "close_stage_rows": 70,
+  "close_union_codes": 32,
+  "close_union_hits": 6,
+  "close_union_coverage_pct": 30,
+  "stock_order_scores_prices_unchanged": true,
+  "formal_PIT_flags_unchanged": true,
+  "NATURAL_VERIFIED": false,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "ui_checks": [
+    "Both stage timeline items remain research-available across selection changes",
+    "Formal and natural execution details collapsed",
+    "Close main cards and attribution table use computed research results",
+    "0920 substitute window visible in stage and close review"
+  ],
+  "screenshots": {
+    "UI_0920_FINAL.png": "9ed43e4f40e9ade72ba387483c5df8cab97b21a07cb84696566c8c6898de51bd",
+    "UI_1545_FINAL.png": "d28378ae4d2400098c81bcc1de3a2df6fb3539733469cc5281c97e6605129495",
+    "UI_CLOSE_FINAL.png": "3987c7a45cb25d51df8dbb34cbaff0c33963abf95f037e71aab9ac01b001224d"
+  },
+  "review_receipts": {
+    "HK_RESEARCH_CLOSE_BACKEND_REVIEW.json": "f4c7cd59ad75eafef1e47863994c5e8b3ccb739758970c02b0df44f33b6d359b",
+    "HK_CLOSE_0925_SUBSTITUTE_LABEL_REVIEW.json": "58d8e5ace26f74407d320a3d60815ac790a31175f2eed17e98610f78ee1a6fa9",
+    "HK_STAGE_TIMELINE_USABILITY_REVIEW.json": "aea215ad0ea6ae543a0ff9b8186959f2c6bf4e8090376f11badbefa54e5951db"
+  },
+  "limits": [
+    "Research backfill is usable; formal PIT and natural-slot proof are not claimed",
+    "Existing unrelated whole-repository typecheck diagnostics were not repaired"
+  ]
+}
