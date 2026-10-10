@@ -1,0 +1,23 @@
+[
+  {
+    "scope": "active_app",
+    "build": "RETURNED_READY",
+    "target_exists": true,
+    "active_identity": "API_RELEASE_ACTIVE_APPLICATION_INVENTORY_DRIFT",
+    "candidate_verification": "API_RELEASE_ACTIVE_APPLICATION_INVENTORY_DRIFT"
+  },
+  {
+    "scope": "owner_state",
+    "build": "RETURNED_READY",
+    "target_exists": true,
+    "active_identity": "valid",
+    "candidate_verification": "PASS"
+  },
+  {
+    "scope": "candidate_app",
+    "build": "RETURNED_READY",
+    "target_exists": true,
+    "active_identity": "valid",
+    "candidate_verification": "API_RELEASE_INTEGRATION_CANDIDATE_INVENTORY_DRIFT"
+  }
+]

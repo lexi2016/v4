@@ -1,0 +1,64 @@
+{
+  "completed_at": "2026-10-10T15:11:53.474056+00:00",
+  "helper": "tests.test_api_business_modules.synthetic_commit",
+  "launchctl_called": false,
+  "mac_native_verification": "NOT_RUN",
+  "mutation": "Only this run's newly created synthetic LaunchAgent plist was rewritten",
+  "native_publisher_called": false,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "scope": "SYNTHETIC_ONLY",
+  "service_readback_performed": false,
+  "started_at": "2026-10-10T15:11:53.460573+00:00",
+  "status": "PASS",
+  "verification_result": {
+    "active_api_plist_sha256": "64b31029f7d790bd375afcb027b4d73713fbe7632c2926c8c90e0812e9fda520",
+    "active_pointer": "base",
+    "base": {
+      "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/A/app",
+      "application_inventory_entry_count": 8,
+      "application_inventory_sha256": "c75fed603fbd9a7dedd1e1e9e9669589f37b4a99188bf59e3aae88628a9ff401",
+      "generation": 1,
+      "release_id": "A",
+      "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/A/release-manifest.json",
+      "release_manifest_sha256": "98d15e27bbbf20b1379eb273a9e1d87326e3dcfc10a8a0f04221bf91ffdb7e1a",
+      "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/A"
+    },
+    "business_module": {
+      "approval_id": "SYNTHETIC_TEST_ONLY",
+      "base_generation": 1,
+      "generation": 2,
+      "module_id": "beta",
+      "operation": "forward",
+      "owner_contract_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/approved-module-owners.json",
+      "owner_contract_sha256": "b8093d042e7d0444695279518337614e5638bbb00985951c85f3e21a801eb008",
+      "shared_paths_changed": false,
+      "source_owner": "synthetic-beta",
+      "state_schema_changed": false
+    },
+    "candidate": {
+      "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B/app",
+      "application_inventory_entry_count": 8,
+      "application_inventory_sha256": "e9f577168868eba92d4d89fe013fd3ff62dd78d94faccb1d1a41fd29be0f1366",
+      "module_contract_sha256": null,
+      "module_role": "gateway",
+      "release_id": "B",
+      "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B/release-manifest.json",
+      "release_manifest_sha256": "3c0d03ff10eaedbcd2e1bd3e8fa76d923c5bec0d6915e087cab21914158aa1bb",
+      "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B"
+    },
+    "delta_paths": [
+      "modules/beta.py"
+    ],
+    "delta_receipt_sha256": "ba2e39033be5153c690eb6b50f0d6524e025e8a885f476baf38ed0539b4a2853",
+    "non_delta_active_release_bytes_preserved": true,
+    "non_delta_entry_count": 7,
+    "non_delta_inventory_sha256": "ceeeaaeb564aefb2c482146b3b9e49d5d3d66f38265ae3f2a5c46748f572eb92",
+    "shared_lock_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+    "status": "PASS"
+  }
+}

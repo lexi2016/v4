@@ -1,0 +1,118 @@
+{
+  "app": {
+    "aggregate_sha256": "d9e1526a933ff35e7e79ac7431ec23456df41420a8bea89ffe5d76e3191aacf0",
+    "entries": [
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/api/v35_api/app.py",
+        "sha256": "b10667546a17ad9a20539d37a7b6d654ecf405638b7c773bbbec88a3f768b1e2",
+        "size": 15
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/web/dist/assets/current.js",
+        "sha256": "3560b6dbaf21634275558502f80412051faed3c310eb131a7f505153ba764a71",
+        "size": 23
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/web/dist/index.html",
+        "sha256": "99dbb832824fac321381fb504132b2d0cd37c2cb4d2ad9153ff92d5ce27521d2",
+        "size": 15
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "config/current.json",
+        "sha256": "883114025e235f52d0690a36d23725faf79261f3856e135026ff0d71fb0539f4",
+        "size": 19
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "modules/alpha.py",
+        "sha256": "079f313070485770a97a736c06541124b21a157d369017923dc9528797b4e672",
+        "size": 10
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "modules/alpha_extra.py",
+        "sha256": "6f62cd13b8c0dc5d2446de2765199e9a4dbbdeb8c3b02e9d05bfb086629b53ed",
+        "size": 13
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "modules/beta.py",
+        "sha256": "f8bfeb11893094380439c0dc1e7039e6021e58f2dea502f3849b9a3e2f2b3e2b",
+        "size": 9
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "shared/registry.py",
+        "sha256": "41393f7f735f7e6ac066f6f4059285fb5bb47c6343cb8b06b4fbdb8e197cdb03",
+        "size": 27
+      }
+    ],
+    "entry_count": 8
+  },
+  "base_identity": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B-latest/app",
+    "application_inventory_entry_count": 8,
+    "application_inventory_sha256": "d9e1526a933ff35e7e79ac7431ec23456df41420a8bea89ffe5d76e3191aacf0",
+    "generation": 3,
+    "release_id": "B-latest",
+    "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B-latest/release-manifest.json",
+    "release_manifest_sha256": "d55a0f1b949ac16049b82b42a9576943ad2926f95c09a6cc3e41e77366b2c97f",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B-latest"
+  },
+  "launch_bindings_sha256": "e6f5c9080ce76a6e63ebd4453509744b14f29627dc499772a36b4aad5df0810a",
+  "owner_contract_sha256": "b8093d042e7d0444695279518337614e5638bbb00985951c85f3e21a801eb008",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "scope": "SYNTHETIC_ONLY",
+  "state": {
+    "aggregate_sha256": "2555d2c3a256e401400f78c72f17044fd31e9f425198b62afaf1bbcd8607316c",
+    "entries": [
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "sentinel",
+        "sha256": "bf4e1b6a0d79d88fc68e8137271fed580166ca713e655b25006ad049b619dfd0",
+        "size": 12
+      }
+    ],
+    "entry_count": 1
+  },
+  "static": {
+    "aggregate_sha256": "5c949b5acdf617cfadc09d29f2f8d22157eac23152c3f4e9ba369c7f60a1a31d",
+    "entries": [
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "assets/current.js",
+        "sha256": "3560b6dbaf21634275558502f80412051faed3c310eb131a7f505153ba764a71",
+        "size": 23
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "index.html",
+        "sha256": "99dbb832824fac321381fb504132b2d0cd37c2cb4d2ad9153ff92d5ce27521d2",
+        "size": 15
+      }
+    ],
+    "entry_count": 2
+  },
+  "synthetic_plist_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/LaunchAgents/com.lexi.v35.api-only.plist",
+  "synthetic_plist_sha256": "a522aac2c05293e22176ca91848b2f15a2627bb2794230b1d9f598dd9f684a15"
+}

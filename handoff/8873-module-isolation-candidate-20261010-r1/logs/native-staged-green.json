@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/workspace/scratch/a245cda1e07c/testenv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_api_native_module_guard.py::test_native_rejects_conflicting_staged_dual_release_identity_before_write",
+    "tests/test_api_native_module_guard.py::test_native_switch_runs_real_owner_guard_and_records_candidate_readback"
+  ],
+  "cwd": "/workspace/scratch/a245cda1e07c/work",
+  "started_at": "2026-10-10T14:58:09.664860+00:00",
+  "finished_at": "2026-10-10T14:58:10.174514+00:00",
+  "exit_code": 0,
+  "log": "/workspace/scratch/a245cda1e07c/logs/native-staged-green.log",
+  "scope": "focused staged duplicate-identity regression and normal native switch after preflight parser guard; full suite awaits final parent pin freeze"
+}

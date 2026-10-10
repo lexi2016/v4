@@ -1,0 +1,770 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+________ test_native_rejects_owner_contract_drift_before_service_action ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6d4bd29a70>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-31/test_native_rejects_owner_cont0')
+
+    def test_native_rejects_owner_contract_drift_before_service_action(monkeypatch, tmp_path):
+>       reference, active, _candidate, plan, launcher = _native_fixture(monkeypatch, tmp_path)
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_api_native_module_guard.py:420: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_api_native_module_guard.py:382: in _native_fixture
+    candidate_info = reference._load_candidate_release(plan)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../logs/native-original-0xp0ysys/reference.py:473: in _load_candidate_release
+    backend = _load_inventory_backend(plan)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../logs/native-original-0xp0ysys/reference.py:402: in _load_inventory_backend
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:759: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    #!/usr/bin/env python3
+    """Build an inactive API candidate from the active release plus explicit deltas.
+    
+    The builder verifies the active API plist, release manifest, and full app
+    inventory, then copies that immutable app and applies only a SHA-pinned delta
+    receipt. It never changes a live plist, calls ``launchctl``, or copies runtime
+    data or a virtual environment.
+    """
+    
+    from __future__ import annotations
+    
+    import argparse
+    import importlib.util
+    from copy import deepcopy
+    import hashlib
+    import json
+    import os
+    import plistlib
+    import shutil
+    import stat
+    import subprocess
+    import sys
+    from datetime import datetime, timezone
+    from pathlib import Path
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    try:
+        from .api_release_integration import (
+            build_integrated_app, inventory_tree as integration_inventory_tree,
+            module_role_contract,
+        )
+    except ImportError:
+        try:
+            from api_release_integration import (
+                build_integrated_app, inventory_tree as integration_inventory_tree,
+                module_role_contract,
+            )
+        except ImportError:
+            _integration_spec = importlib.util.spec_from_file_location(
+                "_v4_api_release_integration", Path(__file__).with_name("api_release_integration.py")
+            )
+            if _integration_spec is None or _integration_spec.loader is None:
+                raise ImportError("cannot load adjacent API release integration guard")
+            _integration_module = importlib.util.module_from_spec(_integration_spec)
+            sys.modules[_integration_spec.name] = _integration_module
+            _integration_spec.loader.exec_module(_integration_module)
+            build_integrated_app = _integration_module.build_integrated_app
+            integration_inventory_tree = _integration_module.inventory_tree
+            module_role_contract = _integration_module.module_role_contract
+    
+    try:  # Running as ``python ops/build_release_candidate.py``.
+        from prepare_api_only_cutover import (
+            DEFAULT_FORMAL_RELEASE_ROOT,
+            DEFAULT_MANAGER_STATE_ROOT,
+            describe_preserved_environment,
+            render_module_cutover,
+            render_cutover,
+            sha256_file,
+        )
+    except ImportError:  # Imported as ``ops.build_release_candidate`` in tests.
+        try:
+            from .prepare_api_only_cutover import (
+                DEFAULT_FORMAL_RELEASE_ROOT,
+                DEFAULT_MANAGER_STATE_ROOT,
+                describe_preserved_environment,
+                render_module_cutover,
+                render_cutover,
+                sha256_file,
+            )
+        except ImportError:  # Loaded directly with importlib in a focused test.
+            _helper_path = Path(__file__).with_name("prepare_api_only_cutover.py")
+            _helper_spec = importlib.util.spec_from_file_location(
+                "_v4_prepare_api_only_cutover", _helper_path
+            )
+            if _helper_spec is None or _helper_spec.loader is None:
+                raise
+            _helper = importlib.util.module_from_spec(_helper_spec)
+            _helper_spec.loader.exec_module(_helper)
+            DEFAULT_FORMAL_RELEASE_ROOT = _helper.DEFAULT_FORMAL_RELEASE_ROOT
+            DEFAULT_MANAGER_STATE_ROOT = _helper.DEFAULT_MANAGER_STATE_ROOT
+            describe_preserved_environment = _helper.describe_preserved_environment
+            render_module_cutover = _helper.render_module_cutover
+            render_cutover = _helper.render_cutover
+            sha256_file = _helper.sha256_file
+    
+    
+    def _load_refactor_component(name: str):
+        """Load an adjacent static helper for package, script and importlib callers."""
+        qualified = (__package__ + "." + name) if __package__ else (__name__ + "__" + name)
+        if qualified in sys.modules:
+            return sys.modules[qualified]
+        spec = importlib.util.spec_from_file_location(qualified, Path(__file__).with_name(name + ".py"))
+        if spec is None or spec.loader is None:
+            raise ImportError("cannot load release refactor component: " + name)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[qualified] = module
+        try:
+            spec.loader.exec_module(module)
+        except BaseException:
+            sys.modules.pop(qualified, None)
+            raise
+        return module
+    
+    
+    _release_sources = _load_refactor_component("release_candidate_sources")
+    _release_audit = _load_refactor_component("release_candidate_audit")
+    
+    
+    SCHEMA_VERSION = "v4.release_candidate.v1"
+    DEFAULT_DEPENDENCIES = ("fastapi", "uvicorn", "httpx", "starlette", "pandas", "pyarrow", "pytdx")
+    DIST_RELATIVE_ROOT = "apps/web/dist"
+    SAFETY_KEYS = (
+        "RESEARCH_ONLY",
+        "research_only",
+        "PRODUCTION_ALLOWED",
+        "production_allowed",
+        "BUY_GATE_UPDATED",
+        "buy_gate_updated",
+        "ORDERS_SENT",
+        "orders_sent",
+    )
+    
+    # Historical provenance for the original three inclusions.  The explicit CLI
+    # list is now the caller's reviewed allowlist; unlisted files are NEVER copied.
+    APPROVED_UNTRACKED_CANDIDATE_PATHS: dict[str, dict[str, object]] = {
+        "ops/run_v35_macos_scheduler_daemon.py": {
+            "feature": "persistent-minute scheduler process-lifetime wrapper",
+            "required_by": "ops/launch_v35_macos_scheduler.sh",
+            "import_evidence": 'exec "$python_bin" -S -m ops.run_v35_macos_scheduler_daemon ...',
+        },
+        "apps/web/src/components/review/DailyResearchReviewPanel.vue": {
+            "feature": "M3 daily research review display",
+            "required_by": "apps/web/src/views/ReviewView.vue",
+            "import_evidence": 'import DailyResearchReviewPanel from "../components/review/DailyResearchReviewPanel.vue"',
+        },
+        "domains/daily_research_review.py": {
+            "feature": "M3 daily research review read projection",
+            "required_by": "apps/api/v35_api/review_router.py",
+            "import_evidence": "from domains.daily_research_review import load_daily_research_review",
+        },
+    }
+    
+    
+    def utc_now() -> str:
+        return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    
+    
+    def _json_dump(path: Path, value: object) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+    
+    
+    def _resolved(path: Path) -> Path:
+        return path.expanduser().resolve(strict=False)
+    
+    
+    def _absolute_preserving_symlink(path: Path) -> Path:
+        """Make an executable binding absolute without discarding venv identity."""
+        return Path(os.path.abspath(os.path.expanduser(str(path))))
+    
+    
+    def _is_within(path: Path, root: Path) -> bool:
+        try:
+            _resolved(path).relative_to(_resolved(root))
+        except ValueError:
+            return False
+        return True
+    
+    
+    def _normalise_relative(path: str | Path) -> str:
+        return _release_sources._normalise_relative(path, _api=sys.modules[__name__])
+    
+    
+    def _run_git(source_root: Path, *args: str, binary: bool = False) -> str | bytes:
+        return _release_sources._run_git(source_root, *args, binary=binary, _api=sys.modules[__name__])
+    
+    
+    def _git_tracked_paths(source_root: Path) -> list[str]:
+        return _release_sources._git_tracked_paths(source_root, _api=sys.modules[__name__])
+    
+    
+    def _git_untracked_paths(source_root: Path) -> list[str]:
+        return _release_sources._git_untracked_paths(source_root, _api=sys.modules[__name__])
+    
+    
+    def _validate_explicit_untracked_paths(
+        source_root: Path,
+        requested_paths: Sequence[str | Path],
+        *,
+        tracked_paths: Sequence[str],
+        untracked_paths: Sequence[str],
+    ) -> list[str]:
+        """Validate the bounded untracked include list before copying anything."""
+        return _release_sources._validate_explicit_untracked_paths(source_root, requested_paths, tracked_paths=tracked_paths, untracked_paths=untracked_paths, _api=sys.modules[__name__])
+    
+    
+    def _explicit_include_provenance(paths: Sequence[str]) -> list[dict[str, object]]:
+        return _release_sources._explicit_include_provenance(paths, _api=sys.modules[__name__])
+    
+    
+    def copy_explicit_untracked_tree(
+        source_root: Path, candidate_app: Path, relative_paths: Sequence[str]
+    ) -> None:
+        return _release_sources.copy_explicit_untracked_tree(source_root, candidate_app, relative_paths, _api=sys.modules[__name__])
+    
+    
+    def git_snapshot(
+        source_root: Path,
+        *,
+        include_untracked_hashes: bool = True,
+        included_untracked_paths: Sequence[str] = (),
+    ) -> dict[str, object]:
+        """Capture Git identity and a bounded working-tree summary without writes."""
+        return _release_sources.git_snapshot(source_root, include_untracked_hashes=include_untracked_hashes, included_untracked_paths=included_untracked_paths, _api=sys.modules[__name__])
+    
+    
+    def snapshot_legacy_git(repo: Path, evidence_root: Path) -> dict[str, object]:
+        """Save only tracked status/diff for the legacy repo.
+    
+        ``--untracked-files=no`` and ``git diff`` intentionally avoid walking or
+        copying the legacy repository's potentially large untracked tree.
+        """
+        return _release_sources.snapshot_legacy_git(repo, evidence_root, _api=sys.modules[__name__])
+    
+    
+    def _entry_for_path(root: Path, relative: str) -> dict[str, object]:
+        return _release_sources._entry_for_path(root, relative, _api=sys.modules[__name__])
+    
+    
+    def _walk_entries(root: Path) -> list[str]:
+        return _release_sources._walk_entries(root, _api=sys.modules[__name__])
+    
+    
+    def _copy_one(source: Path, destination: Path) -> None:
+        return _release_sources._copy_one(source, destination, _api=sys.modules[__name__])
+    
+    
+    def copy_tracked_tree(source_root: Path, candidate_app: Path, tracked_paths: Sequence[str]) -> None:
+        return _release_sources.copy_tracked_tree(source_root, candidate_app, tracked_paths, _api=sys.modules[__name__])
+    
+    
+    def copy_dist(source_root: Path, candidate_app: Path) -> None:
+        return _release_sources.copy_dist(source_root, candidate_app, _api=sys.modules[__name__])
+    
+    
+    def inventory_tree(root: Path) -> list[dict[str, object]]:
+        return _release_sources.inventory_tree(root, _api=sys.modules[__name__])
+    
+    
+    def inventory_digest(entries: Sequence[Mapping[str, object]]) -> str:
+        return _release_sources.inventory_digest(entries, _api=sys.modules[__name__])
+    
+    
+    def _describe_path(value: str) -> dict[str, object] | None:
+        return _release_audit._describe_path(value, _api=sys.modules[__name__])
+    
+    
+    def _describe_scheduler_path_value(value: str) -> object:
+        return _release_audit._describe_scheduler_path_value(value, _api=sys.modules[__name__])
+    
+    
+    def _file_summary(path: Path) -> dict[str, object]:
+        return _release_audit._file_summary(path, _api=sys.modules[__name__])
+    
+    
+    def _load_plist(path: Path) -> dict[str, Any]:
+        return _release_audit._load_plist(path, _api=sys.modules[__name__])
+    
+    
+    def _plist_environment(plist: Mapping[str, Any]) -> dict[str, str]:
+        return _release_audit._plist_environment(plist, _api=sys.modules[__name__])
+    
+    
+    def audit_scheduler(
+        *,
+        source_root: Path,
+        scheduler_plist_path: Path,
+    ) -> dict[str, object]:
+        """Compare the current scheduler binding with v4 entrypoint dependencies."""
+        return _release_audit.audit_scheduler(source_root=source_root, scheduler_plist_path=scheduler_plist_path, _api=sys.modules[__name__])
+    
+    
+    def _probe_dependency_process(python: Path, names: Sequence[str]) -> dict[str, object]:
+        return _release_audit._probe_dependency_process(python, names, _api=sys.modules[__name__])
+    
+    
+    def dependency_probe(python: Path, names: Sequence[str] = DEFAULT_DEPENDENCIES) -> dict[str, object]:
+        # Preserve the venv launcher path for subprocess execution.  Resolving a
+        # venv symlink first would invoke the base interpreter and silently lose
+        # the venv's site-packages, which would make a valid dependency set look
+        # missing.
+        return _release_audit.dependency_probe(python, names, _api=sys.modules[__name__])
+    
+    
+    def manager_state_audit(
+        *,
+        current_root: Path,
+        candidate_root: Path,
+    ) -> dict[str, object]:
+        current_root = _resolved(current_root)
+        candidate_root = _resolved(candidate_root)
+        commits = current_root / ".commits"
+        sample_commits: list[str] = []
+        if commits.is_dir():
+            for date_dir in sorted(commits.iterdir()):
+                if not date_dir.is_dir() or date_dir.is_symlink():
+                    continue
+                for path in sorted(date_dir.iterdir()):
+                    if path.is_file():
+                        sample_commits.append(path.relative_to(commits).as_posix())
+                    if len(sample_commits) >= 5:
+                        break
+                if len(sample_commits) >= 5:
+                    break
+        candidate_commits = candidate_root / ".commits"
+        candidate_commits.mkdir(parents=True, exist_ok=True)
+        distinct = _resolved(current_root) != _resolved(candidate_root)
+        return {
+            "status": "OBSERVED" if distinct else "CANNOT_CONFIRM",
+            "current_root": str(current_root),
+            "current_root_exists": current_root.exists() or current_root.is_symlink(),
+            "current_commits_root": str(commits),
+            "current_commits_exists": commits.is_dir(),
+            "observed_commit_samples": sample_commits,
+            "authority_layout": ".commits/<YYYYMMDD>/<input_identity>.json",
+            "candidate_root": str(candidate_root),
+            "candidate_root_exists": candidate_root.exists(),
+            "candidate_commits_root": str(candidate_commits),
+            "candidate_state_is_empty": not any(candidate_commits.iterdir()),
+            "roots_are_distinct": distinct,
+            "candidate_state_copied": False,
+            "current_state_modified": False,
+            "write_guard": "Candidate API must receive V4_MANAGER_RESEARCH_STATE_ROOT and old/new writers must not share a root.",
+        }
+    
+    
+    # Stage service candidate implementation stays separate from the API release builder.
+    if __package__:
+        from . import build_release_candidate_stage as _stage_builders
+    else:
+        try:
+            import build_release_candidate_stage as _stage_builders
+        except ImportError:
+            _stage_spec = importlib.util.spec_from_file_location(
+                "_v4_build_release_candidate_stage",
+                Path(__file__).with_name("build_release_candidate_stage.py"),
+            )
+            if _stage_spec is None or _stage_spec.loader is None:
+                raise ImportError("cannot load the Stage candidate builder module")
+            _stage_builders = importlib.util.module_from_spec(_stage_spec)
+            sys.modules[_stage_spec.name] = _stage_builders
+            _stage_spec.loader.exec_module(_stage_builders)
+>   _stage_builders.bind_core(sys.modules[__name__])
+                              ^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: '_r1_api_release_inventory'
+
+ops/build_release_candidate.py:353: KeyError
+_________ test_native_revalidates_after_bootout_before_atomic_replace __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6d4b9303e0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-31/test_native_revalidates_after_0')
+
+    def test_native_revalidates_after_bootout_before_atomic_replace(monkeypatch, tmp_path):
+>       reference, active, _candidate, plan, launcher = _native_fixture(monkeypatch, tmp_path)
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_api_native_module_guard.py:431: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_api_native_module_guard.py:382: in _native_fixture
+    candidate_info = reference._load_candidate_release(plan)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../logs/native-original-0xp0ysys/reference.py:473: in _load_candidate_release
+    backend = _load_inventory_backend(plan)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../logs/native-original-0xp0ysys/reference.py:402: in _load_inventory_backend
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:759: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    #!/usr/bin/env python3
+    """Build an inactive API candidate from the active release plus explicit deltas.
+    
+    The builder verifies the active API plist, release manifest, and full app
+    inventory, then copies that immutable app and applies only a SHA-pinned delta
+    receipt. It never changes a live plist, calls ``launchctl``, or copies runtime
+    data or a virtual environment.
+    """
+    
+    from __future__ import annotations
+    
+    import argparse
+    import importlib.util
+    from copy import deepcopy
+    import hashlib
+    import json
+    import os
+    import plistlib
+    import shutil
+    import stat
+    import subprocess
+    import sys
+    from datetime import datetime, timezone
+    from pathlib import Path
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    try:
+        from .api_release_integration import (
+            build_integrated_app, inventory_tree as integration_inventory_tree,
+            module_role_contract,
+        )
+    except ImportError:
+        try:
+            from api_release_integration import (
+                build_integrated_app, inventory_tree as integration_inventory_tree,
+                module_role_contract,
+            )
+        except ImportError:
+            _integration_spec = importlib.util.spec_from_file_location(
+                "_v4_api_release_integration", Path(__file__).with_name("api_release_integration.py")
+            )
+            if _integration_spec is None or _integration_spec.loader is None:
+                raise ImportError("cannot load adjacent API release integration guard")
+            _integration_module = importlib.util.module_from_spec(_integration_spec)
+            sys.modules[_integration_spec.name] = _integration_module
+            _integration_spec.loader.exec_module(_integration_module)
+            build_integrated_app = _integration_module.build_integrated_app
+            integration_inventory_tree = _integration_module.inventory_tree
+            module_role_contract = _integration_module.module_role_contract
+    
+    try:  # Running as ``python ops/build_release_candidate.py``.
+        from prepare_api_only_cutover import (
+            DEFAULT_FORMAL_RELEASE_ROOT,
+            DEFAULT_MANAGER_STATE_ROOT,
+            describe_preserved_environment,
+            render_module_cutover,
+            render_cutover,
+            sha256_file,
+        )
+    except ImportError:  # Imported as ``ops.build_release_candidate`` in tests.
+        try:
+            from .prepare_api_only_cutover import (
+                DEFAULT_FORMAL_RELEASE_ROOT,
+                DEFAULT_MANAGER_STATE_ROOT,
+                describe_preserved_environment,
+                render_module_cutover,
+                render_cutover,
+                sha256_file,
+            )
+        except ImportError:  # Loaded directly with importlib in a focused test.
+            _helper_path = Path(__file__).with_name("prepare_api_only_cutover.py")
+            _helper_spec = importlib.util.spec_from_file_location(
+                "_v4_prepare_api_only_cutover", _helper_path
+            )
+            if _helper_spec is None or _helper_spec.loader is None:
+                raise
+            _helper = importlib.util.module_from_spec(_helper_spec)
+            _helper_spec.loader.exec_module(_helper)
+            DEFAULT_FORMAL_RELEASE_ROOT = _helper.DEFAULT_FORMAL_RELEASE_ROOT
+            DEFAULT_MANAGER_STATE_ROOT = _helper.DEFAULT_MANAGER_STATE_ROOT
+            describe_preserved_environment = _helper.describe_preserved_environment
+            render_module_cutover = _helper.render_module_cutover
+            render_cutover = _helper.render_cutover
+            sha256_file = _helper.sha256_file
+    
+    
+    def _load_refactor_component(name: str):
+        """Load an adjacent static helper for package, script and importlib callers."""
+        qualified = (__package__ + "." + name) if __package__ else (__name__ + "__" + name)
+        if qualified in sys.modules:
+            return sys.modules[qualified]
+        spec = importlib.util.spec_from_file_location(qualified, Path(__file__).with_name(name + ".py"))
+        if spec is None or spec.loader is None:
+            raise ImportError("cannot load release refactor component: " + name)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[qualified] = module
+        try:
+            spec.loader.exec_module(module)
+        except BaseException:
+            sys.modules.pop(qualified, None)
+            raise
+        return module
+    
+    
+    _release_sources = _load_refactor_component("release_candidate_sources")
+    _release_audit = _load_refactor_component("release_candidate_audit")
+    
+    
+    SCHEMA_VERSION = "v4.release_candidate.v1"
+    DEFAULT_DEPENDENCIES = ("fastapi", "uvicorn", "httpx", "starlette", "pandas", "pyarrow", "pytdx")
+    DIST_RELATIVE_ROOT = "apps/web/dist"
+    SAFETY_KEYS = (
+        "RESEARCH_ONLY",
+        "research_only",
+        "PRODUCTION_ALLOWED",
+        "production_allowed",
+        "BUY_GATE_UPDATED",
+        "buy_gate_updated",
+        "ORDERS_SENT",
+        "orders_sent",
+    )
+    
+    # Historical provenance for the original three inclusions.  The explicit CLI
+    # list is now the caller's reviewed allowlist; unlisted files are NEVER copied.
+    APPROVED_UNTRACKED_CANDIDATE_PATHS: dict[str, dict[str, object]] = {
+        "ops/run_v35_macos_scheduler_daemon.py": {
+            "feature": "persistent-minute scheduler process-lifetime wrapper",
+            "required_by": "ops/launch_v35_macos_scheduler.sh",
+            "import_evidence": 'exec "$python_bin" -S -m ops.run_v35_macos_scheduler_daemon ...',
+        },
+        "apps/web/src/components/review/DailyResearchReviewPanel.vue": {
+            "feature": "M3 daily research review display",
+            "required_by": "apps/web/src/views/ReviewView.vue",
+            "import_evidence": 'import DailyResearchReviewPanel from "../components/review/DailyResearchReviewPanel.vue"',
+        },
+        "domains/daily_research_review.py": {
+            "feature": "M3 daily research review read projection",
+            "required_by": "apps/api/v35_api/review_router.py",
+            "import_evidence": "from domains.daily_research_review import load_daily_research_review",
+        },
+    }
+    
+    
+    def utc_now() -> str:
+        return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    
+    
+    def _json_dump(path: Path, value: object) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+    
+    
+    def _resolved(path: Path) -> Path:
+        return path.expanduser().resolve(strict=False)
+    
+    
+    def _absolute_preserving_symlink(path: Path) -> Path:
+        """Make an executable binding absolute without discarding venv identity."""
+        return Path(os.path.abspath(os.path.expanduser(str(path))))
+    
+    
+    def _is_within(path: Path, root: Path) -> bool:
+        try:
+            _resolved(path).relative_to(_resolved(root))
+        except ValueError:
+            return False
+        return True
+    
+    
+    def _normalise_relative(path: str | Path) -> str:
+        return _release_sources._normalise_relative(path, _api=sys.modules[__name__])
+    
+    
+    def _run_git(source_root: Path, *args: str, binary: bool = False) -> str | bytes:
+        return _release_sources._run_git(source_root, *args, binary=binary, _api=sys.modules[__name__])
+    
+    
+    def _git_tracked_paths(source_root: Path) -> list[str]:
+        return _release_sources._git_tracked_paths(source_root, _api=sys.modules[__name__])
+    
+    
+    def _git_untracked_paths(source_root: Path) -> list[str]:
+        return _release_sources._git_untracked_paths(source_root, _api=sys.modules[__name__])
+    
+    
+    def _validate_explicit_untracked_paths(
+        source_root: Path,
+        requested_paths: Sequence[str | Path],
+        *,
+        tracked_paths: Sequence[str],
+        untracked_paths: Sequence[str],
+    ) -> list[str]:
+        """Validate the bounded untracked include list before copying anything."""
+        return _release_sources._validate_explicit_untracked_paths(source_root, requested_paths, tracked_paths=tracked_paths, untracked_paths=untracked_paths, _api=sys.modules[__name__])
+    
+    
+    def _explicit_include_provenance(paths: Sequence[str]) -> list[dict[str, object]]:
+        return _release_sources._explicit_include_provenance(paths, _api=sys.modules[__name__])
+    
+    
+    def copy_explicit_untracked_tree(
+        source_root: Path, candidate_app: Path, relative_paths: Sequence[str]
+    ) -> None:
+        return _release_sources.copy_explicit_untracked_tree(source_root, candidate_app, relative_paths, _api=sys.modules[__name__])
+    
+    
+    def git_snapshot(
+        source_root: Path,
+        *,
+        include_untracked_hashes: bool = True,
+        included_untracked_paths: Sequence[str] = (),
+    ) -> dict[str, object]:
+        """Capture Git identity and a bounded working-tree summary without writes."""
+        return _release_sources.git_snapshot(source_root, include_untracked_hashes=include_untracked_hashes, included_untracked_paths=included_untracked_paths, _api=sys.modules[__name__])
+    
+    
+    def snapshot_legacy_git(repo: Path, evidence_root: Path) -> dict[str, object]:
+        """Save only tracked status/diff for the legacy repo.
+    
+        ``--untracked-files=no`` and ``git diff`` intentionally avoid walking or
+        copying the legacy repository's potentially large untracked tree.
+        """
+        return _release_sources.snapshot_legacy_git(repo, evidence_root, _api=sys.modules[__name__])
+    
+    
+    def _entry_for_path(root: Path, relative: str) -> dict[str, object]:
+        return _release_sources._entry_for_path(root, relative, _api=sys.modules[__name__])
+    
+    
+    def _walk_entries(root: Path) -> list[str]:
+        return _release_sources._walk_entries(root, _api=sys.modules[__name__])
+    
+    
+    def _copy_one(source: Path, destination: Path) -> None:
+        return _release_sources._copy_one(source, destination, _api=sys.modules[__name__])
+    
+    
+    def copy_tracked_tree(source_root: Path, candidate_app: Path, tracked_paths: Sequence[str]) -> None:
+        return _release_sources.copy_tracked_tree(source_root, candidate_app, tracked_paths, _api=sys.modules[__name__])
+    
+    
+    def copy_dist(source_root: Path, candidate_app: Path) -> None:
+        return _release_sources.copy_dist(source_root, candidate_app, _api=sys.modules[__name__])
+    
+    
+    def inventory_tree(root: Path) -> list[dict[str, object]]:
+        return _release_sources.inventory_tree(root, _api=sys.modules[__name__])
+    
+    
+    def inventory_digest(entries: Sequence[Mapping[str, object]]) -> str:
+        return _release_sources.inventory_digest(entries, _api=sys.modules[__name__])
+    
+    
+    def _describe_path(value: str) -> dict[str, object] | None:
+        return _release_audit._describe_path(value, _api=sys.modules[__name__])
+    
+    
+    def _describe_scheduler_path_value(value: str) -> object:
+        return _release_audit._describe_scheduler_path_value(value, _api=sys.modules[__name__])
+    
+    
+    def _file_summary(path: Path) -> dict[str, object]:
+        return _release_audit._file_summary(path, _api=sys.modules[__name__])
+    
+    
+    def _load_plist(path: Path) -> dict[str, Any]:
+        return _release_audit._load_plist(path, _api=sys.modules[__name__])
+    
+    
+    def _plist_environment(plist: Mapping[str, Any]) -> dict[str, str]:
+        return _release_audit._plist_environment(plist, _api=sys.modules[__name__])
+    
+    
+    def audit_scheduler(
+        *,
+        source_root: Path,
+        scheduler_plist_path: Path,
+    ) -> dict[str, object]:
+        """Compare the current scheduler binding with v4 entrypoint dependencies."""
+        return _release_audit.audit_scheduler(source_root=source_root, scheduler_plist_path=scheduler_plist_path, _api=sys.modules[__name__])
+    
+    
+    def _probe_dependency_process(python: Path, names: Sequence[str]) -> dict[str, object]:
+        return _release_audit._probe_dependency_process(python, names, _api=sys.modules[__name__])
+    
+    
+    def dependency_probe(python: Path, names: Sequence[str] = DEFAULT_DEPENDENCIES) -> dict[str, object]:
+        # Preserve the venv launcher path for subprocess execution.  Resolving a
+        # venv symlink first would invoke the base interpreter and silently lose
+        # the venv's site-packages, which would make a valid dependency set look
+        # missing.
+        return _release_audit.dependency_probe(python, names, _api=sys.modules[__name__])
+    
+    
+    def manager_state_audit(
+        *,
+        current_root: Path,
+        candidate_root: Path,
+    ) -> dict[str, object]:
+        current_root = _resolved(current_root)
+        candidate_root = _resolved(candidate_root)
+        commits = current_root / ".commits"
+        sample_commits: list[str] = []
+        if commits.is_dir():
+            for date_dir in sorted(commits.iterdir()):
+                if not date_dir.is_dir() or date_dir.is_symlink():
+                    continue
+                for path in sorted(date_dir.iterdir()):
+                    if path.is_file():
+                        sample_commits.append(path.relative_to(commits).as_posix())
+                    if len(sample_commits) >= 5:
+                        break
+                if len(sample_commits) >= 5:
+                    break
+        candidate_commits = candidate_root / ".commits"
+        candidate_commits.mkdir(parents=True, exist_ok=True)
+        distinct = _resolved(current_root) != _resolved(candidate_root)
+        return {
+            "status": "OBSERVED" if distinct else "CANNOT_CONFIRM",
+            "current_root": str(current_root),
+            "current_root_exists": current_root.exists() or current_root.is_symlink(),
+            "current_commits_root": str(commits),
+            "current_commits_exists": commits.is_dir(),
+            "observed_commit_samples": sample_commits,
+            "authority_layout": ".commits/<YYYYMMDD>/<input_identity>.json",
+            "candidate_root": str(candidate_root),
+            "candidate_root_exists": candidate_root.exists(),
+            "candidate_commits_root": str(candidate_commits),
+            "candidate_state_is_empty": not any(candidate_commits.iterdir()),
+            "roots_are_distinct": distinct,
+            "candidate_state_copied": False,
+            "current_state_modified": False,
+            "write_guard": "Candidate API must receive V4_MANAGER_RESEARCH_STATE_ROOT and old/new writers must not share a root.",
+        }
+    
+    
+    # Stage service candidate implementation stays separate from the API release builder.
+    if __package__:
+        from . import build_release_candidate_stage as _stage_builders
+    else:
+        try:
+            import build_release_candidate_stage as _stage_builders
+        except ImportError:
+            _stage_spec = importlib.util.spec_from_file_location(
+                "_v4_build_release_candidate_stage",
+                Path(__file__).with_name("build_release_candidate_stage.py"),
+            )
+            if _stage_spec is None or _stage_spec.loader is None:
+                raise ImportError("cannot load the Stage candidate builder module")
+            _stage_builders = importlib.util.module_from_spec(_stage_spec)
+            sys.modules[_stage_spec.name] = _stage_builders
+            _stage_spec.loader.exec_module(_stage_builders)
+>   _stage_builders.bind_core(sys.modules[__name__])
+                              ^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: '_r1_api_release_inventory'
+
+ops/build_release_candidate.py:353: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_api_native_module_guard.py::test_native_rejects_owner_contract_drift_before_service_action
+FAILED tests/test_api_native_module_guard.py::test_native_revalidates_after_bootout_before_atomic_replace
+2 failed, 14 deselected in 0.28s

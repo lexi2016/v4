@@ -1,0 +1,788 @@
+{
+  "aggregate_sha256": "f94f6121fb6dae3b75511678f4f1d65c8778263f0a13b42e6ad656c31deeeda7",
+  "entries": [
+    {
+      "path": "README.md",
+      "sha256": "835c0025972b7c3e7e9b3b68f5547744dabd9b639e5e2a984dfad34d01d607a0",
+      "size": 3092
+    },
+    {
+      "path": "code-source-identity.json",
+      "sha256": "41a966ada97b3218cc3109dfc0f810a19b2523d1ccaa4ecb0737992c5b9891e6",
+      "size": 2499
+    },
+    {
+      "path": "generate_synthetic_evidence.py",
+      "sha256": "c4f6869bf79e1d393e34a961b6e76625874a3109b090085b99479539e193cb0b",
+      "size": 27657
+    },
+    {
+      "path": "reverse-order-ba/000-base/active-snapshot.json",
+      "sha256": "63d1a3390a1377ecef14ae500e26eb9c1a264c6a52ef6925f28f08969c6e4ba9",
+      "size": 3811
+    },
+    {
+      "path": "reverse-order-ba/000-base/base-manifest.json",
+      "sha256": "afe9645b7ac47fdc3a34938c13b477507e2efd81afd62b7a2ed42e28be1bc58a",
+      "size": 1921
+    },
+    {
+      "path": "reverse-order-ba/000-base/export-provenance.json",
+      "sha256": "46123fa644138a761f83f3c46fe76cef7de98b3645ae39754bfbf59646dd6587",
+      "size": 698
+    },
+    {
+      "path": "reverse-order-ba/000-base/synthetic-owner-contract.json",
+      "sha256": "842e81157c1d384693b2f808de8e29010efd7c42d51ca728c6c861c9c2e98aa2",
+      "size": 1030
+    },
+    {
+      "path": "reverse-order-ba/010-B/active-after-build.json",
+      "sha256": "63d1a3390a1377ecef14ae500e26eb9c1a264c6a52ef6925f28f08969c6e4ba9",
+      "size": 3811
+    },
+    {
+      "path": "reverse-order-ba/010-B/active-after-synthetic-commit.json",
+      "sha256": "b70f1cbffbe5bab75195604fc9daa90143a4a21dadfb10ac67dcc79523a79bcc",
+      "size": 3812
+    },
+    {
+      "path": "reverse-order-ba/010-B/active-before-build.json",
+      "sha256": "63d1a3390a1377ecef14ae500e26eb9c1a264c6a52ef6925f28f08969c6e4ba9",
+      "size": 3811
+    },
+    {
+      "path": "reverse-order-ba/010-B/active-before-synthetic-commit.json",
+      "sha256": "63d1a3390a1377ecef14ae500e26eb9c1a264c6a52ef6925f28f08969c6e4ba9",
+      "size": 3811
+    },
+    {
+      "path": "reverse-order-ba/010-B/base-identity.json",
+      "sha256": "3efaa8e7147e208608c909c18ad119f2b7c3be32087811c065f858b87f84a992",
+      "size": 627
+    },
+    {
+      "path": "reverse-order-ba/010-B/build-invocation.json",
+      "sha256": "33865f4906885b763e8ba43172af0764bfb1b2057026dbbf46e911aa8d744455",
+      "size": 536
+    },
+    {
+      "path": "reverse-order-ba/010-B/build-preservation.json",
+      "sha256": "fc6d2e9aab14a88a258c0a8b83a34753aa58a364bf61d390e257f84876745b05",
+      "size": 3465
+    },
+    {
+      "path": "reverse-order-ba/010-B/build-receipt.json",
+      "sha256": "5c41212a38ae7cbd77d9ede5b8ee3dbf14af5581fb8f0a072b8b2c706865f5c0",
+      "size": 1837
+    },
+    {
+      "path": "reverse-order-ba/010-B/candidate-full-inventory.json",
+      "sha256": "d0d54cf6e709a0faad4e5d40d9e1b25d60be1e0df1f4ca3afe376022b47f6296",
+      "size": 1510
+    },
+    {
+      "path": "reverse-order-ba/010-B/candidate-manifest.json",
+      "sha256": "8c6b14cc72c16eacbd557bc110d9da095281b9af6f537feb23dae0993e846a1c",
+      "size": 6137
+    },
+    {
+      "path": "reverse-order-ba/010-B/commit-preservation.json",
+      "sha256": "fc6d2e9aab14a88a258c0a8b83a34753aa58a364bf61d390e257f84876745b05",
+      "size": 3465
+    },
+    {
+      "path": "reverse-order-ba/010-B/cutover-plan.json",
+      "sha256": "c8b4b87a14cbd7e9cd6724bea94a7db7377f17bc0040a53a18985c2e2476d20c",
+      "size": 5297
+    },
+    {
+      "path": "reverse-order-ba/010-B/delta-receipt.json",
+      "sha256": "005bce3f0443906866a0ca515b2219cd88ff6dba07c154476e62381871f577c9",
+      "size": 1295
+    },
+    {
+      "path": "reverse-order-ba/010-B/export-provenance.json",
+      "sha256": "34a2d04cbbba10032e77a41310c3c23addcbc2961dda18e1aa6d1b5069add33c",
+      "size": 1379
+    },
+    {
+      "path": "reverse-order-ba/010-B/synthetic-commit-receipt.json",
+      "sha256": "801f08964d12735f99efca40c6260292f495f6abdac70093336d91c86a1c6b5a",
+      "size": 3206
+    },
+    {
+      "path": "reverse-order-ba/020-A/active-after-build.json",
+      "sha256": "b70f1cbffbe5bab75195604fc9daa90143a4a21dadfb10ac67dcc79523a79bcc",
+      "size": 3812
+    },
+    {
+      "path": "reverse-order-ba/020-A/active-after-synthetic-commit.json",
+      "sha256": "587c7e669a3569e9d1357ca167a4d9f68dff1af55643e78403215b1dc7d48b53",
+      "size": 4024
+    },
+    {
+      "path": "reverse-order-ba/020-A/active-before-build.json",
+      "sha256": "b70f1cbffbe5bab75195604fc9daa90143a4a21dadfb10ac67dcc79523a79bcc",
+      "size": 3812
+    },
+    {
+      "path": "reverse-order-ba/020-A/active-before-synthetic-commit.json",
+      "sha256": "b70f1cbffbe5bab75195604fc9daa90143a4a21dadfb10ac67dcc79523a79bcc",
+      "size": 3812
+    },
+    {
+      "path": "reverse-order-ba/020-A/base-identity.json",
+      "sha256": "217df2dd53cbe0a9d20bd14b75ce5715f706159fb34979c83901494a45ec9bdf",
+      "size": 627
+    },
+    {
+      "path": "reverse-order-ba/020-A/build-invocation.json",
+      "sha256": "06c7b9fd9037051f68f7522e4a4002252e552d9403074f2701d90c7d6d273fd9",
+      "size": 537
+    },
+    {
+      "path": "reverse-order-ba/020-A/build-preservation.json",
+      "sha256": "b01fe460ce38c5b7cb8e528afc20262cbac8a56d43ab24870b69c9ed86ee98dd",
+      "size": 3494
+    },
+    {
+      "path": "reverse-order-ba/020-A/build-receipt.json",
+      "sha256": "7b57e93855c0df599dae6029464d305a35b84313fd475d777d997c5509d7011f",
+      "size": 1870
+    },
+    {
+      "path": "reverse-order-ba/020-A/candidate-full-inventory.json",
+      "sha256": "9cf084d3adc248d0ede2c8d5d10cc4492181112a9cae3793056d438718862344",
+      "size": 1708
+    },
+    {
+      "path": "reverse-order-ba/020-A/candidate-manifest.json",
+      "sha256": "31c104e5a3c54ab6a637caac2c01825361d4857b6eed6a1d1287e562c37a4297",
+      "size": 6612
+    },
+    {
+      "path": "reverse-order-ba/020-A/commit-preservation.json",
+      "sha256": "b01fe460ce38c5b7cb8e528afc20262cbac8a56d43ab24870b69c9ed86ee98dd",
+      "size": 3494
+    },
+    {
+      "path": "reverse-order-ba/020-A/cutover-plan.json",
+      "sha256": "76be6bec02a4e0a126263e51100f3d79160b45df2dafa2e2e425c1c6234254d8",
+      "size": 5334
+    },
+    {
+      "path": "reverse-order-ba/020-A/delta-receipt.json",
+      "sha256": "eab74444abb5741d70413c79144454888d570bc3be9ec2005d99d372cb00caf4",
+      "size": 1542
+    },
+    {
+      "path": "reverse-order-ba/020-A/export-provenance.json",
+      "sha256": "4b1d778f24a03d88a94e46dfbc5312c1af2bad4772322326f012ef701c7285e2",
+      "size": 1379
+    },
+    {
+      "path": "reverse-order-ba/020-A/synthetic-commit-receipt.json",
+      "sha256": "e8c66a5345b9bc43f053000ed12733448e7fed1638b12743cb3d29c65065d048",
+      "size": 3241
+    },
+    {
+      "path": "run-summary.json",
+      "sha256": "f1f70336cf444114835f1406421db567b39ef4879fbba31cd1af6c5e863286e1",
+      "size": 4731
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/000-base/active-snapshot.json",
+      "sha256": "2521f72ecb5ae0f52264a089157228393d948aba4f727a30534ba4ff1e4e1188",
+      "size": 3847
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/000-base/base-manifest.json",
+      "sha256": "3358a254f631b266d926155564967583615c8540d3818c8d01392a5577611623",
+      "size": 1939
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/000-base/export-provenance.json",
+      "sha256": "a47a4f6cb901072269166f9e274045f53ef21d433c2597df72c259e8201605e5",
+      "size": 734
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/000-base/synthetic-owner-contract.json",
+      "sha256": "44558f85e0132a4d434b0f7fa90897e175cc139aab3b448bac5826e550ad2947",
+      "size": 1039
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/active-after-build.json",
+      "sha256": "2521f72ecb5ae0f52264a089157228393d948aba4f727a30534ba4ff1e4e1188",
+      "size": 3847
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/active-after-synthetic-commit.json",
+      "sha256": "e077ed7149804f8630a1465bb4d3a7800c1697a7edc654c2df1e8042b5828407",
+      "size": 4059
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/active-before-build.json",
+      "sha256": "2521f72ecb5ae0f52264a089157228393d948aba4f727a30534ba4ff1e4e1188",
+      "size": 3847
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/active-before-synthetic-commit.json",
+      "sha256": "2521f72ecb5ae0f52264a089157228393d948aba4f727a30534ba4ff1e4e1188",
+      "size": 3847
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/base-identity.json",
+      "sha256": "7ba7f52e01d85e428e8d427eb744548df1ac72aa98385e20d1ee57fa51c6d59b",
+      "size": 654
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/build-invocation.json",
+      "sha256": "d83681f03c4c87b0c502cf2d4d4e9b11e10181f3c11326e521a6bb969c91a5b3",
+      "size": 546
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/build-preservation.json",
+      "sha256": "60402ef1daa232900fb01377d5d45b0444486baabad81c187a77d129f87c234c",
+      "size": 3492
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/build-receipt.json",
+      "sha256": "04373c3dba0b06112372e17adb8f6c2413df307e7d453ab2bfb65fade8783ab0",
+      "size": 1924
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/candidate-full-inventory.json",
+      "sha256": "825fcb1cb1e51412b533f87c0e8d6f29186ede6d8f52f78659a8466871eaee24",
+      "size": 1707
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/candidate-manifest.json",
+      "sha256": "522c17332fe893a68a55caad45e493f95d6ad01156ece43249d22fb09dc49801",
+      "size": 6701
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/commit-preservation.json",
+      "sha256": "60402ef1daa232900fb01377d5d45b0444486baabad81c187a77d129f87c234c",
+      "size": 3492
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/cutover-plan.json",
+      "sha256": "2d10589fd65a9ff03f19299291cf5cba564b0bfb2e5414321509c16e53ec08f2",
+      "size": 5460
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/delta-receipt.json",
+      "sha256": "37427920a3d86c1d6d58c8d58de498d84e72175b866c8bf2d86974e3f8b85fe5",
+      "size": 1569
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/export-provenance.json",
+      "sha256": "67f2934838c7b5173db9a08ac573294b8b31e27a97ed4f6d58c0cbe5bab30e1f",
+      "size": 1451
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/010-A/synthetic-commit-receipt.json",
+      "sha256": "03a3e2752a20afa6089c5f0f9027bc0bf472816be8e43e5079f416fd245b379f",
+      "size": 3313
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/active-after-build.json",
+      "sha256": "2521f72ecb5ae0f52264a089157228393d948aba4f727a30534ba4ff1e4e1188",
+      "size": 3847
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/active-after-stale-attempt.json",
+      "sha256": "e077ed7149804f8630a1465bb4d3a7800c1697a7edc654c2df1e8042b5828407",
+      "size": 4059
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/active-before-build.json",
+      "sha256": "2521f72ecb5ae0f52264a089157228393d948aba4f727a30534ba4ff1e4e1188",
+      "size": 3847
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/active-before-stale-attempt.json",
+      "sha256": "e077ed7149804f8630a1465bb4d3a7800c1697a7edc654c2df1e8042b5828407",
+      "size": 4059
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/base-identity.json",
+      "sha256": "7ba7f52e01d85e428e8d427eb744548df1ac72aa98385e20d1ee57fa51c6d59b",
+      "size": 654
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/build-invocation.json",
+      "sha256": "941191b56095ba02ddff35ad761b7f413e4faf5a1c833eacea8c3585eb113b98",
+      "size": 551
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/build-preservation.json",
+      "sha256": "fc6d2e9aab14a88a258c0a8b83a34753aa58a364bf61d390e257f84876745b05",
+      "size": 3465
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/build-receipt.json",
+      "sha256": "b7e4015a8779d5bd2e560da7cff998257b2d5196c401ed6a1697e105ed9e3da5",
+      "size": 1915
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/candidate-full-inventory.json",
+      "sha256": "9f0ae02ad36b9fd67f76d0f21c4a28f671525ab975a1697d8cc9ca7073651619",
+      "size": 1510
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/candidate-manifest.json",
+      "sha256": "16b149b57232ae2869841b62a5f43872e833c49969543e572f09e557171c6bb3",
+      "size": 6257
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/cutover-plan.json",
+      "sha256": "6376c420586c7f75d0584e0697dc46ec47d9dafa639d9d1e7c480f78136167c4",
+      "size": 5459
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/delta-receipt.json",
+      "sha256": "0c6238acb6cafbf224cadaa505addf58aa568f00a236263dc10a30d2b9b990bf",
+      "size": 1322
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/export-provenance.json",
+      "sha256": "5eee9d2b3d8f5ee542b8dd293821ab5676f615c64ed1a419674d856eb9d52949",
+      "size": 1499
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/020-B-stale/stale-rejection-receipt.json",
+      "sha256": "f44b26e3a0790204249431b59c3fd998c3f1b84aa8f50c1697aad948c43c4e8d",
+      "size": 1802
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/active-after-build.json",
+      "sha256": "e077ed7149804f8630a1465bb4d3a7800c1697a7edc654c2df1e8042b5828407",
+      "size": 4059
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/active-after-synthetic-commit.json",
+      "sha256": "f404c1ddc64a0573a4c8b61ecfb77a4049600c84247e3ad412ba2a80d9371d8e",
+      "size": 4092
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/active-before-build.json",
+      "sha256": "e077ed7149804f8630a1465bb4d3a7800c1697a7edc654c2df1e8042b5828407",
+      "size": 4059
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/active-before-synthetic-commit.json",
+      "sha256": "e077ed7149804f8630a1465bb4d3a7800c1697a7edc654c2df1e8042b5828407",
+      "size": 4059
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/base-identity.json",
+      "sha256": "22a375585e291c062ddaae9636a6cbc5ce111f2383007b981fcb0b76d686973a",
+      "size": 654
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/build-invocation.json",
+      "sha256": "fe9ba793645f170a00c1fa349a0d1d8f8f4909bfcb3955a79ea0e55e978c54c1",
+      "size": 553
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/build-preservation.json",
+      "sha256": "2394225d9f13246d67140b6577c302f11d41f2c6560964c40b5339e543d64c03",
+      "size": 3861
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/build-receipt.json",
+      "sha256": "a1b4297fb03b43ee2df01162b086343b51f0d79dac48c31db2471ae23343140f",
+      "size": 1923
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/candidate-full-inventory.json",
+      "sha256": "52e27cbf4fd340019cd69a1c1926c98a05d43a639cf80b9a82cf2eec2df84bfe",
+      "size": 1708
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/candidate-manifest.json",
+      "sha256": "9b8cefd7fe9458f6273cd05162c40969ba80645956e16d6d04ef02d2dfd1ae7d",
+      "size": 6479
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/commit-preservation.json",
+      "sha256": "2394225d9f13246d67140b6577c302f11d41f2c6560964c40b5339e543d64c03",
+      "size": 3861
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/cutover-plan.json",
+      "sha256": "70f3a17adcf3109e784610c172de4867101cdead45d515538985f3ea5e1f9350",
+      "size": 5471
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/delta-receipt.json",
+      "sha256": "e847d87ad426049f4550d0b48f4e748fa696e52e84d6b2d465f7c0c676ad6c05",
+      "size": 1322
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/export-provenance.json",
+      "sha256": "bf8684de2fc6a70d4d1de0fbd987bdadcd75afce47862054b8611333e320d4c4",
+      "size": 1515
+    },
+    {
+      "path": "same-g-stale-beta-rebuilt/030-B-rebuilt/synthetic-commit-receipt.json",
+      "sha256": "3fc86847dae326267c7eacb498b974bd1592b8969ff624a4763dcb4c157a155d",
+      "size": 3310
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/000-base/active-snapshot.json",
+      "sha256": "3b41dd9820f1cdc60acd6deecd09266036a77818025614422407c6cbb188db91",
+      "size": 3879
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/000-base/base-manifest.json",
+      "sha256": "168d23b03c62083ba231a247c8435b66002a564712d1c1df1028856e7cfa468a",
+      "size": 1955
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/000-base/export-provenance.json",
+      "sha256": "3ba49152845d41f68647e5bf91f38218ac1ba65f657d5dc0cc30f25a3df51268",
+      "size": 766
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/000-base/synthetic-owner-contract.json",
+      "sha256": "b8093d042e7d0444695279518337614e5638bbb00985951c85f3e21a801eb008",
+      "size": 1047
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/active-after-build.json",
+      "sha256": "3b41dd9820f1cdc60acd6deecd09266036a77818025614422407c6cbb188db91",
+      "size": 3879
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/active-after-synthetic-commit.json",
+      "sha256": "82870b7385ea4373dbb5c31c421224b82e52dc05c91d5d7fe38a8f5659077baf",
+      "size": 4091
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/active-before-build.json",
+      "sha256": "3b41dd9820f1cdc60acd6deecd09266036a77818025614422407c6cbb188db91",
+      "size": 3879
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/active-before-synthetic-commit.json",
+      "sha256": "3b41dd9820f1cdc60acd6deecd09266036a77818025614422407c6cbb188db91",
+      "size": 3879
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/base-identity.json",
+      "sha256": "08d12d11b8a62546ba9ee206ec371249c36cbd04d573be4197bd2a0ffb09115d",
+      "size": 678
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/build-invocation.json",
+      "sha256": "eee5e7599c09f5b2cdef062e23cd1a4ba2c0ffd42a24c418024044a0ed7918fb",
+      "size": 554
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/build-preservation.json",
+      "sha256": "60402ef1daa232900fb01377d5d45b0444486baabad81c187a77d129f87c234c",
+      "size": 3492
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/build-receipt.json",
+      "sha256": "1451be5980ab5cd383da416e4868ec333ea56dc2f169346b0a5042d7c6361e4b",
+      "size": 1972
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/candidate-full-inventory.json",
+      "sha256": "ada580cab4be1bfb2335117ae294147f770c097f1f2553567455ee2935aba023",
+      "size": 1707
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/candidate-manifest.json",
+      "sha256": "98d15e27bbbf20b1379eb273a9e1d87326e3dcfc10a8a0f04221bf91ffdb7e1a",
+      "size": 6781
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/commit-preservation.json",
+      "sha256": "60402ef1daa232900fb01377d5d45b0444486baabad81c187a77d129f87c234c",
+      "size": 3492
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/cutover-plan.json",
+      "sha256": "8c7b4da67551de2e163b8ecf42856ad23d9cc3bc59fe3b0fe82a48cdbf1c0484",
+      "size": 5572
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/delta-receipt.json",
+      "sha256": "64dc5b8a1db02dddee12b5923421a74764cba782dd2a55a7433a74ce2fdb3ee8",
+      "size": 1593
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/export-provenance.json",
+      "sha256": "0c592d7fc4e7bf88658583e7aaa89ff7e2c9503dedd1c4e1c317f31965420860",
+      "size": 1515
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/010-A/synthetic-commit-receipt.json",
+      "sha256": "8a097868014e66b5fc609045d2b8ef70368bfcee3372b1defa8dabf8047e9a11",
+      "size": 3377
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/active-after-build.json",
+      "sha256": "82870b7385ea4373dbb5c31c421224b82e52dc05c91d5d7fe38a8f5659077baf",
+      "size": 4091
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/active-after-synthetic-commit.json",
+      "sha256": "9cc630c40c2fbf070423d436e9eba2b8777d8e96e495d9ffbba2891d052824e6",
+      "size": 4091
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/active-before-build.json",
+      "sha256": "82870b7385ea4373dbb5c31c421224b82e52dc05c91d5d7fe38a8f5659077baf",
+      "size": 4091
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/active-before-synthetic-commit.json",
+      "sha256": "82870b7385ea4373dbb5c31c421224b82e52dc05c91d5d7fe38a8f5659077baf",
+      "size": 4091
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/base-identity.json",
+      "sha256": "84012a36641f926f440152ab11b65a31f5dbeda0ae767d26e9a27054bab5fadc",
+      "size": 678
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/build-invocation.json",
+      "sha256": "5abe3f34a838c79c886906ecce9cf3b80a0d1f98093d6d917b86d21687af2303",
+      "size": 553
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/build-preservation.json",
+      "sha256": "f9408fba7348c2f0d9816177f083026474ffdf452c84d7f8ccb39251603d5352",
+      "size": 3861
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/build-receipt.json",
+      "sha256": "9568400c298c4293e91a663b581189081c1652bd4b1516388007a4ff18b72de5",
+      "size": 1939
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/candidate-full-inventory.json",
+      "sha256": "e51ba2a6231d22a5174e9e150cd26f8f17ae2b87e500795d47f7db6a26108bdc",
+      "size": 1707
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/candidate-manifest.json",
+      "sha256": "3c0d03ff10eaedbcd2e1bd3e8fa76d923c5bec0d6915e087cab21914158aa1bb",
+      "size": 6518
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/commit-preservation.json",
+      "sha256": "f9408fba7348c2f0d9816177f083026474ffdf452c84d7f8ccb39251603d5352",
+      "size": 3861
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/cutover-plan.json",
+      "sha256": "9661fcf9486217a24b2bf499c01081a03a952974efd910f6f144f74201a4cc5a",
+      "size": 5535
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/delta-receipt.json",
+      "sha256": "ba2e39033be5153c690eb6b50f0d6524e025e8a885f476baf38ed0539b4a2853",
+      "size": 1346
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/export-provenance.json",
+      "sha256": "cca440289c5477640436c48d8c838409fec2a882202e1d3eac56fc582990cc15",
+      "size": 1515
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/020-B/synthetic-commit-receipt.json",
+      "sha256": "cf7776af00c3e4f923141c97d5fe0a01f7e9b84eadbe76180308bbcae43767c6",
+      "size": 3342
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/active-after-build.json",
+      "sha256": "9cc630c40c2fbf070423d436e9eba2b8777d8e96e495d9ffbba2891d052824e6",
+      "size": 4091
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/active-after-synthetic-commit.json",
+      "sha256": "3c5a213889b50b4c81207ea1eda23e300171891b66d471c57476c20fed6971cf",
+      "size": 4119
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/active-before-build.json",
+      "sha256": "9cc630c40c2fbf070423d436e9eba2b8777d8e96e495d9ffbba2891d052824e6",
+      "size": 4091
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/active-before-synthetic-commit.json",
+      "sha256": "9cc630c40c2fbf070423d436e9eba2b8777d8e96e495d9ffbba2891d052824e6",
+      "size": 4091
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/base-identity.json",
+      "sha256": "0ddddd14db72b70928deafcc14e4f0e48a1398b91848169c26f1049617a2aa02",
+      "size": 678
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/build-invocation.json",
+      "sha256": "44d287f07308e46836583791359fe83bffaf8a8e7498217d4037e423f6e4df30",
+      "size": 560
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/build-preservation.json",
+      "sha256": "f9408fba7348c2f0d9816177f083026474ffdf452c84d7f8ccb39251603d5352",
+      "size": 3861
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/build-receipt.json",
+      "sha256": "0de09c8cee7d1d5a9f80cad7129278447a6bafba0348048592fd5516b4663513",
+      "size": 1967
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/candidate-full-inventory.json",
+      "sha256": "83cd124426641b103c5a562805ec1d3a92a5ad5a21f1c4a6a6b28b3d81f91e52",
+      "size": 1707
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/candidate-manifest.json",
+      "sha256": "d55a0f1b949ac16049b82b42a9576943ad2926f95c09a6cc3e41e77366b2c97f",
+      "size": 6553
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/commit-preservation.json",
+      "sha256": "f9408fba7348c2f0d9816177f083026474ffdf452c84d7f8ccb39251603d5352",
+      "size": 3861
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/cutover-plan.json",
+      "sha256": "abda3339f400921e509e0f090c410de0d5b6a90494cc200e5930f2f92b72e011",
+      "size": 5577
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/delta-receipt.json",
+      "sha256": "c3ff23b226f90e4c53c88290c5ea001019c5af42fc59c4db323c67c3b16628f7",
+      "size": 1346
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/export-provenance.json",
+      "sha256": "caa5daf335422a8d131f4e968fbb7f95e37de332e3e20f60f1cb36c7baf451a3",
+      "size": 1571
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/030-B-latest/synthetic-commit-receipt.json",
+      "sha256": "2db37c93ebd52bb19fd506bb44a61645bb4ab9d5bec11f60d6f62666838d502e",
+      "size": 3370
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/040-prepare-rollback-A/active-after-preparation.json",
+      "sha256": "3c5a213889b50b4c81207ea1eda23e300171891b66d471c57476c20fed6971cf",
+      "size": 4119
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/040-prepare-rollback-A/active-before-preparation.json",
+      "sha256": "3c5a213889b50b4c81207ea1eda23e300171891b66d471c57476c20fed6971cf",
+      "size": 4119
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/040-prepare-rollback-A/export-provenance.json",
+      "sha256": "b2379773c7de1facee8468a66a8b907b655f4079aeb86a900c2d0af29c07b9c7",
+      "size": 402
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/040-prepare-rollback-A/reverse-delta-receipt.json",
+      "sha256": "240a6b043db74f0c492457f944176eaa6c888e9f0585c65db7f50b4b4193a766",
+      "size": 1987
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/040-prepare-rollback-A/rollback-invocation.json",
+      "sha256": "6fbd950471924d2c936bbd3d2811a326f598addb67dac9895207d707c689fea8",
+      "size": 1198
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/040-prepare-rollback-A/rollback-preparation-receipt.json",
+      "sha256": "87870cb7f16bd5bd0b5847f2a804b3a0dfdd5b72492f2dd50c9e3adba049829b",
+      "size": 1565
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/active-after-build.json",
+      "sha256": "3c5a213889b50b4c81207ea1eda23e300171891b66d471c57476c20fed6971cf",
+      "size": 4119
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/active-after-synthetic-commit.json",
+      "sha256": "916561c57eb4728c5e6eb59705e54009187d7a13b441bbe691074f3d1daee4aa",
+      "size": 3915
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/active-before-build.json",
+      "sha256": "3c5a213889b50b4c81207ea1eda23e300171891b66d471c57476c20fed6971cf",
+      "size": 4119
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/active-before-synthetic-commit.json",
+      "sha256": "3c5a213889b50b4c81207ea1eda23e300171891b66d471c57476c20fed6971cf",
+      "size": 4119
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/base-identity.json",
+      "sha256": "6028870649e9f561dfaf5c05e4e545b1e278ce72389332fa2fce75baf8d225f2",
+      "size": 706
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/build-invocation.json",
+      "sha256": "aab66783021b4116034e1a031be6252e6c244f9b8dcbff05737ce0224ca72cc1",
+      "size": 572
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/build-preservation.json",
+      "sha256": "156c8da22bcd25dccb501440ea551b2d4db023d766581a17397fe9b003982bf8",
+      "size": 3492
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/build-receipt.json",
+      "sha256": "feb76ed22d380adff6d93ba925eeb519a0cd5233764974b8c838f7aa6dff6b15",
+      "size": 2262
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/candidate-full-inventory.json",
+      "sha256": "d2f9a0b73e42131442e7c0670d5e755f1619664ccfe2ea08ec242e6107d5b588",
+      "size": 1509
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/candidate-manifest.json",
+      "sha256": "19b2c07110606f1313e2f1415263ed6dc89669a981d3ae53bde4556aa4bdd53a",
+      "size": 7070
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/commit-preservation.json",
+      "sha256": "156c8da22bcd25dccb501440ea551b2d4db023d766581a17397fe9b003982bf8",
+      "size": 3492
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/cutover-plan.json",
+      "sha256": "754fb00af0b20998b17ab63c6857682e37615f71c37faf07d512d1c105793153",
+      "size": 5923
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/delta-receipt.json",
+      "sha256": "240a6b043db74f0c492457f944176eaa6c888e9f0585c65db7f50b4b4193a766",
+      "size": 1987
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/export-provenance.json",
+      "sha256": "e896b34f98208acf88998e4ecd55102ad52b9e211b90348efcc25229b4e38126",
+      "size": 1587
+    },
+    {
+      "path": "sequential-ab-latest-b-rollback-a/050-rollback-A/synthetic-commit-receipt.json",
+      "sha256": "8beefee56fa5fad33fe7f15c0510a6618bf4d2cc21fb0818cf29e9b6e1ac56a5",
+      "size": 3703
+    }
+  ],
+  "entry_count": 156,
+  "index_excludes_itself": true,
+  "scope": "SYNTHETIC_ONLY"
+}

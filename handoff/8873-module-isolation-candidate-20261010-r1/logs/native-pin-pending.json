@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/workspace/scratch/a245cda1e07c/testenv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_api_native_module_guard.py"
+  ],
+  "cwd": "/workspace/scratch/a245cda1e07c/work",
+  "started_at": "2026-10-10T14:51:16.154933+00:00",
+  "finished_at": "2026-10-10T14:51:17.524892+00:00",
+  "exit_code": 1,
+  "log": "/workspace/scratch/a245cda1e07c/logs/native-pin-pending.log",
+  "scope": "real guard code; fixed production closure pin gate intentionally pending parent finalization"
+}

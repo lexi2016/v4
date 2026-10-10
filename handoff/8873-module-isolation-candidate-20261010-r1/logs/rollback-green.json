@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/workspace/scratch/a245cda1e07c/testenv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_api_business_modules.py",
+    "tests/test_api_release_integration.py",
+    "tests/test_api_module_release.py",
+    "tests/test_api_module_proxy.py"
+  ],
+  "cwd": "/workspace/scratch/a245cda1e07c/work",
+  "started_at": "2026-10-10T14:50:54.360375+00:00",
+  "finished_at": "2026-10-10T14:50:56.303886+00:00",
+  "exit_code": 0,
+  "log": "/workspace/scratch/a245cda1e07c/logs/rollback-green.log",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "scope": "isolated source and synthetic temporary fixtures; no Mac/live service/state"
+}

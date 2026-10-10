@@ -1,0 +1,35 @@
+{
+  "base": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/B/app",
+    "application_inventory_entry_count": 7,
+    "application_inventory_sha256": "7ddd1174a2d8e05a127e1af6900fbfc41f33dc209811d144737a57bf3e300527",
+    "generation": 1,
+    "release_id": "B",
+    "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/B/release-manifest.json",
+    "release_manifest_sha256": "8c6b14cc72c16eacbd557bc110d9da095281b9af6f537feb23dae0993e846a1c",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/B"
+  },
+  "business_module": {
+    "base_generation": 1,
+    "module_id": "alpha",
+    "operation": "forward",
+    "owner_contract_sha256": "842e81157c1d384693b2f808de8e29010efd7c42d51ca728c6c861c9c2e98aa2"
+  },
+  "entries": [
+    {
+      "after_sha256": "a4517ea4b19c23c549ace1b67db91e5cb98cca4fe5f4277bb06897f3073c169e",
+      "before_sha256": "b9c17c876e58a6446e03c592fe2f6a04ea26846dbc9ff0e094e20144dfbaff76",
+      "path": "modules/alpha.py",
+      "unified_diff_hunk_count": 1,
+      "unified_diff_sha256": "37c71c828a1dda8273bd3e2927e4e285af70718443d1846cc181c0029c3076c8"
+    },
+    {
+      "after_sha256": "6f62cd13b8c0dc5d2446de2765199e9a4dbbdeb8c3b02e9d05bfb086629b53ed",
+      "before_sha256": null,
+      "path": "modules/alpha_extra.py",
+      "unified_diff_hunk_count": null,
+      "unified_diff_sha256": null
+    }
+  ],
+  "schema_version": "v4.api_release_delta_receipt.v1"
+}

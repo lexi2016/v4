@@ -1,0 +1,141 @@
+{
+  "schema_version": "v4.8873_module_isolation.module_map.v2",
+  "status": "PARTIAL_ROUTE_COMPOSITION_VERIFIED_BUSINESS_MODULE_OWNERSHIP_CANNOT_CONFIRM",
+  "runtime_identity": {
+    "release_id_reported": "hk-three-stage-20261010-r1",
+    "service_label_reported": "com.lexi.v35.api-only",
+    "host": "127.0.0.1",
+    "port": 8873,
+    "pid": "67464",
+    "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+    "provenance": "parent task capsule; not re-read by package writer"
+  },
+  "observed_route_groups": [
+    {
+      "group": "preselection_stage",
+      "runtime_file": "apps/api/v35_api/preselection_router.py",
+      "registered_in": "apps/api/v35_api/app.py",
+      "evidence": "runtime-B app source imports router at line 15 and registers around line 4737; full app and router snapshots included",
+      "module_id_owner": "CANNOT_CONFIRM"
+    },
+    {
+      "group": "manager_research",
+      "runtime_file": "apps/api/v35_api/manager_research_router.py",
+      "registered_in": "apps/api/v35_api/app.py",
+      "evidence": "runtime-B app source imports at line 17 and registers around line 5309; full snapshots included",
+      "module_id_owner": "CANNOT_CONFIRM"
+    },
+    {
+      "group": "manager_workbench",
+      "runtime_file": "apps/api/v35_api/manager_workbench_router.py",
+      "registered_in": "apps/api/v35_api/app.py",
+      "evidence": "runtime-B app source imports at line 18 and registers around line 5310; full snapshots included",
+      "module_id_owner": "CANNOT_CONFIRM"
+    },
+    {
+      "group": "research_lane",
+      "runtime_file": "apps/api/v35_api/research_lane_router.py",
+      "registered_in": "apps/api/v35_api/app.py",
+      "evidence": "runtime-B app source imports at line 19 and registers through create_research_lane_router; full snapshots included",
+      "module_id_owner": "CANNOT_CONFIRM"
+    },
+    {
+      "group": "runtime_and_graph",
+      "runtime_files": [
+        "apps/api/v35_api/runtime_router.py",
+        "apps/api/v35_api/runtime_graph_router.py"
+      ],
+      "registered_in": "apps/api/v35_api/app.py",
+      "evidence": "runtime-B app source imports at lines 20-21 and registers runtime graph around line 5204; full snapshots included",
+      "module_id_owner": "CANNOT_CONFIRM"
+    },
+    {
+      "group": "review",
+      "runtime_file": "apps/api/v35_api/review_router.py",
+      "registered_in": "apps/api/v35_api/app.py",
+      "evidence": "runtime-B app source imports at line 22 and registers review around line 5205; full snapshots included",
+      "module_id_owner": "CANNOT_CONFIRM"
+    },
+    {
+      "group": "research",
+      "runtime_file": "apps/api/v35_api/research_router.py",
+      "registered_in": "apps/api/v35_api/app.py",
+      "evidence": "runtime-B app source imports at line 23 and registers in the shared app; full snapshots included",
+      "module_id_owner": "CANNOT_CONFIRM"
+    },
+    {
+      "group": "baimao",
+      "runtime_file": "apps/api/v35_api/baimao_router.py",
+      "registered_in": "apps/api/v35_api/app.py",
+      "evidence": "runtime-B app source imports at line 14 and registers around line 5228; full snapshots included",
+      "module_id_owner": "CANNOT_CONFIRM"
+    }
+  ],
+  "publisher_roles_not_business_modules": {
+    "evidence_file": "source/canonical-worktree/app/deployment/api_module_contracts.json",
+    "roles": {
+      "gateway": {
+        "port": 8873,
+        "owns_static_assets": true,
+        "business_module_path_allowlist": "ABSENT_IN_CANDIDATE_CONTRACT"
+      },
+      "stage": {
+        "port": 8874,
+        "owns_static_assets": false,
+        "delta_allowlist": "present"
+      },
+      "manager": {
+        "port": 8875,
+        "owns_static_assets": false,
+        "delta_allowlist": "present"
+      }
+    },
+    "interpretation": "gateway/stage/manager identify services; stage and manager are separate ports, not independent modules in the same 8873 gateway."
+  },
+  "shared_integration_paths": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "status": "shared_platform_integration_seam",
+      "evidence": "one FastAPI app registers the observed router groups; current runtime-B source copied"
+    },
+    {
+      "path": "apps/web/dist",
+      "status": "whole_shared_static_output",
+      "evidence": "runtime-B app mounts this directory at /; included Vite config has three HTML build entries; release helper copy_dist copies the complete dist tree; dist itself not copied"
+    },
+    {
+      "path": "deployment/api_module_contracts.json",
+      "status": "candidate_shared_platform_contract",
+      "evidence": "canonical worktree snapshot; not present in runtime-B app root"
+    },
+    {
+      "path": "release manifest, application inventory and active pointer",
+      "status": "shared_release_identity",
+      "evidence": "exact-base validation code in canonical publisher snapshots; full current B disk manifest hash not independently verified"
+    },
+    {
+      "path": "owner/runtime state roots",
+      "status": "CANNOT_CONFIRM",
+      "evidence": "do not infer from API route source; inspect active launcher allowlisted bindings and each consumer read/write path in implementation task"
+    }
+  ],
+  "workspace_directory_mapping": {
+    "directories": [
+      "助手",
+      "数据",
+      "个股",
+      "牛股学习",
+      "Z哥方法论"
+    ],
+    "status": "CANNOT_CONFIRM",
+    "reason": "no evidence in the 8873 source snapshots maps these external workspace folders one-to-one to API module ids; do not include them as release owners without router/source ownership proof"
+  },
+  "known_unknowns": [
+    "actual business module ids and unique source owners",
+    "all co-writers of shared API router and static build seams",
+    "whether live 8873 release command calls canonical current api_release_integration guard",
+    "runtime release manifest and inventory full on-disk SHA",
+    "actual live reload/health/readback and rollback entrypoint",
+    "owner state read/write roots and rollback impact"
+  ]
+}

@@ -1,0 +1,38 @@
+...........F........                                                     [100%]
+=================================== FAILURES ===================================
+_____ test_reference_delivery_pins_match_the_actual_reviewed_guard_closure _____
+
+    def test_reference_delivery_pins_match_the_actual_reviewed_guard_closure():
+        spec = importlib.util.spec_from_file_location("_delivered_reference_pins", REFERENCE)
+        assert spec is not None and spec.loader is not None
+        reference = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(reference)
+>       guard = reference._load_release_guard()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_api_native_module_guard.py:232: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def _load_release_guard() -> Any:
+        """Use only the reviewed canonical closure, never candidate-supplied code.
+    
+    Every file is checked before the first executable import. Fresh modules are
+    compiled from those verified bytes, avoiding bytecode-cache substitution.
+    Already imported modules must have the same exact canonical source origin.
+    The closure is checked again for every call, including while holding a lease.
+        """
+        root = RELEASE_GUARD_ROOT
+        _exact_directory(root, "API_MODULE_GUARD_ROOT")
+        if set(RELEASE_GUARD_SHA256) != _REQUIRED_GUARD_FILES:
+            raise ValueError("API_MODULE_GUARD_PIN_REQUIRED")
+        verified: dict[str, bytes] = {}
+        for relative in sorted(_REQUIRED_GUARD_FILES):
+            expected = RELEASE_GUARD_SHA256[relative]
+            if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected):
+>               raise ValueError("API_MODULE_GUARD_PIN_REQUIRED:" + relative)
+E               ValueError: API_MODULE_GUARD_PIN_REQUIRED:deployment/api_module_contracts.json
+
+publisher_reference/api_only_cutover_r2_ready.py:205: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_api_native_module_guard.py::test_reference_delivery_pins_match_the_actual_reviewed_guard_closure
+1 failed, 19 passed in 1.11s

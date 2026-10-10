@@ -1,0 +1,28 @@
+{
+  "base": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B/app",
+    "application_inventory_entry_count": 8,
+    "application_inventory_sha256": "e9f577168868eba92d4d89fe013fd3ff62dd78d94faccb1d1a41fd29be0f1366",
+    "generation": 2,
+    "release_id": "B",
+    "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B/release-manifest.json",
+    "release_manifest_sha256": "3c0d03ff10eaedbcd2e1bd3e8fa76d923c5bec0d6915e087cab21914158aa1bb",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B"
+  },
+  "business_module": {
+    "base_generation": 2,
+    "module_id": "beta",
+    "operation": "forward",
+    "owner_contract_sha256": "b8093d042e7d0444695279518337614e5638bbb00985951c85f3e21a801eb008"
+  },
+  "entries": [
+    {
+      "after_sha256": "f8bfeb11893094380439c0dc1e7039e6021e58f2dea502f3849b9a3e2f2b3e2b",
+      "before_sha256": "3bf75d7374a016cafd77878354eeebb9d0868673916f9b5cef122f0674a28cc3",
+      "path": "modules/beta.py",
+      "unified_diff_hunk_count": 1,
+      "unified_diff_sha256": "5d8c6db4b7954e0705392dd3a041c55020181d81a6cb892828968ada952beac2"
+    }
+  ],
+  "schema_version": "v4.api_release_delta_receipt.v1"
+}

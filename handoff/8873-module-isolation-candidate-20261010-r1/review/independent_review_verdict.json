@@ -1,0 +1,56 @@
+{
+  "reviewer_identity": "/root/independent_review",
+  "reviewed_at": "2026-10-10T15:07:34.671351+00:00",
+  "scope": "ISOLATED_CANDIDATE_SOURCE_HANDOFF",
+  "candidate_review_status": "ACCEPT",
+  "production_execution_approved": false,
+  "findings": {
+    "F1": {
+      "severity": "P1",
+      "status": "CLOSED"
+    },
+    "F2": {
+      "severity": "P1",
+      "status": "CLOSED"
+    },
+    "F3": {
+      "severity": "P1",
+      "status": "CLOSED"
+    },
+    "F4": {
+      "severity": "P1",
+      "status": "CLOSED"
+    },
+    "F5": {
+      "severity": "P2",
+      "status": "CLOSED"
+    }
+  },
+  "independent_original_repro_branches_passed": 10,
+  "available_full_suite_passed": 106,
+  "full_suite_receipt": "logs/final-locked-suite-r2.json",
+  "full_suite_exit_code": 0,
+  "source_sha256": {
+    "ops/api_business_modules.py": "0c5b8bc454fb5ae3c55df8bf9a01d935abc14913e9a105b78cfa449ee6d85fc5",
+    "ops/api_release_integration.py": "9cda26b37c8d0912aa007323f7eefce4e23f7ddc8a58a57a0e7935792ef6040c",
+    "ops/build_release_candidate.py": "09314d301640f97a0b95b0fd66107d2bfd2252d0b93c90b294da3b9ff9ae573b",
+    "ops/prepare_api_only_cutover.py": "db42d1c392799b531adf65b2f20748790ab37a9f888c73a3c8bd0e7b9744a9de",
+    "tests/test_api_business_modules.py": "c0db71e9b6500bf86f31ecbb87d7de163a110329b926f87e333dcb0b76ab0217"
+  },
+  "native_reference_sha256": "2b74e2193c7924b0c580129677738f3c766b938aea4d32341a0a7798ddfe7cd3",
+  "native_test_sha256": "3c4abe1ec737d48683f50bf1b3fb291744caf805d2fdc8c63450823ef9ea4455",
+  "final_guard_pin_count": 5,
+  "historical_constants_checked": 47,
+  "historical_constants_changed": [],
+  "report_sha256": "f6fa28576b68300624c0bf577208ea4d528484f5b4da8cb2706140730a1a12f3",
+  "runtime_limits": {
+    "current_mac_publisher": "CANNOT_CONFIRM",
+    "current_active_identity": "REQUIRES_FRESH_READ_ONLY_BINDING",
+    "real_business_owner_approval": "CANNOT_CONFIRM",
+    "real_service_reload": "NOT_RUN",
+    "nonrunning_candidate_recovery": "PARTIAL_ROLLBACK_INCOMPLETE",
+    "shared_frontend_joint_integration": "NOT_IMPLEMENTED_FAILS_CLOSED",
+    "natural_run": "NOT_RUN"
+  },
+  "live_services_called": false
+}

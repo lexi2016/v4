@@ -1,0 +1,69 @@
+COMMAND: /workspace/scratch/a245cda1e07c/testenv_final/bin/python -B /workspace/scratch/a245cda1e07c/analysis/generate_synthetic_evidence.py --code-root /workspace/scratch/a245cda1e07c/work --fixture-root /workspace/scratch/a245cda1e07c/analysis/scenario-fixtures --evidence-root /workspace/scratch/a245cda1e07c/analysis/synthetic-evidence
+STARTED_AT: 2026-10-10T15:10:48.075510+00:00
+COMPLETED_AT: 2026-10-10T15:10:48.275737+00:00
+EXIT_CODE: 1
+
+STDOUT
+
+STDERR
+Traceback (most recent call last):
+  File "/workspace/scratch/a245cda1e07c/analysis/generate_synthetic_evidence.py", line 479, in <module>
+    main()
+    ~~~~^^
+  File "/workspace/scratch/a245cda1e07c/analysis/generate_synthetic_evidence.py", line 402, in main
+    run.scenarios_all()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/workspace/scratch/a245cda1e07c/analysis/generate_synthetic_evidence.py", line 344, in scenarios_all
+    a = self.build(active, 10, "A", "alpha", {ALPHA: b"ALPHA = 1\n", EXTRA: b"EXTRA = True\n"})
+  File "/workspace/scratch/a245cda1e07c/analysis/generate_synthetic_evidence.py", line 230, in build
+    candidate = self.helper.build(active, name, module, changes)
+  File "/workspace/scratch/a245cda1e07c/work/tests/test_api_business_modules.py", line 110, in build
+    builder.build_module_candidate(source_root=source, candidate_root=candidate,
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        active_api_plist_path=active['plist'], release_id=name, role='gateway',
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        api_integration_delta_receipt_path=receipt, module_id=module,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        formal_release_root=active['root'] / 'unused-formal',
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        include_untracked_paths=[p for p in changes if not (Path(integration.read_active_release(active['plist'])['app_root']) / p).exists()])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/a245cda1e07c/work/ops/build_release_candidate.py", line 385, in build_module_candidate
+    with api.shared_api_release_lock(active_api_plist_path, role=base_role) as lease:
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/workspace/scratch/a245cda1e07c/work/ops/api_release_integration.py", line 999, in shared_api_release_lock
+    with owned_interprocess_lock(
+         ~~~~~~~~~~~~~~~~~~~~~~~^
+        lock_path,
+        ^^^^^^^^^^
+        timeout_seconds=timeout_seconds,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        timeout_message="API_RELEASE_SHARED_LOCK_BUSY",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ) as lease:
+    ^
+  File "/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/workspace/scratch/a245cda1e07c/work/infrastructure/interprocess_lock.py", line 161, in owned_interprocess_lock
+    with io.kernel_lock(path.name + ".mutex", timeout=timeout_seconds, poll=poll_seconds) as mutex_fd:
+         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/workspace/scratch/a245cda1e07c/work/infrastructure/owned_io.py", line 188, in kernel_lock
+    with self.parent(relative, create=True) as (parent, name):
+         ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/workspace/scratch/a245cda1e07c/work/infrastructure/owned_io.py", line 96, in parent
+    with self.directory('/'.join(parts[:-1]) if len(parts) > 1 else None, create=create) as fd:
+         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/workspace/scratch/a245cda1e07c/work/infrastructure/owned_io.py", line 75, in directory
+    os.mkdir(part, mode=0o700, dir_fd=fd)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/a245cda1e07c/analysis/generate_synthetic_evidence.py", line 111, in audit
+    raise RuntimeError("SYNTHETIC_ONLY_WRITE_OUTSIDE_NEW_ROOTS:" + str(path))
+RuntimeError: SYNTHETIC_ONLY_WRITE_OUTSIDE_NEW_ROOTS:/workspace/scratch/a245cda1e07c/workspace

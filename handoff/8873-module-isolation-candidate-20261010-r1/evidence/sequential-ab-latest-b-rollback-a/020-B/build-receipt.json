@@ -1,0 +1,36 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "active_plist_changed": false,
+  "application_inventory_sha256": "e9f577168868eba92d4d89fe013fd3ff62dd78d94faccb1d1a41fd29be0f1366",
+  "business_module": {
+    "approval_id": "SYNTHETIC_TEST_ONLY",
+    "base_generation": 1,
+    "generation": 2,
+    "module_id": "beta",
+    "operation": "forward",
+    "owner_contract_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/approved-module-owners.json",
+    "owner_contract_sha256": "b8093d042e7d0444695279518337614e5638bbb00985951c85f3e21a801eb008",
+    "shared_paths_changed": false,
+    "source_owner": "synthetic-beta",
+    "state_schema_changed": false
+  },
+  "candidate_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B",
+  "candidate_status": "READY_FOR_REVIEW",
+  "cutover_plan": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B/config/api-module-cutover-plan.json",
+  "delta_paths": [
+    "modules/beta.py"
+  ],
+  "deployment_status": "CANNOT_CONFIRM",
+  "launchctl_called": false,
+  "manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B/release-manifest.json",
+  "manifest_sha256": "3c0d03ff10eaedbcd2e1bd3e8fa76d923c5bec0d6915e087cab21914158aa1bb",
+  "schema_version": "v4.api_module_candidate_receipt.v1",
+  "staged_plist": {
+    "install_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/LaunchAgents/com.lexi.v35.api-only.plist",
+    "label": "com.lexi.v35.api-only",
+    "path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B/config/com.lexi.v35.api-only.plist",
+    "port": 8873,
+    "sha256": "bec8f2ba53848d9aed65de45e34c3a33a40e83bbcea7361054dbf7f08bf8beb8"
+  },
+  "target_role": "gateway"
+}

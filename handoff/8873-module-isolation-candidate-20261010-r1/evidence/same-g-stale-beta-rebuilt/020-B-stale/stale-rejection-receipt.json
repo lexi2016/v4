@@ -1,0 +1,32 @@
+{
+  "active_plist_bytes_unchanged": true,
+  "actual_error_code": "API_RELEASE_INTEGRATION_ACTIVE_BASE_CHANGED",
+  "actual_exception_type": "ValueError",
+  "app_static_and_state_inventories_unchanged": true,
+  "candidate_base": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/G/app",
+    "application_inventory_entry_count": 7,
+    "application_inventory_sha256": "75767c662fe4c5f89aabf1ddc6cfc2c5bf9e603e6812f6d069c065ce8499f6c5",
+    "generation": 0,
+    "release_id": "G",
+    "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/G/release-manifest.json",
+    "release_manifest_sha256": "3358a254f631b266d926155564967583615c8540d3818c8d01392a5577611623",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/G"
+  },
+  "current_active_base": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A/app",
+    "application_inventory_entry_count": 8,
+    "application_inventory_sha256": "96939826ea0c24e824799e4d0cf4132523feff7fe5e9eb65e915bf73d1977c00",
+    "generation": 1,
+    "release_id": "A",
+    "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A/release-manifest.json",
+    "release_manifest_sha256": "522c17332fe893a68a55caad45e493f95d6ad01156ece43249d22fb09dc49801",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A"
+  },
+  "expected_rejection": "ACTIVE_BASE_CHANGED",
+  "native_publisher_called": false,
+  "scope": "SYNTHETIC_ONLY",
+  "service_actions_called": false,
+  "silent_rebase_performed": false,
+  "status": "PASS"
+}

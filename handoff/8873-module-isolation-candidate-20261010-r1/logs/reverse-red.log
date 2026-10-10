@@ -1,0 +1,260 @@
+FFFFFFF...F                                                              [100%]
+=================================== FAILURES ===================================
+______ test_reverse_delta_rolls_back_only_alpha_and_preserves_beta[False] ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-30/test_reverse_delta_rolls_back_0')
+added = False
+
+    @pytest.mark.parametrize('added', [False, True])
+    def test_reverse_delta_rolls_back_only_alpha_and_preserves_beta(tmp_path, added):
+        active = setup_active(tmp_path)
+        changes = {'modules/alpha.py': b'ALPHA = 1\n'}
+        if added: changes['modules/alpha_extra.py'] = b'EXTRA = True\n'
+        a = build(active, 'A', 'alpha', changes); synthetic_commit(active, a)
+        b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, b)
+        before = integration.inventory_tree(b / 'app')
+>       prepared = prepare_rollback(active, a)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_api_business_modules.py:254: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active = {'root': PosixPath('/tmp/pytest-of-root/pytest-30/test_reverse_delta_rolls_back_0'), 'plist': PosixPath('/tmp/pytest-o...wners.json'), 'state': PosixPath('/tmp/pytest-of-root/pytest-30/test_reverse_delta_rolls_back_0/synthetic-state'), ...}
+target = PosixPath('/tmp/pytest-of-root/pytest-30/test_reverse_delta_rolls_back_0/A')
+name = 'reverse-A'
+
+    def prepare_rollback(active, target, name='reverse-A'):
+>       return integration.prepare_module_rollback(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            active_api_plist_path=active['plist'], target_release_root=target,
+            expected_manifest_sha256=sha((target / 'release-manifest.json').read_bytes()),
+            output_root=active['root'] / name,
+        )
+E       AttributeError: module 'ops.api_release_integration' has no attribute 'prepare_module_rollback'
+
+tests/test_api_business_modules.py:229: AttributeError
+______ test_reverse_delta_rolls_back_only_alpha_and_preserves_beta[True] _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-30/test_reverse_delta_rolls_back_1')
+added = True
+
+    @pytest.mark.parametrize('added', [False, True])
+    def test_reverse_delta_rolls_back_only_alpha_and_preserves_beta(tmp_path, added):
+        active = setup_active(tmp_path)
+        changes = {'modules/alpha.py': b'ALPHA = 1\n'}
+        if added: changes['modules/alpha_extra.py'] = b'EXTRA = True\n'
+        a = build(active, 'A', 'alpha', changes); synthetic_commit(active, a)
+        b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, b)
+        before = integration.inventory_tree(b / 'app')
+>       prepared = prepare_rollback(active, a)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_api_business_modules.py:254: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active = {'root': PosixPath('/tmp/pytest-of-root/pytest-30/test_reverse_delta_rolls_back_1'), 'plist': PosixPath('/tmp/pytest-o...wners.json'), 'state': PosixPath('/tmp/pytest-of-root/pytest-30/test_reverse_delta_rolls_back_1/synthetic-state'), ...}
+target = PosixPath('/tmp/pytest-of-root/pytest-30/test_reverse_delta_rolls_back_1/A')
+name = 'reverse-A'
+
+    def prepare_rollback(active, target, name='reverse-A'):
+>       return integration.prepare_module_rollback(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            active_api_plist_path=active['plist'], target_release_root=target,
+            expected_manifest_sha256=sha((target / 'release-manifest.json').read_bytes()),
+            output_root=active['root'] / name,
+        )
+E       AttributeError: module 'ops.api_release_integration' has no attribute 'prepare_module_rollback'
+
+tests/test_api_business_modules.py:229: AttributeError
+______________ test_later_same_module_release_blocks_old_rollback ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-30/test_later_same_module_release0')
+
+    def test_later_same_module_release_blocks_old_rollback(tmp_path):
+        active = setup_active(tmp_path)
+        a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
+        a2 = build(active, 'A2', 'alpha', {'modules/alpha.py': b'ALPHA = 2\n'}); synthetic_commit(active, a2)
+        before = active['plist'].read_bytes()
+        with pytest.raises(ValueError, match='API_BUSINESS_ROLLBACK_LATER_MODULE_DEPENDENCY'):
+>           prepare_rollback(active, a)
+
+tests/test_api_business_modules.py:270: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active = {'root': PosixPath('/tmp/pytest-of-root/pytest-30/test_later_same_module_release0'), 'plist': PosixPath('/tmp/pytest-o...wners.json'), 'state': PosixPath('/tmp/pytest-of-root/pytest-30/test_later_same_module_release0/synthetic-state'), ...}
+target = PosixPath('/tmp/pytest-of-root/pytest-30/test_later_same_module_release0/A')
+name = 'reverse-A'
+
+    def prepare_rollback(active, target, name='reverse-A'):
+>       return integration.prepare_module_rollback(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            active_api_plist_path=active['plist'], target_release_root=target,
+            expected_manifest_sha256=sha((target / 'release-manifest.json').read_bytes()),
+            output_root=active['root'] / name,
+        )
+E       AttributeError: module 'ops.api_release_integration' has no attribute 'prepare_module_rollback'
+
+tests/test_api_business_modules.py:229: AttributeError
+_________________ test_later_dependent_module_blocks_rollback __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-30/test_later_dependent_module_bl0')
+
+    def test_later_dependent_module_blocks_rollback(tmp_path):
+        active = setup_active(tmp_path)
+        change_contract(active, lambda c: c['modules'][1].update(depends_on=['alpha']))
+        a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
+        b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, b)
+        with pytest.raises(ValueError, match='API_BUSINESS_ROLLBACK_LATER_MODULE_DEPENDENCY'):
+>           prepare_rollback(active, a)
+
+tests/test_api_business_modules.py:281: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active = {'root': PosixPath('/tmp/pytest-of-root/pytest-30/test_later_dependent_module_bl0'), 'plist': PosixPath('/tmp/pytest-o...wners.json'), 'state': PosixPath('/tmp/pytest-of-root/pytest-30/test_later_dependent_module_bl0/synthetic-state'), ...}
+target = PosixPath('/tmp/pytest-of-root/pytest-30/test_later_dependent_module_bl0/A')
+name = 'reverse-A'
+
+    def prepare_rollback(active, target, name='reverse-A'):
+>       return integration.prepare_module_rollback(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            active_api_plist_path=active['plist'], target_release_root=target,
+            expected_manifest_sha256=sha((target / 'release-manifest.json').read_bytes()),
+            output_root=active['root'] / name,
+        )
+E       AttributeError: module 'ops.api_release_integration' has no attribute 'prepare_module_rollback'
+
+tests/test_api_business_modules.py:229: AttributeError
+_____________ test_stale_inverse_receipt_refused_after_new_release _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-30/test_stale_inverse_receipt_ref0')
+
+    def test_stale_inverse_receipt_refused_after_new_release(tmp_path):
+        active = setup_active(tmp_path)
+        a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
+>       reverse = prepare_rollback(active, a)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_api_business_modules.py:287: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active = {'root': PosixPath('/tmp/pytest-of-root/pytest-30/test_stale_inverse_receipt_ref0'), 'plist': PosixPath('/tmp/pytest-o...wners.json'), 'state': PosixPath('/tmp/pytest-of-root/pytest-30/test_stale_inverse_receipt_ref0/synthetic-state'), ...}
+target = PosixPath('/tmp/pytest-of-root/pytest-30/test_stale_inverse_receipt_ref0/A')
+name = 'reverse-A'
+
+    def prepare_rollback(active, target, name='reverse-A'):
+>       return integration.prepare_module_rollback(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            active_api_plist_path=active['plist'], target_release_root=target,
+            expected_manifest_sha256=sha((target / 'release-manifest.json').read_bytes()),
+            output_root=active['root'] / name,
+        )
+E       AttributeError: module 'ops.api_release_integration' has no attribute 'prepare_module_rollback'
+
+tests/test_api_business_modules.py:229: AttributeError
+_______________ test_unrelated_target_is_not_a_rollback_ancestor _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-30/test_unrelated_target_is_not_a0')
+
+    def test_unrelated_target_is_not_a_rollback_ancestor(tmp_path):
+        active = setup_active(tmp_path)
+        orphan = build(active, 'orphan', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+        b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, b)
+        with pytest.raises(ValueError, match='API_BUSINESS_ROLLBACK_TARGET_NOT_ANCESTOR'):
+>           prepare_rollback(active, orphan)
+
+tests/test_api_business_modules.py:301: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active = {'root': PosixPath('/tmp/pytest-of-root/pytest-30/test_unrelated_target_is_not_a0'), 'plist': PosixPath('/tmp/pytest-o...wners.json'), 'state': PosixPath('/tmp/pytest-of-root/pytest-30/test_unrelated_target_is_not_a0/synthetic-state'), ...}
+target = PosixPath('/tmp/pytest-of-root/pytest-30/test_unrelated_target_is_not_a0/orphan')
+name = 'reverse-A'
+
+    def prepare_rollback(active, target, name='reverse-A'):
+>       return integration.prepare_module_rollback(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            active_api_plist_path=active['plist'], target_release_root=target,
+            expected_manifest_sha256=sha((target / 'release-manifest.json').read_bytes()),
+            output_root=active['root'] / name,
+        )
+E       AttributeError: module 'ops.api_release_integration' has no attribute 'prepare_module_rollback'
+
+tests/test_api_business_modules.py:229: AttributeError
+________________ test_rollback_output_cannot_write_owner_state _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-30/test_rollback_output_cannot_wr0')
+
+    def test_rollback_output_cannot_write_owner_state(tmp_path):
+        active = setup_active(tmp_path)
+        a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
+        with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+>           integration.prepare_module_rollback(active_api_plist_path=active['plist'], target_release_root=a,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                expected_manifest_sha256=sha((a / 'release-manifest.json').read_bytes()), output_root=active['state'] / 'bad')
+E           AttributeError: module 'ops.api_release_integration' has no attribute 'prepare_module_rollback'
+
+tests/test_api_business_modules.py:308: AttributeError
+_____________ test_original_builder_cli_accepts_business_module_id _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-30/test_original_builder_cli_acce0')
+capsys = <_pytest.capture.CaptureFixture object at 0x7f8493e31010>
+
+    def test_original_builder_cli_accepts_business_module_id(tmp_path, capsys):
+        active = setup_active(tmp_path)
+        source, receipt = make_delta(active, 'cli', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+>       result = builder.main(['--source-root', str(source), '--candidate-root', str(tmp_path / 'CLI'),
+            '--api-plist', str(active['plist']), '--release-id', 'CLI', '--api-module-id', 'alpha',
+            '--api-integration-delta-receipt', str(receipt), '--formal-release-root', str(tmp_path / 'formal')])
+
+tests/test_api_business_modules.py:342: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/build_release_candidate.py:867: in main
+    args = _build_parser().parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/argparse.py:2009: in parse_args
+    self.error(msg)
+/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/argparse.py:2782: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ArgumentParser(prog='python -m pytest', usage=None, description='Build an inactive API candidate from the active relea...r a virtual environment.\n', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+status = 2
+message = 'python -m pytest: error: unrecognized arguments: --api-module-id alpha\n'
+
+    def exit(self, status=0, message=None):
+        if message:
+            self._print_message(message, _sys.stderr)
+>       _sys.exit(status)
+E       SystemExit: 2
+
+/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/argparse.py:2769: SystemExit
+----------------------------- Captured stderr call -----------------------------
+usage: python -m pytest [-h] --source-root SOURCE_ROOT
+                        --candidate-root CANDIDATE_ROOT
+                        [--api-plist API_PLIST]
+                        [--api-module-role {gateway,stage,manager}]
+                        [--api-module-base-role {gateway,stage,manager}]
+                        [--api-module-bootstrap-transition]
+                        [--scheduler-plist SCHEDULER_PLIST] [--python PYTHON]
+                        --release-id RELEASE_ID
+                        [--api-integration-delta-receipt API_INTEGRATION_DELTA_RECEIPT]
+                        [--stage-service-candidate]
+                        [--stage-plist STAGE_PLIST]
+                        [--stage-runtime-python STAGE_RUNTIME_PYTHON]
+                        [--stage-overlay-path RELATIVE_PATH]
+                        [--backup-plist BACKUP_PLIST]
+                        [--legacy-repo LEGACY_REPO]
+                        [--legacy-evidence-root LEGACY_EVIDENCE_ROOT]
+                        [--receipt-path RECEIPT_PATH]
+                        [--formal-release-root FORMAL_RELEASE_ROOT]
+                        [--include-untracked-path RELATIVE_PATH]
+python -m pytest: error: unrecognized arguments: --api-module-id alpha
+=========================== short test summary info ============================
+FAILED tests/test_api_business_modules.py::test_reverse_delta_rolls_back_only_alpha_and_preserves_beta[False]
+FAILED tests/test_api_business_modules.py::test_reverse_delta_rolls_back_only_alpha_and_preserves_beta[True]
+FAILED tests/test_api_business_modules.py::test_later_same_module_release_blocks_old_rollback
+FAILED tests/test_api_business_modules.py::test_later_dependent_module_blocks_rollback
+FAILED tests/test_api_business_modules.py::test_stale_inverse_receipt_refused_after_new_release
+FAILED tests/test_api_business_modules.py::test_unrelated_target_is_not_a_rollback_ancestor
+FAILED tests/test_api_business_modules.py::test_rollback_output_cannot_write_owner_state
+FAILED tests/test_api_business_modules.py::test_original_builder_cli_accepts_business_module_id
+8 failed, 3 passed, 19 deselected in 0.65s

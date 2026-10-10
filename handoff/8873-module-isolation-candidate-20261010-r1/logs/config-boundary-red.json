@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/workspace/scratch/a245cda1e07c/testenv/bin/python",
+    "-m",
+    "pytest",
+    "tests/test_api_business_modules.py",
+    "-q",
+    "-k",
+    "cutover_config_symlink or declared_external_root"
+  ],
+  "cwd": "/workspace/scratch/a245cda1e07c/work",
+  "started_at": "2026-10-10T15:00:11.416947+00:00",
+  "finished_at": "2026-10-10T15:00:11.982234+00:00",
+  "exit_code": 1,
+  "log": "/workspace/scratch/a245cda1e07c/logs/config-boundary-red.log",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "scope": "isolated source and synthetic temporary fixtures; no Mac/live service/state"
+}

@@ -1,0 +1,437 @@
+FFFFFFFFFFFFFFFFFF                                                       [100%]
+=================================== FAILURES ===================================
+_______________ test_gateway_business_receipt_cannot_cross_owner _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_gateway_business_receipt_0')
+
+    def test_gateway_business_receipt_cannot_cross_owner(tmp_path):
+        active = setup_active(tmp_path)
+        source, receipt = make_delta(active, 'cross', 'alpha', {'modules/beta.py': b'BETA = 9\n'})
+        candidate = tmp_path / 'bad'; candidate.mkdir()
+        before = active['plist'].read_bytes()
+>       with pytest.raises(ValueError, match='API_BUSINESS_PATH_OWNER_CONFLICT'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:138: Failed
+____ test_shared_or_static_change_rejected_before_write[shared/registry.py] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_shared_or_static_change_r0')
+path = 'shared/registry.py'
+
+    @pytest.mark.parametrize('path', ['shared/registry.py', 'apps/api/v35_api/app.py',
+        'apps/web/dist/index.html', 'apps/web/dist/assets/new.js', 'apps/web/vite.config.ts',
+        'apps/web/src/contracts/thing.ts', 'config/current.json'])
+    def test_shared_or_static_change_rejected_before_write(tmp_path, path):
+        active = setup_active(tmp_path)
+        source, receipt = make_delta(active, 'shared', 'alpha', {path: b'CHANGED\n'})
+        candidate = tmp_path / 'bad'; candidate.mkdir()
+>       with pytest.raises(ValueError, match='API_BUSINESS_SHARED_SEAM'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:152: Failed
+_ test_shared_or_static_change_rejected_before_write[apps/api/v35_api/app.py] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_shared_or_static_change_r1')
+path = 'apps/api/v35_api/app.py'
+
+    @pytest.mark.parametrize('path', ['shared/registry.py', 'apps/api/v35_api/app.py',
+        'apps/web/dist/index.html', 'apps/web/dist/assets/new.js', 'apps/web/vite.config.ts',
+        'apps/web/src/contracts/thing.ts', 'config/current.json'])
+    def test_shared_or_static_change_rejected_before_write(tmp_path, path):
+        active = setup_active(tmp_path)
+        source, receipt = make_delta(active, 'shared', 'alpha', {path: b'CHANGED\n'})
+        candidate = tmp_path / 'bad'; candidate.mkdir()
+>       with pytest.raises(ValueError, match='API_BUSINESS_SHARED_SEAM'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:152: Failed
+_ test_shared_or_static_change_rejected_before_write[apps/web/dist/index.html] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_shared_or_static_change_r2')
+path = 'apps/web/dist/index.html'
+
+    @pytest.mark.parametrize('path', ['shared/registry.py', 'apps/api/v35_api/app.py',
+        'apps/web/dist/index.html', 'apps/web/dist/assets/new.js', 'apps/web/vite.config.ts',
+        'apps/web/src/contracts/thing.ts', 'config/current.json'])
+    def test_shared_or_static_change_rejected_before_write(tmp_path, path):
+        active = setup_active(tmp_path)
+        source, receipt = make_delta(active, 'shared', 'alpha', {path: b'CHANGED\n'})
+        candidate = tmp_path / 'bad'; candidate.mkdir()
+>       with pytest.raises(ValueError, match='API_BUSINESS_SHARED_SEAM'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:152: Failed
+_ test_shared_or_static_change_rejected_before_write[apps/web/dist/assets/new.js] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_shared_or_static_change_r3')
+path = 'apps/web/dist/assets/new.js'
+
+    @pytest.mark.parametrize('path', ['shared/registry.py', 'apps/api/v35_api/app.py',
+        'apps/web/dist/index.html', 'apps/web/dist/assets/new.js', 'apps/web/vite.config.ts',
+        'apps/web/src/contracts/thing.ts', 'config/current.json'])
+    def test_shared_or_static_change_rejected_before_write(tmp_path, path):
+        active = setup_active(tmp_path)
+        source, receipt = make_delta(active, 'shared', 'alpha', {path: b'CHANGED\n'})
+        candidate = tmp_path / 'bad'; candidate.mkdir()
+>       with pytest.raises(ValueError, match='API_BUSINESS_SHARED_SEAM'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:152: Failed
+_ test_shared_or_static_change_rejected_before_write[apps/web/vite.config.ts] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_shared_or_static_change_r4')
+path = 'apps/web/vite.config.ts'
+
+    @pytest.mark.parametrize('path', ['shared/registry.py', 'apps/api/v35_api/app.py',
+        'apps/web/dist/index.html', 'apps/web/dist/assets/new.js', 'apps/web/vite.config.ts',
+        'apps/web/src/contracts/thing.ts', 'config/current.json'])
+    def test_shared_or_static_change_rejected_before_write(tmp_path, path):
+        active = setup_active(tmp_path)
+        source, receipt = make_delta(active, 'shared', 'alpha', {path: b'CHANGED\n'})
+        candidate = tmp_path / 'bad'; candidate.mkdir()
+>       with pytest.raises(ValueError, match='API_BUSINESS_SHARED_SEAM'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:152: Failed
+_ test_shared_or_static_change_rejected_before_write[apps/web/src/contracts/thing.ts] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_shared_or_static_change_r5')
+path = 'apps/web/src/contracts/thing.ts'
+
+    @pytest.mark.parametrize('path', ['shared/registry.py', 'apps/api/v35_api/app.py',
+        'apps/web/dist/index.html', 'apps/web/dist/assets/new.js', 'apps/web/vite.config.ts',
+        'apps/web/src/contracts/thing.ts', 'config/current.json'])
+    def test_shared_or_static_change_rejected_before_write(tmp_path, path):
+        active = setup_active(tmp_path)
+        source, receipt = make_delta(active, 'shared', 'alpha', {path: b'CHANGED\n'})
+        candidate = tmp_path / 'bad'; candidate.mkdir()
+>       with pytest.raises(ValueError, match='API_BUSINESS_SHARED_SEAM'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:152: Failed
+___ test_shared_or_static_change_rejected_before_write[config/current.json] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_shared_or_static_change_r6')
+path = 'config/current.json'
+
+    @pytest.mark.parametrize('path', ['shared/registry.py', 'apps/api/v35_api/app.py',
+        'apps/web/dist/index.html', 'apps/web/dist/assets/new.js', 'apps/web/vite.config.ts',
+        'apps/web/src/contracts/thing.ts', 'config/current.json'])
+    def test_shared_or_static_change_rejected_before_write(tmp_path, path):
+        active = setup_active(tmp_path)
+        source, receipt = make_delta(active, 'shared', 'alpha', {path: b'CHANGED\n'})
+        candidate = tmp_path / 'bad'; candidate.mkdir()
+>       with pytest.raises(ValueError, match='API_BUSINESS_SHARED_SEAM'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:152: Failed
+_ test_owner_binding_negative_cases[missing_module-API_BUSINESS_MODULE_RECEIPT_REQUIRED] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_owner_binding_negative_ca0')
+damage = 'missing_module', code = 'API_BUSINESS_MODULE_RECEIPT_REQUIRED'
+
+    @pytest.mark.parametrize('damage,code', [
+        ('missing_module', 'API_BUSINESS_MODULE_RECEIPT_REQUIRED'),
+        ('unknown_module', 'API_BUSINESS_MODULE_UNKNOWN'),
+        ('contract_sha', 'API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH'),
+        ('unapproved', 'API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED'),
+        ('duplicate_owner', 'API_BUSINESS_PATH_OWNER_DUPLICATE'),
+        ('duplicate_route', 'API_BUSINESS_ROUTE_OWNER_DUPLICATE'),
+    ])
+    def test_owner_binding_negative_cases(tmp_path, damage, code):
+        active = setup_active(tmp_path)
+        if damage == 'unapproved': change_contract(active, lambda c: c.update(status='PROPOSED'))
+        if damage == 'duplicate_owner': change_contract(active, lambda c: c['modules'][1]['paths'].append('modules/alpha.py'))
+        if damage == 'duplicate_route': change_contract(active, lambda c: c['modules'][1]['routes'].append({'method': 'GET', 'path': '/alpha'}))
+        source, receipt = make_delta(active, 'bad', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+        value = json.loads(receipt.read_text())
+        if damage == 'missing_module': value.pop('business_module')
+        if damage == 'unknown_module': value['business_module']['module_id'] = 'unknown'
+        if damage == 'contract_sha': value['business_module']['owner_contract_sha256'] = '0' * 64
+        dump(receipt, value)
+        candidate = tmp_path / 'candidate'; candidate.mkdir()
+>       with pytest.raises(ValueError, match=code):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:179: Failed
+_ test_owner_binding_negative_cases[unknown_module-API_BUSINESS_MODULE_UNKNOWN] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_owner_binding_negative_ca1')
+damage = 'unknown_module', code = 'API_BUSINESS_MODULE_UNKNOWN'
+
+    @pytest.mark.parametrize('damage,code', [
+        ('missing_module', 'API_BUSINESS_MODULE_RECEIPT_REQUIRED'),
+        ('unknown_module', 'API_BUSINESS_MODULE_UNKNOWN'),
+        ('contract_sha', 'API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH'),
+        ('unapproved', 'API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED'),
+        ('duplicate_owner', 'API_BUSINESS_PATH_OWNER_DUPLICATE'),
+        ('duplicate_route', 'API_BUSINESS_ROUTE_OWNER_DUPLICATE'),
+    ])
+    def test_owner_binding_negative_cases(tmp_path, damage, code):
+        active = setup_active(tmp_path)
+        if damage == 'unapproved': change_contract(active, lambda c: c.update(status='PROPOSED'))
+        if damage == 'duplicate_owner': change_contract(active, lambda c: c['modules'][1]['paths'].append('modules/alpha.py'))
+        if damage == 'duplicate_route': change_contract(active, lambda c: c['modules'][1]['routes'].append({'method': 'GET', 'path': '/alpha'}))
+        source, receipt = make_delta(active, 'bad', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+        value = json.loads(receipt.read_text())
+        if damage == 'missing_module': value.pop('business_module')
+        if damage == 'unknown_module': value['business_module']['module_id'] = 'unknown'
+        if damage == 'contract_sha': value['business_module']['owner_contract_sha256'] = '0' * 64
+        dump(receipt, value)
+        candidate = tmp_path / 'candidate'; candidate.mkdir()
+>       with pytest.raises(ValueError, match=code):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:179: Failed
+_ test_owner_binding_negative_cases[contract_sha-API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_owner_binding_negative_ca2')
+damage = 'contract_sha', code = 'API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH'
+
+    @pytest.mark.parametrize('damage,code', [
+        ('missing_module', 'API_BUSINESS_MODULE_RECEIPT_REQUIRED'),
+        ('unknown_module', 'API_BUSINESS_MODULE_UNKNOWN'),
+        ('contract_sha', 'API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH'),
+        ('unapproved', 'API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED'),
+        ('duplicate_owner', 'API_BUSINESS_PATH_OWNER_DUPLICATE'),
+        ('duplicate_route', 'API_BUSINESS_ROUTE_OWNER_DUPLICATE'),
+    ])
+    def test_owner_binding_negative_cases(tmp_path, damage, code):
+        active = setup_active(tmp_path)
+        if damage == 'unapproved': change_contract(active, lambda c: c.update(status='PROPOSED'))
+        if damage == 'duplicate_owner': change_contract(active, lambda c: c['modules'][1]['paths'].append('modules/alpha.py'))
+        if damage == 'duplicate_route': change_contract(active, lambda c: c['modules'][1]['routes'].append({'method': 'GET', 'path': '/alpha'}))
+        source, receipt = make_delta(active, 'bad', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+        value = json.loads(receipt.read_text())
+        if damage == 'missing_module': value.pop('business_module')
+        if damage == 'unknown_module': value['business_module']['module_id'] = 'unknown'
+        if damage == 'contract_sha': value['business_module']['owner_contract_sha256'] = '0' * 64
+        dump(receipt, value)
+        candidate = tmp_path / 'candidate'; candidate.mkdir()
+>       with pytest.raises(ValueError, match=code):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:179: Failed
+_ test_owner_binding_negative_cases[unapproved-API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_owner_binding_negative_ca3')
+damage = 'unapproved', code = 'API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED'
+
+    @pytest.mark.parametrize('damage,code', [
+        ('missing_module', 'API_BUSINESS_MODULE_RECEIPT_REQUIRED'),
+        ('unknown_module', 'API_BUSINESS_MODULE_UNKNOWN'),
+        ('contract_sha', 'API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH'),
+        ('unapproved', 'API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED'),
+        ('duplicate_owner', 'API_BUSINESS_PATH_OWNER_DUPLICATE'),
+        ('duplicate_route', 'API_BUSINESS_ROUTE_OWNER_DUPLICATE'),
+    ])
+    def test_owner_binding_negative_cases(tmp_path, damage, code):
+        active = setup_active(tmp_path)
+        if damage == 'unapproved': change_contract(active, lambda c: c.update(status='PROPOSED'))
+        if damage == 'duplicate_owner': change_contract(active, lambda c: c['modules'][1]['paths'].append('modules/alpha.py'))
+        if damage == 'duplicate_route': change_contract(active, lambda c: c['modules'][1]['routes'].append({'method': 'GET', 'path': '/alpha'}))
+        source, receipt = make_delta(active, 'bad', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+        value = json.loads(receipt.read_text())
+        if damage == 'missing_module': value.pop('business_module')
+        if damage == 'unknown_module': value['business_module']['module_id'] = 'unknown'
+        if damage == 'contract_sha': value['business_module']['owner_contract_sha256'] = '0' * 64
+        dump(receipt, value)
+        candidate = tmp_path / 'candidate'; candidate.mkdir()
+>       with pytest.raises(ValueError, match=code):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:179: Failed
+_ test_owner_binding_negative_cases[duplicate_owner-API_BUSINESS_PATH_OWNER_DUPLICATE] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_owner_binding_negative_ca4')
+damage = 'duplicate_owner', code = 'API_BUSINESS_PATH_OWNER_DUPLICATE'
+
+    @pytest.mark.parametrize('damage,code', [
+        ('missing_module', 'API_BUSINESS_MODULE_RECEIPT_REQUIRED'),
+        ('unknown_module', 'API_BUSINESS_MODULE_UNKNOWN'),
+        ('contract_sha', 'API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH'),
+        ('unapproved', 'API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED'),
+        ('duplicate_owner', 'API_BUSINESS_PATH_OWNER_DUPLICATE'),
+        ('duplicate_route', 'API_BUSINESS_ROUTE_OWNER_DUPLICATE'),
+    ])
+    def test_owner_binding_negative_cases(tmp_path, damage, code):
+        active = setup_active(tmp_path)
+        if damage == 'unapproved': change_contract(active, lambda c: c.update(status='PROPOSED'))
+        if damage == 'duplicate_owner': change_contract(active, lambda c: c['modules'][1]['paths'].append('modules/alpha.py'))
+        if damage == 'duplicate_route': change_contract(active, lambda c: c['modules'][1]['routes'].append({'method': 'GET', 'path': '/alpha'}))
+        source, receipt = make_delta(active, 'bad', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+        value = json.loads(receipt.read_text())
+        if damage == 'missing_module': value.pop('business_module')
+        if damage == 'unknown_module': value['business_module']['module_id'] = 'unknown'
+        if damage == 'contract_sha': value['business_module']['owner_contract_sha256'] = '0' * 64
+        dump(receipt, value)
+        candidate = tmp_path / 'candidate'; candidate.mkdir()
+>       with pytest.raises(ValueError, match=code):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:179: Failed
+_ test_owner_binding_negative_cases[duplicate_route-API_BUSINESS_ROUTE_OWNER_DUPLICATE] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_owner_binding_negative_ca5')
+damage = 'duplicate_route', code = 'API_BUSINESS_ROUTE_OWNER_DUPLICATE'
+
+    @pytest.mark.parametrize('damage,code', [
+        ('missing_module', 'API_BUSINESS_MODULE_RECEIPT_REQUIRED'),
+        ('unknown_module', 'API_BUSINESS_MODULE_UNKNOWN'),
+        ('contract_sha', 'API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH'),
+        ('unapproved', 'API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED'),
+        ('duplicate_owner', 'API_BUSINESS_PATH_OWNER_DUPLICATE'),
+        ('duplicate_route', 'API_BUSINESS_ROUTE_OWNER_DUPLICATE'),
+    ])
+    def test_owner_binding_negative_cases(tmp_path, damage, code):
+        active = setup_active(tmp_path)
+        if damage == 'unapproved': change_contract(active, lambda c: c.update(status='PROPOSED'))
+        if damage == 'duplicate_owner': change_contract(active, lambda c: c['modules'][1]['paths'].append('modules/alpha.py'))
+        if damage == 'duplicate_route': change_contract(active, lambda c: c['modules'][1]['routes'].append({'method': 'GET', 'path': '/alpha'}))
+        source, receipt = make_delta(active, 'bad', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+        value = json.loads(receipt.read_text())
+        if damage == 'missing_module': value.pop('business_module')
+        if damage == 'unknown_module': value['business_module']['module_id'] = 'unknown'
+        if damage == 'contract_sha': value['business_module']['owner_contract_sha256'] = '0' * 64
+        dump(receipt, value)
+        candidate = tmp_path / 'candidate'; candidate.mkdir()
+>       with pytest.raises(ValueError, match=code):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:179: Failed
+_________ test_sequential_module_releases_preserve_other_bytes[order0] _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_sequential_module_release0')
+order = ('alpha', 'beta')
+
+    @pytest.mark.parametrize('order', [('alpha', 'beta'), ('beta', 'alpha')])
+    def test_sequential_module_releases_preserve_other_bytes(tmp_path, order):
+        active = setup_active(tmp_path)
+        for index, module in enumerate(order):
+>           candidate = build(active, f'release-{module}', module, {f'modules/{module}.py': f'{module.upper()} = 1\n'.encode()})
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_api_business_modules.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active = {'root': PosixPath('/tmp/pytest-of-root/pytest-23/test_sequential_module_release0'), 'plist': PosixPath('/tmp/pytest-o...wners.json'), 'state': PosixPath('/tmp/pytest-of-root/pytest-23/test_sequential_module_release0/synthetic-state'), ...}
+name = 'release-alpha', module = 'alpha'
+changes = {'modules/alpha.py': b'ALPHA = 1\n'}
+
+    def build(active: dict, name: str, module: str, changes: dict[str, bytes | None]) -> Path:
+        source, receipt = make_delta(active, name, module, changes)
+        candidate = active['root'] / name
+>       builder.build_module_candidate(source_root=source, candidate_root=candidate,
+            active_api_plist_path=active['plist'], release_id=name, role='gateway',
+            api_integration_delta_receipt_path=receipt, module_id=module,
+            formal_release_root=active['root'] / 'unused-formal',
+            include_untracked_paths=[p for p in changes if not (Path(integration.read_active_release(active['plist'])['app_root']) / p).exists()])
+E       TypeError: build_module_candidate() got an unexpected keyword argument 'module_id'
+
+tests/test_api_business_modules.py:109: TypeError
+_________ test_sequential_module_releases_preserve_other_bytes[order1] _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_sequential_module_release1')
+order = ('beta', 'alpha')
+
+    @pytest.mark.parametrize('order', [('alpha', 'beta'), ('beta', 'alpha')])
+    def test_sequential_module_releases_preserve_other_bytes(tmp_path, order):
+        active = setup_active(tmp_path)
+        for index, module in enumerate(order):
+>           candidate = build(active, f'release-{module}', module, {f'modules/{module}.py': f'{module.upper()} = 1\n'.encode()})
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_api_business_modules.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active = {'root': PosixPath('/tmp/pytest-of-root/pytest-23/test_sequential_module_release1'), 'plist': PosixPath('/tmp/pytest-o...wners.json'), 'state': PosixPath('/tmp/pytest-of-root/pytest-23/test_sequential_module_release1/synthetic-state'), ...}
+name = 'release-beta', module = 'beta'
+changes = {'modules/beta.py': b'BETA = 1\n'}
+
+    def build(active: dict, name: str, module: str, changes: dict[str, bytes | None]) -> Path:
+        source, receipt = make_delta(active, name, module, changes)
+        candidate = active['root'] / name
+>       builder.build_module_candidate(source_root=source, candidate_root=candidate,
+            active_api_plist_path=active['plist'], release_id=name, role='gateway',
+            api_integration_delta_receipt_path=receipt, module_id=module,
+            formal_release_root=active['root'] / 'unused-formal',
+            include_untracked_paths=[p for p in changes if not (Path(integration.read_active_release(active['plist'])['app_root']) / p).exists()])
+E       TypeError: build_module_candidate() got an unexpected keyword argument 'module_id'
+
+tests/test_api_business_modules.py:109: TypeError
+____________ test_same_base_second_candidate_rejected_then_rebuilt _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_same_base_second_candidat0')
+
+    def test_same_base_second_candidate_rejected_then_rebuilt(tmp_path):
+        active = setup_active(tmp_path)
+>       a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_api_business_modules.py:203: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active = {'root': PosixPath('/tmp/pytest-of-root/pytest-23/test_same_base_second_candidat0'), 'plist': PosixPath('/tmp/pytest-o...wners.json'), 'state': PosixPath('/tmp/pytest-of-root/pytest-23/test_same_base_second_candidat0/synthetic-state'), ...}
+name = 'A', module = 'alpha', changes = {'modules/alpha.py': b'ALPHA = 1\n'}
+
+    def build(active: dict, name: str, module: str, changes: dict[str, bytes | None]) -> Path:
+        source, receipt = make_delta(active, name, module, changes)
+        candidate = active['root'] / name
+>       builder.build_module_candidate(source_root=source, candidate_root=candidate,
+            active_api_plist_path=active['plist'], release_id=name, role='gateway',
+            api_integration_delta_receipt_path=receipt, module_id=module,
+            formal_release_root=active['root'] / 'unused-formal',
+            include_untracked_paths=[p for p in changes if not (Path(integration.read_active_release(active['plist'])['app_root']) / p).exists()])
+E       TypeError: build_module_candidate() got an unexpected keyword argument 'module_id'
+
+tests/test_api_business_modules.py:109: TypeError
+_________________ test_unbound_contract_cannot_self_authorize __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_unbound_contract_cannot_s0')
+
+    def test_unbound_contract_cannot_self_authorize(tmp_path):
+        active = setup_active(tmp_path)
+        source, receipt = make_delta(active, 'bad', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+        payload = plistlib.loads(active['plist'].read_bytes())
+        payload['ProgramArguments'] = [s for s in payload['ProgramArguments'] if not s.startswith('V35_API_MODULE_OWNERSHIP_')]
+        active['plist'].write_bytes(plistlib.dumps(payload))
+        candidate = tmp_path / 'candidate'; candidate.mkdir()
+>       with pytest.raises(ValueError, match='API_BUSINESS_OWNER_BINDING_REQUIRED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:222: Failed
+=========================== short test summary info ============================
+FAILED tests/test_api_business_modules.py::test_gateway_business_receipt_cannot_cross_owner
+FAILED tests/test_api_business_modules.py::test_shared_or_static_change_rejected_before_write[shared/registry.py]
+FAILED tests/test_api_business_modules.py::test_shared_or_static_change_rejected_before_write[apps/api/v35_api/app.py]
+FAILED tests/test_api_business_modules.py::test_shared_or_static_change_rejected_before_write[apps/web/dist/index.html]
+FAILED tests/test_api_business_modules.py::test_shared_or_static_change_rejected_before_write[apps/web/dist/assets/new.js]
+FAILED tests/test_api_business_modules.py::test_shared_or_static_change_rejected_before_write[apps/web/vite.config.ts]
+FAILED tests/test_api_business_modules.py::test_shared_or_static_change_rejected_before_write[apps/web/src/contracts/thing.ts]
+FAILED tests/test_api_business_modules.py::test_shared_or_static_change_rejected_before_write[config/current.json]
+FAILED tests/test_api_business_modules.py::test_owner_binding_negative_cases[missing_module-API_BUSINESS_MODULE_RECEIPT_REQUIRED]
+FAILED tests/test_api_business_modules.py::test_owner_binding_negative_cases[unknown_module-API_BUSINESS_MODULE_UNKNOWN]
+FAILED tests/test_api_business_modules.py::test_owner_binding_negative_cases[contract_sha-API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH]
+FAILED tests/test_api_business_modules.py::test_owner_binding_negative_cases[unapproved-API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED]
+FAILED tests/test_api_business_modules.py::test_owner_binding_negative_cases[duplicate_owner-API_BUSINESS_PATH_OWNER_DUPLICATE]
+FAILED tests/test_api_business_modules.py::test_owner_binding_negative_cases[duplicate_route-API_BUSINESS_ROUTE_OWNER_DUPLICATE]
+FAILED tests/test_api_business_modules.py::test_sequential_module_releases_preserve_other_bytes[order0]
+FAILED tests/test_api_business_modules.py::test_sequential_module_releases_preserve_other_bytes[order1]
+FAILED tests/test_api_business_modules.py::test_same_base_second_candidate_rejected_then_rebuilt
+FAILED tests/test_api_business_modules.py::test_unbound_contract_cannot_self_authorize
+18 failed in 0.36s

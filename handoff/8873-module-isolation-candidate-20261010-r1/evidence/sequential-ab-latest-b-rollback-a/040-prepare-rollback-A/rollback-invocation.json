@@ -1,0 +1,21 @@
+{
+  "current_active_base": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B-latest/app",
+    "application_inventory_entry_count": 8,
+    "application_inventory_sha256": "d9e1526a933ff35e7e79ac7431ec23456df41420a8bea89ffe5d76e3191aacf0",
+    "generation": 3,
+    "release_id": "B-latest",
+    "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B-latest/release-manifest.json",
+    "release_manifest_sha256": "d55a0f1b949ac16049b82b42a9576943ad2926f95c09a6cc3e41e77366b2c97f",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B-latest"
+  },
+  "entrypoint": "ops.api_release_integration.prepare_module_rollback",
+  "native_publisher_called": false,
+  "rollback_of": {
+    "release_manifest_sha256": "98d15e27bbbf20b1379eb273a9e1d87326e3dcfc10a8a0f04221bf91ffdb7e1a",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/A"
+  },
+  "scope": "SYNTHETIC_ONLY",
+  "status": "PASS",
+  "whole_release_restore_performed": false
+}

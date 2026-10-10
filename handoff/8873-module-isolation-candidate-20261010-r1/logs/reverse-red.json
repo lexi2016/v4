@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/workspace/scratch/a245cda1e07c/testenv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_api_business_modules.py",
+    "-k",
+    "reverse_delta or rollback or inverse or failure or cli"
+  ],
+  "cwd": "/workspace/scratch/a245cda1e07c/work",
+  "started_at": "2026-10-10T14:49:21.046996+00:00",
+  "finished_at": "2026-10-10T14:49:22.032815+00:00",
+  "exit_code": 1,
+  "log": "/workspace/scratch/a245cda1e07c/logs/reverse-red.log",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "scope": "isolated source and synthetic temporary fixtures; no Mac/live service/state"
+}

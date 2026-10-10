@@ -1,0 +1,41 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "active_plist_changed": false,
+  "application_inventory_sha256": "eeb4ddbb20b2c58582919e422a4ea02c32c24473e582aa49d63c1da3fafddb54",
+  "business_module": {
+    "approval_id": "SYNTHETIC_TEST_ONLY",
+    "base_generation": 3,
+    "generation": 4,
+    "module_id": "alpha",
+    "operation": "rollback",
+    "owner_contract_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/approved-module-owners.json",
+    "owner_contract_sha256": "b8093d042e7d0444695279518337614e5638bbb00985951c85f3e21a801eb008",
+    "rollback_of": {
+      "release_manifest_sha256": "98d15e27bbbf20b1379eb273a9e1d87326e3dcfc10a8a0f04221bf91ffdb7e1a",
+      "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/A"
+    },
+    "shared_paths_changed": false,
+    "source_owner": "synthetic-alpha",
+    "state_schema_changed": false
+  },
+  "candidate_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A",
+  "candidate_status": "READY_FOR_REVIEW",
+  "cutover_plan": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A/config/api-module-cutover-plan.json",
+  "delta_paths": [
+    "modules/alpha.py",
+    "modules/alpha_extra.py"
+  ],
+  "deployment_status": "CANNOT_CONFIRM",
+  "launchctl_called": false,
+  "manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A/release-manifest.json",
+  "manifest_sha256": "19b2c07110606f1313e2f1415263ed6dc89669a981d3ae53bde4556aa4bdd53a",
+  "schema_version": "v4.api_module_candidate_receipt.v1",
+  "staged_plist": {
+    "install_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/LaunchAgents/com.lexi.v35.api-only.plist",
+    "label": "com.lexi.v35.api-only",
+    "path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A/config/com.lexi.v35.api-only.plist",
+    "port": 8873,
+    "sha256": "4d1ea68a89a8373744f05940eb4a1b7448e121183547599b001636b57c239cd9"
+  },
+  "target_role": "gateway"
+}

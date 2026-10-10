@@ -1,0 +1,30 @@
+[
+  {
+    "bytes_copied_unchanged": true,
+    "evidence_path": "sequential-ab-latest-b-rollback-a/050-rollback-A/candidate-manifest.json",
+    "sha256": "19b2c07110606f1313e2f1415263ed6dc89669a981d3ae53bde4556aa4bdd53a",
+    "size": 7070,
+    "source_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A/release-manifest.json"
+  },
+  {
+    "bytes_copied_unchanged": true,
+    "evidence_path": "sequential-ab-latest-b-rollback-a/050-rollback-A/delta-receipt.json",
+    "sha256": "240a6b043db74f0c492457f944176eaa6c888e9f0585c65db7f50b4b4193a766",
+    "size": 1987,
+    "source_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A/api-integration-delta-receipt.json"
+  },
+  {
+    "bytes_copied_unchanged": true,
+    "evidence_path": "sequential-ab-latest-b-rollback-a/050-rollback-A/build-receipt.json",
+    "sha256": "feb76ed22d380adff6d93ba925eeb519a0cd5233764974b8c838f7aa6dff6b15",
+    "size": 2262,
+    "source_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A-build-receipt.json"
+  },
+  {
+    "bytes_copied_unchanged": true,
+    "evidence_path": "sequential-ab-latest-b-rollback-a/050-rollback-A/cutover-plan.json",
+    "sha256": "754fb00af0b20998b17ab63c6857682e37615f71c37faf07d512d1c105793153",
+    "size": 5923,
+    "source_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A/config/api-module-cutover-plan.json"
+  }
+]

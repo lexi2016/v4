@@ -1,0 +1,65 @@
+..............................F.......                                   [100%]
+=================================== FAILURES ===================================
+____ test_module_builder_creates_full_app_candidate_manifest_plist_and_plan ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_module_builder_creates_fu0')
+
+    def test_module_builder_creates_full_app_candidate_manifest_plist_and_plan(tmp_path: Path) -> None:
+        active = _active_gateway(tmp_path)
+        source = tmp_path / "source"
+        receipt = _bootstrap_receipt(active, source, target_role="stage")
+        candidate = tmp_path / "stage-candidate"
+>       result = release_builder.build_module_candidate(
+            source_root=source,
+            candidate_root=candidate,
+            active_api_plist_path=Path(str(active["plist"])),
+            release_id=candidate.name,
+            role="stage",
+            api_integration_delta_receipt_path=receipt,
+            formal_release_root=tmp_path / "formal-gateway-releases",
+            include_untracked_paths=(
+                "apps/api/v35_api/module_proxy.py", "apps/api/v35_api/run.py",
+                "deployment/api_module_contracts.json",
+            ),
+        )
+
+tests/test_api_module_release.py:245: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/build_release_candidate.py:387: in build_module_candidate
+    return _build_module_candidate_locked(
+ops/build_release_candidate.py:525: in _build_module_candidate_locked
+    plan = render_module_cutover(
+ops/prepare_api_only_cutover.py:340: in render_module_cutover
+    verified = verify_api_release_candidate(
+ops/api_release_integration.py:704: in verify_api_release_candidate
+    assert_api_release_lock(lock_lease, lock_path_source, role=lock_role)
+ops/api_release_integration.py:796: in assert_api_release_lock
+    assert_owned_interprocess_lock(lease, api_release_lock_path(active_api_plist_path, role=role))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+lease = OwnedInterprocessLockLease(path=PosixPath('/tmp/pytest-of-root/pytest-28/test_module_builder_creates_fu0/LaunchAgents/...a2fa15323a"}', _mutex_fd=11, _mutex_identity=(27, 527250), _owner_identity=(27, 527248), _parent_identity=(27, 527262))
+path = PosixPath('/tmp/pytest-of-root/pytest-28/test_module_builder_creates_fu0/LaunchAgents/.com.lexi.v4.stage-api.release.lock')
+
+    def assert_owned_interprocess_lock(lease: object, path: Path) -> None:
+        """Reject absent, forged, expired, moved or foreign lock authority."""
+        if (
+            type(lease) is not OwnedInterprocessLockLease
+            or lease.pid != os.getpid()
+            or lease.thread_id != threading.get_ident()
+        ):
+            raise ValueError("OWNER_LOCK_LEASE_NOT_OWNED")
+        with _LEASE_GUARD:
+            if _ACTIVE_LEASES.get(id(lease)) is not lease:
+                raise ValueError("OWNER_LOCK_LEASE_NOT_ACTIVE")
+        supplied = Path(path).expanduser()
+        if ".." in supplied.parts:
+            raise ValueError("OWNER_LOCK_LEASE_PATH_MISMATCH")
+        supplied = Path(os.path.abspath(supplied))
+        if supplied != lease.path:
+>           raise ValueError("OWNER_LOCK_LEASE_PATH_MISMATCH")
+E           ValueError: OWNER_LOCK_LEASE_PATH_MISMATCH
+
+infrastructure/interprocess_lock.py:123: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_api_module_release.py::test_module_builder_creates_full_app_candidate_manifest_plist_and_plan
+1 failed, 37 passed in 0.87s

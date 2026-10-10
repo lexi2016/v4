@@ -1,0 +1,169 @@
+{
+  "schema_version": "issue30.delivery_package_review.v1",
+  "reviewed_at_utc": "2026-10-10 15:19:21 UTC",
+  "reviewer": "/root/publisher",
+  "reviewer_role": "Historical native-reference author performing a separate read-only package/doc audit; independent code review is /root/independent_review",
+  "package_root": "/workspace/scratch/a245cda1e07c/delivery/8873-module-isolation-candidate-20261010-r1",
+  "status": "PASS_ISOLATED_DELIVERY_SCOPE",
+  "package_modified_by_reviewer": false,
+  "code_modified_by_reviewer": false,
+  "pytest_rerun": false,
+  "service_actions": false,
+  "network_or_remote_actions": false,
+  "verifier": {
+    "command": [
+      "/workspace/scratch/a245cda1e07c/testenv_final/bin/python",
+      "tools/verify_delivery.py"
+    ],
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "exit_code": 0,
+    "result": {
+      "after_files": 26,
+      "all_sha_verified": true,
+      "before_files": 23,
+      "forward_patch_exact_after": true,
+      "json_python_syntax_verified": true,
+      "package_files": 428,
+      "reverse_patch_exact_before": true,
+      "service_actions": false,
+      "status": "PASS",
+      "writes": "new temporary replay tree only"
+    },
+    "scope": "Independent initial 428-file snapshot; parent subsequently corrected one doc word and added packaging receipts. Final outer manifest/ZIP verification remains the parent's packaging step.",
+    "writes": "New disposable patch replay tree only"
+  },
+  "identity_checks": {
+    "status": "PASS",
+    "errors": [],
+    "code_manifest": {
+      "before": 23,
+      "after": 26,
+      "changed_count": 7,
+      "changed_files": [
+        "ops/api_business_modules.py",
+        "ops/api_release_integration.py",
+        "ops/build_release_candidate.py",
+        "ops/prepare_api_only_cutover.py",
+        "publisher_reference/api_only_cutover_r2_ready.py",
+        "tests/test_api_business_modules.py",
+        "tests/test_api_native_module_guard.py"
+      ],
+      "file_sha_size_git_blob_checks": true,
+      "after_matches_tested_work": true
+    },
+    "reference_sha256": "2b74e2193c7924b0c580129677738f3c766b938aea4d32341a0a7798ddfe7cd3",
+    "guard_file_count": 5,
+    "guard_pins_match_bytes_and_record": true,
+    "historical_constant_count": 47,
+    "historical_constant_changes": [],
+    "native_callsite_function_count": 7,
+    "native_callsite_exact_ast_match": true,
+    "input": {
+      "snapshot_count": 114,
+      "copied_hashes_and_sizes_verified": true,
+      "redacted_files": 6,
+      "redaction_occurrences": 82,
+      "discrepancy_record_matches": true
+    },
+    "evidence": {
+      "file_count": 157,
+      "indexed_file_count": 156,
+      "scenario_count": 3,
+      "candidate_count": 9,
+      "all_sha_and_sizes_verified": true,
+      "matches_final_source": true,
+      "scope": "SYNTHETIC_ONLY"
+    },
+    "test_environment": {
+      "dependency_count": 19,
+      "locked_subset_exact": true,
+      "final_pass_count": 106,
+      "elapsed_seconds": 6.35,
+      "exit_code": 0,
+      "requirements_match_after_distribution_name_normalization": true
+    },
+    "document_sha256": {
+      "README.md": "9d5cf22cd6feca8cdc494c3bcda4c52a80834d5f0124f49ee5eb849b58e376c5",
+      "docs/ARCHITECTURE.md": "d79c3701276ab9e36994d16d5a34f89fb34f17456b8b69e0ff5dbca415b3aff9",
+      "docs/ACCEPTANCE.md": "2ca13734ccc1beff984e3590e84d44b64c22d7efcc40e811aff7816012d7b12b",
+      "docs/USAGE_AND_ROLLBACK.md": "934be5bb146d18ba77fefc81276f515afccb8b80bcf33e6943328a44f835e8c5",
+      "docs/PROVENANCE.md": "f91ed5bfa45161de3852c108de5c8927811ae6f5af195d412f95053d216a8fb7",
+      "docs/MAC_EVIDENCE_REQUEST.md": "490d7a1403382aaf7a2a094e089069192059efa937090666e57499848480db56"
+    },
+    "closed_documentation_finding": "ARCHITECTURE helper name corrected from _lock to _locked by parent; read back corrected content"
+  },
+  "documentation": {
+    "reviewed": [
+      "README.md",
+      "docs/ARCHITECTURE.md",
+      "docs/ACCEPTANCE.md",
+      "docs/USAGE_AND_ROLLBACK.md",
+      "docs/PROVENANCE.md",
+      "docs/MAC_EVIDENCE_REQUEST.md"
+    ],
+    "current_mac_publisher": "CANNOT_CONFIRM",
+    "immutable_formal_staging": "CANNOT_CONFIRM",
+    "real_owner_authority": "CANNOT_CONFIRM; template remains PROPOSED",
+    "live_service_api_ui_natural": "NOT_RUN",
+    "loaded_nonrunning_recovery": "PARTIAL; ROLLBACK_INCOMPLETE explicitly retained",
+    "shared_frontend_joint_integration": "NOT_IMPLEMENTED; changes rejected",
+    "source_reverse_patch_distinct_from_module_reverse_delta": true,
+    "fresh_standalone_guard_attestation_scope_explicit": true
+  },
+  "findings": [
+    {
+      "id": "PKG-P3-1",
+      "priority": "P3",
+      "status": "CLOSED_BY_PARENT_AND_READ_BACK",
+      "file": "docs/ARCHITECTURE.md",
+      "section": "历史原生入口和失败恢复",
+      "issue": "Originally named nonexistent _lock helper.",
+      "resolution": "Parent changed the name to _locked; actual source definition and NATIVE_CALL_SITES.json match."
+    }
+  ],
+  "open_blocking_findings": [],
+  "checker_followup": {
+    "original_strict_comparison_status": "FAIL",
+    "original_strict_comparison_errors": [
+      "test_requirements_environment_binding"
+    ],
+    "resolution": {
+      "status": "PASS",
+      "requirement_count": 19,
+      "normalized_name_version_pairs_match_environment": true,
+      "equivalent_name_spellings": [
+        {
+          "requirement_name": "Pygments",
+          "canonical_distribution_name": "pygments",
+          "version": "2.21.0"
+        },
+        {
+          "requirement_name": "pydantic_core",
+          "canonical_distribution_name": "pydantic-core",
+          "version": "2.46.4"
+        },
+        {
+          "requirement_name": "typing_extensions",
+          "canonical_distribution_name": "typing-extensions",
+          "version": "4.16.0"
+        }
+      ],
+      "mismatches": {},
+      "interpretation": "Initial strict textual comparison was a checker false positive: package-distribution names are normalized by packaging.utils.canonicalize_name; no dependency version mismatch exists."
+    },
+    "package_change_required": false
+  },
+  "evidence_references": {
+    "final_tests": "logs/final-locked-suite-r2.json and logs/final-locked-suite-r2.log",
+    "historical_constants": "logs/final-native-frozen-pins-r2.json",
+    "guard_pins": "review/final_guard_pins.json",
+    "native_callsites": "review/NATIVE_CALL_SITES.json",
+    "independent_code_review": "review/independent_review.md",
+    "code_sha": "CODE_SHA256.json",
+    "input_discrepancy": "review/input_metadata_discrepancy.json",
+    "synthetic_evidence": "evidence/evidence-index.json, evidence/code-source-identity.json, evidence/run-summary.json"
+  },
+  "final_packaging_boundary": "Code/evidence verified frozen. Later REMOTE_SYNC/package-review receipts and the final root PACKAGE_SHA256SUMS.txt/ZIP are outside this initial replay and are to be verified by the parent. This review is not deployment authorization."
+}

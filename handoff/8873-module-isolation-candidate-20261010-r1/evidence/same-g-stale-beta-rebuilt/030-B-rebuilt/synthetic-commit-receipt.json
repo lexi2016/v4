@@ -1,0 +1,64 @@
+{
+  "completed_at": "2026-10-10T15:11:53.785974+00:00",
+  "helper": "tests.test_api_business_modules.synthetic_commit",
+  "launchctl_called": false,
+  "mac_native_verification": "NOT_RUN",
+  "mutation": "Only this run's newly created synthetic LaunchAgent plist was rewritten",
+  "native_publisher_called": false,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "scope": "SYNTHETIC_ONLY",
+  "service_readback_performed": false,
+  "started_at": "2026-10-10T15:11:53.770862+00:00",
+  "status": "PASS",
+  "verification_result": {
+    "active_api_plist_sha256": "3587f51d3559345b8dd56c10d67901174f4fd464a5a39703172c95d33594f1ad",
+    "active_pointer": "base",
+    "base": {
+      "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A/app",
+      "application_inventory_entry_count": 8,
+      "application_inventory_sha256": "96939826ea0c24e824799e4d0cf4132523feff7fe5e9eb65e915bf73d1977c00",
+      "generation": 1,
+      "release_id": "A",
+      "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A/release-manifest.json",
+      "release_manifest_sha256": "522c17332fe893a68a55caad45e493f95d6ad01156ece43249d22fb09dc49801",
+      "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A"
+    },
+    "business_module": {
+      "approval_id": "SYNTHETIC_TEST_ONLY",
+      "base_generation": 1,
+      "generation": 2,
+      "module_id": "beta",
+      "operation": "forward",
+      "owner_contract_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/approved-module-owners.json",
+      "owner_contract_sha256": "44558f85e0132a4d434b0f7fa90897e175cc139aab3b448bac5826e550ad2947",
+      "shared_paths_changed": false,
+      "source_owner": "synthetic-beta",
+      "state_schema_changed": false
+    },
+    "candidate": {
+      "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/B-rebuilt/app",
+      "application_inventory_entry_count": 8,
+      "application_inventory_sha256": "88c34b1014e924f3a1063fd440ce3d75c271d462caad397190ded1478a9f52cd",
+      "module_contract_sha256": null,
+      "module_role": "gateway",
+      "release_id": "B-rebuilt",
+      "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/B-rebuilt/release-manifest.json",
+      "release_manifest_sha256": "9b8cefd7fe9458f6273cd05162c40969ba80645956e16d6d04ef02d2dfd1ae7d",
+      "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/B-rebuilt"
+    },
+    "delta_paths": [
+      "modules/beta.py"
+    ],
+    "delta_receipt_sha256": "e847d87ad426049f4550d0b48f4e748fa696e52e84d6b2d465f7c0c676ad6c05",
+    "non_delta_active_release_bytes_preserved": true,
+    "non_delta_entry_count": 7,
+    "non_delta_inventory_sha256": "67d18ed2c0dcd2c189c3cd62bbf3d70a8946eaf19f36ac7843f7cefd891dd30b",
+    "shared_lock_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+    "status": "PASS"
+  }
+}

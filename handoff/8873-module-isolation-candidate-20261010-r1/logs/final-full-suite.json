@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/workspace/scratch/a245cda1e07c/testenv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider"
+  ],
+  "cwd": "/workspace/scratch/a245cda1e07c/work",
+  "started_at": "2026-10-10T15:03:01.351368+00:00",
+  "finished_at": "2026-10-10T15:03:08.431829+00:00",
+  "exit_code": 0,
+  "log": "/workspace/scratch/a245cda1e07c/logs/final-full-suite.log",
+  "scope": "fresh bare full pytest after parent finalized five static guard SHA pins; no test selectors or skips added"
+}

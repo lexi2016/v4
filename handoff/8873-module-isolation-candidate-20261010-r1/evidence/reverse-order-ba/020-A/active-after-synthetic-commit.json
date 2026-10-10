@@ -1,0 +1,118 @@
+{
+  "app": {
+    "aggregate_sha256": "c35133a0ae905cd7204730272c40b08219106e53b82a26866d4288b2554229de",
+    "entries": [
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/api/v35_api/app.py",
+        "sha256": "b10667546a17ad9a20539d37a7b6d654ecf405638b7c773bbbec88a3f768b1e2",
+        "size": 15
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/web/dist/assets/current.js",
+        "sha256": "3560b6dbaf21634275558502f80412051faed3c310eb131a7f505153ba764a71",
+        "size": 23
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/web/dist/index.html",
+        "sha256": "99dbb832824fac321381fb504132b2d0cd37c2cb4d2ad9153ff92d5ce27521d2",
+        "size": 15
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "config/current.json",
+        "sha256": "883114025e235f52d0690a36d23725faf79261f3856e135026ff0d71fb0539f4",
+        "size": 19
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "modules/alpha.py",
+        "sha256": "a4517ea4b19c23c549ace1b67db91e5cb98cca4fe5f4277bb06897f3073c169e",
+        "size": 11
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "modules/alpha_extra.py",
+        "sha256": "6f62cd13b8c0dc5d2446de2765199e9a4dbbdeb8c3b02e9d05bfb086629b53ed",
+        "size": 13
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "modules/beta.py",
+        "sha256": "09486a66eb0b4a76ef13a701e5ae26df210c4a3db09d19727066d88fe76ed7ae",
+        "size": 10
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "shared/registry.py",
+        "sha256": "41393f7f735f7e6ac066f6f4059285fb5bb47c6343cb8b06b4fbdb8e197cdb03",
+        "size": 27
+      }
+    ],
+    "entry_count": 8
+  },
+  "base_identity": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/A/app",
+    "application_inventory_entry_count": 8,
+    "application_inventory_sha256": "c35133a0ae905cd7204730272c40b08219106e53b82a26866d4288b2554229de",
+    "generation": 2,
+    "release_id": "A",
+    "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/A/release-manifest.json",
+    "release_manifest_sha256": "31c104e5a3c54ab6a637caac2c01825361d4857b6eed6a1d1287e562c37a4297",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/A"
+  },
+  "launch_bindings_sha256": "414265423e8d51ad0a0afcbe6e9921ecfa28f38986b4fff8d81e45cf840d625e",
+  "owner_contract_sha256": "842e81157c1d384693b2f808de8e29010efd7c42d51ca728c6c861c9c2e98aa2",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "scope": "SYNTHETIC_ONLY",
+  "state": {
+    "aggregate_sha256": "2555d2c3a256e401400f78c72f17044fd31e9f425198b62afaf1bbcd8607316c",
+    "entries": [
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "sentinel",
+        "sha256": "bf4e1b6a0d79d88fc68e8137271fed580166ca713e655b25006ad049b619dfd0",
+        "size": 12
+      }
+    ],
+    "entry_count": 1
+  },
+  "static": {
+    "aggregate_sha256": "5c949b5acdf617cfadc09d29f2f8d22157eac23152c3f4e9ba369c7f60a1a31d",
+    "entries": [
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "assets/current.js",
+        "sha256": "3560b6dbaf21634275558502f80412051faed3c310eb131a7f505153ba764a71",
+        "size": 23
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "index.html",
+        "sha256": "99dbb832824fac321381fb504132b2d0cd37c2cb4d2ad9153ff92d5ce27521d2",
+        "size": 15
+      }
+    ],
+    "entry_count": 2
+  },
+  "synthetic_plist_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/LaunchAgents/com.lexi.v35.api-only.plist",
+  "synthetic_plist_sha256": "c76696240e4a65fcd2de7d9310436702efe5746cb59ff0ca5a49dd64c8d9256c"
+}

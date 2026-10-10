@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/workspace/scratch/a245cda1e07c/testenv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_api_native_module_guard.py::test_native_rejects_conflicting_staged_dual_release_identity_before_write"
+  ],
+  "cwd": "/workspace/scratch/a245cda1e07c/work",
+  "started_at": "2026-10-10T14:57:48.190864+00:00",
+  "finished_at": "2026-10-10T14:57:48.590063+00:00",
+  "exit_code": 1,
+  "log": "/workspace/scratch/a245cda1e07c/logs/native-staged-red.log",
+  "scope": "focused regression: duplicated active release identity yields conflicting historical staged plist; expected red before fix"
+}

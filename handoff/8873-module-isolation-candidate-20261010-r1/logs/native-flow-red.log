@@ -1,0 +1,34 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+________ test_native_rejects_owner_contract_drift_before_service_action ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f40d6391a70>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-32/test_native_rejects_owner_cont0')
+
+    def test_native_rejects_owner_contract_drift_before_service_action(monkeypatch, tmp_path):
+        reference, active, _candidate, plan, launcher = _native_fixture(monkeypatch, tmp_path)
+        before = active["plist"].read_bytes()
+        active["contract"].write_bytes(active["contract"].read_bytes() + b" ")
+>       with pytest.raises(ValueError, match="API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_native_module_guard.py:424: Failed
+_________ test_native_revalidates_after_bootout_before_atomic_replace __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f40d6393360>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-32/test_native_revalidates_after_0')
+
+    def test_native_revalidates_after_bootout_before_atomic_replace(monkeypatch, tmp_path):
+        reference, active, _candidate, plan, launcher = _native_fixture(monkeypatch, tmp_path)
+        before = active["plist"].read_bytes()
+        launcher.after_bootout = lambda: active["contract"].write_bytes(active["contract"].read_bytes() + b" ")
+>       with pytest.raises(ValueError, match="API_ONLY_SWITCH_FAILED_AND_ROLLED_BACK:API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_native_module_guard.py:435: Failed
+=========================== short test summary info ============================
+FAILED tests/test_api_native_module_guard.py::test_native_rejects_owner_contract_drift_before_service_action
+FAILED tests/test_api_native_module_guard.py::test_native_revalidates_after_bootout_before_atomic_replace
+2 failed, 14 deselected in 0.22s

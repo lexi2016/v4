@@ -1,0 +1,1672 @@
+diff --git a/ops/api_business_modules.py b/ops/api_business_modules.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..1c6b64312fac65545bd193ddab9781467f98fcb3
+--- /dev/null
++++ b/ops/api_business_modules.py
+@@ -0,0 +1,236 @@
++"""Business ownership policy for the existing single-gateway release chain.
++
++This module has no publisher, lock, filesystem writer or service controller.
++The approved authority comes from the current LaunchAgent, never from a delta.
++"""
++from __future__ import annotations
++
++from copy import deepcopy
++import json
++from pathlib import Path
++import re
++from typing import Any, Mapping
++
++
++SCHEMA_VERSION = 'v4.api_business_module_owners.v1'
++AUTHORITY_PATH_KEY = 'V35_API_MODULE_OWNERSHIP_PATH'
++AUTHORITY_SHA_KEY = 'V35_API_MODULE_OWNERSHIP_SHA256'
++IDENTITY_KEYS = (AUTHORITY_PATH_KEY, AUTHORITY_SHA_KEY)
++_ID = re.compile(r'[a-z][a-z0-9_.-]{0,79}\Z')
++_SHA = re.compile(r'[0-9a-f]{64}\Z')
++_SHARED_EXACT = frozenset({
++    'apps/api/v35_api/app.py', 'apps/api/v35_api/run.py',
++    'apps/api/v35_api/module_proxy.py', 'pyproject.toml', 'uv.lock',
++})
++_SHARED_PREFIXES = ('apps/web/', 'deployment/', 'config/', 'contracts/', 'infrastructure/')
++_STATE_PARTS = frozenset({'data', 'state', 'runtime', 'node_modules', '.venv', 'venv', '__pycache__'})
++
++
++def _duplicate_keys(pairs):
++    result = {}
++    for key, value in pairs:
++        if key in result:
++            raise ValueError('API_BUSINESS_JSON_DUPLICATE_KEY:' + str(key))
++        result[key] = value
++    return result
++
++
++def _name(value: Any, code: str) -> str:
++    if not isinstance(value, str) or not _ID.fullmatch(value):
++        raise ValueError(code)
++    return value
++
++
++def forbidden_source_path(path: str) -> bool:
++    parts = Path(path).parts
++    return (any(p in _STATE_PARTS or p.startswith('.') for p in parts)
++            or path.endswith(('.plist', '.pem', '.key', '.pyc')))
++
++
++def shared_source_path(path: str) -> bool:
++    return path in _SHARED_EXACT or path.startswith(_SHARED_PREFIXES) or path.startswith('ops/')
++
++
++def generation(identity: Mapping[str, Any]) -> int:
++    manifest = identity.get('manifest', {})
++    integration = manifest.get('api_integration', {}) if isinstance(manifest, Mapping) else {}
++    module = integration.get('business_module', {}) if isinstance(integration, Mapping) else {}
++    value = module.get('generation', 0) if isinstance(module, Mapping) else None
++    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
++        raise ValueError('API_BUSINESS_GENERATION_INVALID')
++    return value
++
++
++def launch_bindings_digest(payload: Mapping[str, Any], *, _api) -> str:
++    """Hash preserved launch/state/safety bindings without storing their values."""
++    value = deepcopy(dict(payload))
++    rewritten = {'V35_APP_ROOT', 'V35_RELEASE_ID', 'V35_RELEASE_MANIFEST_PATH',
++                 'V35_RELEASE_MANIFEST_SHA256', 'PYTHONPATH'}
++    arguments = value.get('ProgramArguments', [])
++    value['ProgramArguments'] = [
++        item.split('=', 1)[0] + '=<release>'
++        if isinstance(item, str) and '=' in item and item.split('=', 1)[0] in rewritten else item
++        for item in arguments
++    ]
++    if isinstance(value.get('EnvironmentVariables'), dict):
++        value['EnvironmentVariables'] = {key: '<release>' if key in rewritten else content
++                                         for key, content in value['EnvironmentVariables'].items()}
++    if 'WorkingDirectory' in value:
++        value['WorkingDirectory'] = '<release>'
++    return _api.sha256_bytes(json.dumps(value, sort_keys=True, separators=(',', ':')).encode())
++
++
++def read_owner_contract(authority: Mapping[str, Any], *, _api) -> tuple[dict, str, str]:
++    values = authority.get('identity_from_plist', {})
++    path_value, expected = (values.get(k) for k in IDENTITY_KEYS)
++    if not isinstance(path_value, str) or not isinstance(expected, str) or not _SHA.fullmatch(expected):
++        raise ValueError('API_BUSINESS_OWNER_BINDING_REQUIRED')
++    path = _api._exact_path(Path(path_value), kind='file', label='API_BUSINESS_OWNER_CONTRACT')
++    if not Path(path_value).is_absolute() or path.is_relative_to(Path(authority['app_root'])):
++        raise ValueError('API_BUSINESS_OWNER_CONTRACT_MUST_BE_EXTERNAL')
++    raw = path.read_bytes()
++    if len(raw) > 1024 * 1024:
++        raise ValueError('API_BUSINESS_OWNER_CONTRACT_TOO_LARGE')
++    if _api.sha256_bytes(raw) != expected:
++        raise ValueError('API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH')
++    try:
++        contract = json.loads(raw.decode('utf-8'), object_pairs_hook=_duplicate_keys)
++    except (UnicodeDecodeError, json.JSONDecodeError) as error:
++        raise ValueError('API_BUSINESS_OWNER_CONTRACT_JSON_INVALID') from error
++    if not isinstance(contract, dict) or contract.get('schema_version') != SCHEMA_VERSION:
++        raise ValueError('API_BUSINESS_OWNER_CONTRACT_SCHEMA_INVALID')
++    if contract.get('status') != 'APPROVED' or not isinstance(contract.get('approval_id'), str) or not contract['approval_id'].strip():
++        raise ValueError('API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED')
++    external = contract.get('protected_external_roots')
++    if not isinstance(external, list) or any(not isinstance(path, str) for path in external):
++        raise ValueError('API_BUSINESS_EXTERNAL_BOUNDARIES_REQUIRED')
++    if len(external) != len(set(external)):
++        raise ValueError('API_BUSINESS_EXTERNAL_BOUNDARY_DUPLICATE')
++    for path_value in external:
++        if not Path(path_value).is_absolute():
++            raise ValueError('API_BUSINESS_EXTERNAL_BOUNDARY_MUST_BE_ABSOLUTE')
++        _api._exact_path(Path(path_value), kind='directory', label='API_BUSINESS_EXTERNAL_BOUNDARY')
++    modules = contract.get('modules')
++    shared = contract.get('shared_paths')
++    if not isinstance(modules, list) or not modules or not isinstance(shared, list):
++        raise ValueError('API_BUSINESS_OWNER_CONTRACT_ENTRIES_REQUIRED')
++    module_ids, owners, paths, routes = set(), set(), {}, set()
++    for module in modules:
++        if not isinstance(module, dict):
++            raise ValueError('API_BUSINESS_MODULE_OWNER_INVALID')
++        module_id = _name(module.get('module_id'), 'API_BUSINESS_MODULE_ID_INVALID')
++        owner = _name(module.get('source_owner'), 'API_BUSINESS_SOURCE_OWNER_INVALID')
++        if module_id in module_ids or owner in owners:
++            raise ValueError('API_BUSINESS_MODULE_OWNER_DUPLICATE')
++        module_ids.add(module_id); owners.add(owner)
++        if module.get('state_compatibility') != 'UNCHANGED':
++            raise ValueError('API_BUSINESS_STATE_COMPATIBILITY_UNCONFIRMED')
++        owned = module.get('paths')
++        if not isinstance(owned, list) or not owned:
++            raise ValueError('API_BUSINESS_MODULE_PATHS_REQUIRED')
++        for relative in owned:
++            relative = _api._normalise_relative(relative)
++            if any(c in relative for c in '*?[') or forbidden_source_path(relative):
++                raise ValueError('API_BUSINESS_SOURCE_PATH_FORBIDDEN:' + relative)
++            if relative in paths:
++                raise ValueError('API_BUSINESS_PATH_OWNER_DUPLICATE:' + relative)
++            paths[relative] = module_id
++        module_routes = module.get('routes')
++        dependencies = module.get('depends_on')
++        if not isinstance(module_routes, list) or not isinstance(dependencies, list) or any(not isinstance(x, str) for x in dependencies):
++            raise ValueError('API_BUSINESS_ROUTE_OR_DEPENDENCY_INVALID')
++        for route in module_routes:
++            if (not isinstance(route, dict) or route.get('method') not in {'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'}
++                    or not isinstance(route.get('path'), str) or not route['path'].startswith('/')):
++                raise ValueError('API_BUSINESS_ROUTE_INVALID')
++            key = (route['method'], route['path'])
++            if key in routes:
++                raise ValueError('API_BUSINESS_ROUTE_OWNER_DUPLICATE')
++            routes.add(key)
++    for module in modules:
++        dependencies = module['depends_on']
++        if (len(dependencies) != len(set(dependencies)) or module['module_id'] in dependencies
++                or set(dependencies) - module_ids):
++            raise ValueError('API_BUSINESS_DEPENDENCY_INVALID')
++    remaining = {module['module_id']: len(module['depends_on']) for module in modules}
++    dependents = {module_id: [] for module_id in module_ids}
++    for module in modules:
++        for dependency in module['depends_on']:
++            dependents[dependency].append(module['module_id'])
++    ready = [module_id for module_id, count in remaining.items() if count == 0]
++    visited = 0
++    while ready:
++        module_id = ready.pop()
++        visited += 1
++        for dependent in dependents[module_id]:
++            remaining[dependent] -= 1
++            if remaining[dependent] == 0:
++                ready.append(dependent)
++    if visited != len(modules):
++        raise ValueError('API_BUSINESS_DEPENDENCY_CYCLE')
++    for entry in shared:
++        if not isinstance(entry, dict):
++            raise ValueError('API_BUSINESS_SHARED_OWNER_INVALID')
++        relative = _api._normalise_relative(entry.get('path'))
++        if any(c in relative for c in '*?[') or forbidden_source_path(relative):
++            raise ValueError('API_BUSINESS_SOURCE_PATH_FORBIDDEN:' + relative)
++        _name(entry.get('source_owner'), 'API_BUSINESS_SHARED_OWNER_INVALID')
++        if relative in paths:
++            raise ValueError('API_BUSINESS_PATH_OWNER_DUPLICATE:' + relative)
++        paths[relative] = None
++    for relative in paths:
++        if any(parent.as_posix() in paths for parent in Path(relative).parents):
++            raise ValueError('API_BUSINESS_PATH_OWNER_OVERLAP:' + relative)
++    return contract, expected, str(path)
++
++
++def validate_business_module(*, receipt: Mapping[str, Any], base_identity: Mapping[str, Any],
++                             authority_identity: Mapping[str, Any], required: bool, _api) -> dict | None:
++    module = receipt.get('business_module')
++    values = authority_identity.get('identity_from_plist', {})
++    bound = any(key in values for key in IDENTITY_KEYS)
++    if module is None and not required and not bound:
++        return None  # Legacy inactive role fixtures; native gateway publication requires this policy.
++    if not isinstance(module, dict):
++        raise ValueError('API_BUSINESS_MODULE_RECEIPT_REQUIRED')
++    contract, expected, contract_path = read_owner_contract(authority_identity, _api=_api)
++    if module.get('owner_contract_sha256') != expected:
++        raise ValueError('API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH')
++    module_id = module.get('module_id')
++    owner = next((entry for entry in contract['modules'] if entry['module_id'] == module_id), None)
++    if owner is None:
++        raise ValueError('API_BUSINESS_MODULE_UNKNOWN')
++    base_generation = base_identity.get('generation', 0)
++    if type(module.get('base_generation')) is not int or module['base_generation'] != base_generation:
++        raise ValueError('API_BUSINESS_STALE_GENERATION')
++    if module.get('operation') not in {'forward', 'rollback'}:
++        raise ValueError('API_BUSINESS_OPERATION_INVALID')
++    if module['operation'] == 'forward' and 'rollback_of' in module:
++        raise ValueError('API_BUSINESS_ROLLBACK_BINDING_INVALID')
++    shared = {entry['path'] for entry in contract['shared_paths']}
++    owners = {path: entry['module_id'] for entry in contract['modules'] for path in entry['paths']}
++    for entry in receipt['entries']:
++        path = entry['path']
++        if forbidden_source_path(path):
++            raise ValueError('API_BUSINESS_SOURCE_PATH_FORBIDDEN:' + path)
++        if shared_source_path(path) or path in shared:
++            raise ValueError('API_BUSINESS_SHARED_SEAM_REQUIRES_JOINT_INTEGRATION:' + path)
++        if path not in owners:
++            raise ValueError('API_BUSINESS_PATH_OWNER_UNKNOWN:' + path)
++        if owners[path] != module_id:
++            raise ValueError('API_BUSINESS_PATH_OWNER_CONFLICT:' + path)
++    for entry in base_identity.get('inventory', []):
++        if entry.get('kind') != 'file' or forbidden_source_path(entry['path']):
++            raise ValueError('API_BUSINESS_ACTIVE_SOURCE_BOUNDARY_UNCONFIRMED:' + entry['path'])
++    result = {
++        'module_id': module_id, 'source_owner': owner['source_owner'],
++        'owner_contract_path': contract_path, 'owner_contract_sha256': expected,
++        'approval_id': contract['approval_id'], 'base_generation': base_generation,
++        'generation': base_generation + 1, 'operation': module['operation'],
++        'state_schema_changed': False, 'shared_paths_changed': False,
++    }
++    if module['operation'] == 'rollback':
++        if not isinstance(module.get('rollback_of'), dict):
++            raise ValueError('API_BUSINESS_ROLLBACK_BINDING_INVALID')
++        result['rollback_of'] = dict(module['rollback_of'])
++    return result
+diff --git a/ops/api_release_integration.py b/ops/api_release_integration.py
+index ea404dd8c25ec18887edd93b234fbd4ab8fb804c..3fcf96bd283e3824260b18cceed31de3ffde073c 100644
+--- a/ops/api_release_integration.py
++++ b/ops/api_release_integration.py
+@@ -23,6 +23,8 @@ MODULE_CONTRACT_PATH = REPO_ROOT / "deployment" / "api_module_contracts.json"
+ if str(REPO_ROOT) not in sys.path:
+     sys.path.insert(0, str(REPO_ROOT))
+ 
++from ops import api_business_modules as _business
++
+ 
+ def sha256_bytes(raw: bytes) -> str:
+     return hashlib.sha256(raw).hexdigest()
+@@ -220,13 +222,13 @@ def _plist_environment(payload: Mapping[str, Any]) -> dict[str, str]:
+         if not isinstance(item, str) or "=" not in item:
+             continue
+         key, value = item.split("=", 1)
+-        if key in {"V35_APP_ROOT", "V35_RELEASE_ID", "V35_RELEASE_MANIFEST_PATH", "V35_RELEASE_MANIFEST_SHA256", "V35_API_ROLE", "V35_API_PORT"}:
++        if key in {"V35_APP_ROOT", "V35_RELEASE_ID", "V35_RELEASE_MANIFEST_PATH", "V35_RELEASE_MANIFEST_SHA256", "V35_API_ROLE", "V35_API_PORT", *_business.IDENTITY_KEYS}:
+             if key in values and values[key] != value:
+                 raise ValueError("API_RELEASE_ACTIVE_PLIST_IDENTITY_DUPLICATE:" + key)
+             values[key] = value
+     environment = payload.get("EnvironmentVariables")
+     if isinstance(environment, Mapping):
+-        for key in ("V35_APP_ROOT", "V35_RELEASE_ID", "V35_RELEASE_MANIFEST_PATH", "V35_RELEASE_MANIFEST_SHA256", "V35_API_ROLE", "V35_API_PORT"):
++        for key in ("V35_APP_ROOT", "V35_RELEASE_ID", "V35_RELEASE_MANIFEST_PATH", "V35_RELEASE_MANIFEST_SHA256", "V35_API_ROLE", "V35_API_PORT", *_business.IDENTITY_KEYS):
+             value = environment.get(key)
+             if value is not None:
+                 if not isinstance(value, str) or (key in values and values[key] != value):
+@@ -286,6 +288,7 @@ def _release_identity(
+         "application_inventory_entry_count": len(entries),
+         "module_role": module_role,
+         "module_contract_sha256": module_contract_sha,
++        "generation": _business.generation({"manifest": manifest}),
+         "manifest": manifest,
+         "inventory": actual,
+     }
+@@ -296,7 +299,8 @@ def read_active_release(api_plist_path: Path, *, role: str = "gateway") -> dict[
+     role_config = module_role_contract()["roles"][role]
+     api_plist_path = _exact_path(api_plist_path, kind="file", label="API_RELEASE_ACTIVE_PLIST")
+     try:
+-        payload = plistlib.loads(api_plist_path.read_bytes())
++        plist_raw = api_plist_path.read_bytes()
++        payload = plistlib.loads(plist_raw)
+     except (plistlib.InvalidFileException, ValueError) as exc:
+         raise ValueError("API_RELEASE_ACTIVE_PLIST_INVALID") from exc
+     if not isinstance(payload, dict) or api_plist_path.name != role_config["plist_name"]:
+@@ -330,7 +334,10 @@ def read_active_release(api_plist_path: Path, *, role: str = "gateway") -> dict[
+     if identity.get("module_role") != role:
+         raise ValueError("API_RELEASE_ACTIVE_MANIFEST_ROLE_MISMATCH")
+     identity["api_plist_path"] = str(api_plist_path)
+-    identity["api_plist_sha256"] = sha256_bytes(api_plist_path.read_bytes())
++    if api_plist_path.read_bytes() != plist_raw:
++        raise ValueError("API_RELEASE_ACTIVE_PLIST_CHANGED_DURING_READ")
++    identity["api_plist_sha256"] = sha256_bytes(plist_raw)
++    identity["launch_bindings_sha256"] = _business.launch_bindings_digest(payload, _api=sys.modules[__name__])
+     identity["identity_from_plist"] = {key: values[key] for key in sorted(values)}
+     return identity
+ 
+@@ -342,6 +349,7 @@ def _base_binding(identity: Mapping[str, Any]) -> dict[str, Any]:
+             "release_root", "app_root", "release_id", "release_manifest_path",
+             "release_manifest_sha256", "application_inventory_sha256",
+             "application_inventory_entry_count",
++            "generation",
+         )
+     }
+ 
+@@ -383,13 +391,17 @@ def _validate_delta_receipt(
+         after_sha = raw.get("after_sha256")
+         if before_sha is not None and (not isinstance(before_sha, str) or len(before_sha) != 64):
+             raise ValueError("API_RELEASE_DELTA_BEFORE_SHA_INVALID:" + relative)
+-        if not isinstance(after_sha, str) or len(after_sha) != 64:
++        deletion = after_sha is None and before_sha is not None
++        if deletion and (not isinstance(receipt.get("business_module"), Mapping)
++                         or receipt["business_module"].get("operation") != "rollback"):
++            raise ValueError("API_RELEASE_DELTA_DELETE_REQUIRES_MODULE_ROLLBACK:" + relative)
++        if not deletion and (not isinstance(after_sha, str) or len(after_sha) != 64):
+             raise ValueError("API_RELEASE_DELTA_AFTER_SHA_REQUIRED:" + relative)
+         if before_sha == after_sha:
+             raise ValueError("API_RELEASE_DELTA_HAS_NO_CHANGE:" + relative)
+         proof_sha = raw.get("unified_diff_sha256")
+         hunk_count = raw.get("unified_diff_hunk_count")
+-        if before_sha is None:
++        if before_sha is None or deletion:
+             if proof_sha is not None or hunk_count is not None:
+                 raise ValueError("API_RELEASE_DELTA_ADDITION_PROOF_INVALID:" + relative)
+         elif (not isinstance(proof_sha, str) or len(proof_sha) != 64
+@@ -409,7 +421,8 @@ def _verify_delta_files(
+     base_by_path = {str(item["path"]): item for item in base_inventory}
+     candidate_by_path = {str(item["path"]): item for item in candidate_inventory}
+     delta_paths = {str(entry["path"]) for entry in entries}
+-    removed = sorted(set(base_by_path) - set(candidate_by_path))
++    declared_deletions = {str(entry["path"]) for entry in entries if entry.get("after_sha256") is None}
++    removed = sorted((set(base_by_path) - set(candidate_by_path)) - declared_deletions)
+     if removed:
+         raise ValueError("API_RELEASE_INTEGRATION_FILE_REMOVED:" + ",".join(removed[:8]))
+     added_unlisted = sorted((set(candidate_by_path) - set(base_by_path)) - delta_paths)
+@@ -426,14 +439,14 @@ def _verify_delta_files(
+     for entry in entries:
+         relative = str(entry["path"])
+         before_path = _safe_child(base_app, relative, allow_missing=True)
+-        after_path = _safe_child(candidate_app, relative, allow_missing=False)
++        after_path = _safe_child(candidate_app, relative, allow_missing=entry.get("after_sha256") is None)
+         before_sha = sha256_bytes(before_path.read_bytes()) if before_path.exists() else None
+-        after_sha = sha256_bytes(after_path.read_bytes())
++        after_sha = sha256_bytes(after_path.read_bytes()) if after_path.exists() else None
+         if before_sha != entry.get("before_sha256") or after_sha != entry.get("after_sha256"):
+             raise ValueError("API_RELEASE_INTEGRATION_DELTA_SHA_MISMATCH:" + relative)
+         diff_sha = None
+         hunk_count = None
+-        if before_sha is not None:
++        if before_sha is not None and after_sha is not None:
+             diff_sha, hunk_count = _diff_proof(before_path.read_bytes(), after_path.read_bytes())
+             if (diff_sha != entry.get("unified_diff_sha256")
+                     or hunk_count != entry.get("unified_diff_hunk_count")):
+@@ -445,6 +458,12 @@ def _verify_delta_files(
+             "unified_diff_sha256": diff_sha,
+             "unified_diff_hunk_count": hunk_count,
+         })
++        for field, by_path in (("before_mode", base_by_path), ("after_mode", candidate_by_path)):
++            if field in entry:
++                observed = by_path.get(relative, {}).get("mode")
++                if observed != entry[field]:
++                    raise ValueError("API_RELEASE_INTEGRATION_DELTA_MODE_MISMATCH:" + relative)
++                delta_records[-1][field] = observed
+     preserved = [base_by_path[path] for path in sorted(base_by_path) if path not in delta_paths]
+     preserved_candidate = [candidate_by_path[path] for path in sorted(base_by_path) if path not in delta_paths]
+     if preserved != preserved_candidate:
+@@ -456,7 +475,51 @@ def build_integrated_app(
+     *, active_api_plist_path: Path, source_root: Path, candidate_root: Path,
+     delta_receipt_path: Path, explicit_untracked_paths: Sequence[str] = (),
+     role: str = "gateway", base_role: str | None = None,
+-    bootstrap_transition: bool = False,
++    bootstrap_transition: bool = False, lock_lease: object | None = None,
++    module_id: str | None = None,
++) -> dict[str, Any]:
++    """Build through the existing shared lock; never rebase a stale receipt."""
++    lock_role = _module_role(base_role or role)
++    arguments = dict(
++        active_api_plist_path=active_api_plist_path, source_root=source_root,
++        candidate_root=candidate_root, delta_receipt_path=delta_receipt_path,
++        explicit_untracked_paths=explicit_untracked_paths, role=role,
++        base_role=base_role, bootstrap_transition=bootstrap_transition, module_id=module_id,
++    )
++    if lock_lease is None:
++        with shared_api_release_lock(active_api_plist_path, role=lock_role) as lease:
++            return build_integrated_app(**arguments, lock_lease=lease)
++    assert_api_release_lock(lock_lease, active_api_plist_path, role=lock_role)
++    root = _exact_path(candidate_root, kind="directory", label="API_RELEASE_CANDIDATE_ROOT")
++    created = [root / "app", root / DELTA_RECEIPT_NAME]
++    if any(path.exists() or path.is_symlink() for path in created):
++        raise FileExistsError("refusing to overwrite API integration candidate artifacts")
++    try:
++        result = _build_integrated_app_locked(**arguments)
++        assert_api_release_lock(lock_lease, active_api_plist_path, role=lock_role)
++        return result
++    except BaseException:
++        for path in created:
++            if path.is_symlink() or path.is_file():
++                path.unlink()
++            elif path.is_dir():
++                remove_candidate_tree(path)
++        raise
++
++
++def remove_candidate_tree(path: Path) -> None:
++    """Remove only a caller-owned failed candidate, including immutable copies."""
++    def writable(function, target, error):
++        Path(target).chmod(stat.S_IMODE(Path(target).lstat().st_mode) | stat.S_IWUSR | stat.S_IXUSR)
++        function(target)
++    shutil.rmtree(path, onexc=writable)
++
++
++def _build_integrated_app_locked(
++    *, active_api_plist_path: Path, source_root: Path, candidate_root: Path,
++    delta_receipt_path: Path, explicit_untracked_paths: Sequence[str] = (),
++    role: str = "gateway", base_role: str | None = None,
++    bootstrap_transition: bool = False, module_id: str | None = None,
+ ) -> dict[str, Any]:
+     role = _module_role(role)
+     base_role = _module_role(base_role or role)
+@@ -465,6 +528,22 @@ def build_integrated_app(
+     candidate_root = _exact_path(candidate_root, kind="directory", label="API_RELEASE_CANDIDATE_ROOT")
+     receipt, receipt_raw = _read_json(delta_receipt_path, "API_RELEASE_DELTA_RECEIPT")
+     entries = _validate_delta_receipt(receipt, base_identity=active)
++    business = _business.validate_business_module(
++        receipt=receipt, base_identity=active, authority_identity=active,
++        required=module_id is not None, _api=sys.modules[__name__],
++    )
++    if business is not None:
++        if role != "gateway" or base_role != "gateway" or bootstrap_transition:
++            raise ValueError("API_BUSINESS_SAME_GATEWAY_REQUIRED")
++        if module_id is not None and business["module_id"] != module_id:
++            raise ValueError("API_BUSINESS_MODULE_ID_BINDING_MISMATCH")
++        assert_business_output_boundary(candidate_root, active)
++        if business["operation"] == "rollback":
++            expected_reverse, _, _ = _module_rollback_recipe(
++                current=active, authority=active, rollback_of=business["rollback_of"]
++            )
++            if receipt != expected_reverse:
++                raise ValueError("API_BUSINESS_REVERSE_DELTA_MISMATCH")
+     if role != "gateway" or bootstrap_transition:
+         bootstrap = bootstrap_transition or (role != base_role and base_role == "gateway")
+         if base_role not in {role, "gateway"}:
+@@ -480,26 +559,34 @@ def build_integrated_app(
+     candidate_app = candidate_root / "app"
+     if candidate_app.exists() or candidate_app.is_symlink():
+         raise FileExistsError("refusing to overwrite API integration candidate app")
+-    shutil.copytree(active["app_root"], candidate_app, symlinks=True)
+-    if inventory_tree(candidate_app) != active["inventory"]:
+-        raise ValueError("API_RELEASE_ACTIVE_BASE_COPY_DRIFT")
++    # Validate every source/before/proof before copying any application bytes.
+     for entry in entries:
+         relative = str(entry["path"])
+-        source = _safe_child(source_root, relative, allow_missing=False)
+-        source_raw = source.read_bytes()
+-        if sha256_bytes(source_raw) != entry.get("after_sha256"):
++        source = _safe_child(source_root, relative, allow_missing=entry.get("after_sha256") is None)
++        source_raw = source.read_bytes() if source.exists() else None
++        if (sha256_bytes(source_raw) if source_raw is not None else None) != entry.get("after_sha256"):
+             raise ValueError("API_RELEASE_DELTA_SOURCE_SHA_MISMATCH:" + relative)
+         base_path = _safe_child(Path(active["app_root"]), relative, allow_missing=True)
+         base_raw = base_path.read_bytes() if base_path.exists() else None
+         before_sha = sha256_bytes(base_raw) if base_raw is not None else None
+         if before_sha != entry.get("before_sha256"):
+             raise ValueError("API_RELEASE_DELTA_BEFORE_SHA_MISMATCH:" + relative)
+-        if base_raw is not None:
++        if base_raw is not None and source_raw is not None:
+             diff_sha, hunk_count = _diff_proof(base_raw, source_raw)
+             if (diff_sha != entry.get("unified_diff_sha256")
+                     or hunk_count != entry.get("unified_diff_hunk_count")):
+                 raise ValueError("API_RELEASE_DELTA_SOURCE_DIFF_MISMATCH:" + relative)
++    shutil.copytree(active["app_root"], candidate_app, symlinks=True)
++    if inventory_tree(candidate_app) != active["inventory"]:
++        raise ValueError("API_RELEASE_ACTIVE_BASE_COPY_DRIFT")
++    for entry in entries:
++        relative = str(entry["path"])
+         target = _safe_child(candidate_app, relative, allow_missing=True)
++        if entry.get("after_sha256") is None:
++            with _candidate_parent_writable(candidate_app, relative):
++                target.unlink()
++            continue
++        source = _safe_child(source_root, relative, allow_missing=False)
+         if target.exists():
+             # Active releases are immutable snapshots.  The integration
+             # target is a private candidate copy, so grant owner write only
+@@ -517,7 +604,9 @@ def build_integrated_app(
+         handle.write(receipt_raw)
+         handle.flush()
+         os.fsync(handle.fileno())
+-    return {
++    if _base_binding(read_active_release(active_api_plist_path, role=base_role)) != _base_binding(active):
++        raise ValueError("API_RELEASE_INTEGRATION_ACTIVE_BASE_CHANGED")
++    result = {
+         "schema_version": SCHEMA_VERSION,
+         "base": _base_binding(active),
+         "target_role": role,
+@@ -533,6 +622,11 @@ def build_integrated_app(
+         "active_application_inventory_sha256": active["application_inventory_sha256"],
+         "source_workspace_full_tree_copied": False,
+     }
++    if business is not None:
++        result["business_module"] = business
++        result["base_api_plist_sha256"] = active["api_plist_sha256"]
++        result["launch_bindings_sha256"] = active["launch_bindings_sha256"]
++    return result
+ 
+ 
+ def _candidate_identity(manifest: Mapping[str, Any], candidate_root: Path, manifest_sha: str) -> dict[str, Any]:
+@@ -570,6 +664,7 @@ def verify_api_release_candidate(
+     lock_lease: object | None = None, require_shared_lock: bool = False,
+     role: str | None = None, base_role: str | None = None,
+     lock_plist_path: Path | None = None,
++    require_business_module: bool = False,
+ ) -> dict[str, Any]:
+     candidate_root = _exact_path(candidate_root, kind="directory", label="API_RELEASE_CANDIDATE_ROOT")
+     manifest_path = _exact_path(candidate_root / "release-manifest.json", kind="file", label="API_RELEASE_CANDIDATE_MANIFEST")
+@@ -638,6 +733,27 @@ def verify_api_release_candidate(
+     if sha256_bytes(receipt_raw) != integration.get("delta_receipt_sha256"):
+         raise ValueError("API_RELEASE_INTEGRATION_DELTA_RECEIPT_SHA_MISMATCH")
+     entries = _validate_delta_receipt(receipt, base_identity=base_identity)
++    business = _business.validate_business_module(
++        receipt=receipt, base_identity=base_identity, authority_identity=current,
++        required=require_business_module, _api=sys.modules[__name__],
++    )
++    if business is not None:
++        if role != "gateway" or base_role != "gateway" or integration.get("bootstrap_transition") is not False:
++            raise ValueError("API_BUSINESS_SAME_GATEWAY_REQUIRED")
++        if candidate_record.get("business_module_id") != business["module_id"]:
++            raise ValueError("API_BUSINESS_MODULE_ID_BINDING_MISMATCH")
++        if integration.get("business_module") != business:
++            raise ValueError("API_BUSINESS_MODULE_PROOF_MISMATCH")
++        if current["launch_bindings_sha256"] != integration.get("launch_bindings_sha256"):
++            raise ValueError("API_BUSINESS_LAUNCH_BINDINGS_CHANGED")
++        if active_pointer == "base" and current["api_plist_sha256"] != integration.get("base_api_plist_sha256"):
++            raise ValueError("API_BUSINESS_ACTIVE_PLIST_CHANGED")
++        if business["operation"] == "rollback":
++            expected_reverse, _, _ = _module_rollback_recipe(
++                current=base_identity, authority=current, rollback_of=business["rollback_of"]
++            )
++            if receipt != expected_reverse:
++                raise ValueError("API_BUSINESS_REVERSE_DELTA_MISMATCH")
+     bootstrap = integration.get("bootstrap_transition", False)
+     if not isinstance(bootstrap, bool):
+         raise ValueError("API_RELEASE_INTEGRATION_BOOTSTRAP_FLAG_INVALID")
+@@ -660,7 +776,7 @@ def verify_api_release_candidate(
+             or integration.get("non_delta_entry_count") != len(preserved)
+             or integration.get("non_delta_inventory_sha256") != inventory_digest(preserved)):
+         raise ValueError("API_RELEASE_INTEGRATION_NON_DELTA_PROOF_MISMATCH")
+-    return {
++    result = {
+         "status": "PASS",
+         "active_pointer": active_pointer,
+         "active_api_plist_sha256": current["api_plist_sha256"],
+@@ -673,6 +789,193 @@ def verify_api_release_candidate(
+         "non_delta_active_release_bytes_preserved": True,
+         "shared_lock_path": str(api_release_lock_path(lock_path_source, role=lock_role)),
+     }
++    if business is not None:
++        result["business_module"] = business
++    return result
++
++
++def assert_business_output_boundary(output_root: Path, active: Mapping[str, Any]) -> None:
++    """Protect every retained release and externally bound input from output.
++
++    Missing or corrupt retained lineage is not permission to write there.
++    It must be repaired/rebound separately before another business build.
++    """
++    output = Path(os.path.abspath(output_root))
++    protected = [Path(active["api_plist_path"]).parent]
++    contract, _, _ = _business.read_owner_contract(active, _api=sys.modules[__name__])
++    protected.extend(Path(path) for path in contract["protected_external_roots"])
++    identity, seen = active, set()
++    while True:
++        root = Path(identity["release_root"])
++        if root in seen or len(seen) >= 4096:
++            raise ValueError("API_BUSINESS_RETAINED_LINEAGE_INVALID")
++        seen.add(root)
++        protected.append(root)
++        details = identity["manifest"].get("api_integration")
++        if details is None:
++            break
++        if not isinstance(details, Mapping) or not isinstance(details.get("base"), Mapping):
++            raise ValueError("API_BUSINESS_RETAINED_LINEAGE_INVALID")
++        identity = _identity_from_base_record(details["base"])
++    payload = plistlib.loads(Path(active["api_plist_path"]).read_bytes())
++    environment = list((payload.get("EnvironmentVariables") or {}).items())
++    for item in payload.get("ProgramArguments", []):
++        if isinstance(item, str) and "=" in item:
++            key, value = item.split("=", 1)
++            environment.append((key, value))
++    for key, value in environment:
++        path_binding = key.endswith(("_ROOT", "_PATH", "_FILE"))
++        if path_binding and value and (not isinstance(value, str) or not Path(value).is_absolute()):
++            raise ValueError("API_BUSINESS_PATH_BINDING_UNCONFIRMED:" + key)
++        if isinstance(value, str) and Path(value).is_absolute():
++            protected.append(Path(value).resolve())
++    authority = active.get("identity_from_plist", {}).get(_business.AUTHORITY_PATH_KEY)
++    if authority:
++        protected.append(Path(authority).resolve())
++    if any(output == root or output.is_relative_to(root) or root.is_relative_to(output) for root in protected):
++        raise ValueError("API_BUSINESS_OUTPUT_BOUNDARY")
++
++
++def _identity_from_base_record(base: Mapping[str, Any]) -> dict[str, Any]:
++    identity = _release_identity(
++        release_root=Path(str(base.get("release_root", ""))), app_root=Path(str(base.get("app_root", ""))),
++        release_id=str(base.get("release_id", "")), manifest_path=Path(str(base.get("release_manifest_path", ""))),
++        manifest_sha256=str(base.get("release_manifest_sha256", "")),
++        application_inventory_sha256=str(base.get("application_inventory_sha256", "")),
++    )
++    if _base_binding(identity) != base:
++        raise ValueError("API_RELEASE_INTEGRATION_BASE_RECORD_MISMATCH")
++    return identity
++
++
++def _stored_module_delta(identity: Mapping[str, Any], authority: Mapping[str, Any]):
++    details = identity["manifest"].get("api_integration")
++    if not isinstance(details, dict) or details.get("schema_version") != SCHEMA_VERSION:
++        raise ValueError("API_BUSINESS_ROLLBACK_UNSCOPED_RELEASE")
++    if not isinstance(details.get("base"), dict) or details.get("delta_receipt_file") != DELTA_RECEIPT_NAME:
++        raise ValueError("API_BUSINESS_ROLLBACK_LINEAGE_INVALID")
++    parent = _identity_from_base_record(details["base"])
++    receipt, raw = _read_json(Path(identity["release_root"]) / DELTA_RECEIPT_NAME, "API_RELEASE_DELTA_RECEIPT_COPY")
++    if sha256_bytes(raw) != details.get("delta_receipt_sha256"):
++        raise ValueError("API_RELEASE_INTEGRATION_DELTA_RECEIPT_SHA_MISMATCH")
++    entries = _validate_delta_receipt(receipt, base_identity=parent)
++    module = _business.validate_business_module(receipt=receipt, base_identity=parent,
++        authority_identity=authority, required=True, _api=sys.modules[__name__])
++    if (module != details.get("business_module") or module["generation"] != identity["generation"]
++            or details.get("launch_bindings_sha256") != authority.get("launch_bindings_sha256")):
++        raise ValueError("API_BUSINESS_ROLLBACK_LINEAGE_INVALID")
++    records, preserved = _verify_delta_files(base_app=Path(parent["app_root"]),
++                                            candidate_app=Path(identity["app_root"]), entries=entries)
++    if (records != details.get("delta_entries") or details.get("non_delta_active_release_bytes_preserved") is not True
++            or len(preserved) != details.get("non_delta_entry_count")
++            or inventory_digest(preserved) != details.get("non_delta_inventory_sha256")):
++        raise ValueError("API_BUSINESS_ROLLBACK_PRESERVATION_INVALID")
++    return parent, receipt, module
++
++
++def _module_rollback_recipe(*, current: Mapping[str, Any], authority: Mapping[str, Any],
++                            rollback_of: Mapping[str, Any]):
++    """Read/verify ancestry and compute exact inverse bytes; do not write."""
++    if set(rollback_of) != {"release_root", "release_manifest_sha256"}:
++        raise ValueError("API_BUSINESS_ROLLBACK_BINDING_INVALID")
++    root = _exact_path(Path(str(rollback_of["release_root"])), kind="directory", label="API_BUSINESS_ROLLBACK_TARGET")
++    target = _release_identity(release_root=root, app_root=root / "app", release_id=root.name,
++        manifest_path=root / "release-manifest.json", manifest_sha256=str(rollback_of["release_manifest_sha256"]))
++    target_parent, target_receipt, target_module = _stored_module_delta(target, authority)
++    if target_module["operation"] != "forward":
++        raise ValueError("API_BUSINESS_ROLLBACK_TARGET_NOT_FORWARD")
++    contract, contract_sha, _ = _business.read_owner_contract(authority, _api=sys.modules[__name__])
++    graph = {m["module_id"]: set(m["depends_on"]) for m in contract["modules"]}
++    affected = target_module["module_id"]
++
++    def depends_on_target(module_id):
++        pending, seen = [module_id], set()
++        while pending:
++            item = pending.pop()
++            if item == affected:
++                return True
++            if item not in seen:
++                seen.add(item); pending.extend(graph.get(item, ()))
++        return False
++
++    cursor, seen = current, set()
++    while _base_binding(cursor) != _base_binding(target):
++        key = (cursor["release_root"], cursor["release_manifest_sha256"])
++        if key in seen or len(seen) >= 4096:
++            raise ValueError("API_BUSINESS_ROLLBACK_LINEAGE_INVALID")
++        seen.add(key)
++        if not cursor["manifest"].get("api_integration"):
++            raise ValueError("API_BUSINESS_ROLLBACK_TARGET_NOT_ANCESTOR")
++        parent, _, later_module = _stored_module_delta(cursor, authority)
++        if depends_on_target(later_module["module_id"]):
++            raise ValueError("API_BUSINESS_ROLLBACK_LATER_MODULE_DEPENDENCY")
++        cursor = parent
++
++    target_inventory = {entry["path"]: entry for entry in target["inventory"]}
++    parent_inventory = {entry["path"]: entry for entry in target_parent["inventory"]}
++    current_inventory = {entry["path"]: entry for entry in current["inventory"]}
++    entries, source_files = [], {}
++    for forward in target_receipt["entries"]:
++        relative = forward["path"]
++        if current_inventory.get(relative) != target_inventory.get(relative):
++            raise ValueError("API_BUSINESS_ROLLBACK_CURRENT_TARGET_CHANGED:" + relative)
++        before = _safe_child(Path(current["app_root"]), relative, allow_missing=True)
++        after = _safe_child(Path(target_parent["app_root"]), relative, allow_missing=True)
++        before_raw = before.read_bytes() if before.exists() else None
++        after_raw = after.read_bytes() if after.exists() else None
++        proof, count = _diff_proof(before_raw, after_raw) if before_raw is not None and after_raw is not None else (None, None)
++        entries.append({"path": relative, "before_sha256": sha256_bytes(before_raw) if before_raw is not None else None,
++            "after_sha256": sha256_bytes(after_raw) if after_raw is not None else None,
++            "unified_diff_sha256": proof, "unified_diff_hunk_count": count,
++            "before_mode": current_inventory.get(relative, {}).get("mode"),
++            "after_mode": parent_inventory.get(relative, {}).get("mode")})
++        if after_raw is not None:
++            source_files[relative] = (after_raw, stat.S_IMODE(after.stat().st_mode))
++    receipt = {"schema_version": DELTA_SCHEMA_VERSION, "base": _base_binding(current), "entries": entries,
++        "business_module": {"module_id": affected, "owner_contract_sha256": contract_sha,
++            "base_generation": current["generation"], "operation": "rollback", "rollback_of": dict(rollback_of)}}
++    return receipt, source_files, target_parent
++
++
++def prepare_module_rollback(*, active_api_plist_path: Path, target_release_root: Path,
++                            expected_manifest_sha256: str, output_root: Path) -> dict[str, Any]:
++    """Prepare an inactive inverse delta on current active; never restore a pointer."""
++    output_root = Path(os.path.abspath(output_root))
++    _exact_path(output_root.parent, kind="directory", label="API_BUSINESS_ROLLBACK_OUTPUT_PARENT")
++    if output_root.exists() or output_root.is_symlink():
++        raise FileExistsError("refusing to overwrite rollback preparation")
++    with shared_api_release_lock(active_api_plist_path) as lease:
++        current = read_active_release(active_api_plist_path)
++        assert_business_output_boundary(output_root, current)
++        rollback_of = {"release_root": str(_exact_path(target_release_root, kind="directory", label="API_BUSINESS_ROLLBACK_TARGET")),
++                       "release_manifest_sha256": expected_manifest_sha256}
++        receipt, files, parent = _module_rollback_recipe(current=current, authority=current, rollback_of=rollback_of)
++        for protected in (Path(rollback_of["release_root"]), Path(parent["release_root"])):
++            if output_root.is_relative_to(protected) or protected.is_relative_to(output_root):
++                raise ValueError("API_BUSINESS_OUTPUT_BOUNDARY")
++        output_root.mkdir()
++        try:
++            source = output_root / "source"; source.mkdir()
++            for relative, (raw, mode) in files.items():
++                target = source / relative; target.parent.mkdir(parents=True, exist_ok=True)
++                with target.open("xb") as handle:
++                    handle.write(raw)
++                target.chmod(mode)
++            receipt_path = output_root / DELTA_RECEIPT_NAME
++            with receipt_path.open("x") as handle:
++                json.dump(receipt, handle, sort_keys=True, indent=2); handle.write("\n")
++            assert_api_release_lock(lease, active_api_plist_path)
++            if _base_binding(read_active_release(active_api_plist_path)) != _base_binding(current):
++                raise ValueError("API_RELEASE_INTEGRATION_ACTIVE_BASE_CHANGED")
++            return {"status": "READY_FOR_REVIEW", "module_id": receipt["business_module"]["module_id"],
++                "source_root": str(source), "delta_receipt_path": str(receipt_path),
++                "delta_receipt_sha256": sha256_bytes(receipt_path.read_bytes()),
++                "base": receipt["base"], "rollback_of": rollback_of,
++                "include_untracked_paths": [entry["path"] for entry in receipt["entries"] if entry["before_sha256"] is None],
++                "active_plist_changed": False, "launchctl_called": False, "owner_state_changed": False}
++        except BaseException:
++            remove_candidate_tree(output_root)
++            raise
+ 
+ 
+ def api_release_lock_path(active_api_plist_path: Path, *, role: str = "gateway") -> Path:
+diff --git a/ops/build_release_candidate.py b/ops/build_release_candidate.py
+index 8252e269860ebde56161f2c8af502d74e41bd630..476e0a27eef5d92e084c8aeea99ed19edaa74625 100644
+--- a/ops/build_release_candidate.py
++++ b/ops/build_release_candidate.py
+@@ -369,6 +369,74 @@ def build_module_candidate(
+     formal_release_root: Path = DEFAULT_FORMAL_RELEASE_ROOT,
+     receipt_path: Path | None = None,
+     include_untracked_paths: Sequence[str | Path] = (),
++    module_id: str | None = None,
++) -> dict[str, object]:
++    """Original candidate entry, with a business mode inside the same gateway."""
++    api = sys.modules[build_integrated_app.__module__]
++    source_root = api._exact_path(source_root, kind="directory", label="API_RELEASE_DELTA_SOURCE_ROOT")
++    active_api_plist_path = api._exact_path(active_api_plist_path, kind="file", label="API_RELEASE_ACTIVE_PLIST")
++    delta_path = api._exact_path(api_integration_delta_receipt_path, kind="file", label="API_RELEASE_DELTA_RECEIPT")
++    candidate_root = _absolute_preserving_symlink(candidate_root)
++    api._exact_path(candidate_root.parent, kind="directory", label="API_RELEASE_CANDIDATE_PARENT")
++    if candidate_root.exists() or candidate_root.is_symlink():
++        raise FileExistsError("refusing to overwrite existing candidate")
++    if module_id is not None and (role != "gateway" or base_role != "gateway" or bootstrap_transition):
++        raise ValueError("API_BUSINESS_SAME_GATEWAY_REQUIRED")
++    with api.shared_api_release_lock(active_api_plist_path, role=base_role) as lease:
++        active = api.read_active_release(active_api_plist_path, role=base_role)
++        delta, _ = api._read_json(delta_path, "API_RELEASE_DELTA_RECEIPT")
++        api._validate_delta_receipt(delta, base_identity=active)
++        business = api._business.validate_business_module(
++            receipt=delta, base_identity=active, authority_identity=active,
++            required=module_id is not None, _api=api,
++        )
++        if business is not None:
++            if module_id is None:
++                raise ValueError("API_BUSINESS_MODULE_ID_REQUIRED")
++            if business["module_id"] != module_id:
++                raise ValueError("API_BUSINESS_MODULE_ID_BINDING_MISMATCH")
++            api.assert_business_output_boundary(candidate_root, active)
++            receipt_path = _absolute_preserving_symlink(
++                receipt_path or candidate_root.parent / f"{candidate_root.name}-build-receipt.json"
++            )
++            if _is_within(receipt_path, candidate_root):
++                raise ValueError("API_BUSINESS_RECEIPT_OVERLAPS_CANDIDATE")
++            api._exact_path(receipt_path.parent, kind="directory", label="API_BUSINESS_RECEIPT_PARENT")
++            if receipt_path.is_symlink():
++                raise ValueError("API_BUSINESS_RECEIPT_PATH_SYMLINK")
++            api.assert_business_output_boundary(receipt_path, active)
++            api.assert_business_output_boundary(
++                candidate_root.parent / (candidate_root.name + "-failure-receipt.json"), active
++            )
++        try:
++            return _build_module_candidate_locked(
++                source_root=source_root, candidate_root=candidate_root,
++                active_api_plist_path=active_api_plist_path, release_id=release_id,
++                role=role, api_integration_delta_receipt_path=delta_path,
++                base_role=base_role, bootstrap_transition=bootstrap_transition,
++                formal_release_root=formal_release_root, receipt_path=receipt_path,
++                include_untracked_paths=include_untracked_paths, module_id=module_id, lock_lease=lease,
++            )
++        except BaseException as error:
++            if candidate_root.is_dir() and (candidate_root / ".candidate-build-in-progress").is_file():
++                stage = "cutover_plan" if (candidate_root / "release-manifest.json").exists() else "application_build"
++                api.remove_candidate_tree(candidate_root)
++                failure_path = candidate_root.parent / (candidate_root.name + "-failure-receipt.json")
++                if not failure_path.exists() and not failure_path.is_symlink():
++                    with failure_path.open("x") as handle:
++                        json.dump({"status": "FAILED_CLOSED", "stage": stage, "reason": str(error),
++                                   "active_plist_changed": False, "launchctl_called": False}, handle, sort_keys=True)
++            raise
++
++
++def _build_module_candidate_locked(
++    *, source_root: Path, candidate_root: Path, active_api_plist_path: Path,
++    release_id: str, role: str, api_integration_delta_receipt_path: Path,
++    base_role: str = "gateway", bootstrap_transition: bool = False,
++    formal_release_root: Path = DEFAULT_FORMAL_RELEASE_ROOT,
++    receipt_path: Path | None = None,
++    include_untracked_paths: Sequence[str | Path] = (),
++    module_id: str | None = None, lock_lease: object,
+ ) -> dict[str, object]:
+     """Build one complete role release from the verified active API snapshot."""
+     if role not in {"gateway", "stage", "manager"} or base_role not in {"gateway", "stage", "manager"}:
+@@ -411,20 +479,26 @@ def build_module_candidate(
+             role=role,
+             base_role=base_role,
+             bootstrap_transition=bootstrap_transition,
++            module_id=module_id,
++            lock_lease=lock_lease,
+         )
+         candidate_app = candidate_root / "app"
+         entries = inventory_tree(candidate_app)
+         module_contract_path = candidate_app / "deployment" / "api_module_contracts.json"
+-        if not module_contract_path.is_file() or module_contract_path.is_symlink():
+-            raise ValueError("API_RELEASE_MODULE_CONTRACT_REQUIRED")
+-        with module_contract_path.open("r", encoding="utf-8") as handle:
+-            module_contract = json.load(handle)
+-        if module_contract.get("schema_version") != "v4.api_module_contracts.v1":
+-            raise ValueError("API_MODULE_CONTRACT_SCHEMA_INVALID")
+-        candidate_role_config = module_contract.get("roles", {}).get(role)
++        if module_id is not None:
++            candidate_role_config = role_config
++            module_contract_sha256 = sha256_file(module_contract_path) if module_contract_path.is_file() else None
++        else:
++            if not module_contract_path.is_file() or module_contract_path.is_symlink():
++                raise ValueError("API_RELEASE_MODULE_CONTRACT_REQUIRED")
++            with module_contract_path.open("r", encoding="utf-8") as handle:
++                module_contract = json.load(handle)
++            if module_contract.get("schema_version") != "v4.api_module_contracts.v1":
++                raise ValueError("API_MODULE_CONTRACT_SCHEMA_INVALID")
++            candidate_role_config = module_contract.get("roles", {}).get(role)
++            module_contract_sha256 = sha256_file(module_contract_path)
+         if not isinstance(candidate_role_config, Mapping):
+             raise ValueError("API_MODULE_ROLE_CONFIG_MISSING")
+-        module_contract_sha256 = sha256_file(module_contract_path)
+         manifest: dict[str, object] = {
+             "schema_version": SCHEMA_VERSION,
+             "generated_at": utc_now(),
+@@ -437,6 +511,7 @@ def build_module_candidate(
+                 "release_id": release_id,
+                 "module_role": role,
+                 "module_contract_sha256": module_contract_sha256,
++                "business_module_id": module_id,
+                 "formal_release_root": str(formal_release_root),
+                 "data_copy_performed": False,
+                 "runtime_venv_copied": False,
+@@ -482,8 +557,9 @@ def build_module_candidate(
+             base_role=base_role,
+             source_root=source_root,
+             formal_release_root=formal_release_root,
++            module_id=module_id,
++            lock_lease=lock_lease,
+         )
+-        marker.unlink()
+         receipt = {
+             "schema_version": "v4.api_module_candidate_receipt.v1",
+             "candidate_status": manifest["candidate_status"],
+@@ -499,8 +575,10 @@ def build_module_candidate(
+             "cutover_plan": plan["plan_path"],
+             "active_plist_changed": False,
+             "launchctl_called": False,
++            "business_module": integration.get("business_module"),
+         }
+         _json_dump(receipt_path, receipt)
++        marker.unlink()
+         receipt["receipt_path"] = str(receipt_path)
+         return receipt
+     except Exception:
+@@ -524,6 +602,12 @@ def build_candidate(
+     receipt_path: Path | None = None,
+     include_untracked_paths: Sequence[str | Path] = (),
+ ) -> dict[str, object]:
++    api = sys.modules[build_integrated_app.__module__]
++    active = api.read_active_release(api_plist_path)
++    delta, _ = api._read_json(api_integration_delta_receipt_path, "API_RELEASE_DELTA_RECEIPT")
++    if ("business_module" in delta
++            or any(key in active["identity_from_plist"] for key in api._business.IDENTITY_KEYS)):
++        raise ValueError("API_BUSINESS_MODULE_ENTRY_REQUIRED: use --api-module-id")
+     source_root = _resolved(source_root)
+     candidate_root = _guard_candidate_root(
+         candidate_root, source_root=source_root, formal_release_root=formal_release_root
+@@ -758,6 +842,7 @@ def _build_parser() -> argparse.ArgumentParser:
+     parser.add_argument("--source-root", type=Path, required=True)
+     parser.add_argument("--candidate-root", type=Path, required=True)
+     parser.add_argument("--api-plist", type=Path)
++    parser.add_argument("--api-module-id", help="approved business module within the existing 8873 gateway")
+     parser.add_argument(
+         "--api-module-role", choices=("gateway", "stage", "manager"),
+         help="build one isolated API role from the active gateway release plus its SHA-pinned delta",
+@@ -813,7 +898,7 @@ def _build_parser() -> argparse.ArgumentParser:
+ def main(argv: Sequence[str] | None = None) -> int:
+     args = _build_parser().parse_args(argv)
+     try:
+-        if args.api_module_role is not None:
++        if args.api_module_role is not None or args.api_module_id is not None:
+             if args.stage_service_candidate:
+                 raise ValueError("--api-module-role cannot be combined with --stage-service-candidate")
+             if args.api_plist is None or args.api_integration_delta_receipt is None:
+@@ -823,13 +908,14 @@ def main(argv: Sequence[str] | None = None) -> int:
+                 candidate_root=args.candidate_root,
+                 active_api_plist_path=args.api_plist,
+                 release_id=args.release_id,
+-                role=args.api_module_role,
++                role=args.api_module_role or "gateway",
+                 api_integration_delta_receipt_path=args.api_integration_delta_receipt,
+                 base_role=args.api_module_base_role,
+                 bootstrap_transition=args.api_module_bootstrap_transition,
+                 formal_release_root=args.formal_release_root,
+                 receipt_path=args.receipt_path,
+                 include_untracked_paths=args.include_untracked_paths,
++                module_id=args.api_module_id,
+             )
+             print(json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True))
+             return 0
+diff --git a/ops/prepare_api_only_cutover.py b/ops/prepare_api_only_cutover.py
+index 0a25a896346042f8682dc9d9ce4f17a99d3ab4f8..e6ab0af7b1a551b5cbf3a94ef95a32f6aa5ab60d 100644
+--- a/ops/prepare_api_only_cutover.py
++++ b/ops/prepare_api_only_cutover.py
+@@ -298,8 +298,27 @@ def render_module_cutover(
+     manifest_path: Path, manifest_sha256: str, role: str, source_root: Path,
+     base_role: str = "gateway",
+     formal_release_root: Path = DEFAULT_FORMAL_RELEASE_ROOT,
++    module_id: str | None = None, lock_lease: object | None = None,
+ ) -> dict[str, object]:
+     """Prepare a role-bound plist and plan; never alter an active LaunchAgent."""
++    api = sys.modules[verify_api_release_candidate.__module__]
++    if module_id is not None:
++        if role != "gateway" or base_role != "gateway":
++            raise ValueError("API_BUSINESS_SAME_GATEWAY_REQUIRED")
++        source_active_plist_path = api._exact_path(
++            source_active_plist_path, kind="file", label="API_RELEASE_ACTIVE_PLIST"
++        )
++        candidate_root = api._exact_path(candidate_root, kind="directory", label="API_RELEASE_CANDIDATE_ROOT")
++        if lock_lease is None:
++            with api.shared_api_release_lock(source_active_plist_path) as lease:
++                return render_module_cutover(
++                    source_active_plist_path=source_active_plist_path,
++                    candidate_root=candidate_root, release_id=release_id,
++                    manifest_path=manifest_path, manifest_sha256=manifest_sha256,
++                    role=role, source_root=source_root, base_role=base_role,
++                    formal_release_root=formal_release_root, module_id=module_id, lock_lease=lease,
++                )
++        api.assert_api_release_lock(lock_lease, source_active_plist_path)
+     source_active_plist_path = _resolved(source_active_plist_path)
+     candidate_root = _resolved(candidate_root)
+     role_contract = module_role_contract()
+@@ -330,15 +349,32 @@ def render_module_cutover(
+         role=role,
+         base_role=base_role,
+         lock_plist_path=target_plist_path,
++        lock_lease=lock_lease if module_id is not None else None,
++        require_shared_lock=module_id is not None,
++        require_business_module=module_id is not None,
+     )
++    if module_id is not None and verified["business_module"]["module_id"] != module_id:
++        raise ValueError("API_BUSINESS_MODULE_ID_BINDING_MISMATCH")
++    if module_id is None and verified.get("business_module") is not None:
++        raise ValueError("API_BUSINESS_MODULE_ID_REQUIRED")
+     with source_active_plist_path.open("rb") as handle:
+         source_plist = plistlib.load(handle)
+-    staged = rewrite_module_plist(
+-        source_plist, role=role, base_role=base_role, candidate_app_root=candidate_root / "app",
+-        release_id=release_id, manifest_path=manifest_path,
+-        manifest_sha256=manifest_sha256,
+-    )
++    if module_id is not None:
++        staged = rewrite_api_only_plist(
++            source_plist, candidate_app_root=candidate_root / "app", release_id=release_id,
++            manifest_path=manifest_path, manifest_sha256=manifest_sha256,
++        )
++    else:
++        staged = rewrite_module_plist(
++            source_plist, role=role, base_role=base_role, candidate_app_root=candidate_root / "app",
++            release_id=release_id, manifest_path=manifest_path,
++            manifest_sha256=manifest_sha256,
++        )
+     config_dir = candidate_root / "config"
++    if module_id is not None:
++        api.assert_business_output_boundary(candidate_root, api.read_active_release(source_active_plist_path))
++        if config_dir.exists() or config_dir.is_symlink():
++            api._exact_path(config_dir, kind="directory", label="API_BUSINESS_CONFIG")
+     config_dir.mkdir(exist_ok=True)
+     staged_path = config_dir / str(role_config["plist_name"])
+     plan_path = config_dir / "api-module-cutover-plan.json"
+@@ -369,6 +405,7 @@ def render_module_cutover(
+     plan: dict[str, object] = {
+         "schema_version": "v4.api_module_cutover_plan.v1",
+         "target_role": role,
++        "module_id": module_id,
+         "activation_status": "NOT_ACTIVATED",
+         "deployment_status": "CANNOT_CONFIRM",
+         "source_active_plist": {
+@@ -393,7 +430,7 @@ def render_module_cutover(
+             "module_release_writes_gateway_bundle": False,
+         },
+         "rollback": {
+-            "mode": "ROLE_ONLY",
++            "mode": "REVERSE_DELTA_ON_CURRENT_ACTIVE" if module_id is not None else "ROLE_ONLY",
+             "previous_role_plist": previous_role_binding,
+             "base_role_plist_unchanged": str(source_active_plist_path),
+             "bootstrap_rollback_requires_coordinated_pre_split_gateway_restore": (
+@@ -407,6 +444,12 @@ def render_module_cutover(
+             "launchctl_called": False,
+         },
+     }
++    if module_id is not None:
++        plan["rollback"] = {"mode": "REVERSE_DELTA_ON_CURRENT_ACTIVE", "whole_release_restore_for_module_rollback": False,
++                            "entrypoint": "ops.api_release_integration.prepare_module_rollback",
++                            "module_id": module_id, "must_rebind_current_active": True}
++        plan["release_lock"] = {"path": str(lock_path), "shared_by_all_gateway_business_modules": True}
++        plan["gateway_static_assets"]["non_target_bytes_preserved"] = True
+     plan_path.write_text(json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+     plan["plan_path"] = str(plan_path)
+     return plan
+@@ -515,6 +558,8 @@ def render_cutover(
+         expected_manifest_sha256=manifest_sha256,
+         active_pointer="base",
+     )
++    if api_integration.get("business_module") is not None:
++        raise ValueError("API_BUSINESS_MODULE_ENTRY_REQUIRED: use render_module_cutover")
+ 
+     current_manager_state_root = _resolved(current_manager_state_root)
+     candidate_manager_state_root = _resolved(
+diff --git a/tests/test_api_business_modules.py b/tests/test_api_business_modules.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..a3805109565e7862e5130b1f5b0f6e2265d3b67c
+--- /dev/null
++++ b/tests/test_api_business_modules.py
+@@ -0,0 +1,617 @@
++"""Synthetic same-gateway module release contracts; never use a live plist."""
++from __future__ import annotations
++
++import hashlib
++import json
++from pathlib import Path
++import plistlib
++
++import pytest
++
++from ops import api_release_integration as integration
++from ops import build_release_candidate as builder
++from ops.prepare_api_only_cutover import rewrite_api_only_plist
++
++
++def sha(raw: bytes) -> str:
++    return hashlib.sha256(raw).hexdigest()
++
++
++def dump(path: Path, value: object) -> None:
++    path.parent.mkdir(parents=True, exist_ok=True)
++    path.write_text(json.dumps(value, sort_keys=True, indent=2) + '\n')
++
++
++def setup_active(root: Path) -> dict:
++    root.mkdir(parents=True, exist_ok=True)
++    contract_path = root / 'approved-module-owners.json'
++    contract = {
++        'schema_version': 'v4.api_business_module_owners.v1',
++        'status': 'APPROVED', 'approval_id': 'SYNTHETIC_TEST_ONLY',
++        'protected_external_roots': [str(root / 'synthetic-state')],
++        'modules': [
++            {'module_id': 'alpha', 'source_owner': 'synthetic-alpha',
++             'paths': ['modules/alpha.py', 'modules/alpha_extra.py'], 'depends_on': [],
++             'routes': [{'method': 'GET', 'path': '/alpha'}], 'state_compatibility': 'UNCHANGED'},
++            {'module_id': 'beta', 'source_owner': 'synthetic-beta',
++             'paths': ['modules/beta.py'], 'depends_on': [],
++             'routes': [{'method': 'GET', 'path': '/beta'}], 'state_compatibility': 'UNCHANGED'},
++        ],
++        'shared_paths': [{'path': 'shared/registry.py', 'source_owner': 'synthetic-platform'}],
++    }
++    dump(contract_path, contract)
++    release = root / 'G'
++    app = release / 'app'
++    files = {
++        'modules/alpha.py': b'ALPHA = 0\n', 'modules/beta.py': b'BETA = 0\n',
++        'shared/registry.py': b'ROUTES = ("alpha", "beta")\n',
++        'apps/api/v35_api/app.py': b'GATEWAY = True\n',
++        'apps/web/dist/index.html': b'<p>current</p>\n',
++        'apps/web/dist/assets/current.js': b'console.log("current")\n',
++        'config/current.json': b'{"read_only":true}\n',
++    }
++    for relative, raw in files.items():
++        path = app / relative; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
++    inventory = integration.inventory_tree(app)
++    manifest = {'schema_version': 'v4.release_candidate.v1',
++                'candidate': {'root': str(release), 'app_root': str(app), 'release_id': 'G'},
++                'application_inventory': {'entries': inventory, 'aggregate_sha256': integration.inventory_digest(inventory)}}
++    dump(release / 'release-manifest.json', manifest)
++    state = root / 'synthetic-state'; state.mkdir(); (state / 'sentinel').write_bytes(b'NEVER_WRITE\n')
++    plist = root / 'LaunchAgents/com.lexi.v35.api-only.plist'; plist.parent.mkdir()
++    plist.write_bytes(plistlib.dumps({
++        'Label': 'com.lexi.v35.api-only', 'WorkingDirectory': str(app),
++        'ProgramArguments': ['/usr/bin/env', 'RESEARCH_ONLY=1', 'production_allowed=false',
++            'buy_gate_updated=false', 'orders_sent=false', f'V4_MANAGER_RESEARCH_STATE_ROOT={state}',
++            f'V35_APP_ROOT={app}', 'V35_RELEASE_ID=G',
++            f'V35_RELEASE_MANIFEST_PATH={release / "release-manifest.json"}',
++            f'V35_RELEASE_MANIFEST_SHA256={sha((release / "release-manifest.json").read_bytes())}',
++            f'V35_API_MODULE_OWNERSHIP_PATH={contract_path}',
++            f'V35_API_MODULE_OWNERSHIP_SHA256={sha(contract_path.read_bytes())}',
++            f'PYTHONPATH={app / "upstreams"}:{app}', '/usr/bin/python3', '-m', 'apps.api.v35_api.run',
++            '--host', '127.0.0.1', '--port', '8873'],
++    }, sort_keys=True))
++    return {'root': root, 'plist': plist, 'contract': contract_path, 'state': state, 'initial_app': app}
++
++
++def change_contract(active: dict, update) -> None:
++    value = json.loads(active['contract'].read_text()); update(value); dump(active['contract'], value)
++    payload = plistlib.loads(active['plist'].read_bytes())
++    payload['ProgramArguments'] = [
++        f'V35_API_MODULE_OWNERSHIP_SHA256={sha(active["contract"].read_bytes())}'
++        if x.startswith('V35_API_MODULE_OWNERSHIP_SHA256=') else x for x in payload['ProgramArguments']]
++    active['plist'].write_bytes(plistlib.dumps(payload, sort_keys=True))
++
++
++def make_delta(active: dict, name: str, module: str, changes: dict[str, bytes | None]) -> tuple[Path, Path]:
++    identity = integration.read_active_release(active['plist'])
++    source = active['root'] / (name + '-source'); source.mkdir()
++    rows = []
++    for relative, after in sorted(changes.items()):
++        base = Path(identity['app_root']) / relative
++        before = base.read_bytes() if base.is_file() else None
++        if after is not None:
++            target = source / relative; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(after)
++        proof, count = integration._diff_proof(before, after) if before is not None and after is not None else (None, None)
++        rows.append({'path': relative, 'before_sha256': sha(before) if before is not None else None,
++                     'after_sha256': sha(after) if after is not None else None,
++                     'unified_diff_sha256': proof, 'unified_diff_hunk_count': count})
++    receipt = active['root'] / (name + '-delta.json')
++    dump(receipt, {'schema_version': integration.DELTA_SCHEMA_VERSION,
++        'base': integration._base_binding(identity), 'entries': rows,
++        'business_module': {'module_id': module, 'owner_contract_sha256': sha(active['contract'].read_bytes()),
++            'base_generation': identity.get('generation', 0), 'operation': 'forward'}})
++    return source, receipt
++
++
++def build(active: dict, name: str, module: str, changes: dict[str, bytes | None]) -> Path:
++    source, receipt = make_delta(active, name, module, changes)
++    candidate = active['root'] / name
++    builder.build_module_candidate(source_root=source, candidate_root=candidate,
++        active_api_plist_path=active['plist'], release_id=name, role='gateway',
++        api_integration_delta_receipt_path=receipt, module_id=module,
++        formal_release_root=active['root'] / 'unused-formal',
++        include_untracked_paths=[p for p in changes if not (Path(integration.read_active_release(active['plist'])['app_root']) / p).exists()])
++    return candidate
++
++
++def synthetic_commit(active: dict, candidate: Path) -> dict:
++    """Only an isolated plist is changed; native service seam has separate tests."""
++    manifest = candidate / 'release-manifest.json'
++    with integration.shared_api_release_lock(active['plist']) as lease:
++        proof = integration.verify_api_release_candidate(candidate_root=candidate,
++            active_api_plist_path=active['plist'], expected_manifest_sha256=sha(manifest.read_bytes()),
++            lock_lease=lease, require_shared_lock=True, require_business_module=True)
++        staged = rewrite_api_only_plist(plistlib.loads(active['plist'].read_bytes()),
++            candidate_app_root=candidate / 'app', release_id=candidate.name,
++            manifest_path=manifest, manifest_sha256=sha(manifest.read_bytes()))
++        active['plist'].write_bytes(plistlib.dumps(staged, sort_keys=True))
++        integration.verify_api_release_candidate(candidate_root=candidate, active_api_plist_path=active['plist'],
++            active_pointer='candidate', lock_lease=lease, require_shared_lock=True, require_business_module=True)
++        return proof
++
++
++def test_gateway_business_receipt_cannot_cross_owner(tmp_path):
++    active = setup_active(tmp_path)
++    source, receipt = make_delta(active, 'cross', 'alpha', {'modules/beta.py': b'BETA = 9\n'})
++    candidate = tmp_path / 'bad'; candidate.mkdir()
++    before = active['plist'].read_bytes()
++    with pytest.raises(ValueError, match='API_BUSINESS_PATH_OWNER_CONFLICT'):
++        integration.build_integrated_app(active_api_plist_path=active['plist'], source_root=source,
++            candidate_root=candidate, delta_receipt_path=receipt)
++    assert list(candidate.iterdir()) == []
++    assert active['plist'].read_bytes() == before
++
++
++@pytest.mark.parametrize('path', ['shared/registry.py', 'apps/api/v35_api/app.py',
++    'apps/web/dist/index.html', 'apps/web/dist/assets/new.js', 'apps/web/vite.config.ts',
++    'apps/web/src/contracts/thing.ts', 'config/current.json'])
++def test_shared_or_static_change_rejected_before_write(tmp_path, path):
++    active = setup_active(tmp_path)
++    source, receipt = make_delta(active, 'shared', 'alpha', {path: b'CHANGED\n'})
++    candidate = tmp_path / 'bad'; candidate.mkdir()
++    with pytest.raises(ValueError, match='API_BUSINESS_SHARED_SEAM'):
++        integration.build_integrated_app(active_api_plist_path=active['plist'], source_root=source,
++            candidate_root=candidate, delta_receipt_path=receipt,
++            explicit_untracked_paths=[path] if not (active['initial_app'] / path).exists() else [])
++    assert list(candidate.iterdir()) == []
++
++
++@pytest.mark.parametrize('damage,code', [
++    ('missing_module', 'API_BUSINESS_MODULE_RECEIPT_REQUIRED'),
++    ('unknown_module', 'API_BUSINESS_MODULE_UNKNOWN'),
++    ('contract_sha', 'API_BUSINESS_OWNER_CONTRACT_SHA_MISMATCH'),
++    ('unapproved', 'API_BUSINESS_OWNER_CONTRACT_NOT_APPROVED'),
++    ('duplicate_owner', 'API_BUSINESS_PATH_OWNER_DUPLICATE'),
++    ('duplicate_route', 'API_BUSINESS_ROUTE_OWNER_DUPLICATE'),
++])
++def test_owner_binding_negative_cases(tmp_path, damage, code):
++    active = setup_active(tmp_path)
++    if damage == 'unapproved': change_contract(active, lambda c: c.update(status='PROPOSED'))
++    if damage == 'duplicate_owner': change_contract(active, lambda c: c['modules'][1]['paths'].append('modules/alpha.py'))
++    if damage == 'duplicate_route': change_contract(active, lambda c: c['modules'][1]['routes'].append({'method': 'GET', 'path': '/alpha'}))
++    source, receipt = make_delta(active, 'bad', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    value = json.loads(receipt.read_text())
++    if damage == 'missing_module': value.pop('business_module')
++    if damage == 'unknown_module': value['business_module']['module_id'] = 'unknown'
++    if damage == 'contract_sha': value['business_module']['owner_contract_sha256'] = '0' * 64
++    dump(receipt, value)
++    candidate = tmp_path / 'candidate'; candidate.mkdir()
++    with pytest.raises(ValueError, match=code):
++        integration.build_integrated_app(active_api_plist_path=active['plist'], source_root=source,
++            candidate_root=candidate, delta_receipt_path=receipt)
++    assert list(candidate.iterdir()) == []
++
++
++@pytest.mark.parametrize('order', [('alpha', 'beta'), ('beta', 'alpha')])
++def test_sequential_module_releases_preserve_other_bytes(tmp_path, order):
++    active = setup_active(tmp_path)
++    for index, module in enumerate(order):
++        candidate = build(active, f'release-{module}', module, {f'modules/{module}.py': f'{module.upper()} = 1\n'.encode()})
++        synthetic_commit(active, candidate)
++        assert integration.read_active_release(active['plist'])['generation'] == index + 1
++    app = Path(integration.read_active_release(active['plist'])['app_root'])
++    assert (app / 'modules/alpha.py').read_bytes() == b'ALPHA = 1\n'
++    assert (app / 'modules/beta.py').read_bytes() == b'BETA = 1\n'
++    before = {x['path']: x for x in integration.inventory_tree(active['initial_app'])}
++    after = {x['path']: x for x in integration.inventory_tree(app)}
++    assert {p: x for p, x in before.items() if not p.startswith('modules/')} == {p: x for p, x in after.items() if not p.startswith('modules/')}
++    assert (active['state'] / 'sentinel').read_bytes() == b'NEVER_WRITE\n'
++
++
++def test_same_base_second_candidate_rejected_then_rebuilt(tmp_path):
++    active = setup_active(tmp_path)
++    a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    b = build(active, 'B-stale', 'beta', {'modules/beta.py': b'BETA = 1\n'})
++    synthetic_commit(active, a)
++    current = active['plist'].read_bytes()
++    with pytest.raises(ValueError, match='ACTIVE_BASE_CHANGED'):
++        synthetic_commit(active, b)
++    assert active['plist'].read_bytes() == current
++    b2 = build(active, 'B-rebuilt', 'beta', {'modules/beta.py': b'BETA = 1\n'})
++    synthetic_commit(active, b2)
++    assert (b2 / 'app/modules/alpha.py').read_bytes() == b'ALPHA = 1\n'
++
++
++def test_unbound_contract_cannot_self_authorize(tmp_path):
++    active = setup_active(tmp_path)
++    source, receipt = make_delta(active, 'bad', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    payload = plistlib.loads(active['plist'].read_bytes())
++    payload['ProgramArguments'] = [s for s in payload['ProgramArguments'] if not s.startswith('V35_API_MODULE_OWNERSHIP_')]
++    active['plist'].write_bytes(plistlib.dumps(payload))
++    candidate = tmp_path / 'candidate'; candidate.mkdir()
++    with pytest.raises(ValueError, match='API_BUSINESS_OWNER_BINDING_REQUIRED'):
++        integration.build_integrated_app(active_api_plist_path=active['plist'], source_root=source,
++            candidate_root=candidate, delta_receipt_path=receipt)
++    assert list(candidate.iterdir()) == []
++
++
++def prepare_rollback(active, target, name='reverse-A'):
++    return integration.prepare_module_rollback(
++        active_api_plist_path=active['plist'], target_release_root=target,
++        expected_manifest_sha256=sha((target / 'release-manifest.json').read_bytes()),
++        output_root=active['root'] / name,
++    )
++
++
++def build_rollback(active, prepared, name='rollback-A'):
++    candidate = active['root'] / name
++    builder.build_module_candidate(source_root=Path(prepared['source_root']), candidate_root=candidate,
++        active_api_plist_path=active['plist'], release_id=name, role='gateway',
++        api_integration_delta_receipt_path=Path(prepared['delta_receipt_path']),
++        module_id=prepared['module_id'], formal_release_root=active['root'] / 'unused-formal',
++        include_untracked_paths=prepared['include_untracked_paths'])
++    return candidate
++
++
++@pytest.mark.parametrize('added', [False, True])
++def test_reverse_delta_rolls_back_only_alpha_and_preserves_beta(tmp_path, added):
++    active = setup_active(tmp_path)
++    changes = {'modules/alpha.py': b'ALPHA = 1\n'}
++    if added: changes['modules/alpha_extra.py'] = b'EXTRA = True\n'
++    a = build(active, 'A', 'alpha', changes); synthetic_commit(active, a)
++    b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, b)
++    before = integration.inventory_tree(b / 'app')
++    prepared = prepare_rollback(active, a)
++    reverse = build_rollback(active, prepared); synthetic_commit(active, reverse)
++    assert (reverse / 'app/modules/alpha.py').read_bytes() == b'ALPHA = 0\n'
++    assert not (reverse / 'app/modules/alpha_extra.py').exists()
++    assert (reverse / 'app/modules/beta.py').read_bytes() == b'BETA = 2\n'
++    assert [x for x in integration.inventory_tree(reverse / 'app') if not x['path'].startswith('modules/alpha')] == [x for x in before if not x['path'].startswith('modules/alpha')]
++    assert integration.read_active_release(active['plist'])['generation'] == 3
++    assert (active['state'] / 'sentinel').read_bytes() == b'NEVER_WRITE\n'
++
++
++def test_later_same_module_release_blocks_old_rollback(tmp_path):
++    active = setup_active(tmp_path)
++    a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
++    a2 = build(active, 'A2', 'alpha', {'modules/alpha.py': b'ALPHA = 2\n'}); synthetic_commit(active, a2)
++    before = active['plist'].read_bytes()
++    with pytest.raises(ValueError, match='API_BUSINESS_ROLLBACK_LATER_MODULE_DEPENDENCY'):
++        prepare_rollback(active, a)
++    assert active['plist'].read_bytes() == before
++    assert not (tmp_path / 'reverse-A').exists()
++
++
++def test_later_dependent_module_blocks_rollback(tmp_path):
++    active = setup_active(tmp_path)
++    change_contract(active, lambda c: c['modules'][1].update(depends_on=['alpha']))
++    a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
++    b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, b)
++    with pytest.raises(ValueError, match='API_BUSINESS_ROLLBACK_LATER_MODULE_DEPENDENCY'):
++        prepare_rollback(active, a)
++
++
++def test_stale_inverse_receipt_refused_after_new_release(tmp_path):
++    active = setup_active(tmp_path)
++    a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
++    reverse = prepare_rollback(active, a)
++    b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, b)
++    before = active['plist'].read_bytes()
++    with pytest.raises(ValueError, match='API_RELEASE_DELTA_BASE_IDENTITY_MISMATCH'):
++        build_rollback(active, reverse)
++    assert active['plist'].read_bytes() == before
++    assert not (tmp_path / 'rollback-A').exists()
++
++
++def test_unrelated_target_is_not_a_rollback_ancestor(tmp_path):
++    active = setup_active(tmp_path)
++    orphan = build(active, 'orphan', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, b)
++    with pytest.raises(ValueError, match='API_BUSINESS_ROLLBACK_TARGET_NOT_ANCESTOR'):
++        prepare_rollback(active, orphan)
++
++
++def test_rollback_output_cannot_write_owner_state(tmp_path):
++    active = setup_active(tmp_path)
++    a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
++    with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
++        integration.prepare_module_rollback(active_api_plist_path=active['plist'], target_release_root=a,
++            expected_manifest_sha256=sha((a / 'release-manifest.json').read_bytes()), output_root=active['state'] / 'bad')
++    assert list(active['state'].iterdir()) == [active['state'] / 'sentinel']
++
++
++def test_current_launch_binding_change_rejects_before_commit(tmp_path):
++    active = setup_active(tmp_path)
++    a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    value = plistlib.loads(active['plist'].read_bytes())
++    value['ProgramArguments'].insert(1, 'UNRELATED_CURRENT_BINDING=new')
++    active['plist'].write_bytes(plistlib.dumps(value))
++    with pytest.raises(ValueError, match='API_BUSINESS_LAUNCH_BINDINGS_CHANGED'):
++        synthetic_commit(active, a)
++
++
++@pytest.mark.parametrize('kind', ['copy', 'manifest', 'plan'])
++def test_builder_failure_cleans_candidate_and_preserves_current(tmp_path, monkeypatch, kind):
++    active = setup_active(tmp_path)
++    before = active['plist'].read_bytes()
++    def failure(*args, **kwargs): raise OSError('SYNTHETIC_' + kind)
++    if kind == 'copy': monkeypatch.setattr(integration.shutil, 'copytree', failure)
++    elif kind == 'manifest': monkeypatch.setattr(builder, '_json_dump', failure)
++    else: monkeypatch.setattr(builder, 'render_module_cutover', failure)
++    with pytest.raises(OSError, match='SYNTHETIC_'):
++        build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    assert active['plist'].read_bytes() == before
++    assert not (tmp_path / 'A').exists()
++    receipt = json.loads((tmp_path / 'A-failure-receipt.json').read_text())
++    assert receipt['status'] == 'FAILED_CLOSED' and receipt['launchctl_called'] is False
++
++
++def test_original_builder_cli_accepts_business_module_id(tmp_path, capsys):
++    active = setup_active(tmp_path)
++    source, receipt = make_delta(active, 'cli', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    result = builder.main(['--source-root', str(source), '--candidate-root', str(tmp_path / 'CLI'),
++        '--api-plist', str(active['plist']), '--release-id', 'CLI', '--api-module-id', 'alpha',
++        '--api-integration-delta-receipt', str(receipt), '--formal-release-root', str(tmp_path / 'formal')])
++    assert result == 0
++    value = json.loads(capsys.readouterr().out)
++    assert value['business_module']['module_id'] == 'alpha'
++    assert value['launchctl_called'] is False
++
++
++@pytest.mark.parametrize('destination', ['candidate', 'receipt'])
++def test_business_builder_rejects_state_output_before_any_write(tmp_path, destination):
++    active = setup_active(tmp_path)
++    source, receipt = make_delta(active, 'boundary', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    candidate = active['state'] / 'A' if destination == 'candidate' else tmp_path / 'A'
++    kwargs = {'receipt_path': active['state'] / 'receipt.json'} if destination == 'receipt' else {}
++    before = integration.inventory_tree(active['state'])
++    with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
++        builder.build_module_candidate(source_root=source, candidate_root=candidate,
++            active_api_plist_path=active['plist'], release_id='A', role='gateway', module_id='alpha',
++            api_integration_delta_receipt_path=receipt, formal_release_root=tmp_path / 'formal', **kwargs)
++    assert integration.inventory_tree(active['state']) == before
++    assert not candidate.exists()
++
++
++def test_legacy_full_builder_refuses_module_before_candidate_or_state_write(tmp_path):
++    import sys
++    active = setup_active(tmp_path)
++    source, receipt = make_delta(active, 'legacy', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    with pytest.raises(ValueError, match='API_BUSINESS_MODULE_ENTRY_REQUIRED'):
++        builder.build_candidate(source_root=source, candidate_root=tmp_path / 'legacy-candidate',
++            api_plist_path=active['plist'], scheduler_plist_path=active['plist'], python=Path(sys.executable),
++            release_id='legacy-candidate', api_integration_delta_receipt_path=receipt,
++            formal_release_root=tmp_path / 'formal', dependency_names=())
++    assert not (tmp_path / 'legacy-candidate').exists()
++
++
++def test_legacy_cutover_refuses_module_before_state_write(tmp_path):
++    from ops.prepare_api_only_cutover import render_cutover
++    active = setup_active(tmp_path)
++    candidate = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    before = integration.inventory_tree(candidate)
++    with pytest.raises(ValueError, match='API_BUSINESS_MODULE_ENTRY_REQUIRED'):
++        render_cutover(source_plist_path=active['plist'], candidate_root=candidate, release_id='A',
++            manifest_path=candidate / 'release-manifest.json', manifest_sha256=sha((candidate / 'release-manifest.json').read_bytes()),
++            source_root=tmp_path / 'A-source', formal_release_root=tmp_path / 'formal', current_manager_state_root=active['state'])
++    assert integration.inventory_tree(candidate) == before
++
++
++def test_service_role_mode_cannot_omit_business_module_id(tmp_path):
++    active = setup_active(tmp_path)
++    source, receipt = make_delta(active, 'role', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    with pytest.raises(ValueError, match='API_BUSINESS_MODULE_ID_REQUIRED'):
++        builder.build_module_candidate(source_root=source, candidate_root=tmp_path / 'A',
++            active_api_plist_path=active['plist'], release_id='A', role='gateway',
++            api_integration_delta_receipt_path=receipt, formal_release_root=tmp_path / 'formal')
++    assert not (tmp_path / 'A').exists()
++
++
++@pytest.mark.parametrize('damage,code', [
++    ('source_symlink', 'SYMLINK'), ('traversal', 'PATH'), ('missing_file', 'alpha.py'),
++    ('source_sha', 'SOURCE_SHA_MISMATCH'), ('base_manifest', 'BASE_IDENTITY_MISMATCH'),
++    ('base_release', 'BASE_IDENTITY_MISMATCH'), ('generation', 'STALE_GENERATION'),
++    ('duplicate_delta', 'DUPLICATE'), ('dependency_cycle', 'API_BUSINESS_DEPENDENCY_CYCLE'),
++])
++def test_path_manifest_and_dependency_negative_cases(tmp_path, damage, code):
++    active = setup_active(tmp_path)
++    if damage == 'dependency_cycle':
++        change_contract(active, lambda c: (c['modules'][0].update(depends_on=['beta']), c['modules'][1].update(depends_on=['alpha'])))
++    source, receipt = make_delta(active, 'negative', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    value = json.loads(receipt.read_text())
++    if damage == 'source_symlink':
++        (source / 'modules/alpha.py').unlink(); (source / 'modules/alpha.py').symlink_to(active['state'] / 'sentinel')
++    if damage == 'traversal': value['entries'][0]['path'] = '../escape.py'
++    if damage == 'missing_file': (source / 'modules/alpha.py').unlink()
++    if damage == 'source_sha': (source / 'modules/alpha.py').write_bytes(b'UNDECLARED\n')
++    if damage == 'base_manifest': value['base']['release_manifest_sha256'] = '0' * 64
++    if damage == 'base_release': value['base']['release_id'] = 'OTHER'
++    if damage == 'generation': value['business_module']['base_generation'] = 999
++    if damage == 'duplicate_delta': value['entries'].append(dict(value['entries'][0]))
++    dump(receipt, value)
++    candidate = tmp_path / 'negative-candidate'; candidate.mkdir()
++    before = active['plist'].read_bytes()
++    with pytest.raises((ValueError, FileNotFoundError), match=code):
++        integration.build_integrated_app(active_api_plist_path=active['plist'], source_root=source,
++            candidate_root=candidate, delta_receipt_path=receipt)
++    assert list(candidate.iterdir()) == []
++    assert active['plist'].read_bytes() == before
++    assert (active['state'] / 'sentinel').read_bytes() == b'NEVER_WRITE\n'
++
++
++def _process_commit(active, candidate, ready, proceed, results):
++    ready.set()
++    if not proceed.wait(10): raise RuntimeError('SYNTHETIC_SYNC_TIMEOUT')
++    try:
++        synthetic_commit(active, candidate)
++        results.put(('PASS', candidate.name))
++    except ValueError as error:
++        results.put(('REFUSED', str(error)))
++
++
++def test_two_processes_same_base_commit_cannot_overwrite_first_module(tmp_path):
++    import multiprocessing
++    active = setup_active(tmp_path)
++    a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 1\n'})
++    context = multiprocessing.get_context('spawn')
++    ready_a, ready_b, go_a, go_b = (context.Event() for _ in range(4))
++    results = context.Queue()
++    workers = [context.Process(target=_process_commit, args=(active, candidate, ready, go, results))
++               for candidate, ready, go in [(a, ready_a, go_a), (b, ready_b, go_b)]]
++    try:
++        for worker in workers: worker.start()
++        assert ready_a.wait(10) and ready_b.wait(10)
++        go_a.set(); assert results.get(timeout=10) == ('PASS', 'A')
++        current = active['plist'].read_bytes()
++        go_b.set(); status, reason = results.get(timeout=10)
++        assert status == 'REFUSED' and 'ACTIVE_BASE_CHANGED' in reason
++        assert active['plist'].read_bytes() == current
++        assert (a / 'app/modules/alpha.py').read_bytes() == b'ALPHA = 1\n'
++    finally:
++        for worker in workers:
++            worker.join(5)
++            if worker.is_alive(): worker.terminate(); worker.join(5)
++        results.close(); results.join_thread()
++    assert all(worker.exitcode == 0 for worker in workers)
++
++
++def test_forged_inverse_receipt_cannot_choose_arbitrary_module_bytes(tmp_path):
++    active = setup_active(tmp_path)
++    a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
++    prepared = prepare_rollback(active, a)
++    receipt = Path(prepared['delta_receipt_path']); value = json.loads(receipt.read_text())
++    forged = b'ALPHA = 999\n'; (Path(prepared['source_root']) / 'modules/alpha.py').write_bytes(forged)
++    value['entries'][0]['after_sha256'] = sha(forged)
++    value['entries'][0]['unified_diff_sha256'], value['entries'][0]['unified_diff_hunk_count'] = integration._diff_proof(b'ALPHA = 1\n', forged)
++    dump(receipt, value)
++    with pytest.raises(ValueError, match='API_BUSINESS_REVERSE_DELTA_MISMATCH'):
++        build_rollback(active, prepared)
++    assert integration.read_active_release(active['plist'])['release_id'] == 'A'
++
++
++@pytest.mark.parametrize('destination', ['active_app', 'candidate_app', 'candidate_manifest', 'launch_agents'])
++def test_review_receipt_cannot_mutate_active_or_candidate_artifacts(tmp_path, destination):
++    active = setup_active(tmp_path)
++    source, receipt = make_delta(active, 'review', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    candidate = tmp_path / 'A'
++    output = {
++        'active_app': active['initial_app'] / 'unexpected.json',
++        'candidate_app': candidate / 'app/modules/beta.py',
++        'candidate_manifest': candidate / 'release-manifest.json',
++        'launch_agents': active['plist'].parent / 'unexpected.json',
++    }[destination]
++    initial = integration.inventory_tree(active['initial_app'])
++    before = active['plist'].read_bytes()
++    with pytest.raises(ValueError, match='API_BUSINESS_(OUTPUT_BOUNDARY|RECEIPT_OVERLAPS_CANDIDATE)'):
++        builder.build_module_candidate(source_root=source, candidate_root=candidate, active_api_plist_path=active['plist'],
++            release_id='A', role='gateway', module_id='alpha', api_integration_delta_receipt_path=receipt,
++            receipt_path=output, formal_release_root=tmp_path / 'formal')
++    assert integration.inventory_tree(active['initial_app']) == initial
++    assert active['plist'].read_bytes() == before
++    assert not candidate.exists()
++
++
++def _hold_gateway_lock(plist, ready, release):
++    with integration.shared_api_release_lock(plist):
++        ready.set()
++        if not release.wait(10): raise RuntimeError('SYNTHETIC_LOCK_TIMEOUT')
++
++
++def test_real_process_lock_blocks_builder_before_candidate_write(tmp_path):
++    import multiprocessing
++    active = setup_active(tmp_path)
++    source, receipt = make_delta(active, 'locked', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    context = multiprocessing.get_context('spawn')
++    ready, release = context.Event(), context.Event()
++    worker = context.Process(target=_hold_gateway_lock, args=(active['plist'], ready, release))
++    worker.start()
++    try:
++        assert ready.wait(10)
++        with pytest.raises(ValueError, match='API_RELEASE_SHARED_LOCK_BUSY'):
++            builder.build_module_candidate(source_root=source, candidate_root=tmp_path / 'A', active_api_plist_path=active['plist'],
++                release_id='A', role='gateway', module_id='alpha', api_integration_delta_receipt_path=receipt,
++                formal_release_root=tmp_path / 'formal')
++        assert not (tmp_path / 'A').exists()
++        assert integration.read_active_release(active['plist'])['release_id'] == 'G'
++    finally:
++        release.set(); worker.join(5)
++        if worker.is_alive(): worker.terminate(); worker.join(5)
++    assert worker.exitcode == 0
++
++
++@pytest.mark.parametrize('output', ['reverse', 'candidate', 'receipt'])
++def test_review_every_retained_release_is_protected_from_output(tmp_path, output):
++    active = setup_active(tmp_path)
++    a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
++    b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 1\n'}); synthetic_commit(active, b)
++    c = build(active, 'C', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, c)
++    initial = integration.inventory_tree(b / 'app')
++    forbidden = b / 'app/review-output'
++    with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
++        if output == 'reverse':
++            integration.prepare_module_rollback(active_api_plist_path=active['plist'], target_release_root=a,
++                expected_manifest_sha256=sha((a / 'release-manifest.json').read_bytes()), output_root=forbidden)
++        else:
++            source, receipt = make_delta(active, 'review-history', 'beta', {'modules/beta.py': b'BETA = 3\n'})
++            candidate = forbidden if output == 'candidate' else tmp_path / 'review-output'
++            kwargs = {'receipt_path': forbidden} if output == 'receipt' else {}
++            builder.build_module_candidate(source_root=source, candidate_root=candidate, active_api_plist_path=active['plist'],
++                release_id='review-output', role='gateway', module_id='beta', api_integration_delta_receipt_path=receipt,
++                formal_release_root=tmp_path / 'formal', **kwargs)
++    assert integration.inventory_tree(b / 'app') == initial
++    assert not forbidden.exists()
++    assert prepare_rollback(active, a)['status'] == 'READY_FOR_REVIEW'
++
++
++@pytest.mark.parametrize('key', ['V4_MANAGER_SCREEN_AUTHORITY_ROOT', 'V4_MANAGER_NEWS_OWNER_ROOT',
++    'V4_DAILY_REVIEW_ROOT', 'V4_PRESELECTION_SOURCE_ROOT', 'V4_INTRADAY_RESEARCH_ROOT',
++    'V4_WECHAT_ARCHIVE_ROOT', 'V4_SECURITY_MASTER_ROOT'])
++def test_review_all_external_product_roots_are_protected(tmp_path, key):
++    active = setup_active(tmp_path)
++    products = tmp_path / 'synthetic-products'; products.mkdir(); (products / 'sentinel').write_bytes(b'UNTOUCHED')
++    payload = plistlib.loads(active['plist'].read_bytes())
++    payload['ProgramArguments'].insert(1, f'{key}={products}')
++    active['plist'].write_bytes(plistlib.dumps(payload))
++    source, receipt = make_delta(active, 'products', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
++        builder.build_module_candidate(source_root=source, candidate_root=products / 'A', active_api_plist_path=active['plist'],
++            release_id='A', role='gateway', module_id='alpha', api_integration_delta_receipt_path=receipt,
++            formal_release_root=tmp_path / 'formal')
++    assert list(products.iterdir()) == [products / 'sentinel']
++
++
++def test_review_cutover_config_symlink_cannot_write_state(tmp_path):
++    import shutil
++    from ops.prepare_api_only_cutover import render_module_cutover
++    active = setup_active(tmp_path)
++    candidate = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    shutil.rmtree(candidate / 'config'); (candidate / 'config').symlink_to(active['state'], target_is_directory=True)
++    before = integration.inventory_tree(active['state'])
++    with pytest.raises(ValueError, match='API_BUSINESS_CONFIG_PATH_SYMLINK_OR_ALIAS'):
++        render_module_cutover(source_active_plist_path=active['plist'], candidate_root=candidate,
++            release_id='A', manifest_path=candidate / 'release-manifest.json',
++            manifest_sha256=sha((candidate / 'release-manifest.json').read_bytes()), role='gateway',
++            source_root=tmp_path / 'A-source', module_id='alpha', formal_release_root=tmp_path / 'formal')
++    assert integration.inventory_tree(active['state']) == before
++
++
++def test_declared_external_root_without_plist_env_is_protected(tmp_path):
++    active = setup_active(tmp_path)
++    products = tmp_path / 'synthetic-default-products'; products.mkdir()
++    change_contract(active, lambda c: c.update(protected_external_roots=[str(active['state']), str(products)]))
++    source, receipt = make_delta(active, 'defaults', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
++    with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
++        builder.build_module_candidate(source_root=source, candidate_root=products / 'A', active_api_plist_path=active['plist'],
++            release_id='A', role='gateway', module_id='alpha', api_integration_delta_receipt_path=receipt,
++            formal_release_root=tmp_path / 'formal')
++    assert list(products.iterdir()) == []
++
++
++@pytest.mark.parametrize('shared_path,code', [('shared/*.py', 'API_BUSINESS_SOURCE_PATH_FORBIDDEN'),
++    ('shared', 'API_BUSINESS_PATH_OWNER_OVERLAP')])
++def test_review_shared_contract_cannot_hide_registry_ownership(tmp_path, shared_path, code):
++    active = setup_active(tmp_path)
++    def damage(contract):
++        contract['shared_paths'][0]['path'] = shared_path
++        contract['modules'][0]['paths'].append('shared/registry.py')
++    change_contract(active, damage)
++    source, receipt = make_delta(active, 'ambiguous-shared', 'alpha', {'shared/registry.py': b'ROUTES = ()\n'})
++    before = active['plist'].read_bytes()
++    with pytest.raises(ValueError, match=code):
++        builder.build_module_candidate(source_root=source, candidate_root=tmp_path / 'A', active_api_plist_path=active['plist'],
++            release_id='A', role='gateway', module_id='alpha', api_integration_delta_receipt_path=receipt,
++            formal_release_root=tmp_path / 'formal')
++    assert not (tmp_path / 'A').exists()
++    assert active['plist'].read_bytes() == before

@@ -1,0 +1,148 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "api_integration": {
+    "active_application_inventory_sha256": "c75fed603fbd9a7dedd1e1e9e9669589f37b4a99188bf59e3aae88628a9ff401",
+    "base": {
+      "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/A/app",
+      "application_inventory_entry_count": 8,
+      "application_inventory_sha256": "c75fed603fbd9a7dedd1e1e9e9669589f37b4a99188bf59e3aae88628a9ff401",
+      "generation": 1,
+      "release_id": "A",
+      "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/A/release-manifest.json",
+      "release_manifest_sha256": "98d15e27bbbf20b1379eb273a9e1d87326e3dcfc10a8a0f04221bf91ffdb7e1a",
+      "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/A"
+    },
+    "base_api_plist_sha256": "64b31029f7d790bd375afcb027b4d73713fbe7632c2926c8c90e0812e9fda520",
+    "base_role": "gateway",
+    "bootstrap_transition": false,
+    "business_module": {
+      "approval_id": "SYNTHETIC_TEST_ONLY",
+      "base_generation": 1,
+      "generation": 2,
+      "module_id": "beta",
+      "operation": "forward",
+      "owner_contract_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/approved-module-owners.json",
+      "owner_contract_sha256": "b8093d042e7d0444695279518337614e5638bbb00985951c85f3e21a801eb008",
+      "shared_paths_changed": false,
+      "source_owner": "synthetic-beta",
+      "state_schema_changed": false
+    },
+    "delta_entries": [
+      {
+        "after_sha256": "3bf75d7374a016cafd77878354eeebb9d0868673916f9b5cef122f0674a28cc3",
+        "before_sha256": "ff02bfadb8edd31c5f011df43b3a8ad3b9dcc329b728ff03b2ca48666453d8b6",
+        "path": "modules/beta.py",
+        "unified_diff_hunk_count": 1,
+        "unified_diff_sha256": "9df208e5be4369ebbb6ac964fcbc420bd5e887d0ed6d5f432064d0bc6efaeb95"
+      }
+    ],
+    "delta_receipt_file": "api-integration-delta-receipt.json",
+    "delta_receipt_sha256": "ba2e39033be5153c690eb6b50f0d6524e025e8a885f476baf38ed0539b4a2853",
+    "delta_receipt_source_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B-delta.json",
+    "launch_bindings_sha256": "e6f5c9080ce76a6e63ebd4453509744b14f29627dc499772a36b4aad5df0810a",
+    "non_delta_active_release_bytes_preserved": true,
+    "non_delta_entry_count": 7,
+    "non_delta_inventory_sha256": "ceeeaaeb564aefb2c482146b3b9e49d5d3d66f38265ae3f2a5c46748f572eb92",
+    "schema_version": "v4.api_release_integration.v1",
+    "source_workspace_full_tree_copied": false,
+    "target_role": "gateway"
+  },
+  "application_inventory": {
+    "aggregate_sha256": "e9f577168868eba92d4d89fe013fd3ff62dd78d94faccb1d1a41fd29be0f1366",
+    "entries": [
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/api/v35_api/app.py",
+        "sha256": "b10667546a17ad9a20539d37a7b6d654ecf405638b7c773bbbec88a3f768b1e2",
+        "size": 15
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/web/dist/assets/current.js",
+        "sha256": "3560b6dbaf21634275558502f80412051faed3c310eb131a7f505153ba764a71",
+        "size": 23
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/web/dist/index.html",
+        "sha256": "99dbb832824fac321381fb504132b2d0cd37c2cb4d2ad9153ff92d5ce27521d2",
+        "size": 15
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "config/current.json",
+        "sha256": "883114025e235f52d0690a36d23725faf79261f3856e135026ff0d71fb0539f4",
+        "size": 19
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "modules/alpha.py",
+        "sha256": "079f313070485770a97a736c06541124b21a157d369017923dc9528797b4e672",
+        "size": 10
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "modules/alpha_extra.py",
+        "sha256": "6f62cd13b8c0dc5d2446de2765199e9a4dbbdeb8c3b02e9d05bfb086629b53ed",
+        "size": 13
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "modules/beta.py",
+        "sha256": "3bf75d7374a016cafd77878354eeebb9d0868673916f9b5cef122f0674a28cc3",
+        "size": 9
+      },
+      {
+        "kind": "file",
+        "mode": "0644",
+        "path": "shared/registry.py",
+        "sha256": "41393f7f735f7e6ac066f6f4059285fb5bb47c6343cb8b06b4fbdb8e197cdb03",
+        "size": 27
+      }
+    ],
+    "entry_count": 8
+  },
+  "candidate": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B/app",
+    "business_module_id": "beta",
+    "data_copy_performed": false,
+    "formal_release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/unused-formal",
+    "ignored_runtime_data_copied": false,
+    "module_contract_sha256": null,
+    "module_role": "gateway",
+    "overwrite_policy": "refuse existing role candidate; active plist unchanged",
+    "release_id": "B",
+    "root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B",
+    "runtime_venv_copied": false
+  },
+  "candidate_status": "READY_FOR_REVIEW",
+  "deployment_status": "CANNOT_CONFIRM",
+  "generated_at": "2026-10-10T15:11:53+00:00",
+  "role_contract": {
+    "label": "com.lexi.v35.api-only",
+    "lock_name": ".com.lexi.v35.api-only.release.lock",
+    "owns_static_assets": true,
+    "plist_name": "com.lexi.v35.api-only.plist",
+    "port": 8873,
+    "release_root": "/REDACTED_LOCAL_HOME/Library/Application Support/com.lexi.v35.local/releases"
+  },
+  "schema_version": "v4.release_candidate.v1",
+  "source": {
+    "active_release_bytes_copied": true,
+    "active_role_plist": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/LaunchAgents/com.lexi.v35.api-only.plist",
+    "api_integration_delta_receipt": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/B-delta.json",
+    "source_workspace_full_tree_copied": false
+  },
+  "verification_gaps": [
+    "module API was not activated or restarted by this builder",
+    "target port availability must be checked again immediately before activation",
+    "cross-role behavior and gateway static preservation await independent review and readback"
+  ]
+}

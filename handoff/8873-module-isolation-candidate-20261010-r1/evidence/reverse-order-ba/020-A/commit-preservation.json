@@ -1,0 +1,113 @@
+{
+  "all_static_unchanged": true,
+  "launch_and_safety_bindings_unchanged": true,
+  "non_target_app_entries_after": [
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "b10667546a17ad9a20539d37a7b6d654ecf405638b7c773bbbec88a3f768b1e2",
+      "size": 15
+    },
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "apps/web/dist/assets/current.js",
+      "sha256": "3560b6dbaf21634275558502f80412051faed3c310eb131a7f505153ba764a71",
+      "size": 23
+    },
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "apps/web/dist/index.html",
+      "sha256": "99dbb832824fac321381fb504132b2d0cd37c2cb4d2ad9153ff92d5ce27521d2",
+      "size": 15
+    },
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "config/current.json",
+      "sha256": "883114025e235f52d0690a36d23725faf79261f3856e135026ff0d71fb0539f4",
+      "size": 19
+    },
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "modules/beta.py",
+      "sha256": "09486a66eb0b4a76ef13a701e5ae26df210c4a3db09d19727066d88fe76ed7ae",
+      "size": 10
+    },
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "shared/registry.py",
+      "sha256": "41393f7f735f7e6ac066f6f4059285fb5bb47c6343cb8b06b4fbdb8e197cdb03",
+      "size": 27
+    }
+  ],
+  "non_target_app_entries_before": [
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "b10667546a17ad9a20539d37a7b6d654ecf405638b7c773bbbec88a3f768b1e2",
+      "size": 15
+    },
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "apps/web/dist/assets/current.js",
+      "sha256": "3560b6dbaf21634275558502f80412051faed3c310eb131a7f505153ba764a71",
+      "size": 23
+    },
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "apps/web/dist/index.html",
+      "sha256": "99dbb832824fac321381fb504132b2d0cd37c2cb4d2ad9153ff92d5ce27521d2",
+      "size": 15
+    },
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "config/current.json",
+      "sha256": "883114025e235f52d0690a36d23725faf79261f3856e135026ff0d71fb0539f4",
+      "size": 19
+    },
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "modules/beta.py",
+      "sha256": "09486a66eb0b4a76ef13a701e5ae26df210c4a3db09d19727066d88fe76ed7ae",
+      "size": 10
+    },
+    {
+      "kind": "file",
+      "mode": "0644",
+      "path": "shared/registry.py",
+      "sha256": "41393f7f735f7e6ac066f6f4059285fb5bb47c6343cb8b06b4fbdb8e197cdb03",
+      "size": 27
+    }
+  ],
+  "non_target_app_unchanged": true,
+  "non_target_inventory_sha256_after": "37fc149e4f3701c5eeac744286cbf4d74932d163e26ff8d1b6affeeb562598f4",
+  "non_target_inventory_sha256_before": "37fc149e4f3701c5eeac744286cbf4d74932d163e26ff8d1b6affeeb562598f4",
+  "owner_contract_unchanged": true,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "scope": "SYNTHETIC_ONLY",
+  "state_after_sha256": "2555d2c3a256e401400f78c72f17044fd31e9f425198b62afaf1bbcd8607316c",
+  "state_before_sha256": "2555d2c3a256e401400f78c72f17044fd31e9f425198b62afaf1bbcd8607316c",
+  "static_after_sha256": "5c949b5acdf617cfadc09d29f2f8d22157eac23152c3f4e9ba369c7f60a1a31d",
+  "static_before_sha256": "5c949b5acdf617cfadc09d29f2f8d22157eac23152c3f4e9ba369c7f60a1a31d",
+  "status": "PASS",
+  "synthetic_state_unchanged": true,
+  "target_paths": [
+    "modules/alpha.py",
+    "modules/alpha_extra.py"
+  ]
+}

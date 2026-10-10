@@ -1,0 +1,35 @@
+{
+  "base": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/G/app",
+    "application_inventory_entry_count": 7,
+    "application_inventory_sha256": "75767c662fe4c5f89aabf1ddc6cfc2c5bf9e603e6812f6d069c065ce8499f6c5",
+    "generation": 0,
+    "release_id": "G",
+    "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/G/release-manifest.json",
+    "release_manifest_sha256": "168d23b03c62083ba231a247c8435b66002a564712d1c1df1028856e7cfa468a",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/G"
+  },
+  "business_module": {
+    "base_generation": 0,
+    "module_id": "alpha",
+    "operation": "forward",
+    "owner_contract_sha256": "b8093d042e7d0444695279518337614e5638bbb00985951c85f3e21a801eb008"
+  },
+  "entries": [
+    {
+      "after_sha256": "079f313070485770a97a736c06541124b21a157d369017923dc9528797b4e672",
+      "before_sha256": "b9c17c876e58a6446e03c592fe2f6a04ea26846dbc9ff0e094e20144dfbaff76",
+      "path": "modules/alpha.py",
+      "unified_diff_hunk_count": 1,
+      "unified_diff_sha256": "b221f3451ea16d740b4a50d7a95af55ad9ac16676ae04ca3f2ee5857c23a5c3d"
+    },
+    {
+      "after_sha256": "6f62cd13b8c0dc5d2446de2765199e9a4dbbdeb8c3b02e9d05bfb086629b53ed",
+      "before_sha256": null,
+      "path": "modules/alpha_extra.py",
+      "unified_diff_hunk_count": null,
+      "unified_diff_sha256": null
+    }
+  ],
+  "schema_version": "v4.api_release_delta_receipt.v1"
+}

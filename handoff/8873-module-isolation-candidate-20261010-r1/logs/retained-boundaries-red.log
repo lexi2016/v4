@@ -1,0 +1,208 @@
+FFFFFFFFFF                                                               [100%]
+=================================== FAILURES ===================================
+_____ test_review_every_retained_release_is_protected_from_output[reverse] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_review_every_retained_rel0')
+output = 'reverse'
+
+    @pytest.mark.parametrize('output', ['reverse', 'candidate', 'receipt'])
+    def test_review_every_retained_release_is_protected_from_output(tmp_path, output):
+        active = setup_active(tmp_path)
+        a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
+        b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 1\n'}); synthetic_commit(active, b)
+        c = build(active, 'C', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, c)
+        initial = integration.inventory_tree(b / 'app')
+        forbidden = b / 'app/review-output'
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:541: Failed
+____ test_review_every_retained_release_is_protected_from_output[candidate] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_review_every_retained_rel1')
+output = 'candidate'
+
+    @pytest.mark.parametrize('output', ['reverse', 'candidate', 'receipt'])
+    def test_review_every_retained_release_is_protected_from_output(tmp_path, output):
+        active = setup_active(tmp_path)
+        a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
+        b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 1\n'}); synthetic_commit(active, b)
+        c = build(active, 'C', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, c)
+        initial = integration.inventory_tree(b / 'app')
+        forbidden = b / 'app/review-output'
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:541: Failed
+_____ test_review_every_retained_release_is_protected_from_output[receipt] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_review_every_retained_rel2')
+output = 'receipt'
+
+    @pytest.mark.parametrize('output', ['reverse', 'candidate', 'receipt'])
+    def test_review_every_retained_release_is_protected_from_output(tmp_path, output):
+        active = setup_active(tmp_path)
+        a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
+        b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 1\n'}); synthetic_commit(active, b)
+        c = build(active, 'C', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, c)
+        initial = integration.inventory_tree(b / 'app')
+        forbidden = b / 'app/review-output'
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:541: Failed
+_ test_review_all_external_product_roots_are_protected[V4_MANAGER_SCREEN_AUTHORITY_ROOT] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_review_all_external_produ0')
+key = 'V4_MANAGER_SCREEN_AUTHORITY_ROOT'
+
+    @pytest.mark.parametrize('key', ['V4_MANAGER_SCREEN_AUTHORITY_ROOT', 'V4_MANAGER_NEWS_OWNER_ROOT',
+        'V4_DAILY_REVIEW_ROOT', 'V4_PRESELECTION_SOURCE_ROOT', 'V4_INTRADAY_RESEARCH_ROOT',
+        'V4_WECHAT_ARCHIVE_ROOT', 'V4_SECURITY_MASTER_ROOT'])
+    def test_review_all_external_product_roots_are_protected(tmp_path, key):
+        active = setup_active(tmp_path)
+        products = tmp_path / 'synthetic-products'; products.mkdir(); (products / 'sentinel').write_bytes(b'UNTOUCHED')
+        payload = plistlib.loads(active['plist'].read_bytes())
+        payload['ProgramArguments'].insert(1, f'{key}={products}')
+        active['plist'].write_bytes(plistlib.dumps(payload))
+        source, receipt = make_delta(active, 'products', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:567: Failed
+_ test_review_all_external_product_roots_are_protected[V4_MANAGER_NEWS_OWNER_ROOT] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_review_all_external_produ1')
+key = 'V4_MANAGER_NEWS_OWNER_ROOT'
+
+    @pytest.mark.parametrize('key', ['V4_MANAGER_SCREEN_AUTHORITY_ROOT', 'V4_MANAGER_NEWS_OWNER_ROOT',
+        'V4_DAILY_REVIEW_ROOT', 'V4_PRESELECTION_SOURCE_ROOT', 'V4_INTRADAY_RESEARCH_ROOT',
+        'V4_WECHAT_ARCHIVE_ROOT', 'V4_SECURITY_MASTER_ROOT'])
+    def test_review_all_external_product_roots_are_protected(tmp_path, key):
+        active = setup_active(tmp_path)
+        products = tmp_path / 'synthetic-products'; products.mkdir(); (products / 'sentinel').write_bytes(b'UNTOUCHED')
+        payload = plistlib.loads(active['plist'].read_bytes())
+        payload['ProgramArguments'].insert(1, f'{key}={products}')
+        active['plist'].write_bytes(plistlib.dumps(payload))
+        source, receipt = make_delta(active, 'products', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:567: Failed
+__ test_review_all_external_product_roots_are_protected[V4_DAILY_REVIEW_ROOT] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_review_all_external_produ2')
+key = 'V4_DAILY_REVIEW_ROOT'
+
+    @pytest.mark.parametrize('key', ['V4_MANAGER_SCREEN_AUTHORITY_ROOT', 'V4_MANAGER_NEWS_OWNER_ROOT',
+        'V4_DAILY_REVIEW_ROOT', 'V4_PRESELECTION_SOURCE_ROOT', 'V4_INTRADAY_RESEARCH_ROOT',
+        'V4_WECHAT_ARCHIVE_ROOT', 'V4_SECURITY_MASTER_ROOT'])
+    def test_review_all_external_product_roots_are_protected(tmp_path, key):
+        active = setup_active(tmp_path)
+        products = tmp_path / 'synthetic-products'; products.mkdir(); (products / 'sentinel').write_bytes(b'UNTOUCHED')
+        payload = plistlib.loads(active['plist'].read_bytes())
+        payload['ProgramArguments'].insert(1, f'{key}={products}')
+        active['plist'].write_bytes(plistlib.dumps(payload))
+        source, receipt = make_delta(active, 'products', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:567: Failed
+_ test_review_all_external_product_roots_are_protected[V4_PRESELECTION_SOURCE_ROOT] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_review_all_external_produ3')
+key = 'V4_PRESELECTION_SOURCE_ROOT'
+
+    @pytest.mark.parametrize('key', ['V4_MANAGER_SCREEN_AUTHORITY_ROOT', 'V4_MANAGER_NEWS_OWNER_ROOT',
+        'V4_DAILY_REVIEW_ROOT', 'V4_PRESELECTION_SOURCE_ROOT', 'V4_INTRADAY_RESEARCH_ROOT',
+        'V4_WECHAT_ARCHIVE_ROOT', 'V4_SECURITY_MASTER_ROOT'])
+    def test_review_all_external_product_roots_are_protected(tmp_path, key):
+        active = setup_active(tmp_path)
+        products = tmp_path / 'synthetic-products'; products.mkdir(); (products / 'sentinel').write_bytes(b'UNTOUCHED')
+        payload = plistlib.loads(active['plist'].read_bytes())
+        payload['ProgramArguments'].insert(1, f'{key}={products}')
+        active['plist'].write_bytes(plistlib.dumps(payload))
+        source, receipt = make_delta(active, 'products', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:567: Failed
+_ test_review_all_external_product_roots_are_protected[V4_INTRADAY_RESEARCH_ROOT] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_review_all_external_produ4')
+key = 'V4_INTRADAY_RESEARCH_ROOT'
+
+    @pytest.mark.parametrize('key', ['V4_MANAGER_SCREEN_AUTHORITY_ROOT', 'V4_MANAGER_NEWS_OWNER_ROOT',
+        'V4_DAILY_REVIEW_ROOT', 'V4_PRESELECTION_SOURCE_ROOT', 'V4_INTRADAY_RESEARCH_ROOT',
+        'V4_WECHAT_ARCHIVE_ROOT', 'V4_SECURITY_MASTER_ROOT'])
+    def test_review_all_external_product_roots_are_protected(tmp_path, key):
+        active = setup_active(tmp_path)
+        products = tmp_path / 'synthetic-products'; products.mkdir(); (products / 'sentinel').write_bytes(b'UNTOUCHED')
+        payload = plistlib.loads(active['plist'].read_bytes())
+        payload['ProgramArguments'].insert(1, f'{key}={products}')
+        active['plist'].write_bytes(plistlib.dumps(payload))
+        source, receipt = make_delta(active, 'products', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:567: Failed
+_ test_review_all_external_product_roots_are_protected[V4_WECHAT_ARCHIVE_ROOT] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_review_all_external_produ5')
+key = 'V4_WECHAT_ARCHIVE_ROOT'
+
+    @pytest.mark.parametrize('key', ['V4_MANAGER_SCREEN_AUTHORITY_ROOT', 'V4_MANAGER_NEWS_OWNER_ROOT',
+        'V4_DAILY_REVIEW_ROOT', 'V4_PRESELECTION_SOURCE_ROOT', 'V4_INTRADAY_RESEARCH_ROOT',
+        'V4_WECHAT_ARCHIVE_ROOT', 'V4_SECURITY_MASTER_ROOT'])
+    def test_review_all_external_product_roots_are_protected(tmp_path, key):
+        active = setup_active(tmp_path)
+        products = tmp_path / 'synthetic-products'; products.mkdir(); (products / 'sentinel').write_bytes(b'UNTOUCHED')
+        payload = plistlib.loads(active['plist'].read_bytes())
+        payload['ProgramArguments'].insert(1, f'{key}={products}')
+        active['plist'].write_bytes(plistlib.dumps(payload))
+        source, receipt = make_delta(active, 'products', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:567: Failed
+_ test_review_all_external_product_roots_are_protected[V4_SECURITY_MASTER_ROOT] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-41/test_review_all_external_produ6')
+key = 'V4_SECURITY_MASTER_ROOT'
+
+    @pytest.mark.parametrize('key', ['V4_MANAGER_SCREEN_AUTHORITY_ROOT', 'V4_MANAGER_NEWS_OWNER_ROOT',
+        'V4_DAILY_REVIEW_ROOT', 'V4_PRESELECTION_SOURCE_ROOT', 'V4_INTRADAY_RESEARCH_ROOT',
+        'V4_WECHAT_ARCHIVE_ROOT', 'V4_SECURITY_MASTER_ROOT'])
+    def test_review_all_external_product_roots_are_protected(tmp_path, key):
+        active = setup_active(tmp_path)
+        products = tmp_path / 'synthetic-products'; products.mkdir(); (products / 'sentinel').write_bytes(b'UNTOUCHED')
+        payload = plistlib.loads(active['plist'].read_bytes())
+        payload['ProgramArguments'].insert(1, f'{key}={products}')
+        active['plist'].write_bytes(plistlib.dumps(payload))
+        source, receipt = make_delta(active, 'products', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:567: Failed
+=========================== short test summary info ============================
+FAILED tests/test_api_business_modules.py::test_review_every_retained_release_is_protected_from_output[reverse]
+FAILED tests/test_api_business_modules.py::test_review_every_retained_release_is_protected_from_output[candidate]
+FAILED tests/test_api_business_modules.py::test_review_every_retained_release_is_protected_from_output[receipt]
+FAILED tests/test_api_business_modules.py::test_review_all_external_product_roots_are_protected[V4_MANAGER_SCREEN_AUTHORITY_ROOT]
+FAILED tests/test_api_business_modules.py::test_review_all_external_product_roots_are_protected[V4_MANAGER_NEWS_OWNER_ROOT]
+FAILED tests/test_api_business_modules.py::test_review_all_external_product_roots_are_protected[V4_DAILY_REVIEW_ROOT]
+FAILED tests/test_api_business_modules.py::test_review_all_external_product_roots_are_protected[V4_PRESELECTION_SOURCE_ROOT]
+FAILED tests/test_api_business_modules.py::test_review_all_external_product_roots_are_protected[V4_INTRADAY_RESEARCH_ROOT]
+FAILED tests/test_api_business_modules.py::test_review_all_external_product_roots_are_protected[V4_WECHAT_ARCHIVE_ROOT]
+FAILED tests/test_api_business_modules.py::test_review_all_external_product_roots_are_protected[V4_SECURITY_MASTER_ROOT]
+10 failed, 51 deselected in 0.76s

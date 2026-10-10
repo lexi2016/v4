@@ -1,0 +1,16 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__ test_native_rejects_conflicting_staged_dual_release_identity_before_write ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f01d94f2780>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-39/test_native_rejects_conflictin0')
+
+    def test_native_rejects_conflicting_staged_dual_release_identity_before_write(monkeypatch, tmp_path):
+>       with pytest.raises(ValueError, match="API_RELEASE_ACTIVE_PLIST_IDENTITY_CONFLICT"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_native_module_guard.py:481: Failed
+=========================== short test summary info ============================
+FAILED tests/test_api_native_module_guard.py::test_native_rejects_conflicting_staged_dual_release_identity_before_write
+1 failed in 0.14s

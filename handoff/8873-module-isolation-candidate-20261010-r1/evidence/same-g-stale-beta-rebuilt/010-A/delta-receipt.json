@@ -1,0 +1,35 @@
+{
+  "base": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/G/app",
+    "application_inventory_entry_count": 7,
+    "application_inventory_sha256": "75767c662fe4c5f89aabf1ddc6cfc2c5bf9e603e6812f6d069c065ce8499f6c5",
+    "generation": 0,
+    "release_id": "G",
+    "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/G/release-manifest.json",
+    "release_manifest_sha256": "3358a254f631b266d926155564967583615c8540d3818c8d01392a5577611623",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/G"
+  },
+  "business_module": {
+    "base_generation": 0,
+    "module_id": "alpha",
+    "operation": "forward",
+    "owner_contract_sha256": "44558f85e0132a4d434b0f7fa90897e175cc139aab3b448bac5826e550ad2947"
+  },
+  "entries": [
+    {
+      "after_sha256": "87b1161f2ac0f9ca5420c25920c85eb7542f069c75648b89beac419d9b7a36f9",
+      "before_sha256": "b9c17c876e58a6446e03c592fe2f6a04ea26846dbc9ff0e094e20144dfbaff76",
+      "path": "modules/alpha.py",
+      "unified_diff_hunk_count": 1,
+      "unified_diff_sha256": "dba6b183d0c60b8b22859029e5a9e15a369d14c8188924e3076cc9fb582d25aa"
+    },
+    {
+      "after_sha256": "6f62cd13b8c0dc5d2446de2765199e9a4dbbdeb8c3b02e9d05bfb086629b53ed",
+      "before_sha256": null,
+      "path": "modules/alpha_extra.py",
+      "unified_diff_hunk_count": null,
+      "unified_diff_sha256": null
+    }
+  ],
+  "schema_version": "v4.api_release_delta_receipt.v1"
+}

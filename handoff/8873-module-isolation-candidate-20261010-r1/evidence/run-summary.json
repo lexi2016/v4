@@ -1,0 +1,92 @@
+{
+  "all_non_target_preservation_checks_passed": true,
+  "api_ui_or_mac_verification": "NOT_RUN",
+  "candidate_count": 9,
+  "candidate_manifest_count": 9,
+  "code_root": "/workspace/scratch/a245cda1e07c/work",
+  "code_unchanged_during_run": true,
+  "command": "/workspace/scratch/a245cda1e07c/testenv_final/bin/python -B /workspace/scratch/a245cda1e07c/analysis/generate_synthetic_evidence.py --code-root /workspace/scratch/a245cda1e07c/work --fixture-root /workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2 --evidence-root /workspace/scratch/a245cda1e07c/analysis/synthetic-evidence-run2",
+  "completed_at": "2026-10-10T15:11:53.913101+00:00",
+  "elapsed_seconds": 0.618685,
+  "evidence_root": "/workspace/scratch/a245cda1e07c/analysis/synthetic-evidence-run2",
+  "exported_file_count": 157,
+  "fixture_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2",
+  "isolation_guard": {
+    "blocked_attempts": [],
+    "filesystem_scope": "New disjoint roots and fixture paths enforced by runner; no general syscall sandbox claimed"
+  },
+  "launchctl_called": false,
+  "native_publisher_called": false,
+  "rollback_preparation_count": 1,
+  "runner_sha256": "c4f6869bf79e1d393e34a961b6e76625874a3109b090085b99479539e193cb0b",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "scenario_count": 3,
+  "scenarios": [
+    {
+      "alpha_added_file_removed": true,
+      "alpha_restored_to_G": true,
+      "candidate_count": 4,
+      "final_base_identity": {
+        "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A/app",
+        "application_inventory_entry_count": 7,
+        "application_inventory_sha256": "eeb4ddbb20b2c58582919e422a4ea02c32c24473e582aa49d63c1da3fafddb54",
+        "generation": 4,
+        "release_id": "rollback-A",
+        "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A/release-manifest.json",
+        "release_manifest_sha256": "19b2c07110606f1313e2f1415263ed6dc89669a981d3ae53bde4556aa4bdd53a",
+        "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/sequential-ab-latest-b-rollback-a/rollback-A"
+      },
+      "latest_beta_preserved": true,
+      "name": "sequential-ab-latest-b-rollback-a",
+      "status": "PASS"
+    },
+    {
+      "alpha_preserved_during_rejection": true,
+      "beta_rebuilt_on_current_alpha": true,
+      "candidate_count": 3,
+      "concurrency_scope": "Same-base candidates and serialized stale commit; this scenario does not claim process-race testing",
+      "final_base_identity": {
+        "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/B-rebuilt/app",
+        "application_inventory_entry_count": 8,
+        "application_inventory_sha256": "88c34b1014e924f3a1063fd440ce3d75c271d462caad397190ded1478a9f52cd",
+        "generation": 2,
+        "release_id": "B-rebuilt",
+        "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/B-rebuilt/release-manifest.json",
+        "release_manifest_sha256": "9b8cefd7fe9458f6273cd05162c40969ba80645956e16d6d04ef02d2dfd1ae7d",
+        "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/B-rebuilt"
+      },
+      "name": "same-g-stale-beta-rebuilt",
+      "same_G_candidates": true,
+      "stale_beta_rejected": true,
+      "status": "PASS"
+    },
+    {
+      "beta_then_alpha_accumulated": true,
+      "candidate_count": 2,
+      "final_base_identity": {
+        "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/A/app",
+        "application_inventory_entry_count": 8,
+        "application_inventory_sha256": "c35133a0ae905cd7204730272c40b08219106e53b82a26866d4288b2554229de",
+        "generation": 2,
+        "release_id": "A",
+        "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/A/release-manifest.json",
+        "release_manifest_sha256": "31c104e5a3c54ab6a637caac2c01825361d4857b6eed6a1d1287e562c37a4297",
+        "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/A"
+      },
+      "name": "reverse-order-ba",
+      "status": "PASS"
+    }
+  ],
+  "schema_version": "issue30.synthetic_evidence_run.v1",
+  "scope": "SYNTHETIC_ONLY",
+  "service_actions_called": false,
+  "stale_rejection_count": 1,
+  "started_at": "2026-10-10T15:11:53.294409+00:00",
+  "status": "PASS",
+  "synthetic_commit_count": 8
+}

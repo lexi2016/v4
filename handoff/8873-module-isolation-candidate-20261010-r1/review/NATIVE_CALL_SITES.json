@@ -1,0 +1,1009 @@
+{
+  "current_mac_binding": "CANNOT_CONFIRM",
+  "functions": [
+    {
+      "calls": [
+        {
+          "call": "_exact_directory",
+          "line": 198
+        },
+        {
+          "call": "set",
+          "line": 199
+        },
+        {
+          "call": "ValueError",
+          "line": 200
+        },
+        {
+          "call": "sorted",
+          "line": 202
+        },
+        {
+          "call": "isinstance",
+          "line": 204
+        },
+        {
+          "call": "re.fullmatch",
+          "line": 204
+        },
+        {
+          "call": "ValueError",
+          "line": 205
+        },
+        {
+          "call": "_regular_file",
+          "line": 206
+        },
+        {
+          "call": "_sha",
+          "line": 207
+        },
+        {
+          "call": "ValueError",
+          "line": 208
+        },
+        {
+          "call": "(package_path / '__init__.py').exists",
+          "line": 213
+        },
+        {
+          "call": "ValueError",
+          "line": 214
+        },
+        {
+          "call": "sys.modules.get",
+          "line": 215
+        },
+        {
+          "call": "list",
+          "line": 217
+        },
+        {
+          "call": "getattr",
+          "line": 217
+        },
+        {
+          "call": "getattr",
+          "line": 218
+        },
+        {
+          "call": "any",
+          "line": 219
+        },
+        {
+          "call": "Path(path).absolute",
+          "line": 219
+        },
+        {
+          "call": "Path",
+          "line": 219
+        },
+        {
+          "call": "ValueError",
+          "line": 220
+        },
+        {
+          "call": "types.ModuleType",
+          "line": 222
+        },
+        {
+          "call": "str",
+          "line": 223
+        },
+        {
+          "call": "importlib.machinery.ModuleSpec",
+          "line": 225
+        },
+        {
+          "call": "str",
+          "line": 226
+        },
+        {
+          "call": "name.replace",
+          "line": 233
+        },
+        {
+          "call": "sys.modules.get",
+          "line": 235
+        },
+        {
+          "call": "Path(str(getattr(existing, '__file__', ''))).absolute",
+          "line": 237
+        },
+        {
+          "call": "Path",
+          "line": 237
+        },
+        {
+          "call": "str",
+          "line": 237
+        },
+        {
+          "call": "getattr",
+          "line": 237
+        },
+        {
+          "call": "ValueError",
+          "line": 238
+        },
+        {
+          "call": "importlib.util.spec_from_file_location",
+          "line": 240
+        },
+        {
+          "call": "ValueError",
+          "line": 242
+        },
+        {
+          "call": "importlib.util.module_from_spec",
+          "line": 243
+        },
+        {
+          "call": "exec",
+          "line": 246
+        },
+        {
+          "call": "compile",
+          "line": 246
+        },
+        {
+          "call": "str",
+          "line": 246
+        },
+        {
+          "call": "sys.modules.pop",
+          "line": 248
+        },
+        {
+          "call": "setattr",
+          "line": 250
+        },
+        {
+          "call": "name.rsplit",
+          "line": 250
+        },
+        {
+          "call": "name.rsplit",
+          "line": 250
+        },
+        {
+          "call": "all",
+          "line": 252
+        },
+        {
+          "call": "callable",
+          "line": 252
+        },
+        {
+          "call": "getattr",
+          "line": 252
+        },
+        {
+          "call": "ValueError",
+          "line": 255
+        }
+      ],
+      "function": "_load_release_guard",
+      "line": 189
+    },
+    {
+      "calls": [
+        {
+          "call": "_load_release_guard",
+          "line": 260
+        },
+        {
+          "call": "guard.assert_api_release_lock",
+          "line": 261
+        }
+      ],
+      "function": "_assert_release_lock",
+      "line": 259
+    },
+    {
+      "calls": [
+        {
+          "call": "Path",
+          "line": 548
+        },
+        {
+          "call": "str",
+          "line": 548
+        },
+        {
+          "call": "Path",
+          "line": 549
+        },
+        {
+          "call": "str",
+          "line": 549
+        },
+        {
+          "call": "target.get",
+          "line": 551
+        },
+        {
+          "call": "isinstance",
+          "line": 552
+        },
+        {
+          "call": "re.fullmatch",
+          "line": 552
+        },
+        {
+          "call": "ValueError",
+          "line": 553
+        },
+        {
+          "call": "_exact_directory",
+          "line": 554
+        },
+        {
+          "call": "_exact_directory",
+          "line": 555
+        },
+        {
+          "call": "_regular_file",
+          "line": 556
+        },
+        {
+          "call": "_sha",
+          "line": 557
+        },
+        {
+          "call": "ValueError",
+          "line": 559
+        },
+        {
+          "call": "json.loads",
+          "line": 560
+        },
+        {
+          "call": "manifest_raw.decode",
+          "line": 560
+        },
+        {
+          "call": "manifest.get",
+          "line": 561
+        },
+        {
+          "call": "manifest.get",
+          "line": 562
+        },
+        {
+          "call": "manifest.get('candidate', {}).get",
+          "line": 563
+        },
+        {
+          "call": "target.get",
+          "line": 563
+        },
+        {
+          "call": "manifest.get",
+          "line": 563
+        },
+        {
+          "call": "manifest.get('candidate', {}).get",
+          "line": 564
+        },
+        {
+          "call": "str",
+          "line": 564
+        },
+        {
+          "call": "manifest.get",
+          "line": 564
+        },
+        {
+          "call": "ValueError",
+          "line": 565
+        },
+        {
+          "call": "manifest.get",
+          "line": 566
+        },
+        {
+          "call": "isinstance",
+          "line": 567
+        },
+        {
+          "call": "ValueError",
+          "line": 568
+        },
+        {
+          "call": "target.get",
+          "line": 569
+        },
+        {
+          "call": "inventory.get",
+          "line": 570
+        },
+        {
+          "call": "ValueError",
+          "line": 571
+        },
+        {
+          "call": "_load_inventory_backend",
+          "line": 572
+        },
+        {
+          "call": "backend.inventory_tree",
+          "line": 573
+        },
+        {
+          "call": "backend.inventory_digest",
+          "line": 574
+        },
+        {
+          "call": "inventory.get",
+          "line": 575
+        },
+        {
+          "call": "inventory.get",
+          "line": 576
+        },
+        {
+          "call": "len",
+          "line": 576
+        },
+        {
+          "call": "ValueError",
+          "line": 577
+        },
+        {
+          "call": "Path",
+          "line": 578
+        },
+        {
+          "call": "str",
+          "line": 578
+        },
+        {
+          "call": "ValueError",
+          "line": 580
+        },
+        {
+          "call": "backend.inventory_tree",
+          "line": 581
+        },
+        {
+          "call": "backend.inventory_digest",
+          "line": 582
+        },
+        {
+          "call": "ValueError",
+          "line": 584
+        },
+        {
+          "call": "_sha_file",
+          "line": 586
+        },
+        {
+          "call": "ValueError",
+          "line": 587
+        },
+        {
+          "call": "_read_json",
+          "line": 588
+        },
+        {
+          "call": "api_receipt.get",
+          "line": 589
+        },
+        {
+          "call": "ValueError",
+          "line": 590
+        },
+        {
+          "call": "_sha_file",
+          "line": 592
+        },
+        {
+          "call": "ValueError",
+          "line": 593
+        },
+        {
+          "call": "_read_json",
+          "line": 594
+        },
+        {
+          "call": "p2_receipt.get",
+          "line": 595
+        },
+        {
+          "call": "isinstance",
+          "line": 596
+        },
+        {
+          "call": "dist_sync.get",
+          "line": 596
+        },
+        {
+          "call": "dist_sync.get",
+          "line": 597
+        },
+        {
+          "call": "dist_sync.get",
+          "line": 598
+        },
+        {
+          "call": "ValueError",
+          "line": 599
+        },
+        {
+          "call": "_validate_frontend_dist",
+          "line": 600
+        },
+        {
+          "call": "_regular_file",
+          "line": 601
+        },
+        {
+          "call": "_sha",
+          "line": 602
+        },
+        {
+          "call": "plan['source'].get",
+          "line": 603
+        },
+        {
+          "call": "ValueError",
+          "line": 604
+        },
+        {
+          "call": "_read_json",
+          "line": 605
+        },
+        {
+          "call": "stage_receipt.items",
+          "line": 606
+        },
+        {
+          "call": "stage_receipt.get",
+          "line": 607
+        },
+        {
+          "call": "_canonical_sha",
+          "line": 607
+        },
+        {
+          "call": "stage_receipt.get",
+          "line": 608
+        },
+        {
+          "call": "stage_receipt.get",
+          "line": 609
+        },
+        {
+          "call": "str",
+          "line": 609
+        },
+        {
+          "call": "stage_receipt.get",
+          "line": 610
+        },
+        {
+          "call": "stage_receipt.get",
+          "line": 611
+        },
+        {
+          "call": "stage_receipt.get",
+          "line": 612
+        },
+        {
+          "call": "len",
+          "line": 612
+        },
+        {
+          "call": "ValueError",
+          "line": 613
+        },
+        {
+          "call": "_load_release_guard().verify_api_release_candidate",
+          "line": 614
+        },
+        {
+          "call": "_load_release_guard",
+          "line": 614
+        },
+        {
+          "call": "str",
+          "line": 620
+        },
+        {
+          "call": "str",
+          "line": 621
+        },
+        {
+          "call": "str",
+          "line": 621
+        },
+        {
+          "call": "len",
+          "line": 623
+        },
+        {
+          "call": "str",
+          "line": 624
+        }
+      ],
+      "function": "_load_candidate_release",
+      "line": 544
+    },
+    {
+      "calls": [
+        {
+          "call": "_validate_p2_review",
+          "line": 764
+        },
+        {
+          "call": "_validate_business_fix_review",
+          "line": 765
+        },
+        {
+          "call": "_load_candidate_release",
+          "line": 766
+        },
+        {
+          "call": "_load_disabled_binding",
+          "line": 769
+        },
+        {
+          "call": "_regular_file",
+          "line": 770
+        },
+        {
+          "call": "_sha",
+          "line": 771
+        },
+        {
+          "call": "before.get",
+          "line": 772
+        },
+        {
+          "call": "ValueError",
+          "line": 773
+        },
+        {
+          "call": "ACTIVE_API_PLIST.stat",
+          "line": 774
+        },
+        {
+          "call": "os.getuid",
+          "line": 775
+        },
+        {
+          "call": "os.getgid",
+          "line": 775
+        },
+        {
+          "call": "ValueError",
+          "line": 776
+        },
+        {
+          "call": "getattr",
+          "line": 777
+        },
+        {
+          "call": "ValueError",
+          "line": 778
+        },
+        {
+          "call": "_file_metadata",
+          "line": 779
+        },
+        {
+          "call": "_verify_readonly_guards",
+          "line": 780
+        },
+        {
+          "call": "_identity_from_plist",
+          "line": 781
+        },
+        {
+          "call": "before.get",
+          "line": 782
+        },
+        {
+          "call": "_loaded_identity",
+          "line": 783
+        },
+        {
+          "call": "_launchctl_print",
+          "line": 783
+        },
+        {
+          "call": "isinstance",
+          "line": 784
+        },
+        {
+          "call": "ValueError",
+          "line": 785
+        },
+        {
+          "call": "any",
+          "line": 786
+        },
+        {
+          "call": "current_plist_identity.get",
+          "line": 786
+        },
+        {
+          "call": "expected_before.get",
+          "line": 786
+        },
+        {
+          "call": "ValueError",
+          "line": 788
+        },
+        {
+          "call": "_identity_matches",
+          "line": 789
+        },
+        {
+          "call": "ValueError",
+          "line": 790
+        },
+        {
+          "call": "_candidate_plist_bytes",
+          "line": 791
+        },
+        {
+          "call": "_sha",
+          "line": 792
+        },
+        {
+          "call": "target.get",
+          "line": 793
+        },
+        {
+          "call": "target.get",
+          "line": 794
+        },
+        {
+          "call": "isinstance",
+          "line": 795
+        },
+        {
+          "call": "re.fullmatch",
+          "line": 795
+        },
+        {
+          "call": "ValueError",
+          "line": 796
+        },
+        {
+          "call": "isinstance",
+          "line": 797
+        },
+        {
+          "call": "re.fullmatch",
+          "line": 797
+        },
+        {
+          "call": "ValueError",
+          "line": 798
+        },
+        {
+          "call": "_regular_file",
+          "line": 799
+        },
+        {
+          "call": "_sha",
+          "line": 800
+        },
+        {
+          "call": "ValueError",
+          "line": 801
+        },
+        {
+          "call": "_staged_plist_diff",
+          "line": 802
+        },
+        {
+          "call": "_regular_file",
+          "line": 803
+        },
+        {
+          "call": "_sha",
+          "line": 804
+        },
+        {
+          "call": "json.loads",
+          "line": 804
+        },
+        {
+          "call": "diff_raw.decode",
+          "line": 804
+        },
+        {
+          "call": "ValueError",
+          "line": 805
+        },
+        {
+          "call": "_verify_historical_product_readback",
+          "line": 806
+        },
+        {
+          "call": "datetime.now(timezone.utc).isoformat",
+          "line": 809
+        },
+        {
+          "call": "datetime.now",
+          "line": 809
+        },
+        {
+          "call": "str",
+          "line": 810
+        },
+        {
+          "call": "str",
+          "line": 817
+        },
+        {
+          "call": "str",
+          "line": 827
+        }
+      ],
+      "function": "_preflight",
+      "line": 760
+    },
+    {
+      "calls": [
+        {
+          "call": "ValueError",
+          "line": 1565
+        },
+        {
+          "call": "_assert_release_lock",
+          "line": 1566
+        },
+        {
+          "call": "_preflight",
+          "line": 1567
+        },
+        {
+          "call": "ValueError",
+          "line": 1571
+        },
+        {
+          "call": "_regular_file",
+          "line": 1572
+        },
+        {
+          "call": "_regular_file",
+          "line": 1573
+        },
+        {
+          "call": "_sha",
+          "line": 1574
+        },
+        {
+          "call": "ValueError",
+          "line": 1575
+        },
+        {
+          "call": "_file_metadata",
+          "line": 1576
+        },
+        {
+          "call": "ValueError",
+          "line": 1578
+        },
+        {
+          "call": "_new_operation_dir",
+          "line": 1579
+        },
+        {
+          "call": "_write_exclusive",
+          "line": 1582
+        },
+        {
+          "call": "_apply_file_metadata",
+          "line": 1583
+        },
+        {
+          "call": "_file_metadata",
+          "line": 1584
+        },
+        {
+          "call": "_sha_file",
+          "line": 1585
+        },
+        {
+          "call": "ValueError",
+          "line": 1586
+        },
+        {
+          "call": "_write_exclusive",
+          "line": 1587
+        },
+        {
+          "call": "(json.dumps(preflight, ensure_ascii=False, sort_keys=True, indent=2) + '\\n').encode",
+          "line": 1588
+        },
+        {
+          "call": "json.dumps",
+          "line": 1588
+        },
+        {
+          "call": "_record",
+          "line": 1589
+        },
+        {
+          "call": "str",
+          "line": 1592
+        },
+        {
+          "call": "_preflight",
+          "line": 1602
+        },
+        {
+          "call": "ValueError",
+          "line": 1605
+        },
+        {
+          "call": "_launchctl_action",
+          "line": 1607
+        },
+        {
+          "call": "_observe_loaded",
+          "line": 1608
+        },
+        {
+          "call": "unloaded.get",
+          "line": 1609
+        },
+        {
+          "call": "ValueError",
+          "line": 1610
+        },
+        {
+          "call": "str",
+          "line": 1610
+        },
+        {
+          "call": "_sha_file",
+          "line": 1611
+        },
+        {
+          "call": "ValueError",
+          "line": 1612
+        },
+        {
+          "call": "_observe_scheduler",
+          "line": 1613
+        },
+        {
+          "call": "_load_candidate_release",
+          "line": 1614
+        },
+        {
+          "call": "_load_disabled_binding",
+          "line": 1615
+        },
+        {
+          "call": "_assert_release_lock",
+          "line": 1616
+        },
+        {
+          "call": "_atomic_replace_bytes",
+          "line": 1617
+        },
+        {
+          "call": "_sha_file",
+          "line": 1619
+        },
+        {
+          "call": "ValueError",
+          "line": 1620
+        },
+        {
+          "call": "_launchctl_action",
+          "line": 1621
+        },
+        {
+          "call": "_wait_for_candidate",
+          "line": 1622
+        },
+        {
+          "call": "Path",
+          "line": 1624
+        },
+        {
+          "call": "_load_candidate_release",
+          "line": 1625
+        },
+        {
+          "call": "_observe_scheduler",
+          "line": 1628
+        },
+        {
+          "call": "_record",
+          "line": 1629
+        },
+        {
+          "call": "str",
+          "line": 1633
+        },
+        {
+          "call": "str",
+          "line": 1645
+        },
+        {
+          "call": "_record",
+          "line": 1649
+        },
+        {
+          "call": "str",
+          "line": 1650
+        },
+        {
+          "call": "str",
+          "line": 1651
+        },
+        {
+          "call": "_restore_after_failure",
+          "line": 1653
+        },
+        {
+          "call": "str",
+          "line": 1654
+        },
+        {
+          "call": "recovery.get",
+          "line": 1655
+        },
+        {
+          "call": "ValueError",
+          "line": 1656
+        },
+        {
+          "call": "str",
+          "line": 1656
+        },
+        {
+          "call": "recovery.get",
+          "line": 1656
+        },
+        {
+          "call": "ValueError",
+          "line": 1657
+        },
+        {
+          "call": "str",
+          "line": 1657
+        }
+      ],
+      "function": "_run_switch",
+      "line": 1561
+    },
+    {
+      "calls": [
+        {
+          "call": "ValueError",
+          "line": 1663
+        },
+        {
+          "call": "ValueError",
+          "line": 1667
+        }
+      ],
+      "function": "_run_rollback",
+      "line": 1660
+    },
+    {
+      "calls": [
+        {
+          "call": "_switch_lock",
+          "line": 1694
+        }
+      ],
+      "function": "_locked",
+      "line": 1693
+    }
+  ],
+  "reference_sha256": "2b74e2193c7924b0c580129677738f3c766b938aea4d32341a0a7798ddfe7cd3",
+  "scope": "Historical exact call sites, not current Mac command binding"
+}

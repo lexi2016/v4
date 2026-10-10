@@ -1,0 +1,47 @@
+{
+  "approval_id": "SYNTHETIC_TEST_ONLY",
+  "modules": [
+    {
+      "depends_on": [],
+      "module_id": "alpha",
+      "paths": [
+        "modules/alpha.py",
+        "modules/alpha_extra.py"
+      ],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/alpha"
+        }
+      ],
+      "source_owner": "synthetic-alpha",
+      "state_compatibility": "UNCHANGED"
+    },
+    {
+      "depends_on": [],
+      "module_id": "beta",
+      "paths": [
+        "modules/beta.py"
+      ],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/beta"
+        }
+      ],
+      "source_owner": "synthetic-beta",
+      "state_compatibility": "UNCHANGED"
+    }
+  ],
+  "protected_external_roots": [
+    "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/synthetic-state"
+  ],
+  "schema_version": "v4.api_business_module_owners.v1",
+  "shared_paths": [
+    {
+      "path": "shared/registry.py",
+      "source_owner": "synthetic-platform"
+    }
+  ],
+  "status": "APPROVED"
+}

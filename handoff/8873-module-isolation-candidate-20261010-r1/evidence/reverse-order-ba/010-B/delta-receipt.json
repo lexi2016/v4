@@ -1,0 +1,28 @@
+{
+  "base": {
+    "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/G/app",
+    "application_inventory_entry_count": 7,
+    "application_inventory_sha256": "75767c662fe4c5f89aabf1ddc6cfc2c5bf9e603e6812f6d069c065ce8499f6c5",
+    "generation": 0,
+    "release_id": "G",
+    "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/G/release-manifest.json",
+    "release_manifest_sha256": "afe9645b7ac47fdc3a34938c13b477507e2efd81afd62b7a2ed42e28be1bc58a",
+    "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/reverse-order-ba/G"
+  },
+  "business_module": {
+    "base_generation": 0,
+    "module_id": "beta",
+    "operation": "forward",
+    "owner_contract_sha256": "842e81157c1d384693b2f808de8e29010efd7c42d51ca728c6c861c9c2e98aa2"
+  },
+  "entries": [
+    {
+      "after_sha256": "09486a66eb0b4a76ef13a701e5ae26df210c4a3db09d19727066d88fe76ed7ae",
+      "before_sha256": "ff02bfadb8edd31c5f011df43b3a8ad3b9dcc329b728ff03b2ca48666453d8b6",
+      "path": "modules/beta.py",
+      "unified_diff_hunk_count": 1,
+      "unified_diff_sha256": "8e32a7e794ad54d656f4dd71857880b56319709592dd8fffc49a72fb868af42d"
+    }
+  ],
+  "schema_version": "v4.api_release_delta_receipt.v1"
+}

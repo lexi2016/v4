@@ -1,0 +1,79 @@
+{
+  "reviewer": "/root/independent_review",
+  "scope": "SYNTHETIC_TMP_ONLY",
+  "status": "PASS",
+  "started_at": "2026-10-10T15:06:21.063073+00:00",
+  "finished_at": "2026-10-10T15:06:21.315349+00:00",
+  "python": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "source_sha256": {
+    "ops/api_business_modules.py": "0c5b8bc454fb5ae3c55df8bf9a01d935abc14913e9a105b78cfa449ee6d85fc5",
+    "ops/api_release_integration.py": "9cda26b37c8d0912aa007323f7eefce4e23f7ddc8a58a57a0e7935792ef6040c",
+    "ops/build_release_candidate.py": "09314d301640f97a0b95b0fd66107d2bfd2252d0b93c90b294da3b9ff9ae573b",
+    "ops/prepare_api_only_cutover.py": "db42d1c392799b531adf65b2f20748790ab37a9f888c73a3c8bd0e7b9744a9de",
+    "tests/test_api_business_modules.py": "c0db71e9b6500bf86f31ecbb87d7de163a110329b926f87e333dcb0b76ab0217"
+  },
+  "cases": [
+    {
+      "finding": "F1",
+      "scope": "active_app",
+      "status": "PASS",
+      "rejection": "API_BUSINESS_OUTPUT_BOUNDARY"
+    },
+    {
+      "finding": "F1",
+      "scope": "owner_state",
+      "status": "PASS",
+      "rejection": "API_BUSINESS_OUTPUT_BOUNDARY"
+    },
+    {
+      "finding": "F1",
+      "scope": "candidate_app",
+      "status": "PASS",
+      "rejection": "API_BUSINESS_RECEIPT_OVERLAPS_CANDIDATE"
+    },
+    {
+      "finding": "F2",
+      "scope": "intermediate_retained_release",
+      "status": "PASS",
+      "rejection": "API_BUSINESS_OUTPUT_BOUNDARY"
+    },
+    {
+      "finding": "F3",
+      "scope": "V4_MANAGER_SCREEN_AUTHORITY_ROOT",
+      "status": "PASS",
+      "rejection": "API_BUSINESS_OUTPUT_BOUNDARY"
+    },
+    {
+      "finding": "F3",
+      "scope": "V4_MANAGER_NEWS_OWNER_ROOT",
+      "status": "PASS",
+      "rejection": "API_BUSINESS_OUTPUT_BOUNDARY"
+    },
+    {
+      "finding": "F3",
+      "scope": "V4_DAILY_REVIEW_ROOT",
+      "status": "PASS",
+      "rejection": "API_BUSINESS_OUTPUT_BOUNDARY"
+    },
+    {
+      "finding": "F4",
+      "scope": "candidate_config_symlink",
+      "status": "PASS",
+      "rejection": "API_BUSINESS_CONFIG_PATH_SYMLINK_OR_ALIAS"
+    },
+    {
+      "finding": "F5",
+      "scope": "shared/*.py",
+      "status": "PASS",
+      "rejection": "API_BUSINESS_SOURCE_PATH_FORBIDDEN:shared/*.py"
+    },
+    {
+      "finding": "F5",
+      "scope": "shared",
+      "status": "PASS",
+      "rejection": "API_BUSINESS_PATH_OWNER_OVERLAP:shared/registry.py"
+    }
+  ],
+  "case_count": 10,
+  "live_services_called": false
+}

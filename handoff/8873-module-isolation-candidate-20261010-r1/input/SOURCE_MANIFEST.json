@@ -1,0 +1,2624 @@
+{
+  "schema_version": "v4.8873_module_isolation.source_manifest.v2",
+  "package_id": "V4_8873_MODULE_ISOLATION_ISSUE_20261010_R1",
+  "package_status": "READY_FOR_REVIEW",
+  "related_issue": {
+    "url": "https://github.com/lexi2016/v4/issues/30",
+    "historical_reference_commit": "a0a0b88dc133d14ee5763569272c174bcd7cc445",
+    "historical_path": "handoff/api-module-release-20261008/README.md and source/"
+  },
+  "scope": {
+    "write_scope": "new problem-package directory only",
+    "business_source_modified": false,
+    "service_or_launch_agent_changed": false,
+    "owner_or_market_data_included": false,
+    "git_commit_push_or_issue_update_done_by_writer": false,
+    "selection_patch_paused": true
+  },
+  "source_roots": [
+    {
+      "group": "canonical_dirty_worktree",
+      "path": "/Users/lexi/Desktop/学习/v4_app",
+      "identity": "local canonical working tree; dirty/untracked content observed; no Git status operation in this task; recorded source SHA is byte authority"
+    },
+    {
+      "group": "runtime_B_release_source",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "identity": "parent-reported active 8873 source root/release id hk-three-stage-20261010-r1; writer did not re-read process/plist/manifest"
+    },
+    {
+      "group": "historical_preimage",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence",
+      "identity": "read-only snapshots captured in prior issue package; source file copies cross-checked at capture"
+    }
+  ],
+  "snapshot_integrity": {
+    "source_sha256_and_bytes": "unredacted bytes observed at package copy time",
+    "copied_sha256_and_bytes": "actual package payload bytes",
+    "redaction_policy": "10 text source files had every /Users/lexi literal replaced with /REDACTED_LOCAL_HOME; source and payload hashes differ only for these listed files; no other source excerpts or code edits were made",
+    "preserve_full_files": true
+  },
+  "runtime_B_absence_checks": [
+    {
+      "path": "ops/api_release_integration.py",
+      "result": "not present in the runtime-B app source root at package copy time"
+    },
+    {
+      "path": "ops/build_release_candidate_stage.py",
+      "result": "not present in the runtime-B app source root at package copy time"
+    },
+    {
+      "path": "deployment/api_module_contracts.json",
+      "result": "not present in the runtime-B app source root at package copy time"
+    },
+    {
+      "path": "apps/api/v35_api/module_proxy.py",
+      "result": "not present in the runtime-B app source root at package copy time"
+    }
+  ],
+  "source_snapshots": [
+    {
+      "destination": "evidence/preexisting-canonical/ops/run_manager_daily_announcement.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/before-canonical/ops/run_manager_daily_announcement.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence",
+      "source_relative_path": "before-canonical/ops/run_manager_daily_announcement.py",
+      "source_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "source_bytes": 42929,
+      "copied_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "copied_bytes": 42929,
+      "byte_identical": true,
+      "snapshot_group": "historical_preimage",
+      "purpose": "canonical before-source evidence",
+      "git_state": "CAPTURED_IN_PRIOR_EVIDENCE",
+      "role": "preexisting_source_evidence"
+    },
+    {
+      "destination": "evidence/preexisting-canonical/v4/manager_research/workspace_plan.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/before-canonical/v4/manager_research/workspace_plan.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence",
+      "source_relative_path": "before-canonical/v4/manager_research/workspace_plan.py",
+      "source_sha256": "ef0269a8510b9168e2d135de6c1b4d28146a22d0d691aee8dd3fe80f95a698f0",
+      "source_bytes": 97369,
+      "copied_sha256": "ef0269a8510b9168e2d135de6c1b4d28146a22d0d691aee8dd3fe80f95a698f0",
+      "copied_bytes": 97369,
+      "byte_identical": true,
+      "snapshot_group": "historical_preimage",
+      "purpose": "canonical before-source evidence",
+      "git_state": "CAPTURED_IN_PRIOR_EVIDENCE",
+      "role": "preexisting_source_evidence"
+    },
+    {
+      "destination": "evidence/runtime-B/ops/run_manager_daily_announcement.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/before-B/ops/run_manager_daily_announcement.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence",
+      "source_relative_path": "before-B/ops/run_manager_daily_announcement.py",
+      "source_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "source_bytes": 42910,
+      "copied_sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "copied_bytes": 42910,
+      "byte_identical": true,
+      "snapshot_group": "historical_preimage",
+      "purpose": "runtime-B before-source evidence",
+      "git_state": "CAPTURED_IN_PRIOR_EVIDENCE",
+      "role": "preexisting_source_evidence"
+    },
+    {
+      "destination": "evidence/runtime-B/v4/manager_research/workspace_plan.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/before-B/v4/manager_research/workspace_plan.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence",
+      "source_relative_path": "before-B/v4/manager_research/workspace_plan.py",
+      "source_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "source_bytes": 107076,
+      "copied_sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "copied_bytes": 107076,
+      "byte_identical": true,
+      "snapshot_group": "historical_preimage",
+      "purpose": "runtime-B before-source evidence",
+      "git_state": "CAPTURED_IN_PRIOR_EVIDENCE",
+      "role": "preexisting_source_evidence"
+    },
+    {
+      "destination": "source/canonical-worktree/ops/api_release_integration.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/api_release_integration.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "ops/api_release_integration.py",
+      "source_sha256": "718dfd1ba18facfb4204e30c557a330bc3a6a45b1636a18ff95a76263e697c9c",
+      "source_bytes": 35722,
+      "copied_sha256": "718dfd1ba18facfb4204e30c557a330bc3a6a45b1636a18ff95a76263e697c9c",
+      "copied_bytes": 35722,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "existing active-base/delta/CAS integration mechanism",
+      "git_state": "untracked",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/ops/build_release_candidate.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/build_release_candidate.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "ops/build_release_candidate.py",
+      "source_sha256": "6b34291924d1f5099e2af2603311b94029c415c077dcc5f564ae58eccb566561",
+      "source_bytes": 40648,
+      "copied_sha256": "6b34291924d1f5099e2af2603311b94029c415c077dcc5f564ae58eccb566561",
+      "copied_bytes": 40648,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "candidate builder and integration facade",
+      "git_state": "untracked",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/ops/build_release_candidate_stage.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/build_release_candidate_stage.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "ops/build_release_candidate_stage.py",
+      "source_sha256": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df",
+      "source_bytes": 41262,
+      "copied_sha256": "4fc9f13a710c818789ecfaf5c9c16b4ae2249bdeff90947f874c6e05d9858ce0",
+      "copied_bytes": 41271,
+      "byte_identical": false,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "loaded stage candidate helper dependency",
+      "git_state": "status_not_confirmed",
+      "redaction": {
+        "token": "/Users/lexi -> /REDACTED_LOCAL_HOME",
+        "occurrences": 1,
+        "source_sha256_is_unredacted": true,
+        "purpose": "remove machine-specific absolute runtime/data bindings; original behavior/path values must be rebound from live allowlisted sources before implementation"
+      },
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/ops/prepare_api_only_cutover.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/prepare_api_only_cutover.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "ops/prepare_api_only_cutover.py",
+      "source_sha256": "7d65d1f24dcf877df4ae4cc757d9e573bd5340b93484e02bd6ac7d4231f71725",
+      "source_bytes": 28016,
+      "copied_sha256": "e12bd6d2ce53f5038e5a52412fa19dd9b673501302016a831820776b38a14c3c",
+      "copied_bytes": 28034,
+      "byte_identical": false,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "existing API-only/module cutover preparation",
+      "git_state": "untracked",
+      "redaction": {
+        "token": "/Users/lexi -> /REDACTED_LOCAL_HOME",
+        "occurrences": 2,
+        "source_sha256_is_unredacted": true,
+        "purpose": "remove machine-specific absolute runtime/data bindings; original behavior/path values must be rebound from live allowlisted sources before implementation"
+      },
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/ops/release_candidate_sources.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/release_candidate_sources.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "ops/release_candidate_sources.py",
+      "source_sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+      "source_bytes": 11977,
+      "copied_sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+      "copied_bytes": 11977,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "source snapshot/copy/inventory helper",
+      "git_state": "untracked",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/ops/release_candidate_audit.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/release_candidate_audit.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "ops/release_candidate_audit.py",
+      "source_sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+      "source_bytes": 11775,
+      "copied_sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+      "copied_bytes": 11775,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "loaded release audit helper",
+      "git_state": "untracked",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/ops/release_candidate_ports.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/release_candidate_ports.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "ops/release_candidate_ports.py",
+      "source_sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+      "source_bytes": 980,
+      "copied_sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+      "copied_bytes": 980,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "builder helper protocol dependency",
+      "git_state": "untracked",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/infrastructure/interprocess_lock.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/infrastructure/interprocess_lock.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "infrastructure/interprocess_lock.py",
+      "source_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "source_bytes": 7514,
+      "copied_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "copied_bytes": 7514,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "cross-process owned lock dependency",
+      "git_state": "status_not_captured",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/tools/prepare_api_module_candidates.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tools/prepare_api_module_candidates.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "tools/prepare_api_module_candidates.py",
+      "source_sha256": "358df37ec48fa973d6db2507b5db1fa95cfcb0958fa1ae51266c770fcc5342b2",
+      "source_bytes": 11853,
+      "copied_sha256": "485fe7fc2804f2163762226c34c201bc376ef8c63f6b5071c5e3e44090ed533d",
+      "copied_bytes": 11880,
+      "byte_identical": false,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "existing candidate preparation entry; hard-coded local roots per read-only architecture review",
+      "git_state": "untracked",
+      "redaction": {
+        "token": "/Users/lexi -> /REDACTED_LOCAL_HOME",
+        "occurrences": 3,
+        "source_sha256_is_unredacted": true,
+        "purpose": "remove machine-specific absolute runtime/data bindings; original behavior/path values must be rebound from live allowlisted sources before implementation"
+      },
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/deployment/api_module_contracts.json",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/deployment/api_module_contracts.json",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "deployment/api_module_contracts.json",
+      "source_sha256": "a19d37fe35c2abc9d303f5a7e4ac77de0aea2f654eb50f30b159ee49751eaad8",
+      "source_bytes": 5509,
+      "copied_sha256": "37ec5c5c1cb83703ee4adf6c6329c2d46360804e06f7b2c08b5186dcf1b3a11e",
+      "copied_bytes": 5545,
+      "byte_identical": false,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "candidate service-role contract; not active runtime binding",
+      "git_state": "untracked",
+      "redaction": {
+        "token": "/Users/lexi -> /REDACTED_LOCAL_HOME",
+        "occurrences": 4,
+        "source_sha256_is_unredacted": true,
+        "purpose": "remove machine-specific absolute runtime/data bindings; original behavior/path values must be rebound from live allowlisted sources before implementation"
+      },
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/tests/test_api_release_integration.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_api_release_integration.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "tests/test_api_release_integration.py",
+      "source_sha256": "3c63b4af8dc11fd54939146047784b1e237f26c076bf5a2402b0bdd2cf52c36c",
+      "source_bytes": 11986,
+      "copied_sha256": "3c63b4af8dc11fd54939146047784b1e237f26c076bf5a2402b0bdd2cf52c36c",
+      "copied_bytes": 11986,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "existing release integration mechanism tests",
+      "git_state": "untracked",
+      "role": "existing_test_source"
+    },
+    {
+      "destination": "source/canonical-worktree/tests/test_api_module_release.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_api_module_release.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "tests/test_api_module_release.py",
+      "source_sha256": "991646ff8f550064b594451fabfa99bf66a8068840ab59c022cdabe0973d68bb",
+      "source_bytes": 12016,
+      "copied_sha256": "991646ff8f550064b594451fabfa99bf66a8068840ab59c022cdabe0973d68bb",
+      "copied_bytes": 12016,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "existing role/module release tests",
+      "git_state": "untracked",
+      "role": "existing_test_source"
+    },
+    {
+      "destination": "source/canonical-worktree/tests/test_api_module_proxy.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_api_module_proxy.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "tests/test_api_module_proxy.py",
+      "source_sha256": "bab2438e52aad1257104fcf7941cb316cb0e858d10793875449398fb69d15044",
+      "source_bytes": 6744,
+      "copied_sha256": "bab2438e52aad1257104fcf7941cb316cb0e858d10793875449398fb69d15044",
+      "copied_bytes": 6744,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "candidate app-proxy tests",
+      "git_state": "untracked",
+      "role": "existing_test_source"
+    },
+    {
+      "destination": "source/canonical-worktree/pyproject.toml",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/pyproject.toml",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "pyproject.toml",
+      "source_sha256": "4f792160e360aa7947e20e2f8456a5136558dff43356ce89e529cbdef561492e",
+      "source_bytes": 625,
+      "copied_sha256": "4f792160e360aa7947e20e2f8456a5136558dff43356ce89e529cbdef561492e",
+      "copied_bytes": 625,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "project Python dependency declarations",
+      "git_state": "status_not_captured",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/uv.lock",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/uv.lock",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "uv.lock",
+      "source_sha256": "d203f9c5f381d0aef47f8bd74030683b9a6ba994e55a723d45a3d82fb8a460df",
+      "source_bytes": 89575,
+      "copied_sha256": "d203f9c5f381d0aef47f8bd74030683b9a6ba994e55a723d45a3d82fb8a460df",
+      "copied_bytes": 89575,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "project Python dependency lock snapshot",
+      "git_state": "status_not_captured",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/apps/api/v35_api/app.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/app.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "apps/api/v35_api/app.py",
+      "source_sha256": "0362282afbac2d6684e1b6d27a6c4852fe96272e29cc29ff618719793f6ec465",
+      "source_bytes": 342983,
+      "copied_sha256": "48fdc43641e854226601ed6238e4a2fff12e3658d42ad6f703a414c97d749111",
+      "copied_bytes": 343307,
+      "byte_identical": false,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "canonical dirty-worktree app/router candidate (not active B source)",
+      "git_state": "modified",
+      "redaction": {
+        "token": "/Users/lexi -> /REDACTED_LOCAL_HOME",
+        "occurrences": 36,
+        "source_sha256_is_unredacted": true,
+        "purpose": "remove machine-specific absolute runtime/data bindings; original behavior/path values must be rebound from live allowlisted sources before implementation"
+      },
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/apps/api/v35_api/run.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/run.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "apps/api/v35_api/run.py",
+      "source_sha256": "a755ed7d034c663abd8aa2fe373560e173848c038266594e22ce86d6f249ff1d",
+      "source_bytes": 3768,
+      "copied_sha256": "a755ed7d034c663abd8aa2fe373560e173848c038266594e22ce86d6f249ff1d",
+      "copied_bytes": 3768,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "canonical dirty-worktree API launcher candidate",
+      "git_state": "modified",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/apps/api/v35_api/module_proxy.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/module_proxy.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "apps/api/v35_api/module_proxy.py",
+      "source_sha256": "7130838bfdc41b74398730c1accc3653926cd89c36982119a8f7f6592662d450",
+      "source_bytes": 9779,
+      "copied_sha256": "7130838bfdc41b74398730c1accc3653926cd89c36982119a8f7f6592662d450",
+      "copied_bytes": 9779,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "canonical dirty-worktree proxy candidate; absent from active B release",
+      "git_state": "untracked",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/apps/api/v35_api/preselection_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/preselection_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "apps/api/v35_api/preselection_router.py",
+      "source_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "source_bytes": 1322,
+      "copied_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "copied_bytes": 1322,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "canonical dirty-worktree preselection router candidate",
+      "git_state": "untracked",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/canonical-worktree/apps/api/v35_api/manager_research_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/manager_research_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "source_relative_path": "apps/api/v35_api/manager_research_router.py",
+      "source_sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "source_bytes": 25261,
+      "copied_sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "copied_bytes": 25261,
+      "byte_identical": true,
+      "snapshot_group": "canonical_dirty_worktree",
+      "purpose": "canonical API router snapshot for current source comparison",
+      "git_state": "status_not_captured",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/app.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/app.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/app.py",
+      "source_sha256": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8",
+      "source_bytes": 327298,
+      "copied_sha256": "7dfbc944bcf6775064ff600149e785775be24d9f2b6ac3b44d180917dc7965e8",
+      "copied_bytes": 327622,
+      "byte_identical": false,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "redaction": {
+        "token": "/Users/lexi -> /REDACTED_LOCAL_HOME",
+        "occurrences": 36,
+        "source_sha256_is_unredacted": true,
+        "purpose": "remove machine-specific absolute runtime/data bindings; original behavior/path values must be rebound from live allowlisted sources before implementation"
+      },
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/run.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/run.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/run.py",
+      "source_sha256": "bcd4e623eabaedcc41a0e438942d755b578dbcc6a60c0ab0cf032af74fdbba43",
+      "source_bytes": 2616,
+      "copied_sha256": "bcd4e623eabaedcc41a0e438942d755b578dbcc6a60c0ab0cf032af74fdbba43",
+      "copied_bytes": 2616,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/baimao_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/baimao_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/baimao_router.py",
+      "source_sha256": "ca158864df1506a733c002d2e26bfb271de60eb0a9e34bcaeaea0f97a5192ae8",
+      "source_bytes": 2708,
+      "copied_sha256": "ca158864df1506a733c002d2e26bfb271de60eb0a9e34bcaeaea0f97a5192ae8",
+      "copied_bytes": 2708,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/preselection_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/preselection_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/preselection_router.py",
+      "source_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "source_bytes": 1322,
+      "copied_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "copied_bytes": 1322,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/preselection_service.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/preselection_service.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/preselection_service.py",
+      "source_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "source_bytes": 30761,
+      "copied_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "copied_bytes": 30761,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/manager_research_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/manager_research_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/manager_research_router.py",
+      "source_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "source_bytes": 35556,
+      "copied_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "copied_bytes": 35556,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/manager_workbench_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/manager_workbench_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/manager_workbench_router.py",
+      "source_sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+      "source_bytes": 57619,
+      "copied_sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+      "copied_bytes": 57619,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/research_lane_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/research_lane_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/research_lane_router.py",
+      "source_sha256": "4c923e9184f192852f74d3427c980e02d26ce1af2386a2e4d27dd77f06b5939a",
+      "source_bytes": 51992,
+      "copied_sha256": "4c923e9184f192852f74d3427c980e02d26ce1af2386a2e4d27dd77f06b5939a",
+      "copied_bytes": 51992,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/runtime_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/runtime_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/runtime_router.py",
+      "source_sha256": "b231a2202ec142ee5dc84dfb2b8b00252af3f85560f9b62c27d29d9fa73b49f2",
+      "source_bytes": 1707,
+      "copied_sha256": "b231a2202ec142ee5dc84dfb2b8b00252af3f85560f9b62c27d29d9fa73b49f2",
+      "copied_bytes": 1707,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/runtime_graph_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/runtime_graph_router.py",
+      "source_sha256": "9cc9be6bc929be53168f4115d808690b9560978129dff8557fb0c0a5d6ff9531",
+      "source_bytes": 26824,
+      "copied_sha256": "9cc9be6bc929be53168f4115d808690b9560978129dff8557fb0c0a5d6ff9531",
+      "copied_bytes": 26824,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/review_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/review_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/review_router.py",
+      "source_sha256": "ef6e870077fecd1e025ec1a0741ec3f766b76ef914b60661e4f32937acc9e28d",
+      "source_bytes": 42184,
+      "copied_sha256": "ef6e870077fecd1e025ec1a0741ec3f766b76ef914b60661e4f32937acc9e28d",
+      "copied_bytes": 42184,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/api/v35_api/research_router.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/api/v35_api/research_router.py",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/api/v35_api/research_router.py",
+      "source_sha256": "dd141afaa10f5c90c09be4cec093675f44d1030933b04d8b2d0dfbe67af11ea8",
+      "source_bytes": 28231,
+      "copied_sha256": "dd141afaa10f5c90c09be4cec093675f44d1030933b04d8b2d0dfbe67af11ea8",
+      "copied_bytes": 28231,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_release_source",
+      "purpose": "active API route composition or directly registered router",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/package.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/package.json",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/package.json",
+      "source_sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+      "source_bytes": 492,
+      "copied_sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+      "copied_bytes": 492,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/package-lock.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/package-lock.json",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/package-lock.json",
+      "source_sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+      "source_bytes": 149437,
+      "copied_sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+      "copied_bytes": 149437,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/tsconfig.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/tsconfig.json",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/tsconfig.json",
+      "source_sha256": "aeb4f907263b28da51895370935cecf1152aec0f142e191b90d5877e3b37aebe",
+      "source_bytes": 258,
+      "copied_sha256": "aeb4f907263b28da51895370935cecf1152aec0f142e191b90d5877e3b37aebe",
+      "copied_bytes": 258,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/vite.config.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/vite.config.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/vite.config.ts",
+      "source_sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+      "source_bytes": 491,
+      "copied_sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+      "copied_bytes": 491,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/index.html",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/index.html",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/index.html",
+      "source_sha256": "4a03a2c60e2becc71dfa7a4aeb9c7da7ed04e74832b77151cedc2cc9c814594d",
+      "source_bytes": 561,
+      "copied_sha256": "4a03a2c60e2becc71dfa7a4aeb9c7da7ed04e74832b77151cedc2cc9c814594d",
+      "copied_bytes": 561,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/daily-research-command/index.html",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/daily-research-command/index.html",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/daily-research-command/index.html",
+      "source_sha256": "a6994e5ce3832cada2ce4b6c4667969d9e33e905b5865c41a9db30217f3bde6e",
+      "source_bytes": 406,
+      "copied_sha256": "a6994e5ce3832cada2ce4b6c4667969d9e33e905b5865c41a9db30217f3bde6e",
+      "copied_bytes": 406,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/manager-selection/index.html",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/manager-selection/index.html",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/manager-selection/index.html",
+      "source_sha256": "dde06bee12772b83d670ca1d86569d7a2da6476e7972e24ade20dee3f3fcba2f",
+      "source_bytes": 397,
+      "copied_sha256": "dde06bee12772b83d670ca1d86569d7a2da6476e7972e24ade20dee3f3fcba2f",
+      "copied_bytes": 397,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/App.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/App.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/App.vue",
+      "source_sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f",
+      "source_bytes": 123582,
+      "copied_sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f",
+      "copied_bytes": 123582,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/globalIndustries.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/globalIndustries.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/globalIndustries.ts",
+      "source_sha256": "023b0316f3961abcd298cb0ae5fce05949e377548a57361c015ad2ad7eb9cdbe",
+      "source_bytes": 890,
+      "copied_sha256": "023b0316f3961abcd298cb0ae5fce05949e377548a57361c015ad2ad7eb9cdbe",
+      "copied_bytes": 890,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "source_sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "source_bytes": 19705,
+      "copied_sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "copied_bytes": 19705,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/managerCatalystObservations.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/managerCatalystObservations.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/managerCatalystObservations.ts",
+      "source_sha256": "5413dc86478e7ab838ccdcca20ae740355b6c728b0e22392328bf6789dcac555",
+      "source_bytes": 5181,
+      "copied_sha256": "5413dc86478e7ab838ccdcca20ae740355b6c728b0e22392328bf6789dcac555",
+      "copied_bytes": 5181,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/managerDecision.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/managerDecision.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/managerDecision.ts",
+      "source_sha256": "34e4c30ce66f973935ec2b427b0839a838f2ce8f04cb84018532a7997e49f4e3",
+      "source_bytes": 923,
+      "copied_sha256": "34e4c30ce66f973935ec2b427b0839a838f2ce8f04cb84018532a7997e49f4e3",
+      "copied_bytes": 923,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/managerPreselection.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/managerPreselection.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/managerPreselection.ts",
+      "source_sha256": "29a0d16821774ab402d769bddcb79eba10ffa8b068c51c97ea308d92ea58794f",
+      "source_bytes": 847,
+      "copied_sha256": "29a0d16821774ab402d769bddcb79eba10ffa8b068c51c97ea308d92ea58794f",
+      "copied_bytes": 847,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/managerResearch.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/managerResearch.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/managerResearch.ts",
+      "source_sha256": "42f6e4d19614675eaa66fc22809cacfbdb5caa1f64c655c98df5e9e9b95b1ae0",
+      "source_bytes": 18879,
+      "copied_sha256": "42f6e4d19614675eaa66fc22809cacfbdb5caa1f64c655c98df5e9e9b95b1ae0",
+      "copied_bytes": 18879,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/managerStageSelection.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/managerStageSelection.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/managerStageSelection.ts",
+      "source_sha256": "f7854ab5dabc2441a29546a88517e5cf27eb8c90491f750fe02669374654b56a",
+      "source_bytes": 1116,
+      "copied_sha256": "f7854ab5dabc2441a29546a88517e5cf27eb8c90491f750fe02669374654b56a",
+      "copied_bytes": 1116,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/managerWorkbenchResearch.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/managerWorkbenchResearch.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/managerWorkbenchResearch.ts",
+      "source_sha256": "4335963c9b9c4b3d95ddb8758903812ecef057dc52afb02dc1a7c15185724aea",
+      "source_bytes": 2042,
+      "copied_sha256": "4335963c9b9c4b3d95ddb8758903812ecef057dc52afb02dc1a7c15185724aea",
+      "copied_bytes": 2042,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/managerWorkspace.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/managerWorkspace.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/managerWorkspace.ts",
+      "source_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "source_bytes": 119467,
+      "copied_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "copied_bytes": 119467,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/research_lane.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/research_lane.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/research_lane.ts",
+      "source_sha256": "a9b8277f3e967cf02c3c5d759278be696142642254625a48bfeb64ecde8cd7bf",
+      "source_bytes": 17538,
+      "copied_sha256": "a9b8277f3e967cf02c3c5d759278be696142642254625a48bfeb64ecde8cd7bf",
+      "copied_bytes": 17538,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/review.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/review.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/review.ts",
+      "source_sha256": "fc2c7551fe386a9b01375d6d82d7f633990bba169f48e9b918386e31baa6dd7d",
+      "source_bytes": 1436,
+      "copied_sha256": "fc2c7551fe386a9b01375d6d82d7f633990bba169f48e9b918386e31baa6dd7d",
+      "copied_bytes": 1436,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/runtime.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/runtime.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/runtime.ts",
+      "source_sha256": "96d257a9266400443b7aad1252c4f709a0f24873ce9afab3f4a6dc9a189ff7c0",
+      "source_bytes": 417,
+      "copied_sha256": "96d257a9266400443b7aad1252c4f709a0f24873ce9afab3f4a6dc9a189ff7c0",
+      "copied_bytes": 417,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/selection.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/selection.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/selection.ts",
+      "source_sha256": "f94a8d4431fbfcf178a666eb019925b803c2e9ebb1cf9b31c93d5469189ff74d",
+      "source_bytes": 1177,
+      "copied_sha256": "f94a8d4431fbfcf178a666eb019925b803c2e9ebb1cf9b31c93d5469189ff74d",
+      "copied_bytes": 1177,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/api/wechat_research.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/api/wechat_research.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/api/wechat_research.ts",
+      "source_sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
+      "source_bytes": 14754,
+      "copied_sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
+      "copied_bytes": 14754,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchAlertPanel.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/daily-research-command/DailyResearchAlertPanel.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/daily-research-command/DailyResearchAlertPanel.vue",
+      "source_sha256": "f682b6cc37c9d2f7236c1a0c4b7ad3ba99fa81d4073efbb08afe07b9b41abf9c",
+      "source_bytes": 2737,
+      "copied_sha256": "f682b6cc37c9d2f7236c1a0c4b7ad3ba99fa81d4073efbb08afe07b9b41abf9c",
+      "copied_bytes": 2737,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchHero.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/daily-research-command/DailyResearchHero.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/daily-research-command/DailyResearchHero.vue",
+      "source_sha256": "c5b47faf17654b89e140358ecab6ceb31868eae79bd7c973f3f3557ad061e185",
+      "source_bytes": 5367,
+      "copied_sha256": "c5b47faf17654b89e140358ecab6ceb31868eae79bd7c973f3f3557ad061e185",
+      "copied_bytes": 5367,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchHourlyDiagnostic.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/daily-research-command/DailyResearchHourlyDiagnostic.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/daily-research-command/DailyResearchHourlyDiagnostic.vue",
+      "source_sha256": "99994f2ec38e2b3061b5fdf7d6363d6eaad24805b787cf1822edbab0f106092e",
+      "source_bytes": 996,
+      "copied_sha256": "99994f2ec38e2b3061b5fdf7d6363d6eaad24805b787cf1822edbab0f106092e",
+      "copied_bytes": 996,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchLineage.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/daily-research-command/DailyResearchLineage.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/daily-research-command/DailyResearchLineage.vue",
+      "source_sha256": "94fa1c74db8701a9af734795a0c74579adba03d6ca3cceb262848ab95a5f9422",
+      "source_bytes": 2992,
+      "copied_sha256": "94fa1c74db8701a9af734795a0c74579adba03d6ca3cceb262848ab95a5f9422",
+      "copied_bytes": 2992,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchMetrics.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/daily-research-command/DailyResearchMetrics.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/daily-research-command/DailyResearchMetrics.vue",
+      "source_sha256": "71f4f68432a9f8a9b23022aa2aae929954a6aa5100972042f9b4746ae3dcb3f4",
+      "source_bytes": 3153,
+      "copied_sha256": "71f4f68432a9f8a9b23022aa2aae929954a6aa5100972042f9b4746ae3dcb3f4",
+      "copied_bytes": 3153,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchPools.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/daily-research-command/DailyResearchPools.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/daily-research-command/DailyResearchPools.vue",
+      "source_sha256": "b03af7d1ca0f0abfcd6231bb9ba53f4e272349cf740b2bf179bcd0543ebfc395",
+      "source_bytes": 5626,
+      "copied_sha256": "b03af7d1ca0f0abfcd6231bb9ba53f4e272349cf740b2bf179bcd0543ebfc395",
+      "copied_bytes": 5626,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchSlotMatrix.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/daily-research-command/DailyResearchSlotMatrix.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/daily-research-command/DailyResearchSlotMatrix.vue",
+      "source_sha256": "ac61c10627dfa1b5cd0269efc22ae50412f681c91db88e8b6d4ae7845e845d57",
+      "source_bytes": 2576,
+      "copied_sha256": "ac61c10627dfa1b5cd0269efc22ae50412f681c91db88e8b6d4ae7845e845d57",
+      "copied_bytes": 2576,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/daily-research-command/types.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/daily-research-command/types.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/daily-research-command/types.ts",
+      "source_sha256": "7b06a9da0e790083636a13b5994808676713d2ff91eea5e1de11ef8933bf5607",
+      "source_bytes": 2146,
+      "copied_sha256": "7b06a9da0e790083636a13b5994808676713d2ff91eea5e1de11ef8933bf5607",
+      "copied_bytes": 2146,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/research/GlobalIndustryMap.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/research/GlobalIndustryMap.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/research/GlobalIndustryMap.vue",
+      "source_sha256": "65a3b21d99800a3a609ef8d2c48389a9b1c15bec99cc1fe1dd0fd8ced4eeb5be",
+      "source_bytes": 18599,
+      "copied_sha256": "65a3b21d99800a3a609ef8d2c48389a9b1c15bec99cc1fe1dd0fd8ced4eeb5be",
+      "copied_bytes": 18599,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/research/ResearchAppendix.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/research/ResearchAppendix.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/research/ResearchAppendix.vue",
+      "source_sha256": "2969a9c32e5a253c7f4165f30f1faa3cf3283ebcb33aae0fb83f1c9b209f4a21",
+      "source_bytes": 415,
+      "copied_sha256": "2969a9c32e5a253c7f4165f30f1faa3cf3283ebcb33aae0fb83f1c9b209f4a21",
+      "copied_bytes": 415,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/research/ResearchContextPane.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/research/ResearchContextPane.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/research/ResearchContextPane.vue",
+      "source_sha256": "1cbcfcc7109e7b1a15d49e64435ba32b67c204f0bf0ea2a797a2a93687afac59",
+      "source_bytes": 2096,
+      "copied_sha256": "1cbcfcc7109e7b1a15d49e64435ba32b67c204f0bf0ea2a797a2a93687afac59",
+      "copied_bytes": 2096,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/research/ResearchFeedCard.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/research/ResearchFeedCard.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/research/ResearchFeedCard.vue",
+      "source_sha256": "c0b28a51032c5ed71f845677557bd8d52200f7227ea420d89e87ecbe4f8c2a48",
+      "source_bytes": 1938,
+      "copied_sha256": "c0b28a51032c5ed71f845677557bd8d52200f7227ea420d89e87ecbe4f8c2a48",
+      "copied_bytes": 1938,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/research/ResearchFeedPane.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/research/ResearchFeedPane.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/research/ResearchFeedPane.vue",
+      "source_sha256": "7f67ead7f5db6a4c4ecb62ebd9fa6ad026f11500e4d28d93e26bf7ccc5833ae3",
+      "source_bytes": 2104,
+      "copied_sha256": "7f67ead7f5db6a4c4ecb62ebd9fa6ad026f11500e4d28d93e26bf7ccc5833ae3",
+      "copied_bytes": 2104,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/research/ResearchImpactList.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/research/ResearchImpactList.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/research/ResearchImpactList.vue",
+      "source_sha256": "e1ee108bef944e87c110d4fbc57e6eca814bbd272869a19530d764878d6491da",
+      "source_bytes": 3291,
+      "copied_sha256": "e1ee108bef944e87c110d4fbc57e6eca814bbd272869a19530d764878d6491da",
+      "copied_bytes": 3291,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/research/ResearchSourceColumns.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/research/ResearchSourceColumns.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/research/ResearchSourceColumns.vue",
+      "source_sha256": "9c2708b8391722269963a38d77376ee4c02874686d05425c7003c7322b97cc7a",
+      "source_bytes": 1528,
+      "copied_sha256": "9c2708b8391722269963a38d77376ee4c02874686d05425c7003c7322b97cc7a",
+      "copied_bytes": 1528,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/research/ResearchStatusStrip.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/research/ResearchStatusStrip.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/research/ResearchStatusStrip.vue",
+      "source_sha256": "6742edf7cdc3d0c22f1e54dd2408dee319667c40d481d578379aa2253d8538d2",
+      "source_bytes": 2807,
+      "copied_sha256": "6742edf7cdc3d0c22f1e54dd2408dee319667c40d481d578379aa2253d8538d2",
+      "copied_bytes": 2807,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/research/WechatMentionPool.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/research/WechatMentionPool.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/research/WechatMentionPool.vue",
+      "source_sha256": "e542fb168e3f3fd6b8303e01df3002c8ae01a33c353ab30da944de7b59f18ce7",
+      "source_bytes": 10776,
+      "copied_sha256": "e542fb168e3f3fd6b8303e01df3002c8ae01a33c353ab30da944de7b59f18ce7",
+      "copied_bytes": 10776,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/research/WechatResearchPanel.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/research/WechatResearchPanel.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/research/WechatResearchPanel.vue",
+      "source_sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
+      "source_bytes": 14210,
+      "copied_sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
+      "copied_bytes": 14210,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/review/AshareReviewPanel.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/review/AshareReviewPanel.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/review/AshareReviewPanel.vue",
+      "source_sha256": "f9deaf8d15a3273d3237458b083b847a72f6dcda86824d37731103c13d6672bf",
+      "source_bytes": 25639,
+      "copied_sha256": "f9deaf8d15a3273d3237458b083b847a72f6dcda86824d37731103c13d6672bf",
+      "copied_bytes": 25639,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/review/DailyResearchReviewPanel.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/review/DailyResearchReviewPanel.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/review/DailyResearchReviewPanel.vue",
+      "source_sha256": "a62d8c47419cac7d3d674693eddb5984b12f18268188f0328b163a60d590efb9",
+      "source_bytes": 27458,
+      "copied_sha256": "a62d8c47419cac7d3d674693eddb5984b12f18268188f0328b163a60d590efb9",
+      "copied_bytes": 27458,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "source_sha256": "d57f0c6c00a7bbc93fd8a05ea5d2debc2131d67c9029fa0aa1ecec64bfaa7fbf",
+      "source_bytes": 9855,
+      "copied_sha256": "d57f0c6c00a7bbc93fd8a05ea5d2debc2131d67c9029fa0aa1ecec64bfaa7fbf",
+      "copied_bytes": 9855,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/review/ReviewEvidencePanel.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/review/ReviewEvidencePanel.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/review/ReviewEvidencePanel.vue",
+      "source_sha256": "6164c5cd0042f70315b3aa6daf102b706c8b99055dffa702a574ca96ce025ef4",
+      "source_bytes": 3531,
+      "copied_sha256": "6164c5cd0042f70315b3aa6daf102b706c8b99055dffa702a574ca96ce025ef4",
+      "copied_bytes": 3531,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "source_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "source_bytes": 8779,
+      "copied_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "copied_bytes": 8779,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/components/review/StageSummaryPanel.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/components/review/StageSummaryPanel.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/components/review/StageSummaryPanel.vue",
+      "source_sha256": "4457dfd6aa6e138493026358b186011bed6e7b09f9ba33a6a529db1b3a6483b5",
+      "source_bytes": 4424,
+      "copied_sha256": "4457dfd6aa6e138493026358b186011bed6e7b09f9ba33a6a529db1b3a6483b5",
+      "copied_bytes": 4424,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/composables/useResearchLane.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/composables/useResearchLane.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/composables/useResearchLane.ts",
+      "source_sha256": "6159ce4b07d8fa9a0eb281502d9ca4bb9af2bbc897370097f2befdaca5015da3",
+      "source_bytes": 14290,
+      "copied_sha256": "6159ce4b07d8fa9a0eb281502d9ca4bb9af2bbc897370097f2befdaca5015da3",
+      "copied_bytes": 14290,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/contracts/globalIndustries.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/contracts/globalIndustries.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/contracts/globalIndustries.ts",
+      "source_sha256": "5eeefef359e082f4cd39c08cf66fc57ea28aa0d12a567d74d4d7f28b7ba04277",
+      "source_bytes": 5109,
+      "copied_sha256": "5eeefef359e082f4cd39c08cf66fc57ea28aa0d12a567d74d4d7f28b7ba04277",
+      "copied_bytes": 5109,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/contracts/managerDecision.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/contracts/managerDecision.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/contracts/managerDecision.ts",
+      "source_sha256": "80ee9cdd31ad6de7575da0318046dffe4d1e3c4f7aebdc4a8fe66af4b285c184",
+      "source_bytes": 14787,
+      "copied_sha256": "80ee9cdd31ad6de7575da0318046dffe4d1e3c4f7aebdc4a8fe66af4b285c184",
+      "copied_bytes": 14787,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/contracts/managerPreselection.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/contracts/managerPreselection.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/contracts/managerPreselection.ts",
+      "source_sha256": "ecf15c3a472fabba3737e60e525c9728adc018b21062a4d0d3218c0a70fcf9c3",
+      "source_bytes": 14967,
+      "copied_sha256": "ecf15c3a472fabba3737e60e525c9728adc018b21062a4d0d3218c0a70fcf9c3",
+      "copied_bytes": 14967,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/contracts/managerStageSelection.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/contracts/managerStageSelection.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/contracts/managerStageSelection.ts",
+      "source_sha256": "53893ac1e9b7b1e3cad031d2eb1cdc9d63230d1a011e0969f82ac472eea5df6c",
+      "source_bytes": 12620,
+      "copied_sha256": "53893ac1e9b7b1e3cad031d2eb1cdc9d63230d1a011e0969f82ac472eea5df6c",
+      "copied_bytes": 12620,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/contracts/managerWorkbenchResearch.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/contracts/managerWorkbenchResearch.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/contracts/managerWorkbenchResearch.ts",
+      "source_sha256": "bbdcb12c9a99eead6d2384fd93f0763cdc43989fa2c235ea654f6a385db1a9b5",
+      "source_bytes": 24221,
+      "copied_sha256": "bbdcb12c9a99eead6d2384fd93f0763cdc43989fa2c235ea654f6a385db1a9b5",
+      "copied_bytes": 24221,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/contracts/research.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/contracts/research.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/contracts/research.ts",
+      "source_sha256": "74324e313f8811822c18b3c65c7f80a6661d3dca8ac5a7f02820139d55bd7bf9",
+      "source_bytes": 5897,
+      "copied_sha256": "74324e313f8811822c18b3c65c7f80a6661d3dca8ac5a7f02820139d55bd7bf9",
+      "copied_bytes": 5897,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/contracts/review.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/contracts/review.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/contracts/review.ts",
+      "source_sha256": "079adf7971e346a8da5d40c49bc3c1fdfb2307aaf6ed70df5ed4d9312699c507",
+      "source_bytes": 10012,
+      "copied_sha256": "079adf7971e346a8da5d40c49bc3c1fdfb2307aaf6ed70df5ed4d9312699c507",
+      "copied_bytes": 10012,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/contracts/runtime.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/contracts/runtime.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/contracts/runtime.ts",
+      "source_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "source_bytes": 4723,
+      "copied_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "copied_bytes": 4723,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/contracts/selection.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/contracts/selection.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/contracts/selection.ts",
+      "source_sha256": "502683e146f0860ea37b730ec8999ca145c783aa06907f04166145e5db8b00c8",
+      "source_bytes": 54132,
+      "copied_sha256": "502683e146f0860ea37b730ec8999ca145c783aa06907f04166145e5db8b00c8",
+      "copied_bytes": 54132,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/daily-research-command/main.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/daily-research-command/main.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/daily-research-command/main.ts",
+      "source_sha256": "b8235092c762fc5cb485b649a6a45a05b434511301ca9f0444515bb04a465385",
+      "source_bytes": 230,
+      "copied_sha256": "b8235092c762fc5cb485b649a6a45a05b434511301ca9f0444515bb04a465385",
+      "copied_bytes": 230,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/main.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/main.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/main.ts",
+      "source_sha256": "e6500223b08750e885d03202ca2776bb169095420cbc9608f8bbf03b6c7d2c41",
+      "source_bytes": 116,
+      "copied_sha256": "e6500223b08750e885d03202ca2776bb169095420cbc9608f8bbf03b6c7d2c41",
+      "copied_bytes": 116,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/adapters/priority.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/adapters/priority.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/adapters/priority.ts",
+      "source_sha256": "65fbdd8cb9e635787e0771de748ae0a106c08a937111fb64e8832856cf1ef671",
+      "source_bytes": 44423,
+      "copied_sha256": "65fbdd8cb9e635787e0771de748ae0a106c08a937111fb64e8832856cf1ef671",
+      "copied_bytes": 44423,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+      "source_sha256": "a4b147c00050bfe6afe0bb4ffd96f6ad481d9bbd3b9cac91111d34ecb57a2453",
+      "source_bytes": 46083,
+      "copied_sha256": "a4b147c00050bfe6afe0bb4ffd96f6ad481d9bbd3b9cac91111d34ecb57a2453",
+      "copied_bytes": 46083,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+      "source_sha256": "f35380e1be0d6997348fe2b754fe865cd6efb633e337345f9bd8b4654e716fe3",
+      "source_bytes": 2981,
+      "copied_sha256": "f35380e1be0d6997348fe2b754fe865cd6efb633e337345f9bd8b4654e716fe3",
+      "copied_bytes": 2981,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+      "source_sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+      "source_bytes": 9195,
+      "copied_sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+      "copied_bytes": 9195,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "source_sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "source_bytes": 17541,
+      "copied_sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "copied_bytes": 17541,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/announcementObservation.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/announcementObservation.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/announcementObservation.ts",
+      "source_sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+      "source_bytes": 16354,
+      "copied_sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+      "copied_bytes": 16354,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/businessStatus.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/businessStatus.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/businessStatus.ts",
+      "source_sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
+      "source_bytes": 16160,
+      "copied_sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
+      "copied_bytes": 16160,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "source_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "source_bytes": 63578,
+      "copied_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "copied_bytes": 63578,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/dailyChannels.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/dailyChannels.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "source_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "source_bytes": 19467,
+      "copied_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "copied_bytes": 19467,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/main.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/main.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/main.ts",
+      "source_sha256": "769df8d97df6c27785cbaa248b80fb6cc447cfe3afbd627e32fe925d2065b843",
+      "source_bytes": 166,
+      "copied_sha256": "769df8d97df6c27785cbaa248b80fb6cc447cfe3afbd627e32fe925d2065b843",
+      "copied_bytes": 166,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/manager-selection/researchAttention.ts",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/manager-selection/researchAttention.ts",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/manager-selection/researchAttention.ts",
+      "source_sha256": "6d93d766c93da20130a5f0ac673820e6d27267c563742420ce6fbe2718adf4b6",
+      "source_bytes": 26264,
+      "copied_sha256": "6d93d766c93da20130a5f0ac673820e6d27267c563742420ce6fbe2718adf4b6",
+      "copied_bytes": 26264,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/style.css",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/style.css",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/style.css",
+      "source_sha256": "97b8dc6595fc7e972f543aad247feadfc2ddaf7b6439fd6655d217acf08d26ba",
+      "source_bytes": 21129,
+      "copied_sha256": "97b8dc6595fc7e972f543aad247feadfc2ddaf7b6439fd6655d217acf08d26ba",
+      "copied_bytes": 21129,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/styles/daily-research-command.css",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/styles/daily-research-command.css",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/styles/daily-research-command.css",
+      "source_sha256": "f49ca125c89c8420136260ebe2c911f897863247c3506f6813370c49e02374e7",
+      "source_bytes": 14614,
+      "copied_sha256": "f49ca125c89c8420136260ebe2c911f897863247c3506f6813370c49e02374e7",
+      "copied_bytes": 14614,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/styles/manager-selection.css",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/styles/manager-selection.css",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/styles/manager-selection.css",
+      "source_sha256": "cebe3431b6f34ccd6525341330f5583b966f75495f472b1410b87e7fef496d65",
+      "source_bytes": 56957,
+      "copied_sha256": "cebe3431b6f34ccd6525341330f5583b966f75495f472b1410b87e7fef496d65",
+      "copied_bytes": 56957,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/styles/v3-research-lane.css",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/styles/v3-research-lane.css",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/styles/v3-research-lane.css",
+      "source_sha256": "bb0c24242e3b546e272649c20de0c677445e1b02b6cc63f145ec49d4dd051c38",
+      "source_bytes": 9082,
+      "copied_sha256": "bb0c24242e3b546e272649c20de0c677445e1b02b6cc63f145ec49d4dd051c38",
+      "copied_bytes": 9082,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/views/DailyResearchCommandView.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/views/DailyResearchCommandView.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/views/DailyResearchCommandView.vue",
+      "source_sha256": "38854e4945c10802596845e2a3f00cbecee628b6e723831b5a3ac9182c95b2b7",
+      "source_bytes": 12705,
+      "copied_sha256": "38854e4945c10802596845e2a3f00cbecee628b6e723831b5a3ac9182c95b2b7",
+      "copied_bytes": 12705,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/views/ManagerSelectionView.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/views/ManagerSelectionView.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/views/ManagerSelectionView.vue",
+      "source_sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+      "source_bytes": 202767,
+      "copied_sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+      "copied_bytes": 202767,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/views/ResearchView.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/views/ResearchView.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/views/ResearchView.vue",
+      "source_sha256": "efd90bb4d3e4afa39a9674ca9076c940b082a2d1e99609395fdaa1fce019d086",
+      "source_bytes": 7236,
+      "copied_sha256": "efd90bb4d3e4afa39a9674ca9076c940b082a2d1e99609395fdaa1fce019d086",
+      "copied_bytes": 7236,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/views/ReviewView.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/views/ReviewView.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/views/ReviewView.vue",
+      "source_sha256": "cb1f4f19d9b8100d0caf86a5563990a90b627fdb72699b9ccbe499b1e9542c71",
+      "source_bytes": 3441,
+      "copied_sha256": "cb1f4f19d9b8100d0caf86a5563990a90b627fdb72699b9ccbe499b1e9542c71",
+      "copied_bytes": 3441,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    },
+    {
+      "destination": "source/runtime-B-release/apps/web/src/views/TaskStatusView.vue",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/apps/web/src/views/TaskStatusView.vue",
+      "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+      "source_relative_path": "apps/web/src/views/TaskStatusView.vue",
+      "source_sha256": "f86f3403f377653ea34568c298048cab96e39a27754f52c6f538ef7fb4cce045",
+      "source_bytes": 8904,
+      "copied_sha256": "f86f3403f377653ea34568c298048cab96e39a27754f52c6f538ef7fb4cce045",
+      "copied_bytes": 8904,
+      "byte_identical": true,
+      "snapshot_group": "runtime_B_frontend_build_source",
+      "purpose": "complete Vite source/build input; no dist or node_modules",
+      "git_state": "NOT_CAPTURED_NO_GIT_OPERATION",
+      "role": "complete_source_snapshot"
+    }
+  ],
+  "dependency_boundary": {
+    "python": "pyproject.toml and uv.lock copied. API/router tests still require complete V4 checkout and project dependencies; the bounded package does not include the entire app tree or Python environment.",
+    "frontend": "apps/web/package.json, package-lock.json, tsconfig, Vite config, all three Vite input HTML files, and production frontend source copied. All runtime-B apps/web/src frontend test/spec files and fixture directories are excluded. node_modules and compiled dist excluded.",
+    "publisher": "all direct builder helpers, shared interprocess lock helper, candidate service-role contract, candidate-preparation entry, and selected existing mechanism tests copied as complete files.",
+    "api_runtime": "runtime-B app/run and directly registered router source files copied. Transitive business/domain infrastructure dependencies remain in full V4 source checkout and are not duplicated here."
+  },
+  "existing_test_sources": [
+    {
+      "path": "source/canonical-worktree/app/tests/test_api_release_integration.py",
+      "command_in_full_v4_checkout": "pytest -q tests/test_api_release_integration.py",
+      "run_status": "NOT_RUN_BY_WRITER_PACKAGE_ONLY"
+    },
+    {
+      "path": "source/canonical-worktree/app/tests/test_api_module_release.py",
+      "command_in_full_v4_checkout": "pytest -q tests/test_api_module_release.py",
+      "run_status": "NOT_RUN_BY_WRITER_PACKAGE_ONLY"
+    },
+    {
+      "path": "source/canonical-worktree/app/tests/test_api_module_proxy.py",
+      "command_in_full_v4_checkout": "pytest -q tests/test_api_module_proxy.py",
+      "run_status": "NOT_RUN_BY_WRITER_PACKAGE_ONLY"
+    }
+  ],
+  "package_local_validation": {
+    "command": "python3 tools/verify_package.py",
+    "status": "PASS",
+    "result": "PASS: 120 package artifacts; 114 source snapshots; JSON/Python syntax, frontend test/fixture exclusion guard, and all checksums verified",
+    "scope": "package file set and SHA integrity, JSON parse, Python AST parse, forbidden runtime-B frontend test/fixture guard; no application or live behavior validation"
+  },
+  "excluded": [
+    "apps/web/dist",
+    "node_modules",
+    "venv",
+    "full runtime environment variables",
+    "LaunchAgent plist contents",
+    "release manifest/inventory bodies",
+    "large API response bodies",
+    "credentials and authentication artifacts",
+    "external workspace folder contents",
+    "runtime owner/market/Stage data payloads, including the real-owner issue8R2 fixture recorded in source_exclusions",
+    "all runtime-B apps/web/src frontend tests, specs, and fixture data; canonical publisher-focused tests are retained"
+  ],
+  "package_artifacts_note": "SHA256 and byte size for every package file except SOURCE_MANIFEST.json and PACKAGE_SHA256SUMS.txt. PACKAGE_SHA256SUMS.txt covers all package files except itself, including SOURCE_MANIFEST.json.",
+  "package_artifacts": [
+    {
+      "path": "CHAT_TASK.md",
+      "bytes": 6247,
+      "sha256": "3cd683cc055f83e1c0cafa9ff5fd089bd48bb5e3ab43eba7a20efaf8261ceeae",
+      "role": "issue_document"
+    },
+    {
+      "path": "EVIDENCE.json",
+      "bytes": 8882,
+      "sha256": "d61327d26396ac0b744d11267744a6bee0ab0c2ae2178d2dc2f368004bcfcc12",
+      "role": "issue_document"
+    },
+    {
+      "path": "MODULE_MAP.json",
+      "bytes": 6089,
+      "sha256": "02cda29aacff085db91094b14df2ae87dc9811029485a2c09073bc072b708a9f",
+      "role": "issue_document"
+    },
+    {
+      "path": "PUBLICATION_CHAIN.md",
+      "bytes": 5134,
+      "sha256": "b1c8418da999707a878058c1e844fb7bffae211906aecbd5769cce405b7c703e",
+      "role": "issue_document"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4837,
+      "sha256": "0c9bc5d0c7075a7211b51db856b3e7311aef3d22cdf489369f380c60c834eee8",
+      "role": "issue_document"
+    },
+    {
+      "path": "evidence/preexisting-canonical/ops/run_manager_daily_announcement.py",
+      "bytes": 42929,
+      "sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "role": "evidence_payload"
+    },
+    {
+      "path": "evidence/preexisting-canonical/v4/manager_research/workspace_plan.py",
+      "bytes": 97369,
+      "sha256": "ef0269a8510b9168e2d135de6c1b4d28146a22d0d691aee8dd3fe80f95a698f0",
+      "role": "evidence_payload"
+    },
+    {
+      "path": "evidence/runtime-B/ops/run_manager_daily_announcement.py",
+      "bytes": 42910,
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "role": "evidence_payload"
+    },
+    {
+      "path": "evidence/runtime-B/v4/manager_research/workspace_plan.py",
+      "bytes": 107076,
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "role": "evidence_payload"
+    },
+    {
+      "path": "source/canonical-worktree/apps/api/v35_api/app.py",
+      "bytes": 343307,
+      "sha256": "48fdc43641e854226601ed6238e4a2fff12e3658d42ad6f703a414c97d749111",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/apps/api/v35_api/manager_research_router.py",
+      "bytes": 25261,
+      "sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/apps/api/v35_api/module_proxy.py",
+      "bytes": 9779,
+      "sha256": "7130838bfdc41b74398730c1accc3653926cd89c36982119a8f7f6592662d450",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/apps/api/v35_api/preselection_router.py",
+      "bytes": 1322,
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/apps/api/v35_api/run.py",
+      "bytes": 3768,
+      "sha256": "a755ed7d034c663abd8aa2fe373560e173848c038266594e22ce86d6f249ff1d",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/deployment/api_module_contracts.json",
+      "bytes": 5545,
+      "sha256": "37ec5c5c1cb83703ee4adf6c6329c2d46360804e06f7b2c08b5186dcf1b3a11e",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/infrastructure/interprocess_lock.py",
+      "bytes": 7514,
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/ops/api_release_integration.py",
+      "bytes": 35722,
+      "sha256": "718dfd1ba18facfb4204e30c557a330bc3a6a45b1636a18ff95a76263e697c9c",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/ops/build_release_candidate.py",
+      "bytes": 40648,
+      "sha256": "6b34291924d1f5099e2af2603311b94029c415c077dcc5f564ae58eccb566561",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/ops/build_release_candidate_stage.py",
+      "bytes": 41271,
+      "sha256": "4fc9f13a710c818789ecfaf5c9c16b4ae2249bdeff90947f874c6e05d9858ce0",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/ops/prepare_api_only_cutover.py",
+      "bytes": 28034,
+      "sha256": "e12bd6d2ce53f5038e5a52412fa19dd9b673501302016a831820776b38a14c3c",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/ops/release_candidate_audit.py",
+      "bytes": 11775,
+      "sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/ops/release_candidate_ports.py",
+      "bytes": 980,
+      "sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/ops/release_candidate_sources.py",
+      "bytes": 11977,
+      "sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/pyproject.toml",
+      "bytes": 625,
+      "sha256": "4f792160e360aa7947e20e2f8456a5136558dff43356ce89e529cbdef561492e",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/tests/test_api_module_proxy.py",
+      "bytes": 6744,
+      "sha256": "bab2438e52aad1257104fcf7941cb316cb0e858d10793875449398fb69d15044",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/tests/test_api_module_release.py",
+      "bytes": 12016,
+      "sha256": "991646ff8f550064b594451fabfa99bf66a8068840ab59c022cdabe0973d68bb",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/tests/test_api_release_integration.py",
+      "bytes": 11986,
+      "sha256": "3c63b4af8dc11fd54939146047784b1e237f26c076bf5a2402b0bdd2cf52c36c",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/tools/prepare_api_module_candidates.py",
+      "bytes": 11880,
+      "sha256": "485fe7fc2804f2163762226c34c201bc376ef8c63f6b5071c5e3e44090ed533d",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/canonical-worktree/uv.lock",
+      "bytes": 89575,
+      "sha256": "d203f9c5f381d0aef47f8bd74030683b9a6ba994e55a723d45a3d82fb8a460df",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/app.py",
+      "bytes": 327622,
+      "sha256": "7dfbc944bcf6775064ff600149e785775be24d9f2b6ac3b44d180917dc7965e8",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/baimao_router.py",
+      "bytes": 2708,
+      "sha256": "ca158864df1506a733c002d2e26bfb271de60eb0a9e34bcaeaea0f97a5192ae8",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/manager_research_router.py",
+      "bytes": 35556,
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/manager_workbench_router.py",
+      "bytes": 57619,
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/preselection_router.py",
+      "bytes": 1322,
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/preselection_service.py",
+      "bytes": 30761,
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/research_lane_router.py",
+      "bytes": 51992,
+      "sha256": "4c923e9184f192852f74d3427c980e02d26ce1af2386a2e4d27dd77f06b5939a",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/research_router.py",
+      "bytes": 28231,
+      "sha256": "dd141afaa10f5c90c09be4cec093675f44d1030933b04d8b2d0dfbe67af11ea8",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/review_router.py",
+      "bytes": 42184,
+      "sha256": "ef6e870077fecd1e025ec1a0741ec3f766b76ef914b60661e4f32937acc9e28d",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/run.py",
+      "bytes": 2616,
+      "sha256": "bcd4e623eabaedcc41a0e438942d755b578dbcc6a60c0ab0cf032af74fdbba43",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+      "bytes": 26824,
+      "sha256": "9cc9be6bc929be53168f4115d808690b9560978129dff8557fb0c0a5d6ff9531",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/api/v35_api/runtime_router.py",
+      "bytes": 1707,
+      "sha256": "b231a2202ec142ee5dc84dfb2b8b00252af3f85560f9b62c27d29d9fa73b49f2",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/daily-research-command/index.html",
+      "bytes": 406,
+      "sha256": "a6994e5ce3832cada2ce4b6c4667969d9e33e905b5865c41a9db30217f3bde6e",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/index.html",
+      "bytes": 561,
+      "sha256": "4a03a2c60e2becc71dfa7a4aeb9c7da7ed04e74832b77151cedc2cc9c814594d",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/manager-selection/index.html",
+      "bytes": 397,
+      "sha256": "dde06bee12772b83d670ca1d86569d7a2da6476e7972e24ade20dee3f3fcba2f",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/package-lock.json",
+      "bytes": 149437,
+      "sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/package.json",
+      "bytes": 492,
+      "sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/App.vue",
+      "bytes": 123582,
+      "sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/globalIndustries.ts",
+      "bytes": 890,
+      "sha256": "023b0316f3961abcd298cb0ae5fce05949e377548a57361c015ad2ad7eb9cdbe",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "bytes": 19705,
+      "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/managerCatalystObservations.ts",
+      "bytes": 5181,
+      "sha256": "5413dc86478e7ab838ccdcca20ae740355b6c728b0e22392328bf6789dcac555",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/managerDecision.ts",
+      "bytes": 923,
+      "sha256": "34e4c30ce66f973935ec2b427b0839a838f2ce8f04cb84018532a7997e49f4e3",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/managerPreselection.ts",
+      "bytes": 847,
+      "sha256": "29a0d16821774ab402d769bddcb79eba10ffa8b068c51c97ea308d92ea58794f",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/managerResearch.ts",
+      "bytes": 18879,
+      "sha256": "42f6e4d19614675eaa66fc22809cacfbdb5caa1f64c655c98df5e9e9b95b1ae0",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/managerStageSelection.ts",
+      "bytes": 1116,
+      "sha256": "f7854ab5dabc2441a29546a88517e5cf27eb8c90491f750fe02669374654b56a",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/managerWorkbenchResearch.ts",
+      "bytes": 2042,
+      "sha256": "4335963c9b9c4b3d95ddb8758903812ecef057dc52afb02dc1a7c15185724aea",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/managerWorkspace.ts",
+      "bytes": 119467,
+      "sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/research_lane.ts",
+      "bytes": 17538,
+      "sha256": "a9b8277f3e967cf02c3c5d759278be696142642254625a48bfeb64ecde8cd7bf",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/review.ts",
+      "bytes": 1436,
+      "sha256": "fc2c7551fe386a9b01375d6d82d7f633990bba169f48e9b918386e31baa6dd7d",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/runtime.ts",
+      "bytes": 417,
+      "sha256": "96d257a9266400443b7aad1252c4f709a0f24873ce9afab3f4a6dc9a189ff7c0",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/selection.ts",
+      "bytes": 1177,
+      "sha256": "f94a8d4431fbfcf178a666eb019925b803c2e9ebb1cf9b31c93d5469189ff74d",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/api/wechat_research.ts",
+      "bytes": 14754,
+      "sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchAlertPanel.vue",
+      "bytes": 2737,
+      "sha256": "f682b6cc37c9d2f7236c1a0c4b7ad3ba99fa81d4073efbb08afe07b9b41abf9c",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchHero.vue",
+      "bytes": 5367,
+      "sha256": "c5b47faf17654b89e140358ecab6ceb31868eae79bd7c973f3f3557ad061e185",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchHourlyDiagnostic.vue",
+      "bytes": 996,
+      "sha256": "99994f2ec38e2b3061b5fdf7d6363d6eaad24805b787cf1822edbab0f106092e",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchLineage.vue",
+      "bytes": 2992,
+      "sha256": "94fa1c74db8701a9af734795a0c74579adba03d6ca3cceb262848ab95a5f9422",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchMetrics.vue",
+      "bytes": 3153,
+      "sha256": "71f4f68432a9f8a9b23022aa2aae929954a6aa5100972042f9b4746ae3dcb3f4",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchPools.vue",
+      "bytes": 5626,
+      "sha256": "b03af7d1ca0f0abfcd6231bb9ba53f4e272349cf740b2bf179bcd0543ebfc395",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/daily-research-command/DailyResearchSlotMatrix.vue",
+      "bytes": 2576,
+      "sha256": "ac61c10627dfa1b5cd0269efc22ae50412f681c91db88e8b6d4ae7845e845d57",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/daily-research-command/types.ts",
+      "bytes": 2146,
+      "sha256": "7b06a9da0e790083636a13b5994808676713d2ff91eea5e1de11ef8933bf5607",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/research/GlobalIndustryMap.vue",
+      "bytes": 18599,
+      "sha256": "65a3b21d99800a3a609ef8d2c48389a9b1c15bec99cc1fe1dd0fd8ced4eeb5be",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/research/ResearchAppendix.vue",
+      "bytes": 415,
+      "sha256": "2969a9c32e5a253c7f4165f30f1faa3cf3283ebcb33aae0fb83f1c9b209f4a21",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/research/ResearchContextPane.vue",
+      "bytes": 2096,
+      "sha256": "1cbcfcc7109e7b1a15d49e64435ba32b67c204f0bf0ea2a797a2a93687afac59",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/research/ResearchFeedCard.vue",
+      "bytes": 1938,
+      "sha256": "c0b28a51032c5ed71f845677557bd8d52200f7227ea420d89e87ecbe4f8c2a48",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/research/ResearchFeedPane.vue",
+      "bytes": 2104,
+      "sha256": "7f67ead7f5db6a4c4ecb62ebd9fa6ad026f11500e4d28d93e26bf7ccc5833ae3",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/research/ResearchImpactList.vue",
+      "bytes": 3291,
+      "sha256": "e1ee108bef944e87c110d4fbc57e6eca814bbd272869a19530d764878d6491da",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/research/ResearchSourceColumns.vue",
+      "bytes": 1528,
+      "sha256": "9c2708b8391722269963a38d77376ee4c02874686d05425c7003c7322b97cc7a",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/research/ResearchStatusStrip.vue",
+      "bytes": 2807,
+      "sha256": "6742edf7cdc3d0c22f1e54dd2408dee319667c40d481d578379aa2253d8538d2",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/research/WechatMentionPool.vue",
+      "bytes": 10776,
+      "sha256": "e542fb168e3f3fd6b8303e01df3002c8ae01a33c353ab30da944de7b59f18ce7",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/research/WechatResearchPanel.vue",
+      "bytes": 14210,
+      "sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/review/AshareReviewPanel.vue",
+      "bytes": 25639,
+      "sha256": "f9deaf8d15a3273d3237458b083b847a72f6dcda86824d37731103c13d6672bf",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/review/DailyResearchReviewPanel.vue",
+      "bytes": 27458,
+      "sha256": "a62d8c47419cac7d3d674693eddb5984b12f18268188f0328b163a60d590efb9",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "bytes": 9855,
+      "sha256": "d57f0c6c00a7bbc93fd8a05ea5d2debc2131d67c9029fa0aa1ecec64bfaa7fbf",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/review/ReviewEvidencePanel.vue",
+      "bytes": 3531,
+      "sha256": "6164c5cd0042f70315b3aa6daf102b706c8b99055dffa702a574ca96ce025ef4",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "bytes": 8779,
+      "sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/components/review/StageSummaryPanel.vue",
+      "bytes": 4424,
+      "sha256": "4457dfd6aa6e138493026358b186011bed6e7b09f9ba33a6a529db1b3a6483b5",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/composables/useResearchLane.ts",
+      "bytes": 14290,
+      "sha256": "6159ce4b07d8fa9a0eb281502d9ca4bb9af2bbc897370097f2befdaca5015da3",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/contracts/globalIndustries.ts",
+      "bytes": 5109,
+      "sha256": "5eeefef359e082f4cd39c08cf66fc57ea28aa0d12a567d74d4d7f28b7ba04277",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/contracts/managerDecision.ts",
+      "bytes": 14787,
+      "sha256": "80ee9cdd31ad6de7575da0318046dffe4d1e3c4f7aebdc4a8fe66af4b285c184",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/contracts/managerPreselection.ts",
+      "bytes": 14967,
+      "sha256": "ecf15c3a472fabba3737e60e525c9728adc018b21062a4d0d3218c0a70fcf9c3",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/contracts/managerStageSelection.ts",
+      "bytes": 12620,
+      "sha256": "53893ac1e9b7b1e3cad031d2eb1cdc9d63230d1a011e0969f82ac472eea5df6c",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/contracts/managerWorkbenchResearch.ts",
+      "bytes": 24221,
+      "sha256": "bbdcb12c9a99eead6d2384fd93f0763cdc43989fa2c235ea654f6a385db1a9b5",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/contracts/research.ts",
+      "bytes": 5897,
+      "sha256": "74324e313f8811822c18b3c65c7f80a6661d3dca8ac5a7f02820139d55bd7bf9",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/contracts/review.ts",
+      "bytes": 10012,
+      "sha256": "079adf7971e346a8da5d40c49bc3c1fdfb2307aaf6ed70df5ed4d9312699c507",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/contracts/runtime.ts",
+      "bytes": 4723,
+      "sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/contracts/selection.ts",
+      "bytes": 54132,
+      "sha256": "502683e146f0860ea37b730ec8999ca145c783aa06907f04166145e5db8b00c8",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/daily-research-command/main.ts",
+      "bytes": 230,
+      "sha256": "b8235092c762fc5cb485b649a6a45a05b434511301ca9f0444515bb04a465385",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/main.ts",
+      "bytes": 116,
+      "sha256": "e6500223b08750e885d03202ca2776bb169095420cbc9608f8bbf03b6c7d2c41",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/adapters/priority.ts",
+      "bytes": 44423,
+      "sha256": "65fbdd8cb9e635787e0771de748ae0a106c08a937111fb64e8832856cf1ef671",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+      "bytes": 46083,
+      "sha256": "a4b147c00050bfe6afe0bb4ffd96f6ad481d9bbd3b9cac91111d34ecb57a2453",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+      "bytes": 2981,
+      "sha256": "f35380e1be0d6997348fe2b754fe865cd6efb633e337345f9bd8b4654e716fe3",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+      "bytes": 9195,
+      "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "bytes": 17541,
+      "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/announcementObservation.ts",
+      "bytes": 16354,
+      "sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/businessStatus.ts",
+      "bytes": 16160,
+      "sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "bytes": 63578,
+      "sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/dailyChannels.ts",
+      "bytes": 19467,
+      "sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/main.ts",
+      "bytes": 166,
+      "sha256": "769df8d97df6c27785cbaa248b80fb6cc447cfe3afbd627e32fe925d2065b843",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/manager-selection/researchAttention.ts",
+      "bytes": 26264,
+      "sha256": "6d93d766c93da20130a5f0ac673820e6d27267c563742420ce6fbe2718adf4b6",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/style.css",
+      "bytes": 21129,
+      "sha256": "97b8dc6595fc7e972f543aad247feadfc2ddaf7b6439fd6655d217acf08d26ba",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/styles/daily-research-command.css",
+      "bytes": 14614,
+      "sha256": "f49ca125c89c8420136260ebe2c911f897863247c3506f6813370c49e02374e7",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/styles/manager-selection.css",
+      "bytes": 56957,
+      "sha256": "cebe3431b6f34ccd6525341330f5583b966f75495f472b1410b87e7fef496d65",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/styles/v3-research-lane.css",
+      "bytes": 9082,
+      "sha256": "bb0c24242e3b546e272649c20de0c677445e1b02b6cc63f145ec49d4dd051c38",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/views/DailyResearchCommandView.vue",
+      "bytes": 12705,
+      "sha256": "38854e4945c10802596845e2a3f00cbecee628b6e723831b5a3ac9182c95b2b7",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/views/ManagerSelectionView.vue",
+      "bytes": 202767,
+      "sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/views/ResearchView.vue",
+      "bytes": 7236,
+      "sha256": "efd90bb4d3e4afa39a9674ca9076c940b082a2d1e99609395fdaa1fce019d086",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/views/ReviewView.vue",
+      "bytes": 3441,
+      "sha256": "cb1f4f19d9b8100d0caf86a5563990a90b627fdb72699b9ccbe499b1e9542c71",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/src/views/TaskStatusView.vue",
+      "bytes": 8904,
+      "sha256": "f86f3403f377653ea34568c298048cab96e39a27754f52c6f538ef7fb4cce045",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/tsconfig.json",
+      "bytes": 258,
+      "sha256": "aeb4f907263b28da51895370935cecf1152aec0f142e191b90d5877e3b37aebe",
+      "role": "source_payload"
+    },
+    {
+      "path": "source/runtime-B-release/apps/web/vite.config.ts",
+      "bytes": 491,
+      "sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+      "role": "source_payload"
+    },
+    {
+      "path": "tools/verify_package.py",
+      "bytes": 3543,
+      "sha256": "aa25ff02d389f1d056c283da249c70410642b4ee597a35b342bc2327fe27179f",
+      "role": "package_validator"
+    }
+  ],
+  "package_totals": {
+    "files_excluding_manifest_and_checksums": 120,
+    "bytes_excluding_manifest_and_checksums": 3037077,
+    "source_snapshot_count": 114,
+    "source_snapshot_bytes": 3002345
+  },
+  "source_exclusions": [
+    {
+      "paths": [
+        "source/runtime-B-release/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json",
+        "source/runtime-B-release/apps/web/src/manager-selection/__tests__/issue8R2.spec.ts"
+      ],
+      "reason": "Excluded a test-only file set because the JSON fixture retained nine real owner observations with HKEX URLs, timestamps, document hashes, excerpts, and research judgments; the adjacent fixture adapter and spec depended on that payload and are unrelated to the module-publication isolation issue.",
+      "source_bytes_removed": 71399,
+      "package_copy_bytes_removed": 71399,
+      "source_file_count_removed": 3,
+      "scope": "package copies only; original runtime-B release files were not modified"
+    },
+    {
+      "paths": [
+        "source/runtime-B-release/apps/web/src/App.hk-observation-calendar.spec.ts",
+        "source/runtime-B-release/apps/web/src/App.spec.ts",
+        "source/runtime-B-release/apps/web/src/api/managerWorkspace.attention.spec.ts",
+        "source/runtime-B-release/apps/web/src/components/research/GlobalIndustryMap.spec.ts",
+        "source/runtime-B-release/apps/web/src/components/research/WechatMentionPool.spec.ts",
+        "source/runtime-B-release/apps/web/src/components/review/AshareReviewPanel.spec.ts",
+        "source/runtime-B-release/apps/web/src/components/review/HkCloseReviewPanel.spec.ts",
+        "source/runtime-B-release/apps/web/src/contracts/managerWorkbenchResearch.spec.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/__tests__/announcementObservation.spec.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/__tests__/businessChainR2.spec.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/__tests__/businessCompletionR3.spec.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/__tests__/researchSelectionLedger.spec.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/__tests__/workspaceAfterReadback.spec.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/adapters/priority.spec.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/adapters/stageReasonContributions.spec.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/adapters/workbenchPresentation.spec.ts",
+        "source/runtime-B-release/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+        "source/runtime-B-release/apps/web/src/views/DailyResearchCommandView.spec.ts",
+        "source/runtime-B-release/apps/web/src/views/ManagerSelectionView.spec.ts",
+        "source/runtime-B-release/apps/web/src/views/ResearchView.spec.ts",
+        "source/runtime-B-release/apps/web/src/views/ReviewView.spec.ts",
+        "source/runtime-B-release/apps/web/src/views/TaskStatusView.spec.ts"
+      ],
+      "reason": "The issue package needs production Vite sources/build inputs and publisher-focused tests only. All runtime-B frontend test/spec files and fixture-directory files beneath apps/web/src were omitted; original source-release files were not modified.",
+      "source_bytes_removed": 596454,
+      "package_copy_bytes_removed": 596517,
+      "source_file_count_removed": 23,
+      "scope": "package copies only; production frontend source, Vite entries/config, and canonical publisher-focused tests remain"
+    }
+  ]
+}

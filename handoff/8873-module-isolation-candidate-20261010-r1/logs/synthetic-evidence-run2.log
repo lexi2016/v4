@@ -1,0 +1,9 @@
+COMMAND: /workspace/scratch/a245cda1e07c/testenv_final/bin/python -B /workspace/scratch/a245cda1e07c/analysis/generate_synthetic_evidence.py --code-root /workspace/scratch/a245cda1e07c/work --fixture-root /workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2 --evidence-root /workspace/scratch/a245cda1e07c/analysis/synthetic-evidence-run2
+STARTED_AT: 2026-10-10T15:11:53.244193+00:00
+COMPLETED_AT: 2026-10-10T15:11:53.957281+00:00
+EXIT_CODE: 0
+
+STDOUT
+{"candidate_count": 9, "candidate_manifest_count": 9, "evidence_root": "/workspace/scratch/a245cda1e07c/analysis/synthetic-evidence-run2", "exported_file_count": 157, "fixture_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2", "rollback_preparation_count": 1, "scenario_count": 3, "scope": "SYNTHETIC_ONLY", "stale_rejection_count": 1, "status": "PASS", "synthetic_commit_count": 8}
+
+STDERR

@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/workspace/scratch/a245cda1e07c/testenv_final/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider"
+  ],
+  "cwd": "/workspace/scratch/a245cda1e07c/work",
+  "started_at": "2026-10-10T15:03:32.829538+00:00",
+  "finished_at": "2026-10-10T15:03:40.635536+00:00",
+  "exit_code": 0,
+  "log": "/workspace/scratch/a245cda1e07c/logs/final-locked-suite.log",
+  "scope": "fresh bare full pytest in parent-created clean testenv_final, installed once from exact uv.lock dependency subset, after five static guard SHA pins finalized; no selectors or skips added"
+}

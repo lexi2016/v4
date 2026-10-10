@@ -1,0 +1,74 @@
+{
+  "code_root": "/workspace/scratch/a245cda1e07c/work",
+  "code_unchanged_during_run": true,
+  "helper": "tests/test_api_business_modules.py",
+  "runtime": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "source_files": [
+    {
+      "path": "deployment/api_module_contracts.json",
+      "sha256": "37ec5c5c1cb83703ee4adf6c6329c2d46360804e06f7b2c08b5186dcf1b3a11e",
+      "size": 5545
+    },
+    {
+      "path": "infrastructure/interprocess_lock.py",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "size": 7514
+    },
+    {
+      "path": "infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "size": 9354
+    },
+    {
+      "path": "ops/api_business_modules.py",
+      "sha256": "0c5b8bc454fb5ae3c55df8bf9a01d935abc14913e9a105b78cfa449ee6d85fc5",
+      "size": 12621
+    },
+    {
+      "path": "ops/api_release_integration.py",
+      "sha256": "9cda26b37c8d0912aa007323f7eefce4e23f7ddc8a58a57a0e7935792ef6040c",
+      "size": 54230
+    },
+    {
+      "path": "ops/build_release_candidate.py",
+      "sha256": "09314d301640f97a0b95b0fd66107d2bfd2252d0b93c90b294da3b9ff9ae573b",
+      "size": 46192
+    },
+    {
+      "path": "ops/build_release_candidate_stage.py",
+      "sha256": "4fc9f13a710c818789ecfaf5c9c16b4ae2249bdeff90947f874c6e05d9858ce0",
+      "size": 41271
+    },
+    {
+      "path": "ops/prepare_api_only_cutover.py",
+      "sha256": "db42d1c392799b531adf65b2f20748790ab37a9f888c73a3c8bd0e7b9744a9de",
+      "size": 31017
+    },
+    {
+      "path": "ops/release_candidate_audit.py",
+      "sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+      "size": 11775
+    },
+    {
+      "path": "ops/release_candidate_ports.py",
+      "sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+      "size": 980
+    },
+    {
+      "path": "ops/release_candidate_sources.py",
+      "sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+      "size": 11977
+    },
+    {
+      "path": "ops/stage_service_overlay_contract.py",
+      "sha256": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838",
+      "size": 17695
+    },
+    {
+      "path": "tests/test_api_business_modules.py",
+      "sha256": "c0db71e9b6500bf86f31ecbb87d7de163a110329b926f87e333dcb0b76ab0217",
+      "size": 36106
+    }
+  ],
+  "source_inventory_sha256": "cb3203d5f1b0ae1e3f2b45a284592737e72f7344271306a55326162494ba2d88"
+}

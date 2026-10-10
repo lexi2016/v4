@@ -1,0 +1,1033 @@
+{
+  "schema_version": "issue30.external_binding_audit.v1",
+  "input_commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+  "scope_root": "/workspace/scratch/a245cda1e07c/verified_input/source",
+  "scope": "Static source inspection only; no source module import, no actual external path/env/plist/config/state/credential content read; only this report written.",
+  "live_bindings_status": "CANNOT_CONFIRM",
+  "env_bindings": [
+    {
+      "key": "V35_DATA_ROOT",
+      "kind": "root",
+      "category": "shared application data",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "run.main passes data_root to create_app; store fallback is CWD/.runtime/data",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/run.py",
+          "symbol": "main",
+          "lines": [
+            58
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/run.py",
+          "symbol": "main",
+          "lines": [
+            39
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_SHARED_DATA_ROOT",
+      "kind": "root",
+      "category": "shared data / reader binding",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "run.main passes shared_data_root; app uses it as manager security/screen fallback and research lane input",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/run.py",
+          "symbol": "main",
+          "lines": [
+            61,
+            62
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/run.py",
+          "symbol": "main",
+          "lines": [
+            42,
+            43
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_DISPATCH_LEDGER_ROOT",
+      "kind": "root",
+      "category": "dispatcher ledger",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "run.main passes ledger_root; multiple router/service consumers",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/run.py",
+          "symbol": "main",
+          "lines": [
+            66,
+            67
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/run.py",
+          "symbol": "main",
+          "lines": [
+            47,
+            48
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_STAGE_CENTER_SELECTION_ROOT",
+      "kind": "root",
+      "category": "Stage selection artifacts",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "launcher validates shared/local mode; read only audit, no Stage edits",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            4108
+          ]
+        },
+        {
+          "file": "canonical-worktree/apps/api/v35_api/run.py",
+          "symbol": "main",
+          "lines": [
+            45,
+            46
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/review_router.py",
+          "symbol": "_read_shared_stage_center_rows",
+          "lines": [
+            420
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/run.py",
+          "symbol": "main",
+          "lines": [
+            28,
+            29
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_PRESELECTION_SOURCE_ROOT",
+      "kind": "root",
+      "category": "preselection owner artifacts",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "app and review consumer use source binding; also CLI --preselection-source-root",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            4122
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            3928
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/review_router.py",
+          "symbol": "_read_shared_stage_center_rows",
+          "lines": [
+            429
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_RESEARCH_DATA_ROOT",
+      "kind": "root",
+      "category": "research producer artifacts",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "app routes research read binding separately from local selection/materialization store",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            4119
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            3925
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_MORNING_NEWS_DATA_ROOT",
+      "kind": "root",
+      "category": "morning news artifacts",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "app passes morning_news_data_root to research lane reader",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            4130
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            3936
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_REVIEW_CORE_CLOSE_ROOT",
+      "kind": "root",
+      "category": "close review artifacts",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "app passes hk_close_root to review router",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5502
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5207
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V4_DAILY_REVIEW_ROOT",
+      "kind": "root",
+      "category": "review artifacts / generation output",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "app review router binding; generation enforces output == runtime.state_root/reviews",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5503
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5208
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V4_REVIEW_GENERATION_BINDINGS_PATH",
+      "kind": "file",
+      "category": "review generation configuration",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "SHA-bound bindings file references further config_root/review_root/date config files",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5504
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5209
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V4_INTRADAY_RESEARCH_ROOT",
+      "kind": "root",
+      "category": "intraday research artifacts",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "app passes intraday_root to review router",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5506
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5211
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V4_WECHAT_ARCHIVE_ROOT",
+      "kind": "root",
+      "category": "WeChat archive artifacts",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "app passes wechat_archive_root to research router; nested archive/router implementation absent",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5515
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5220
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V4_MANAGER_RESEARCH_STATE_ROOT",
+      "kind": "root",
+      "category": "manager state / materials / workbench artifacts",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "dedicated argument overrides env; env precedes canonical/fallback root",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "_resolve_manager_research_state_root",
+          "lines": [
+            3821
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/build_release_candidate.py",
+          "symbol": "build_candidate",
+          "lines": [
+            606
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/prepare_api_only_cutover.py",
+          "symbol": "rewrite_api_only_plist",
+          "lines": [
+            202,
+            222,
+            223
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "_resolve_manager_research_state_root",
+          "lines": [
+            3823
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V4_MANAGER_SECURITY_MASTER_ROOT",
+      "kind": "root",
+      "category": "manager security master authority",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "manager service workspace_security_master_root; also fallback for screen authority",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5588,
+            5589,
+            5593,
+            5594
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5293,
+            5294,
+            5298,
+            5299
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V4_MANAGER_SCREEN_AUTHORITY_ROOT",
+      "kind": "root",
+      "category": "manager screen authority",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "manager service workspace_screen_authority_root; falls back to security master then shared_data_root",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5591,
+            5592
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5296,
+            5297
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V4_MANAGER_NEWS_DATA_ROOT",
+      "kind": "root",
+      "category": "manager catalyst/news data",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "manager service catalyst_data_root; falls back to common store.root",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5597,
+            5598
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5302,
+            5303
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V4_MANAGER_NEWS_OWNER_ROOT",
+      "kind": "root",
+      "category": "manager news owner artifacts",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "manager service catalyst_news_owner_root; no configured value falls back to None",
+      "source_references": [
+        {
+          "file": "canonical-worktree/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5599,
+            5600
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/app.py",
+          "symbol": "create_app",
+          "lines": [
+            5304,
+            5305
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_APP_ROOT",
+      "kind": "root",
+      "category": "application code / active identity",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "immutable app root, not a business state owner",
+      "source_references": [
+        {
+          "file": "canonical-worktree/ops/api_release_integration.py",
+          "symbol": "_plist_environment",
+          "lines": [
+            223,
+            229,
+            235
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/api_release_integration.py",
+          "symbol": "read_active_release",
+          "lines": [
+            317
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/build_release_candidate_stage.py",
+          "symbol": "_stage_scheduler_identity",
+          "lines": [
+            154,
+            156,
+            170
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/prepare_api_only_cutover.py",
+          "symbol": "<module>",
+          "lines": [
+            62
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/prepare_api_only_cutover.py",
+          "symbol": "rewrite_api_only_plist",
+          "lines": [
+            195
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/release_candidate_audit.py",
+          "symbol": "audit_scheduler",
+          "lines": [
+            110
+          ]
+        },
+        {
+          "file": "canonical-worktree/tools/prepare_api_module_candidates.py",
+          "symbol": "prepare",
+          "lines": [
+            207
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+          "symbol": "<module>",
+          "lines": [
+            31
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+          "symbol": "_runtime_identity",
+          "lines": [
+            371
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_RELEASE_MANIFEST_PATH",
+      "kind": "file",
+      "category": "release identity manifest",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "active release identity file",
+      "source_references": [
+        {
+          "file": "canonical-worktree/ops/api_release_integration.py",
+          "symbol": "_plist_environment",
+          "lines": [
+            223,
+            229,
+            235
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/api_release_integration.py",
+          "symbol": "read_active_release",
+          "lines": [
+            319
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/build_release_candidate_stage.py",
+          "symbol": "_render_stage_service_binding",
+          "lines": [
+            510
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/build_release_candidate_stage.py",
+          "symbol": "_stage_scheduler_identity",
+          "lines": [
+            171
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/prepare_api_only_cutover.py",
+          "symbol": "<module>",
+          "lines": [
+            65
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/prepare_api_only_cutover.py",
+          "symbol": "rewrite_api_only_plist",
+          "lines": [
+            198
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+          "symbol": "_runtime_identity",
+          "lines": [
+            376
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_RUNTIME_ROOT",
+      "kind": "root",
+      "category": "runtime dependency/code identity",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "runtime_graph status binding",
+      "source_references": [
+        {
+          "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+          "symbol": "<module>",
+          "lines": [
+            34
+          ]
+        },
+        {
+          "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+          "symbol": "_runtime_identity",
+          "lines": [
+            372
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_RUNTIME_INVENTORY_PATH",
+      "kind": "file",
+      "category": "runtime inventory",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "runtime_graph preferred inventory locator",
+      "source_references": [
+        {
+          "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+          "symbol": "_runtime_identity",
+          "lines": [
+            436
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_RUNTIME_INVENTORY",
+      "kind": "file",
+      "category": "runtime inventory",
+      "matches_root_path_file_suffix": false,
+      "actual_value_observed": false,
+      "note": "runtime_graph fallback alias; suffix policy exception",
+      "source_references": [
+        {
+          "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+          "symbol": "_runtime_identity",
+          "lines": [
+            438
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_RUNTIME_DEPENDENCY_MANIFEST_PATH",
+      "kind": "file",
+      "category": "runtime dependency manifest",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "runtime_graph preferred dependency locator",
+      "source_references": [
+        {
+          "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+          "symbol": "_runtime_identity",
+          "lines": [
+            442
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_RUNTIME_DEPENDENCY_MANIFEST",
+      "kind": "file",
+      "category": "runtime dependency manifest",
+      "matches_root_path_file_suffix": false,
+      "actual_value_observed": false,
+      "note": "runtime_graph fallback alias; suffix policy exception",
+      "source_references": [
+        {
+          "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+          "symbol": "_runtime_identity",
+          "lines": [
+            445
+          ]
+        }
+      ]
+    },
+    {
+      "key": "STAGE_CENTER_CONFIG",
+      "kind": "file",
+      "category": "Stage service configuration",
+      "matches_root_path_file_suffix": false,
+      "actual_value_observed": false,
+      "note": "Stage builder sets this config locator; source only, no actual Stage file read",
+      "source_references": [
+        {
+          "file": "canonical-worktree/ops/build_release_candidate_stage.py",
+          "symbol": "_render_stage_service_binding",
+          "lines": [
+            508
+          ]
+        }
+      ]
+    },
+    {
+      "key": "PYTHONPATH",
+      "kind": "path_list",
+      "category": "Python import/code roots",
+      "matches_root_path_file_suffix": false,
+      "actual_value_observed": false,
+      "note": "colon-separated multiple roots; not one filesystem path; source renderer sets app/upstreams:app",
+      "source_references": [
+        {
+          "file": "canonical-worktree/ops/build_release_candidate_stage.py",
+          "symbol": "_render_stage_service_binding",
+          "lines": [
+            507
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/build_release_candidate_stage.py",
+          "symbol": "_stage_scheduler_identity",
+          "lines": [
+            172
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/prepare_api_only_cutover.py",
+          "symbol": "<module>",
+          "lines": [
+            64
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/prepare_api_only_cutover.py",
+          "symbol": "rewrite_api_only_plist",
+          "lines": [
+            197
+          ]
+        },
+        {
+          "file": "canonical-worktree/ops/release_candidate_audit.py",
+          "symbol": "audit_scheduler",
+          "lines": [
+            153
+          ]
+        }
+      ]
+    },
+    {
+      "key": "REVIEW_CORE_PACKAGE_ROOT",
+      "kind": "root",
+      "category": "review code package",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "Stage builder package binding, code rather than data",
+      "source_references": [
+        {
+          "file": "canonical-worktree/ops/build_release_candidate_stage.py",
+          "symbol": "_render_stage_service_binding",
+          "lines": [
+            512
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_REVIEW_CORE_PACKAGE_ROOT",
+      "kind": "root",
+      "category": "review code package",
+      "matches_root_path_file_suffix": true,
+      "actual_value_observed": false,
+      "note": "Stage builder package binding, code rather than data",
+      "source_references": [
+        {
+          "file": "canonical-worktree/ops/build_release_candidate_stage.py",
+          "symbol": "_render_stage_service_binding",
+          "lines": [
+            513
+          ]
+        }
+      ]
+    },
+    {
+      "key": "V35_ADMIN_KEY",
+      "kind": "scalar_secret",
+      "category": "runtime graph repair authentication",
+      "matches_root_path_file_suffix": false,
+      "actual_value_observed": false,
+      "note": "credential value, not an evidenced path; do not echo, hash or probe as a file",
+      "source_references": [
+        {
+          "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+          "symbol": "<module>",
+          "lines": [
+            22
+          ]
+        }
+      ]
+    }
+  ],
+  "suffix_exceptions": [
+    "V35_RUNTIME_INVENTORY",
+    "V35_RUNTIME_DEPENDENCY_MANIFEST",
+    "STAGE_CENTER_CONFIG",
+    "PYTHONPATH"
+  ],
+  "non_environment_bindings": [
+    {
+      "key": "--data-root / --preselection-source-root / --shared-data-root / --ledger-root / --stage-selection-root",
+      "kind": "root",
+      "channel": "CLI ProgramArguments",
+      "file": "runtime-B-release/apps/api/v35_api/run.py",
+      "symbol": "main",
+      "lines": [
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "note": "Explicit command line values override environment for the corresponding binding; env-only collection is insufficient."
+    },
+    {
+      "key": "config_root / review_root",
+      "kind": "root",
+      "channel": "external review bindings JSON",
+      "file": "runtime-B-release/apps/api/v35_api/review_router.py",
+      "symbol": "_manual_generate",
+      "lines": [
+        773,
+        774,
+        784
+      ],
+      "note": "Source checks absolute roots; config_root is not directly an environment value. Actual binding file was not read."
+    },
+    {
+      "key": "dates[date].config",
+      "kind": "file",
+      "channel": "external review bindings JSON",
+      "file": "runtime-B-release/apps/api/v35_api/review_router.py",
+      "symbol": "_manual_generate",
+      "lines": [
+        779,
+        780
+      ],
+      "note": "Relative child of config_root; does not match _ROOT/_PATH/_FILE. Generation closure may contain credentials; supplied assembly source is absent."
+    },
+    {
+      "key": "manager_decision_ref.path",
+      "kind": "file",
+      "channel": "research selection payload",
+      "file": "runtime-B-release/apps/api/v35_api/research_router.py",
+      "symbol": "create_research_router.exact_manager_decision",
+      "lines": [
+        568,
+        574,
+        585,
+        591
+      ],
+      "note": "Path is read after file/non-symlink and SHA checks. Source does not establish a dedicated bound root here; actual value was not read."
+    },
+    {
+      "key": "acceptance_receipt / activation_receipt / deployment_receipt / review_receipt / integration_receipt / receipt_path / receipt; nested path / locator",
+      "kind": "file",
+      "channel": "release manifest",
+      "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+      "symbol": "_manifest_receipt_path",
+      "lines": [
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        303,
+        319,
+        322,
+        323
+      ],
+      "note": "Manifest-carried file locators may be absolute or relative to manifest parent; bounded to declared release/evidence roots. Most keys do not use the requested suffixes."
+    },
+    {
+      "key": "_V35_STATE_ROOT / _CANONICAL_MANAGER_RESEARCH_STATE_ROOT",
+      "kind": "root",
+      "channel": "default expression",
+      "file": "runtime-B-release/apps/api/v35_api/app.py",
+      "symbol": "<module> and _resolve_manager_research_state_root",
+      "lines": [
+        45,
+        53,
+        3832
+      ],
+      "note": "Path.home()/Library/Application Support/com.lexi.v35.local/state and manager_auto_research child. No actual home or path contents inspected."
+    },
+    {
+      "key": "API_PLIST_PATH",
+      "kind": "file",
+      "channel": "default expression",
+      "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+      "symbol": "<module>",
+      "lines": [
+        29
+      ],
+      "note": "Path.home()/Library/LaunchAgents/com.lexi.v35.api-only.plist; a code-default control-plane locator outside env collection."
+    },
+    {
+      "key": "evidence_root",
+      "kind": "root",
+      "channel": "default expression",
+      "file": "runtime-B-release/apps/api/v35_api/runtime_graph_router.py",
+      "symbol": "_manifest_receipt_path",
+      "lines": [
+        300
+      ],
+      "note": "Fixed Path.home()-relative evidence archive expression. Folder name is not ownership authority; actual directory not inspected."
+    },
+    {
+      "key": "preselection_source_root / python_path / shared_data_root",
+      "kind": "mixed_root_and_file",
+      "channel": "Stage config JSON",
+      "file": "canonical-worktree/ops/build_release_candidate_stage.py",
+      "symbol": "_render_stage_service_binding",
+      "lines": [
+        484,
+        494,
+        498,
+        501
+      ],
+      "note": "preselection_source_root=data root; python_path=interpreter file; shared_data_root here is packaged bridge CODE root, not data. Full STAGE_DATA_PATH_KEYS cannot be enumerated: stage_service_overlay_contract.py is missing from supplied source."
+    },
+    {
+      "key": "contract_source.path / roles.*.release_root",
+      "kind": "file_and_root",
+      "channel": "service-role contract JSON",
+      "file": "canonical-worktree/deployment/api_module_contracts.json",
+      "symbol": "JSON keys",
+      "lines": [
+        5,
+        28,
+        38,
+        60
+      ],
+      "note": "Sanitized source locators, not evidence of current runtime values."
+    },
+    {
+      "key": "historical_pool_artifact_path / hk_d1_json / hk_stage_replay_root / pool_path",
+      "kind": "evidence_file_or_root",
+      "channel": "hardcoded historical receipt/evidence strings",
+      "file": "runtime-B-release/apps/api/v35_api/app.py",
+      "symbol": "historical evidence tables; marker_matches comparisons",
+      "lines": [
+        190,
+        205,
+        664,
+        1119,
+        3605,
+        3624,
+        3631,
+        4613
+      ],
+      "note": "Some names, especially hk_d1_json, lack suffixes; these are sanitized historic evidence/comparison literals, not current environment bindings. Do not promote them to live owner facts."
+    }
+  ],
+  "collection_hazards": [
+    {
+      "file": "canonical-worktree/ops/api_release_integration.py",
+      "symbol": "_plist_environment",
+      "lines": [
+        214,
+        223,
+        229
+      ],
+      "finding": "Identity-only allowlist drops business external roots; do not reuse its returned map as complete protected bindings."
+    },
+    {
+      "file": "canonical-worktree/ops/prepare_api_only_cutover.py",
+      "symbol": "extract_environment",
+      "lines": [
+        120,
+        124,
+        130,
+        134
+      ],
+      "finding": "ProgramArguments assignments are overwritten by EnvironmentVariables of the same name without conflict rejection. For protection collect both roots or fail closed on conflicts."
+    },
+    {
+      "file": "canonical-worktree/ops/prepare_api_only_cutover.py",
+      "symbol": "describe_preserved_environment / _path_probe",
+      "lines": [
+        421,
+        432,
+        433,
+        445,
+        448,
+        464
+      ],
+      "finding": "This helper probes actual paths and hashes existing files; it is not appropriate for this source-only audit. Sensitive values are redacted separately but path_probe still contains raw path information."
+    },
+    {
+      "finding": "A suffix-only policy must special-case inventory/dependency aliases and Stage config, handle PYTHONPATH as a list, and separately bind CLI/config/default locators. Hash/role/date/safety/key scalars are not path roots."
+    },
+    {
+      "finding": "No concrete business data-root environment key lacking _ROOT/_PATH/_FILE was found in the supplied API source. This is bounded negative evidence, not complete closure proof: imported stores, generation implementation, Stage overlay contract, and full live launcher configuration are absent."
+    }
+  ],
+  "recommended_focused_checks": [
+    "For each bound absolute root/file key, attempt candidate/report/output placement equal to, within, and as an ancestor of the protected binding; reject before writes.",
+    "Cover both ProgramArguments KEY=VALUE and EnvironmentVariables, plus conflicting duplicate values.",
+    "Add suffix-exception fixtures for V35_RUNTIME_INVENTORY, V35_RUNTIME_DEPENDENCY_MANIFEST, STAGE_CENTER_CONFIG and multi-root PYTHONPATH.",
+    "Include CLI --data-root style fixtures and config-derived roots only when explicitly available; do not claim coverage of unseen nested external bindings.",
+    "Do not call probes/hash readers on credentials or state to construct the protection list."
+  ],
+  "verification": {
+    "python_source_files_ast_parsed": 26,
+    "all_env_keys_have_literal_source_evidence": true,
+    "actual_external_paths_read": false
+  }
+}

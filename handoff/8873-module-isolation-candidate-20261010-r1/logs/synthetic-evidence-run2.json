@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/workspace/scratch/a245cda1e07c/testenv_final/bin/python",
+    "-B",
+    "/workspace/scratch/a245cda1e07c/analysis/generate_synthetic_evidence.py",
+    "--code-root",
+    "/workspace/scratch/a245cda1e07c/work",
+    "--fixture-root",
+    "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2",
+    "--evidence-root",
+    "/workspace/scratch/a245cda1e07c/analysis/synthetic-evidence-run2"
+  ],
+  "command_shell": "/workspace/scratch/a245cda1e07c/testenv_final/bin/python -B /workspace/scratch/a245cda1e07c/analysis/generate_synthetic_evidence.py --code-root /workspace/scratch/a245cda1e07c/work --fixture-root /workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2 --evidence-root /workspace/scratch/a245cda1e07c/analysis/synthetic-evidence-run2",
+  "completed_at": "2026-10-10T15:11:53.957281+00:00",
+  "cwd": "/workspace/scratch/a245cda1e07c",
+  "elapsed_seconds": 0.713563,
+  "exit_code": 0,
+  "log_path": "/workspace/scratch/a245cda1e07c/logs/synthetic-evidence-run2.log",
+  "log_sha256": "c72613465e4758be8335f6df64eb6193a324c22a6b53f5cc8ce249d4f7662f1f",
+  "native_execution_claimed": false,
+  "scope": "SYNTHETIC_ONLY",
+  "started_at": "2026-10-10T15:11:53.244193+00:00",
+  "stderr": "",
+  "stdout": "{\"candidate_count\": 9, \"candidate_manifest_count\": 9, \"evidence_root\": \"/workspace/scratch/a245cda1e07c/analysis/synthetic-evidence-run2\", \"exported_file_count\": 157, \"fixture_root\": \"/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2\", \"rollback_preparation_count\": 1, \"scenario_count\": 3, \"scope\": \"SYNTHETIC_ONLY\", \"stale_rejection_count\": 1, \"status\": \"PASS\", \"synthetic_commit_count\": 8}\n"
+}

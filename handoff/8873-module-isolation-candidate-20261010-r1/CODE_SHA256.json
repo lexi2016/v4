@@ -1,0 +1,433 @@
+{
+  "after_file_count": 26,
+  "before_file_count": 23,
+  "changed_files": 7,
+  "files": [
+    {
+      "after_bytes": 343307,
+      "after_git_blob": "931f0815a1154c1831186c7f9b8f77960feb7b9d",
+      "after_sha256": "48fdc43641e854226601ed6238e4a2fff12e3658d42ad6f703a414c97d749111",
+      "before_bytes": 343307,
+      "before_git_blob": "931f0815a1154c1831186c7f9b8f77960feb7b9d",
+      "before_sha256": "48fdc43641e854226601ed6238e4a2fff12e3658d42ad6f703a414c97d749111",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": false,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "48fdc43641e854226601ed6238e4a2fff12e3658d42ad6f703a414c97d749111",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/apps/api/v35_api/app.py",
+        "source_sha256_recorded_by_input": "0362282afbac2d6684e1b6d27a6c4852fe96272e29cc29ff618719793f6ec465"
+      },
+      "path": "apps/api/v35_api/app.py"
+    },
+    {
+      "after_bytes": 25261,
+      "after_git_blob": "8f755fe62b6e5fcbe72c29bece457aec9e99d82b",
+      "after_sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "before_bytes": 25261,
+      "before_git_blob": "8f755fe62b6e5fcbe72c29bece457aec9e99d82b",
+      "before_sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/apps/api/v35_api/manager_research_router.py",
+        "source_sha256_recorded_by_input": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c"
+      },
+      "path": "apps/api/v35_api/manager_research_router.py"
+    },
+    {
+      "after_bytes": 9779,
+      "after_git_blob": "26949a48fab1be167200e1f59841e6c0f327fbf7",
+      "after_sha256": "7130838bfdc41b74398730c1accc3653926cd89c36982119a8f7f6592662d450",
+      "before_bytes": 9779,
+      "before_git_blob": "26949a48fab1be167200e1f59841e6c0f327fbf7",
+      "before_sha256": "7130838bfdc41b74398730c1accc3653926cd89c36982119a8f7f6592662d450",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "7130838bfdc41b74398730c1accc3653926cd89c36982119a8f7f6592662d450",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/apps/api/v35_api/module_proxy.py",
+        "source_sha256_recorded_by_input": "7130838bfdc41b74398730c1accc3653926cd89c36982119a8f7f6592662d450"
+      },
+      "path": "apps/api/v35_api/module_proxy.py"
+    },
+    {
+      "after_bytes": 1322,
+      "after_git_blob": "6cad6dc5428de11b930667c86317a11ae1a3e4e8",
+      "after_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "before_bytes": 1322,
+      "before_git_blob": "6cad6dc5428de11b930667c86317a11ae1a3e4e8",
+      "before_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/apps/api/v35_api/preselection_router.py",
+        "source_sha256_recorded_by_input": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae"
+      },
+      "path": "apps/api/v35_api/preselection_router.py"
+    },
+    {
+      "after_bytes": 3768,
+      "after_git_blob": "33c7bec186b85eb5561c2360eca40742cc16e8b3",
+      "after_sha256": "a755ed7d034c663abd8aa2fe373560e173848c038266594e22ce86d6f249ff1d",
+      "before_bytes": 3768,
+      "before_git_blob": "33c7bec186b85eb5561c2360eca40742cc16e8b3",
+      "before_sha256": "a755ed7d034c663abd8aa2fe373560e173848c038266594e22ce86d6f249ff1d",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "a755ed7d034c663abd8aa2fe373560e173848c038266594e22ce86d6f249ff1d",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/apps/api/v35_api/run.py",
+        "source_sha256_recorded_by_input": "a755ed7d034c663abd8aa2fe373560e173848c038266594e22ce86d6f249ff1d"
+      },
+      "path": "apps/api/v35_api/run.py"
+    },
+    {
+      "after_bytes": 5545,
+      "after_git_blob": "40426007f3216d0031957481d640605622a18274",
+      "after_sha256": "37ec5c5c1cb83703ee4adf6c6329c2d46360804e06f7b2c08b5186dcf1b3a11e",
+      "before_bytes": 5545,
+      "before_git_blob": "40426007f3216d0031957481d640605622a18274",
+      "before_sha256": "37ec5c5c1cb83703ee4adf6c6329c2d46360804e06f7b2c08b5186dcf1b3a11e",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": false,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "37ec5c5c1cb83703ee4adf6c6329c2d46360804e06f7b2c08b5186dcf1b3a11e",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/deployment/api_module_contracts.json",
+        "source_sha256_recorded_by_input": "a19d37fe35c2abc9d303f5a7e4ac77de0aea2f654eb50f30b159ee49751eaad8"
+      },
+      "path": "deployment/api_module_contracts.json"
+    },
+    {
+      "after_bytes": 7514,
+      "after_git_blob": "a97e733725834235fbcc9129639ae198fa8770cd",
+      "after_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "before_bytes": 7514,
+      "before_git_blob": "a97e733725834235fbcc9129639ae198fa8770cd",
+      "before_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/infrastructure/interprocess_lock.py",
+        "source_sha256_recorded_by_input": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0"
+      },
+      "path": "infrastructure/interprocess_lock.py"
+    },
+    {
+      "after_bytes": 9354,
+      "after_git_blob": "1b6666551980c44ebb0b05f133c189909d79c7df",
+      "after_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "before_bytes": 9354,
+      "before_git_blob": "1b6666551980c44ebb0b05f133c189909d79c7df",
+      "before_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "change": "unchanged",
+      "input_provenance": {
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_io.py",
+        "role": "unchanged supporting dependency"
+      },
+      "path": "infrastructure/owned_io.py"
+    },
+    {
+      "after_bytes": 12621,
+      "after_git_blob": "1c6b64312fac65545bd193ddab9781467f98fcb3",
+      "after_sha256": "0c5b8bc454fb5ae3c55df8bf9a01d935abc14913e9a105b78cfa449ee6d85fc5",
+      "before_bytes": null,
+      "before_git_blob": null,
+      "before_sha256": null,
+      "change": "added",
+      "input_provenance": {
+        "role": "new implementation or test file"
+      },
+      "path": "ops/api_business_modules.py"
+    },
+    {
+      "after_bytes": 54230,
+      "after_git_blob": "3fcf96bd283e3824260b18cceed31de3ffde073c",
+      "after_sha256": "9cda26b37c8d0912aa007323f7eefce4e23f7ddc8a58a57a0e7935792ef6040c",
+      "before_bytes": 35722,
+      "before_git_blob": "ea404dd8c25ec18887edd93b234fbd4ab8fb804c",
+      "before_sha256": "718dfd1ba18facfb4204e30c557a330bc3a6a45b1636a18ff95a76263e697c9c",
+      "change": "modified",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "718dfd1ba18facfb4204e30c557a330bc3a6a45b1636a18ff95a76263e697c9c",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/ops/api_release_integration.py",
+        "source_sha256_recorded_by_input": "718dfd1ba18facfb4204e30c557a330bc3a6a45b1636a18ff95a76263e697c9c"
+      },
+      "path": "ops/api_release_integration.py"
+    },
+    {
+      "after_bytes": 46192,
+      "after_git_blob": "476e0a27eef5d92e084c8aeea99ed19edaa74625",
+      "after_sha256": "09314d301640f97a0b95b0fd66107d2bfd2252d0b93c90b294da3b9ff9ae573b",
+      "before_bytes": 40648,
+      "before_git_blob": "8252e269860ebde56161f2c8af502d74e41bd630",
+      "before_sha256": "6b34291924d1f5099e2af2603311b94029c415c077dcc5f564ae58eccb566561",
+      "change": "modified",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "6b34291924d1f5099e2af2603311b94029c415c077dcc5f564ae58eccb566561",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/ops/build_release_candidate.py",
+        "source_sha256_recorded_by_input": "6b34291924d1f5099e2af2603311b94029c415c077dcc5f564ae58eccb566561"
+      },
+      "path": "ops/build_release_candidate.py"
+    },
+    {
+      "after_bytes": 41271,
+      "after_git_blob": "4947d95c7770465b774f096dc640763b0ed3370c",
+      "after_sha256": "4fc9f13a710c818789ecfaf5c9c16b4ae2249bdeff90947f874c6e05d9858ce0",
+      "before_bytes": 41271,
+      "before_git_blob": "4947d95c7770465b774f096dc640763b0ed3370c",
+      "before_sha256": "4fc9f13a710c818789ecfaf5c9c16b4ae2249bdeff90947f874c6e05d9858ce0",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": false,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "4fc9f13a710c818789ecfaf5c9c16b4ae2249bdeff90947f874c6e05d9858ce0",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/ops/build_release_candidate_stage.py",
+        "source_sha256_recorded_by_input": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df"
+      },
+      "path": "ops/build_release_candidate_stage.py"
+    },
+    {
+      "after_bytes": 31017,
+      "after_git_blob": "e6ab0af7b1a551b5cbf3a94ef95a32f6aa5ab60d",
+      "after_sha256": "db42d1c392799b531adf65b2f20748790ab37a9f888c73a3c8bd0e7b9744a9de",
+      "before_bytes": 28034,
+      "before_git_blob": "0a25a896346042f8682dc9d9ce4f17a99d3ab4f8",
+      "before_sha256": "e12bd6d2ce53f5038e5a52412fa19dd9b673501302016a831820776b38a14c3c",
+      "change": "modified",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": false,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "e12bd6d2ce53f5038e5a52412fa19dd9b673501302016a831820776b38a14c3c",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/ops/prepare_api_only_cutover.py",
+        "source_sha256_recorded_by_input": "7d65d1f24dcf877df4ae4cc757d9e573bd5340b93484e02bd6ac7d4231f71725"
+      },
+      "path": "ops/prepare_api_only_cutover.py"
+    },
+    {
+      "after_bytes": 11775,
+      "after_git_blob": "2775b3315d7a343764d1fa0bd2eca7b720558d19",
+      "after_sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+      "before_bytes": 11775,
+      "before_git_blob": "2775b3315d7a343764d1fa0bd2eca7b720558d19",
+      "before_sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/ops/release_candidate_audit.py",
+        "source_sha256_recorded_by_input": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf"
+      },
+      "path": "ops/release_candidate_audit.py"
+    },
+    {
+      "after_bytes": 980,
+      "after_git_blob": "a6c32b9325a5918cca84c32a938daa990c6b6f6e",
+      "after_sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+      "before_bytes": 980,
+      "before_git_blob": "a6c32b9325a5918cca84c32a938daa990c6b6f6e",
+      "before_sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/ops/release_candidate_ports.py",
+        "source_sha256_recorded_by_input": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4"
+      },
+      "path": "ops/release_candidate_ports.py"
+    },
+    {
+      "after_bytes": 11977,
+      "after_git_blob": "a98382f5aaa1cd4878bc110bb3c6b0a99ac452e9",
+      "after_sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+      "before_bytes": 11977,
+      "before_git_blob": "a98382f5aaa1cd4878bc110bb3c6b0a99ac452e9",
+      "before_sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/ops/release_candidate_sources.py",
+        "source_sha256_recorded_by_input": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738"
+      },
+      "path": "ops/release_candidate_sources.py"
+    },
+    {
+      "after_bytes": 17695,
+      "after_git_blob": "093eb0d78ff23969ffa0cf5f2a28110063d509ee",
+      "after_sha256": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838",
+      "before_bytes": 17695,
+      "before_git_blob": "093eb0d78ff23969ffa0cf5f2a28110063d509ee",
+      "before_sha256": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838",
+      "change": "unchanged",
+      "input_provenance": {
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "path": "handoff/v4-running-source-20261005/canonical/ops/stage_service_overlay_contract.py",
+        "role": "unchanged supporting dependency"
+      },
+      "path": "ops/stage_service_overlay_contract.py"
+    },
+    {
+      "after_bytes": 96881,
+      "after_git_blob": "dc47e8d2bf3d5c8836546c1114db66891a11953b",
+      "after_sha256": "2b74e2193c7924b0c580129677738f3c766b938aea4d32341a0a7798ddfe7cd3",
+      "before_bytes": 93239,
+      "before_git_blob": "4e993747540ff698268b8bbe5675c3bd60ada385",
+      "before_sha256": "ddb7c5b5b95aed1e2e9fb8a592503b88ec3966f6e34c9350c47648bb0f97ce4a",
+      "change": "modified",
+      "input_provenance": {
+        "commit": "a0a0b88dc133d14ee5763569272c174bcd7cc445",
+        "path": "handoff/api-module-release-20261008/source/actual_cutover_reference/api_only_cutover_r2_ready.py",
+        "role": "historical native reference; current Mac binding unconfirmed"
+      },
+      "path": "publisher_reference/api_only_cutover_r2_ready.py"
+    },
+    {
+      "after_bytes": 625,
+      "after_git_blob": "bdbaad68ebda8d3aecbc2573a2d2ebe31645ab69",
+      "after_sha256": "4f792160e360aa7947e20e2f8456a5136558dff43356ce89e529cbdef561492e",
+      "before_bytes": 625,
+      "before_git_blob": "bdbaad68ebda8d3aecbc2573a2d2ebe31645ab69",
+      "before_sha256": "4f792160e360aa7947e20e2f8456a5136558dff43356ce89e529cbdef561492e",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "4f792160e360aa7947e20e2f8456a5136558dff43356ce89e529cbdef561492e",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/pyproject.toml",
+        "source_sha256_recorded_by_input": "4f792160e360aa7947e20e2f8456a5136558dff43356ce89e529cbdef561492e"
+      },
+      "path": "pyproject.toml"
+    },
+    {
+      "after_bytes": 36106,
+      "after_git_blob": "a3805109565e7862e5130b1f5b0f6e2265d3b67c",
+      "after_sha256": "c0db71e9b6500bf86f31ecbb87d7de163a110329b926f87e333dcb0b76ab0217",
+      "before_bytes": null,
+      "before_git_blob": null,
+      "before_sha256": null,
+      "change": "added",
+      "input_provenance": {
+        "role": "new implementation or test file"
+      },
+      "path": "tests/test_api_business_modules.py"
+    },
+    {
+      "after_bytes": 6744,
+      "after_git_blob": "6895446a8affd3d34349574cfc37d3f61667ba74",
+      "after_sha256": "bab2438e52aad1257104fcf7941cb316cb0e858d10793875449398fb69d15044",
+      "before_bytes": 6744,
+      "before_git_blob": "6895446a8affd3d34349574cfc37d3f61667ba74",
+      "before_sha256": "bab2438e52aad1257104fcf7941cb316cb0e858d10793875449398fb69d15044",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "bab2438e52aad1257104fcf7941cb316cb0e858d10793875449398fb69d15044",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/tests/test_api_module_proxy.py",
+        "source_sha256_recorded_by_input": "bab2438e52aad1257104fcf7941cb316cb0e858d10793875449398fb69d15044"
+      },
+      "path": "tests/test_api_module_proxy.py"
+    },
+    {
+      "after_bytes": 12016,
+      "after_git_blob": "690dd9ad48880785c9d515f8e6abb0c44c5748ae",
+      "after_sha256": "991646ff8f550064b594451fabfa99bf66a8068840ab59c022cdabe0973d68bb",
+      "before_bytes": 12016,
+      "before_git_blob": "690dd9ad48880785c9d515f8e6abb0c44c5748ae",
+      "before_sha256": "991646ff8f550064b594451fabfa99bf66a8068840ab59c022cdabe0973d68bb",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "991646ff8f550064b594451fabfa99bf66a8068840ab59c022cdabe0973d68bb",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/tests/test_api_module_release.py",
+        "source_sha256_recorded_by_input": "991646ff8f550064b594451fabfa99bf66a8068840ab59c022cdabe0973d68bb"
+      },
+      "path": "tests/test_api_module_release.py"
+    },
+    {
+      "after_bytes": 30119,
+      "after_git_blob": "0ed9addd97a662b522d69bfa32e439d78697d40f",
+      "after_sha256": "3c4abe1ec737d48683f50bf1b3fb291744caf805d2fdc8c63450823ef9ea4455",
+      "before_bytes": null,
+      "before_git_blob": null,
+      "before_sha256": null,
+      "change": "added",
+      "input_provenance": {
+        "role": "new implementation or test file"
+      },
+      "path": "tests/test_api_native_module_guard.py"
+    },
+    {
+      "after_bytes": 11986,
+      "after_git_blob": "b83b433d9e1ffd81b0ce66db31b0c340137f928a",
+      "after_sha256": "3c63b4af8dc11fd54939146047784b1e237f26c076bf5a2402b0bdd2cf52c36c",
+      "before_bytes": 11986,
+      "before_git_blob": "b83b433d9e1ffd81b0ce66db31b0c340137f928a",
+      "before_sha256": "3c63b4af8dc11fd54939146047784b1e237f26c076bf5a2402b0bdd2cf52c36c",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "3c63b4af8dc11fd54939146047784b1e237f26c076bf5a2402b0bdd2cf52c36c",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/tests/test_api_release_integration.py",
+        "source_sha256_recorded_by_input": "3c63b4af8dc11fd54939146047784b1e237f26c076bf5a2402b0bdd2cf52c36c"
+      },
+      "path": "tests/test_api_release_integration.py"
+    },
+    {
+      "after_bytes": 11880,
+      "after_git_blob": "fc4e067da2d06f9f47ed1bb2581dfc752b42d201",
+      "after_sha256": "485fe7fc2804f2163762226c34c201bc376ef8c63f6b5071c5e3e44090ed533d",
+      "before_bytes": 11880,
+      "before_git_blob": "fc4e067da2d06f9f47ed1bb2581dfc752b42d201",
+      "before_sha256": "485fe7fc2804f2163762226c34c201bc376ef8c63f6b5071c5e3e44090ed533d",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": false,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "485fe7fc2804f2163762226c34c201bc376ef8c63f6b5071c5e3e44090ed533d",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/tools/prepare_api_module_candidates.py",
+        "source_sha256_recorded_by_input": "358df37ec48fa973d6db2507b5db1fa95cfcb0958fa1ae51266c770fcc5342b2"
+      },
+      "path": "tools/prepare_api_module_candidates.py"
+    },
+    {
+      "after_bytes": 89575,
+      "after_git_blob": "36949ddeeea26527d71fdaf26997f9d4538cad83",
+      "after_sha256": "d203f9c5f381d0aef47f8bd74030683b9a6ba994e55a723d45a3d82fb8a460df",
+      "before_bytes": 89575,
+      "before_git_blob": "36949ddeeea26527d71fdaf26997f9d4538cad83",
+      "before_sha256": "d203f9c5f381d0aef47f8bd74030683b9a6ba994e55a723d45a3d82fb8a460df",
+      "change": "unchanged",
+      "input_provenance": {
+        "byte_identical_to_recorded_mac_source": true,
+        "commit": "f615f4edcf4eb57aa6cf9ab407f2c2c2ed329a9b",
+        "copied_sha256": "d203f9c5f381d0aef47f8bd74030683b9a6ba994e55a723d45a3d82fb8a460df",
+        "path": "handoff/8873-module-isolation-issue-20261010-r1/source/canonical-worktree/uv.lock",
+        "source_sha256_recorded_by_input": "d203f9c5f381d0aef47f8bd74030683b9a6ba994e55a723d45a3d82fb8a460df"
+      },
+      "path": "uv.lock"
+    }
+  ],
+  "local_baseline_commit": "d8b69322963d7ec5dfd5838849a0b7593e64f904",
+  "local_implementation_commit": "78ecf3771fe9fb659dc436838e03598a4e3c9d13"
+}

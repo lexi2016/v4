@@ -1,0 +1,46 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_review_shared_contract_cannot_hide_registry_ownership[shared/*.py-API_BUSINESS_SOURCE_PATH_FORBIDDEN] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-47/test_review_shared_contract_ca0')
+shared_path = 'shared/*.py', code = 'API_BUSINESS_SOURCE_PATH_FORBIDDEN'
+
+    @pytest.mark.parametrize('shared_path,code', [('shared/*.py', 'API_BUSINESS_SOURCE_PATH_FORBIDDEN'),
+        ('shared', 'API_BUSINESS_PATH_OWNER_OVERLAP')])
+    def test_review_shared_contract_cannot_hide_registry_ownership(tmp_path, shared_path, code):
+        active = setup_active(tmp_path)
+        def damage(contract):
+            contract['shared_paths'][0]['path'] = shared_path
+            contract['modules'][0]['paths'].append('shared/registry.py')
+        change_contract(active, damage)
+        source, receipt = make_delta(active, 'ambiguous-shared', 'alpha', {'shared/registry.py': b'ROUTES = ()\n'})
+        before = active['plist'].read_bytes()
+>       with pytest.raises(ValueError, match=code):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:612: Failed
+_ test_review_shared_contract_cannot_hide_registry_ownership[shared-API_BUSINESS_PATH_OWNER_OVERLAP] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-47/test_review_shared_contract_ca1')
+shared_path = 'shared', code = 'API_BUSINESS_PATH_OWNER_OVERLAP'
+
+    @pytest.mark.parametrize('shared_path,code', [('shared/*.py', 'API_BUSINESS_SOURCE_PATH_FORBIDDEN'),
+        ('shared', 'API_BUSINESS_PATH_OWNER_OVERLAP')])
+    def test_review_shared_contract_cannot_hide_registry_ownership(tmp_path, shared_path, code):
+        active = setup_active(tmp_path)
+        def damage(contract):
+            contract['shared_paths'][0]['path'] = shared_path
+            contract['modules'][0]['paths'].append('shared/registry.py')
+        change_contract(active, damage)
+        source, receipt = make_delta(active, 'ambiguous-shared', 'alpha', {'shared/registry.py': b'ROUTES = ()\n'})
+        before = active['plist'].read_bytes()
+>       with pytest.raises(ValueError, match=code):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:612: Failed
+=========================== short test summary info ============================
+FAILED tests/test_api_business_modules.py::test_review_shared_contract_cannot_hide_registry_ownership[shared/*.py-API_BUSINESS_SOURCE_PATH_FORBIDDEN]
+FAILED tests/test_api_business_modules.py::test_review_shared_contract_cannot_hide_registry_ownership[shared-API_BUSINESS_PATH_OWNER_OVERLAP]
+2 failed, 63 deselected in 0.20s

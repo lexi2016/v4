@@ -1,0 +1,107 @@
+...................................................FFF.................. [ 88%]
+.........                                                                [100%]
+=================================== FAILURES ===================================
+_____ test_review_every_retained_release_is_protected_from_output[reverse] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-42/test_review_every_retained_rel0')
+output = 'reverse'
+
+    @pytest.mark.parametrize('output', ['reverse', 'candidate', 'receipt'])
+    def test_review_every_retained_release_is_protected_from_output(tmp_path, output):
+        active = setup_active(tmp_path)
+        a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
+        b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 1\n'}); synthetic_commit(active, b)
+        c = build(active, 'C', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, c)
+        initial = integration.inventory_tree(b / 'app')
+        forbidden = b / 'app/review-output'
+        with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+            if output == 'reverse':
+                integration.prepare_module_rollback(active_api_plist_path=active['plist'], target_release_root=a,
+                    expected_manifest_sha256=sha((a / 'release-manifest.json').read_bytes()), output_root=forbidden)
+            else:
+                source, receipt = make_delta(active, 'review-history', 'beta', {'modules/beta.py': b'BETA = 3\n'})
+                candidate = forbidden if output == 'candidate' else tmp_path / 'review-output'
+                kwargs = {'receipt_path': forbidden} if output == 'receipt' else {}
+                builder.build_module_candidate(source_root=source, candidate_root=candidate, active_api_plist_path=active['plist'],
+                    release_id='review-output', role='gateway', module_id='beta', api_integration_delta_receipt_path=receipt,
+                    formal_release_root=tmp_path / 'formal', **kwargs)
+        assert integration.inventory_tree(b / 'app') == initial
+        assert not forbidden.exists()
+>       assert prepare_rollback(active, a)['status'] == 'READY'
+E       AssertionError: assert 'READY_FOR_REVIEW' == 'READY'
+E         
+E         - READY
+E         + READY_FOR_REVIEW
+
+tests/test_api_business_modules.py:554: AssertionError
+____ test_review_every_retained_release_is_protected_from_output[candidate] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-42/test_review_every_retained_rel1')
+output = 'candidate'
+
+    @pytest.mark.parametrize('output', ['reverse', 'candidate', 'receipt'])
+    def test_review_every_retained_release_is_protected_from_output(tmp_path, output):
+        active = setup_active(tmp_path)
+        a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
+        b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 1\n'}); synthetic_commit(active, b)
+        c = build(active, 'C', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, c)
+        initial = integration.inventory_tree(b / 'app')
+        forbidden = b / 'app/review-output'
+        with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+            if output == 'reverse':
+                integration.prepare_module_rollback(active_api_plist_path=active['plist'], target_release_root=a,
+                    expected_manifest_sha256=sha((a / 'release-manifest.json').read_bytes()), output_root=forbidden)
+            else:
+                source, receipt = make_delta(active, 'review-history', 'beta', {'modules/beta.py': b'BETA = 3\n'})
+                candidate = forbidden if output == 'candidate' else tmp_path / 'review-output'
+                kwargs = {'receipt_path': forbidden} if output == 'receipt' else {}
+                builder.build_module_candidate(source_root=source, candidate_root=candidate, active_api_plist_path=active['plist'],
+                    release_id='review-output', role='gateway', module_id='beta', api_integration_delta_receipt_path=receipt,
+                    formal_release_root=tmp_path / 'formal', **kwargs)
+        assert integration.inventory_tree(b / 'app') == initial
+        assert not forbidden.exists()
+>       assert prepare_rollback(active, a)['status'] == 'READY'
+E       AssertionError: assert 'READY_FOR_REVIEW' == 'READY'
+E         
+E         - READY
+E         + READY_FOR_REVIEW
+
+tests/test_api_business_modules.py:554: AssertionError
+_____ test_review_every_retained_release_is_protected_from_output[receipt] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-42/test_review_every_retained_rel2')
+output = 'receipt'
+
+    @pytest.mark.parametrize('output', ['reverse', 'candidate', 'receipt'])
+    def test_review_every_retained_release_is_protected_from_output(tmp_path, output):
+        active = setup_active(tmp_path)
+        a = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'}); synthetic_commit(active, a)
+        b = build(active, 'B', 'beta', {'modules/beta.py': b'BETA = 1\n'}); synthetic_commit(active, b)
+        c = build(active, 'C', 'beta', {'modules/beta.py': b'BETA = 2\n'}); synthetic_commit(active, c)
+        initial = integration.inventory_tree(b / 'app')
+        forbidden = b / 'app/review-output'
+        with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+            if output == 'reverse':
+                integration.prepare_module_rollback(active_api_plist_path=active['plist'], target_release_root=a,
+                    expected_manifest_sha256=sha((a / 'release-manifest.json').read_bytes()), output_root=forbidden)
+            else:
+                source, receipt = make_delta(active, 'review-history', 'beta', {'modules/beta.py': b'BETA = 3\n'})
+                candidate = forbidden if output == 'candidate' else tmp_path / 'review-output'
+                kwargs = {'receipt_path': forbidden} if output == 'receipt' else {}
+                builder.build_module_candidate(source_root=source, candidate_root=candidate, active_api_plist_path=active['plist'],
+                    release_id='review-output', role='gateway', module_id='beta', api_integration_delta_receipt_path=receipt,
+                    formal_release_root=tmp_path / 'formal', **kwargs)
+        assert integration.inventory_tree(b / 'app') == initial
+        assert not forbidden.exists()
+>       assert prepare_rollback(active, a)['status'] == 'READY'
+E       AssertionError: assert 'READY_FOR_REVIEW' == 'READY'
+E         
+E         - READY
+E         + READY_FOR_REVIEW
+
+tests/test_api_business_modules.py:554: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_api_business_modules.py::test_review_every_retained_release_is_protected_from_output[reverse]
+FAILED tests/test_api_business_modules.py::test_review_every_retained_release_is_protected_from_output[candidate]
+FAILED tests/test_api_business_modules.py::test_review_every_retained_release_is_protected_from_output[receipt]
+3 failed, 78 passed in 5.00s

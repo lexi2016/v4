@@ -1,0 +1,36 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+____________ test_review_cutover_config_symlink_cannot_write_state _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-43/test_review_cutover_config_sym0')
+
+    def test_review_cutover_config_symlink_cannot_write_state(tmp_path):
+        import shutil
+        from ops.prepare_api_only_cutover import render_module_cutover
+        active = setup_active(tmp_path)
+        candidate = build(active, 'A', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+        shutil.rmtree(candidate / 'config'); (candidate / 'config').symlink_to(active['state'], target_is_directory=True)
+        before = integration.inventory_tree(active['state'])
+>       with pytest.raises(ValueError, match='API_BUSINESS_CONFIG_PATH_SYMLINK_OR_ALIAS'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:581: Failed
+__________ test_declared_external_root_without_plist_env_is_protected __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-43/test_declared_external_root_wi0')
+
+    def test_declared_external_root_without_plist_env_is_protected(tmp_path):
+        active = setup_active(tmp_path)
+        products = tmp_path / 'synthetic-default-products'; products.mkdir()
+        change_contract(active, lambda c: c.update(protected_external_roots=[str(active['state']), str(products)]))
+        source, receipt = make_delta(active, 'defaults', 'alpha', {'modules/alpha.py': b'ALPHA = 1\n'})
+>       with pytest.raises(ValueError, match='API_BUSINESS_OUTPUT_BOUNDARY'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_api_business_modules.py:594: Failed
+=========================== short test summary info ============================
+FAILED tests/test_api_business_modules.py::test_review_cutover_config_symlink_cannot_write_state
+FAILED tests/test_api_business_modules.py::test_declared_external_root_without_plist_env_is_protected
+2 failed, 61 deselected in 0.20s

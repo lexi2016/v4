@@ -1,0 +1,162 @@
+FFFFFFF                                                                  [100%]
+=================================== FAILURES ===================================
+_____________ test_native_lock_is_the_existing_gateway_owned_lock ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fbf02b29220>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-24/test_native_lock_is_the_existi0')
+
+    def test_native_lock_is_the_existing_gateway_owned_lock(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    ) -> None:
+        reference, active = _reference(monkeypatch, tmp_path)
+        with reference._locked() as lease:
+>           integration.assert_api_release_lock(lease, active, role="gateway")
+
+tests/test_api_native_module_guard.py:52: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/api_release_integration.py:707: in assert_api_release_lock
+    assert_owned_interprocess_lock(lease, api_release_lock_path(active_api_plist_path, role=role))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+lease = None
+path = PosixPath('/tmp/pytest-of-root/pytest-24/test_native_lock_is_the_existi0/LaunchAgents/.com.lexi.v35.api-only.release.lock')
+
+    def assert_owned_interprocess_lock(lease: object, path: Path) -> None:
+        """Reject absent, forged, expired, moved or foreign lock authority."""
+        if (
+            type(lease) is not OwnedInterprocessLockLease
+            or lease.pid != os.getpid()
+            or lease.thread_id != threading.get_ident()
+        ):
+>           raise ValueError("OWNER_LOCK_LEASE_NOT_OWNED")
+E           ValueError: OWNER_LOCK_LEASE_NOT_OWNED
+
+infrastructure/interprocess_lock.py:114: ValueError
+____ test_direct_native_switch_rejects_unowned_lease_before_preflight[None] ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fbf028ddf30>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-24/test_direct_native_switch_reje0')
+lease = None
+
+    @pytest.mark.parametrize("lease", [None, object()])
+    def test_direct_native_switch_rejects_unowned_lease_before_preflight(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path, lease: object,
+    ) -> None:
+        reference, active = _reference(monkeypatch, tmp_path)
+        with pytest.raises(ValueError, match="OWNER_LOCK_LEASE_NOT_OWNED"):
+>           reference._run_switch(
+                {}, confirmation=reference.CONFIRM_SWITCH,
+                expected_current_sha="0" * 64, expected_staged_sha="1" * 64,
+                lock_lease=lease,
+            )
+E           TypeError: _run_switch() got an unexpected keyword argument 'lock_lease'
+
+tests/test_api_native_module_guard.py:65: TypeError
+___ test_direct_native_switch_rejects_unowned_lease_before_preflight[lease1] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fbf02660710>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-24/test_direct_native_switch_reje1')
+lease = <object object at 0x7fbf03dae5e0>
+
+    @pytest.mark.parametrize("lease", [None, object()])
+    def test_direct_native_switch_rejects_unowned_lease_before_preflight(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path, lease: object,
+    ) -> None:
+        reference, active = _reference(monkeypatch, tmp_path)
+        with pytest.raises(ValueError, match="OWNER_LOCK_LEASE_NOT_OWNED"):
+>           reference._run_switch(
+                {}, confirmation=reference.CONFIRM_SWITCH,
+                expected_current_sha="0" * 64, expected_staged_sha="1" * 64,
+                lock_lease=lease,
+            )
+E           TypeError: _run_switch() got an unexpected keyword argument 'lock_lease'
+
+tests/test_api_native_module_guard.py:65: TypeError
+_____________ test_direct_native_switch_rejects_expired_real_lease _____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fbf028f27a0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-24/test_direct_native_switch_reje2')
+
+    def test_direct_native_switch_rejects_expired_real_lease(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    ) -> None:
+        reference, active = _reference(monkeypatch, tmp_path)
+        with integration.shared_api_release_lock(active) as lease:
+            pass
+        with pytest.raises(ValueError, match="OWNER_LOCK_LEASE_NOT_ACTIVE"):
+>           reference._run_switch(
+                {}, confirmation=reference.CONFIRM_SWITCH,
+                expected_current_sha="0" * 64, expected_staged_sha="1" * 64,
+                lock_lease=lease,
+            )
+E           TypeError: _run_switch() got an unexpected keyword argument 'lock_lease'
+
+tests/test_api_native_module_guard.py:81: TypeError
+_________ test_business_rollback_rejects_whole_release_pointer_restore _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fbf028f3020>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-24/test_business_rollback_rejects0')
+
+    def test_business_rollback_rejects_whole_release_pointer_restore(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    ) -> None:
+        reference, active = _reference(monkeypatch, tmp_path)
+>       with pytest.raises(ValueError, match="BUSINESS_MODULE_REVERSE_DELTA_REQUIRED"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'BUSINESS_MODULE_REVERSE_DELTA_REQUIRED'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_OUTSIDE_TASK_ROOT'
+
+tests/test_api_native_module_guard.py:94: AssertionError
+__________ test_native_guard_refuses_missing_review_pin_before_import __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fbf026caa50>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-24/test_native_guard_refuses_miss0')
+
+    def test_native_guard_refuses_missing_review_pin_before_import(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    ) -> None:
+        reference, active = _reference(monkeypatch, tmp_path)
+        monkeypatch.setattr(reference, "RELEASE_GUARD_SHA256", {}, raising=False)
+        with pytest.raises(ValueError, match="API_MODULE_GUARD_PIN_REQUIRED"):
+>           reference._load_release_guard()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module '_native_api_reference_test_native_guard_refuses_miss0' has no attribute '_load_release_guard'
+
+tests/test_api_native_module_guard.py:110: AttributeError
+_______ test_native_guard_refuses_changed_dependency_before_executing_it _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fbf026ca050>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-24/test_native_guard_refuses_chan0')
+
+    def test_native_guard_refuses_changed_dependency_before_executing_it(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    ) -> None:
+        reference, active = _reference(monkeypatch, tmp_path)
+        isolated_root = tmp_path / "reviewed-tool-root"
+        isolated_root.mkdir()
+        marker = tmp_path / "untrusted-code-ran"
+        pins = getattr(reference, "RELEASE_GUARD_SHA256", {})
+        for relative in pins:
+            target = isolated_root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((ROOT / relative).read_bytes())
+        target = isolated_root / "ops" / "api_release_integration.py"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(f"from pathlib import Path\nPath({str(marker)!r}).write_text('bad')\n")
+        monkeypatch.setattr(reference, "RELEASE_GUARD_ROOT", isolated_root, raising=False)
+        with pytest.raises(ValueError, match="API_MODULE_GUARD_CLOSURE_SHA_MISMATCH"):
+>           reference._load_release_guard()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module '_native_api_reference_test_native_guard_refuses_chan0' has no attribute '_load_release_guard'
+
+tests/test_api_native_module_guard.py:131: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_api_native_module_guard.py::test_native_lock_is_the_existing_gateway_owned_lock
+FAILED tests/test_api_native_module_guard.py::test_direct_native_switch_rejects_unowned_lease_before_preflight[None]
+FAILED tests/test_api_native_module_guard.py::test_direct_native_switch_rejects_unowned_lease_before_preflight[lease1]
+FAILED tests/test_api_native_module_guard.py::test_direct_native_switch_rejects_expired_real_lease
+FAILED tests/test_api_native_module_guard.py::test_business_rollback_rejects_whole_release_pointer_restore
+FAILED tests/test_api_native_module_guard.py::test_native_guard_refuses_missing_review_pin_before_import
+FAILED tests/test_api_native_module_guard.py::test_native_guard_refuses_changed_dependency_before_executing_it
+7 failed in 0.21s

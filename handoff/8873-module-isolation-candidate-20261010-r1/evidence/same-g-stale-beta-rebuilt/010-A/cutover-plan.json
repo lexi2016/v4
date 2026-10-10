@@ -1,0 +1,108 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "candidate_manifest": {
+    "path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A/release-manifest.json",
+    "sha256": "522c17332fe893a68a55caad45e493f95d6ad01156ece43249d22fb09dc49801"
+  },
+  "candidate_plist": {
+    "install_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/LaunchAgents/com.lexi.v35.api-only.plist",
+    "label": "com.lexi.v35.api-only",
+    "path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A/config/com.lexi.v35.api-only.plist",
+    "port": 8873,
+    "sha256": "3587f51d3559345b8dd56c10d67901174f4fd464a5a39703172c95d33594f1ad"
+  },
+  "deployment_status": "CANNOT_CONFIRM",
+  "future_actions": {
+    "activation": "CANNOT_RUN_UNTIL_INDEPENDENT_REVIEW_AND_PORT_CHECK",
+    "active_plist_changed": false,
+    "launchctl_called": false,
+    "required_protocol": "role-bound CAS, independent role lock, before/after pointer readback and role-local rollback"
+  },
+  "gateway_static_assets": {
+    "module_release_writes_gateway_bundle": false,
+    "module_role_owns_static_assets": true,
+    "non_target_bytes_preserved": true
+  },
+  "manager_state": {
+    "copied": false,
+    "roots_inherited_from_base_role_plist": true
+  },
+  "module_id": "alpha",
+  "module_release": {
+    "active_api_plist_sha256": "09b378e433ac24a49f7740d7f0fc3f63d293d6ddfe6c9870fb7cb33f086afb40",
+    "active_pointer": "base",
+    "base": {
+      "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/G/app",
+      "application_inventory_entry_count": 7,
+      "application_inventory_sha256": "75767c662fe4c5f89aabf1ddc6cfc2c5bf9e603e6812f6d069c065ce8499f6c5",
+      "generation": 0,
+      "release_id": "G",
+      "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/G/release-manifest.json",
+      "release_manifest_sha256": "3358a254f631b266d926155564967583615c8540d3818c8d01392a5577611623",
+      "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/G"
+    },
+    "business_module": {
+      "approval_id": "SYNTHETIC_TEST_ONLY",
+      "base_generation": 0,
+      "generation": 1,
+      "module_id": "alpha",
+      "operation": "forward",
+      "owner_contract_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/approved-module-owners.json",
+      "owner_contract_sha256": "44558f85e0132a4d434b0f7fa90897e175cc139aab3b448bac5826e550ad2947",
+      "shared_paths_changed": false,
+      "source_owner": "synthetic-alpha",
+      "state_schema_changed": false
+    },
+    "candidate": {
+      "app_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A/app",
+      "application_inventory_entry_count": 8,
+      "application_inventory_sha256": "96939826ea0c24e824799e4d0cf4132523feff7fe5e9eb65e915bf73d1977c00",
+      "module_contract_sha256": null,
+      "module_role": "gateway",
+      "release_id": "A",
+      "release_manifest_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A/release-manifest.json",
+      "release_manifest_sha256": "522c17332fe893a68a55caad45e493f95d6ad01156ece43249d22fb09dc49801",
+      "release_root": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/A"
+    },
+    "delta_paths": [
+      "modules/alpha.py",
+      "modules/alpha_extra.py"
+    ],
+    "delta_receipt_sha256": "37427920a3d86c1d6d58c8d58de498d84e72175b866c8bf2d86974e3f8b85fe5",
+    "non_delta_active_release_bytes_preserved": true,
+    "non_delta_entry_count": 6,
+    "non_delta_inventory_sha256": "24dfb23c53630edd89d4a983c74f7f48fc09ad933efb6b89de79740ace56216c",
+    "shared_lock_path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+    "status": "PASS"
+  },
+  "port_check": {
+    "must_repeat_before_activation": true,
+    "status": "NOT_RUN"
+  },
+  "release_lock": {
+    "path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+    "shared_by_all_gateway_business_modules": true
+  },
+  "rollback": {
+    "entrypoint": "ops.api_release_integration.prepare_module_rollback",
+    "mode": "REVERSE_DELTA_ON_CURRENT_ACTIVE",
+    "module_id": "alpha",
+    "must_rebind_current_active": true,
+    "whole_release_restore_for_module_rollback": false
+  },
+  "schema_version": "v4.api_module_cutover_plan.v1",
+  "source_active_plist": {
+    "label": "com.lexi.v35.api-only",
+    "path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/LaunchAgents/com.lexi.v35.api-only.plist",
+    "role": "gateway",
+    "sha256": "09b378e433ac24a49f7740d7f0fc3f63d293d6ddfe6c9870fb7cb33f086afb40"
+  },
+  "target_plist_preimage": {
+    "manifest_sha256": "3358a254f631b266d926155564967583615c8540d3818c8d01392a5577611623",
+    "path": "/workspace/scratch/a245cda1e07c/analysis/scenario-fixtures-run2/same-g-stale-beta-rebuilt/LaunchAgents/com.lexi.v35.api-only.plist",
+    "release_id": "G",
+    "sha256": "09b378e433ac24a49f7740d7f0fc3f63d293d6ddfe6c9870fb7cb33f086afb40",
+    "status": "PRESENT"
+  },
+  "target_role": "gateway"
+}
