@@ -1,0 +1,148 @@
+{
+  "schema_version": "v4.8873_module_isolation.evidence.v2",
+  "status": "PARTIAL_CURRENT_CODE_PATHS_SNAPSHOTTED_LIVE_CUTOVER_AND_BUSINESS_OWNERSHIP_CANNOT_CONFIRM",
+  "facts": [
+    {
+      "claim": "Current listener/service identity",
+      "value": {
+        "pid": "67464",
+        "host": "127.0.0.1",
+        "port": 8873,
+        "release_id": "hk-three-stage-20261010-r1",
+        "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app",
+        "launch_label": "com.lexi.v35.api-only",
+        "launch_binding_form": "/usr/bin/env KEY=VALUE in ProgramArguments"
+      },
+      "provenance": "parent task capsule; writer did not read or change process, plist, service, full environment, or owner data"
+    },
+    {
+      "claim": "Exact full active release manifest/inventory identity and loaded-byte linkage",
+      "value": "CANNOT_CONFIRM",
+      "provenance": "not independently read by writer; no manifest/body copied; fresh read required before later publisher implementation"
+    },
+    {
+      "claim": "Runtime-B API router topology",
+      "value": "one app.py imports/registers multiple routers and mounts one apps/web/dist at /",
+      "provenance": "complete runtime-B source snapshots; content SHA in SOURCE_MANIFEST.json"
+    },
+    {
+      "claim": "Static build boundary",
+      "value": "Vite config has three HTML build entries; publisher helper copy_dist copies entire dist tree; dist excluded from package",
+      "provenance": "runtime-B web source and canonical release source snapshots"
+    },
+    {
+      "claim": "Canonical publisher primitives",
+      "value": "dirty working-tree code includes active release identity, explicit delta receipt, lock/CAS verification, non-delta preservation, full app candidate build; gateway path is not restricted by business module allowlist",
+      "provenance": "complete canonical-worktree ops helper and deployment contract snapshots; not proof of active B entrypoint use"
+    },
+    {
+      "claim": "Candidate cutover/deployment boundary",
+      "value": "current included builder and cutover scripts create candidate and staged plan with launchctl_called=false; live install/reload health/rollback remain CANNOT_CONFIRM",
+      "provenance": "complete canonical-worktree source snapshots"
+    },
+    {
+      "claim": "Cross-version sample evidence",
+      "value": "canonical runner SHA differs runtime-B runner SHA; canonical workspace_plan SHA differs runtime-B version; proves sampled source version skew, not current overwrite accident",
+      "provenance": "exact captured files below; E prior evidence metadata"
+    },
+    {
+      "claim": "Prior Issue #30 status",
+      "value": {
+        "issue": "https://github.com/lexi2016/v4/issues/30",
+        "historical_commit": "a0a0b88dc133d14ee5763569272c174bcd7cc445",
+        "path": "handoff/api-module-release-20261008/"
+      },
+      "provenance": "parent task capsule; previous deliverable to reuse, not current acceptance evidence"
+    },
+    {
+      "claim": "Business module mapping of named workspace folders",
+      "value": "CANNOT_CONFIRM",
+      "provenance": "architect review: source/router evidence does not map 助手/数据/个股/牛股学习/Z哥方法论 folders one-to-one; no external workspace folders copied"
+    },
+    {
+      "claim": "Safety flags",
+      "value": {
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "provenance": "task boundary; no trading behavior or state changes"
+    },
+    {
+      "claim": "Machine-specific path redaction",
+      "value": "10 source files / 89 /Users/lexi literals replaced with /REDACTED_LOCAL_HOME in payload copies; original source SHA and copied SHA are both recorded",
+      "provenance": "copy-time normalization to omit Mac absolute runtime/data bindings; not a business logic patch"
+    },
+    {
+      "claim": "Owner-observation test payload exclusion",
+      "value": {
+        "status": "EXCLUDED_FROM_PACKAGE",
+        "source_file_count": 3,
+        "source_bytes_removed": 71399,
+        "owner_observations": 9,
+        "payload": "issue8R2 owner observations JSON and its test-only adapter/spec"
+      },
+      "provenance": "independent package review identified retained real owner observations in the source snapshot; writer removed only those three package copies and synchronized SOURCE_MANIFEST.json. Original runtime-B sources were not modified."
+    },
+    {
+      "claim": "Runtime-B frontend test and fixture snapshot exclusion",
+      "value": {
+        "status": "EXCLUDED_FROM_PACKAGE",
+        "source_file_count": 23,
+        "source_bytes_removed": 596454,
+        "scope": "all test/spec files and fixture-directory files below runtime-B apps/web/src",
+        "package_copy_bytes_removed": 596517
+      },
+      "provenance": "parent follow-up after independent review; issue package retains production Vite source/build inputs and canonical publisher-focused tests only. Original runtime-B sources were not modified."
+    }
+  ],
+  "captured_source_snapshots": [
+    {
+      "path": "evidence/preexisting-canonical/ops/run_manager_daily_announcement.py",
+      "original_source_path": "/Users/lexi/Desktop/学习/v4_app/ops/run_manager_daily_announcement.py",
+      "bytes": 42929,
+      "sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "source_evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/before-canonical/ops/run_manager_daily_announcement.py"
+    },
+    {
+      "path": "evidence/preexisting-canonical/v4/manager_research/workspace_plan.py",
+      "original_source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/workspace_plan.py",
+      "bytes": 97369,
+      "sha256": "ef0269a8510b9168e2d135de6c1b4d28146a22d0d691aee8dd3fe80f95a698f0",
+      "source_evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/before-canonical/v4/manager_research/workspace_plan.py"
+    },
+    {
+      "path": "evidence/runtime-B/ops/run_manager_daily_announcement.py",
+      "original_source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/ops/run_manager_daily_announcement.py",
+      "bytes": 42910,
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "source_evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/before-B/ops/run_manager_daily_announcement.py"
+    },
+    {
+      "path": "evidence/runtime-B/v4/manager_research/workspace_plan.py",
+      "original_source_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_THREE_STAGE_COMPLETION_20261010/integrated_release/hk-three-stage-20261010-r1/app/v4/manager_research/workspace_plan.py",
+      "bytes": 107076,
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "source_evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/evidence/before-B/v4/manager_research/workspace_plan.py"
+    }
+  ],
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "limitations": [
+    "No live service, LaunchAgent, owner data, Stage data or full environment read by package writer.",
+    "Active release-manifest and application-inventory full on-disk SHA not independently verified; rebind before implementation.",
+    "Canonical publisher mechanisms are dirty/untracked working-tree snapshots and are not proven to be used by active B gateway entrypoint.",
+    "No actual 8873 launch/reload/health/rollback call-site or module reverse-delta behavior is confirmed.",
+    "No approved business module_id/source owner or ownership of all shared router/static/state paths is proven.",
+    "Existing tests are source snapshots only; package writer did not run project tests or deployment tests.",
+    "This is an issue package only: no isolation implementation, commit, push, issue update, release, service change, or trade.",
+    "Some code/config snapshots have absolute local paths redacted in the payload; compare original_source_sha256 to local source and rebind values from current allowlisted configuration before execution.",
+    "The test-only issue8R2 owner-observation JSON and its dependent adapter/spec are intentionally absent from the package; corresponding upstream tests were not run from this package.",
+    "No runtime-B frontend business tests or fixtures are included in the issue package; only production frontend source/build inputs and canonical publisher-focused tests are snapshotted."
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": "v4.8873_module_isolation.independent_review.v1",
+  "reviewer_identity": "/root/manager_repair_review (independent from Writer)",
+  "package": "/Users/lexi/Desktop/学习/agents调试/V4_8873_MODULE_ISOLATION_ISSUE_20261010_R1",
+  "review_scope": "Frozen package-only review: target/facts, source manifest and copied payload integrity, package-local validator, and stated issue acceptance contract. No implementation, service, business, deployment, or live-data tests.",
+  "review_status": "REVIEWED",
+  "verdict": "PASS",
+  "findings": [],
+  "severity_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "acceptance_evidence": [
+    {
+      "claim": "Package self-integrity passes after excluding owner-observation payloads and runtime-B frontend business test/fixture snapshots.",
+      "evidence": "PYTHONDONTWRITEBYTECODE=1 python3 tools/verify_package.py => PASS: 120 package artifacts; 114 source snapshots; JSON/Python syntax and all checksums verified.",
+      "status": "PASS"
+    },
+    {
+      "claim": "Every remaining source snapshot matches its source bytes or the documented path-only redaction transform.",
+      "evidence": "Independently compared all 114 manifest source_path and destination pairs: 108 byte-identical; 6 are exact /Users/lexi -> /REDACTED_LOCAL_HOME transformations totaling 82 replacements; all source/payload byte lengths and SHA-256 values match manifest; zero mismatches.",
+      "status": "PASS"
+    },
+    {
+      "claim": "Frontend test payload removal is complete and the package guard covers runtime-B apps/web/src test, spec, and fixture paths.",
+      "evidence": "SOURCE_MANIFEST.json source_exclusions lists the removed 23 frontend tests/specs and the 3 issue8R2 fixture files; EVIDENCE.json records both exclusions; tools/verify_package.py scans frontend src for __tests__/tests/fixture directories and .spec./.test. files before accepting checksums. The runtime-B frontend src snapshot has no remaining tests/spec/fixtures. Canonical publisher-focused tests remain.",
+      "status": "PASS"
+    },
+    {
+      "claim": "Target behavior is constrained to the existing 8873 gateway, reuses existing publication primitives, and names the missing business-module boundary.",
+      "evidence": "CHAT_TASK.md:5-24; PUBLICATION_CHAIN.md:15-19; MODULE_MAP.json:74-93. Contract requires one existing 127.0.0.1:8873 service, exact-base/explicit-delta/lock-CAS/non-delta preservation reuse, and an owner/path allowlist plus module_id binding. Gateway allowlist is marked absent; service_role is not a business module_id; ports 8874/8875 are not an answer.",
+      "status": "PASS"
+    },
+    {
+      "claim": "Current-active rollback, shared/static preservation, and non-target integrity are explicit future acceptance requirements; old source skew is not presented as a proven fresh overwrite incident.",
+      "evidence": "CHAT_TASK.md:20-22,32-38; EVIDENCE.json:44-46; PUBLICATION_CHAIN.md:23-29. Rollback is specified as target-module reverse delta on current active plus CAS; other module/shared/static bytes must remain unchanged. Sample SHA skew is expressly limited to the captured files.",
+      "status": "PASS"
+    }
+  ],
+  "limitations": [
+    "The issue package is not an isolation implementation or proof of target behavior.",
+    "Active release manifest/inventory identity, actual 8873 publisher call-site, live reload/health, module-level reverse-delta rollback, and business/shared-path ownership remain CANNOT_CONFIRM as explicitly recorded in EVIDENCE.json and PUBLICATION_CHAIN.md.",
+    "No business or service tests were run, per frozen scope; package verification is not behavioral acceptance."
+  ],
+  "package_hashes": {
+    "SOURCE_MANIFEST.json": "b6c20116b85a77b23e68304b226b98a5e9c71a18162fa7bb59a2cac1de5e53cd",
+    "PACKAGE_SHA256SUMS.txt": "2f12d5693b11832022d347afd5a95362cbd74f6799fc94885dcce624067a8b64",
+    "README.md": "0c9bc5d0c7075a7211b51db856b3e7311aef3d22cdf489369f380c60c834eee8",
+    "EVIDENCE.json": "d61327d26396ac0b744d11267744a6bee0ab0c2ae2178d2dc2f368004bcfcc12",
+    "tools/verify_package.py": "aa25ff02d389f1d056c283da249c70410642b4ee597a35b342bc2327fe27179f"
+  },
+  "behavior_verified": false
+}
