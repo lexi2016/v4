@@ -1,0 +1,31 @@
+{
+  "schema_version": "v5.archive_acquisition_candidate.v2",
+  "base_commit": "d1bf034640ca2e5957423de2745a98e159b69af2",
+  "source_path": "handoff/v4-running-source-20261005/canonical/ops/run_zsxq_hourly_delta.py",
+  "target_path": "ops/run_zsxq_hourly_delta.py",
+  "before_sha256": "7b984776bcdb26aec838419f8ce6cbf3cee77d9cdf3785cb46e64481ae5d3d38",
+  "after_sha256": "9874afebc42d81afc6f0cab6e5be282b9ecd6a6757a4523d8082f2143d380ff3",
+  "deployment_status": "NOT_DEPLOYED",
+  "existing_archive_contract": "UNCHANGED_V1_REJECTS_MISSING_ACQUISITION",
+  "sidecar_schema": "v5.zsxq_acquisition_receipt.v2",
+  "test_dependency_sha256": {
+    "infrastructure/data_store.py": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+    "infrastructure/owned_io.py": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+    "infrastructure/owned_path.py": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+    "infrastructure/isolated_package_loader.py": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+    "infrastructure/interprocess_lock.py": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+    "infrastructure/market_time.py": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+    "infrastructure/trading_safety.py": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df"
+  },
+  "runtime_dependency_status": "ORIGINAL_FULL_SOURCE_AND_ANALYZER_REQUIRED_NOT_RUNTIME_VERIFIED",
+  "changed_tracked_files": {
+    "V5/src/v5_shadow/current_us_research.py": {
+      "before_sha256": "966f728556da096afd6d5be6a38869f8e7c40d7f85dd7f619c5044858ce8118d",
+      "after_sha256": "202d3f86d38e2203615ef0952da6b7fd1b3ecc95e15109e00f19b121c811084e"
+    },
+    "V5/tests/test_current_us_research.py": {
+      "before_sha256": "d0327818a9d2c612a8da6c53e1bb81f5e2e09cd2e22b26c1f36da6534e69e667",
+      "after_sha256": "76db9bbe58ea4f226d15c92941c89dc812a5af0999ea43d6a0530598e752ef1d"
+    }
+  }
+}

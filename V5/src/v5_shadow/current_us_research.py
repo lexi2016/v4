@@ -56,6 +56,31 @@ def _raw_file(root,relative):
     finally:os.close(fd)
 
 
+
+def coverage_paths(workspace):
+    """Transport the original three scopes without creating relations or counts."""
+    market = workspace.get('us_market_attention') or {}
+    diagnostics = market.get('mapping_diagnostics') or {}
+    seed = workspace.get('us_mapping_research') or {}
+    daily = seed.get('daily_run') or {}
+    return dict(schema_version='v5.us_coverage_paths.v1',
+        combined_material_assessment_state=diagnostics.get('assessment_state'),
+        material_input=copy.deepcopy(market.get('research_material_input')),
+        material_assessment_reasons=copy.deepcopy(diagnostics.get('assessment_reasons')),
+        industry_material=dict(scope='RISING_INDUSTRY_AND_VERIFIED_HK_BUSINESS_THEME',
+            explicit_us_ticker_required=False,
+            raw_movers=copy.deepcopy(market.get('raw_industry_up')),
+            original_diagnostics=copy.deepcopy(diagnostics.get('industry'))),
+        individual_material=dict(scope='RISING_US_SYMBOL_AND_VERIFIED_EXPLICIT_HK_RELATION',
+            explicit_us_ticker_required=True,
+            raw_movers=copy.deepcopy(market.get('raw_individual_up')),
+            original_diagnostics=copy.deepcopy(diagnostics.get('individual'))),
+        reviewed_seed=dict(scope='PINNED_DAILY_MATCH_SYMBOLS_ONLY',
+            status=daily.get('status'),run_id=daily.get('run_id'),artifact_sha256=daily.get('artifact_sha256'),
+            coverage_diagnostics=copy.deepcopy(seed.get('coverage_diagnostics'))),
+        formal_eligible=False,natural_verified=False,full_market_coverage=False)
+
+
 def run_current_research(request):
     exact_keys(request,('target_date','us_data_root','us_files','us_output_root','manager_output_root','materials','native_master')+
         (('archives',) if 'archives' in request else ()))
@@ -102,7 +127,9 @@ def run_current_research(request):
         us_run_id=run,us_artifact_sha256=product['artifact_sha256'],
         native_master_bound=request['native_master'] is not None,
         manager_request=manager_request,manager_readback=saved['readback'],
-        workspace=read['payload'],natural_verified=False,historical_pit_claimed=False,
+        workspace=read['payload'],coverage_paths=coverage_paths(read['payload']),
+        archive_readback=copy.deepcopy(read.get('archive_readback')),
+        natural_verified=False,historical_pit_claimed=False,
         production_allowed=False,buy_gate_updated=False,orders_sent=False)
 
 

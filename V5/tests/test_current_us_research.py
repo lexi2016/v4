@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 import unittest
-from v5_shadow.current_us_research import _context_at,run_current_research
+from v5_shadow.current_us_research import _context_at,run_current_research,coverage_paths
 from v5_shadow.digests import canonical_bytes,sha256_json
 
 
@@ -53,12 +53,44 @@ class CurrentUsResearchTests(unittest.TestCase):
             (day/'runs'/('a'*32+'.json')).write_bytes(canonical_bytes(daily))
             (day/'latest.json').write_bytes(canonical_bytes(dict(run_id=daily['run_id'],artifact_sha256=daily['artifact_sha256'])))
             return dict(persisted_daily=daily,readback_status='MATCHED',execution_kind='MANUAL_RECOVERY')
-        response=dict(readback={'run_id':'plan','plan_sha256':'b'*64},payload={'plan_product':{'run_id':'plan','sha256':'b'*64}})
+        archives=self.root/'archives';archives.mkdir();(archives/'manifest.json').write_text('{}')
+        self.request['archives']=dict(root=str(archives),files={'manifest.json':sha256_json({})})
+        response=dict(archive_readback={'validated_artifacts':1},readback={'run_id':'plan','plan_sha256':'b'*64},payload={'plan_product':{'run_id':'plan','sha256':'b'*64}})
         with patch('v5_shadow.current_us_research.inspect_target',return_value=self.context),patch('v5_shadow.current_us_research.run_us_mapping',side_effect=mapping),patch('v5_shadow.current_us_research.run_manager_plan',return_value=response) as manager:
             result=run_current_research(self.request)
         self.assertEqual(manager.call_count,2)
         self.assertEqual([call.args[0]['action'] for call in manager.call_args_list],['refresh','read'])
         self.assertTrue(all(call.args[0]['view']=='dynamic' for call in manager.call_args_list))
         self.assertNotIn('native_master',result['manager_request']['inputs'])
+        self.assertEqual(result['manager_request']['inputs']['archives'],self.request['archives'])
+        self.assertTrue(all(call.args[0]['inputs']['archives']==self.request['archives'] for call in manager.call_args_list))
+        self.assertEqual(result['archive_readback'],{'validated_artifacts':1})
         self.assertFalse(result['native_master_bound']);self.assertFalse(result['historical_pit_claimed'])
         self.assertEqual(result['underlying_us_execution_kind'],'MANUAL_RECOVERY')
+
+    def test_three_scopes_keep_original_unknown_zero_and_rejections(self):
+        import copy
+        workspace={'us_market_attention':{'raw_industry_up':[{'label':'未扩展主题'}],
+            'raw_individual_up':[{'symbol':'SYN_ETF'}],
+            'mapping_diagnostics':{'assessment_state':'INSUFFICIENT',
+                'assessment_reasons':['ISSUER_ACQUISITION_TIME_MISSING_OR_INVALID'],
+                'industry':[{'reason':'NO_MANAGER_THEME_TAXONOMY','accepted_mapping_count':0}],
+                'individual':None}},
+            'us_mapping_research':{'daily_run':{'status':'VALID_EMPTY'},'coverage_diagnostics':{'assessed_rising_symbol_count':0,'broader_relation_result':None}}}
+        before=copy.deepcopy(workspace);value=coverage_paths(workspace)
+        self.assertFalse(value['industry_material']['explicit_us_ticker_required'])
+        self.assertTrue(value['individual_material']['explicit_us_ticker_required'])
+        self.assertIsNone(value['individual_material']['original_diagnostics'])
+        self.assertEqual(value['industry_material']['original_diagnostics'][0]['accepted_mapping_count'],0)
+        self.assertEqual(value['reviewed_seed']['status'],'VALID_EMPTY')
+        self.assertEqual(value['combined_material_assessment_state'],'INSUFFICIENT')
+        self.assertEqual(value['material_assessment_reasons'],['ISSUER_ACQUISITION_TIME_MISSING_OR_INVALID'])
+        value['industry_material']['original_diagnostics'][0]['reason']='modified copy'
+        self.assertEqual(workspace,before)
+
+    def test_missing_diagnostics_do_not_become_assessed_zero(self):
+        value=coverage_paths({})
+        self.assertIsNone(value['combined_material_assessment_state'])
+        self.assertIsNone(value['industry_material']['original_diagnostics'])
+        self.assertIsNone(value['reviewed_seed']['coverage_diagnostics'])
+        self.assertFalse(value['formal_eligible'])

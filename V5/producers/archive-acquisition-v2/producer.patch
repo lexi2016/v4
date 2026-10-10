@@ -1,0 +1,121 @@
+--- a/ops/run_zsxq_hourly_delta.py
++++ b/ops/run_zsxq_hourly_delta.py
+@@ -249,6 +249,72 @@
+     return max(candidates) if candidates else None
+ 
+ 
++
++def _acquisition_clock() -> str:
++    # Always measured here, never source status/event_time or caller's historical now.
++    return datetime.now(SHANGHAI).isoformat(timespec="microseconds")
++
++
++def _require_acquisition_root(data_root: Path) -> None:
++    root = Path(data_root).absolute()
++    if any(path.is_symlink() for path in (root, *root.parents)):
++        raise ValueError("V5_ACQUISITION_ROOT_SYMLINK")
++    marker = root / ".v5-archive-acquisition"
++    fd = os.open(marker, os.O_RDONLY | os.O_NOFOLLOW)
++    try:
++        if os.read(fd, 128) != b"v5.archive-acquisition.v2\n":
++            raise ValueError("V5_ACQUISITION_PRIVATE_ROOT_REQUIRED")
++    finally:
++        os.close(fd)
++
++
++def _publish_acquisition_receipt(store, output_relative, run_id, started_at,
++                                 retrieved_at, expected_payloads, bounded_has_more):
++    # NativeDataStore/SafeRoot writes fsync the file and containing directory.
++    # Bind exact persisted bytes AND compare them with this invocation's values.
++    evidence = {}
++    for name, expected in expected_payloads.items():
++        relative = output_relative + "/" + name
++        raw = store._io.read_bytes(relative)
++        if json.loads(raw) != expected:
++            raise ValueError("V5_ACQUISITION_PAYLOAD_READBACK_MISMATCH")
++        evidence[relative] = {"sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
++    available_at = _acquisition_clock()
++    stamps = [datetime.fromisoformat(value) for value in (started_at, retrieved_at, available_at)]
++    if any(value.utcoffset() is None for value in stamps) or not stamps[0] <= stamps[1] <= stamps[2]:
++        raise ValueError("V5_ACQUISITION_CLOCK_ORDER")
++    receipt = {
++        "schema_version": "v5.zsxq_acquisition_receipt.v2",
++        "scope": "NEW_BOUNDED_CLI_RESPONSE_AND_DERIVED_SUMMARY_NOT_ARTICLE_PROVENANCE",
++        "run_id": run_id,
++        "acquisition_started_at": started_at,
++        "retrieval_completed_at": retrieved_at,
++        "source_payloads_available_at": available_at,
++        "clock_basis": "PRODUCER_WALL_CLOCK_AFTER_CALLBACK_AND_DURABLE_READBACK",
++        "files": evidence,
++        "bounded_has_more": bool(bounded_has_more),
++        "full_source_coverage": False,
++        "article_acquisition_verified": False,
++        "issuer_body_binding_verified": False,
++        "historical_pit_claimed": False,
++        "natural_verified": False,
++        **SAFETY,
++    }
++    relative = output_relative + "/acquisition_receipt.v2.json"
++    # output_relative was exclusively created by this new invocation; no backfill/reuse.
++    store._write(relative, receipt)
++    raw = store._io.read_bytes(relative)
++    if json.loads(raw) != receipt:
++        raise ValueError("V5_ACQUISITION_RECEIPT_READBACK_MISMATCH")
++    # Recheck the bound bytes before allowing the original success status publish.
++    for name, ref in evidence.items():
++        raw_payload = store._io.read_bytes(name)
++        if len(raw_payload) != ref["bytes"] or hashlib.sha256(raw_payload).hexdigest() != ref["sha256"]:
++            raise ValueError("V5_ACQUISITION_PAYLOAD_CHANGED")
++    return {"schema_version": receipt["schema_version"], "path": relative,
++            "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
++
++
+ def materialize_zsxq_hourly_delta(
+     *,
+     data_root: Path,
+@@ -265,6 +331,7 @@
+     analyzer: Analyzer | None = None,
+     now: datetime | None = None,
+ ) -> dict[str, Any]:
++    _require_acquisition_root(data_root)
+     datetime.strptime(trade_date, "%Y%m%d")
+     if slot != "0830" and slot not in tuple(f"{hour:02d}00" for hour in range(9, 24)):
+         raise ValueError("ZSXQ delta slot must be 0830 or 0900 through 2300")
+@@ -288,6 +355,7 @@
+     floor = as_of - timedelta(days=max(1, int(lookback_days)))
+     previous = _previous_success_time(Path(data_root), trade_date, slot)
+     since = max(floor, previous) if previous is not None else floor
++    acquisition_started_at = _acquisition_clock()
+     fetched = collect_paginated_topics(
+         cli=Path(cli),
+         groups=groups,
+@@ -297,6 +365,7 @@
+         max_pages=max_pages,
+         process_runner=process_runner,
+     )
++    retrieval_completed_at = _acquisition_clock()
+     recent = {
+         "success": bool(fetched["topics"]),
+         "count": len(fetched["topics"]),
+@@ -337,6 +406,13 @@
+     NativeDataStore(data_root)._write(
+         f"{output_relative}/zsxq_summary.json", summary_payload
+     )
++    acquisition_evidence = _publish_acquisition_receipt(
++        NativeDataStore(data_root), output_relative, run_id,
++        acquisition_started_at, retrieval_completed_at,
++        {"zsxq_recent_topics_fetch_result.json": fetch_result,
++         "zsxq_recent_topics.json": recent, "zsxq_summary.json": summary_payload},
++        fetched["bounded_has_more"],
++    )
+     cannot_confirm = (
+         ["ZSXQ_PAGINATION_BOUNDED_HAS_MORE"]
+         if fetched["bounded_has_more"]
+@@ -352,6 +428,7 @@
+         "source_label": "知识星球",
+         "latest_run_id": run_id,
+         "fetched_at": observed.isoformat(timespec="seconds"),
++        "acquisition_evidence_v2": acquisition_evidence,
+         "source_since": since.isoformat(timespec="seconds"),
+         "source_cutoff": as_of.isoformat(timespec="seconds"),
+         "status": status,
