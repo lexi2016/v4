@@ -1,0 +1,111 @@
+{
+  "schema_version": "v5.article_identity_repair_package.v1",
+  "product_tests": "NOT_RUN",
+  "files": {
+    "MAC_ACCEPTANCE.md": {
+      "bytes": 7713,
+      "sha256": "dbf7ce98984bd044d5cdd97f001d08ad23006179d44597ab83d1e9247a9c6c52"
+    },
+    "REPAIR_REPORT.md": {
+      "bytes": 10477,
+      "sha256": "3b9f698694a0810caf0ade2115f958453153c56d2e7cd4cf8d167d92abb9ba5b"
+    },
+    "SOURCE_SHA256.json": {
+      "bytes": 7705,
+      "sha256": "5301432b2fe50e489a4a53991a8953f097bbb7ecc171f78881d67ce499d39486"
+    },
+    "START_HERE.md": {
+      "bytes": 4597,
+      "sha256": "8ec0b241d50c6ca3a0e7afd09d0fb8ebeb77f8cd546a6af602a577fad8de064b"
+    },
+    "STATIC_CHECKS.json": {
+      "bytes": 3557,
+      "sha256": "e9eed5b6c1aae63ad97d9a760ec8ec83a894c054e37ce80ff3967318abd14c79"
+    },
+    "STATIC_REVIEW.md": {
+      "bytes": 3624,
+      "sha256": "baac6a5bc8082e2f7d128807192dc7a6a2ede50a5792ea647c4e70243e4203b1"
+    },
+    "after/V5/contracts/archive_builder_source_manifest.json": {
+      "bytes": 4451,
+      "sha256": "47a7e7e2b4710c3db5e3185d02e2f291f5cf5aafb43077893627321c973403cb"
+    },
+    "after/V5/docs/superpowers/plans/2026-10-10-archive-builder-identity.md": {
+      "bytes": 6462,
+      "sha256": "a57413afc37be80275a42a0196866ce6caea34687fb7c9e1478df3ac88ac02d7"
+    },
+    "after/V5/producers/archive-acquisition-v2/README.md": {
+      "bytes": 9124,
+      "sha256": "736b3d645da095d15a40db231bef853fdb3ad79bf64d0b6f35cb1f82789229cc"
+    },
+    "after/V5/producers/archive-acquisition-v2/manifest.json": {
+      "bytes": 12503,
+      "sha256": "618e66fa0e2d1088b27d28546914aef58b547cf4bb3c7886864f5bfb60ee5a6e"
+    },
+    "after/V5/src/v5_shadow/archive_article_v2.py": {
+      "bytes": 19898,
+      "sha256": "4b2fc99427ac9a69073e2761ee9f9d3e74a864c3b80c7e69eed6d505b9921371"
+    },
+    "after/V5/src/v5_shadow/archive_builder_v1.py": {
+      "bytes": 24034,
+      "sha256": "7f8cff5dfb4fe66663d7dd9f7901089e802ef53b55b10e1c003f6e2300ebdd74"
+    },
+    "after/V5/src/v5_shadow/archive_reader.py": {
+      "bytes": 8879,
+      "sha256": "3bc1bd71266a7a64314233eb4229a3cceaffde476bd39d608d4f9ddbc2eb6c28"
+    },
+    "after/V5/src/v5_shadow/manager_plan.py": {
+      "bytes": 36807,
+      "sha256": "1948ef840be814d5e72e7b15e1a98421d613c703841bbd5cd43afb472f8878db"
+    },
+    "after/V5/tests/test_archive_article_v2.py": {
+      "bytes": 26126,
+      "sha256": "b334dce95c5650f7ca0875923a53cd709d06552f4b3b99bcee1ea73b3a24b561"
+    },
+    "after/V5/tests/test_archive_builder_identity.py": {
+      "bytes": 30805,
+      "sha256": "a19fafc6e0cc8736903bcf39e763b3ed8284245b3d2156b2708ed97330acf179"
+    },
+    "after/V5/vendor/archive_builder_baseline/domains/_research_hourly_parts/_namespace.py": {
+      "bytes": 527,
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"
+    },
+    "after/V5/vendor/archive_builder_baseline/domains/_research_hourly_parts/lane_snapshot.py": {
+      "bytes": 5911,
+      "sha256": "f0279dcd3d9e64ca502f9d11d98f12e82e7c1031c82e61cd254a9471784e8e69"
+    },
+    "after/V5/vendor/archive_builder_baseline/domains/_research_hourly_parts/research_projection.py": {
+      "bytes": 13774,
+      "sha256": "a892c5bdd28ff91f21bd6a341a5fe83f86f95b9f68585c4a9ed8a906e64c8ec3"
+    },
+    "after/V5/vendor/archive_builder_baseline/domains/_research_hourly_parts/rows_topics.py": {
+      "bytes": 4816,
+      "sha256": "bcf4ae0995b65155dd390060448dd0b6108cd70f4359a592c988b710320c0d21"
+    },
+    "after/V5/vendor/archive_builder_baseline/domains/_research_hourly_parts/source_evidence.py": {
+      "bytes": 10326,
+      "sha256": "b96109da48fae84ec8103066463a0fcb93aa2e35c62db97ef810883773b8be1e"
+    },
+    "after/V5/vendor/archive_builder_baseline/domains/research.py": {
+      "bytes": 21832,
+      "sha256": "b77cc0d3c9ec36eeee3e6cab207945a783b0352a703efdb5c8e2f7f17966506f"
+    },
+    "after/V5/vendor/archive_builder_baseline/domains/research_hourly.py": {
+      "bytes": 16686,
+      "sha256": "daf3caa9ac13c4999551574575f4169a25631ab26a9a41c88af34cd99b6c221f"
+    },
+    "after/V5/vendor/archive_builder_baseline/ops/collect_hourly_research_input.py": {
+      "bytes": 18078,
+      "sha256": "767eaae79e2436284c0cf73626fd114a92448d3aff37b69c378862aae141a7fa"
+    },
+    "runtime.patch": {
+      "bytes": 212865,
+      "sha256": "12660258d52e6c61375f1fbb7a1d46539128b064717724830b784c04dd9087fd"
+    }
+  },
+  "excluded": [
+    "PACKAGE_SHA256.json",
+    "v5-article-identity-repair-20261010-r1.zip",
+    "DELIVERY_SHA256.json"
+  ]
+}

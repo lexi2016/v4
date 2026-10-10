@@ -1,0 +1,98 @@
+{
+  "schema_version": "v5.article_identity_repair_static_checks.v1",
+  "recorded_at": "2026-10-10T04:30:56.900055+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "workspace": "/workspace/scratch/9b5e8a17e877",
+    "product_source_root": "candidate necessary-file snapshot; original owner_reference bytes; neither used for execution"
+  },
+  "product_modules_imported": false,
+  "product_tests": "NOT_RUN",
+  "baseline_red": "NOT_RUN",
+  "mac_acceptance": "NOT_RUN",
+  "integration": "NOT_RUN",
+  "natural_acceptance": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "source_provenance": "UNCONFIRMED_WITHOUT_REAL_SAME_BATCH_OWNER_EVIDENCE",
+  "checks": {
+    "ast_parse": "MATCHED",
+    "ast_python_files": [
+      "V5/src/v5_shadow/archive_article_v2.py",
+      "V5/src/v5_shadow/archive_builder_v1.py",
+      "V5/src/v5_shadow/archive_reader.py",
+      "V5/src/v5_shadow/manager_plan.py",
+      "V5/tests/test_archive_article_v2.py",
+      "V5/tests/test_archive_builder_identity.py",
+      "V5/vendor/archive_builder_baseline/domains/_research_hourly_parts/_namespace.py",
+      "V5/vendor/archive_builder_baseline/domains/_research_hourly_parts/lane_snapshot.py",
+      "V5/vendor/archive_builder_baseline/domains/_research_hourly_parts/research_projection.py",
+      "V5/vendor/archive_builder_baseline/domains/_research_hourly_parts/rows_topics.py",
+      "V5/vendor/archive_builder_baseline/domains/_research_hourly_parts/source_evidence.py",
+      "V5/vendor/archive_builder_baseline/domains/research.py",
+      "V5/vendor/archive_builder_baseline/domains/research_hourly.py",
+      "V5/vendor/archive_builder_baseline/ops/collect_hourly_research_input.py"
+    ],
+    "embedded_script_ast": [
+      "V5/tests/test_archive_article_v2.py:145",
+      "V5/tests/test_archive_article_v2.py:362",
+      "V5/tests/test_archive_builder_identity.py:27",
+      "V5/tests/test_archive_builder_identity.py:360"
+    ],
+    "test_candidate_methods": {
+      "ArticleV2ChainTests": 23,
+      "BoundArchiveBuilderIdentityTests": 22,
+      "OriginalOwnerBoundIOTests": 2,
+      "OriginalBuilderCompleteSourceContractTests": 4
+    },
+    "total_test_candidate_methods": 51,
+    "old_chain_method_names_retained": 22,
+    "old_enrich_semantic_statements": "AST_IDENTICAL_PREFIX",
+    "original_acquisition_producer_sha256": "1fe2caadfd6b2f67848b05393a02114583d0b05f6790a9b22872971dc6d7a288",
+    "owner_capsule_files_verified": 8,
+    "owner_capsule_pin": "6624676cc21ec1ec729e6b7ad6a52688d467aeda907db5870d26a62ceb920dea",
+    "unchanged_baseline_files": "BYTE_IDENTICAL",
+    "manifest_current_hashes": "MATCHED",
+    "patch_forward": "EXACT_AFTER_BYTES_MATCHED",
+    "patch_reverse": "EXACT_BASELINE_BYTES_RESTORED_NEW_FILES_ABSENT",
+    "patch_commands": [
+      {
+        "command": [
+          "git",
+          "apply",
+          "--check",
+          "runtime.patch"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "git",
+          "apply",
+          "runtime.patch"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "git",
+          "apply",
+          "-R",
+          "--check",
+          "runtime.patch"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "git",
+          "apply",
+          "-R",
+          "runtime.patch"
+        ],
+        "exit_code": 0
+      }
+    ]
+  },
+  "zip_verification": "SEE_DELIVERY_SHA256_JSON_OUTSIDE_ZIP_TO_AVOID_SELF_REFERENCE"
+}

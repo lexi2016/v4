@@ -1,0 +1,83 @@
+{
+  "schema_version": "v5.archive_builder_source_capsule.v1",
+  "repository": "lexi2016/v4",
+  "owner": "ops.collect_hourly_research_input.build_hourly_research_input",
+  "builder": "domains.research.build_research_archive",
+  "base_archive_capsule_sha256": "33a4b671c4b2b6b89db2c3e8bed7efdc8d1ee8fc983ff005d2ade2692d47b2a4",
+  "entries": [
+    {
+      "relative_path": "domains/research.py",
+      "bytes": 21832,
+      "sha256": "b77cc0d3c9ec36eeee3e6cab207945a783b0352a703efdb5c8e2f7f17966506f",
+      "git_blob_sha": "e039fb39e602a907ab72408f43de259420d254ed",
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research.py",
+      "source_commit": "cdd430e4dcd8d3e8c5949baff21a4831b4689444",
+      "role": "UNCHANGED_ORIGINAL_OWNER"
+    },
+    {
+      "relative_path": "ops/collect_hourly_research_input.py",
+      "bytes": 18078,
+      "sha256": "767eaae79e2436284c0cf73626fd114a92448d3aff37b69c378862aae141a7fa",
+      "git_blob_sha": "b33b26db87f87cf3dea325901164a473a5a8b491",
+      "source_path": "handoff/v4-running-source-20261005/canonical/ops/collect_hourly_research_input.py",
+      "source_commit": "cdd430e4dcd8d3e8c5949baff21a4831b4689444",
+      "role": "UNCHANGED_ORIGINAL_OWNER"
+    },
+    {
+      "relative_path": "domains/research_hourly.py",
+      "bytes": 16686,
+      "sha256": "daf3caa9ac13c4999551574575f4169a25631ab26a9a41c88af34cd99b6c221f",
+      "git_blob_sha": "9bbedc909d49860267abc9f54fc9201b913b19d5",
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_hourly.py",
+      "source_commit": "cdd430e4dcd8d3e8c5949baff21a4831b4689444",
+      "role": "UNCHANGED_ORIGINAL_OWNER"
+    },
+    {
+      "relative_path": "domains/_research_hourly_parts/lane_snapshot.py",
+      "bytes": 5911,
+      "sha256": "f0279dcd3d9e64ca502f9d11d98f12e82e7c1031c82e61cd254a9471784e8e69",
+      "git_blob_sha": "c32dd905f55eadc663893ef110bd8bcfd897cb00",
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/_research_hourly_parts/lane_snapshot.py",
+      "source_commit": "cdd430e4dcd8d3e8c5949baff21a4831b4689444",
+      "role": "UNCHANGED_ORIGINAL_OWNER"
+    },
+    {
+      "relative_path": "domains/_research_hourly_parts/research_projection.py",
+      "bytes": 13774,
+      "sha256": "a892c5bdd28ff91f21bd6a341a5fe83f86f95b9f68585c4a9ed8a906e64c8ec3",
+      "git_blob_sha": "b8af2708c0d217dcb3de45eb93fcff9a8d11a8a5",
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/_research_hourly_parts/research_projection.py",
+      "source_commit": "cdd430e4dcd8d3e8c5949baff21a4831b4689444",
+      "role": "UNCHANGED_ORIGINAL_OWNER"
+    },
+    {
+      "relative_path": "domains/_research_hourly_parts/source_evidence.py",
+      "bytes": 10326,
+      "sha256": "b96109da48fae84ec8103066463a0fcb93aa2e35c62db97ef810883773b8be1e",
+      "git_blob_sha": "090515271dcf8954e83b53b01c6255969570c85c",
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/_research_hourly_parts/source_evidence.py",
+      "source_commit": "cdd430e4dcd8d3e8c5949baff21a4831b4689444",
+      "role": "UNCHANGED_ORIGINAL_OWNER"
+    },
+    {
+      "relative_path": "domains/_research_hourly_parts/rows_topics.py",
+      "bytes": 4816,
+      "sha256": "bcf4ae0995b65155dd390060448dd0b6108cd70f4359a592c988b710320c0d21",
+      "git_blob_sha": "37c099f3f0b509665f2ff767a918fbd360dd1ca1",
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/_research_hourly_parts/rows_topics.py",
+      "source_commit": "cdd430e4dcd8d3e8c5949baff21a4831b4689444",
+      "role": "UNCHANGED_ORIGINAL_OWNER"
+    },
+    {
+      "relative_path": "domains/_research_hourly_parts/_namespace.py",
+      "bytes": 527,
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "source_path": "handoff/v4-running-source-20261005/canonical/apps/api/v35_api/_research_lane_router_parts/_namespace.py",
+      "source_commit": "cdd430e4dcd8d3e8c5949baff21a4831b4689444",
+      "role": "V5_STRUCTURAL_SUPPORT_FROM_FIXED_GENERIC_NAMESPACE"
+    }
+  ],
+  "namespace_support_note": "Original research-hourly namespace was absent from the fixed handoff. V5 supplies the byte-identical generic namespace implementation from the declared fixed path. Mac must verify its original research-hourly namespace has this SHA before execution.",
+  "product_tests": "NOT_RUN"
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": "v5.article_identity_repair_delivery.v1",
+  "recorded_at": "2026-10-10T04:31:42.159955+00:00",
+  "fixed_input_commit": "cdd430e4dcd8d3e8c5949baff21a4831b4689444",
+  "delivery_branch": "chat/v5-article-identity-repair-20261010-r1",
+  "product_tests": "NOT_RUN",
+  "baseline_red": "NOT_RUN",
+  "mac_acceptance": "NOT_RUN",
+  "natural_acceptance": "NOT_RUN",
+  "archive": {
+    "path": "v5-article-identity-repair-20261010-r1.zip",
+    "bytes": 156884,
+    "sha256": "decb6c1c6d7c4be75c1c9a0d7a40b5ba0255ea32e17dec77da0f3413ee97c7e6",
+    "members": 26,
+    "crc": "MATCHED",
+    "all_member_bytes_and_manifest_sha256": "MATCHED",
+    "safe_unique_paths": true
+  },
+  "package_manifest": {
+    "path": "PACKAGE_SHA256.json",
+    "sha256": "f126030a8e4c8aeea861aa27d2234a93c744f35ce3b7a3f8f74da2832290f2f7"
+  },
+  "runtime_patch": {
+    "path": "runtime.patch",
+    "sha256": "12660258d52e6c61375f1fbb7a1d46539128b064717724830b784c04dd9087fd"
+  },
+  "scope": "SYNTHETIC_SOURCE_CODE_AND_HANDOFF_ONLY_NO_REAL_INPUT_DATA"
+}

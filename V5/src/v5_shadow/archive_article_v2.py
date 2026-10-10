@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from v5_shadow.digests import canonical_bytes, sha256_json, MAX_JSON_BYTES
+from v5_shadow.archive_builder_v1 import BUILDER_PATTERN, verify_builder
 
 SCHEMA = 'v5.research_archive.v2'
 SHANGHAI = ZoneInfo('Asia/Shanghai')
@@ -38,7 +39,7 @@ def stamp(value):
 def read_bound(read, ref):
     if not isinstance(ref, dict) or set(ref) != {'path', 'sha256', 'bytes'}:
         raise ValueError('ARTICLE_V2_FILE_BINDING')
-    if not re.fullmatch(CAPTURE_PATTERN + '|' + INPUT_PATTERN, ref['path']):
+    if not re.fullmatch(CAPTURE_PATTERN + '|' + INPUT_PATTERN + '|' + BUILDER_PATTERN, ref['path']):
         raise ValueError('ARTICLE_V2_FILE_PATH')
     raw = read(ref['path'])
     if (type(ref['bytes']) is not int or len(raw) != ref['bytes']
@@ -129,7 +130,7 @@ def collector_name(value):
     return re.sub(r'[（(].*?[）)]', '', str(value or '')).replace(' ', '').strip()
 
 
-def enrich(original, receipt_ref, input_ref, read, generated_at):
+def enrich(original, receipt_ref, input_ref, read, generated_at, *, builder_source=None, builder_receipt=None):
     receipt, payloads, observations = capture(read, receipt_ref)
     available_at = receipt['source_payloads_available_at']
     available = stamp(available_at)
@@ -210,6 +211,14 @@ def enrich(original, receipt_ref, input_ref, read, generated_at):
                 page_sha256=observation['page']['sha256'], raw_topic_sha256=observation['raw_sha256'],
                 body_sha256=hashlib.sha256(body.encode()).hexdigest(),
                 summary_topic_sha256=sha256_json(topic), issuer_identity_status='ORIGINAL_CONSUMER_MUST_VERIFY'))
+    # The existing article/body/PIT gates above retain their original rejection
+    # reasons. Complete owner-source and original-builder verification still
+    # precedes every write and runs again on each independent v2 read.
+    owner = verify_builder(original, builder_source, builder_receipt, receipt_ref, read)
+    if stamp(owner['source_available_at']) > stamp(generated_at):
+        raise ValueError('ARTICLE_V2_IMPORT_CLOCK')
+    result.update(builder_source=copy.deepcopy(builder_source),
+                  builder_receipt=copy.deepcopy(builder_receipt))
     # Preserve original pool/algorithm; only the article evidence is admitted here.
     return result
 
@@ -226,8 +235,10 @@ def install_validator(read):
             raise ValueError('ARTICLE_V2_ORIGINAL_V1_REQUIRED')
         day = original_validate(original)
         expected = enrich(original, payload.get('acquisition_receipt'), payload['archive_input_v1'],
-                          read, payload.get('source_generated_at'))
-        if payload != expected:
+                          read, payload.get('source_generated_at'),
+                          builder_source=payload.get('builder_source'),
+                          builder_receipt=payload.get('builder_receipt'))
+        if payload != expected or canonical_bytes(payload) != canonical_bytes(expected):
             raise ValueError('ARTICLE_V2_ARTICLE_OR_PAYLOAD_CHANGED')
         return day
     contract.validate_research_archive = validate
@@ -238,7 +249,10 @@ def publish(request):
     """Called only in its own CLI process; no module cache shared with manager."""
     from v5_shadow import archive_reader
     from v5_shadow.current_us_research import _raw_file
-    if set(request) != {'capture_root', 'capture_files', 'receipt', 'archive_v1', 'output_root'}:
+    if not isinstance(request, dict) or not {'builder_source', 'builder_receipt'} <= set(request):
+        raise ValueError('ARTICLE_V2_BUILDER_SOURCE_REQUIRED')
+    if set(request) != {'capture_root', 'capture_files', 'receipt', 'archive_v1', 'output_root',
+                        'builder_source', 'builder_receipt'}:
         raise ValueError('ARTICLE_V2_REQUEST_FIELDS')
     source = Path(request['capture_root'])
     output = Path(request['output_root'])
@@ -256,7 +270,7 @@ def publish(request):
         raise ValueError('ARTICLE_V2_FILE_BOUND')
     snapshot = {}
     for relative, digest in files.items():
-        if not re.fullmatch(CAPTURE_PATTERN, relative):
+        if not re.fullmatch(CAPTURE_PATTERN + '|' + BUILDER_PATTERN, relative):
             raise ValueError('ARTICLE_V2_CAPTURE_PATH')
         raw = _raw_file(source, relative)
         if hashlib.sha256(raw).hexdigest() != digest:
@@ -274,7 +288,8 @@ def publish(request):
     original_validate = install_validator(read)
     original_validate(original)
     payload = enrich(original, request['receipt'], input_ref, read,
-                     datetime.now(SHANGHAI).isoformat(timespec='microseconds'))
+                     datetime.now(SHANGHAI).isoformat(timespec='microseconds'),
+                     builder_source=request['builder_source'], builder_receipt=request['builder_receipt'])
     # Validation is complete before any writes. Original owner enforces conflicting
     # archive re-import rejection; private evidence files must also be immutable.
     store = importlib.import_module('infrastructure.research_store').ResearchArchiveStore(output)
@@ -291,14 +306,14 @@ def publish(request):
         if store._io.read_bytes(name) != raw:
             raise ValueError('ARTICLE_V2_EVIDENCE_READBACK')
     result = store.publish(payload, mode='REPLAY')
-    if store.read_exact(payload['archive_date']) != payload:
+    if canonical_bytes(store.read_exact(payload['archive_date'])) != canonical_bytes(payload):
         raise ValueError('ARTICLE_V2_ORIGINAL_STORE_READBACK')
     bound = {name: hashlib.sha256(raw).hexdigest() for name, raw in snapshot.items()}
     for name in ('manifest.json', result['payload_path'], result['receipt_path']):
         bound[name] = hashlib.sha256(store._io.read_bytes(name)).hexdigest()
     binding = dict(root=str(output), files=bound)
     independent = archive_reader.read_private(output, binding)
-    if independent['records'].get(payload['archive_date'] + '/', {}).get('payload') != payload:
+    if canonical_bytes(independent['records'].get(payload['archive_date'] + '/', {}).get('payload')) != canonical_bytes(payload):
         raise ValueError('ARTICLE_V2_INDEPENDENT_STORE_READBACK')
     return dict(schema_version='v5.archive_article_import.v2', archive_binding=binding,
                 request_sha256=sha256_json(request), article_v2_source_sha256=archive_reader.article_v2_identity(),
