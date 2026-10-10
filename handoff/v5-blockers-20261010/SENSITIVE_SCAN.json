@@ -1,0 +1,19 @@
+{
+  "status": "NO_MATCH_IN_SCANNED_RULES",
+  "scanned_files": 1210,
+  "rules": [
+    "personal_home_path",
+    "private_key",
+    "provider_secret",
+    "jwt",
+    "url_credentials",
+    "signed_url",
+    "email",
+    "credential_assignment"
+  ],
+  "findings": [],
+  "source_python_files_redacted": 0,
+  "rebound_python_files_verified": 475,
+  "review_scope": "Explicit allowlist of source/test/contracts and selected receipts; no credentials, environment dumps, auth stores, accounts, model binaries, raw market batches or chat databases copied. Regex scan is bounded evidence, not an absolute guarantee.",
+  "tests_executed_during_packaging": false
+}

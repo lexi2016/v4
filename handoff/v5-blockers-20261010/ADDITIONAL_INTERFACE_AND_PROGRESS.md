@@ -1,0 +1,9 @@
+# 第四项接口缺口及独立进度
+
+Reader/独审实际任务提交和返回接口仍缺。已有 source owner、prepare/import/readback，以及 daily_announcement_revision 的外部文件入口；缺实际Reader任务提交、独立Reviewer返回、身份和heartbeat/失败回执的可调用合同。请明确复用现有运行通道的接口与验收，不发明已运行的模型服务，不重做既有392独审。缺少接口即明确BLOCKED，不因等待消耗attempt或假造自动成功。
+
+相关代码已实际打包：sources/3d9541ac/V5/src/v5_shadow/daily_announcement_revision.py、daily_owner_adapters.py、daily_tick.py，公告vendor的ops/run_manager_daily_announcement.py；契约见sources/3d9541ac/V5/docs/DAILY_AUTOMATIC_ASSEMBLY_20261009.md。
+
+A交接提交12c9c3220d55ab2968c07c5b192f017e21b98d81的索引与说明在A_SOURCE_INDEX.json、A_FROZEN_HANDOFF.md。318项原文件SHA逐个核对，所有对应文件实际包含；路径映射见A_CLOSURE_VERIFICATION.json。A说明中要求create argv/trace仅是交接建议：真实create未执行，不能虚构异常。
+
+独立US修复7a3d3bc1e7a51899a60b455fcc6502c9e66eab60（native identity root接原reader）仅记录另行待验，11测试NOT_RUN。本包不把它混入失败基线，也不要求Chat重做该修复。
