@@ -1,0 +1,18 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=candidate:test_support/upstream:tests python -m unittest test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility -v
+test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) ... 
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='RESEARCH_ONLY') ... FAIL
+
+======================================================================
+FAIL: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='RESEARCH_ONLY')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 146, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+AssertionError: '29f30c62f457877938f162ed7edd61dfb75b6c795c0226317571076b0cf3c52f' == '29f30c62f457877938f162ed7edd61dfb75b6c795c0226317571076b0cf3c52f'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.041s
+
+FAILED (failures=1)
+
+Exit code: 1

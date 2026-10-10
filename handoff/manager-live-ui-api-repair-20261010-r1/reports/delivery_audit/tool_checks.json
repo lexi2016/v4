@@ -1,0 +1,97 @@
+[
+  {
+    "check": "gate_before",
+    "exit_code": 1,
+    "stdout": "{\n  \"status\": \"FAIL_CLOSED\",\n  \"side\": \"before\",\n  \"app_root\": \"/workspace/scratch/5105f9851ff9/work/reports/delivery_audit/candidate-w8u2f3d7/app\",\n  \"checked\": 16,\n  \"mismatches\": [\n    {\n      \"path\": \"apps/web/src/api/managerWorkspace.ts\",\n      \"expected_sha256\": \"2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f\",\n      \"actual_sha256\": \"e1483d97180476117d6872a89828a1bb6e9967d6fd1d4ce726892dfc532de3ff\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "check": "patch_check",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "check": "patch_apply",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "check": "production_file_changed_despite_gate_failure",
+    "changed": true
+  },
+  {
+    "check": "manifest_valid",
+    "result": {
+      "status": "PASS",
+      "files_checked": 1,
+      "manifest_sha256": "babd8b16c5ad7888befef43be30afeddc7f18364f34ee4a8b033432daa4756d6"
+    }
+  },
+  {
+    "check": "manifest_hash_drift",
+    "result": "REJECTED",
+    "error": "[{\"path\": \"payload\", \"reason\": \"HASH_OR_SIZE_MISMATCH\"}]"
+  },
+  {
+    "check": "manifest_size_drift",
+    "result": "REJECTED",
+    "error": "[{\"path\": \"payload\", \"reason\": \"HASH_OR_SIZE_MISMATCH\"}]"
+  },
+  {
+    "check": "manifest_duplicate",
+    "result": "REJECTED",
+    "error": "Duplicate or self-referential manifest path"
+  },
+  {
+    "check": "manifest_traversal",
+    "result": "REJECTED",
+    "error": "Manifest path must be a normalized relative path"
+  },
+  {
+    "check": "manifest_extra",
+    "result": "REJECTED",
+    "error": "[{\"reason\": \"UNMANIFESTED_FILES\", \"paths\": [\"extra\"]}]"
+  },
+  {
+    "check": "verify_output_inside_package",
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "usage: verify_delivery.py [-h] [--root ROOT] [--report REPORT]\nverify_delivery.py: error: --report must be outside the package to preserve its manifest\n",
+    "output_created": false
+  },
+  {
+    "check": "tests_output_inside_package",
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "usage: run_offline_tests.py [-h] [--side {before,after}]\n                            [--suite {backend,frontend,both}] --report-dir\n                            REPORT_DIR [--node NODE]\nrun_offline_tests.py: error: --report-dir must be outside the package to preserve its manifest\n",
+    "output_created": false
+  },
+  {
+    "check": "gate_exact_before",
+    "exit_code": 0,
+    "stdout": "{\n  \"status\": \"PASS\",\n  \"side\": \"before\",\n  \"app_root\": \"/workspace/scratch/5105f9851ff9/work/reports/delivery_audit/gate-s290fzzj/app\",\n  \"checked\": 16,\n  \"mismatches\": []\n}\n",
+    "stderr": ""
+  },
+  {
+    "check": "gate_new_module_preexists",
+    "exit_code": 1,
+    "stdout": "{\n  \"status\": \"FAIL_CLOSED\",\n  \"side\": \"before\",\n  \"app_root\": \"/workspace/scratch/5105f9851ff9/work/reports/delivery_audit/gate-s290fzzj/app\",\n  \"checked\": 16,\n  \"mismatches\": [\n    {\n      \"path\": \"v4/manager_research/workspace_identity.py\",\n      \"expected_sha256\": null,\n      \"actual_sha256\": \"7290f1cf9038ca86780879a3b9e151d361b3f6fdab3e6262e62ba3bdec937c2c\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "check": "revised_document_application_shortcircuit",
+    "exit_code": 1,
+    "product_file_unchanged": true,
+    "stdout": "{\n  \"status\": \"FAIL_CLOSED\",\n  \"side\": \"before\",\n  \"app_root\": \"/workspace/scratch/5105f9851ff9/work/reports/delivery_audit/shortcircuit-1mmvs1ju/app\",\n  \"checked\": 16,\n  \"mismatches\": [\n    {\n      \"path\": \"apps/web/src/api/managerWorkspace.ts\",\n      \"expected_sha256\": \"2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f\",\n      \"actual_sha256\": \"135909571a4603db9f94acd5bc77619bcacb7efe8a17592e1703845c97f4c8f9\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "check": "revised_document_rollback_shortcircuit",
+    "exit_code": 1,
+    "product_file_unchanged": true,
+    "stdout": "{\n  \"status\": \"FAIL_CLOSED\",\n  \"side\": \"after\",\n  \"app_root\": \"/workspace/scratch/5105f9851ff9/work/reports/delivery_audit/shortcircuit-bnwwk0zq/app\",\n  \"checked\": 16,\n  \"mismatches\": [\n    {\n      \"path\": \"apps/web/src/api/managerWorkspace.ts\",\n      \"expected_sha256\": \"2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f\",\n      \"actual_sha256\": \"135909571a4603db9f94acd5bc77619bcacb7efe8a17592e1703845c97f4c8f9\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  }
+]

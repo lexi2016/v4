@@ -1,0 +1,31 @@
+{
+  "mode": "OFFLINE_SCOPED_DELTA_REVIEW",
+  "checks": [
+    {
+      "name": "malformed_mode_preserves_complete_fingerprint",
+      "mode": [],
+      "status": "PASS"
+    },
+    {
+      "name": "malformed_mode_preserves_complete_fingerprint",
+      "mode": {},
+      "status": "PASS"
+    },
+    {
+      "name": "malformed_mode_preserves_complete_fingerprint",
+      "mode": [
+        "LIVE"
+      ],
+      "status": "PASS"
+    },
+    {
+      "name": "diagnostics_union_remains_bounded_to_64_total_and_16_rows",
+      "status": "PASS"
+    }
+  ],
+  "snapshot": "integration_03",
+  "loaded_modules": {
+    "reviews/integration_03/tests/test_backend_identity.py": "1347604d128a765a06be59d019ce37eec8ff3cedaed2621343c6597d6587fb7a",
+    "reviews/integration_03/after/v4/manager_research/workspace_identity.py": "3c0680ed3996c754ebf0849830e2cd820ebc32d5e01e196ec0e125b5e439062b"
+  }
+}

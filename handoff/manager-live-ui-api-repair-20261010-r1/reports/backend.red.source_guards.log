@@ -1,0 +1,26 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=baseline:test_support/upstream:tests python -m unittest test_backend_identity.ExactSourceGuardTests -v
+test_consumed_manifest_entry_change_is_rejected_by_original_guard (test_backend_identity.ExactSourceGuardTests.test_consumed_manifest_entry_change_is_rejected_by_original_guard) ... ok
+test_consumed_payload_bytes_without_rebinding_are_rejected_by_original_guard (test_backend_identity.ExactSourceGuardTests.test_consumed_payload_bytes_without_rebinding_are_rejected_by_original_guard) ... ok
+test_consumed_receipt_bytes_are_rejected_by_original_guard (test_backend_identity.ExactSourceGuardTests.test_consumed_receipt_bytes_are_rejected_by_original_guard) ... ok
+test_exact_date_mismatch_is_rejected_even_when_rebound_hashes_match (test_backend_identity.ExactSourceGuardTests.test_exact_date_mismatch_is_rejected_even_when_rebound_hashes_match) ... ok
+test_missing_receipt_is_rejected_by_original_guard (test_backend_identity.ExactSourceGuardTests.test_missing_receipt_is_rejected_by_original_guard) ... ok
+test_real_owner_read_of_unchanged_binding_ignores_unconsumed_registry_entry (test_backend_identity.ExactSourceGuardTests.test_real_owner_read_of_unchanged_binding_ignores_unconsumed_registry_entry) ... FAIL
+test_valid_changed_consumed_payload_still_changes_semantic_identity (test_backend_identity.ExactSourceGuardTests.test_valid_changed_consumed_payload_still_changes_semantic_identity) ... ok
+
+======================================================================
+FAIL: test_real_owner_read_of_unchanged_binding_ignores_unconsumed_registry_entry (test_backend_identity.ExactSourceGuardTests.test_real_owner_read_of_unchanged_binding_ignores_unconsumed_registry_entry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 537, in test_real_owner_read_of_unchanged_binding_ignores_unconsumed_registry_entry
+    self.assertEqual(projection(before)['input_identity'], projection(after)['input_identity'])
+AssertionError: 'aeddc1eaccb1d4727e112a39a11e37fdd14df3e7c7a782fa9dbcba74d8234ef9' != '18c95c9397cea687e785cb78620f5b687d8f0ec845c9b0d68de8f3a9969e0ae1'
+- aeddc1eaccb1d4727e112a39a11e37fdd14df3e7c7a782fa9dbcba74d8234ef9
++ 18c95c9397cea687e785cb78620f5b687d8f0ec845c9b0d68de8f3a9969e0ae1
+
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.154s
+
+FAILED (failures=1)
+
+Exit code: 1

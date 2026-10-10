@@ -1,0 +1,44 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=candidate:test_support/upstream:tests python -m unittest test_backend_identity.AttentionIdentityTests -v
+test_attention_business_output_and_original_provenance_are_unchanged (test_backend_identity.AttentionIdentityTests.test_attention_business_output_and_original_provenance_are_unchanged) ... ok
+test_attention_receipt_and_available_at_remain_semantic (test_backend_identity.AttentionIdentityTests.test_attention_receipt_and_available_at_remain_semantic) ... ok
+test_attention_stage_global_only_change_keeps_semantic_identity (test_backend_identity.AttentionIdentityTests.test_attention_stage_global_only_change_keeps_semantic_identity) ... FAIL
+test_attention_stock_evidence_global_only_change_keeps_semantic_identity (test_backend_identity.AttentionIdentityTests.test_attention_stock_evidence_global_only_change_keeps_semantic_identity) ... FAIL
+test_semantic_reprojection_error_is_not_silently_ignored (test_backend_identity.AttentionIdentityTests.test_semantic_reprojection_error_is_not_silently_ignored) ... FAIL
+
+======================================================================
+FAIL: test_attention_stage_global_only_change_keeps_semantic_identity (test_backend_identity.AttentionIdentityTests.test_attention_stage_global_only_change_keeps_semantic_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 224, in test_attention_stage_global_only_change_keeps_semantic_identity
+    self.assertEqual(before['input_identity'], after['input_identity'])
+AssertionError: 'ed10453c3ae8d964579c37dc516aea4b9bc626b3e19f3851e5388d8893d13411' != '76768d69f106dd27c43b9d554d5f78f153974a91dc6a7b785ba3809f2075253b'
+- ed10453c3ae8d964579c37dc516aea4b9bc626b3e19f3851e5388d8893d13411
++ 76768d69f106dd27c43b9d554d5f78f153974a91dc6a7b785ba3809f2075253b
+
+
+======================================================================
+FAIL: test_attention_stock_evidence_global_only_change_keeps_semantic_identity (test_backend_identity.AttentionIdentityTests.test_attention_stock_evidence_global_only_change_keeps_semantic_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 254, in test_attention_stock_evidence_global_only_change_keeps_semantic_identity
+    self.assertEqual(attention_stage(inputs)['input_identity'], attention_stage(changed)['input_identity'])
+AssertionError: 'ba75b7acc9d0ffc93e339db4e31e0c6c2b167b4e2ec7a79d4bc1b022081e0ced' != '0f9771f9f7a77b9969a849b74b8061f84bdee68c8101651dfcb3640c431189f1'
+- ba75b7acc9d0ffc93e339db4e31e0c6c2b167b4e2ec7a79d4bc1b022081e0ced
++ 0f9771f9f7a77b9969a849b74b8061f84bdee68c8101651dfcb3640c431189f1
+
+
+======================================================================
+FAIL: test_semantic_reprojection_error_is_not_silently_ignored (test_backend_identity.AttentionIdentityTests.test_semantic_reprojection_error_is_not_silently_ignored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 264, in test_semantic_reprojection_error_is_not_silently_ignored
+    with self.assertRaisesRegex(ValueError, 'ISOLATED_SEMANTIC_REPROJECTION_FAILURE'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.074s
+
+FAILED (failures=3)
+
+Exit code: 1

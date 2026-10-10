@@ -1,0 +1,68 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=candidate:test_support/upstream:tests python -m unittest test_backend_identity.PlanReadbackTests -v
+test_changed_component_diagnostics_are_bounded_and_exclude_raw_rows (test_backend_identity.PlanReadbackTests.test_changed_component_diagnostics_are_bounded_and_exclude_raw_rows) ... FAIL
+test_date_binding_and_cutoff_guards_remain_fail_closed (test_backend_identity.PlanReadbackTests.test_date_binding_and_cutoff_guards_remain_fail_closed) ... ok
+test_global_only_repeat_readback_keeps_same_run_product_and_saved_bytes (test_backend_identity.PlanReadbackTests.test_global_only_repeat_readback_keeps_same_run_product_and_saved_bytes) ... FAIL
+test_historical_missing_component_evidence_is_cannot_confirm_without_rewrite (test_backend_identity.PlanReadbackTests.test_historical_missing_component_evidence_is_cannot_confirm_without_rewrite) ... FAIL
+test_identity_version_mismatch_does_not_reinterpret_historical_plan (test_backend_identity.PlanReadbackTests.test_identity_version_mismatch_does_not_reinterpret_historical_plan) ... FAIL
+test_invalid_component_evidence_does_not_invent_attribution (test_backend_identity.PlanReadbackTests.test_invalid_component_evidence_does_not_invent_attribution) ... FAIL
+test_material_change_remains_stale_and_identifies_changed_component (test_backend_identity.PlanReadbackTests.test_material_change_remains_stale_and_identifies_changed_component) ... FAIL
+test_missing_owner_attempt_remains_unconsumed (test_backend_identity.PlanReadbackTests.test_missing_owner_attempt_remains_unconsumed) ... ok
+test_tampered_saved_product_remains_readback_failed (test_backend_identity.PlanReadbackTests.test_tampered_saved_product_remains_readback_failed) ... ok
+
+======================================================================
+FAIL: test_changed_component_diagnostics_are_bounded_and_exclude_raw_rows (test_backend_identity.PlanReadbackTests.test_changed_component_diagnostics_are_bounded_and_exclude_raw_rows)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 310, in test_changed_component_diagnostics_are_bounded_and_exclude_raw_rows
+    self.assertIsInstance(diagnostic, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_global_only_repeat_readback_keeps_same_run_product_and_saved_bytes (test_backend_identity.PlanReadbackTests.test_global_only_repeat_readback_keeps_same_run_product_and_saved_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 253, in test_global_only_repeat_readback_keeps_same_run_product_and_saved_bytes
+    self.assertIsInstance(diagnostic, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_historical_missing_component_evidence_is_cannot_confirm_without_rewrite (test_backend_identity.PlanReadbackTests.test_historical_missing_component_evidence_is_cannot_confirm_without_rewrite)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 280, in test_historical_missing_component_evidence_is_cannot_confirm_without_rewrite
+    self.assertIsInstance(diagnostic, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_identity_version_mismatch_does_not_reinterpret_historical_plan (test_backend_identity.PlanReadbackTests.test_identity_version_mismatch_does_not_reinterpret_historical_plan)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 298, in test_identity_version_mismatch_does_not_reinterpret_historical_plan
+    self.assertEqual(result['plan_product']['status'], 'STALE_INPUTS_CHANGED')
+AssertionError: 'CURRENT' != 'STALE_INPUTS_CHANGED'
+- CURRENT
++ STALE_INPUTS_CHANGED
+
+
+======================================================================
+FAIL: test_invalid_component_evidence_does_not_invent_attribution (test_backend_identity.PlanReadbackTests.test_invalid_component_evidence_does_not_invent_attribution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 325, in test_invalid_component_evidence_does_not_invent_attribution
+    self.assertIsInstance(diagnostic, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+======================================================================
+FAIL: test_material_change_remains_stale_and_identifies_changed_component (test_backend_identity.PlanReadbackTests.test_material_change_remains_stale_and_identifies_changed_component)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 265, in test_material_change_remains_stale_and_identifies_changed_component
+    self.assertIsInstance(diagnostic, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.089s
+
+FAILED (failures=6)
+
+Exit code: 1

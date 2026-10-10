@@ -1,0 +1,38 @@
+test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) ... 
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='mode') ... ERROR
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='mode')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 146, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 56, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 478, in build_workspace
+    identity_inputs = semantic_inputs(dict(
+                      ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_identity.py", line 86, in semantic_inputs
+    semantic_inputs(item, _reference=key in _REFERENCE_FIELDS)
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_identity.py", line 90, in semantic_inputs
+    return [semantic_inputs(item, _reference=_reference) for item in value]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_identity.py", line 86, in semantic_inputs
+    semantic_inputs(item, _reference=key in _REFERENCE_FIELDS)
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_identity.py", line 90, in semantic_inputs
+    return [semantic_inputs(item, _reference=_reference) for item in value]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_identity.py", line 82, in semantic_inputs
+    if _reference and _complete_research_binding(value):
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_identity.py", line 55, in _complete_research_binding
+    if mode not in {'LIVE', 'REPLAY', 'BACKFILL'} or not isinstance(slot, str):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: unhashable type: 'list'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.055s
+
+FAILED (errors=1)

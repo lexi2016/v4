@@ -1,0 +1,346 @@
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -17,6 +17,7 @@
+ from .workspace_discovery import read_discovery, read_material_discovery
+ from .workspace_plan import plan_context, read_plan_quotes, read_rebound_screen
+ from .workspace_projection import FLAGS, HK, build_workspace, date_token, digest, timestamp
++from .workspace_identity import identity_diagnostics, semantic_inputs
+ from .workspace_read_control import (
+     WorkspaceReadError,
+     phase,
+@@ -445,7 +446,7 @@
+             continue
+         key = str(row.get('reason') or 'UNKNOWN')
+         rejection_counts[key] = rejection_counts.get(key, 0) + 1
+-    input_identity = digest({
++    input_identity = digest(semantic_inputs({
+         'selection_materials': selection_materials,
+         'relation_cards': relation_cards,
+         'target_connect_membership': {
+@@ -455,7 +456,7 @@
+             'gaps': connect_scope.get('gaps'),
+         },
+         'source_gaps': source_gaps,
+-    })
++    }))
+     return {
+         'status': status,
+         'complete': status == 'READY',
+@@ -659,6 +660,47 @@
+             or request.get('bypass_reader') is not True
+             or request.get('execution_status') not in _US_OWNER_NON_REENTRY_CODES):
+         raise ValueError('WORKSPACE_US_REQUEST_CONTEXT_INVALID')
++
++
++def _build_research_attention(date: str, **inputs: Any) -> dict:
++    """Keep raw attention decisions/provenance; compute its semantic identity.
++
++    The original pure projector owns its internal identity extensions. A
++    second pure call, only when verified provenance differs from semantics,
++    prevents those extensions from reintroducing the registry fingerprint.
++    This never calls a source reader or alters an owner validation result.
++    """
++    from .research_attention import build_research_attention
++    value = build_research_attention(date, **inputs)
++    semantic = semantic_inputs(inputs)
++    if semantic != inputs:
++        checkpoint()
++        semantic_value = build_research_attention(date, **semantic)
++        checkpoint()
++        value['input_identity'] = semantic_value['input_identity']
++    return value
++
++
++def _extend_workspace_identity(value: dict, *, research_attention: Mapping[str, Any],
++        announcement_inputs: Mapping[str, Any], announcement_review: Mapping[str, Any],
++        us_market: Mapping[str, Any], mapping_identities: list[str]) -> None:
++    """Keep the complete original outer identity chain and record its parts."""
++    reviewed = announcement_inputs.get('reviewed_analysis')
++    product = announcement_review.get('product_identity')
++    us_identity = us_market.get('source_identity') if isinstance(us_market, Mapping) else None
++    parts = {
++        'gated_projection': [value['input_identity']],
++        'research_attention': [research_attention['input_identity']],
++        'announcement_selection': [announcement_inputs['input_identity']],
++        'announcement_reviewed_analysis': [reviewed.get('input_identity')] if isinstance(reviewed, Mapping) else [],
++        'announcement_product': [product['sha256']] if product else [],
++        'us_payload': [us_identity['payload_sha256']] if isinstance(us_identity, Mapping)
++                      and isinstance(us_identity.get('payload_sha256'), str) else [],
++        'us_mapping_daily': list(mapping_identities),
++    }
++    value['input_identity_components']['digests'].update(
++        {'outer.'+key: digest(items) for key, items in parts.items()})
++    value['input_identity'] = digest([item for items in parts.values() for item in items])
+ 
+ 
+ def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, context: dict,
+@@ -822,7 +864,6 @@
+             us_market_request_context=us_market_request_context)
+     us_market['research_material_input']=deepcopy(relation_material_input)
+     value['us_market_attention'] = us_market
+-    from .research_attention import build_research_attention
+     scoped_screen,scoped_announcement_lane=evidence_view(market_screen,value['announcement_observation'],connect_scope)
+     # Research observation keeps the original owner screen before the formal
+     # Connect gate. Its scope diagnostics remain attached, while stocks/focus
+@@ -830,15 +871,17 @@
+     research_screen=deepcopy(market_screen)
+     research_screen['research_scope_diagnostics']=deepcopy(scoped_screen.get('research_scope_diagnostics'))
+     with phase('research_attention_projection'):
+-        research_attention = build_research_attention(
++        research_attention = _build_research_attention(
+         date, context=context, market_screen=research_screen, stocks=value.get('stocks', []),
+         material_cards=research_relation_cards, themes=value.get('themes', []),
+         announcement_observation=scoped_announcement_lane, us_market=us_market,
+     )
+-    research_attention['input_identity']=digest([
+-        research_attention.get('input_identity'),relation_material_input['input_identity'],
+-        digest(research_relation_cards),
+-    ])
++    attention_identity_parts = dict(projection=research_attention.get('input_identity'),
++        relation_materials=relation_material_input['input_identity'],
++        relation_cards=digest(semantic_inputs(research_relation_cards)))
++    research_attention['input_identity']=digest(list(attention_identity_parts.values()))
++    value['input_identity_components']['digests'].update(
++        {'attention.'+key: digest(item) for key, item in attention_identity_parts.items()})
+     value['repair_contract']='R9_ANNOUNCEMENT_BODY_CONNECT_CONSUMER_V1'
+     value['research_attention'] = research_attention
+     value['selection_diagnostics']=selection_diagnostics(value,research_attention,announcement_inputs,
+@@ -878,22 +921,14 @@
+         'input_identity': research_attention.get('input_identity'),
+         'write_back_to_existing_rank': False,
+     }
+-    identity_extensions = [value['input_identity'], research_attention['input_identity'],announcement_inputs['input_identity']]
+-    reviewed_analysis = announcement_inputs.get('reviewed_analysis')
+-    if isinstance(reviewed_analysis, Mapping):
+-        identity_extensions.append(reviewed_analysis.get('input_identity'))
+-    if announcement_review.get('product_identity'):
+-        identity_extensions.append(announcement_review['product_identity']['sha256'])
+-    us_identity = us_market.get('source_identity') if isinstance(us_market, Mapping) else None
+-    if isinstance(us_identity, Mapping) and isinstance(us_identity.get('payload_sha256'), str):
+-        identity_extensions.append(us_identity['payload_sha256'])
+     # The saved daily US mapping is a separate research reference. It is
+     # admitted into this plan identity only after the same exact plan cutoff.
+     mapping_read, mapping_research, mapping_identities = _daily_mapping_plan_reference(service, date, context)
+-    identity_extensions.extend(mapping_identities)
+     value['us_mapping_research'] = deepcopy(mapping_read)
+     value['owner_chain']['us_mapping_daily_plan_reference'] = mapping_research
+-    value['input_identity'] = digest(identity_extensions)
++    _extend_workspace_identity(value, research_attention=research_attention,
++        announcement_inputs=announcement_inputs, announcement_review=announcement_review,
++        us_market=us_market, mapping_identities=mapping_identities)
+     if include_saved:
+         with phase('saved_plan_comparison'):
+             return _readback_plan(service.store,date,value)
+@@ -1035,6 +1070,7 @@
+         and dict(saved_bindings) == dict(current_bindings))
+     same=(saved is not None and not after_cutoff and saved['input_identity']==current['input_identity']
+           and saved['workspace'].get('semantic_version')==current.get('semantic_version')
++          and saved['workspace'].get('input_identity_version')==current.get('input_identity_version')
+           and bindings_match)
+     plan_attempt_error = None
+     verified_attempt = None
+@@ -1065,6 +1101,8 @@
+         last_checked_at=read_time.isoformat() if read_time is not None else _now(),consumed=same,
+         run_readback=_plan_run_readback(saved,verified_attempt,
+             read_at=read_time.isoformat() if read_time is not None else _now(),verified=same))
++    value['plan_product']['input_identity_diagnostics'] = identity_diagnostics(
++        saved['workspace'] if saved else None, current)
+     if plan_attempt_error:
+         value['plan_product']['reason'] = plan_attempt_error
+     value['workspace_plan_attempt']=attempt
+@@ -1169,6 +1207,7 @@
+                         and existing.get('execution_kind') == execution_kind
+                         and existing['input_identity']==prepared['input_identity']
+                         and existing_workspace.get('semantic_version')==prepared.get('semantic_version')
++                        and existing_workspace.get('input_identity_version')==prepared.get('input_identity_version')
+                         and existing_workspace.get('date_bindings')==prepared.get('date_bindings')
+                         and existing_cutoff is not None and existing_cutoff<=now
+                         and existing_generated is not None and existing_cutoff is not None
+--- a/v4/manager_research/workspace_projection.py
++++ b/v4/manager_research/workspace_projection.py
+@@ -14,6 +14,7 @@
+ from typing import Any, Mapping, Sequence
+ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+ from zoneinfo import ZoneInfo
++from .workspace_identity import COMPONENT_SCHEMA, IDENTITY_VERSION, semantic_inputs
+ 
+ FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
+ SCHEMA = 'v4.manager_research.workspace.v1'
+@@ -474,6 +475,13 @@
+             attempt=attempts.get(lane),next_plan=plans.get(lane)))
+     screen = deepcopy(dict(market_screen)) if isinstance(market_screen, Mapping) else None
+     screen_summary_counts = _market_screen_summary_counts(screen)
++    identity_inputs = semantic_inputs(dict(
++        input_identity_version=IDENTITY_VERSION,
++        decision_projection_version='20260921.manager-decision-ux.a1', semantic_version=SEMANTIC_VERSION,
++        catalyst=catalyst, materials=materials, stage=stage, close=close,
++        discovered_cards=discovered_cards, discovery_rejections=discovery_rejections,
++        price_quotes=price_quotes, market_screen=screen,
++        plan_context={k:v for k,v in context.items() if k!='research_cutoff'} if plan_context else None))
+     result= dict(schema_version=SCHEMA,semantic_version=SEMANTIC_VERSION,rejected_relations=rejected_relations,
+         decision_projection_version='20260921.manager-decision-ux.a1',
+         target_trade_date=date,stocks=ordered_stocks,themes=theme_rows,lanes=lanes,
+@@ -489,10 +497,9 @@
+                      market_screen_near_count=screen_summary_counts[1],
+                      market_screen_card_count=screen_summary_counts[2]),
+         replacement_context='COMPARISON_ONLY_NO_POSITION_READ',
+-        input_identity=digest(dict(decision_projection_version='20260921.manager-decision-ux.a1',semantic_version=SEMANTIC_VERSION,catalyst=catalyst,materials=materials,stage=stage,close=close,
+-            discovered_cards=discovered_cards,discovery_rejections=discovery_rejections,price_quotes=price_quotes,
+-            market_screen=screen,
+-            plan_context={k:v for k,v in context.items() if k!='research_cutoff'} if plan_context else None)),
++        input_identity=digest(identity_inputs), input_identity_version=IDENTITY_VERSION,
++        input_identity_components=dict(schema_version=COMPONENT_SCHEMA, identity_version=IDENTITY_VERSION,
++            digests={'projection.'+key: digest(item) for key, item in identity_inputs.items()}),
+         plan_context=context,
+         browser_consumption='NOT_ACKNOWLEDGED_BY_SERVER',**FLAGS)
+     if screen is not None:
+--- /dev/null
++++ b/v4/manager_research/workspace_identity.py
+@@ -0,0 +1,147 @@
++"""Semantic copies of already owner-verified research artifact references.
++
++This module does not verify files or authorize material admission. Original
++owner readers remain mandatory. Its only normalization is the registry-wide
++manifest fingerprint in a complete, verified research binding; every other
++field remains part of semantic identity. Raw rows and content are opaque.
++"""
++from __future__ import annotations
++
++from copy import deepcopy
++from datetime import datetime
++from pathlib import PurePosixPath
++import re
++from typing import Any, Mapping
++
++
++_SHA256 = re.compile(r'[0-9a-f]{64}')
++_REFERENCE_FIELDS = frozenset({'source_refs', 'input_bindings'})
++_CONTENT_FIELDS = frozenset({'source_row', 'original_source_row', 'content', 'body', 'text', 'raw'})
++IDENTITY_VERSION = 'CONSUMED_RESEARCH_ARTIFACTS_V1'
++COMPONENT_SCHEMA = 'v4.manager_research.input_identity_components.v1'
++_DIAGNOSTIC_SCHEMA = 'v4.manager_research.input_identity_diagnostics.v1'
++_COMPONENT_NAME = re.compile(r'[a-z][a-z0-9_.]{0,63}')
++MAX_COMPONENTS = 32
++MAX_CHANGED_COMPONENTS = 16
++
++
++def _complete_research_binding(value: Mapping[str, Any]) -> bool:
++    """Recognize the exact ResearchLaneSource binding after owner validation.
++
++    The original binding's payload_sha256 is the manifest entry for its exact
++    payload_path. An explicitly supplied entry digest must agree. Unknown or
++    incomplete shapes deliberately keep the registry fingerprint sensitive.
++    """
++    if (value.get('source_id') != 'V35_RESEARCH_DATA_ROOT'
++            or value.get('status') != 'VERIFIED'
++            or value.get('write_policy') != 'read_only'
++            or value.get('recommendation_status') != 'RESEARCH_ONLY'
++            or ('RESEARCH_ONLY' in value and value['RESEARCH_ONLY'] is not True)
++            or any(value.get(key) is not False for key in
++                   ('production_allowed', 'buy_gate_updated', 'orders_sent'))
++            or value.get('manifest_path') != 'manifest.json'):
++        return False
++    root = value.get('source_root')
++    if not isinstance(root, str) or not root or not PurePosixPath(root).is_absolute() or '..' in PurePosixPath(root).parts:
++        return False
++    source_date = value.get('source_date')
++    if not isinstance(source_date, str) or not re.fullmatch(r'[0-9]{8}', source_date):
++        return False
++    try:
++        datetime.strptime(source_date, '%Y%m%d')
++    except ValueError:
++        return False
++    mode, slot = value.get('mode'), value.get('slot')
++    if not isinstance(mode, str) or mode not in {'LIVE', 'REPLAY', 'BACKFILL'} or not isinstance(slot, str):
++        return False
++    if slot:
++        if not re.fullmatch(r'(?:[01][0-9]|2[0-3])[0-5][0-9]', slot):
++            return False
++        payload_path = f'research/hourly/{mode.lower()}/{source_date}/{slot}.json'
++    else:
++        payload_path = f'research/archives/{source_date}.json'
++    if (value.get('payload_path') != payload_path
++            or value.get('receipt_path') != 'receipts/' + payload_path):
++        return False
++    if any(not isinstance(value.get(key), str) or _SHA256.fullmatch(value[key]) is None
++           for key in ('payload_sha256', 'receipt_sha256', 'manifest_sha256')):
++        return False
++    return ('manifest_entry_sha256' not in value
++            or value['manifest_entry_sha256'] == value['payload_sha256'])
++
++
++def semantic_inputs(value: Any, *, _reference: bool = False) -> Any:
++    """Copy declared provenance containers without a verified global SHA.
++
++    source_row/original_source_row and literal content are never traversed,
++    even when the original content happens to quote a binding-shaped object.
++    Callers use this copy solely for identity calculations, preserving the
++    original input/output objects and their complete provenance.
++    """
++    if isinstance(value, Mapping):
++        if _reference and _complete_research_binding(value):
++            return {key: deepcopy(item) for key, item in value.items() if key != 'manifest_sha256'}
++        return {
++            key: deepcopy(item) if key in _CONTENT_FIELDS else
++                 semantic_inputs(item, _reference=key in _REFERENCE_FIELDS)
++            for key, item in value.items()
++        }
++    if isinstance(value, list):
++        return [semantic_inputs(item, _reference=_reference) for item in value]
++    if isinstance(value, tuple):
++        return tuple(semantic_inputs(item, _reference=_reference) for item in value)
++    return deepcopy(value)
++
++
++def _component_digests(workspace: Mapping[str, Any]) -> dict[str, str] | None:
++    evidence = workspace.get('input_identity_components')
++    if (not isinstance(evidence, Mapping) or evidence.get('schema_version') != COMPONENT_SCHEMA
++            or evidence.get('identity_version') != workspace.get('input_identity_version')):
++        return None
++    digests = evidence.get('digests')
++    if (not isinstance(digests, Mapping) or not 0 < len(digests) <= MAX_COMPONENTS
++            or any(not isinstance(key, str) or _COMPONENT_NAME.fullmatch(key) is None
++                   or not isinstance(value, str) or _SHA256.fullmatch(value) is None
++                   for key, value in digests.items())):
++        return None
++    return dict(digests)
++
++
++def identity_diagnostics(saved: Mapping[str, Any] | None, current: Mapping[str, Any]) -> dict:
++    """Compare bounded evidence; this never authorizes saved-plan consumption.
++
++    Old sealed plans are not reconstructed or migrated. Without their recorded
++    components a historical changed field remains CANNOT_CONFIRM.
++    """
++    saved = saved if isinstance(saved, Mapping) else {}
++    def identity(workspace: Mapping[str, Any]) -> str | None:
++        value = workspace.get('input_identity')
++        return value if isinstance(value, str) and _SHA256.fullmatch(value) else None
++    def version(workspace: Mapping[str, Any]) -> str | None:
++        value = workspace.get('input_identity_version')
++        return value if isinstance(value, str) and re.fullmatch(r'[A-Z0-9_]{1,64}', value) else None
++    result = dict(schema_version=_DIAGNOSTIC_SCHEMA, status='CANNOT_CONFIRM',
++        reason='COMPONENT_EVIDENCE_UNAVAILABLE', saved_input_identity=identity(saved),
++        current_input_identity=identity(current), saved_identity_version=version(saved),
++        current_identity_version=version(current), changed_component_count=None,
++        changed_components=[], truncated=False)
++    before, after = _component_digests(saved), _component_digests(current)
++    if (before is None or after is None or result['saved_identity_version'] is None
++            or result['current_identity_version'] is None
++            or result['saved_input_identity'] is None or result['current_input_identity'] is None):
++        return result
++    changed = [dict(component=key, saved_sha256=before.get(key), current_sha256=after.get(key))
++               for key in sorted(before.keys() | after.keys()) if before.get(key) != after.get(key)]
++    identities_match = (result['saved_input_identity'] == result['current_input_identity']
++                        and result['saved_identity_version'] == result['current_identity_version'])
++    if identities_match and changed:
++        result['reason'] = 'COMPONENT_EVIDENCE_INCONSISTENT'
++        return result
++    if not identities_match and not changed:
++        result['reason'] = 'IDENTITY_CHANGED_OUTSIDE_RECORDED_COMPONENTS'
++        return result
++    result.update(status='CHANGED' if changed else 'UNCHANGED',
++        reason='RECORDED_COMPONENTS_CHANGED' if changed else 'INPUT_IDENTITIES_MATCH',
++        changed_component_count=len(changed), changed_components=changed[:MAX_CHANGED_COMPONENTS],
++        truncated=len(changed) > MAX_CHANGED_COMPONENTS)
++    return result

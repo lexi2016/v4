@@ -1,0 +1,27 @@
+{"command":["/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node","/workspace/scratch/5105f9851ff9/work/tools/run_ui_harness.mjs","--source-root","candidate","--report","reports/frontend.boundary.red.json"],"mode":"DOM_INTEGRATION","live_api_ui":"LIVE_API_UI_NOT_RUN","pass":21,"fail":1,"setup_error":null,"report":"/workspace/scratch/5105f9851ff9/work/reports/frontend.boundary.red.json"}
+PASS places plan consumption and daily results before historical announcement details
+PASS mounts all three validated channel states, pending and gap reasons before raw observations
+PASS renders verified candidate, empty and partial results with run, product and source identity
+PASS uses the same workspace date bindings and forwards explicit dates through GET and refresh
+PASS keeps independently valid daily channels visible when the saved plan is stale
+PASS keeps historical catalog date independent from workspace bindings across reread, refresh and reload (2026-10-07)
+PASS keeps historical catalog date independent from workspace bindings across reread, refresh and reload (automatic)
+PASS shows bounded recorded stale identity components without promoting the plan (1)
+PASS shows bounded recorded stale identity components without promoting the plan (20)
+FAIL shows bounded recorded stale identity components without promoting the plan (64)
+Error: Known compared component must be visible in plan status
+    at assert (file:///workspace/scratch/5105f9851ff9/work/candidate/apps/web/src/manager-selection/catalystObservationPanel.repair.spec.ts:16:27)
+    at Object.run (file:///workspace/scratch/5105f9851ff9/work/candidate/apps/web/src/manager-selection/catalystObservationPanel.repair.spec.ts:575:21)
+    at async file:///workspace/scratch/5105f9851ff9/work/tools/run_ui_harness.mjs:109:7
+PASS rejects a changed-component total beyond the union of two valid 32-component maps
+PASS keeps stale identity changed field unconfirmed when component evidence is missing
+PASS keeps stale identity changed field unconfirmed when component evidence is unbound
+PASS clears old channel data when a later valid workspace omits the optional projection
+PASS legacy workspace without explicit date bindings displays unavailable channel dates
+PASS rejects channel date mismatch and clears previously rendered rows
+PASS rejects a refresh response whose explicit date binding differs from the requested date
+PASS labels assessment separately from daily reviewed mapping scope (4)
+PASS labels assessment separately from daily reviewed mapping scope (7)
+PASS labels assessment separately from daily reviewed mapping scope (unknown)
+PASS keeps all 100 raw observations in a default-collapsed audit region after core results
+PASS rejects unsafe daily flags through the existing validator before rendering candidates

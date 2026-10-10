@@ -1,0 +1,44 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=candidate:test_support/upstream:tests python -m unittest test_backend_identity.OuterIdentityTests -v
+test_every_outer_extension_remains_identity_sensitive_and_diagnosable (test_backend_identity.OuterIdentityTests.test_every_outer_extension_remains_identity_sensitive_and_diagnosable) ... FAIL
+test_global_only_change_with_all_outer_extensions_remains_current (test_backend_identity.OuterIdentityTests.test_global_only_change_with_all_outer_extensions_remains_current) ... FAIL
+test_optional_extension_admission_is_not_dropped (test_backend_identity.OuterIdentityTests.test_optional_extension_admission_is_not_dropped) ... FAIL
+
+======================================================================
+FAIL: test_every_outer_extension_remains_identity_sensitive_and_diagnosable (test_backend_identity.OuterIdentityTests.test_every_outer_extension_remains_identity_sensitive_and_diagnosable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 284, in test_every_outer_extension_remains_identity_sensitive_and_diagnosable
+    original = self.extend()
+               ^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 272, in extend
+    self.assertTrue(callable(fn), 'outer identity stage must record all extension components')
+AssertionError: False is not true : outer identity stage must record all extension components
+
+======================================================================
+FAIL: test_global_only_change_with_all_outer_extensions_remains_current (test_backend_identity.OuterIdentityTests.test_global_only_change_with_all_outer_extensions_remains_current)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 307, in test_global_only_change_with_all_outer_extensions_remains_current
+    before = self.extend()
+             ^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 272, in extend
+    self.assertTrue(callable(fn), 'outer identity stage must record all extension components')
+AssertionError: False is not true : outer identity stage must record all extension components
+
+======================================================================
+FAIL: test_optional_extension_admission_is_not_dropped (test_backend_identity.OuterIdentityTests.test_optional_extension_admission_is_not_dropped)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 300, in test_optional_extension_admission_is_not_dropped
+    original = self.extend()
+               ^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 272, in extend
+    self.assertTrue(callable(fn), 'outer identity stage must record all extension components')
+AssertionError: False is not true : outer identity stage must record all extension components
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.035s
+
+FAILED (failures=3)
+
+Exit code: 1

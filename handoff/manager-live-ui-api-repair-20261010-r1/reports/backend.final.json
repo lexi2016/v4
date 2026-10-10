@@ -1,0 +1,231 @@
+{
+  "schema_version": "offline-manager-backend-tests.v1",
+  "mode": "OFFLINE_SYNTHETIC_SOURCE_AND_PLAN_TESTS",
+  "live_api_ui": "LIVE_API_UI_NOT_RUN",
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "tools/run_backend_harness.py",
+    "--source-root",
+    "candidate",
+    "--support-root",
+    "test_support/upstream",
+    "--tests-root",
+    "tests",
+    "--report",
+    "reports/backend.final.json"
+  ],
+  "python_version": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "source_root": "/workspace/scratch/5105f9851ff9/work/candidate",
+  "support_root": "/workspace/scratch/5105f9851ff9/work/test_support/upstream",
+  "tests_root": "/workspace/scratch/5105f9851ff9/work/tests",
+  "started_at": "2026-10-10T08:27:04.222257+00:00",
+  "finished_at": "2026-10-10T08:27:04.550121+00:00",
+  "status": "PASS",
+  "tests_run": 35,
+  "failure_count": 0,
+  "error_count": 0,
+  "skipped": [],
+  "failures": [],
+  "errors": [],
+  "source_modules": [
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/candidate/infrastructure/research_lane_source.py",
+      "origin": "SOURCE_UNDER_TEST",
+      "bytes": 24125,
+      "sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/connect_selection.py",
+      "origin": "SOURCE_UNDER_TEST",
+      "bytes": 17511,
+      "sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/existing_materials.py",
+      "origin": "SOURCE_UNDER_TEST",
+      "bytes": 30245,
+      "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace.py",
+      "origin": "SOURCE_UNDER_TEST",
+      "bytes": 78441,
+      "sha256": "a6d6f067f04a3b543a8436e3080c9f7831e812a2cd10bbe16b783d23692ed33a"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_identity.py",
+      "origin": "SOURCE_UNDER_TEST",
+      "bytes": 7657,
+      "sha256": "3c0680ed3996c754ebf0849830e2cd820ebc32d5e01e196ec0e125b5e439062b"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_plan.py",
+      "origin": "SOURCE_UNDER_TEST",
+      "bytes": 107076,
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_plan_autorun.py",
+      "origin": "SOURCE_UNDER_TEST",
+      "bytes": 15547,
+      "sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py",
+      "origin": "SOURCE_UNDER_TEST",
+      "bytes": 31286,
+      "sha256": "06b1e5cc770f22db8e111aa61fec9ba1f6ef8b7da5dca3da9a32995203634b17"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/contracts/research.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 13060,
+      "sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/contracts/research_day_product.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 102936,
+      "sha256": "f0e4d36e30259db6bf94bb3374241ce9d96ea04a4cf5eb18f74b871decef277d"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/contracts/runtime_tasks.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 3350,
+      "sha256": "f9923462342eaaeafba6255e9f8adda54f9852ea4996cf6da0cf82e4faf32965"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/contracts/trading_calendar.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 10239,
+      "sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/domains/research_day_product.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 65157,
+      "sha256": "de085c51b34946aedf9134fdb6edbbd48fee4dfb3386dab1d327768c4b73ea1f"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/infrastructure/data_store.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 10704,
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/infrastructure/interprocess_lock.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 7514,
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/infrastructure/market_time.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 960,
+      "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/infrastructure/owned_io.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 9354,
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/infrastructure/owned_path.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 2251,
+      "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/infrastructure/research_store.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 172644,
+      "sha256": "471ad4ceb0c34f080da674d147df5bb96045c5e7998ab41ba2845297ab63ab6f"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/infrastructure/scheduling/execution_ledger.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 22725,
+      "sha256": "966fba07ec9d32abcab5435441e4e574002bcdd7b63d6494ff94d7a7e7018007"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/infrastructure/trading_safety.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 2597,
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/announcement_materials.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 10727,
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/attention_decision.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 9179,
+      "sha256": "4b84e0469a5267771ccfe9f9f5040fc829e82f7a1b24afdeed11ebef0cb7d640"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/evidence_identity.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 5276,
+      "sha256": "6ff16b31c8e23f3bbceea7acc22cf866afc29db6f9f67158381cec2c23b3d053"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/issuer_us_relations.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 15558,
+      "sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/research_attention.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 43072,
+      "sha256": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/research_evidence.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 28636,
+      "sha256": "d2539b676d5779d9369fd8aba187c0565fcc38dbb0e89596d1248668fda4a7d5"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 32275,
+      "sha256": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_daily_channels.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 13586,
+      "sha256": "e5a74449f211c9e8ecfb4f886317db2263d524f0e29fa7912c9094928a5c6bab"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_discovery.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 23129,
+      "sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_read_control.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 10927,
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_semantics.py",
+      "origin": "RECOVERED_TEST_SUPPORT",
+      "bytes": 33731,
+      "sha256": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py",
+      "origin": "TEST",
+      "bytes": 33135,
+      "sha256": "1347604d128a765a06be59d019ce37eec8ff3cedaed2621343c6597d6587fb7a"
+    }
+  ]
+}

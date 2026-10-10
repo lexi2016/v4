@@ -1,0 +1,41 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=candidate:test_support/upstream:tests python -m unittest test_backend_identity.RelationIdentityTests test_backend_identity.ProjectionIdentityTests.test_new_projection_records_versioned_bounded_component_evidence -v
+test_relation_card_extension_preserves_raw_content_but_ignores_global_fingerprint (test_backend_identity.RelationIdentityTests.test_relation_card_extension_preserves_raw_content_but_ignores_global_fingerprint) ... FAIL
+test_relation_material_extension_ignores_only_verified_global_fingerprint (test_backend_identity.RelationIdentityTests.test_relation_material_extension_ignores_only_verified_global_fingerprint) ... FAIL
+test_new_projection_records_versioned_bounded_component_evidence (test_backend_identity.ProjectionIdentityTests.test_new_projection_records_versioned_bounded_component_evidence) ... FAIL
+
+======================================================================
+FAIL: test_relation_card_extension_preserves_raw_content_but_ignores_global_fingerprint (test_backend_identity.RelationIdentityTests.test_relation_card_extension_preserves_raw_content_but_ignores_global_fingerprint)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 183, in test_relation_card_extension_preserves_raw_content_but_ignores_global_fingerprint
+    self.assertEqual(relation_input([], cards)['input_identity'], relation_input([], changed)['input_identity'])
+AssertionError: '5c836680396137ed4db4b4371d0571c94d3741facb188daa83349f32c1037fb3' != '7bcc0cd77155fc27da0078bb91065e41d0629deacdc4fafd6dce7decd5e5cd45'
+- 5c836680396137ed4db4b4371d0571c94d3741facb188daa83349f32c1037fb3
++ 7bcc0cd77155fc27da0078bb91065e41d0629deacdc4fafd6dce7decd5e5cd45
+
+
+======================================================================
+FAIL: test_relation_material_extension_ignores_only_verified_global_fingerprint (test_backend_identity.RelationIdentityTests.test_relation_material_extension_ignores_only_verified_global_fingerprint)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 175, in test_relation_material_extension_ignores_only_verified_global_fingerprint
+    self.assertEqual(relation_input(rows)['input_identity'], relation_input(changed)['input_identity'])
+AssertionError: 'fa50f69ecd7cb22ebf91e538c022b87a69a4bf57741ca5e892dde7e3c6281037' != '5ca1ad59e0a94e6b951b1e433d5eb08a6399ba7338f9e9ec1489a4ada58f16ca'
+- fa50f69ecd7cb22ebf91e538c022b87a69a4bf57741ca5e892dde7e3c6281037
++ 5ca1ad59e0a94e6b951b1e433d5eb08a6399ba7338f9e9ec1489a4ada58f16ca
+
+
+======================================================================
+FAIL: test_new_projection_records_versioned_bounded_component_evidence (test_backend_identity.ProjectionIdentityTests.test_new_projection_records_versioned_bounded_component_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 62, in test_new_projection_records_versioned_bounded_component_evidence
+    self.assertIsInstance(evidence, dict)
+AssertionError: None is not an instance of <class 'dict'>
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.053s
+
+FAILED (failures=3)
+
+Exit code: 1

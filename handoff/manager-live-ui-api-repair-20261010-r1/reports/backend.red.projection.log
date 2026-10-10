@@ -1,0 +1,27 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=candidate:test_support/upstream python -m unittest discover -s tests -p test_backend_identity.py -v
+test_binding_shaped_source_content_is_never_normalized (test_backend_identity.ProjectionIdentityTests.test_binding_shaped_source_content_is_never_normalized) ... ok
+test_consumed_payload_and_receipt_changes_invalidate (test_backend_identity.ProjectionIdentityTests.test_consumed_payload_and_receipt_changes_invalidate) ... ok
+test_consumed_source_date_root_and_paths_remain_sensitive (test_backend_identity.ProjectionIdentityTests.test_consumed_source_date_root_and_paths_remain_sensitive) ... ok
+test_generic_digest_still_seals_full_bytes (test_backend_identity.ProjectionIdentityTests.test_generic_digest_still_seals_full_bytes) ... ok
+test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) ... ok
+test_only_unconsumed_registry_change_preserves_projection_identity (test_backend_identity.ProjectionIdentityTests.test_only_unconsumed_registry_change_preserves_projection_identity) ... FAIL
+test_other_manifest_scopes_remain_semantic (test_backend_identity.ProjectionIdentityTests.test_other_manifest_scopes_remain_semantic) ... ok
+test_semantic_available_at_and_content_remain_sensitive (test_backend_identity.ProjectionIdentityTests.test_semantic_available_at_and_content_remain_sensitive) ... ok
+
+======================================================================
+FAIL: test_only_unconsumed_registry_change_preserves_projection_identity (test_backend_identity.ProjectionIdentityTests.test_only_unconsumed_registry_change_preserves_projection_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 61, in test_only_unconsumed_registry_change_preserves_projection_identity
+    self.assertEqual(before['input_identity'], after['input_identity'])
+AssertionError: '39a5076fa46488fb4c47cbebeef9ce62786db6cf3f1df6879bf6c82094c0d417' != 'fd3ada81c3a648d8b46e386b34ebc282116a44ea7198ce1d937a0e5000f40a25'
+- 39a5076fa46488fb4c47cbebeef9ce62786db6cf3f1df6879bf6c82094c0d417
++ fd3ada81c3a648d8b46e386b34ebc282116a44ea7198ce1d937a0e5000f40a25
+
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.040s
+
+FAILED (failures=1)
+
+Exit code: 1

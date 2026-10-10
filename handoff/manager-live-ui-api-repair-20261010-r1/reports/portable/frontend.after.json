@@ -1,0 +1,221 @@
+{
+  "schema_version": "offline-mounted-panel-integration.v1",
+  "mode": "DOM_INTEGRATION",
+  "live_api_ui": "LIVE_API_UI_NOT_RUN",
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs",
+    "--source-root",
+    "/tmp/v4-manager-offline-mno1m4oe/app",
+    "--support-root",
+    "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/test_support/upstream",
+    "--tests",
+    "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts",
+    "--report",
+    "/workspace/scratch/5105f9851ff9/work/reports/portable/frontend.after.json"
+  ],
+  "resolved_options": {
+    "source_root": "/tmp/v4-manager-offline-mno1m4oe/app",
+    "tests": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts",
+    "support_root": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/test_support/upstream",
+    "suite_source_directory": "/tmp/v4-manager-offline-mno1m4oe/app/apps/web/src/manager-selection",
+    "report": "/workspace/scratch/5105f9851ff9/work/reports/portable/frontend.after.json"
+  },
+  "source_root": "/tmp/v4-manager-offline-mno1m4oe/app",
+  "tests": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts",
+  "started_at": "2026-10-10T08:27:47.175Z",
+  "finished_at": "2026-10-10T08:27:47.421Z",
+  "node_version": "v24.19.0",
+  "dom": {
+    "package": "WebReflection/linkedom",
+    "version": "0.18.12",
+    "license": "ISC",
+    "worker_git_blob_sha": "21ed3f9cf1d80eebb2d0448d95c0dd080a5fd9fe",
+    "sha256": "196efeb17c260e001979dbc54a3c30e701a881c6e8a3eedaddc5ad83c99ee5ff",
+    "limitations": [
+      "No browser layout, paint, screenshots, real navigation, or live server",
+      "No native details default click/toggle synthesis; tests explicitly dispatch toggle when needed",
+      "Test-support shims provide select.value and reflected details.open only",
+      "All fetch responses are synthetic; unconfigured fetch fails closed"
+    ]
+  },
+  "totals": {
+    "pass": 22,
+    "fail": 0
+  },
+  "setup_error": null,
+  "tests_results": [
+    {
+      "name": "places plan consumption and daily results before historical announcement details",
+      "status": "PASS",
+      "duration_ms": 20
+    },
+    {
+      "name": "mounts all three validated channel states, pending and gap reasons before raw observations",
+      "status": "PASS",
+      "duration_ms": 14
+    },
+    {
+      "name": "renders verified candidate, empty and partial results with run, product and source identity",
+      "status": "PASS",
+      "duration_ms": 6
+    },
+    {
+      "name": "uses the same workspace date bindings and forwards explicit dates through GET and refresh",
+      "status": "PASS",
+      "duration_ms": 11
+    },
+    {
+      "name": "keeps independently valid daily channels visible when the saved plan is stale",
+      "status": "PASS",
+      "duration_ms": 3
+    },
+    {
+      "name": "keeps historical catalog date independent from workspace bindings across reread, refresh and reload (2026-10-07)",
+      "status": "PASS",
+      "duration_ms": 10
+    },
+    {
+      "name": "keeps historical catalog date independent from workspace bindings across reread, refresh and reload (automatic)",
+      "status": "PASS",
+      "duration_ms": 13
+    },
+    {
+      "name": "shows bounded recorded stale identity components without promoting the plan (1)",
+      "status": "PASS",
+      "duration_ms": 3
+    },
+    {
+      "name": "shows bounded recorded stale identity components without promoting the plan (20)",
+      "status": "PASS",
+      "duration_ms": 3
+    },
+    {
+      "name": "shows bounded recorded stale identity components without promoting the plan (64)",
+      "status": "PASS",
+      "duration_ms": 9
+    },
+    {
+      "name": "rejects a changed-component total beyond the union of two valid 32-component maps",
+      "status": "PASS",
+      "duration_ms": 4
+    },
+    {
+      "name": "keeps stale identity changed field unconfirmed when component evidence is missing",
+      "status": "PASS",
+      "duration_ms": 3
+    },
+    {
+      "name": "keeps stale identity changed field unconfirmed when component evidence is unbound",
+      "status": "PASS",
+      "duration_ms": 2
+    },
+    {
+      "name": "clears old channel data when a later valid workspace omits the optional projection",
+      "status": "PASS",
+      "duration_ms": 5
+    },
+    {
+      "name": "legacy workspace without explicit date bindings displays unavailable channel dates",
+      "status": "PASS",
+      "duration_ms": 10
+    },
+    {
+      "name": "rejects channel date mismatch and clears previously rendered rows",
+      "status": "PASS",
+      "duration_ms": 4
+    },
+    {
+      "name": "rejects a refresh response whose explicit date binding differs from the requested date",
+      "status": "PASS",
+      "duration_ms": 3
+    },
+    {
+      "name": "labels assessment separately from daily reviewed mapping scope (4)",
+      "status": "PASS",
+      "duration_ms": 3
+    },
+    {
+      "name": "labels assessment separately from daily reviewed mapping scope (7)",
+      "status": "PASS",
+      "duration_ms": 3
+    },
+    {
+      "name": "labels assessment separately from daily reviewed mapping scope (unknown)",
+      "status": "PASS",
+      "duration_ms": 3
+    },
+    {
+      "name": "keeps all 100 raw observations in a default-collapsed audit region after core results",
+      "status": "PASS",
+      "duration_ms": 15
+    },
+    {
+      "name": "rejects unsafe daily flags through the existing validator before rendering candidates",
+      "status": "PASS",
+      "duration_ms": 8
+    }
+  ],
+  "source_modules": [
+    {
+      "path": "/tmp/v4-manager-offline-mno1m4oe/app/apps/web/src/api/managerWorkspace.ts",
+      "sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "bytes": 119467,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-mno1m4oe/app/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "bytes": 17541,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-mno1m4oe/app/apps/web/src/manager-selection/announcementObservation.ts",
+      "sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+      "bytes": 16354,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-mno1m4oe/app/apps/web/src/manager-selection/businessStatus.ts",
+      "sha256": "25504185cef4cb8fdae83ec3043b371631fe9448d752e24105a1fe9438f47aba",
+      "bytes": 17938,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-mno1m4oe/app/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "sha256": "ba13f895bf8b315c9649e73b4a4a6e843cf5d1475b25587745d72a76e7ef7173",
+      "bytes": 63191,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-mno1m4oe/app/apps/web/src/manager-selection/dailyChannels.ts",
+      "sha256": "44b2fa24a470e4dec6c4318a49c9d028e481a67e93d3f996775cd933bd1a040e",
+      "bytes": 19127,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-mno1m4oe/app/apps/web/src/manager-selection/researchAttention.ts",
+      "sha256": "40c168a7f69a0bf5c655b550e865e6b54b0348d1c4c1bba9718696cc663fe9b0",
+      "bytes": 26547,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/test_support/upstream/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "bytes": 19705,
+      "origin": "RECOVERED_TEST_SUPPORT"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/test_support/upstream/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+      "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+      "bytes": 9195,
+      "origin": "RECOVERED_TEST_SUPPORT"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts",
+      "sha256": "bb36821bd7ff8a718dda93300c67e434ee29825f804d10691f91e37b07d4feee",
+      "bytes": 31581,
+      "origin": "TEST"
+    }
+  ]
+}

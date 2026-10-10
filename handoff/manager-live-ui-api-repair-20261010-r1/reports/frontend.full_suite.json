@@ -1,0 +1,10 @@
+{
+  "command": [
+    "npm",
+    "test"
+  ],
+  "cwd": "/workspace/scratch/5105f9851ff9/work/candidate/apps/web",
+  "exit_code": 254,
+  "status": "NOT_RUN",
+  "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\nnpm error code ENOENT\nnpm error syscall open\nnpm error path /workspace/scratch/5105f9851ff9/work/candidate/apps/web/package.json\nnpm error errno -2\nnpm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/workspace/scratch/5105f9851ff9/work/candidate/apps/web/package.json'\nnpm error enoent This is related to npm not being able to find a file.\nnpm error enoent\nnpm error A complete log of this run can be found in: /root/.npm/_logs/2026-10-10T08_12_05_096Z-debug-0.log\n"
+}

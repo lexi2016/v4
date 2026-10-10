@@ -1,0 +1,15 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=candidate:test_support/upstream:tests python -m unittest test_backend_identity.ExactSourceGuardTests -v
+test_consumed_manifest_entry_change_is_rejected_by_original_guard (test_backend_identity.ExactSourceGuardTests.test_consumed_manifest_entry_change_is_rejected_by_original_guard) ... ok
+test_consumed_payload_bytes_without_rebinding_are_rejected_by_original_guard (test_backend_identity.ExactSourceGuardTests.test_consumed_payload_bytes_without_rebinding_are_rejected_by_original_guard) ... ok
+test_consumed_receipt_bytes_are_rejected_by_original_guard (test_backend_identity.ExactSourceGuardTests.test_consumed_receipt_bytes_are_rejected_by_original_guard) ... ok
+test_exact_date_mismatch_is_rejected_even_when_rebound_hashes_match (test_backend_identity.ExactSourceGuardTests.test_exact_date_mismatch_is_rejected_even_when_rebound_hashes_match) ... ok
+test_missing_receipt_is_rejected_by_original_guard (test_backend_identity.ExactSourceGuardTests.test_missing_receipt_is_rejected_by_original_guard) ... ok
+test_real_owner_read_of_unchanged_binding_ignores_unconsumed_registry_entry (test_backend_identity.ExactSourceGuardTests.test_real_owner_read_of_unchanged_binding_ignores_unconsumed_registry_entry) ... ok
+test_valid_changed_consumed_payload_still_changes_semantic_identity (test_backend_identity.ExactSourceGuardTests.test_valid_changed_consumed_payload_still_changes_semantic_identity) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.165s
+
+OK
+
+Exit code: 0

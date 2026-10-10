@@ -1,0 +1,68 @@
+{
+  "mode": "OFFLINE_REVIEW_EDGE_CHECKS",
+  "checks": [
+    {
+      "name": "exact_hourly_binding_LIVE",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "hourly_receipt_slot_mismatch_LIVE",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "exact_hourly_binding_REPLAY",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "hourly_receipt_slot_mismatch_REPLAY",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "exact_hourly_binding_BACKFILL",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "hourly_receipt_slot_mismatch_BACKFILL",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "unknown_extension_inside_complete_reference_is_preserved",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "standalone_binding_without_declared_reference_container_is_preserved",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "mismatched_sealed_owner_attempt_is_unconsumed",
+      "status": "PASS",
+      "details": {
+        "status": "OWNER_ATTEMPT_UNVERIFIED",
+        "reason": "PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH"
+      }
+    }
+  ],
+  "observations": {
+    "malformed_mode_behavior": "TypeError",
+    "disjoint_32_component_maps": {
+      "status": "CHANGED",
+      "count": 64,
+      "rows": 16,
+      "truncated": true
+    }
+  },
+  "loaded_modules": {
+    "reviews/integration_02/tests/test_backend_identity.py": "54086c40defa3e25c6b41fc51f8aab910969231cb32f6db9fb9e29df006017d9",
+    "reviews/integration_02/after/v4/manager_research/workspace.py": "a6d6f067f04a3b543a8436e3080c9f7831e812a2cd10bbe16b783d23692ed33a",
+    "reviews/integration_02/after/v4/manager_research/workspace_identity.py": "0346db36ff99e4e323e1256854673ff3d4c8c32977b33c700108af914b605525",
+    "reviews/integration_02/after/v4/manager_research/workspace_projection.py": "06b1e5cc770f22db8e111aa61fec9ba1f6ef8b7da5dca3da9a32995203634b17"
+  }
+}

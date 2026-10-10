@@ -1,0 +1,367 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=candidate:test_support/upstream python -m unittest discover -s tests -p test_backend_identity.py -v
+test_binding_shaped_source_content_is_never_normalized (test_backend_identity.ProjectionIdentityTests.test_binding_shaped_source_content_is_never_normalized) ... ERROR
+test_consumed_payload_and_receipt_changes_invalidate (test_backend_identity.ProjectionIdentityTests.test_consumed_payload_and_receipt_changes_invalidate) ... ERROR
+test_consumed_source_date_root_and_paths_remain_sensitive (test_backend_identity.ProjectionIdentityTests.test_consumed_source_date_root_and_paths_remain_sensitive) ... ERROR
+test_generic_digest_still_seals_full_bytes (test_backend_identity.ProjectionIdentityTests.test_generic_digest_still_seals_full_bytes) ... ok
+test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) ... 
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='status') ... ERROR
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='source_id') ... ERROR
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='source_root') ... ERROR
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='source_date') ... ERROR
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='mode') ... ERROR
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='payload_path') ... ERROR
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='payload_sha256') ... ERROR
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='receipt_path') ... ERROR
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='receipt_sha256') ... ERROR
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='manifest_path') ... ERROR
+  test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='production_allowed') ... ERROR
+test_only_unconsumed_registry_change_preserves_projection_identity (test_backend_identity.ProjectionIdentityTests.test_only_unconsumed_registry_change_preserves_projection_identity) ... ERROR
+test_other_manifest_scopes_remain_semantic (test_backend_identity.ProjectionIdentityTests.test_other_manifest_scopes_remain_semantic) ... ERROR
+test_semantic_available_at_and_content_remain_sensitive (test_backend_identity.ProjectionIdentityTests.test_semantic_available_at_and_content_remain_sensitive) ... ERROR
+
+======================================================================
+ERROR: test_binding_shaped_source_content_is_never_normalized (test_backend_identity.ProjectionIdentityTests.test_binding_shaped_source_content_is_never_normalized)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 103, in test_binding_shaped_source_content_is_never_normalized
+    original = projection(rows)['input_identity']
+               ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_consumed_payload_and_receipt_changes_invalidate (test_backend_identity.ProjectionIdentityTests.test_consumed_payload_and_receipt_changes_invalidate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 70, in test_consumed_payload_and_receipt_changes_invalidate
+    original = projection(rows)['input_identity']
+               ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_consumed_source_date_root_and_paths_remain_sensitive (test_backend_identity.ProjectionIdentityTests.test_consumed_source_date_root_and_paths_remain_sensitive)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 79, in test_consumed_source_date_root_and_paths_remain_sensitive
+    original = projection(rows)['input_identity']
+               ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='status')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='source_id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='source_root')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='source_date')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='mode')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='payload_path')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='payload_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='receipt_path')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='receipt_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='manifest_path')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility (test_backend_identity.ProjectionIdentityTests.test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility) (field='production_allowed')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 126, in test_incomplete_or_invalid_binding_does_not_gain_registry_compatibility
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_only_unconsumed_registry_change_preserves_projection_identity (test_backend_identity.ProjectionIdentityTests.test_only_unconsumed_registry_change_preserves_projection_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 59, in test_only_unconsumed_registry_change_preserves_projection_identity
+    before = projection(rows)
+             ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_other_manifest_scopes_remain_semantic (test_backend_identity.ProjectionIdentityTests.test_other_manifest_scopes_remain_semantic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 134, in test_other_manifest_scopes_remain_semantic
+    self.assertNotEqual(projection(rows)['input_identity'], projection(changed)['input_identity'])
+                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+======================================================================
+ERROR: test_semantic_available_at_and_content_remain_sensitive (test_backend_identity.ProjectionIdentityTests.test_semantic_available_at_and_content_remain_sensitive)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 91, in test_semantic_available_at_and_content_remain_sensitive
+    original = projection(rows)['input_identity']
+               ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/tests/test_backend_identity.py", line 51, in projection
+    return build_workspace(DATE, catalyst={}, stage=None, close=None, materials=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/candidate/v4/manager_research/workspace_projection.py", line 448, in build_workspace
+    briefing=build_briefing(accepted_materials,ordered_stocks,context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 255, in build_briefing
+    for frag in _theme_fragments(material,context):by_theme[frag['theme']].append(frag)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/5105f9851ff9/work/test_support/upstream/v4/manager_research/workspace_briefing.py", line 39, in _theme_fragments
+    from .announcement_materials import is_mirror
+ModuleNotFoundError: No module named 'v4.manager_research.announcement_materials'
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.040s
+
+FAILED (errors=17)
+
+Exit code: 1

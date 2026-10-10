@@ -1,0 +1,36 @@
+{
+  "evidence_kind": "ISOLATED_SYNTHETIC_PURE_PROJECTION_TIMING_NOT_LIVE_LATENCY",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "material_card_count": 1970,
+  "repeats": 3,
+  "source_ref_count": 1970,
+  "company_material_symbol_count": 1,
+  "elapsed_samples": {
+    "original_pure_projector_seconds": [
+      0.35701586800132645,
+      0.36516648799806717,
+      0.36495081599787227
+    ],
+    "repaired_attention_stage_seconds": [
+      0.8313242229996831,
+      0.8110977520009328,
+      0.8790963390019897
+    ]
+  },
+  "medians": {
+    "original_pure_projector_seconds": 0.36495081599787227,
+    "repaired_attention_stage_seconds": 0.8313242229996831
+  },
+  "median_extra_seconds": 0.46637340700181085,
+  "median_ratio": 2.2779075605753127,
+  "returned_business_output_equal": true,
+  "input_objects_unchanged": true,
+  "owner_reader_calls": 0,
+  "network_calls": 0,
+  "production_claim": "PROPOSAL_ONLY / LIVE_API_UI_NOT_RUN",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

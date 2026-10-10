@@ -1,0 +1,242 @@
+{
+  "schema_version": "offline-mounted-panel-integration.v1",
+  "mode": "DOM_INTEGRATION",
+  "live_api_ui": "LIVE_API_UI_NOT_RUN",
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs",
+    "--source-root",
+    "/tmp/v4-manager-offline-j8wwdy5l/app",
+    "--support-root",
+    "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/test_support/upstream",
+    "--tests",
+    "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts",
+    "--report",
+    "/workspace/scratch/5105f9851ff9/work/reports/portable/frontend.before.json"
+  ],
+  "resolved_options": {
+    "source_root": "/tmp/v4-manager-offline-j8wwdy5l/app",
+    "tests": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts",
+    "support_root": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/test_support/upstream",
+    "suite_source_directory": "/tmp/v4-manager-offline-j8wwdy5l/app/apps/web/src/manager-selection",
+    "report": "/workspace/scratch/5105f9851ff9/work/reports/portable/frontend.before.json"
+  },
+  "source_root": "/tmp/v4-manager-offline-j8wwdy5l/app",
+  "tests": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts",
+  "started_at": "2026-10-10T08:27:48.341Z",
+  "finished_at": "2026-10-10T08:27:48.534Z",
+  "node_version": "v24.19.0",
+  "dom": {
+    "package": "WebReflection/linkedom",
+    "version": "0.18.12",
+    "license": "ISC",
+    "worker_git_blob_sha": "21ed3f9cf1d80eebb2d0448d95c0dd080a5fd9fe",
+    "sha256": "196efeb17c260e001979dbc54a3c30e701a881c6e8a3eedaddc5ad83c99ee5ff",
+    "limitations": [
+      "No browser layout, paint, screenshots, real navigation, or live server",
+      "No native details default click/toggle synthesis; tests explicitly dispatch toggle when needed",
+      "Test-support shims provide select.value and reflected details.open only",
+      "All fetch responses are synthetic; unconfigured fetch fails closed"
+    ]
+  },
+  "totals": {
+    "pass": 1,
+    "fail": 21
+  },
+  "setup_error": null,
+  "tests_results": [
+    {
+      "name": "places plan consumption and daily results before historical announcement details",
+      "status": "FAIL",
+      "duration_ms": 16,
+      "error": "Error: Plan consumption status must precede long historical announcement details\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:366:17)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "mounts all three validated channel states, pending and gap reasons before raw observations",
+      "status": "FAIL",
+      "duration_ms": 11,
+      "error": "Error: Actual mounted panel must contain the daily three-channel summary\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at summary (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:334:5)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:383:34)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "renders verified candidate, empty and partial results with run, product and source identity",
+      "status": "FAIL",
+      "duration_ms": 3,
+      "error": "Error: Actual mounted panel must contain the daily three-channel summary\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at summary (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:334:5)\n    at card (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:338:18)\n    at file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:416:29\n    at Array.map (<anonymous>)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:416:19)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "uses the same workspace date bindings and forwards explicit dates through GET and refresh",
+      "status": "FAIL",
+      "duration_ms": 4,
+      "error": "Error: Explicit GET date binding: expected [\"20261009\",\"20261008\",\"20261007\"], received [\"20261009\",null,null]\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at equal (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:18:44)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:450:17)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "keeps independently valid daily channels visible when the saved plan is stale",
+      "status": "FAIL",
+      "duration_ms": 3,
+      "error": "Error: Actual mounted panel must contain the daily three-channel summary\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at summary (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:334:5)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:492:23)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "keeps historical catalog date independent from workspace bindings across reread, refresh and reload (2026-10-07)",
+      "status": "FAIL",
+      "duration_ms": 9,
+      "error": "Error: Historical catalog choice must not change workspace publication binding: expected \"20261008\", received null\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at equal (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:18:44)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:518:21)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "keeps historical catalog date independent from workspace bindings across reread, refresh and reload (automatic)",
+      "status": "FAIL",
+      "duration_ms": 3,
+      "error": "Error: Historical catalog choice must not change workspace publication binding: expected \"20261008\", received null\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at equal (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:18:44)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:518:21)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "shows bounded recorded stale identity components without promoting the plan (1)",
+      "status": "FAIL",
+      "duration_ms": 4,
+      "error": "Error: Known compared component must be visible in plan status\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:575:21)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "shows bounded recorded stale identity components without promoting the plan (20)",
+      "status": "FAIL",
+      "duration_ms": 2,
+      "error": "Error: Known compared component must be visible in plan status\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:575:21)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "shows bounded recorded stale identity components without promoting the plan (64)",
+      "status": "FAIL",
+      "duration_ms": 2,
+      "error": "Error: Known compared component must be visible in plan status\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:575:21)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "rejects a changed-component total beyond the union of two valid 32-component maps",
+      "status": "FAIL",
+      "duration_ms": 2,
+      "error": "Error: An impossible component total must remain unconfirmed\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:612:17)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "keeps stale identity changed field unconfirmed when component evidence is missing",
+      "status": "FAIL",
+      "duration_ms": 3,
+      "error": "Error: Missing or unbound evidence must not identify a changed component\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:652:21)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "keeps stale identity changed field unconfirmed when component evidence is unbound",
+      "status": "FAIL",
+      "duration_ms": 3,
+      "error": "Error: Missing or unbound evidence must not identify a changed component\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:652:21)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "clears old channel data when a later valid workspace omits the optional projection",
+      "status": "FAIL",
+      "duration_ms": 3,
+      "error": "Error: Actual mounted panel must contain the daily three-channel summary\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at summary (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:334:5)\n    at card (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:338:18)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:666:17)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "legacy workspace without explicit date bindings displays unavailable channel dates",
+      "status": "FAIL",
+      "duration_ms": 3,
+      "error": "Error: Actual mounted panel must contain the daily three-channel summary\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at summary (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:334:5)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:693:23)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "rejects channel date mismatch and clears previously rendered rows",
+      "status": "FAIL",
+      "duration_ms": 2,
+      "error": "Error: Actual mounted panel must contain the daily three-channel summary\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at summary (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:334:5)\n    at card (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:338:18)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:708:17)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "rejects a refresh response whose explicit date binding differs from the requested date",
+      "status": "FAIL",
+      "duration_ms": 2,
+      "error": "Error: Actual mounted panel must contain the daily three-channel summary\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at summary (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:334:5)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:728:17)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "labels assessment separately from daily reviewed mapping scope (4)",
+      "status": "FAIL",
+      "duration_ms": 3,
+      "error": "Error: Upper US label must state assessment/completeness scope\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:754:21)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "labels assessment separately from daily reviewed mapping scope (7)",
+      "status": "FAIL",
+      "duration_ms": 2,
+      "error": "Error: Upper US label must state assessment/completeness scope\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:754:21)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "labels assessment separately from daily reviewed mapping scope (unknown)",
+      "status": "FAIL",
+      "duration_ms": 2,
+      "error": "Error: Upper US label must state assessment/completeness scope\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:754:21)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "keeps all 100 raw observations in a default-collapsed audit region after core results",
+      "status": "FAIL",
+      "duration_ms": 10,
+      "error": "Error: Raw rows must be grouped in an expandable audit region\n    at assert (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:16:27)\n    at Object.run (file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts:782:17)\n    at async file:///workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs:109:7"
+    },
+    {
+      "name": "rejects unsafe daily flags through the existing validator before rendering candidates",
+      "status": "PASS",
+      "duration_ms": 3
+    }
+  ],
+  "source_modules": [
+    {
+      "path": "/tmp/v4-manager-offline-j8wwdy5l/app/apps/web/src/api/managerWorkspace.ts",
+      "sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+      "bytes": 119467,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-j8wwdy5l/app/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "bytes": 17541,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-j8wwdy5l/app/apps/web/src/manager-selection/announcementObservation.ts",
+      "sha256": "7be6b8c78e304444278e456fa7fc2f046e12a327b9ad3dac16be02330c335e1c",
+      "bytes": 16354,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-j8wwdy5l/app/apps/web/src/manager-selection/businessStatus.ts",
+      "sha256": "36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90",
+      "bytes": 15103,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-j8wwdy5l/app/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "sha256": "6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355",
+      "bytes": 60954,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-j8wwdy5l/app/apps/web/src/manager-selection/dailyChannels.ts",
+      "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "bytes": 18449,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/tmp/v4-manager-offline-j8wwdy5l/app/apps/web/src/manager-selection/researchAttention.ts",
+      "sha256": "3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698",
+      "bytes": 25899,
+      "origin": "SOURCE_UNDER_TEST"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/test_support/upstream/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "bytes": 19705,
+      "origin": "RECOVERED_TEST_SUPPORT"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/test_support/upstream/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+      "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+      "bytes": 9195,
+      "origin": "RECOVERED_TEST_SUPPORT"
+    },
+    {
+      "path": "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts",
+      "sha256": "bb36821bd7ff8a718dda93300c67e434ee29825f804d10691f91e37b07d4feee",
+      "bytes": 31581,
+      "origin": "TEST"
+    }
+  ]
+}

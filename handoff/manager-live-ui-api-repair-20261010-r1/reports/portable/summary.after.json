@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "mode": "OFFLINE_SNAPSHOT",
+  "live_api_ui": "LIVE_API_UI_NOT_RUN",
+  "side": "after",
+  "runs": [
+    {
+      "suite": "backend",
+      "exit_code": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_backend_harness.py",
+        "--source-root",
+        "/tmp/v4-manager-offline-mno1m4oe/app",
+        "--support-root",
+        "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/test_support/upstream",
+        "--tests-root",
+        "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests",
+        "--report",
+        "/workspace/scratch/5105f9851ff9/work/reports/portable/backend.after.json"
+      ]
+    },
+    {
+      "suite": "frontend",
+      "exit_code": 0,
+      "command": [
+        "node",
+        "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tools/run_ui_harness.mjs",
+        "--source-root",
+        "/tmp/v4-manager-offline-mno1m4oe/app",
+        "--support-root",
+        "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/test_support/upstream",
+        "--tests",
+        "/workspace/scratch/5105f9851ff9/delivery/V4_MANAGER_LIVE_UI_API_REPAIR_20261010_R1/tests/catalystObservationPanel.repair.spec.ts",
+        "--report",
+        "/workspace/scratch/5105f9851ff9/work/reports/portable/frontend.after.json"
+      ]
+    }
+  ]
+}

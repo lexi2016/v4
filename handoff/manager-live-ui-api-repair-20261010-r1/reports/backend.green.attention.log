@@ -1,0 +1,13 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=candidate:test_support/upstream:tests python -m unittest test_backend_identity.AttentionIdentityTests -v
+test_attention_business_output_and_original_provenance_are_unchanged (test_backend_identity.AttentionIdentityTests.test_attention_business_output_and_original_provenance_are_unchanged) ... ok
+test_attention_receipt_and_available_at_remain_semantic (test_backend_identity.AttentionIdentityTests.test_attention_receipt_and_available_at_remain_semantic) ... ok
+test_attention_stage_global_only_change_keeps_semantic_identity (test_backend_identity.AttentionIdentityTests.test_attention_stage_global_only_change_keeps_semantic_identity) ... ok
+test_attention_stock_evidence_global_only_change_keeps_semantic_identity (test_backend_identity.AttentionIdentityTests.test_attention_stock_evidence_global_only_change_keeps_semantic_identity) ... ok
+test_semantic_reprojection_error_is_not_silently_ignored (test_backend_identity.AttentionIdentityTests.test_semantic_reprojection_error_is_not_silently_ignored) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.079s
+
+OK
+
+Exit code: 0
