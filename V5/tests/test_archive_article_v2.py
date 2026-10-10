@@ -39,7 +39,7 @@ class ArticleV2ChainTests(unittest.TestCase):
         # Current-day synthetic acquisition; deliberately old publication stays old.
         self.base = datetime.now(ZoneInfo('Asia/Shanghai')).replace(hour=0, minute=0, second=0, microsecond=0)
         self.day = self.base.strftime('%Y%m%d')
-        self.published = (self.base - timedelta(hours=1)).isoformat()
+        self.published = (self.base - timedelta(hours=1)).replace(microsecond=123456).isoformat()
         self.times = [(self.base + timedelta(microseconds=i+1)).isoformat() for i in range(4)]
         self.topic_id = '12345678901234567'
         self.body = '合成科技签署光模块产品供货合同，向 NASDAQ:AVGO 供应光互连设备。此处仅为独立测试合成正文，没有真实业务含义。'
@@ -66,7 +66,9 @@ class ArticleV2ChainTests(unittest.TestCase):
         article.update(archive_date=self.day, stock_code='00001', stock_name='合成科技', source_type='zsxq',
             source_name='知识星球', source_title='合成研究标题', theme='Optical', evidence_sentence=self.body,
             url='https://wx.zsxq.com/dweb2/index/topic_detail/'+self.topic_id,
-            published_at=self.published, collected_at=self.published, first_seen_at=self.published)
+            source_path_sha256=hashlib.sha256(status['status_path'].encode()).hexdigest(),
+            published_at=datetime.fromisoformat(self.published).isoformat(timespec='seconds'),
+            collected_at=self.published, first_seen_at=self.published)
         self.original['stock_pool'][0].update(archive_date=self.day, stock_code='00001',
             collected_at=self.published, first_seen_at=self.published)
         self.request = dict(capture_root=str(self.capture_root), capture_files=self.files,
@@ -266,3 +268,114 @@ publish_hk_security_master(Path(sys.argv[2]),trade_date=sys.argv[3],
         del binding['files'][name]
         read=read_private(self.output,binding)
         self.assertIn('UNDECLARED_FILE',read['records'][self.day+'/']['error']['message'])
+
+    def test_fractional_source_time_survives_original_collector_truncation(self):
+        result=self.publish()
+        payload=read_private(self.output,result['archive_binding'])['records'][self.day+'/']['payload']
+        self.assertNotEqual(self.original['articles'][0]['published_at'],self.published)
+        self.assertEqual(payload['articles'][0]['published_at'],self.published)
+
+    def test_source_path_hash_must_identify_this_original_status(self):
+        self.original['articles'][0]['source_path_sha256']='f'*64
+        self.rejected('SOURCE_PATH_BINDING')
+
+    def _rewrite_capture_payload(self, name, value):
+        raw=canonical_bytes(value);(self.capture_root/name).write_bytes(raw)
+        digest=hashlib.sha256(raw).hexdigest();self.files[name]=digest
+        receipt=json.loads((self.capture_root/self.ref['path']).read_bytes())
+        if name in receipt['files']:
+            receipt['files'][name]=dict(sha256=digest,bytes=len(raw))
+        else:
+            page=next(p for p in receipt['pages'] if p['path']==name)
+            page.update(sha256=digest,bytes=len(raw))
+        self.replace_receipt(receipt)
+
+    def test_explicit_nested_response_group_cannot_be_overwritten(self):
+        name=next(name for name in self.files if '/pages/' in name)
+        value=json.loads((self.capture_root/name).read_bytes())
+        value['topics'][0]['group']={'group_id':'999'}
+        self._rewrite_capture_payload(name,value)
+        # recent retains the request group 123, exactly as original producer does.
+        self.rejected('RESPONSE_GROUP_MISMATCH')
+
+    def test_explicit_top_level_response_group_must_match_request(self):
+        for name in [n for n in self.files if '/pages/' in n or n.endswith('/zsxq_recent_topics.json')]:
+            value=json.loads((self.capture_root/name).read_bytes())
+            (value.get('topics') or value.get('topics_brief'))[0]['group_id']='999'
+            self._rewrite_capture_payload(name,value)
+        self.rejected('RESPONSE_GROUP_MISMATCH')
+
+    def bind_synthetic_us_owner(self, request):
+        from v5_shadow.current_us_research import _context_at
+        context=_context_at(request['target_date'],request['now'])
+        root=Path(request['inputs']['us']['root'])
+        captured=datetime.strptime(context['us_session_date'],'%Y%m%d').replace(
+            hour=16,minute=17,tzinfo=ZoneInfo('America/New_York'))
+        self.assertLessEqual(captured,datetime.fromisoformat(request['now']),
+            'Synthetic POST_CLOSE fixture requires this session window to have elapsed')
+        script="""
+import sys
+from pathlib import Path
+from datetime import datetime
+sys.path.insert(0,sys.argv[1])
+from v5_shadow.manager_plan import load_owner
+load_owner()
+from ops.us_market_digest import build_us_market_snapshot,GLOBAL_INDUSTRY_PROXY_MAP
+from infrastructure.research_peripheral_store import ResearchPeripheralStore
+session=sys.argv[3];captured=sys.argv[4]
+capture_time=datetime.fromisoformat(captured)
+capture=dict(us_session_date=session,capture_phase='POST_CLOSE',session_timezone='America/New_York',
+ capture_window_start=capture_time.replace(minute=15).isoformat(),
+ capture_window_end=capture_time.replace(minute=20).isoformat(),
+ capture_id='SYNTHETIC-POST-CLOSE',run_id='SYNTHETIC-US-OWNER',captured_at=captured,
+ capture_origin='ORIGINAL_TIME_CAPTURE',original_time_capture=True,raw_item_count=0,item_count=0)
+quotes={s:dict(last=101.0,previous_close=100.0,change_pct=1.0,session_date=session,session_time='16:00:00')
+        for row in GLOBAL_INDUSTRY_PROXY_MAP for s in row['proxy_symbols']}
+snapshot=build_us_market_snapshot(session,capture_phase='POST_CLOSE',captured_at=captured,
+                                 fetch_quotes=lambda *a,**k:quotes)
+payload=dict(schema_version='v3_5.research_peripheral.v1',trade_date=session,source='external_finance',
+ status='READY_EMPTY',source_url='https://example.invalid/synthetic',fetched_at=captured,raw_item_count=0,item_count=0,
+ overview=[],details=[],items=[],cannot_confirm=[],write_policy='read_only',recommendation_status='RESEARCH_ONLY',
+ production_allowed=False,buy_gate_updated=False,orders_sent=False,
+ market_snapshot=snapshot,market_snapshot_status=snapshot['status'],us_session_captures=[capture])
+ResearchPeripheralStore(Path(sys.argv[2])).publish(payload)
+"""
+        process=subprocess.run([sys.executable,'-I','-B','-c',script,str(BASE/'src'),str(root),
+            context['us_session_date'],captured.isoformat()],capture_output=True,text=True,timeout=60)
+        self.assertEqual(process.returncode,0,process.stderr)
+        session=context['us_session_date']
+        names=['research/peripherals/manifest.json','research/peripherals/'+session+'/external_finance.json',
+               'receipts/research/peripherals/'+session+'/external_finance.json']
+        request['inputs']['us']['files']={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in names}
+
+    def _assert_original_mapping_roundtrip(self, direct):
+        imported=self.publish();request=self.manager_request(imported['archive_binding'])
+        self.bind_native_identity(request);self.bind_synthetic_us_owner(request)
+        saved=run_manager_plan(request)
+        diag=saved['payload']['us_market_attention']['mapping_diagnostics']
+        self.assertTrue(any(row['accepted_mapping_count']>0 for row in diag['industry']),diag)
+        self.assertEqual(any(row['accepted_mapping_count']>0 for row in diag['individual']),direct,diag)
+        if direct:
+            self.assertTrue(any(row['symbol']=='AVGO' and row['accepted_mapping_count']>0 for row in diag['individual']),diag)
+        self.assertEqual(diag['assessment_state'],'ASSESSED_WITH_RELATIONS')
+        read=run_manager_plan({**request,'action':'read'})
+        self.assertEqual(saved['readback']['run_id'],read['payload']['plan_product']['run_id'])
+        self.assertEqual(saved['readback']['plan_sha256'],read['payload']['plan_product']['sha256'])
+        self.assertEqual(diag,read['payload']['us_market_attention']['mapping_diagnostics'])
+        self.assertFalse(saved['natural_verified'])
+
+    def test_industry_material_mapping_needs_no_explicit_us_or_etf_ticker(self):
+        body='合成科技签署光模块产品供货合同并交付光互连设备。此处仅为独立测试合成正文，没有真实业务含义。'
+        for name in [n for n in self.files if '/pages/' in n or n.endswith('/zsxq_recent_topics.json')]:
+            value=json.loads((self.capture_root/name).read_bytes())
+            (value.get('topics') or value.get('topics_brief'))[0]['content']=body
+            self._rewrite_capture_payload(name,value)
+        name=next(n for n in self.files if n.endswith('/zsxq_summary.json'))
+        value=json.loads((self.capture_root/name).read_bytes())
+        value['effective_topics'][0].update(content_head=body[:240],evidence=body)
+        self._rewrite_capture_payload(name,value)
+        self.original['articles'][0]['evidence_sentence']=body
+        self._assert_original_mapping_roundtrip(direct=False)
+
+    def test_explicit_us_relation_reaches_original_direct_mapping_and_same_run(self):
+        self._assert_original_mapping_roundtrip(direct=True)

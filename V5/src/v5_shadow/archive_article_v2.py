@@ -97,6 +97,15 @@ def capture(read, receipt_ref):
         for raw in rows:
             if not isinstance(raw, dict):
                 continue
+            explicit_groups = [raw['group_id']] if 'group_id' in raw else []
+            if 'group' in raw:
+                if not isinstance(raw['group'], dict):
+                    raise ValueError('ARTICLE_V2_RESPONSE_GROUP_INVALID')
+                if 'group_id' in raw['group']:
+                    explicit_groups.append(raw['group']['group_id'])
+            if any(isinstance(group, bool) or not isinstance(group, (str, int))
+                   or str(group) != page['group_id'] for group in explicit_groups):
+                raise ValueError('ARTICLE_V2_RESPONSE_GROUP_MISMATCH')
             topic = str(raw.get('topic_id') or raw.get('id') or '')
             if not re.fullmatch(r'[0-9]{17}', topic):
                 continue
@@ -138,7 +147,14 @@ def enrich(original, receipt_ref, input_ref, read, generated_at):
     result = copy.deepcopy(original)
     result.update(schema_version=SCHEMA, acquisition_receipt=copy.deepcopy(receipt_ref),
                   archive_input_v1=copy.deepcopy(input_ref), source_generated_at=generated_at)
+    run = re.fullmatch(r'([0-9]{8})_([0-9]{4})00_[0-9]{12}', receipt['run_id'])
+    if run is None:
+        raise ValueError('ARTICLE_V2_RUN_FORMAT')
+    source_path = (f'research_module/runtime_outputs/zsxq_hourly/{run[1]}/{run[2]}/'
+                   f'v35_zsxq_hourly_status_{run[1]}_{run[2]}.json')
     for article in result['articles']:
+        if article.get('source_path_sha256') != hashlib.sha256(source_path.encode()).hexdigest():
+            raise ValueError('ARTICLE_V2_SOURCE_PATH_BINDING')
         if article.get('source_type') != 'zsxq' or article.get('source_name') != '知识星球':
             raise ValueError('ARTICLE_V2_SOURCE_IDENTITY')
         # Original collector's stable topic URL; no title-only/fuzzy/body substitution.
@@ -147,7 +163,7 @@ def enrich(original, receipt_ref, input_ref, read, generated_at):
             raise ValueError('ARTICLE_V2_TOPIC_URL_REQUIRED')
         topic_id = match.group(1)
         candidates = [o for o in observations if o['topic_id'] == topic_id
-                      and stamp(o['published_at']) == stamp(article['published_at'])]
+                      and stamp(o['published_at']).replace(microsecond=0) == stamp(article['published_at'])]
         # Repeated pages or duplicate topic IDs fail closed until an exact page selection
         # contract exists. Do not select a convenient body from a collision.
         if len(candidates) != 1:
@@ -160,7 +176,7 @@ def enrich(original, receipt_ref, input_ref, read, generated_at):
             raise ValueError('ARTICLE_V2_RECENT_RAW_MISMATCH')
         analyzed = [r for r in summary if str(r.get('topic_id')) == topic_id
                     and r.get('title') == article['source_title']
-                    and stamp(r.get('create_time')) == stamp(article['published_at'])]
+                    and stamp(r.get('create_time')) == stamp(observation['published_at'])]
         if len(analyzed) != 1:
             raise ValueError('ARTICLE_V2_SUMMARY_BINDING_NOT_UNIQUE')
         topic = analyzed[0]
@@ -183,9 +199,12 @@ def enrich(original, receipt_ref, input_ref, read, generated_at):
         if article['theme'] != theme:
             raise ValueError('ARTICLE_V2_ORIGINAL_THEME_MISMATCH')
         retrieved_at = observation['retrieved_at']
-        if not stamp(article['published_at']) <= stamp(retrieved_at) <= available:
+        if not stamp(observation['published_at']) <= stamp(retrieved_at) <= available:
             raise ValueError('ARTICLE_V2_ARTICLE_CLOCK')
-        article.update(body_text=body, retrieved_at=retrieved_at, available_at=available_at,
+        # Original collector/builder truncate to seconds. Verify that conversion
+        # above, but preserve full source precision for all v2 PIT consumers.
+        article.update(published_at=observation['published_at'],
+            body_text=body, retrieved_at=retrieved_at, available_at=available_at,
             collected_at=retrieved_at, first_seen_at=retrieved_at,
             acquisition_v2=dict(topic_id=topic_id, group_id=observation['group_id'],
                 page_sha256=observation['page']['sha256'], raw_topic_sha256=observation['raw_sha256'],
