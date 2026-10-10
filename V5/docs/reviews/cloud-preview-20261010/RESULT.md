@@ -2,6 +2,8 @@
 
 结论：**隔离预览已启动，原经理普通 auto API 同 run 读回及实际响应 DOM 验证通过；三策略真实业务首批退出未通过。** 新真实采集已尝试，但来源网络/原准入阻断。没有 Mac 部署、自然验收、交易或 V4 修改。
 
+后续修复及纠正以 [INCREMENTAL.md](INCREMENTAL.md) 和 [TEST_RESULTS.md](TEST_RESULTS.md) 为准；下列测试数保留为首轮历史记录。
+
 ## 固定身份与运行边界
 
 - 保存环境 `/workspace/v4` 是默认旧提交 `615d1ce5417ed65ca2c8b736435c5d4596b79b19`。先 `git fetch` 和 `git ls-remote` 读回指定分支，确认 `v5/module-isolation-20261008` 为 `164c010c7eaa1659db9bfed0ff5f123c7a39eefc`。
@@ -21,7 +23,7 @@ PYTHONPATH=/workspace/v5-runtime/us-owner timeout 180 V5/.venv/bin/python -B -m 
  --data-root /workspace/v5-runtime/us-cloud --trade-date 20261009 --capture-phase POST_CLOSE --allow-late-post-close --timeout 10
 ```
 
-原迟到窗口校验通过；真实 capture 时间 `2026-10-10T09:00:16Z`，capture id `f54d25d3d6f71030d818f181`。腾讯和五个 RSS 来源均失败；回执错误 `Tunnel connection failed: 403 Forbidden`。这是代理CONNECT隧道建立失败，尚未取得上游HTTP响应，不能归因上游站点拒绝；具体网络规则待正常环境网络配置核实。没有更换代理、扩大网络权限、伪造价格或再次采集。原程序 **exit 2**，`operation_status=NO_LANE_READY`、`market_snapshot_status=CANNOT_CONFIRM`。2026-10-10增量审查纠正：初版报告误把shell尾部tail命令的exit 0写成采集程序退出码；原`us-capture-4.exit`始终为`2\n`，SHA256 `53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3`，原证据未改。原 owner 返回 `ORIGINAL_TIME_CAPTURE=true` 同时 `CONTROLLED_LATE_POST_CLOSE/late=true`；本报告按实际触发记手动迟到恢复，natural_verified=false，不改写 owner 字段。新产物保存三文件，未覆盖历史392批。
+原迟到窗口校验通过；真实 capture 时间 `2026-10-10T09:00:16Z`，capture id `f54d25d3d6f71030d818f181`。腾讯和五个 RSS 来源均失败；回执错误 `Tunnel connection failed: 403 Forbidden`。这是代理CONNECT隧道建立失败，尚未取得上游HTTP响应，不能归因上游站点拒绝；具体网络规则待正常环境网络配置核实。没有手工更换代理或扩大网络权限；原transport确实自动direct fallback，详见INCREMENTAL.md。没有伪造价格或再次采集。原程序 **exit 2**，`operation_status=NO_LANE_READY`、`market_snapshot_status=CANNOT_CONFIRM`。2026-10-10增量审查纠正：初版报告误把shell尾部tail命令的exit 0写成采集程序退出码；原`us-capture-4.exit`始终为`2\n`，SHA256 `53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3`，原证据未改。原 owner 返回 `ORIGINAL_TIME_CAPTURE=true` 同时 `CONTROLLED_LATE_POST_CLOSE/late=true`；本报告按实际触发记手动迟到恢复，natural_verified=false，不改写 owner 字段。新产物保存三文件，未覆盖历史392批。
 
 随后真实失败产物进入 V5 `current_us_research`，target `20261012`；原 US run `92999408fd0a4560ac96858f142f99b4`。US无可用输入，不能解释为四键或全市场有效空。materials为空且明确缺源，native master未绑定，未伪造材料。
 

@@ -1,0 +1,56 @@
+{
+  "started_at": "2026-10-10T09:25:53.167223+00:00",
+  "source_commit": "5f96689b52f6b5150e0fddccf6b5cae409915b2c",
+  "cwd": "/workspace/v5-cloud",
+  "processes": [
+    {
+      "pid": 6919,
+      "previous_pid": 2923,
+      "command": [
+        "/workspace/v5-cloud/V5/.venv/bin/python",
+        "-B",
+        "-m",
+        "v5_shadow.module_api",
+        "--config",
+        "/workspace/v5-runtime/config/manager.json",
+        "--port",
+        "18897"
+      ],
+      "config_sha256": "e628b928acc95c158b36940035af5e5b285e36618436af6493c9ac1a7fd4fb7e"
+    },
+    {
+      "pid": 6920,
+      "previous_pid": 2924,
+      "command": [
+        "/workspace/v5-cloud/V5/.venv/bin/python",
+        "-B",
+        "-m",
+        "v5_shadow.module_api",
+        "--config",
+        "/workspace/v5-runtime/config/announcement.json",
+        "--port",
+        "18898"
+      ],
+      "config_sha256": "06050004d1ed929f9243a023451862c2ab35dc3de6c9931c0ac32a4c7371b811"
+    },
+    {
+      "pid": 6921,
+      "previous_pid": 2925,
+      "command": [
+        "/workspace/v5-cloud/V5/.venv/bin/python",
+        "-B",
+        "-m",
+        "v5_shadow.api_gateway",
+        "--config",
+        "/workspace/v5-runtime/config/gateway.json",
+        "--port",
+        "18896",
+        "--frontend-root",
+        "/workspace/v5-build/apps/web/dist",
+        "--frontend-manifest",
+        "/workspace/v5-runtime/config/frontend.json"
+      ],
+      "config_sha256": "017ff070a61a1a7a05f9de14f31088f3a0af49f834c095b8bd4293b8072b0309"
+    }
+  ]
+}

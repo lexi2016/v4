@@ -1,0 +1,32 @@
+{
+  "checked_at": "2026-10-10T09:26:04.989319+00:00",
+  "all_original_responses_exact": true,
+  "source_commit": "5f96689b52f6b5150e0fddccf6b5cae409915b2c",
+  "responses": [
+    {
+      "path": "/__v5/health",
+      "status": 200,
+      "sha256": "25e6d6467e820b74f6bd3528e642d52533967a6cb5f383c1cc90f92706acf6c2"
+    },
+    {
+      "path": "/manager-selection/?date=20261012",
+      "status": 200,
+      "sha256": "5be84b95698009a65a44c0a8e1cc653f0ce28f2688a3b6a496e3611170859e91"
+    },
+    {
+      "path": "/api/v4/manager/research/workspace?date=20261012&view=auto",
+      "status": 200,
+      "sha256": "133a1f218d533028b1c04372839a80bdefda9740acc263a59d3928fc4272e9e0"
+    },
+    {
+      "path": "/api/v4/manager/research/announcements/analysis?date=20261012",
+      "status": 503,
+      "sha256": "1f14c8c0deb7364048a11d165f9ede27c753422e877be2cb1885a4f686c5453a"
+    },
+    {
+      "path": "/api/v4/manager/research/announcements/selection?date=20261012",
+      "status": 503,
+      "sha256": "1f14c8c0deb7364048a11d165f9ede27c753422e877be2cb1885a4f686c5453a"
+    }
+  ]
+}
