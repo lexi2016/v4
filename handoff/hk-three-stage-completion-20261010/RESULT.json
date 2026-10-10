@@ -1,0 +1,63 @@
+{
+  "target_date": "20261009",
+  "result": "PARTIAL_DELIVERY: 15:45 historical selection and 16:10 research comparison restored; 09:20 unavailable",
+  "stage1545": {
+    "source": "existing TDX ExHQ historical minute collector",
+    "requested": 100,
+    "completed": 100,
+    "bars": 1000,
+    "selected": 10,
+    "run_id": "run-cd028da3a0615d8f1b65e4a7",
+    "backfill_run_id": "377ea9ad286e48d693bb0121be5043ef",
+    "classification": "PARTIAL_WITH_ROWS; historical research observation"
+  },
+  "close1610": {
+    "close_universe": 698,
+    "close_top20": 20,
+    "observed_model_rows": 100,
+    "observed_model_hits": 10,
+    "observed_stage_coverage": "6/7",
+    "observed_union_codes": 31,
+    "observed_stage_hits": 6,
+    "formal_model": "MISSING",
+    "formal_stage_union": "MISSING"
+  },
+  "auction0920": {
+    "status": "CANNOT_CONFIRM",
+    "reason": "Exact 20261009 Futu pre-open snapshot and original-role caches absent; original producer requires capture before 09:19:59. TDX later-session minutes cannot reconstruct auction/depth."
+  },
+  "validation": {
+    "independent_stage8_tests_passed": 10,
+    "independent_close_python_tests_passed": 20,
+    "independent_close_ui_tests_passed": 3,
+    "static_http_byte_equal_files": 11,
+    "preserved_stage_responses": 8,
+    "API_VERIFIED": true,
+    "UI_VERIFIED": true,
+    "NATURAL_VERIFIED": false,
+    "vue_tsc": "4 existing unchanged-file errors",
+    "nonblocking_P2": "Observed ranking validation does not reject signal_date when missing on both receipt and rows; actual frozen inputs have valid 20261008 dates and exact SHAs."
+  },
+  "source_boundary": {
+    "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+    "canonical_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "canonical_modified": false,
+    "reason": "Canonical lacks active approved research-read binding required for 0930. Preserve pre-existing worktree edits; no framework migration. Delivered source is explicitly based on the active release and original R3 candidate.",
+    "active_release_id": "hk-three-stage-20261010-r1",
+    "active_manifest_sha256": "e1460398ea056b36a9d02452943726da0378890b9d01d16afde08fa249cafe18"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "receipts": {
+    "review_stage8_candidate/REVIEW_RECEIPT.json": "552a14cb01e1dc4695b9cb8b73ec50a5f2e27e6e5c80f940dad5109312e2a37b",
+    "review_close_candidate/REVIEW_RECEIPT.json": "b6eacb6cc43269eb07fe048951d24ec272478b20287a4c1b296913d72a6b10ba",
+    "integration_stage8/INTEGRATION_RECEIPT.json": "291403580b83b527ec052fe003aa5e14744ad33b3e46b386c86bf62a95f7b5ad",
+    "integration_close/INTEGRATION_RECEIPT.json": "6254c30553b41a01f8a0dca701a45c937ad66cd7d049c69a3505a97f7f888634",
+    "integration_close/FINAL_ACCEPTANCE.json": "b6d582b984daf35cf85004479b3d840cddfe7d64110cecb9e1effaad09bc3177",
+    "CANONICAL_INTEGRATION_BOUNDARY.json": "1fc1bb9937548b51f68cdd06047c8f87ffc59432d5f22ed4bb72a8e26d82478a"
+  }
+}
