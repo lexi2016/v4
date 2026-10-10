@@ -51,12 +51,27 @@ P0是发布/运行基础，P5是整体验收，共六阶段，不增加业务模
 - [V5固定源码](https://github.com/lexi2016/v4/tree/f7cb731c384ee6890a87d16c19a5b5a621779477/V5)
 - [V4源码审查材料](https://github.com/lexi2016/v4/blob/d3578688995c7cf14edb3b771a36688e0558dc2f/handoff/v4-code-optimization-review-20261010/START_HERE.md)
 
-## 本分支已准备的独立材料
+## 已准备材料与会话对应
 
-此处仅登记远端已保存的文档，不代表已提交给对应Chat、Chat已编码或Mac验收通过。模块材料只在准备并核对后逐项加入。
+18份任务文档已准备；这不是18个Chat已发送或18模块已验收。实际提交以[会话登记表](CHAT_REGISTRY.json)为准；状态按表内时间，不代表实时完成。每个原模块只保留一个实际写代码的Chat。
 
-- [M03 US行情来源](../v5-module-03-chat-20261010/START_HERE.md)：材料就绪；Chat提交与产品执行另记。
+- [M01 A行情与公式面板来源](../v5-module-01-chat-20261010/START_HERE.md)
+- [M02 HK行情、主表与资格来源](../v5-module-02-chat-20261010/START_HERE.md)
+- [M03 US行情来源](../v5-module-03-chat-20261010/START_HERE.md)
+- [M04 研究情报与归档](../v5-module-04-chat-20261010/START_HERE.md)
+- [M05 A预选池](../v5-module-05-chat-20261010/START_HERE.md)
+- [M06 HK预选池](../v5-module-06-chat-20261010/START_HERE.md)
+- [M07 A阶段选股](../v5-module-07-chat-20261010/START_HERE.md)
+- [M08 HK阶段选股](../v5-module-08-chat-20261010/START_HERE.md)
+- [M09 A收盘复盘](../v5-module-09-chat-20261010/START_HERE.md)
+- [M10 HK收盘复盘](../v5-module-10-chat-20261010/START_HERE.md)
+- [M11 盘中研究与研究复盘](../v5-module-11-chat-20261010/START_HERE.md)
+- [M12 视频FUPAN](../v5-module-12-chat-20261010/START_HERE.md)
+- [M13 公告研究与选股](../v5-module-13-chat-20261010/START_HERE.md)
+- [M14 超跌研究与选股](../v5-module-14-chat-20261010/START_HERE.md)
+- [M15 美股到港股映射](../v5-module-15-chat-20261010/START_HERE.md)
+- [M16 经理候选公开资料任务](../v5-module-16-chat-20261010/START_HERE.md)
+- [M17 尾盘量价发现与持续跟踪](../v5-module-17-chat-20261010/START_HERE.md)
+- [M18 经理决策账本、汇总与计划](../v5-module-18-chat-20261010/START_HERE.md)
 
-- [M13 公告研究与选股](../v5-module-13-chat-20261010/START_HERE.md)：材料就绪；Chat提交与产品执行另记。
-
-- [M15 美股到港股映射](../v5-module-15-chat-20261010/START_HERE.md)：材料就绪；Chat提交与产品执行另记。
+材料须同时包含对应实际源码包；普通Chat未必能读取私有GitHub链接，不能只交路径和SHA。固定源包逐件核原字节，Mac实际业务原件不随包上传。
