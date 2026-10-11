@@ -6,12 +6,12 @@
   "parent_handoff_branch": "codex/issue35-autocontinue-fix-20261011",
   "parent_handoff_commit": "37de6a9970eb9be05a79c5be0e2e5a39bddd6426",
   "patch": "patches/dispatch_after_issue35_failure_recovery.patch",
-  "patch_sha256": "bb4d50be4211d625d5e280014daad003847a3d284c8b623059918aec6e128049",
-  "patch_bytes": 2177,
+  "patch_sha256": "62dcc704aa5cc28c115176c7d254b64336e5252b90bd6e43c1f20bde736d70ed",
+  "patch_bytes": 2841,
   "target": "v4/manager_research/plan_owner_dispatch.py",
   "applicable_to_all_three_parent_modes_after_base_patches": true,
   "before_sha256": "8afc3439070f8ea71b112a51c154775d7eb948c60082ca032f05d9771a34b284",
-  "after_sha256": "ec965df18e153297abdafaace075e6b0e03a7f0085552470dfe0c78007a64b8d",
+  "after_sha256": "b782d8a7d18c6d5a2a6ace9612761de9fb22b45eb544cdd33145429b00e165c8",
   "applies_to_active_live_root": false,
   "modifies_owner_selection_formula": false,
   "modifies_ui": false,
@@ -24,16 +24,20 @@
   "test_scope": "isolated synthetic actual-function AST runner, no production package imports",
   "tests": {
     "pre_fix_controlled_read_failure": "ERROR ValueError SYNTHETIC_OWNER_READ_FAILED",
-    "post_fix": "9/9 PASS",
-    "log_sha256": "fe055c1613ae6d58d84264d962cf230cb14ac5afed8b09031da39b7dc1e4c250",
-    "full_suite_sha256": "5c095220f0101098b8b88726b2746c5e1990710d8fddea29971f78dacb1e0353",
-    "full_suite_bytes": 15718,
+    "post_fix": "10/10 PASS",
+    "log_sha256": "c9a7ee7221b6d2f045dcc78b29e183204c2558ed11747821b154e9b07216449b",
+    "full_suite_sha256": "7030f5c3034833992a81e82a1cb0e8a3370e5e8e36d435fbbcde3d5b5c98f52f",
+    "full_suite_bytes": 16093,
     "git_apply_check_and_apply": "PASS",
     "syntax_py_compile": "PASS",
     "full_Mac_Python_environment": "NOT_RUN",
     "Mac_independent_reviewer": "NOT_RUN",
     "API_8873_UI": "NOT_RUN",
     "original_natural_scheduler": "NOT_RUN",
-    "three_20261012_real_selection_lists": "CANNOT_CONFIRM"
+    "three_20261012_real_selection_lists": "CANNOT_CONFIRM",
+    "failure_conditions_covered": [
+      "invalid sealed latest plan",
+      "current workspace read error"
+    ]
   }
 }
