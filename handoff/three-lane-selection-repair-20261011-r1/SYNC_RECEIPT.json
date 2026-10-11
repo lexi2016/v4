@@ -1,0 +1,599 @@
+{
+  "schema_version": "three_lane.github_sync_receipt.v1",
+  "recorded_at_utc": "2026-10-11T08:57:20.854539+00:00",
+  "status": "PAYLOAD_COMMIT_PUBLISHED_AND_REMOTE_BYTES_VERIFIED",
+  "scope": "GIT_HANDOFF_ONLY_NOT_MAC_INTEGRATION_DEPLOYMENT_OWNER_API_UI_OR_NATURAL_ACCEPTANCE",
+  "repository": "lexi2016/v4",
+  "branch": "codex/three-lane-selection-repair-20261011-r1",
+  "path_prefix": "handoff/three-lane-selection-repair-20261011-r1/",
+  "base_commit": "1ea98799d1763c88be2be1f0ee1b0ccec654532f",
+  "base_tree": "1c044b1f489e9353b5061064d9c45d9ab3378353",
+  "payload_commit": "e1f57b531e5e02ac748eae4ead5a0fa46b4577aa",
+  "payload_tree": "7e636cebd0470d9e9e118915a2a282c7b0bbc27d",
+  "payload_commit_url": "https://github.com/lexi2016/v4/commit/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa",
+  "payload_directory_url": "https://github.com/lexi2016/v4/tree/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1",
+  "payload_commit_parents_observed": [
+    "1ea98799d1763c88be2be1f0ee1b0ccec654532f"
+  ],
+  "payload_ref_head_observed": "e1f57b531e5e02ac748eae4ead5a0fa46b4577aa",
+  "local_source_baseline_commit": "31f5a39ce1ee7cd76bbf268e68760b6adc319774",
+  "local_source_candidate_commit": "cd93198cb0de06c8f32386ed1fc808a5b4e53bec",
+  "input_zip_sha256": "3e389c00b4c82b4e987b3e06f51af70728d10b48e6d8de1f5554640e8b66eee7",
+  "publication_file_count_at_payload_commit": 55,
+  "publication_total_bytes_at_payload_commit": 1071745,
+  "new_handoff_prefix_previously_absent": true,
+  "all_create_blob_returned_ids_matched_local_git_blob_hashes": true,
+  "all_payload_tree_file_blob_ids_matched": true,
+  "protection_verification": {
+    "root_entries_unchanged_except_handoff": true,
+    "original_handoff_directories_preserved": 38,
+    "new_directories": 1,
+    "all_payload_blob_ids_match": true,
+    "payload_file_count": 55
+  },
+  "actual_remote_byte_readback": {
+    "schema_version": "three_lane.remote_payload_byte_verification.v1",
+    "verified_at_utc": "2026-10-11T08:56:19.848598+00:00",
+    "method": "Fetch by fixed payload commit with encoding=base64; decode and recompute SHA-256, Git blob SHA-1 and byte length locally",
+    "repository": "lexi2016/v4",
+    "branch": "codex/three-lane-selection-repair-20261011-r1",
+    "payload_commit": "e1f57b531e5e02ac748eae4ead5a0fa46b4577aa",
+    "payload_tree": "7e636cebd0470d9e9e118915a2a282c7b0bbc27d",
+    "remote_ref_head_observed": "e1f57b531e5e02ac748eae4ead5a0fa46b4577aa",
+    "all_55_payload_tree_blob_ids_match_frozen_inventory": true,
+    "original_38_handoff_directory_entries_unchanged": true,
+    "key_files_with_actual_remote_bytes_verified": 19,
+    "mismatches": [],
+    "files": [
+      {
+        "path": "BEFORE_AFTER_SHA256.json",
+        "bytes": 7751,
+        "expected_sha256": "ffb6fd7019366919d9cec4510269119a09789dd5c07f6a01f7eaba1e3ba57215",
+        "observed_sha256": "ffb6fd7019366919d9cec4510269119a09789dd5c07f6a01f7eaba1e3ba57215",
+        "expected_git_blob_sha": "9b6011b997dddd3d207378aea290c694d2f7378a",
+        "observed_git_blob_sha": "9b6011b997dddd3d207378aea290c694d2f7378a",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/BEFORE_AFTER_SHA256.json",
+        "bytes_match": true
+      },
+      {
+        "path": "FINAL_REPORT.md",
+        "bytes": 15303,
+        "expected_sha256": "870c66bbdc586e1e2eadc7e9e0c810dbec35eb0cb6c1e12c8e616a41d535a7d8",
+        "observed_sha256": "870c66bbdc586e1e2eadc7e9e0c810dbec35eb0cb6c1e12c8e616a41d535a7d8",
+        "expected_git_blob_sha": "7fc383a83fccb88810df476d45e1a593f4e1d875",
+        "observed_git_blob_sha": "7fc383a83fccb88810df476d45e1a593f4e1d875",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/FINAL_REPORT.md",
+        "bytes_match": true
+      },
+      {
+        "path": "MAC_ACCEPTANCE.md",
+        "bytes": 17510,
+        "expected_sha256": "f62deb29f0b353756e0709299fad46f712e99e5a8d5f54733fb51441ee5e57f0",
+        "observed_sha256": "f62deb29f0b353756e0709299fad46f712e99e5a8d5f54733fb51441ee5e57f0",
+        "expected_git_blob_sha": "bcd9efdb900e66355d5aad511a53f5d34806f229",
+        "observed_git_blob_sha": "bcd9efdb900e66355d5aad511a53f5d34806f229",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/MAC_ACCEPTANCE.md",
+        "bytes_match": true
+      },
+      {
+        "path": "SHA256SUMS.txt",
+        "bytes": 5687,
+        "expected_sha256": "196637a23ff499417d7b6b0e3d18f480aac94b05523fee34cde5b95f3c9535c2",
+        "observed_sha256": "196637a23ff499417d7b6b0e3d18f480aac94b05523fee34cde5b95f3c9535c2",
+        "expected_git_blob_sha": "d522b926d52eb0fa1cceb01e04073323c7e88a3d",
+        "observed_git_blob_sha": "d522b926d52eb0fa1cceb01e04073323c7e88a3d",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/SHA256SUMS.txt",
+        "bytes_match": true
+      },
+      {
+        "path": "acceptance.json",
+        "bytes": 5990,
+        "expected_sha256": "2884a502bb46026110c3ac909d15bb0a54d3520a0c63287c24405a2b764d37f4",
+        "observed_sha256": "2884a502bb46026110c3ac909d15bb0a54d3520a0c63287c24405a2b764d37f4",
+        "expected_git_blob_sha": "5742203b88e95b401ca54c6579659114c4d39ca3",
+        "observed_git_blob_sha": "5742203b88e95b401ca54c6579659114c4d39ca3",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/acceptance.json",
+        "bytes_match": true
+      },
+      {
+        "path": "after/apps/web/src/api/managerWorkspace.ts",
+        "bytes": 128280,
+        "expected_sha256": "4203c62b111449f2fd8031bd1e1599829f1a21e543f4fc1a41a35eaff046f707",
+        "observed_sha256": "4203c62b111449f2fd8031bd1e1599829f1a21e543f4fc1a41a35eaff046f707",
+        "expected_git_blob_sha": "e7e3996ae3a468b106347801fbeb9f5f1e9770b1",
+        "observed_git_blob_sha": "e7e3996ae3a468b106347801fbeb9f5f1e9770b1",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/apps/web/src/api/managerWorkspace.ts",
+        "bytes_match": true
+      },
+      {
+        "path": "after/apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "bytes": 64759,
+        "expected_sha256": "300418ce5d5da9f6686adafbb107cf5db36587fd9bb0af759b27f6881f0eb6cd",
+        "observed_sha256": "300418ce5d5da9f6686adafbb107cf5db36587fd9bb0af759b27f6881f0eb6cd",
+        "expected_git_blob_sha": "4b156db14827f39c8dc47c84e104e9a79a468034",
+        "observed_git_blob_sha": "4b156db14827f39c8dc47c84e104e9a79a468034",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "bytes_match": true
+      },
+      {
+        "path": "after/apps/web/src/manager-selection/threeLaneDateBindings.spec.ts",
+        "bytes": 11454,
+        "expected_sha256": "5a447f20061f3d1563e18c76b240c1ffb062e6dcb10a2595ef73c6dfbf7b7952",
+        "observed_sha256": "5a447f20061f3d1563e18c76b240c1ffb062e6dcb10a2595ef73c6dfbf7b7952",
+        "expected_git_blob_sha": "cce4386e0ec1e9c2c56d1fa5886b805788b72ff5",
+        "observed_git_blob_sha": "cce4386e0ec1e9c2c56d1fa5886b805788b72ff5",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/apps/web/src/manager-selection/threeLaneDateBindings.spec.ts",
+        "bytes_match": true
+      },
+      {
+        "path": "after/ops/run_manager_announcement_cycle.py",
+        "bytes": 37085,
+        "expected_sha256": "3fb3c175254c16e703c4530b64bc6da9338c96408ad7ff692dd9b8f6a8b83d82",
+        "observed_sha256": "3fb3c175254c16e703c4530b64bc6da9338c96408ad7ff692dd9b8f6a8b83d82",
+        "expected_git_blob_sha": "8b5c90c4a3771b7339a72389b14e9fa972700e08",
+        "observed_git_blob_sha": "8b5c90c4a3771b7339a72389b14e9fa972700e08",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/ops/run_manager_announcement_cycle.py",
+        "bytes_match": true
+      },
+      {
+        "path": "after/stage_center/consumer.py",
+        "bytes": 38003,
+        "expected_sha256": "cbc91d835c94e88b5065c6e95711017f9e97fd4d5bd7c230b7e88acab54f1557",
+        "observed_sha256": "cbc91d835c94e88b5065c6e95711017f9e97fd4d5bd7c230b7e88acab54f1557",
+        "expected_git_blob_sha": "940c3989a144e342674ede16dc4c3e42afa93441",
+        "observed_git_blob_sha": "940c3989a144e342674ede16dc4c3e42afa93441",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/stage_center/consumer.py",
+        "bytes_match": true
+      },
+      {
+        "path": "after/tests/test_manager_three_lane_channels_r1.py",
+        "bytes": 17042,
+        "expected_sha256": "bcfe4bf1cfe19ed5b7ce5e64655e74696c2f982bdb1c657346e283a6677488a1",
+        "observed_sha256": "bcfe4bf1cfe19ed5b7ce5e64655e74696c2f982bdb1c657346e283a6677488a1",
+        "expected_git_blob_sha": "a850689cf36af3a270d7a6eecb92aabd57338c18",
+        "observed_git_blob_sha": "a850689cf36af3a270d7a6eecb92aabd57338c18",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/tests/test_manager_three_lane_channels_r1.py",
+        "bytes_match": true
+      },
+      {
+        "path": "after/tests/test_manager_three_lane_history_r1.py",
+        "bytes": 13284,
+        "expected_sha256": "f1f128395216c3a1ddea7c0edf7202a33f52510dff3076f1f83b92a88db077e7",
+        "observed_sha256": "f1f128395216c3a1ddea7c0edf7202a33f52510dff3076f1f83b92a88db077e7",
+        "expected_git_blob_sha": "697f0157ff78aed4e9af304097c13c6177f3d060",
+        "observed_git_blob_sha": "697f0157ff78aed4e9af304097c13c6177f3d060",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/tests/test_manager_three_lane_history_r1.py",
+        "bytes_match": true
+      },
+      {
+        "path": "after/tests/test_manager_three_lane_rebound_diagnostics_r1.py",
+        "bytes": 8353,
+        "expected_sha256": "16f055bff365ed8d8e3ce600f78c4585723820c350a3a1822725f086d74e91ab",
+        "observed_sha256": "16f055bff365ed8d8e3ce600f78c4585723820c350a3a1822725f086d74e91ab",
+        "expected_git_blob_sha": "99fab4dbd2b9c9e4ca4e0add6db9292939b840af",
+        "observed_git_blob_sha": "99fab4dbd2b9c9e4ca4e0add6db9292939b840af",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/tests/test_manager_three_lane_rebound_diagnostics_r1.py",
+        "bytes_match": true
+      },
+      {
+        "path": "after/v4/manager_research/workspace.py",
+        "bytes": 82764,
+        "expected_sha256": "6d7119ba6fc762dbcd0ccd43897a26956eb24430e4f54352bed0aace6f9b07a7",
+        "observed_sha256": "6d7119ba6fc762dbcd0ccd43897a26956eb24430e4f54352bed0aace6f9b07a7",
+        "expected_git_blob_sha": "9fb99b7217f043e86e48710c6903ab62324d9b96",
+        "observed_git_blob_sha": "9fb99b7217f043e86e48710c6903ab62324d9b96",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/v4/manager_research/workspace.py",
+        "bytes_match": true
+      },
+      {
+        "path": "after/v4/manager_research/workspace_daily_channels.py",
+        "bytes": 24565,
+        "expected_sha256": "69f6a824a133343dff7c5bf7f0db240ab1d3af0bc3f74b618832982bd2b0b622",
+        "observed_sha256": "69f6a824a133343dff7c5bf7f0db240ab1d3af0bc3f74b618832982bd2b0b622",
+        "expected_git_blob_sha": "27f582840f49202cd15b9f31e482d9534a9567fa",
+        "observed_git_blob_sha": "27f582840f49202cd15b9f31e482d9534a9567fa",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/v4/manager_research/workspace_daily_channels.py",
+        "bytes_match": true
+      },
+      {
+        "path": "after/v4/manager_research/workspace_history.py",
+        "bytes": 23291,
+        "expected_sha256": "5d10031d3b75d51e4f9cb6de65c99a27494fbe9019631914c6e254caa4264f96",
+        "observed_sha256": "5d10031d3b75d51e4f9cb6de65c99a27494fbe9019631914c6e254caa4264f96",
+        "expected_git_blob_sha": "fbdc87feb7ff3d012bad74ec74f2ef4b5b68f646",
+        "observed_git_blob_sha": "fbdc87feb7ff3d012bad74ec74f2ef4b5b68f646",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/v4/manager_research/workspace_history.py",
+        "bytes_match": true
+      },
+      {
+        "path": "after/v4/manager_research/workspace_plan.py",
+        "bytes": 110760,
+        "expected_sha256": "20c7daeace29a13e022726c1e4a3719fdc5ad0d218af5a35e7a0142c4d668484",
+        "observed_sha256": "20c7daeace29a13e022726c1e4a3719fdc5ad0d218af5a35e7a0142c4d668484",
+        "expected_git_blob_sha": "b0e429be4e559bb1e8e47165f52b68085475eb55",
+        "observed_git_blob_sha": "b0e429be4e559bb1e8e47165f52b68085475eb55",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/after/v4/manager_research/workspace_plan.py",
+        "bytes_match": true
+      },
+      {
+        "path": "changes.patch",
+        "bytes": 102729,
+        "expected_sha256": "7eea3add8687d7f851ca0cf4d7f2925e82971fdcdb86d891e925efbef29edd0d",
+        "observed_sha256": "7eea3add8687d7f851ca0cf4d7f2925e82971fdcdb86d891e925efbef29edd0d",
+        "expected_git_blob_sha": "abd627b57b4b2f18b6996f7d32a93b3bc50c8801",
+        "observed_git_blob_sha": "abd627b57b4b2f18b6996f7d32a93b3bc50c8801",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/changes.patch",
+        "bytes_match": true
+      },
+      {
+        "path": "check_candidate.py",
+        "bytes": 6295,
+        "expected_sha256": "7fbf91d66b5a33eb1c1125ca2cb35de2bc619d1014235e1f0d203bd2689b5567",
+        "observed_sha256": "7fbf91d66b5a33eb1c1125ca2cb35de2bc619d1014235e1f0d203bd2689b5567",
+        "expected_git_blob_sha": "fb440877b9991e2ee340746fad86453b5cb1e432",
+        "observed_git_blob_sha": "fb440877b9991e2ee340746fad86453b5cb1e432",
+        "remote_url": "https://github.com/lexi2016/v4/blob/e1f57b531e5e02ac748eae4ead5a0fa46b4577aa/handoff/three-lane-selection-repair-20261011-r1/check_candidate.py",
+        "bytes_match": true
+      }
+    ],
+    "deployment_or_mac_owner_verification": false,
+    "natural_run_verified": false
+  },
+  "payload_inventory": [
+    {
+      "path": "BEFORE_AFTER_SHA256.json",
+      "bytes": 7751,
+      "sha256": "ffb6fd7019366919d9cec4510269119a09789dd5c07f6a01f7eaba1e3ba57215",
+      "git_blob_sha": "9b6011b997dddd3d207378aea290c694d2f7378a"
+    },
+    {
+      "path": "FINAL_REPORT.md",
+      "bytes": 15303,
+      "sha256": "870c66bbdc586e1e2eadc7e9e0c810dbec35eb0cb6c1e12c8e616a41d535a7d8",
+      "git_blob_sha": "7fc383a83fccb88810df476d45e1a593f4e1d875"
+    },
+    {
+      "path": "MAC_ACCEPTANCE.md",
+      "bytes": 17510,
+      "sha256": "f62deb29f0b353756e0709299fad46f712e99e5a8d5f54733fb51441ee5e57f0",
+      "git_blob_sha": "bcd9efdb900e66355d5aad511a53f5d34806f229"
+    },
+    {
+      "path": "SHA256SUMS.txt",
+      "bytes": 5687,
+      "sha256": "196637a23ff499417d7b6b0e3d18f480aac94b05523fee34cde5b95f3c9535c2",
+      "git_blob_sha": "d522b926d52eb0fa1cceb01e04073323c7e88a3d"
+    },
+    {
+      "path": "acceptance.json",
+      "bytes": 5990,
+      "sha256": "2884a502bb46026110c3ac909d15bb0a54d3520a0c63287c24405a2b764d37f4",
+      "git_blob_sha": "5742203b88e95b401ca54c6579659114c4d39ca3"
+    },
+    {
+      "path": "after/apps/web/src/api/managerWorkspace.ts",
+      "bytes": 128280,
+      "sha256": "4203c62b111449f2fd8031bd1e1599829f1a21e543f4fc1a41a35eaff046f707",
+      "git_blob_sha": "e7e3996ae3a468b106347801fbeb9f5f1e9770b1"
+    },
+    {
+      "path": "after/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "bytes": 64759,
+      "sha256": "300418ce5d5da9f6686adafbb107cf5db36587fd9bb0af759b27f6881f0eb6cd",
+      "git_blob_sha": "4b156db14827f39c8dc47c84e104e9a79a468034"
+    },
+    {
+      "path": "after/apps/web/src/manager-selection/threeLaneDateBindings.spec.ts",
+      "bytes": 11454,
+      "sha256": "5a447f20061f3d1563e18c76b240c1ffb062e6dcb10a2595ef73c6dfbf7b7952",
+      "git_blob_sha": "cce4386e0ec1e9c2c56d1fa5886b805788b72ff5"
+    },
+    {
+      "path": "after/ops/run_manager_announcement_cycle.py",
+      "bytes": 37085,
+      "sha256": "3fb3c175254c16e703c4530b64bc6da9338c96408ad7ff692dd9b8f6a8b83d82",
+      "git_blob_sha": "8b5c90c4a3771b7339a72389b14e9fa972700e08"
+    },
+    {
+      "path": "after/stage_center/consumer.py",
+      "bytes": 38003,
+      "sha256": "cbc91d835c94e88b5065c6e95711017f9e97fd4d5bd7c230b7e88acab54f1557",
+      "git_blob_sha": "940c3989a144e342674ede16dc4c3e42afa93441"
+    },
+    {
+      "path": "after/tests/test_manager_three_lane_channels_r1.py",
+      "bytes": 17042,
+      "sha256": "bcfe4bf1cfe19ed5b7ce5e64655e74696c2f982bdb1c657346e283a6677488a1",
+      "git_blob_sha": "a850689cf36af3a270d7a6eecb92aabd57338c18"
+    },
+    {
+      "path": "after/tests/test_manager_three_lane_history_r1.py",
+      "bytes": 13284,
+      "sha256": "f1f128395216c3a1ddea7c0edf7202a33f52510dff3076f1f83b92a88db077e7",
+      "git_blob_sha": "697f0157ff78aed4e9af304097c13c6177f3d060"
+    },
+    {
+      "path": "after/tests/test_manager_three_lane_rebound_diagnostics_r1.py",
+      "bytes": 8353,
+      "sha256": "16f055bff365ed8d8e3ce600f78c4585723820c350a3a1822725f086d74e91ab",
+      "git_blob_sha": "99fab4dbd2b9c9e4ca4e0add6db9292939b840af"
+    },
+    {
+      "path": "after/v4/manager_research/workspace.py",
+      "bytes": 82764,
+      "sha256": "6d7119ba6fc762dbcd0ccd43897a26956eb24430e4f54352bed0aace6f9b07a7",
+      "git_blob_sha": "9fb99b7217f043e86e48710c6903ab62324d9b96"
+    },
+    {
+      "path": "after/v4/manager_research/workspace_daily_channels.py",
+      "bytes": 24565,
+      "sha256": "69f6a824a133343dff7c5bf7f0db240ab1d3af0bc3f74b618832982bd2b0b622",
+      "git_blob_sha": "27f582840f49202cd15b9f31e482d9534a9567fa"
+    },
+    {
+      "path": "after/v4/manager_research/workspace_history.py",
+      "bytes": 23291,
+      "sha256": "5d10031d3b75d51e4f9cb6de65c99a27494fbe9019631914c6e254caa4264f96",
+      "git_blob_sha": "fbdc87feb7ff3d012bad74ec74f2ef4b5b68f646"
+    },
+    {
+      "path": "after/v4/manager_research/workspace_plan.py",
+      "bytes": 110760,
+      "sha256": "20c7daeace29a13e022726c1e4a3719fdc5ad0d218af5a35e7a0142c4d668484",
+      "git_blob_sha": "b0e429be4e559bb1e8e47165f52b68085475eb55"
+    },
+    {
+      "path": "changes.patch",
+      "bytes": 102729,
+      "sha256": "7eea3add8687d7f851ca0cf4d7f2925e82971fdcdb86d891e925efbef29edd0d",
+      "git_blob_sha": "abd627b57b4b2f18b6996f7d32a93b3bc50c8801"
+    },
+    {
+      "path": "check_candidate.py",
+      "bytes": 6295,
+      "sha256": "7fbf91d66b5a33eb1c1125ca2cb35de2bc619d1014235e1f0d203bd2689b5567",
+      "git_blob_sha": "fb440877b9991e2ee340746fad86453b5cb1e432"
+    },
+    {
+      "path": "checks/CROSS_LANGUAGE_REVIEW.json",
+      "bytes": 9292,
+      "sha256": "f2ebcc8425067a94b8f0a0d495bd78a993802ab4a6af6997d0b309bae3c160a0",
+      "git_blob_sha": "46875feac6089c096ffd3190b4f46dac2011f37e"
+    },
+    {
+      "path": "checks/DELIVERY_VERIFICATION.json",
+      "bytes": 12015,
+      "sha256": "849a7b5d48e4baa88be1b7d3ef0ddbbd6bfe3f58a298041e13ea769da0505e63",
+      "git_blob_sha": "2f31b409d355311908784f4401bdbf3ad85ae23d"
+    },
+    {
+      "path": "checks/EVIDENCE_INDEX.json",
+      "bytes": 10986,
+      "sha256": "3dfc90e9713957407088b626e793fd3910a746b8d07d5fb75dd2763dcec185b7",
+      "git_blob_sha": "653010669e4e9abe78d971499c88ebea591fe952"
+    },
+    {
+      "path": "checks/FINAL_FRONTEND_REVIEW.json",
+      "bytes": 3819,
+      "sha256": "b5411d955b16c9d46b5ae39723412af061d17b7b62bd0c5ccb61c538f2ec8a72",
+      "git_blob_sha": "58288ef7b96c7b9a594430850bd94d7d12584974"
+    },
+    {
+      "path": "checks/FINAL_SOURCE_AUDIT.json",
+      "bytes": 9896,
+      "sha256": "7e851ea7e5ba3d621eb33c4bcca32b3ac65f95a613ad99dba0da298bb6735d30",
+      "git_blob_sha": "4275b59c106e490ba95f2ab16a252a7061a111fc"
+    },
+    {
+      "path": "checks/FRONTEND_SUPPORT_PROVENANCE.json",
+      "bytes": 3291,
+      "sha256": "94c168a055f4f75f0695712db0b4aeb3180cfbf8660ffd571fc68e573ba16282",
+      "git_blob_sha": "f24d8883456f6577a94fb1cb03f570729dd8f55d"
+    },
+    {
+      "path": "checks/INDEPENDENT_HK_REVIEW.md",
+      "bytes": 11779,
+      "sha256": "3c551c964fcc9865772437467afc4b1b61df113a2351a1197f1716eb47534bad",
+      "git_blob_sha": "658dc5c9bf12e6e1a9e569c3db43df43fe258602"
+    },
+    {
+      "path": "checks/ORIGINAL_REGRESSION_REVIEW.md",
+      "bytes": 12604,
+      "sha256": "c0045b4d4d1bb9b6afc67e25e17576fe050ecaafc31f4e114a697aa66ba1caec",
+      "git_blob_sha": "0779583c7486995910aa179b635a8c9d193c0c3f"
+    },
+    {
+      "path": "checks/README.md",
+      "bytes": 1374,
+      "sha256": "a181cc3ad7d52aaae172bfad4c1f24d5a3faf5d2df4b63c08782074c4f5843d0",
+      "git_blob_sha": "d4a2309d05931ec05b7243c4cee72ef7c8a2d34d"
+    },
+    {
+      "path": "checks/RED_GREEN_HISTORY.json",
+      "bytes": 3467,
+      "sha256": "2e95b70a82c49215e9d4b382c5e68f7df0b4101bcc00aeeb991e59a7221c27ec",
+      "git_blob_sha": "941ac0cdd1941684f20af3180789497dfb80644f"
+    },
+    {
+      "path": "checks/SUPPORT_PROVENANCE.json",
+      "bytes": 14636,
+      "sha256": "d6cf14e7c8fee43262716102716d79883241317880a5107e5b2b7c6e22fe04ea",
+      "git_blob_sha": "a137bc35994b33b2ea243a28b650562d645f6471"
+    },
+    {
+      "path": "checks/TEST_RESULTS.json",
+      "bytes": 6603,
+      "sha256": "5b61e279485d6ab6e5f082f675531787f9191724449421c2d33d12c2144110ca",
+      "git_blob_sha": "4872f617d10c321164c745b421cae872e579d4d6"
+    },
+    {
+      "path": "checks/candidate_commit_binding.json",
+      "bytes": 185,
+      "sha256": "78dd08f2d2dcde480a9acfc77df5dd48c5a4ce1d5c8cfa9c85bf1a2d43045319",
+      "git_blob_sha": "f2fb0314c6e4514250b9ea4648c9c2ade3ac4ae8"
+    },
+    {
+      "path": "checks/cross_language_vitest.log",
+      "bytes": 872,
+      "sha256": "b4853bbed1a83e839cb1e566825d8b7e5a439dbb54f242d19545073040f5f005",
+      "git_blob_sha": "f59a17b77a040bd2f6350308c3c2433c7f08e62a"
+    },
+    {
+      "path": "checks/final_delivery_byte_checks.json",
+      "bytes": 22427,
+      "sha256": "ef9d3dbe5565f344284983899ca13cff9efa1461c7b9d266067078d2a56748d2",
+      "git_blob_sha": "63fa7988562569845e28283dd2197524c922e236"
+    },
+    {
+      "path": "checks/final_delivery_review.json",
+      "bytes": 16288,
+      "sha256": "f66eb364279ee610a713306f6209f14ba0a0621dabb96ccdf633189a9dd97ecb",
+      "git_blob_sha": "71766d25da70c80dbf91157a325526a23caad846"
+    },
+    {
+      "path": "checks/final_targeted_backend_exact.log",
+      "bytes": 190,
+      "sha256": "f7702b6f278ac911a439263ad97b45b421776d18d1cef802d3fe6c0790b7794b",
+      "git_blob_sha": "fc7cd3bd858743f81308e9d8c1383bd0b166fcd1"
+    },
+    {
+      "path": "checks/frontend_typecheck_comparison.json",
+      "bytes": 28161,
+      "sha256": "633d3029fb9846c50fc01d1fef8dff02a4c9fc68917a6c9f885810dcb346ca4e",
+      "git_blob_sha": "e525b5e8deef30ed204db3d0205373d1c3049b33"
+    },
+    {
+      "path": "checks/history_latest_duplicate_residual.json",
+      "bytes": 1242,
+      "sha256": "cd244effda54843a8115e1e63fdd09090baa3359897d18ec006c649b392224b6",
+      "git_blob_sha": "7abef4c4d32c98c393fc483585ec436f37f78f85"
+    },
+    {
+      "path": "checks/history_review_results.json",
+      "bytes": 10056,
+      "sha256": "82cf843c6471a20054a92a1925ccea434af8cef13cda60ebe357d65e64fbca06",
+      "git_blob_sha": "a60b5818fdbe24f404a450517241ec798794c124"
+    },
+    {
+      "path": "checks/hk_daily_boundary_summary.json",
+      "bytes": 21640,
+      "sha256": "d2f75b4dbebfd5d01b45702e49ac5af02b2dca4c8c9f3ce995b9b37c01c3b7af",
+      "git_blob_sha": "b05910515a7dd475135830eb421e58786ce52a72"
+    },
+    {
+      "path": "checks/o_original_screen_comparison.json",
+      "bytes": 4233,
+      "sha256": "9f20817070a1bede6e635a475a8d7d27dabc4231eabf8358daa272382b0e5287",
+      "git_blob_sha": "3a608bb962dc1a04910eb40d8af4fceaa65bc752"
+    },
+    {
+      "path": "checks/o_parquet_diagnostics_review.json",
+      "bytes": 3019,
+      "sha256": "4fe5165a8cdbf039354c6f0ed22240fecb625cfe4b8e46c1ecd8afd396fcc768",
+      "git_blob_sha": "11c42b8310151b3248f5ff8bc1987e352f11a63e"
+    },
+    {
+      "path": "checks/o_projection_preservation_results.json",
+      "bytes": 3151,
+      "sha256": "08380eca3c5c3a51aadd2472c131e44b736fd79a5c51947f38fc3368e78f7af4",
+      "git_blob_sha": "f1f45c326f076a3639044ca120b4f172a115b663"
+    },
+    {
+      "path": "checks/original_failure_facts_candidate.json",
+      "bytes": 8484,
+      "sha256": "125cb4b76531f1e4fe6a4b802e99cffa9610585821dfe9a23aedd84b63f8b5a4",
+      "git_blob_sha": "d486dfc69dce84199c7a277aaa788ba517ee894e"
+    },
+    {
+      "path": "checks/original_selection_provenance_results.json",
+      "bytes": 7053,
+      "sha256": "593a37e98265d3e9b492dd5f154ca16a36e591783fa9320fd699e8206d439b21",
+      "git_blob_sha": "4d3fc9abd2cbb08390cd35ba974364b31be5c2c8"
+    },
+    {
+      "path": "checks/original_suite_comparison.json",
+      "bytes": 55838,
+      "sha256": "1d457a9f93d2e3ade167b535d53b4a1fe02ab4768233fb3daa784f69e107908b",
+      "git_blob_sha": "59fb937498d31fc6b15764ba37e85e83009626e4"
+    },
+    {
+      "path": "checks/python314_projection_generation.log",
+      "bytes": 1515,
+      "sha256": "cc4b00432714267370162013592b0042ce7c62987d8f3d0926cbe6542f8b93b3",
+      "git_blob_sha": "d73d7f49d8848437603ba2e47b4d95527928d8fc"
+    },
+    {
+      "path": "checks/reproduction/compare_original_screen.py",
+      "bytes": 8798,
+      "sha256": "28c0b9d67af58dc6b007c6700ffbd25372cdaa24cf8487b48286a474648c5b09",
+      "git_blob_sha": "e18a2425d2f93c4dda3cba60d3cbf454e1f9c4cd"
+    },
+    {
+      "path": "checks/reproduction/generate_projection_cases.py",
+      "bytes": 4236,
+      "sha256": "f37e3958514d26391022a84a40576c56ab7b4fcbed09267e9c132feb8c66f58d",
+      "git_blob_sha": "f843a9c4c48fb06f5f64b51066112b96d31ee3f4"
+    },
+    {
+      "path": "checks/reproduction/latest_duplicate_counterexample.py",
+      "bytes": 1439,
+      "sha256": "fb4ef6fda09797f6e23a664f9c1db8fcf2b889f94079264d0615230c71f2f6fb",
+      "git_blob_sha": "0134ef7bcbf6d8337fd19cb8ff1578ca020633d5"
+    },
+    {
+      "path": "checks/reproduction/pythonProjectionRenderer.spec.ts",
+      "bytes": 5427,
+      "sha256": "4cf2adc4fa74319c50225264e1da68cab7297e977002e8fd77249af922301d96",
+      "git_blob_sha": "cd8c008e9ad8195254bc553edeee01007e9ee366"
+    },
+    {
+      "path": "checks/reproduction/review_history_boundary.py",
+      "bytes": 14990,
+      "sha256": "21ac4157fe9956a1e279525b0ff3e97827e01d170a3c32f6c93991c815103c25",
+      "git_blob_sha": "991ca6bdc42885e40cca812781452db9337017a6"
+    },
+    {
+      "path": "checks/reproduction/verify_delivery.py",
+      "bytes": 9572,
+      "sha256": "a56f47ca11a5451d72370c9ad8b2a0b9fe58929df9935d4ceadc1d99093fdc89",
+      "git_blob_sha": "a50bbbc40f2dc23cef9304bb9e274c74f7d0a304"
+    },
+    {
+      "path": "checks/reproduction/verify_hk_daily_boundary.py",
+      "bytes": 9054,
+      "sha256": "f88a0b5aa25a36ff11d6e1210eb3c49ce8a3b38434444b2dbf3e81c43af40eab",
+      "git_blob_sha": "edcfbecbd05dccb4011e6d3c5198ce6154296268"
+    },
+    {
+      "path": "checks/reproduction/verify_original_selection_provenance.py",
+      "bytes": 13208,
+      "sha256": "c8e2d1368904b1c1e20aa28fbb6fbdff957371adeb4ef52de3060304e7126d5a",
+      "git_blob_sha": "8997b85f156a124eb83a7f82c85bf7c397512c19"
+    }
+  ],
+  "receipt_placement": {
+    "method": "Add only this receipt in one child commit of the verified payload commit; then verify child ref, unchanged payload tree entries and this receipt bytes",
+    "required_parent_commit": "e1f57b531e5e02ac748eae4ead5a0fa46b4577aa",
+    "expected_ref_before_receipt_update": "e1f57b531e5e02ac748eae4ead5a0fa46b4577aa",
+    "force_push": false,
+    "self_commit_identity": "The containing commit is supplied by Git; this file does not claim a circular self-commit SHA",
+    "sha256sums_scope": "SHA256SUMS.txt covers the frozen payload files except itself; this subsequently added receipt is bound by its Git blob and containing commit"
+  },
+  "acceptance_summary": {
+    "A": "PARTIAL",
+    "H": "PARTIAL",
+    "O": "PARTIAL",
+    "I": "PARTIAL",
+    "R": "PARTIAL",
+    "D": "PARTIAL",
+    "N": "NOT_RUN"
+  },
+  "overall_business_status": "PARTIAL",
+  "deployment_performed": false,
+  "service_restart_performed": false,
+  "business_owner_run_on_mac_performed": false,
+  "api_8873_or_actual_ui_executed": false,
+  "natural_run_verified": false,
+  "original_branches_merged_or_updated": false,
+  "force_push_performed": false
+}
