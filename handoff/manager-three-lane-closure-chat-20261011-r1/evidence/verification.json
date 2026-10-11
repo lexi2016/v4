@@ -1,0 +1,649 @@
+{
+  "checked_at": "2026-10-11T12:09:56.739795+00:00",
+  "scope": "ISOLATED_PATCH_AND_READ_ONLY_HELPERS_NOT_MAC_DEPLOYMENT",
+  "source_file_count": 22,
+  "records": [
+    {
+      "label": "source_preflight_before",
+      "command": [
+        "python",
+        "/workspace/scratch/81f12368319d/deliverables/V4_three_lane_closure_20261011_r1/tools/preflight.py",
+        "--source-root",
+        "/workspace/scratch/81f12368319d/work/apply_verification"
+      ],
+      "cwd": null,
+      "exit_code": 0,
+      "result": {
+        "schema": "v4.three_lane_handoff.source_preflight.v1",
+        "checked_at": "2026-10-11T12:09:56.499192+00:00",
+        "requested_root": "/workspace/scratch/81f12368319d/work/apply_verification",
+        "resolved_root": "/workspace/scratch/81f12368319d/work/apply_verification",
+        "status": "BEFORE_ALL_READY_FOR_APPLY_CHECK",
+        "loaded_process_identity": "NOT_VERIFIED",
+        "deployment_verified": false,
+        "write_performed": false,
+        "files": [
+          {
+            "path": "apps/api/v35_api/manager_research_router.py",
+            "state": "BEFORE",
+            "actual_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+            "before_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+            "after_sha256": "d6e5df4b8d34c735838bffb3908c60a68fba646068877ae29400e2962d3df5c8",
+            "canonical_sha256_at_input_capture": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c"
+          },
+          {
+            "path": "apps/web/src/api/managerWorkspace.ts",
+            "state": "BEFORE",
+            "actual_sha256": "bbb01afba2c87e778310e70ca4d8d2a326655819ff920c7bc6b1ebd2a5f2fc8d",
+            "before_sha256": "bbb01afba2c87e778310e70ca4d8d2a326655819ff920c7bc6b1ebd2a5f2fc8d",
+            "after_sha256": "82b99e20380bfa3b946232ef52fc22fa597fe4fe60d2f0cd5ebdf6ed8c4fbb44",
+            "canonical_sha256_at_input_capture": "42c7035e2d8f63c40ee08686b864974f7666fa3162a4fb7f8da41e9014113507"
+          },
+          {
+            "path": "apps/web/src/manager-selection/__tests__/fixtures/three_lane_daily_synthetic.json",
+            "state": "BEFORE",
+            "actual_sha256": null,
+            "before_sha256": null,
+            "after_sha256": "cc16691c53ad45334d012c9a549ca53955f8a9522e94fd296d11625bc7726074",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "apps/web/src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts",
+            "state": "BEFORE",
+            "actual_sha256": null,
+            "before_sha256": null,
+            "after_sha256": "ce4fd7782ab0c8c060dda6212f5eba448a83da62e2bfc9789c71697fbb3dbc57",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "apps/web/src/manager-selection/__tests__/threeLanePanel20261011.spec.ts",
+            "state": "BEFORE",
+            "actual_sha256": null,
+            "before_sha256": null,
+            "after_sha256": "5b41a1908160eb3d5a6f47ae63de642024859fad6c36110898596f0f647261b6",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+            "state": "BEFORE",
+            "actual_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+            "before_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+            "after_sha256": "7abc94c0e980ea170be5e9153287d132858c242f2467fc952e12ca709006536d",
+            "canonical_sha256_at_input_capture": "04ed9d4907b1bc7d12b05d0073ac0963bac7d159d653a14db13c08e5d000275f"
+          },
+          {
+            "path": "apps/web/src/manager-selection/dailyChannels.ts",
+            "state": "BEFORE",
+            "actual_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+            "before_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+            "after_sha256": "a82876249db0f6c77793e26314259dc06b2b94cec8f8227ae2a9711c1aa8c77d",
+            "canonical_sha256_at_input_capture": "819d5c21d146a95a5b0d8b21173d7169ba7aa99927200561e8ae127e453dcc24"
+          },
+          {
+            "path": "docs/superpowers/plans/2026-10-11-three-lane-closure.md",
+            "state": "BEFORE",
+            "actual_sha256": null,
+            "before_sha256": null,
+            "after_sha256": "a2cc04d45bba31a13298941696c278a032120efd9fcff21cc9cfb53db2914ba1",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "stage_center/consumer.py",
+            "state": "BEFORE",
+            "actual_sha256": "183c0fb9e69fb64f629c965077ae72047c9fcc118f775ce73ad7b7a89e7657fc",
+            "before_sha256": "183c0fb9e69fb64f629c965077ae72047c9fcc118f775ce73ad7b7a89e7657fc",
+            "after_sha256": "6b1b54f6633baeaa13e66cd9bea21bf23e7b0ae68b02c390211b6ceff8578619",
+            "canonical_sha256_at_input_capture": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489"
+          },
+          {
+            "path": "tests/test_three_lane_announcement_20261011.py",
+            "state": "BEFORE",
+            "actual_sha256": null,
+            "before_sha256": null,
+            "after_sha256": "8111463ad4a5ec2175645e8a9323fbb236dfb1a006f6d53577081a454790b0e2",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_daily_20261011.py",
+            "state": "BEFORE",
+            "actual_sha256": null,
+            "before_sha256": null,
+            "after_sha256": "ccb5702fcfbb7d310ea7ae690aa98ec7e937a5f61b943f9a235e619aeba1f26b",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_history_20261011.py",
+            "state": "BEFORE",
+            "actual_sha256": null,
+            "before_sha256": null,
+            "after_sha256": "8391cbabdbac6076e224be6248ccf1a42d58b5f03d4e93cad196861e80fa6ebd",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_identity_20261011.py",
+            "state": "BEFORE",
+            "actual_sha256": null,
+            "before_sha256": null,
+            "after_sha256": "ace6dd78f7da5ce959e45e1dfe28e41647ca8dc0bee563e60d1748b585040422",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_review_clock_20261011.py",
+            "state": "BEFORE",
+            "actual_sha256": null,
+            "before_sha256": null,
+            "after_sha256": "0e7bf950796fe916523c46fcfeeca93e12d7e3738659ae83f9a6ec7754aebe9d",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/three_lane_fixtures/announcement.py",
+            "state": "BEFORE",
+            "actual_sha256": null,
+            "before_sha256": null,
+            "after_sha256": "ca7b2642656eaf6adb11af252dc59dda10d8cf55e87adfe2ce437cb96bf0066b",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "v4/manager_research/announcement_analysis.py",
+            "state": "BEFORE",
+            "actual_sha256": "e741cddd8c8deff1064ed384f8a570c507d36efbede1c58058329558d0837615",
+            "before_sha256": "e741cddd8c8deff1064ed384f8a570c507d36efbede1c58058329558d0837615",
+            "after_sha256": "cc4fdeb7485e4736d9a66289f6fe4ec3fefaef9acd6ea9c8c9ab6401f0425729",
+            "canonical_sha256_at_input_capture": "21eb0cf37bfa6f3332f17ca7825a69eaa5bf9082b33d2e3de2d293e8bc3f0685"
+          },
+          {
+            "path": "v4/manager_research/research_attention.py",
+            "state": "BEFORE",
+            "actual_sha256": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+            "before_sha256": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+            "after_sha256": "c40eace0dc0de7606ff4ca2e1b5e74846a4f6191091385b35f91d8eb4f4dc6db",
+            "canonical_sha256_at_input_capture": "3060bab6d15ec616907c22b44a10628356000d9c2fd363f3310a727305e72b4f"
+          },
+          {
+            "path": "v4/manager_research/service.py",
+            "state": "BEFORE",
+            "actual_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+            "before_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+            "after_sha256": "72a26be99e2bdcd86f826ed5f35deecf97ec2bff4564d5061e18b7553ac8fd42",
+            "canonical_sha256_at_input_capture": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0"
+          },
+          {
+            "path": "v4/manager_research/workspace.py",
+            "state": "BEFORE",
+            "actual_sha256": "aef5b1a0262ce4529a070f9ce6055655c617f4815e79b071fd76a34e1b2859b1",
+            "before_sha256": "aef5b1a0262ce4529a070f9ce6055655c617f4815e79b071fd76a34e1b2859b1",
+            "after_sha256": "e1282f724c387529134add6d69630452127f960c5727314295d3f50b452847ff",
+            "canonical_sha256_at_input_capture": "bc0a4bffd177307479f94b93d871d6b18180938195335eea4d3e11a9e85e1086"
+          },
+          {
+            "path": "v4/manager_research/workspace_daily_channels.py",
+            "state": "BEFORE",
+            "actual_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+            "before_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+            "after_sha256": "72dce6c3db358eb3d7d058443ec720ebd88ea4bc63f4873cd2c3e90caf253bd6",
+            "canonical_sha256_at_input_capture": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+          },
+          {
+            "path": "v4/manager_research/workspace_history.py",
+            "state": "BEFORE",
+            "actual_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+            "before_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+            "after_sha256": "1b4e1e7d0070c6e6a6352a0f13533c6d9ba5fe3f215dc8d941a954841bb31344",
+            "canonical_sha256_at_input_capture": "d2ad875f639e7018e06498fbafb8c379808576425dedf6cfbed590155309bdca"
+          },
+          {
+            "path": "v4/manager_research/workspace_identity.py",
+            "state": "BEFORE",
+            "actual_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+            "before_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+            "after_sha256": "e1c2dbf68f3104508ceec32988aa8c1cad4465b50b8bfd739f93bfaf1276faca",
+            "canonical_sha256_at_input_capture": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9"
+          }
+        ]
+      }
+    },
+    {
+      "label": "patch_apply_check",
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/81f12368319d/deliverables/V4_three_lane_closure_20261011_r1/source.patch"
+      ],
+      "cwd": "/workspace/scratch/81f12368319d/work/apply_verification",
+      "exit_code": 0
+    },
+    {
+      "label": "apply_to_isolated_baseline",
+      "command": [
+        "git",
+        "apply",
+        "/workspace/scratch/81f12368319d/deliverables/V4_three_lane_closure_20261011_r1/source.patch"
+      ],
+      "cwd": "/workspace/scratch/81f12368319d/work/apply_verification",
+      "exit_code": 0
+    },
+    {
+      "label": "source_preflight_after",
+      "command": [
+        "python",
+        "/workspace/scratch/81f12368319d/deliverables/V4_three_lane_closure_20261011_r1/tools/preflight.py",
+        "--source-root",
+        "/workspace/scratch/81f12368319d/work/apply_verification"
+      ],
+      "cwd": null,
+      "exit_code": 0,
+      "result": {
+        "schema": "v4.three_lane_handoff.source_preflight.v1",
+        "checked_at": "2026-10-11T12:09:56.585146+00:00",
+        "requested_root": "/workspace/scratch/81f12368319d/work/apply_verification",
+        "resolved_root": "/workspace/scratch/81f12368319d/work/apply_verification",
+        "status": "AFTER_ALL_SOURCE_BYTES_MATCH",
+        "loaded_process_identity": "NOT_VERIFIED",
+        "deployment_verified": false,
+        "write_performed": false,
+        "files": [
+          {
+            "path": "apps/api/v35_api/manager_research_router.py",
+            "state": "AFTER",
+            "actual_sha256": "d6e5df4b8d34c735838bffb3908c60a68fba646068877ae29400e2962d3df5c8",
+            "before_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+            "after_sha256": "d6e5df4b8d34c735838bffb3908c60a68fba646068877ae29400e2962d3df5c8",
+            "canonical_sha256_at_input_capture": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c"
+          },
+          {
+            "path": "apps/web/src/api/managerWorkspace.ts",
+            "state": "AFTER",
+            "actual_sha256": "82b99e20380bfa3b946232ef52fc22fa597fe4fe60d2f0cd5ebdf6ed8c4fbb44",
+            "before_sha256": "bbb01afba2c87e778310e70ca4d8d2a326655819ff920c7bc6b1ebd2a5f2fc8d",
+            "after_sha256": "82b99e20380bfa3b946232ef52fc22fa597fe4fe60d2f0cd5ebdf6ed8c4fbb44",
+            "canonical_sha256_at_input_capture": "42c7035e2d8f63c40ee08686b864974f7666fa3162a4fb7f8da41e9014113507"
+          },
+          {
+            "path": "apps/web/src/manager-selection/__tests__/fixtures/three_lane_daily_synthetic.json",
+            "state": "AFTER",
+            "actual_sha256": "cc16691c53ad45334d012c9a549ca53955f8a9522e94fd296d11625bc7726074",
+            "before_sha256": null,
+            "after_sha256": "cc16691c53ad45334d012c9a549ca53955f8a9522e94fd296d11625bc7726074",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "apps/web/src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts",
+            "state": "AFTER",
+            "actual_sha256": "ce4fd7782ab0c8c060dda6212f5eba448a83da62e2bfc9789c71697fbb3dbc57",
+            "before_sha256": null,
+            "after_sha256": "ce4fd7782ab0c8c060dda6212f5eba448a83da62e2bfc9789c71697fbb3dbc57",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "apps/web/src/manager-selection/__tests__/threeLanePanel20261011.spec.ts",
+            "state": "AFTER",
+            "actual_sha256": "5b41a1908160eb3d5a6f47ae63de642024859fad6c36110898596f0f647261b6",
+            "before_sha256": null,
+            "after_sha256": "5b41a1908160eb3d5a6f47ae63de642024859fad6c36110898596f0f647261b6",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+            "state": "AFTER",
+            "actual_sha256": "7abc94c0e980ea170be5e9153287d132858c242f2467fc952e12ca709006536d",
+            "before_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+            "after_sha256": "7abc94c0e980ea170be5e9153287d132858c242f2467fc952e12ca709006536d",
+            "canonical_sha256_at_input_capture": "04ed9d4907b1bc7d12b05d0073ac0963bac7d159d653a14db13c08e5d000275f"
+          },
+          {
+            "path": "apps/web/src/manager-selection/dailyChannels.ts",
+            "state": "AFTER",
+            "actual_sha256": "a82876249db0f6c77793e26314259dc06b2b94cec8f8227ae2a9711c1aa8c77d",
+            "before_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+            "after_sha256": "a82876249db0f6c77793e26314259dc06b2b94cec8f8227ae2a9711c1aa8c77d",
+            "canonical_sha256_at_input_capture": "819d5c21d146a95a5b0d8b21173d7169ba7aa99927200561e8ae127e453dcc24"
+          },
+          {
+            "path": "docs/superpowers/plans/2026-10-11-three-lane-closure.md",
+            "state": "AFTER",
+            "actual_sha256": "a2cc04d45bba31a13298941696c278a032120efd9fcff21cc9cfb53db2914ba1",
+            "before_sha256": null,
+            "after_sha256": "a2cc04d45bba31a13298941696c278a032120efd9fcff21cc9cfb53db2914ba1",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "stage_center/consumer.py",
+            "state": "AFTER",
+            "actual_sha256": "6b1b54f6633baeaa13e66cd9bea21bf23e7b0ae68b02c390211b6ceff8578619",
+            "before_sha256": "183c0fb9e69fb64f629c965077ae72047c9fcc118f775ce73ad7b7a89e7657fc",
+            "after_sha256": "6b1b54f6633baeaa13e66cd9bea21bf23e7b0ae68b02c390211b6ceff8578619",
+            "canonical_sha256_at_input_capture": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489"
+          },
+          {
+            "path": "tests/test_three_lane_announcement_20261011.py",
+            "state": "AFTER",
+            "actual_sha256": "8111463ad4a5ec2175645e8a9323fbb236dfb1a006f6d53577081a454790b0e2",
+            "before_sha256": null,
+            "after_sha256": "8111463ad4a5ec2175645e8a9323fbb236dfb1a006f6d53577081a454790b0e2",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_daily_20261011.py",
+            "state": "AFTER",
+            "actual_sha256": "ccb5702fcfbb7d310ea7ae690aa98ec7e937a5f61b943f9a235e619aeba1f26b",
+            "before_sha256": null,
+            "after_sha256": "ccb5702fcfbb7d310ea7ae690aa98ec7e937a5f61b943f9a235e619aeba1f26b",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_history_20261011.py",
+            "state": "AFTER",
+            "actual_sha256": "8391cbabdbac6076e224be6248ccf1a42d58b5f03d4e93cad196861e80fa6ebd",
+            "before_sha256": null,
+            "after_sha256": "8391cbabdbac6076e224be6248ccf1a42d58b5f03d4e93cad196861e80fa6ebd",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_identity_20261011.py",
+            "state": "AFTER",
+            "actual_sha256": "ace6dd78f7da5ce959e45e1dfe28e41647ca8dc0bee563e60d1748b585040422",
+            "before_sha256": null,
+            "after_sha256": "ace6dd78f7da5ce959e45e1dfe28e41647ca8dc0bee563e60d1748b585040422",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_review_clock_20261011.py",
+            "state": "AFTER",
+            "actual_sha256": "0e7bf950796fe916523c46fcfeeca93e12d7e3738659ae83f9a6ec7754aebe9d",
+            "before_sha256": null,
+            "after_sha256": "0e7bf950796fe916523c46fcfeeca93e12d7e3738659ae83f9a6ec7754aebe9d",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/three_lane_fixtures/announcement.py",
+            "state": "AFTER",
+            "actual_sha256": "ca7b2642656eaf6adb11af252dc59dda10d8cf55e87adfe2ce437cb96bf0066b",
+            "before_sha256": null,
+            "after_sha256": "ca7b2642656eaf6adb11af252dc59dda10d8cf55e87adfe2ce437cb96bf0066b",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "v4/manager_research/announcement_analysis.py",
+            "state": "AFTER",
+            "actual_sha256": "cc4fdeb7485e4736d9a66289f6fe4ec3fefaef9acd6ea9c8c9ab6401f0425729",
+            "before_sha256": "e741cddd8c8deff1064ed384f8a570c507d36efbede1c58058329558d0837615",
+            "after_sha256": "cc4fdeb7485e4736d9a66289f6fe4ec3fefaef9acd6ea9c8c9ab6401f0425729",
+            "canonical_sha256_at_input_capture": "21eb0cf37bfa6f3332f17ca7825a69eaa5bf9082b33d2e3de2d293e8bc3f0685"
+          },
+          {
+            "path": "v4/manager_research/research_attention.py",
+            "state": "AFTER",
+            "actual_sha256": "c40eace0dc0de7606ff4ca2e1b5e74846a4f6191091385b35f91d8eb4f4dc6db",
+            "before_sha256": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+            "after_sha256": "c40eace0dc0de7606ff4ca2e1b5e74846a4f6191091385b35f91d8eb4f4dc6db",
+            "canonical_sha256_at_input_capture": "3060bab6d15ec616907c22b44a10628356000d9c2fd363f3310a727305e72b4f"
+          },
+          {
+            "path": "v4/manager_research/service.py",
+            "state": "AFTER",
+            "actual_sha256": "72a26be99e2bdcd86f826ed5f35deecf97ec2bff4564d5061e18b7553ac8fd42",
+            "before_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+            "after_sha256": "72a26be99e2bdcd86f826ed5f35deecf97ec2bff4564d5061e18b7553ac8fd42",
+            "canonical_sha256_at_input_capture": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0"
+          },
+          {
+            "path": "v4/manager_research/workspace.py",
+            "state": "AFTER",
+            "actual_sha256": "e1282f724c387529134add6d69630452127f960c5727314295d3f50b452847ff",
+            "before_sha256": "aef5b1a0262ce4529a070f9ce6055655c617f4815e79b071fd76a34e1b2859b1",
+            "after_sha256": "e1282f724c387529134add6d69630452127f960c5727314295d3f50b452847ff",
+            "canonical_sha256_at_input_capture": "bc0a4bffd177307479f94b93d871d6b18180938195335eea4d3e11a9e85e1086"
+          },
+          {
+            "path": "v4/manager_research/workspace_daily_channels.py",
+            "state": "AFTER",
+            "actual_sha256": "72dce6c3db358eb3d7d058443ec720ebd88ea4bc63f4873cd2c3e90caf253bd6",
+            "before_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+            "after_sha256": "72dce6c3db358eb3d7d058443ec720ebd88ea4bc63f4873cd2c3e90caf253bd6",
+            "canonical_sha256_at_input_capture": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+          },
+          {
+            "path": "v4/manager_research/workspace_history.py",
+            "state": "AFTER",
+            "actual_sha256": "1b4e1e7d0070c6e6a6352a0f13533c6d9ba5fe3f215dc8d941a954841bb31344",
+            "before_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+            "after_sha256": "1b4e1e7d0070c6e6a6352a0f13533c6d9ba5fe3f215dc8d941a954841bb31344",
+            "canonical_sha256_at_input_capture": "d2ad875f639e7018e06498fbafb8c379808576425dedf6cfbed590155309bdca"
+          },
+          {
+            "path": "v4/manager_research/workspace_identity.py",
+            "state": "AFTER",
+            "actual_sha256": "e1c2dbf68f3104508ceec32988aa8c1cad4465b50b8bfd739f93bfaf1276faca",
+            "before_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+            "after_sha256": "e1c2dbf68f3104508ceec32988aa8c1cad4465b50b8bfd739f93bfaf1276faca",
+            "canonical_sha256_at_input_capture": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9"
+          }
+        ]
+      }
+    },
+    {
+      "label": "unexpected_source_drift_rejected",
+      "command": [
+        "python",
+        "/workspace/scratch/81f12368319d/deliverables/V4_three_lane_closure_20261011_r1/tools/preflight.py",
+        "--source-root",
+        "/workspace/scratch/81f12368319d/work/apply_verification"
+      ],
+      "cwd": null,
+      "exit_code": 2,
+      "result": {
+        "schema": "v4.three_lane_handoff.source_preflight.v1",
+        "checked_at": "2026-10-11T12:09:56.646545+00:00",
+        "requested_root": "/workspace/scratch/81f12368319d/work/apply_verification",
+        "resolved_root": "/workspace/scratch/81f12368319d/work/apply_verification",
+        "status": "STOP_MIXED_OR_CONFLICT_REQUIRES_THREE_WAY_REVIEW",
+        "loaded_process_identity": "NOT_VERIFIED",
+        "deployment_verified": false,
+        "write_performed": false,
+        "files": [
+          {
+            "path": "apps/api/v35_api/manager_research_router.py",
+            "state": "AFTER",
+            "actual_sha256": "d6e5df4b8d34c735838bffb3908c60a68fba646068877ae29400e2962d3df5c8",
+            "before_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+            "after_sha256": "d6e5df4b8d34c735838bffb3908c60a68fba646068877ae29400e2962d3df5c8",
+            "canonical_sha256_at_input_capture": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c"
+          },
+          {
+            "path": "apps/web/src/api/managerWorkspace.ts",
+            "state": "AFTER",
+            "actual_sha256": "82b99e20380bfa3b946232ef52fc22fa597fe4fe60d2f0cd5ebdf6ed8c4fbb44",
+            "before_sha256": "bbb01afba2c87e778310e70ca4d8d2a326655819ff920c7bc6b1ebd2a5f2fc8d",
+            "after_sha256": "82b99e20380bfa3b946232ef52fc22fa597fe4fe60d2f0cd5ebdf6ed8c4fbb44",
+            "canonical_sha256_at_input_capture": "42c7035e2d8f63c40ee08686b864974f7666fa3162a4fb7f8da41e9014113507"
+          },
+          {
+            "path": "apps/web/src/manager-selection/__tests__/fixtures/three_lane_daily_synthetic.json",
+            "state": "AFTER",
+            "actual_sha256": "cc16691c53ad45334d012c9a549ca53955f8a9522e94fd296d11625bc7726074",
+            "before_sha256": null,
+            "after_sha256": "cc16691c53ad45334d012c9a549ca53955f8a9522e94fd296d11625bc7726074",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "apps/web/src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts",
+            "state": "AFTER",
+            "actual_sha256": "ce4fd7782ab0c8c060dda6212f5eba448a83da62e2bfc9789c71697fbb3dbc57",
+            "before_sha256": null,
+            "after_sha256": "ce4fd7782ab0c8c060dda6212f5eba448a83da62e2bfc9789c71697fbb3dbc57",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "apps/web/src/manager-selection/__tests__/threeLanePanel20261011.spec.ts",
+            "state": "AFTER",
+            "actual_sha256": "5b41a1908160eb3d5a6f47ae63de642024859fad6c36110898596f0f647261b6",
+            "before_sha256": null,
+            "after_sha256": "5b41a1908160eb3d5a6f47ae63de642024859fad6c36110898596f0f647261b6",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+            "state": "AFTER",
+            "actual_sha256": "7abc94c0e980ea170be5e9153287d132858c242f2467fc952e12ca709006536d",
+            "before_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+            "after_sha256": "7abc94c0e980ea170be5e9153287d132858c242f2467fc952e12ca709006536d",
+            "canonical_sha256_at_input_capture": "04ed9d4907b1bc7d12b05d0073ac0963bac7d159d653a14db13c08e5d000275f"
+          },
+          {
+            "path": "apps/web/src/manager-selection/dailyChannels.ts",
+            "state": "AFTER",
+            "actual_sha256": "a82876249db0f6c77793e26314259dc06b2b94cec8f8227ae2a9711c1aa8c77d",
+            "before_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+            "after_sha256": "a82876249db0f6c77793e26314259dc06b2b94cec8f8227ae2a9711c1aa8c77d",
+            "canonical_sha256_at_input_capture": "819d5c21d146a95a5b0d8b21173d7169ba7aa99927200561e8ae127e453dcc24"
+          },
+          {
+            "path": "docs/superpowers/plans/2026-10-11-three-lane-closure.md",
+            "state": "AFTER",
+            "actual_sha256": "a2cc04d45bba31a13298941696c278a032120efd9fcff21cc9cfb53db2914ba1",
+            "before_sha256": null,
+            "after_sha256": "a2cc04d45bba31a13298941696c278a032120efd9fcff21cc9cfb53db2914ba1",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "stage_center/consumer.py",
+            "state": "AFTER",
+            "actual_sha256": "6b1b54f6633baeaa13e66cd9bea21bf23e7b0ae68b02c390211b6ceff8578619",
+            "before_sha256": "183c0fb9e69fb64f629c965077ae72047c9fcc118f775ce73ad7b7a89e7657fc",
+            "after_sha256": "6b1b54f6633baeaa13e66cd9bea21bf23e7b0ae68b02c390211b6ceff8578619",
+            "canonical_sha256_at_input_capture": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489"
+          },
+          {
+            "path": "tests/test_three_lane_announcement_20261011.py",
+            "state": "AFTER",
+            "actual_sha256": "8111463ad4a5ec2175645e8a9323fbb236dfb1a006f6d53577081a454790b0e2",
+            "before_sha256": null,
+            "after_sha256": "8111463ad4a5ec2175645e8a9323fbb236dfb1a006f6d53577081a454790b0e2",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_daily_20261011.py",
+            "state": "AFTER",
+            "actual_sha256": "ccb5702fcfbb7d310ea7ae690aa98ec7e937a5f61b943f9a235e619aeba1f26b",
+            "before_sha256": null,
+            "after_sha256": "ccb5702fcfbb7d310ea7ae690aa98ec7e937a5f61b943f9a235e619aeba1f26b",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_history_20261011.py",
+            "state": "AFTER",
+            "actual_sha256": "8391cbabdbac6076e224be6248ccf1a42d58b5f03d4e93cad196861e80fa6ebd",
+            "before_sha256": null,
+            "after_sha256": "8391cbabdbac6076e224be6248ccf1a42d58b5f03d4e93cad196861e80fa6ebd",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_identity_20261011.py",
+            "state": "AFTER",
+            "actual_sha256": "ace6dd78f7da5ce959e45e1dfe28e41647ca8dc0bee563e60d1748b585040422",
+            "before_sha256": null,
+            "after_sha256": "ace6dd78f7da5ce959e45e1dfe28e41647ca8dc0bee563e60d1748b585040422",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/test_three_lane_review_clock_20261011.py",
+            "state": "AFTER",
+            "actual_sha256": "0e7bf950796fe916523c46fcfeeca93e12d7e3738659ae83f9a6ec7754aebe9d",
+            "before_sha256": null,
+            "after_sha256": "0e7bf950796fe916523c46fcfeeca93e12d7e3738659ae83f9a6ec7754aebe9d",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "tests/three_lane_fixtures/announcement.py",
+            "state": "AFTER",
+            "actual_sha256": "ca7b2642656eaf6adb11af252dc59dda10d8cf55e87adfe2ce437cb96bf0066b",
+            "before_sha256": null,
+            "after_sha256": "ca7b2642656eaf6adb11af252dc59dda10d8cf55e87adfe2ce437cb96bf0066b",
+            "canonical_sha256_at_input_capture": null
+          },
+          {
+            "path": "v4/manager_research/announcement_analysis.py",
+            "state": "AFTER",
+            "actual_sha256": "cc4fdeb7485e4736d9a66289f6fe4ec3fefaef9acd6ea9c8c9ab6401f0425729",
+            "before_sha256": "e741cddd8c8deff1064ed384f8a570c507d36efbede1c58058329558d0837615",
+            "after_sha256": "cc4fdeb7485e4736d9a66289f6fe4ec3fefaef9acd6ea9c8c9ab6401f0425729",
+            "canonical_sha256_at_input_capture": "21eb0cf37bfa6f3332f17ca7825a69eaa5bf9082b33d2e3de2d293e8bc3f0685"
+          },
+          {
+            "path": "v4/manager_research/research_attention.py",
+            "state": "AFTER",
+            "actual_sha256": "c40eace0dc0de7606ff4ca2e1b5e74846a4f6191091385b35f91d8eb4f4dc6db",
+            "before_sha256": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+            "after_sha256": "c40eace0dc0de7606ff4ca2e1b5e74846a4f6191091385b35f91d8eb4f4dc6db",
+            "canonical_sha256_at_input_capture": "3060bab6d15ec616907c22b44a10628356000d9c2fd363f3310a727305e72b4f"
+          },
+          {
+            "path": "v4/manager_research/service.py",
+            "state": "AFTER",
+            "actual_sha256": "72a26be99e2bdcd86f826ed5f35deecf97ec2bff4564d5061e18b7553ac8fd42",
+            "before_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+            "after_sha256": "72a26be99e2bdcd86f826ed5f35deecf97ec2bff4564d5061e18b7553ac8fd42",
+            "canonical_sha256_at_input_capture": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0"
+          },
+          {
+            "path": "v4/manager_research/workspace.py",
+            "state": "CONFLICT",
+            "actual_sha256": "17df1ccdd6069d2ec727acca0bd50836f449f7c849656ddc4b1e2ccf4c10ed20",
+            "before_sha256": "aef5b1a0262ce4529a070f9ce6055655c617f4815e79b071fd76a34e1b2859b1",
+            "after_sha256": "e1282f724c387529134add6d69630452127f960c5727314295d3f50b452847ff",
+            "canonical_sha256_at_input_capture": "bc0a4bffd177307479f94b93d871d6b18180938195335eea4d3e11a9e85e1086"
+          },
+          {
+            "path": "v4/manager_research/workspace_daily_channels.py",
+            "state": "AFTER",
+            "actual_sha256": "72dce6c3db358eb3d7d058443ec720ebd88ea4bc63f4873cd2c3e90caf253bd6",
+            "before_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+            "after_sha256": "72dce6c3db358eb3d7d058443ec720ebd88ea4bc63f4873cd2c3e90caf253bd6",
+            "canonical_sha256_at_input_capture": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+          },
+          {
+            "path": "v4/manager_research/workspace_history.py",
+            "state": "AFTER",
+            "actual_sha256": "1b4e1e7d0070c6e6a6352a0f13533c6d9ba5fe3f215dc8d941a954841bb31344",
+            "before_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+            "after_sha256": "1b4e1e7d0070c6e6a6352a0f13533c6d9ba5fe3f215dc8d941a954841bb31344",
+            "canonical_sha256_at_input_capture": "d2ad875f639e7018e06498fbafb8c379808576425dedf6cfbed590155309bdca"
+          },
+          {
+            "path": "v4/manager_research/workspace_identity.py",
+            "state": "AFTER",
+            "actual_sha256": "e1c2dbf68f3104508ceec32988aa8c1cad4465b50b8bfd739f93bfaf1276faca",
+            "before_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+            "after_sha256": "e1c2dbf68f3104508ceec32988aa8c1cad4465b50b8bfd739f93bfaf1276faca",
+            "canonical_sha256_at_input_capture": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9"
+          }
+        ]
+      }
+    },
+    {
+      "label": "readback_collector_help_only",
+      "command": [
+        "python",
+        "/workspace/scratch/81f12368319d/deliverables/V4_three_lane_closure_20261011_r1/tools/collect_readback.py",
+        "--help"
+      ],
+      "cwd": null,
+      "exit_code": 0,
+      "stdout": "usage: collect_readback.py [-h] [--base-url BASE_URL] --date DATE\n                           [--selection-date SELECTION_DATE]\n                           [--announcement-date ANNOUNCEMENT_DATE] --view\n                           {auto,historical,dynamic} --output-dir OUTPUT_DIR\n\nCapture one existing 8873 GET and its raw-byte SHA; never runs an owner.\n\noptions:\n  -h, --help            show this help message and exit\n  --base-url BASE_URL\n  --date DATE\n  --selection-date SELECTION_DATE\n  --announcement-date ANNOUNCEMENT_DATE\n  --view {auto,historical,dynamic}\n  --output-dir OUTPUT_DIR\n"
+    }
+  ],
+  "collector_http_execution": "NOT_RUN",
+  "python_source_ast": {
+    "python": "3.14.8 (main, Oct  3 2026, 01:04:31) [Clang 22.1.3 ]",
+    "parsed_files": 15,
+    "result": "PASS",
+    "full_stage_import": "NOT_RUN_MISSING_CURRENT_EXECUTION_EVIDENCE_MODULE"
+  },
+  "unchanged_attachment_sources_verified": 114,
+  "typecheck": {
+    "exit_code": 0,
+    "diagnostic_bytes": 0,
+    "scope": "3 changed production modules plus their actual imports; not a full-app build"
+  }
+}

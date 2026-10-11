@@ -1,0 +1,359 @@
+{
+  "scope": "USER_SUPPLIED_DERIVED_EVIDENCE_NOT_NEW_LIVE_EXECUTION",
+  "original_evidence_files": [
+    {
+      "path": "evidence/workspace-20261009-summary.json",
+      "sha256": "a9f237cb2189215d1a29a81fe4c1b9420b902997e07489ea83c37cc9329042c9",
+      "bytes": 5567
+    },
+    {
+      "path": "evidence/historical-plan-inventory.json",
+      "sha256": "cd3d848116bf6f5731715d287c3cf0a5be6ded7418b1034bc4fd979b9a070888",
+      "bytes": 3682
+    },
+    {
+      "path": "evidence/announcement-ui-observation.json",
+      "sha256": "07ff81a3b2a2e05f80252c45c396084bdd9353a2c69b597a3179ab5a6a7dd53e",
+      "bytes": 1237
+    },
+    {
+      "path": "evidence/prior-20261012-diagnosis.json",
+      "sha256": "25fe0621d6d25319630912ca460cd000f5128643837faf4c71e24a8407128d26",
+      "bytes": 2387
+    }
+  ],
+  "evidence": {
+    "workspace-20261009-summary.json": {
+      "kind": "DERIVED_SUMMARY_NOT_RAW_RESPONSE",
+      "raw_sha256": "cf091b2ddf57ecbb3d426de527eecbd42cb7bfe715b117bb0745400c41555861",
+      "raw_bytes": 16212,
+      "get_url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261009",
+      "http_status": 200,
+      "selected_fields": {
+        "target_trade_date": "20261009",
+        "stocks": [],
+        "focus_symbols": [],
+        "date_bindings": {
+          "selection_date": "20261009",
+          "announcement_date": "20261008",
+          "plan_date": "20261009"
+        },
+        "read_context": {
+          "mode": "HISTORICAL_AS_OF",
+          "status": "SOURCE_FAILED",
+          "as_of": "2026-10-09T09:30:00+08:00",
+          "boundary_basis": "NATIVE_MANAGER_FIRST_CONTINUOUS_STAGE_MAXIMUM",
+          "candidate_count_known": false,
+          "reason": "HISTORY_RUN_BYTES_BOUND_EXCEEDED",
+          "contract": "20260923.workspace-history-read.r1"
+        },
+        "plan_product": {
+          "status": "SOURCE_FAILED",
+          "consumed": false,
+          "reason": "HISTORY_RUN_BYTES_BOUND_EXCEEDED",
+          "run_id": null,
+          "sha256": null,
+          "original_owner": "ManagerResearchJobService.refresh_workspace_plan"
+        },
+        "daily_channels": {
+          "schema_version": "v4.manager_research.daily_channels.v1",
+          "date_bindings": {
+            "selection_date": "20261009",
+            "announcement_date": "20261008",
+            "plan_date": "20261009"
+          },
+          "channels": [
+            {
+              "channel": "ANNOUNCEMENT",
+              "target_trade_date": "20261009",
+              "selection_date": "20261009",
+              "announcement_date": "20261008",
+              "rows": [],
+              "candidate_count": null,
+              "pending_count": null,
+              "gaps": [
+                "ANNOUNCEMENT_EXACT_DATE_PRODUCT_NOT_CONSUMED"
+              ],
+              "dependencies": [
+                "REGISTERED_REVIEWED_HANDOFF",
+                "OWNER_IMPORT_RECEIPT"
+              ],
+              "status": "CANNOT_CONFIRM",
+              "run_id": null,
+              "generated_at": null,
+              "product_sha256": null,
+              "input_identity": null,
+              "data_date": "20261008",
+              "execution_kind": "READ_ONLY_EXISTING_OWNER_REPLAY",
+              "natural_run_verified": false,
+              "RESEARCH_ONLY": true,
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "owner": "ManagerResearchJobService.import_announcement_analysis",
+              "product_checks": [],
+              "other_product_checks": []
+            },
+            {
+              "channel": "HK_CONNECT",
+              "target_trade_date": "20261009",
+              "selection_date": "20261009",
+              "announcement_date": "20261008",
+              "rows": [],
+              "candidate_count": null,
+              "pending_count": null,
+              "gaps": [
+                "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED"
+              ],
+              "dependencies": [
+                "TARGET_HK_UNIVERSE_V2",
+                "EXISTING_FOCUS_OWNERS"
+              ],
+              "status": "CANNOT_CONFIRM",
+              "run_id": null,
+              "generated_at": null,
+              "product_sha256": null,
+              "input_identity": null,
+              "data_date": "20261008",
+              "execution_kind": "READ_ONLY_EXISTING_OWNER_REPLAY",
+              "natural_run_verified": false,
+              "RESEARCH_ONLY": true,
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "owner": "EXISTING_WORKSPACE_FOCUS_AND_TARGET_HK_UNIVERSE_V2",
+              "attempt_status": "NOT_VERIFIED",
+              "authority": {}
+            },
+            {
+              "channel": "OVERSOLD",
+              "target_trade_date": "20261009",
+              "selection_date": "20261009",
+              "announcement_date": "20261008",
+              "rows": [],
+              "candidate_count": null,
+              "pending_count": null,
+              "gaps": [
+                "HISTORY_EXACT_DATE_MARKET_NOT_VERIFIED"
+              ],
+              "dependencies": [
+                "COMPLETED_HK_02_PANEL",
+                "PRIOR_60_COMPLETE_SESSIONS",
+                "VERIFIED_VOLUME_PROVENANCE"
+              ],
+              "status": "CANNOT_CONFIRM",
+              "run_id": null,
+              "generated_at": null,
+              "product_sha256": null,
+              "input_identity": null,
+              "data_date": "20261008",
+              "execution_kind": "READ_ONLY_EXISTING_OWNER_REPLAY",
+              "natural_run_verified": false,
+              "RESEARCH_ONLY": true,
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false,
+              "owner": "EXISTING_HK_02_REBOUND_TWO_GATE_SCREEN",
+              "attempt_status": "NOT_VERIFIED",
+              "data_context": {
+                "plan_trade_date": "20261009",
+                "planning_market_session": null,
+                "market_session": "20261008",
+                "market_session_close": "2026-10-08T16:10:00+08:00",
+                "screen_target_trade_date": null,
+                "screen_phase": null,
+                "screen_session_policy": null,
+                "screen_calendar_sha256": null,
+                "screen_session_status": null,
+                "research_cutoff": "2026-10-09T09:30:00+08:00"
+              },
+              "authority": null
+            }
+          ],
+          "selection_rules_unchanged": true,
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        },
+        "gaps": [
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "HISTORY_COVERAGE_UNKNOWN",
+          "HISTORY_RUN_BYTES_BOUND_EXCEEDED"
+        ],
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    "historical-plan-inventory.json": {
+      "directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261009",
+      "scan_limit_bytes": 67108864,
+      "file_count": 7,
+      "total_bytes": 147031510,
+      "files": [
+        {
+          "name": "2c1614aaca3a4900b3fad6dc56c8d396.json",
+          "bytes": 22668492,
+          "file_sha256": "e39ea47792012377276d4ed5d741741b1ce0bda47f5720f268d6a23f482e0b93",
+          "generated_at": "2026-10-10T17:09:27.956535+00:00",
+          "run_id": "2c1614aaca3a4900b3fad6dc56c8d396",
+          "product_sha256": "067a57e8b3b9d662059e376036e7d7be3d3fbf538e4180661b585864342aa8ce",
+          "research_cutoff": "2026-10-11T01:09:18.067396+08:00",
+          "target_trade_date": "20261009"
+        },
+        {
+          "name": "3bc75d1beea24036850b1af0f4d5f395.json",
+          "bytes": 14782489,
+          "file_sha256": "42ffe059781333dddaf5dead93416ae168b7a90fa265b178a8912441d79f3d12",
+          "generated_at": "2026-10-10T02:59:20.320471+00:00",
+          "run_id": "3bc75d1beea24036850b1af0f4d5f395",
+          "product_sha256": "38eaad4b3d8adfd4738fa0bb4e6ef5ab969414447450e485614f384f48aab991",
+          "research_cutoff": "2026-10-10T10:59:17.490838+08:00",
+          "target_trade_date": "20261009"
+        },
+        {
+          "name": "acf0f1ed3e824237a562ebbf7b656b8d.json",
+          "bytes": 23388302,
+          "file_sha256": "fb73531e420e132a4cce8d1ece80264ae1fa73b1bc8927203500e0b9a26b8f8f",
+          "generated_at": "2026-10-11T03:46:30.203351+00:00",
+          "run_id": "acf0f1ed3e824237a562ebbf7b656b8d",
+          "product_sha256": "2684edb7a2ff553528b0f860593b5430e0f88d5121848fcc22d91fe55b131c03",
+          "research_cutoff": "2026-10-11T11:46:20.496276+08:00",
+          "target_trade_date": "20261009"
+        },
+        {
+          "name": "b587f5fbea0547e19cafc59039d06f17.json",
+          "bytes": 23388296,
+          "file_sha256": "d53ec2a72be4a29a92242d74c4c257f1baf24ed437d72446bdafd4a02ad7add0",
+          "generated_at": "2026-10-11T03:31:20.654107+00:00",
+          "run_id": "b587f5fbea0547e19cafc59039d06f17",
+          "product_sha256": "66e945e511ad713ae62f05faeded4e8c227bd3939e0613f7060884336dc88d1c",
+          "research_cutoff": "2026-10-11T11:31:10.382876+08:00",
+          "target_trade_date": "20261009"
+        },
+        {
+          "name": "bf2a84ea17874cc397a2f337199b8c5a.json",
+          "bytes": 16152043,
+          "file_sha256": "dd47b5390a2947dba083391c982b497ad2c577e09ef0b2c7f177595145b66214",
+          "generated_at": "2026-10-10T10:38:57.141739+00:00",
+          "run_id": "bf2a84ea17874cc397a2f337199b8c5a",
+          "product_sha256": "b214575cdcd0a5afbe0522a6be05f646871f74f4dbe4061172f3121250617e38",
+          "research_cutoff": "2026-10-10T18:38:53.872346+08:00",
+          "target_trade_date": "20261009"
+        },
+        {
+          "name": "e5dccb9eaa224a19b3888dceef98f394.json",
+          "bytes": 23263586,
+          "file_sha256": "12a1ae85580894f7e6b4152893e1dda9cb9cc6379af544c778efd84650b96a52",
+          "generated_at": "2026-10-10T17:36:40.350623+00:00",
+          "run_id": "e5dccb9eaa224a19b3888dceef98f394",
+          "product_sha256": "7535db92d13544a356f698b3633bec7a38429401deb21a144461dab1a936bbc8",
+          "research_cutoff": "2026-10-11T01:36:30.289579+08:00",
+          "target_trade_date": "20261009"
+        },
+        {
+          "name": "latest.json",
+          "bytes": 23388302,
+          "file_sha256": "fb73531e420e132a4cce8d1ece80264ae1fa73b1bc8927203500e0b9a26b8f8f",
+          "generated_at": "2026-10-11T03:46:30.203351+00:00",
+          "run_id": "acf0f1ed3e824237a562ebbf7b656b8d",
+          "product_sha256": "2684edb7a2ff553528b0f860593b5430e0f88d5121848fcc22d91fe55b131c03",
+          "research_cutoff": "2026-10-11T11:46:20.496276+08:00",
+          "target_trade_date": "20261009"
+        }
+      ],
+      "note": "Metadata inventory only. Product validity/PIT eligibility not independently accepted."
+    },
+    "announcement-ui-observation.json": {
+      "evidence_kind": "BROWSER_ACCESSIBILITY_OBSERVATION_SUMMARY",
+      "provenance": "Observed by parent through cua.getTab in this task on 2026-10-11; manually transcribed visible UI fields, not independently verified owner receipt",
+      "url": "http://127.0.0.1:8873/manager-selection/?date=20261009&plan_date=20261009",
+      "section": "历史公告解析成果（Eastmoney HK 日期目录） / 公告选股结果（事后研究）",
+      "publication_date": "20261008",
+      "displayed_counts": {
+        "catalog_rows": 392,
+        "source_codes": 281,
+        "selected_research": 55,
+        "conditional_watch": 32,
+        "not_selected": 121,
+        "not_assessed": 73
+      },
+      "displayed_identities": {
+        "catalog_run": "4b69fa03fbfc4c48b1c410239332505e",
+        "catalog_sha256": "db1335417ba434016b3c4c23b2bcd13813c54af2d262598cda6fc668e086a798",
+        "analysis_sha256": "d7c3feeaa675382f5007b98e55ff8f7e483471060ba1045be942612dc05e9f5b",
+        "selection_sha256": "66429d73649fd09478a1c4ac243a69f235cbd546a84ac5e0c412161fdf7671b2"
+      },
+      "owner_receipt_independently_verified": "CANNOT_CONFIRM",
+      "historical_pit_verified": false,
+      "required_followup": "Verify actual saved product and owner receipt before consuming; UI display is only an investigative lead."
+    },
+    "prior-20261012-diagnosis.json": {
+      "status": "SELECTION_NOT_COMPLETE",
+      "evidence_sha256": "e18a3a6e746ace631499c9503fdf6c82c819859404210349051dbcce0ba57b73",
+      "target_trade_date": "20261012",
+      "requested_page_source_date": "20261009",
+      "stocks_count": 0,
+      "focus_count": 0,
+      "plan": {
+        "status": "STALE_INPUTS_CHANGED",
+        "run_id": "1e9d511515de47599f05539e43e79b81",
+        "sha256": "1ce6a9e12c4bf692707b38bbf7c73a75acbea499a9cc3d0bc624538da9234aec",
+        "consumed": false
+      },
+      "formal_selection": {
+        "status": "CANNOT_CONFIRM",
+        "reason": "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED",
+        "target_trade_date": "20261012",
+        "candidate_count": null,
+        "membership_status": "CANNOT_CONFIRM",
+        "calendar": {
+          "status": "APPLICABLE",
+          "reason": "HK_CONNECT_TRADING_DAY",
+          "target_trade_date": "20261012",
+          "calendar_owner": "contracts.trading_calendar",
+          "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+          "hk_securities_state": "FULL_TRADING_DAY",
+          "hk_connect_state": "FULL_TRADING_DAY"
+        },
+        "qualified": false,
+        "buy_allowed": false,
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "observed_lanes": {
+        "ANNOUNCEMENT": "ANNOUNCEMENT_EXACT_DATE_PRODUCT_NOT_CONSUMED / ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+        "HK_CONNECT": "HK_UNIVERSE_V2_ARTIFACT_MISSING / TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED",
+        "OVERSOLD": {
+          "status": "PARTIAL_REPLAYED_RESEARCH_SCREEN",
+          "source_date": "20261009",
+          "candidates": 214,
+          "watch": 286,
+          "pending": 34,
+          "formal_selection_input": false
+        }
+      },
+      "repeated_stale": {
+        "components": [
+          "research_attention.material_input",
+          "research_attention.projection"
+        ],
+        "source_refs_identical_except_global_manifest_sha256": true,
+        "global_manifest_before": "6df8883d0f6bc4b314fabae000969769f25d42f89713318509a994d9a50efb23",
+        "global_manifest_after_prefix": "382fb8bb",
+        "manifest_semantic_diff": "CANNOT_CONFIRM"
+      },
+      "handoff_scope_boundary": {
+        "20261009_10_rows": "BACKFILL_OBSERVATION_ARTIFACT",
+        "formal_hk_stage_receipt": "CANNOT_CONFIRM; selected_rows=0; write_performed=false; HK D1 status must be STRICT_0_2_READY"
+      },
+      "code_changed": false,
+      "business_state_changed": false,
+      "natural_verified": false
+    }
+  }
+}

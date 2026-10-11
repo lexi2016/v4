@@ -1,0 +1,6 @@
+{"probe":"explicit_binding_roundtrip","status":"ADMITTED","url":"/api/v4/manager/research/workspace?date=20261002&view=dynamic&selection_date=20261002&announcement_date=20260930","method":"GET"}
+{"probe":"explicit_get_missing_date_bindings","status":"REJECTED WORKSPACE_DAILY_DATE_BINDING_MISSING","url":"/api/v4/manager/research/workspace?date=20261002&view=dynamic&announcement_date=20260929","method":"GET"}
+{"probe":"explicit_post_missing_date_bindings","status":"REJECTED WORKSPACE_DAILY_DATE_BINDING_MISSING","url":"/api/v4/manager/research/workspace/refresh?date=20261002&announcement_date=20260929","method":"POST"}
+{"probe":"explicit_get_changed_date_binding","status":"REJECTED WORKSPACE_DAILY_DATE_BINDING_MISMATCH","url":"/api/v4/manager/research/workspace?date=20261002&view=dynamic&announcement_date=20260929","method":"GET"}
+{"probe":"explicit_post_changed_selection_binding","status":"REJECTED WORKSPACE_DAILY_DATE_BINDING_MISMATCH","url":"/api/v4/manager/research/workspace/refresh?date=20261002&selection_date=20261001","method":"POST"}
+{"probe":"dynamic_rejects_historical_mode","status":"REJECTED WORKSPACE_VIEW_MISMATCH","url":"/api/v4/manager/research/workspace?date=20261002&view=dynamic","method":"GET"}

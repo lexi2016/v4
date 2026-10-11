@@ -1,0 +1,187 @@
+{
+  "scope": "SYNTHETIC_TARGETED_REGRESSIONS_NOT_LIVE_ACCEPTANCE",
+  "runs": [
+    {
+      "log_name": "history-red.log",
+      "reported_result": "6 failed / 5 passed",
+      "sha256": "3b7298f303da9cc94fccb3594789bd52ab0e3e41780f6707f4079b6fe69a4fb0",
+      "bytes": 3179,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "6 failed, 5 passed in 4.98s"
+      ]
+    },
+    {
+      "log_name": "history-green.log",
+      "reported_result": "11 passed",
+      "sha256": "fcfaee41d973efb599ebff61a7a704e0c0408a404cac043bd94d4a5ad2bf3b7d",
+      "bytes": 99,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "11 passed in 4.11s"
+      ]
+    },
+    {
+      "log_name": "identity-red.log",
+      "reported_result": "2 failed / 18 passed before the additional order regression",
+      "sha256": "95e8488325f5ea513e0c06d4a0196c8b62df6fd03181f731bb264347603aac8f",
+      "bytes": 1535,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "2 failed, 18 passed in 0.14s"
+      ]
+    },
+    {
+      "log_name": "identity-green.log",
+      "reported_result": "21 passed",
+      "sha256": "bdea51565d9356e22eb3ca38d329eef64b8b15db85f746a6ab6594456f14a415",
+      "bytes": 99,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "21 passed in 0.26s"
+      ]
+    },
+    {
+      "log_name": "announcement-red.log",
+      "reported_result": "3 failed / 6 passed",
+      "sha256": "19055f49248f518b5b328f9c952f3c2526eed281bc3f0b5477140162f2476576",
+      "bytes": 6700,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "3 failed, 6 passed, 1 warning in 1.95s"
+      ]
+    },
+    {
+      "log_name": "announcement-green.log",
+      "reported_result": "9 passed",
+      "sha256": "e79074b9a092e90825d6c21c2444ac63e0d8f72310ead67b8a1c6049c515ccde",
+      "bytes": 656,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "9 passed, 1 warning in 1.11s"
+      ]
+    },
+    {
+      "log_name": "daily-red.log",
+      "reported_result": "13 failed",
+      "sha256": "4eae0646873716baccbf304aeb4d69bdece03f4c19af5be914367e97ae99eb5e",
+      "bytes": 11413,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "13 failed in 0.36s"
+      ]
+    },
+    {
+      "log_name": "daily-green.log",
+      "reported_result": "23 passed",
+      "sha256": "276106d03509bc62f944c4d7c272b2a4502fafe2bd607849cc2b01900ca6ff9b",
+      "bytes": 99,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "23 passed in 0.90s"
+      ]
+    },
+    {
+      "log_name": "web-three-lane-red.log",
+      "reported_result": "8 failed / 7 passed",
+      "sha256": "ca26f80b1d997285966fc499dc3489e54594e4c3e4ced448ae9ffbaa5b2a2f9a",
+      "bytes": 18608,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "Test Files  2 failed (2)",
+        "Tests  8 failed | 7 passed (15)"
+      ]
+    },
+    {
+      "log_name": "web-three-lane-green.log",
+      "reported_result": "15 passed",
+      "sha256": "4241d9135f8d02a6759c4434f224686178ad63bef52b99b43050b2fc41eecfe8",
+      "bytes": 247,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "Test Files  2 passed (2)",
+        "Tests  15 passed (15)"
+      ]
+    },
+    {
+      "log_name": "web-stage-review-red.log",
+      "reported_result": "10 failed / 11 passed",
+      "sha256": "4c0b8b6f45dcacd954bfe0bb872cc8c44e0e27488d1239006174b3cd93156b51",
+      "bytes": 4703,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "Test Files  1 failed (1)",
+        "Tests  10 failed | 11 passed (21)"
+      ]
+    },
+    {
+      "log_name": "web-stage-review-green.log",
+      "reported_result": "25 passed",
+      "sha256": "82baea7e4587a8600ef3c3c0f2cb2281534cae1b862f08ace4ab5fe427009195",
+      "bytes": 247,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "Test Files  2 passed (2)",
+        "Tests  25 passed (25)"
+      ]
+    },
+    {
+      "log_name": "web-stage-boundary-red.log",
+      "reported_result": "6 failed / 22 passed",
+      "sha256": "907af1a2a9cef5d465a1a3d902e9aa6107813b4998ea33820b75b1552a1734d3",
+      "bytes": 2925,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "Test Files  1 failed (1)",
+        "Tests  6 failed | 22 passed (28)"
+      ]
+    },
+    {
+      "log_name": "web-binding-review-red.log",
+      "reported_result": "2 failed / 28 passed",
+      "sha256": "425d31aec3dfe5e3beabf8331df91327fefcafe9a7dcff0b13b119255dd6065b",
+      "bytes": 4987,
+      "raw_log_in_handoff": false,
+      "observed_terminal_summary": [
+        "Test Files  1 failed (1)",
+        "Tests  2 failed | 28 passed (30)"
+      ]
+    },
+    {
+      "log_name": "backend-final.log",
+      "reported_result": "68 passed / 1 dependency warning",
+      "sha256": "6e92a30057922cddefe237601b316f503fe7bff90d9249b3cf0819d9f10e756e",
+      "bytes": 657,
+      "raw_log_in_handoff": true,
+      "observed_terminal_summary": [
+        "68 passed, 1 warning in 3.93s"
+      ]
+    },
+    {
+      "log_name": "web-final.log",
+      "reported_result": "43 passed / 1 explicit skip",
+      "sha256": "09e1ce7699877b5ccee9c1c38b1b85b9d633b4f3c65c341936cbf9299b84517d",
+      "bytes": 259,
+      "raw_log_in_handoff": true,
+      "observed_terminal_summary": [
+        "Test Files  3 passed (3)",
+        "Tests  43 passed | 1 skipped (44)"
+      ]
+    },
+    {
+      "log_name": "web-typecheck.log",
+      "reported_result": "exit 0; no diagnostics",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "raw_log_in_handoff": true,
+      "observed_terminal_summary": []
+    },
+    {
+      "log_name": "backend-committed-final.log",
+      "reported_result": "68 passed / 1 dependency warning; source snapshot commit d3145a537e93b3533a93601bff4fec80648ea01d",
+      "sha256": "e4efbb4ddcb12e5e34d2961a2da2c48622195d99adb1d186c91483f0e30c763d",
+      "bytes": 657,
+      "raw_log_in_handoff": true
+    }
+  ]
+}

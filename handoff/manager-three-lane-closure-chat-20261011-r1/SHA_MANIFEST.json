@@ -1,0 +1,245 @@
+{
+  "schema": "v4.three_lane_handoff.source_manifest.v1",
+  "created_at": "2026-10-11T12:08:26.310171+00:00",
+  "scope": "CANDIDATE_SOURCE_NOT_LOADED_MAC_IDENTITY",
+  "input_zip_sha256": "3e389c00b4c82b4e987b3e06f51af70728d10b48e6d8de1f5554640e8b66eee7",
+  "snapshot_baseline_commit": "2152496bf288b696c5c7eb6e9e2abc08962ca33d",
+  "candidate_commit": "d3145a537e93b3533a93601bff4fec80648ea01d",
+  "candidate_branch": "chat/v4-three-lane-closure-20261011-r1",
+  "repository_handoff_parent_commit": "a1b722e4c82defcb9537d5c05915c6a8072c02d3",
+  "repository_handoff_branch": "chat/three-lane-closure-20261011-r1",
+  "configured_source_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "configured_loaded_identity": "CANNOT_CONFIRM",
+  "snapshot_files_verified": 126,
+  "canonical_different_file_count": 35,
+  "changes": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "kind": "production_source",
+      "before_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "before_bytes": 35556,
+      "canonical_sha256_at_input_capture": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "after_sha256": "d6e5df4b8d34c735838bffb3908c60a68fba646068877ae29400e2962d3df5c8",
+      "after_bytes": 31096,
+      "after_git_blob_sha": "5f1ca8bf2d515a1d2b91e12f67dcbbc5bf5c9ff1"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "kind": "production_source",
+      "before_sha256": "bbb01afba2c87e778310e70ca4d8d2a326655819ff920c7bc6b1ebd2a5f2fc8d",
+      "before_bytes": 128161,
+      "canonical_sha256_at_input_capture": "42c7035e2d8f63c40ee08686b864974f7666fa3162a4fb7f8da41e9014113507",
+      "after_sha256": "82b99e20380bfa3b946232ef52fc22fa597fe4fe60d2f0cd5ebdf6ed8c4fbb44",
+      "after_bytes": 128378,
+      "after_git_blob_sha": "00aaa624a69e6bf006b600c0d0955c24389e245b"
+    },
+    {
+      "path": "apps/web/src/manager-selection/__tests__/fixtures/three_lane_daily_synthetic.json",
+      "kind": "test_or_synthetic_fixture",
+      "before_sha256": null,
+      "before_bytes": null,
+      "canonical_sha256_at_input_capture": null,
+      "after_sha256": "cc16691c53ad45334d012c9a549ca53955f8a9522e94fd296d11625bc7726074",
+      "after_bytes": 300726,
+      "after_git_blob_sha": "f68a40eea564b8bd9b3f4ae03745b3c6f7887fcc"
+    },
+    {
+      "path": "apps/web/src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts",
+      "kind": "test_or_synthetic_fixture",
+      "before_sha256": null,
+      "before_bytes": null,
+      "canonical_sha256_at_input_capture": null,
+      "after_sha256": "ce4fd7782ab0c8c060dda6212f5eba448a83da62e2bfc9789c71697fbb3dbc57",
+      "after_bytes": 8836,
+      "after_git_blob_sha": "5b799d565b18b9ca147ccf71d467306dcaf912ee"
+    },
+    {
+      "path": "apps/web/src/manager-selection/__tests__/threeLanePanel20261011.spec.ts",
+      "kind": "test_or_synthetic_fixture",
+      "before_sha256": null,
+      "before_bytes": null,
+      "canonical_sha256_at_input_capture": null,
+      "after_sha256": "5b41a1908160eb3d5a6f47ae63de642024859fad6c36110898596f0f647261b6",
+      "after_bytes": 5591,
+      "after_git_blob_sha": "b3a8cd57fe2a45782f5d9e629bee5042e6735600"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "kind": "production_source",
+      "before_sha256": "bff5c7765930651e933658b48bf11728f6f609b7a3b8576432a57123cfb83d50",
+      "before_bytes": 63578,
+      "canonical_sha256_at_input_capture": "04ed9d4907b1bc7d12b05d0073ac0963bac7d159d653a14db13c08e5d000275f",
+      "after_sha256": "7abc94c0e980ea170be5e9153287d132858c242f2467fc952e12ca709006536d",
+      "after_bytes": 64251,
+      "after_git_blob_sha": "9c4a1ec571dc253f248176cfb9fb45f30b744488"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "kind": "production_source",
+      "before_sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "before_bytes": 19467,
+      "canonical_sha256_at_input_capture": "819d5c21d146a95a5b0d8b21173d7169ba7aa99927200561e8ae127e453dcc24",
+      "after_sha256": "a82876249db0f6c77793e26314259dc06b2b94cec8f8227ae2a9711c1aa8c77d",
+      "after_bytes": 24836,
+      "after_git_blob_sha": "1eedc8eb4221070b1d58adad200fba58dcd04f22"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-11-three-lane-closure.md",
+      "kind": "implementation_plan",
+      "before_sha256": null,
+      "before_bytes": null,
+      "canonical_sha256_at_input_capture": null,
+      "after_sha256": "a2cc04d45bba31a13298941696c278a032120efd9fcff21cc9cfb53db2914ba1",
+      "after_bytes": 7860,
+      "after_git_blob_sha": "cdb16cdac1c55648eca0eceb19ab24c594e6f2eb"
+    },
+    {
+      "path": "stage_center/consumer.py",
+      "kind": "production_source",
+      "before_sha256": "183c0fb9e69fb64f629c965077ae72047c9fcc118f775ce73ad7b7a89e7657fc",
+      "before_bytes": 37758,
+      "canonical_sha256_at_input_capture": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489",
+      "after_sha256": "6b1b54f6633baeaa13e66cd9bea21bf23e7b0ae68b02c390211b6ceff8578619",
+      "after_bytes": 37820,
+      "after_git_blob_sha": "7b2a25bf19ec010023efbf3296c6ac1ccf02b237"
+    },
+    {
+      "path": "tests/test_three_lane_announcement_20261011.py",
+      "kind": "test_or_synthetic_fixture",
+      "before_sha256": null,
+      "before_bytes": null,
+      "canonical_sha256_at_input_capture": null,
+      "after_sha256": "8111463ad4a5ec2175645e8a9323fbb236dfb1a006f6d53577081a454790b0e2",
+      "after_bytes": 5998,
+      "after_git_blob_sha": "9211328b373b4f82c9760ab273bccf36fe77ab7d"
+    },
+    {
+      "path": "tests/test_three_lane_daily_20261011.py",
+      "kind": "test_or_synthetic_fixture",
+      "before_sha256": null,
+      "before_bytes": null,
+      "canonical_sha256_at_input_capture": null,
+      "after_sha256": "ccb5702fcfbb7d310ea7ae690aa98ec7e937a5f61b943f9a235e619aeba1f26b",
+      "after_bytes": 16615,
+      "after_git_blob_sha": "7e1684528476d76a9a64e7c8b4c90701b287b1b8"
+    },
+    {
+      "path": "tests/test_three_lane_history_20261011.py",
+      "kind": "test_or_synthetic_fixture",
+      "before_sha256": null,
+      "before_bytes": null,
+      "canonical_sha256_at_input_capture": null,
+      "after_sha256": "8391cbabdbac6076e224be6248ccf1a42d58b5f03d4e93cad196861e80fa6ebd",
+      "after_bytes": 6122,
+      "after_git_blob_sha": "614b25e6f6f9eb94904a8b8c831eb980f6ad4ada"
+    },
+    {
+      "path": "tests/test_three_lane_identity_20261011.py",
+      "kind": "test_or_synthetic_fixture",
+      "before_sha256": null,
+      "before_bytes": null,
+      "canonical_sha256_at_input_capture": null,
+      "after_sha256": "ace6dd78f7da5ce959e45e1dfe28e41647ca8dc0bee563e60d1748b585040422",
+      "after_bytes": 5919,
+      "after_git_blob_sha": "53cd27f26f8b63ac08c07f1e880cddc4d1a3fca9"
+    },
+    {
+      "path": "tests/test_three_lane_review_clock_20261011.py",
+      "kind": "test_or_synthetic_fixture",
+      "before_sha256": null,
+      "before_bytes": null,
+      "canonical_sha256_at_input_capture": null,
+      "after_sha256": "0e7bf950796fe916523c46fcfeeca93e12d7e3738659ae83f9a6ec7754aebe9d",
+      "after_bytes": 3184,
+      "after_git_blob_sha": "485b02288385130d83bc28ca3ca7facc0b8a5294"
+    },
+    {
+      "path": "tests/three_lane_fixtures/announcement.py",
+      "kind": "test_or_synthetic_fixture",
+      "before_sha256": null,
+      "before_bytes": null,
+      "canonical_sha256_at_input_capture": null,
+      "after_sha256": "ca7b2642656eaf6adb11af252dc59dda10d8cf55e87adfe2ce437cb96bf0066b",
+      "after_bytes": 40191,
+      "after_git_blob_sha": "983dc6d363bf414c58e543e91d63df63199d09f8"
+    },
+    {
+      "path": "v4/manager_research/announcement_analysis.py",
+      "kind": "production_source",
+      "before_sha256": "e741cddd8c8deff1064ed384f8a570c507d36efbede1c58058329558d0837615",
+      "before_bytes": 71392,
+      "canonical_sha256_at_input_capture": "21eb0cf37bfa6f3332f17ca7825a69eaa5bf9082b33d2e3de2d293e8bc3f0685",
+      "after_sha256": "cc4fdeb7485e4736d9a66289f6fe4ec3fefaef9acd6ea9c8c9ab6401f0425729",
+      "after_bytes": 76002,
+      "after_git_blob_sha": "84d94dfc13e0d262d4f62a295651828d728a4bb1"
+    },
+    {
+      "path": "v4/manager_research/research_attention.py",
+      "kind": "production_source",
+      "before_sha256": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+      "before_bytes": 43721,
+      "canonical_sha256_at_input_capture": "3060bab6d15ec616907c22b44a10628356000d9c2fd363f3310a727305e72b4f",
+      "after_sha256": "c40eace0dc0de7606ff4ca2e1b5e74846a4f6191091385b35f91d8eb4f4dc6db",
+      "after_bytes": 43730,
+      "after_git_blob_sha": "25c11abe3afe886bbc9e55dc5b98bb25a82401c3"
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "kind": "production_source",
+      "before_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "before_bytes": 94921,
+      "canonical_sha256_at_input_capture": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0",
+      "after_sha256": "72a26be99e2bdcd86f826ed5f35deecf97ec2bff4564d5061e18b7553ac8fd42",
+      "after_bytes": 95165,
+      "after_git_blob_sha": "23bb3dfa57129816df3d190d890034b012138924"
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "kind": "production_source",
+      "before_sha256": "aef5b1a0262ce4529a070f9ce6055655c617f4815e79b071fd76a34e1b2859b1",
+      "before_bytes": 82303,
+      "canonical_sha256_at_input_capture": "bc0a4bffd177307479f94b93d871d6b18180938195335eea4d3e11a9e85e1086",
+      "after_sha256": "e1282f724c387529134add6d69630452127f960c5727314295d3f50b452847ff",
+      "after_bytes": 82786,
+      "after_git_blob_sha": "0f14e01f39da3fddfb417901277406236cfe11f4"
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "kind": "production_source",
+      "before_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "before_bytes": 12982,
+      "canonical_sha256_at_input_capture": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "after_sha256": "72dce6c3db358eb3d7d058443ec720ebd88ea4bc63f4873cd2c3e90caf253bd6",
+      "after_bytes": 17978,
+      "after_git_blob_sha": "5ffc3d1fc6852ff1f60abf9aba9adfd4ca3962e6"
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "kind": "production_source",
+      "before_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "before_bytes": 21208,
+      "canonical_sha256_at_input_capture": "d2ad875f639e7018e06498fbafb8c379808576425dedf6cfbed590155309bdca",
+      "after_sha256": "1b4e1e7d0070c6e6a6352a0f13533c6d9ba5fe3f215dc8d941a954841bb31344",
+      "after_bytes": 23565,
+      "after_git_blob_sha": "4f725bb50d586878d31a75c2d89be8cfc060dd84"
+    },
+    {
+      "path": "v4/manager_research/workspace_identity.py",
+      "kind": "production_source",
+      "before_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+      "before_bytes": 7296,
+      "canonical_sha256_at_input_capture": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+      "after_sha256": "e1c2dbf68f3104508ceec32988aa8c1cad4465b50b8bfd739f93bfaf1276faca",
+      "after_bytes": 9353,
+      "after_git_blob_sha": "7672f5b207a7617e3924997a7ef4b1ebd33ab2cd"
+    }
+  ],
+  "original_fixture_normalization": {
+    "path": "tests/three_lane_fixtures/announcement.py",
+    "fixed_source_sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+    "delivered_sha256": "ca7b2642656eaf6adb11af252dc59dda10d8cf55e87adfe2ce437cb96bf0066b",
+    "normalization": "Remove extra terminal newline only; original fixed-source fixture retained unchanged in test_support",
+    "removed_bytes": 1
+  }
+}
