@@ -32,7 +32,7 @@ def no_symlink_path(path: Path) -> None:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--root", required=True, help="isolated candidate source root, not the live API directory")
-    p.add_argument("--mode", required=True, choices=("canonical_r2", "runtime_r1"))
+    p.add_argument("--mode", required=True, choices=("canonical_r2", "runtime_r1", "runtime_after_r2"))
     p.add_argument("--apply", action="store_true", help="explicitly modify isolated root after exact checks")
     args = p.parse_args()
 
