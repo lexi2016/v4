@@ -1,0 +1,187 @@
+{
+  "goal": "HK valid stocks continue through existing automatic stages despite individual missing rows",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "delivery_baseline_commit": "ae380618c83e4147221f1b4ed9d011b8858c5b7f",
+  "delivery_kind": "actual-owner source slices; canonical dirty workspace preserved",
+  "status": {
+    "implemented": true,
+    "tested": "Independent focused receipts PASS; pre-existing unrelated TypeScript errors remain",
+    "reviewed": true,
+    "integrated": true,
+    "deployed": true,
+    "api_verified": "11 served assets exact SHA; 8 historical stages each 10 HK rows",
+    "ui_verified": "In-app browser manually switched all 8 stages; research candidates 10 each",
+    "behavior_verified": "D1 partial/empty-placeholder recovery, seven-stage valid-row isolation, bounded rearm, actual provider partial failure, UI date-stage row filtering",
+    "natural_verified": false
+  },
+  "remaining": [
+    "0925 automatic 0930 substitute route not implemented; existing historical substitute display preserved",
+    "Oct9 historical D1 canary lacked Oct8 security master; Oct12 target with Oct9 actual input independently reproduced same Top100",
+    "Natural slot unverified on Sunday; no all-eight automatic-completion claim"
+  ],
+  "runtime": {
+    "prepared": {
+      "d1_owner": {
+        "release_id": "hk-auto-d1-20261011-r1",
+        "app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-d1-20261011-r1/app",
+        "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-d1-20261011-r1/release-manifest.json",
+        "manifest_sha256": "2d6af44c2573227170c8617f44c87693738fc1dd2fbc7e785f3e2a52a3f2b3a4",
+        "inventory_count": 586
+      },
+      "stage_owner": {
+        "release_id": "hk-auto-stage-20261011-r1",
+        "app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-stage-20261011-r1/app",
+        "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-stage-20261011-r1/release-manifest.json",
+        "manifest_sha256": "c3d7e4542b659341ae104f90d82b679e5f0050d879d2dd8adaa4ff389c380d71",
+        "inventory_count": 884
+      },
+      "shared_owner": {
+        "release_id": "hk-auto-shared-20261011-r1",
+        "app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-shared-20261011-r1/app",
+        "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-shared-20261011-r1/release-manifest.json",
+        "manifest_sha256": "17901ed8046fd9bbc66ef79af72320ea6277aaab41cc35a669b6e5be2466df58",
+        "inventory_count": 80
+      }
+    },
+    "api": {
+      "app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-ui-20261011-r1/app",
+      "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-ui-20261011-r1/release-manifest.json",
+      "manifest_sha256": "6f3ed5dcd66eb28b285e6d319cd00b40b6028a29bb0522e5fb8f7f29dc2c14e1",
+      "inventory_count": 1024,
+      "dist_files": 11,
+      "p2_source_sha256": "a9aa966bc54f994b2b8c80aa1ecec2da4f0e2661cc20a06bdea958330ce3c9a3"
+    }
+  },
+  "review_receipts": [
+    {
+      "path": "receipts/REVIEW_D1_STAGE_PARTIAL_SLICE_V2.json",
+      "sha256": "61cd64771a773b1fbb254e6830f12dc072ff366a978e40178ac323fe4a197595"
+    },
+    {
+      "path": "receipts/REVIEW_AUTO_REARM_V1.json",
+      "sha256": "e2d3addcacda774a1d23480911aa36b775f8f8820685fbe136936344687ad183"
+    },
+    {
+      "path": "receipts/PREPARED_INTEGRATION_REVIEW_E6_20261011.json",
+      "sha256": "9e0850fea4141080f0471052efc6c34d3455dca8684d78f8254389f1388d5feb"
+    },
+    {
+      "path": "receipts/INDEPENDENT_REVIEW_E6_DELTA_20261011.json",
+      "sha256": "9db2c32dc9c8663d979f595bbbd3ba3b9c726d20f47874f0ad63e0fc4f6a449b"
+    },
+    {
+      "path": "receipts/INDEPENDENT_REVIEW_E6_P2_REMEDIATION_20261011.json",
+      "sha256": "3156c1364c160eda81270a87b7a1b92da091e0b02bf0282ff2610c055f0c778b"
+    }
+  ],
+  "source_files": [
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/d1_owner/app/domains/preselection_materializer.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/d1_owner/app/domains/preselection_materializer.py",
+      "before_sha256": "f090146f39eaaf1ea5baaa5da60cddc2aefe738be16eb1609f166b643953d84e",
+      "sha256": "ae81e6668e5bcdb95acf73c9b7919416fdb73eec3fce2c5831d43b5424456c3c"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/d1_owner/app/infrastructure/preselection_pool_store.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/d1_owner/app/infrastructure/preselection_pool_store.py",
+      "before_sha256": "e5ead3a523c44f95f7730d1faf4b314c93954db26eab3ec34b777d956223184d",
+      "sha256": "7ed64c31f123f934f205e83e37357bcd9132094ded537e93b20446d9fed0b77c"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/d1_owner/app/ops/materialize_scheduled_preselection.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/d1_owner/app/ops/materialize_scheduled_preselection.py",
+      "before_sha256": "2aac77c9a995c8e97488be5324e8dd105e19e68a08bfb71cceb2df670aaa5478",
+      "sha256": "2826124f6799599ffe034982c147e5b1c63fc8348d2b7488ec328bb0092275b5"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/d1_owner/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/d1_owner/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "before_sha256": "f965f4ebf42ff38a05af7b7bea8f2db22f5580f4859237cfe9e56492830d905b",
+      "sha256": "cbf533005dd3dc0e7c09f001c7efff0570e979aeee73f179d8b4f79a319c9a39"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/d1_owner/app/tests/test_hk_partial_rows.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/d1_owner/app/tests/test_hk_partial_rows.py",
+      "before_sha256": null,
+      "sha256": "a04fa613246ad005259f6647d179ba0a0ff7e8c4487a6be9130f01aa5f77286f"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/stage_owner/app/stage_center/_runner_parts/hk_input_validation.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/stage_owner/app/stage_center/_runner_parts/hk_input_validation.py",
+      "before_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "sha256": "594a430e91a4a158ea9f72bae7a00aa19481b01b913d7e18c0f5e075954e9f1e"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/stage_owner/app/stage_center/_runner_parts/hk_candidate_authority.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/stage_owner/app/stage_center/_runner_parts/hk_candidate_authority.py",
+      "before_sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+      "sha256": "e76c13192f6d3f8271a6275bcd26a0235a032061caba916832b3d727e9bd9cf1"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/stage_owner/app/stage_center/runner.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/stage_owner/app/stage_center/runner.py",
+      "before_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "sha256": "1bb6363dfa522cdc05f8d1d1e727bf120f4daadbb2579600fc465a6d12e11663"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/stage_owner/app/tests/test_hk_partial_rows.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/stage_owner/app/tests/test_hk_partial_rows.py",
+      "before_sha256": null,
+      "sha256": "b8788ccf06a99e41bd6d07d262c99dc4fd5e36dd6f4fe296e824966164b4a05f"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/shared_owner/app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/shared_owner/app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "before_sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac",
+      "sha256": "67b28323358427a988c08d6ba7aede6d12610ed6925d4ba3a4513934bcb80668"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/stage_owner/app/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/stage_owner/app/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "before_sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+      "sha256": "4a7b70f8b4c34e221fa904a7d6ff7a722f75adf34c1ed2fa7e90c04aab19e697"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/stage_owner/app/tests/test_hk_partial_rearm.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/stage_owner/app/tests/test_hk_partial_rearm.py",
+      "before_sha256": null,
+      "sha256": "6c6cbf37b72186eb84f974553ae3da8fceb019c0919b75162d58fac03807dd2a"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/stage_owner/app/tests/test_hk_stage_row_isolation.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/stage_owner/app/tests/test_hk_stage_row_isolation.py",
+      "before_sha256": null,
+      "sha256": "6ea392bea0f7ec781940b81e8af60b04a6372d4db6212b1c15c832f75866be55"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/api_owner_r5/app/apps/web/src/App.vue",
+      "remote_path": "handoff/hk-automatic-stages-20261011/api_owner_r5/app/apps/web/src/App.vue",
+      "before_sha256": "e9aa0ba13f08010b838de4c1cdc437d630a1ac12884835e10c043cc4752350d0",
+      "sha256": "a9aa966bc54f994b2b8c80aa1ecec2da4f0e2661cc20a06bdea958330ce3c9a3"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/api_owner_r5/app/apps/web/src/App.hk-research-rows.spec.ts",
+      "remote_path": "handoff/hk-automatic-stages-20261011/api_owner_r5/app/apps/web/src/App.hk-research-rows.spec.ts",
+      "before_sha256": null,
+      "sha256": "7fd4bebdb3000ab05d9b74fc3c1d1fd3b3e07f2e69e2bc68e08dea803fa25a26"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/api_owner_r5/app/apps/web/vite.test.config.ts",
+      "remote_path": "handoff/hk-automatic-stages-20261011/api_owner_r5/app/apps/web/vite.test.config.ts",
+      "before_sha256": null,
+      "sha256": "71720dbbeeb407520b5b5b229ab928e1d26d10daade10b1f6bfdab7db46f7243"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_AUTOMATIC_STAGES_20261011/candidate/stage_owner/app/upstreams/v3_shared_data/tests/test_live_pytdx_batched_probes.py",
+      "remote_path": "handoff/hk-automatic-stages-20261011/stage_owner/app/upstreams/v3_shared_data/tests/test_live_pytdx_batched_probes.py",
+      "before_sha256": null,
+      "sha256": "29ff4043d29f1c84b954ae5cbb5144ebd53669c9944a5f920bd538639943c9c4"
+    }
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
