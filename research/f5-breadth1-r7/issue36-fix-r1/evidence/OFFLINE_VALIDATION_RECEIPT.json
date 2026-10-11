@@ -1,0 +1,17 @@
+{
+  "schema": "ISSUE36_R7_OFFLINE_PATCH_VERIFY_V1",
+  "source_sha256": "24f62b0c8cbdb01cb0c32d86cd0c9f125df65c2835406364000ece2d8b97c29f",
+  "source_bytes": 6352,
+  "patch_sha256": "8309e516c7badbde3c736f577bd813cda522fca0dc8708eace8ede66e7211d37",
+  "patch_forward_reverse": "PASS",
+  "python_source_compile": "PASS",
+  "verified_git_and_nongit_replay": true,
+  "real_adapter_profile_check": "PASS_NARROW_ONLY",
+  "full_registry_preflight": "CANNOT_CONFIRM_NOT_EXECUTABLE_MAC_ONLY",
+  "probe03": "CONTRACT_ONLY_NOT_COUNTED",
+  "target_reads": 0,
+  "fit": 0,
+  "predict": 0,
+  "model_load": 0,
+  "truth_decode": 0
+}
