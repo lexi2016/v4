@@ -159,3 +159,32 @@ def test_missing_formal_stage_consumer_stays_unbound(tmp_path):
         assert service._workspace_stage_selection_reader is formal_reader
     finally:
         service.close()
+
+
+def test_original_calendar_rolls_friday_to_monday_but_sunday_has_no_natural_slot():
+    from zoneinfo import ZoneInfo
+    from ops.run_manager_announcement_cycle import (
+        scheduled_cycle_target, daily_cycle_branch,
+    )
+
+    hk = ZoneInfo("Asia/Hong_Kong")
+    cfg = {"enabled": True}
+    friday = datetime(2026, 10, 9, 18, 0, tzinfo=hk)
+    assert scheduled_cycle_target(
+        "20261009", now=friday, plan_config=cfg
+    ) == DATE
+
+    sunday = datetime(2026, 10, 11, 18, 30, tzinfo=hk)
+    branch, slot = daily_cycle_branch(
+        "20261011", now=sunday, plan_config=cfg,
+        daily_config={"enabled": True},
+    )
+    assert branch is None
+    assert slot is None
+
+    monday = datetime(2026, 10, 12, 10, 0, tzinfo=hk)
+    branch, slot = daily_cycle_branch(
+        DATE, now=monday, plan_config=cfg,
+        daily_config={"enabled": True},
+    )
+    assert (branch, slot) == ("SAME_DAY_CATCHUP", "20261012T1000")
