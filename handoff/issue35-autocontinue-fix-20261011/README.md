@@ -55,7 +55,7 @@ PYTHONPATH="$APP" python3 -m pytest -q \
   tests/test_manager_plan_identity_r2.py
 ```
 
-如果第三方测试路径不同，用上游真实路径，不要修改其断言去求绿灯。新增 5 个合成定向测试覆盖：①新 run terminal-first readback；②同输入只读复用、变输入新 run/旧归档；③失败后旧 latest 保持；④ evening 同 trigger stale 重算判定；⑤正式 Stage reader 注入。必须按 RED→GREEN、全套目标 owner/test 与 Mac 第二 Reviewer 复跑验证；目前这里**未运行**，故对可通过性不作保证。
+如果第三方测试路径不同，用上游真实路径，不要修改其断言去求绿灯。新增 6 个合成定向测试覆盖：①新 run terminal-first readback；②同输入只读复用、变输入新 run/旧归档；③失败后旧 latest 保持；④ evening 同 trigger stale 重算判定；⑤正式 Stage reader 注入；⑥原 HK 冻结日历周五→周一跨日目标、周日不得自然触发、周一合法 catchup 槽。必须按 RED→GREEN、全套目标 owner/test 与 Mac 第二 Reviewer 复跑验证；目前这里**未运行**，故对可通过性不作保证。
 
 **binding、API/UI 与真正 10/12 自然槽需另做三段验证**：
 
