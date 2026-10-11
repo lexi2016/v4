@@ -1,5 +1,8 @@
 import sys
 import unittest
+import tempfile
+import json
+from unittest.mock import patch
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -107,6 +110,44 @@ class Issue35CanaryTests(unittest.TestCase):
                     'http://localhost:8000', 'http://user:pass@localhost:8873']:
             with self.subTest(bad=bad), self.assertRaisesRegex(ValueError, 'ORIGIN_INVALID'):
                 c.local_origin(bad)
+
+    def test_default_main_uses_get_only_and_persists_receipt(self):
+        with tempfile.TemporaryDirectory() as base:
+            output = str(Path(base) / 'evidence')
+            seen = []
+            def stub(origin, route, *, params=None, method='GET', body=None):
+                seen.append((method, route, params, body))
+                response = workspace()
+                if route == '/announcements/analysis':
+                    response = {'status': 'CANNOT_CONFIRM', 'publication_date': PUB}
+                return response, {'method': method, 'http_status': 200, 'route': route,
+                                  'http_raw_sha256': HASH}
+            with patch.object(c, 'request_local', side_effect=stub):
+                rc = c.main(['--target', D, '--announcement-date', PUB,
+                    '--output-dir', output])
+            self.assertEqual(rc, 0)
+            self.assertEqual(len(seen), 5)
+            self.assertTrue(all(call[0] == 'GET' for call in seen))
+            receipt = json.loads((Path(output) / 'issue35-receipt.json').read_text())
+            self.assertTrue(receipt['saved_plan_repeated_readback']['stable'])
+            self.assertEqual(receipt['auto']['us']['daily_run_status'], 'NOT_RUN')
+            self.assertFalse(receipt['owner_posts_executed_by_this_script'])
+            self.assertFalse(receipt['natural_run_verified'])
+
+    def test_explicit_plan_calls_original_post_only_after_baseline(self):
+        with tempfile.TemporaryDirectory() as base:
+            seen = []
+            def stub(origin, route, *, params=None, method='GET', body=None):
+                seen.append((method, route))
+                return (workspace() if route != '/announcements/analysis' else {}), {
+                    'method': method, 'route': route, 'http_status': 200}
+            with patch.object(c, 'request_local', side_effect=stub):
+                rc = c.main(['--refresh-plan', '--output-dir', str(Path(base) / 'new')])
+            self.assertEqual(rc, 0)
+            self.assertEqual(seen[0], ('GET', '/workspace'))
+            self.assertEqual(seen[1], ('POST', '/workspace/refresh'))
+            self.assertEqual(sum(method == 'POST' for method, _ in seen), 1)
+
 
 if __name__ == '__main__':
     unittest.main()
