@@ -51,7 +51,7 @@
       "static_exact_context_match": true
     },
     {
-      "mode": "runtime_r1",
+      "mode": "shared",
       "path": "apps/api/v35_api/app.py",
       "source_snapshot": "handoff/three-lane-autocontinue-20261012-r1/source/active/apps/api/v35_api/app.py",
       "source_git_blob_sha": "83c16d5edb66c186a8abf01293ee804958685633",
@@ -63,10 +63,14 @@
       "hunks": 1,
       "additions": 1,
       "deletions": 0,
-      "static_exact_context_match": true
+      "static_exact_context_match": true,
+      "patch_files_by_mode": {
+        "canonical_r2": "patches/common_app_stage_consumer.patch",
+        "runtime_r1": "patches/runtime_r1_owner_and_stage.patch"
+      }
     },
     {
-      "mode": "runtime_r1",
+      "mode": "shared",
       "path": "v4/manager_research/plan_owner_dispatch.py",
       "source_snapshot": "handoff/three-lane-local-integration-20261011-r1/runtime_source/v4/manager_research/plan_owner_dispatch.py",
       "source_git_blob_sha": "b123caed5da3ba340b592895f7268f494476c911",
@@ -78,7 +82,26 @@
       "hunks": 2,
       "additions": 43,
       "deletions": 1,
-      "static_exact_context_match": true
+      "static_exact_context_match": true,
+      "patch_files_by_mode": {
+        "canonical_r2": "patches/runtime_r1_dispatch_input_refresh.patch",
+        "runtime_r1": "patches/runtime_r1_dispatch_input_refresh.patch"
+      }
     }
+  ],
+  "mode_patch_order": {
+    "canonical_r2": [
+      "patches/canonical_r2_workspace.patch",
+      "patches/common_app_stage_consumer.patch",
+      "patches/runtime_r1_dispatch_input_refresh.patch"
+    ],
+    "runtime_r1": [
+      "patches/runtime_r1_owner_and_stage.patch",
+      "patches/runtime_r1_dispatch_input_refresh.patch"
+    ]
+  },
+  "notes": [
+    "The shared app source and original dispatch source are unchanged between frozen canonical R2 and active R1 snapshots.",
+    "This is a static exact-context verification, NOT a Python test run, Mac independent acceptance, server activation or natural-slot receipt."
   ]
 }
