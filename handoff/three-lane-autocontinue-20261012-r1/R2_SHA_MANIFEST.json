@@ -1,0 +1,82 @@
+{
+  "base_commit": "6955d7069c7098a7a3a68c0a6617975dac920eb1",
+  "changes": [
+    {
+      "after_bytes": 95455,
+      "after_sha256": "63d73b19708fbcabc78598b61b50b0ed525aea4fa15d1de20f2d18faa83cc87e",
+      "before_bytes": 95165,
+      "before_sha256": "72a26be99e2bdcd86f826ed5f35deecf97ec2bff4564d5061e18b7553ac8fd42",
+      "path": "v4/manager_research/service.py",
+      "variant": "runtime_source"
+    },
+    {
+      "after_bytes": 82957,
+      "after_sha256": "c1d3ff135c260774924d1b843a306851e4b03abb2510e9268d18bbddd695a3e9",
+      "before_bytes": 82786,
+      "before_sha256": "e1282f724c387529134add6d69630452127f960c5727314295d3f50b452847ff",
+      "path": "v4/manager_research/workspace.py",
+      "variant": "runtime_source"
+    },
+    {
+      "after_bytes": 20097,
+      "after_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "before_bytes": 17978,
+      "before_sha256": "72dce6c3db358eb3d7d058443ec720ebd88ea4bc63f4873cd2c3e90caf253bd6",
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "variant": "runtime_source"
+    },
+    {
+      "after_bytes": 28732,
+      "after_sha256": "54b2e5273cb4d79f2876cd6e8041c19cb2977887de015868293019e560382483",
+      "before_bytes": 26942,
+      "before_sha256": "a91ec29d990f4d301cf5f2dd99eb027152b34b35e082af8015ff4fdcb07509e4",
+      "path": "v4/manager_research/workspace_history.py",
+      "variant": "runtime_source"
+    },
+    {
+      "after_bytes": 94489,
+      "after_sha256": "3f3cabbe1ed130063f0f25e36ec254ede085a6accaf92fa37831b0dbaeb7616e",
+      "before_bytes": 94199,
+      "before_sha256": "f019bd06718896c01ea720317674072c34d2e6be3007dac96f55d6bae24bb0b6",
+      "path": "v4/manager_research/service.py",
+      "variant": "canonical_source"
+    },
+    {
+      "after_bytes": 70799,
+      "after_sha256": "b372deab943079efae4c45a9f6528c9b577112898b78fa0721d685dfb73d1a76",
+      "before_bytes": 70628,
+      "before_sha256": "23e7bfd1d1a011f8892df144cd13c696f0b55e0b00588a0de878f04d2dd95004",
+      "path": "v4/manager_research/workspace.py",
+      "variant": "canonical_source"
+    },
+    {
+      "after_bytes": 20097,
+      "after_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "before_bytes": 17978,
+      "before_sha256": "72dce6c3db358eb3d7d058443ec720ebd88ea4bc63f4873cd2c3e90caf253bd6",
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "variant": "canonical_source"
+    },
+    {
+      "after_bytes": 25002,
+      "after_sha256": "78f7e38bdf5a99e119b8ce5a05b0e3aaf0f2b2e75bc2c2d129a9f3bd7e60e1ab",
+      "before_bytes": 23312,
+      "before_sha256": "2447e40c2a4b92e08d58650afe94a5be26f0c46d07fc6aa654a201422e9594a4",
+      "path": "v4/manager_research/workspace_history.py",
+      "variant": "canonical_source"
+    },
+    {
+      "after_bytes": 14630,
+      "after_sha256": "f44f32e5e764844a14b798a5380ad752a93fd1f0429e29aac6e62df203050b27",
+      "before_bytes": 9950,
+      "before_sha256": "edc6eeb05ff239f34276c2ae4b716622632b7faaae4fb0883c816c54df0d13c3",
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "variant": "canonical_source"
+    }
+  ],
+  "data_status": "ORIGINAL_MAC_OWNER_INPUTS_NOT_AVAILABLE_IN_ATTACHED_ZIP",
+  "origin_issue": 34,
+  "origin_zip_sha256": "662654119875aa07bf2953ae36f7a43aeb33daf014bc8ae14d05bd813cafdcb7",
+  "role": "UNDEPLOYED_REPAIR_CANDIDATE_WITH_SEPARATE_RUNTIME_AND_CANONICAL_PATCHES",
+  "schema": "v4.three_lane_r2_repair.sha_manifest.v1"
+}

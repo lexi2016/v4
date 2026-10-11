@@ -1,0 +1,35 @@
+{
+  "schema_version": "v4.issue35.catalog_owner_metadata_summary.v1",
+  "source_response_sha256": "5ad38d216ff756d033ca6651c126f9f7dc43a0c41ec56817ad4a3f7910120632",
+  "source_json_paths": {
+    "owner_status": "$.status",
+    "readback_status": "$.readback_status",
+    "catalog": "$.catalog",
+    "readback": "$.readback"
+  },
+  "owner_status": "COMPLETE",
+  "readback_status": "VERIFIED",
+  "catalog": {
+    "status": "COMPLETE",
+    "owner": "ManagerResearchJobService.refresh_announcements",
+    "run_id": "1f816c69f65c4170b86e9eb8df25fd85",
+    "sha256": "1711c75a927b57bd5581eaaa505f29d649f11d14ce6a10d75e27f427fb115866",
+    "generated_at": "2026-10-11T14:24:52.813959+00:00",
+    "target_trade_date": "20261012",
+    "publication_date": "2026-10-09",
+    "total_hits": 383,
+    "captured_row_count": 383,
+    "unique_art_code_count": 383,
+    "captured_page_count": 21,
+    "terminal_empty_seen": true,
+    "gaps": []
+  },
+  "readback": {
+    "source_page_count": 21,
+    "raw_reference_reads": 21,
+    "derivation": "REPARSED_FROM_SHARED_MATERIAL_STORE"
+  },
+  "semantic_analysis": "NOT_RUN",
+  "content_body_fetch": "NOT_REQUESTED",
+  "selection_status": "NOT_IMPORTED"
+}

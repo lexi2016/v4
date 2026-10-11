@@ -1,0 +1,292 @@
+--- a/v4/manager_research/service.py
++++ b/v4/manager_research/service.py
+@@ -325,8 +325,9 @@
+         workspace_ledger_root: Path | None = None,
+         workspace_security_master_root: Path | None = None,
+         workspace_screen_authority_root: Path | None = None,
+         workspace_us_market_reader: Any | None = None,
++        workspace_stage_selection_reader: Any | None = None,
+     ) -> None:
+         self.store = store
+         self._instance_id = uuid4().hex
+         self.max_pending_jobs = max(1, int(max_pending_jobs))
+@@ -348,8 +349,11 @@
+         self._workspace_ledger_root = workspace_ledger_root
+         self._workspace_security_master_root = workspace_security_master_root
+         self._workspace_screen_authority_root = workspace_screen_authority_root
+         self._workspace_us_market_reader = workspace_us_market_reader
++        # Original StageSelectionConsumer instance. Never a Stage observation
++        # DTO, raw file root, writer or backfill selection producer.
++        self._workspace_stage_selection_reader = workspace_stage_selection_reader
+         self._material_reader_fetcher: Callable[..., Any] | None = None
+         if material_store is not None and reader_fetcher is None:
+             from .reader_source import material_reader_fetcher
+ 
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -651,10 +651,12 @@
+             *connect_scope.get('gaps',[])], previous=previous, market_screen=market_screen)
+     with phase('pure_workspace_projection'):
+         value = project(service, 'workspace_projection', [date, inputs], lambda: build_workspace(date, **inputs))
+     value=gate_workspace(value,connect_scope)
+-    from .workspace_daily_channels import stage_selection_readback
+-    value['stage_selection_readback'] = stage_selection_readback(stage)
++    from .workspace_daily_channels import read_original_stage_selection
++    # The STAGE observation DTO above remains owned by observation_reader.
++    # Formal HK decisions are a distinct SelectionStore trio/read-only owner.
++    value['stage_selection_readback'] = read_original_stage_selection(service, date)
+     identity_components=value.get('input_identity_components')
+     if not isinstance(identity_components, dict):
+         raise ValueError('WORKSPACE_INPUT_IDENTITY_COMPONENTS_UNAVAILABLE')
+     identity_components['connect_scope']=identity_component({
+--- a/v4/manager_research/workspace_daily_channels.py
++++ b/v4/manager_research/workspace_daily_channels.py
+@@ -133,8 +133,34 @@
+         'execution_evidence', 'write_performed', *FLAGS) if key in stage} | {
+         'markets': {'HK_CONNECT': deepcopy(_object(markets).get('HK_CONNECT'))}}
+ 
+ 
++
++def read_original_stage_selection(service: Any, trade_date: str) -> dict[str, Any]:
++    """Read exact formal HK Stage from the *existing* SelectionStore consumer.
++
++    An observation-reader Stage DTO is NOT a selection-consumer response. The
++    consumer must be explicitly injected by the existing API owner; this
++    function never guesses storage roots, selects a backfill, or produces a
++    selection. All unbound/failing cases keep the candidate count unknown.
++    """
++    reader = getattr(service, '_workspace_stage_selection_reader', None)
++    if reader is None:
++        return {'markets': {}, 'readback_error': 'HK_STAGE_SELECTION_CONSUMER_NOT_BOUND'}
++    getter = getattr(reader, 'get', None)
++    if not callable(getter):
++        return {'markets': {}, 'readback_error': 'HK_STAGE_SELECTION_CONSUMER_INVALID'}
++    try:
++        response = getter(trade_date, 'STAGE_0925', markets=('HK_CONNECT',),
++                          allow_backfill=False)
++    except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError,
++            TimeoutError, AttributeError) as exc:
++        return {'markets': {}, 'readback_error':
++                'HK_STAGE_SELECTION_OWNER_READ_FAILED:' + type(exc).__name__}
++    if not isinstance(response, Mapping):
++        return {'markets': {}, 'readback_error': 'HK_STAGE_SELECTION_RESPONSE_NOT_OBJECT'}
++    return stage_selection_readback(response)
++
+ def _hk_connect(value: Mapping[str, Any], bindings: Mapping[str, Any]) -> dict[str, Any]:
+     """Show the saved native Stage selection without inventing execution proof.
+ 
+     The supplied execution-declaration contract cannot establish availability
+@@ -148,17 +174,28 @@
+         dependencies=['TARGET_HK_UNIVERSE_V2', 'ORIGINAL_STAGE_SELECTION_TRIO', 'ORIGINAL_STAGE_EXECUTION_EVIDENCE'])
+     result.update(authority=deepcopy(membership), stage_id=original.get('stage_id'),
+         source_result=deepcopy(native), execution_evidence=deepcopy(original.get('execution_evidence')))
+     if not native:
+-        result['gaps'] = ['HK_ORIGINAL_STAGE_SELECTION_NOT_AVAILABLE']
++        failure = original.get('readback_error')
++        # Only the local wrapper's stable code families may be projected.
++        result['gaps'] = ([failure] if isinstance(failure, str)
++            and re.fullmatch(r'HK_STAGE_SELECTION_[A-Z_]+(?::[A-Za-z]+Error)?', failure)
++            else ['HK_ORIGINAL_STAGE_SELECTION_NOT_AVAILABLE'])
+         return result
+     target = bindings.get('plan_date')
+-    if (original.get('schema_version') != 'stage_center.selection_consumer.v1'
+-            or original.get('response_source') != 'SHARED_STAGE_CENTER'
+-            or any(original.get(key) is not expected for key, expected in FLAGS.items())
+-            or original.get('trade_date') != target or native.get('trade_date') != target
+-            or native.get('stage_id') != original.get('stage_id') or native.get('market') != 'HK_CONNECT'):
+-        result['gaps'] = ['HK_ORIGINAL_STAGE_DATE_OR_MARKET_MISMATCH']
++    identity_gaps = []
++    if original.get('schema_version') != 'stage_center.selection_consumer.v1' or original.get('response_source') != 'SHARED_STAGE_CENTER':
++        identity_gaps.append('HK_STAGE_CONSUMER_RESPONSE_SCHEMA_INVALID')
++    if any(original.get(key) is not expected for key, expected in FLAGS.items()):
++        identity_gaps.append('HK_STAGE_CONSUMER_SAFETY_FLAGS_INVALID')
++    if original.get('trade_date') != target or native.get('trade_date') != target:
++        identity_gaps.append('HK_STAGE_TARGET_TRADE_DATE_INVALID')
++    if native.get('stage_id') != original.get('stage_id') or native.get('market') != 'HK_CONNECT':
++        identity_gaps.append('HK_STAGE_NATIVE_ID_OR_MARKET_INVALID')
++    if identity_gaps:
++        # Keep the legacy umbrella for previously deployed UI/tests, but make
++        # the exact failed contract boundary visible for live diagnosis.
++        result['gaps'] = ['HK_ORIGINAL_STAGE_DATE_OR_MARKET_MISMATCH', *identity_gaps]
+         return result
+     evidence = _texts(native.get('source_evidence'))
+     if (native.get('selection_mode') == 'BACKFILL' or native.get('backfill_run_id')
+             or any(marker in evidence for marker in ('selection_mode=BACKFILL',
+--- a/v4/manager_research/workspace_history.py
++++ b/v4/manager_research/workspace_history.py
+@@ -385,19 +385,40 @@
+         selected_stock_verdict_modified=False,
+     )
+ 
+ 
++
++def _safe_history_failure_code(error: BaseException) -> str | None:
++    """Recover a stable original owner code without printing paths or data.
++
++    One bounded chained cause lets an owner attempt failure retain its actual
++    failure code when read_history wraps the public HISTORY_* envelope.
++    The original message is never emitted for free-form exceptions.
++    """
++    candidate: BaseException | None = error
++    deepest_code = None
++    for _ in range(3):
++        if candidate is None:
++            break
++        value = str(candidate)
++        if type(candidate) is ValueError and re.fullmatch(r'[A-Z][A-Z0-9_]{4,127}', value):
++            deepest_code = value
++        candidate = candidate.__cause__
++    return deepest_code
++
+ def read_history(service: Any, date: str) -> dict:
+     from .workspace import _compute_workspace, _ERROR_TYPES
+     boundary = boundary_context(date)
+     saved = None
+     ctx = None
++    failure_stage = 'saved_plan_gate'
+     try:
+         with phase('saved_plan_gate'):
+             saved = select_plan(service.store, date, boundary)
+         if saved is None:
+             return unavailable(date, boundary, 'NOT_MATERIALIZED', 'HISTORY_QUALIFIED_SAVED_PLAN_MISSING')
+         ctx = deepcopy(saved['workspace']['plan_context'])
++        failure_stage = 'saved_plan_version_and_pit'
+         with phase('saved_plan_version_and_pit'):
+             from .workspace_semantics import SEMANTIC_VERSION
+             if saved['workspace'].get('semantic_version') != SEMANTIC_VERSION:
+                 raise ValueError('HISTORY_SEMANTIC_VERSION_CHANGED')
+@@ -407,10 +428,12 @@
+             _pit(saved['workspace'], timestamp(ctx['research_cutoff']))
+         # Mandatory original schema/SHA/safety/source validation. The memo
+         # below _compute_workspace caches ONLY pure projections of these
+         # revalidated full inputs, never the source-reader output itself.
++        failure_stage = 'historical_owner_revalidation'
+         with phase('historical_owner_revalidation'):
+             verified = _compute_workspace(service, date, include_saved=False, context=ctx)
++        failure_stage = 'frozen_business_comparison'
+         with phase('frozen_business_comparison'):
+             if saved['input_identity'] != verified['input_identity']:
+                 raise ValueError('HISTORY_SOURCE_INPUTS_CHANGED')
+             if any(saved['workspace'].get(k) != verified.get(k) for k in _BUSINESS_FIELDS):
+@@ -436,14 +459,25 @@
+             verified['read_context']['source_recheck_status'] = us_market.get('status')
+             verified['read_context']['source_recheck_saved_run_id'] = saved.get('run_id')
+         return verified
+     except _ERROR_TYPES as exc:
+-        reason = str(exc) if re.fullmatch(r'HISTORY_[A-Z0-9_]+', str(exc)) else 'HISTORY_SOURCE_VALIDATION_FAILED'
++        detail = _safe_history_failure_code(exc)
++        reason = str(exc) if type(exc) is ValueError and re.fullmatch(r'HISTORY_[A-Z0-9_]+', str(exc)) else 'HISTORY_SOURCE_VALIDATION_FAILED'
+         # Once a qualified plan is selected, any attached owner recheck is
+         # evaluated at its immutable saved cutoff, never at the later 09:30
+         # boundary or at the current page time.
+         failed_context = ctx if isinstance(ctx, Mapping) else boundary
+         result = unavailable(date, dict(failed_context), 'SOURCE_FAILED', reason, saved=saved)
++        result['read_context'].update(failure_stage=failure_stage,
++            failure_exception_type=type(exc).__name__,
++            failure_owner_code=detail,
++            source_run_id=(saved.get('run_id') if isinstance(saved, Mapping) else None))
++        # Show an actionable non-secret layer code in the original page's gaps.
++        # Do not replace the real reason or accept an invalid historical plan.
++        stage_code = 'HISTORY_FAILURE_STAGE_' + failure_stage.upper()
++        result['gaps'] = sorted(set([*result.get('gaps', []), stage_code]))
++        result['plan_product']['failure_stage'] = failure_stage
++        result['plan_product']['failure_owner_code'] = detail
+         if saved is not None and ctx is not None:
+             _attach_historical_us_recheck(result, service, date, ctx, saved)
+             result['read_context']['as_of'] = ctx['research_cutoff']
+             result['read_context']['source_recheck_status'] = result['us_market_attention'].get('status')
+--- a/v4/manager_research/workspace_plan_autorun.py
++++ b/v4/manager_research/workspace_plan_autorun.py
+@@ -17,8 +17,82 @@
+     "enabled": True,
+     "lead_seconds": 180,
+     "status": "PROPOSAL_ONLY",
+ }
++
++
++PLAN_OWNER = "ManagerResearchJobService.refresh_workspace_plan"
++def owner_plan_readback(value: Any, target_trade_date: str, *, expected_kind: str,
++                        allow_preserved_preopen: bool = False) -> dict[str, Any]:
++    """Accept only an existing owner's exact product and same-run terminal attempt."""
++    from .workspace import validate_attempt
++
++    date = date_token(target_trade_date)
++    product = value.get("plan_product") if isinstance(value, Mapping) else None
++    attempt = value.get("workspace_plan_attempt") if isinstance(value, Mapping) else None
++    if not isinstance(product, Mapping) or not isinstance(attempt, Mapping):
++        raise ValueError("PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED")
++    attempt = validate_attempt(attempt, date)
++    kind = product.get("execution_kind")
++    product_status = product.get("status")
++    preserved = (allow_preserved_preopen and product_status == "PRESERVED_SCHEDULED_PREOPEN"
++                 and kind == "SCHEDULED_PREOPEN")
++    if kind != expected_kind and not preserved:
++        raise ValueError("PLAN_OWNER_EXECUTION_KIND_MISMATCH")
++    run_id = str(product.get("run_id") or "")
++    product_sha = str(product.get("sha256") or "")
++    identity = str(value.get("input_identity") or "")
++    generated = timestamp(product.get("generated_at"))
++    execution_context = product.get("execution_context")
++    attempt_context = attempt.get("execution_context")
++    execution_context_valid = True
++    if execution_context is not None or attempt_context is not None:
++        if not isinstance(execution_context, Mapping) or not isinstance(attempt_context, Mapping):
++            execution_context_valid = False
++        elif dict(execution_context) != dict(attempt_context):
++            execution_context_valid = False
++        else:
++            start = timestamp(execution_context.get("started_at"))
++            finish = timestamp(execution_context.get("finished_at"))
++            scheduled_for = timestamp(execution_context.get("scheduled_for")) if execution_context.get("scheduled_for") else None
++            execution_context_valid = bool(
++                execution_context.get("trigger_kind") in {"SCHEDULED","MANUAL","UNKNOWN"}
++                and execution_context.get("timing") in {"ON_TIME","LATE_CATCHUP","RETROSPECTIVE","UNCLASSIFIED"}
++                and execution_context.get("natural_run_verified") is False
++                and start is not None and finish is not None and generated is not None
++                and start <= generated <= finish
++                and (scheduled_for is None or scheduled_for <= start)
++                and (execution_context.get("trigger_kind") != "SCHEDULED" or scheduled_for is not None))
++    if (value.get("target_trade_date") != date
++            or product_status not in {"CURRENT", "ALREADY_MATERIALIZED", "PRESERVED_SCHEDULED_PREOPEN"}
++            or product.get("consumed") is not True
++            or product.get("original_owner") != PLAN_OWNER
++            or not re.fullmatch(r"[0-9a-f]{32}", run_id)
++            or not re.fullmatch(r"[0-9a-f]{64}", product_sha)
++            or not re.fullmatch(r"[0-9a-f]{64}", identity)
++            or generated is None or attempt.get("run_id") != run_id
++            or attempt.get("owner") != PLAN_OWNER or attempt.get("execution_kind") != kind
++            or attempt.get("input_identity") != identity
++            or attempt.get("state") not in {"SUCCEEDED", "SUCCEEDED_EMPTY", "PARTIAL"}
++            or (attempt.get("state") == "PARTIAL") != bool(attempt.get("failure_reasons"))
++            or not execution_context_valid
++            or timestamp(attempt.get("started_at")) > generated
++            or timestamp(attempt.get("finished_at")) < generated):
++        raise ValueError("PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH")
++    status = "PARTIAL" if attempt["state"] == "PARTIAL" else (
++        "MATERIALIZED" if product_status == "CURRENT" else product_status)
++    return {
++        "status": status, "owner_product_status": product_status,
++        "target_trade_date": date, "owner": PLAN_OWNER,
++        "run_id": run_id, "product_sha256": product_sha, "input_identity": identity,
++        "generated_at": product["generated_at"], "execution_kind": kind,
++        "execution_context": dict(execution_context) if isinstance(execution_context, Mapping) else None,
++        "execution_kind_source": "OWNER_READBACK",
++        "owner_attempt_run_id": attempt["run_id"], "owner_attempt_sha256": attempt["sha256"],
++        "owner_attempt_state": attempt["state"], "owner_finished_at": attempt["finished_at"],
++        "failure_reasons": list(attempt["failure_reasons"]),
++        "policy_status": "PROPOSAL_ONLY",
++    }
+ 
+ 
+ def _config(value: Mapping[str, Any] | None) -> dict[str, Any]:
+     result = dict(DEFAULT_CONFIG)
+@@ -218,8 +292,9 @@
+     "DEFAULT_CONFIG",
+     "MORNING_DEFAULT_CONFIG",
+     "morning_config",
+     "morning_window",
++    "owner_plan_readback",
+     "preopen_window",
+     "run_scheduled_morning_plan",
+     "run_scheduled_preopen_plan",
+     "run_scheduled_preopen_plan_safe",

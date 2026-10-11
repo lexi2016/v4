@@ -1,0 +1,116 @@
+{
+  "schema_version": "v4.issue35.local_r2_candidate_summary.v1",
+  "writer_receipt_sha256": "a38739c7b3a24c26c222b1a5d64d25215d7b94865f7422bb285c7645cf2d9bae",
+  "writer_status": "READY_FOR_INDEPENDENT_REVIEW_WITH_CANNOT_CONFIRM_ITEMS",
+  "canonical_merge": {
+    "all_patch_after_hashes_match": true,
+    "files": [
+      {
+        "before_sha256": "f019bd06718896c01ea720317674072c34d2e6be3007dac96f55d6bae24bb0b6",
+        "matches_patch_after": true,
+        "observed_after_sha256": "3f3cabbe1ed130063f0f25e36ec254ede085a6accaf92fa37831b0dbaeb7616e",
+        "patch_after_sha256": "3f3cabbe1ed130063f0f25e36ec254ede085a6accaf92fa37831b0dbaeb7616e",
+        "path": "v4/manager_research/service.py"
+      },
+      {
+        "before_sha256": "23e7bfd1d1a011f8892df144cd13c696f0b55e0b00588a0de878f04d2dd95004",
+        "matches_patch_after": true,
+        "observed_after_sha256": "b372deab943079efae4c45a9f6528c9b577112898b78fa0721d685dfb73d1a76",
+        "patch_after_sha256": "b372deab943079efae4c45a9f6528c9b577112898b78fa0721d685dfb73d1a76",
+        "path": "v4/manager_research/workspace.py"
+      },
+      {
+        "before_sha256": "72dce6c3db358eb3d7d058443ec720ebd88ea4bc63f4873cd2c3e90caf253bd6",
+        "matches_patch_after": true,
+        "observed_after_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+        "patch_after_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+        "path": "v4/manager_research/workspace_daily_channels.py"
+      },
+      {
+        "before_sha256": "2447e40c2a4b92e08d58650afe94a5be26f0c46d07fc6aa654a201422e9594a4",
+        "matches_patch_after": true,
+        "observed_after_sha256": "78f7e38bdf5a99e119b8ce5a05b0e3aaf0f2b2e75bc2c2d129a9f3bd7e60e1ab",
+        "patch_after_sha256": "78f7e38bdf5a99e119b8ce5a05b0e3aaf0f2b2e75bc2c2d129a9f3bd7e60e1ab",
+        "path": "v4/manager_research/workspace_history.py"
+      },
+      {
+        "before_sha256": "edc6eeb05ff239f34276c2ae4b716622632b7faaae4fb0883c816c54df0d13c3",
+        "matches_patch_after": true,
+        "observed_after_sha256": "f44f32e5e764844a14b798a5380ad752a93fd1f0429e29aac6e62df203050b27",
+        "patch_after_sha256": "f44f32e5e764844a14b798a5380ad752a93fd1f0429e29aac6e62df203050b27",
+        "path": "v4/manager_research/workspace_plan_autorun.py"
+      }
+    ],
+    "method": "clean hunk patch after exact before-SHA checks and staged after-SHA validation; no whole-file replacement"
+  },
+  "candidate_identity": {
+    "activation_status": "NOT_ACTIVATED",
+    "release_manifest_sha256": "b1e05f88c129d5555281cfaf997fe2f8227efd1c77bb51bf18b3d0eac8c487fb",
+    "base_manifest_sha256": "f2940d02d408b52bde35258b2366e32a4b7e3ad59193b313b243677d590eae1d",
+    "entry_count": 1049,
+    "delta_paths": [
+      "v4/manager_research/service.py",
+      "v4/manager_research/workspace.py",
+      "v4/manager_research/workspace_daily_channels.py",
+      "v4/manager_research/workspace_history.py"
+    ],
+    "verification_status": "PASS",
+    "non_delta_entry_count": 1045,
+    "non_delta_active_release_bytes_preserved": true
+  },
+  "tests": [
+    {
+      "passed": 5,
+      "failed": 0,
+      "status": "PASS",
+      "failures": null,
+      "failure_tests": null,
+      "detail": null
+    },
+    {
+      "passed": 12,
+      "failed": 0,
+      "status": "PASS",
+      "failures": null,
+      "failure_tests": null,
+      "detail": null
+    },
+    {
+      "passed": 35,
+      "failed": 3,
+      "status": "PARTIAL",
+      "failures": [
+        {
+          "observed": "TypeError: datetime is not JSON serializable in reviewed_analysis.plan_cutoff before the changed Stage readback block",
+          "test": "tests/test_three_lane_daily_20261011.py::test_missing_stage_does_not_invent_null_safety_flags_or_block_partial_save"
+        },
+        {
+          "observed": "expected HK daily channel READY_EMPTY; got PARTIAL because current 8873 owner does not inject the formal StageSelectionConsumer reader",
+          "test": "tests/test_three_lane_daily_20261011.py::test_history_preserves_execution_context_for_original_saved_research_ledger"
+        },
+        {
+          "observed": "WORKSPACE_PLAN_SAVE_READBACK_FAILED in canonical source before terminal attempt readback; ACTIVE R1 owner path passed a controlled direct reproduction",
+          "test": "tests/test_manager_plan_identity_r2.py::test_scheduled_existing_plan_is_not_reused_when_inputs_changed"
+        }
+      ],
+      "failure_tests": null,
+      "detail": null
+    },
+    {
+      "passed": 12,
+      "failed": 3,
+      "status": "PARTIAL",
+      "failures": null,
+      "failure_tests": [
+        "test_scheduled_existing_plan_is_not_reused_when_inputs_changed",
+        "test_scheduled_same_inputs_do_not_double_publish",
+        "test_autorun_cannot_shortcut_stale_plan_by_timestamp_alone"
+      ],
+      "detail": "archived candidate test fixtures require review against the active R1 owner-attempt/clock contract; one autorun fixture omits the required same-run terminal attempt. Selected US daily/date-contract subset passed above."
+    }
+  ],
+  "independent_review": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "api_ui_acceptance": "NOT_RUN",
+  "natural_acceptance": "NOT_RUN"
+}

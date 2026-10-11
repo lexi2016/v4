@@ -1,0 +1,144 @@
+{
+  "schema_version": "v4.issue35.daily_autocontinue_package_sha.v1",
+  "scope": "docs/source snapshots/patches/compact evidence only",
+  "files": [
+    {
+      "path": "CATALOG_OWNER_METADATA.json",
+      "bytes": 1183,
+      "sha256": "298bb5dd71589974bf91f4b27728187aeddd4b44d92c744a86cbc6b08430ecd7",
+      "git_blob_sha": "74520f8bc4666b7ec3ee03847771fd76919b8f5f"
+    },
+    {
+      "path": "CURRENT_SOURCE_MANIFEST.json",
+      "bytes": 5922,
+      "sha256": "e389acc79b28dd0283d59de8aab8200090ab08bdc4790a6011a9b474c23765b8",
+      "git_blob_sha": "2e43f2fda83c3fe181e565720804e116c723a5d8"
+    },
+    {
+      "path": "DAILY_AUTOCONTINUE_TASK.md",
+      "bytes": 11383,
+      "sha256": "d88ad48bc93e1c3e88e9f3123686c1b9158b8c62c2d3435b33202d387860cf7b",
+      "git_blob_sha": "765798bed9a14ef2c24149326d80eda51250ce47"
+    },
+    {
+      "path": "LIVE_EVIDENCE_SUMMARY.json",
+      "bytes": 3733,
+      "sha256": "25236b3c4a3bb7b187f575f0bbb0ee66e6fb9be131b0ca6573a4077b694781b8",
+      "git_blob_sha": "b0f6a46fe7ff4022f5fb167892a034eadc604d19"
+    },
+    {
+      "path": "LOCAL_R2_RESULT_SUMMARY.json",
+      "bytes": 5222,
+      "sha256": "b8f375fec3f7de60d77bd0878b0456a1dac5c2a239325e47f4c1615d5d55c0d4",
+      "git_blob_sha": "6fbe35c793c5c08591242ad6f9d508a88a60288a"
+    },
+    {
+      "path": "R2_SHA_MANIFEST.json",
+      "bytes": 3491,
+      "sha256": "f627352356cf7e190ad636a103aca6bd7f68e8221120e617a683477c9599aac8",
+      "git_blob_sha": "8407426574dc0d4ba5b2d3b4efaf8e41000538bb"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1149,
+      "sha256": "3fb6459fee708c297f5a5b0700804458ee324312f54c50badf18d1dcfefdf522",
+      "git_blob_sha": "986e804de4a400e0816cedd50b5bc122c7fff32f"
+    },
+    {
+      "path": "SUPPLEMENTAL_SOURCE_MANIFEST.json",
+      "bytes": 1450,
+      "sha256": "6ace89f187cc2d5831cd26d1fa3fe694fe3e2cc034ee25ca88a9470de17bec48",
+      "git_blob_sha": "55d1929126bd161d22275e8086378dae500d1279"
+    },
+    {
+      "path": "patches/canonical_source_r2.patch",
+      "bytes": 16825,
+      "sha256": "4cab2b88af8784dcb0c471f570aa1611738d3156c22d12433cb10e42a97a9de4",
+      "git_blob_sha": "012167d69bc58e7aa0874d4d3068b63a246d16a7"
+    },
+    {
+      "path": "patches/runtime_source_r2.patch",
+      "bytes": 12485,
+      "sha256": "765bc74252037dfa078dee487fac4ff8b0573d7b7c3d2cd62866342b8220f9e6",
+      "git_blob_sha": "5faf85a6f5d3b50c29b4272b409a014bc7cfb206"
+    },
+    {
+      "path": "review/package-review.json",
+      "bytes": 31877,
+      "sha256": "bb377b57fb6301ab2577f1c2ee05d439074ec9c301f7be8e2f846070508cdd83",
+      "git_blob_sha": "228ac90a250f2d649cc1a98fa7f55ab7cd3c174e"
+    },
+    {
+      "path": "source/active/apps/api/v35_api/app.py",
+      "bytes": 327501,
+      "sha256": "ba40457e4fc6d4f60155c55e4202ac82e870467598d49ea36bcbc2aab5c70eb3",
+      "git_blob_sha": "83c16d5edb66c186a8abf01293ee804958685633"
+    },
+    {
+      "path": "source/active/tests/test_manager_plan_identity_r2.py",
+      "bytes": 6044,
+      "sha256": "47ee321a3bccf987cf449559723264ea52f98e1f2e214ee33b3d33451d31d730",
+      "git_blob_sha": "fbaa3546193d6c7c6b8feb0dfb962da7a821b8cc"
+    },
+    {
+      "path": "source/active/tests/test_manager_us_daily_chain.py",
+      "bytes": 13008,
+      "sha256": "f6c4b1f4d713c352a5aaeba081a627e4c68c4150cf91edb52948165a9cb3a3b0",
+      "git_blob_sha": "16d5199bdef71f547eb9bbeb08e3272235f8b47b"
+    },
+    {
+      "path": "source/active/v4/manager_research/store.py",
+      "bytes": 19988,
+      "sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "git_blob_sha": "c9af9a6ae87858ebee111766d4db0fd0639943b5"
+    },
+    {
+      "path": "source/active/v4/manager_research/workspace_plan.py",
+      "bytes": 108998,
+      "sha256": "1e48b8145550f8c53b540a4912c492491610ea7ac5928eab50d2f1ca8b895ae0",
+      "git_blob_sha": "74242a3607b62e1d21e3bdf9e1ee781bb5638096"
+    },
+    {
+      "path": "source/active/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 15547,
+      "sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "git_blob_sha": "dcab179e3cc291991e14e426adf8093fb31b71ef"
+    },
+    {
+      "path": "source/canonical_after_r2/tests/test_three_lane_r2_mac_20261012.py",
+      "bytes": 5798,
+      "sha256": "0894ef13704ff6847faf0f5f6c466fcc6f8b76db0095259cfea72bd3c01409a1",
+      "git_blob_sha": "a6e95aa2beb0945318df1ff58861c9263c21baa8"
+    },
+    {
+      "path": "source/canonical_after_r2/v4/manager_research/service.py",
+      "bytes": 94489,
+      "sha256": "3f3cabbe1ed130063f0f25e36ec254ede085a6accaf92fa37831b0dbaeb7616e",
+      "git_blob_sha": "498abc9bccbf2d9082dc118481c1d3c0591c714f"
+    },
+    {
+      "path": "source/canonical_after_r2/v4/manager_research/workspace.py",
+      "bytes": 70799,
+      "sha256": "b372deab943079efae4c45a9f6528c9b577112898b78fa0721d685dfb73d1a76",
+      "git_blob_sha": "c12001a373ce3f681b388d1e4bf35e6960ad8800"
+    },
+    {
+      "path": "source/canonical_after_r2/v4/manager_research/workspace_daily_channels.py",
+      "bytes": 20097,
+      "sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "git_blob_sha": "6b282a0b59cf9feea8bcf9815189e8c14a9877b5"
+    },
+    {
+      "path": "source/canonical_after_r2/v4/manager_research/workspace_history.py",
+      "bytes": 25002,
+      "sha256": "78f7e38bdf5a99e119b8ce5a05b0e3aaf0f2b2e75bc2c2d129a9f3bd7e60e1ab",
+      "git_blob_sha": "0445a0fbcbc2590fe7839b0decdf4bedfed02d5b"
+    },
+    {
+      "path": "source/canonical_after_r2/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 14630,
+      "sha256": "f44f32e5e764844a14b798a5380ad752a93fd1f0429e29aac6e62df203050b27",
+      "git_blob_sha": "32a3766785e9f0a93a284461039eaa6359178aaf"
+    }
+  ]
+}

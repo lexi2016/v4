@@ -1,0 +1,111 @@
+{
+  "schema_version": "v4.issue35.daily_autocontinue_live_summary.v1",
+  "read_at": "2026-10-11T22:41:49.703580+08:00",
+  "workspace_response_sha256": "59edec93cb615b0e8e4bb5d384c52f7552cb1edce3bc6e07ea00577a9fdce050",
+  "date_bindings": {
+    "selection_date": "20261012",
+    "announcement_date": "20261009",
+    "plan_date": "20261012"
+  },
+  "stocks_count": 0,
+  "focus_count": 0,
+  "plan": {
+    "status": "STALE_INPUTS_CHANGED",
+    "consumed": false,
+    "run_id": "1e9d511515de47599f05539e43e79b81",
+    "execution_kind": "MANUAL_REFRESH"
+  },
+  "identity": {
+    "saved": "4d253adb9e279c3764b7a556ba44624cc3f26420a2d2c34459fe760bbba7f81b",
+    "current": "e3471732ee6a6f1d55106382aac35239655f3558d7b98a52320abd977d487db3",
+    "changed_components": [
+      "research_attention.material_input",
+      "research_attention.projection"
+    ],
+    "changed_component_receipt": [
+      {
+        "component": "research_attention.material_input",
+        "saved_sha256": "bafadf5f77529ccffde512b86c797b345dece611a88afd94f3450461f4aecc89",
+        "current_sha256": "851b8894e36e6c3779f618fee2acb14cd2c83cf5a1a0d2079d9055fb3718cb17"
+      },
+      {
+        "component": "research_attention.projection",
+        "saved_sha256": "c5009b8c3bd7687dc24b9563a47e0c5113f432aee735c0cb2c2fb6d864c38f29",
+        "current_sha256": "b5881d9d7592ddbd22a5abd2bf95b7e1e6d8e6995f75ba493e43f3cc19b1e1a2"
+      }
+    ],
+    "source_json_path": "$.plan_product.input_identity_diagnostics.changed_components"
+  },
+  "runtime_gaps": [
+    "STAGE_EXECUTION_LEDGER_NOT_EXPLICITLY_BOUND",
+    "NEXT_SCHEDULE_UNVERIFIED_ORIGINAL_RUNTIME_PLAN_READER_NOT_SUPPLIED"
+  ],
+  "channels": [
+    {
+      "channel": "ANNOUNCEMENT",
+      "status": "CANNOT_CONFIRM",
+      "candidate_count": null,
+      "pending_count": null,
+      "run_id": null,
+      "product_sha256": null,
+      "data_date": "20261009"
+    },
+    {
+      "channel": "HK_CONNECT",
+      "status": "CANNOT_CONFIRM",
+      "candidate_count": null,
+      "pending_count": null,
+      "run_id": null,
+      "product_sha256": null,
+      "data_date": null
+    },
+    {
+      "channel": "OVERSOLD",
+      "status": "PARTIAL",
+      "candidate_count": 214,
+      "pending_count": 34,
+      "run_id": null,
+      "product_sha256": null,
+      "data_date": "20261009"
+    }
+  ],
+  "announcement_body": {
+    "target_trade_date": "20261012",
+    "publication_date": "2026-10-09",
+    "catalog_run_id": "1f816c69f65c4170b86e9eb8df25fd85",
+    "catalog_sha256": "1711c75a927b57bd5581eaaa505f29d649f11d14ce6a10d75e27f427fb115866",
+    "article_rows": 383,
+    "terminal_article_receipts": 383,
+    "body_status_counts": {
+      "BODY_CAPTURE_FAILED": 64,
+      "COMPLETE_CONTENT_API_BODY": 319
+    },
+    "body_corpus_sha256": "05fbcd1f3b47135fbdebf07bf0ae5c04aad8eb99d64b9a877a1fdc5a87b73a65",
+    "body_corpus_manifest_sha256": "61e26c025b7cf09908d0ed41a9b306e3e5e2316d20050ecaeff877198e11bde3",
+    "semantic_status": "NOT_REVIEWED",
+    "live_import": "NOT_RUN",
+    "terminal_at": "2026-10-11T14:37:40.557522+00:00"
+  },
+  "announcement_body_error_counts": {
+    "BODY_CONTENT_116_H_STOCK_IDENTITY_MISMATCH": 2,
+    "BODY_CAPTURE_FAILED:ValueError": 62
+  },
+  "us_daily_run": {
+    "status": "NOT_RUN",
+    "target_trade_date": "20261012",
+    "run_id": null,
+    "us_session_date": null,
+    "current_context_us_session": "20261009",
+    "current_context_source_payload_sha256": "928cd4ae8089a792ea1a3cfab490c9217c4249d6c29c11aeaa9cee879f0fb4e3",
+    "gaps": [
+      "DAILY_MAPPING_NOT_MATERIALIZED"
+    ]
+  },
+  "natural_verification": "NATURAL_SLOT_UNVERIFIED",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
