@@ -87,6 +87,48 @@
         "canonical_r2": "patches/runtime_r1_dispatch_input_refresh.patch",
         "runtime_r1": "patches/runtime_r1_dispatch_input_refresh.patch"
       }
+    },
+    {
+      "mode": "runtime_after_r2",
+      "path": "v4/manager_research/workspace.py",
+      "source_snapshot": "Frozen runtime original plus handoff/three-lane-autocontinue-20261012-r1/patches/runtime_source_r2.patch",
+      "source_git_blob_sha": null,
+      "patch_file": "patches/runtime_after_r2_workspace.patch",
+      "before_sha256": "c1d3ff135c260774924d1b843a306851e4b03abb2510e9268d18bbddd695a3e9",
+      "after_sha256": "6d8d4b9e38f3a2ee2fba0ced339c396f0b0a09ff06429b290363047c8040deb6",
+      "before_bytes": 82957,
+      "after_bytes": 84725,
+      "hunks": 4,
+      "additions": 33,
+      "deletions": 7,
+      "static_exact_context_match": true
+    },
+    {
+      "mode": "runtime_after_r2",
+      "path": "v4/manager_research/service.py",
+      "source_snapshot": "R2_SHA_MANIFEST.json runtime_source repaired source",
+      "patch_file": null,
+      "before_sha256": "63d73b19708fbcabc78598b61b50b0ed525aea4fa15d1de20f2d18faa83cc87e",
+      "after_sha256": "63d73b19708fbcabc78598b61b50b0ed525aea4fa15d1de20f2d18faa83cc87e",
+      "verify_only": true
+    },
+    {
+      "mode": "runtime_after_r2",
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "source_snapshot": "R2_SHA_MANIFEST.json runtime_source repaired source",
+      "patch_file": null,
+      "before_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "after_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "verify_only": true
+    },
+    {
+      "mode": "runtime_after_r2",
+      "path": "v4/manager_research/workspace_history.py",
+      "source_snapshot": "R2_SHA_MANIFEST.json runtime_source repaired source",
+      "patch_file": null,
+      "before_sha256": "54b2e5273cb4d79f2876cd6e8041c19cb2977887de015868293019e560382483",
+      "after_sha256": "54b2e5273cb4d79f2876cd6e8041c19cb2977887de015868293019e560382483",
+      "verify_only": true
     }
   ],
   "mode_patch_order": {
@@ -98,10 +140,16 @@
     "runtime_r1": [
       "patches/runtime_r1_owner_and_stage.patch",
       "patches/runtime_r1_dispatch_input_refresh.patch"
+    ],
+    "runtime_after_r2": [
+      "patches/runtime_after_r2_workspace.patch",
+      "patches/common_app_stage_consumer.patch",
+      "patches/runtime_r1_dispatch_input_refresh.patch"
     ]
   },
   "notes": [
     "The shared app source and original dispatch source are unchanged between frozen canonical R2 and active R1 snapshots.",
-    "This is a static exact-context verification, NOT a Python test run, Mac independent acceptance, server activation or natural-slot receipt."
+    "This is a static exact-context verification, NOT a Python test run, Mac independent acceptance, server activation or natural-slot receipt.",
+    "runtime_after_r2 requires all four runtime R2 upstream source hashes including service, daily channels and history, but changes only workspace/app/dispatch. No duplicate Stage service arg."
   ]
 }
