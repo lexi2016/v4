@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "module": "M01",
+  "candidate": "R9",
+  "scope": "Isolated cloud engineering tests only; not production acceptance or deployment.",
+  "repository": "lexi2016/v4",
+  "branch": "v5/module-chat-handoffs-20261010",
+  "publication_parent_commit": "30d795bca2ed28c6b182eb8778f25dfdc2b2bc0f",
+  "r9_dynamic_tests_at_publication": "NOT_RUN",
+  "known_defects": "See REVIEW_M01_R9_STATIC_20261011.md: date validation, exception scope, exact binding path, root/source boundaries and parsing gaps.",
+  "files": [
+    {
+      "filename": "V5_M01_A_SOURCE_R9_CANDIDATE.zip",
+      "bytes": 5481,
+      "sha256": "48a0d8aa99ef710003aa7c09e5330e6e9ffa99af001c0302ec63079ae60f5d48",
+      "git_blob_sha1": "a95fa6d444804a6aee5ffd6dee39a12c2f2e5de5"
+    },
+    {
+      "filename": "REVIEW_M01_R9_STATIC_20261011.md",
+      "bytes": 20244,
+      "sha256": "c86e5ffad5716887db6422d315e70cdee7b5d7e6951874cceb75d31c33f15bce",
+      "git_blob_sha1": "3f3e127e164ff158196cc152760420587b2e91c1"
+    }
+  ],
+  "baseline_inputs": {
+    "commit": "30d795bca2ed28c6b182eb8778f25dfdc2b2bc0f",
+    "directory": "handoff/v5-m01-mac-inputs-20261011/",
+    "files": [
+      {
+        "filename": "V5_M01_SOURCE_REVIEW_20261010.zip",
+        "sha256": "8643ec4846da31e2a32c95492cdf51648f1a957991a673d197685104d8029933"
+      },
+      {
+        "filename": "V5_M01_HISTORY_GAP_SUPPLEMENT_20261010.zip",
+        "sha256": "f0706bf684f372549f7a75f0f3a3e8ca8e233add7724e26fc5075849916da291"
+      }
+    ]
+  }
+}
