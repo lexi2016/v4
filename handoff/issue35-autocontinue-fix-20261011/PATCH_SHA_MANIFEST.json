@@ -129,6 +129,42 @@
       "before_sha256": "54b2e5273cb4d79f2876cd6e8041c19cb2977887de015868293019e560382483",
       "after_sha256": "54b2e5273cb4d79f2876cd6e8041c19cb2977887de015868293019e560382483",
       "verify_only": true
+    },
+    {
+      "mode": "canonical_r2",
+      "path": "v4/manager_research/service.py",
+      "source_snapshot": "handoff/three-lane-autocontinue-20261012-r1/source/canonical_after_r2/v4/manager_research/service.py",
+      "patch_file": null,
+      "before_sha256": "3f3cabbe1ed130063f0f25e36ec254ede085a6accaf92fa37831b0dbaeb7616e",
+      "after_sha256": "3f3cabbe1ed130063f0f25e36ec254ede085a6accaf92fa37831b0dbaeb7616e",
+      "verify_only": true
+    },
+    {
+      "mode": "canonical_r2",
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "source_snapshot": "handoff/three-lane-autocontinue-20261012-r1/source/canonical_after_r2/v4/manager_research/workspace_daily_channels.py",
+      "patch_file": null,
+      "before_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "after_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "verify_only": true
+    },
+    {
+      "mode": "canonical_r2",
+      "path": "v4/manager_research/workspace_history.py",
+      "source_snapshot": "handoff/three-lane-autocontinue-20261012-r1/source/canonical_after_r2/v4/manager_research/workspace_history.py",
+      "patch_file": null,
+      "before_sha256": "78f7e38bdf5a99e119b8ce5a05b0e3aaf0f2b2e75bc2c2d129a9f3bd7e60e1ab",
+      "after_sha256": "78f7e38bdf5a99e119b8ce5a05b0e3aaf0f2b2e75bc2c2d129a9f3bd7e60e1ab",
+      "verify_only": true
+    },
+    {
+      "mode": "canonical_r2",
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "source_snapshot": "handoff/three-lane-autocontinue-20261012-r1/source/canonical_after_r2/v4/manager_research/workspace_plan_autorun.py",
+      "patch_file": null,
+      "before_sha256": "f44f32e5e764844a14b798a5380ad752a93fd1f0429e29aac6e62df203050b27",
+      "after_sha256": "f44f32e5e764844a14b798a5380ad752a93fd1f0429e29aac6e62df203050b27",
+      "verify_only": true
     }
   ],
   "mode_patch_order": {
@@ -150,6 +186,7 @@
   "notes": [
     "The shared app source and original dispatch source are unchanged between frozen canonical R2 and active R1 snapshots.",
     "This is a static exact-context verification, NOT a Python test run, Mac independent acceptance, server activation or natural-slot receipt.",
-    "runtime_after_r2 requires all four runtime R2 upstream source hashes including service, daily channels and history, but changes only workspace/app/dispatch. No duplicate Stage service arg."
+    "runtime_after_r2 requires all four runtime R2 upstream source hashes including service, daily channels and history, but changes only workspace/app/dispatch. No duplicate Stage service arg.",
+    "canonical_r2 requires frozen R2 service with Stage reader constructor, R2 channels, history, and autorun; all verify-only and SHA-guarded."
   ]
 }
