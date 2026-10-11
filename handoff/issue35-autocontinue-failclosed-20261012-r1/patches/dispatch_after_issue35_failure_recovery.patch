@@ -1,9 +1,7 @@
 diff --git a/v4/manager_research/plan_owner_dispatch.py b/v4/manager_research/plan_owner_dispatch.py
 --- a/v4/manager_research/plan_owner_dispatch.py
 +++ b/v4/manager_research/plan_owner_dispatch.py
-@@ -324,11 +324,11 @@
-     to validate the exact saved plan and its terminal attempt before replaying
-     the old dispatch receipt. Other branches use separately admitted time slots.
+@@ -326,28 +326,31 @@
      """
      if identity["branch"] != "EVENING_NEXT_SESSION":
          return True
@@ -14,13 +12,23 @@ diff --git a/v4/manager_research/plan_owner_dispatch.py b/v4/manager_research/pl
      date = identity["target_trade_date"]
      plan = previous.get("response", {}).get("plan_result")
      if not isinstance(plan, Mapping) or not valid_owner_plan_result(plan, identity["branch"]):
-@@ -341,15 +341,17 @@
          return False
-     # Require the immutable exact-run terminal evidence; latest may belong to
-     # a different failed run and may never authenticate the previous product.
-     try:
-         owner_attempt = verified_plan_attempt(service.store, saved)
--    except (OSError, ValueError, TypeError, KeyError, RuntimeError):
+-    saved = _read_plan(service.store, date)
+-    if (not isinstance(saved, Mapping)
+-            or saved.get("run_id") != plan.get("run_id")
+-            or saved.get("sha256") != plan.get("product_sha256")
+-            or saved.get("input_identity") != plan.get("input_identity")):
++    # Read the latest sealed plan, exact-run terminal owner receipt and live
++    # workspace under one fail-closed guard. A corrupt latest pointer must not
++    # bypass the bounded next owner attempt by aborting dispatch reconciliation.
++    try:
++        saved = _read_plan(service.store, date)
++        if (not isinstance(saved, Mapping)
++                or saved.get("run_id") != plan.get("run_id")
++                or saved.get("sha256") != plan.get("product_sha256")
++                or saved.get("input_identity") != plan.get("input_identity")):
++            return False
++        owner_attempt = verified_plan_attempt(service.store, saved)
 +        if not isinstance(owner_attempt, Mapping) or owner_attempt.get("run_id") != saved["run_id"]:
 +            return False
 +        current = get_workspace(service, date, include_saved=True, now=now)
@@ -28,11 +36,15 @@ diff --git a/v4/manager_research/plan_owner_dispatch.py b/v4/manager_research/pl
 +        # A bounded read failure cannot authorize replay of yesterday's receipt.
 +        # Let the existing owner path record a new outcome under its retry budget.
          return False
+-    # Require the immutable exact-run terminal evidence; latest may belong to
+-    # a different failed run and may never authenticate the previous product.
+-    try:
+-        owner_attempt = verified_plan_attempt(service.store, saved)
+-    except (OSError, ValueError, TypeError, KeyError, RuntimeError):
+-        return False
 -    if not isinstance(owner_attempt, Mapping) or owner_attempt.get("run_id") != saved["run_id"]:
 -        return False
 -    current = get_workspace(service, date, include_saved=True, now=now)
      current_plan = current.get("plan_product") if isinstance(current, Mapping) else None
      return bool(isinstance(current_plan, Mapping)
          and current_plan.get("status") == "CURRENT"
-         and current_plan.get("consumed") is True
-         and current_plan.get("run_id") == saved["run_id"]
