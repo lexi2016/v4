@@ -40,6 +40,8 @@ def _subject():
              "input_identity": "c" * 64, "target_trade_date": TARGET}
     def read_plan(store, date):
         assert date == TARGET
+        if state["mode"] == "plan_read_error":
+            raise ValueError("SYNTHETIC_LATEST_PLAN_CORRUPT")
         return saved
     def verified(store, plan):
         if state["attempt"] == "broken":
@@ -89,6 +91,10 @@ class FailClosedDispatch(unittest.TestCase):
 
     def test_workspace_read_error_must_not_abort_dispatch(self):
         self.state["mode"] = "read_error"
+        self.assertFalse(self.check())
+
+    def test_invalid_saved_latest_must_not_abort_dispatch(self):
+        self.state["mode"] = "plan_read_error"
         self.assertFalse(self.check())
 
     def test_non_evening_has_own_slot_contract(self):
