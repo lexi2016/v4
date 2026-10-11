@@ -1,0 +1,82 @@
+{
+  "schema": "v5.m13.engineering-input-handoff.v1",
+  "created_utc": "2026-10-11T09:02:00Z",
+  "repository": "lexi2016/v4",
+  "source_code_commit": "f7cb731c384ee6890a87d16c19a5b5a621779477",
+  "purpose": "Four original M13 engineering input ZIPs, exact assembly and source input contracts only. Shared diagnosis archive is excluded.",
+  "packages": [
+    {
+      "role": "source",
+      "path": "packages/v5-module13-source-20261010.zip",
+      "bytes": 692912,
+      "sha256": "b226c0ead72b24392cda4b072ceda5fe40319ff44a48b1dc7603c8e1fd456e9e",
+      "git_blob_sha1": "3901ad80aca9cbe0402f34641ff06f188a5683fa",
+      "files": 121,
+      "crc": "PASS",
+      "original_archive_unchanged": true,
+      "root": "v5-module13-source-20261010"
+    },
+    {
+      "role": "revision",
+      "path": "packages/V5_M13_ORIGINAL_REVISION_FIXTURE_SUPPLEMENT_20261010.zip",
+      "bytes": 256125,
+      "sha256": "6ec48fc556dc08ac4c82128f489b400600a4ff0150f83a7f5772495e8bd2e59a",
+      "git_blob_sha1": "a05f2dd4ddece25ff21974274e12a45352188ee0",
+      "files": 48,
+      "crc": "PASS",
+      "original_archive_unchanged": true,
+      "root": "v5-m13-fixture-supplement-20261010"
+    },
+    {
+      "role": "consumer",
+      "path": "packages/V5_M13_READONLY_CONSUMER_TEST_DEPS_20261010.zip",
+      "bytes": 481846,
+      "sha256": "656de76eb661a4b198b8eee23032b681298b377edef3abb77693570246bf618f",
+      "git_blob_sha1": "c39d2932040d4faf3d93ff51f3108746dd361a19",
+      "files": 96,
+      "crc": "PASS",
+      "original_archive_unchanged": true,
+      "root": "v5-m13-readonly-consumer-deps-20261010"
+    },
+    {
+      "role": "offline",
+      "path": "packages/V5_M13_ORIGINAL_OFFLINE_FIXTURE_SUPPLEMENT_20261010.zip",
+      "bytes": 218143,
+      "sha256": "514a6ef417d47b7de77e1a99ba724ea32932b387e8a618735f16527473a53ad1",
+      "git_blob_sha1": "dce62eaf4e836e0fcaf65181553fbc943b86b0a8",
+      "files": 36,
+      "crc": "PASS",
+      "original_archive_unchanged": true,
+      "root": "v5-m13-original-offline-fixture-20261010"
+    }
+  ],
+  "package_count": 4,
+  "total_zip_members": 301,
+  "consumer_closure": {
+    "total": 111,
+    "existing_source": 18,
+    "overlay_added": 93,
+    "manager_capsule": 80,
+    "identity": 30,
+    "descriptor": 1
+  },
+  "product_execution": "NOT_RUN",
+  "mac_access": "NOT_USED",
+  "real_1012_owner_inputs": "RAW_INPUT_COMPLETENESS_TO_BE_VERIFIED; OWNER_ANALYSIS_REVIEW_IMPORT_PUBLICATION_OUTPUTS_TO_BE_GENERATED_NOT_REQUIRED_AS_USER_INPUT",
+  "old_0807_real_request_758_files": "FOUND_AND_VERIFIED_IN_SEPARATE_PACKAGE_NOT_INCLUDED_HERE",
+  "shared_gateway_or_m18_mutation": false,
+  "v4_or_main_mutation": false,
+  "credentials_included": false,
+  "credential_scan": "301 M13 engineering archive members scanned for common private-key/token/JWT patterns; zero matches. This is a bounded static scan, not a guarantee.",
+  "excluded_materials": [
+    "Shared M13/M14/M18 diagnosis archive and its extracted operational evidence",
+    "Real raw business inputs and newly generated target-owner outputs",
+    "Separate old 08/07 real request and its 758 bound files"
+  ],
+  "target_date_semantics": {
+    "current_date": "20261011",
+    "target_date": "20261012",
+    "publication_date": "20261009",
+    "rule": "Use genuinely published raw inputs available under the original cutoff; do not require future 10/12 source data or misclassify owner outputs as user-provided prerequisite inputs."
+  }
+}
