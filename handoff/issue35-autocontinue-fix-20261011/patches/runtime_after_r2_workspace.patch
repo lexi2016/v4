@@ -1,0 +1,70 @@
+diff --git a/v4/manager_research/workspace.py b/v4/manager_research/workspace.py
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -1223,6 +1223,28 @@
+         # archive inputs do not gate independent announcement/market channels.
+     with service.store._transaction(date,'workspace-plan-refresh'):
+         prepared=None;preparation_error=None
++        previous_plan=_read_plan(service.store,date)
++        # Idempotent manual owner execution within the original process lock.
++        if (not scheduled and previous_plan is not None
++                and previous_plan.get('execution_kind','MANUAL_REFRESH')==execution_kind):
++            try:
++                prepared=get_workspace(service,date,include_saved=False,now=plan_read_now,
++                    us_market_request_context=us_market_request_context,**workspace_dates)
++            except _ERROR_TYPES as exc:
++                preparation_error=exc
++            if prepared is not None:
++                reusable=_readback_plan(service.store,date,deepcopy(prepared),read_at=plan_read_now)
++                p=reusable.get('plan_product',{})
++                if (p.get('status')=='CURRENT' and p.get('consumed') is True
++                        and p.get('run_id')==previous_plan['run_id']
++                        and p.get('sha256')==previous_plan['sha256']):
++                    exact=verified_plan_attempt(service.store,previous_plan)
++                    reusable['plan_product']['status']='ALREADY_MATERIALIZED'
++                    reusable['workspace_plan_attempt']=deepcopy(exact)
++                    reusable['workspace_plan_product_attempt']=deepcopy(exact)
++                    from .workspace_daily_channels import build_daily_channels
++                    reusable['daily_channels']=build_daily_channels(reusable)
++                    return reusable
+         if scheduled:
+             # The outer autorun check is only an optimization. A concurrent
+             # caller may pass it before the first caller commits, so repeat
+@@ -1326,13 +1348,9 @@
+             product['sha256']=digest(product)
+             root=service.store.root/'workspace_plans'/date
+             service.store._write_atomic(root/(run_id+'.json'),product)
+-            service.store._write_atomic(root/'latest.json',product)
+-            # The original readback validates schema/date/input identity/SHA.
+-            # A returned READBACK_FAILED is not an exception: inspect it before
+-            # publishing a successful terminal attempt or last_success_at.
+-            readback=_read_plan(service.store,date)
+-            if (readback is None or readback.get('run_id')!=run_id
+-                    or readback.get('sha256')!=product['sha256']):
++            # The immutable run must read back before the latest pointer moves.
++            exact_product=service.store._read(root/(run_id+'.json'))
++            if (not isinstance(exact_product,Mapping) or dict(exact_product)!=product):
+                 raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+             finished_at=_now()
+             if deadline is not None and timestamp(finished_at) >= deadline.astimezone(timezone.utc):
+@@ -1345,6 +1363,8 @@
+             terminal=validate_attempt(service.store._read(run_root/'latest.json'),date)
+             if terminal!=seal_attempt(attempt):
+                 raise ValueError('WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED')
++            # The full reader requires this exact terminal owner attempt.
++            service.store._write_atomic(root/'latest.json',product)
+             result=_readback_plan(service.store,date,value)
+             if result.get('plan_product',{}).get('consumed') is not True:
+                 raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+@@ -1363,5 +1383,11 @@
+             attempt.update(state='FAILED',finished_at=_now(),last_success_at=(prior or {}).get('last_success_at'),
+                 failure_reasons=[failure])
+             write_attempt()
++            # Failed candidates keep their run journals, not the latest success.
++            if previous_plan is not None:
++                latest_path=service.store.root/'workspace_plans'/date/'latest.json'
++                latest=service.store._read(latest_path)
++                if isinstance(latest,Mapping) and latest.get('run_id')==run_id:
++                    service.store._write_atomic(latest_path,previous_plan)
+             raise
+ 
