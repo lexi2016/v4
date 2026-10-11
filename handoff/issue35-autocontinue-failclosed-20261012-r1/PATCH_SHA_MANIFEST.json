@@ -25,9 +25,9 @@
   "tests": {
     "pre_fix_controlled_read_failure": "ERROR ValueError SYNTHETIC_OWNER_READ_FAILED",
     "post_fix": "10/10 PASS",
-    "log_sha256": "c9a7ee7221b6d2f045dcc78b29e183204c2558ed11747821b154e9b07216449b",
-    "full_suite_sha256": "7030f5c3034833992a81e82a1cb0e8a3370e5e8e36d435fbbcde3d5b5c98f52f",
-    "full_suite_bytes": 16264,
+    "log_sha256": "f0378cb55d93f191bff0530c0dc1325f63a4070f14ba32d99589befbb8687a7a",
+    "full_suite_sha256": "f8a63e2b5dd09514c39c180d78a5b6a8a27d2ace6334d3f9781f2b16c72969d0",
+    "full_suite_bytes": 16310,
     "git_apply_check_and_apply": "PASS",
     "syntax_py_compile": "PASS",
     "full_Mac_Python_environment": "NOT_RUN",
@@ -38,6 +38,7 @@
     "failure_conditions_covered": [
       "invalid sealed latest plan",
       "current workspace read error"
-    ]
+    ],
+    "full_suite_usage": "Portable ISSUE35_APP_ROOT environment variable, bundled in Mac handoff ZIP; GitHub six-test smaller suite is separate and NOT_RUN."
   }
 }
