@@ -1,0 +1,138 @@
+
+ RUN  v4.1.10 /workspace/scratch/90a399518fca/review_history/frontend/candidate_web
+
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong run_id 4ms
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong target_trade_date 6ms
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong input_identity 1ms
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong owner 1ms
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong state 1ms
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong execution_kind 0ms
+ ✓ review/independentR2Review.spec.ts > retains the legacy latest-attempt fallback only when exact field is absent 5ms
+ ✓ review/independentR2Review.spec.ts > does not treat explicit null exact attempt as an absent legacy field 1ms
+ ✓ review/independentR2Review.spec.ts > rejects channel product SHA disagreement even with matching exact attempt 2ms
+ ✓ review/independentR2Review.spec.ts > keeps a later failed latest attempt intact while admitting the exact archived result 1ms
+ ✓ review/independentR2Review.spec.ts > renders retained risk notes of an unmapped source on the first screen 36ms
+ ✓ src/manager-selection/threeLaneReadbackR2.spec.ts > admits the independently captured full original-owner API applicant response and renders its real summary 128ms
+ ✓ src/manager-selection/dailyChannels.spec.ts > daily channel identities and safe display > keeps the actual panel day separate from all three requested dates 31ms
+ ✓ src/manager-selection/dailyChannels.spec.ts > daily channel identities and safe display > uses literal text for names and reasons and preserves original row order 27ms
+ ✓ src/manager-selection/dailyChannels.spec.ts > daily channel identities and safe display > retains null reason/run as unprovided without rejecting an admitted imported row 19ms
+ ✓ src/manager-selection/dailyChannels.spec.ts > daily channel identities and safe display > binds each imported product to its own run when the channel contains two runs 11ms
+ ✓ src/manager-selection/dailyChannels.spec.ts > daily channel identities and safe display > requires any declared plan run to match the consumed product and exact attempt 10ms
+ ✓ src/manager-selection/dailyChannels.spec.ts > daily channel identities and safe display > distinguishes an owner-confirmed empty set from unknown coverage 7ms
+ ✓ src/manager-selection/dailyChannels.spec.ts > daily channel identities and safe display > keeps the legacy date fallback and gives announcement_date precedence over publication_date 1ms
+ ✓ src/manager-selection/threeLaneReadbackR2.spec.ts > admits the independently captured full original-owner API retrospective response and renders its real summary 19ms
+ ✓ src/manager-selection/threeLaneReadbackR2.spec.ts > binds archived lane to the exact product attempt and leaves later failed status visible 10ms
+ ✓ src/manager-selection/threeLaneReadbackR2.spec.ts > rejects an unarchived oversold successful zero 2ms
+ ✓ src/manager-selection/threeLaneReadbackR2.spec.ts > shows unmapped original announcement identity and retained risks without inventing a ticker 34ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > sends plan, selection and publication days independently on the canonical GET 19ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects a response for a different selected publication day 3ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > preserves legacy workspace parsing when the optional extension is absent 2ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects wrong schema before the new first-screen view is admitted 2ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects unsafe extension before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects duplicate channels before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects unknown as zero before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects negative count before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects invalid symbol before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects mismatched row date before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects unbound row run before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects timezone missing before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects invalid calendar date before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects false natural acceptance before the new first-screen view is admitted 1ms
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > binds the publication alias deterministically through the actual GET: publication_date=20261006 240ms
+   → expected false to be true // Object.is equality
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > binds the publication alias deterministically through the actual GET: publication_date=20261006&announcement_date=20261007 73ms
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > rebinds one legacy default GET when a new backend returns different display/publication dates 53ms
+   → expected [ [ …(2) ] ] to have a length of 2 but got 1
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > renders stock, original reason, data date, run and status without expanding diagnostics 39ms
+   → expected false to be true // Object.is equality
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > shows three unverified channels for an older workspace instead of inferring zero counts 23ms
+ ✓ src/manager-selection/threeLaneDateBindings.spec.ts > initializes the URL view and normalized aliases and binds both real reads 371ms
+stderr | src/manager-selection/threeLaneDateBindings.spec.ts > clears the previous binding immediately and ignores the older response that arrives last
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > reloads the selected canonical GET after manual generation and does not claim a scheduled run 98ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > aborts the older plan request and never lets its late response replace selected bindings 77ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > keeps cancellation effective while the one-time legacy binding read is pending 37ms
+stderr | src/manager-selection/threeLaneDateBindings.spec.ts > clears the previous binding immediately and ignores the older response that arrives last
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+ ✓ src/manager-selection/threeLaneDateBindings.spec.ts > keeps the original previous-session default and gives the canonical announcement date priority 220ms
+stderr | src/manager-selection/threeLaneDateBindings.spec.ts > persists dynamic view and all date bindings across a remount
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+ ✓ src/manager-selection/threeLaneDateBindings.spec.ts > clears the previous binding immediately and ignores the older response that arrives last 141ms
+stderr | src/manager-selection/threeLaneDateBindings.spec.ts > keeps a qualified prior preview only for the same complete binding when transport fails
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+ ✓ src/manager-selection/threeLaneDateBindings.spec.ts > persists dynamic view and all date bindings across a remount 171ms
+ ✓ src/manager-selection/threeLaneDateBindings.spec.ts > passes identical bindings to the original POST and reuses its response once 75ms
+ ✓ src/manager-selection/threeLaneDateBindings.spec.ts > rejects a POST response with mismatched or omitted requested date bindings 10ms
+ ✓ src/manager-selection/threeLaneDateBindings.spec.ts > keeps a qualified prior preview only for the same complete binding when transport fails 82ms
+ ✓ src/manager-selection/threeLaneDateBindings.spec.ts > does not render a cancelled read even if the transport returns success later 81ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > binds the publication alias deterministically through the actual GET: publication_date=20261006
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:64:129
+     62|     const url = String(fetchMock.mock.calls.find(call => String(call[0…
+     63|     expect(new URL(url, 'http://localhost').searchParams.get('announce…
+     64|     expect(fetchMock.mock.calls.some(call => String(call[0]) === `/api…
+       |                                                                                                                                 ^
+     65|   });
+     66|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > rebinds one legacy default GET when a new backend returns different display/publication dates
+AssertionError: expected [ [ …(2) ] ] to have a length of 2 but got 1
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:79:19
+     77|     await waitFor(() => expect(host.querySelector('[data-daily-channel…
+     78|     const reads = fetchMock.mock.calls.filter(call => String(call[0]).…
+     79|     expect(reads).toHaveLength(2);
+       |                   ^
+     80|     expect(String(reads[1][0])).toContain('selection_date=20261006');
+     81|     expect(String(reads[1][0])).toContain('announcement_date=20261006'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > renders stock, original reason, data date, run and status without expanding diagnostics
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:106:123
+    104|     const get = fetchMock.mock.calls.map(call => String(call[0])).find…
+    105|     expect(new URL(get, 'http://localhost').searchParams.get('announce…
+    106|     expect(fetchMock.mock.calls.some(call => String(call[0]) === '/api…
+       |                                                                                                                           ^
+    107|   });
+    108|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  3 failed | 50 passed (53)
+   Start at  17:13:53
+   Duration  3.98s (transform 2.07s, setup 0ms, import 4.12s, tests 2.20s, environment 7.04s)
+
+JSON report written to /workspace/scratch/90a399518fca/review_history/frontend/candidate_final_results.json

@@ -1,0 +1,522 @@
+{
+  "all_blobs_match": true,
+  "original_attachment_consumer_equals_recovered_committed_consumer": true,
+  "blobs": [
+    {
+      "git_blob_sha1_expected": "a6c44fc3611df03066792272d939832f7dafe37e",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/a6c44fc3611df03066792272d939832f7dafe37e/ensure_hk_security_master.py",
+      "bytes_expected": 44249,
+      "bytes_actual": 44249,
+      "sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "git_blob_sha1_actual": "a6c44fc3611df03066792272d939832f7dafe37e",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {
+        "ensure_hk_security_master": {
+          "positional": [],
+          "keyword_only": [
+            "store_root",
+            "universe_root",
+            "shared_package_root",
+            "trade_date",
+            "futu_python",
+            "capture",
+            "panel_sha256",
+            "panel_binding_sha256",
+            "membership_only",
+            "reuse_only"
+          ]
+        }
+      },
+      "imports": [
+        "from __future__ import annotations",
+        "import argparse",
+        "import hashlib",
+        "import importlib.util",
+        "import json",
+        "import math",
+        "import os",
+        "import tempfile",
+        "from datetime import datetime",
+        "from pathlib import Path",
+        "from pathlib import PurePosixPath",
+        "from typing import Any, Mapping",
+        "from infrastructure.isolated_package_loader import load_isolated_package_module"
+      ],
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": false,
+        "selection_stores": false,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "ec79858502ef793766b71755a037500f0eb2e991",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/ec79858502ef793766b71755a037500f0eb2e991/ensure_hk_security_master.py",
+      "bytes_expected": 41556,
+      "bytes_actual": 41556,
+      "sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "git_blob_sha1_actual": "ec79858502ef793766b71755a037500f0eb2e991",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {
+        "ensure_hk_security_master": {
+          "positional": [],
+          "keyword_only": [
+            "store_root",
+            "universe_root",
+            "shared_package_root",
+            "trade_date",
+            "futu_python",
+            "capture",
+            "panel_sha256",
+            "panel_binding_sha256",
+            "membership_only",
+            "reuse_only"
+          ]
+        }
+      },
+      "imports": [
+        "from __future__ import annotations",
+        "import argparse",
+        "import hashlib",
+        "import importlib.util",
+        "import json",
+        "import math",
+        "import os",
+        "import tempfile",
+        "from datetime import datetime",
+        "from pathlib import Path",
+        "from pathlib import PurePosixPath",
+        "from typing import Any, Mapping",
+        "from infrastructure.isolated_package_loader import load_isolated_package_module"
+      ],
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": false,
+        "selection_stores": false,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "ea18e37b3c1da955efe62d78f970bda1dacf72f9",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/ea18e37b3c1da955efe62d78f970bda1dacf72f9/execution_evidence.py",
+      "bytes_expected": 7682,
+      "bytes_actual": 7682,
+      "sha256": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+      "git_blob_sha1_actual": "ea18e37b3c1da955efe62d78f970bda1dacf72f9",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {
+        "read_stage_execution": {
+          "positional": [
+            "root",
+            "trade_date",
+            "stage_id",
+            "verified_markets"
+          ],
+          "keyword_only": []
+        }
+      },
+      "imports": [
+        "from __future__ import annotations",
+        "import hashlib",
+        "import json",
+        "from pathlib import Path",
+        "import re",
+        "from typing import Any, Mapping",
+        "from infrastructure.owned_io import SafeRoot",
+        "from .contracts import STAGE_BY_ID"
+      ],
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": false,
+        "selection_stores": false,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "5f6ac5b5dcc9997cb0380058844d8241a8a7088c",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/5f6ac5b5dcc9997cb0380058844d8241a8a7088c/ensure_hk_security_master.py",
+      "bytes_expected": 4110,
+      "bytes_actual": 4110,
+      "sha256": "dfcb3b0f7c1aaeab097218dbd2bac6ebcb524255ea1e0cd952b92c40afdf23bc",
+      "git_blob_sha1_actual": "5f6ac5b5dcc9997cb0380058844d8241a8a7088c",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {
+        "ensure_hk_security_master": {
+          "positional": [],
+          "keyword_only": [
+            "store_root",
+            "universe_root",
+            "shared_package_root",
+            "trade_date",
+            "futu_python"
+          ]
+        }
+      },
+      "imports": [
+        "from __future__ import annotations",
+        "import argparse",
+        "import json",
+        "import sys",
+        "from datetime import datetime",
+        "from pathlib import Path"
+      ],
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": false,
+        "selection_stores": false,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "f1e82da005800bb5a9f3b3c4b1c3a61a0939db22",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/f1e82da005800bb5a9f3b3c4b1c3a61a0939db22/hk_history_backfill.md",
+      "bytes_expected": 14245,
+      "bytes_actual": 14245,
+      "sha256": "d8550ad8016ae6e074f4eaed52a68e6d560f1690b7189d2fff1d80c30cd953a5",
+      "git_blob_sha1_actual": "f1e82da005800bb5a9f3b3c4b1c3a61a0939db22",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": false,
+        "selection_stores": false,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "9a538be003e018c9bff1140510ecc34e9bfd9ba3",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/9a538be003e018c9bff1140510ecc34e9bfd9ba3/ensure_hk_security_master.py",
+      "bytes_expected": 34014,
+      "bytes_actual": 34014,
+      "sha256": "ff03d294128e9fdbe5c319688bea2b8ae1ff1d63afadd51c5a66041e0300321e",
+      "git_blob_sha1_actual": "9a538be003e018c9bff1140510ecc34e9bfd9ba3",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {
+        "ensure_hk_security_master": {
+          "positional": [],
+          "keyword_only": [
+            "store_root",
+            "universe_root",
+            "shared_package_root",
+            "trade_date",
+            "futu_python",
+            "capture",
+            "panel_sha256",
+            "panel_binding_sha256",
+            "reuse_only",
+            "verified_source_store_root"
+          ]
+        }
+      },
+      "imports": [
+        "from __future__ import annotations",
+        "import argparse",
+        "import hashlib",
+        "import json",
+        "import math",
+        "from datetime import datetime",
+        "from pathlib import Path",
+        "from typing import Any, Mapping",
+        "from zoneinfo import ZoneInfo",
+        "from infrastructure.isolated_package_loader import load_isolated_package_module"
+      ],
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": false,
+        "selection_stores": false,
+        "--verified-source-store-root": true,
+        "verified_source_store_root": true
+      }
+    },
+    {
+      "git_blob_sha1_expected": "c24157c7a0185e2bed31b36fdfd9e0d1346ec79a",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/c24157c7a0185e2bed31b36fdfd9e0d1346ec79a/ensure_hk_security_master.py",
+      "bytes_expected": 46251,
+      "bytes_actual": 46251,
+      "sha256": "a0f9fd0e2fb438f03109714a41cf3a10b61a85579498e1ceec87126df2d3c319",
+      "git_blob_sha1_actual": "c24157c7a0185e2bed31b36fdfd9e0d1346ec79a",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {
+        "ensure_hk_security_master": {
+          "positional": [],
+          "keyword_only": [
+            "store_root",
+            "universe_root",
+            "shared_package_root",
+            "trade_date",
+            "futu_python",
+            "capture",
+            "panel_sha256",
+            "panel_binding_sha256",
+            "membership_only",
+            "reuse_only",
+            "verified_source_store_root"
+          ]
+        }
+      },
+      "imports": [
+        "from __future__ import annotations",
+        "import argparse",
+        "import hashlib",
+        "import importlib.util",
+        "import json",
+        "import math",
+        "import os",
+        "import tempfile",
+        "from datetime import datetime",
+        "from pathlib import Path",
+        "from pathlib import PurePosixPath",
+        "from typing import Any, Mapping",
+        "from zoneinfo import ZoneInfo",
+        "from infrastructure.isolated_package_loader import load_isolated_package_module"
+      ],
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": false,
+        "selection_stores": false,
+        "--verified-source-store-root": true,
+        "verified_source_store_root": true
+      }
+    },
+    {
+      "git_blob_sha1_expected": "939d057a40d24c38d394b477737ee709b1ac4e7d",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/939d057a40d24c38d394b477737ee709b1ac4e7d/ensure_hk_security_master.py",
+      "bytes_expected": 29319,
+      "bytes_actual": 29319,
+      "sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "git_blob_sha1_actual": "939d057a40d24c38d394b477737ee709b1ac4e7d",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {
+        "ensure_hk_security_master": {
+          "positional": [],
+          "keyword_only": [
+            "store_root",
+            "universe_root",
+            "shared_package_root",
+            "trade_date",
+            "futu_python",
+            "capture",
+            "panel_sha256",
+            "panel_binding_sha256",
+            "reuse_only"
+          ]
+        }
+      },
+      "imports": [
+        "from __future__ import annotations",
+        "import argparse",
+        "import hashlib",
+        "import json",
+        "import math",
+        "from datetime import datetime",
+        "from pathlib import Path",
+        "from typing import Any, Mapping",
+        "from infrastructure.isolated_package_loader import load_isolated_package_module"
+      ],
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": false,
+        "selection_stores": false,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "9e2788bca3a5d6184c0137fe6b03996780a6aecd",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/9e2788bca3a5d6184c0137fe6b03996780a6aecd/execution_evidence.py",
+      "bytes_expected": 17382,
+      "bytes_actual": 17382,
+      "sha256": "bd79b1844568a79750ccce6c547cfe08f651291f1863e213fb25629d34a67b79",
+      "git_blob_sha1_actual": "9e2788bca3a5d6184c0137fe6b03996780a6aecd",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {
+        "read_stage_execution": {
+          "positional": [
+            "root",
+            "trade_date",
+            "stage_id",
+            "verified_markets"
+          ],
+          "keyword_only": [
+            "selection_store"
+          ]
+        }
+      },
+      "imports": [
+        "from __future__ import annotations",
+        "import hashlib",
+        "import json",
+        "from pathlib import Path",
+        "import re",
+        "from typing import Any, Mapping",
+        "from infrastructure.owned_io import SafeRoot",
+        "from .contracts import STAGE_BY_ID"
+      ],
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": true,
+        "selection_stores": false,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "3af4fb13f7da60e0822827fb834c671cef16a372",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/3af4fb13f7da60e0822827fb834c671cef16a372/execution_evidence.py",
+      "bytes_expected": 25837,
+      "bytes_actual": 25837,
+      "sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "git_blob_sha1_actual": "3af4fb13f7da60e0822827fb834c671cef16a372",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {
+        "research_source_projection": {
+          "positional": [
+            "source_evidence",
+            "trade_date",
+            "market"
+          ],
+          "keyword_only": []
+        },
+        "read_stage_execution": {
+          "positional": [
+            "root",
+            "trade_date",
+            "stage_id",
+            "verified_markets"
+          ],
+          "keyword_only": [
+            "selection_store",
+            "selection_stores"
+          ]
+        }
+      },
+      "imports": [
+        "from __future__ import annotations",
+        "import hashlib",
+        "import json",
+        "from pathlib import Path",
+        "import re",
+        "from typing import Any, Mapping",
+        "from infrastructure.owned_io import SafeRoot",
+        "from .contracts import STAGE_BY_ID"
+      ],
+      "feature_tokens": {
+        "research_source_projection": true,
+        "selection_store": true,
+        "selection_stores": true,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "73a87bae17b933d46ca3036e8253a40d0fc2606d",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/73a87bae17b933d46ca3036e8253a40d0fc2606d/consumer.py",
+      "bytes_expected": 37758,
+      "bytes_actual": 37758,
+      "sha256": "183c0fb9e69fb64f629c965077ae72047c9fcc118f775ce73ad7b7a89e7657fc",
+      "git_blob_sha1_actual": "73a87bae17b933d46ca3036e8253a40d0fc2606d",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {},
+      "imports": [
+        "from __future__ import annotations",
+        "from copy import deepcopy",
+        "import hashlib",
+        "import json",
+        "from pathlib import Path",
+        "import re",
+        "from typing import Any, Iterable, Mapping, Sequence",
+        "from infrastructure.preselection_pool_store import PreselectionPoolStore",
+        "from .contracts import EIGHT_STAGES, SAFETY_FLAGS",
+        "from .execution_evidence import read_stage_execution, research_source_projection",
+        "from .selection import SelectionError, SelectionStore, _validate_date, _validate_market, _validate_stage"
+      ],
+      "feature_tokens": {
+        "research_source_projection": true,
+        "selection_store": true,
+        "selection_stores": true,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "7e434f3935c8dc1ce5de4eca6f99f7719e492a53",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/7e434f3935c8dc1ce5de4eca6f99f7719e492a53/consumer.py",
+      "bytes_expected": 35451,
+      "bytes_actual": 35451,
+      "sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "git_blob_sha1_actual": "7e434f3935c8dc1ce5de4eca6f99f7719e492a53",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "functions": {},
+      "imports": [
+        "from __future__ import annotations",
+        "from copy import deepcopy",
+        "import hashlib",
+        "import json",
+        "from pathlib import Path",
+        "import re",
+        "from typing import Any, Iterable, Mapping, Sequence",
+        "from infrastructure.preselection_pool_store import PreselectionPoolStore",
+        "from .contracts import EIGHT_STAGES, SAFETY_FLAGS",
+        "from .execution_evidence import read_stage_execution, research_source_projection",
+        "from .selection import SelectionError, SelectionStore, _validate_date, _validate_market, _validate_stage"
+      ],
+      "feature_tokens": {
+        "research_source_projection": true,
+        "selection_store": true,
+        "selection_stores": true,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "72c801a38c89043ac44d9f1453bbc549421f0f02",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/72c801a38c89043ac44d9f1453bbc549421f0f02/SOURCE_MANIFEST.json",
+      "bytes_expected": 12377,
+      "bytes_actual": 12377,
+      "sha256": "2386a55fc451fd809d4c402ee6df7e83fd979232ea5fd842c98a779c90c8c1e1",
+      "git_blob_sha1_actual": "72c801a38c89043ac44d9f1453bbc549421f0f02",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": false,
+        "selection_stores": false,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    },
+    {
+      "git_blob_sha1_expected": "f984c28f24c86978f31e26e2d8b39b17e70913ff",
+      "file": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/f984c28f24c86978f31e26e2d8b39b17e70913ff/SOURCE_MAP.json",
+      "bytes_expected": 24434,
+      "bytes_actual": 24434,
+      "sha256": "f402f93009ff1e8ef588e04c994eec1897274d80970fc20ee07748a506156ce4",
+      "git_blob_sha1_actual": "f984c28f24c86978f31e26e2d8b39b17e70913ff",
+      "git_blob_matches": true,
+      "size_matches": true,
+      "feature_tokens": {
+        "research_source_projection": false,
+        "selection_store": false,
+        "selection_stores": false,
+        "--verified-source-store-root": false,
+        "verified_source_store_root": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+
+ RUN  v4.1.10 /workspace/scratch/90a399518fca/review_history/frontend/candidate_web
+
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong run_id 5ms
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong target_trade_date 1ms
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong input_identity 1ms
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong owner 1ms
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong state 1ms
+ ✓ review/independentR2Review.spec.ts > does not fall back to matching latest when exact attempt has wrong execution_kind 0ms
+ ✓ review/independentR2Review.spec.ts > retains the legacy latest-attempt fallback only when exact field is absent 1ms
+ ✓ review/independentR2Review.spec.ts > does not treat explicit null exact attempt as an absent legacy field 0ms
+ ✓ review/independentR2Review.spec.ts > rejects channel product SHA disagreement even with matching exact attempt 1ms
+ ✓ review/independentR2Review.spec.ts > keeps a later failed latest attempt intact while admitting the exact archived result 1ms
+ × review/independentR2Review.spec.ts > renders retained risk notes of an unmapped source on the first screen 39ms
+   → expected 'ANNOUNCEMENT · 公告研究PARTIAL · 部分结果，仍有待…' to contain '独立审查：未映射源退市风险'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  review/independentR2Review.spec.ts > renders retained risk notes of an unmapped source on the first screen
+AssertionError: expected 'ANNOUNCEMENT · 公告研究PARTIAL · 部分结果，仍有待…' to contain '独立审查：未映射源退市风险'
+
+Expected: "独立审查：未映射源退市风险"
+Received: "ANNOUNCEMENT · 公告研究PARTIAL · 部分结果，仍有待核候选数量未知 · 观察 0 · 待核 0数据日 20261007原 owner ManagerResearchJobService.import_announcement_analysis运行编号 11111111111111111111111111111111 · 原公告 owner 导入，触发方式未分类产物 SHA256 064db6fd32d7a9d5d0f5df77d5aaa7d0a4c5f08b63d367e31616880bdf1d74aa · 输入身份 3df182a215fc52cc341e3d01eb11c7bbab12faa04c3e78f846cc98047126cf99产物时间 2026-10-08T01:00:00.000000+00:00缺口 2 项：ANNOUNCEMENT_SELECTED_REFERENCE_ACCOUNTING_MISMATCH；ANNOUNCEMENT_SOURCE_SYMBOL_UNMAPPED未映射源代码 1 项；原研究判断保留，候选汇总尚不完整。H5354 · Test issuer · 原判断 SELECTED当前没有可展示的已核候选，待核记录见详情。自然时段运行验收：CANNOT_CONFIRM（未核实）。来源、运行与缺件详情"
+
+ ❯ review/independentR2Review.spec.ts:66:36
+     64|   expect(announcement.textContent).toContain('H5354');
+     65|   expect(announcement.querySelector('[data-daily-symbol="HK.05354"]'))…
+     66|   expect(announcement.textContent).toContain('独立审查：未映射源退市风险');
+       |                                    ^
+     67| });
+     68|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 passed (11)
+   Start at  17:11:50
+   Duration  2.56s (transform 530ms, setup 0ms, import 593ms, tests 52ms, environment 1.57s)
+
+JSON report written to /workspace/scratch/90a399518fca/review_history/frontend/independent_boundary_results.json

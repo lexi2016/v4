@@ -1,0 +1,95 @@
+
+ RUN  v4.1.10 /workspace/scratch/90a399518fca/review_history/frontend/r1_frontend_counterfactual_web
+
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > sends plan, selection and publication days independently on the canonical GET 13ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects a response for a different selected publication day 2ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > preserves legacy workspace parsing when the optional extension is absent 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects wrong schema before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects unsafe extension before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects duplicate channels before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects unknown as zero before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects negative count before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects invalid symbol before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects mismatched row date before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects unbound row run before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects timezone missing before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects invalid calendar date before the new first-screen view is admitted 0ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects false natural acceptance before the new first-screen view is admitted 1ms
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > binds the publication alias deterministically through the actual GET: publication_date=20261006 165ms
+   → expected false to be true // Object.is equality
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > binds the publication alias deterministically through the actual GET: publication_date=20261006&announcement_date=20261007 51ms
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > rebinds one legacy default GET when a new backend returns different display/publication dates 31ms
+   → expected [ [ …(2) ] ] to have a length of 2 but got 1
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > renders stock, original reason, data date, run and status without expanding diagnostics 41ms
+   → expected false to be true // Object.is equality
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > shows three unverified channels for an older workspace instead of inferring zero counts 22ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > reloads the selected canonical GET after manual generation and does not claim a scheduled run 50ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > aborts the older plan request and never lets its late response replace selected bindings 27ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > keeps cancellation effective while the one-time legacy binding read is pending 20ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > binds the publication alias deterministically through the actual GET: publication_date=20261006
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:64:129
+     62|     const url = String(fetchMock.mock.calls.find(call => String(call[0…
+     63|     expect(new URL(url, 'http://localhost').searchParams.get('announce…
+     64|     expect(fetchMock.mock.calls.some(call => String(call[0]) === `/api…
+       |                                                                                                                                 ^
+     65|   });
+     66|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > rebinds one legacy default GET when a new backend returns different display/publication dates
+AssertionError: expected [ [ …(2) ] ] to have a length of 2 but got 1
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:79:19
+     77|     await waitFor(() => expect(host.querySelector('[data-daily-channel…
+     78|     const reads = fetchMock.mock.calls.filter(call => String(call[0]).…
+     79|     expect(reads).toHaveLength(2);
+       |                   ^
+     80|     expect(String(reads[1][0])).toContain('selection_date=20261006');
+     81|     expect(String(reads[1][0])).toContain('announcement_date=20261006'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > renders stock, original reason, data date, run and status without expanding diagnostics
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:106:123
+    104|     const get = fetchMock.mock.calls.map(call => String(call[0])).find…
+    105|     expect(new URL(get, 'http://localhost').searchParams.get('announce…
+    106|     expect(fetchMock.mock.calls.some(call => String(call[0]) === '/api…
+       |                                                                                                                           ^
+    107|   });
+    108|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 19 passed (22)
+   Start at  17:12:58
+   Duration  2.24s (transform 554ms, setup 0ms, import 863ms, tests 434ms, environment 679ms)
+
+JSON report written to /workspace/scratch/90a399518fca/review_history/frontend/r1_counterfactual_runtime_results.json

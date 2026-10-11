@@ -1,0 +1,14 @@
+src/App.vue(6,26): error TS2307: Cannot find module './views/ResearchView.vue' or its corresponding type declarations.
+src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts(3,26): error TS2307: Cannot find module './issue8R2.ownerObservations.json' or its corresponding type declarations.
+src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts(13,49): error TS7006: Parameter 'row' implicitly has an 'any' type.
+src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts(26,38): error TS7006: Parameter 'row' implicitly has an 'any' type.
+src/manager-selection/threeLaneReadbackR2.spec.ts(37,3): error TS18046: 'value.workspace_plan_product_attempt' is of type 'unknown'.
+src/manager-selection/threeLaneReadbackR2.spec.ts(50,19): error TS2339: Property 'risk_notes' does not exist on type 'Record<string, unknown> | { symbol: string; name: string; reason: string; selection_status: string; data_date: string; target_trade_date: string; run_id: string; generated_at: string; product_sha256: string; source_manifest_sha256: string; source_refs: { ...; }[]; }'.
+  Property 'risk_notes' does not exist on type '{ symbol: string; name: string; reason: string; selection_status: string; data_date: string; target_trade_date: string; run_id: string; generated_at: string; product_sha256: string; source_manifest_sha256: string; source_refs: { ...; }[]; }'.
+src/manager-selection/threeLaneReadbackR2.spec.ts(51,11): error TS2339: Property 'unmapped_references' does not exist on type '{ status: string; candidate_count: number; watch_count: number; data_date: string; run_id: string; generated_at: string; product_sha256: string; input_identity: string; execution_kind: string; ... 15 more ...; orders_sent: boolean; } | { ...; }'.
+  Property 'unmapped_references' does not exist on type '{ status: string; candidate_count: number; watch_count: number; data_date: string; run_id: string; generated_at: string; product_sha256: string; input_identity: string; execution_kind: string; ... 15 more ...; orders_sent: boolean; }'.
+src/manager-selection/threeLaneReadbackR2.spec.ts(53,75): error TS2345: Argument of type '{ schema_version: string; date_bindings: { plan_date: string; selection_date: string; announcement_date: string; }; channels: ({ status: string; candidate_count: number; watch_count: number; ... 21 more ...; orders_sent: boolean; } | { ...; })[]; ... 4 more ...; orders_sent: boolean; }' is not assignable to parameter of type 'DailyChannels'.
+  Types of property 'schema_version' are incompatible.
+    Type 'string' is not assignable to type '"v4.manager_research.daily_channels.v1"'.
+src/views/ManagerSelectionView.spec.ts(4,1): error TS2578: Unused '@ts-expect-error' directive.
+src/views/ManagerSelectionView.spec.ts(6,1): error TS2578: Unused '@ts-expect-error' directive.

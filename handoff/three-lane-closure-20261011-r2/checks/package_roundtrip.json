@@ -1,0 +1,33 @@
+{
+  "scope": "ISOLATED_PATCH_APPLY_AND_REVERSE_BYTE_VERIFICATION_NOT_MAC_DEPLOYMENT",
+  "checks": [
+    {
+      "phase": "before",
+      "status": "BYTES_MATCH",
+      "matched_files": 22,
+      "parallel_sentinel_unchanged": true
+    },
+    {
+      "phase": "after",
+      "status": "BYTES_MATCH",
+      "matched_files": 22,
+      "parallel_sentinel_unchanged": true
+    },
+    {
+      "phase": "before",
+      "status": "BYTES_MATCH",
+      "matched_files": 22,
+      "parallel_sentinel_unchanged": true
+    }
+  ],
+  "symlink_root_rejected": true,
+  "unsafe_relative_paths_rejected": [
+    "../outside",
+    "/absolute",
+    "a/../../outside",
+    "./v4/x",
+    "a//x"
+  ],
+  "temporary_target_cleaned_after_run": true,
+  "status": "PASS"
+}

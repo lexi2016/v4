@@ -1,0 +1,48 @@
+F......F                                                                 [100%]
+=================================== FAILURES ===================================
+_____ test_unproven_panel_volume_uses_original_complete_six_bar_supplement _____
+
+tabular_input = {'root': PosixPath('/tmp/pytest-of-root/pytest-26/test_unproven_panel_volume_use0'), 'context': {'plan_trade_date': '2...anel_session': '20261008', 'calendar_sha256': '9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb'}, ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7facc18dc9d0>
+
+    def test_unproven_panel_volume_uses_original_complete_six_bar_supplement(tabular_input, monkeypatch):
+        fixture = tabular_input; complete_panel(fixture)
+        calls = []
+        sidecar = supplement(fixture)
+        def reader(*args, **kwargs):
+            calls.append((args, kwargs)); return deepcopy(sidecar)
+        monkeypatch.setattr(plan, '_read_hk02_daily_supplement_witness', reader)
+        output = plan.read_rebound_screen(fixture['root'], fixture['context'])
+        observed = row(output)
+>       assert len(calls) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+tests/test_manager_three_lane_rebound_recovery_r2.py:46: AssertionError
+___ test_invalid_present_fields_report_exact_dates_without_identity_changes ____
+
+tabular_input = {'root': PosixPath('/tmp/pytest-of-root/pytest-26/test_invalid_present_fields_re0'), 'context': {'plan_trade_date': '2...anel_session': '20261008', 'calendar_sha256': '9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb'}, ...}
+
+    def test_invalid_present_fields_report_exact_dates_without_identity_changes(tabular_input):
+        fixture = tabular_input; complete_panel(fixture, high_gap=True)
+        path = fixture['panel']['panel_path']; frame = pd.read_parquet(path)
+        invalid_volume_day = fixture['sessions']['previous5'][1]
+        frame.loc[frame['trade_date_compact'].eq(invalid_volume_day), 'trade'] = None
+        frame.loc[frame['trade_date_compact'].eq(fixture['day']), 'close'] = None
+        frame.to_parquet(path, index=False)
+        diagnostics = {}
+        original = plan.read_rebound_screen(fixture['root'], fixture['context'])
+        output = plan.read_rebound_screen(fixture['root'], fixture['context'], diagnostics=diagnostics)
+        assert output == original
+        assert attention(output, fixture['context']) == attention(original, fixture['context'])
+        observed = diagnostics['rows'][0]
+        assert observed['missing_prior60_dates'] == []
+>       assert observed['invalid_prior60_high_dates'] == [fixture['sessions']['prior60'][10]]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'invalid_prior60_high_dates'
+
+tests/test_manager_three_lane_rebound_recovery_r2.py:104: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_manager_three_lane_rebound_recovery_r2.py::test_unproven_panel_volume_uses_original_complete_six_bar_supplement
+FAILED tests/test_manager_three_lane_rebound_recovery_r2.py::test_invalid_present_fields_report_exact_dates_without_identity_changes
+2 failed, 6 passed in 4.27s

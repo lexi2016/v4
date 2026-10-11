@@ -1,0 +1,23 @@
+ apps/web/src/api/managerWorkspace.ts               |   5 +-
+ .../manager-selection/catalystObservationPanel.ts  |  60 +-
+ apps/web/src/manager-selection/dailyChannels.ts    |  19 +-
+ .../three_lane_r2/frontend_H5354_workspace.json    |   1 +
+ .../frontend_retrospective_workspace.json          |   1 +
+ .../threeLaneDateBindings.spec.ts                  | 171 +++++
+ .../manager-selection/threeLaneReadbackR2.spec.ts  |  61 ++
+ ops/run_manager_announcement_cycle.py              |   1 +
+ stage_center/consumer.py                           |   5 +-
+ tests/test_manager_three_lane_channels_r1.py       | 310 +++++++++
+ tests/test_manager_three_lane_channels_r2.py       |  84 +++
+ tests/test_manager_three_lane_history_r1.py        | 258 ++++++++
+ tests/test_manager_three_lane_history_r2.py        | 121 ++++
+ tests/test_manager_three_lane_owner_readback_r2.py | 169 +++++
+ ...st_manager_three_lane_rebound_diagnostics_r1.py | 154 +++++
+ .../test_manager_three_lane_rebound_recovery_r2.py | 123 ++++
+ tests/three_lane_announcement_original_fixture.py  | 715 +++++++++++++++++++++
+ v4/manager_research/service.py                     |  14 +-
+ v4/manager_research/workspace.py                   |  24 +-
+ v4/manager_research/workspace_daily_channels.py    | 345 ++++++++--
+ v4/manager_research/workspace_history.py           | 148 ++++-
+ v4/manager_research/workspace_plan.py              |  68 +-
+ 22 files changed, 2737 insertions(+), 120 deletions(-)

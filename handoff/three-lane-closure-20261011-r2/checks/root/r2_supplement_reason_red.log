@@ -1,0 +1,22 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___ test_failed_original_supplement_validation_keeps_precise_recovery_reason ___
+
+tabular_input = {'root': PosixPath('/tmp/pytest-of-root/pytest-33/test_failed_original_supplemen0'), 'context': {'plan_trade_date': '2...anel_session': '20261008', 'calendar_sha256': '9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb'}, ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f70866d4c30>
+
+    def test_failed_original_supplement_validation_keeps_precise_recovery_reason(tabular_input, monkeypatch):
+        fixture = tabular_input; complete_panel(fixture)
+        def rejected(*args, **kwargs):
+            raise ValueError('HK_DAILY_SUPPLEMENT_PANEL_SHA_MISMATCH')
+        monkeypatch.setattr(plan, '_read_hk02_daily_supplement_witness', rejected)
+        diagnostics = {}
+        output = plan.read_rebound_screen(fixture['root'], fixture['context'], diagnostics=diagnostics)
+        expected = 'SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_PANEL_SHA_MISMATCH'
+>       assert expected in output['gaps']
+E       AssertionError: assert 'SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_PANEL_SHA_MISMATCH' in ['SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001', 'SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH', 'SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN']
+
+tests/test_manager_three_lane_rebound_recovery_r2.py:101: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_three_lane_rebound_recovery_r2.py::test_failed_original_supplement_validation_keeps_precise_recovery_reason
+1 failed, 8 deselected in 3.29s

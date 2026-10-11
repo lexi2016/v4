@@ -1,0 +1,1745 @@
+FF.FFFF..FFFF.......FFFFFFFFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFFFFFF...FFF.... [ 97%]
+.s                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_many_large_retrospective_runs_use_same_owner_journals_without_scan_overflow _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_many_large_retrospective_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa22770f950>
+
+    def test_many_large_retrospective_runs_use_same_owner_journals_without_scan_overflow(tmp_path, monkeypatch):
+        store = ManagerResearchStore(tmp_path/'store')
+        for n in range(1, 7):
+            stored(store, n, f'2026-10-10T10:0{n}:00+08:00', padding=18000, latest=n == 6)
+        monkeypatch.setattr(history, '_MAX_SCAN_BYTES', 65536)
+        before = hashes(store.root)
+        reads = []
+        original = store._io.read_bytes
+        def read(path, **kw):
+            data = original(path, **kw)
+            reads.append((path, len(data)))
+            return data
+        monkeypatch.setattr(store._io, 'read_bytes', read)
+>       assert history.select_plan(store, DATE, history.boundary_context(DATE)) is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_three_lane_history_r1.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <v4.manager_research.store.ManagerResearchStore object at 0x7fa2276797f0>
+date = '20261009'
+boundary = {'plan_trade_date': '20261009', 'research_cutoff': '2026-10-09T09:30:00+08:00', 'market_session': '20261008', 'market_session_close': '2026-10-08T16:10:00+08:00', ...}
+
+    def select_plan(store: Any, date: str, boundary: Mapping[str, Any]) -> dict | None:
+        limit = timestamp(boundary['research_cutoff'])
+        def eligible(row: dict | None) -> bool:
+            return bool(row and timestamp(row['generated_at']) <= limit
+                and timestamp(row['workspace']['plan_context']['research_cutoff']) <= limit)
+        latest, total = _read_candidate(store, date, 'latest.json', boundary=boundary)
+        if eligible(latest):
+            return latest
+        # A later dynamic refresh must not mask an earlier exact-date pre-session
+        # run. Bound both directory traversal and total bytes; no date fallback.
+        names = []
+        try:
+            with store._io.directory(f'workspace_plans/{date}') as fd:
+                with os.scandir(fd) as entries:
+                    for index, entry in enumerate(entries):
+                        if index >= 256:
+                            raise ValueError('HISTORY_RUN_DIRECTORY_BOUND_EXCEEDED')
+                        if entry.name == 'latest.json':
+                            continue
+                        if re.fullmatch(r'[0-9a-f]{32}\.json', entry.name):
+                            if not entry.is_file(follow_symlinks=False):
+                                raise ValueError('HISTORY_RUN_FILE_UNSAFE')
+                            names.append(entry.name)
+                            if len(names) > _MAX_RUNS:
+                                raise ValueError('HISTORY_RUN_COUNT_BOUND_EXCEEDED')
+        except FileNotFoundError:
+            return None
+        candidates = []
+        for name in sorted(names):
+            checkpoint()
+            row, size = _read_candidate(store, date, name, boundary=boundary)
+            total += size
+            if total > _MAX_SCAN_BYTES:
+>               raise ValueError('HISTORY_RUN_BYTES_BOUND_EXCEEDED')
+E               ValueError: HISTORY_RUN_BYTES_BOUND_EXCEEDED
+
+v4/manager_research/workspace_history.py:148: ValueError
+____________ test_late_journals_do_not_mask_one_valid_earlier_plan _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_late_journals_do_not_mask0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa22770fbb0>
+
+    def test_late_journals_do_not_mask_one_valid_earlier_plan(tmp_path, monkeypatch):
+        store = ManagerResearchStore(tmp_path/'store')
+        expected, _ = stored(store, 1, '2026-10-09T09:28:00+08:00', padding=18000)
+        for n in range(2, 7):
+            stored(store, n, f'2026-10-10T10:0{n}:00+08:00', padding=18000, latest=n == 6)
+        monkeypatch.setattr(history, '_MAX_SCAN_BYTES', 65536)
+>       got = history.select_plan(store, DATE, history.boundary_context(DATE))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_three_lane_history_r1.py:76: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <v4.manager_research.store.ManagerResearchStore object at 0x7fa227719f90>
+date = '20261009'
+boundary = {'plan_trade_date': '20261009', 'research_cutoff': '2026-10-09T09:30:00+08:00', 'market_session': '20261008', 'market_session_close': '2026-10-08T16:10:00+08:00', ...}
+
+    def select_plan(store: Any, date: str, boundary: Mapping[str, Any]) -> dict | None:
+        limit = timestamp(boundary['research_cutoff'])
+        def eligible(row: dict | None) -> bool:
+            return bool(row and timestamp(row['generated_at']) <= limit
+                and timestamp(row['workspace']['plan_context']['research_cutoff']) <= limit)
+        latest, total = _read_candidate(store, date, 'latest.json', boundary=boundary)
+        if eligible(latest):
+            return latest
+        # A later dynamic refresh must not mask an earlier exact-date pre-session
+        # run. Bound both directory traversal and total bytes; no date fallback.
+        names = []
+        try:
+            with store._io.directory(f'workspace_plans/{date}') as fd:
+                with os.scandir(fd) as entries:
+                    for index, entry in enumerate(entries):
+                        if index >= 256:
+                            raise ValueError('HISTORY_RUN_DIRECTORY_BOUND_EXCEEDED')
+                        if entry.name == 'latest.json':
+                            continue
+                        if re.fullmatch(r'[0-9a-f]{32}\.json', entry.name):
+                            if not entry.is_file(follow_symlinks=False):
+                                raise ValueError('HISTORY_RUN_FILE_UNSAFE')
+                            names.append(entry.name)
+                            if len(names) > _MAX_RUNS:
+                                raise ValueError('HISTORY_RUN_COUNT_BOUND_EXCEEDED')
+        except FileNotFoundError:
+            return None
+        candidates = []
+        for name in sorted(names):
+            checkpoint()
+            row, size = _read_candidate(store, date, name, boundary=boundary)
+            total += size
+            if total > _MAX_SCAN_BYTES:
+>               raise ValueError('HISTORY_RUN_BYTES_BOUND_EXCEEDED')
+E               ValueError: HISTORY_RUN_BYTES_BOUND_EXCEEDED
+
+v4/manager_research/workspace_history.py:148: ValueError
+_____________ test_invalid_journal_cannot_authorize_exclusion[sha] _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_invalid_journal_cannot_au0')
+corrupt = 'sha'
+
+    @pytest.mark.parametrize('corrupt', ['sha', 'owner', 'run', 'date'])
+    def test_invalid_journal_cannot_authorize_exclusion(tmp_path, corrupt):
+        store = ManagerResearchStore(tmp_path/'store')
+        _, attempt = stored(store, 1, '2026-10-10T10:00:00+08:00')
+        stored(store, 2, '2026-10-10T10:01:00+08:00', latest=True)
+        changed = deepcopy(attempt)
+        if corrupt == 'sha':
+            changed['sha256'] = '0' * 64
+        else:
+            changed[{'owner': 'owner', 'run': 'run_id', 'date': 'target_trade_date'}[corrupt]] = {
+                'owner': 'another-owner', 'run': 'f' * 32, 'date': '20261008'}[corrupt]
+            changed = w.seal_attempt(changed)
+        store._write_atomic(store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json'), changed)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_three_lane_history_r1.py:101: Failed
+____________ test_invalid_journal_cannot_authorize_exclusion[owner] ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_invalid_journal_cannot_au1')
+corrupt = 'owner'
+
+    @pytest.mark.parametrize('corrupt', ['sha', 'owner', 'run', 'date'])
+    def test_invalid_journal_cannot_authorize_exclusion(tmp_path, corrupt):
+        store = ManagerResearchStore(tmp_path/'store')
+        _, attempt = stored(store, 1, '2026-10-10T10:00:00+08:00')
+        stored(store, 2, '2026-10-10T10:01:00+08:00', latest=True)
+        changed = deepcopy(attempt)
+        if corrupt == 'sha':
+            changed['sha256'] = '0' * 64
+        else:
+            changed[{'owner': 'owner', 'run': 'run_id', 'date': 'target_trade_date'}[corrupt]] = {
+                'owner': 'another-owner', 'run': 'f' * 32, 'date': '20261008'}[corrupt]
+            changed = w.seal_attempt(changed)
+        store._write_atomic(store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json'), changed)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_three_lane_history_r1.py:101: Failed
+_____________ test_invalid_journal_cannot_authorize_exclusion[run] _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_invalid_journal_cannot_au2')
+corrupt = 'run'
+
+    @pytest.mark.parametrize('corrupt', ['sha', 'owner', 'run', 'date'])
+    def test_invalid_journal_cannot_authorize_exclusion(tmp_path, corrupt):
+        store = ManagerResearchStore(tmp_path/'store')
+        _, attempt = stored(store, 1, '2026-10-10T10:00:00+08:00')
+        stored(store, 2, '2026-10-10T10:01:00+08:00', latest=True)
+        changed = deepcopy(attempt)
+        if corrupt == 'sha':
+            changed['sha256'] = '0' * 64
+        else:
+            changed[{'owner': 'owner', 'run': 'run_id', 'date': 'target_trade_date'}[corrupt]] = {
+                'owner': 'another-owner', 'run': 'f' * 32, 'date': '20261008'}[corrupt]
+            changed = w.seal_attempt(changed)
+        store._write_atomic(store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json'), changed)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_three_lane_history_r1.py:101: Failed
+____________ test_invalid_journal_cannot_authorize_exclusion[date] _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_invalid_journal_cannot_au3')
+corrupt = 'date'
+
+    @pytest.mark.parametrize('corrupt', ['sha', 'owner', 'run', 'date'])
+    def test_invalid_journal_cannot_authorize_exclusion(tmp_path, corrupt):
+        store = ManagerResearchStore(tmp_path/'store')
+        _, attempt = stored(store, 1, '2026-10-10T10:00:00+08:00')
+        stored(store, 2, '2026-10-10T10:01:00+08:00', latest=True)
+        changed = deepcopy(attempt)
+        if corrupt == 'sha':
+            changed['sha256'] = '0' * 64
+        else:
+            changed[{'owner': 'owner', 'run': 'run_id', 'date': 'target_trade_date'}[corrupt]] = {
+                'owner': 'another-owner', 'run': 'f' * 32, 'date': '20261008'}[corrupt]
+            changed = w.seal_attempt(changed)
+        store._write_atomic(store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json'), changed)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_three_lane_history_r1.py:101: Failed
+________________ test_same_run_journal_symlink_is_not_followed _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_same_run_journal_symlink_0')
+
+    def test_same_run_journal_symlink_is_not_followed(tmp_path):
+        store = ManagerResearchStore(tmp_path/'store')
+        _, attempt = stored(store, 1, '2026-10-10T10:00:00+08:00')
+        stored(store, 2, '2026-10-10T10:01:00+08:00', latest=True)
+        path = store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json')
+        other = tmp_path/'outside.json'
+        other.write_bytes(path.read_bytes())
+        path.unlink()
+        path.symlink_to(other)
+>       with pytest.raises((ValueError, OSError)):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE any of (ValueError, OSError)
+
+tests/test_manager_three_lane_history_r1.py:133: Failed
+______________ test_remaining_body_budget_is_enforced_before_read ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_remaining_body_budget_is_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa2277684d0>
+
+    def test_remaining_body_budget_is_enforced_before_read(tmp_path, monkeypatch):
+        store = ManagerResearchStore(tmp_path/'store')
+        for n in range(1, 5):
+            product, attempt = stored(store, n, f'2026-10-10T10:0{n}:00+08:00', padding=18000, latest=n == 4)
+            (store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json')).unlink()
+        monkeypatch.setattr(history, '_MAX_SCAN_BYTES', 65536)
+        reads = []
+        original = store._io.read_bytes
+        def read(path, **kw):
+            data = original(path, **kw)
+            reads.append((path, len(data)))
+            return data
+        monkeypatch.setattr(store._io, 'read_bytes', read)
+        with pytest.raises(ValueError):
+            history.select_plan(store, DATE, history.boundary_context(DATE))
+>       assert sum(size for path, size in reads if path.startswith('workspace_plans/')) <= 65536
+E       assert 79376 <= 65536
+E        +  where 79376 = sum(<generator object test_remaining_body_budget_is_enforced_before_read.<locals>.<genexpr> at 0x7fa227609d20>)
+
+tests/test_manager_three_lane_history_r1.py:152: AssertionError
+__ test_saved_owner_readback_preserves_execution_context_and_rejects_mismatch __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_saved_owner_readback_pres0')
+
+    def test_saved_owner_readback_preserves_execution_context_and_rejects_mismatch(tmp_path):
+        from ops.run_manager_announcement_cycle import _saved_owner_readback
+        from v4.manager_research.workspace_plan_autorun import owner_plan_readback
+        store = ManagerResearchStore(tmp_path/'store')
+        product, attempt = stored(store, 1, '2026-10-09T10:00:01+08:00',
+            started='2026-10-09T10:00:00+08:00', finished='2026-10-09T10:00:02+08:00')
+        execution = dict(trigger_kind='SCHEDULED', timing='LATE_CATCHUP',
+            scheduled_for='2026-10-09T10:00:00+08:00', started_at=attempt['started_at'],
+            finished_at=attempt['finished_at'], natural_run_verified=False)
+        product['execution_context'] = deepcopy(execution)
+        product['sha256'] = digest({k: v for k, v in product.items() if k != 'sha256'})
+        attempt['execution_context'] = deepcopy(execution)
+        attempt = w.seal_attempt(attempt)
+        store._write_atomic(store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json'), attempt)
+        service = SimpleNamespace(store=store)
+        got = _saved_owner_readback(service, DATE, product)
+>       result = owner_plan_readback(got, DATE, expected_kind='MANUAL_REFRESH')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_three_lane_history_r1.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = {'schema_version': 'v4.manager_research.workspace.v1', 'target_trade_date': '20261009', 'semantic_version': 'three-lane-history-fixture', 'stocks': [], ...}
+target_trade_date = '20261009', expected_kind = 'MANUAL_REFRESH'
+allow_preserved_preopen = False
+
+    def owner_plan_readback(value: Any, target_trade_date: str, *, expected_kind: str,
+                            allow_preserved_preopen: bool = False) -> dict[str, Any]:
+        """Accept only an existing owner's exact product and same-run terminal attempt."""
+        from .workspace import validate_attempt
+    
+        date = date_token(target_trade_date)
+        product = value.get("plan_product") if isinstance(value, Mapping) else None
+        attempt = value.get("workspace_plan_attempt") if isinstance(value, Mapping) else None
+        if not isinstance(product, Mapping) or not isinstance(attempt, Mapping):
+            raise ValueError("PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED")
+        attempt = validate_attempt(attempt, date)
+        kind = product.get("execution_kind")
+        product_status = product.get("status")
+        preserved = (allow_preserved_preopen and product_status == "PRESERVED_SCHEDULED_PREOPEN"
+                     and kind == "SCHEDULED_PREOPEN")
+        if kind != expected_kind and not preserved:
+            raise ValueError("PLAN_OWNER_EXECUTION_KIND_MISMATCH")
+        run_id = str(product.get("run_id") or "")
+        product_sha = str(product.get("sha256") or "")
+        identity = str(value.get("input_identity") or "")
+        generated = timestamp(product.get("generated_at"))
+        execution_context = product.get("execution_context")
+        attempt_context = attempt.get("execution_context")
+        execution_context_valid = True
+        if execution_context is not None or attempt_context is not None:
+            if not isinstance(execution_context, Mapping) or not isinstance(attempt_context, Mapping):
+                execution_context_valid = False
+            elif dict(execution_context) != dict(attempt_context):
+                execution_context_valid = False
+            else:
+                start = timestamp(execution_context.get("started_at"))
+                finish = timestamp(execution_context.get("finished_at"))
+                scheduled_for = timestamp(execution_context.get("scheduled_for")) if execution_context.get("scheduled_for") else None
+                execution_context_valid = bool(
+                    execution_context.get("trigger_kind") in {"SCHEDULED","MANUAL","UNKNOWN"}
+                    and execution_context.get("timing") in {"ON_TIME","LATE_CATCHUP","RETROSPECTIVE","UNCLASSIFIED"}
+                    and execution_context.get("natural_run_verified") is False
+                    and start is not None and finish is not None and generated is not None
+                    and start <= generated <= finish
+                    and (scheduled_for is None or scheduled_for <= start)
+                    and (execution_context.get("trigger_kind") != "SCHEDULED" or scheduled_for is not None))
+        if (value.get("target_trade_date") != date
+                or product_status not in {"CURRENT", "ALREADY_MATERIALIZED", "PRESERVED_SCHEDULED_PREOPEN"}
+                or product.get("consumed") is not True
+                or product.get("original_owner") != PLAN_OWNER
+                or not re.fullmatch(r"[0-9a-f]{32}", run_id)
+                or not re.fullmatch(r"[0-9a-f]{64}", product_sha)
+                or not re.fullmatch(r"[0-9a-f]{64}", identity)
+                or generated is None or attempt.get("run_id") != run_id
+                or attempt.get("owner") != PLAN_OWNER or attempt.get("execution_kind") != kind
+                or attempt.get("input_identity") != identity
+                or attempt.get("state") not in {"SUCCEEDED", "SUCCEEDED_EMPTY", "PARTIAL"}
+                or (attempt.get("state") == "PARTIAL") != bool(attempt.get("failure_reasons"))
+                or not execution_context_valid
+                or timestamp(attempt.get("started_at")) > generated
+                or timestamp(attempt.get("finished_at")) < generated):
+>           raise ValueError("PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH")
+E           ValueError: PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH
+
+v4/manager_research/workspace_plan_autorun.py:96: ValueError
+____ test_history_accepts_same_semantics_after_global_registry_only_change _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-19/test_history_accepts_same_sema0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa2275e89e0>
+
+    def test_history_accepts_same_semantics_after_global_registry_only_change(tmp_path, monkeypatch):
+        before, after = frozen_workspace('e'*64), frozen_workspace('f'*64)
+        assert before['input_identity'] == after['input_identity']
+        assert before['materials'] != after['materials']
+        result = read_frozen_workspace(tmp_path, monkeypatch, before, after)
+>       assert result['plan_product']['consumed'] is True
+E       assert False is True
+
+tests/test_manager_three_lane_history_r1.py:223: AssertionError
+___ test_daily_uses_original_ledger_decisions_and_keeps_complete_accounting ____
+
+    def test_daily_uses_original_ledger_decisions_and_keeps_complete_accounting():
+        screen, cards = _fixture()
+        value = workspace(screen, cards)
+        before = deepcopy(value)
+        result = channel(value)
+        ledger = value['research_attention']['research_selection']
+>       assert result['owner'] == 'build_research_selection_ledger'
+E       AssertionError: assert 'EXISTING_HK_...O_GATE_SCREEN' == 'build_resear...ection_ledger'
+E         
+E         - build_research_selection_ledger
+E         + EXISTING_HK_02_REBOUND_TWO_GATE_SCREEN
+
+tests/test_manager_three_lane_channels_r1.py:29: AssertionError
+____ test_strict_rows_without_original_research_priority_remain_unresolved _____
+
+    def test_strict_rows_without_original_research_priority_remain_unresolved():
+        screen, _ = _fixture()
+        result = channel(workspace(screen, []))
+        assert result['status'] == 'PARTIAL'
+>       assert result['rows'] == []
+E       AssertionError: assert [{'symbol': '...DITION', ...}] == []
+E         
+E         Left contains 2 more items, first extra item: {'symbol': 'HK.00001', 'name': 'HK.00001', 'reason': '原strict两门均通过；成交额与反弹只作观察', 'selection_status': 'SELECTED', ...}
+E         Use -v to get more diff
+
+tests/test_manager_three_lane_channels_r1.py:46: AssertionError
+_ test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger[missing_ledger] _
+
+broken = 'missing_ledger'
+
+    @pytest.mark.parametrize('broken', ['missing_ledger', 'wrong_target', 'wrong_source', 'wrong_decisions'])
+    def test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger(broken):
+        screen, cards = _fixture()
+        value = workspace(screen, cards)
+        ledger = value['research_attention']['research_selection']
+        if broken == 'missing_ledger':
+            value['research_attention'] = {}
+        elif broken == 'wrong_target':
+            ledger['target_trade_date'] = '20261005'
+        elif broken == 'wrong_source':
+            ledger['source_input_identity'] = 'f' * 64
+        else:
+            ledger['decisions'][0]['decision_reason'] = 'changed after original owner projection'
+        result = channel(value)
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'PARTIAL' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + PARTIAL
+
+tests/test_manager_three_lane_channels_r1.py:66: AssertionError
+_ test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger[wrong_target] _
+
+broken = 'wrong_target'
+
+    @pytest.mark.parametrize('broken', ['missing_ledger', 'wrong_target', 'wrong_source', 'wrong_decisions'])
+    def test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger(broken):
+        screen, cards = _fixture()
+        value = workspace(screen, cards)
+        ledger = value['research_attention']['research_selection']
+        if broken == 'missing_ledger':
+            value['research_attention'] = {}
+        elif broken == 'wrong_target':
+            ledger['target_trade_date'] = '20261005'
+        elif broken == 'wrong_source':
+            ledger['source_input_identity'] = 'f' * 64
+        else:
+            ledger['decisions'][0]['decision_reason'] = 'changed after original owner projection'
+        result = channel(value)
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'PARTIAL' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + PARTIAL
+
+tests/test_manager_three_lane_channels_r1.py:66: AssertionError
+_ test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger[wrong_source] _
+
+broken = 'wrong_source'
+
+    @pytest.mark.parametrize('broken', ['missing_ledger', 'wrong_target', 'wrong_source', 'wrong_decisions'])
+    def test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger(broken):
+        screen, cards = _fixture()
+        value = workspace(screen, cards)
+        ledger = value['research_attention']['research_selection']
+        if broken == 'missing_ledger':
+            value['research_attention'] = {}
+        elif broken == 'wrong_target':
+            ledger['target_trade_date'] = '20261005'
+        elif broken == 'wrong_source':
+            ledger['source_input_identity'] = 'f' * 64
+        else:
+            ledger['decisions'][0]['decision_reason'] = 'changed after original owner projection'
+        result = channel(value)
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'PARTIAL' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + PARTIAL
+
+tests/test_manager_three_lane_channels_r1.py:66: AssertionError
+_ test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger[wrong_decisions] _
+
+broken = 'wrong_decisions'
+
+    @pytest.mark.parametrize('broken', ['missing_ledger', 'wrong_target', 'wrong_source', 'wrong_decisions'])
+    def test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger(broken):
+        screen, cards = _fixture()
+        value = workspace(screen, cards)
+        ledger = value['research_attention']['research_selection']
+        if broken == 'missing_ledger':
+            value['research_attention'] = {}
+        elif broken == 'wrong_target':
+            ledger['target_trade_date'] = '20261005'
+        elif broken == 'wrong_source':
+            ledger['source_input_identity'] = 'f' * 64
+        else:
+            ledger['decisions'][0]['decision_reason'] = 'changed after original owner projection'
+        result = channel(value)
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'PARTIAL' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + PARTIAL
+
+tests/test_manager_three_lane_channels_r1.py:66: AssertionError
+____ test_unrun_or_failed_screen_is_unknown_even_with_empty_lists[NOT_RUN] _____
+
+state = 'NOT_RUN'
+
+    @pytest.mark.parametrize('state', ['NOT_RUN', 'PENDING_SLOT', 'FAILED'])
+    def test_unrun_or_failed_screen_is_unknown_even_with_empty_lists(state):
+        screen = dict(status=state, strict=[], near=[], pending=[], screen_unresolved=[], excluded=[])
+        result = channel(workspace(screen, []))
+        assert result['status'] == 'CANNOT_CONFIRM'
+>       assert result['source_status'] == state
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'source_status'
+
+tests/test_manager_three_lane_channels_r1.py:76: KeyError
+__ test_unrun_or_failed_screen_is_unknown_even_with_empty_lists[PENDING_SLOT] __
+
+state = 'PENDING_SLOT'
+
+    @pytest.mark.parametrize('state', ['NOT_RUN', 'PENDING_SLOT', 'FAILED'])
+    def test_unrun_or_failed_screen_is_unknown_even_with_empty_lists(state):
+        screen = dict(status=state, strict=[], near=[], pending=[], screen_unresolved=[], excluded=[])
+        result = channel(workspace(screen, []))
+        assert result['status'] == 'CANNOT_CONFIRM'
+>       assert result['source_status'] == state
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'source_status'
+
+tests/test_manager_three_lane_channels_r1.py:76: KeyError
+_____ test_unrun_or_failed_screen_is_unknown_even_with_empty_lists[FAILED] _____
+
+state = 'FAILED'
+
+    @pytest.mark.parametrize('state', ['NOT_RUN', 'PENDING_SLOT', 'FAILED'])
+    def test_unrun_or_failed_screen_is_unknown_even_with_empty_lists(state):
+        screen = dict(status=state, strict=[], near=[], pending=[], screen_unresolved=[], excluded=[])
+        result = channel(workspace(screen, []))
+        assert result['status'] == 'CANNOT_CONFIRM'
+>       assert result['source_status'] == state
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'source_status'
+
+tests/test_manager_three_lane_channels_r1.py:76: KeyError
+_____ test_complete_original_exclusion_is_a_valid_empty_research_selection _____
+
+    def test_complete_original_exclusion_is_a_valid_empty_research_selection():
+        screen, _ = _fixture()
+        screen.update(status='READY', strict=[], near=[], pending=[], cards=[], gaps=[])
+        screen['coverage'].update(input_candidate_count=1, history_complete_count=1,
+            history_pending_count=0, strict_count=0, near_candidate_count=0, selected_count=0,
+            excluded_count=1, screen_unresolved_count=0, row_accounted_count=1)
+        result = channel(workspace(screen, []))
+        assert result['status'] == 'READY_EMPTY'
+        assert result['candidate_count'] == 0
+        assert result['pending_count'] == 0
+>       assert result['coverage']['excluded_count'] == 1
+               ^^^^^^^^^^^^^^^^^^
+E       KeyError: 'coverage'
+
+tests/test_manager_three_lane_channels_r1.py:92: KeyError
+_ test_source_paths_hashes_priority_and_original_row_locations_survive_summary _
+
+    def test_source_paths_hashes_priority_and_original_row_locations_survive_summary():
+        screen, cards = _fixture()
+        result = channel(workspace(screen, cards))
+        row = result['rows'][0]
+>       assert row['source_refs'] == screen['strict'][0]['source_refs']
+E       AssertionError: assert [{'owner': 'p...aster-owner'}] == [{'owner': 'p...t.json', ...}]
+E         
+E         At index 0 diff: {'owner': 'panel-owner'} != {'owner': 'panel-owner', 'payload_path': '/owner/panel.json', 'payload_sha256': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'manifest_path': '/owner/panel.manifest.json', 'manifest_sha256': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'}
+E         Use -v to get more diff
+
+tests/test_manager_three_lane_channels_r1.py:100: AssertionError
+_ test_display_diagnostics_do_not_change_the_original_selection_ledger_identity _
+
+    def test_display_diagnostics_do_not_change_the_original_selection_ledger_identity():
+        screen, cards = _fixture()
+        before = build_research_selection_ledger(screen, cards, TARGET)
+        screen['pending'][0].update(
+            missing_prior60_dates=['20260825', '20260826', '20260827'],
+            missing_previous5_dates=['20260925'], duplicate_prior60_dates=[], duplicate_previous5_dates=[],
+            volume_source='V4_SHARED_HK_0_2_PANEL_AUTHORITY', volume_unit_status='NOT_PROVEN',
+            history_numeric_status='PARTIAL_UNKNOWN',
+            volume_provenance=dict(unit_status='NOT_PROVEN', gaps=['VOLUME_UNIT_OR_SCALE_NOT_PROVEN']))
+        ledger = build_research_selection_ledger(screen, cards, TARGET)
+        pending = next(row for row in ledger['decisions'] if row['symbol'] == 'HK.00003')
+        assert pending['decision_status'] == 'UNRESOLVED'
+        assert ledger == before
+        screen['strict'][0].update(volume_source='ORIGINAL_VERIFIED_SOURCE',
+            volume_unit_status='NOT_PROVEN',volume_provenance=dict(unit_status='NOT_PROVEN'))
+        result = channel(workspace(screen, cards))
+>       assert result['rows'][0]['source_diagnostics']['volume_source'] == 'ORIGINAL_VERIFIED_SOURCE'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'source_diagnostics'
+
+tests/test_manager_three_lane_channels_r1.py:123: KeyError
+_ test_hk_consumes_original_stage_order_and_selection_identity_instead_of_workspace_focus _
+
+    def test_hk_consumes_original_stage_order_and_selection_identity_instead_of_workspace_focus():
+        value = hk_workspace(); before = deepcopy(value)
+        result = channel(value, 'HK_CONNECT')
+>       assert result['owner'] == 'StageSelectionConsumer/SelectionStore'
+E       AssertionError: assert 'EXISTING_WOR...K_UNIVERSE_V2' == 'StageSelecti...electionStore'
+E         
+E         - StageSelectionConsumer/SelectionStore
+E         + EXISTING_WORKSPACE_FOCUS_AND_TARGET_HK_UNIVERSE_V2
+
+tests/test_manager_three_lane_channels_r1.py:173: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[missing_stage] _
+
+broken = 'missing_stage'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+____ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[date] _____
+
+broken = 'date'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+____ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[stage] ____
+
+broken = 'stage'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+____ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[trio] _____
+
+broken = 'trio'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_____ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[run] _____
+
+broken = 'run'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+___ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[d1_sha] ____
+
+broken = 'd1_sha'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+__ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[d1_status] __
+
+broken = 'd1_status'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[source_failed] _
+
+broken = 'source_failed'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+__ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[duplicate] __
+
+broken = 'duplicate'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[duplicate_rank] _
+
+broken = 'duplicate_rank'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[empty_status] _
+
+broken = 'empty_status'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+___ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[cutoff] ____
+
+broken = 'cutoff'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+__ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[backfill] ___
+
+broken = 'backfill'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+____ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[prior] ____
+
+broken = 'prior'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+___ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[replay] ____
+
+broken = 'replay'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[symbol_conflict] _
+
+broken = 'symbol_conflict'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[row_preselect] _
+
+broken = 'row_preselect'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[row_waiting] _
+
+broken = 'row_waiting'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[row_reference_lane] _
+
+broken = 'row_reference_lane'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[execution_recovery] _
+
+broken = 'execution_recovery'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[execution_backfill_id] _
+
+broken = 'execution_backfill_id'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+__ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[row_order] __
+
+broken = 'row_order'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_unverified_or_recovery_source_never_falls_back_to_focus[row_production] _
+
+broken = 'row_production'
+
+    @pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
+        'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
+        'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
+        'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
+    def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        if broken == 'missing_stage': value.pop('stage_selection')
+        elif broken == 'date': market['trade_date'] = '20261008'
+        elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
+        elif broken == 'trio': market.pop('selection_receipt_sha256')
+        elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
+        elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
+        elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
+        elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
+        elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
+        elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
+        elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
+        elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
+        elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
+        elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
+        elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
+        elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
+        elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
+        elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
+        elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
+        elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
+        elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
+        elif broken == 'row_order': market['rows'][0]['order'] = True
+        elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
+        else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'CANNOT_CONFIRM'
+E       AssertionError: assert 'READY' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + READY
+
+tests/test_manager_three_lane_channels_r1.py:220: AssertionError
+_ test_hk_valid_zero_requires_original_full_input_and_matching_selection_receipt _
+
+    def test_hk_valid_zero_requires_original_full_input_and_matching_selection_receipt():
+        value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
+        market.update(status='READY_EMPTY', selection_status='READY_EMPTY', rows=[], selected_rows=0)
+        stage['execution_evidence']['markets']['HK_CONNECT']['selected_rows'] = 0
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'READY_EMPTY' and result['candidate_count'] == 0
+E       AssertionError: assert ('READY' == 'READY_EMPTY'
+E         
+E         - READY_EMPTY
+E         + READY)
+
+tests/test_manager_three_lane_channels_r1.py:230: AssertionError
+_ test_hk_selection_and_execution_are_separate_and_unbound_execution_is_partial _
+
+    def test_hk_selection_and_execution_are_separate_and_unbound_execution_is_partial():
+        value = hk_workspace()
+        value['stage_selection'].pop('execution_evidence')
+        result = channel(value, 'HK_CONNECT')
+>       assert result['status'] == 'PARTIAL' and result['candidate_count'] == 2
+E       AssertionError: assert ('READY' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + READY)
+
+tests/test_manager_three_lane_channels_r1.py:240: AssertionError
+_ test_missing_one_owner_does_not_erase_other_legal_channels_or_invent_zero[ANNOUNCEMENT] _
+
+missing = 'ANNOUNCEMENT'
+
+    @pytest.mark.parametrize('missing', ['ANNOUNCEMENT', 'HK_CONNECT', 'OVERSOLD'])
+    def test_missing_one_owner_does_not_erase_other_legal_channels_or_invent_zero(missing):
+        value = three_lane_workspace()
+        expected = {row['channel']:row for row in build_daily_channels(value)['channels']}
+>       assert [expected[name]['candidate_count'] for name in ('ANNOUNCEMENT', 'HK_CONNECT', 'OVERSOLD')] == [1, 2, 1]
+E       assert [1, 1, 1] == [1, 2, 1]
+E         
+E         At index 1 diff: 1 != 2
+E         Use -v to get more diff
+
+tests/test_manager_three_lane_channels_r1.py:273: AssertionError
+_ test_missing_one_owner_does_not_erase_other_legal_channels_or_invent_zero[HK_CONNECT] _
+
+missing = 'HK_CONNECT'
+
+    @pytest.mark.parametrize('missing', ['ANNOUNCEMENT', 'HK_CONNECT', 'OVERSOLD'])
+    def test_missing_one_owner_does_not_erase_other_legal_channels_or_invent_zero(missing):
+        value = three_lane_workspace()
+        expected = {row['channel']:row for row in build_daily_channels(value)['channels']}
+>       assert [expected[name]['candidate_count'] for name in ('ANNOUNCEMENT', 'HK_CONNECT', 'OVERSOLD')] == [1, 2, 1]
+E       assert [1, 1, 1] == [1, 2, 1]
+E         
+E         At index 1 diff: 1 != 2
+E         Use -v to get more diff
+
+tests/test_manager_three_lane_channels_r1.py:273: AssertionError
+_ test_missing_one_owner_does_not_erase_other_legal_channels_or_invent_zero[OVERSOLD] _
+
+missing = 'OVERSOLD'
+
+    @pytest.mark.parametrize('missing', ['ANNOUNCEMENT', 'HK_CONNECT', 'OVERSOLD'])
+    def test_missing_one_owner_does_not_erase_other_legal_channels_or_invent_zero(missing):
+        value = three_lane_workspace()
+        expected = {row['channel']:row for row in build_daily_channels(value)['channels']}
+>       assert [expected[name]['candidate_count'] for name in ('ANNOUNCEMENT', 'HK_CONNECT', 'OVERSOLD')] == [1, 2, 1]
+E       assert [1, 1, 1] == [1, 2, 1]
+E         
+E         At index 1 diff: 1 != 2
+E         Use -v to get more diff
+
+tests/test_manager_three_lane_channels_r1.py:273: AssertionError
+_ test_optional_diagnostics_preserve_complete_screen_plan_and_ledger_identities _
+
+tabular_input = {'root': PosixPath('/tmp/pytest-of-root/pytest-19/test_optional_diagnostics_pres0'), 'context': {'plan_trade_date': '2...anel_session': '20261008', 'calendar_sha256': '9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb'}, ...}
+
+    def test_optional_diagnostics_preserve_complete_screen_plan_and_ledger_identities(tabular_input):
+        fixture = tabular_input
+        diagnostics = {'rows':['stale'], 'gaps':['stale'], 'source_screen_decision_identity':'stale'}
+        original_shape = plan.read_rebound_screen(fixture['root'], fixture['context'])
+>       diagnostic_shape = plan.read_rebound_screen(fixture['root'], fixture['context'], diagnostics=diagnostics)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: read_rebound_screen() got an unexpected keyword argument 'diagnostics'
+
+tests/test_manager_three_lane_rebound_diagnostics_r1.py:81: TypeError
+_ test_missing_and_duplicate_sessions_are_exact_and_diagnostic_refs_are_isolated _
+
+tabular_input = {'root': PosixPath('/tmp/pytest-of-root/pytest-19/test_missing_and_duplicate_ses0'), 'context': {'plan_trade_date': '2...anel_session': '20261008', 'calendar_sha256': '9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb'}, ...}
+
+    def test_missing_and_duplicate_sessions_are_exact_and_diagnostic_refs_are_isolated(tabular_input):
+        fixture = tabular_input
+        diagnostics = {}
+>       screen = plan.read_rebound_screen(fixture['root'], fixture['context'], diagnostics=diagnostics)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: read_rebound_screen() got an unexpected keyword argument 'diagnostics'
+
+tests/test_manager_three_lane_rebound_diagnostics_r1.py:109: TypeError
+__ test_mid_calculation_failure_discards_partial_diagnostics_and_prior_output __
+
+tabular_input = {'root': PosixPath('/tmp/pytest-of-root/pytest-19/test_mid_calculation_failure_d0'), 'context': {'plan_trade_date': '2...anel_session': '20261008', 'calendar_sha256': '9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb'}, ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa22760fb90>
+
+    def test_mid_calculation_failure_discards_partial_diagnostics_and_prior_output(tabular_input, monkeypatch):
+        fixture = tabular_input
+        diagnostics = {'rows':['prior success'], 'gaps':['prior gap'],
+            'source_screen_decision_identity':'prior identity', 'sha256':'prior sha'}
+        seen = []
+    
+        class FailingNames(dict):
+            def get(self, key, default=None):
+                seen.append(key)
+                if key == 'HK.00002':
+                    raise RuntimeError('synthetic second-row read failure')
+                return super().get(key, default)
+    
+        master = deepcopy(fixture['master'])
+        master['names'] = FailingNames(master['names'])
+        monkeypatch.setattr(plan, '_screen_security_master_witness', lambda *args: (master, {}))
+>       result = plan.read_rebound_screen(fixture['root'], fixture['context'], diagnostics=diagnostics)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: read_rebound_screen() got an unexpected keyword argument 'diagnostics'
+
+tests/test_manager_three_lane_rebound_diagnostics_r1.py:144: TypeError
+=========================== short test summary info ============================
+FAILED tests/test_manager_three_lane_history_r1.py::test_many_large_retrospective_runs_use_same_owner_journals_without_scan_overflow
+FAILED tests/test_manager_three_lane_history_r1.py::test_late_journals_do_not_mask_one_valid_earlier_plan
+FAILED tests/test_manager_three_lane_history_r1.py::test_invalid_journal_cannot_authorize_exclusion[sha]
+FAILED tests/test_manager_three_lane_history_r1.py::test_invalid_journal_cannot_authorize_exclusion[owner]
+FAILED tests/test_manager_three_lane_history_r1.py::test_invalid_journal_cannot_authorize_exclusion[run]
+FAILED tests/test_manager_three_lane_history_r1.py::test_invalid_journal_cannot_authorize_exclusion[date]
+FAILED tests/test_manager_three_lane_history_r1.py::test_same_run_journal_symlink_is_not_followed
+FAILED tests/test_manager_three_lane_history_r1.py::test_remaining_body_budget_is_enforced_before_read
+FAILED tests/test_manager_three_lane_history_r1.py::test_saved_owner_readback_preserves_execution_context_and_rejects_mismatch
+FAILED tests/test_manager_three_lane_history_r1.py::test_history_accepts_same_semantics_after_global_registry_only_change
+FAILED tests/test_manager_three_lane_channels_r1.py::test_daily_uses_original_ledger_decisions_and_keeps_complete_accounting
+FAILED tests/test_manager_three_lane_channels_r1.py::test_strict_rows_without_original_research_priority_remain_unresolved
+FAILED tests/test_manager_three_lane_channels_r1.py::test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger[missing_ledger]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger[wrong_target]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger[wrong_source]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger[wrong_decisions]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_unrun_or_failed_screen_is_unknown_even_with_empty_lists[NOT_RUN]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_unrun_or_failed_screen_is_unknown_even_with_empty_lists[PENDING_SLOT]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_unrun_or_failed_screen_is_unknown_even_with_empty_lists[FAILED]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_complete_original_exclusion_is_a_valid_empty_research_selection
+FAILED tests/test_manager_three_lane_channels_r1.py::test_source_paths_hashes_priority_and_original_row_locations_survive_summary
+FAILED tests/test_manager_three_lane_channels_r1.py::test_display_diagnostics_do_not_change_the_original_selection_ledger_identity
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_consumes_original_stage_order_and_selection_identity_instead_of_workspace_focus
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[missing_stage]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[date]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[stage]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[trio]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[run]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[d1_sha]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[d1_status]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[source_failed]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[duplicate]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[duplicate_rank]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[empty_status]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[cutoff]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[backfill]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[prior]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[replay]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[symbol_conflict]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[row_preselect]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[row_waiting]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[row_reference_lane]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[execution_recovery]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[execution_backfill_id]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[row_order]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_unverified_or_recovery_source_never_falls_back_to_focus[row_production]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_valid_zero_requires_original_full_input_and_matching_selection_receipt
+FAILED tests/test_manager_three_lane_channels_r1.py::test_hk_selection_and_execution_are_separate_and_unbound_execution_is_partial
+FAILED tests/test_manager_three_lane_channels_r1.py::test_missing_one_owner_does_not_erase_other_legal_channels_or_invent_zero[ANNOUNCEMENT]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_missing_one_owner_does_not_erase_other_legal_channels_or_invent_zero[HK_CONNECT]
+FAILED tests/test_manager_three_lane_channels_r1.py::test_missing_one_owner_does_not_erase_other_legal_channels_or_invent_zero[OVERSOLD]
+FAILED tests/test_manager_three_lane_rebound_diagnostics_r1.py::test_optional_diagnostics_preserve_complete_screen_plan_and_ledger_identities
+FAILED tests/test_manager_three_lane_rebound_diagnostics_r1.py::test_missing_and_duplicate_sessions_are_exact_and_diagnostic_refs_are_isolated
+FAILED tests/test_manager_three_lane_rebound_diagnostics_r1.py::test_mid_calculation_failure_discards_partial_diagnostics_and_prior_output
+54 failed, 19 passed, 1 skipped in 3.23s

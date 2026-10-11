@@ -1,0 +1,50 @@
+{
+  "schema": "independent_hko_trace_execution_log.v1",
+  "evidence_scope": "SYNTHETIC_INPUTS_REAL_APPLICATION_OWNER_FUNCTIONS_AND_STORES",
+  "attempts": [
+    {
+      "probe": "stage",
+      "command": [
+        "PYTHONDONTWRITEBYTECODE=1",
+        "/workspace/scratch/90a399518fca/test_env/bin/python",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/repro_full_stage_consumer_r2.py",
+        "/workspace/scratch/90a399518fca/candidate",
+        "--execution-source",
+        "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/3af4fb13f7da60e0822827fb834c671cef16a372/execution_evidence.py",
+        "--output-dir",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/r2_final/traceability"
+      ],
+      "exit_code": 1,
+      "output": "Traceback (most recent call last):\n  File \"/workspace/scratch/90a399518fca/review_hk_rebound/repro_full_stage_consumer_r2.py\", line 202, in <module>\n    assert traceability[\"trio\"][\"manifest\"][\"raw_file_sha256\"] == market[\"selection_manifest_sha256\"]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "probe": "o",
+      "command": [
+        "PYTHONDONTWRITEBYTECODE=1",
+        "/workspace/scratch/90a399518fca/test_env/bin/python",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/repro_original_o_owner_save_trace_r2.py",
+        "/workspace/scratch/90a399518fca/candidate",
+        "--execution-source",
+        "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/3af4fb13f7da60e0822827fb834c671cef16a372/execution_evidence.py",
+        "--output-dir",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/r2_final/traceability"
+      ],
+      "exit_code": 0
+    },
+    {
+      "probe": "stage_trace_corrected_checksum_basis",
+      "command": [
+        "PYTHONDONTWRITEBYTECODE=1",
+        "/workspace/scratch/90a399518fca/test_env/bin/python",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/repro_full_stage_consumer_r2.py",
+        "/workspace/scratch/90a399518fca/candidate",
+        "--execution-source",
+        "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/3af4fb13f7da60e0822827fb834c671cef16a372/execution_evidence.py",
+        "--output-dir",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/r2_final/traceability"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "checksum_note": "Stage manifest and selection receipt use canonical JSON checksums in the owner contract; physical file SHA is recorded separately. The initial instrumentation asserted equality to raw-file SHA and was corrected in the review script only."
+}

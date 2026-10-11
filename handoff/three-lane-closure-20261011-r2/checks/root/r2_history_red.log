@@ -1,0 +1,86 @@
+FF.....                                                                  [100%]
+=================================== FAILURES ===================================
+___ test_missing_journals_do_not_force_large_late_bodies_through_pit_budget ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-21/test_missing_journals_do_not_f0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f22e42fe780>
+
+    def test_missing_journals_do_not_force_large_late_bodies_through_pit_budget(tmp_path, monkeypatch):
+        store = ManagerResearchStore(tmp_path/'store')
+        for n in range(1, 7):
+            _, attempt = stored(store, n, f'2026-10-10T10:0{n}:00+08:00', padding=18000, latest=n == 6)
+            no_journal(store, attempt)
+        before = hashes(store.root)
+        monkeypatch.setattr(history, '_MAX_SCAN_BYTES', 65536)
+>       assert history.select_plan(store, DATE, history.boundary_context(DATE)) is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_three_lane_history_r2.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/workspace_history.py:181: in select_plan
+    row, size = _read_candidate(store, date, name, boundary=boundary,
+v4/manager_research/workspace_history.py:70: in _read_candidate
+    raw = store._io.read_bytes(path, max_bytes=min(_MAX_PLAN_BYTES, max_bytes))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7f22e46bbcb0>
+relative = 'workspace_plans/20261009/00000000000000000000000000000003.json'
+max_bytes = 6004
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+            fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+            try:
+                meta = os.fstat(fd)
+                if not stat.S_ISREG(meta.st_mode):
+                    raise OwnedIOError('OWNED_FILE_NOT_REGULAR')
+                if meta.st_size > max_bytes:
+>                   raise OwnedIOError('OWNED_FILE_TOO_LARGE')
+E                   infrastructure.owned_io.OwnedIOError: OWNED_FILE_TOO_LARGE
+
+infrastructure/owned_io.py:111: OwnedIOError
+_________ test_late_latest_and_its_alias_do_not_hide_early_legacy_plan _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-21/test_late_latest_and_its_alias0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f22e42ffce0>
+
+    def test_late_latest_and_its_alias_do_not_hide_early_legacy_plan(tmp_path, monkeypatch):
+        store = ManagerResearchStore(tmp_path/'store')
+        _, late_attempt = stored(store, 1, '2026-10-10T10:00:00+08:00', padding=24000, latest=True)
+        early, early_attempt = stored(store, 2, '2026-10-09T09:28:00+08:00', padding=20000)
+        no_journal(store, late_attempt)
+        no_journal(store, early_attempt)
+        monkeypatch.setattr(history, '_MAX_SCAN_BYTES', 50000)
+>       assert history.select_plan(store, DATE, history.boundary_context(DATE)) == early
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_three_lane_history_r2.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/workspace_history.py:181: in select_plan
+    row, size = _read_candidate(store, date, name, boundary=boundary,
+v4/manager_research/workspace_history.py:70: in _read_candidate
+    raw = store._io.read_bytes(path, max_bytes=min(_MAX_PLAN_BYTES, max_bytes))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7f22e4251a90>
+relative = 'workspace_plans/20261009/00000000000000000000000000000001.json'
+max_bytes = 24156
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+            fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+            try:
+                meta = os.fstat(fd)
+                if not stat.S_ISREG(meta.st_mode):
+                    raise OwnedIOError('OWNED_FILE_NOT_REGULAR')
+                if meta.st_size > max_bytes:
+>                   raise OwnedIOError('OWNED_FILE_TOO_LARGE')
+E                   infrastructure.owned_io.OwnedIOError: OWNED_FILE_TOO_LARGE
+
+infrastructure/owned_io.py:111: OwnedIOError
+=========================== short test summary info ============================
+FAILED tests/test_manager_three_lane_history_r2.py::test_missing_journals_do_not_force_large_late_bodies_through_pit_budget
+FAILED tests/test_manager_three_lane_history_r2.py::test_late_latest_and_its_alias_do_not_hide_early_legacy_plan
+2 failed, 5 passed in 0.53s

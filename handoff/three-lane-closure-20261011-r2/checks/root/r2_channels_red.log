@@ -1,0 +1,193 @@
+FFFFFFFF.F                                                               [100%]
+=================================== FAILURES ===================================
+______ test_unmapped_original_selected_identity_never_becomes_valid_zero _______
+
+    def test_unmapped_original_selected_identity_never_becomes_valid_zero():
+        value = announcement_value()
+        reference = value['announcement_reviewed_analysis']['research_references'][0]
+        reference.update(stock_code='H5354', risk_notes=['Original risk assessment'])
+        before = deepcopy(value)
+        result = channel(value, 'ANNOUNCEMENT')
+>       assert result['status'] == 'PARTIAL'
+E       AssertionError: assert 'READY_EMPTY' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + READY_EMPTY
+
+tests/test_manager_three_lane_channels_r2.py:24: AssertionError
+___________ test_mapped_result_and_risks_survive_an_unmapped_result ____________
+
+    def test_mapped_result_and_risks_survive_an_unmapped_result():
+        value = announcement_value()
+        reviewed = value['announcement_reviewed_analysis']
+        reviewed['products'][0].update(stock_count=2, selected_stock_count=2)
+        reviewed['research_references'][0]['risk_notes'] = ['Original mapped risk']
+        extra = deepcopy(reviewed['research_references'][0]); extra['stock_code'] = 'H5354'
+        reviewed['research_references'].append(extra)
+        result = channel(value, 'ANNOUNCEMENT')
+>       assert result['status'] == 'PARTIAL' and result['candidate_count'] == 1
+E       AssertionError: assert ('READY' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + READY)
+
+tests/test_manager_three_lane_channels_r2.py:41: AssertionError
+__ test_incomplete_or_invalid_owner_accounting_never_claims_complete[missing] __
+
+defect = 'missing'
+
+    @pytest.mark.parametrize('defect', ['missing', 'duplicate', 'negative', 'boolean', 'sum', 'unknown_count'])
+    def test_incomplete_or_invalid_owner_accounting_never_claims_complete(defect):
+        value = announcement_value(); reviewed = value['announcement_reviewed_analysis']
+        product = reviewed['products'][0]
+        if defect == 'missing': reviewed['research_references'] = []
+        elif defect == 'duplicate': reviewed['research_references'] *= 2
+        elif defect == 'negative': product['selected_stock_count'] = -1
+        elif defect == 'boolean': product['selected_stock_count'] = True
+        elif defect == 'sum': product['stock_count'] = 2
+        else: product.pop('selected_stock_count')
+        result = channel(value, 'ANNOUNCEMENT')
+>       assert result['status'] == 'PARTIAL'
+E       AssertionError: assert 'READY_EMPTY' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + READY_EMPTY
+
+tests/test_manager_three_lane_channels_r2.py:59: AssertionError
+_ test_incomplete_or_invalid_owner_accounting_never_claims_complete[duplicate] _
+
+defect = 'duplicate'
+
+    @pytest.mark.parametrize('defect', ['missing', 'duplicate', 'negative', 'boolean', 'sum', 'unknown_count'])
+    def test_incomplete_or_invalid_owner_accounting_never_claims_complete(defect):
+        value = announcement_value(); reviewed = value['announcement_reviewed_analysis']
+        product = reviewed['products'][0]
+        if defect == 'missing': reviewed['research_references'] = []
+        elif defect == 'duplicate': reviewed['research_references'] *= 2
+        elif defect == 'negative': product['selected_stock_count'] = -1
+        elif defect == 'boolean': product['selected_stock_count'] = True
+        elif defect == 'sum': product['stock_count'] = 2
+        else: product.pop('selected_stock_count')
+        result = channel(value, 'ANNOUNCEMENT')
+>       assert result['status'] == 'PARTIAL'
+E       AssertionError: assert 'READY' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + READY
+
+tests/test_manager_three_lane_channels_r2.py:59: AssertionError
+_ test_incomplete_or_invalid_owner_accounting_never_claims_complete[negative] __
+
+defect = 'negative'
+
+    @pytest.mark.parametrize('defect', ['missing', 'duplicate', 'negative', 'boolean', 'sum', 'unknown_count'])
+    def test_incomplete_or_invalid_owner_accounting_never_claims_complete(defect):
+        value = announcement_value(); reviewed = value['announcement_reviewed_analysis']
+        product = reviewed['products'][0]
+        if defect == 'missing': reviewed['research_references'] = []
+        elif defect == 'duplicate': reviewed['research_references'] *= 2
+        elif defect == 'negative': product['selected_stock_count'] = -1
+        elif defect == 'boolean': product['selected_stock_count'] = True
+        elif defect == 'sum': product['stock_count'] = 2
+        else: product.pop('selected_stock_count')
+        result = channel(value, 'ANNOUNCEMENT')
+>       assert result['status'] == 'PARTIAL'
+E       AssertionError: assert 'READY' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + READY
+
+tests/test_manager_three_lane_channels_r2.py:59: AssertionError
+__ test_incomplete_or_invalid_owner_accounting_never_claims_complete[boolean] __
+
+defect = 'boolean'
+
+    @pytest.mark.parametrize('defect', ['missing', 'duplicate', 'negative', 'boolean', 'sum', 'unknown_count'])
+    def test_incomplete_or_invalid_owner_accounting_never_claims_complete(defect):
+        value = announcement_value(); reviewed = value['announcement_reviewed_analysis']
+        product = reviewed['products'][0]
+        if defect == 'missing': reviewed['research_references'] = []
+        elif defect == 'duplicate': reviewed['research_references'] *= 2
+        elif defect == 'negative': product['selected_stock_count'] = -1
+        elif defect == 'boolean': product['selected_stock_count'] = True
+        elif defect == 'sum': product['stock_count'] = 2
+        else: product.pop('selected_stock_count')
+        result = channel(value, 'ANNOUNCEMENT')
+>       assert result['status'] == 'PARTIAL'
+E       AssertionError: assert 'READY' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + READY
+
+tests/test_manager_three_lane_channels_r2.py:59: AssertionError
+____ test_incomplete_or_invalid_owner_accounting_never_claims_complete[sum] ____
+
+defect = 'sum'
+
+    @pytest.mark.parametrize('defect', ['missing', 'duplicate', 'negative', 'boolean', 'sum', 'unknown_count'])
+    def test_incomplete_or_invalid_owner_accounting_never_claims_complete(defect):
+        value = announcement_value(); reviewed = value['announcement_reviewed_analysis']
+        product = reviewed['products'][0]
+        if defect == 'missing': reviewed['research_references'] = []
+        elif defect == 'duplicate': reviewed['research_references'] *= 2
+        elif defect == 'negative': product['selected_stock_count'] = -1
+        elif defect == 'boolean': product['selected_stock_count'] = True
+        elif defect == 'sum': product['stock_count'] = 2
+        else: product.pop('selected_stock_count')
+        result = channel(value, 'ANNOUNCEMENT')
+>       assert result['status'] == 'PARTIAL'
+E       AssertionError: assert 'READY' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + READY
+
+tests/test_manager_three_lane_channels_r2.py:59: AssertionError
+_ test_incomplete_or_invalid_owner_accounting_never_claims_complete[unknown_count] _
+
+defect = 'unknown_count'
+
+    @pytest.mark.parametrize('defect', ['missing', 'duplicate', 'negative', 'boolean', 'sum', 'unknown_count'])
+    def test_incomplete_or_invalid_owner_accounting_never_claims_complete(defect):
+        value = announcement_value(); reviewed = value['announcement_reviewed_analysis']
+        product = reviewed['products'][0]
+        if defect == 'missing': reviewed['research_references'] = []
+        elif defect == 'duplicate': reviewed['research_references'] *= 2
+        elif defect == 'negative': product['selected_stock_count'] = -1
+        elif defect == 'boolean': product['selected_stock_count'] = True
+        elif defect == 'sum': product['stock_count'] = 2
+        else: product.pop('selected_stock_count')
+        result = channel(value, 'ANNOUNCEMENT')
+>       assert result['status'] == 'PARTIAL'
+E       AssertionError: assert 'READY' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + READY
+
+tests/test_manager_three_lane_channels_r2.py:59: AssertionError
+__________ test_unarchived_oversold_exclusion_is_not_a_completed_zero __________
+
+    def test_unarchived_oversold_exclusion_is_not_a_completed_zero():
+        screen, _ = _fixture()
+        screen.update(status='READY', strict=[], near=[], pending=[], cards=[], gaps=[])
+        screen['coverage'].update(input_candidate_count=1, history_complete_count=1,
+            history_pending_count=0, strict_count=0, near_candidate_count=0, selected_count=0,
+            excluded_count=1, screen_unresolved_count=0, row_accounted_count=1)
+        result = channel(workspace(screen, []))
+>       assert result['status'] == 'PARTIAL' and result['candidate_count'] is None
+E       AssertionError: assert ('READY_EMPTY' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + READY_EMPTY)
+
+tests/test_manager_three_lane_channels_r2.py:81: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_three_lane_channels_r2.py::test_unmapped_original_selected_identity_never_becomes_valid_zero
+FAILED tests/test_manager_three_lane_channels_r2.py::test_mapped_result_and_risks_survive_an_unmapped_result
+FAILED tests/test_manager_three_lane_channels_r2.py::test_incomplete_or_invalid_owner_accounting_never_claims_complete[missing]
+FAILED tests/test_manager_three_lane_channels_r2.py::test_incomplete_or_invalid_owner_accounting_never_claims_complete[duplicate]
+FAILED tests/test_manager_three_lane_channels_r2.py::test_incomplete_or_invalid_owner_accounting_never_claims_complete[negative]
+FAILED tests/test_manager_three_lane_channels_r2.py::test_incomplete_or_invalid_owner_accounting_never_claims_complete[boolean]
+FAILED tests/test_manager_three_lane_channels_r2.py::test_incomplete_or_invalid_owner_accounting_never_claims_complete[sum]
+FAILED tests/test_manager_three_lane_channels_r2.py::test_incomplete_or_invalid_owner_accounting_never_claims_complete[unknown_count]
+FAILED tests/test_manager_three_lane_channels_r2.py::test_unarchived_oversold_exclusion_is_not_a_completed_zero
+9 failed, 1 passed in 0.61s

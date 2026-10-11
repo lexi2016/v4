@@ -1,0 +1,30 @@
+
+ RUN  v4.1.10 /workspace/scratch/90a399518fca/candidate/apps/web
+
+ ❯ src/manager-selection/threeLaneReadbackR2.spec.ts (5 tests | 1 failed) 128ms
+   × shows unmapped original announcement identity and retained risks without inventing a ticker 21ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/threeLaneReadbackR2.spec.ts > shows unmapped original announcement identity and retained risks without inventing a ticker
+AssertionError: expected '.manager-daily-grid{display:grid;grid…' to contain '未映射公司的原始退市风险 <script>literal</script>'
+
+Expected: "未映射公司的原始退市风险 <script>literal</script>"
+Received: ".manager-daily-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}.manager-daily-grid>article{margin:0;min-width:0}.manager-daily-grid h4,.manager-daily-grid h5{margin:0 0 8px}.manager-daily-grid p{margin:7px 0}.manager-daily-rows{padding-left:20px;max-height:440px;overflow:auto}.manager-daily-rows li{margin:12px 0;overflow-wrap:anywhere}.manager-daily-meta{font-size:.9em;color:#4c5b68}每日三路研究结果来源/选股日 20261006 · 公告日 20261007 · 计划日 20261008来源/选股日用于展示；港股通资格仍核对计划日的权威输入。ANNOUNCEMENT · 公告研究PARTIAL · 部分结果，仍有待核候选 1 只 · 观察 0 · 待核数量未知数据日 20261007原 owner SYNTHETIC_ANNOUNCEMENT运行编号 synthetic-import-run · 原公告 owner 导入，触发方式未分类产物 SHA256 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb · 输入身份 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc产物时间 2026-10-08T07:05:00+08:00缺口 1 项：ANNOUNCEMENT_SOURCE_SYMBOL_UNMAPPED未映射源代码 1 项；原研究判断保留，候选汇总尚不完整。H5354 · 源公司 · 原判断 SELECTED合成公告公司 · HK.00001研究候选原研究理由：已审阅的扩产事件。数据日 20261007 · 运行编号 synthetic-import-run产物 SHA256 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb · 来源引用 1 项（完整保留在来源详情）原研究风险：原始退市风险自然时段运行验收：CANNOT_CONFIRM（未核实）。来源、运行与缺件详情HK_CONNECT · 港股通研究CANNOT_CONFIRM · 尚未核实候选数量未知 · 待核数量未知数据日 20261007原 owner SYNTHETIC_HK_CONNECT运行编号 未提供/待核 · 只读回放，生成运行未核实产物 SHA256 CANNOT_CONFIRM · 输入身份 CANNOT_CONFIRM缺口 1 项：TARGET_HK_UNIVERSE_V2_UNVERIFIED当前没有可展示的已核候选，待核记录见详情。自然时段运行验收：CANNOT_CONFIRM（未核实）。来源、运行与缺件详情OVERSOLD · 超跌反弹PARTIAL · 部分结果，仍有待核候选数量未知 · 观察 0 · 待核 2数据日 20261007原 owner SYNTHETIC_OVERSOLD运行编号 未提供/待核 · 只读回放，生成运行未核实产物 SHA256 CANNOT_CONFIRM · 输入身份 ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff缺口 1 项：VOLUME_UNIT_NOT_PROVEN当前没有可展示的已核候选，待核记录见详情。自然时段运行验收：CANNOT_CONFIRM（未核实）。来源、运行与缺件详情仅研究 · 未更新 BUY 准入 · 未发订单。"
+
+ ❯ src/manager-selection/threeLaneReadbackR2.spec.ts:57:28
+     55|   expect(host.textContent).toContain('H5354');
+     56|   expect(host.textContent).toContain('原始退市风险');
+     57|   expect(host.textContent).toContain('未映射公司的原始退市风险 <script>literal</sc…
+       |                            ^
+     58|   expect(host.querySelector('script')).toBeNull();
+     59|   expect(host.textContent).toContain('未映射源代码');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  17:12:56
+   Duration  1.48s (transform 338ms, setup 0ms, import 426ms, tests 128ms, environment 678ms)
+

@@ -1,0 +1,136 @@
+{
+  "schema": "independent_hk_o_r2_review.v1",
+  "assertion_result": "PASS",
+  "observed_at_utc": "2026-10-11T09:14:18.930325+00:00",
+  "python": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "python_executable": "/workspace/scratch/90a399518fca/test_env/bin/python",
+  "candidate_source_root": "/workspace/scratch/90a399518fca/candidate",
+  "candidate_modified_by_reviewer": false,
+  "source_stable_during_review": true,
+  "current_candidate_execution_dependency_present": false,
+  "external_original_dependency_used_for_stage": true,
+  "real_market_inputs_verified": false,
+  "mac_owner_executed": false,
+  "natural_run_verified": false,
+  "probe_summary": {
+    "volume_regressions": 3,
+    "archive_binding_regressions": 2,
+    "oversold_projection_regressions": 7,
+    "additional_incomplete_hk_fixture_observation": 1,
+    "sidecar": {
+      "total": 14,
+      "complete_ready": 1,
+      "invalid_rejected": 12,
+      "legitimate_partial": 1
+    },
+    "full_stage": {
+      "passed": 9,
+      "failed": 0
+    }
+  },
+  "full_source_sha256": {
+    "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace_plan.py": "3f22ef4393168afe4a7c7252d2dfbe1456da557194f18645f967caa9107f5c91",
+    "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace_daily_channels.py": "5a436a362710c8bb39cef72da6b99cfebef63f7e5ff98ea7741334e2f2c7928b",
+    "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace.py": "9dc87e10bf9f648bbbe43fe9cf368d7a71101730115e40b844568406db57efd1",
+    "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace_projection.py": "5eb3276cd8514253b8e47cbe801c2d052a3080c76113809315d9334a852d1ffa",
+    "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace_identity.py": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+    "/workspace/scratch/90a399518fca/candidate/v4/manager_research/research_attention.py": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+    "/workspace/scratch/90a399518fca/candidate/v4/manager_research/connect_selection.py": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+    "/workspace/scratch/90a399518fca/candidate/stage_center/__init__.py": "f5bc18e6c6143feaa23627ac8b66885810adbf77fb2135a295526fd188949955",
+    "/workspace/scratch/90a399518fca/candidate/stage_center/consumer.py": "cbc91d835c94e88b5065c6e95711017f9e97fd4d5bd7c230b7e88acab54f1557",
+    "/workspace/scratch/90a399518fca/candidate/stage_center/selection.py": "31e80e068890be03957920870719030463262c78911953541be3074f8650d4c9",
+    "/workspace/scratch/90a399518fca/candidate/stage_center/contracts.py": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+    "/workspace/scratch/90a399518fca/candidate/stage_center/calendar.py": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+    "/workspace/scratch/90a399518fca/candidate/stage_center/acquisition.py": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+    "/workspace/scratch/90a399518fca/candidate/infrastructure/owned_io.py": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+    "/workspace/scratch/90a399518fca/candidate/infrastructure/interprocess_lock.py": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+    "/workspace/scratch/90a399518fca/candidate/infrastructure/preselection_pool_store.py": "a6260549e63fd2a904d77bd7b2856d8c3883557efb691a2715b9595128e27aaa",
+    "/workspace/scratch/90a399518fca/candidate/v3_shared_data/shared_data/hk_daily_supplement.py": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "/workspace/scratch/90a399518fca/candidate/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "/workspace/scratch/90a399518fca/candidate/v3_shared_data/shared_data/paths.py": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+    "/workspace/scratch/90a399518fca/candidate/contracts/trading_calendar.py": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+    "/workspace/scratch/90a399518fca/candidate/contracts/market_calendar_2026.json": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+    "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/3af4fb13f7da60e0822827fb834c671cef16a372/execution_evidence.py": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+    "/workspace/scratch/ff44f882fe5c/readonly_references/rebound_owners/final_20261010/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c"
+  },
+  "review_script_sha256": {
+    "/workspace/scratch/90a399518fca/review_hk_rebound/run_independent_hk_o_r2_review.py": "6996fda192de15d3f059b6ed11d055859a6adc020e45f413a0b30dc435fe6d19",
+    "/workspace/scratch/90a399518fca/review_hk_rebound/repro_rebound_volume.py": "68eb10eb68783e6f1fc4d2d62c62cf422de64bb4ca9d02ecf08f603f6d0f1d08",
+    "/workspace/scratch/90a399518fca/review_hk_rebound/repro_owner_archive_binding.py": "a806a3690d618cacd99317c51595c6da9a106be4bde9176222e384d8adaf9a9f",
+    "/workspace/scratch/90a399518fca/review_hk_rebound/repro_daily_channels.py": "2fa5248a84474f7b190259db847d2a1a5163113d1556dfbc8e513fa2ca4aaa4b",
+    "/workspace/scratch/90a399518fca/review_hk_rebound/repro_sidecar_owner_gates_r2.py": "d589b603d0cd6eb07d56874177913a06cd2d49b69fe1b1dba7689870cad2688e",
+    "/workspace/scratch/90a399518fca/review_hk_rebound/repro_full_stage_consumer_r2.py": "f468805eeeeb3388b6c5feaaa6332a5c3c5572bbe52cac9fbf45fb5c31505f64"
+  },
+  "commands": [
+    {
+      "probe": "volume_results_r2",
+      "command": [
+        "/workspace/scratch/90a399518fca/test_env/bin/python",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/repro_rebound_volume.py",
+        "/workspace/scratch/90a399518fca/candidate"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "result_file": "/workspace/scratch/90a399518fca/review_hk_rebound/r2_final/volume_results_r2.json",
+      "result_sha256": "90e3d3a84c29764917b28476979846ec6d1d99e3f8eee5d200d59fa291c25951"
+    },
+    {
+      "probe": "archive_binding_results_r2",
+      "command": [
+        "/workspace/scratch/90a399518fca/test_env/bin/python",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/repro_owner_archive_binding.py",
+        "/workspace/scratch/90a399518fca/candidate",
+        "/workspace/scratch/90a399518fca/candidate"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "result_file": "/workspace/scratch/90a399518fca/review_hk_rebound/r2_final/archive_binding_results_r2.json",
+      "result_sha256": "88a0860368019bb02376678225addef6b9ed6395897160429223447ccf571d47"
+    },
+    {
+      "probe": "daily_projection_results_r2",
+      "command": [
+        "/workspace/scratch/90a399518fca/test_env/bin/python",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/repro_daily_channels.py",
+        "/workspace/scratch/90a399518fca/candidate",
+        "/workspace/scratch/90a399518fca/candidate"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "result_file": "/workspace/scratch/90a399518fca/review_hk_rebound/r2_final/daily_projection_results_r2.json",
+      "result_sha256": "44c9f57489bad954a2db113d7cf53fe0b36da71b7c2d6ef5221ef0f462cc0cf3"
+    },
+    {
+      "probe": "sidecar_owner_gate_results_r2",
+      "command": [
+        "/workspace/scratch/90a399518fca/test_env/bin/python",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/repro_sidecar_owner_gates_r2.py",
+        "/workspace/scratch/90a399518fca/candidate",
+        "--reference-sidecar",
+        "/workspace/scratch/ff44f882fe5c/readonly_references/rebound_owners/final_20261010/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+        "--output-dir",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/r2_final"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "result_file": "/workspace/scratch/90a399518fca/review_hk_rebound/r2_final/sidecar_owner_gate_results_r2.json",
+      "result_sha256": "f11c4d3c7f881b85e55bf6878d4d3dd5d0b93d25f6d34d98ce98faece2424e1f"
+    },
+    {
+      "probe": "full_stage_consumer_results_r2",
+      "command": [
+        "/workspace/scratch/90a399518fca/test_env/bin/python",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/repro_full_stage_consumer_r2.py",
+        "/workspace/scratch/90a399518fca/candidate",
+        "--execution-source",
+        "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/3af4fb13f7da60e0822827fb834c671cef16a372/execution_evidence.py",
+        "--output-dir",
+        "/workspace/scratch/90a399518fca/review_hk_rebound/r2_final"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "result_file": "/workspace/scratch/90a399518fca/review_hk_rebound/r2_final/full_stage_consumer_results_r2.json",
+      "result_sha256": "2a0e7795fd015857e518e4d6c7b6fee1a707c88d3cc0992a1b790c4a9eac88d7"
+    }
+  ]
+}

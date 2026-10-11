@@ -1,0 +1,267 @@
+{
+  "evidence_kind": "SYNTHETIC_PURE_PROJECTION_ONLY",
+  "original_source_root": "/workspace/scratch/90a399518fca/candidate",
+  "writes_to_source": false,
+  "owner_executed": false,
+  "cases": [
+    {
+      "case": "baseline_with_no_owner_archive",
+      "ledger_status": "READY",
+      "ledger_coverage": {
+        "input_row_count": 1,
+        "accounted_input_row_count": 1,
+        "unique_decision_count": 1,
+        "selected_count": 1,
+        "near_watch_count": 0,
+        "excluded_count": 0,
+        "unresolved_count": 0,
+        "source_group_counts": {
+          "strict": 1,
+          "near": 0,
+          "pending": 0,
+          "excluded": 0,
+          "screen_unresolved": 0
+        }
+      },
+      "ledger_decisions": [
+        {
+          "symbol": "HK.00001",
+          "status": "SELECTED",
+          "reason": "ORIGINAL_STRICT_TWO_GATE_PASSED"
+        }
+      ],
+      "daily_status": "PARTIAL",
+      "daily_selected_count": 1,
+      "daily_run": null,
+      "daily_execution": "READ_ONLY_EXISTING_OWNER_REPLAY",
+      "daily_decisions": [
+        {
+          "symbol": "HK.00001",
+          "status": "SELECTED",
+          "data_date": "20261008",
+          "source_refs": [
+            {
+              "owner": "existing-panel",
+              "payload_path": "/fixture/panel.parquet",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "manifest_path": "/fixture/panel.json",
+              "manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            {
+              "owner": "existing-master",
+              "payload_path": "/fixture/master.json",
+              "payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "manifest_path": "/fixture/master-manifest.json",
+              "manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "screen_target_mismatch",
+      "ledger_status": "CANNOT_CONFIRM",
+      "ledger_coverage": {
+        "input_row_count": 1,
+        "accounted_input_row_count": 1,
+        "unique_decision_count": 1,
+        "selected_count": 0,
+        "near_watch_count": 0,
+        "excluded_count": 0,
+        "unresolved_count": 1,
+        "source_group_counts": {
+          "strict": 1,
+          "near": 0,
+          "pending": 0,
+          "excluded": 0,
+          "screen_unresolved": 0
+        }
+      },
+      "ledger_decisions": [
+        {
+          "symbol": "HK.00001",
+          "status": "UNRESOLVED",
+          "reason": "REBOUND_SCREEN_TARGET_DATE_MISMATCH"
+        }
+      ],
+      "daily_status": "CANNOT_CONFIRM",
+      "daily_selected_count": null,
+      "daily_run": null,
+      "daily_execution": "READ_ONLY_EXISTING_OWNER_REPLAY",
+      "daily_decisions": []
+    },
+    {
+      "case": "missing_original_source_refs",
+      "ledger_status": "READY_WITH_GAPS",
+      "ledger_coverage": {
+        "input_row_count": 1,
+        "accounted_input_row_count": 1,
+        "unique_decision_count": 1,
+        "selected_count": 0,
+        "near_watch_count": 0,
+        "excluded_count": 0,
+        "unresolved_count": 1,
+        "source_group_counts": {
+          "strict": 1,
+          "near": 0,
+          "pending": 0,
+          "excluded": 0,
+          "screen_unresolved": 0
+        }
+      },
+      "ledger_decisions": [
+        {
+          "symbol": "HK.00001",
+          "status": "UNRESOLVED",
+          "reason": "REBOUND_SCREEN_ROW_SOURCE_REFS_UNVERIFIED"
+        }
+      ],
+      "daily_status": "PARTIAL",
+      "daily_selected_count": null,
+      "daily_run": null,
+      "daily_execution": "READ_ONLY_EXISTING_OWNER_REPLAY",
+      "daily_decisions": []
+    },
+    {
+      "case": "strict_row_rule_contradiction",
+      "ledger_status": "READY_WITH_GAPS",
+      "ledger_coverage": {
+        "input_row_count": 1,
+        "accounted_input_row_count": 1,
+        "unique_decision_count": 1,
+        "selected_count": 0,
+        "near_watch_count": 0,
+        "excluded_count": 0,
+        "unresolved_count": 1,
+        "source_group_counts": {
+          "strict": 1,
+          "near": 0,
+          "pending": 0,
+          "excluded": 0,
+          "screen_unresolved": 0
+        }
+      },
+      "ledger_decisions": [
+        {
+          "symbol": "HK.00001",
+          "status": "UNRESOLVED",
+          "reason": "STRICT_SCREEN_ROW_RULE_CONTRADICTION"
+        }
+      ],
+      "daily_status": "PARTIAL",
+      "daily_selected_count": null,
+      "daily_run": null,
+      "daily_execution": "READ_ONLY_EXISTING_OWNER_REPLAY",
+      "daily_decisions": []
+    },
+    {
+      "case": "duplicate_symbol",
+      "ledger_status": "READY_WITH_GAPS",
+      "ledger_coverage": {
+        "input_row_count": 2,
+        "accounted_input_row_count": 2,
+        "unique_decision_count": 1,
+        "selected_count": 0,
+        "near_watch_count": 0,
+        "excluded_count": 0,
+        "unresolved_count": 1,
+        "source_group_counts": {
+          "strict": 2,
+          "near": 0,
+          "pending": 0,
+          "excluded": 0,
+          "screen_unresolved": 0
+        }
+      },
+      "ledger_decisions": [
+        {
+          "symbol": "HK.00001",
+          "status": "UNRESOLVED",
+          "reason": "DUPLICATE_REBOUND_SCREEN_SYMBOL"
+        }
+      ],
+      "daily_status": "PARTIAL",
+      "daily_selected_count": null,
+      "daily_run": null,
+      "daily_execution": "READ_ONLY_EXISTING_OWNER_REPLAY",
+      "daily_decisions": []
+    },
+    {
+      "case": "future_market_session",
+      "ledger_status": "CANNOT_CONFIRM",
+      "ledger_coverage": {
+        "input_row_count": 1,
+        "accounted_input_row_count": 1,
+        "unique_decision_count": 1,
+        "selected_count": 0,
+        "near_watch_count": 0,
+        "excluded_count": 0,
+        "unresolved_count": 1,
+        "source_group_counts": {
+          "strict": 1,
+          "near": 0,
+          "pending": 0,
+          "excluded": 0,
+          "screen_unresolved": 0
+        }
+      },
+      "ledger_decisions": [
+        {
+          "symbol": "HK.00001",
+          "status": "UNRESOLVED",
+          "reason": "REBOUND_SCREEN_SOURCE_SESSION_UNVERIFIED"
+        }
+      ],
+      "daily_status": "CANNOT_CONFIRM",
+      "daily_selected_count": null,
+      "daily_run": null,
+      "daily_execution": "READ_ONLY_EXISTING_OWNER_REPLAY",
+      "daily_decisions": []
+    },
+    {
+      "case": "all_excluded_without_owner_archive",
+      "ledger_status": "READY",
+      "ledger_coverage": {
+        "input_row_count": 1,
+        "accounted_input_row_count": 1,
+        "unique_decision_count": 1,
+        "selected_count": 0,
+        "near_watch_count": 0,
+        "excluded_count": 1,
+        "unresolved_count": 0,
+        "source_group_counts": {
+          "strict": 0,
+          "near": 0,
+          "pending": 0,
+          "excluded": 1,
+          "screen_unresolved": 0
+        }
+      },
+      "ledger_decisions": [
+        {
+          "symbol": "HK.00001",
+          "status": "EXCLUDED",
+          "reason": "BOTH_REBOUND_GATES_FAILED"
+        }
+      ],
+      "daily_status": "PARTIAL",
+      "daily_selected_count": null,
+      "daily_run": null,
+      "daily_execution": "READ_ONLY_EXISTING_OWNER_REPLAY",
+      "daily_decisions": []
+    },
+    {
+      "case": "hk_channel_global_unrelated_gap",
+      "status": "CANNOT_CONFIRM",
+      "candidate_count": null,
+      "gaps": [
+        "HK_ORIGINAL_STAGE_SELECTION_IDENTITY_UNVERIFIED",
+        "HK_STAGE_AFTER_RESEARCH_CUTOFF_OR_CUTOFF_UNVERIFIED",
+        "HK_STAGE_EXACT_D1_TOP100_IDENTITY_UNVERIFIED",
+        "HK_STAGE_ORIGINAL_INPUT_OR_SELECTION_COUNT_UNVERIFIED",
+        "HK_STAGE_SELECTION_TRIO_UNVERIFIED"
+      ],
+      "run_id": null
+    }
+  ]
+}

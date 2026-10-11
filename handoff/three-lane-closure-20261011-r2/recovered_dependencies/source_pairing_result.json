@@ -1,0 +1,84 @@
+{
+  "fixed_commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+  "attachment_consumer_git_blob": "73a87bae17b933d46ca3036e8253a40d0fc2606d",
+  "historically_paired_consumer_git_blob": "7e434f3935c8dc1ce5de4eca6f99f7719e492a53",
+  "execution_evidence_git_blob": "3af4fb13f7da60e0822827fb834c671cef16a372",
+  "current_calls": [
+    "research_source_projection(envelope.get('source_evidence'), trade_date, market)",
+    "read_stage_execution(self.execution_receipt_root, trade_date, stage_id, response['markets'], selection_store=self.store, selection_stores=selection_stores)"
+  ],
+  "historically_paired_calls": [
+    "research_source_projection(envelope.get('source_evidence'), trade_date, market)",
+    "read_stage_execution(self.execution_receipt_root, trade_date, stage_id, response['markets'], selection_store=self.store, selection_stores=selection_stores)"
+  ],
+  "call_expressions_equal": true,
+  "support_files": [
+    {
+      "candidate_path": "/workspace/scratch/90a399518fca/candidate/stage_center/contracts.py",
+      "bytes": 2331,
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+      "git_blob_sha1": "3c08626f76e43f3534ba8edc2785e7da8fbc2292",
+      "same_commit_exact_paths": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/stage_center/contracts.py",
+        "handoff/stage-minimal-fix-20261009-r1/input/baseline/source/actual_stage/stage_center/contracts.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/api_ui/test_support/contracts.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/test_support/contracts.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/contracts.py",
+        "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/contracts.py",
+        "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/legacy_support/contracts.py",
+        "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/support/stage_center/contracts.py",
+        "handoff/stage-r2-mac-adaptation-20261009-r3/test_support/stage_base_app/stage_center/contracts.py",
+        "handoff/stage-r3-live-integration-20261009-r4/test_support/r3/checks/api/legacy_support/contracts.py",
+        "handoff/stage-r3-live-integration-20261009-r4/test_support/r3/checks/api/support/stage_center/contracts.py",
+        "handoff/stage-r3-live-integration-20261009-r4/test_support/r3/test_support/stage_base_app/stage_center/contracts.py",
+        "handoff/stage-research-recovery-20261009-r2/checks/api/legacy_support/contracts.py",
+        "handoff/stage-research-recovery-20261009-r2/checks/api/support/stage_center/contracts.py",
+        "handoff/stage-research-recovery-20261009-r2/test_support/stage_base_app/stage_center/contracts.py",
+        "handoff/v4-running-source-20261005/canonical/stage_center/contracts.py"
+      ]
+    },
+    {
+      "candidate_path": "/workspace/scratch/90a399518fca/candidate/stage_center/selection.py",
+      "bytes": 92532,
+      "sha256": "31e80e068890be03957920870719030463262c78911953541be3074f8650d4c9",
+      "git_blob_sha1": "9bf255328d533f633f641573b927ff58b00e274f",
+      "same_commit_exact_paths": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/stage_center/selection.py",
+        "handoff/v4-running-source-20261005/api/stage_center/selection.py"
+      ]
+    },
+    {
+      "candidate_path": "/workspace/scratch/90a399518fca/candidate/infrastructure/owned_io.py",
+      "bytes": 9354,
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df",
+      "same_commit_exact_paths": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/owned_io.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/api_ui/test_support/owned_io.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/infrastructure/owned_io.py",
+        "handoff/stage-minimal-fix-20261009-r1/work/receipt_binding/references/infrastructure/owned_io.py",
+        "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/legacy_support/owned_io.py",
+        "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/support/infrastructure/owned_io.py",
+        "handoff/stage-r2-mac-adaptation-20261009-r3/test_support/stage_base_app/infrastructure/owned_io.py",
+        "handoff/stage-r3-live-integration-20261009-r4/test_support/r3/checks/api/legacy_support/owned_io.py",
+        "handoff/stage-r3-live-integration-20261009-r4/test_support/r3/checks/api/support/infrastructure/owned_io.py",
+        "handoff/stage-r3-live-integration-20261009-r4/test_support/r3/test_support/stage_base_app/infrastructure/owned_io.py",
+        "handoff/stage-research-recovery-20261009-r2/checks/api/legacy_support/owned_io.py",
+        "handoff/stage-research-recovery-20261009-r2/checks/api/support/infrastructure/owned_io.py",
+        "handoff/stage-research-recovery-20261009-r2/test_support/stage_base_app/infrastructure/owned_io.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/owned_io.py"
+      ]
+    },
+    {
+      "candidate_path": "/workspace/scratch/90a399518fca/candidate/infrastructure/isolated_package_loader.py",
+      "bytes": 6946,
+      "sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+      "git_blob_sha1": "c351e33930bb5e7b8321940ec88afc42c34038fc",
+      "same_commit_exact_paths": [
+        "handoff/issue30-api-module-isolation-20261008-r1/test_support/preselection/infrastructure/isolated_package_loader.py",
+        "handoff/v4-running-source-20261005/canonical/infrastructure/isolated_package_loader.py"
+      ]
+    }
+  ],
+  "scope": "Static source pairing and exact-byte verification; no loaded Mac runtime assertion."
+}

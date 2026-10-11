@@ -1,0 +1,617 @@
+{
+  "repository": "lexi2016/v4",
+  "requested_fixed_us_commit": "a1b722e4c82defcb9537d5c05915c6a8072c02d3",
+  "retrieval_method": "GitHub connector github_fetch (recursive immutable commit trees) + github_fetch_blob (exact blob SHA)",
+  "inspected_refs": [
+    {
+      "branch": "fixed-us",
+      "commit": "a1b722e4c82defcb9537d5c05915c6a8072c02d3",
+      "truncated": false,
+      "tree_entry_count": 4308,
+      "tree_evidence_file": "trees/a1b722e4c82defcb9537d5c05915c6a8072c02d3.json"
+    },
+    {
+      "branch": "codex/hk-history-backfill-recipes-20261005",
+      "commit": "3ac5233e5928cefef8c1db6896950a1e7cede0cb",
+      "truncated": false,
+      "tree_entry_count": 3,
+      "tree_evidence_file": "trees/3ac5233e5928cefef8c1db6896950a1e7cede0cb.json"
+    },
+    {
+      "branch": "codex/hk-automatic-stages-20261011",
+      "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+      "truncated": false,
+      "tree_entry_count": 4638,
+      "tree_evidence_file": "trees/abb968c99b070da28200ffd3d00fba578fae018d.json"
+    },
+    {
+      "branch": "codex/hk-0920-auto-substitute-20261011",
+      "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+      "truncated": false,
+      "tree_entry_count": 4663,
+      "tree_evidence_file": "trees/87853ef6c177f0243667b12b9eae8110c1be0f12.json"
+    },
+    {
+      "branch": "codex/hk-dated-name-20261011",
+      "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+      "truncated": false,
+      "tree_entry_count": 4697,
+      "tree_evidence_file": "trees/93b632c2f5e59520f5c1337c3cfe581fc598b4a3.json"
+    }
+  ],
+  "current_attachment_consumer": {
+    "path": "active_source/stage_center/consumer.py",
+    "bytes": 37758,
+    "sha256": "183c0fb9e69fb64f629c965077ae72047c9fcc118f775ce73ad7b7a89e7657fc",
+    "git_blob_sha1": "73a87bae17b933d46ca3036e8253a40d0fc2606d"
+  },
+  "blobs": [
+    {
+      "blob": "a6c44fc3611df03066792272d939832f7dafe37e",
+      "size": 44249,
+      "name": "ensure_hk_security_master.py",
+      "origins": [
+        {
+          "branch": "fixed-us",
+          "commit": "a1b722e4c82defcb9537d5c05915c6a8072c02d3",
+          "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_child/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "fixed-us",
+          "commit": "a1b722e4c82defcb9537d5c05915c6a8072c02d3",
+          "path": "handoff/manager-daily-r3-repair-20261009/after/hk_child/ops/ensure_hk_security_master.py"
+        }
+      ],
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/a6c44fc3611df03066792272d939832f7dafe37e/ensure_hk_security_master.py"
+    },
+    {
+      "blob": "ec79858502ef793766b71755a037500f0eb2e991",
+      "size": 41556,
+      "name": "ensure_hk_security_master.py",
+      "origins": [
+        {
+          "branch": "fixed-us",
+          "commit": "a1b722e4c82defcb9537d5c05915c6a8072c02d3",
+          "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/hk_child_conflict/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "fixed-us",
+          "commit": "a1b722e4c82defcb9537d5c05915c6a8072c02d3",
+          "path": "handoff/manager-daily-r3-repair-20261009/before/hk_child/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "fixed-us",
+          "commit": "a1b722e4c82defcb9537d5c05915c6a8072c02d3",
+          "path": "handoff/v4-running-source-20261005/canonical/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/input/baseline/source/canonical_reference/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-autorun-readiness-20261009/source/canonical_reference/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/v4-running-source-20261005/canonical/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/input/baseline/source/canonical_reference/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-autorun-readiness-20261009/source/canonical_reference/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/v4-running-source-20261005/canonical/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/input/baseline/source/canonical_reference/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-autorun-readiness-20261009/source/canonical_reference/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/v4-running-source-20261005/canonical/ops/ensure_hk_security_master.py"
+        }
+      ],
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/ec79858502ef793766b71755a037500f0eb2e991/ensure_hk_security_master.py"
+    },
+    {
+      "blob": "ea18e37b3c1da955efe62d78f970bda1dacf72f9",
+      "size": 7682,
+      "name": "execution_evidence.py",
+      "origins": [
+        {
+          "branch": "fixed-us",
+          "commit": "a1b722e4c82defcb9537d5c05915c6a8072c02d3",
+          "path": "handoff/v4-running-source-20261005/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-minimal-fix-20261009-r1/input/baseline/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-minimal-fix-20261009-r1/work/api_ui/before/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-minimal-flow-20261009/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/before/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/before/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-research-recovery-20261009-r2/before/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/v4-running-source-20261005/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-minimal-fix-20261009-r1/input/baseline/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-minimal-fix-20261009-r1/work/api_ui/before/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-minimal-flow-20261009/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/before/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/before/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-research-recovery-20261009-r2/before/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/v4-running-source-20261005/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-minimal-fix-20261009-r1/input/baseline/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-minimal-fix-20261009-r1/work/api_ui/before/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-minimal-flow-20261009/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/before/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/before/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-research-recovery-20261009-r2/before/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/v4-running-source-20261005/api/stage_center/execution_evidence.py"
+        }
+      ],
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/ea18e37b3c1da955efe62d78f970bda1dacf72f9/execution_evidence.py"
+    },
+    {
+      "blob": "5f6ac5b5dcc9997cb0380058844d8241a8a7088c",
+      "size": 4110,
+      "name": "ensure_hk_security_master.py",
+      "origins": [
+        {
+          "branch": "fixed-us",
+          "commit": "a1b722e4c82defcb9537d5c05915c6a8072c02d3",
+          "path": "handoff/v4-running-source-20261005/stage/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/v4-running-source-20261005/stage/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/v4-running-source-20261005/stage/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/v4-running-source-20261005/stage/ops/ensure_hk_security_master.py"
+        }
+      ],
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/5f6ac5b5dcc9997cb0380058844d8241a8a7088c/ensure_hk_security_master.py"
+    },
+    {
+      "blob": "f1e82da005800bb5a9f3b3c4b1c3a61a0939db22",
+      "size": 14245,
+      "name": "hk_history_backfill.md",
+      "origins": [
+        {
+          "branch": "codex/hk-history-backfill-recipes-20261005",
+          "commit": "3ac5233e5928cefef8c1db6896950a1e7cede0cb",
+          "path": "docs/hk_history_backfill.md"
+        }
+      ],
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/f1e82da005800bb5a9f3b3c4b1c3a61a0939db22/hk_history_backfill.md"
+    },
+    {
+      "blob": "9a538be003e018c9bff1140510ecc34e9bfd9ba3",
+      "size": 34014,
+      "name": "ensure_hk_security_master.py",
+      "origins": [
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/actual_pool_scheduler/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/actual_pool_scheduler/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/actual_pool_scheduler/ops/ensure_hk_security_master.py"
+        }
+      ],
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/9a538be003e018c9bff1140510ecc34e9bfd9ba3/ensure_hk_security_master.py"
+    },
+    {
+      "blob": "c24157c7a0185e2bed31b36fdfd9e0d1346ec79a",
+      "size": 46251,
+      "name": "ensure_hk_security_master.py",
+      "origins": [
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/canonical_reference/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/canonical_reference/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/canonical_reference/ops/ensure_hk_security_master.py"
+        }
+      ],
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/c24157c7a0185e2bed31b36fdfd9e0d1346ec79a/ensure_hk_security_master.py"
+    },
+    {
+      "blob": "939d057a40d24c38d394b477737ee709b1ac4e7d",
+      "size": 29319,
+      "name": "ensure_hk_security_master.py",
+      "origins": [
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/input/baseline/source/actual_pool_scheduler/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-autorun-readiness-20261009/source/actual_pool_scheduler/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/input/baseline/source/actual_pool_scheduler/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-autorun-readiness-20261009/source/actual_pool_scheduler/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/input/baseline/source/actual_pool_scheduler/ops/ensure_hk_security_master.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-autorun-readiness-20261009/source/actual_pool_scheduler/ops/ensure_hk_security_master.py"
+        }
+      ],
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/939d057a40d24c38d394b477737ee709b1ac4e7d/ensure_hk_security_master.py"
+    },
+    {
+      "blob": "9e2788bca3a5d6184c0137fe6b03996780a6aecd",
+      "size": 17382,
+      "name": "execution_evidence.py",
+      "origins": [
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-minimal-fix-20261009-r1/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/before/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-research-recovery-20261009-r2/checks/api/before/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-minimal-fix-20261009-r1/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/before/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-research-recovery-20261009-r2/checks/api/before/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-minimal-fix-20261009-r1/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/before/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-research-recovery-20261009-r2/checks/api/before/source/actual_api/stage_center/execution_evidence.py"
+        }
+      ],
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/9e2788bca3a5d6184c0137fe6b03996780a6aecd/execution_evidence.py"
+    },
+    {
+      "blob": "3af4fb13f7da60e0822827fb834c671cef16a372",
+      "size": 25837,
+      "name": "execution_evidence.py",
+      "origins": [
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/after/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/after/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/test_support/r3/checks/api/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-research-recovery-20261009-r2/after/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-automatic-stages-20261011",
+          "commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+          "path": "handoff/stage-research-recovery-20261009-r2/checks/api/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/after/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/after/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/test_support/r3/checks/api/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-research-recovery-20261009-r2/after/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-research-recovery-20261009-r2/checks/api/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/after/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/after/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/test_support/r3/checks/api/after/source/actual_api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-research-recovery-20261009-r2/after/api/stage_center/execution_evidence.py"
+        },
+        {
+          "branch": "codex/hk-dated-name-20261011",
+          "commit": "93b632c2f5e59520f5c1337c3cfe581fc598b4a3",
+          "path": "handoff/stage-research-recovery-20261009-r2/checks/api/after/source/actual_api/stage_center/execution_evidence.py"
+        }
+      ],
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/3af4fb13f7da60e0822827fb834c671cef16a372/execution_evidence.py"
+    },
+    {
+      "blob": "73a87bae17b933d46ca3036e8253a40d0fc2606d",
+      "size": 37758,
+      "name": "consumer.py",
+      "origins": [
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "stage_center/consumer.py"
+        }
+      ],
+      "evidence_role": "consumer_pairing_context",
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/73a87bae17b933d46ca3036e8253a40d0fc2606d/consumer.py"
+    },
+    {
+      "blob": "7e434f3935c8dc1ce5de4eca6f99f7719e492a53",
+      "size": 35451,
+      "name": "consumer.py",
+      "origins": [
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/after/api/stage_center/consumer.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r2-mac-adaptation-20261009-r3/checks/api/after/conditional_api/stage_center/consumer.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/after/api/stage_center/consumer.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r3-live-integration-20261009-r4/test_support/r3/checks/api/after/conditional_api/stage_center/consumer.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-research-recovery-20261009-r2/after/api/stage_center/consumer.py"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-research-recovery-20261009-r2/checks/api/after/conditional_api/stage_center/consumer.py"
+        }
+      ],
+      "evidence_role": "consumer_pairing_context",
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/7e434f3935c8dc1ce5de4eca6f99f7719e492a53/consumer.py"
+    },
+    {
+      "blob": "72c801a38c89043ac44d9f1453bbc549421f0f02",
+      "size": 12377,
+      "name": "SOURCE_MANIFEST.json",
+      "origins": [
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/issue32-stage-autorun-fix-20261009-r1/SOURCE_MANIFEST.json"
+        }
+      ],
+      "evidence_role": "consumer_pairing_context",
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/72c801a38c89043ac44d9f1453bbc549421f0f02/SOURCE_MANIFEST.json"
+    },
+    {
+      "blob": "f984c28f24c86978f31e26e2d8b39b17e70913ff",
+      "size": 24434,
+      "name": "SOURCE_MAP.json",
+      "origins": [
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-r2-mac-blockers-20261009/SOURCE_MAP.json"
+        },
+        {
+          "branch": "codex/hk-0920-auto-substitute-20261011",
+          "commit": "87853ef6c177f0243667b12b9eae8110c1be0f12",
+          "path": "handoff/stage-research-recovery-20261009-r2/SOURCE_MAP.json"
+        }
+      ],
+      "evidence_role": "consumer_pairing_context",
+      "local_path": "/workspace/scratch/90a399518fca/review_history/dependency_recovery/blobs/f984c28f24c86978f31e26e2d8b39b17e70913ff/SOURCE_MAP.json"
+    }
+  ],
+  "scope": "Read-only dependency inspection. Saved original committed bytes only. No candidate or remote changes. Loaded Mac runtime identity CANNOT_CONFIRM."
+}

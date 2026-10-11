@@ -1,0 +1,14 @@
+{
+  "runner": "vitest --configLoader runner --cache false",
+  "reason": "Avoid creating config bundle files in shared read-only node_modules. Runner has no bundled __dirname shim.",
+  "review_config_only_changes": [
+    "cacheDir under reviewer directory",
+    "resolve(__dirname, ...) replaced by absolute mirror root; same intended build paths"
+  ],
+  "control_mirror_only_test_definition_updates": [
+    "src/manager-selection/threeLaneReadbackR2.spec.ts",
+    "src/manager-selection/fixtures/three_lane_r2/frontend_H5354_workspace.json",
+    "src/manager-selection/fixtures/three_lane_r2/frontend_retrospective_workspace.json"
+  ],
+  "original_candidate_and_control_unmodified": true
+}

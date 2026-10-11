@@ -1,0 +1,167 @@
+{
+  "evidence_kind": "SYNTHETIC_INJECTED_OWNER_WITNESS_ONLY",
+  "owner_executed": false,
+  "original_screen_source": "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace_plan.py",
+  "cases": [
+    {
+      "case": "canonical_target_volume_missing",
+      "supplement_read_count": 1,
+      "status": "READY",
+      "strict_count": 1,
+      "pending_count": 0,
+      "volume_source": "PYTDX_EXHQ_CATEGORY_4_MARKET_71",
+      "history_status": "KNOWN",
+      "history_unknown_reasons": null,
+      "gaps": [],
+      "diagnostic_rows": [
+        {
+          "symbol": "HK.00001",
+          "missing_prior60_dates": [],
+          "missing_previous5_dates": [],
+          "invalid_prior60_high_dates": [],
+          "invalid_previous5_volume_dates": [],
+          "invalid_current_fields": [],
+          "duplicate_prior60_dates": [],
+          "duplicate_previous5_dates": [],
+          "history_status": "KNOWN",
+          "history_numeric_status": "KNOWN",
+          "volume_source": "PYTDX_EXHQ_CATEGORY_4_MARKET_71",
+          "volume_unit_status": "NOT_PROVEN",
+          "source_refs": [
+            {
+              "owner": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+              "payload_path": "/synthetic/panel.parquet",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "manifest_path": "/synthetic/panel-manifest.json",
+              "manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            {
+              "owner": "V4_SHARED_HK_SECURITY_MASTER_AUTHORITY",
+              "payload_path": "/synthetic/master.json",
+              "payload_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "manifest_path": "/synthetic/master-manifest.json",
+              "manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            {
+              "owner": "V4_SHARED_HK_0_2_DAILY_SUPPLEMENT",
+              "artifact_path": "/synthetic/authority/assets/hk_0_2/synthetic-raw.json",
+              "artifact_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "manifest_path": "/synthetic/authority/assets/hk_0_2/synthetic-manifest.json",
+              "manifest_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+              "pointer_path": "/synthetic/authority/assets/hk_0_2/daily_supplements/pointers/20261008.json",
+              "pointer_sha256": "4f1ba6efded03d5490ef621076f3d0faa58d702305933ec439d7621c141846b8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "canonical_target_volume_recovered",
+      "supplement_read_count": 1,
+      "status": "READY",
+      "strict_count": 1,
+      "pending_count": 0,
+      "volume_source": "PYTDX_EXHQ_CATEGORY_4_MARKET_71",
+      "history_status": "KNOWN",
+      "history_unknown_reasons": null,
+      "gaps": [],
+      "diagnostic_rows": [
+        {
+          "symbol": "HK.00001",
+          "missing_prior60_dates": [],
+          "missing_previous5_dates": [],
+          "invalid_prior60_high_dates": [],
+          "invalid_previous5_volume_dates": [],
+          "invalid_current_fields": [],
+          "duplicate_prior60_dates": [],
+          "duplicate_previous5_dates": [],
+          "history_status": "KNOWN",
+          "history_numeric_status": "KNOWN",
+          "volume_source": "PYTDX_EXHQ_CATEGORY_4_MARKET_71",
+          "volume_unit_status": "NOT_PROVEN",
+          "source_refs": [
+            {
+              "owner": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+              "payload_path": "/synthetic/panel.parquet",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "manifest_path": "/synthetic/panel-manifest.json",
+              "manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            {
+              "owner": "V4_SHARED_HK_SECURITY_MASTER_AUTHORITY",
+              "payload_path": "/synthetic/master.json",
+              "payload_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "manifest_path": "/synthetic/master-manifest.json",
+              "manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            {
+              "owner": "V4_SHARED_HK_0_2_DAILY_SUPPLEMENT",
+              "artifact_path": "/synthetic/authority/assets/hk_0_2/synthetic-raw.json",
+              "artifact_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "manifest_path": "/synthetic/authority/assets/hk_0_2/synthetic-manifest.json",
+              "manifest_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+              "pointer_path": "/synthetic/authority/assets/hk_0_2/daily_supplements/pointers/20261008.json",
+              "pointer_sha256": "4f1ba6efded03d5490ef621076f3d0faa58d702305933ec439d7621c141846b8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "present_prior_session_missing_high_field",
+      "supplement_read_count": 1,
+      "status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "PYTDX_EXHQ_CATEGORY_4_MARKET_71",
+      "history_status": "PARTIAL_UNKNOWN",
+      "history_unknown_reasons": "PRIOR_60_VALID_HIGHS_INCOMPLETE:59",
+      "gaps": [
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001"
+      ],
+      "diagnostic_rows": [
+        {
+          "symbol": "HK.00001",
+          "missing_prior60_dates": [],
+          "missing_previous5_dates": [],
+          "invalid_prior60_high_dates": [
+            "20260927"
+          ],
+          "invalid_previous5_volume_dates": [],
+          "invalid_current_fields": [],
+          "duplicate_prior60_dates": [],
+          "duplicate_previous5_dates": [],
+          "history_status": "PARTIAL_UNKNOWN",
+          "history_numeric_status": "PARTIAL_UNKNOWN",
+          "volume_source": "PYTDX_EXHQ_CATEGORY_4_MARKET_71",
+          "volume_unit_status": "NOT_PROVEN",
+          "source_refs": [
+            {
+              "owner": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+              "payload_path": "/synthetic/panel.parquet",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "manifest_path": "/synthetic/panel-manifest.json",
+              "manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            {
+              "owner": "V4_SHARED_HK_SECURITY_MASTER_AUTHORITY",
+              "payload_path": "/synthetic/master.json",
+              "payload_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "manifest_path": "/synthetic/master-manifest.json",
+              "manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            {
+              "owner": "V4_SHARED_HK_0_2_DAILY_SUPPLEMENT",
+              "artifact_path": "/synthetic/authority/assets/hk_0_2/synthetic-raw.json",
+              "artifact_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "manifest_path": "/synthetic/authority/assets/hk_0_2/synthetic-manifest.json",
+              "manifest_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+              "pointer_path": "/synthetic/authority/assets/hk_0_2/daily_supplements/pointers/20261008.json",
+              "pointer_sha256": "4f1ba6efded03d5490ef621076f3d0faa58d702305933ec439d7621c141846b8"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,411 @@
+{
+  "evidence_kind": "SYNTHETIC_FILES_REAL_UNCHANGED_SIDECAR_READER",
+  "collector_called": false,
+  "publication_owner_called": false,
+  "real_market_owner_executed": false,
+  "native_calendar_source_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+  "requested_sessions": [
+    "20261002",
+    "20261005",
+    "20261006",
+    "20261007",
+    "20261008",
+    "20261009"
+  ],
+  "full_source_sha256": {
+    "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace_plan.py": "3f22ef4393168afe4a7c7252d2dfbe1456da557194f18645f967caa9107f5c91",
+    "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace_daily_channels.py": "5a436a362710c8bb39cef72da6b99cfebef63f7e5ff98ea7741334e2f2c7928b",
+    "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace.py": "9dc87e10bf9f648bbbe43fe9cf368d7a71101730115e40b844568406db57efd1",
+    "/workspace/scratch/90a399518fca/candidate/v3_shared_data/shared_data/hk_daily_supplement.py": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "/workspace/scratch/90a399518fca/candidate/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "/workspace/scratch/ff44f882fe5c/readonly_references/rebound_owners/final_20261010/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+    "/workspace/scratch/90a399518fca/candidate/v3_shared_data/shared_data/paths.py": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+    "/workspace/scratch/90a399518fca/candidate/contracts/trading_calendar.py": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+    "/workspace/scratch/90a399518fca/candidate/contracts/market_calendar_2026.json": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
+  },
+  "reader_function_text_identical": true,
+  "real_workspace_sidecar_adapter": "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace_plan.py",
+  "cases": [
+    {
+      "case": "valid",
+      "owner_reader": {
+        "candidate": "READY",
+        "verified_reference": "READY"
+      },
+      "screen_status": "READY",
+      "strict_count": 1,
+      "pending_count": 0,
+      "volume_source": "PYTDX_EXHQ_CATEGORY_4_MARKET_71",
+      "volume_ratio_5d": 2.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": null,
+      "screen_gaps": [],
+      "diagnostic_gaps": [],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "wrong_pointer_date",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "wrong_manifest_sessions",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_MANIFEST_CONTRACT_INVALID",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_MANIFEST_CONTRACT_INVALID"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_MANIFEST_CONTRACT_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_MANIFEST_CONTRACT_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "future_bar",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_BAR_DATE_INVALID",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_BAR_DATE_INVALID"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_BAR_DATE_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_BAR_DATE_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "duplicate_bar",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_BAR_DATE_INVALID",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_BAR_DATE_INVALID"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_BAR_DATE_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_BAR_DATE_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "manifest_sha",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_CHECKSUM_MISMATCH",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_CHECKSUM_MISMATCH"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_CHECKSUM_MISMATCH",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_CHECKSUM_MISMATCH",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "raw_sha",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_CHECKSUM_MISMATCH",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_CHECKSUM_MISMATCH"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_CHECKSUM_MISMATCH",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_CHECKSUM_MISMATCH",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "response_sha",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_REQUEST_OR_RESPONSE_INVALID",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_REQUEST_OR_RESPONSE_INVALID"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_REQUEST_OR_RESPONSE_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_REQUEST_OR_RESPONSE_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "missing_session_claimed_ready",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_MISSING_SESSION_STATUS_INVALID",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_MISSING_SESSION_STATUS_INVALID"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_MISSING_SESSION_STATUS_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_MISSING_SESSION_STATUS_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "partial_pending",
+      "owner_reader": {
+        "candidate": "PARTIAL_WITH_PENDING",
+        "verified_reference": "PARTIAL_WITH_PENDING"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN",
+      "screen_gaps": [
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "late_pointer",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_POINTER_AFTER_CUTOFF",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_POINTER_AFTER_CUTOFF"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_POINTER_AFTER_CUTOFF",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_POINTER_AFTER_CUTOFF",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "wrong_panel_sha",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "normalized_trade_changed",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_NORMALIZED_ROWS_MISMATCH",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_NORMALIZED_ROWS_MISMATCH"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_NORMALIZED_ROWS_MISMATCH",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_NORMALIZED_ROWS_MISMATCH",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    },
+    {
+      "case": "absolute_unit_promoted",
+      "owner_reader": {
+        "candidate": "HK_DAILY_SUPPLEMENT_BAR_UNIT_INVALID",
+        "verified_reference": "HK_DAILY_SUPPLEMENT_BAR_UNIT_INVALID"
+      },
+      "screen_status": "READY_WITH_GAPS",
+      "strict_count": 0,
+      "pending_count": 1,
+      "volume_source": "V4_SHARED_HK_0_2_PANEL_AUTHORITY",
+      "volume_ratio_5d": 1.0,
+      "close": 8.0,
+      "prior60_high": 10.0,
+      "history_unknown_reasons": "VOLUME_UNIT_OR_SCALE_NOT_PROVEN;DAILY_SUPPLEMENT_NOT_AVAILABLE_OR_UNVERIFIED",
+      "screen_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_BAR_UNIT_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "diagnostic_gaps": [
+        "SCREEN_DAILY_SUPPLEMENT_UNVERIFIED:HK_DAILY_SUPPLEMENT_BAR_UNIT_INVALID",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00001",
+        "SCREEN_VOLUME_NATIVE_EVIDENCE_UNVERIFIED:REBOUND_NATIVE_PANEL_SESSION_MISMATCH",
+        "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN"
+      ],
+      "expected_reader_reason_visible": true
+    }
+  ],
+  "assertion_result": "PASS"
+}

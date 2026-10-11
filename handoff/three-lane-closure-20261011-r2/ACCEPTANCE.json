@@ -1,0 +1,79 @@
+{
+  "schema_version": "v4.three_lane.closure_acceptance.r2",
+  "overall_status": "PARTIAL",
+  "A": "PARTIAL",
+  "H": "PARTIAL",
+  "O": "PARTIAL",
+  "I": "PARTIAL",
+  "R": "PARTIAL",
+  "D": "PARTIAL",
+  "N": "NOT_RUN",
+  "engineering_evidence_scope": "ISOLATED_ORIGINAL_COMPONENTS_WITH_SYNTHETIC_INPUTS",
+  "historical_pit_real_mac": "NOT_RUN",
+  "retrospective_real_mac": "NOT_RUN",
+  "natural_run_verified": false,
+  "actual_market_owner_runs_verified": false,
+  "mac_api_verified": false,
+  "mac_ui_reload_verified": false,
+  "deployed": false,
+  "tests": {
+    "targeted_python": {
+      "passed": 106,
+      "skipped": 1,
+      "failed": 0
+    },
+    "original_python_baseline": {
+      "passed": 95,
+      "failed": 38
+    },
+    "original_python_candidate": {
+      "passed": 95,
+      "failed": 38
+    },
+    "original_python_new_failures": 0,
+    "original_python_resolved_failures": 0,
+    "independent_history": {
+      "passed": 40,
+      "failed": 0
+    },
+    "independent_announcement_original_gates": {
+      "passed": 14,
+      "deselected": 25,
+      "failed": 0
+    },
+    "independent_full_stage": {
+      "passed": 9,
+      "failed": 0,
+      "dependency_route": "EXACT_ORIGINAL_REVIEW_ONLY_OVERLAY"
+    },
+    "independent_supplement_cases": {
+      "valid_ready": 1,
+      "invalid_rejected": 12,
+      "valid_partial_pending": 1
+    },
+    "independent_final_frontend": {
+      "passed": 50,
+      "failed": 3
+    },
+    "uniform_full_typecheck": {
+      "errors": 6,
+      "new_errors": 0
+    },
+    "mac_full_build": "NOT_RUN"
+  },
+  "complete_application_test_gate": "FAIL",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "blocked_evidence": [
+    "ACTUAL_ANNOUNCEMENT_EVIDENCE_RUN_PRODUCT_REVIEW_IMPORT_RECEIPT_AND_UI",
+    "EXACT_HK_TARGET_MEMBERSHIP_D1_AUTHORITY_ORDINARY_STAGE_RECEIPTS_AND_UI",
+    "ACTUAL_OVERSOLD_SESSION_VOLUME_INPUTS_LEDGER_OWNER_ARCHIVE_AND_UI",
+    "ORIGINAL_20261012_SAVED_AND_CURRENT_FULL_IDENTITY_PREHASH",
+    "ACTUAL_20261009_LARGE_ARCHIVES_AND_8873_READBACK",
+    "ORIGINAL_DAILY_READER_REVIEWER_DISPATCH_AND_NATURAL_RECEIPTS"
+  ]
+}

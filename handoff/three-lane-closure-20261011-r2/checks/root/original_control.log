@@ -1,0 +1,2075 @@
+....FFF..F.................FFFFFFF.....F..F.F........................FFF [ 54%]
+...F...FFF....FF....FF.........F....FF..F.F..FFFF.F.FF......F            [100%]
+=================================== FAILURES ===================================
+________ test_scheduled_existing_plan_is_not_reused_when_inputs_changed ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1be9a2fd0>
+
+    def test_scheduled_existing_plan_is_not_reused_when_inputs_changed(monkeypatch):
+     store=Store();svc=SimpleNamespace(store=store)
+     read_plan=w._read_plan
+     # Before publication expose the old plan; after it, validate the actual write.
+     monkeypatch.setattr(w,'_read_plan',lambda store,date:read_plan(store,date)
+         if str(store.root/'workspace_plans'/date/'latest.json') in store.writes else saved())
+     monkeypatch.setattr(w,'get_workspace',lambda *a,**kw:{'target_trade_date':'20260928',**current()})
+     monkeypatch.setattr(w,'_now',lambda:'2026-09-28T01:28:01+00:00')
+>    result=w.refresh_workspace_plan(svc,'20260928',execution_kind='SCHEDULED_PREOPEN',
+      now=datetime.fromisoformat('2026-09-28T09:28:00+08:00'),deadline=datetime.fromisoformat('2026-09-28T09:30:00+08:00'))
+
+tests/test_manager_plan_identity_r2.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = namespace(store=<test_manager_plan_identity_r2.Store object at 0x7fe1be9e7ed0>)
+target_trade_date = '20260928', execution_kind = 'SCHEDULED_PREOPEN'
+now = datetime.datetime(2026, 9, 28, 9, 28, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))
+deadline = datetime.datetime(2026, 9, 28, 9, 30, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))
+execution_context = None, us_market_request_context = None
+workspace_date_bindings = None
+
+    def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+                               now: datetime | None = None, deadline: datetime | None = None,
+                               execution_context: Mapping[str, Any] | None = None,
+                               us_market_request_context: Mapping[str, Any] | None = None,
+                               workspace_date_bindings: Mapping[str, Any] | None = None) -> dict:
+        """Persist an exact-date plan from existing verified owners only.
+    
+        ``SCHEDULED_PREOPEN`` is reserved for the bounded pre-open autorun.  It
+        uses its supplied aware clock for both the read cutoff and product timing;
+        late/backfill eligibility is enforced by ``workspace_plan_autorun``.
+        """
+        if execution_kind not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'}:
+            raise ValueError('WORKSPACE_PLAN_EXECUTION_KIND_INVALID')
+        scheduled = execution_kind in {'SCHEDULED_PREOPEN','SCHEDULED_MORNING'}
+        if scheduled and (now is None or now.tzinfo is None):
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_CLOCK_REQUIRED')
+        if scheduled and deadline is None:
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_REQUIRED')
+        if deadline is not None and deadline.tzinfo is None:
+            raise ValueError('WORKSPACE_PLAN_DEADLINE_MUST_BE_AWARE')
+        if not scheduled and deadline is not None:
+            raise ValueError('WORKSPACE_PLAN_DEADLINE_ONLY_FOR_SCHEDULED_PREOPEN')
+        if scheduled and now.astimezone(timezone.utc) >= deadline.astimezone(timezone.utc):
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_EXPIRED')
+        date=date_token(target_trade_date)
+        workspace_dates: dict[str, str] = {}
+        if workspace_date_bindings is not None:
+            if not isinstance(workspace_date_bindings, Mapping) or set(workspace_date_bindings)-{'selection_date','announcement_date'}:
+                raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
+            if 'selection_date' in workspace_date_bindings:
+                workspace_dates['selection_date'] = date_token(workspace_date_bindings['selection_date'])
+            if 'announcement_date' in workspace_date_bindings:
+                workspace_dates['announcement_date'] = date_token(str(workspace_date_bindings['announcement_date']).replace('-',''))
+            if not workspace_dates:
+                raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
+        if us_market_request_context is not None:
+            _validate_us_market_request_context(date, us_market_request_context)
+        context_start = now if now is not None else datetime.now(HK)
+        if context_start.tzinfo is None or context_start.utcoffset() is None:
+            raise ValueError('WORKSPACE_PLAN_EXECUTION_CLOCK_MUST_BE_AWARE')
+        plan_execution_context = _plan_execution_context(execution_context,
+            execution_kind=execution_kind, started_at=context_start)
+        plan_read_now = now
+        if plan_execution_context is not None and plan_execution_context.get('timing') == 'RETROSPECTIVE':
+            target_day = datetime.strptime(date,'%Y%m%d').date()
+            actual_day = context_start.astimezone(HK).date()
+            if target_day >= actual_day or execution_kind != 'MANUAL_REFRESH':
+                raise ValueError('WORKSPACE_PLAN_RETROSPECTIVE_TARGET_INVALID')
+        if execution_kind == 'SCHEDULED_MORNING':
+            from .workspace_plan_autorun import morning_window
+            start, freeze = morning_window(date)
+            if (now.astimezone(HK).strftime('%Y%m%d') != date or not start <= now < freeze
+                    or deadline != freeze):
+                raise ValueError('MORNING_PLAN_OUTSIDE_FROZEN_WINDOW')
+            # Each input is checked by its original reader below. Missing US or
+            # archive inputs do not gate independent announcement/market channels.
+        with service.store._transaction(date,'workspace-plan-refresh'):
+            prepared=None;preparation_error=None
+            if scheduled:
+                # The outer autorun check is only an optimization. A concurrent
+                # caller may pass it before the first caller commits, so repeat
+                # the exact-date check while holding the same store transaction
+                # used for plan persistence.
+                existing=_read_plan(service.store,date)
+                if existing is not None:
+                    prior_product_attempt = service.store._read(service.store.root/
+                        'workspace_plan_runs'/date/(existing['run_id']+'.json'))
+                    if prior_product_attempt is not None:
+                        prior_product_attempt = validate_attempt(prior_product_attempt, date)
+                    same_owner_attempt = bool(prior_product_attempt is not None
+                        and prior_product_attempt.get('run_id') == existing['run_id']
+                        and prior_product_attempt.get('owner') == 'ManagerResearchJobService.refresh_workspace_plan'
+                        and prior_product_attempt.get('execution_kind') == existing.get('execution_kind')
+                        and prior_product_attempt.get('state') in {'SUCCEEDED','SUCCEEDED_EMPTY','PARTIAL'}
+                        and prior_product_attempt.get('input_identity') == existing['input_identity'])
+                    if same_owner_attempt:
+                        try:
+                            prior_product_attempt = verified_plan_attempt(service.store, existing)
+                        except _ERROR_TYPES:
+                            same_owner_attempt = False
+                    existing_workspace=existing['workspace']
+                    existing_context=existing_workspace.get('plan_context') if isinstance(existing_workspace.get('plan_context'),dict) else {}
+                    existing_generated=timestamp(existing.get('generated_at'))
+                    existing_cutoff=timestamp(existing_context.get('research_cutoff'))
+                    open_at=deadline.astimezone(timezone.utc)
+                    try:
+                            prepared=get_workspace(service,date,include_saved=False,now=plan_read_now,
+                                us_market_request_context=us_market_request_context,**workspace_dates)
+                    except _ERROR_TYPES as exc:
+                        preparation_error=exc
+                    prepared_cutoff=timestamp((prepared or {}).get('plan_context',{}).get('research_cutoff'))
+                    reuse_diagnostics=input_identity_diagnostics(existing_workspace,prepared or {},
+                        after_cutoff=bool(existing_cutoff is None or prepared_cutoff is None
+                            or existing_cutoff>prepared_cutoff))
+                    if (prepared is not None and same_owner_attempt
+                            and reuse_diagnostics['status']=='MATCH'
+                            and existing.get('execution_kind') == execution_kind
+                            and existing['input_identity']==prepared['input_identity']
+                            and existing_workspace.get('semantic_version')==prepared.get('semantic_version')
+                            and existing_workspace.get('date_bindings')==prepared.get('date_bindings')
+                            and existing_cutoff is not None and existing_cutoff<=now
+                            and existing_generated is not None and existing_cutoff is not None
+                            and existing_generated<=now
+                            and existing_generated.astimezone(timezone.utc)<open_at
+                            and existing_cutoff.astimezone(timezone.utc)<=open_at):
+                        value=deepcopy(prepared)
+                        value['plan_product']=dict(status='ALREADY_MATERIALIZED',run_id=existing.get('run_id'),
+                            generated_at=existing.get('generated_at'),sha256=existing.get('sha256'),
+                            execution_kind=existing['execution_kind'], consumed=True,
+                            input_identity_diagnostics=reuse_diagnostics,
+                            original_owner='ManagerResearchJobService.refresh_workspace_plan',
+                            execution_context=deepcopy(existing.get('execution_context')),
+                            run_readback=_plan_run_readback(existing,prior_product_attempt,
+                                read_at=now,verified=True))
+                        value['workspace_plan_attempt']=deepcopy(prior_product_attempt)
+                        from .workspace_daily_channels import build_daily_channels
+                        value['daily_channels']=build_daily_channels(value)
+                        return value
+            run_id=uuid4().hex
+            run_root=service.store.root/'workspace_plan_runs'/date
+            # Check before the first RUNNING journal write; a reused run ID must
+            # not overwrite either an immutable plan or its existing audit record.
+            if (service.store._read(run_root/(run_id+'.json')) is not None
+                    or service.store._read(service.store.root/'workspace_plans'/date/(run_id+'.json')) is not None):
+                raise ValueError('WORKSPACE_PLAN_RUN_ALREADY_EXISTS')
+            prior=service.store._read(run_root/'latest.json')
+            if prior is not None:prior=validate_attempt(prior,date)
+            attempt=dict(schema_version=ATTEMPT_SCHEMA,target_trade_date=date,run_id=run_id,
+                owner='ManagerResearchJobService.refresh_workspace_plan',state='RUNNING',execution_kind=execution_kind,
+                started_at=(now.astimezone(timezone.utc).isoformat(timespec='microseconds') if now is not None else _now()),last_success_at=(prior or {}).get('last_success_at'),failure_reasons=[],**FLAGS)
+            if plan_execution_context is not None:
+                attempt['execution_context'] = deepcopy(plan_execution_context)
+            def write_attempt() -> None:
+                sealed=validate_attempt(seal_attempt(attempt),date)
+                service.store._write_atomic(run_root/(run_id+'.json'),sealed)
+                service.store._write_atomic(run_root/'latest.json',sealed)
+            write_attempt()
+            try:
+                if preparation_error is not None:
+                    raise preparation_error
+                value=prepared if prepared is not None else get_workspace(service,date,include_saved=False,
+                    now=plan_read_now,us_market_request_context=us_market_request_context,**workspace_dates)
+                completed_at=_now()
+                if plan_execution_context is not None:
+                    plan_execution_context['finished_at'] = completed_at
+                    value['execution_context'] = deepcopy(plan_execution_context)
+                failures=sorted(set(value['gaps']))
+                state='PARTIAL' if failures else ('SUCCEEDED' if value['stocks'] else 'SUCCEEDED_EMPTY')
+                checkpoint()
+                if deadline is not None and timestamp(completed_at) >= deadline.astimezone(timezone.utc):
+                    raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED')
+                product=dict(schema_version=PLAN_SCHEMA,target_trade_date=date,run_id=run_id,
+                    generated_at=completed_at,owner='ManagerResearchJobService.refresh_workspace_plan',
+                    execution_kind=execution_kind,input_identity=value['input_identity'],workspace=value,**FLAGS)
+                if plan_execution_context is not None:
+                    product['execution_context'] = deepcopy(plan_execution_context)
+                    attempt['execution_context'] = deepcopy(plan_execution_context)
+                product['read_contract_sha256'] = contract_identity()
+                product['sha256']=digest(product)
+                root=service.store.root/'workspace_plans'/date
+                service.store._write_atomic(root/(run_id+'.json'),product)
+                service.store._write_atomic(root/'latest.json',product)
+                # The original readback validates schema/date/input identity/SHA.
+                # A returned READBACK_FAILED is not an exception: inspect it before
+                # publishing a successful terminal attempt or last_success_at.
+                readback=_read_plan(service.store,date)
+                if (readback is None or readback.get('run_id')!=run_id
+                        or readback.get('sha256')!=product['sha256']):
+                    raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+                finished_at=_now()
+                if deadline is not None and timestamp(finished_at) >= deadline.astimezone(timezone.utc):
+                    raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_TERMINAL_DEADLINE_EXCEEDED')
+                attempt.update(state=state,finished_at=finished_at,last_success_at=product['generated_at'],
+                    input_identity=value['input_identity'],input_coverage=value['existing_material_coverage'],
+                    summary=value['summary'],failure_reasons=failures,
+                    success_scope='EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE')
+                write_attempt()
+                terminal=validate_attempt(service.store._read(run_root/'latest.json'),date)
+                if terminal!=seal_attempt(attempt):
+                    raise ValueError('WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED')
+                result=_readback_plan(service.store,date,value)
+                if result.get('plan_product',{}).get('consumed') is not True:
+>                   raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+E                   ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED
+
+v4/manager_research/workspace.py:1343: ValueError
+_______________ test_scheduled_same_inputs_do_not_double_publish _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1bea23890>
+
+    def test_scheduled_same_inputs_do_not_double_publish(monkeypatch):
+     store=Store();svc=SimpleNamespace(store=store)
+     monkeypatch.setattr(w,'_read_plan',lambda *a:saved('same'))
+     monkeypatch.setattr(w,'get_workspace',lambda *a,**kw:current('same'))
+>    result=w.refresh_workspace_plan(svc,'20260928',execution_kind='SCHEDULED_PREOPEN',
+      now=datetime.fromisoformat('2026-09-28T09:28:00+08:00'),deadline=datetime.fromisoformat('2026-09-28T09:30:00+08:00'))
+
+tests/test_manager_plan_identity_r2.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = namespace(store=<test_manager_plan_identity_r2.Store object at 0x7fe1be6151d0>)
+target_trade_date = '20260928', execution_kind = 'SCHEDULED_PREOPEN'
+now = datetime.datetime(2026, 9, 28, 9, 28, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))
+deadline = datetime.datetime(2026, 9, 28, 9, 30, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))
+execution_context = None, us_market_request_context = None
+workspace_date_bindings = None
+
+    def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+                               now: datetime | None = None, deadline: datetime | None = None,
+                               execution_context: Mapping[str, Any] | None = None,
+                               us_market_request_context: Mapping[str, Any] | None = None,
+                               workspace_date_bindings: Mapping[str, Any] | None = None) -> dict:
+        """Persist an exact-date plan from existing verified owners only.
+    
+        ``SCHEDULED_PREOPEN`` is reserved for the bounded pre-open autorun.  It
+        uses its supplied aware clock for both the read cutoff and product timing;
+        late/backfill eligibility is enforced by ``workspace_plan_autorun``.
+        """
+        if execution_kind not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'}:
+            raise ValueError('WORKSPACE_PLAN_EXECUTION_KIND_INVALID')
+        scheduled = execution_kind in {'SCHEDULED_PREOPEN','SCHEDULED_MORNING'}
+        if scheduled and (now is None or now.tzinfo is None):
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_CLOCK_REQUIRED')
+        if scheduled and deadline is None:
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_REQUIRED')
+        if deadline is not None and deadline.tzinfo is None:
+            raise ValueError('WORKSPACE_PLAN_DEADLINE_MUST_BE_AWARE')
+        if not scheduled and deadline is not None:
+            raise ValueError('WORKSPACE_PLAN_DEADLINE_ONLY_FOR_SCHEDULED_PREOPEN')
+        if scheduled and now.astimezone(timezone.utc) >= deadline.astimezone(timezone.utc):
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_EXPIRED')
+        date=date_token(target_trade_date)
+        workspace_dates: dict[str, str] = {}
+        if workspace_date_bindings is not None:
+            if not isinstance(workspace_date_bindings, Mapping) or set(workspace_date_bindings)-{'selection_date','announcement_date'}:
+                raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
+            if 'selection_date' in workspace_date_bindings:
+                workspace_dates['selection_date'] = date_token(workspace_date_bindings['selection_date'])
+            if 'announcement_date' in workspace_date_bindings:
+                workspace_dates['announcement_date'] = date_token(str(workspace_date_bindings['announcement_date']).replace('-',''))
+            if not workspace_dates:
+                raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
+        if us_market_request_context is not None:
+            _validate_us_market_request_context(date, us_market_request_context)
+        context_start = now if now is not None else datetime.now(HK)
+        if context_start.tzinfo is None or context_start.utcoffset() is None:
+            raise ValueError('WORKSPACE_PLAN_EXECUTION_CLOCK_MUST_BE_AWARE')
+        plan_execution_context = _plan_execution_context(execution_context,
+            execution_kind=execution_kind, started_at=context_start)
+        plan_read_now = now
+        if plan_execution_context is not None and plan_execution_context.get('timing') == 'RETROSPECTIVE':
+            target_day = datetime.strptime(date,'%Y%m%d').date()
+            actual_day = context_start.astimezone(HK).date()
+            if target_day >= actual_day or execution_kind != 'MANUAL_REFRESH':
+                raise ValueError('WORKSPACE_PLAN_RETROSPECTIVE_TARGET_INVALID')
+        if execution_kind == 'SCHEDULED_MORNING':
+            from .workspace_plan_autorun import morning_window
+            start, freeze = morning_window(date)
+            if (now.astimezone(HK).strftime('%Y%m%d') != date or not start <= now < freeze
+                    or deadline != freeze):
+                raise ValueError('MORNING_PLAN_OUTSIDE_FROZEN_WINDOW')
+            # Each input is checked by its original reader below. Missing US or
+            # archive inputs do not gate independent announcement/market channels.
+        with service.store._transaction(date,'workspace-plan-refresh'):
+            prepared=None;preparation_error=None
+            if scheduled:
+                # The outer autorun check is only an optimization. A concurrent
+                # caller may pass it before the first caller commits, so repeat
+                # the exact-date check while holding the same store transaction
+                # used for plan persistence.
+                existing=_read_plan(service.store,date)
+                if existing is not None:
+                    prior_product_attempt = service.store._read(service.store.root/
+                        'workspace_plan_runs'/date/(existing['run_id']+'.json'))
+                    if prior_product_attempt is not None:
+                        prior_product_attempt = validate_attempt(prior_product_attempt, date)
+                    same_owner_attempt = bool(prior_product_attempt is not None
+                        and prior_product_attempt.get('run_id') == existing['run_id']
+                        and prior_product_attempt.get('owner') == 'ManagerResearchJobService.refresh_workspace_plan'
+                        and prior_product_attempt.get('execution_kind') == existing.get('execution_kind')
+                        and prior_product_attempt.get('state') in {'SUCCEEDED','SUCCEEDED_EMPTY','PARTIAL'}
+                        and prior_product_attempt.get('input_identity') == existing['input_identity'])
+                    if same_owner_attempt:
+                        try:
+                            prior_product_attempt = verified_plan_attempt(service.store, existing)
+                        except _ERROR_TYPES:
+                            same_owner_attempt = False
+                    existing_workspace=existing['workspace']
+                    existing_context=existing_workspace.get('plan_context') if isinstance(existing_workspace.get('plan_context'),dict) else {}
+                    existing_generated=timestamp(existing.get('generated_at'))
+                    existing_cutoff=timestamp(existing_context.get('research_cutoff'))
+                    open_at=deadline.astimezone(timezone.utc)
+                    try:
+                            prepared=get_workspace(service,date,include_saved=False,now=plan_read_now,
+                                us_market_request_context=us_market_request_context,**workspace_dates)
+                    except _ERROR_TYPES as exc:
+                        preparation_error=exc
+                    prepared_cutoff=timestamp((prepared or {}).get('plan_context',{}).get('research_cutoff'))
+                    reuse_diagnostics=input_identity_diagnostics(existing_workspace,prepared or {},
+                        after_cutoff=bool(existing_cutoff is None or prepared_cutoff is None
+                            or existing_cutoff>prepared_cutoff))
+                    if (prepared is not None and same_owner_attempt
+                            and reuse_diagnostics['status']=='MATCH'
+                            and existing.get('execution_kind') == execution_kind
+                            and existing['input_identity']==prepared['input_identity']
+                            and existing_workspace.get('semantic_version')==prepared.get('semantic_version')
+                            and existing_workspace.get('date_bindings')==prepared.get('date_bindings')
+                            and existing_cutoff is not None and existing_cutoff<=now
+                            and existing_generated is not None and existing_cutoff is not None
+                            and existing_generated<=now
+                            and existing_generated.astimezone(timezone.utc)<open_at
+                            and existing_cutoff.astimezone(timezone.utc)<=open_at):
+                        value=deepcopy(prepared)
+                        value['plan_product']=dict(status='ALREADY_MATERIALIZED',run_id=existing.get('run_id'),
+                            generated_at=existing.get('generated_at'),sha256=existing.get('sha256'),
+                            execution_kind=existing['execution_kind'], consumed=True,
+                            input_identity_diagnostics=reuse_diagnostics,
+                            original_owner='ManagerResearchJobService.refresh_workspace_plan',
+                            execution_context=deepcopy(existing.get('execution_context')),
+                            run_readback=_plan_run_readback(existing,prior_product_attempt,
+                                read_at=now,verified=True))
+                        value['workspace_plan_attempt']=deepcopy(prior_product_attempt)
+                        from .workspace_daily_channels import build_daily_channels
+                        value['daily_channels']=build_daily_channels(value)
+                        return value
+            run_id=uuid4().hex
+            run_root=service.store.root/'workspace_plan_runs'/date
+            # Check before the first RUNNING journal write; a reused run ID must
+            # not overwrite either an immutable plan or its existing audit record.
+            if (service.store._read(run_root/(run_id+'.json')) is not None
+                    or service.store._read(service.store.root/'workspace_plans'/date/(run_id+'.json')) is not None):
+                raise ValueError('WORKSPACE_PLAN_RUN_ALREADY_EXISTS')
+            prior=service.store._read(run_root/'latest.json')
+            if prior is not None:prior=validate_attempt(prior,date)
+            attempt=dict(schema_version=ATTEMPT_SCHEMA,target_trade_date=date,run_id=run_id,
+                owner='ManagerResearchJobService.refresh_workspace_plan',state='RUNNING',execution_kind=execution_kind,
+                started_at=(now.astimezone(timezone.utc).isoformat(timespec='microseconds') if now is not None else _now()),last_success_at=(prior or {}).get('last_success_at'),failure_reasons=[],**FLAGS)
+            if plan_execution_context is not None:
+                attempt['execution_context'] = deepcopy(plan_execution_context)
+            def write_attempt() -> None:
+                sealed=validate_attempt(seal_attempt(attempt),date)
+                service.store._write_atomic(run_root/(run_id+'.json'),sealed)
+                service.store._write_atomic(run_root/'latest.json',sealed)
+            write_attempt()
+            try:
+                if preparation_error is not None:
+                    raise preparation_error
+                value=prepared if prepared is not None else get_workspace(service,date,include_saved=False,
+                    now=plan_read_now,us_market_request_context=us_market_request_context,**workspace_dates)
+                completed_at=_now()
+                if plan_execution_context is not None:
+                    plan_execution_context['finished_at'] = completed_at
+                    value['execution_context'] = deepcopy(plan_execution_context)
+                failures=sorted(set(value['gaps']))
+                state='PARTIAL' if failures else ('SUCCEEDED' if value['stocks'] else 'SUCCEEDED_EMPTY')
+                checkpoint()
+                if deadline is not None and timestamp(completed_at) >= deadline.astimezone(timezone.utc):
+>                   raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED')
+E                   TimeoutError: WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED
+
+v4/manager_research/workspace.py:1311: TimeoutError
+__________ test_autorun_cannot_shortcut_stale_plan_by_timestamp_alone __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1be61c160>
+
+    def test_autorun_cannot_shortcut_stale_plan_by_timestamp_alone(monkeypatch):
+     monkeypatch.setattr(auto,'preopen_window',lambda *a,**kw:(datetime.fromisoformat('2026-09-28T09:27:00+08:00'),datetime.fromisoformat('2026-09-28T09:30:00+08:00')))
+     calls=[]
+     svc=SimpleNamespace(get_workspace_plan=lambda date:saved(),
+         refresh_workspace_plan=lambda date,**kw:(calls.append(kw) or {
+           'plan_product':{'status':'CURRENT','generated_at':'2026-09-28T09:28:01+08:00','run_id':'r'},'plan_context':{}}))
+>    result=auto.run_scheduled_preopen_plan(svc,'20260928',now=datetime.fromisoformat('2026-09-28T09:28:00+08:00'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_plan_identity_r2.py:95: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/workspace_plan_autorun.py:177: in run_scheduled_preopen_plan
+    readback = owner_plan_readback(value, target_trade_date, expected_kind="SCHEDULED_PREOPEN")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = {'plan_product': {'status': 'CURRENT', 'generated_at': '2026-09-28T09:28:01+08:00', 'run_id': 'r'}, 'plan_context': {}}
+target_trade_date = '20260928', expected_kind = 'SCHEDULED_PREOPEN'
+allow_preserved_preopen = False
+
+    def owner_plan_readback(value: Any, target_trade_date: str, *, expected_kind: str,
+                            allow_preserved_preopen: bool = False) -> dict[str, Any]:
+        """Accept only an existing owner's exact product and same-run terminal attempt."""
+        from .workspace import validate_attempt
+    
+        date = date_token(target_trade_date)
+        product = value.get("plan_product") if isinstance(value, Mapping) else None
+        attempt = value.get("workspace_plan_attempt") if isinstance(value, Mapping) else None
+        if not isinstance(product, Mapping) or not isinstance(attempt, Mapping):
+>           raise ValueError("PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED")
+E           ValueError: PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED
+
+v4/manager_research/workspace_plan_autorun.py:49: ValueError
+__________ test_legacy_over_64_mib_is_read_losslessly_without_rewrite __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_legacy_over_64_mib_is_rea0')
+
+    def test_legacy_over_64_mib_is_read_losslessly_without_rewrite(tmp_path):
+        store = s.ManagerResearchStore(tmp_path)
+        row = plan('e' * (64 * 1024 * 1024))
+        put_legacy(store, row)
+        before = latest(store).stat()
+        got = w._read_plan(store, DATE)
+        assert got == row
+        after = latest(store).stat()
+        assert (before.st_ino, before.st_size, before.st_mtime_ns) == (after.st_ino, after.st_size, after.st_mtime_ns)
+>       assert w._readback_plan(store, DATE, current())['plan_product']['status'] == 'CURRENT'
+E       AssertionError: assert 'STALE_INPUTS_CHANGED' == 'CURRENT'
+E         
+E         - CURRENT
+E         + STALE_INPUTS_CHANGED
+
+tests/test_manager_plan_readback_issue24.py:59: AssertionError
+____ test_failed_save_readback_never_gets_success_journal[READBACK_FAILED] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_failed_save_readback_neve0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1bee2cae0>
+status = 'READBACK_FAILED'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+>       with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_plan_readback_issue24.py:186: Failed
+__ test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_failed_save_readback_neve1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1be73f350>
+status = 'STALE_INPUTS_CHANGED'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+>       with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_plan_readback_issue24.py:186: Failed
+____ test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_failed_save_readback_neve2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1be73f650>
+status = 'NOT_MATERIALIZED'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+>       with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_plan_readback_issue24.py:186: Failed
+___ test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_failed_save_readback_neve3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1be53a410>
+status = 'CURRENT_WRONG_RUN'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+>       with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_plan_readback_issue24.py:186: Failed
+___ test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_failed_save_readback_neve4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1be53ae60>
+status = 'CURRENT_WRONG_SHA'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+>       with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_plan_readback_issue24.py:186: Failed
+__ test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_failed_save_readback_neve5')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1beba4c30>
+status = 'CURRENT_NOT_CONSUMED'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+        with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+            w.refresh_workspace_plan(SimpleNamespace(store=store),DATE)
+>       assert {r['state'] for r in seen}<={'RUNNING','FAILED'}
+E       AssertionError: assert {'FAILED', 'R...CEEDED_EMPTY'} <= {'FAILED', 'RUNNING'}
+E         
+E         Extra items in the left set:
+E         'SUCCEEDED_EMPTY'
+
+tests/test_manager_plan_readback_issue24.py:188: AssertionError
+_______________ test_success_returns_read_back_terminal_attempt ________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_success_returns_read_back0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1beba5950>
+
+    def test_success_returns_read_back_terminal_attempt(tmp_path,monkeypatch):
+        store=s.ManagerResearchStore(tmp_path)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current('全量证据'))
+>       result=w.refresh_workspace_plan(SimpleNamespace(store=store),DATE)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_plan_readback_issue24.py:199: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7fe1be5a8440>)
+target_trade_date = '20261002', execution_kind = 'MANUAL_REFRESH', now = None
+deadline = None, execution_context = None, us_market_request_context = None
+workspace_date_bindings = None
+
+    def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+                               now: datetime | None = None, deadline: datetime | None = None,
+                               execution_context: Mapping[str, Any] | None = None,
+                               us_market_request_context: Mapping[str, Any] | None = None,
+                               workspace_date_bindings: Mapping[str, Any] | None = None) -> dict:
+        """Persist an exact-date plan from existing verified owners only.
+    
+        ``SCHEDULED_PREOPEN`` is reserved for the bounded pre-open autorun.  It
+        uses its supplied aware clock for both the read cutoff and product timing;
+        late/backfill eligibility is enforced by ``workspace_plan_autorun``.
+        """
+        if execution_kind not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'}:
+            raise ValueError('WORKSPACE_PLAN_EXECUTION_KIND_INVALID')
+        scheduled = execution_kind in {'SCHEDULED_PREOPEN','SCHEDULED_MORNING'}
+        if scheduled and (now is None or now.tzinfo is None):
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_CLOCK_REQUIRED')
+        if scheduled and deadline is None:
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_REQUIRED')
+        if deadline is not None and deadline.tzinfo is None:
+            raise ValueError('WORKSPACE_PLAN_DEADLINE_MUST_BE_AWARE')
+        if not scheduled and deadline is not None:
+            raise ValueError('WORKSPACE_PLAN_DEADLINE_ONLY_FOR_SCHEDULED_PREOPEN')
+        if scheduled and now.astimezone(timezone.utc) >= deadline.astimezone(timezone.utc):
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_EXPIRED')
+        date=date_token(target_trade_date)
+        workspace_dates: dict[str, str] = {}
+        if workspace_date_bindings is not None:
+            if not isinstance(workspace_date_bindings, Mapping) or set(workspace_date_bindings)-{'selection_date','announcement_date'}:
+                raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
+            if 'selection_date' in workspace_date_bindings:
+                workspace_dates['selection_date'] = date_token(workspace_date_bindings['selection_date'])
+            if 'announcement_date' in workspace_date_bindings:
+                workspace_dates['announcement_date'] = date_token(str(workspace_date_bindings['announcement_date']).replace('-',''))
+            if not workspace_dates:
+                raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
+        if us_market_request_context is not None:
+            _validate_us_market_request_context(date, us_market_request_context)
+        context_start = now if now is not None else datetime.now(HK)
+        if context_start.tzinfo is None or context_start.utcoffset() is None:
+            raise ValueError('WORKSPACE_PLAN_EXECUTION_CLOCK_MUST_BE_AWARE')
+        plan_execution_context = _plan_execution_context(execution_context,
+            execution_kind=execution_kind, started_at=context_start)
+        plan_read_now = now
+        if plan_execution_context is not None and plan_execution_context.get('timing') == 'RETROSPECTIVE':
+            target_day = datetime.strptime(date,'%Y%m%d').date()
+            actual_day = context_start.astimezone(HK).date()
+            if target_day >= actual_day or execution_kind != 'MANUAL_REFRESH':
+                raise ValueError('WORKSPACE_PLAN_RETROSPECTIVE_TARGET_INVALID')
+        if execution_kind == 'SCHEDULED_MORNING':
+            from .workspace_plan_autorun import morning_window
+            start, freeze = morning_window(date)
+            if (now.astimezone(HK).strftime('%Y%m%d') != date or not start <= now < freeze
+                    or deadline != freeze):
+                raise ValueError('MORNING_PLAN_OUTSIDE_FROZEN_WINDOW')
+            # Each input is checked by its original reader below. Missing US or
+            # archive inputs do not gate independent announcement/market channels.
+        with service.store._transaction(date,'workspace-plan-refresh'):
+            prepared=None;preparation_error=None
+            if scheduled:
+                # The outer autorun check is only an optimization. A concurrent
+                # caller may pass it before the first caller commits, so repeat
+                # the exact-date check while holding the same store transaction
+                # used for plan persistence.
+                existing=_read_plan(service.store,date)
+                if existing is not None:
+                    prior_product_attempt = service.store._read(service.store.root/
+                        'workspace_plan_runs'/date/(existing['run_id']+'.json'))
+                    if prior_product_attempt is not None:
+                        prior_product_attempt = validate_attempt(prior_product_attempt, date)
+                    same_owner_attempt = bool(prior_product_attempt is not None
+                        and prior_product_attempt.get('run_id') == existing['run_id']
+                        and prior_product_attempt.get('owner') == 'ManagerResearchJobService.refresh_workspace_plan'
+                        and prior_product_attempt.get('execution_kind') == existing.get('execution_kind')
+                        and prior_product_attempt.get('state') in {'SUCCEEDED','SUCCEEDED_EMPTY','PARTIAL'}
+                        and prior_product_attempt.get('input_identity') == existing['input_identity'])
+                    if same_owner_attempt:
+                        try:
+                            prior_product_attempt = verified_plan_attempt(service.store, existing)
+                        except _ERROR_TYPES:
+                            same_owner_attempt = False
+                    existing_workspace=existing['workspace']
+                    existing_context=existing_workspace.get('plan_context') if isinstance(existing_workspace.get('plan_context'),dict) else {}
+                    existing_generated=timestamp(existing.get('generated_at'))
+                    existing_cutoff=timestamp(existing_context.get('research_cutoff'))
+                    open_at=deadline.astimezone(timezone.utc)
+                    try:
+                            prepared=get_workspace(service,date,include_saved=False,now=plan_read_now,
+                                us_market_request_context=us_market_request_context,**workspace_dates)
+                    except _ERROR_TYPES as exc:
+                        preparation_error=exc
+                    prepared_cutoff=timestamp((prepared or {}).get('plan_context',{}).get('research_cutoff'))
+                    reuse_diagnostics=input_identity_diagnostics(existing_workspace,prepared or {},
+                        after_cutoff=bool(existing_cutoff is None or prepared_cutoff is None
+                            or existing_cutoff>prepared_cutoff))
+                    if (prepared is not None and same_owner_attempt
+                            and reuse_diagnostics['status']=='MATCH'
+                            and existing.get('execution_kind') == execution_kind
+                            and existing['input_identity']==prepared['input_identity']
+                            and existing_workspace.get('semantic_version')==prepared.get('semantic_version')
+                            and existing_workspace.get('date_bindings')==prepared.get('date_bindings')
+                            and existing_cutoff is not None and existing_cutoff<=now
+                            and existing_generated is not None and existing_cutoff is not None
+                            and existing_generated<=now
+                            and existing_generated.astimezone(timezone.utc)<open_at
+                            and existing_cutoff.astimezone(timezone.utc)<=open_at):
+                        value=deepcopy(prepared)
+                        value['plan_product']=dict(status='ALREADY_MATERIALIZED',run_id=existing.get('run_id'),
+                            generated_at=existing.get('generated_at'),sha256=existing.get('sha256'),
+                            execution_kind=existing['execution_kind'], consumed=True,
+                            input_identity_diagnostics=reuse_diagnostics,
+                            original_owner='ManagerResearchJobService.refresh_workspace_plan',
+                            execution_context=deepcopy(existing.get('execution_context')),
+                            run_readback=_plan_run_readback(existing,prior_product_attempt,
+                                read_at=now,verified=True))
+                        value['workspace_plan_attempt']=deepcopy(prior_product_attempt)
+                        from .workspace_daily_channels import build_daily_channels
+                        value['daily_channels']=build_daily_channels(value)
+                        return value
+            run_id=uuid4().hex
+            run_root=service.store.root/'workspace_plan_runs'/date
+            # Check before the first RUNNING journal write; a reused run ID must
+            # not overwrite either an immutable plan or its existing audit record.
+            if (service.store._read(run_root/(run_id+'.json')) is not None
+                    or service.store._read(service.store.root/'workspace_plans'/date/(run_id+'.json')) is not None):
+                raise ValueError('WORKSPACE_PLAN_RUN_ALREADY_EXISTS')
+            prior=service.store._read(run_root/'latest.json')
+            if prior is not None:prior=validate_attempt(prior,date)
+            attempt=dict(schema_version=ATTEMPT_SCHEMA,target_trade_date=date,run_id=run_id,
+                owner='ManagerResearchJobService.refresh_workspace_plan',state='RUNNING',execution_kind=execution_kind,
+                started_at=(now.astimezone(timezone.utc).isoformat(timespec='microseconds') if now is not None else _now()),last_success_at=(prior or {}).get('last_success_at'),failure_reasons=[],**FLAGS)
+            if plan_execution_context is not None:
+                attempt['execution_context'] = deepcopy(plan_execution_context)
+            def write_attempt() -> None:
+                sealed=validate_attempt(seal_attempt(attempt),date)
+                service.store._write_atomic(run_root/(run_id+'.json'),sealed)
+                service.store._write_atomic(run_root/'latest.json',sealed)
+            write_attempt()
+            try:
+                if preparation_error is not None:
+                    raise preparation_error
+                value=prepared if prepared is not None else get_workspace(service,date,include_saved=False,
+                    now=plan_read_now,us_market_request_context=us_market_request_context,**workspace_dates)
+                completed_at=_now()
+                if plan_execution_context is not None:
+                    plan_execution_context['finished_at'] = completed_at
+                    value['execution_context'] = deepcopy(plan_execution_context)
+                failures=sorted(set(value['gaps']))
+                state='PARTIAL' if failures else ('SUCCEEDED' if value['stocks'] else 'SUCCEEDED_EMPTY')
+                checkpoint()
+                if deadline is not None and timestamp(completed_at) >= deadline.astimezone(timezone.utc):
+                    raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED')
+                product=dict(schema_version=PLAN_SCHEMA,target_trade_date=date,run_id=run_id,
+                    generated_at=completed_at,owner='ManagerResearchJobService.refresh_workspace_plan',
+                    execution_kind=execution_kind,input_identity=value['input_identity'],workspace=value,**FLAGS)
+                if plan_execution_context is not None:
+                    product['execution_context'] = deepcopy(plan_execution_context)
+                    attempt['execution_context'] = deepcopy(plan_execution_context)
+                product['read_contract_sha256'] = contract_identity()
+                product['sha256']=digest(product)
+                root=service.store.root/'workspace_plans'/date
+                service.store._write_atomic(root/(run_id+'.json'),product)
+                service.store._write_atomic(root/'latest.json',product)
+                # The original readback validates schema/date/input identity/SHA.
+                # A returned READBACK_FAILED is not an exception: inspect it before
+                # publishing a successful terminal attempt or last_success_at.
+                readback=_read_plan(service.store,date)
+                if (readback is None or readback.get('run_id')!=run_id
+                        or readback.get('sha256')!=product['sha256']):
+                    raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+                finished_at=_now()
+                if deadline is not None and timestamp(finished_at) >= deadline.astimezone(timezone.utc):
+                    raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_TERMINAL_DEADLINE_EXCEEDED')
+                attempt.update(state=state,finished_at=finished_at,last_success_at=product['generated_at'],
+                    input_identity=value['input_identity'],input_coverage=value['existing_material_coverage'],
+                    summary=value['summary'],failure_reasons=failures,
+                    success_scope='EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE')
+                write_attempt()
+                terminal=validate_attempt(service.store._read(run_root/'latest.json'),date)
+                if terminal!=seal_attempt(attempt):
+                    raise ValueError('WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED')
+                result=_readback_plan(service.store,date,value)
+                if result.get('plan_product',{}).get('consumed') is not True:
+>                   raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+E                   ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED
+
+v4/manager_research/workspace.py:1343: ValueError
+__________ test_null_and_insufficient_evidence_survive_lossless_save ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_null_and_insufficient_evi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1be6ff7e0>
+
+    def test_null_and_insufficient_evidence_survive_lossless_save(tmp_path,monkeypatch):
+        store=s.ManagerResearchStore(tmp_path)
+        value=current()
+        value['us_market_attention']={'status':'CANNOT_CONFIRM','mapping_diagnostics':{
+            'assessment_state':'NOT_EVALUATED','accepted_hk_mapping_count':None,
+            'assessment_reasons':['US_MARKET_SNAPSHOT_NOT_READY'],
+            'relation_gate':'TWO_SOURCE_PIT_VERIFIED_REQUIRED'}}
+        value['gaps']=['US_MARKET_SNAPSHOT_NOT_READY']
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:deepcopy(value))
+>       got=w.refresh_workspace_plan(SimpleNamespace(store=store),DATE)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_plan_readback_issue24.py:284: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7fe1be5a88c0>)
+target_trade_date = '20261002', execution_kind = 'MANUAL_REFRESH', now = None
+deadline = None, execution_context = None, us_market_request_context = None
+workspace_date_bindings = None
+
+    def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+                               now: datetime | None = None, deadline: datetime | None = None,
+                               execution_context: Mapping[str, Any] | None = None,
+                               us_market_request_context: Mapping[str, Any] | None = None,
+                               workspace_date_bindings: Mapping[str, Any] | None = None) -> dict:
+        """Persist an exact-date plan from existing verified owners only.
+    
+        ``SCHEDULED_PREOPEN`` is reserved for the bounded pre-open autorun.  It
+        uses its supplied aware clock for both the read cutoff and product timing;
+        late/backfill eligibility is enforced by ``workspace_plan_autorun``.
+        """
+        if execution_kind not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'}:
+            raise ValueError('WORKSPACE_PLAN_EXECUTION_KIND_INVALID')
+        scheduled = execution_kind in {'SCHEDULED_PREOPEN','SCHEDULED_MORNING'}
+        if scheduled and (now is None or now.tzinfo is None):
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_CLOCK_REQUIRED')
+        if scheduled and deadline is None:
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_REQUIRED')
+        if deadline is not None and deadline.tzinfo is None:
+            raise ValueError('WORKSPACE_PLAN_DEADLINE_MUST_BE_AWARE')
+        if not scheduled and deadline is not None:
+            raise ValueError('WORKSPACE_PLAN_DEADLINE_ONLY_FOR_SCHEDULED_PREOPEN')
+        if scheduled and now.astimezone(timezone.utc) >= deadline.astimezone(timezone.utc):
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_EXPIRED')
+        date=date_token(target_trade_date)
+        workspace_dates: dict[str, str] = {}
+        if workspace_date_bindings is not None:
+            if not isinstance(workspace_date_bindings, Mapping) or set(workspace_date_bindings)-{'selection_date','announcement_date'}:
+                raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
+            if 'selection_date' in workspace_date_bindings:
+                workspace_dates['selection_date'] = date_token(workspace_date_bindings['selection_date'])
+            if 'announcement_date' in workspace_date_bindings:
+                workspace_dates['announcement_date'] = date_token(str(workspace_date_bindings['announcement_date']).replace('-',''))
+            if not workspace_dates:
+                raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
+        if us_market_request_context is not None:
+            _validate_us_market_request_context(date, us_market_request_context)
+        context_start = now if now is not None else datetime.now(HK)
+        if context_start.tzinfo is None or context_start.utcoffset() is None:
+            raise ValueError('WORKSPACE_PLAN_EXECUTION_CLOCK_MUST_BE_AWARE')
+        plan_execution_context = _plan_execution_context(execution_context,
+            execution_kind=execution_kind, started_at=context_start)
+        plan_read_now = now
+        if plan_execution_context is not None and plan_execution_context.get('timing') == 'RETROSPECTIVE':
+            target_day = datetime.strptime(date,'%Y%m%d').date()
+            actual_day = context_start.astimezone(HK).date()
+            if target_day >= actual_day or execution_kind != 'MANUAL_REFRESH':
+                raise ValueError('WORKSPACE_PLAN_RETROSPECTIVE_TARGET_INVALID')
+        if execution_kind == 'SCHEDULED_MORNING':
+            from .workspace_plan_autorun import morning_window
+            start, freeze = morning_window(date)
+            if (now.astimezone(HK).strftime('%Y%m%d') != date or not start <= now < freeze
+                    or deadline != freeze):
+                raise ValueError('MORNING_PLAN_OUTSIDE_FROZEN_WINDOW')
+            # Each input is checked by its original reader below. Missing US or
+            # archive inputs do not gate independent announcement/market channels.
+        with service.store._transaction(date,'workspace-plan-refresh'):
+            prepared=None;preparation_error=None
+            if scheduled:
+                # The outer autorun check is only an optimization. A concurrent
+                # caller may pass it before the first caller commits, so repeat
+                # the exact-date check while holding the same store transaction
+                # used for plan persistence.
+                existing=_read_plan(service.store,date)
+                if existing is not None:
+                    prior_product_attempt = service.store._read(service.store.root/
+                        'workspace_plan_runs'/date/(existing['run_id']+'.json'))
+                    if prior_product_attempt is not None:
+                        prior_product_attempt = validate_attempt(prior_product_attempt, date)
+                    same_owner_attempt = bool(prior_product_attempt is not None
+                        and prior_product_attempt.get('run_id') == existing['run_id']
+                        and prior_product_attempt.get('owner') == 'ManagerResearchJobService.refresh_workspace_plan'
+                        and prior_product_attempt.get('execution_kind') == existing.get('execution_kind')
+                        and prior_product_attempt.get('state') in {'SUCCEEDED','SUCCEEDED_EMPTY','PARTIAL'}
+                        and prior_product_attempt.get('input_identity') == existing['input_identity'])
+                    if same_owner_attempt:
+                        try:
+                            prior_product_attempt = verified_plan_attempt(service.store, existing)
+                        except _ERROR_TYPES:
+                            same_owner_attempt = False
+                    existing_workspace=existing['workspace']
+                    existing_context=existing_workspace.get('plan_context') if isinstance(existing_workspace.get('plan_context'),dict) else {}
+                    existing_generated=timestamp(existing.get('generated_at'))
+                    existing_cutoff=timestamp(existing_context.get('research_cutoff'))
+                    open_at=deadline.astimezone(timezone.utc)
+                    try:
+                            prepared=get_workspace(service,date,include_saved=False,now=plan_read_now,
+                                us_market_request_context=us_market_request_context,**workspace_dates)
+                    except _ERROR_TYPES as exc:
+                        preparation_error=exc
+                    prepared_cutoff=timestamp((prepared or {}).get('plan_context',{}).get('research_cutoff'))
+                    reuse_diagnostics=input_identity_diagnostics(existing_workspace,prepared or {},
+                        after_cutoff=bool(existing_cutoff is None or prepared_cutoff is None
+                            or existing_cutoff>prepared_cutoff))
+                    if (prepared is not None and same_owner_attempt
+                            and reuse_diagnostics['status']=='MATCH'
+                            and existing.get('execution_kind') == execution_kind
+                            and existing['input_identity']==prepared['input_identity']
+                            and existing_workspace.get('semantic_version')==prepared.get('semantic_version')
+                            and existing_workspace.get('date_bindings')==prepared.get('date_bindings')
+                            and existing_cutoff is not None and existing_cutoff<=now
+                            and existing_generated is not None and existing_cutoff is not None
+                            and existing_generated<=now
+                            and existing_generated.astimezone(timezone.utc)<open_at
+                            and existing_cutoff.astimezone(timezone.utc)<=open_at):
+                        value=deepcopy(prepared)
+                        value['plan_product']=dict(status='ALREADY_MATERIALIZED',run_id=existing.get('run_id'),
+                            generated_at=existing.get('generated_at'),sha256=existing.get('sha256'),
+                            execution_kind=existing['execution_kind'], consumed=True,
+                            input_identity_diagnostics=reuse_diagnostics,
+                            original_owner='ManagerResearchJobService.refresh_workspace_plan',
+                            execution_context=deepcopy(existing.get('execution_context')),
+                            run_readback=_plan_run_readback(existing,prior_product_attempt,
+                                read_at=now,verified=True))
+                        value['workspace_plan_attempt']=deepcopy(prior_product_attempt)
+                        from .workspace_daily_channels import build_daily_channels
+                        value['daily_channels']=build_daily_channels(value)
+                        return value
+            run_id=uuid4().hex
+            run_root=service.store.root/'workspace_plan_runs'/date
+            # Check before the first RUNNING journal write; a reused run ID must
+            # not overwrite either an immutable plan or its existing audit record.
+            if (service.store._read(run_root/(run_id+'.json')) is not None
+                    or service.store._read(service.store.root/'workspace_plans'/date/(run_id+'.json')) is not None):
+                raise ValueError('WORKSPACE_PLAN_RUN_ALREADY_EXISTS')
+            prior=service.store._read(run_root/'latest.json')
+            if prior is not None:prior=validate_attempt(prior,date)
+            attempt=dict(schema_version=ATTEMPT_SCHEMA,target_trade_date=date,run_id=run_id,
+                owner='ManagerResearchJobService.refresh_workspace_plan',state='RUNNING',execution_kind=execution_kind,
+                started_at=(now.astimezone(timezone.utc).isoformat(timespec='microseconds') if now is not None else _now()),last_success_at=(prior or {}).get('last_success_at'),failure_reasons=[],**FLAGS)
+            if plan_execution_context is not None:
+                attempt['execution_context'] = deepcopy(plan_execution_context)
+            def write_attempt() -> None:
+                sealed=validate_attempt(seal_attempt(attempt),date)
+                service.store._write_atomic(run_root/(run_id+'.json'),sealed)
+                service.store._write_atomic(run_root/'latest.json',sealed)
+            write_attempt()
+            try:
+                if preparation_error is not None:
+                    raise preparation_error
+                value=prepared if prepared is not None else get_workspace(service,date,include_saved=False,
+                    now=plan_read_now,us_market_request_context=us_market_request_context,**workspace_dates)
+                completed_at=_now()
+                if plan_execution_context is not None:
+                    plan_execution_context['finished_at'] = completed_at
+                    value['execution_context'] = deepcopy(plan_execution_context)
+                failures=sorted(set(value['gaps']))
+                state='PARTIAL' if failures else ('SUCCEEDED' if value['stocks'] else 'SUCCEEDED_EMPTY')
+                checkpoint()
+                if deadline is not None and timestamp(completed_at) >= deadline.astimezone(timezone.utc):
+                    raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED')
+                product=dict(schema_version=PLAN_SCHEMA,target_trade_date=date,run_id=run_id,
+                    generated_at=completed_at,owner='ManagerResearchJobService.refresh_workspace_plan',
+                    execution_kind=execution_kind,input_identity=value['input_identity'],workspace=value,**FLAGS)
+                if plan_execution_context is not None:
+                    product['execution_context'] = deepcopy(plan_execution_context)
+                    attempt['execution_context'] = deepcopy(plan_execution_context)
+                product['read_contract_sha256'] = contract_identity()
+                product['sha256']=digest(product)
+                root=service.store.root/'workspace_plans'/date
+                service.store._write_atomic(root/(run_id+'.json'),product)
+                service.store._write_atomic(root/'latest.json',product)
+                # The original readback validates schema/date/input identity/SHA.
+                # A returned READBACK_FAILED is not an exception: inspect it before
+                # publishing a successful terminal attempt or last_success_at.
+                readback=_read_plan(service.store,date)
+                if (readback is None or readback.get('run_id')!=run_id
+                        or readback.get('sha256')!=product['sha256']):
+                    raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+                finished_at=_now()
+                if deadline is not None and timestamp(finished_at) >= deadline.astimezone(timezone.utc):
+                    raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_TERMINAL_DEADLINE_EXCEEDED')
+                attempt.update(state=state,finished_at=finished_at,last_success_at=product['generated_at'],
+                    input_identity=value['input_identity'],input_coverage=value['existing_material_coverage'],
+                    summary=value['summary'],failure_reasons=failures,
+                    success_scope='EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE')
+                write_attempt()
+                terminal=validate_attempt(service.store._read(run_root/'latest.json'),date)
+                if terminal!=seal_attempt(attempt):
+                    raise ValueError('WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED')
+                result=_readback_plan(service.store,date,value)
+                if result.get('plan_product',{}).get('consumed') is not True:
+>                   raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+E                   ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED
+
+v4/manager_research/workspace.py:1343: ValueError
+_____________ test_half_day_close_is_native_and_can_anchor_window ______________
+
+    def test_half_day_close_is_native_and_can_anchor_window():
+        ctx=planner().plan_context('20261230', now=datetime.fromisoformat('2026-12-30T00:30:00+08:00'))
+        assert ctx['market_session']=='20261229'
+        assert ctx['market_session_close']=='2026-12-29T16:10:00+08:00'
+>       assert ctx['focus_window_start']=='2026-12-24T12:10:00+08:00'
+E       AssertionError: assert '2026-12-28T16:10:00+08:00' == '2026-12-24T12:10:00+08:00'
+E         
+E         - 2026-12-24T12:10:00+08:00
+E         ?          ^  ^
+E         + 2026-12-28T16:10:00+08:00
+E         ?          ^  ^
+
+tests/test_manager_workspace_targeted_r2.py:49: AssertionError
+___________ test_missing_half_day_close_is_an_explicit_calendar_gap ____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1be66eeb0>
+
+    def test_missing_half_day_close_is_an_explicit_calendar_gap(monkeypatch):
+        from copy import deepcopy
+        from dataclasses import replace
+        from contracts import trading_calendar
+        calendar=trading_calendar.load_market_calendar()
+        markets=deepcopy(calendar.markets)
+        markets['hk_securities']['half_day_close']=None
+        monkeypatch.setattr(trading_calendar, 'load_market_calendar', lambda: replace(calendar, markets=markets))
+>       with pytest.raises(ValueError, match='PLAN_HALF_DAY_CLOSE_UNAVAILABLE'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_workspace_targeted_r2.py:67: Failed
+__ test_hk02_panel_pointer_selects_verified_repair_only_after_it_is_available __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_hk02_panel_pointer_select0')
+
+    def test_hk02_panel_pointer_selects_verified_repair_only_after_it_is_available(tmp_path):
+        asset=tmp_path/'assets'/'hk_0_2'
+        asset.mkdir(parents=True)
+        old_relative,old_sha=_write_hk02_revision(
+            asset,'20260930','20260930',b'old exact panel','2026-09-30T09:20:05+08:00')
+        new_relative,new_sha=_write_hk02_revision(
+            asset,'20260930','20260930-history-20260929',b'repaired panel',
+            '2026-10-02T06:04:00+00:00',recovery=_valid_history_recovery(),parent_panel_sha256=old_sha)
+        (asset/'panel_latest.json').write_text(json.dumps({'manifest_relative':new_relative}))
+    
+        current,gaps=planner()._read_hk02_panel_witness(
+            tmp_path,'20260930',research_cutoff='2026-10-02T14:05:00+08:00')
+>       assert not gaps and current['panel_sha256']==new_sha
+E       AssertionError: assert (not ['PLAN_HK_02_PANEL_RECOVERY_LINEAGE_INVALID'])
+
+tests/test_manager_workspace_targeted_r2.py:307: AssertionError
+_____ test_hk02_panel_rejects_recovery_manifest_pinned_to_the_wrong_parent _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_hk02_panel_rejects_recove0')
+
+    def test_hk02_panel_rejects_recovery_manifest_pinned_to_the_wrong_parent(tmp_path):
+        asset=tmp_path/'assets'/'hk_0_2'
+        asset.mkdir(parents=True)
+        _old_relative,old_sha=_write_hk02_revision(
+            asset,'20260930','20260930',b'original authoritative panel','2026-09-30T09:20:05+08:00')
+        new_relative,_new_sha=_write_hk02_revision(
+            asset,'20260930','20260930-history-20260929',b'repaired panel',
+            '2026-10-02T06:04:00+00:00',recovery=_valid_history_recovery(),parent_panel_sha256='b'*64)
+        (asset/'panel_latest.json').write_text(json.dumps({'manifest_relative':new_relative}))
+    
+        witness,gaps=planner()._read_hk02_panel_witness(
+            tmp_path,'20260930',research_cutoff='2026-10-02T14:05:00+08:00')
+        assert witness is None
+>       assert gaps==['PLAN_HK_02_PANEL_RECOVERY_PARENT_MISMATCH']
+E       AssertionError: assert ['PLAN_HK_02_...EAGE_INVALID'] == ['PLAN_HK_02_...ENT_MISMATCH']
+E         
+E         At index 0 diff: 'PLAN_HK_02_PANEL_RECOVERY_LINEAGE_INVALID' != 'PLAN_HK_02_PANEL_RECOVERY_PARENT_MISMATCH'
+E         Use -v to get more diff
+
+tests/test_manager_workspace_targeted_r2.py:330: AssertionError
+___ test_hk02_panel_pointer_after_cutoff_fails_closed_without_older_revision ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_hk02_panel_pointer_after_0')
+
+    def test_hk02_panel_pointer_after_cutoff_fails_closed_without_older_revision(tmp_path):
+        asset=tmp_path/'assets'/'hk_0_2'
+        asset.mkdir(parents=True)
+        new_relative,_=_write_hk02_revision(
+            asset,'20260930','20260930-history-20260929',b'repaired panel',
+            '2026-10-02T06:04:00+00:00',recovery=_valid_history_recovery(),parent_panel_sha256='b'*64)
+        (asset/'panel_latest.json').write_text(json.dumps({'manifest_relative':new_relative}))
+        witness,gaps=planner()._read_hk02_panel_witness(
+            tmp_path,'20260930',research_cutoff='2026-10-02T13:00:00+08:00')
+>       assert witness is None and gaps==['PLAN_HK_02_PANEL_AFTER_RESEARCH_CUTOFF']
+E       AssertionError: assert (None is None and ['PLAN_HK_02_...EAGE_INVALID'] == ['PLAN_HK_02_...EARCH_CUTOFF']
+E         
+E         At index 0 diff: 'PLAN_HK_02_PANEL_RECOVERY_LINEAGE_INVALID' != 'PLAN_HK_02_PANEL_AFTER_RESEARCH_CUTOFF'
+E         Use -v to get more diff)
+
+tests/test_manager_workspace_targeted_r2.py:342: AssertionError
+_________ test_two_character_unique_chinese_issuer_in_delimited_title __________
+
+    def test_two_character_unique_chinese_issuer_in_delimited_title():
+        fn=workspace_discovery.project_material_discovery
+        cards=fn([material('【越疆】机器人研究','【越疆】订单等待核实。')],{'HK.09993':{'name':'越疆'}},identity(),context())
+>       assert len(cards)==1 and cards[0]['symbol']=='HK.09993'
+E       assert (0 == 1)
+E        +  where 0 = len([])
+
+tests/test_manager_workspace_targeted_r2.py:376: AssertionError
+_ test_native_name_prefix_collision_uses_longest_non_overlapping_match[\u5357\u65b9\u6e2f\u80a1\u901a\u7ea2\u5229\u653f\u7b56\u53d8\u5316-master2-expected2] _
+
+text = '南方港股通红利政策变化'
+master = {'HK.03469': {'name': '南方港股通红利'}, 'HK.03432': {'name': '南方港股通'}}
+expected = ['HK.03469']
+
+    @pytest.mark.parametrize(('text','master','expected'),[
+        ('周大福创建订单待核',
+         {'HK.00659':{'name':'周大福创建'},'HK.01929':{'name':'周大福'}},['HK.00659']),
+        ('碧桂园服务订单待核',
+         {'HK.06098':{'name':'碧桂园服务'},'HK.02007':{'name':'碧桂园'}},['HK.06098']),
+        ('南方港股通红利政策变化',
+         {'HK.03469':{'name':'南方港股通红利'},'HK.03432':{'name':'南方港股通'}},['HK.03469']),
+    ])
+    def test_native_name_prefix_collision_uses_longest_non_overlapping_match(text,master,expected):
+        cards=workspace_discovery.project_material_discovery(
+            [material(title=text,quote=text)],master,identity(),context())
+>       assert [card['symbol'] for card in cards]==expected
+E       AssertionError: assert [] == ['HK.03469']
+E         
+E         Right contains one more item: 'HK.03469'
+E         Use -v to get more diff
+
+tests/test_manager_workspace_targeted_r2.py:395: AssertionError
+_________ test_native_name_separate_source_positions_keep_both_issuers _________
+
+    def test_native_name_separate_source_positions_keep_both_issuers():
+        text='周大福创建订单待核。周大福基本面待核。'
+        master={'HK.00659':{'name':'周大福创建'},'HK.01929':{'name':'周大福'}}
+        cards=workspace_discovery.project_material_discovery(
+            [material(title=text,quote=text)],master,identity(),context())
+>       assert [card['symbol'] for card in cards]==['HK.00659','HK.01929']
+E       AssertionError: assert ['HK.00659'] == ['HK.00659', 'HK.01929']
+E         
+E         Right contains one more item: 'HK.01929'
+E         Use -v to get more diff
+
+tests/test_manager_workspace_targeted_r2.py:403: AssertionError
+________ test_workspace_api_is_bodyless_same_origin_and_original_owner _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_workspace_api_is_bodyless0')
+
+    def test_workspace_api_is_bodyless_same_origin_and_original_owner(tmp_path):
+        import asyncio, httpx
+        from fastapi import FastAPI
+        from apps.api.v35_api.manager_research_router import create_manager_research_router
+        from v4.manager_research.service import ManagerResearchJobService
+        from v4.manager_research.store import ManagerResearchStore
+        service=ManagerResearchJobService(ManagerResearchStore(tmp_path/'manager'),None,None)
+        app=FastAPI();app.include_router(create_manager_research_router(service))
+        async def run():
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://local.test') as c:
+                before=list((tmp_path/'manager').rglob('*.json'))
+                rejected=await c.post('/api/v4/manager/research/workspace/refresh?date='+DATE,json={'stocks':['HK.09991']})
+                assert rejected.status_code==422
+                cross=await c.post('/api/v4/manager/research/workspace/refresh?date='+DATE,headers={'Origin':'https://other.invalid'})
+                assert cross.status_code==403
+                assert list((tmp_path/'manager').rglob('*.json'))==before
+                get=await c.get('/api/v4/manager/research/workspace?date='+DATE)
+                assert get.status_code==200 and get.json()['plan_product']['status']=='NOT_MATERIALIZED'
+                post=await c.post('/api/v4/manager/research/workspace/refresh?date='+DATE,headers={'Origin':'http://local.test'})
+                assert post.status_code==200 and post.json()['plan_product']['consumed'] is True
+                read=await c.get('/api/v4/manager/research/workspace?date='+DATE)
+                assert read.json()['plan_product']['sha256']==post.json()['plan_product']['sha256']
+>       asyncio.run(run())
+
+tests/test_manager_workspace_targeted_r2.py:428: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:205: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:128: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://local.test') as c:
+            before=list((tmp_path/'manager').rglob('*.json'))
+            rejected=await c.post('/api/v4/manager/research/workspace/refresh?date='+DATE,json={'stocks':['HK.09991']})
+            assert rejected.status_code==422
+            cross=await c.post('/api/v4/manager/research/workspace/refresh?date='+DATE,headers={'Origin':'https://other.invalid'})
+            assert cross.status_code==403
+            assert list((tmp_path/'manager').rglob('*.json'))==before
+            get=await c.get('/api/v4/manager/research/workspace?date='+DATE)
+            assert get.status_code==200 and get.json()['plan_product']['status']=='NOT_MATERIALIZED'
+            post=await c.post('/api/v4/manager/research/workspace/refresh?date='+DATE,headers={'Origin':'http://local.test'})
+            assert post.status_code==200 and post.json()['plan_product']['consumed'] is True
+            read=await c.get('/api/v4/manager/research/workspace?date='+DATE)
+>           assert read.json()['plan_product']['sha256']==post.json()['plan_product']['sha256']
+E           AssertionError: assert None == 'c77b31050fc4d3c11514bc69ce2b81b4f51afd880493a6e08e059f601e039196'
+
+tests/test_manager_workspace_targeted_r2.py:427: AssertionError
+_ test_preopen_autorun_is_due_only_inside_native_preopen_window_and_never_backfills _
+
+    def test_preopen_autorun_is_due_only_inside_native_preopen_window_and_never_backfills():
+        from v4.manager_research.workspace_plan_autorun import preopen_window, run_scheduled_preopen_plan
+        from v4.manager_research.workspace_projection import HK
+    
+        start, end = preopen_window("20260925", lead_seconds=60)
+        assert start.isoformat() == "2026-09-25T09:29:00+08:00"
+        assert end.isoformat() == "2026-09-25T09:30:00+08:00"
+    
+        calls = []
+        service = SimpleNamespace(
+            get_workspace_plan=lambda date: None,
+            refresh_workspace_plan=lambda date, **kw: calls.append((date, kw)) or {
+                "plan_product": {"status": "CURRENT", "run_id": "b" * 32, "generated_at": kw["now"].isoformat()},
+                "plan_context": {"research_cutoff": kw["now"].isoformat()},
+            },
+        )
+        before = run_scheduled_preopen_plan(
+            service, "20260925", now=datetime(2026, 9, 25, 9, 28, 59, tzinfo=HK),
+            config={"enabled": True, "lead_seconds": 60},
+        )
+        assert before["status"] == "NOT_DUE" and calls == []
+    
+>       due = run_scheduled_preopen_plan(
+            service, "20260925", now=datetime(2026, 9, 25, 9, 29, 30, tzinfo=HK),
+            config={"enabled": True, "lead_seconds": 60},
+        )
+
+tests/test_manager_business_completion_a.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/workspace_plan_autorun.py:177: in run_scheduled_preopen_plan
+    readback = owner_plan_readback(value, target_trade_date, expected_kind="SCHEDULED_PREOPEN")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = {'plan_product': {'status': 'CURRENT', 'run_id': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'generated_at': '2026-09-25T09:29:30+08:00'}, 'plan_context': {'research_cutoff': '2026-09-25T09:29:30+08:00'}}
+target_trade_date = '20260925', expected_kind = 'SCHEDULED_PREOPEN'
+allow_preserved_preopen = False
+
+    def owner_plan_readback(value: Any, target_trade_date: str, *, expected_kind: str,
+                            allow_preserved_preopen: bool = False) -> dict[str, Any]:
+        """Accept only an existing owner's exact product and same-run terminal attempt."""
+        from .workspace import validate_attempt
+    
+        date = date_token(target_trade_date)
+        product = value.get("plan_product") if isinstance(value, Mapping) else None
+        attempt = value.get("workspace_plan_attempt") if isinstance(value, Mapping) else None
+        if not isinstance(product, Mapping) or not isinstance(attempt, Mapping):
+>           raise ValueError("PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED")
+E           ValueError: PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED
+
+v4/manager_research/workspace_plan_autorun.py:49: ValueError
+_ test_preopen_autorun_returns_owner_same_input_plan_without_duplicate_publication _
+
+    def test_preopen_autorun_returns_owner_same_input_plan_without_duplicate_publication():
+        from v4.manager_research.workspace_plan_autorun import run_scheduled_preopen_plan
+        from v4.manager_research.workspace_projection import HK
+    
+        calls = []
+        service = SimpleNamespace(
+            refresh_workspace_plan=lambda date, **kw: calls.append((date, kw)) or {
+                "plan_product": {
+                    "status": "ALREADY_MATERIALIZED",
+                    "run_id": "c" * 32,
+                    "generated_at": "2026-09-25T09:29:10+08:00",
+                },
+                "plan_context": {"research_cutoff": "2026-09-25T09:29:05+08:00"},
+            },
+        )
+>       result = run_scheduled_preopen_plan(
+            service, "20260925", now=datetime(2026, 9, 25, 9, 29, 40, tzinfo=HK),
+            config={"enabled": True, "lead_seconds": 60},
+        )
+
+tests/test_manager_business_completion_a.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/workspace_plan_autorun.py:177: in run_scheduled_preopen_plan
+    readback = owner_plan_readback(value, target_trade_date, expected_kind="SCHEDULED_PREOPEN")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = {'plan_product': {'status': 'ALREADY_MATERIALIZED', 'run_id': 'cccccccccccccccccccccccccccccccc', 'generated_at': '2026-09-25T09:29:10+08:00'}, 'plan_context': {'research_cutoff': '2026-09-25T09:29:05+08:00'}}
+target_trade_date = '20260925', expected_kind = 'SCHEDULED_PREOPEN'
+allow_preserved_preopen = False
+
+    def owner_plan_readback(value: Any, target_trade_date: str, *, expected_kind: str,
+                            allow_preserved_preopen: bool = False) -> dict[str, Any]:
+        """Accept only an existing owner's exact product and same-run terminal attempt."""
+        from .workspace import validate_attempt
+    
+        date = date_token(target_trade_date)
+        product = value.get("plan_product") if isinstance(value, Mapping) else None
+        attempt = value.get("workspace_plan_attempt") if isinstance(value, Mapping) else None
+        if not isinstance(product, Mapping) or not isinstance(attempt, Mapping):
+>           raise ValueError("PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED")
+E           ValueError: PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED
+
+v4/manager_research/workspace_plan_autorun.py:49: ValueError
+_____ test_preopen_safe_wrapper_never_blocks_announcement_on_plan_failure ______
+
+    def test_preopen_safe_wrapper_never_blocks_announcement_on_plan_failure():
+        from v4.manager_research.workspace_plan_autorun import run_scheduled_preopen_plan_safe
+        from v4.manager_research.workspace_projection import HK
+        class Broken:
+            def refresh_workspace_plan(self, date, **kwargs):
+                raise ValueError("BROKEN_SAVED_PLAN")
+        row=run_scheduled_preopen_plan_safe(Broken(),"20260925",now=datetime(2026,9,25,9,29,10,tzinfo=HK),config={"enabled":True,"lead_seconds":60})
+        assert row["status"]=="FAILED"
+>       assert row["reason"]=="ValueError"
+E       AssertionError: assert 'PLAN_OWNER_EXECUTION_FAILED' == 'ValueError'
+E         
+E         - ValueError
+E         + PLAN_OWNER_EXECUTION_FAILED
+
+tests/test_manager_business_completion_a.py:156: AssertionError
+_ test_preopen_autorun_rejects_materialization_that_finishes_after_continuous_open _
+
+    def test_preopen_autorun_rejects_materialization_that_finishes_after_continuous_open():
+        from v4.manager_research.workspace_plan_autorun import run_scheduled_preopen_plan
+        from v4.manager_research.workspace_projection import HK
+        service=SimpleNamespace(
+            get_workspace_plan=lambda date: None,
+            refresh_workspace_plan=lambda date, **kw: {
+                "plan_product":{"status":"CURRENT","run_id":"d"*32,"generated_at":"2026-09-25T09:30:00.000001+08:00"},
+                "plan_context":{"research_cutoff":kw["now"].isoformat()},
+            },
+        )
+>       row=run_scheduled_preopen_plan(service,"20260925",now=datetime(2026,9,25,9,29,59,tzinfo=HK),config={"enabled":True,"lead_seconds":60})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_business_completion_a.py:170: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/workspace_plan_autorun.py:177: in run_scheduled_preopen_plan
+    readback = owner_plan_readback(value, target_trade_date, expected_kind="SCHEDULED_PREOPEN")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = {'plan_product': {'status': 'CURRENT', 'run_id': 'dddddddddddddddddddddddddddddddd', 'generated_at': '2026-09-25T09:30:00.000001+08:00'}, 'plan_context': {'research_cutoff': '2026-09-25T09:29:59+08:00'}}
+target_trade_date = '20260925', expected_kind = 'SCHEDULED_PREOPEN'
+allow_preserved_preopen = False
+
+    def owner_plan_readback(value: Any, target_trade_date: str, *, expected_kind: str,
+                            allow_preserved_preopen: bool = False) -> dict[str, Any]:
+        """Accept only an existing owner's exact product and same-run terminal attempt."""
+        from .workspace import validate_attempt
+    
+        date = date_token(target_trade_date)
+        product = value.get("plan_product") if isinstance(value, Mapping) else None
+        attempt = value.get("workspace_plan_attempt") if isinstance(value, Mapping) else None
+        if not isinstance(product, Mapping) or not isinstance(attempt, Mapping):
+>           raise ValueError("PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED")
+E           ValueError: PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED
+
+v4/manager_research/workspace_plan_autorun.py:49: ValueError
+_ test_scheduled_workspace_plan_never_persists_if_computation_finishes_after_deadline _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_scheduled_workspace_plan_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1bcc7e4a0>
+
+    def test_scheduled_workspace_plan_never_persists_if_computation_finishes_after_deadline(tmp_path, monkeypatch):
+        from contextlib import contextmanager
+        import v4.manager_research.workspace as workspace
+        from v4.manager_research.workspace_projection import HK
+    
+        class Store:
+            def __init__(self, root):
+                self.root=root
+                self.rows={}
+            @contextmanager
+            def _transaction(self, *args):
+                yield
+            def _read(self, path):
+                return self.rows.get(str(path))
+            def _write_atomic(self, path, value):
+                self.rows[str(path)]=value
+    
+        store=Store(tmp_path)
+        service=SimpleNamespace(store=store)
+        monkeypatch.setattr(workspace, 'get_workspace', lambda *a, **k: {
+            'gaps':[], 'stocks':[{'symbol':'HK.00001'}], 'input_identity':'a'*64,
+            'existing_material_coverage':{}, 'summary':{}, 'semantic_version':'fixture',
+        })
+        monkeypatch.setattr(workspace, '_now', lambda: '2026-09-25T01:30:01+00:00')
+        with pytest.raises(TimeoutError):
+            workspace.refresh_workspace_plan(
+                service,'20260925',execution_kind='SCHEDULED_PREOPEN',
+                now=datetime(2026,9,25,9,29,50,tzinfo=HK),
+                deadline=datetime(2026,9,25,9,30,0,tzinfo=HK),
+            )
+        assert not any('/workspace_plans/' in key for key in store.rows)
+        latest=store.rows[str(tmp_path/'workspace_plan_runs'/'20260925'/'latest.json')]
+        assert latest['state']=='FAILED'
+>       assert latest['failure_reasons']==['WORKSPACE_PLAN_REFRESH_FAILED:TimeoutError']
+E       AssertionError: assert ['WORKSPACE_P...INE_EXCEEDED'] == ['WORKSPACE_P...TimeoutError']
+E         
+E         At index 0 diff: 'WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED' != 'WORKSPACE_PLAN_REFRESH_FAILED:TimeoutError'
+E         Use -v to get more diff
+
+tests/test_manager_business_completion_a.py:299: AssertionError
+____ test_legacy_r2_workspace_plan_without_execution_kind_remains_readable _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_legacy_r2_workspace_plan_0')
+
+    def test_legacy_r2_workspace_plan_without_execution_kind_remains_readable(tmp_path):
+        from v4.manager_research.store import ManagerResearchStore
+        from v4.manager_research.workspace import PLAN_SCHEMA, _read_plan
+        from v4.manager_research.workspace_projection import FLAGS, digest
+    
+        store=ManagerResearchStore(tmp_path/'manager')
+        date='20260925'; identity='e'*64
+        workspace={'target_trade_date':date,'input_identity':identity}
+        product={
+            'schema_version':PLAN_SCHEMA,'target_trade_date':date,'run_id':'f'*32,
+            'generated_at':'2026-09-25T01:20:00+00:00','input_identity':identity,
+            'workspace':workspace,**FLAGS,
+        }
+        product['sha256']=digest(product)
+        store._write_atomic(store.root/'workspace_plans'/date/'latest.json',product)
+>       loaded=_read_plan(store,date)
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_business_completion_a.py:406: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store = <v4.manager_research.store.ManagerResearchStore object at 0x7fe1bcc6af00>
+date = '20260925'
+
+    def _read_plan(store: Any,date: str) -> dict | None:
+        row=store._read(store.root/'workspace_plans'/date_token(date)/'latest.json')
+        if row is None:return None
+        expected=digest({k:v for k,v in row.items() if k!='sha256'})
+        if (row.get('schema_version')!=PLAN_SCHEMA or row.get('target_trade_date')!=date
+                or row.get('owner')!='ManagerResearchJobService.refresh_workspace_plan'
+                or row.get('sha256')!=expected or any(row.get(k) is not v for k,v in FLAGS.items())
+                or not re.fullmatch(r'[0-9a-f]{32}',str(row.get('run_id','')))
+                or not isinstance(row.get('workspace'),dict)
+                or row['workspace'].get('target_trade_date')!=date
+                or row.get('input_identity')!=row['workspace'].get('input_identity')
+                # R2 MANUAL_REFRESH products predate this optional discriminator.
+                # Their existing v1 schema remains valid and must not become an
+                # unreadable saved product merely because pre-open autorun adds a
+                # new execution kind.  Missing means legacy manual refresh only;
+                # an explicit unknown value still fails closed.
+                or row.get('execution_kind','MANUAL_REFRESH') not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'}
+                or timestamp(row.get('generated_at')) is None):
+>           raise ValueError('WORKSPACE_STORED_PLAN_INVALID')
+E           ValueError: WORKSPACE_STORED_PLAN_INVALID
+
+v4/manager_research/workspace.py:1002: ValueError
+____ test_concurrent_preopen_autorun_rechecks_plan_under_owner_transaction _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_concurrent_preopen_autoru0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1bcca4670>
+
+    def test_concurrent_preopen_autorun_rechecks_plan_under_owner_transaction(tmp_path,monkeypatch):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Lock
+        from v4.manager_research.service import ManagerResearchJobService
+        from v4.manager_research.store import ManagerResearchStore
+        from v4.manager_research.workspace_projection import HK
+        import v4.manager_research.workspace as workspace
+        from v4.manager_research.workspace_plan_autorun import run_scheduled_preopen_plan
+    
+        service=ManagerResearchJobService(ManagerResearchStore(tmp_path/'manager'),None,None)
+        compute_lock=Lock(); computes=[]
+        def project(*args,**kwargs):
+            with compute_lock:
+                computes.append(1)
+            return {'target_trade_date':'20260925','gaps':[],'stocks':[{'symbol':'HK.00001'}],'input_identity':'a'*64,
+                'existing_material_coverage':{},'summary':{},'semantic_version':'fixture',
+                'plan_context':{'research_cutoff':'2026-09-25T09:29:30+08:00'}}
+        monkeypatch.setattr(workspace,'get_workspace',project)
+        monkeypatch.setattr(workspace,'_now',lambda:'2026-09-25T01:29:40+00:00')
+        now=datetime(2026,9,25,9,29,30,tzinfo=HK)
+        config={'enabled':True,'lead_seconds':60}
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures=[pool.submit(run_scheduled_preopen_plan,service,'20260925',now=now,config=config) for _ in range(2)]
+>           rows=[future.result(timeout=10) for future in futures]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_business_completion_a.py:434: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/concurrent/futures/_base.py:454: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/concurrent/futures/_base.py:396: in __get_result
+    raise self._exception
+/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py:86: in run
+    result = ctx.run(self.task)
+             ^^^^^^^^^^^^^^^^^^
+/root/.local/share/uv/python/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py:73: in run
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+v4/manager_research/workspace_plan_autorun.py:174: in run_scheduled_preopen_plan
+    value = service.refresh_workspace_plan(
+v4/manager_research/service.py:475: in refresh_workspace_plan
+    return refresh_workspace_plan(self, target_trade_date, execution_kind=execution_kind, now=now,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7fe1bd543bb0>
+target_trade_date = '20260925', execution_kind = 'SCHEDULED_PREOPEN'
+now = datetime.datetime(2026, 9, 25, 9, 29, 30, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))
+deadline = datetime.datetime(2026, 9, 25, 9, 30, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))
+execution_context = None, us_market_request_context = None
+workspace_date_bindings = None
+
+    def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+                               now: datetime | None = None, deadline: datetime | None = None,
+                               execution_context: Mapping[str, Any] | None = None,
+                               us_market_request_context: Mapping[str, Any] | None = None,
+                               workspace_date_bindings: Mapping[str, Any] | None = None) -> dict:
+        """Persist an exact-date plan from existing verified owners only.
+    
+        ``SCHEDULED_PREOPEN`` is reserved for the bounded pre-open autorun.  It
+        uses its supplied aware clock for both the read cutoff and product timing;
+        late/backfill eligibility is enforced by ``workspace_plan_autorun``.
+        """
+        if execution_kind not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'}:
+            raise ValueError('WORKSPACE_PLAN_EXECUTION_KIND_INVALID')
+        scheduled = execution_kind in {'SCHEDULED_PREOPEN','SCHEDULED_MORNING'}
+        if scheduled and (now is None or now.tzinfo is None):
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_CLOCK_REQUIRED')
+        if scheduled and deadline is None:
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_REQUIRED')
+        if deadline is not None and deadline.tzinfo is None:
+            raise ValueError('WORKSPACE_PLAN_DEADLINE_MUST_BE_AWARE')
+        if not scheduled and deadline is not None:
+            raise ValueError('WORKSPACE_PLAN_DEADLINE_ONLY_FOR_SCHEDULED_PREOPEN')
+        if scheduled and now.astimezone(timezone.utc) >= deadline.astimezone(timezone.utc):
+            raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_EXPIRED')
+        date=date_token(target_trade_date)
+        workspace_dates: dict[str, str] = {}
+        if workspace_date_bindings is not None:
+            if not isinstance(workspace_date_bindings, Mapping) or set(workspace_date_bindings)-{'selection_date','announcement_date'}:
+                raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
+            if 'selection_date' in workspace_date_bindings:
+                workspace_dates['selection_date'] = date_token(workspace_date_bindings['selection_date'])
+            if 'announcement_date' in workspace_date_bindings:
+                workspace_dates['announcement_date'] = date_token(str(workspace_date_bindings['announcement_date']).replace('-',''))
+            if not workspace_dates:
+                raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
+        if us_market_request_context is not None:
+            _validate_us_market_request_context(date, us_market_request_context)
+        context_start = now if now is not None else datetime.now(HK)
+        if context_start.tzinfo is None or context_start.utcoffset() is None:
+            raise ValueError('WORKSPACE_PLAN_EXECUTION_CLOCK_MUST_BE_AWARE')
+        plan_execution_context = _plan_execution_context(execution_context,
+            execution_kind=execution_kind, started_at=context_start)
+        plan_read_now = now
+        if plan_execution_context is not None and plan_execution_context.get('timing') == 'RETROSPECTIVE':
+            target_day = datetime.strptime(date,'%Y%m%d').date()
+            actual_day = context_start.astimezone(HK).date()
+            if target_day >= actual_day or execution_kind != 'MANUAL_REFRESH':
+                raise ValueError('WORKSPACE_PLAN_RETROSPECTIVE_TARGET_INVALID')
+        if execution_kind == 'SCHEDULED_MORNING':
+            from .workspace_plan_autorun import morning_window
+            start, freeze = morning_window(date)
+            if (now.astimezone(HK).strftime('%Y%m%d') != date or not start <= now < freeze
+                    or deadline != freeze):
+                raise ValueError('MORNING_PLAN_OUTSIDE_FROZEN_WINDOW')
+            # Each input is checked by its original reader below. Missing US or
+            # archive inputs do not gate independent announcement/market channels.
+        with service.store._transaction(date,'workspace-plan-refresh'):
+            prepared=None;preparation_error=None
+            if scheduled:
+                # The outer autorun check is only an optimization. A concurrent
+                # caller may pass it before the first caller commits, so repeat
+                # the exact-date check while holding the same store transaction
+                # used for plan persistence.
+                existing=_read_plan(service.store,date)
+                if existing is not None:
+                    prior_product_attempt = service.store._read(service.store.root/
+                        'workspace_plan_runs'/date/(existing['run_id']+'.json'))
+                    if prior_product_attempt is not None:
+                        prior_product_attempt = validate_attempt(prior_product_attempt, date)
+                    same_owner_attempt = bool(prior_product_attempt is not None
+                        and prior_product_attempt.get('run_id') == existing['run_id']
+                        and prior_product_attempt.get('owner') == 'ManagerResearchJobService.refresh_workspace_plan'
+                        and prior_product_attempt.get('execution_kind') == existing.get('execution_kind')
+                        and prior_product_attempt.get('state') in {'SUCCEEDED','SUCCEEDED_EMPTY','PARTIAL'}
+                        and prior_product_attempt.get('input_identity') == existing['input_identity'])
+                    if same_owner_attempt:
+                        try:
+                            prior_product_attempt = verified_plan_attempt(service.store, existing)
+                        except _ERROR_TYPES:
+                            same_owner_attempt = False
+                    existing_workspace=existing['workspace']
+                    existing_context=existing_workspace.get('plan_context') if isinstance(existing_workspace.get('plan_context'),dict) else {}
+                    existing_generated=timestamp(existing.get('generated_at'))
+                    existing_cutoff=timestamp(existing_context.get('research_cutoff'))
+                    open_at=deadline.astimezone(timezone.utc)
+                    try:
+                            prepared=get_workspace(service,date,include_saved=False,now=plan_read_now,
+                                us_market_request_context=us_market_request_context,**workspace_dates)
+                    except _ERROR_TYPES as exc:
+                        preparation_error=exc
+                    prepared_cutoff=timestamp((prepared or {}).get('plan_context',{}).get('research_cutoff'))
+                    reuse_diagnostics=input_identity_diagnostics(existing_workspace,prepared or {},
+                        after_cutoff=bool(existing_cutoff is None or prepared_cutoff is None
+                            or existing_cutoff>prepared_cutoff))
+                    if (prepared is not None and same_owner_attempt
+                            and reuse_diagnostics['status']=='MATCH'
+                            and existing.get('execution_kind') == execution_kind
+                            and existing['input_identity']==prepared['input_identity']
+                            and existing_workspace.get('semantic_version')==prepared.get('semantic_version')
+                            and existing_workspace.get('date_bindings')==prepared.get('date_bindings')
+                            and existing_cutoff is not None and existing_cutoff<=now
+                            and existing_generated is not None and existing_cutoff is not None
+                            and existing_generated<=now
+                            and existing_generated.astimezone(timezone.utc)<open_at
+                            and existing_cutoff.astimezone(timezone.utc)<=open_at):
+                        value=deepcopy(prepared)
+                        value['plan_product']=dict(status='ALREADY_MATERIALIZED',run_id=existing.get('run_id'),
+                            generated_at=existing.get('generated_at'),sha256=existing.get('sha256'),
+                            execution_kind=existing['execution_kind'], consumed=True,
+                            input_identity_diagnostics=reuse_diagnostics,
+                            original_owner='ManagerResearchJobService.refresh_workspace_plan',
+                            execution_context=deepcopy(existing.get('execution_context')),
+                            run_readback=_plan_run_readback(existing,prior_product_attempt,
+                                read_at=now,verified=True))
+                        value['workspace_plan_attempt']=deepcopy(prior_product_attempt)
+                        from .workspace_daily_channels import build_daily_channels
+                        value['daily_channels']=build_daily_channels(value)
+                        return value
+            run_id=uuid4().hex
+            run_root=service.store.root/'workspace_plan_runs'/date
+            # Check before the first RUNNING journal write; a reused run ID must
+            # not overwrite either an immutable plan or its existing audit record.
+            if (service.store._read(run_root/(run_id+'.json')) is not None
+                    or service.store._read(service.store.root/'workspace_plans'/date/(run_id+'.json')) is not None):
+                raise ValueError('WORKSPACE_PLAN_RUN_ALREADY_EXISTS')
+            prior=service.store._read(run_root/'latest.json')
+            if prior is not None:prior=validate_attempt(prior,date)
+            attempt=dict(schema_version=ATTEMPT_SCHEMA,target_trade_date=date,run_id=run_id,
+                owner='ManagerResearchJobService.refresh_workspace_plan',state='RUNNING',execution_kind=execution_kind,
+                started_at=(now.astimezone(timezone.utc).isoformat(timespec='microseconds') if now is not None else _now()),last_success_at=(prior or {}).get('last_success_at'),failure_reasons=[],**FLAGS)
+            if plan_execution_context is not None:
+                attempt['execution_context'] = deepcopy(plan_execution_context)
+            def write_attempt() -> None:
+                sealed=validate_attempt(seal_attempt(attempt),date)
+                service.store._write_atomic(run_root/(run_id+'.json'),sealed)
+                service.store._write_atomic(run_root/'latest.json',sealed)
+            write_attempt()
+            try:
+                if preparation_error is not None:
+                    raise preparation_error
+                value=prepared if prepared is not None else get_workspace(service,date,include_saved=False,
+                    now=plan_read_now,us_market_request_context=us_market_request_context,**workspace_dates)
+                completed_at=_now()
+                if plan_execution_context is not None:
+                    plan_execution_context['finished_at'] = completed_at
+                    value['execution_context'] = deepcopy(plan_execution_context)
+                failures=sorted(set(value['gaps']))
+                state='PARTIAL' if failures else ('SUCCEEDED' if value['stocks'] else 'SUCCEEDED_EMPTY')
+                checkpoint()
+                if deadline is not None and timestamp(completed_at) >= deadline.astimezone(timezone.utc):
+                    raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED')
+                product=dict(schema_version=PLAN_SCHEMA,target_trade_date=date,run_id=run_id,
+                    generated_at=completed_at,owner='ManagerResearchJobService.refresh_workspace_plan',
+                    execution_kind=execution_kind,input_identity=value['input_identity'],workspace=value,**FLAGS)
+                if plan_execution_context is not None:
+                    product['execution_context'] = deepcopy(plan_execution_context)
+                    attempt['execution_context'] = deepcopy(plan_execution_context)
+                product['read_contract_sha256'] = contract_identity()
+                product['sha256']=digest(product)
+                root=service.store.root/'workspace_plans'/date
+                service.store._write_atomic(root/(run_id+'.json'),product)
+                service.store._write_atomic(root/'latest.json',product)
+                # The original readback validates schema/date/input identity/SHA.
+                # A returned READBACK_FAILED is not an exception: inspect it before
+                # publishing a successful terminal attempt or last_success_at.
+                readback=_read_plan(service.store,date)
+                if (readback is None or readback.get('run_id')!=run_id
+                        or readback.get('sha256')!=product['sha256']):
+                    raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+                finished_at=_now()
+                if deadline is not None and timestamp(finished_at) >= deadline.astimezone(timezone.utc):
+                    raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_TERMINAL_DEADLINE_EXCEEDED')
+                attempt.update(state=state,finished_at=finished_at,last_success_at=product['generated_at'],
+                    input_identity=value['input_identity'],input_coverage=value['existing_material_coverage'],
+                    summary=value['summary'],failure_reasons=failures,
+                    success_scope='EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE')
+                write_attempt()
+                terminal=validate_attempt(service.store._read(run_root/'latest.json'),date)
+                if terminal!=seal_attempt(attempt):
+                    raise ValueError('WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED')
+                result=_readback_plan(service.store,date,value)
+                if result.get('plan_product',{}).get('consumed') is not True:
+>                   raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+E                   ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED
+
+v4/manager_research/workspace.py:1343: ValueError
+__ test_enabled_announcement_binding_requires_real_persisted_canary_evidence ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_enabled_announcement_bind0')
+
+    def test_enabled_announcement_binding_requires_real_persisted_canary_evidence(tmp_path):
+        import hashlib,json
+        from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+>       value=_enabled_binding_for_gate(tmp_path)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_business_completion_a.py:501: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_business_completion_a.py:495: in _enabled_binding_for_gate
+    'files':binding_inventory(app)}
+            ^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/manager_announcement_supervisor.py:127: in binding_inventory
+    raw=io.read_bytes(rel,max_bytes=8*1024*1024);total+=len(raw)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7fe1bcc850d0>
+relative = 'apps/__init__.py', max_bytes = 8388608
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+>           fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '__init__.py'
+
+infrastructure/owned_io.py:105: FileNotFoundError
+_ test_legacy_r2_plan_without_execution_kind_passes_the_actual_historical_read_gate _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_legacy_r2_plan_without_ex0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1bcca6eb0>
+
+    def test_legacy_r2_plan_without_execution_kind_passes_the_actual_historical_read_gate(tmp_path,monkeypatch):
+        from copy import deepcopy
+        import v4.manager_research.workspace as workspace
+        from v4.manager_research.workspace_history import read_history
+    
+        store,product,body=_legacy_r2_plan_for_history(tmp_path)
+        calls=[]
+        def revalidate(service,date,*,include_saved,context):
+            calls.append((date,include_saved,context['research_cutoff']))
+            return deepcopy(body)
+        monkeypatch.setattr(workspace,'_compute_workspace',revalidate)
+        result=read_history(SimpleNamespace(store=store),'20260925')
+>       assert calls and calls[0][0]=='20260925' and calls[0][1] is False
+E       assert ([])
+
+tests/test_manager_business_completion_a.py:580: AssertionError
+______ test_standalone_us_canary_rejects_marker_only_root_before_producer ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_standalone_us_canary_reje0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1bcca55c0>
+
+    def test_standalone_us_canary_rejects_marker_only_root_before_producer(tmp_path,monkeypatch):
+        from ops.run_manager_us_activation_canary import main
+>       import ops.us_market_digest as producer_module
+
+tests/test_manager_business_completion_a.py:618: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/us_market_digest.py:35: in <module>
+    from ops.materialize_research_peripherals import (
+ops/materialize_research_peripherals.py:51: in <module>
+    from ops._materialize_research_peripherals_parts import schema_values as _v4_definitions
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Multiline schema and keyword values; called at original assignment time."""
+>   from ._namespace import read_global as _v4_global
+E   ModuleNotFoundError: No module named 'ops._materialize_research_peripherals_parts._namespace'
+
+ops/_materialize_research_peripherals_parts/schema_values.py:2: ModuleNotFoundError
+_ test_canary_identity_binds_fresh_temp_roots_receipt_owner_tree_and_exact_arguments _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_canary_identity_binds_fre0')
+
+    def test_canary_identity_binds_fresh_temp_roots_receipt_owner_tree_and_exact_arguments(tmp_path):
+        import tempfile
+        from v4.manager_research.activation_canary import write_canary_sandbox_identity,validate_canary_sandbox_identity,claim_canary_sandbox_identity
+    
+        app=Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory(prefix='manager-state-canary-') as temp:
+            sandbox=Path(temp).resolve()
+            state=sandbox/'announcement';state.mkdir()
+            master=sandbox/'master';master.mkdir();(master/'keys.json').write_text('{}')
+            identity=sandbox/'identities'/'announcement.json';identity.parent.mkdir()
+            receipt=sandbox/'receipts'/'announcement.json';receipt.parent.mkdir()
+            args=['--state-root',str(state),'--security-master-root',str(master),
+                '--trade-date','20260925','--sandbox-identity',str(identity),'--receipt',str(receipt)]
+>           write_canary_sandbox_identity(identity,'announcement',data_root=state,receipt_path=receipt,
+                app_root=app,security_master_root=master,argv=args)
+
+tests/test_manager_business_completion_a.py:645: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/activation_canary.py:241: in write_canary_sandbox_identity
+    "app_inventory_sha256": _digest_mapping(_canary_app_inventory(app, kind)),
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/activation_canary.py:158: in _canary_app_inventory
+    inventory = binding_inventory(app)
+                ^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/manager_announcement_supervisor.py:127: in binding_inventory
+    raw=io.read_bytes(rel,max_bytes=8*1024*1024);total+=len(raw)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7fe1bc2cf950>
+relative = 'apps/__init__.py', max_bytes = 8388608
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+>           fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '__init__.py'
+
+infrastructure/owned_io.py:105: FileNotFoundError
+____ test_shared_root_harness_renders_identity_and_receipt_for_child_claim _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_shared_root_harness_rende0')
+
+    def test_shared_root_harness_renders_identity_and_receipt_for_child_claim(tmp_path):
+        import json
+        import subprocess
+        import sys
+        import tempfile
+        from ops.run_manager_state_compatibility_canary import _env,_prepare_announcement_invocation
+    
+        app=Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory(prefix='manager-state-canary-') as temp:
+            sandbox=Path(temp).resolve()
+            data_root=sandbox/'announcement';data_root.mkdir()
+            security_master=sandbox/'master';security_master.mkdir()
+            (security_master/'keys.json').write_text('{}')
+            template=_announcement_command_identity(tmp_path,security_master)['argv_template']
+>           argv,identity,receipt,identity_doc=_prepare_announcement_invocation(
+                template,sandbox_root=sandbox,data_root=data_root,app=app,invocation_id='announcement')
+
+tests/test_manager_business_completion_a.py:693: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/run_manager_state_compatibility_canary.py:336: in _prepare_announcement_invocation
+    identity = write_canary_sandbox_identity(
+v4/manager_research/activation_canary.py:241: in write_canary_sandbox_identity
+    "app_inventory_sha256": _digest_mapping(_canary_app_inventory(app, kind)),
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/activation_canary.py:158: in _canary_app_inventory
+    inventory = binding_inventory(app)
+                ^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/manager_announcement_supervisor.py:127: in binding_inventory
+    raw=io.read_bytes(rel,max_bytes=8*1024*1024);total+=len(raw)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7fe1bc37d970>
+relative = 'apps/__init__.py', max_bytes = 8388608
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+>           fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '__init__.py'
+
+infrastructure/owned_io.py:105: FileNotFoundError
+______ test_us_canary_identity_requires_fresh_temp_data_and_receipt_paths ______
+
+    def test_us_canary_identity_requires_fresh_temp_data_and_receipt_paths():
+        import tempfile
+        from v4.manager_research.activation_canary import write_canary_sandbox_identity,claim_canary_sandbox_identity
+        app=Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory(prefix='manager-us-activation-canary-') as temp:
+            sandbox=Path(temp).resolve();data=sandbox/'data';data.mkdir()
+            identity=sandbox/'identities'/'us.json';identity.parent.mkdir()
+            receipt=sandbox/'receipts'/'us.json';receipt.parent.mkdir()
+            args=['--data-root',str(data),'--us-session-date','20260924','--target-hk-date','20260925',
+                '--manager-cutoff','2026-09-25T08:59:30+08:00','--capture-phase','PRE_OPEN',
+                '--sandbox-identity',str(identity),'--receipt',str(receipt)]
+>           write_canary_sandbox_identity(identity,'us',data_root=data,receipt_path=receipt,
+                app_root=app,argv=args)
+
+tests/test_manager_business_completion_a.py:736: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/activation_canary.py:241: in write_canary_sandbox_identity
+    "app_inventory_sha256": _digest_mapping(_canary_app_inventory(app, kind)),
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/activation_canary.py:158: in _canary_app_inventory
+    inventory = binding_inventory(app)
+                ^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/manager_announcement_supervisor.py:127: in binding_inventory
+    raw=io.read_bytes(rel,max_bytes=8*1024*1024);total+=len(raw)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7fe1bc2cecf0>
+relative = 'apps/__init__.py', max_bytes = 8388608
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+>           fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '__init__.py'
+
+infrastructure/owned_io.py:105: FileNotFoundError
+__ test_enabled_binding_passes_its_security_master_root_to_receipt_validator ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-35/test_enabled_binding_passes_it0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe1bc2eed60>
+
+    def test_enabled_binding_passes_its_security_master_root_to_receipt_validator(tmp_path,monkeypatch):
+        import hashlib,json
+        import v4.manager_research.activation_canary as activation_module
+        from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+>       binding=_enabled_binding_for_gate(tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_business_completion_a.py:757: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_business_completion_a.py:495: in _enabled_binding_for_gate
+    'files':binding_inventory(app)}
+            ^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/manager_announcement_supervisor.py:127: in binding_inventory
+    raw=io.read_bytes(rel,max_bytes=8*1024*1024);total+=len(raw)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7fe1bc2e5d30>
+relative = 'apps/__init__.py', max_bytes = 8388608
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+>           fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '__init__.py'
+
+infrastructure/owned_io.py:105: FileNotFoundError
+_ test_duplicate_company_event_merges_provenance_and_uses_existing_acquisition_time _
+
+    def test_duplicate_company_event_merges_provenance_and_uses_existing_acquisition_time():
+        base = {
+            "symbol":"HK.03317","semantic_status":"ACCEPTED","temporal_role":"NEW_PLAN_PUBLICATION",
+            "published_at":"2026-09-24T09:00:00+08:00","first_seen_at":"2026-09-24T10:00:00+08:00",
+            "source_url":"https://example.test/report","title":"JPM report",
+            "source_excerpt":"same issuer event","source_refs":[{"payload_sha256":"a"*64}],
+        }
+        rows=[]
+        for idx in range(3):
+            row={**base,"evidence_id":str(idx+1)*64,"source_refs":[{"payload_sha256":chr(97+idx)*64}]}
+            rows.append(row)
+        result=company_evidence([],rows,__import__('datetime').datetime.fromisoformat('2026-09-23T08:59:30+08:00'),__import__('datetime').datetime.fromisoformat('2026-09-25T08:59:30+08:00'))
+>       assert len(result["HK.03317"]) == 1
+                   ^^^^^^^^^^^^^^^^^^
+E       KeyError: 'HK.03317'
+
+tests/test_manager_business_completion_b.py:40: KeyError
+__________ test_score_explanation_reconciles_cross_lane_bonus_exactly __________
+
+    def test_score_explanation_reconciles_cross_lane_bonus_exactly():
+        context={"research_cutoff":"2026-09-25T08:59:30+08:00"}
+        screen={"strict":[{"code":"HK.03317","name":"迅策","classification":"STRICT_REBOUND","research_priority_rank":1,
+            "recent_3_session_return_pct":1.0,"recent_5_session_return_pct":2.0}],"near":[],"pending":[],"cards":[],"input_identity":"a"*64}
+        material={"symbol":"HK.03317","semantic_status":"ACCEPTED","temporal_role":"NEW_PLAN_PUBLICATION",
+            "published_at":"2026-09-24T09:00:00+08:00","first_seen_at":"2026-09-24T10:00:00+08:00",
+            "source_url":"https://example.test/r","title":"report","source_excerpt":"issuer evidence","source_refs":[{"payload_sha256":"b"*64}]}
+        out=build_research_attention("20260925",context=context,market_screen=screen,stocks=[],material_cards=[material],themes=[],announcement_observation={"status":"NOT_RUN","official_documents":[]},us_market=empty_us())
+        card=out["cards"][0]
+>       assert card["research_attention_score"] == 52  # material24 + strict10 + trend8 + cross10
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 28 == 52
+
+tests/test_manager_business_completion_b.py:57: AssertionError
+___ test_us_rejected_mover_count_is_per_raw_mover_not_unique_hk_symbol_count ___
+
+    def test_us_rejected_mover_count_is_per_raw_mover_not_unique_hk_symbol_count():
+        context={"research_cutoff":"2026-09-25T08:59:30+08:00"}
+        relation={"symbol":"HK.01234","relationship_type":"INDUSTRY_INFERENCE",
+            "issuer_quote":"issuer-specific business exposure",
+            "issuer_published_at":"2026-09-24T10:00:00+08:00",
+            "issuer_available_at":"2026-09-24T10:01:00+08:00",
+            "issuer_retrieved_at":"2026-09-24T10:02:00+08:00",
+            "source_refs":[{"payload_sha256":"b"*64}]}
+        us={**empty_us(),"status":"READY","mapping_eligible":True,
+            "captured_at":"2026-09-25T06:00:00+08:00",
+            "source_identity":{"status":"VERIFIED","payload_sha256":"a"*64,
+                "receipt_sha256":"b"*64,"manifest_sha256":"c"*64},
+            "raw_industry_up":[
+                {"label":"AI算力","pct_change":3.0,"status":"READY"},
+                {"label":"CPO","pct_change":2.0,"status":"READY"},
+                {"label":"机器人","pct_change":1.0,"status":"READY"},
+            ]}
+        out=build_research_attention("20260925",context=context,
+            market_screen={"strict":[],"near":[],"pending":[],"cards":[],"input_identity":"a"*64},
+            stocks=[],material_cards=[],themes=[{"theme":"AI_COMPUTE","mappings":[relation]}],
+            announcement_observation={"status":"NOT_RUN","official_documents":[]},us_market=us)
+        coverage=out["coverage"]
+        diagnostics=out["us_mapping_diagnostics"]["industry"]
+        assert coverage["raw_us_industry_up_count"]==3
+>       assert coverage["us_industry_mapped_symbol_count"]==1
+E       assert 0 == 1
+
+tests/test_manager_business_completion_b.py:169: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_plan_identity_r2.py::test_scheduled_existing_plan_is_not_reused_when_inputs_changed
+FAILED tests/test_manager_plan_identity_r2.py::test_scheduled_same_inputs_do_not_double_publish
+FAILED tests/test_manager_plan_identity_r2.py::test_autorun_cannot_shortcut_stale_plan_by_timestamp_alone
+FAILED tests/test_manager_plan_readback_issue24.py::test_legacy_over_64_mib_is_read_losslessly_without_rewrite
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]
+FAILED tests/test_manager_plan_readback_issue24.py::test_success_returns_read_back_terminal_attempt
+FAILED tests/test_manager_plan_readback_issue24.py::test_null_and_insufficient_evidence_survive_lossless_save
+FAILED tests/test_manager_workspace_targeted_r2.py::test_half_day_close_is_native_and_can_anchor_window
+FAILED tests/test_manager_workspace_targeted_r2.py::test_missing_half_day_close_is_an_explicit_calendar_gap
+FAILED tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_pointer_selects_verified_repair_only_after_it_is_available
+FAILED tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_rejects_recovery_manifest_pinned_to_the_wrong_parent
+FAILED tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_pointer_after_cutoff_fails_closed_without_older_revision
+FAILED tests/test_manager_workspace_targeted_r2.py::test_two_character_unique_chinese_issuer_in_delimited_title
+FAILED tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\u5357\u65b9\u6e2f\u80a1\u901a\u7ea2\u5229\u653f\u7b56\u53d8\u5316-master2-expected2]
+FAILED tests/test_manager_workspace_targeted_r2.py::test_native_name_separate_source_positions_keep_both_issuers
+FAILED tests/test_manager_workspace_targeted_r2.py::test_workspace_api_is_bodyless_same_origin_and_original_owner
+FAILED tests/test_manager_business_completion_a.py::test_preopen_autorun_is_due_only_inside_native_preopen_window_and_never_backfills
+FAILED tests/test_manager_business_completion_a.py::test_preopen_autorun_returns_owner_same_input_plan_without_duplicate_publication
+FAILED tests/test_manager_business_completion_a.py::test_preopen_safe_wrapper_never_blocks_announcement_on_plan_failure
+FAILED tests/test_manager_business_completion_a.py::test_preopen_autorun_rejects_materialization_that_finishes_after_continuous_open
+FAILED tests/test_manager_business_completion_a.py::test_scheduled_workspace_plan_never_persists_if_computation_finishes_after_deadline
+FAILED tests/test_manager_business_completion_a.py::test_legacy_r2_workspace_plan_without_execution_kind_remains_readable
+FAILED tests/test_manager_business_completion_a.py::test_concurrent_preopen_autorun_rechecks_plan_under_owner_transaction
+FAILED tests/test_manager_business_completion_a.py::test_enabled_announcement_binding_requires_real_persisted_canary_evidence
+FAILED tests/test_manager_business_completion_a.py::test_legacy_r2_plan_without_execution_kind_passes_the_actual_historical_read_gate
+FAILED tests/test_manager_business_completion_a.py::test_standalone_us_canary_rejects_marker_only_root_before_producer
+FAILED tests/test_manager_business_completion_a.py::test_canary_identity_binds_fresh_temp_roots_receipt_owner_tree_and_exact_arguments
+FAILED tests/test_manager_business_completion_a.py::test_shared_root_harness_renders_identity_and_receipt_for_child_claim
+FAILED tests/test_manager_business_completion_a.py::test_us_canary_identity_requires_fresh_temp_data_and_receipt_paths
+FAILED tests/test_manager_business_completion_a.py::test_enabled_binding_passes_its_security_master_root_to_receipt_validator
+FAILED tests/test_manager_business_completion_b.py::test_duplicate_company_event_merges_provenance_and_uses_existing_acquisition_time
+FAILED tests/test_manager_business_completion_b.py::test_score_explanation_reconciles_cross_lane_bonus_exactly
+FAILED tests/test_manager_business_completion_b.py::test_us_rejected_mover_count_is_per_raw_mover_not_unique_hk_symbol_count
+38 failed, 95 passed in 10.30s

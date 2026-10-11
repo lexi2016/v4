@@ -1,0 +1,39 @@
+{
+  "passed": 50,
+  "failed": 3,
+  "suites": [
+    {
+      "name": "independentR2Review.spec.ts",
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "name": "dailyChannels.runtime.spec.ts",
+      "passed": 19,
+      "failed": [
+        "first-screen independent research channels binds the publication alias deterministically through the actual GET: publication_date=20261006",
+        "first-screen independent research channels rebinds one legacy default GET when a new backend returns different display/publication dates",
+        "first-screen independent research channels renders stock, original reason, data date, run and status without expanding diagnostics"
+      ]
+    },
+    {
+      "name": "dailyChannels.spec.ts",
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "name": "threeLaneDateBindings.spec.ts",
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "name": "threeLaneReadbackR2.spec.ts",
+      "passed": 5,
+      "failed": []
+    }
+  ],
+  "source_snapshot_matches_after_final_run": true,
+  "source_changes_during_final_run": [],
+  "typecheck_error_lines_same": true,
+  "typecheck_error_count": 6
+}

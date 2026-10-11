@@ -1,0 +1,932 @@
+
+ RUN  v4.1.10 /workspace/scratch/90a399518fca/review_history/frontend/attachment_control_web
+
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > sends plan, selection and publication days independently on the canonical GET 20ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects a response for a different selected publication day 8ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > preserves legacy workspace parsing when the optional extension is absent 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects wrong schema before the new first-screen view is admitted 5ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects unsafe extension before the new first-screen view is admitted 3ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects duplicate channels before the new first-screen view is admitted 5ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects unknown as zero before the new first-screen view is admitted 2ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects negative count before the new first-screen view is admitted 2ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects invalid symbol before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects mismatched row date before the new first-screen view is admitted 2ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects unbound row run before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects timezone missing before the new first-screen view is admitted 1ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects invalid calendar date before the new first-screen view is admitted 3ms
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > daily channel query and payload boundary > rejects false natural acceptance before the new first-screen view is admitted 1ms
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > binds the publication alias deterministically through the actual GET: publication_date=20261006 337ms
+   → expected null to be '20261006' // Object.is equality
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > binds the publication alias deterministically through the actual GET: publication_date=20261006&announcement_date=20261007 133ms
+   → expected null to be '20261007' // Object.is equality
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > rebinds one legacy default GET when a new backend returns different display/publication dates 42ms
+   → expected [ [ …(2) ] ] to have a length of 2 but got 1
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > renders stock, original reason, data date, run and status without expanding diagnostics 44ms
+   → expected null to be '20261007' // Object.is equality
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > shows three unverified channels for an older workspace instead of inferring zero counts 34ms
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > reloads the selected canonical GET after manual generation and does not claim a scheduled run 1071ms
+   → expected [ [ …(2) ] ] to have a length of 2 but got 1
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m独立于原Stage来源日期；URL用 plan_date 保存计划日，date 仍表示Stage来源日。[0m
+            [36m</small>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtitle[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m用既有材料生成计划[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 当日动态预览（非历史冻结计划） ｜ 材料截至 10-08 08:00 港时 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。[0m
+        [36m</p>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"计划消费状态"[39m
+          [33mclass[39m=[32m"manager-plan-status"[39m
+        [36m>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"business-status-row"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划：需核验[0m
+            [36m</strong>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mDYNAMIC_PREVIEW；执行类型或运行身份未匹配；读取 VERIFIED[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m下一步：在合法盘前冻结窗口由现有 Manager owner 物化；晚间不得补成盘前。[0m
+            [36m</p>[39m
+          [36m</article>[39m
+        [36m</section>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"计划输入身份核对"[39m
+          [33mclass[39m=[32m""[39m
+          [33mhidden[39m=[32m""[39m
+        [36m/>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"每日三路研究结果"[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-daily-channels[39m=[32m"true"[39m
+        [36m>[39m
+          [36m<h3[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m每日三路研究结果[0m
+          [36m</h3>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-daily-bindings[39m=[32m"true"[39m
+          [36m>[39m
+            [0m三路日期绑定未提供 · CANNOT_CONFIRM[0m
+          [36m</p>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m来源/选股日用于展示；港股通资格仍核对计划日的权威输入。[0m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"manager-daily-grid"[39m
+          [36m>[39m
+            [36m<article[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-daily-channel[39m=[32m"ANNOUNCEMENT"[39m
+              [33mdata-daily-status[39m=[32m"CANNOT_CONFIRM"[39m
+            [36m>[39m
+              [36m<h4[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0mANNOUNCEMENT · 公告研究[0m
+              [36m</h4>[39m
+              [36m<strong[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0mCANNOT_CONFIRM · 尚未核实[0m
+              [36m</strong>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m候选数量未知 · 待核数量未知[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m数据日 未核实[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m原 owner CANNOT_CONFIRM[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m运行编号 未提供/待核 · 生成运行未核实[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m产物 SHA256 CANNOT_CONFIRM · 输入身份 CANNOT_CONFIRM[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m尚未提供三路结果合同[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m自然时段运行验收：CANNOT_CONFIRM（未核实）。[0m
+              [36m</p>[39m
+              [36m<details[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [36m<summary[39m
+                  [33mclass[39m=[32m""[39m
+                [36m>[39m
+                  [0m来源、运行与缺件详情[0m
+      ...
+ ✓ src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > aborts the older plan request and never lets its late response replace selected bindings 58ms
+ × src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > keeps cancellation effective while the one-time legacy binding read is pending 1108ms
+   → expected undefined to be defined
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m独立于原Stage来源日期；URL用 plan_date 保存计划日，date 仍表示Stage来源日。[0m
+            [36m</small>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtitle[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m用既有材料生成计划[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 当日动态预览（非历史冻结计划） ｜ 材料截至 10-08 08:00 港时 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。[0m
+        [36m</p>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"计划消费状态"[39m
+          [33mclass[39m=[32m"manager-plan-status"[39m
+        [36m>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"business-status-row"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划：需核验[0m
+            [36m</strong>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mDYNAMIC_PREVIEW；执行类型或运行身份未匹配；读取 VERIFIED[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m下一步：在合法盘前冻结窗口由现有 Manager owner 物化；晚间不得补成盘前。[0m
+            [36m</p>[39m
+          [36m</article>[39m
+        [36m</section>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"计划输入身份核对"[39m
+          [33mclass[39m=[32m""[39m
+          [33mhidden[39m=[32m""[39m
+        [36m/>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"每日三路研究结果"[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-daily-channels[39m=[32m"true"[39m
+        [36m>[39m
+          [36m<h3[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m每日三路研究结果[0m
+          [36m</h3>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-daily-bindings[39m=[32m"true"[39m
+          [36m>[39m
+            [0m来源/选股日 20261008 · 公告日 20261007 · 计划日 20261008[0m
+          [36m</p>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m来源/选股日用于展示；港股通资格仍核对计划日的权威输入。[0m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"manager-daily-grid"[39m
+          [36m>[39m
+            [36m<article[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-daily-channel[39m=[32m"ANNOUNCEMENT"[39m
+              [33mdata-daily-status[39m=[32m"READY"[39m
+            [36m>[39m
+              [36m<h4[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0mANNOUNCEMENT · 公告研究[0m
+              [36m</h4>[39m
+              [36m<strong[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0mREADY · 结果已核[0m
+              [36m</strong>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m候选 1 只 · 观察 0 · 待核数量未知[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m数据日 20261007[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m原 owner SYNTHETIC_ANNOUNCEMENT[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m运行编号 synthetic-import-run · 原公告 owner 导入，触发方式未分类[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m产物 SHA256 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb · 输入身份 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m产物时间 2026-10-08T07:05:00+08:00[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m缺口 0 项；状态仍按原 owner 结果显示[0m
+              [36m</p>[39m
+              [36m<ol[39m
+                [33mclass[39m=[32m"manager-daily-rows"[39m
+    ...
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > binds the publication alias deterministically through the actual GET: publication_date=20261006
+AssertionError: expected null to be '20261006' // Object.is equality
+
+- Expected:
+"20261006"
+
++ Received:
+null
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:63:84
+     61|     await waitFor(() => expect(host.querySelector('[data-daily-channel…
+     62|     const url = String(fetchMock.mock.calls.find(call => String(call[0…
+     63|     expect(new URL(url, 'http://localhost').searchParams.get('announce…
+       |                                                                                    ^
+     64|     expect(fetchMock.mock.calls.some(call => String(call[0]) === `/api…
+     65|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > binds the publication alias deterministically through the actual GET: publication_date=20261006&announcement_date=20261007
+AssertionError: expected null to be '20261007' // Object.is equality
+
+- Expected:
+"20261007"
+
++ Received:
+null
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:63:84
+     61|     await waitFor(() => expect(host.querySelector('[data-daily-channel…
+     62|     const url = String(fetchMock.mock.calls.find(call => String(call[0…
+     63|     expect(new URL(url, 'http://localhost').searchParams.get('announce…
+       |                                                                                    ^
+     64|     expect(fetchMock.mock.calls.some(call => String(call[0]) === `/api…
+     65|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > rebinds one legacy default GET when a new backend returns different display/publication dates
+AssertionError: expected [ [ …(2) ] ] to have a length of 2 but got 1
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:79:19
+     77|     await waitFor(() => expect(host.querySelector('[data-daily-channel…
+     78|     const reads = fetchMock.mock.calls.filter(call => String(call[0]).…
+     79|     expect(reads).toHaveLength(2);
+       |                   ^
+     80|     expect(String(reads[1][0])).toContain('selection_date=20261006');
+     81|     expect(String(reads[1][0])).toContain('announcement_date=20261006'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > renders stock, original reason, data date, run and status without expanding diagnostics
+AssertionError: expected null to be '20261007' // Object.is equality
+
+- Expected:
+"20261007"
+
++ Received:
+null
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:105:84
+    103|     expect(host.querySelector('[data-daily-bindings]')?.textContent).t…
+    104|     const get = fetchMock.mock.calls.map(call => String(call[0])).find…
+    105|     expect(new URL(get, 'http://localhost').searchParams.get('announce…
+       |                                                                                    ^
+    106|     expect(fetchMock.mock.calls.some(call => String(call[0]) === '/api…
+    107|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > reloads the selected canonical GET after manual generation and does not claim a scheduled run
+AssertionError: expected [ [ …(2) ] ] to have a length of 2 but got 1
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m独立于原Stage来源日期；URL用 plan_date 保存计划日，date 仍表示Stage来源日。[0m
+            [36m</small>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtitle[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m用既有材料生成计划[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 当日动态预览（非历史冻结计划） ｜ 材料截至 10-08 08:00 港时 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。[0m
+        [36m</p>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"计划消费状态"[39m
+          [33mclass[39m=[32m"manager-plan-status"[39m
+        [36m>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"business-status-row"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划：需核验[0m
+            [36m</strong>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mDYNAMIC_PREVIEW；执行类型或运行身份未匹配；读取 VERIFIED[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m下一步：在合法盘前冻结窗口由现有 Manager owner 物化；晚间不得补成盘前。[0m
+            [36m</p>[39m
+          [36m</article>[39m
+        [36m</section>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"计划输入身份核对"[39m
+          [33mclass[39m=[32m""[39m
+          [33mhidden[39m=[32m""[39m
+        [36m/>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"每日三路研究结果"[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-daily-channels[39m=[32m"true"[39m
+        [36m>[39m
+          [36m<h3[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m每日三路研究结果[0m
+          [36m</h3>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-daily-bindings[39m=[32m"true"[39m
+          [36m>[39m
+            [0m三路日期绑定未提供 · CANNOT_CONFIRM[0m
+          [36m</p>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m来源/选股日用于展示；港股通资格仍核对计划日的权威输入。[0m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"manager-daily-grid"[39m
+          [36m>[39m
+            [36m<article[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-daily-channel[39m=[32m"ANNOUNCEMENT"[39m
+              [33mdata-daily-status[39m=[32m"CANNOT_CONFIRM"[39m
+            [36m>[39m
+              [36m<h4[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0mANNOUNCEMENT · 公告研究[0m
+              [36m</h4>[39m
+              [36m<strong[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0mCANNOT_CONFIRM · 尚未核实[0m
+              [36m</strong>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m候选数量未知 · 待核数量未知[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m数据日 未核实[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m原 owner CANNOT_CONFIRM[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m运行编号 未提供/待核 · 生成运行未核实[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m产物 SHA256 CANNOT_CONFIRM · 输入身份 CANNOT_CONFIRM[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m尚未提供三路结果合同[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m自然时段运行验收：CANNOT_CONFIRM（未核实）。[0m
+              [36m</p>[39m
+              [36m<details[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [36m<summary[39m
+                  [33mclass[39m=[32m""[39m
+                [36m>[39m
+                  [0m来源、运行与缺件详情[0m
+      ...
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:127:110
+    125|     const button = [...host.querySelectorAll('button')].find(node => n…
+    126|     await waitFor(() => expect(button.disabled).toBe(false)); await fi…
+    127|     await waitFor(() => expect(fetchMock.mock.calls.filter(call => Str…
+       |                                                                                                              ^
+    128|     const workspaceCalls = fetchMock.mock.calls.filter(call => String(…
+    129|     expect(workspaceCalls.map(call => call[1]?.method)).toEqual(['GET'…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../../../../ff44f882fe5c/frontend_test/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../../../../ff44f882fe5c/frontend_test/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../../../../ff44f882fe5c/frontend_test/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > keeps cancellation effective while the one-time legacy binding read is pending
+AssertionError: expected undefined to be defined
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m独立于原Stage来源日期；URL用 plan_date 保存计划日，date 仍表示Stage来源日。[0m
+            [36m</small>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtitle[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m用既有材料生成计划[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 当日动态预览（非历史冻结计划） ｜ 材料截至 10-08 08:00 港时 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。[0m
+        [36m</p>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"计划消费状态"[39m
+          [33mclass[39m=[32m"manager-plan-status"[39m
+        [36m>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"business-status-row"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m计划：需核验[0m
+            [36m</strong>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mDYNAMIC_PREVIEW；执行类型或运行身份未匹配；读取 VERIFIED[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m下一步：在合法盘前冻结窗口由现有 Manager owner 物化；晚间不得补成盘前。[0m
+            [36m</p>[39m
+          [36m</article>[39m
+        [36m</section>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"计划输入身份核对"[39m
+          [33mclass[39m=[32m""[39m
+          [33mhidden[39m=[32m""[39m
+        [36m/>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"每日三路研究结果"[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-daily-channels[39m=[32m"true"[39m
+        [36m>[39m
+          [36m<h3[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m每日三路研究结果[0m
+          [36m</h3>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-daily-bindings[39m=[32m"true"[39m
+          [36m>[39m
+            [0m来源/选股日 20261008 · 公告日 20261007 · 计划日 20261008[0m
+          [36m</p>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m来源/选股日用于展示；港股通资格仍核对计划日的权威输入。[0m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"manager-daily-grid"[39m
+          [36m>[39m
+            [36m<article[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-daily-channel[39m=[32m"ANNOUNCEMENT"[39m
+              [33mdata-daily-status[39m=[32m"READY"[39m
+            [36m>[39m
+              [36m<h4[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0mANNOUNCEMENT · 公告研究[0m
+              [36m</h4>[39m
+              [36m<strong[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0mREADY · 结果已核[0m
+              [36m</strong>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m候选 1 只 · 观察 0 · 待核数量未知[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m数据日 20261007[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m原 owner SYNTHETIC_ANNOUNCEMENT[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m运行编号 synthetic-import-run · 原公告 owner 导入，触发方式未分类[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m产物 SHA256 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb · 输入身份 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m产物时间 2026-10-08T07:05:00+08:00[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m缺口 0 项；状态仍按原 owner 结果显示[0m
+              [36m</p>[39m
+              [36m<ol[39m
+                [33mclass[39m=[32m"manager-daily-rows"[39m
+    ...
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:166:45
+    164|     }); vi.stubGlobal('fetch', fetchMock);
+    165|     const host = document.createElement('div'); document.body.append(h…
+    166|     await waitFor(() => expect(boundSignal).toBeDefined());
+       |                                             ^
+    167|     const cancel = [...host.querySelectorAll('button')].find(node => n…
+    168|     await fireEvent.click(cancel); expect(boundSignal?.aborted).toBe(t…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../../../../ff44f882fe5c/frontend_test/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../../../../ff44f882fe5c/frontend_test/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../../../../ff44f882fe5c/frontend_test/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 16 passed (22)
+   Start at  17:09:43
+   Duration  7.76s (transform 1.29s, setup 0ms, import 1.98s, tests 2.89s, environment 2.30s)
+
+JSON report written to /workspace/scratch/90a399518fca/review_history/frontend/control_runtime_results.json

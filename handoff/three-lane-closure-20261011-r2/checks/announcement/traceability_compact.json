@@ -1,0 +1,133 @@
+{
+  "scope": "SYNTHETIC_ORIGINAL_FULL_BUILD_REVIEWER_HANDOFF_IMPORT_OWNER_CONSUMED_GET",
+  "fixture_sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+  "false_zero": [
+    {
+      "issuer_input": "HK.01234",
+      "import_validation_status": "VERIFIED",
+      "read_selection_status": "VERIFIED",
+      "owner_selected_count": 1,
+      "owner_selection_codes": [
+        "HK.01234"
+      ],
+      "consumption_status": "CONSUMED",
+      "channel_status": "READY",
+      "channel_count": 1,
+      "channel_rows": 1,
+      "gaps": [],
+      "product_sha256": "ed2494f730e66b443912e0572f1ef408f643ca6c1d43cd97c7d605f43bb08cd9",
+      "owner_import_receipt_sha256": "d75e2c14d7c105e0529cd0768c05a2ae15a8221c8cc81f2657ebfa4c34fc7cce",
+      "get_wrote_state": false,
+      "false_valid_zero": false
+    },
+    {
+      "issuer_input": "H5354",
+      "import_validation_status": "VERIFIED",
+      "read_selection_status": "VERIFIED",
+      "owner_selected_count": 1,
+      "owner_selection_codes": [
+        "H5354"
+      ],
+      "consumption_status": "CONSUMED",
+      "channel_status": "PARTIAL",
+      "channel_count": null,
+      "channel_rows": 0,
+      "gaps": [
+        "ANNOUNCEMENT_SELECTED_REFERENCE_ACCOUNTING_MISMATCH",
+        "ANNOUNCEMENT_SOURCE_SYMBOL_UNMAPPED"
+      ],
+      "product_sha256": "064db6fd32d7a9d5d0f5df77d5aaa7d0a4c5f08b63d367e31616880bdf1d74aa",
+      "owner_import_receipt_sha256": "7d76e527f6925a6d3d99377a19dbfb8823ad9e486923b2104476d4d72cfb3359",
+      "get_wrote_state": false,
+      "false_valid_zero": false
+    }
+  ],
+  "retrospective": {
+    "early_cutoff": "2026-10-08T09:00:00+08:00",
+    "now": "2026-10-11T04:00:00+00:00",
+    "dynamic_saved_path": {
+      "read_context": {
+        "mode": "CURRENT_DYNAMIC_PREVIEW",
+        "read_basis": "RETROSPECTIVE_CURRENT_TIME",
+        "status": "VERIFIED_WITH_GAPS",
+        "as_of": "2026-10-11T12:00:00+08:00",
+        "candidate_count_known": false,
+        "contract": "20260923.workspace-history-read.r1"
+      },
+      "cutoff": "2026-10-11T12:00:00+08:00",
+      "plan_product_status": "STALE_INPUTS_CHANGED",
+      "announcement_status": "READY",
+      "announcement_count": 1,
+      "analysis_consumption_status": "CONSUMED",
+      "owner_available_at": "2026-10-11T04:00:00.000000+00:00",
+      "gaps": [],
+      "product_sha256": "ed2494f730e66b443912e0572f1ef408f643ca6c1d43cd97c7d605f43bb08cd9",
+      "point_in_time_status": null
+    },
+    "dynamic_no_saved_context_control": {
+      "read_context": {
+        "mode": "CURRENT_DYNAMIC_PREVIEW",
+        "read_basis": "RETROSPECTIVE_CURRENT_TIME",
+        "status": "VERIFIED_WITH_GAPS",
+        "as_of": "2026-10-11T12:00:00+08:00",
+        "candidate_count_known": false,
+        "contract": "20260923.workspace-history-read.r1"
+      },
+      "cutoff": "2026-10-11T12:00:00+08:00",
+      "plan_product_status": null,
+      "announcement_status": "READY",
+      "announcement_count": 1,
+      "analysis_consumption_status": "CONSUMED",
+      "owner_available_at": "2026-10-11T04:00:00.000000+00:00",
+      "gaps": [],
+      "product_sha256": "ed2494f730e66b443912e0572f1ef408f643ca6c1d43cd97c7d605f43bb08cd9",
+      "point_in_time_status": null
+    },
+    "product_sha256": "ed2494f730e66b443912e0572f1ef408f643ca6c1d43cd97c7d605f43bb08cd9",
+    "get_wrote_state": false,
+    "stale_cutoff_observed": false
+  },
+  "source_unchanged_during_run": true,
+  "derived_from": {
+    "path": "checks/announcement/result.json",
+    "raw_sha256": "0ee5eaffe5462424f48ec3453d895c3e4f4b9273a658ca1b9cc10f2f1d2f1175"
+  },
+  "frontend_H5354_workspace.json": {
+    "raw_sha256": "8db8b87e45cb107324d156e1216f5f8694a3f75b10a77d98596837be060a4a9e",
+    "date_bindings": {
+      "selection_date": "20261008",
+      "announcement_date": "20261007",
+      "plan_date": "20261008"
+    },
+    "products": [
+      {
+        "target_trade_date": "20261008",
+        "publication_date": "2026-10-07",
+        "status": "CONSUMED",
+        "product_sha256": "064db6fd32d7a9d5d0f5df77d5aaa7d0a4c5f08b63d367e31616880bdf1d74aa",
+        "evidence_run_id": "11111111111111111111111111111111",
+        "owner_import_receipt_sha256": "7d76e527f6925a6d3d99377a19dbfb8823ad9e486923b2104476d4d72cfb3359",
+        "selected_stock_count": 1
+      }
+    ]
+  },
+  "frontend_retrospective_workspace.json": {
+    "raw_sha256": "0dd7b4f1362f05eee471c238b598c5fcfc5ef3daadda1ed690b9c70d5337b71d",
+    "date_bindings": {
+      "selection_date": "20261008",
+      "announcement_date": "20261007",
+      "plan_date": "20261008"
+    },
+    "products": [
+      {
+        "target_trade_date": "20261008",
+        "publication_date": "2026-10-07",
+        "status": "CONSUMED",
+        "product_sha256": "ed2494f730e66b443912e0572f1ef408f643ca6c1d43cd97c7d605f43bb08cd9",
+        "evidence_run_id": "11111111111111111111111111111111",
+        "owner_import_receipt_sha256": "bbd8d71426df3389a67cb310c926f8e0389e17fffdde25b586ab6e270ac79212",
+        "selected_stock_count": 1
+      }
+    ]
+  }
+}

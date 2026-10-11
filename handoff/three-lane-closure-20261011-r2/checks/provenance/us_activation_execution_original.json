@@ -1,0 +1,38 @@
+{
+  "status": "ACTIVATED_AND_PROCESS_VERIFIED",
+  "steps": [
+    "SCHEDULER_UNLOADED",
+    "API_BOUND_AND_READY",
+    "SCHEDULER_BOUND_AND_RUNNING"
+  ],
+  "previous_failure": "execution-receipt.json",
+  "previous_failure_cause": "integration observation read identity from wrong level; rolled back; corrected to observed.identity",
+  "api_runtime": {
+    "state": "LOADED",
+    "identity": {
+      "state": "running",
+      "pid": "28664",
+      "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+      "V35_RELEASE_ID": "manager-us-mapping-daily-chain-20261011-r1",
+      "V35_RELEASE_MANIFEST_SHA256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad"
+    }
+  },
+  "api_health": {
+    "/healthz": {
+      "http_status": 200,
+      "status": "ok"
+    },
+    "/readyz": {
+      "http_status": 200,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "scheduler_pid": 28680,
+  "api_plist_sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+  "scheduler_plist_sha256": "5b6e208750e5f6287975857456ae0aabea57d6f5b9d4fecaecf619be17b75413",
+  "binding_sha256": "cfe4af06e97992ebcadf4bf8e66f1d02c6ecf370b571c7b3ee4df1c0cca6ebf6",
+  "daily_archive_status": "NOT_RUN",
+  "natural_verified": false
+}

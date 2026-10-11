@@ -1,0 +1,35 @@
+{
+  "candidate_failures": [
+    "first-screen independent research channels binds the publication alias deterministically through the actual GET: publication_date=20261006",
+    "first-screen independent research channels rebinds one legacy default GET when a new backend returns different display/publication dates",
+    "first-screen independent research channels renders stock, original reason, data date, run and status without expanding diagnostics"
+  ],
+  "attachment_control_failures": [
+    "first-screen independent research channels binds the publication alias deterministically through the actual GET: publication_date=20261006",
+    "first-screen independent research channels binds the publication alias deterministically through the actual GET: publication_date=20261006&announcement_date=20261007",
+    "first-screen independent research channels keeps cancellation effective while the one-time legacy binding read is pending",
+    "first-screen independent research channels rebinds one legacy default GET when a new backend returns different display/publication dates",
+    "first-screen independent research channels reloads the selected canonical GET after manual generation and does not claim a scheduled run",
+    "first-screen independent research channels renders stock, original reason, data date, run and status without expanding diagnostics"
+  ],
+  "r1_counterfactual_failures": [
+    "first-screen independent research channels binds the publication alias deterministically through the actual GET: publication_date=20261006",
+    "first-screen independent research channels rebinds one legacy default GET when a new backend returns different display/publication dates",
+    "first-screen independent research channels renders stock, original reason, data date, run and status without expanding diagnostics"
+  ],
+  "candidate_new_vs_attachment": [],
+  "candidate_new_vs_r1_counterfactual": [],
+  "r1_counterfactual_same_failure_messages": {
+    "first-screen independent research channels renders stock, original reason, data date, run and status without expanding diagnostics": true,
+    "first-screen independent research channels binds the publication alias deterministically through the actual GET: publication_date=20261006": true,
+    "first-screen independent research channels rebinds one legacy default GET when a new backend returns different display/publication dates": true
+  },
+  "typecheck_lines_exact_equal": true,
+  "final_candidate_new_vs_r1_counterfactual": [],
+  "final_candidate_r1_failure_messages_equal": {
+    "first-screen independent research channels rebinds one legacy default GET when a new backend returns different display/publication dates": true,
+    "first-screen independent research channels binds the publication alias deterministically through the actual GET: publication_date=20261006": true,
+    "first-screen independent research channels renders stock, original reason, data date, run and status without expanding diagnostics": true
+  },
+  "final_typecheck_text_exact_equal": true
+}

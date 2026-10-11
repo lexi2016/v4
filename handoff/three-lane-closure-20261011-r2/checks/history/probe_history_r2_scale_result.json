@@ -1,0 +1,82 @@
+{
+  "scope": "SYNTHETIC_SAME_SIZE_ONLY_NOT_ORIGINAL_PRODUCTS_OR_MAC_ACCEPTANCE",
+  "python": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "implementation": "/workspace/scratch/90a399518fca/candidate/v4/manager_research/workspace_history.py",
+  "implementation_sha256": "9fe1b409c695a1fb057d45de8f6925d36487c17e4d7a5140de7dba011987de8a",
+  "inventory_sha256": "cd3d848116bf6f5731715d287c3cf0a5be6ded7418b1034bc4fd979b9a070888",
+  "synthetic_file_count": 7,
+  "synthetic_total_bytes": 147031510,
+  "journals_present": false,
+  "multibyte_prefix_boundary_exercised": true,
+  "result": {
+    "selected": false,
+    "exception": null
+  },
+  "metrics": {
+    "saved_plan_probe_bytes": 114688,
+    "saved_plan_late_headers_excluded": 7
+  },
+  "full_read_calls": [],
+  "read_elapsed_seconds": 0.008503242002916522,
+  "files_unchanged": true,
+  "synthetic_files": [
+    {
+      "name": "00000000000000000000000000000001.json",
+      "bytes": 22668492,
+      "file_sha256": "202f6c822348ecd8d975e03b8e991868394e4bd114995439472a81f39eec3715",
+      "generated_at": "2026-10-10T17:09:27.956535+00:00",
+      "source": "SYNTHETIC_VALID_JSON"
+    },
+    {
+      "name": "00000000000000000000000000000002.json",
+      "bytes": 14782489,
+      "file_sha256": "b560b9c38dc92d5afa5f5f5ccf9c4e366b17f3098fbca58ef65c78b01b318a14",
+      "generated_at": "2026-10-10T02:59:20.320471+00:00",
+      "source": "SYNTHETIC_VALID_JSON"
+    },
+    {
+      "name": "00000000000000000000000000000003.json",
+      "bytes": 23388302,
+      "file_sha256": "34112e777ee68ab87ce86ae0c395b2d75b5863a1ca35e68e29d62d414ecbbf52",
+      "generated_at": "2026-10-11T03:46:30.203351+00:00",
+      "source": "SYNTHETIC_VALID_JSON"
+    },
+    {
+      "name": "latest.json",
+      "bytes": 23388302,
+      "file_sha256": "34112e777ee68ab87ce86ae0c395b2d75b5863a1ca35e68e29d62d414ecbbf52",
+      "generated_at": "2026-10-11T03:46:30.203351+00:00",
+      "source": "SYNTHETIC_VALID_JSON"
+    },
+    {
+      "name": "00000000000000000000000000000004.json",
+      "bytes": 23388296,
+      "file_sha256": "cc2b82245924638dae5367484f0ae53daca6ed9a5a5830ec4b17c80ce3bca572",
+      "generated_at": "2026-10-11T03:31:20.654107+00:00",
+      "source": "SYNTHETIC_VALID_JSON"
+    },
+    {
+      "name": "00000000000000000000000000000005.json",
+      "bytes": 16152043,
+      "file_sha256": "84b83b167a12a329e06b7b27b8490e26069d1e08cc3b020bfbe6c5d5749449a2",
+      "generated_at": "2026-10-10T10:38:57.141739+00:00",
+      "source": "SYNTHETIC_VALID_JSON"
+    },
+    {
+      "name": "00000000000000000000000000000006.json",
+      "bytes": 23263586,
+      "file_sha256": "651a413746a1de8d001ff04e26077a1663eed442e6494ad224be09d9622871c8",
+      "generated_at": "2026-10-10T17:36:40.350623+00:00",
+      "source": "SYNTHETIC_VALID_JSON"
+    }
+  ],
+  "assertions": {
+    "no_exception": true,
+    "no_late_plan_admitted": true,
+    "zero_full_body_reads": true,
+    "bounded_header_reads": true,
+    "seven_late_exclusions": true,
+    "no_writes": true
+  }
+}

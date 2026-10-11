@@ -1,0 +1,58 @@
+{
+  "evidence_kind": "SYNTHETIC_IN_MEMORY_READBACK_BOUNDARY_ONLY",
+  "owner_executed": false,
+  "source_root": "/workspace/scratch/90a399518fca/candidate",
+  "unchanged_product_sha256": "22ac54cff2eef961174c38601773f8d4673fd9f29839581a8710889b0d457f4b",
+  "cases": [
+    {
+      "case": "same_saved_and_latest_attempt",
+      "plan_status": "CURRENT",
+      "consumed": true,
+      "exact_run_readback": {
+        "status": "VERIFIED",
+        "target_trade_date": "20261009",
+        "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "artifact_sha256": "22ac54cff2eef961174c38601773f8d4673fd9f29839581a8710889b0d457f4b",
+        "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "read_at": "2026-10-09T10:10:00+08:00",
+        "owner_attempt_run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "owner_attempt_sha256": "c8eada6d109bd4c513244d3b6d801052bfa8d5587ba1f431234d761b4c0977e3",
+        "owner_attempt_state": "SUCCEEDED_EMPTY",
+        "owner_finished_at": "2026-10-09T10:00:02+08:00"
+      },
+      "displayed_latest_attempt_run": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "channel_status": "READY_EMPTY",
+      "channel_run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "channel_product_sha256": "22ac54cff2eef961174c38601773f8d4673fd9f29839581a8710889b0d457f4b",
+      "channel_execution_kind": "MANUAL_REFRESH",
+      "channel_count": 0,
+      "channel_gaps": []
+    },
+    {
+      "case": "later_failed_attempt_same_saved_product",
+      "plan_status": "CURRENT",
+      "consumed": true,
+      "exact_run_readback": {
+        "status": "VERIFIED",
+        "target_trade_date": "20261009",
+        "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "artifact_sha256": "22ac54cff2eef961174c38601773f8d4673fd9f29839581a8710889b0d457f4b",
+        "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "read_at": "2026-10-09T10:10:00+08:00",
+        "owner_attempt_run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "owner_attempt_sha256": "c8eada6d109bd4c513244d3b6d801052bfa8d5587ba1f431234d761b4c0977e3",
+        "owner_attempt_state": "SUCCEEDED_EMPTY",
+        "owner_finished_at": "2026-10-09T10:00:02+08:00"
+      },
+      "displayed_latest_attempt_run": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "channel_status": "READY_EMPTY",
+      "channel_run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "channel_product_sha256": "22ac54cff2eef961174c38601773f8d4673fd9f29839581a8710889b0d457f4b",
+      "channel_execution_kind": "MANUAL_REFRESH",
+      "channel_count": 0,
+      "channel_gaps": []
+    }
+  ]
+}

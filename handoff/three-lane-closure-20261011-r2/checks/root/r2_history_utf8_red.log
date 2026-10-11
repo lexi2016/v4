@@ -1,0 +1,60 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____ test_utf8_character_cut_at_probe_limit_does_not_force_late_body_read _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-24/test_utf8_character_cut_at_pro0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f2b8a3b28b0>
+
+    def test_utf8_character_cut_at_probe_limit_does_not_force_late_body_read(tmp_path, monkeypatch):
+        from v4.manager_research.workspace_projection import digest
+        store = ManagerResearchStore(tmp_path/'store')
+        for n in range(1, 7):
+            product, attempt = stored(store, n, f'2026-10-10T10:0{n}:00+08:00')
+            no_journal(store, attempt)
+            for offset in range(3):
+                product['workspace']['synthetic_padding'] = 'a' * offset + '中' * 12000
+                product['sha256'] = digest({k:v for k,v in product.items() if k != 'sha256'})
+                raw = json.dumps(product, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()
+                try:
+                    raw[:history._MAX_HEADER_BYTES].decode('utf-8')
+                except UnicodeDecodeError:
+                    break
+            else:
+                pytest.fail('Fixture must cut inside one complete valid UTF-8 character')
+            raw.decode('utf-8')  # The whole original document is valid.
+            (store.root/'workspace_plans'/DATE/(product['run_id']+'.json')).write_bytes(raw)
+            if n == 6:
+                (store.root/'workspace_plans'/DATE/'latest.json').write_bytes(raw)
+        before = hashes(store.root)
+        monkeypatch.setattr(history, '_MAX_SCAN_BYTES', 65536)
+>       assert history.select_plan(store, DATE, history.boundary_context(DATE)) is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_three_lane_history_r2.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/workspace_history.py:271: in select_plan
+    row, size = _read_candidate(store, date, name, boundary=boundary,
+v4/manager_research/workspace_history.py:72: in _read_candidate
+    raw = store._io.read_bytes(path, max_bytes=min(_MAX_PLAN_BYTES, max_bytes))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7f2b8a746f90>
+relative = 'workspace_plans/20261009/00000000000000000000000000000001.json'
+max_bytes = 27691
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+            fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+            try:
+                meta = os.fstat(fd)
+                if not stat.S_ISREG(meta.st_mode):
+                    raise OwnedIOError('OWNED_FILE_NOT_REGULAR')
+                if meta.st_size > max_bytes:
+>                   raise OwnedIOError('OWNED_FILE_TOO_LARGE')
+E                   infrastructure.owned_io.OwnedIOError: OWNED_FILE_TOO_LARGE
+
+infrastructure/owned_io.py:111: OwnedIOError
+=========================== short test summary info ============================
+FAILED tests/test_manager_three_lane_history_r2.py::test_utf8_character_cut_at_probe_limit_does_not_force_late_body_read
+1 failed, 7 deselected in 0.41s

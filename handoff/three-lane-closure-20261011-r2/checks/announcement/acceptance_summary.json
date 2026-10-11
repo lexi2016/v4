@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "original_14_gates": "14 passed, 25 deselected",
+  "full_chain": "PASS",
+  "view_compatibility": "PASS",
+  "get_and_sealed_owner_bytes_unchanged": true,
+  "source_unchanged_during_each_run": true,
+  "intentional_source_changes_since_prior_acceptance": {
+    "v4/manager_research/workspace.py": {
+      "previous": "4722122f5a665065ca1090e9a3dad1dc72490905b0fb420995802e2337243c21",
+      "final": "9dc87e10bf9f648bbbe43fe9cf368d7a71101730115e40b844568406db57efd1"
+    },
+    "v4/manager_research/service.py": {
+      "previous": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "final": "4d2072c1655078d2e5da0ac747e416a8911dd9c4125a8594e4b3c74b11fc4281"
+    }
+  },
+  "remaining_recorded_source_sha_unchanged": {
+    "v4/manager_research/workspace_daily_channels.py": "5a436a362710c8bb39cef72da6b99cfebef63f7e5ff98ea7741334e2f2c7928b",
+    "v4/manager_research/workspace_announcements.py": "6ef92cce3970170f3454c73a890cbbdfb49186d2d47b5260d2454c8838fd1da1",
+    "v4/manager_research/announcement_analysis.py": "e741cddd8c8deff1064ed384f8a570c507d36efbede1c58058329558d0837615",
+    "v4/manager_research/announcement_selection.py": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+    "apps/api/v35_api/manager_research_router.py": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+    "ops/run_manager_daily_announcement.py": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+    "tests/three_lane_announcement_original_fixture.py": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed"
+  },
+  "frontend_full_workspaces": [
+    {
+      "path": "/workspace/scratch/90a399518fca/review_announcement/acceptance_final_r2/frontend_H5354_workspace.json",
+      "bytes": 72777,
+      "sha256": "8db8b87e45cb107324d156e1216f5f8694a3f75b10a77d98596837be060a4a9e"
+    },
+    {
+      "path": "/workspace/scratch/90a399518fca/review_announcement/acceptance_final_r2/frontend_retrospective_workspace.json",
+      "bytes": 75396,
+      "sha256": "0dd7b4f1362f05eee471c238b598c5fcfc5ef3daadda1ed690b9c70d5337b71d"
+    }
+  ]
+}

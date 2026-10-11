@@ -1,0 +1,22 @@
+{
+  "scope": "SYNTHETIC_UNIT_AND_REAL_SAFE_ROOT_IO_ONLY",
+  "command": [
+    "/workspace/scratch/90a399518fca/test_env/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp=/workspace/scratch/90a399518fca/review_history/r2_independent_green",
+    "/workspace/scratch/90a399518fca/review_history/test_history_r2_independent.py",
+    "/workspace/scratch/90a399518fca/candidate/tests/test_manager_three_lane_history_r1.py",
+    "/workspace/scratch/90a399518fca/candidate/tests/test_manager_three_lane_history_r2.py"
+  ],
+  "python": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "exit_code": 0,
+  "source_before_sha256": "9fe1b409c695a1fb057d45de8f6925d36487c17e4d7a5140de7dba011987de8a",
+  "source_after_sha256": "9fe1b409c695a1fb057d45de8f6925d36487c17e4d7a5140de7dba011987de8a",
+  "source_stable": true,
+  "output": "........................................                                 [100%]\n40 passed in 1.40s\n"
+}
