@@ -1,0 +1,91 @@
+{
+  "schema_version": "v4.hk_name_dictionary.api_projection_independent_review.v1",
+  "reviewer": "/root/hk_name_fix_review",
+  "review_role": "independent_read_only_luna_max_reviewer",
+  "verdict": "PASS",
+  "review_status": "REVIEWED",
+  "behavior_status": "BEHAVIOR_VERIFIED",
+  "scope": {
+    "goal": "Review only the R2 preselection API response projection delta that fixes the saved-pool bypass for HK.02915 on 20261012.",
+    "frozen_pass": "The existing preselection API returns 云迹 in name and stock_name for HK.02915 on 20261012, retains raw_name and dated provenance, preserves all source/pool identity and A-share arrays, leaves stored pool and manifest bytes unchanged, and falls back to source name after the effective window.",
+    "reviewed_delta_paths": [
+      "apps/api/v35_api/preselection_service.py",
+      "tests/test_hk_preselection_api_name_projection.py",
+      "integration/staged_release/app/apps/api/v35_api/preselection_service.py"
+    ],
+    "source_edits_by_reviewer": false,
+    "active_release_modified": false
+  },
+  "findings": [],
+  "risk_assessment": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "diff_evidence": {
+    "preselection_service_diff": {
+      "path": "integration/preselection_service.diff",
+      "sha256": "6772bc7ddd0109f6d7e390199e076b24628bb1835ba19215d5322a78cde943ad",
+      "generated_from_current_files": true,
+      "base_file_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "candidate_file_sha256": "f0d2283e87663e7d98c933f0e2d95acb738d1e665a55958cb2771b3f02011f66"
+    },
+    "staged_service_sha256": "f0d2283e87663e7d98c933f0e2d95acb738d1e665a55958cb2771b3f02011f66",
+    "staged_matches_canonical": true,
+    "active_release_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+    "test_sha256": "e3996e1b9a334cb05101d9d97415086c7c9a9ba0d95c4223eb1e95a1ccb5310b",
+    "staged_api_evidence_sha256": "3f5cb23555615ee3d7e001d2a8f339c4cd3ac2c75b408735fca63707e2739e4f",
+    "staged_api_verifier_sha256": "4441aaaee9f6c550bac766b5a5a5f28cb06d7d818a8bb0fafb35510090a23478"
+  },
+  "focused_tests": {
+    "command": "./.venv/bin/python -m pytest tests/test_hk_preselection_api_name_projection.py -q --basetemp=/tmp/hk-api-name-review-r2-20261011 -o tmp_path_retention_policy=all",
+    "result": "PASS: 2 passed, 1 Starlette/httpx deprecation warning.",
+    "coverage": "HTTP TestClient checks effective-date override for 20261012, source-name fallback for 20261030, HK provenance, A-share non-projection, unchanged input fingerprint/source digests, and no mutation of the supplied source response."
+  },
+  "actual_source_api_testclient": {
+    "result": "PASS",
+    "route": "/api/v3/preselection-pools?date=20261012&limit=200&offset=0",
+    "method": "In-memory FastAPI TestClient against the active R1 router/dependency tree and configured read-only V4/V3.5 data roots; active service loaded from release, candidate service loaded from the current canonical source file.",
+    "baseline_saved_and_active_service": {
+      "name": "帝王国际投资",
+      "stock_name": "帝王国际投资"
+    },
+    "candidate_target": {
+      "symbol": "HK.02915",
+      "pool_rank": 1,
+      "name": "云迹",
+      "stock_name": "云迹",
+      "raw_name": "帝王国际投资",
+      "name_resolution_status": "EFFECTIVE_DATE_OVERRIDE"
+    },
+    "pool_identity": {
+      "row_count": 100,
+      "source_run_id": "20261012-hk-connect-d1-top100-0-2-d6f38622b186",
+      "source_sha256": "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d",
+      "input_fingerprint": "9c8ce4ab8e559ac38180ccb66cfe1deb6da64397fecdc5f64e039555d05a3fa4",
+      "source_digests_unchanged": true,
+      "non_display_HK_fields_unchanged": true,
+      "manifest_and_receipt_identity_unchanged": true
+    },
+    "A_arrays_unchanged": {
+      "a_source_only_rows": true,
+      "a_all_pool_rows": true
+    },
+    "stored_files_read_only_verified": {
+      "pool_artifact_sha256_before_after": "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d",
+      "pool_manifest_sha256_before_after": "a0eb3e6a348ea1dc651b6808e7f5f1c98ad06608464076dfa302e1847df2d66c"
+    },
+    "safety_flags": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "source_artifact_writes": false
+  },
+  "limitations": [
+    {
+      "status": "CANNOT_CONFIRM",
+      "claim": "Live 8873/API behavior after activation; the active release remained unchanged in this review."
+    }
+  ]
+}

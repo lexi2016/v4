@@ -1,0 +1,57 @@
+{
+  "status": "API_VERIFIED",
+  "release": "hk-dated-name-20261011-r2",
+  "trade_date": "20261012",
+  "row": {
+    "symbol": "HK.02915",
+    "name": "云迹",
+    "stock_name": "云迹",
+    "raw_name": "帝王国际投资",
+    "pool_rank": 1,
+    "name_resolution": {
+      "schema_version": "v4.hk_name_resolution.v1",
+      "status": "EFFECTIVE_DATE_OVERRIDE",
+      "code": "HK.02915",
+      "trade_date": "20261012",
+      "raw_name": "帝王国际投资",
+      "resolved_name": "云迹",
+      "effective_from": "20260923",
+      "effective_through": "20261029",
+      "effective_from_sources": [
+        {
+          "authority": "HKEX",
+          "url": "https://www.hkex.com.hk/eng/market/sec_tradinfo/tradarng/tradarng_news/premonth/e2915e_260921.htm",
+          "claim": "Temporary counter 2915 replaces 2670 from 2026-09-23."
+        },
+        {
+          "authority": "SSE",
+          "url": "https://big5.sse.com.cn/site/cht/www.sse.com.cn/services/hkexsc/disclo/announ/c/c_20260922_10832987.shtml",
+          "claim": "YUNJI 云迹 enters the connect list as 02915, effective 2026-09-23."
+        }
+      ],
+      "effective_through_sources": [
+        {
+          "authority": "Sina Finance",
+          "url": "https://finance.sina.com.cn/stock/aigc/hkgg/2026-09-01/doc-iniqitrs1514674.shtml"
+        },
+        {
+          "authority": "Tiger Brokers",
+          "url": "https://www.itiger.com/news/1181816831"
+        }
+      ],
+      "effective_through_source_quality": "SECONDARY_CROSS_SOURCE_TIMETABLE",
+      "scope": "DISPLAY_NAME_ONLY",
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "row_count": 100,
+  "source_run_id": "20261012-hk-connect-d1-top100-0-2-d6f38622b186",
+  "source_sha256": "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d",
+  "rank_and_codes_preserved": true,
+  "a_rows_unchanged": true,
+  "flags_false": true,
+  "input_fingerprint_unchanged": true,
+  "source_digests_unchanged": true
+}

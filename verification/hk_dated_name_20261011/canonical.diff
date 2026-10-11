@@ -1,0 +1,170 @@
+--- a/upstreams/v3_shared_data/shared_data/names.py (HEAD)
++++ b/upstreams/v3_shared_data/shared_data/names.py (working tree)
+@@ -3,11 +3,122 @@
+ 
+ import csv
+ import json
++import re
++from datetime import datetime
+ from pathlib import Path
+ 
+ from .hashing import sha256_file
+ from .paths import resolve_under
+ from .store import StoreError
++
++
++# HKEX's temporary counter 02915 identifies Yunji from 2026-09-23 through
++# 2026-10-29. Keep this bounded: the code's identity before and after this
++# window remains whatever the dated source row says.
++_DATED_HK_NAME_OVERRIDES = (
++    {
++        "code": "HK.02915",
++        "name": "云迹",
++        "effective_from": "20260923",
++        "effective_through": "20261029",
++        "effective_from_sources": (
++            {
++                "authority": "HKEX",
++                "url": "https://www.hkex.com.hk/eng/market/sec_tradinfo/tradarng/tradarng_news/premonth/e2915e_260921.htm",
++                "claim": "Temporary counter 2915 replaces 2670 from 2026-09-23.",
++            },
++            {
++                "authority": "SSE",
++                "url": "https://big5.sse.com.cn/site/cht/www.sse.com.cn/services/hkexsc/disclo/announ/c/c_20260922_10832987.shtml",
++                "claim": "YUNJI 云迹 enters the connect list as 02915, effective 2026-09-23.",
++            },
++        ),
++        "effective_through_sources": (
++            {
++                "authority": "Sina Finance",
++                "url": "https://finance.sina.com.cn/stock/aigc/hkgg/2026-09-01/doc-iniqitrs1514674.shtml",
++            },
++            {
++                "authority": "Tiger Brokers",
++                "url": "https://www.itiger.com/news/1181816831",
++            },
++        ),
++        "effective_through_source_quality": "SECONDARY_CROSS_SOURCE_TIMETABLE",
++    },
++)
++
++
++def _normalize_hk_name_code(value: object) -> str:
++    text = str(value or "").strip().upper()
++    match = re.fullmatch(r"(?:HK\.)?(\d{1,5})(?:\.HK(?:_CONNECT)?)?", text)
++    return f"HK.{match.group(1).zfill(5)}" if match else ""
++
++
++def _normalize_hk_name_date(value: object) -> str:
++    text = str(value or "").strip()
++    if not re.fullmatch(r"\d{8}", text):
++        return ""
++    try:
++        datetime.strptime(text, "%Y%m%d")
++    except ValueError:
++        return ""
++    return text
++
++
++def resolve_hk_name_for_date(
++    code: object,
++    *,
++    trade_date: object,
++    source_name: object,
++) -> tuple[str, dict[str, object] | None]:
++    """Resolve a display name within a source-backed, bounded effective window.
++
++    The source row remains authoritative outside an explicitly evidenced
++    interval. Returned metadata describes only the display projection and is
++    not a security-master, tradability, or PIT-safety assertion.
++    """
++    normalized_code = _normalize_hk_name_code(code)
++    override = next(
++        (
++            item
++            for item in _DATED_HK_NAME_OVERRIDES
++            if item["code"] == normalized_code
++        ),
++        None,
++    )
++    if override is None:
++        return str(source_name or ""), None
++
++    as_of = _normalize_hk_name_date(trade_date)
++    status = "CANNOT_CONFIRM_DATE"
++    resolved_name = str(source_name or "")
++    if as_of:
++        if as_of < str(override["effective_from"]):
++            status = "SOURCE_NAME_BEFORE_EFFECTIVE_DATE"
++        elif as_of > str(override["effective_through"]):
++            status = "SOURCE_NAME_AFTER_EFFECTIVE_WINDOW"
++        else:
++            status = "EFFECTIVE_DATE_OVERRIDE"
++            resolved_name = str(override["name"])
++
++    resolution: dict[str, object] = {
++        "schema_version": "v4.hk_name_resolution.v1",
++        "status": status,
++        "code": normalized_code,
++        "trade_date": as_of or str(trade_date or ""),
++        "raw_name": str(source_name or ""),
++        "resolved_name": resolved_name,
++        "effective_from": str(override["effective_from"]),
++        "effective_through": str(override["effective_through"]),
++        "effective_from_sources": [dict(item) for item in override["effective_from_sources"]],
++        "effective_through_sources": [dict(item) for item in override["effective_through_sources"]],
++        "effective_through_source_quality": str(override["effective_through_source_quality"]),
++        "scope": "DISPLAY_NAME_ONLY",
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++    return resolved_name, resolution
+ 
+ 
+ def load_verified_hk_names(store_root: Path | str) -> tuple[dict[str, str], str]:
+@@ -36,4 +147,4 @@
+     return names, dictionary_sha
+ 
+ 
+-__all__ = ["load_verified_hk_names"]
++__all__ = ["load_verified_hk_names", "resolve_hk_name_for_date"]
+--- a/domains/_preselection_materializer_parts/hk_pool.py (reconstructed pre-task untracked)
++++ b/domains/_preselection_materializer_parts/hk_pool.py (working tree)
+@@ -6,6 +6,7 @@
+ from datetime import datetime
+ 
+ from ._namespace import read_global as _v4_global
++from upstreams.v3_shared_data.shared_data.names import resolve_hk_name_for_date
+ 
+ 
+ _CAPTURE_AT_PROVENANCE_PREFIX = "b64url."
+@@ -73,19 +74,27 @@
+             raise _v4_global(_v4_scope, 'ValueError')("shared HK 0.2 row date mismatch")
+         if _v4_global(_v4_scope, 'str')(raw.get("d1_freshness_status") or "") != "PASS" or _v4_global(_v4_scope, 'str')(raw.get("selected_strategy") or "") != "prob_active":
+             raise _v4_global(_v4_scope, 'ValueError')("shared HK 0.2 semantic contract mismatch")
++        raw_name = _v4_global(_v4_scope, 'str')(raw.get("name") or "")
++        stock_name, name_resolution = resolve_hk_name_for_date(
++            f"HK.{code}", trade_date=trade_date, source_name=raw_name
++        )
+         rows.append({
+             **raw,
+             "symbol": f"HK.{code}",
+             "market": "HK",
+             "pool_id": "hkconnect_d1_top100",
+             "pool_rank": rank,
+-            "stock_name": _v4_global(_v4_scope, 'str')(raw.get("name") or f"HK.{code}"),
++            "name": stock_name or raw_name or f"HK.{code}",
++            "stock_name": stock_name or raw_name or f"HK.{code}",
+             "pool_score": score,
+             "recommendation_status": "WATCH_ONLY",
+             "production_allowed": False,
+             "buy_gate_updated": False,
+             "orders_sent": False,
+         })
++        if name_resolution is not None:
++            rows[-1]["raw_name"] = raw_name
++            rows[-1]["name_resolution"] = name_resolution
+         previous_score = score
+     if _v4_global(_v4_scope, 'len')(rows) != 100 or _v4_global(_v4_scope, 'len')({row["symbol"] for row in rows}) != 100:
+         raise _v4_global(_v4_scope, 'ValueError')("shared HK 0.2 Top100 count mismatch")

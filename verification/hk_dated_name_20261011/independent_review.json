@@ -1,0 +1,178 @@
+{
+  "schema_version": "v4.hk_name_dictionary.independent_review.v1",
+  "reviewer": "/root/hk_name_fix_review",
+  "review_role": "independent_read_only_luna_max_reviewer",
+  "reviewed_at_utc": "2026-10-11T08:10:44Z",
+  "scope": {
+    "goal": "Correct HK.02915 display name for trade date 20261012 while preserving the raw name, dated fallback behavior, and source pool identity.",
+    "frozen_pass": "20261012 HK.02915 name and stock_name are 云迹; raw name, date provenance, 100-row pool, rank, source SHA and run ID remain unchanged; dates outside 20260923-20261029 retain source-name fallback; no selection, rank, model, gate, or producer changes.",
+    "reviewed_paths": [
+      "upstreams/v3_shared_data/shared_data/names.py",
+      "domains/_preselection_materializer_parts/hk_pool.py",
+      "tests/test_hk_dated_name_resolution.py",
+      "staged_runtime/app/upstreams/v3_shared_data/shared_data/names.py",
+      "staged_runtime/app/domains/preselection_materializer.py"
+    ],
+    "read_only_review": true,
+    "reviewer_source_edits": false
+  },
+  "verdict": "PASS",
+  "review_status": "REVIEWED",
+  "behavior_status": "BEHAVIOR_VERIFIED",
+  "findings": [],
+  "risk_levels": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "id": "DATE_END_SECONDARY_EVIDENCE",
+        "status": "NON_BLOCKING_ACCEPTED_WITHIN_FROZEN_SCOPE",
+        "risk": "The effective-through date is supported by secondary timetable sources; it is labeled SECONDARY_CROSS_SOURCE_TIMETABLE in code and corroborated by both cited pages.",
+        "evidence": {
+          "code": "upstreams/v3_shared_data/shared_data/names.py:36-46",
+          "tiger_brokers": "https://www.itiger.com/news/1181816831",
+          "sina_finance": "https://finance.sina.com.cn/stock/aigc/hkgg/2026-09-01/doc-iniqitrs1514674.shtml"
+        },
+        "scope_effect": "Display-name projection only; no trading or safety gate changes."
+      }
+    ]
+  },
+  "actual_diff_review": {
+    "canonical_diff_path": "canonical.diff",
+    "canonical_diff_sha256": "eb38af7f30c1f5cf98199460d0c3854fc6b4be2d3b12ef76bba92db23aced6ca",
+    "staged_runtime_diff_path": "staged_runtime.diff",
+    "staged_runtime_diff_sha256": "07080f3162040b6218ccd87440ad3c39f54427c03f5ce1e9ee07fcf7a520aae7",
+    "canonical_names_actual_git_diff_reviewed": true,
+    "file_hashes": {
+      "upstreams/v3_shared_data/shared_data/names.py": {
+        "after_sha256": "6d36c2658f6114ca51d35837bcbc80c3c64cb1810d707b918126ec66bd111074",
+        "matches_writer_receipt": true
+      },
+      "domains/_preselection_materializer_parts/hk_pool.py": {
+        "after_sha256": "0bf9edfc54b1ab77b4bd869d61eaa6a447de5c86273561ff9abf4703c986fd9e",
+        "matches_writer_receipt": true,
+        "before_state": "CANNOT_CONFIRM: pre-existing untracked file; before digest was reconstructed by reversing the batch hunks, not captured before editing."
+      },
+      "tests/test_hk_dated_name_resolution.py": {
+        "after_sha256": "09426fb49c17a1b1642adec517b21f4c72579729b5ae3a7fb1732e5cfb94782d",
+        "matches_writer_receipt": true
+      },
+      "staged_runtime/app/upstreams/v3_shared_data/shared_data/names.py": {
+        "sha256": "6d36c2658f6114ca51d35837bcbc80c3c64cb1810d707b918126ec66bd111074",
+        "byte_identical_to_canonical_names.py": true
+      },
+      "staged_runtime/app/domains/preselection_materializer.py": {
+        "sha256": "8004fcd6c5d9d8a36f6e7380849af42c87ddd2d41b8cb9363a39e31bc632866b",
+        "matches_writer_receipt": true
+      }
+    },
+    "active_release_unchanged": {
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/preselection-date-root-20261011-r1/app",
+      "names.py_sha256": "b774979e1f16111647f7fcbe27861458a73a10804423f03f70289f13d0fe27f7",
+      "preselection_materializer.py_sha256": "f090146f39eaaf1ea5baaa5da60cddc2aefe738be16eb1609f166b643953d84e",
+      "matches_writer_receipt": true
+    }
+  },
+  "external_evidence": [
+    {
+      "authority": "HKEX",
+      "url": "https://www.hkex.com.hk/eng/market/sec_tradinfo/tradarng/tradarng_news/premonth/e2915e_260921.htm",
+      "verified_claim": "From 2026-09-23, temporary counter 2915 replaces original counter 2670; short name YUNJI."
+    },
+    {
+      "authority": "SSE / China Investment Information Co.",
+      "url": "https://big5.sse.com.cn/site/cht/www.sse.com.cn/services/hkexsc/disclo/announ/c/c_20260922_10832987.shtml",
+      "verified_claim": "02915 YUNJI 云迹 enters the Hong Kong Connect list and 02670 exits, effective next Hong Kong Connect trading day."
+    },
+    {
+      "authority": "Tiger Brokers secondary timetable",
+      "url": "https://www.itiger.com/news/1181816831",
+      "verified_claim": "Temporary counter closes 2026-10-29 at 16:10; parallel trading ends."
+    },
+    {
+      "authority": "Sina Finance secondary timetable",
+      "url": "https://finance.sina.com.cn/stock/aigc/hkgg/2026-09-01/doc-iniqitrs1514674.shtml",
+      "verified_claim": "Cross-check reports temporary-counter closing and parallel-trading end on 2026-10-29 at 16:10."
+    }
+  ],
+  "tests": [
+    {
+      "command": "./.venv/bin/python -m pytest tests/test_hk_dated_name_resolution.py tests/test_day25_hk_name_supplement_consumer.py -q --basetemp=/tmp/hk-name-review-20261011 -o tmp_path_retention_policy=all",
+      "result": "PASS: 4 passed, 1 skipped in 0.03s",
+      "skip_reason": "The existing 20260925 consumer canary is environment-gated on HK_0_2_CONSUMER_CANARY_STORE and HK_0_2_CONSUMER_CANARY_SHARED_PACKAGE_ROOT."
+    }
+  ],
+  "live_pool_canary": {
+    "mode": "read-only GET plus in-memory canonical and staged builders; no source-data writes",
+    "endpoint": "http://127.0.0.1:8873/api/v3/preselection-pools?date=20261012&limit=200&offset=0",
+    "candidate_input": "The active endpoint HK pool rows were passed through a custom in-memory reader; the underlying artifact bytes were not separately fetched or rehashed.",
+    "active_endpoint_baseline": {
+      "trade_date": "20261012",
+      "pool_id": "hkconnect_d1_top100",
+      "source_run_id": "20261012-hk-connect-d1-top100-0-2-d6f38622b186",
+      "source_sha256": "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d",
+      "input_row_count": 100,
+      "target": {
+        "symbol": "HK.02915",
+        "pool_rank": 1,
+        "name": "帝王国际投资",
+        "stock_name": "帝王国际投资"
+      }
+    },
+    "canonical_candidate": {
+      "row_count": 100,
+      "source_run_id_preserved": true,
+      "source_sha256_preserved": true,
+      "all_symbols_ranks_scores_preserved": true,
+      "all_non_target_names_unchanged": true,
+      "target": {
+        "symbol": "HK.02915",
+        "pool_rank": 1,
+        "name": "云迹",
+        "stock_name": "云迹",
+        "raw_name": "帝王国际投资"
+      },
+      "safety_flags": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    "staged_runtime_candidate": {
+      "row_count": 100,
+      "projection_fields_match_canonical_for_all_rows": [
+        "symbol",
+        "pool_rank",
+        "pool_score",
+        "name",
+        "stock_name",
+        "target_date",
+        "signal_date",
+        "selected_strategy"
+      ],
+      "source_run_id_preserved": true,
+      "source_sha256_preserved": true,
+      "staged_resolver_file": "staged_runtime/app/upstreams/v3_shared_data/shared_data/names.py",
+      "staged_materializer_file": "staged_runtime/app/domains/preselection_materializer.py"
+    },
+    "result": "PASS"
+  },
+  "known_unconfirmed_evidence": [
+    {
+      "status": "CANNOT_CONFIRM",
+      "claim": "The exact pre-edit bytes of domains/_preselection_materializer_parts/hk_pool.py; it was untracked before this batch and its before digest was reconstructed, not captured."
+    },
+    {
+      "status": "CANNOT_CONFIRM",
+      "claim": "Direct SHA-256 of the underlying source artifact bytes; only the active API verification metadata was read and matched the receipt SHA."
+    },
+    {
+      "status": "CANNOT_CONFIRM",
+      "claim": "Writer-reported broader tests/test_preselection_slice.py result (22 passed, 2 failed at infrastructure/preselection_pool_store.py:320) as a baseline or a failure caused by this batch. That store/test code is outside the frozen batch and currently has separate workspace diffs; it was not rerun or expanded here."
+    },
+    {
+      "status": "NOT_RUN_OUT_OF_SCOPE",
+      "claim": "Post-deployment API/UI and natural-period behavior; the active release was unchanged in this review."
+    }
+  ]
+}

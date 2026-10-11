@@ -1,0 +1,46 @@
+{
+  "status": [
+    "IMPLEMENTED",
+    "TESTED",
+    "REVIEWED",
+    "BEHAVIOR_VERIFIED",
+    "INTEGRATED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "UI_VERIFIED"
+  ],
+  "goal": "Correct HK.02915 name on 20261012 preselection page",
+  "display_name": "云迹",
+  "source_name_retained": "帝王国际投资",
+  "release_id": "hk-dated-name-20261011-r2",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-dated-name-20261011-r2/app",
+  "base_commit": "fff2ba2a0e62a388de7c9e9139fe1725802ea4fb",
+  "tests": "Independent R1:4 passed,1 environment skip; independent R2:2 passed; real-source API old/new comparison PASS",
+  "source_sha256": "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d",
+  "preserved": [
+    "100 HK rows/ranks/codes",
+    "source run and SHA",
+    "A-share arrays",
+    "input fingerprint and source digests",
+    "stored pool and manifest bytes",
+    "false trading flags"
+  ],
+  "limitations": [
+    "DISPLAY_NAME_ONLY: no eligibility or selection-policy conclusion",
+    "End date20261029 is supported by cross-checked secondary timetable, labeled in code",
+    "Broader writer run22pass2provenancefail: baseline relation CANNOT_CONFIRM, not repaired",
+    "Canonical pre-existing untracked hk_pool before bytes reconstructed, not captured",
+    "NATURAL_SLOT_UNVERIFIED"
+  ],
+  "first_runtime_attempt": "Builder-only R1 did not affect saved-pool API; recorded FAIL and corrected at service response boundary inR2",
+  "evidence": [
+    "receipt.json",
+    "independent_review.json",
+    "independent_review_r2.json",
+    "integration/API_NAME_PROJECTION.json",
+    "integration/API_VERIFIED.json",
+    "integration/UI_VERIFIED.json"
+  ],
+  "finished_at": "2026-10-11T16:25:16.362784+08:00"
+}

@@ -1,0 +1,95 @@
+{
+  "schema_version": "v4.hk_name_dictionary.repair_receipt.v1",
+  "goal": "Correct HK.02915 display name for 20261012 through a bounded date-aware projection while preserving source rows and pool identity.",
+  "implementation_status": "IMPLEMENTED",
+  "independent_review_status": "PENDING",
+  "baseline_reproduction": {
+    "endpoint": "http://127.0.0.1:8873/api/v3/preselection-pools?date=20261012&limit=200&offset=0",
+    "row": {
+      "code": "HK.02915",
+      "pool_rank": 1,
+      "name": "帝王国际投资",
+      "stock_name": "帝王国际投资"
+    }
+  },
+  "source_evidence": {
+    "run_id": "20261012-hk-connect-d1-top100-0-2-d6f38622b186",
+    "source_artifact_sha256": "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d",
+    "manifest_sha256": "20fb5182d751e75beb80b8c97c42eba4b1d1660084b321d8a69d9ed877f9c571",
+    "receipt_sha256": "01d4b09fb76b6e2d1135822a088e963d33356a2b0cf432d9af646ac5e2073da9",
+    "row_count": 100,
+    "target_row": {
+      "code": "HK.02915",
+      "pool_rank": 1,
+      "raw_name": "帝王国际投资",
+      "display_name": "云迹"
+    },
+    "selection_source_modified": false
+  },
+  "date_semantics": {
+    "effective_from": "20260923",
+    "effective_through": "20261029",
+    "start_evidence": "HKEX and SSE primary sources",
+    "end_evidence_quality": "SECONDARY_CROSS_SOURCE_TIMETABLE",
+    "scope": "DISPLAY_NAME_ONLY",
+    "source_urls": [
+      "https://www.hkex.com.hk/eng/market/sec_tradinfo/tradarng/tradarng_news/premonth/e2915e_260921.htm",
+      "https://big5.sse.com.cn/site/cht/www.sse.com.cn/services/hkexsc/disclo/announ/c/c_20260922_10832987.shtml",
+      "https://finance.sina.com.cn/stock/aigc/hkgg/2026-09-01/doc-iniqitrs1514674.shtml",
+      "https://www.itiger.com/news/1181816831"
+    ]
+  },
+  "canary": {
+    "canonical_read_only_builder": "PASS",
+    "staged_release_copy_monolith": "PASS",
+    "expected_display_name": "云迹",
+    "raw_name_preserved": true,
+    "pool_rank_preserved": 1,
+    "trade_flags": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "tests": {
+    "focused_command": "./.venv/bin/python -m pytest tests/test_hk_dated_name_resolution.py tests/test_day25_hk_name_supplement_consumer.py -q --basetemp=/tmp/hk-name-focused-20261011 -o tmp_path_retention_policy=all",
+    "focused_result": "4 passed, 1 skipped",
+    "broader_command": "./.venv/bin/python -m pytest tests/test_preselection_slice.py -q --tb=short --basetemp=/tmp/hk-name-preselection-20261011 -o tmp_path_retention_policy=all",
+    "broader_result": "22 passed, 2 failed in infrastructure/preselection_pool_store.py:320 for missing historical pool provenance; this baseline failure was not reproduced, so baseline status is CANNOT_CONFIRM.",
+    "initial_temp_cleanup_note": "A prior pytest invocation also saw macOS EPERM while removing a read-only temp fixture; isolated basetemp rerun retained only the two provenance failures."
+  },
+  "file_hashes": {
+    "upstreams/v3_shared_data/shared_data/names.py": {
+      "before_sha256": "b774979e1f16111647f7fcbe27861458a73a10804423f03f70289f13d0fe27f7",
+      "after_sha256": "6d36c2658f6114ca51d35837bcbc80c3c64cb1810d707b918126ec66bd111074",
+      "before_basis": "Git HEAD; file was clean before this batch."
+    },
+    "domains/_preselection_materializer_parts/hk_pool.py": {
+      "before_sha256": "c62dc3c81f9ba98f1363f0ad307fb91e9ae0d79b80db2d874ca95a044acbefcd",
+      "after_sha256": "0bf9edfc54b1ab77b4bd869d61eaa6a447de5c86273561ff9abf4703c986fd9e",
+      "before_basis": "Reconstructed by reversing only the exact name-resolution hunks in this batch; file was pre-existing untracked, so no observed pre-edit digest is available."
+    },
+    "tests/test_hk_dated_name_resolution.py": {
+      "after_sha256": "09426fb49c17a1b1642adec517b21f4c72579729b5ae3a7fb1732e5cfb94782d",
+      "before_sha256": null,
+      "before_basis": "New file in this batch."
+    },
+    "active_release_copy_not_modified": {
+      "names.py_sha256": "b774979e1f16111647f7fcbe27861458a73a10804423f03f70289f13d0fe27f7",
+      "preselection_materializer.py_sha256": "f090146f39eaaf1ea5baaa5da60cddc2aefe738be16eb1609f166b643953d84e"
+    },
+    "staged_release_copy": {
+      "names.py_sha256": "6d36c2658f6114ca51d35837bcbc80c3c64cb1810d707b918126ec66bd111074",
+      "preselection_materializer.py_sha256": "8004fcd6c5d9d8a36f6e7380849af42c87ddd2d41b8cb9363a39e31bc632866b"
+    }
+  },
+  "evidence_files": [
+    "canonical.diff",
+    "staged_runtime.diff"
+  ],
+  "limitations": [
+    "The active release and its API were not changed or reloaded; staged behavior was exercised from the release copy.",
+    "No UI or natural-period verification was performed.",
+    "Independent reviewer must inspect the actual diff and rerun focused behavior tests."
+  ]
+}

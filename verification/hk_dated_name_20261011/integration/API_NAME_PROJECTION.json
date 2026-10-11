@@ -1,0 +1,89 @@
+{
+  "schema_version": "v4.hk_preselection_api_name_projection.v1",
+  "status": "IMPLEMENTED_PENDING_INDEPENDENT_REVIEW",
+  "scope": "Read-only, date-scoped response projection on the existing PreselectionPoolService/router path.",
+  "call_path": [
+    "FastAPI /api/v3/preselection-pools route in apps/api/v35_api/preselection_router.py",
+    "PreselectionPoolService.read in apps/api/v35_api/preselection_service.py",
+    "domains.preselection.preselection reads already-materialized exact-date pool DTOs",
+    "response-only HK name projection before returning; no saved artifact/cache mutation"
+  ],
+  "observed_behavior": {
+    "saved_api_before_name": "帝王国际投资",
+    "active_service_before_name": "帝王国际投资",
+    "staged_service_after_name": "云迹",
+    "staged_stock_name": "云迹",
+    "raw_name": "帝王国际投资",
+    "name_resolution_status": "EFFECTIVE_DATE_OVERRIDE",
+    "pool_rank": 1,
+    "row_count": 100,
+    "trade_flags": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "source_identity_unchanged": {
+    "source_run_id": "20261012-hk-connect-d1-top100-0-2-d6f38622b186",
+    "source_sha256": "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d",
+    "source_manifest_sha256": null,
+    "source_receipt_sha256": null,
+    "input_fingerprint": "9c8ce4ab8e559ac38180ccb66cfe1deb6da64397fecdc5f64e039555d05a3fa4",
+    "source_digests": {
+      "a_d1_premarket_pool": "1d1d8af7c4d6a4f6b2ba5da3d67c995a73872e73dc6adddb2210d56172de5d5a",
+      "a_d1_fupan_watchlist_pool": "0c9f501654139494ffc8973852e60373b028cb69c4479f4e2d5b8f02613e9fbd",
+      "a_d1_stage7_fenshi_review_pool": "2bb6e2534633f578b5a6c2fd1e8b0d5f92d87390877e2c3f5bc8aca637db6cda",
+      "a_share_research_recommendation_pool": "99da73c45fc731843978fcf38dc036784e21b457b56dabc9073de9dfcaba4dc8",
+      "a_share_baimao_research_map": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "hkconnect_d1_top100": "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d",
+      "wechat_public_account_v3_preselect": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "stored_files_read_only_verified": {
+    "pool_artifact_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261012/hkconnect_d1_top100.json",
+    "pool_artifact_sha256_before_after": "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d",
+    "pool_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261012/manifest.json",
+    "pool_manifest_sha256_before_after": "a0eb3e6a348ea1dc651b6808e7f5f1c98ad06608464076dfa302e1847df2d66c"
+  },
+  "tests": {
+    "focused_command": "./.venv/bin/python -m pytest tests/test_hk_preselection_api_name_projection.py -q --basetemp=/tmp/hk-api-name-20261011 -o tmp_path_retention_policy=all",
+    "focused_result": "2 passed; one StarletteDeprecationWarning from TestClient/httpx.",
+    "staged_api_command": "PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python -B '/Users/lexi/Desktop/学习/agents调试/V4_HK_NAME_DICTIONARY_20261011/integration/verify_staged_preselection_api.py'",
+    "staged_api_result": "PASS: saved response and old service returned 帝王国际投资; staged service returned 云迹; HK identity/rank/count, source SHA/run, input_fingerprint, source_digests, A arrays, and stored artifact/manifest bytes were unchanged."
+  },
+  "file_hashes": {
+    "canonical/apps/api/v35_api/preselection_service.py": {
+      "before_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "after_sha256": "f0d2283e87663e7d98c933f0e2d95acb738d1e665a55958cb2771b3f02011f66"
+    },
+    "active_release/apps/api/v35_api/preselection_service.py": {
+      "before_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "modified": false
+    },
+    "staged_release/apps/api/v35_api/preselection_service.py": {
+      "after_sha256": "f0d2283e87663e7d98c933f0e2d95acb738d1e665a55958cb2771b3f02011f66",
+      "matches_canonical": true
+    },
+    "tests/test_hk_preselection_api_name_projection.py": {
+      "sha256": "e3996e1b9a334cb05101d9d97415086c7c9a9ba0d95c4223eb1e95a1ccb5310b"
+    },
+    "verify_staged_preselection_api.py": {
+      "sha256": "4441aaaee9f6c550bac766b5a5a5f28cb06d7d818a8bb0fafb35510090a23478"
+    },
+    "preselection_service.diff": {
+      "sha256": "6772bc7ddd0109f6d7e390199e076b24628bb1835ba19215d5322a78cde943ad",
+      "base_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-dated-name-20261011-r1/app/apps/api/v35_api/preselection_service.py",
+      "candidate_path": "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/preselection_service.py",
+      "generated_from_current_files": true
+    },
+    "api_staged_projection.json": {
+      "sha256": "3f5cb23555615ee3d7e001d2a8f339c4cd3ac2c75b408735fca63707e2739e4f"
+    }
+  },
+  "deployment_status": "NOT_ACTIVATED; active release and live 8873 were not modified or reloaded.",
+  "limitations": [
+    "The staged TestClient used the exact new active release router/dependency tree, the staged service file, and configured read-only data roots.",
+    "Independent review of this new service-path fix is required.",
+    "Live API readback after this staged change remains CANNOT_CONFIRM until the authorized integration owner activates and verifies it."
+  ]
+}
