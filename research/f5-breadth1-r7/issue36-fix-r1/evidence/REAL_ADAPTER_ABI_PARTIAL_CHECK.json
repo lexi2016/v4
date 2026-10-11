@@ -1,0 +1,35 @@
+{
+  "schema": "R7_ISSUE36_OFFICIAL_ADAPTER_METHOD_PRECHECK_V1",
+  "status": "PASS_REAL_ADAPTER_PROFILE_AND_SIGNATURES_ONLY",
+  "official_source_sha256": {
+    "registry_adapter.py": "8596f2a20c165b5fbc2b92a597cb3e1177f6e40bfefac62753b40b3c7daae17f",
+    "execution_guard_core.py": "85929366a7b018480085c02f80edd312f7f47de94bab5c32982d4e8637d7d7e0"
+  },
+  "validated_profile_keys": [
+    "track_id",
+    "route_id",
+    "registration_mode",
+    "start_stage",
+    "terminal_stage",
+    "occurred_at_reason",
+    "baseline_id",
+    "one_variable",
+    "signal_scope",
+    "target_scope",
+    "device",
+    "evidence_level"
+  ],
+  "real_adapter_class_imported": true,
+  "actual_profile_validator_invoked": true,
+  "real_guard_imported": true,
+  "real_adapter_constructor_invoked": false,
+  "actual_builder_validator_loaded": false,
+  "full_registry_available": false,
+  "full_registry_validation": "NOT_RUN",
+  "target_reads": 0,
+  "registry_writes": 0,
+  "fit": 0,
+  "predict": 0,
+  "truth_decode": 0,
+  "interpretation": "Narrow ABI check, NOT actual full R7 preflight pass."
+}
