@@ -1,0 +1,32 @@
+{
+  "schema": "ISSUE36_TARGET_FREE_ACTUAL_GITHUB_CONTROL_STATIC_V1",
+  "baseline_ref": "a2fd6cf25aef8c06ed6ba2edb67c6797d5ef07c3",
+  "status": "PARTIAL_CONTROL_SUBGRAPH_VERIFIED_NOT_NATIVE_INTEGRATION_PASS",
+  "checks": {
+    "r7_grant_debit_1": true,
+    "original_r7_claim_identity": true,
+    "original_start_and_terminal_exact": true,
+    "old_terminal_link": true,
+    "old_debit_unchanged": true,
+    "resume_release_only_four_mutations": true,
+    "resume_contract_binding_codes": true,
+    "resume_pending_matches_contract_sha": true,
+    "resume_read_release_matches_approved_identity": true,
+    "resume_read_release_descriptor_matches_pending": true,
+    "original_failure_no_model_truth": true,
+    "resume_plan_pending_sha_matches_binding": false
+  },
+  "passed": 11,
+  "total": 12,
+  "resume_plan_legacy_sha": "129c83d15258ae3fce6a325cab84ee1648ff8bdac574d16c02b1ca1a9783531c",
+  "resume_pending_sha": "97d221d475a56aad99964b911d6c98b0ab886b43b017be62bed3f6abc8836be1",
+  "legacy_plan_interpretation": "NOT_CONFIRMED; authorization pins plan but normalized read release binds current pending",
+  "local_actual_adapter_abi_check": "PASS_REAL_ADAPTER_PROFILE_AND_SIGNATURES_ONLY",
+  "full_adapter_registry_preflight": "NOT_RUN_MAC_ONLY",
+  "probe03": "CONTRACT_ONLY_NOT_COUNTED",
+  "target_reads": 0,
+  "fit": 0,
+  "predict": 0,
+  "truth": 0,
+  "registry_writes": 0
+}
