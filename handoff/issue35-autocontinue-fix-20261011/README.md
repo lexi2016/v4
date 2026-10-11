@@ -10,7 +10,7 @@
 ## 修复边界与原 owner
 
 1. **计划新输入、幂等、保存/读回**：保留 `ManagerResearchJobService.refresh_workspace_plan` 原主入口、SafeRoot Store、日期交易日与 cutoff 原合同。在持有同目标日事务锁时，只有保存产品 `CURRENT + consumed=true`、输入身份一致、同 run 终态 owner attempt 独立核验，才可复用已存成果（`ALREADY_MATERIALIZED`）。真实输入变化自然生成新 run、run/product SHA 与终态 attempt；旧产物按 run_id 保留。修复 canonical R2 的“成功 attempt 尚未封存就先要求完整 readback”循环；按 `exact immutable run → exact SHA readback → terminal attempt/sha → latest pointer → original full readback` 顺序验证。失败记录在独立失败 attempt，恢复旧成功指针，不得把失败变有效零。
-2. **调度接续**：`plan_owner_dispatch._execute_serialized_cycle` 原来对相同 evening trigger 的此前成功 `prior.response` 直接 replay，不验证新材料。在原受限事务下使用原 `get_workspace(include_saved=True)`、已存产品和 `verified_plan_attempt` 独立读回确认 `CURRENT` 后才允许重放。若真正 stale，则走现有 backoff/budget、`run_scheduled_plan_target` 与原 owner，保留原时窗、交易日历及 dispatch 回执。仅更改 EV​ENING_NEXT_SESSION 的有歧义重复触发判断；其它独立分时槽暂不更改。不修改超跌或公告原筛选公式。
+2. **调度接续**：`plan_owner_dispatch._execute_serialized_cycle` 原来对相同 evening trigger 的此前成功 `prior.response` 直接 replay，不验证新材料。在原受限事务下使用原 `get_workspace(include_saved=True)`、已存产品和 `verified_plan_attempt` 独立读回确认 `CURRENT` 后才允许重放。若真正 stale，则走现有 backoff/budget、`run_scheduled_plan_target` 与原 owner，保留原时窗、交易日历及 dispatch 回执。仅更改 EVENING_NEXT_SESSION 的有歧义重复触发判断；其它独立分时槽暂不更改。不修改超跌或公告原筛选公式。
 3. **API 原 Stage 执行消费者**：现役 API 已构造 `shared_selection_consumer`，但旧 runtime ManagerService 缺注入。补入 `workspace_stage_selection_reader`，只复用原 `StageSelectionConsumer.get(...,allow_backfill=False)`；不将 observation、UI 或空对象当正式阶段产物。canonical R2 `service.py` 已接受该参数，仅需 API 注入小 hunk。
 4. **绑定和三路原算法**：只提供 Mac 需要核验、可回退的 wiring 补丁。**未伪造新的 binding、activation receipt、owner/product、US daily、公告 analysis、超跌量纲证据。** 原 manager binding 必须由 Mac 唯一 Writer 基于实际 8873 加载源码根、同根 closed inventory、绑定 SHA 和既有 canary/CAS 重新签发并验证；不得整体切换 HK scheduler 或强制启用 `announcement_collection_enabled`。公告注册/导入、TDX 超跌采集及 US daily 原 owner 须保留各自独立时窗/上下游因果。
 
@@ -27,7 +27,14 @@
 - `patches/runtime_r1_owner_and_stage.patch`（原 runtime workspace + service + active app）
 - `patches/runtime_r1_dispatch_input_refresh.patch`
 
-**两种模式不能混用 workspace patch，也不能整文件覆盖 Mac 正在合入的并行修复。** 全部 5 目标路径、Git blob、逐路径 before/after SHA256、增删行、来源位于 `PATCH_SHA_MANIFEST.json`。已通过只读 JS 独立重放每个 unified diff hunk、逐行上下文比较以及 original/after SHA256；这属于静态可应用性证据，**不是** Python 编译/pytest/Mac 真实验收。
+**模式 C：`runtime_after_r2`**（Mac 已将 R2 修补应用于 R1 runtime，`workspace.py` SHA256 `c1d3ff135c260774924d1b843a306851e4b03abb2510e9268d18bbddd695a3e9`，`service.py` SHA256 `63d73b19708fbcabc78598b61b50b0ed525aea4fa15d1de20f2d18faa83cc87e`）：
+
+- `patches/runtime_after_r2_workspace.patch`：以原 runtime + 上游 R2 patch 精确重建后的 82957 字节 workspace 为基线，after SHA256 `6d8d4b9e38f3a2ee2fba0ced339c396f0b0a09ff06429b290363047c8040deb6`；
+- `patches/common_app_stage_consumer.patch`；
+- `patches/runtime_r1_dispatch_input_refresh.patch`。
+- 本模式只读核验已有 R2 `service.py`、`workspace_daily_channels.py`、`workspace_history.py` 三项 SHA；**不得再次插入 Stage service 参数**。
+
+**三种模式按本机每个目标文件的真实 SHA 选择，绝不能混用 workspace patch，也不能整文件覆盖 Mac 正在合入的并行修复。** 全部 5 目标路径、Git blob、逐路径 before/after SHA256、增删行、来源位于 `PATCH_SHA_MANIFEST.json`。已通过只读 JS 独立重放每个 unified diff hunk、逐行上下文比较以及 original/after SHA256；这属于静态可应用性证据，**不是** Python 编译/pytest/Mac 真实验收。
 
 ## Mac 唯一 Writer：严格核 SHA、再补丁
 
@@ -41,7 +48,7 @@ python3 "$HANDOFF/scripts/check_or_apply.py" --root "$APP" --mode canonical_r2
 python3 "$HANDOFF/scripts/check_or_apply.py" --root "$APP" --mode canonical_r2 --apply
 ```
 
-如候选确实是 R1，两个命令中的 `--mode` 改成 `runtime_r1`。checker 拒绝不匹配的源 SHA、目标缺失、符号链接及 git apply 不通过；成功应用会验证全部 after SHA，**但不会合并其它并行修改**。Mac 若已产生三方合并后的不同 SHA，必须先人工逐 hunk 评估重做小补丁，不能关掉 SHA 校验强行覆盖。失败后保留原源和原日志，不能宣称可部署。
+如候选确实是原 R1，两个命令改成 `--mode runtime_r1`；如为 runtime 已合入 R2，改成 `--mode runtime_after_r2`。checker 拒绝不匹配的源 SHA、目标缺失、符号链接及 git apply 不通过；成功应用会验证全部 after SHA，**但不会合并其它并行修改**。Mac 若已产生三方合并后的不同 SHA，必须先人工逐 hunk 评估重做小补丁，不能关掉 SHA 校验强行覆盖。失败后保留原源和原日志，不能宣称可部署。
 
 ## Mac 定向验证（待执行，不预报绿灯）
 
