@@ -1,0 +1,37 @@
+{
+  "status": "PLAN_ARCHIVE_READBACK_VERIFIED_DAILY_ARCHIVE_NOT_DUE",
+  "target_trade_date": "20261012",
+  "run_id": "960c3b5f9b974b188f47b9387fc95cba",
+  "plan_product_sha256": "c01605b233fb4307e6ee9ede96eae3e7a3a5e7bd3b38580adb775ad63117c330",
+  "plan_file_sha256": "36dd70c3106bacee809c82bbf51714c46a05d507f978ce7de70ab4e1b1f070c8",
+  "input_identity": "d723652d58e0cc06ba5341dbdc4cedd02ab1df5a6771760fb68b432fae7d142d",
+  "us_session": "20261009",
+  "symbol_assessment_count": 33,
+  "classifications": {
+    "EQUITY_PROXY": 12,
+    "ETF_PROXY": 21
+  },
+  "linked_us_symbol_count": 10,
+  "relation_count": 14,
+  "linked_symbols": [
+    "AMD",
+    "AVGO",
+    "CIEN",
+    "COHR",
+    "DLR",
+    "EQIX",
+    "LITE",
+    "NVDA",
+    "STX",
+    "VRT"
+  ],
+  "daily_archive_status": "NOT_RUN",
+  "execution_kind": "MANUAL_REFRESH",
+  "natural_verified": false,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

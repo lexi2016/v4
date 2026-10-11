@@ -1,0 +1,137 @@
+{
+  "cannot_confirm": [
+    "No authentic canary was generated and no --stage-enabled command was run; write-path behavior is confirmed by source inspection and in-memory validation only.",
+    "No --execute canary run, external live API/UI readback, activation, or natural-slot behavior was performed or verified."
+  ],
+  "checks": [
+    {
+      "id": "stale_canary_61m",
+      "method": "In-memory fixture; common.exact_file mocked; no file or service writes.",
+      "observed_error": "FRESH_CANARY_STALE_MAX_AGE_60_MINUTES",
+      "result": "PASS"
+    },
+    {
+      "id": "future_canary_1m",
+      "method": "In-memory fixture; canary clock one minute later than validation clock.",
+      "observed_error": "FRESH_CANARY_CLOCK_IN_FUTURE",
+      "result": "PASS"
+    },
+    {
+      "id": "next_hk_session_changed_across_midnight",
+      "method": "In-memory fixture using the frozen candidate release calendar; canary clock 2026-10-12 23:40+08, validation clock 2026-10-13 00:10+08, target 20261013.",
+      "observed_error": "FRESH_CANARY_TARGET_NOT_NEXT_HK_SESSION_AT_CURRENT_CLOCK",
+      "result": "PASS"
+    },
+    {
+      "id": "valid_post_phase1_canary_40m",
+      "method": "In-memory fixture using the frozen candidate release calendar; canary 40 minutes old, target is 20261012 at both clocks.",
+      "observed": {
+        "age_seconds": 2400,
+        "max_age_minutes": 60,
+        "next_hk_session_at_canary_clock": "20261012",
+        "next_hk_session_at_validation": "20261012",
+        "target_trade_date": "20261012"
+      },
+      "result": "PASS"
+    },
+    {
+      "id": "r2_post_phase1_delta_retained",
+      "method": "Reconstructed post-Phase-1 API/scheduler plists in memory from read-only inputs; ran R3 _stage_plists.",
+      "observed": {
+        "api_changed_environment_keys": [
+          "V4_MANAGER_PLAN_OWNER_BINDING_PATH"
+        ],
+        "scheduler_changed_environment_keys": [
+          "V4_MANAGER_ANNOUNCEMENT_BINDING"
+        ],
+        "scheduler_hk_root_and_task_preserved": true
+      },
+      "result": "PASS"
+    },
+    {
+      "id": "r3_default_stager_dryrun",
+      "observed": {
+        "canary_freshness": null,
+        "canary_freshness_policy_max_age_minutes": 60,
+        "launchctl_called": false,
+        "live_plists_modified": false,
+        "manager_state_modified_by_stager": false,
+        "safety": {
+          "RESEARCH_ONLY": true,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false
+        },
+        "status": "DRY_RUN_AWAITING_FRESH_CANARY"
+      },
+      "result": "PASS"
+    },
+    {
+      "id": "syntax_and_no_cli_clock_override",
+      "method": "AST parse succeeded; CLI source contains no --now, --clock, --current-time, or --validation-time option.",
+      "result": "PASS"
+    },
+    {
+      "id": "postcheck_no_writes",
+      "observed": {
+        "api_plist_sha256": "b2d8b1b80d0ca843a1d19f70d05281edd51862af4badb6f60fe367873d28c821",
+        "canary_output_exists": false,
+        "scheduler_plist_sha256": "fbce935c11b5b207739f6f12845209f4c6da07b68fbd034325169100ce4826c7",
+        "staged_output_exists": false,
+        "target_owner_state_paths_exist": false
+      },
+      "result": "PASS"
+    }
+  ],
+  "findings": [],
+  "prior_r2_non_delta_evidence": {
+    "r2_review_receipt_path": "reviewer/activation_helpers_r2_review.json",
+    "r2_review_receipt_sha256": "5e205ca818bbaea4f3711f864a933393159cd22692ca0ee204006fea5b24f023",
+    "reused": "Unchanged R1 common/canary-runner scope and R2 no-write dry-run evidence; independently reran the Phase-2 post-Phase-1 delta in this review."
+  },
+  "resolved_r2_finding": {
+    "detail": "Expired, future, and cross-midnight next-HK-session-changed canaries reject; a 40-minute-old valid canary passes at both calendar checks; enabled staging repeats validation using real local time before the first write.",
+    "id": "P2-1",
+    "status": "RESOLVED_IN_R3"
+  },
+  "review_scope": "R3 freshness-gate delta plus retained R2 helper acceptance evidence",
+  "review_verdict": "PASS",
+  "reviewer": "/root/us_daily_chain_review",
+  "reviewer_artifact_erratum": {
+    "detail": "Its unchanged_r1_helpers entry for daily_chain_activation_common.py contains a one-digit SHA transcription error. The authoritative R1 handoff receipt and current source both hash to fc02464df6d60573842f8160bbee29c26648108d494b3295397f598d064b6692. This is a prior reviewer-receipt metadata typo, not a product-source change; the R2 receipt was left untouched.",
+    "path": "reviewer/activation_helpers_r2_review.json"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "execute_invoked": false,
+    "launchctl_called": false,
+    "live_api_plist_written": false,
+    "live_scheduler_plist_written": false,
+    "orders_sent": false,
+    "owner_state_written": false,
+    "production_allowed": false,
+    "stage_enabled_invoked": false
+  },
+  "schema_version": "v4.us_daily_chain.activation_helper_review.v1",
+  "source_delta": {
+    "current_stager_sha256": "53e19fdcedb973d5f0e68fe52a95950c32575e092377dda0ca361d39c1d327cb",
+    "declared_changed_paths": [
+      "tools/prepare_daily_chain_activation.py",
+      "receipts/activation_helpers_r3.json"
+    ],
+    "hash_chain_result": "PASS: R3 before SHA equals the R2-reviewed stager SHA; current after SHA matches the R3 handoff. Unchanged helper hashes match the R1 frozen helper receipt.",
+    "observed_behavior_delta": [
+      "Adds a fixed 60-minute canary age bound and rejects future canary timestamps.",
+      "Uses the release-bound HK calendar to require the requested target to remain the next HK session at both canary time and validation time.",
+      "For --stage-enabled, rechecks with datetime.now(Asia/Hong_Kong) after live-plist compare-and-swap and immediately before any staging directory/file creation; no CLI clock override exists.",
+      "Records the age, both clocks, both next-session dates, and freshness policy in the stage receipt."
+    ],
+    "previous_reviewed_stager_sha256": "be04ed297930962f58657bf9a6c0a5c1e13abf8f9f1772e73e582afe6fa5a703",
+    "r3_handoff_receipt_sha256": "a1f4feb7e4987f5a498a84b9e6d0eaaf3a1fb8aad8fc8061484e2079680f8b30",
+    "unchanged_helpers_sha256": {
+      "tools/daily_chain_activation_common.py": "fc02464df6d60573842f8160bbee29c26648108d494b3295397f598d064b6692",
+      "tools/run_daily_chain_canary.py": "f3d6de937cc41bcfd5cda4a117aa374c07720d48f746466160e70e9d7233ef57"
+    }
+  }
+}

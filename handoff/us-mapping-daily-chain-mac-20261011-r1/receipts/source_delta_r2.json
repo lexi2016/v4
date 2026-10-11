@@ -1,0 +1,53 @@
+{
+  "baseline_json_sha256": "16e74783b9dba4230339b1d7a82196e38acabba5b2896419fdc8cae238f87c04",
+  "baseline_release_id": "manager-us-mapping-completion-20261011-r5",
+  "baseline_release_manifest_sha256": "12af6fdab034e99f2479939209c86add3e20d9c0bddc0c73bb9fb9370d8a1f26",
+  "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/candidate/app",
+  "entries": [
+    {
+      "after_sha256": "bbb01afba2c87e778310e70ca4d8d2a326655819ff920c7bc6b1ebd2a5f2fc8d",
+      "before_sha256": "757b87e4232d527caaf64437151c7bdc4e2f1f5e435ec2ed2ffc7813105c81a2",
+      "path": "apps/web/src/api/managerWorkspace.ts"
+    },
+    {
+      "after_sha256": "177686f863a3392e57201f75d80dd262974ba8e633f1ba8de3af1ed0dd5803c9",
+      "before_sha256": "58e61a2869cd9594f889faa510c552d347a2a29bf48778c969122c9c9dd02421",
+      "path": "apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts"
+    },
+    {
+      "after_sha256": "d1fe398b04760c6a2d6f3649979c41c762e208105f21495c0be8b5a1bd2b004b",
+      "before_sha256": "fbe2f0aaf6c8d73a8cdb1dee8084d8d76e9852b86f1ee9230edfa00564e4d8c5",
+      "path": "apps/web/src/manager-selection/researchAttention.ts"
+    },
+    {
+      "after_sha256": "f6c4b1f4d713c352a5aaeba081a627e4c68c4150cf91edb52948165a9cb3a3b0",
+      "before_sha256": null,
+      "path": "tests/test_manager_us_daily_chain.py"
+    },
+    {
+      "after_sha256": "0f4efa5448a8a1417453d76909906d6e8c68e0b1d3530f06c18b1adb3fc4fe46",
+      "before_sha256": "77fdb9743180a3b94a30ff86f71d2ce3e29c874f300861513131bda63fc1e1a4",
+      "path": "tests/test_manager_us_mapping_research.py"
+    },
+    {
+      "after_sha256": "d1671e3e889539c3956775b7d2ce3309a402b17bce891434198345bbca514d97",
+      "before_sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+      "path": "v4/manager_research/plan_owner_dispatch.py"
+    },
+    {
+      "after_sha256": "2ec555741d0647f8cee7fd65050bdb80b28816dde816cd475367f34b3d24a1e0",
+      "before_sha256": "05bbab7f091d9e84f3de4bc3d3179fd5cd853906a70b710acdf99fe20752cad5",
+      "path": "v4/manager_research/us_mapping_research.py"
+    }
+  ],
+  "schema_version": "v4.us_daily_chain.source_delta.r2",
+  "scope_verification": {
+    "candidate_only_runtime_artifacts_seen_in_unfiltered_diff": [
+      ".pytest_cache/",
+      "__pycache__/ directories under app packages and tests"
+    ],
+    "command": "diff -qr --exclude='__pycache__' --exclude='.pytest_cache' <R5 app root> <candidate app root>",
+    "result": "PASS: exact seven changed source/test paths are listed in entries; no other source paths differ.",
+    "runtime_artifact_cleanup": "NOT_PERFORMED: outside frozen source allowlist; request owner decision before removal if release inventory includes them."
+  }
+}

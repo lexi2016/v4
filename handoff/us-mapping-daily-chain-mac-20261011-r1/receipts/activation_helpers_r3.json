@@ -1,0 +1,98 @@
+{
+  "allowed_change": [
+    "tools/prepare_daily_chain_activation.py",
+    "receipts/activation_helpers_r3.json"
+  ],
+  "cannot_confirm": [
+    "Independent R3 review and re-run are pending.",
+    "A real fresh canary was not executed.",
+    "Enabled Phase-2 staging, API/UI readback, activation, and natural-slot behavior were not run or verified."
+  ],
+  "change": {
+    "after_sha256": "53e19fdcedb973d5f0e68fe52a95950c32575e092377dda0ca361d39c1d327cb",
+    "before_sha256": "be04ed297930962f58657bf9a6c0a5c1e13abf8f9f1772e73e582afe6fa5a703",
+    "behavior": [
+      "Reject a canary clock later than the real validation clock.",
+      "Reject a canary older than the explicitly recorded 60-minute maximum age.",
+      "Use the existing bound HK calendar to require target_trade_date to be next HK session at both canary time and current validation time.",
+      "Repeat the same checks with datetime.now(Asia/Hong_Kong) immediately before enabled staging writes; there is no CLI clock override.",
+      "Include max age, canary age, canary clock, validation clock, and both computed next-session dates in the stage receipt."
+    ],
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/tools/prepare_daily_chain_activation.py"
+  },
+  "checks": [
+    {
+      "evidence": "AST parse succeeded; main contains exactly two canary-validation call sites and no clock override option.",
+      "id": "syntax_and_staging_recheck_path",
+      "result": "PASS"
+    },
+    {
+      "expected_error": "FRESH_CANARY_STALE_MAX_AGE_60_MINUTES",
+      "id": "expired_canary",
+      "method": "In-memory canary fixture, age 61 minutes; no file or service writes.",
+      "result": "PASS"
+    },
+    {
+      "expected_error": "FRESH_CANARY_CLOCK_IN_FUTURE",
+      "id": "future_canary_clock",
+      "method": "In-memory canary fixture, recorded clock one minute after validation clock.",
+      "result": "PASS"
+    },
+    {
+      "expected_error": "FRESH_CANARY_TARGET_NOT_NEXT_HK_SESSION_AT_CURRENT_CLOCK",
+      "id": "target_not_next_at_current_clock",
+      "method": "In-memory canary recorded 2026-10-12 23:40+08 for next session 20261013; validation at 2026-10-13 00:10+08 resolves next session 20261014.",
+      "result": "PASS"
+    },
+    {
+      "age_seconds": 2400,
+      "id": "valid_post_phase1_canary",
+      "method": "In-memory canary issued 40 minutes before validation; existing HK calendar used.",
+      "next_hk_session_at_canary_clock": "20261012",
+      "next_hk_session_at_validation": "20261012",
+      "result": "PASS",
+      "target_trade_date": "20261012"
+    }
+  ],
+  "commands": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python - <<'PY' (ast.parse, two-call-site, 60-minute policy and no-clock-override assertions) PY",
+      "result": "PASS"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python - <<'PY' (in-memory expired/future/cross-midnight-wrong-target/valid-post-phase1 canary fixtures) PY",
+      "result": "PASS: 4/4 fixtures"
+    }
+  ],
+  "generated_at_utc": "2026-10-11T05:09:09+00:00",
+  "goal": "Close independent R2 P2-1 by enforcing a fresh, still-next-HK-session canary at validation and immediately before enabled immutable staging.",
+  "independent_review_status": "PENDING",
+  "receipt_revision": 3,
+  "review_input": {
+    "finding_id": "P2-1",
+    "path": "reviewer/activation_helpers_r2_review.json",
+    "review_result": "FINAL_FAIL_P2_ONLY_P1_CLOSED",
+    "sha256": "5e205ca818bbaea4f3711f864a933393159cd22692ca0ee204006fea5b24f023"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "enabled_staging_written": false,
+    "launchctl_called": false,
+    "live_api_plist_written": false,
+    "live_canary_executed": false,
+    "live_scheduler_plist_written": false,
+    "manager_state_modified": false,
+    "orders_sent": false,
+    "owner_api_called": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.us_daily_chain.activation_helper_r3_handoff.v1",
+  "source_freeze": {
+    "business_app_source_changed": false,
+    "only_stager_freshness_gate_changed": true,
+    "r1_helper_bytes_modified": false
+  },
+  "status": "PREPARED_FOR_INDEPENDENT_REVIEW",
+  "writer": "/root/us_daily_chain_writer"
+}

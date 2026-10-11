@@ -1,0 +1,116 @@
+{
+  "schema_version": "v4.us_daily_chain.canary_recovery_independent_review.r4",
+  "reviewer_identity": "/root/us_daily_chain_review",
+  "status": "PASS",
+  "scope": "R4 pinned canary-recovery verification only; no HTTP replay, no formal state write, no activation",
+  "bindings": {
+    "helper_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/tools/run_daily_chain_canary.py",
+    "helper_sha256": "a69a8535c918b83df3730271df3d5d6e97554276ce77362244c08d0d021eba8a",
+    "writer_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/canary_recovery_r4.json",
+    "writer_receipt_sha256": "764c4e7dc5326c09f11202b5243281fbc5eb72ab2fbc5cbc4d5376c0679046ca",
+    "release_manifest_sha256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+    "release_inventory_entry_count": 1029,
+    "release_inventory_sha256": "a31930985518157c6a148d4460526b2c057c89134b2089983323bca42ae18eed"
+  },
+  "reviewed_change": {
+    "summary": "R4 recovery reports pinned RAW_HTTP_BODY identity separately from the compact DERIVED_VALIDATED_PROJECTION, and verify-only returns that evidence summary. Recovery validates the existing mutex inode with nonblocking flock, exact parent-directory, and inode-stability checks.",
+    "source_locations": {
+      "raw_and_projection_pins": "tools/run_daily_chain_canary.py:136-164",
+      "mutex_check": "tools/run_daily_chain_canary.py:168-207",
+      "projection_and_evidence_validation": "tools/run_daily_chain_canary.py:223-264,279-288,291-337",
+      "exact_state_write_set_and_mutex_recheck": "tools/run_daily_chain_canary.py:467-510",
+      "verify_only_no_write_branch": "tools/run_daily_chain_canary.py:905-938"
+    }
+  },
+  "independent_verification": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python3.14' -B '/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/tools/run_daily_chain_canary.py' --app-root '/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app' --target-date 20261012 --recover-existing --verify-only",
+    "exit_code": 0,
+    "result": "RECOVERY_EVIDENCE_VALID_NO_HTTP_NO_WRITE",
+    "target_trade_date": "20261012",
+    "run_id": "960c3b5f9b974b188f47b9387fc95cba",
+    "product_sha256": "c01605b233fb4307e6ee9ede96eae3e7a3a5e7bd3b38580adb775ad63117c330",
+    "input_identity": "d723652d58e0cc06ba5341dbdc4cedd02ab1df5a6771760fb68b432fae7d142d",
+    "owner_attempt_state": "PARTIAL",
+    "runtime_stage_mode": "shared",
+    "inventory_check": {
+      "actual_entries": 1029,
+      "manifest_entries": 1029,
+      "entries_equal": true,
+      "actual_aggregate_sha256": "a31930985518157c6a148d4460526b2c057c89134b2089983323bca42ae18eed"
+    },
+    "raw_http": {
+      "refresh": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace/refresh?date=20261012",
+        "http_status": 200,
+        "body_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/refresh.response.bin",
+        "body_bytes": 35812899,
+        "body_sha256": "93ae2662f1a639b5ec6f237d7feb4b991e5cd99b4f2cfbad91a202527d13a074",
+        "http_evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/refresh.http-evidence.json",
+        "http_evidence_sha256": "56b6c405c72786e3554a8f9d8cfc8cefc387f45295988d09ba377f9226e4e9d1",
+        "projection_kind": "DERIVED_VALIDATED_PROJECTION",
+        "projection_bytes": 1865,
+        "projection_sha256": "4f4e9b4f951d5b08fff606f623411f6d96e0b05e1764f831d0e89c2e79ddbec8",
+        "identity_matches_raw": true
+      },
+      "readback": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261012",
+        "http_status": 200,
+        "body_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/readback.response.bin",
+        "body_bytes": 35813766,
+        "body_sha256": "a50123a30ba8a685d4e0643980749a295a095154ba32084348912b657881d8f8",
+        "http_evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/readback.http-evidence.json",
+        "http_evidence_sha256": "1fc6e166bf71a87d020896e0af72bad78a8b09a19c1cbce04379c16aaf88ad26",
+        "projection_kind": "DERIVED_VALIDATED_PROJECTION",
+        "projection_bytes": 1245,
+        "projection_sha256": "18bfd313185f43870a4476af9797231c171e7b17b67824491e0754e58bfd9728",
+        "identity_matches_raw": true
+      }
+    },
+    "contract_compatibility": {
+      "result": "PASS",
+      "scope": "Temporary in-memory-derived canary/evidence; both pending and final frozen binding validations accepted",
+      "temporary_artifacts_removed": true,
+      "http_replayed": false,
+      "formal_state_writes_performed": false,
+      "launchctl_called": false
+    },
+    "durable_state": {
+      "run_directory_files": [
+        "960c3b5f9b974b188f47b9387fc95cba.json",
+        "latest.json"
+      ],
+      "run_file_sha256": "07370d1164d5791b1ed6d310173a4d45e2c0a9c70163ba8d0405549c5dcb0f88",
+      "plan_directory_files": [
+        "960c3b5f9b974b188f47b9387fc95cba.json",
+        "latest.json"
+      ],
+      "plan_file_sha256": "36dd70c3106bacee809c82bbf51714c46a05d507f978ce7de70ab4e1b1f070c8",
+      "durable_write_set_verified": true,
+      "protected_dates_verified": true,
+      "persistent_mutex_inode": "40572881",
+      "owner_mutex_nonblocking_free_proof": true,
+      "execution_02_directory_absent": true
+    },
+    "side_effects": {
+      "owner_post_replayed": false,
+      "owner_get_replayed": false,
+      "formal_state_writes_performed": false,
+      "launchctl_called": false,
+      "execution_02_created": false,
+      "active_app_bytecode_created": false
+    }
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "limitations": {
+    "recovery_receipt_written_to_execution_02": "NOT_RUN",
+    "natural_daily_archive": "NOT_RUN",
+    "natural_slot": "NATURAL_SLOT_UNVERIFIED",
+    "production_or_buy_state": "not in scope; safety flags remain RESEARCH_ONLY=true, production_allowed=false, buy_gate_updated=false, orders_sent=false"
+  }
+}

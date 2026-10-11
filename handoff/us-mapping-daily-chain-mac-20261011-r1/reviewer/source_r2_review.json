@@ -1,0 +1,112 @@
+{
+  "schema_version": "v4.us_daily_chain.independent_source_review.r2",
+  "review_mode": "READ_ONLY_FROZEN_CANDIDATE_REPAIR_R2",
+  "reviewer_identity": "/root/us_daily_chain_review",
+  "reviewer_independent_from": "/root/us_daily_chain_writer",
+  "reviewed_at": "2026-10-11T12:48:01+08:00",
+  "handoff": {
+    "path": "receipts/writer_handoff_r1.json",
+    "sha256": "c5e0fb858e88f9c9fe0b80507b5ab4b8e4f582b0b244f9baac81a9f49a461394"
+  },
+  "scope": {
+    "goal": "Existing US daily owner generates, archives, and reads expanded reviewed relations through the existing automatic chain",
+    "baseline_release_id": "manager-us-mapping-completion-20261011-r5",
+    "baseline_release_manifest_sha256": "12af6fdab034e99f2479939209c86add3e20d9c0bddc0c73bb9fb9370d8a1f26",
+    "repair_r2_baseline_manifest_sha256": "861a2f338941acfc80b9493577712f196642093f3b0c8d20f35dc7e9a356b887",
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/candidate/app",
+    "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+    "total_candidate_scope_files": 7,
+    "repair_r2_delta_files": [
+      {
+        "path": "v4/manager_research/us_mapping_research.py",
+        "candidate_sha256": "2ec555741d0647f8cee7fd65050bdb80b28816dde816cd475367f34b3d24a1e0",
+        "canonical_sha256": "ca84481ae4e4c819ad1743d7c3bae14b6851fb35daa74572b7c70ff130f5730a",
+        "candidate_matches_handoff": true,
+        "canonical_matches_handoff": true
+      },
+      {
+        "path": "tests/test_manager_us_daily_chain.py",
+        "candidate_sha256": "f6c4b1f4d713c352a5aaeba081a627e4c68c4150cf91edb52948165a9cb3a3b0",
+        "canonical_sha256": "f6c4b1f4d713c352a5aaeba081a627e4c68c4150cf91edb52948165a9cb3a3b0",
+        "candidate_matches_handoff": true,
+        "canonical_matches_handoff": true
+      },
+      {
+        "path": "tests/test_manager_us_mapping_research.py",
+        "candidate_sha256": "0f4efa5448a8a1417453d76909906d6e8c68e0b1d3530f06c18b1adb3fc4fe46",
+        "canonical_sha256": "0f4efa5448a8a1417453d76909906d6e8c68e0b1d3530f06c18b1adb3fc4fe46",
+        "candidate_matches_handoff": true,
+        "canonical_matches_handoff": true
+      }
+    ],
+    "inherited_r1_scope_files_unchanged": [
+      {"path": "apps/web/src/api/managerWorkspace.ts", "candidate_sha256": "bbb01afba2c87e778310e70ca4d8d2a326655819ff920c7bc6b1ebd2a5f2fc8d", "matches_handoff": true},
+      {"path": "apps/web/src/manager-selection/researchAttention.ts", "candidate_sha256": "d1fe398b04760c6a2d6f3649979c41c762e208105f21495c0be8b5a1bd2b004b", "matches_handoff": true},
+      {"path": "apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts", "candidate_sha256": "177686f863a3392e57201f75d80dd262974ba8e633f1ba8de3af1ed0dd5803c9", "matches_handoff": true},
+      {"path": "v4/manager_research/plan_owner_dispatch.py", "candidate_sha256": "d1671e3e889539c3956775b7d2ce3309a402b17bce891434198345bbca514d97", "matches_handoff": true}
+    ],
+    "scope_matches_frozen_allowlist": true,
+    "live_canary_or_api_write": false,
+    "deployment_or_scheduler_action": false
+  },
+  "acceptance": {
+    "historical_cutoff_identity": {
+      "result": "PASS",
+      "evidence": "At cutoff 2026-10-09T09:10:00+08:00, current evidence/review IDs are selected only when cutoff-eligible current relations or symbol assessments exist. With none, artifact_sha is null and the current source artifact row is omitted; input_identity uses the cutoff-safe relation_assessment_identity, relation_source_identities, matches, and seed artifact SHA.",
+      "source_lines": ["v4/manager_research/us_mapping_research.py:1508-1517", "v4/manager_research/us_mapping_research.py:1536-1562", "v4/manager_research/us_mapping_research.py:1671-1684", "v4/manager_research/us_mapping_research.py:1787-1792"],
+      "test_lines": ["tests/test_manager_us_daily_chain.py:134-192"],
+      "regression_test": "test_historical_input_identity_ignores_post_cutoff_current_artifact_sha"
+    },
+    "shared_daily_33_10_14_behavior": {
+      "result": "PASS",
+      "evidence": "Focused daily-chain fixture asserts 33 symbol assessments (12 equity proxies, 21 ETF proxies), 10 mapped symbols, 14 eligible relations, MU/WDC assessed-with-gaps, and the existing positive-mover filter with 5 NVDA matches.",
+      "test_lines": ["tests/test_manager_us_daily_chain.py:84-115"],
+      "regression_test": "test_daily_uses_shared_33_symbol_relation_resolution_and_keeps_mover_filter"
+    },
+    "persistence_and_readback": {
+      "result": "PASS",
+      "evidence": "Asserts the persisted run_id and artifact SHA read back unchanged with all 33 assessments, five matches, and the selected relation identity/source identities.",
+      "test_lines": ["tests/test_manager_us_daily_chain.py:118-132"],
+      "regression_test": "test_daily_persistence_readback_keeps_full_assessments_and_artifact_sha"
+    },
+    "current_source_and_review_change_identity": {
+      "result": "PASS",
+      "evidence": "For a cutoff where current evidence is eligible, changing evidence file/artifact/review receipt SHAs changes input_identity while relation_assessment_identity remains stable.",
+      "test_lines": ["tests/test_manager_us_daily_chain.py:194-222"],
+      "regression_test": "test_relation_source_and_review_sha_changes_invalidate_daily_reuse"
+    },
+    "dispatch_to_existing_daily_owner": {
+      "result": "PASS_REUSED_R1",
+      "evidence": "R2 did not change the dispatch or frontend source/spec. Reuse independent R1 source review receipt SHA 21e1365eeb087c8311c176bb1b63b0921897a41c3230cb9f6463f42b705ccc8c for the existing-owner path and frontend saved-archive behavior."
+    },
+    "live_runtime_api_loaded_ui_and_natural_period": "CANNOT_CONFIRM"
+  },
+  "independent_test_runs": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python -m pytest -p no:cacheprovider --basetemp=/tmp/us-daily-focused-review-r2 -q -k 'not scheduled_cycle_api_runs_through_injected_reader_and_rejects_wrong_binding' tests/test_manager_us_daily_chain.py tests/test_manager_us_mapping_research.py tests/test_manager_us_market_bridge.py",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/candidate/app",
+      "result": "PASS: 39 passed, 1 deselected in 0.48s"
+    }
+  ],
+  "excluded_known_test": {
+    "test": "tests/test_manager_us_mapping_research.py::test_scheduled_cycle_api_runs_through_injected_reader_and_rejects_wrong_binding",
+    "current_r2_run": "DESELECTED",
+    "prior_independent_r1_evidence": "It returned HTTP 409 PLAN_OWNER_ADMISSION_FAILED / OWNER_NOT_CALLED on both candidate and immutable R5 baseline; see source_r1_review.json SHA 21e1365eeb087c8311c176bb1b63b0921897a41c3230cb9f6463f42b705ccc8c. This was outside R2's cutoff identity change."
+  },
+  "findings": [],
+  "risk_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "resolved_prior_finding": "P2-1 historical 20261009 source identity included post-cutoff 20261011 relation/review identity; independently verified repaired within the frozen PASS scope.",
+    "financial_safety": "No trade, BUY, or production behavior change observed; RESEARCH_ONLY=true, production_allowed=false, buy_gate_updated=false, orders_sent=false remain the asserted contract.",
+    "security": "No security issue observed in the R2 delta."
+  },
+  "verdict": {
+    "reviewed": "PASS",
+    "frozen_pass_scope": "PASS",
+    "behavior_verified": "PASS_SOURCE_FIXTURES_AND_PERSISTED_READBACK",
+    "live_runtime": "CANNOT_CONFIRM"
+  },
+  "reviewer_files_written": ["reviewer/source_r2_review.json"]
+}

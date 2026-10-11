@@ -1,0 +1,78 @@
+{
+  "acceptance": {
+    "current_release_inventory_identity": "CANNOT_CONFIRM",
+    "independent_review": "PENDING",
+    "natural_daily_archive": "NOT_RUN",
+    "pinned_raw_owner_evidence_validation_in_this_run": "CANNOT_CONFIRM because release validation failed first"
+  },
+  "observed_side_effect": {
+    "causality": "CANNOT_CONFIRM whether this invocation created it; its mtime aligns with the failed verify-only attempt",
+    "handling": "left untouched because it is outside the authorized writer paths",
+    "mtime_local": "2026-10-11T13:41:30+0800",
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app/ops/__pycache__"
+  },
+  "recovery_contract": {
+    "derived_contract_projection": {
+      "identity_fields_are_direct_copies_from_pinned_raw_json": true,
+      "kind": "DERIVED_VALIDATED_PROJECTION",
+      "sha256_and_bytes_are_separately_reported_from_raw_http_body": true
+    },
+    "original_failure_receipt_sha256_pinned": "2996420fc9491d50acb72d68ac41201c7e91e5ba8afba0714250e61792f0a7f6",
+    "pinned_source_files_currently_verified": false,
+    "raw_http_body": {
+      "kind": "RAW_HTTP_BODY",
+      "readback": {
+        "current_file_hash_validation": "CANNOT_CONFIRM; release validation failed first",
+        "method": "GET",
+        "pinned_bytes": 35813766,
+        "pinned_evidence_sha256": "1fc6e166bf71a87d020896e0af72bad78a8b09a19c1cbce04379c16aaf88ad26",
+        "pinned_sha256": "a50123a30ba8a685d4e0643980749a295a095154ba32084348912b657881d8f8",
+        "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261012"
+      },
+      "refresh": {
+        "current_file_hash_validation": "CANNOT_CONFIRM; release validation failed first",
+        "method": "POST",
+        "pinned_bytes": 35812899,
+        "pinned_evidence_sha256": "56b6c405c72786e3554a8f9d8cfc8cefc387f45295988d09ba377f9226e4e9d1",
+        "pinned_sha256": "93ae2662f1a639b5ec6f237d7feb4b991e5cd99b4f2cfbad91a202527d13a074",
+        "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace/refresh?date=20261012"
+      }
+    },
+    "state_preimage_sha256_pinned": "d2c4711fc1c6c036347b498e26a489d964057defb5b5b8ba6587186c8a063f7d"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "manager_daily_chain.canary_recovery_writer_handoff.v1",
+  "source_file": {
+    "full_r4_batch_start_sha256": null,
+    "full_r4_batch_start_sha256_status": "CANNOT_CONFIRM",
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/tools/run_daily_chain_canary.py",
+    "sha256_after": "a69a8535c918b83df3730271df3d5d6e97554276ce77362244c08d0d021eba8a",
+    "sha256_before_final_evidence_summary_fix": "af2bedfeb63aa03b2126be43f0dc2f1ffc3701eb27a0e4eea07af060b1736898"
+  },
+  "status": "IMPLEMENTED_STATICALLY_VERIFIED_RUNTIME_BLOCKED",
+  "target_trade_date": "20261012",
+  "writer_verification": {
+    "commands": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python3.14 -B - <<'PY' (AST parse run_daily_chain_canary.py; call _projection_evidence_summary on an in-memory object; assert raw body SHA/bytes remain separate from projection SHA/bytes) PY",
+        "result": "PASS: AST parsed; in-memory assertions passed; no API or active-app import"
+      },
+      {
+        "command": "/Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python3.14 /Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/tools/run_daily_chain_canary.py --app-root /Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app --target-date 20261012 --recover-existing --verify-only",
+        "result": "BLOCKED before pinned recovery validation: ValueError FINAL_RELEASE_INVENTORY_MISMATCH from common.load_release"
+      }
+    ],
+    "launchctl_called": false,
+    "owner_get_replayed": false,
+    "owner_post_replayed": false,
+    "raw_http_evidence_and_preimage_current_hashes": "CANNOT_CONFIRM; blocked at release inventory validation",
+    "recovery_canary_written": false,
+    "recovery_operation_receipt_written": false,
+    "verify_only_no_http_or_formal_state_write": true
+  }
+}

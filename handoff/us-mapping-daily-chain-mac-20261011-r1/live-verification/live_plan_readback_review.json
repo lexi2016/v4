@@ -1,0 +1,135 @@
+{
+  "schema_version": "v4.us_daily_chain.live_plan_readback_review.r1",
+  "reviewer_identity": "/root/us_daily_chain_review",
+  "verdict": "PASS",
+  "acceptance_scope": "20261012 persisted plan archive, latest pointer, captured HTTP refresh/readback, and current postpublication source identity only",
+  "scope_result": "PLAN_ARCHIVE_READBACK_VERIFIED",
+  "bindings": {
+    "target_trade_date": "20261012",
+    "run_id": "960c3b5f9b974b188f47b9387fc95cba",
+    "input_identity": "d723652d58e0cc06ba5341dbdc4cedd02ab1df5a6771760fb68b432fae7d142d",
+    "plan_product_sha256": "c01605b233fb4307e6ee9ede96eae3e7a3a5e7bd3b38580adb775ad63117c330",
+    "plan_file_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/960c3b5f9b974b188f47b9387fc95cba.json",
+    "plan_file_sha256": "36dd70c3106bacee809c82bbf51714c46a05d507f978ce7de70ab4e1b1f070c8",
+    "plan_latest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+    "plan_latest_sha256": "36dd70c3106bacee809c82bbf51714c46a05d507f978ce7de70ab4e1b1f070c8",
+    "attempt_file_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plan_runs/20261012/960c3b5f9b974b188f47b9387fc95cba.json",
+    "attempt_file_sha256": "07370d1164d5791b1ed6d310173a4d45e2c0a9c70163ba8d0405549c5dcb0f88",
+    "attempt_latest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plan_runs/20261012/latest.json",
+    "attempt_latest_sha256": "07370d1164d5791b1ed6d310173a4d45e2c0a9c70163ba8d0405549c5dcb0f88"
+  },
+  "http_evidence": {
+    "refresh": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace/refresh?date=20261012",
+      "http_status": 200,
+      "evidence_file": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/refresh.http-evidence.json",
+      "evidence_file_sha256": "56b6c405c72786e3554a8f9d8cfc8cefc387f45295988d09ba377f9226e4e9d1",
+      "response_file": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/refresh.response.bin",
+      "response_bytes": 35812899,
+      "response_sha256": "93ae2662f1a639b5ec6f237d7feb4b991e5cd99b4f2cfbad91a202527d13a074"
+    },
+    "readback": {
+      "method": "GET",
+      "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261012",
+      "http_status": 200,
+      "evidence_file": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/readback.http-evidence.json",
+      "evidence_file_sha256": "1fc6e166bf71a87d020896e0af72bad78a8b09a19c1cbce04379c16aaf88ad26",
+      "response_file": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/readback.response.bin",
+      "response_bytes": 35813766,
+      "response_sha256": "a50123a30ba8a685d4e0643980749a295a095154ba32084348912b657881d8f8"
+    },
+    "both_bodies_reported_sha_and_byte_count_match_raw_files": true,
+    "both_bodies_report_plan_product_current_and_same_run_sha_input_identity": true,
+    "served_by_process_at_capture": "CANNOT_CONFIRM from the saved HTTP evidence alone: it records URL/status/body hashes but no server PID or release-identity response header."
+  },
+  "postpublication_source": {
+    "launchd_label": "com.lexi.v35.api-only",
+    "state": "running",
+    "pid": 25624,
+    "process_started_local": "2026-10-11 13:26:50 +08:00",
+    "listener": "127.0.0.1:8873",
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+    "release_id": "manager-us-mapping-daily-chain-20261011-r1",
+    "release_manifest_sha256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+    "release_manifest_file_sha256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+    "application_inventory_sha256": "a31930985518157c6a148d4460526b2c057c89134b2089983323bca42ae18eed",
+    "pinned_source_path": "v4/manager_research/us_mapping_research.py",
+    "pinned_source_sha256": "2ec555741d0647f8cee7fd65050bdb80b28816dde816cd475367f34b3d24a1e0",
+    "publication_execution_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/publication-r2/operation-20261011T052414Z-98c632361090/execution-receipt.json",
+    "publication_execution_receipt_sha256": "a8f05e2bee3eea6cbbc94f3c5730b5de33b45cf8fd6b6fec9d38da42c5f12390",
+    "publication_receipt_status": "ACTIVATED_AND_VERIFIED",
+    "manifest_metadata_note": "The pinned immutable release-manifest.json itself retains activation_status=NOT_ACTIVATED and deployment_status=false from package time; activation is bound by the separate execution receipt and current launchd identity.",
+    "current_listener_and_process_timeline": "Current lsof shows PID 25624 listening on 127.0.0.1:8873; launchd PID start time 13:26:50 precedes the captured 13:30:53 POST and 13:31:08 GET. This is consistent with the loaded release serving the capture, but is not a server-stamped request-to-process binding."
+  },
+  "observed_plan": {
+    "product_status": "CURRENT",
+    "product_execution_kind": "MANUAL_REFRESH",
+    "product_consumed": true,
+    "product_run_readback": "VERIFIED",
+    "attempt_state": "PARTIAL",
+    "attempt_success_scope": "EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE",
+    "us_market_attention_symbol_assessments": 33,
+    "classifications": {
+      "EQUITY_PROXY": 12,
+      "ETF_PROXY": 21
+    },
+    "linked_us_symbols": 10,
+    "linked_symbols": [
+      "AMD",
+      "AVGO",
+      "CIEN",
+      "COHR",
+      "DLR",
+      "EQIX",
+      "LITE",
+      "NVDA",
+      "STX",
+      "VRT"
+    ],
+    "relations_across_symbol_assessments": 14,
+    "relation_evidence": {
+      "status": "PARTIAL_SOURCE_EVIDENCE_COVERAGE",
+      "eligible_relation_count": 14,
+      "current_reviewed_relation_count": 10,
+      "reviewed_seed_relation_count": 4,
+      "mapped_us_symbol_count": 10,
+      "coverage_complete": false
+    },
+    "general_workspace_summary_relation_count": 0,
+    "us_mapping_daily_run_status": "NOT_RUN",
+    "us_mapping_daily_run_gaps": [
+      "DAILY_MAPPING_NOT_MATERIALIZED"
+    ],
+    "daily_archive_status": "NOT_RUN",
+    "natural_verified": false,
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "known_helper_failure": {
+    "status": "FAIL_CANNOT_BIND_PLAN_ACTIVATION",
+    "error_code": "CANARY_DURABLE_OWNER_WRITE_SET_INVALID",
+    "launchctl_called": false,
+    "receipt_file": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/failure-receipt.json",
+    "receipt_sha256": "2996420fc9491d50acb72d68ac41201c7e91e5ba8afba0714250e61792f0a7f6",
+    "interpretation": "This review confirms the persisted plan and captured readback independently; it does not reverse the helper failure classification."
+  },
+  "findings": [],
+  "limitations": [
+    "The 33/12/21/10/14 counts are specifically under workspace.us_market_attention.symbol_assessments and relation_evidence; the general workspace summary relation_count is 0 and the separate daily US mapping run is NOT_RUN.",
+    "Relation source coverage is partial; target-date eligibility remains CANNOT_CONFIRM and the plan attempt is PARTIAL.",
+    "The normal daily archive remains NOT_RUN and natural_verified=false; this receipt verifies a manual exact-date plan product and its archive/readback only.",
+    "No tests were rerun, no POST or live state write was performed by this reviewer, and UI verification was not performed by this reviewer.",
+    "Historical response-to-process identity is CANNOT_CONFIRM from response metadata alone; current listener/process timeline and activation receipt support, but do not server-stamp, the binding."
+  ],
+  "reviewed_at": "2026-10-11T13:35:00+08:00",
+  "severity_summary": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  }
+}

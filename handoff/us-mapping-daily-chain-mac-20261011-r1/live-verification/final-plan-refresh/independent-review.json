@@ -1,0 +1,182 @@
+{
+  "schema_version": "v4.us_daily_chain.final_plan_refresh_review.r1",
+  "reviewer_identity": "/root/us_daily_chain_review",
+  "verdict": "PASS",
+  "acceptance_scope": "Saved 20261012 exact-date manual refresh/readback, consumed current plan identity, durable latest pointers, and postpublication source identity only.",
+  "scope_result": "FINAL_PLAN_READBACK_VERIFIED",
+  "bindings": {
+    "target_trade_date": "20261012",
+    "run_id": "1e9d511515de47599f05539e43e79b81",
+    "input_identity": "4d253adb9e279c3764b7a556ba44624cc3f26420a2d2c34459fe760bbba7f81b",
+    "plan_product_sha256": "1ce6a9e12c4bf692707b38bbf7c73a75acbea499a9cc3d0bc624538da9234aec",
+    "plan_product_status": "CURRENT",
+    "plan_consumed": true,
+    "plan_run_readback_status": "VERIFIED",
+    "plan_file_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/1e9d511515de47599f05539e43e79b81.json",
+    "plan_file_sha256": "668d52e7e313a4e551d495b24ed4248b22fadb892be24a159a7423acba709f32",
+    "plan_latest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+    "plan_latest_sha256": "668d52e7e313a4e551d495b24ed4248b22fadb892be24a159a7423acba709f32",
+    "attempt_file_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plan_runs/20261012/1e9d511515de47599f05539e43e79b81.json",
+    "attempt_file_sha256": "cf3606becc5a3575fbaac803b5b432e7614d24aef32853b002ceaa39a76b85ca",
+    "attempt_latest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plan_runs/20261012/latest.json",
+    "attempt_latest_sha256": "cf3606becc5a3575fbaac803b5b432e7614d24aef32853b002ceaa39a76b85ca",
+    "latest_pointers_equal_exact_run_bytes": true
+  },
+  "http_evidence": {
+    "refresh": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace/refresh?date=20261012",
+      "http_status": 200,
+      "receipt_file": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/live-verification/final-plan-refresh/refresh.receipt.json",
+      "receipt_sha256": "043ad1940645c326584a0f62479bbcb87dfc26dc503dad426772d01032c18cc4",
+      "started_at": "2026-10-11T06:04:49.751734+00:00",
+      "finished_at": "2026-10-11T06:05:02.994409+00:00",
+      "response_file": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/live-verification/final-plan-refresh/refresh.response.json",
+      "response_bytes": 35895603,
+      "response_sha256": "18e2681633f9c7d0f1e0837738d6e3e378603358ab12e1f9ddf24c436fd1d3fe"
+    },
+    "readback": {
+      "method": "GET",
+      "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261012",
+      "http_status": 200,
+      "receipt_file": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/live-verification/final-plan-refresh/readback.receipt.json",
+      "receipt_sha256": "c4c4e5be342dc7e05b30f63910ff320ecf995c421d2ec2d53df4fe5c059721e7",
+      "started_at": "2026-10-11T06:05:03.115536+00:00",
+      "finished_at": "2026-10-11T06:05:14.583947+00:00",
+      "response_file": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/live-verification/final-plan-refresh/readback.response.json",
+      "response_bytes": 35896470,
+      "response_sha256": "494b706dfbbd82b80a34ba9db71197ee8552f18621c6d9dd0889bd66c62e93ec"
+    },
+    "both_responses_match_target_run_and_input_identity": true,
+    "product_current_consumed_identity_match_and_owner_readback_verified": true,
+    "reviewer_performed_no_http_request": true
+  },
+  "postpublication_source": {
+    "launchd_label": "com.lexi.v35.api-only",
+    "current_listener_pid": 28664,
+    "current_process_start_and_command": "Sun Oct 11 13:59:53 2026     /Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873 --stage-selection-root /Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "capture_timeline_consistent_with_current_pid": true,
+    "request_to_process_binding_from_saved_response_metadata": "CANNOT_CONFIRM; response evidence contains no server-stamped PID/release header",
+    "current_api_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "current_api_plist_sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+    "activation_execution_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/activation-live-r1/execution-r2-receipt.json",
+    "activation_execution_receipt_sha256": "fd5ccfe13b0cf72815e2670e52ace6a4645abba09d88169b5bbfc6ba5c7c20b4",
+    "activation_execution_status": "ACTIVATED_AND_PROCESS_VERIFIED",
+    "api_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+    "release_id": "manager-us-mapping-daily-chain-20261011-r1",
+    "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/release-manifest.json",
+    "release_manifest_sha256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+    "release_manifest_pin": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+    "application_inventory_sha256": "a31930985518157c6a148d4460526b2c057c89134b2089983323bca42ae18eed",
+    "pinned_source_path": "v4/manager_research/us_mapping_research.py",
+    "pinned_source_sha256": "2ec555741d0647f8cee7fd65050bdb80b28816dde816cd475367f34b3d24a1e0",
+    "activation_binding_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/staged_config/activation-r1/manager-plan-binding.json",
+    "activation_binding_sha256": "cfe4af06e97992ebcadf4bf8e66f1d02c6ecf370b571c7b3ee4df1c0cca6ebf6",
+    "publication_execution_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/publication-r2/operation-20261011T052414Z-98c632361090/execution-receipt.json",
+      "sha256": "a8f05e2bee3eea6cbbc94f3c5730b5de33b45cf8fd6b6fec9d38da42c5f12390",
+      "status": "ACTIVATED_AND_VERIFIED"
+    },
+    "activation_stage_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/staged_config/activation-r1/activation-stage-receipt.json",
+      "sha256": "233a9af3815d6f5e479a60aaa5cca384a31946815019b52df452c34331717973",
+      "status": "PREPARED_NOT_ACTIVATED"
+    },
+    "activation_live_execution_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/activation-live-r1/execution-r2-receipt.json",
+      "sha256": "fd5ccfe13b0cf72815e2670e52ace6a4645abba09d88169b5bbfc6ba5c7c20b4",
+      "status": "ACTIVATED_AND_PROCESS_VERIFIED"
+    },
+    "activation_recovery_history": {
+      "initial_attempt": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/activation-live-r1/execution-receipt.json",
+        "sha256": "0fdbe5fbccfa9b252c047a5bbd534bb5dd1bf2a332e829021465c7ee329d1c0a",
+        "status": "ACTIVATION_FAILED",
+        "rollback": "PREIMAGE_RESTORED_RELOAD_REQUESTED"
+      },
+      "successful_retry": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/activation-live-r1/execution-r2-receipt.json",
+        "sha256": "fd5ccfe13b0cf72815e2670e52ace6a4645abba09d88169b5bbfc6ba5c7c20b4",
+        "status": "ACTIVATED_AND_PROCESS_VERIFIED",
+        "previous_failure_cause": "integration observation read identity from wrong level; rolled back; corrected to observed.identity"
+      }
+    },
+    "plist_transition": {
+      "published_candidate_api_plist_sha256": "2c0a430301888f1604116601aa1c06b06d98a0ce601213266697451a9926e130",
+      "pre_activation_current_api_plist_sha256": "2c0a430301888f1604116601aa1c06b06d98a0ce601213266697451a9926e130",
+      "staged_api_plist_sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+      "live_activation_api_plist_sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+      "current_api_plist_sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+      "current_plist_matches_successful_activation_receipt": true,
+      "note": "The subsequent activated binding changed only the owner-binding path after publication; activation-r2 binds the staged API plist and binding digest currently present."
+    },
+    "publication_plan": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/publication-r2/operation-20261011T052414Z-98c632361090/plan.json",
+      "sha256": "c325129487fddf76496818e6e0afeea053df22acb15c91b1da85a0ba8ae81408",
+      "candidate_api_plist_sha256": "2c0a430301888f1604116601aa1c06b06d98a0ce601213266697451a9926e130",
+      "publication_receipt_status": "ACTIVATED_AND_VERIFIED"
+    }
+  },
+  "observed_plan": {
+    "product_status": "CURRENT",
+    "product_execution_kind": "MANUAL_REFRESH",
+    "product_consumed": true,
+    "product_run_readback": "VERIFIED",
+    "input_identity_diagnostics": "MATCH",
+    "attempt_state": "PARTIAL",
+    "attempt_success_scope": "EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE",
+    "us_market_attention_status": "READY",
+    "symbol_assessment_count": 33,
+    "classifications": {
+      "EQUITY_PROXY": 12,
+      "ETF_PROXY": 21
+    },
+    "available_symbol_count": 33,
+    "assessed_symbol_count": 33,
+    "linked_us_symbols": 10,
+    "eligible_relations": 14,
+    "relation_evidence": {
+      "status": "PARTIAL_SOURCE_EVIDENCE_COVERAGE",
+      "current_reviewed_relation_count": 10,
+      "reviewed_seed_relation_count": 4,
+      "coverage_complete": false,
+      "target_date_eligibility": "CANNOT_CONFIRM",
+      "source_body_rehash_status": "CANNOT_CONFIRM"
+    },
+    "us_mapping_daily_run_status": "NOT_RUN",
+    "us_mapping_daily_run_gaps": [
+      "DAILY_MAPPING_NOT_MATERIALIZED"
+    ],
+    "execution_kind": "MANUAL_REFRESH",
+    "trigger_kind": "MANUAL",
+    "daily_archive_status": "NOT_RUN",
+    "natural_verified": false,
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "known_prior_canary_failure": {
+    "status": "FAIL_CANNOT_BIND_PLAN_ACTIVATION",
+    "error_code": "CANARY_DURABLE_OWNER_WRITE_SET_INVALID",
+    "receipt_file": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/failure-receipt.json",
+    "receipt_sha256": "2996420fc9491d50acb72d68ac41201c7e91e5ba8afba0714250e61792f0a7f6",
+    "interpretation": "Retained as a separate helper failure; this final manual plan readback does not change that helper receipt."
+  },
+  "findings": [],
+  "limitations": [
+    "This PASS covers the saved exact-date manual plan and durable owner readback only; attempt state remains PARTIAL.",
+    "The 10 linked symbols and 14 eligible relations come from us_market_attention.relation_evidence. Relation coverage is partial, target-date eligibility is CANNOT_CONFIRM, and source-body rehash status is CANNOT_CONFIRM.",
+    "The separate us_mapping_research.daily_run is NOT_RUN with DAILY_MAPPING_NOT_MATERIALIZED; daily archive is NOT_RUN and natural_verified=false.",
+    "HTTP capture contains no server-stamped PID or release ID. Current process/listener, activation receipt, active plist, and manifest identity are consistent with the capture timeline but do not independently bind each request to the process.",
+    "This reviewer did not issue POST/GET requests, run tests, or verify UI. Parent UI reload is separate."
+  ],
+  "reviewed_at": "2026-10-11T14:09:09.398990+08:00",
+  "severity_summary": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  }
+}

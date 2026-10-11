@@ -1,0 +1,236 @@
+{
+  "bootout_absence_wait": {
+    "identity": null,
+    "poll_count": 2,
+    "state": "NOT_LOADED",
+    "wait_status": "ABSENT_CONFIRMED"
+  },
+  "candidate_transition_wait": {
+    "historical_product_readback": {
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/control/pre_switch_product_baseline.json",
+      "baseline_sha256": "c511e4c0241e7f98820aeba0e763a967223da1af454d14c6bac89c6fe8d49c31",
+      "results": {
+        "current_analysis": {
+          "baseline_comparison_method": "R1_ADDITIVE_CONSUMPTION_VALIDATION_STRIPPED",
+          "baseline_comparison_sha256": "646605cfa3ccc6b8a2e90938132712fdee9e98b2cdcb14296a71a02ca9b86f89",
+          "baseline_comparison_sha256_matches": true,
+          "consumption_validation": {
+            "consumed": false,
+            "failure_stage": null,
+            "gaps": [],
+            "product_sha256": "8b1e906db2cdcb8784d9658085aa4f1aa0711a8711b83a38c9ee8d7567151157",
+            "publication_date": "2026-10-07",
+            "safety_flags_match": true,
+            "schema_version": "v4.manager_research.announcement_analysis_consumption.v1",
+            "status": "VERIFIED",
+            "target_trade_date": "20261008",
+            "validation_status": "VERIFIED"
+          },
+          "http_status": 200,
+          "owner_import_receipt": {
+            "after_readback": "VERIFIED",
+            "baseline_status": "VERIFIED",
+            "matched_pinned_baseline": true
+          },
+          "product_sha256": "8b1e906db2cdcb8784d9658085aa4f1aa0711a8711b83a38c9ee8d7567151157",
+          "response_sha256": "e6388eaea085347dd041b8372ee86fabd608be7c8676043327d3ed080ce8d748",
+          "response_sha256_matches_baseline": false,
+          "status": "VERIFIED",
+          "stock_selection_list_lengths": {
+            "article_decisions": 613,
+            "gaps": 0,
+            "stocks": 529
+          },
+          "stock_selection_product_sha256": "8b1e906db2cdcb8784d9658085aa4f1aa0711a8711b83a38c9ee8d7567151157"
+        },
+        "current_workspace": {
+          "announcement_review_status": "NOT_RUN",
+          "baseline_response_sha256": "c7423ab38a87b3392652956fcb6fc408ef20d917257366d87a0fb80f56aadc9b",
+          "baseline_status": "CANNOT_CONFIRM",
+          "data_loss_conclusion": "CANNOT_CONFIRM",
+          "http_status": 200,
+          "judgment_receipt": "CANNOT_CONFIRM",
+          "known_invalid_judgment_gap_present": false,
+          "observed_gap_codes": [],
+          "observed_response_sha256": "7999d5da2919d690eb695883dfacf70f95e41b2075e017ef97b9f55d934f77f0",
+          "observed_status": "READY",
+          "plan_product_status": "NOT_MATERIALIZED",
+          "read_context_status": "VERIFIED_WITH_GAPS",
+          "response_sha_matches_baseline": false,
+          "status": "CANNOT_CONFIRM"
+        },
+        "legacy_analysis": {
+          "baseline_comparison_method": "R1_ADDITIVE_CONSUMPTION_VALIDATION_STRIPPED",
+          "baseline_comparison_sha256": "9916688a6d71ae678322003705e05df8b69b6137d999f15f966ad0f8b0f3f02a",
+          "baseline_comparison_sha256_matches": true,
+          "consumption_validation": {
+            "consumed": false,
+            "failure_stage": "JUDGMENT_RECEIPT",
+            "gaps": [
+              "ANNOUNCEMENT_AGENT_JUDGMENT_RECEIPT_INVALID"
+            ],
+            "product_sha256": "7b27fe7d40e9c12db3d56751cc789c6eb84515bb2392fc1b00a3bc4a5fd38278",
+            "publication_date": "2026-10-06",
+            "safety_flags_match": true,
+            "schema_version": "v4.manager_research.announcement_analysis_consumption.v1",
+            "status": "NOT_CONSUMED_INVALID",
+            "target_trade_date": "20261007",
+            "validation_status": "CANNOT_CONFIRM"
+          },
+          "http_status": 200,
+          "owner_import_receipt": {
+            "after_readback": "ABSENT_LEGACY_R3_COMPATIBLE",
+            "baseline_status": "ABSENT_LEGACY_R3_COMPATIBLE",
+            "matched_pinned_baseline": true
+          },
+          "product_sha256": "7b27fe7d40e9c12db3d56751cc789c6eb84515bb2392fc1b00a3bc4a5fd38278",
+          "response_sha256": "2ad27621c57772ef293833a46030e4ad064e1ddcc569837313e1e3dd10e87640",
+          "response_sha256_matches_baseline": false,
+          "status": "VERIFIED",
+          "stock_selection_list_lengths": {
+            "article_decisions": 580,
+            "gaps": 0,
+            "stocks": 524
+          },
+          "stock_selection_product_sha256": "7b27fe7d40e9c12db3d56751cc789c6eb84515bb2392fc1b00a3bc4a5fd38278"
+        }
+      },
+      "status": "HISTORICAL_ANALYSIS_PRODUCTS_VERIFIED_WORKSPACE_CANNOT_CONFIRM",
+      "workspace_status": "CANNOT_CONFIRM"
+    },
+    "http": {
+      "http_status": 200,
+      "manager_workspace_get": "AVAILABLE",
+      "openapi_sha256": "06d8531d48f1bd22a7aa83bcad4da87add17850ee8413b55eee204e0676fdeff"
+    },
+    "runtime": {
+      "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+      "V35_RELEASE_ID": "manager-us-mapping-daily-chain-20261011-r1",
+      "V35_RELEASE_MANIFEST_SHA256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+      "pid": "25624",
+      "state": "running"
+    },
+    "ui_static_readback": {
+      "assets": [
+        {
+          "sha256": "24854c81d7d587d963666f0920f6b86ebcc6366b3f59e8222188103e2a456606",
+          "url_path": "/assets/managerSelection-BSuiYMuO.js"
+        },
+        {
+          "sha256": "c69af4fd024e050e8e13de4e4e172e9b16601b637366eb84cf68623d965a5b8c",
+          "url_path": "/assets/managerSelection-Yq6F4Lqr.css"
+        },
+        {
+          "sha256": "8651472ec9b303719d201e466e997fc2fadfc2f7169ec1a07c6ded932659f95b",
+          "url_path": "/assets/research_lane-t0CPXntR.js"
+        },
+        {
+          "sha256": "aea5b49306b959dde2b610353b9aadc8a05da7dfef2271390adf513a4b2f6c6a",
+          "url_path": "/assets/runtime-dom.esm-bundler-BLwL_Z7B.js"
+        }
+      ],
+      "http_status": 200,
+      "index_sha256": "9f4e964e9eb5a8cf6eb9c372aeab11558d1e672f0aa4db0965010f6b148fa8fa",
+      "static_bundle_status": "BYTE_IDENTICAL_TO_RELEASE"
+    }
+  },
+  "health_readiness_after": {
+    "/healthz": {
+      "http_status": 200,
+      "status": "ok"
+    },
+    "/readyz": {
+      "buy_gate_updated": false,
+      "http_status": 200,
+      "orders_sent": false,
+      "production_allowed": false
+    }
+  },
+  "loaded_identity_after": {
+    "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+    "V35_RELEASE_ID": "manager-us-mapping-daily-chain-20261011-r1",
+    "V35_RELEASE_MANIFEST_SHA256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+    "pid": "25624",
+    "state": "running"
+  },
+  "operation_id": "20261011T052414Z-98c632361090",
+  "plan_sha256": "c325129487fddf76496818e6e0afeea053df22acb15c91b1da85a0ba8ae81408",
+  "recovery": {
+    "status": "NOT_REQUIRED"
+  },
+  "review": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/publication-r2/operation-20261011T052414Z-98c632361090/independent-review.json",
+    "reviewer_identity": "/root/us_daily_chain_review",
+    "sha256": "6b9505fda64d5add07a6060d8920f9ee43af7e0e845028b5eb428330f9fd3d06"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "approved_research_binding_changed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "scheduler_changed": false
+  },
+  "scheduler_plist_sha256_after": "fbce935c11b5b207739f6f12845209f4c6da07b68fbd034325169100ce4826c7",
+  "schema_version": "v4.us_daily_chain.publication_execution_receipt.r2",
+  "stage_semantics_after": [
+    {
+      "http_status": 200,
+      "semantics": {
+        "research_only": {
+          "present": true,
+          "value": true
+        },
+        "semantic_sha256": "7c3a3d2e7c2e0cc781daa2fde00c508668977545179cdd00fabe31ed3a918e73",
+        "semantic_sha256_without_research_only": "38ba9d8e7ff2c3b9e9d177f4778ac15c4ff7b7050ffbf155543c8c53546bc20e",
+        "stage_id": "STAGE_0930_0935",
+        "trade_date": "20260924"
+      },
+      "stage_id": "STAGE_0930_0935",
+      "trade_date": "20260924"
+    },
+    {
+      "baseline_state": "BASELINE_FAIL_CANNOT_CONFIRM",
+      "error_semantic_sha256": "9f9d6f27ee471b072f4d77489528f32edace4f57bb7983ac815e55b7a23d5ba2",
+      "error_semantics": {
+        "detail": "approved research read binding is unavailable or invalid"
+      },
+      "http_status": 409,
+      "stage_id": "STAGE_0930_0935",
+      "trade_date": "20261009"
+    }
+  ],
+  "status": "ACTIVATED_AND_VERIFIED",
+  "steps": [
+    {
+      "active_api_plist_sha256": "2c0a430301888f1604116601aa1c06b06d98a0ce601213266697451a9926e130",
+      "result": "PASS",
+      "step": "active_plist_cas_replace"
+    },
+    {
+      "result": "PASS",
+      "step": "launchctl_bootout"
+    },
+    {
+      "poll_count": 2,
+      "result": "PASS",
+      "step": "launchctl_bootout_wait_absent"
+    },
+    {
+      "result": "PASS",
+      "step": "launchctl_bootstrap"
+    },
+    {
+      "result": "PASS",
+      "runtime": {
+        "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+        "V35_RELEASE_ID": "manager-us-mapping-daily-chain-20261011-r1",
+        "V35_RELEASE_MANIFEST_SHA256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+        "pid": "25624",
+        "state": "running"
+      },
+      "step": "launchctl_bootstrap_wait_ready"
+    }
+  ],
+  "tool_sha256": "7887a625a4ba9380d0f1dc4b8fb28b7f5469b51c0fdf6a8e34a222679172a975"
+}

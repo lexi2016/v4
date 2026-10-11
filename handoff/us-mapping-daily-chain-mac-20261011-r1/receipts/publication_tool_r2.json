@@ -1,0 +1,68 @@
+{
+  "active_api_plist_sha256": "b2d8b1b80d0ca843a1d19f70d05281edd51862af4badb6f60fe367873d28c821",
+  "candidate_api_plist_sha256": "2c0a430301888f1604116601aa1c06b06d98a0ce601213266697451a9926e130",
+  "candidate_delta_sha256": "6c35e10f1379f6bf444063e39186a9e0c4f16ff4ba80cd20c7cbeb0bf5bbb28b",
+  "candidate_inventory_sha256": "a31930985518157c6a148d4460526b2c057c89134b2089983323bca42ae18eed",
+  "candidate_manifest_sha256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+  "cannot_confirm": [
+    "The reviewed candidate is prepared but not activated.",
+    "Independent publication-tool review and execute-time review-gate receipt are pending.",
+    "Candidate API runtime, post-switch Stage API readback, UI readback, and natural-slot behavior are not verified."
+  ],
+  "delta_entry_count": 10,
+  "execution_status": "NOT_RUN",
+  "files_written": [
+    "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/publication-r2/operation-20261011T052414Z-98c632361090/current-before.plist",
+    "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/publication-r2/operation-20261011T052414Z-98c632361090/candidate.plist",
+    "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/publication-r2/operation-20261011T052414Z-98c632361090/rollback.plist",
+    "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/publication-r2/operation-20261011T052414Z-98c632361090/plan.json"
+  ],
+  "independent_review_status": "PENDING",
+  "non_delta_entry_count": 1020,
+  "operation_id": "20261011T052414Z-98c632361090",
+  "plan_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/publication-r2/operation-20261011T052414Z-98c632361090/plan.json",
+  "plan_sha256": "c325129487fddf76496818e6e0afeea053df22acb15c91b1da85a0ba8ae81408",
+  "publisher_transition_helper_sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25",
+  "rollback_api_plist_sha256": "b2d8b1b80d0ca843a1d19f70d05281edd51862af4badb6f60fe367873d28c821",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "launchctl_called": false,
+    "live_api_plist_written": false,
+    "orders_sent": false,
+    "owner_api_called": false,
+    "production_allowed": false,
+    "scheduler_plist_written": false
+  },
+  "schema_version": "v4.us_daily_chain.publication_tool_receipt.r2",
+  "stage_before_semantics": [
+    {
+      "http_status": 200,
+      "semantics": {
+        "research_only": {
+          "present": true,
+          "value": true
+        },
+        "semantic_sha256": "7c3a3d2e7c2e0cc781daa2fde00c508668977545179cdd00fabe31ed3a918e73",
+        "semantic_sha256_without_research_only": "38ba9d8e7ff2c3b9e9d177f4778ac15c4ff7b7050ffbf155543c8c53546bc20e",
+        "stage_id": "STAGE_0930_0935",
+        "trade_date": "20260924"
+      },
+      "stage_id": "STAGE_0930_0935",
+      "trade_date": "20260924"
+    },
+    {
+      "baseline_state": "BASELINE_FAIL_CANNOT_CONFIRM",
+      "error_semantic_sha256": "9f9d6f27ee471b072f4d77489528f32edace4f57bb7983ac815e55b7a23d5ba2",
+      "error_semantics": {
+        "detail": "approved research read binding is unavailable or invalid"
+      },
+      "http_status": 409,
+      "stage_id": "STAGE_0930_0935",
+      "trade_date": "20261009"
+    }
+  ],
+  "status": "PREPARED_NOT_DEPLOYED",
+  "tool_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/tools/publish_daily_chain_source.py",
+  "tool_sha256": "7887a625a4ba9380d0f1dc4b8fb28b7f5469b51c0fdf6a8e34a222679172a975"
+}

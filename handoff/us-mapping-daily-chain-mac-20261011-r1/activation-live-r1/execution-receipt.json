@@ -1,0 +1,15 @@
+{
+  "status": "ACTIVATION_FAILED",
+  "steps": [
+    "SCHEDULER_UNLOADED"
+  ],
+  "review_sha256": "ff2c8616b1d5a24f2a2d9b7f22b56167aae06f23182250095bfd01cdb021d142",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "error": "AssertionError()",
+  "rollback": "PREIMAGE_RESTORED_RELOAD_REQUESTED"
+}

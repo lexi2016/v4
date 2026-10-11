@@ -1,0 +1,70 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "api_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+  "api_runtime_stage_mode": "shared",
+  "application_inventory_sha256": "a31930985518157c6a148d4460526b2c057c89134b2089983323bca42ae18eed",
+  "canary_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-02/plan-canary.json",
+  "canary_sha256": "0d27bba22499f38f198205402684afb8f59c7f2d9055a8bf0c3f818982511b78",
+  "candidate_release_manifest_sha256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+  "contract_evidence_kind": "DERIVED_VALIDATED_PROJECTION",
+  "formal_state_writes_performed": false,
+  "input_identity": "d723652d58e0cc06ba5341dbdc4cedd02ab1df5a6771760fb68b432fae7d142d",
+  "launchctl_called": false,
+  "manager_source_inventory_sha256": "95dc09a7478aaf17ca4b5848db9b7f8f189877bd7a954257e3d221a118c160e6",
+  "manager_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+  "owner_attempt_state": "PARTIAL",
+  "owner_evidence": {
+    "readback": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-02/readback-verified-projection.http-evidence.json",
+      "sha256": "fe6f92de580f86d9253fb525077c83878b65e63e995d0c500d38b1ae62ecd70f"
+    },
+    "refresh": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-02/refresh-verified-projection.http-evidence.json",
+      "sha256": "cb0e2ec57d687d264aeaed40d34c987a2cf166a50439b888452457f1ec5f1dbe"
+    }
+  },
+  "owner_get_replayed": false,
+  "owner_post_replayed": false,
+  "product_sha256": "c01605b233fb4307e6ee9ede96eae3e7a3a5e7bd3b38580adb775ad63117c330",
+  "raw_owner_http": {
+    "readback": {
+      "body_bytes": 35813766,
+      "body_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/readback.response.bin",
+      "body_sha256": "a50123a30ba8a685d4e0643980749a295a095154ba32084348912b657881d8f8",
+      "content_type": "application/json",
+      "http_evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/readback.http-evidence.json",
+      "http_evidence_sha256": "1fc6e166bf71a87d020896e0af72bad78a8b09a19c1cbce04379c16aaf88ad26",
+      "http_status": 200,
+      "kind": "RAW_HTTP_BODY",
+      "method": "GET",
+      "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261012"
+    },
+    "refresh": {
+      "body_bytes": 35812899,
+      "body_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/refresh.response.bin",
+      "body_sha256": "93ae2662f1a639b5ec6f237d7feb4b991e5cd99b4f2cfbad91a202527d13a074",
+      "content_type": "application/json",
+      "http_evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/refresh.http-evidence.json",
+      "http_evidence_sha256": "56b6c405c72786e3554a8f9d8cfc8cefc387f45295988d09ba377f9226e4e9d1",
+      "http_status": 200,
+      "kind": "RAW_HTTP_BODY",
+      "method": "POST",
+      "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace/refresh?date=20261012"
+    }
+  },
+  "recovery_mode": "RECOVERED_EXACT_EXISTING_OWNER_POST_GET",
+  "run_id": "960c3b5f9b974b188f47b9387fc95cba",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "manager_daily_chain.plan_canary_operation.v1",
+  "source_failure_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/failure-receipt.json",
+    "sha256": "2996420fc9491d50acb72d68ac41201c7e91e5ba8afba0714250e61792f0a7f6"
+  },
+  "status": "PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING",
+  "target_trade_date": "20261012"
+}

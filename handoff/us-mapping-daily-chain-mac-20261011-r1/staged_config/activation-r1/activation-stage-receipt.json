@@ -1,0 +1,128 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "active_api_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+  "active_api_release_id": "manager-us-mapping-daily-chain-20261011-r1",
+  "api_changed_environment_keys": [
+    "V4_MANAGER_PLAN_OWNER_BINDING_PATH"
+  ],
+  "api_environment_updates": {
+    "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+    "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+    "V35_RELEASE_ID": "manager-us-mapping-daily-chain-20261011-r1",
+    "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/release-manifest.json",
+    "V35_RELEASE_MANIFEST_SHA256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+    "V4_MANAGER_PLAN_OWNER_BINDING_PATH": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/staged_config/activation-r1/manager-plan-binding.json"
+  },
+  "api_expected_changed_environment_keys": [
+    "V4_MANAGER_PLAN_OWNER_BINDING_PATH"
+  ],
+  "application_inventory_sha256": "a31930985518157c6a148d4460526b2c057c89134b2089983323bca42ae18eed",
+  "binding_inventory_sha256": "95dc09a7478aaf17ca4b5848db9b7f8f189877bd7a954257e3d221a118c160e6",
+  "canary_freshness": {
+    "age_seconds": 34.567638,
+    "canary_clock_local": "2026-10-11T13:52:20.851841+08:00",
+    "max_age_minutes": 60,
+    "next_hk_session_at_canary_clock": "20261012",
+    "next_hk_session_at_validation": "20261012",
+    "target_trade_date": "20261012",
+    "validated_at_local": "2026-10-11T13:52:55.419479+08:00"
+  },
+  "canary_freshness_policy": {
+    "checks": [
+      "canary clock is not in the future",
+      "canary age is at most 60 minutes",
+      "target is next HK session at canary clock",
+      "target is next HK session at validation clock"
+    ],
+    "current_clock_source": "datetime.now(Asia/Hong_Kong)",
+    "max_age_minutes": 60,
+    "rechecked_immediately_before_enabled_staging": true
+  },
+  "canary_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-02/plan-canary.json",
+  "canary_sha256": "0d27bba22499f38f198205402684afb8f59c7f2d9055a8bf0c3f818982511b78",
+  "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+  "current_api_binding_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/staged_config/manager-plan-binding-c1.disabled.final-d1-r2.json",
+  "current_api_binding_sha256": "f3b7cbfa1709b2b27816d294e599cb1ae82ff918ba41ec148644f1a1751f5fd6",
+  "current_api_plist_sha256": "2c0a430301888f1604116601aa1c06b06d98a0ce601213266697451a9926e130",
+  "current_scheduler_binding_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/staged_config/manager-daily-plan-hook-r1/manager-plan-binding-r2.json",
+  "current_scheduler_binding_sha256": "c0fbff52449eb5dbf5c1655f17cf08915bea1214f9499cc8a4df1176d9625951",
+  "current_scheduler_plist_sha256": "fbce935c11b5b207739f6f12845209f4c6da07b68fbd034325169100ce4826c7",
+  "daily_automation": {
+    "enabled": true,
+    "max_attempts_per_target_date": 5,
+    "same_day_catchup_slots_local": [
+      "10:00",
+      "12:30",
+      "15:45",
+      "18:30",
+      "22:30"
+    ],
+    "status": "PROPOSAL_ONLY",
+    "us_mapping_budget_seconds": 5
+  },
+  "launchctl_called": false,
+  "live_plists_modified": false,
+  "manager_state_modified_by_stager": false,
+  "manager_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+  "owner_source_inventory_sha256": "95dc09a7478aaf17ca4b5848db9b7f8f189877bd7a954257e3d221a118c160e6",
+  "plan_material_refresh": {
+    "enabled": true,
+    "end_local": "23:00",
+    "max_attempts_per_target_date": 3,
+    "retry_backoff_seconds": 600,
+    "start_local": "16:00",
+    "status": "PROPOSAL_ONLY"
+  },
+  "preserved_api_working_data_roots": {
+    "data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+    "host": "127.0.0.1",
+    "ledger_root": null,
+    "port": 8873,
+    "preselection_source_root_argument": null,
+    "shared_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/workspace/v3_shared_data/.runtime/data",
+    "stage_mode": "shared",
+    "stage_selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app"
+  },
+  "release_id": "manager-us-mapping-daily-chain-20261011-r1",
+  "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/release-manifest.json",
+  "release_manifest_sha256": "3b548f81684bd48e19b9cad8ac824f036163699f8cf53dc3234bc184df9014ad",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "scheduler_app_root_preserved": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-d1-20261011-r1/app",
+  "scheduler_changed_environment_keys": [
+    "V4_MANAGER_ANNOUNCEMENT_APP_ROOT",
+    "V4_MANAGER_ANNOUNCEMENT_BINDING",
+    "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256",
+    "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256"
+  ],
+  "scheduler_expected_changed_environment_keys": [
+    "V4_MANAGER_ANNOUNCEMENT_APP_ROOT",
+    "V4_MANAGER_ANNOUNCEMENT_BINDING",
+    "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256",
+    "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256"
+  ],
+  "scheduler_hk_root_and_task_preserved": true,
+  "scheduler_manager_hook_updates": {
+    "V4_MANAGER_ANNOUNCEMENT_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+    "V4_MANAGER_ANNOUNCEMENT_BINDING": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/staged_config/activation-r1/manager-plan-binding.json",
+    "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+    "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256": "0d27bba22499f38f198205402684afb8f59c7f2d9055a8bf0c3f818982511b78"
+  },
+  "scheduler_working_directory_preserved": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-d1-20261011-r1/app",
+  "schema_version": "v4.us_daily_chain.activation_stage.v1",
+  "security_master_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+  "staged_api_plist_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/staged_config/activation-r1/com.lexi.v35.api-only.plist",
+  "staged_api_plist_sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+  "staged_binding_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/staged_config/activation-r1/manager-plan-binding.json",
+  "staged_binding_sha256": "cfe4af06e97992ebcadf4bf8e66f1d02c6ecf370b571c7b3ee4df1c0cca6ebf6",
+  "staged_scheduler_plist_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/staged_config/activation-r1/com.lexi.v35.scheduler.plist",
+  "staged_scheduler_plist_sha256": "5b6e208750e5f6287975857456ae0aabea57d6f5b9d4fecaecf619be17b75413",
+  "staging_output_dir": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/staged_config/activation-r1",
+  "status": "PREPARED_NOT_ACTIVATED",
+  "target_trade_date": "20261012"
+}

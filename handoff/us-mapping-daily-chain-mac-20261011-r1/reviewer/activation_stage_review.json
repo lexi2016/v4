@@ -1,0 +1,126 @@
+{
+  "schema_version": "v4.us_daily_chain.activation_stage_independent_review.r1",
+  "reviewer_identity": "/root/us_daily_chain_review",
+  "status": "PASS",
+  "scope": "Read-only review of activation-r1 staged binding and paired LaunchAgent plist delta; installation and reload are outside this review.",
+  "bindings": {
+    "staging_tool_sha256": "53e19fdcedb973d5f0e68fe52a95950c32575e092377dda0ca361d39c1d327cb",
+    "activation_stage_receipt_sha256": "233a9af3815d6f5e479a60aaa5cca384a31946815019b52df452c34331717973",
+    "staged_binding_sha256": "cfe4af06e97992ebcadf4bf8e66f1d02c6ecf370b571c7b3ee4df1c0cca6ebf6",
+    "plan_canary_sha256": "0d27bba22499f38f198205402684afb8f59c7f2d9055a8bf0c3f818982511b78",
+    "operation_receipt_sha256": "13171282be0d49eef6fbe25001f755a5ac25227df3088a06d32283ba213b1acd",
+    "active_api_preimage_sha256": "2c0a430301888f1604116601aa1c06b06d98a0ce601213266697451a9926e130",
+    "staged_api_sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+    "active_scheduler_preimage_sha256": "fbce935c11b5b207739f6f12845209f4c6da07b68fbd034325169100ce4826c7",
+    "staged_scheduler_sha256": "5b6e208750e5f6287975857456ae0aabea57d6f5b9d4fecaecf619be17b75413"
+  },
+  "staged_delta": {
+    "api": {
+      "effective_environment_keys_changed": ["V4_MANAGER_PLAN_OWNER_BINDING_PATH"],
+      "serialized_as_single_env_assignment_in_program_arguments": true,
+      "all_other_plist_content_equal_after_normalizing_that_assignment": true,
+      "working_directory_unchanged": true,
+      "result": "PASS"
+    },
+    "scheduler": {
+      "effective_environment_keys_changed": [
+        "V4_MANAGER_ANNOUNCEMENT_APP_ROOT",
+        "V4_MANAGER_ANNOUNCEMENT_BINDING",
+        "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256",
+        "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256"
+      ],
+      "program_arguments_unchanged": true,
+      "working_directory_unchanged": true,
+      "hk_v35_app_root_and_task_unchanged": true,
+      "all_other_plist_content_equal_after_normalizing_these_four_values": true,
+      "cycle_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "result": "PASS"
+    },
+    "cas_preimage_current_sha_matches_receipt": true,
+    "staging_directory_is_immediate_child": true,
+    "staged_directory_files": [
+      "activation-stage-receipt.json",
+      "com.lexi.v35.api-only.plist",
+      "com.lexi.v35.scheduler.plist",
+      "manager-plan-binding.json"
+    ]
+  },
+  "binding_validation": {
+    "frozen_release_contract": "PASS",
+    "enabled": true,
+    "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+    "api_and_scheduler_reference_same_staged_binding": true,
+    "daily_automation_enabled": true,
+    "daily_automation_status": "PROPOSAL_ONLY",
+    "plan_material_refresh_enabled": true,
+    "plan_material_refresh_status": "PROPOSAL_ONLY",
+    "plan_material_refresh_only": true,
+    "canary_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-02/plan-canary.json",
+    "canary_sha256": "0d27bba22499f38f198205402684afb8f59c7f2d9055a8bf0c3f818982511b78"
+  },
+  "canary_provenance": {
+    "status": "PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING",
+    "recovery_mode": "RECOVERED_EXACT_EXISTING_OWNER_POST_GET",
+    "recovery_validation_clock_local": "2026-10-11T13:52:20.851841+08:00",
+    "original_owner_started_at": "2026-10-11T13:30:53.902243+08:00",
+    "original_owner_finished_at": "2026-10-11T05:31:06.692295+00:00",
+    "original_readback_checked_at": "2026-10-11T13:31:08.612116+08:00",
+    "validation_clock_minus_original_readback_seconds": 1272.239725,
+    "semantics": "13:52 is the recovery validation clock. Original POST/GET timestamps and byte identities remain preserved. The recovery revalidated pinned durable state and mutex; it did not claim to replay or freshly issue HTTP.",
+    "stage_freshness_seconds": 34.567638,
+    "stage_freshness_limit_minutes": 60,
+    "stage_validated_at_local": "2026-10-11T13:52:55.419479+08:00",
+    "target_next_hk_session_at_both_clocks": "20261012",
+    "raw_http": {
+      "refresh": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace/refresh?date=20261012",
+        "http_status": 200,
+        "body_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/refresh.response.bin",
+        "body_bytes": 35812899,
+        "body_sha256": "93ae2662f1a639b5ec6f237d7feb4b991e5cd99b4f2cfbad91a202527d13a074",
+        "evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/refresh.http-evidence.json",
+        "evidence_sha256": "56b6c405c72786e3554a8f9d8cfc8cefc387f45295988d09ba377f9226e4e9d1",
+        "derived_projection_bytes": 1865,
+        "derived_projection_sha256": "4f4e9b4f951d5b08fff606f623411f6d96e0b05e1764f831d0e89c2e79ddbec8"
+      },
+      "readback": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261012",
+        "http_status": 200,
+        "body_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/readback.response.bin",
+        "body_bytes": 35813766,
+        "body_sha256": "a50123a30ba8a685d4e0643980749a295a095154ba32084348912b657881d8f8",
+        "evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/receipts/plan_canary_runs/20261012/execution-01/readback.http-evidence.json",
+        "evidence_sha256": "1fc6e166bf71a87d020896e0af72bad78a8b09a19c1cbce04379c16aaf88ad26",
+        "derived_projection_bytes": 1245,
+        "derived_projection_sha256": "18bfd313185f43870a4476af9797231c171e7b17b67824491e0754e58bfd9728"
+      }
+    },
+    "projection_evidence_points_to_original_raw_body_and_evidence": true,
+    "raw_sha256_not_replaced_by_projection_sha256": true,
+    "owner_http_replayed": false
+  },
+  "preservation_and_safety": {
+    "original_api_binding_sha256": "f3b7cbfa1709b2b27816d294e599cb1ae82ff918ba41ec148644f1a1751f5fd6",
+    "original_scheduler_binding_sha256": "c0fbff52449eb5dbf5c1655f17cf08915bea1214f9499cc8a4df1176d9625951",
+    "original_execution_01_failure_sha256": "2996420fc9491d50acb72d68ac41201c7e91e5ba8afba0714250e61792f0a7f6",
+    "original_execution_01_refresh_and_readback_sha_match_pins": true,
+    "activation_status": "NOT_ACTIVATED",
+    "launchctl_called": false,
+    "live_plists_modified": false,
+    "manager_state_modified_by_stager": false,
+    "http_calls_during_review": 0,
+    "external_network_calls_during_review": 0,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "findings": {"P0": [], "P1": [], "P2": []},
+  "limitations": {
+    "activation_and_live_process_identity": "NOT_RUN; parent owns install/reload and post-reload verification",
+    "daily_archive": "NOT_RUN",
+    "natural_slot": "NATURAL_SLOT_UNVERIFIED"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "acceptance": {
+    "cutoff_identity": "WRITER_TESTED: 20261009 selected identities contain only release-pinned reviewed seed source; current evidence SHA and review identity are excluded from relation_assessment_identity and input_identity.",
+    "daily_shared_relation_resolver_and_archive": "WRITER_TESTED: 33 assessment rows, 10 mapped US symbols, 14 eligible relations, 21 ETF proxies, MU/WDC gaps, positive-mover filter retained.",
+    "dispatch_persistence_readback": "WRITER_TESTED: same existing daily owner, persisted artifact SHA/run_id readback, unchanged source-r1 dispatch route.",
+    "frontend_saved_archive": "REVIEWER_R1_TESTED: saved daily payload decoder/render accepts 33 rows and shows saved archive under stale current context.",
+    "live_runtime_and_natural_period": "CANNOT_CONFIRM: no live owner invocation, API write, loaded UI verification, or natural scheduled period in this writer task."
+  },
+  "existing_owner_call_path": {
+    "daily_service_owner": "v4/manager_research/service.py::refresh_us_mapping_research -> v4/manager_research/us_mapping_research.py::persist_daily_run -> build_daily_run",
+    "safe_parent_invocation": "Only call through the existing bound daily-cycle owner after parent verifies final API root and active binding SHA; use target_trade_date=20261012 with the real current clock and existing materials. Do not call direct builder as a live run or synthesize now/identity/binding.",
+    "source_entrypoint": "v4/manager_research/plan_owner_dispatch.py::execute_bound_daily_cycle(service, target_date, binding_sha256)",
+    "writer_invocation": "NOT_RUN; this handoff performed source and fixture tests only."
+  },
+  "next_required_action": "Different-identity Luna Max Reviewer must inspect the R2 actual candidate/canonical delta, rerun focused tests, and issue REVIEWED plus BEHAVIOR_VERIFIED only if historical cutoff isolation and shared daily behavior both pass.",
+  "repair_r2": {
+    "baseline_manifest_sha256": "861a2f338941acfc80b9493577712f196642093f3b0c8d20f35dc7e9a356b887",
+    "files": [
+      {
+        "active_r5_baseline_sha256": "05bbab7f091d9e84f3de4bc3d3179fd5cd853906a70b710acdf99fe20752cad5",
+        "candidate_after_r2_sha256": "2ec555741d0647f8cee7fd65050bdb80b28816dde816cd475367f34b3d24a1e0",
+        "candidate_before_r1_sha256": "4d9243f8358da055dae374539891affa42a3fd8d4d59abe00f2eb06b75c57670",
+        "canonical_after_r2_sha256": "ca84481ae4e4c819ad1743d7c3bae14b6851fb35daa74572b7c70ff130f5730a",
+        "canonical_before_r1_sha256": "41b3dbaba15c2813c9b2698a5b92f338cf2b0c3a32a257440e01c3be88b5c275",
+        "path": "v4/manager_research/us_mapping_research.py"
+      },
+      {
+        "active_r5_baseline_sha256": null,
+        "baseline_note": "New test file",
+        "candidate_after_r2_sha256": "f6c4b1f4d713c352a5aaeba081a627e4c68c4150cf91edb52948165a9cb3a3b0",
+        "candidate_before_r1_sha256": "99209928c81de80a335dd4c0748605fd22dbf09ecaf107ea1e826f1690e28d9b",
+        "canonical_after_r2_sha256": "f6c4b1f4d713c352a5aaeba081a627e4c68c4150cf91edb52948165a9cb3a3b0",
+        "canonical_before_r1_sha256": "99209928c81de80a335dd4c0748605fd22dbf09ecaf107ea1e826f1690e28d9b",
+        "path": "tests/test_manager_us_daily_chain.py"
+      },
+      {
+        "active_r5_baseline_sha256": "77fdb9743180a3b94a30ff86f71d2ce3e29c874f300861513131bda63fc1e1a4",
+        "candidate_after_r2_sha256": "0f4efa5448a8a1417453d76909906d6e8c68e0b1d3530f06c18b1adb3fc4fe46",
+        "candidate_before_r1_sha256": "f902596f640062c70240a483be7a09a9bad50a2f5ebbfe55b1c00f4eea805f6a",
+        "canonical_after_r2_sha256": "0f4efa5448a8a1417453d76909906d6e8c68e0b1d3530f06c18b1adb3fc4fe46",
+        "canonical_before_r1_sha256": "f902596f640062c70240a483be7a09a9bad50a2f5ebbfe55b1c00f4eea805f6a",
+        "canonical_note": "Pre-task canonical untracked-file preimage was not recorded; before_r1 SHA is exact and reconstructs from the reviewed source_r1 candidate delta.",
+        "canonical_pre_task_sha256": null,
+        "path": "tests/test_manager_us_mapping_research.py"
+      }
+    ],
+    "finding_id": "P2-1",
+    "full_candidate_scope_files_unchanged_from_source_r1_review": [
+      {
+        "active_r5_baseline_sha256": "757b87e4232d527caaf64437151c7bdc4e2f1f5e435ec2ed2ffc7813105c81a2",
+        "candidate_sha256": "bbb01afba2c87e778310e70ca4d8d2a326655819ff920c7bc6b1ebd2a5f2fc8d",
+        "path": "apps/web/src/api/managerWorkspace.ts"
+      },
+      {
+        "active_r5_baseline_sha256": "fbe2f0aaf6c8d73a8cdb1dee8084d8d76e9852b86f1ee9230edfa00564e4d8c5",
+        "candidate_sha256": "d1fe398b04760c6a2d6f3649979c41c762e208105f21495c0be8b5a1bd2b004b",
+        "path": "apps/web/src/manager-selection/researchAttention.ts"
+      },
+      {
+        "active_r5_baseline_sha256": "58e61a2869cd9594f889faa510c552d347a2a29bf48778c969122c9c9dd02421",
+        "candidate_sha256": "177686f863a3392e57201f75d80dd262974ba8e633f1ba8de3af1ed0dd5803c9",
+        "path": "apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts"
+      },
+      {
+        "active_r5_baseline_sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+        "candidate_sha256": "d1671e3e889539c3956775b7d2ce3309a402b17bce891434198345bbca514d97",
+        "path": "v4/manager_research/plan_owner_dispatch.py"
+      }
+    ],
+    "resolution": "Only select the current relation evidence file/review identity when at least one current relation or reviewed symbol assessment is cutoff-eligible. Otherwise the current evidence SHA is omitted from assessment_identity and relation_source_identities; release-pinned cutoff-safe seed identities remain."
+  },
+  "review_r1": {
+    "finding": "P2-1: 20261009 selected source identity and input_identity included current 20261011 evidence/review identity despite cutoff",
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/reviewer/source_r1_review.json",
+    "sha256": "21e1365eeb087c8311c176bb1b63b0921897a41c3230cb9f6463f42b705ccc8c",
+    "verdict": "FAIL_PENDING_P2_REPAIR"
+  },
+  "schema_version": "v4.us_daily_chain.writer_handoff.r1",
+  "scope": {
+    "active_r5_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/integrated_release/manager-us-mapping-completion-20261011-r5/app",
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/candidate/app",
+    "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+    "commit_or_push": false,
+    "immutable_r5_baseline": true,
+    "live_canary_or_api_write": false
+  },
+  "status": "IMPLEMENTED_TESTED_AWAITING_INDEPENDENT_REVIEW",
+  "stop_rule": "No live canary, API write, deployment, service or scheduler action from this writer handoff.",
+  "task": "Existing US daily owner generates, archives, and reads expanded reviewed relations through the existing automatic chain",
+  "verification": {
+    "candidate": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python -m pytest -p no:cacheprovider --basetemp=/tmp/us-daily-focused-candidate-r3 -q -k 'not scheduled_cycle_api_runs_through_injected_reader_and_rejects_wrong_binding' tests/test_manager_us_daily_chain.py tests/test_manager_us_mapping_research.py tests/test_manager_us_market_bridge.py",
+      "result": "PASS: 39 passed, 1 deselected in 0.52s"
+    },
+    "canonical": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python -m pytest -p no:cacheprovider --basetemp=/tmp/us-daily-focused-canonical-r3 -q -k 'not scheduled_cycle_api_runs_through_injected_reader_and_rejects_wrong_binding' tests/test_manager_us_daily_chain.py tests/test_manager_us_mapping_research.py tests/test_manager_us_market_bridge.py",
+      "result": "PASS: 39 passed, 1 deselected in 0.52s"
+    },
+    "independent_review_after_repair": "NOT_RUN",
+    "known_excluded_test": "tests/test_manager_us_mapping_research.py::test_scheduled_cycle_api_runs_through_injected_reader_and_rejects_wrong_binding is pre-existing fixture/activation-gate failure on both candidate and immutable R5 baseline; source_r1_review records it and independent command deselects it.",
+    "r1_frontend_reused": {
+      "command": "/Users/lexi/.local/node-v24.19.0/bin/node /Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vitest/vitest.mjs run --config /Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/reviewer/candidate_vitest_r1.config.mjs apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts",
+      "result": "REVIEWER R1 evidence reused: 3 tests passed; frontend source/spec unchanged by P2 repair."
+    }
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "acceptance": {
+    "existing_scheduled_daily_owner_source_path": "PASS_WITH_TEST_BOUNDARY: focused dispatch test exercises execute_bound_daily_cycle with SCHEDULED context and asserts service.refresh_us_mapping_research calls the same persist_daily_run owner; admission and serialized executor are mocked.",
+    "expanded_33_symbol_archive": "PASS: independent tests assert 33 assessments, 12 EQUITY_PROXY, 21 ETF_PROXY, 10 mapped symbols, 14 eligible relations, and exactly MU/WDC as assessed-with-gaps rows.",
+    "frontend_saved_archive_decoder_and_render": "PASS: focused Vitest test validates a saved daily payload with stale current context, accepts 33 saved assessment rows, and renders the saved archive and provenance.",
+    "historical_target_20261009": "FAIL_P2: only release-pinned seed relation bodies are present, but post-cutoff 20261011 evidence/review identities are serialized and hashed into historical input_identity.",
+    "live_scheduler_binding_api_and_reloaded_page": "CANNOT_CONFIRM: not exercised in this frozen-source review; parent assigned a separate activation review and current-runtime acceptance.",
+    "natural_period": "CANNOT_CONFIRM: no natural scheduled period occurred within this source review.",
+    "per_run_latest_integrity": "PASS: persist/readback test asserts same run_id, artifact SHA, full 33 assessments, relation source identities, and 10-count; existing _read_saved recomputes artifact SHA against latest pointer/run bytes.",
+    "plan_and_saved_product_read_path": "PASS_SOURCE_INSPECTION: read_workspace_mapping verifies exact run pointer and artifact SHA and returns the saved daily run; workspace._daily_mapping_plan_reference reads through this helper and carries mapping_read onward.",
+    "positive_mover_filter": "PASS: the daily builder joins only bridge.raw_individual_up; fixture with 10 mapped symbols but only NVDA positive yields 1 matched US symbol and 5 relation rows. Existing bridge projection still records selection_threshold_pct=0.0 and filters pct <= 0.",
+    "source_or_review_change_identity": "PASS: focused test changes current source/review SHAs with unchanged assessment identity and asserts daily input_identity changes."
+  },
+  "findings": [
+    {
+      "behavioral_boundary": "The test confirms no 20261011 relation bodies are joined into 20261009 matches/assessments. It does not preserve temporal isolation of the historical input identity: later evidence/review metadata is an input to the digest and persisted selected-source identity list.",
+      "evidence": [
+        {
+          "fact": "The daily archive whitelist admits current evidence file SHA, artifact SHA, and review receipt SHA as relation source identity fields.",
+          "lines": "1610-1615",
+          "path": "v4/manager_research/us_mapping_research.py"
+        },
+        {
+          "fact": "All relation_source_artifacts from the current resolver are copied to the daily archive without filtering by target cutoff.",
+          "lines": "1637-1641",
+          "path": "v4/manager_research/us_mapping_research.py"
+        },
+        {
+          "fact": "The historical input_identity digest includes relation_source_identities.",
+          "lines": "1784-1787",
+          "path": "v4/manager_research/us_mapping_research.py"
+        },
+        {
+          "fact": "The resolver adds CURRENT_REVIEWED_RELATION_EVIDENCE identities from the 20261011 file and review receipt even when current relation/review rows are after the target cutoff.",
+          "lines": "1544-1558",
+          "path": "v4/manager_research/us_mapping_research.py"
+        },
+        {
+          "fact": "The 20261009 test proves relation bodies are seed-only but explicitly asserts the later current evidence artifact SHA and review receipt SHA remain in relation_source_identities.",
+          "lines": "134-160",
+          "path": "tests/test_manager_us_daily_chain.py"
+        }
+      ],
+      "id": "P2-1",
+      "required_repair": "For a target cutoff before the current evidence/review became available, exclude those later evidence/review identities from the historical input_identity and selected relation_source_identities. If needed for audit, place current-registry observations in clearly isolated diagnostic metadata that is not a selected source and does not affect historical product identity.",
+      "severity": "P2",
+      "status": "ACTION_REQUIRED",
+      "title": "Historical 20261009 input identity includes post-cutoff 20261011 relation/review identity"
+    }
+  ],
+  "independent_test_runs": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python -m pytest -p no:cacheprovider --basetemp=/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/reviewer/pytest_source_r1 -q -k \"not scheduled_cycle_api_runs_through_injected_reader_and_rejects_wrong_binding\" tests/test_manager_us_daily_chain.py tests/test_manager_us_mapping_research.py tests/test_manager_us_market_bridge.py",
+      "environment": "Python 3.14.6 / pytest 9.1.1; isolated frozen candidate app",
+      "result": "PASS: 38 passed, 1 deselected in 0.45s"
+    },
+    {
+      "command": "/Users/lexi/.local/node-v24.19.0/bin/node /Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vitest/vitest.mjs run --config /Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/reviewer/candidate_vitest_r1.config.mjs apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts",
+      "environment": "Node 24.19.0 / Vitest 4.1.10; candidate source spec with reviewer-local cache config",
+      "result": "PASS: 1 file and 3 tests passed in 493ms"
+    },
+    {
+      "attribution": "Confirmed pre-existing fixture/activation-gate failure, not introduced by the frozen diff; excluded from the clean candidate source suite above. The full initial candidate invocation also hit pytest temporary-directory cleanup PermissionError after test execution; isolated --basetemp reruns completed cleanly.",
+      "baseline_result": "FAIL identically: expected HTTP 200, got HTTP 409 GATE_REJECTED / PLAN_OWNER_ADMISSION_FAILED / OWNER_NOT_CALLED.",
+      "candidate_result": "FAIL: expected HTTP 200, got HTTP 409 GATE_REJECTED / PLAN_OWNER_ADMISSION_FAILED / OWNER_NOT_CALLED.",
+      "environment": "Python 3.14.6 / pytest 9.1.1; candidate then immutable R5 baseline",
+      "test": "tests/test_manager_us_mapping_research.py::test_scheduled_cycle_api_runs_through_injected_reader_and_rejects_wrong_binding"
+    }
+  ],
+  "review_mode": "READ_ONLY_FROZEN_CANDIDATE",
+  "reviewed_at": "2026-10-11T12:32:06+08:00",
+  "reviewer_files_written": [
+    "reviewer/source_r1_review.json",
+    "reviewer/candidate_vitest_r1.config.mjs"
+  ],
+  "reviewer_identity": "/root/us_daily_chain_review",
+  "reviewer_independent_from": "/root/us_daily_chain_writer",
+  "risk_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      "P2-1"
+    ],
+    "financial_safety": "Frozen source paths preserve RESEARCH_ONLY=true, production_allowed=false, buy_gate_updated=false, orders_sent=false in produced daily products; no trade or production action was part of this review.",
+    "security": "No P0 security issue observed in the reviewed diff; the added archive renderer uses the existing el() helper, which assigns textContent rather than HTML."
+  },
+  "schema_version": "v4.us_daily_chain.independent_source_review.r1",
+  "scope": {
+    "all_changed_files_within_frozen_business_allowlist": true,
+    "baseline_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/integrated_release/manager-us-mapping-completion-20261011-r5/app",
+    "baseline_json_sha256": "16e74783b9dba4230339b1d7a82196e38acabba5b2896419fdc8cae238f87c04",
+    "baseline_release_id": "manager-us-mapping-completion-20261011-r5",
+    "baseline_release_manifest_sha256": "12af6fdab034e99f2479939209c86add3e20d9c0bddc0c73bb9fb9370d8a1f26",
+    "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/candidate/app",
+    "changed_file_count": 7,
+    "changed_files": [
+      {
+        "baseline_sha256": "757b87e4232d527caaf64437151c7bdc4e2f1f5e435ec2ed2ffc7813105c81a2",
+        "candidate_sha256": "bbb01afba2c87e778310e70ca4d8d2a326655819ff920c7bc6b1ebd2a5f2fc8d",
+        "change": "MODIFIED",
+        "path": "apps/web/src/api/managerWorkspace.ts"
+      },
+      {
+        "baseline_sha256": "58e61a2869cd9594f889faa510c552d347a2a29bf48778c969122c9c9dd02421",
+        "candidate_sha256": "177686f863a3392e57201f75d80dd262974ba8e633f1ba8de3af1ed0dd5803c9",
+        "change": "MODIFIED",
+        "path": "apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts"
+      },
+      {
+        "baseline_sha256": "fbe2f0aaf6c8d73a8cdb1dee8084d8d76e9852b86f1ee9230edfa00564e4d8c5",
+        "candidate_sha256": "d1fe398b04760c6a2d6f3649979c41c762e208105f21495c0be8b5a1bd2b004b",
+        "change": "MODIFIED",
+        "path": "apps/web/src/manager-selection/researchAttention.ts"
+      },
+      {
+        "baseline_sha256": null,
+        "candidate_sha256": "99209928c81de80a335dd4c0748605fd22dbf09ecaf107ea1e826f1690e28d9b",
+        "change": "ADDED",
+        "path": "tests/test_manager_us_daily_chain.py"
+      },
+      {
+        "baseline_sha256": "77fdb9743180a3b94a30ff86f71d2ce3e29c874f300861513131bda63fc1e1a4",
+        "candidate_sha256": "f902596f640062c70240a483be7a09a9bad50a2f5ebbfe55b1c00f4eea805f6a",
+        "change": "MODIFIED",
+        "path": "tests/test_manager_us_mapping_research.py"
+      },
+      {
+        "baseline_sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+        "candidate_sha256": "d1671e3e889539c3956775b7d2ce3309a402b17bce891434198345bbca514d97",
+        "change": "MODIFIED",
+        "path": "v4/manager_research/plan_owner_dispatch.py"
+      },
+      {
+        "baseline_sha256": "05bbab7f091d9e84f3de4bc3d3179fd5cd853906a70b710acdf99fe20752cad5",
+        "candidate_sha256": "4d9243f8358da055dae374539891affa42a3fd8d4d59abe00f2eb06b75c57670",
+        "change": "MODIFIED",
+        "path": "v4/manager_research/us_mapping_research.py"
+      }
+    ],
+    "goal": "Existing US daily owner generates, archives, and reads expanded reviewed relations through the existing automatic chain"
+  },
+  "verdict": {
+    "behavior_verified": "PARTIAL: daily generation, archive persistence/readback, dispatch-to-owner source path, and frontend decoder/render PASS under focused fixtures; historical temporal identity condition FAILS as P2.",
+    "frozen_pass_scope": "FAIL_PENDING_P2_REPAIR",
+    "live_runtime": "CANNOT_CONFIRM",
+    "scope_review": "PASS: actual candidate-vs-R5 diff is limited to 7 allowed paths."
+  }
+}
