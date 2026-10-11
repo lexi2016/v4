@@ -92,5 +92,15 @@
   "runtime_release": "preselection-date-root-20261011-r1",
   "natural_status": "NATURAL_SLOT_UNVERIFIED",
   "independent_receipt_sha256": "d1584bb62c1e29827fc09f65b3e751bd6ceb3c1aed3c9ec7531e266011abf540",
-  "regression_monitor": "Existing automation-3 updated with date-catalog/pool-root/HK binding checks; next day 09:25,09:40,09:55, no new scheduler service"
+  "regression_monitor": "Existing automation-3 updated with date-catalog/pool-root/HK binding checks; next day 09:25,09:40,09:55, no new scheduler service",
+  "canonical_integration": {
+    "status": "IMPLEMENTED / TESTED / REVIEWED / BEHAVIOR_VERIFIED for equivalent source date-root propagation",
+    "source_root": "/Users/lexi/Desktop/学习/v4_app",
+    "scope": "date catalog only in existing refactored helper; no HK service integration",
+    "independent_tests": "3 focused tests plus existing same-root date-list test passed",
+    "actual_roots": "20261012 selected once, A371/HK100 PARTIAL_WITH_ROWS",
+    "patch_sha256": "57cb99fd97102e958d0337b5db27a6722744492dcf6414c71dd324358eb469e7",
+    "independent_receipt_sha256": "966fbfe3876cf62c739e9eb0c7195b7dffba66de64a6214ef61182692e5be094",
+    "deployment": "canonical full tree not deployed; runtime two-file release already verified independently"
+  }
 }

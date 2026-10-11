@@ -1,0 +1,367 @@
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -4198,6 +4198,9 @@
+             store,
+             current_date=current_date,
+             stage_selection_root=configured_selection_root,
++            preselection_source_root=(
++                resolved_pool_source if configured_pool_source else None
++            ),
+         )
+ 
+     def _stage_projection_status(
+--- a/domains/preselection.py
++++ b/domains/preselection.py
+@@ -39,9 +39,16 @@
+     *,
+     current_date: str | None = None,
+     stage_selection_root: Path | str | None = None,
++    preselection_source_root: Path | str | None = None,
+ ) -> dict[str, Any]:
+     from domains._preselection_parts.date_catalog import _date_catalog_body as _v4_impl
+-    return _v4_impl(globals(), store, current_date=current_date, stage_selection_root=stage_selection_root)
++    return _v4_impl(
++        globals(),
++        store,
++        current_date=current_date,
++        stage_selection_root=stage_selection_root,
++        preselection_source_root=preselection_source_root,
++    )
+ 
+ 
+ def _verified_stage_artifact_catalog(
+@@ -58,7 +65,11 @@
+     return _v4_impl(globals(), stage_selection_root)
+ 
+ 
+-def _verified_independent_pool_dates(store: NativeDataStore) -> tuple[str, ...]:
++def _verified_independent_pool_dates(
++    store: NativeDataStore,
++    *,
++    preselection_source_root: Path | str | None = None,
++) -> tuple[str, ...]:
+     """Discover dates with at least one SHA-verified independent pool.
+ 
+     Pool families are independently published.  Requiring ``read_all`` here
+@@ -66,7 +77,11 @@
+     trio was already complete.
+     """
+     from domains._preselection_parts.date_catalog import __verified_independent_pool_dates_body as _v4_impl
+-    return _v4_impl(globals(), store)
++    return _v4_impl(
++        globals(),
++        store,
++        preselection_source_root=preselection_source_root,
++    )
+ 
+ 
+ def preselection(
+--- a/domains/_preselection_parts/date_catalog.py
++++ b/domains/_preselection_parts/date_catalog.py
+@@ -3,11 +3,25 @@
+ from ._namespace import read_global as _v4_global
+ 
+ 
+-def _date_catalog_body(_v4_scope, /, store, *, current_date, stage_selection_root):
++def _date_catalog_body(
++    _v4_scope,
++    /,
++    store,
++    *,
++    current_date,
++    stage_selection_root,
++    preselection_source_root,
++):
+     catalog = store.read_catalog()
+     persisted_system_date = _v4_global(_v4_scope, 'str')(catalog["system_date"])
+     materialized = catalog.get("materialized_rows", {})
+-    independent_dates = _v4_global(_v4_scope, '_verified_independent_pool_dates')(store)
++    independent_dates = _v4_global(
++        _v4_scope,
++        '_verified_independent_pool_dates',
++    )(
++        store,
++        preselection_source_root=preselection_source_root,
++    )
+     stage_artifacts = _v4_global(_v4_scope, '_verified_stage_artifact_catalog')(stage_selection_root)
+     stage_artifact_dates = _v4_global(_v4_scope, 'tuple')(stage_artifacts)
+     wall_date = current_date or _v4_global(_v4_scope, 'datetime').now(_v4_global(_v4_scope, 'ZoneInfo')("Asia/Shanghai")).strftime("%Y%m%d")
+@@ -224,31 +238,46 @@
+     return _v4_global(_v4_scope, 'dict')(_v4_global(_v4_scope, 'sorted')(by_date.items()))
+ 
+ 
+-def __verified_independent_pool_dates_body(_v4_scope, /, store):
++def __verified_independent_pool_dates_body(
++    _v4_scope,
++    /,
++    store,
++    *,
++    preselection_source_root=None,
++):
+     """Discover dates with at least one SHA-verified independent pool.
+ 
+     Pool families are independently published.  Requiring ``read_all`` here
+     made one missing optional pool hide a target date whose other artifact
+     trio was already complete.
+     """
+-    root = _v4_global(_v4_scope, 'Path')(store.root) / "preselection_pools"
+-    if not root.is_dir():
+-        return ()
+-    pool_store = _v4_global(_v4_scope, 'PreselectionPoolStore')(store.root)
++    roots = [_v4_global(_v4_scope, 'Path')(store.root)]
++    if preselection_source_root is not None:
++        source_root = _v4_global(_v4_scope, 'Path')(preselection_source_root).expanduser()
++        if source_root not in roots:
++            roots.append(source_root)
++    resolver = _v4_global(_v4_scope, 'PreselectionSourceResolver')(
++        store.root,
++        source_root=preselection_source_root,
++    )
+     dates: list[str] = []
+-    try:
+-        children = _v4_global(_v4_scope, 'tuple')(root.iterdir())
+-    except _v4_global(_v4_scope, 'OSError'):
+-        return ()
+-    for child in children:
+-        date = child.name
+-        if not child.is_dir() or _v4_global(_v4_scope, 'len')(date) != 8 or not date.isdigit():
+-            continue
+-        for pool_id in _v4_global(_v4_scope, 'POOL_ORDER'):
+-            try:
+-                pool_store.read_pool(date, pool_id)
+-            except (_v4_global(_v4_scope, 'FileNotFoundError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'json').JSONDecodeError):
+-                continue
+-            dates.append(date)
+-            break
++    for pool_root in roots:
++        root = pool_root / "preselection_pools"
++        if not root.is_dir():
++            continue
++        try:
++            children = _v4_global(_v4_scope, 'tuple')(root.iterdir())
++        except _v4_global(_v4_scope, 'OSError'):
++            continue
++        for child in children:
++            date = child.name
++            if not child.is_dir() or _v4_global(_v4_scope, 'len')(date) != 8 or not date.isdigit():
++                continue
++            for pool_id in _v4_global(_v4_scope, 'POOL_ORDER'):
++                try:
++                    resolver.read_pool(date, pool_id)
++                except (_v4_global(_v4_scope, 'FileNotFoundError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'json').JSONDecodeError):
++                    continue
++                dates.append(date)
++                break
+     return _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(dates)))
+--- /dev/null
++++ b/tests/test_preselection_date_catalog_split_roots.py
+@@ -0,0 +1,209 @@
++from __future__ import annotations
++
++import hashlib
++from pathlib import Path
++
++from fastapi.testclient import TestClient
++
++from apps.api.v35_api.app import create_app
++from infrastructure.data_store import NativeDataStore, _sha256
++from infrastructure.preselection_pool_store import PreselectionPoolStore
++
++
++CURRENT_DATE = "20261011"
++PERSISTED_DATE = "20261009"
++TARGET_DATE = "20261012"
++
++
++def _a_pool(date: str, *, symbol: str = "A.000001") -> dict:
++    pool_id = "a_d1_premarket_pool"
++    return {
++        "schema_version": "v3_5.preselection_pool.v1",
++        "trade_date": date,
++        "target_date": date,
++        "pool_id": pool_id,
++        "display_name": "A D-1 fixture",
++        "market": "A",
++        "status": "READY",
++        "producer_id": "split_root_fixture",
++        "source_role": "RAW_SOURCE",
++        "source_path": f"fixture/{date}/{pool_id}.csv",
++        "source_sha256": hashlib.sha256(f"{date}:{symbol}".encode()).hexdigest(),
++        "rows": [
++            {
++                "symbol": symbol,
++                "market": "A",
++                "pool_id": pool_id,
++                "pool_rank": 1,
++                "trade_date": date,
++                "target_date": date,
++                "recommendation_status": "WATCH_ONLY",
++            }
++        ],
++        "cannot_confirm": [],
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++
++
++def _hk_pool(date: str = TARGET_DATE, **metadata) -> dict:
++    pool_id = "hkconnect_d1_top100"
++    run_id = f"{date}-hk-connect-d1-top100-0-2-d6f38622b186"
++    rows = [
++        {
++            "symbol": f"HK.{index:05d}",
++            "market": "HK",
++            "pool_id": pool_id,
++            "pool_rank": index,
++            "trade_date": date,
++            "target_date": date,
++            "signal_date": "20261009",
++            "selected_strategy": "prob_active",
++            "d1_freshness_status": "PASS",
++            "recommendation_status": "WATCH_ONLY",
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        }
++        for index in range(1, 101)
++    ]
++    return {
++        "schema_version": "v3_5.preselection_pool.v1",
++        "trade_date": date,
++        "pool_id": pool_id,
++        "display_name": "HK D-1 fixture",
++        "market": "HK",
++        "status": "STRICT_0_2_READY",
++        "producer_id": "v3_shared_hk_0_2_consumer_v1",
++        "source_role": "SHARED_VERIFIED_HK_0_2",
++        "source_path": f"runs/{date}/HK_CONNECT_D1_TOP100_0_2/{run_id}/artifact.csv",
++        "source_sha256": "a" * 64,
++        "source_run_id": run_id,
++        "source_row_count": len(rows),
++        "rows": rows,
++        "cannot_confirm": ["RESEARCH_ONLY_NOT_BUY_GATE"],
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++        **metadata,
++    }
++
++
++def _store_with_catalog(root: Path) -> NativeDataStore:
++    store = NativeDataStore(root)
++    store.import_catalog(
++        {
++            "schema_version": "v3_trade_calendar.v1",
++            "system_date": PERSISTED_DATE,
++            "stage_dates": [PERSISTED_DATE],
++            "future_target_dates": [],
++            "materialized_rows": {PERSISTED_DATE: 1},
++        }
++    )
++    return store
++
++
++def _write_misdated_trio(root: Path, directory_date: str, payload: dict) -> None:
++    store = PreselectionPoolStore(root)
++    pool_id = str(payload["pool_id"])
++    artifact_path = f"preselection_pools/{directory_date}/{pool_id}.json"
++    receipt_path = f"preselection_pools/{directory_date}/receipts/{pool_id}.json"
++    digest = _sha256(payload)
++    store._write(artifact_path, payload)
++    store._write(
++        receipt_path,
++        store._receipt(
++            trade_date=directory_date,
++            pool_id=pool_id,
++            artifact_path=artifact_path,
++            artifact_sha256=digest,
++            payload=payload,
++        ),
++    )
++    store._write(f"preselection_pools/{directory_date}/manifest.json", {pool_id: digest})
++
++
++def test_date_list_reads_verified_future_pool_from_split_source_and_keeps_a_partial_rows(
++    tmp_path: Path,
++) -> None:
++    data_root = tmp_path / "api-data"
++    source_root = tmp_path / "pool-source"
++    store = _store_with_catalog(data_root)
++    PreselectionPoolStore(source_root).materialize(_a_pool(TARGET_DATE))
++
++    client = TestClient(
++        create_app(
++            data_root=data_root,
++            preselection_source_root=source_root,
++            current_date=CURRENT_DATE,
++        )
++    )
++    catalog = client.get("/api/v1/runs/date-list").json()
++
++    assert TARGET_DATE in catalog["future_target_dates"]
++    assert catalog["dates"].count(TARGET_DATE) == 1
++    requested = client.get(
++        "/api/v1/runs/date-list", params={"date": TARGET_DATE}
++    ).json()
++    assert requested["requested_date"] == TARGET_DATE
++    assert requested["selected_date"] == TARGET_DATE
++
++
++def test_a_partial_pool_rows_remain_partial_with_the_single_root_contract(
++    tmp_path: Path,
++) -> None:
++    data_root = tmp_path / "api-data"
++    _store_with_catalog(data_root)
++    PreselectionPoolStore(data_root).materialize(_a_pool(TARGET_DATE))
++
++    client = TestClient(
++        create_app(
++            data_root=data_root,
++            current_date=CURRENT_DATE,
++        )
++    )
++    partial = client.get(
++        "/api/v3/preselection-pools", params={"date": TARGET_DATE}
++    ).json()
++
++    assert partial["data_status"] == "PARTIAL_WITH_ROWS", partial.get(
++        "blocking_reasons"
++    )
++    assert partial["a_all_pool_row_count"] == 1
++    assert partial["market_totals"] == {"A": 1, "HK": 0}
++
++
++def test_date_catalog_ignores_bad_sha_and_wrong_date_trios_and_deduplicates_roots(
++    tmp_path: Path,
++) -> None:
++    data_root = tmp_path / "api-data"
++    source_root = tmp_path / "pool-source"
++    store = _store_with_catalog(data_root)
++    source_store = PreselectionPoolStore(source_root)
++    source_store.materialize(_a_pool(TARGET_DATE))
++
++    bad_sha_date = "20261013"
++    source_store.materialize(_a_pool(bad_sha_date))
++    source_store._write(
++        f"preselection_pools/{bad_sha_date}/manifest.json",
++        {"a_d1_premarket_pool": "0" * 64},
++    )
++
++    _write_misdated_trio(source_root, "20261014", _a_pool("20261015"))
++
++    duplicate_date = "20261016"
++    PreselectionPoolStore(data_root).materialize(_a_pool(duplicate_date, symbol="A.000002"))
++    source_store.materialize(_a_pool(duplicate_date, symbol="A.000003"))
++
++    catalog = create_app(
++        data_root=data_root,
++        preselection_source_root=source_root,
++        current_date=CURRENT_DATE,
++    )
++    response = TestClient(catalog).get("/api/v1/runs/date-list").json()
++
++    assert TARGET_DATE in response["future_target_dates"]
++    assert "20261013" not in response["future_target_dates"]
++    assert "20261014" not in response["future_target_dates"]
++    assert response["future_target_dates"].count(duplicate_date) == 1

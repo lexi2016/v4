@@ -1,0 +1,126 @@
+{
+  "schema_version": "v4_preselection_canonical_integration.v1",
+  "phase": "CANONICAL_DATE_CATALOG_ROOT_FIX",
+  "status": "WRITER_TESTED_REVIEW_PENDING",
+  "goal": "Pass the configured preselection source root through the canonical date catalog so SHA-verified future pool dates remain discoverable.",
+  "scope": {
+    "scope_file": "/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/SCOPE.json",
+    "scope_sha256": "8ad5124476f7cbba439dffab91ea4de2302bb683b537ef55ede556ec29bf7bcc",
+    "allowed_canonical_paths": [
+      "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/app.py",
+      "/Users/lexi/Desktop/学习/v4_app/domains/preselection.py",
+      "/Users/lexi/Desktop/学习/v4_app/domains/_preselection_parts/date_catalog.py",
+      "/Users/lexi/Desktop/学习/v4_app/tests/test_preselection_date_catalog_split_roots.py",
+      "/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/integration/**",
+      "/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/receipts/**"
+    ],
+    "source_data_mutated": false,
+    "live_service_changed": false,
+    "HK_stage_projection_changed": false
+  },
+  "implementation": [
+    "Canonical API _catalog passes resolved_pool_source to date_catalog only when a separate source root is configured.",
+    "The canonical date_catalog wrapper and verified-independent-pool helper carry the optional root through to the existing verification path.",
+    "The helper enumerates both data and source roots, validates each pool through PreselectionSourceResolver.read_pool (including trio integrity/ownership), and deduplicates dates."
+  ],
+  "patch": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/integration/canonical_integration.patch",
+    "sha256": "57cb99fd97102e958d0337b5db27a6722744492dcf6414c71dd324358eb469e7",
+    "line_count": 367,
+    "diff_source": "per-file before snapshots captured before canonical edits"
+  },
+  "files": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "before_sha256": "0362282afbac2d6684e1b6d27a6c4852fe96272e29cc29ff618719793f6ec465",
+      "after_sha256": "46d8a6fbd062e1d8bfa2a7043acc9c53609ab6ee14baed4be21959910842a677",
+      "before_state": "PRESENT",
+      "evidence_backup": "/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/integration/canonical-before/apps/api/v35_api/app.py"
+    },
+    {
+      "path": "domains/preselection.py",
+      "before_sha256": "f209ceb037515586883dc669d830fb44afcf778b67971951bde69c5eab8b67a0",
+      "after_sha256": "499c5ad2df56a474eb83c63446f044b2d390d70e17aa3956cb535e67b4843597",
+      "before_state": "PRESENT",
+      "evidence_backup": "/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/integration/canonical-before/domains/preselection.py"
+    },
+    {
+      "path": "domains/_preselection_parts/date_catalog.py",
+      "before_sha256": "091a38cfd07a4c7a2da2e1e9f2de885df1420683fa5ae5e986d1f546e0cd1a0d",
+      "after_sha256": "55b87104bfa6f5dab767701a09100eebc7f42c763c55908961838f260e43f131",
+      "before_state": "PRESENT",
+      "evidence_backup": "/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/integration/canonical-before/domains/_preselection_parts/date_catalog.py"
+    },
+    {
+      "path": "tests/test_preselection_date_catalog_split_roots.py",
+      "before_sha256": null,
+      "after_sha256": "a0750ea622d6a0bc516597a99f7a1ffc24a9f00c404c95f406d042eacbec2f2e",
+      "before_state": "ABSENT",
+      "evidence_backup": null
+    }
+  ],
+  "verification": {
+    "focused_regression": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH='/Users/lexi/Desktop/学习/v4_app' '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' -m pytest -q -p no:cacheprovider --basetemp='/tmp/v4_preselection_canonical_final_20261011_writer_r2' 'tests/test_preselection_date_catalog_split_roots.py'",
+      "result": "PASS",
+      "summary": "3 passed, 1 warning (Starlette TestClient/httpx deprecation).",
+      "covered": [
+        "Split-root verified future date appears once and an explicit requested/selected date is retained.",
+        "Existing single-root A partial rows contract remains PARTIAL_WITH_ROWS.",
+        "Bad SHA and wrong-date trios are excluded; duplicate dates across roots appear once."
+      ]
+    },
+    "baseline_reproduction": {
+      "command": "PYTHONPATH='/Users/lexi/Desktop/学习/v4_app' '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' -m pytest -q -p no:cacheprovider --basetemp='/tmp/v4_preselection_baseline_20261011_writer' 'tests/test_preselection_date_catalog_split_roots.py::test_date_list_reads_verified_future_pool_from_split_source_and_keeps_a_partial_rows'",
+      "result": "EXPECTED_FAIL_BEFORE_PATCH",
+      "summary": "The split-root source date was absent from future_target_dates before source-root propagation."
+    },
+    "actual_roots_testclient": {
+      "method": "FastAPI TestClient against canonical create_app; GET requests only, no active 8873 process or browser interaction.",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH='/Users/lexi/Desktop/学习/v4_app' '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' - <<'PY'\nfrom pathlib import Path\nfrom fastapi.testclient import TestClient\nfrom apps.api.v35_api.app import create_app\nlocal = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data')\nsource = Path('/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data')\nstage = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection')\napp = create_app(data_root=local, preselection_source_root=source, research_data_root=source, stage_center_selection_root=stage, current_date='20261011', module_role='combined')\nwith TestClient(app) as c:\n    dates = c.get('/api/v1/runs/date-list?date=20261012').json()\n    p = c.get('/api/v3/preselection-pools?date=20261012').json()\n    print('date_list:', {'requested_date': dates.get('requested_date'), 'selected_date': dates.get('selected_date'), 'future_target_dates': dates.get('future_target_dates')})\n    print('preselection:', {'data_status': p.get('data_status'), 'trade_date': p.get('trade_date'), 'a_all_pool_row_count': p.get('a_all_pool_row_count'), 'market_totals': p.get('market_totals')})\n    print('pool_sizes:', [(x.get('pool_id'), x.get('pool_size'), x.get('status')) for x in p.get('pools', [])])\nPY",
+      "result": "PASS",
+      "http_statuses": {
+        "date_list": 200,
+        "preselection_pools": 200
+      },
+      "roots": {
+        "V35_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "V35_PRESELECTION_SOURCE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V35_STAGE_CENTER_SELECTION_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+        "configuration_evidence": "/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/integration/api.before.plist",
+        "configuration_sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081"
+      },
+      "results": {
+        "requested_date": "20261012",
+        "selected_date": "20261012",
+        "future_target_dates": [
+          "20261012"
+        ],
+        "data_status": "PARTIAL_WITH_ROWS",
+        "pool_count": 7,
+        "row_count": 510,
+        "a_all_pool_row_count": 371,
+        "market_totals": {
+          "A": 371,
+          "HK": 100
+        },
+        "hk_pool": {
+          "pool_size": 100,
+          "status": "STRICT_0_2_READY"
+        },
+        "configured_hk_pool_fallback": null
+      },
+      "source_date_directory": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261012",
+      "local_date_directory_absent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/preselection_pools/20261012"
+    }
+  },
+  "unresolved": {
+    "NOT_CONFIRMED": [
+      "Cause of the separate earlier temporary A-only fixture returning DATA_BLOCKED_EMPTY was not reproduced or attributed; it is not evidence of a failure on the actual configured source roots."
+    ],
+    "CANNOT_CONFIRM": [
+      "Active 8873 process API/UI readback after canonical integration; not part of this writer phase.",
+      "Independent reviewer verdict on the canonical actual diff; pending separate read-only review."
+    ]
+  }
+}

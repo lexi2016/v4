@@ -1,0 +1,103 @@
+{
+  "schema_version": "v4_preselection_canonical_independent_review.v1",
+  "reviewed_at_utc": "2026-10-11T07:49:13Z",
+  "reviewer_identity": "/root/preselection_date_review",
+  "review_status": "PASS_CANDIDATE_SCOPE",
+  "behavior_status": "BEHAVIOR_VERIFIED_CANDIDATE_SCOPE",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "scope": {
+    "goal": "Integrate only the equivalent configured source-root propagation into the canonical date catalog.",
+    "scope_sha256": "8ad5124476f7cbba439dffab91ea4de2302bb683b537ef55ede556ec29bf7bcc",
+    "allowed_paths": [
+      "apps/api/v35_api/app.py",
+      "domains/preselection.py",
+      "domains/_preselection_parts/date_catalog.py",
+      "tests/test_preselection_date_catalog_split_roots.py"
+    ],
+    "excluded_from_this_verdict": [
+      "active 8873 process and browser integration",
+      "HK Stage selection execution or Stage eligibility"
+    ]
+  },
+  "diff_review": {
+    "canonical_patch_sha256": "57cb99fd97102e958d0337b5db27a6722744492dcf6414c71dd324358eb469e7",
+    "writer_receipt_sha256": "5483e552749e859c107ef22ea3bcd29bcc5ba2b02ac82bd3786a490d20c9d5f5",
+    "patch_sha_matches_writer_receipt": true,
+    "actual_source_diffs_compared_with_per_file_before_snapshots": true,
+    "actual_file_sha256": {
+      "apps/api/v35_api/app.py": {
+        "before": "0362282afbac2d6684e1b6d27a6c4852fe96272e29cc29ff618719793f6ec465",
+        "after": "46d8a6fbd062e1d8bfa2a7043acc9c53609ab6ee14baed4be21959910842a677",
+        "matches_writer_receipt": true,
+        "diff": "_catalog passes resolved_pool_source only when a separate source root is configured; otherwise passes None."
+      },
+      "domains/preselection.py": {
+        "before": "f209ceb037515586883dc669d830fb44afcf778b67971951bde69c5eab8b67a0",
+        "after": "499c5ad2df56a474eb83c63446f044b2d390d70e17aa3956cb535e67b4843597",
+        "matches_writer_receipt": true,
+        "diff": "Optional source-root argument is threaded through the existing date_catalog and verified-pool-date wrappers."
+      },
+      "domains/_preselection_parts/date_catalog.py": {
+        "before": "091a38cfd07a4c7a2da2e1e9f2de885df1420683fa5ae5e986d1f546e0cd1a0d",
+        "after": "55b87104bfa6f5dab767701a09100eebc7f42c763c55908961838f260e43f131",
+        "matches_writer_receipt": true,
+        "diff": "Enumerates configured roots using the existing exact-date PreselectionSourceResolver and deduplicates verified dates."
+      },
+      "tests/test_preselection_date_catalog_split_roots.py": {
+        "before": null,
+        "after": "a0750ea622d6a0bc516597a99f7a1ffc24a9f00c404c95f406d042eacbec2f2e",
+        "matches_writer_receipt": true
+      }
+    },
+    "unrelated_changes_seen_in_scoped_diff": false
+  },
+  "verification": {
+    "focused_new_tests": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/Users/lexi/Desktop/学习/v4_app /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest -q -p no:cacheprovider --basetemp=/tmp/v4_preselection_canonical_independent_review_20261011 tests/test_preselection_date_catalog_split_roots.py",
+      "result": "3 passed",
+      "warning": "One existing Starlette TestClient/httpx deprecation warning."
+    },
+    "same_root_date_catalog_regression": {
+      "test": "tests/test_date_api_contract.py::test_explicit_target_date_stays_selected_and_partial_pools_remain_independent",
+      "result": "1 passed",
+      "evidence": "The no-separate-source-root date-list still includes/selects the explicit target date."
+    },
+    "actual_roots_read_only_canary": {
+      "method": "Canonical FastAPI TestClient; GET /api/v1/runs/date-list?date=20261012 and GET /api/v3/preselection-pools?date=20261012 only.",
+      "configuration_evidence": {
+        "path": "integration/api.before.plist",
+        "sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+        "data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "stage_selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection"
+      },
+      "result": {
+        "requested_date": "20261012",
+        "selected_date": "20261012",
+        "future_target_dates": [
+          "20261012"
+        ],
+        "data_status": "PARTIAL_WITH_ROWS",
+        "a_all_pool_row_count": 371,
+        "market_totals": {
+          "A": 371,
+          "HK": 100
+        }
+      },
+      "side_effects": "No pool, pointer, service, or browser writes/actions."
+    }
+  },
+  "acceptance_boundary": {
+    "canonical_date_catalog_root_fix": "PASS",
+    "candidate_api_behavior": "VERIFIED_BY_READ_ONLY_TESTCLIENT",
+    "active_8873_api": "CANNOT_CONFIRM",
+    "browser_ui": "CANNOT_CONFIRM",
+    "hk_stage_contract_or_selection": "CANNOT_CONFIRM_IN_THIS_PHASE",
+    "source_data_mutated": false,
+    "live_service_changed": false
+  }
+}
