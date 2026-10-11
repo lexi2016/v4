@@ -1,0 +1,15 @@
+{
+  "schema": "ISSUE36_R7_REMOTE_TARGET_FREE_PREFLIGHT_ATTEMPT_V1",
+  "runtime": "python 3.13.5 non-Mac",
+  "attempted_command": "python -B gh_r7_resume_launcher.py --target-free-preflight",
+  "exit_code": 2,
+  "status": "CANNOT_CONFIRM_TARGET_FREE_PREFLIGHT",
+  "error_type": "GateError",
+  "error": "LOCKED_PYTHON_VERSION_MISMATCH",
+  "actual_genuine_mac_adapter_preflight_executed": false,
+  "registry_writes": 0,
+  "target_reads": 0,
+  "fit": 0,
+  "predict": 0,
+  "truth_decode": 0
+}
