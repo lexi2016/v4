@@ -1,0 +1,61 @@
+diff --git a/v4/manager_research/plan_owner_dispatch.py b/v4/manager_research/plan_owner_dispatch.py
+--- a/v4/manager_research/plan_owner_dispatch.py
++++ b/v4/manager_research/plan_owner_dispatch.py
+@@ -315,6 +315,47 @@
+     }
+ 
+ 
++def _completed_dispatch_still_current(service: Any, identity: Mapping[str, str],
++                                      previous: Mapping[str, Any], *, now: datetime) -> bool:
++    """No blind reuse of yesterday's unchanged trigger after material inputs move.
++
++    Evening's trigger is date+binding scoped, so several genuine input changes
++    may occur within the SAME trigger. Use the original owner GET-only reader
++    to validate the exact saved plan and its terminal attempt before replaying
++    the old dispatch receipt. Other branches use separately admitted time slots.
++    """
++    if identity["branch"] != "EVENING_NEXT_SESSION":
++        return True
++    from .workspace import get_workspace, _read_plan, verified_plan_attempt
++    from ops.run_manager_announcement_cycle import valid_owner_plan_result
++
++    date = identity["target_trade_date"]
++    plan = previous.get("response", {}).get("plan_result")
++    if not isinstance(plan, Mapping) or not valid_owner_plan_result(plan, identity["branch"]):
++        return False
++    saved = _read_plan(service.store, date)
++    if (not isinstance(saved, Mapping)
++            or saved.get("run_id") != plan.get("run_id")
++            or saved.get("sha256") != plan.get("product_sha256")
++            or saved.get("input_identity") != plan.get("input_identity")):
++        return False
++    # Require the immutable exact-run terminal evidence; latest may belong to
++    # a different failed run and may never authenticate the previous product.
++    try:
++        owner_attempt = verified_plan_attempt(service.store, saved)
++    except (OSError, ValueError, TypeError, KeyError, RuntimeError):
++        return False
++    if not isinstance(owner_attempt, Mapping) or owner_attempt.get("run_id") != saved["run_id"]:
++        return False
++    current = get_workspace(service, date, include_saved=True, now=now)
++    current_plan = current.get("plan_product") if isinstance(current, Mapping) else None
++    return bool(isinstance(current_plan, Mapping)
++        and current_plan.get("status") == "CURRENT"
++        and current_plan.get("consumed") is True
++        and current_plan.get("run_id") == saved["run_id"]
++        and current_plan.get("sha256") == saved["sha256"])
++
++
+ def _dispatch_outcome(result: Mapping[str, Any]) -> str:
+     plan = result.get("plan_result")
+     if not isinstance(plan, Mapping):
+@@ -703,7 +744,8 @@
+                 raise ValueError("PLAN_OWNER_DISPATCH_RECONCILIATION_READBACK_FAILED")
+             return {**response, "dispatch_receipt": _receipt_reference(identity, completed)}
+         if (prior is not None and prior["state"] == "COMPLETED"
+-                and prior["response"].get("status") in {"SUCCEEDED", "PARTIAL"}):
++                and prior["response"].get("status") in {"SUCCEEDED", "PARTIAL"}
++                and _completed_dispatch_still_current(service, identity, prior, now=now)):
+             return {**dict(prior["response"]),
+                 "dispatch_receipt": _receipt_reference(identity, prior)}
+         if daily_mode and identity["branch"] == "SAME_DAY_CATCHUP":
