@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "module": "M01",
+  "candidate": "R14",
+  "scope": "Isolated cloud parser/core tests with remaining gaps separately recorded; not deployable or production acceptance.",
+  "repository": "lexi2016/v4",
+  "branch": "v5/module-chat-handoffs-20261010",
+  "publication_parent_commit": "20b048e2dd567826c36e9623582d822ad07ec1e8",
+  "r14_dynamic_tests_at_publication": "NOT_RUN",
+  "candidate_binding_schema": "v5.m01.a_source_binding.r14",
+  "default_dependency_entrypoints": "NOT_IMPLEMENTED",
+  "bounded_source_reader_and_source_containment": "NOT_IMPLEMENTED",
+  "files": [
+    {
+      "filename": "V5_M01_A_SOURCE_R14_CANDIDATE.zip",
+      "bytes": 7049,
+      "sha256": "b0fb26d87855a14c2ae8dfb9fcb4f1342c32494b64649f9fe8c9e37b12b68a16",
+      "git_blob_sha1": "dd2eb8ee500f4f080aec99d5f11a2b3504017a48"
+    }
+  ],
+  "baseline_inputs": {
+    "commit": "30d795bca2ed28c6b182eb8778f25dfdc2b2bc0f",
+    "directory": "handoff/v5-m01-mac-inputs-20261011/",
+    "files": [
+      {
+        "filename": "V5_M01_SOURCE_REVIEW_20261010.zip",
+        "sha256": "8643ec4846da31e2a32c95492cdf51648f1a957991a673d197685104d8029933"
+      },
+      {
+        "filename": "V5_M01_HISTORY_GAP_SUPPLEMENT_20261010.zip",
+        "sha256": "f0706bf684f372549f7a75f0f3a3e8ca8e233add7724e26fc5075849916da291"
+      }
+    ]
+  },
+  "r10_baseline": {
+    "commit": "62deec72c684e4cea25d7cedd526e09ead2304ba",
+    "directory": "handoff/v5-m01-r10-cloud-inputs-20261011/"
+  },
+  "known_packaging_defect": "SHA256.txt self-entry is incorrect; actual SHA256 930d1303065e43d034dd7172d974c6b28288b4749dc4c8b096a257c9aeb6797d. Other five member entries and external ZIP SHA verified. Preserve unchanged candidate."
+}
