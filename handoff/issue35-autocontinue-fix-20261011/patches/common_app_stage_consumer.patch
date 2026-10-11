@@ -1,0 +1,11 @@
+diff --git a/apps/api/v35_api/app.py b/apps/api/v35_api/app.py
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -5309,6 +5309,7 @@
+         catalyst_news_owner_root=(Path(os.environ["V4_MANAGER_NEWS_OWNER_ROOT"])
+                                   if os.environ.get("V4_MANAGER_NEWS_OWNER_ROOT") else None),
+         workspace_us_market_reader=manager_us_market_reader,
++        workspace_stage_selection_reader=shared_selection_consumer,
+     )
+     app.state.manager_research_service = manager_research_service
+     app.include_router(create_manager_research_router(manager_research_service))
