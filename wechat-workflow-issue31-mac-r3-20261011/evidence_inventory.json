@@ -1,0 +1,753 @@
+{
+  "schema_version": "issue31-r3-mac-evidence-inventory-v1",
+  "root": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r3_mac_20261011",
+  "scope": "all files present at inventory creation excluding this inventory, WRITER_RECEIPT.json, and HANDOFF.md",
+  "file_count": 149,
+  "files": [
+    {
+      "path": "WORKER_LEDGER.json",
+      "bytes": 881,
+      "sha256": "30fcdd764e3636e0e27d072da956d5fd835353594cf7805526e62ce19d43c45d"
+    },
+    {
+      "path": "github/MAC_REACCEPTANCE_PLAN.md",
+      "bytes": 5147,
+      "sha256": "a12f1f3110fb81454645294ada1bba5c75b1821345adcbdfd0006f4d721d7ffb"
+    },
+    {
+      "path": "github/R3_ACCEPTANCE_COMMANDS.md",
+      "bytes": 8168,
+      "sha256": "a4cc517f518df5fc2c31830a74d9ed5b71cd35414c1f30110110e3a935f6b8f1"
+    },
+    {
+      "path": "github/SOURCE_MANIFEST.json",
+      "bytes": 3330,
+      "sha256": "fdf171a96845b26bb23f30dd3f6b2ed4b3429b23bc2a7af9cb8428a480ba6da3"
+    },
+    {
+      "path": "github/actual_diff.patch",
+      "bytes": 68150,
+      "sha256": "739df58d9cfb1213bfa7ff879ecd4ec660c1778acb3d85ad1a92ce619ecc1f12"
+    },
+    {
+      "path": "github/source_inputs/test_wechat_article_fetch_recovery.py",
+      "bytes": 31535,
+      "sha256": "3d5a55f32c62a1ea250f1bdfef3b41584abcccbb06199000357483acdde2e124"
+    },
+    {
+      "path": "github/source_inputs/wechat_article_fetch.py",
+      "bytes": 58707,
+      "sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17"
+    },
+    {
+      "path": "github/source_inputs/wechat_pipeline_runner.py",
+      "bytes": 74185,
+      "sha256": "b65fc26d232d2c3f38b5ec72f0b739728ff867a85b3e97da0dc26729ebf5d63e"
+    },
+    {
+      "path": "logs/apply_r3_patch.log",
+      "bytes": 179,
+      "sha256": "8439619a437bf7614d68898785e6326338f44bcc2bda1a9e1708ecdaf9b3e4c1"
+    },
+    {
+      "path": "logs/body_binding_targeted_tests.log",
+      "bytes": 1424,
+      "sha256": "0063a16d04da96aa53abbb98fc7f72fdd3f81a7326d1984fc12aee69c3c5cdd2"
+    },
+    {
+      "path": "logs/build_writer_receipt.log",
+      "bytes": 2256,
+      "sha256": "6c6010ef23971e09f13a0ef5f9d02cb3e65a466d6053a6e21adab6d7b2923dc4"
+    },
+    {
+      "path": "logs/copy_bound_collector.log",
+      "bytes": 495,
+      "sha256": "653362c1bca84a94feeeac5cf58db4acd030a848faa92bf5f3c36f54205f708b"
+    },
+    {
+      "path": "logs/default_fetch_before_state.json",
+      "bytes": 1443,
+      "sha256": "ef3a6ac7023dd628b82acf25c805c0f4253855df7424dc49f992cafe1ea642df"
+    },
+    {
+      "path": "logs/default_fetch_child_argv.jsonl",
+      "bytes": 551,
+      "sha256": "b57ba3a1709c3a6ee62f1b3d73dd73acfab2159370c595a966d2c4b4132ac0d0"
+    },
+    {
+      "path": "logs/default_fetch_network_guard_events.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/default_fetch_reuse_runner.log",
+      "bytes": 271,
+      "sha256": "ac17db5d2dc292240402aa4de9434107f4cd429060a23beb63eba6d8a467c544"
+    },
+    {
+      "path": "logs/existing_adoption_rejection_regression.log",
+      "bytes": 98,
+      "sha256": "d2d744b6b2df2bbb0d73cb7a43f6675bd03881bc2a2c2a74e54ecf18667789e2"
+    },
+    {
+      "path": "logs/explicit_adoption_runner.log",
+      "bytes": 271,
+      "sha256": "ac17db5d2dc292240402aa4de9434107f4cd429060a23beb63eba6d8a467c544"
+    },
+    {
+      "path": "logs/network_guard_events.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/original_anchor_search_noignore.log",
+      "bytes": 1395,
+      "sha256": "754dbc269a3055c5304d45b93a0ce2850e8d5413056feabb10c277773792225e"
+    },
+    {
+      "path": "logs/patch_reverse_dry_run.log",
+      "bytes": 234,
+      "sha256": "970807c829332ecca0ad11663b09410d294e11dd00cdf2d71427aca8007ab1b6"
+    },
+    {
+      "path": "logs/patch_reverse_dry_run_p1.log",
+      "bytes": 179,
+      "sha256": "8439619a437bf7614d68898785e6326338f44bcc2bda1a9e1708ecdaf9b3e4c1"
+    },
+    {
+      "path": "logs/prepare_ocr_after_snapshot.log",
+      "bytes": 1136,
+      "sha256": "689f5af786ed85462652eccf1e4ba7fe45b83d0bef2a2faa318313b1e959c319"
+    },
+    {
+      "path": "logs/prepare_ocr_after_state.json",
+      "bytes": 53460,
+      "sha256": "33cbbb40d48b9257afe449ec0f59987ebe28edfa9564c7151d0c89c1e6300bbd"
+    },
+    {
+      "path": "logs/prepare_ocr_before_snapshot.log",
+      "bytes": 1210,
+      "sha256": "821b79d44ae6fc6cc22a46ad87f8269aee521209f371646a90492ade8add6340"
+    },
+    {
+      "path": "logs/prepare_ocr_before_state.json",
+      "bytes": 53461,
+      "sha256": "05e2152ea5bb010b0dc4e3975a3b76e6c581a3370d0851a1cbab10a5daea5fc4"
+    },
+    {
+      "path": "logs/prepare_ocr_child_argv.jsonl",
+      "bytes": 477,
+      "sha256": "995afb98c534067828fc0666a04cbdba5c30df766652a52a00cfe2b81d2706cf"
+    },
+    {
+      "path": "logs/prepare_ocr_network_guard_events.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/prepare_ocr_runner.log",
+      "bytes": 519,
+      "sha256": "e05548f420259384c7e06a08e4eb03bbdf29d871b4c2332e88e5dcbbe2ae20be"
+    },
+    {
+      "path": "logs/prepare_ocr_snapshot_attempt1_empty.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/prepare_ocr_state_comparison.log",
+      "bytes": 369,
+      "sha256": "517f8292073839bb503a8ddb72dfac2e5b578e769c340bf713fb1b19e81e03d4"
+    },
+    {
+      "path": "logs/rebind_working_run.log",
+      "bytes": 430,
+      "sha256": "cc3121361f3fa3316b6ef4a4155cbad3f5e506488007c1cdd6b2cf34e5595c63"
+    },
+    {
+      "path": "logs/rejection_child_argv.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/rejection_network_guard_events.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/rejection_probes.log",
+      "bytes": 1300,
+      "sha256": "e68667805fd1da470f8e52adaac20378444ddcb2bda6740859d53b0296fe3204"
+    },
+    {
+      "path": "logs/rejection_probes_attempt1_harness_error.log",
+      "bytes": 872,
+      "sha256": "e06ab7d52656985fe55f02ff2046b90a5780ca0de5546bff3da57419c627b851"
+    },
+    {
+      "path": "logs/rejection_probes_attempt2_mismatched_error_expectation.log",
+      "bytes": 887,
+      "sha256": "f42372b7df69d23ba1e7517fb55407b5ae7018b87619138dd086210685bece67"
+    },
+    {
+      "path": "logs/rejections/attempt1_duplicate_flag_rejection.log",
+      "bytes": 1883,
+      "sha256": "50f1e26d11f6d47d06be6a3773b18e942b7f5035caab795b7f4dffbb9700e172"
+    },
+    {
+      "path": "logs/rejections/attempt2_content_hash_consistency_rejection.log",
+      "bytes": 1825,
+      "sha256": "20f7e152ff32f3c785ba4a7f93b0b5a6c3aec6d91933f8680ef037f481dc0cb0"
+    },
+    {
+      "path": "logs/rejections/attempt2_wrong_external_zip_sha_passed.log",
+      "bytes": 1785,
+      "sha256": "da374b95cea5b117a8e191ae099c7809ad59ff11d371cedde0fe26058eaab875"
+    },
+    {
+      "path": "logs/rejections/attempt2_wrong_original_csv_sha_passed.log",
+      "bytes": 1795,
+      "sha256": "f069e00fccfa0eaa0a827c6fb0a83325eabf8811451a2e025eae6fb068efa942"
+    },
+    {
+      "path": "logs/rejections/attempt2_wrong_original_summary_sha_passed.log",
+      "bytes": 1796,
+      "sha256": "4194535d22120ec6f77c2809f04bd3ad301b002d748d10cf6c494e86b58de05f"
+    },
+    {
+      "path": "logs/rejections/image_bytes_tamper.log",
+      "bytes": 1715,
+      "sha256": "5ef1e26dc3630ac5eee515e7153d186a94885f136d94d1f02e9a03b6370411e5"
+    },
+    {
+      "path": "logs/rejections/manifest_path_traversal.log",
+      "bytes": 1766,
+      "sha256": "aa37f59862d63a9d5c82f42147b3e15770efff98085f822e66e792c7c9214228"
+    },
+    {
+      "path": "logs/rejections/manifest_root_outside.log",
+      "bytes": 1794,
+      "sha256": "49de1e8e81be5fc850134927f46a58b83d02d98d41cb726c28e4384885222d0c"
+    },
+    {
+      "path": "logs/rejections/nonpath_summary_mutation.log",
+      "bytes": 1821,
+      "sha256": "8baab1a548a9997c9e65ccf1b7d676cb922bdf51ba8195c2f8998b8e9d7eaa06"
+    },
+    {
+      "path": "logs/runner_child_argv.jsonl",
+      "bytes": 1382,
+      "sha256": "db91c8329935d9269ed773edbece588b6f7d0f3de15d2aaef661e89b34e406a0"
+    },
+    {
+      "path": "logs/source_candidate_prepare.log",
+      "bytes": 1094,
+      "sha256": "7f81325ed92d9b18bc635d13d7d832c6394af199605e99512c322365c2a826a8"
+    },
+    {
+      "path": "working/PREPARE_OCR_STATE_COMPARISON.json",
+      "bytes": 11542,
+      "sha256": "051fe3d8243f277e5cf609300573c01ac14a1b24b8cba77e4020464e7a4d9a82"
+    },
+    {
+      "path": "working/REJECTION_PROBES_RECEIPT.json",
+      "bytes": 14533,
+      "sha256": "d12a81d896f8bd8e705aac5adb15de842e4a26b0ef4e609938377710a1b802a7"
+    },
+    {
+      "path": "working/WORKING_RUN_REBIND_RECEIPT.json",
+      "bytes": 4570,
+      "sha256": "d3d49bd76b1d9b40083d11150c18ec2af903d52254e9804fdf97503b78db92dd"
+    },
+    {
+      "path": "working/__pycache__/build_writer_receipt.cpython-312.pyc",
+      "bytes": 18901,
+      "sha256": "5519e5177853e0f18f3e67363b59701ce0be9f852923a8f04e5ac4e1802f399f"
+    },
+    {
+      "path": "working/build_writer_receipt.py",
+      "bytes": 17671,
+      "sha256": "64d005af0b928ad1bb65194d665153dd9aee1dfe7be4c52b55a12de557a5e880"
+    },
+    {
+      "path": "working/compare_prepare_ocr_state.py",
+      "bytes": 6695,
+      "sha256": "2aec082700bcf0b59a6024be29edd70db2d12ff75b9e3b5ffa91ff6b9ef1cdf5"
+    },
+    {
+      "path": "working/rebind_historical_run.py",
+      "bytes": 10639,
+      "sha256": "58536a516d17790e505033eee473c8cf85340925c30141f5e2d6eb7438f34a42"
+    },
+    {
+      "path": "working/rejections/anchors/wrong_source_manifest.csv",
+      "bytes": 25007,
+      "sha256": "e9e12de2beac8e5b2b362e332546f8ea097f0798162b241eb6f1cc2763734335"
+    },
+    {
+      "path": "working/rejections/anchors/wrong_source_summary.json",
+      "bytes": 1353,
+      "sha256": "33dc5f2e84204045758dd828b1f33d23b91ef561850cc863c1e1a5cf0fccb19d"
+    },
+    {
+      "path": "working/run_default_fetch_reuse.sh",
+      "bytes": 1370,
+      "sha256": "7df6455dd43b126aec380b38ebfd4534340405009ebea04a7f3a37155c910436"
+    },
+    {
+      "path": "working/run_explicit_adoption.sh",
+      "bytes": 2087,
+      "sha256": "092bf244682f1161f2b8b72ed5e255d38740f4fa8625e4c17641f89009d7654f"
+    },
+    {
+      "path": "working/run_prepare_ocr.sh",
+      "bytes": 1215,
+      "sha256": "426fa6b2b4ebbc4af3908444f0c1689b15f528fbdd16f946ddcae143ea4859ec"
+    },
+    {
+      "path": "working/run_rejection_probes.py",
+      "bytes": 8436,
+      "sha256": "ac0ce227a204eec0617227c41b9f9b07f97949166701aca2468099af0278021d"
+    },
+    {
+      "path": "working/run_rejection_probes_attempt1.py",
+      "bytes": 8028,
+      "sha256": "d88326378ac611e110158c70f61613532585808941b7ca02c1449297460af29e"
+    },
+    {
+      "path": "working/run_rejection_probes_attempt2.py",
+      "bytes": 8298,
+      "sha256": "64d269bcd14622edfb973e3ed30c3ff2e1a96871075f399243768c1d4bdf4cae"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/OCR_REUSE_RECEIPT.json",
+      "bytes": 3076,
+      "sha256": "9c14a7bea8a576d6663e96e320369ccea65543992635d6c1d8ab0dc918acbc4b"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/evidence/wechat_article_fetch_adoptions/adopt_c774557b42be43e2d67c56ad/ORIGINAL_SOURCE_MANIFEST.csv",
+      "bytes": 25006,
+      "sha256": "54e5dd277a039d229d364154b8f4cde173545b5358e480994c471b7bd2a9ea62"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/evidence/wechat_article_fetch_adoptions/adopt_c774557b42be43e2d67c56ad/ORIGINAL_SOURCE_SUMMARY.json",
+      "bytes": 1422,
+      "sha256": "ce665d62c633c34cd85a49c90228874109fda50a47e80cf3f26b9dc9b6d767ed"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/evidence/wechat_article_fetch_adoptions/adopt_c774557b42be43e2d67c56ad/REVALIDATION_RECEIPT.json",
+      "bytes": 43651,
+      "sha256": "c3f472a5762823a2a216f9ca21a2583f3cf6337e140c1c1ad44a1711a2716836"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/ocr_slice_manifest.json",
+      "bytes": 20937,
+      "sha256": "f4b46da7fc645df367f10b8358e8dd194cce2ead415132e25c8fdaa13075da1b"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_fetch_state.json",
+      "bytes": 1328,
+      "sha256": "34dabbd5f9e70b91571bd8af6b113ca0532898ea677aa9a91aa67e8c041d40ed"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_image_checkpoint.json",
+      "bytes": 36951,
+      "sha256": "aefa16f0939a9646587c46819a45d3c80722d328f41ddebea4214990539ce9b6"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_image_manifest.csv",
+      "bytes": 27056,
+      "sha256": "31f6bd521f4e9d79fb5ada6485d9708480f7bf4f536188012f256aa9238a55eb"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_01.jpg",
+      "bytes": 506287,
+      "sha256": "7a633bdb6a3f038efa2935078a744099d3ab2bd2e5d3b95b4edda463bd54611e"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_02.jpg",
+      "bytes": 63568,
+      "sha256": "0286b8fbe035a6c6a9649ae42758483617a4b2afd53a4a68ff118a564665057c"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_03.jpg",
+      "bytes": 551306,
+      "sha256": "97d6f15f7007a7d10422a834367d0f2929094329a478ab90b489e01d17107527"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_04.jpg",
+      "bytes": 66345,
+      "sha256": "f546b9cf41a44d80499e3dd5da744412553a8bd0099846337d6802a85524e75f"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_05.jpg",
+      "bytes": 77189,
+      "sha256": "6fb0b83a7f29e34b700c2eb925810e5641d68e44a789e334586702a483402b32"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_06.jpg",
+      "bytes": 12620,
+      "sha256": "87458b16d082cc54b95ca918ce1bf2d85c8b0550e88c805499b61dea07b704c3"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_07.jpg",
+      "bytes": 70357,
+      "sha256": "98c6974c956b7c8034416cd3d0250b766c9e7e55ed3255018e6b64b0d7362d3d"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_08.jpg",
+      "bytes": 45445,
+      "sha256": "0e12bcc69fd55223f6020de0dfca3937c2fd06b51c211115f55f0c516a5b688e"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_09.jpg",
+      "bytes": 58659,
+      "sha256": "673b9f652308f8842a44dc5e44ea68c60106e55d3eef30b612e7ed4bce7d8438"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_10.jpg",
+      "bytes": 74656,
+      "sha256": "4f00388dddafc142cf34927c5a00e956e6a037c8172fa3bcd53d626688c5f67d"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_11.jpg",
+      "bytes": 551555,
+      "sha256": "b8e62b88777df959c777d7770c6c36e177c9eb2e342cc66fc0f42e85625c9c80"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_12.jpg",
+      "bytes": 212789,
+      "sha256": "e6117ee3ce7ee39bedd624bf4a5aba446ab0e77bc64df87c9716291b4c8c3002"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_13.jpg",
+      "bytes": 446809,
+      "sha256": "9f400ad834687995c12ff978ab213925a51401a11dd168f270e40d9568426fe2"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_14.jpg",
+      "bytes": 301986,
+      "sha256": "ff61c38de59ca182aecfd66f89d21ab123450390328e2d38dc0826b004e8acad"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_15.jpg",
+      "bytes": 548936,
+      "sha256": "07cecb116676280700ac56a8f6d0088600891cba26b3185b5b8db5e67d457ba4"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_16.jpg",
+      "bytes": 308256,
+      "sha256": "ad229a98dc5f0c78897d89939f52c1dda6ac46dfa371290ed301dd472c058715"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_17.jpg",
+      "bytes": 400262,
+      "sha256": "ac040f6bc3868add20525500df60581ee0465ccc7fa7607f73440be1292463d9"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_18.jpg",
+      "bytes": 524526,
+      "sha256": "d837475b0562bf7fb583a106de6c06fe483505eed7c02b9045771035e3af2687"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_19.jpg",
+      "bytes": 73426,
+      "sha256": "4ef42e1bc5b0863f06182dbf0df0ba5047316dcaf1a4187ad173c9f1614f4efd"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_20.jpg",
+      "bytes": 59860,
+      "sha256": "6a169eeb23c5dc89f5672c9b6244a946280449abab5536f72a9201b04512b90d"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_21.jpg",
+      "bytes": 100770,
+      "sha256": "6226a8181ee29f05be5029e4425842e5463eb0aabc836e5e2672e32725510c4a"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_22.jpg",
+      "bytes": 335660,
+      "sha256": "e2efccf3224fd250afb3180487391ebf761132e9bc8da5c2130a63ff04e009e9"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_23.jpg",
+      "bytes": 342358,
+      "sha256": "b39d2eadea41b78851b4c38c70418f77b7ab9b0ac520089d58dfce1ce59e780a"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_24.jpg",
+      "bytes": 232873,
+      "sha256": "39d0cc0894a59280d8728f391001d1b3b4d4de68b476f1440a872d03bcca7658"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_25.jpg",
+      "bytes": 465565,
+      "sha256": "0c860a8146920739e46420923ea1a0331173ae23898666336c8818c4b32b1b67"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_26.jpg",
+      "bytes": 118778,
+      "sha256": "2c8f3bc08cc705e12a0f8d7d64a88c2f88599c94c5df4eb7cb1f0afaf2e3ae8a"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_27.jpg",
+      "bytes": 74201,
+      "sha256": "fb3596b6879d0734d489a4b4e77b80960d3d4e3b2cba05c975c49b0e486fc7fb"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_28.jpg",
+      "bytes": 121513,
+      "sha256": "bcba553942378c95b905fb016c783b5fb59d015a54b81ac116e750e206cff98c"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_29.jpg",
+      "bytes": 167373,
+      "sha256": "1dc78e958ce5afada75016c1e6bd4e018a52ddb8b7ca6879b233b76634864f8c"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_30.jpg",
+      "bytes": 142205,
+      "sha256": "753a73ec9d9956a7ea885ac733e9d5ca2fee34d62e1f714ffb8f61c9f4bbeddf"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_31.jpg",
+      "bytes": 102546,
+      "sha256": "eb7c8cce9644c72f2a2f2d5614753d1da3a277504378630f730da19bafe267c8"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_32.jpg",
+      "bytes": 255136,
+      "sha256": "7dd9f27450e52919e515b01a06912cc3979c2d7734a582a0720dbb6fee6053b2"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_33.jpg",
+      "bytes": 170519,
+      "sha256": "60d6a9657166bc0fa98b60a5c9fc852152d667e1db980fffafd298372f07f48c"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_34.jpg",
+      "bytes": 544432,
+      "sha256": "db38126ce9873662be78ac1689f64dcf42fecde8d71d0592997c4b37e8014e17"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_35.jpg",
+      "bytes": 193607,
+      "sha256": "08b8f578ecc2bc7c301e4ccdbb56daa9a8a7516f8bd8ddd330a43f3e47895280"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_36.jpg",
+      "bytes": 215988,
+      "sha256": "d3de305f4bfdda8ed28c0fbcd914913846e8be03db60e6b3731645ebdbc76c83"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_37.jpg",
+      "bytes": 205708,
+      "sha256": "7878dbe5da6f6e7c0e7696de566cf1b69c662b18a6a1c742d96b0526ce9f14f6"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_38.jpg",
+      "bytes": 208388,
+      "sha256": "09800fca954fb747051917a25889a37f253c89e6cb1544f283ee16f8afdab754"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_39.jpg",
+      "bytes": 193367,
+      "sha256": "38ffbd3389d6d2fba1aec58089bc4609465324183934769f41751a591c881a08"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_40.jpg",
+      "bytes": 233356,
+      "sha256": "d13fc12624d2c11e2fd995b8861b1bae9cb09959dbcf2c942860a42fad937e5e"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_41.jpg",
+      "bytes": 273239,
+      "sha256": "e3753dc41a494eaf0839f89be91b8caf02a640157f2c681fe825b9d36c578dd0"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_42.jpg",
+      "bytes": 246359,
+      "sha256": "baaeab3010ec414ca3868e292f7bd3f9b6537744709d5f8def315bf567395c88"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_43.jpg",
+      "bytes": 229051,
+      "sha256": "2558059c2168e59951910dbde1e994bf0da684442baa7765f31fff0087ff09e7"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_44.jpg",
+      "bytes": 150637,
+      "sha256": "1b561754b2e5773d20c97cd7b4faa493692a4911ba3cf2b96fdec81c4464e5fa"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_45.jpg",
+      "bytes": 222457,
+      "sha256": "732eb0f0d65bdaf7105615ae6cada7d396e422bf7abf906ce65c5fbbf213f3cb"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_46.jpg",
+      "bytes": 225196,
+      "sha256": "4316dc8256594bc6d3622fb8bb7b5d375029ad60d0c45869ae8520f6cc5f2ef4"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_47.jpg",
+      "bytes": 215426,
+      "sha256": "255200b45c76bf76914c4ab701285271a1f48b410fcbf9534c365ed4a2c565d6"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_48.jpg",
+      "bytes": 107791,
+      "sha256": "fdf5a693c9cd30e03eb86bfc2ef93dbde2923d204119a4ee3135f53d6aa35906"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_49.jpg",
+      "bytes": 187995,
+      "sha256": "6097a0de3b5af33251bb827767826a0d1265231f0502feb5ef4e701d2ec7fb0e"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_images/img_50.jpg",
+      "bytes": 169577,
+      "sha256": "bf6e4f4fd966cf2747feb8f67c29b92890206fb2be7c27c669cec538bd06cfe7"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_intake_report.md",
+      "bytes": 892,
+      "sha256": "30c2de101767401b6ad58d1154a2e9b4dd85db8145a5f9c610ac45fc12559347"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_intake_summary.json",
+      "bytes": 1422,
+      "sha256": "ce665d62c633c34cd85a49c90228874109fda50a47e80cf3f26b9dc9b6d767ed"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_ocr_summary.json",
+      "bytes": 701,
+      "sha256": "240ad77aee940d38b109d3ad34f968755af90e839e75b266e4894e8f9d6de0bb"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_ocr_text.txt",
+      "bytes": 89019,
+      "sha256": "521fca956fee60ec3a0fd5d749fb60e8544a3386001826c7d952fe40c1f2f996"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_raw.html",
+      "bytes": 3565865,
+      "sha256": "1923182d24644ecb31e73efb059928d7cebb1bcf07996aa136199b18dce3aa90"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_research_collection_usage_plan.md",
+      "bytes": 1035,
+      "sha256": "afa06b5b74d215cab8221ce5070c35fa58bcd1a0fb0b60b3eb3a15b54b4990c2"
+    },
+    {
+      "path": "working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/windows_ocr_results.json",
+      "bytes": 120187,
+      "sha256": "5c78cd56ac2f527f4954c4473a147578aac7dcb3bafe0575b481a500aafbe04d"
+    },
+    {
+      "path": "working/snapshot_prepare_ocr_state.py",
+      "bytes": 2388,
+      "sha256": "77dfcebc2fadf1d76cc3f2fc96c59178f54903b22dcb10bd72fddfe3def49bdc"
+    },
+    {
+      "path": "working/tmp/instrument/sitecustomize.py",
+      "bytes": 1732,
+      "sha256": "401602b7a9d064fdf056457202d4708736ac46e3c38ba1264ba5a617ac6d46ff"
+    },
+    {
+      "path": "working/wechat/external/wechat_article_intake.py",
+      "bytes": 32925,
+      "sha256": "de9499c2e049bcf6d3da5ea6375831aece5eb2374e338e057f04e60dfd0c6058"
+    },
+    {
+      "path": "working/wechat/scripts/__pycache__/wechat_article_fetch.cpython-312.pyc",
+      "bytes": 109399,
+      "sha256": "ad3817c96d27e6322264fc6114d787c7970a75bcb897e10a5158a8d39069f73e"
+    },
+    {
+      "path": "working/wechat/scripts/__pycache__/wechat_chat_handoff.cpython-312.pyc",
+      "bytes": 110658,
+      "sha256": "350451c6fbbb94aca84a66efd1f41534c750e515c8840497e355638c0269af8c"
+    },
+    {
+      "path": "working/wechat/scripts/__pycache__/wechat_common.cpython-312.pyc",
+      "bytes": 36171,
+      "sha256": "6e22c530deeda8467e824cfd737e782c47dd4b1358cd334b2281b48313ec8f4f"
+    },
+    {
+      "path": "working/wechat/scripts/__pycache__/wechat_pipeline_runner.cpython-312.pyc",
+      "bytes": 92385,
+      "sha256": "48b856d3608dd996706147bdcf6a604ef792908fab9547ab143462ae599d2aa0"
+    },
+    {
+      "path": "working/wechat/scripts/__pycache__/wechat_prepare_ocr.cpython-312.pyc",
+      "bytes": 17051,
+      "sha256": "4176fdc6d73d7066b7241020f92bdbfdc11ff06c50cb697b049e6fdcc86494c2"
+    },
+    {
+      "path": "working/wechat/scripts/wechat_article_fetch.py",
+      "bytes": 91948,
+      "sha256": "192564aea7421a9af42b0116c32708848765cbb433c8692351f0db75098b860f"
+    },
+    {
+      "path": "working/wechat/scripts/wechat_article_intake.py",
+      "bytes": 32925,
+      "sha256": "de9499c2e049bcf6d3da5ea6375831aece5eb2374e338e057f04e60dfd0c6058"
+    },
+    {
+      "path": "working/wechat/scripts/wechat_chat_handoff.py",
+      "bytes": 92937,
+      "sha256": "4b8b358883cac5538df244126bd42efc70ff358681f7512afda5242833981fdf"
+    },
+    {
+      "path": "working/wechat/scripts/wechat_common.py",
+      "bytes": 24659,
+      "sha256": "25934b26357060e3322dcf393816383558a166a5a969244a7e4f1e8de4582446"
+    },
+    {
+      "path": "working/wechat/scripts/wechat_macos_ocr.py",
+      "bytes": 40734,
+      "sha256": "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d"
+    },
+    {
+      "path": "working/wechat/scripts/wechat_pipeline_runner.py",
+      "bytes": 77999,
+      "sha256": "46d8761e44a250642cbcd7a513604fad1148d09726010d6f0eab5f269f256bcd"
+    },
+    {
+      "path": "working/wechat/scripts/wechat_prepare_ocr.py",
+      "bytes": 11731,
+      "sha256": "980c9004a1fa38862708ee325970ab8adfebbd66661cb42f0f8318436eebe606"
+    },
+    {
+      "path": "working/wechat/scripts/wechat_yesterday_performance.py",
+      "bytes": 89787,
+      "sha256": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c"
+    },
+    {
+      "path": "working/wechat/templates/chat_research_prompt.md",
+      "bytes": 13462,
+      "sha256": "29aec527fe954c1408f8a94905bfc9f5e7f28a2e97195008d2ee8978936a1c6f"
+    },
+    {
+      "path": "working/wechat/tests/__pycache__/test_wechat_article_fetch_recovery.cpython-312-pytest-9.0.2.pyc",
+      "bytes": 75391,
+      "sha256": "331c005a9feb6fdfb728f27bb95377c8a66710a7e8e709059c7d9ded945da92d"
+    },
+    {
+      "path": "working/wechat/tests/test_prior_mentions_performance_appendix.py",
+      "bytes": 26675,
+      "sha256": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588"
+    },
+    {
+      "path": "working/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "bytes": 52232,
+      "sha256": "3c2316ff77f291c91bb2d04efe00b3f0304c9c8cdf461d731da48b3435d83e92"
+    },
+    {
+      "path": "working/wechat/tests/test_wechat_chat_handoff.py",
+      "bytes": 29435,
+      "sha256": "a1df48347402728fef6ee65897eca89a52ad9f3abf2c7591891be196219a5814"
+    }
+  ]
+}

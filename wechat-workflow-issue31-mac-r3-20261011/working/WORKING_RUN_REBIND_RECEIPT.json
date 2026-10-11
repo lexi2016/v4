@@ -1,0 +1,104 @@
+{
+  "schema_version": "issue31-r3-working-run-rebind-v1",
+  "source_run": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+  "working_run": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r3_mac_20261011/working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+  "run_basename": "20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+  "external_package": {
+    "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/original_inputs/wechat_chat_materials_wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1.zip",
+    "bytes": 11012092,
+    "sha256": "c8a0dcfb548012bc8feb4e818e0cad7eead7de5a564a0ecaa85d64ce3763956f",
+    "package_id": "wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1",
+    "input_digest": "c93e458747fe18fa33373785d79a9b026c15792d02fa9263db7b6f2bda48abc2"
+  },
+  "source_anchors": {
+    "summary": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_intake_summary.json",
+      "sha256": "ce665d62c633c34cd85a49c90228874109fda50a47e80cf3f26b9dc9b6d767ed",
+      "working_sha256": "ce665d62c633c34cd85a49c90228874109fda50a47e80cf3f26b9dc9b6d767ed",
+      "bytes_unchanged": true
+    },
+    "csv": {
+      "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_image_manifest.csv",
+      "sha256": "54e5dd277a039d229d364154b8f4cde173545b5358e480994c471b7bd2a9ea62",
+      "working_sha256": "31f6bd521f4e9d79fb5ada6485d9708480f7bf4f536188012f256aa9238a55eb",
+      "rows": 50,
+      "columns": [
+        "idx",
+        "url",
+        "local_path",
+        "download_status",
+        "image_size",
+        "ocr_text_length",
+        "image_sha256",
+        "sha256",
+        "bytes",
+        "attempts",
+        "cache_status",
+        "content_type",
+        "error"
+      ],
+      "only_changed_field": "local_path",
+      "root_replacements": 50
+    }
+  },
+  "path_rebinding": {
+    "summary_path_fields": {
+      "html_path": "runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_raw.html",
+      "image_manifest_path": "runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_image_manifest.csv",
+      "ocr_text_path": "runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_ocr_text.txt",
+      "image_checkpoint_path": "runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/wechat_article_image_checkpoint.json"
+    },
+    "summary_fields_byte_unchanged": true,
+    "local_path_root_mapping": {
+      "from": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+      "to": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r3_mac_20261011/working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw"
+    },
+    "all_current_paths_regular_and_in_run": true,
+    "symlink_count": 0,
+    "traversal_count": 0
+  },
+  "artifact_counts": {
+    "source_files": 61,
+    "images": 50,
+    "ocr_cache_files": 5,
+    "working_files": 61
+  },
+  "unchanged_key_bytes": {
+    "wechat_article_raw.html": {
+      "before": {
+        "bytes": 3565865,
+        "sha256": "1923182d24644ecb31e73efb059928d7cebb1bcf07996aa136199b18dce3aa90"
+      },
+      "after": {
+        "bytes": 3565865,
+        "sha256": "1923182d24644ecb31e73efb059928d7cebb1bcf07996aa136199b18dce3aa90"
+      },
+      "unchanged": true
+    },
+    "wechat_article_ocr_text.txt": {
+      "before": {
+        "bytes": 89019,
+        "sha256": "521fca956fee60ec3a0fd5d749fb60e8544a3386001826c7d952fe40c1f2f996"
+      },
+      "after": {
+        "bytes": 89019,
+        "sha256": "521fca956fee60ec3a0fd5d749fb60e8544a3386001826c7d952fe40c1f2f996"
+      },
+      "unchanged": true
+    },
+    "wechat_article_image_checkpoint.json": {
+      "before": {
+        "bytes": 36951,
+        "sha256": "aefa16f0939a9646587c46819a45d3c80722d328f41ddebea4214990539ce9b6"
+      },
+      "after": {
+        "bytes": 36951,
+        "sha256": "aefa16f0939a9646587c46819a45d3c80722d328f41ddebea4214990539ce9b6"
+      },
+      "unchanged": true
+    }
+  },
+  "source_run_inventory_sha256": "54b982a464d6b232b924afdd7f1c3d8c194a02dc8d9fb2b2484a8b7012d3b73f",
+  "working_non_manifest_inventory_sha256": "bef9579e2f9686be9f6b87c6084b0fe48744a874a845d3232e1c0e93d3f590cf",
+  "ocr_cache_inventory_sha256": "73ad8475d9a0dd35ee5e2f10096476955777992b3f24df676b2a319b052c2bc5"
+}

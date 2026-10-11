@@ -1,0 +1,24 @@
+{
+  "argv": [
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python",
+    "-X",
+    "utf8",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r3_mac_20261011/reviewer/working/wechat/scripts/wechat_article_fetch.py",
+    "--url",
+    "https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw",
+    "--out",
+    "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r3_mac_20261011/reviewer/working/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+    "--skip-ocr"
+  ],
+  "exit_code": 2,
+  "expected_exit_code": 2,
+  "previous_image_size": "782x3506",
+  "mutated_image_size": "1x1",
+  "expected_error_fragment": "image dimensions mismatch",
+  "rejected_as_expected": true,
+  "network_guard_bytes": 0,
+  "adoption_receipt_sha256_before": [
+    "6c702ee6a64f1deb7816e24559fac43cd6802619c7f84e7ed2bb1b4e5a9f84ea"
+  ],
+  "output": "{\"status\": \"ERROR\", \"error\": \"ValueError: historical revalidation receipt is invalid: current image bytes do not match the frozen manifest contract: image dimensions mismatch at IMAGE001\"}\n"
+}

@@ -1,0 +1,47 @@
+{
+  "receipt_path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r3_mac_20261011/reviewer/working/REJECTION_PROBES_RECEIPT.json",
+  "cases": [
+    {
+      "case": "wrong_external_zip_sha",
+      "exit_code": 2,
+      "rejected_as_expected": true
+    },
+    {
+      "case": "wrong_original_summary_sha",
+      "exit_code": 2,
+      "rejected_as_expected": true
+    },
+    {
+      "case": "wrong_original_csv_sha",
+      "exit_code": 2,
+      "rejected_as_expected": true
+    },
+    {
+      "case": "nonpath_summary_mutation",
+      "exit_code": 2,
+      "rejected_as_expected": true
+    },
+    {
+      "case": "manifest_root_outside",
+      "exit_code": 2,
+      "rejected_as_expected": true
+    },
+    {
+      "case": "manifest_path_traversal",
+      "exit_code": 2,
+      "rejected_as_expected": true
+    },
+    {
+      "case": "image_bytes_tamper",
+      "exit_code": 2,
+      "rejected_as_expected": true
+    }
+  ],
+  "restored_hashes": {
+    "summary": "ce665d62c633c34cd85a49c90228874109fda50a47e80cf3f26b9dc9b6d767ed",
+    "csv": "3da18e96391584ff6d2b30cd30c205ee26f0d98d11b76a05d27446c975360eaa",
+    "first_image": "7a633bdb6a3f038efa2935078a744099d3ab2bd2e5d3b95b4edda463bd54611e"
+  },
+  "adoption_receipt_unchanged": true,
+  "attempt_promotion_unchanged": true
+}

@@ -1,0 +1,165 @@
+{
+  "schema_version": "issue31-r3-independent-review-v1",
+  "batch": "issue31_r3_mac_20261011",
+  "reviewer": "independent Luna Max reviewer",
+  "scope": {
+    "frozen_candidate_only": true,
+    "base_commit": "fd57619a99dfe88266f1e2d78475b94ffdd161c4",
+    "files": [
+      {
+        "path": "wechat/scripts/wechat_article_fetch.py",
+        "sha256": "192564aea7421a9af42b0116c32708848765cbb433c8692351f0db75098b860f"
+      },
+      {
+        "path": "wechat/scripts/wechat_pipeline_runner.py",
+        "sha256": "46d8761e44a250642cbcd7a513604fad1148d09726010d6f0eab5f269f256bcd"
+      },
+      {
+        "path": "wechat/tests/test_wechat_article_fetch_recovery.py",
+        "sha256": "3c2316ff77f291c91bb2d04efe00b3f0304c9c8cdf461d731da48b3435d83e92"
+      }
+    ],
+    "diff_sha256": "739df58d9cfb1213bfa7ff879ecd4ec660c1778acb3d85ad1a92ce619ecc1f12"
+  },
+  "verdict": "PASS",
+  "findings": [],
+  "acceptance": {
+    "reviewed_actual_diff": true,
+    "focused_regression_tests": {
+      "result": "PASS",
+      "passed": 8,
+      "subtests_passed": 3,
+      "receipt": "reviewer/focused_regression_tests.json"
+    },
+    "full_fetch_recovery_suite": {
+      "result": "PASS",
+      "passed": 25,
+      "subtests_passed": 3,
+      "receipt": "reviewer/full_fetch_recovery_suite.json"
+    },
+    "mac_behavior": {
+      "result": "PASS",
+      "explicit_adoption_exit_code": 0,
+      "default_fetch_reuse_exit_code": 0,
+      "prepare_ocr_exit_code": 0,
+      "fetch_children_skip_ocr": true,
+      "network_or_collector_events": 0,
+      "fetch_or_ocr_attempts": 0,
+      "attempt_or_promotion_artifacts_created": 0,
+      "image_count_validated": 50,
+      "prepare_ocr_comparison": "PASS",
+      "only_changed_file": "ocr_slice_manifest.json",
+      "csv_cell_changes": 0,
+      "receipt": "reviewer/mac_behavior_receipt.json",
+      "comparison": "reviewer/working/PREPARE_OCR_STATE_COMPARISON.json"
+    },
+    "negative_probes": {
+      "result": "PASS",
+      "frozen_refusal_probes": 7,
+      "expected_exit_code": 2,
+      "image_size_tamper_rejected": true,
+      "image_size_error": "image dimensions mismatch at IMAGE001",
+      "receipts": [
+        "reviewer/working/REJECTION_PROBES_RECEIPT.json",
+        "reviewer/image_size_tamper_rejection.json"
+      ]
+    }
+  },
+  "limitations": [
+    {
+      "status": "CANNOT_CONFIRM",
+      "claim": "Prior R2 Drive full-ZIP byte readback remains unavailable (403/code1010); this R3 local review does not verify Drive readback."
+    },
+    {
+      "status": "CANNOT_CONFIRM",
+      "claim": "Integration, deployment, Issue closure, API/UI readback, and natural-period behavior are not established by this frozen PASS scope."
+    }
+  ],
+  "status": {
+    "REVIEWED": "PASS",
+    "TESTED": "PASS_INDEPENDENT_REVIEWER_RERUN",
+    "BEHAVIOR_VERIFIED": "PASS_FROZEN_MAC_SCOPE",
+    "INTEGRATED": false,
+    "DEPLOYED": false,
+    "ISSUE_CLOSED": false
+  },
+  "provenance_note": "The initially assigned writer receipt/inventory snapshot was superseded when the writer rebuilt the final receipt and inventory. This review binds the final receipt SHA and inventory SHA above; the parent confirmed the final hashes after that rebuild.",
+  "evidence_bindings": [
+    {
+      "path": "WRITER_RECEIPT.json",
+      "sha256": "3de3df5aafd8c35e6ab23130890dcbe26ee43cb65b97a6e515d31b8a086a0998"
+    },
+    {
+      "path": "evidence_inventory.json",
+      "sha256": "a03100f40fa599eef98c7b8e7bd67945675636ad9e7b998d837fc11f249307a3"
+    },
+    {
+      "path": "HANDOFF.md",
+      "sha256": "ae084956d3e8eea80e288858430150b650f71108f322b80f7cdb5fec26f4f7d7"
+    },
+    {
+      "path": "github/SOURCE_MANIFEST.json",
+      "sha256": "fdf171a96845b26bb23f30dd3f6b2ed4b3429b23bc2a7af9cb8428a480ba6da3"
+    },
+    {
+      "path": "github/actual_diff.patch",
+      "sha256": "739df58d9cfb1213bfa7ff879ecd4ec660c1778acb3d85ad1a92ce619ecc1f12"
+    },
+    {
+      "path": "reviewer/mac_behavior_receipt.json",
+      "sha256": "dbf5e3968af7e0f2e8bfa856abae31709476d4b5f296ce8fbb3dd93013712320"
+    },
+    {
+      "path": "reviewer/focused_regression_tests.json",
+      "sha256": "3eeef2f2ebf6340f59a77498c6caacee189987177b5f7f6f24f1b6bc3c4503c4"
+    },
+    {
+      "path": "reviewer/full_fetch_recovery_suite.json",
+      "sha256": "6a3661defcc585d91876dcbd0ac3ffbabd975d62fbd843e376007c7e67dd05bf"
+    },
+    {
+      "path": "reviewer/working/REJECTION_PROBES_RECEIPT.json",
+      "sha256": "95a572a313de468636d6719eb7b5f6ddb373f554d789c339732a24e13315f090"
+    },
+    {
+      "path": "reviewer/image_size_tamper_rejection.json",
+      "sha256": "e53655bb59002416fe1d2f9f491a32c9c36be2fba6b4b69b167f4ebf8d8e6ad4"
+    },
+    {
+      "path": "reviewer/working/PREPARE_OCR_STATE_COMPARISON.json",
+      "sha256": "c9b7645f735d0e97cf37af62fd76f47e7d18791fffca0992a8f97b27872b5a17"
+    },
+    {
+      "path": "reviewer/logs/focused_regression_tests.log",
+      "sha256": "fdbba78367a4ecde4da79576470cfe94c90e625bb593cdad8ad7c28e2ad0b61a"
+    },
+    {
+      "path": "reviewer/logs/full_fetch_recovery_suite.log",
+      "sha256": "f9a77f0f5e4d8033fcb6bc00dd805a3984d8db794d630a081844afc356c9efa5"
+    },
+    {
+      "path": "reviewer/logs/rejection_probes.log",
+      "sha256": "0d352b6b0760bd5ced1834976f590716be0c8d953d14d26d5f705b2ed992fc45"
+    },
+    {
+      "path": "reviewer/logs/image_size_tamper_rejection.log",
+      "sha256": "f7b296422e006f7178e87d7c06b3e80506035e52d1359f6804a048cb4601cd51"
+    },
+    {
+      "path": "reviewer/logs/default_fetch_reuse_runner.log",
+      "sha256": "2a25810c0579b2ba24e35d49f41cb8b7819222633d486e20606ff48e20ff06d1"
+    },
+    {
+      "path": "reviewer/logs/explicit_adoption_runner.log",
+      "sha256": "2a25810c0579b2ba24e35d49f41cb8b7819222633d486e20606ff48e20ff06d1"
+    },
+    {
+      "path": "reviewer/logs/prepare_ocr_runner.log",
+      "sha256": "3106c7b28aec0766e1464b8d69aecefaa59ed38065abf60ff2cb7c64c1cf45c5"
+    },
+    {
+      "path": "reviewer/logs/prepare_ocr_comparison.log",
+      "sha256": "155c641aef70199bbdc0d7d90cd0e6f7de6b247598d93d81bf53e41e8d5777b0"
+    }
+  ]
+}

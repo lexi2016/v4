@@ -1,0 +1,27 @@
+{
+  "updated_at": "2026-10-11T13:28:37.200420+00:00",
+  "workers": [
+    {
+      "worker": "/root/issue31_r3_mac_writer",
+      "milestone": "Mac isolated R3 execution",
+      "dispatch_time": "2026-10-11 (see session event)",
+      "expected_terminal_type": "WRITER_RECEIPT",
+      "lifecycle_status": "completed",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipt_sha256": "3de3df5aafd8c35e6ab23130890dcbe26ee43cb65b97a6e515d31b8a086a0998"
+    },
+    {
+      "worker": "/root/issue31_r3_mac_reviewer",
+      "milestone": "Independent Mac R3 rerun and verdict",
+      "dispatch_time": "2026-10-11T13:28:37.200540+00:00",
+      "expected_terminal_type": "REVIEW_RECEIPT",
+      "lifecycle_status": "completed",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipt_sha256": "bfd9589dc23bd9cdf74ad35eceee4df80b48e50211271b6db5c6df217c21dd09"
+    }
+  ]
+}
