@@ -1,0 +1,110 @@
+{
+  "goal": "Automatically substitute missing HK 09:20 input with validated 09:30-09:35 input through existing automatic stage flow.",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_commit": "abb968c99b070da28200ffd3d00fba578fae018d",
+  "status": [
+    "IMPLEMENTED",
+    "TESTED",
+    "REVIEWED",
+    "INTEGRATED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "UI_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "natural_status": "NATURAL_SLOT_UNVERIFIED",
+  "runtime": {
+    "stage": "hk-0920-auto-stage-20261011-r1",
+    "api": "hk-0920-auto-ui-20261011-r2"
+  },
+  "behavior": {
+    "trigger": "existing STAGE_0930_0935 post-dispatch; no earlier than 09:35",
+    "pool": "exact date D-1 Top100",
+    "missing_minutes": "WAITING",
+    "preserve": "valid auction input and healthy READY / READY_EMPTY selection",
+    "publication": "failed-only compare-and-swap ordinary SelectionStore slot, immutable prior run retained",
+    "repeat": "idempotent NOOP"
+  },
+  "validation": {
+    "independent_core_tests": "8 stage + 1 API + 3 UI passed",
+    "independent_delta_tests": "1 API + 4 UI passed",
+    "automatic_entry_replay": "real 20260924 source data, 98/100 usable, original selector returns 10; controlled clock/failed slot and settled dispatch receipt, not natural execution",
+    "browser": "built-in browser verified 10 rows, 09:35 actual cutoff, real run ID and SelectionStore verification; runner receipt CANNOT_CONFIRM preserved",
+    "live_compatibility": "20261009 historical result remains 10 rows",
+    "served_asset_sha_matches": 11,
+    "temporary_api": "stopped after readback",
+    "build": "PASS",
+    "typecheck": "four existing diagnostics in managerWorkspace.attention.spec.ts / ManagerSelectionView.spec.ts",
+    "full_app_spec": "NOT_COMPLETED: pre-existing missing fixture verification/fixtures/a_share_stage_0925_selection_manifest.json"
+  },
+  "limitations": [
+    "Sunday deployment; future natural slot not yet observed",
+    "Observation source unsafe/PIT-unverified flags retained",
+    "Late auction arrival after completed substitution reverse handover outside frozen scope"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "receipts": {
+    "E7_INDEPENDENT_REVIEW_20261011.json": "fb6b439f6c7583e8934fcbfcbc062d9b827316f4b2c8cbd7bb0d1364fc7eeda5",
+    "E7_API_UI_DELTA_R2_INDEPENDENT_REVIEW_20261011.json": "aab00f212d4deeb5d4d0b0d053aca985e5f8be84097839d56da10b332aa1b78c",
+    "E7_BACKEND_SLICE_FREEZE_20261011.json": "1f90147bc52b4c9440f550cf0e89f0dc3fc9bc70c490b09dfc27b48213d128bf",
+    "E7_API_UI_DELTA_R2_FREEZE_20261011.json": "c85d34b8d036689fc8672e3b4103c8fd2441db7d6cde78a593b89fdaef4535b3",
+    "E7_WEB_DIST_R2_MANIFEST_20261011.json": "d158bb880ad304f2306d3a2ee6fd7d9b4779b5b083d68e5cffb89eb2490c7d9c"
+  },
+  "files": [
+    {
+      "path": "stage_center/hk_0925_auto_substitute.py",
+      "sha256": "b1283d911e11abfda9150adfcabe80615f60544d783108dcac7db2a6628c2fef",
+      "before_sha256": null
+    },
+    {
+      "path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "6f7b41e2d5fb0bfb90ebf74af9bee7ca2c5431b194eb94ad9a1359c94d1461c3",
+      "before_sha256": "4a7b70f8b4c34e221fa904a7d6ff7a722f75adf34c1ed2fa7e90c04aab19e697"
+    },
+    {
+      "path": "stage_center/selection.py",
+      "sha256": "8fa7d50a4b51302ddc61479c2a9cd865aedf112d437f8d01a42bbae73e235957",
+      "before_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294"
+    },
+    {
+      "path": "stage_center/_selection_parts/store_publication.py",
+      "sha256": "00a716eb9961cddd747d49bf26bebb2126923d7814d7659084114955c7841e84",
+      "before_sha256": "e3ee42413c35aa098cddc136795fcf04a37898bc2224d815cbe9e2b854c5c968"
+    },
+    {
+      "path": "stage_center/tests/test_hk_0925_auto_substitute.py",
+      "sha256": "451f10e9149e614b2a77b4ff4b9f406977036c62825ed0f7253c9c099ca64541",
+      "before_sha256": null
+    },
+    {
+      "path": "stage_center/consumer.py",
+      "sha256": "183c0fb9e69fb64f629c965077ae72047c9fcc118f775ce73ad7b7a89e7657fc",
+      "before_sha256": "9b7f8981f4bed8a0b62104ef78eb754a3f5168119915706b7f1a8b3028385bc3"
+    },
+    {
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "b7f0367216acf369ca18f0b408023b11cc3eedf87db79d20af01b7d313efd75e",
+      "before_sha256": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8"
+    },
+    {
+      "path": "apps/web/src/App.vue",
+      "sha256": "d87285a8a1de1611ca83add16d70101979ea469d2c7fb093dc1f9ca5961baef0",
+      "before_sha256": "a1073825903d597b72b2e53f95fb3864913961832ca027bb89e5c0e21125d296"
+    },
+    {
+      "path": "stage_center/tests/test_hk_0925_automatic_substitute_projection.py",
+      "sha256": "7ab9f39209328332feb1ac90f35e8b35cee8bc8e1bca6dbbc996d0505d03012b",
+      "before_sha256": "c94d7b2296460bfe1e523ace032d4ee4af2a614100eb9b7ee348283e620bafb6"
+    },
+    {
+      "path": "apps/web/src/App.hk0925-auto-substitute.spec.ts",
+      "sha256": "cd49308b76e5d3c729921dfb5b2dc45907e3746cfb43160437eff987ed08de50",
+      "before_sha256": "d1d5b60118c52755d3118a78ccc3966d7445ad9f677ce2f9ab7120638937f1de"
+    }
+  ]
+}
