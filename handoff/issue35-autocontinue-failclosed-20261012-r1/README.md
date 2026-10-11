@@ -1,4 +1,4 @@
-# Issue #35 / 20261012 — owner dispatch stale-read failure recovery (additive R1)
+# Issue #35 / 20261012 — owner dispatch stale-read failure recovery (additive R2)
 
 **Deliverable: real, applyable single-file hunk + offline regression. NOT DEPLOYED.**
 Parent source: `codex/issue35-autocontinue-fix-20261011` at
@@ -9,19 +9,21 @@ supersede its canonical/runtime variants, bind a Mac scheduler, or create a prod
 
 ## Reproduced blocker and fix
 
-The previous `_completed_dispatch_still_current()` validated the original
-terminal attempt inside a try block, **but called the read-only workspace owner
-outside** that block. A controlled `ValueError` / `WorkspaceReadError` during
-input revalidation escaped `_execute_serialized_cycle` *before* a new
+The previous `_completed_dispatch_still_current()` validated only the original
+terminal attempt inside a try block, **but called both the sealed latest-plan
+reader and the live workspace reader outside** that block. Controlled
+`ValueError` / `WorkspaceReadError` during either validation escaped
+`_execute_serialized_cycle` *before* a new
 RUNNING→terminal dispatch receipt was written. This breaks the required
 same-trigger failure/recovery chain. For an unverifiable re-read, the owner must
 **not replay** the old completed receipt; the existing `_run_owner_branches`
 and its bounded retry/receipt logic must decide the outcome.
 
 `patches/dispatch_after_issue35_failure_recovery.patch` moves
-`get_workspace(... include_saved=True)` into the existing bounded owner
-error guard and catches original `workspace._ERROR_TYPES` (which includes
-`WorkspaceReadError` and `TimeoutError`). Any unreadable current workspace
+`_read_plan`, exact-run attempt and `get_workspace(... include_saved=True)`
+into a single bounded owner error guard and catches original
+`workspace._ERROR_TYPES` (including `WorkspaceReadError` and `TimeoutError`).
+Any unreadable sealed plan or current workspace
 returns `False` for *replay eligibility*, not `SUCCEEDED` and not a fabricated
 empty selection. Actual new owner execution may still fail accurately and
 remain unfinished. No strategy, date/PIT, security, scheduler, UI, order or BUY
@@ -43,7 +45,7 @@ test "$(shasum -a 256 "$APP/v4/manager_research/plan_owner_dispatch.py" | cut -d
 cd "$APP"
 git apply --check "$HANDOFF/patches/dispatch_after_issue35_failure_recovery.patch"
 git apply "$HANDOFF/patches/dispatch_after_issue35_failure_recovery.patch"
-test "$(shasum -a 256 v4/manager_research/plan_owner_dispatch.py | cut -d' ' -f1)" = "ec965df18e153297abdafaace075e6b0e03a7f0085552470dfe0c78007a64b8d"
+test "$(shasum -a 256 v4/manager_research/plan_owner_dispatch.py | cut -d' ' -f1)" = "b782d8a7d18c6d5a2a6ace9612761de9fb22b45eb544cdd33145429b00e165c8"
 ISSUE35_APP_ROOT="$APP" python3 -m unittest discover -s "$HANDOFF/tests" -p 'test_*.py' -v
 ```
 
@@ -58,11 +60,12 @@ activation; this patch does not sign a new binding.
 The source SHA `8afc...b284` was reconstructed byte-for-byte by applying the
 upstream `runtime_r1` patch to SHA `d167...d97`. This additive patch was
 then actually applied via `git apply --check` + `git apply` to the matching
-isolated source, producing exact `ec965...8bd`. `py_compile` passed. Nine
-independent synthetic *actual AST function body* exercises: **9/9 PASS** after
+isolated source, producing exact `b782...5c8`. `py_compile` passed. Ten
+isolated synthetic *actual AST function body* exercises: **10/10 PASS** after
 fix. Before fix, the controlled stale-read failure test threw
 `ValueError: SYNTHETIC_OWNER_READ_FAILED`; after fix, replay eligibility
-became false and the existing dispatch appended a new owner receipt. Other
+became false and the existing dispatch appended a new owner receipt. Added a
+corrupt saved-latest-plan read failure injection with the same behavior. Other
 scenarios: same input one run, changed identity new run, sealed readback order,
 old latest restored after post-terminal failure, missing-input PARTIAL retained,
 old dispatch receipt immutable. These use fake store/inputs and are NOT full
