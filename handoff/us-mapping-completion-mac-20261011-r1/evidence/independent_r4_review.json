@@ -1,0 +1,64 @@
+{
+  "schema_version": "v4.us_mapping_completion_independent_review.v3",
+  "reviewer_identity": "/root/us_r3_review_recovery",
+  "reviewed_at": "2026-10-11T11:28:17+08:00",
+  "review_scope": "Frozen R4 PASS scope only: exact-session 33-symbol assessment, preservation of valid rows under incomplete quote coverage, 14 reviewed relation pairs bound to the same owner session/payload SHA, canonical integration and publication-plan integrity. Read-only independent review.",
+  "status": "PASS",
+  "decision": "PASS",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "target_behavior_evidence": {
+    "partial_coverage_regression": {
+      "result": "PASS",
+      "input": "1 verified NVDA quote of 33 configured symbols; 32 missing",
+      "expected_session": "20260923",
+      "quote_status": "PARTIAL",
+      "mapping_eligible": true,
+      "industry_and_individual_hk_relation": "HK.01234 retained",
+      "missing_rows_fabricated": false,
+      "hard_identity_failures_still_block": true
+    },
+    "actual_owner_projection": {
+      "test": "test_current_actual_owner_projection_merges_available_seed_and_reviewed_relations_by_cutoff",
+      "result": "PASS",
+      "target_date": "20261009",
+      "us_session_date": "20261009",
+      "source_payload_sha256": "928cd4ae8089a792ea1a3cfab490c9217c4249d6c29c11aeaa9cee879f0fb4e3",
+      "symbol_assessments": 33,
+      "equity_symbols": 12,
+      "etf_proxies": 21,
+      "reviewed_seed_pairs": 4,
+      "current_reviewed_pairs": 10,
+      "unified_relation_pairs": 14,
+      "target_date_eligibility": "CANNOT_CONFIRM"
+    },
+    "date_sha_contract": "Workspace quote assessments validate each quote session against expected_us_session and its payload SHA against the exact owner identity; daily saved rows are hidden when current session or payload SHA differs."
+  },
+  "test_evidence": {
+    "candidate_backend": "32 passed; 1 failed in test_scheduled_cycle_api_runs_through_injected_reader_and_rejects_wrong_binding (HTTP 409 PLAN_OWNER_ADMISSION_FAILED). Same isolated test also fails on frozen R5 baseline with HTTP 409; treated as pre-existing/out-of-scope.",
+    "canonical_backend": "33 passed",
+    "frontend_vitest": "usMappingCompletion.spec.ts: 1 passed",
+    "vue_tsc": "CANNOT_CONFIRM clean project typecheck: four diagnostics are in managerWorkspace.attention.spec.ts and ManagerSelectionView.spec.ts, outside the frozen 10-file set; attribution to R4 is unproven."
+  },
+  "frozen_release_evidence": {
+    "writer_handoff_receipt_sha256": "e5bc8137029a9650d600e229f72aa522394defff0cb76802426d2262fc9b6cab",
+    "candidate_batch_freeze_sha256": "3e2da4837c6a02b53c0e23c8cb3a9958025a3c400475f1b1b904fbc5b866268b",
+    "candidate_patch_sha256": "eb449f2c2ea7af80af8102950c348afbfc2031a27a472136d59c686ad1062f26",
+    "canonical_receipt_sha256": "4dac6c6a5343619a101d10e2326002508a728c56b2857562f1eaee819522e246",
+    "canonical_patch_sha256": "a77730ee0bd26a3a821c9beac1d4cb0f74ecc5eb01794960cff95924ba383304",
+    "candidate_and_canonical_file_hashes_match_receipts": true,
+    "same_10_path_set": true
+  },
+  "CANNOT_CONFIRM": [
+    "R4 is not activated; live loaded API/UI and natural-period behavior are not verified.",
+    "Retrospective relation cards retain target_date_eligibility=CANNOT_CONFIRM and source HTTP body rehash remains CANNOT_CONFIRM.",
+    "The separate persisted daily mapping path still declares 4 reviewed US symbols; this PASS verifies the current 33-row overlay with 14 pairs, not expansion of that separate daily product."
+  ],
+  "scope_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "v4.manager_us_mapping_r5_canonical_integration.v1",
+  "status": "APPLIED_AWAITING_INDEPENDENT_REVIEW",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/candidate/app",
+  "frozen_deployed_r4_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/integrated_release/manager-us-mapping-completion-20261011-r4/app",
+  "r4_release_manifest_sha256": null,
+  "r4_canonical_integration_receipt_sha256": "4dac6c6a5343619a101d10e2326002508a728c56b2857562f1eaee819522e246",
+  "entries": [
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "214d52b9bf96ecdcc5fe242f6489e15d98c632ca02a7aa833e56d490c528b050",
+      "after_sha256": "bc0a4bffd177307479f94b93d871d6b18180938195335eea4d3e11a9e85e1086"
+    },
+    {
+      "path": "tests/test_manager_us_mapping_research.py",
+      "before_sha256": "eb8e42d0b672e0b0cac3221ef8a2e47115d58535509f9f5672da57560990db0b",
+      "after_sha256": "77fdb9743180a3b94a30ff86f71d2ce3e29c874f300861513131bda63fc1e1a4"
+    },
+    {
+      "path": "apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts",
+      "before_sha256": "2f757cb17d0356de0c915db29b2a0b7271b0872c1196f2c00f473699f7ded421",
+      "after_sha256": "58e61a2869cd9594f889faa510c552d347a2a29bf48778c969122c9c9dd02421"
+    }
+  ],
+  "patch": {
+    "path": "canonical-integration/patchtests/canonical_r5_delta.patch",
+    "sha256": "e3e9240aba5b8a2f12a2f1493d6af2113dbeac967562d5e012975bfd6b345e74",
+    "bytes": 5401
+  },
+  "test_results": {
+    "canonical_mapping_suite": "18 passed",
+    "candidate_mapping_suite": "17 passed, 1 known frozen scheduled-cycle admission 409 (PLAN_OWNER_ADMISSION_FAILED / OWNER_NOT_CALLED)",
+    "canonical_and_candidate_stale_mapping_regression": "2 passed each",
+    "canonical_us_mapping_frontend_suite": "2 passed",
+    "candidate_us_mapping_frontend_suite": "2 passed",
+    "candidate_saved_response_decoder_probe": "1 passed after in-memory stale-count normalization"
+  },
+  "unresolved": [
+    "Independent R5 review pending.",
+    "No R5 deployment/live UI reload was performed by this writer; root owns integration/deployment.",
+    "Target-date eligibility and natural-period behavior remain CANNOT_CONFIRM.",
+    "Full R4 manifest SHA unavailable to this writer; root will verify active manifest inventory."
+  ],
+  "r4_release_manifest_sha256_status": "CANNOT_CONFIRM; root owns active-manifest verification and CAS"
+}

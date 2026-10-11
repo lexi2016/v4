@@ -1,0 +1,56 @@
+{
+  "schema_version": "v4.manager_us_mapping.live_r5_readback_review.v1",
+  "reviewer_identity": "/root/us_r3_review_recovery",
+  "reviewed_at": "2026-10-11T11:49:17+08:00",
+  "review_scope": "Independent decode/readback of the exact refreshed R5 workspace payload using the unchanged R5 validateManagerWorkspace decoder. No source edits, source tests, normalization, or deployment.",
+  "status": "PASS",
+  "decision": "BEHAVIOR_VERIFIED",
+  "input_payload": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/live-verification/workspace-r5-refreshed.json",
+    "sha256": "9e93a47439bf51c81c977ca933ff4457ce33f5d27cc78c60b0226984c5c92ec0",
+    "bytes": 23676743,
+    "target_trade_date": "20261009",
+    "raw_input_normalized": false
+  },
+  "decoder": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/integrated_release/manager-us-mapping-completion-20261011-r5/app/apps/web/src/api/managerWorkspace.ts",
+    "export": "validateManagerWorkspace",
+    "source_sha256": "757b87e4232d527caaf64437151c7bdc4e2f1f5e435ec2ed2ffc7813105c81a2",
+    "candidate_copy_sha256_matches": true,
+    "execution": "Bundled unchanged TypeScript source to /tmp with local esbuild; invoked validateManagerWorkspace(raw, raw.us_mapping_research.target_trade_date) on JSON.parse of the exact payload bytes. Validation returned without error."
+  },
+  "observed": {
+    "expected_us_session": "20261009",
+    "assessment_count": 33,
+    "unique_assessment_symbols": 33,
+    "mapped_us_symbol_count": 10,
+    "relation_pair_count": 14,
+    "etf_proxy_count": 21,
+    "assessed_with_gaps_count": 2,
+    "unique_quote_sessions": [
+      "20261009"
+    ],
+    "daily_run_status": "CANNOT_CONFIRM",
+    "daily_run_match_count": 0,
+    "daily_current_matched_us_symbol_count": null,
+    "daily_current_matched_hk_relation_count": null,
+    "daily_saved_product_match_count": 0
+  },
+  "parent_reported_browser_readback": {
+    "observation": "Mapping table displayed 33 rows with current US session 20261009; daily current counts null and saved count 0.",
+    "independently_captured_by_reviewer": false,
+    "consistent_with_decoded_payload": true
+  },
+  "CANNOT_CONFIRM": [
+    "Target-date eligibility remains CANNOT_CONFIRM in the decoded research data."
+  ],
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "owner_run_id": "acf0f1ed3e824237a562ebbf7b656b8d",
+  "owner_run_id_payload_path": "plan_product.run_id",
+  "owner_run_id_verified_from_payload": true
+}

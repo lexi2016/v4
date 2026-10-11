@@ -1,0 +1,158 @@
+{
+  "behavior_comparison": {
+    "fixture": "Reader/snapshot with valid NATIVE_MATERIAL_PROPOSITION industry/direct relations; one of 33 quote rows available",
+    "r4_partial_snapshot_incomplete_coverage": {
+      "assessments": 33,
+      "coverage_gaps": [
+        "US_CONFIGURED_SYMBOL_QUOTE_COVERAGE_INCOMPLETE"
+      ],
+      "coverage_status": "PARTIAL",
+      "individual_mapping_symbols": [
+        "HK.01234"
+      ],
+      "industry_mapping_symbols": [
+        "HK.01234"
+      ],
+      "mapping_eligible": true,
+      "missing_quote_rows": 32,
+      "nvda_quote_status": "VERIFIED",
+      "raw_individual_count": 1,
+      "raw_industry_count": 1,
+      "status": "PARTIAL"
+    },
+    "r4_ready_snapshot_incomplete_coverage": {
+      "assessments": 33,
+      "coverage_gaps": [
+        "US_CONFIGURED_SYMBOL_QUOTE_COVERAGE_INCOMPLETE"
+      ],
+      "coverage_status": "PARTIAL",
+      "individual_mapping_symbols": [
+        "HK.01234"
+      ],
+      "industry_mapping_symbols": [
+        "HK.01234"
+      ],
+      "mapping_eligible": true,
+      "missing_quote_rows": 32,
+      "nvda_quote_status": "VERIFIED",
+      "raw_individual_count": 1,
+      "raw_industry_count": 1,
+      "status": "PARTIAL"
+    },
+    "r5_partial": {
+      "individual_mapping_symbols": [
+        "HK.01234"
+      ],
+      "industry_mapping_symbols": [
+        "HK.01234"
+      ],
+      "mapping_eligible": true,
+      "raw_individual_count": 1,
+      "raw_industry_count": 1,
+      "status": "PARTIAL"
+    },
+    "r5_ready": {
+      "individual_mapping_symbols": [
+        "HK.01234"
+      ],
+      "industry_mapping_symbols": [
+        "HK.01234"
+      ],
+      "mapping_eligible": true,
+      "raw_individual_count": 1,
+      "raw_industry_count": 1,
+      "status": "READY"
+    }
+  },
+  "canonical_head_after": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canonical_head_before": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canonical_patch_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/canonical-integration/patchtests/canonical_r4_full_integration.patch",
+  "canonical_patch_sha256": "a77730ee0bd26a3a821c9beac1d4cb0f74ecc5eb01794960cff95924ba383304",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "commands": {
+    "focused_canonical_tests": "/Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python -m pytest -q --tb=short --basetemp=/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/canonical-integration/patchtests/pytest-tmp-canonical-r4-final -o tmp_path_retention_policy=all tests/test_manager_us_market_bridge.py tests/test_manager_us_mapping_research.py"
+  },
+  "entries": [
+    {
+      "after_bytes": 107464,
+      "after_sha256": "efb4e5a04f1005407afd6f7e70000478f7896131a69fb5de8f4a737654e8bdd3",
+      "before_exists_at_canonical_base": true,
+      "before_sha256": "a87c0e40a20feeaf5377cdb1f267adba50a3cbccf12cf888329e2de9a68879df",
+      "path": "apps/web/src/api/managerWorkspace.ts"
+    },
+    {
+      "after_bytes": 9564,
+      "after_sha256": "2f757cb17d0356de0c915db29b2a0b7271b0872c1196f2c00f473699f7ded421",
+      "before_exists_at_canonical_base": false,
+      "before_sha256": null,
+      "path": "apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts"
+    },
+    {
+      "after_bytes": 32069,
+      "after_sha256": "f29e0438049ac4423e71f04ab648f1e41e485fe997c612a13ac17734676003b9",
+      "before_exists_at_canonical_base": true,
+      "before_sha256": "410f0f2714427e6f8a17d65569cf80fa310cd625448526e2cb19ff8f3f28c9a9",
+      "path": "apps/web/src/manager-selection/researchAttention.ts"
+    },
+    {
+      "after_bytes": 57179,
+      "after_sha256": "eb8e42d0b672e0b0cac3221ef8a2e47115d58535509f9f5672da57560990db0b",
+      "before_exists_at_canonical_base": true,
+      "before_sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "path": "tests/test_manager_us_mapping_research.py"
+    },
+    {
+      "after_bytes": 34665,
+      "after_sha256": "69e09810a8c5fcaa52cf1b16d339756b67a6ea6c8eb7837c440bea86fdaebfb0",
+      "before_exists_at_canonical_base": false,
+      "before_sha256": null,
+      "path": "v4/manager_research/us_mapping_relation_evidence_20261011.json"
+    },
+    {
+      "after_bytes": 10457,
+      "after_sha256": "5e24b82049ca848f7536b084166537415722375414cfc762da8b179919947350",
+      "before_exists_at_canonical_base": false,
+      "before_sha256": null,
+      "path": "v4/manager_research/us_mapping_relation_evidence_review_20261011.json"
+    },
+    {
+      "after_bytes": 58723,
+      "after_sha256": "32dcd1deebb4dcf655a8c93c2123054b23f23cb05143d94b728c4aa4b41f35c9",
+      "before_exists_at_canonical_base": true,
+      "before_sha256": "f9b545202dc0a8865413f4a6bd7742ab6e69d5d9c756fee5ab3abd7070dff2e8",
+      "path": "v4/manager_research/us_mapping_research.py"
+    },
+    {
+      "after_bytes": 24463,
+      "after_sha256": "b15ee5cf742eae0213002d4a5099931e3c3c393cedad52c416f45dc04476a066",
+      "before_exists_at_canonical_base": true,
+      "before_sha256": "18d4ede4267a446d235267c71cecd1208f30ae3fdfe9ff02d9354d1b5a18de06",
+      "path": "v4/manager_research/us_market_bridge.py"
+    },
+    {
+      "after_bytes": 62256,
+      "after_sha256": "214d52b9bf96ecdcc5fe242f6489e15d98c632ca02a7aa833e56d490c528b050",
+      "before_exists_at_canonical_base": true,
+      "before_sha256": "d5c6239f3afe47167dabfbbc21791b8824191f30b8684eb4c194478497d4104b",
+      "path": "v4/manager_research/workspace.py"
+    },
+    {
+      "after_bytes": 11253,
+      "after_sha256": "e9a3773ca57f642c6c569f930ba44eb0074b195e957e3fec6fb10fc805af2f8f",
+      "before_exists_at_canonical_base": true,
+      "before_sha256": "b131e8947e16ffb5bca0c83e5901b71ae9fd3ca5af9462f45d750ece07ff3726",
+      "path": "tests/test_manager_us_market_bridge.py"
+    }
+  ],
+  "non_target_scope": "No sidecar evidence, trading, production, services, schedulers, or external actions were changed.",
+  "r3_candidate_receipt_sha256": "f2f41b59f8cb3460ee8888c0ade71c6c7dd6381cc61a5aa8382753be384ce14e",
+  "schema_version": "v4.us_mapping.canonical_r4_integration_receipt.v1",
+  "status": "APPLIED_AWAITING_INDEPENDENT_REVIEW",
+  "test_results": {
+    "focused_canonical_tests": "33 passed in 0.46s."
+  },
+  "unresolved": [
+    "Independent R4 diff/test review pending.",
+    "Target-date eligibility and natural-period behavior remain CANNOT_CONFIRM."
+  ]
+}

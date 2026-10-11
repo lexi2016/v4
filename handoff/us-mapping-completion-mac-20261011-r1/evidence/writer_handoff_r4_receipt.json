@@ -1,0 +1,166 @@
+{
+  "active_r5_baseline": "/Users/lexi/Desktop/学习/agents调试/V4_SELECTION_REUSE_REPAIR_MAC_20261010_R1/integrated_release/manager-independent-lanes-20261011-r5/app",
+  "active_r5_head": "CANNOT_CONFIRM_R5_GIT_HEAD",
+  "behavior_comparison": {
+    "fixture": "Reader/snapshot with valid NATIVE_MATERIAL_PROPOSITION industry/direct relations; one of 33 quote rows available",
+    "r4_partial_snapshot_incomplete_coverage": {
+      "assessments": 33,
+      "coverage_gaps": [
+        "US_CONFIGURED_SYMBOL_QUOTE_COVERAGE_INCOMPLETE"
+      ],
+      "coverage_status": "PARTIAL",
+      "individual_mapping_symbols": [
+        "HK.01234"
+      ],
+      "industry_mapping_symbols": [
+        "HK.01234"
+      ],
+      "mapping_eligible": true,
+      "missing_quote_rows": 32,
+      "nvda_quote_status": "VERIFIED",
+      "raw_individual_count": 1,
+      "raw_industry_count": 1,
+      "status": "PARTIAL"
+    },
+    "r4_ready_snapshot_incomplete_coverage": {
+      "assessments": 33,
+      "coverage_gaps": [
+        "US_CONFIGURED_SYMBOL_QUOTE_COVERAGE_INCOMPLETE"
+      ],
+      "coverage_status": "PARTIAL",
+      "individual_mapping_symbols": [
+        "HK.01234"
+      ],
+      "industry_mapping_symbols": [
+        "HK.01234"
+      ],
+      "mapping_eligible": true,
+      "missing_quote_rows": 32,
+      "nvda_quote_status": "VERIFIED",
+      "raw_individual_count": 1,
+      "raw_industry_count": 1,
+      "status": "PARTIAL"
+    },
+    "r5_partial": {
+      "individual_mapping_symbols": [
+        "HK.01234"
+      ],
+      "industry_mapping_symbols": [
+        "HK.01234"
+      ],
+      "mapping_eligible": true,
+      "raw_individual_count": 1,
+      "raw_industry_count": 1,
+      "status": "PARTIAL"
+    },
+    "r5_ready": {
+      "individual_mapping_symbols": [
+        "HK.01234"
+      ],
+      "industry_mapping_symbols": [
+        "HK.01234"
+      ],
+      "mapping_eligible": true,
+      "raw_individual_count": 1,
+      "raw_industry_count": 1,
+      "status": "READY"
+    }
+  },
+  "candidate_batch_freeze_sha256": "3e2da4837c6a02b53c0e23c8cb3a9958025a3c400475f1b1b904fbc5b866268b",
+  "candidate_patch_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/canonical-integration/patchtests/candidate_r4_full_batch.patch",
+  "candidate_patch_sha256": "eb449f2c2ea7af80af8102950c348afbfc2031a27a472136d59c686ad1062f26",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/candidate/app",
+  "commands": {
+    "focused_candidate_tests": "/Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python -m pytest -q --tb=short --basetemp=/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/canonical-integration/patchtests/pytest-tmp-candidate-r4-final -o tmp_path_retention_policy=all tests/test_manager_us_market_bridge.py tests/test_manager_us_mapping_research.py"
+  },
+  "created_at": "2026-10-11T03:20:42+00:00",
+  "entries": [
+    {
+      "after_bytes": 125291,
+      "after_sha256": "757b87e4232d527caaf64437151c7bdc4e2f1f5e435ec2ed2ffc7813105c81a2",
+      "before_exists_in_active_r5": true,
+      "before_sha256": "cb68be0a47f09e36829e1276fcd0d6a862790762bb1691165474d383deb53e9c",
+      "path": "apps/web/src/api/managerWorkspace.ts"
+    },
+    {
+      "after_bytes": 9564,
+      "after_sha256": "2f757cb17d0356de0c915db29b2a0b7271b0872c1196f2c00f473699f7ded421",
+      "before_exists_in_active_r5": false,
+      "before_sha256": null,
+      "path": "apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts"
+    },
+    {
+      "after_bytes": 35585,
+      "after_sha256": "fbe2f0aaf6c8d73a8cdb1dee8084d8d76e9852b86f1ee9230edfa00564e4d8c5",
+      "before_exists_in_active_r5": true,
+      "before_sha256": "6d93d766c93da20130a5f0ac673820e6d27267c563742420ce6fbe2718adf4b6",
+      "path": "apps/web/src/manager-selection/researchAttention.ts"
+    },
+    {
+      "after_bytes": 57179,
+      "after_sha256": "eb8e42d0b672e0b0cac3221ef8a2e47115d58535509f9f5672da57560990db0b",
+      "before_exists_in_active_r5": true,
+      "before_sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "path": "tests/test_manager_us_mapping_research.py"
+    },
+    {
+      "after_bytes": 34665,
+      "after_sha256": "69e09810a8c5fcaa52cf1b16d339756b67a6ea6c8eb7837c440bea86fdaebfb0",
+      "before_exists_in_active_r5": false,
+      "before_sha256": null,
+      "path": "v4/manager_research/us_mapping_relation_evidence_20261011.json"
+    },
+    {
+      "after_bytes": 10457,
+      "after_sha256": "5e24b82049ca848f7536b084166537415722375414cfc762da8b179919947350",
+      "before_exists_in_active_r5": false,
+      "before_sha256": null,
+      "path": "v4/manager_research/us_mapping_relation_evidence_review_20261011.json"
+    },
+    {
+      "after_bytes": 102645,
+      "after_sha256": "05bbab7f091d9e84f3de4bc3d3179fd5cd853906a70b710acdf99fe20752cad5",
+      "before_exists_in_active_r5": true,
+      "before_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "path": "v4/manager_research/us_mapping_research.py"
+    },
+    {
+      "after_bytes": 19681,
+      "after_sha256": "731bf1044b4a1d3bf17223028dad7fc3871939eb2a82b9190a7e36a1f4bf3033",
+      "before_exists_in_active_r5": true,
+      "before_sha256": "46fcf3fce15dfce4ae45e8eefe2c9b619d884f602d4f5b4261f163755debf0ae",
+      "path": "v4/manager_research/us_market_bridge.py"
+    },
+    {
+      "after_bytes": 81915,
+      "after_sha256": "9a76558e5b1901ca761f297505bee1b29af1e17b583c43c3db402591219367fc",
+      "before_exists_in_active_r5": true,
+      "before_sha256": "cfebac45b599c5e99cf5fa07b3511959025165576566a894ba092bce084b638e",
+      "path": "v4/manager_research/workspace.py"
+    },
+    {
+      "after_bytes": 11253,
+      "after_sha256": "e9a3773ca57f642c6c569f930ba44eb0074b195e957e3fec6fb10fc805af2f8f",
+      "before_exists_in_active_r5": false,
+      "before_sha256": null,
+      "path": "tests/test_manager_us_market_bridge.py"
+    }
+  ],
+  "r3_frozen_receipt_sha256": "f2f41b59f8cb3460ee8888c0ade71c6c7dd6381cc61a5aa8382753be384ce14e",
+  "schema_version": "v4.us_mapping.writer_handoff_r4.v1",
+  "scope_decision": "33 symbol assessments are diagnostic coverage, not a global eligibility gate; preserve valid same-session rows and relation matches when other quotes are missing. Coverage remains PARTIAL with explicit gaps; missing rows are not fabricated.",
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "test_results": {
+    "coverage_and_partial_mapping_regressions": "passed within focused run.",
+    "focused_candidate_tests": "32 passed, 1 failed; known scheduled-cycle admission 409 in test_scheduled_cycle_api_runs_through_injected_reader_and_rejects_wrong_binding (PLAN_OWNER_ADMISSION_FAILED; owner was not called)."
+  },
+  "unchanged_source_evidence": {
+    "artifact_file_sha256": "69e09810a8c5fcaa52cf1b16d339756b67a6ea6c8eb7837c440bea86fdaebfb0",
+    "semantic_review_receipt_sha256": "5e24b82049ca848f7536b084166537415722375414cfc762da8b179919947350",
+    "target_date_eligibility": "CANNOT_CONFIRM"
+  },
+  "unresolved": [
+    "Independent R4 diff/test review pending.",
+    "Target-date eligibility and natural-period behavior remain CANNOT_CONFIRM."
+  ]
+}

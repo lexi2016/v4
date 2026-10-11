@@ -1,0 +1,83 @@
+{
+  "schema_version": "v4.manager_us_mapping_r5_writer_handoff.v1",
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "goal": "Keep stale US mapping current coverage unknown while retaining the separately verified saved-product empty count.",
+  "frozen_deployed_r4_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/integrated_release/manager-us-mapping-completion-20261011-r4/app",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/candidate/app",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "r4_release_manifest_sha256": null,
+  "r4_canonical_integration_receipt": {
+    "path": "canonical-integration/receipts/canonical_r4_integration.json",
+    "sha256": "4dac6c6a5343619a101d10e2326002508a728c56b2857562f1eaee819522e246"
+  },
+  "entries": [
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "9a76558e5b1901ca761f297505bee1b29af1e17b583c43c3db402591219367fc",
+      "after_sha256": "aef5b1a0262ce4529a070f9ce6055655c617f4815e79b071fd76a34e1b2859b1",
+      "canonical_r4_preimage_sha256": "214d52b9bf96ecdcc5fe242f6489e15d98c632ca02a7aa833e56d490c528b050",
+      "canonical_r5_after_sha256": "bc0a4bffd177307479f94b93d871d6b18180938195335eea4d3e11a9e85e1086"
+    },
+    {
+      "path": "tests/test_manager_us_mapping_research.py",
+      "before_sha256": "eb8e42d0b672e0b0cac3221ef8a2e47115d58535509f9f5672da57560990db0b",
+      "after_sha256": "77fdb9743180a3b94a30ff86f71d2ce3e29c874f300861513131bda63fc1e1a4",
+      "canonical_r4_preimage_sha256": "eb8e42d0b672e0b0cac3221ef8a2e47115d58535509f9f5672da57560990db0b",
+      "canonical_r5_after_sha256": "77fdb9743180a3b94a30ff86f71d2ce3e29c874f300861513131bda63fc1e1a4"
+    },
+    {
+      "path": "apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts",
+      "before_sha256": "2f757cb17d0356de0c915db29b2a0b7271b0872c1196f2c00f473699f7ded421",
+      "after_sha256": "58e61a2869cd9594f889faa510c552d347a2a29bf48778c969122c9c9dd02421",
+      "canonical_r4_preimage_sha256": "2f757cb17d0356de0c915db29b2a0b7271b0872c1196f2c00f473699f7ded421",
+      "canonical_r5_after_sha256": "58e61a2869cd9594f889faa510c552d347a2a29bf48778c969122c9c9dd02421"
+    }
+  ],
+  "candidate_patch": {
+    "path": "canonical-integration/patchtests/candidate_r5_delta.patch",
+    "sha256": "6e4e6d9b865d1633e3d9222d4ba73ce598109a5510aab5dfffb2b293a773830e",
+    "bytes": 5403
+  },
+  "canonical_patch": {
+    "path": "canonical-integration/patchtests/canonical_r5_delta.patch",
+    "sha256": "e3e9240aba5b8a2f12a2f1493d6af2113dbeac967562d5e012975bfd6b345e74",
+    "bytes": 5401
+  },
+  "actual_saved_api_reproduction": {
+    "path": "live-verification/workspace-current.json",
+    "sha256": "9476c8514007521bd49151bfa40b453e8fe845daabd4058e7777321994e0f8b7",
+    "bytes": 23676733,
+    "before_fix_decoder_error": "WORKSPACE_US_MAPPING_UNKNOWN_NOT_ZERO_INVALID",
+    "after_fix_probe": "Candidate frontend decoder passed after normalizing only coverage.matched_us_symbol_count and coverage.matched_hk_relation_count to null in memory; raw response was not copied into tests."
+  },
+  "test_results": {
+    "canonical_mapping_suite": "18 passed",
+    "candidate_mapping_suite": "17 passed, 1 known frozen scheduled-cycle admission 409 (PLAN_OWNER_ADMISSION_FAILED / OWNER_NOT_CALLED)",
+    "canonical_and_candidate_stale_mapping_regression": "2 passed each",
+    "canonical_us_mapping_frontend_suite": "2 passed",
+    "candidate_us_mapping_frontend_suite": "2 passed",
+    "candidate_saved_response_decoder_probe": "1 passed after in-memory stale-count normalization"
+  },
+  "commands": [
+    "/Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python -m pytest -q --tb=short --basetemp=<E>/canonical-integration/patchtests/pytest-tmp-r5-canonical -o tmp_path_retention_policy=all tests/test_manager_us_mapping_research.py",
+    "/Users/lexi/Desktop/学习/runtime/venvs/v3.5-mac/bin/python -m pytest -q --tb=short --basetemp=<E>/canonical-integration/patchtests/pytest-tmp-r5-candidate -o tmp_path_retention_policy=all tests/test_manager_us_mapping_research.py",
+    "/Users/lexi/.local/node-v24.19.0/bin/node node_modules/vitest/vitest.mjs run --config vite.config.ts src/manager-selection/__tests__/usMappingCompletion.spec.ts",
+    "/Users/lexi/.local/node-v24.19.0/bin/node node_modules/vitest/vitest.mjs run --root <E>/candidate/app/apps/web --config <canonical>/apps/web/vite.config.ts src/manager-selection/__tests__/usMappingCompletion.spec.ts",
+    "Same pytest command with -k \"daily_mapping_matches_only_the_current_bridge_session_and_payload_sha or stale_valid_empty_daily_mapping_keeps_zero_only_as_saved_product\" from canonical and candidate roots.",
+    "Transient candidate Vitest probe loaded the saved API JSON, verified stale VALID_EMPTY + saved count 0 + current counts 0/0, set only current matched counts to null in memory, then ran validateManagerWorkspace; the probe file was deleted after the run."
+  ],
+  "incident": {
+    "path": "integrated_release/manager-us-mapping-completion-20261011-r4/app/v4/manager_research/workspace.py",
+    "attempted_temporary_sha256": "aef5b1a0262ce4529a070f9ce6055655c617f4815e79b071fd76a34e1b2859b1",
+    "restored_frozen_sha256": "9a76558e5b1901ca761f297505bee1b29af1e17b583c43c3db402591219367fc",
+    "other_frozen_r4_files_modified": false,
+    "note": "A multi-file apply_patch partially wrote this one file before the read-only tests path failed; the inserted hunk was removed and the original deployed R4 SHA was verified."
+  },
+  "unresolved": [
+    "Independent R5 review pending.",
+    "No R5 deployment/live UI reload was performed by this writer; root owns integration/deployment.",
+    "Target-date eligibility and natural-period behavior remain CANNOT_CONFIRM.",
+    "Full R4 manifest SHA unavailable to this writer; root will verify active manifest inventory."
+  ],
+  "r4_release_manifest_sha256_status": "CANNOT_CONFIRM; root owns active-manifest verification and CAS"
+}

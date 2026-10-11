@@ -1,0 +1,102 @@
+{
+  "schema_version": "v4.fused_stage_manager_independent_publication_review.v1",
+  "reviewer_identity": "/root/us_r3_review_recovery",
+  "reviewed_at": "2026-10-11T11:43:16+08:00",
+  "review_scope": "Independent review of the R5 stale-US-mapping read contract and publication plan only. No live app writes or deployment.",
+  "status": "PASS",
+  "decision": "PASS",
+  "plan_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/deployment-r5/verified-publication-plan.json",
+  "plan_sha256": "b0b7332415b1a04e7a301298bf3a84aa9f91bc75197a771617d56534b11a9954",
+  "candidate_inventory_sha256": "df9847f4ca1d32a3bd6c6258b5c7ca10abdf65ef688e251fbd2f72722cec9ab1",
+  "automatic_activation": false,
+  "execution_verified": false,
+  "natural_verified": false,
+  "plan_activation_status": "NOT_ACTIVATED",
+  "blocking_findings": [],
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "target_behavior_evidence": {
+    "actual_r4_workspace_payload": {
+      "path": "live-verification/workspace-current.json",
+      "sha256": "9476c8514007521bd49151bfa40b453e8fe845daabd4058e7777321994e0f8b7",
+      "bytes": 23676733,
+      "target_trade_date": "20261009",
+      "cutoff": "2026-10-11T11:31:10.382876+08:00",
+      "r4_decoder_result": "FAIL: WORKSPACE_US_MAPPING_UNKNOWN_NOT_ZERO_INVALID"
+    },
+    "r5_candidate_behavior": {
+      "changed_paths": [
+        "v4/manager_research/workspace.py",
+        "tests/test_manager_us_mapping_research.py",
+        "apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts"
+      ],
+      "stale_product_status": "CANNOT_CONFIRM",
+      "stale_product_matches": 0,
+      "saved_product_status": "VALID_EMPTY",
+      "saved_product_match_count": 0,
+      "current_context_compatibility": "STALE_INPUTS_CHANGED",
+      "current_us_session": "20261009",
+      "saved_product_us_session": "20261008",
+      "current_coverage_matched_us_symbol_count": null,
+      "current_coverage_matched_hk_relation_count": null,
+      "saved_product_count_preserved_separately": true,
+      "mapping_rows_hidden": true
+    },
+    "reviewer_rerun_tests": {
+      "canonical_backend_focused": "2 passed",
+      "candidate_backend_focused": "2 passed",
+      "canonical_frontend_us_mapping_suite": "2 passed",
+      "candidate_frontend_us_mapping_suite": "2 passed",
+      "candidate_actual_payload_decoder_probe": "PASS after in-memory normalization of only the two stale current matched-count fields to null",
+      "candidate_actual_payload_render_probe": "PASS; displays STALE_INPUTS_CHANGED and unknown match count, does not say matches are zero"
+    },
+    "writer_handoff_full_suite_report_not_rerun": {
+      "canonical_backend": "18 passed",
+      "candidate_backend": "17 passed; one scheduled-cycle 409 PLAN_OWNER_ADMISSION_FAILED, previously reproduced on frozen R5 baseline as out-of-scope",
+      "full_suite_status": "writer-reported; this independent review reran only the focused regressions above"
+    }
+  },
+  "adapter_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tools/deployment/fused_publication_adapter.py",
+  "adapter_sha256": "30685f5cdf66af3f620f1b494673f1bacc140d0b8f10df67358a90bee929d156",
+  "adapter_binding": {
+    "adapter_file_sha256_matches": true,
+    "plan_sha256_bound": true,
+    "mutating_execute_called": false
+  },
+  "plan_integrity": {
+    "plan_sha256_matches": true,
+    "base_release_manifest_sha256": "b76018d0bebac0ec96cddcca0dabc56394b6f80e0684888c29961c9091123a6f",
+    "base_release_matches_active_plist": "R4 release id and app root match the active plist on disk; active plist SHA matches plan",
+    "candidate_manifest_sha256": "12af6fdab034e99f2479939209c86add3e20d9c0bddc0c73bb9fb9370d8a1f26",
+    "candidate_inventory_sha256": "df9847f4ca1d32a3bd6c6258b5c7ca10abdf65ef688e251fbd2f72722cec9ab1",
+    "candidate_inventory_entry_count": 1028,
+    "code_and_test_delta_entries": 3,
+    "delta_paths": [
+      "apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts",
+      "tests/test_manager_us_mapping_research.py",
+      "v4/manager_research/workspace.py"
+    ],
+    "delta_paths_hashes_and_modes_match": true,
+    "non_delta_entries": 1025,
+    "non_delta_hashes_and_modes_preserved": true,
+    "static_delta_entries": 0,
+    "static_tree_entry_count": 11,
+    "static_tree_before_after_identical": true,
+    "target_files_match_inventory": true,
+    "target_staged_plist_sha256": "a7efd39e1d38007e08df98ba348fd8c1228ea7f75cb4124ce835bb675140ec00",
+    "target_staged_plist_points_to_r5": true,
+    "active_plist_sha256_unchanged": "d943c70680835d818df8438e976896f70d13bb3c0ee8d9d23fb287deb2b91ff0",
+    "active_plist_still_points_to_r4": true
+  },
+  "CANNOT_CONFIRM": [
+    "R5 is not activated; no live R5 API/UI reload or browser readback was performed.",
+    "Natural-period behavior and target-date eligibility remain CANNOT_CONFIRM."
+  ],
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

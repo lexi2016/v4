@@ -1,0 +1,45 @@
+{
+  "schema_version": "v4.fused_stage_manager_independent_publication_review.v1",
+  "reviewer_identity": "/root/us_r3_review_recovery",
+  "reviewed_at": "2026-10-11T11:28:17+08:00",
+  "status": "PASS",
+  "decision": "PASS",
+  "plan_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/deployment-r4/verified-publication-plan.json",
+  "plan_sha256": "c2cb7e8236ccc18ccba7872c6f6c53faa087a1365b73fde7f2801b47add18651",
+  "candidate_inventory_sha256": "688d78e3bf0f55a89f63dbdf9f5ab973c447f59cb7beb86747ff8c48a02cf723",
+  "automatic_activation": false,
+  "execution_verified": false,
+  "natural_verified": false,
+  "plan_activation_status": "NOT_ACTIVATED",
+  "blocking_findings": [],
+  "adapter_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_OWNER_INPUT_INTEGRATION_MAC_20261010_R1/tools/deployment/fused_publication_adapter.py",
+  "adapter_sha256": "30685f5cdf66af3f620f1b494673f1bacc140d0b8f10df67358a90bee929d156",
+  "adapter_binding": {
+    "adapter_loaded_by_exact_bytes_sha256": true,
+    "plan_sha256_bound": true,
+    "mutating_execute_called": false
+  },
+  "plan_integrity": {
+    "plan_sha256_matches": true,
+    "base_release_manifest_and_inventory_match_current_active": true,
+    "candidate_manifest_and_inventory_match": true,
+    "delta_entries": 13,
+    "source_delta_entries": 10,
+    "static_delta_entries": 3,
+    "delta_paths_and_file_hash_modes_match": true,
+    "non_delta_entries": 1016,
+    "non_delta_hashes_and_modes_preserved": true,
+    "App_vue_sha256": "a9aa966bc54f994b2b8c80aa1ecec2da4f0e2661cc20a06bdea958330ce3c9a3",
+    "App_vue_preserved": true
+  },
+  "rollback_binding": {
+    "rollback_executed": false,
+    "status": "NOT_EXECUTED"
+  },
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

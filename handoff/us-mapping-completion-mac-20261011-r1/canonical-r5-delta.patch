@@ -1,0 +1,90 @@
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -84,6 +84,13 @@
+             daily['saved_product_match_count'] = len(saved_matches)
+             daily['matches'] = []
+             daily['status'] = 'CANNOT_CONFIRM'
++            # Preserve the saved product's known count separately, but do not
++            # present its coverage counts as measurements of the stale current
++            # context.
++            coverage = daily.get('coverage')
++            if isinstance(coverage, dict):
++                coverage['matched_us_symbol_count'] = None
++                coverage['matched_hk_relation_count'] = None
+             reason = ('STALE_INPUTS_CHANGED' if compatibility == 'STALE_INPUTS_CHANGED'
+                       else 'CURRENT_US_MARKET_IDENTITY_UNAVAILABLE')
+             daily['gaps'] = sorted(set([*(daily.get('gaps') or []), reason]))
+--- a/tests/test_manager_us_mapping_research.py
++++ b/tests/test_manager_us_mapping_research.py
+@@ -948,3 +948,37 @@
+     assert daily["saved_product_match_count"] == 1
+     assert daily["gaps"] == ["STALE_INPUTS_CHANGED"]
+     assert identities == []
++
++
++def test_stale_valid_empty_daily_mapping_keeps_zero_only_as_saved_product(monkeypatch):
++    from v4.manager_research import us_mapping_research, workspace
++
++    original = {"schema_version": "v4.manager_research.us_mapping_research.v1", "target_trade_date": "20261009",
++        "daily_run": {"schema_version": "v4.manager_research.us_mapping_daily_run.v1", "status": "VALID_EMPTY",
++            "target_trade_date": "20261009", "us_session_date": "20261008", "generated_at": "2026-10-10T09:00:00+08:00",
++            "source_identity": {"status": "VERIFIED", "payload_sha256": "a" * 64},
++            "artifact_sha256": "b" * 64, "run_id": "run-empty", "matches": [], "gaps": [],
++            "coverage": {"reviewed_us_symbol_count": 4, "matched_us_symbol_count": 0,
++                "matched_hk_relation_count": 0, "configured_us_universe_count": 33,
++                "available_us_universe_count": 33, "full_market_coverage": False}},
++        "reviewed_research": None}
++    monkeypatch.setattr(us_mapping_research, "read_workspace_mapping", lambda *_: deepcopy(original))
++    context = {"research_cutoff": "2026-10-11T09:15:00+08:00"}
++    current = {"expected_us_session": "20261009", "source_identity": {"payload_sha256": "c" * 64}}
++
++    mapping, _, identities = workspace._daily_mapping_plan_reference(SimpleNamespace(), "20261009", context,
++        current_us_market=current)
++    daily = mapping["daily_run"]
++
++    assert daily["current_context_compatibility"] == "STALE_INPUTS_CHANGED"
++    assert daily["status"] == "CANNOT_CONFIRM"
++    assert daily["matches"] == []
++    assert daily["saved_product_status"] == "VALID_EMPTY"
++    assert daily["saved_product_match_count"] == 0
++    assert daily["saved_product_us_session_date"] == "20261008"
++    assert daily["saved_product_source_payload_sha256"] == "a" * 64
++    assert daily["coverage"]["matched_us_symbol_count"] is None
++    assert daily["coverage"]["matched_hk_relation_count"] is None
++    assert daily["coverage"]["configured_us_universe_count"] == 33
++    assert daily["coverage"]["available_us_universe_count"] == 33
++    assert identities == []
+--- a/apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts
++++ b/apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts
+@@ -123,4 +123,31 @@
+     expect(host.textContent).not.toContain('关系数量为 0');
+     expect(host.querySelector('button')).toBeNull();
+   });
++
++  it('decodes stale current coverage as unknown while retaining the saved verified empty count',()=>{
++    const raw=workspaceWithUsAssessments();
++    const daily=raw.us_mapping_research.daily_run;
++    Object.assign(daily,{status:'CANNOT_CONFIRM',run_id:'saved-empty-run',generated_at:'2026-10-10T09:00:00+08:00',
++      artifact_sha256:'b'.repeat(64),us_session_date:'20261008',
++      matches:[],gaps:['STALE_INPUTS_CHANGED'],current_context_compatibility:'STALE_INPUTS_CHANGED',
++      current_context_us_session:'20261009',current_context_source_payload_sha256:'f'.repeat(64),
++      saved_product_status:'VALID_EMPTY',saved_product_us_session_date:'20261008',
++      saved_product_source_payload_sha256:'a'.repeat(64),saved_product_match_count:0,
++      latest_attempt_affects_saved_plan:false,latest_attempt_after_plan_cutoff:false,
++      run_readback:{status:'VERIFIED',target_trade_date:date,run_id:'saved-empty-run',
++        artifact_sha256:'b'.repeat(64),owner:'ManagerResearchJobService',read_at:'2026-10-11T10:00:00+08:00'}});
++    daily.coverage.matched_us_symbol_count=null;
++    daily.coverage.matched_hk_relation_count=null;
++
++    const validated=validateManagerWorkspace(raw,date);
++    const host=document.createElement('section');
++    renderResearchAttention(host,validated.research_attention,validated.us_market_attention,
++      validated.selection_diagnostics,validated.us_mapping_research);
++
++    expect(validated.us_mapping_research?.daily_run.saved_product_match_count).toBe(0);
++    expect(validated.us_mapping_research?.daily_run.coverage.matched_hk_relation_count).toBeNull();
++    expect(host.textContent).toContain('当前会话一致性 STALE_INPUTS_CHANGED');
++    expect(host.textContent).toContain('匹配数量未知');
++    expect(host.textContent).not.toContain('匹配为0');
++  });
+ });

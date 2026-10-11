@@ -1,0 +1,79 @@
+{
+  "status": "STAGE_API_SWITCHED_AND_READBACK_VERIFIED",
+  "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/deployment-r5/operations/4b1893502580463798afba36322b3ff8/operation_receipt.json",
+  "receipt_sha256": "445d7a8b815e5c9505760309615debde74e5d69e19038b9d5133ab754adbefd1",
+  "receipt_content_sha256": "55c4444237ef14b2237f625f23eebbf9e548df1d467fccd8ace61b34a5c733d5",
+  "runtime_verification": {
+    "runtime": {
+      "state": "running",
+      "pid": "11496",
+      "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_COMPLETION_MAC_20261011_R1/integrated_release/manager-us-mapping-completion-20261011-r5/app",
+      "V35_RELEASE_ID": "manager-us-mapping-completion-20261011-r5",
+      "V35_RELEASE_MANIFEST_SHA256": "12af6fdab034e99f2479939209c86add3e20d9c0bddc0c73bb9fb9370d8a1f26"
+    },
+    "readiness": {
+      "poll_count": 3,
+      "openapi": {
+        "http_status": 200,
+        "manager_workspace_get": "AVAILABLE",
+        "openapi_sha256": "06d8531d48f1bd22a7aa83bcad4da87add17850ee8413b55eee204e0676fdeff"
+      }
+    },
+    "research": {
+      "status": "EXACT_APPROVED_RESEARCH_HTTP_VERIFIED",
+      "market_row_counts": {
+        "A_SHARE": 10,
+        "HK_CONNECT": 10
+      },
+      "binding_sha256": "dd8f728d7d6a2e7a55046528c203caa3530977503d5a6fea939569ff88517c55",
+      "run_manifest_sha256": "9b5df949141ed1533cb7a71e2c46bebe341bea663f5f966bda16225754e89857",
+      "selection_run_ids": {
+        "A_SHARE": "run-2688466a1ae4464ba7237f0b",
+        "HK_CONNECT": "run-cfbdc9b36a7308da178d193a"
+      },
+      "execution_verified": false,
+      "natural_verified": false,
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "static_http": {
+      "status": "BYTE_IDENTICAL_TO_REVIEWED_STATIC_TREE",
+      "verified_files": 11
+    },
+    "history": {
+      "status": "HISTORICAL_SELECTION_SEMANTICS_UNCHANGED",
+      "checked_pairs": 113,
+      "selection_dates": [
+        "20260911",
+        "20260914",
+        "20260915",
+        "20260916",
+        "20260917",
+        "20260918",
+        "20260921",
+        "20260922",
+        "20260923",
+        "20260924",
+        "20260928",
+        "20260929",
+        "20260930",
+        "20261002",
+        "20261005",
+        "20261006",
+        "20261007",
+        "20261008",
+        "20261009"
+      ]
+    },
+    "browser_verified": false,
+    "natural_verified": false
+  },
+  "deployed": true,
+  "natural_verified": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
