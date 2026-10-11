@@ -1,0 +1,660 @@
+{
+  "schema_version": "three_lane.independent_delivery_bytes.v1",
+  "phase": "FINAL_REVIEW_WITH_EXPLICIT_HELPER_VERSION_BOUNDARIES",
+  "updated_at_utc": "2026-10-11T08:51:04.565817+00:00",
+  "scope": "READ_ONLY_PUBLICATION_SOURCE_BYTES_ACCEPTANCE_AND_HELPER_ONLY",
+  "candidate_commit": "cd93198cb0de06c8f32386ed1fc808a5b4e53bec",
+  "baseline_commit": "31f5a39ce1ee7cd76bbf268e68760b6adc319774",
+  "source_file_count": 12,
+  "source_checks": [
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_sha_matches": true,
+      "before_length_matches": true,
+      "before_blob_matches": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_sha_matches": true,
+      "before_length_matches": true,
+      "before_blob_matches": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/threeLaneDateBindings.spec.ts",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_absent_at_baseline": true,
+      "before_identity_all_null": true
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_sha_matches": true,
+      "before_length_matches": true,
+      "before_blob_matches": true
+    },
+    {
+      "path": "stage_center/consumer.py",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_sha_matches": true,
+      "before_length_matches": true,
+      "before_blob_matches": true
+    },
+    {
+      "path": "tests/test_manager_three_lane_channels_r1.py",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_absent_at_baseline": true,
+      "before_identity_all_null": true
+    },
+    {
+      "path": "tests/test_manager_three_lane_history_r1.py",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_absent_at_baseline": true,
+      "before_identity_all_null": true
+    },
+    {
+      "path": "tests/test_manager_three_lane_rebound_diagnostics_r1.py",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_absent_at_baseline": true,
+      "before_identity_all_null": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_sha_matches": true,
+      "before_length_matches": true,
+      "before_blob_matches": true
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_sha_matches": true,
+      "before_length_matches": true,
+      "before_blob_matches": true
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_sha_matches": true,
+      "before_length_matches": true,
+      "before_blob_matches": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "after_sha_matches": true,
+      "after_length_matches": true,
+      "after_blob_matches": true,
+      "after_equals_working_tree": true,
+      "after_equals_commit": true,
+      "before_sha_matches": true,
+      "before_length_matches": true,
+      "before_blob_matches": true
+    }
+  ],
+  "after_file_set_matches_manifest": true,
+  "changes_patch_digest_matches_manifest": true,
+  "source_manifest_sha256_field_matches_actual": true,
+  "copied_evidence_review": {
+    "checked_at_utc": "2026-10-11T08:46:06.464330+00:00",
+    "count": 27,
+    "checks": [
+      {
+        "path": "checks/FINAL_SOURCE_AUDIT.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/SUPPORT_PROVENANCE.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/FRONTEND_SUPPORT_PROVENANCE.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/ORIGINAL_REGRESSION_REVIEW.md",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/candidate_commit_binding.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/original_failure_facts_candidate.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/history_review_results.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/history_latest_duplicate_residual.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/o_projection_preservation_results.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/o_parquet_diagnostics_review.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/o_original_screen_comparison.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/INDEPENDENT_HK_REVIEW.md",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/original_selection_provenance_results.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/FINAL_FRONTEND_REVIEW.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/frontend_typecheck_comparison.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/CROSS_LANGUAGE_REVIEW.json",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/final_targeted_backend_exact.log",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/python314_projection_generation.log",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/cross_language_vitest.log",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/reproduction/review_history_boundary.py",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/reproduction/latest_duplicate_counterexample.py",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/reproduction/verify_hk_daily_boundary.py",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/reproduction/verify_original_selection_provenance.py",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/reproduction/compare_original_screen.py",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/reproduction/generate_projection_cases.py",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/reproduction/pythonProjectionRenderer.spec.ts",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      },
+      {
+        "path": "checks/reproduction/verify_delivery.py",
+        "sha256_matches_index": true,
+        "bytes_match_index": true,
+        "bytes_equal_original": true
+      }
+    ],
+    "scope_note": "27 indexed copies were checked at this snapshot. Writer subsequently updated delivery-helper evidence and added its reproduction script; final helper evidence and byte identities are separately recorded below. Final checksum sealing remains Writer responsibility."
+  },
+  "support_count": 28,
+  "support_checks": [
+    {
+      "path": "contracts/__init__.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "contracts/market_calendar_2026.json",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "contracts/stages.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "contracts/trading_calendar.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "contracts/trading_calendar_2026.json",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "contracts/us_equity_calendar.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "contracts/us_equity_calendar_2026.json",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/__init__.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/data_store.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/interprocess_lock.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/manager_input_attestation.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/market_time.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/owned_io.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/owned_path.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/research_lane_source.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/research_peripheral_store.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "infrastructure/trading_safety.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "ops/run_manager_daily_announcement.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "tests/test_us_relation_pipeline_r2.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/__init__.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/allowlist.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/collectors.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/constants.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hashing.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/paths.py",
+      "sha256_bytes_git_blob_match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/store.py",
+      "sha256_bytes_git_blob_match": true
+    }
+  ],
+  "acceptance_states_nulls_and_scope_consistent": true,
+  "preceding_helper_verification": {
+    "helper_sha256": "9488d2e63e698d7b3893d83b93065128d2ea5169c40369228acc45d9a8d89560",
+    "python_version": "3.14.6",
+    "command": [
+      "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+      "-B",
+      "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/verify_final_delivery_bytes.py"
+    ],
+    "passed": 5,
+    "failed": 0,
+    "checks": [
+      {
+        "case": "actual_after_matches_fixed_candidate",
+        "command": [
+          "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+          "-B",
+          "/workspace/scratch/ff44f882fe5c/publication/handoff/three-lane-selection-repair-20261011-r1/check_candidate.py",
+          "--phase",
+          "after",
+          "--target",
+          "/workspace/scratch/ff44f882fe5c/candidate"
+        ],
+        "exit_code": 0,
+        "status": "BYTES_MATCH",
+        "error": null,
+        "pass": true,
+        "files_verified": 12,
+        "owner_run_verified": false
+      },
+      {
+        "case": "original_null_after_with_all_images_absent_now_rejected",
+        "command": [
+          "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+          "-B",
+          "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/final_delivery_helper_wuz3355r/check_candidate.py",
+          "--phase",
+          "after"
+        ],
+        "exit_code": 2,
+        "status": "CANNOT_CONFIRM",
+        "error": "PATCH_MANIFEST_NULL_IDENTITY_INVALID:apps/web/src/api/managerWorkspace.ts",
+        "pass": true,
+        "files_verified": 0,
+        "owner_run_verified": null
+      },
+      {
+        "case": "manifest_top_level_non_object_now_structured_failure",
+        "command": [
+          "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+          "-B",
+          "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/final_delivery_helper_wuz3355r/check_candidate.py",
+          "--phase",
+          "after"
+        ],
+        "exit_code": 2,
+        "status": "CANNOT_CONFIRM",
+        "error": "PATCH_MANIFEST_NOT_OBJECT",
+        "pass": true,
+        "files_verified": 0,
+        "owner_run_verified": null
+      },
+      {
+        "case": "manifest_rows_non_object_now_structured_failure",
+        "command": [
+          "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+          "-B",
+          "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/final_delivery_helper_wuz3355r/check_candidate.py",
+          "--phase",
+          "after"
+        ],
+        "exit_code": 2,
+        "status": "CANNOT_CONFIRM",
+        "error": "PATCH_MANIFEST_ROW_NOT_OBJECT",
+        "pass": true,
+        "files_verified": 0,
+        "owner_run_verified": null
+      },
+      {
+        "case": "valid_identity_but_missing_after_file_rejected",
+        "command": [
+          "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+          "-B",
+          "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/final_delivery_helper_wuz3355r/check_candidate.py",
+          "--phase",
+          "after"
+        ],
+        "exit_code": 2,
+        "status": "CANNOT_CONFIRM",
+        "error": "PATCH_AFTER_BYTES_MISMATCH:apps/web/src/api/managerWorkspace.ts",
+        "pass": true,
+        "files_verified": 0,
+        "owner_run_verified": null
+      }
+    ],
+    "scope_note": "Actual fixed-candidate after comparison plus four negative cases; performed before the final change/before identity contract addition. Do not present these five as freshly rerun on the final helper."
+  },
+  "final_helper_delta_verification": {
+    "scope": "FINAL_HELPER_CHANGE_CONTRACT_DELTA_ONLY",
+    "updated_at_utc": "2026-10-11T08:49:52.917179+00:00",
+    "command": [
+      "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+      "-B",
+      "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/verify_helper_change_contract.py"
+    ],
+    "script_sha256": "4f9e76c7b2a9327e0c009e3544fe64c280d3e1cc9596fe459cd93c0481a3bbe5",
+    "python_version": "3.14.6",
+    "helper_sha256": "7fbf91d66b5a33eb1c1125ca2cb35de2bc619d1014235e1f0d203bd2689b5567",
+    "passed": 2,
+    "failed": 0,
+    "cases": [
+      {
+        "case": "modified_null_before_missing_target",
+        "command": [
+          "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+          "-B",
+          "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/change_contract_delta_g8zbe65b/check_candidate.py",
+          "--target",
+          "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/change_contract_delta_g8zbe65b/empty_before_target",
+          "--phase",
+          "before"
+        ],
+        "exit_code": 2,
+        "status": "CANNOT_CONFIRM",
+        "error": "PATCH_MANIFEST_CHANGE_IDENTITY_INVALID:apps/web/src/api/managerWorkspace.ts",
+        "target_remained_empty": true,
+        "pass": true
+      },
+      {
+        "case": "added_test_non_null_before",
+        "command": [
+          "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+          "-B",
+          "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/change_contract_delta_g8zbe65b/check_candidate.py",
+          "--target",
+          "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/change_contract_delta_g8zbe65b/empty_before_target",
+          "--phase",
+          "before"
+        ],
+        "exit_code": 2,
+        "status": "CANNOT_CONFIRM",
+        "error": "PATCH_MANIFEST_CHANGE_IDENTITY_INVALID:apps/web/src/manager-selection/threeLaneDateBindings.spec.ts",
+        "target_remained_empty": true,
+        "pass": true
+      }
+    ],
+    "publication_identities": {
+      "check_candidate.py": {
+        "sha256": "7fbf91d66b5a33eb1c1125ca2cb35de2bc619d1014235e1f0d203bd2689b5567",
+        "bytes": 6295
+      },
+      "FINAL_REPORT.md": {
+        "sha256": "870c66bbdc586e1e2eadc7e9e0c810dbec35eb0cb6c1e12c8e616a41d535a7d8",
+        "bytes": 15303
+      },
+      "acceptance.json": {
+        "sha256": "2884a502bb46026110c3ac909d15bb0a54d3520a0c63287c24405a2b764d37f4",
+        "bytes": 5990
+      },
+      "checks/DELIVERY_VERIFICATION.json": {
+        "sha256": "849a7b5d48e4baa88be1b7d3ef0ddbbd6bfe3f58a298041e13ea769da0505e63",
+        "bytes": 12015
+      },
+      "BEFORE_AFTER_SHA256.json": {
+        "sha256": "ffb6fd7019366919d9cec4510269119a09789dd5c07f6a01f7eaba1e3ba57215",
+        "bytes": 7751
+      },
+      "changes.patch": {
+        "sha256": "7eea3add8687d7f851ca0cf4d7f2925e82971fdcdb86d891e925efbef29edd0d",
+        "bytes": 102729
+      },
+      "MAC_ACCEPTANCE.md": {
+        "sha256": "f62deb29f0b353756e0709299fad46f712e99e5a8d5f54733fb51441ee5e57f0",
+        "bytes": 17510
+      }
+    },
+    "historical_policy_vs_unobserved_count_correct": true,
+    "writer_full_helper_checks": {
+      "passed": 18,
+      "failed": 0,
+      "python_version": "3.12.14",
+      "not_independently_rerun": true
+    },
+    "prior_independent_review": "final_delivery_byte_checks.json; five cases on prior helper 9488d2e63e698d7b3893d83b93065128d2ea5169c40369228acc45d9a8d89560",
+    "business_tests_rerun": false,
+    "candidate_writes": 0,
+    "publication_writes": 0,
+    "actual_owner_or_api_called": false,
+    "temporary_fixture_removed": true
+  },
+  "final_publication_identities": {
+    "check_candidate.py": {
+      "sha256": "7fbf91d66b5a33eb1c1125ca2cb35de2bc619d1014235e1f0d203bd2689b5567",
+      "bytes": 6295
+    },
+    "FINAL_REPORT.md": {
+      "sha256": "870c66bbdc586e1e2eadc7e9e0c810dbec35eb0cb6c1e12c8e616a41d535a7d8",
+      "bytes": 15303
+    },
+    "acceptance.json": {
+      "sha256": "2884a502bb46026110c3ac909d15bb0a54d3520a0c63287c24405a2b764d37f4",
+      "bytes": 5990
+    },
+    "checks/DELIVERY_VERIFICATION.json": {
+      "sha256": "849a7b5d48e4baa88be1b7d3ef0ddbbd6bfe3f58a298041e13ea769da0505e63",
+      "bytes": 12015
+    },
+    "BEFORE_AFTER_SHA256.json": {
+      "sha256": "ffb6fd7019366919d9cec4510269119a09789dd5c07f6a01f7eaba1e3ba57215",
+      "bytes": 7751
+    },
+    "changes.patch": {
+      "sha256": "7eea3add8687d7f851ca0cf4d7f2925e82971fdcdb86d891e925efbef29edd0d",
+      "bytes": 102729
+    },
+    "MAC_ACCEPTANCE.md": {
+      "sha256": "f62deb29f0b353756e0709299fad46f712e99e5a8d5f54733fb51441ee5e57f0",
+      "bytes": 17510
+    }
+  },
+  "historical_policy_vs_unobserved_count_correct": true,
+  "business_tests_rerun": false,
+  "real_owner_or_api_called": false,
+  "candidate_writes": 0,
+  "publication_writes": 0,
+  "reviewer_harness_initial_error": {
+    "status": "RESOLVED_REVIEWER_ONLY",
+    "error": "Initial inline harness expected SUPPORT_PROVENANCE.files; actual schema uses sources. KeyError occurred before helper execution. Corrected reviewer harness only."
+  },
+  "pending_finalization": [
+    "Writer copies final reviewer records and recomputes SHA256SUMS.txt",
+    "Writer completes authorized remote sync and exact readback receipt"
+  ],
+  "errors": []
+}

@@ -1,0 +1,229 @@
+{
+  "label": "candidate",
+  "loaded_source_root": "/workspace/scratch/ff44f882fe5c/candidate",
+  "issue24_fixture_identity_diagnostics": {
+    "schema_version": "v4.manager_research.input_identity_diagnostics.v1",
+    "input_identity_schema": "v4.manager_research.input_identity.v2",
+    "status": "CANNOT_CONFIRM",
+    "saved_input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "current_input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "changed_components": [],
+    "reason": "SAVED_IDENTITY_COMPONENTS_UNAVAILABLE_OWNER_REFRESH_REQUIRED"
+  },
+  "api_fixture_saved_product": {
+    "target": "20260921",
+    "generated_at": "2026-10-11T08:21:00.987619+00:00",
+    "saved_cutoff": "2026-10-11T16:21:00.939323+08:00",
+    "historical_boundary": "2026-09-21T09:30:00+08:00",
+    "selected": false,
+    "product_sha256": "9f41f3330519819a1fad3b830b8c88d003683b349f75857f66e719aab06c9060",
+    "temporary_owner_files_unchanged": true
+  },
+  "missing_original_app_file": true,
+  "us_relation_paths": {
+    "REVIEWED_PATH": {
+      "path": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/us_mapping_reviewed_20260930.json",
+      "exists": false
+    },
+    "RELATION_REGISTRY_PATH": {
+      "path": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/us_mapping_relation_registry.json",
+      "exists": false
+    },
+    "CURRENT_RELATION_EVIDENCE_PATH": {
+      "path": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/us_mapping_relation_evidence_20261011.json",
+      "exists": false
+    },
+    "CURRENT_RELATION_REVIEW_PATH": {
+      "path": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/us_mapping_relation_evidence_review_20261011.json",
+      "exists": false
+    }
+  },
+  "us_relation_evidence": {
+    "status": "NOT_EVALUATED",
+    "artifact_sha256": null,
+    "source_card_count": 0,
+    "eligible_relation_count": 0,
+    "post_cutoff_relation_count": 0,
+    "post_cutoff_review_count": 0,
+    "review_pending_relation_count": 0,
+    "symbol_assessment_count": 0,
+    "eligible_symbol_assessment_count": 0,
+    "post_cutoff_symbol_assessment_count": 0,
+    "post_cutoff_symbol_assessment_review_count": 0,
+    "review_pending_symbol_assessment_count": 0,
+    "reviewed_seed_relation_count": 0,
+    "current_reviewed_relation_count": 0,
+    "withheld_candidate_count": 0,
+    "withheld_candidates": [],
+    "mapped_us_symbol_count": 0,
+    "configured_us_symbol_count": 33,
+    "configured_equity_symbol_count": 12,
+    "explicitly_assessed_equity_symbol_count": 0,
+    "unassessed_equity_symbols": [
+      "AMD",
+      "AVGO",
+      "CIEN",
+      "COHR",
+      "DLR",
+      "EQIX",
+      "LITE",
+      "MU",
+      "NVDA",
+      "STX",
+      "VRT",
+      "WDC"
+    ],
+    "equity_assessment_coverage_complete": false,
+    "coverage_complete": false,
+    "relation_source_artifacts": [],
+    "review_receipt": null,
+    "source_body_rehash_status": "CANNOT_CONFIRM",
+    "assessment_identity": "6063e8719cc5eedb6874f0c51fd8a9b0beebd04fb52e9b82eb39a99c07037bb8",
+    "current_bridge_session": "20261009",
+    "current_bridge_source_payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "target_date_eligibility": "CANNOT_CONFIRM",
+    "retrospective_relations_present": false,
+    "gaps": [
+      "RELATION_EVIDENCE_COVERAGE_NOT_COMPLETE",
+      "US_HK_RELATION_AVAILABILITY_UNVERIFIED",
+      "US_RELATION_EVIDENCE_ARTIFACT_INVALID"
+    ],
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "calendar": {
+    "path": "/workspace/scratch/ff44f882fe5c/support_source/contracts/market_calendar_2026.json",
+    "20261228_hk_state": "FULL_TRADING_DAY",
+    "focus_window_start": "2026-12-28T16:10:00+08:00",
+    "market_session": "20261229"
+  },
+  "discovery_fixture_decisions": [
+    {
+      "text": "【越疆】订单等待核实。",
+      "symbols": [],
+      "rejection_audit": [
+        {
+          "evidence_id": "a",
+          "symbol": "HK.09993",
+          "name": "越疆",
+          "reason": "PUBLISHER_OR_ANALYST_NOT_SUBJECT",
+          "source_field": "source_row.evidence_sentence",
+          "quote": "越疆】订单等待核实",
+          "start": 1,
+          "end": 10,
+          "material_id": "a",
+          "source_refs": [
+            {
+              "status": "VERIFIED",
+              "payload_path": "research/archives/20260920.json",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ],
+          "published_at": "2026-09-18T19:00:00+08:00",
+          "title": "【越疆】机器人研究",
+          "semantic_version": "20260921.manager-semantic.r3.v1",
+          "disposition": "MATERIAL_INDEX_ONLY",
+          "polarity": "NOT_A_CLAIM",
+          "action_subject": "HK.09993",
+          "action_quote": "】订单等待核实",
+          "action_start": 3,
+          "action_end": 10,
+          "subject_quote": "越疆",
+          "subject_start": 1,
+          "subject_end": 3,
+          "subject_resolution": "EXPLICIT_SUBJECT",
+          "context_quote": "越疆】订单等待核实",
+          "context_start": 1,
+          "context_end": 10,
+          "parser_revision": "20260930.subject-action.mirror-bound.r1"
+        }
+      ]
+    },
+    {
+      "text": "南方港股通红利政策变化",
+      "symbols": [],
+      "rejection_audit": [
+        {
+          "evidence_id": "a",
+          "symbol": "HK.03469",
+          "name": "南方港股通红利",
+          "reason": "NO_SUBJECT_LOCAL_ACTION_OR_RESEARCH_CLAIM",
+          "source_field": "source_row.evidence_sentence",
+          "quote": "南方港股通红利政策变化",
+          "start": 0,
+          "end": 11,
+          "material_id": "a",
+          "source_refs": [
+            {
+              "status": "VERIFIED",
+              "payload_path": "research/archives/20260920.json",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ],
+          "published_at": "2026-09-18T19:00:00+08:00",
+          "title": "南方港股通红利政策变化",
+          "semantic_version": "20260921.manager-semantic.r3.v1",
+          "disposition": "RESEARCH_REVIEW_REQUIRED",
+          "polarity": "UNRESOLVED",
+          "action_subject": "HK.03469",
+          "action_quote": "政策变化",
+          "action_start": 7,
+          "action_end": 11,
+          "subject_quote": "南方港股通红利",
+          "subject_start": 0,
+          "subject_end": 7,
+          "subject_resolution": "EXPLICIT_SUBJECT",
+          "context_quote": "南方港股通红利政策变化",
+          "context_start": 0,
+          "context_end": 11,
+          "parser_revision": "20260930.subject-action.mirror-bound.r1"
+        }
+      ]
+    },
+    {
+      "text": "周大福创建订单待核。周大福基本面待核。",
+      "symbols": [
+        "HK.00659"
+      ],
+      "rejection_audit": [
+        {
+          "evidence_id": "a",
+          "symbol": "HK.01929",
+          "name": "周大福",
+          "reason": "NO_SUBJECT_LOCAL_ACTION_OR_RESEARCH_CLAIM",
+          "source_field": "source_row.evidence_sentence",
+          "quote": "周大福基本面待核",
+          "start": 10,
+          "end": 18,
+          "material_id": "a",
+          "source_refs": [
+            {
+              "status": "VERIFIED",
+              "payload_path": "research/archives/20260920.json",
+              "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ],
+          "published_at": "2026-09-18T19:00:00+08:00",
+          "title": "周大福创建订单待核。周大福基本面待核。",
+          "semantic_version": "20260921.manager-semantic.r3.v1",
+          "disposition": "RESEARCH_REVIEW_REQUIRED",
+          "polarity": "UNRESOLVED",
+          "action_subject": "HK.01929",
+          "action_quote": "基本面待核",
+          "action_start": 13,
+          "action_end": 18,
+          "subject_quote": "周大福",
+          "subject_start": 10,
+          "subject_end": 13,
+          "subject_resolution": "EXPLICIT_SUBJECT",
+          "context_quote": "周大福基本面待核",
+          "context_start": 10,
+          "context_end": 18,
+          "parser_revision": "20260930.subject-action.mirror-bound.r1"
+        }
+      ]
+    }
+  ]
+}

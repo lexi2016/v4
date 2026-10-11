@@ -1,0 +1,151 @@
+{
+  "schema_version": "three_lane.acceptance.v1",
+  "as_of_utc": "2026-10-11T08:42:15.334282+00:00",
+  "overall_status": "PARTIAL",
+  "candidate_commit": "cd93198cb0de06c8f32386ed1fc808a5b4e53bec",
+  "remote_sync_receipt": "SYNC_RECEIPT.json",
+  "writer": {
+    "identity": "/root single candidate Writer",
+    "runtime": "Linux Python 3.14.6",
+    "requested_mac_luna_max_identity_proved": false
+  },
+  "independent_reviewers": [
+    "/root/history_identity_review",
+    "/root/hk_rebound_review",
+    "/root/announcement_daily_review"
+  ],
+  "scope": {
+    "source_candidate_written_and_committed": true,
+    "independent_scoped_review_performed": true,
+    "integrated_into_actual_mac": false,
+    "deployed": false,
+    "api_8873_executed": false,
+    "actual_ui_reloaded": false,
+    "natural_run_verified": false,
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "parallel_producer_created": false,
+    "vibe_8910_modified": false
+  },
+  "A": {
+    "status": "PARTIAL",
+    "engineering_evidence": "Original date/CONSUMED contract preserved; execution_context retained; synthetic exact-date and missing-channel cases passed",
+    "actual_owner_run_id": null,
+    "actual_input_sha256": null,
+    "actual_product_sha256": null,
+    "actual_file_sha256": null,
+    "actual_receipt_sha256": null,
+    "api_readback_sha256": null,
+    "ui_reload_evidence_sha256": null,
+    "accepted_selected_count": null,
+    "natural_run_verified": false,
+    "remaining_evidence": [
+      "Exact source/body/semantic Reader and independent Reviewer",
+      "Actual evidence run and owner import receipt",
+      "Publication 20261008 / target 20261009 CONSUMED product and same run/SHA API/UI"
+    ]
+  },
+  "H": {
+    "status": "PARTIAL",
+    "engineering_evidence": "Original HK provenance helper plus real SelectionStore 5/5; 30 independent boundary probes; complete consumer import BLOCKED",
+    "actual_owner_run_id": null,
+    "actual_input_sha256": null,
+    "actual_product_sha256": null,
+    "actual_file_sha256": null,
+    "actual_receipt_sha256": null,
+    "api_readback_sha256": null,
+    "ui_reload_evidence_sha256": null,
+    "accepted_selected_count": null,
+    "natural_run_verified": false,
+    "remaining_evidence": [
+      "Exact 20261008 authority and target-date membership V2",
+      "Canonical D-1 Top100",
+      "Original Stage selection trio and bound execution reference",
+      "Same run/SHA API/UI; no backfill substitution"
+    ]
+  },
+  "O": {
+    "status": "PARTIAL",
+    "engineering_evidence": "Original two-gate/attention/ledger unchanged; optional diagnostics; original-vs-candidate synthetic Parquet 10/10 assertions",
+    "actual_owner_run_id": null,
+    "actual_input_sha256": null,
+    "actual_product_sha256": null,
+    "actual_file_sha256": null,
+    "actual_receipt_sha256": null,
+    "api_readback_sha256": null,
+    "ui_reload_evidence_sha256": null,
+    "accepted_selected_count": null,
+    "natural_run_verified": false,
+    "remaining_evidence": [
+      "Actual per-symbol session/volume input diagnostics",
+      "Original complete decision ledger",
+      "Saved product/receipt and same run/SHA API/UI"
+    ]
+  },
+  "I": {
+    "status": "PARTIAL",
+    "engineering_status": "PASS_SCOPED_REPRODUCTION",
+    "actual_20261012_saved_current_payloads_available": false,
+    "remaining_evidence": "Obtain exact saved run and current prehash/payload pairs; original two changed components not recomputed",
+    "saved_run_observation": "1e9d511515de47599f05539e43e79b81",
+    "saved_product_sha256_observation": "1ce6a9e12c4bf692707b38bbf7c73a75acbea499a9cc3d0bc624538da9234aec"
+  },
+  "R": {
+    "status": "PARTIAL",
+    "engineering_status": "PASS_FOR_VERIFIED_LATE_OWNER_JOURNALS",
+    "actual_mac_journals_verified": false,
+    "actual_historical_request_executed": false,
+    "actual_dynamic_request_executed": false,
+    "eligible_premarket_plan_count": null,
+    "residual": "Missing old journal can cause latest duplicate body to exhaust original 64 MiB cumulative budget",
+    "pit": "All archive plans listed in problem package were produced after 20261009 09:30+08 and cannot be admitted as premarket"
+  },
+  "D": {
+    "status": "PARTIAL",
+    "engineering_status": "PASS",
+    "actual_api_ui_status": "NOT_RUN",
+    "tested_scope": "One missing A/H/O produces a valid CANNOT_CONFIRM DTO; other valid channel projections and DOM remain intact",
+    "malformed_dto_contract": "Original whole-DTO validation rejection retained",
+    "unknown_count_representation": null,
+    "valid_zero_requires_complete_original_owner_evidence": true
+  },
+  "N": {
+    "status": "NOT_RUN",
+    "next_actual_trade_date": null,
+    "owner_runs": null,
+    "receipts": null,
+    "natural_run_verified": false,
+    "known_fixed_binding": {
+      "plan_material_refresh_only": true,
+      "announcement_collection_enabled": false,
+      "scope": "Fixed historical source receipt; current Mac binding not read"
+    }
+  },
+  "modes": {
+    "historical_as_of": {
+      "status": "NOT_ACCEPTED",
+      "target_date": "20261009",
+      "cutoff": "2026-10-09T09:30:00+08:00",
+      "late_product_admission_allowed": false,
+      "actual_late_product_admission_count": null
+    },
+    "current_retrospective": {
+      "status": "NOT_RUN_ON_MAC",
+      "view": "dynamic",
+      "backdating_allowed": false
+    },
+    "future_natural": {
+      "status": "NOT_RUN",
+      "manual_runs_count_as_natural": false
+    }
+  },
+  "existing_unclosed_engineering_gates": [
+    "Five original Python suites: 77 passed / 29 failed on both trees",
+    "Original full frontend typecheck: 97 identical diagnostics on both source versions",
+    "Six original issue24 bad_readback injection/terminal-attempt contract disagreements remain unchanged",
+    "Full Stage consumer import lacks current execution_evidence dependencies in attachment",
+    "Full application build and actual Mac release/load identity not tested"
+  ]
+}

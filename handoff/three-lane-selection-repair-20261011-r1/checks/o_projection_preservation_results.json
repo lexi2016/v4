@@ -1,0 +1,70 @@
+{
+  "scope": "SYNTHETIC_PURE_FUNCTIONS_AND_SOURCE_COMPARISON_NOT_MAC",
+  "checked_at_utc": "2026-10-11T08:10:38.795923+00:00",
+  "python": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "source_sha256": {
+    "workspace_plan": "20c7daeace29a13e022726c1e4a3719fdc5ad0d218af5a35e7a0142c4d668484",
+    "research_attention": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+    "workspace_daily_channels": "d4c5b215220d7e2b304d157017cf830393ce235447356a3d657f19b05e1bb846",
+    "workspace": "6d7119ba6fc762dbcd0ccd43897a26956eb24430e4f54352bed0aace6f9b07a7"
+  },
+  "source_stable_during_review": true,
+  "producer_semantic_body_AST_matches_original": true,
+  "successful_producer_owner_IO_executed": false,
+  "producer_success_limit": "pandas missing in test_env314; no original panel/master artifacts supplied",
+  "early_return_cases": [
+    {
+      "case": "missing_authority",
+      "legacy_return_identical": true,
+      "diagnostic_stale_fields_cleared": true,
+      "return_identity": "d6d8629e70b6e7661dad84c01ff0689fc1b19bbee15d295d7928b0e9d71fa23d",
+      "diagnostics": {
+        "schema_version": "v4.manager_research.rebound_input_diagnostics.v1",
+        "target_trade_date": "20261002",
+        "status": "CANNOT_CONFIRM",
+        "rows": [],
+        "source_screen_input_identity": null,
+        "verified_session": null,
+        "sha256": null,
+        "research_cutoff": "2026-10-02T09:28:00+08:00",
+        "diagnostic_only": true,
+        "selection_verdict_modified": false,
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "case": "invalid_market_session",
+      "legacy_return_identical": true,
+      "diagnostic_stale_fields_cleared": true,
+      "return_identity": "8522da345aea7aa01682602dabb06592b48a21ad10af1709963c372c0aaffe69",
+      "diagnostics": {
+        "schema_version": "v4.manager_research.rebound_input_diagnostics.v1",
+        "target_trade_date": "20261002",
+        "status": "CANNOT_CONFIRM",
+        "rows": [],
+        "source_screen_input_identity": null,
+        "verified_session": null,
+        "sha256": null,
+        "research_cutoff": "2026-10-02T09:28:00+08:00",
+        "diagnostic_only": true,
+        "selection_verdict_modified": false,
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    }
+  ],
+  "original_and_current_ledger_byte_semantics_identical": true,
+  "ledger_identity": "daef277318a67e6e35a44983106544ebbf3a9415f6e7728a5fd2f9c36d2481d4",
+  "original_and_current_attention_byte_semantics_identical": true,
+  "attention_identity": "e1bd293052aadf37be6a362813ab6a4d4037c91238220b8b588775aad9c23e87",
+  "research_attention_projection_component": "d299ab8900848675691c6dded4f1807449722669c1992f291199c29a4f57182d",
+  "daily_display_uses_existing_metrics_without_ledger_mutation": true,
+  "daily_source_diagnostics_separate": true,
+  "current_diagnostics_overlay_on_legacy_same_identity_plan": true,
+  "overlay_original_plan_and_attempt_bytes_unchanged": true
+}

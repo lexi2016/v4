@@ -1,0 +1,1626 @@
+diff --git a/apps/web/src/api/managerWorkspace.ts b/apps/web/src/api/managerWorkspace.ts
+index ffb2e5e113a10556f037bc462887d14a9199bd51..e7e3996ae3a468b106347801fbeb9f5f1e9770b1 100644
+--- a/apps/web/src/api/managerWorkspace.ts
++++ b/apps/web/src/api/managerWorkspace.ts
+@@ -1771,7 +1771,8 @@ export function validateManagerWorkspace(raw: unknown, date: string, expectedBin
+   if (value.date_bindings !== undefined) {
+     const bindings = validateWorkspaceDateBindings(value.date_bindings, date, expectedBindings);
+     if (value.daily_channels !== undefined) validateDailyChannels(value.daily_channels, bindings, value);
+-  } else if (value.daily_channels !== undefined) throw new Error('WORKSPACE_DAILY_DATE_BINDING_INVALID');
++  } else if (value.daily_channels !== undefined || expectedBindings?.selection_date !== undefined ||
++      expectedBindings?.announcement_date !== undefined) throw new Error('WORKSPACE_DAILY_DATE_BINDING_INVALID');
+   return value as unknown as ManagerWorkspace;
+ }
+ async function parseWorkspaceResponse(response: Response, date: string, expectedBindings?: WorkspaceRequestDateBindings): Promise<ManagerWorkspace> {
+@@ -1851,5 +1852,5 @@ export async function refreshManagerWorkspace(date: string, signal: AbortSignal,
+     method: 'POST', signal, credentials: 'same-origin', cache: 'no-store',
+   });
+   if (!response.ok) throw new Error(`WORKSPACE_REFRESH_HTTP_${response.status}`);
+-  return await parseWorkspaceResponse(response, date);
++  return await parseWorkspaceResponse(response, date, bindings);
+ }
+diff --git a/apps/web/src/manager-selection/catalystObservationPanel.ts b/apps/web/src/manager-selection/catalystObservationPanel.ts
+index e01c06480850026addefd564192546018a199082..4b156db14827f39c8dc47c84e104e9a79a468034 100644
+--- a/apps/web/src/manager-selection/catalystObservationPanel.ts
++++ b/apps/web/src/manager-selection/catalystObservationPanel.ts
+@@ -1,6 +1,6 @@
+ import { renderAnnouncementReview } from './announcementObservation.js';
+ import { renderResearchAttention } from './researchAttention.js';
+-import { renderDailyChannels } from './dailyChannels.js';
++import { renderDailyChannels, normalizedWorkspaceDay, type WorkspaceRequestDateBindings } from './dailyChannels.js';
+ import type { ResearchAttention, UsMappingResearch, UsMarketAttention } from '../api/managerWorkspace.js';
+ import { businessStatusRows } from './businessStatus.js';
+ /** Stock-keyed panel inside the EXISTING ManagerSelectionView host.
+@@ -83,14 +83,17 @@ export function groupThemeMappings(theme: JsonObject): ThemeMappingGroup[] {
+ export function mountCatalystObservations(host: HTMLElement, initialDate: string): () => void {
+   // The page date selects publication-day evidence; plan_date selects only the workspace plan.
+   const params=new URLSearchParams(window.location.search);
+-  const requestedPublicationDate=params.get('date');
+-  const publicationDate=requestedPublicationDate && /^\d{8}$/.test(requestedPublicationDate)
+-    ? requestedPublicationDate : initialDate;
+-  const requestedPlanDate=params.get('plan_date');
+-  let date=requestedPlanDate && /^\d{8}$/.test(requestedPlanDate) ? requestedPlanDate : initialDate;
+-  const requestedAnalysisDate=params.get('announcement_date');
+-  let analysisPublicationDate=requestedAnalysisDate && /^\d{8}$/.test(requestedAnalysisDate)
+-    ? requestedAnalysisDate : undefined;
++  const publicationDate=normalizedWorkspaceDay(params.get('date')) ?? initialDate;
++  const selectionDate=normalizedWorkspaceDay(params.get('selection_date')) ?? normalizedWorkspaceDay(params.get('date')) ?? undefined;
++  let date=normalizedWorkspaceDay(params.get('plan_date')) ?? initialDate;
++  // An omitted publication day stays omitted: the existing owner chooses the
++  // previous HK session. Explicit aliases select the same day for both reads.
++  let analysisPublicationDate=normalizedWorkspaceDay(params.get('announcement_date')) ??
++    normalizedWorkspaceDay(params.get('publication_date')) ?? undefined;
++  const requestBindings=():WorkspaceRequestDateBindings=>({
++    ...(selectionDate ? {selection_date:selectionDate} : {}),
++    ...(analysisPublicationDate ? {announcement_date:analysisPublicationDate} : {}),
++  });
+   let analysisSequence=0;let analysisController:AbortController|null=null;
+   let disposed = false; let sequence = 0; let controller: AbortController | null = null;
+   const announcementController=new AbortController();
+@@ -98,8 +101,9 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   let announcementRefreshTimer:ReturnType<typeof setTimeout>|undefined;
+   let timer: ReturnType<typeof setTimeout> | undefined;
+   let currentValue: ManagerWorkspace | null = null;
+-  let view: 'auto'|'dynamic' = 'auto';
++  let view: 'auto'|'dynamic' = params.get('view')==='dynamic' ? 'dynamic' : 'auto';
+   let loadedView: 'auto'|'dynamic' | null = null;
++  let loadedBindings: string | null = null;
+   let sourceFilter: 'ALL'|'STAGE'|'MATERIAL'|'CLOSE' = 'ALL';
+   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, content = '', className = '') => {
+     const node = document.createElement(tag); node.textContent = content; node.className = className; return node;
+@@ -122,6 +126,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   for(const [key,label] of [['auto','当时历史 / 当日预览'],['dynamic','现在回看（可能含后续消息）']]) {
+     const option=el('option',label);option.value=key;viewSelect.append(option);
+   }
++  viewSelect.value=view;
+   viewLabel.append(viewSelect);
+   const cancelButton=el('button','取消本次读取');cancelButton.type='button';cancelButton.hidden=true;
+   header.append(dateLabel,readButton,refreshButton,viewLabel,cancelButton);
+@@ -470,7 +475,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   }
+   function render(value: ManagerWorkspace): void {
+     // Input identity is retained for audit; it is not a stock ranking.
+-    currentValue=value;loadedView=view;
++    currentValue=value;loadedView=view;loadedBindings=JSON.stringify(requestBindings());
+     // Both fields came through the same workspace response/date/run validator.
+     renderDailyChannels(dailyChannelsSection,value.daily_channels,value.date_bindings);
+     renderResearchAttention(researchAttentionSection,value.research_attention as ResearchAttention|undefined,value.us_market_attention as UsMarketAttention|undefined,
+@@ -562,7 +567,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+     }));
+   }
+   function clearResults(): void {
+-    currentValue=null;loadedView=null;decisionSummary.textContent='候选和风险数量未知';
++    currentValue=null;loadedView=null;loadedBindings=null;decisionSummary.textContent='候选和风险数量未知';
+     filterCount.textContent='读取中 · 数量未知';background.hidden=true;runSummary.textContent='';
+     rawObservations.open=false;rawObservationsSummary.textContent='原始股票观察与来源审计（数量未知）';
+     planIdentity.hidden=true;
+@@ -584,12 +589,14 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+     }
+   }
+   function selectAnalysisDate(next:string|undefined):void{
+-    analysisPublicationDate=next;
++    analysisPublicationDate=normalizedWorkspaceDay(next) ?? undefined;
+     const url=new URL(window.location.href);
+-    if(next)url.searchParams.set('announcement_date',next);
++    url.searchParams.delete('publication_date');
++    if(analysisPublicationDate)url.searchParams.set('announcement_date',analysisPublicationDate);
+     else url.searchParams.delete('announcement_date');
+     window.history.replaceState(window.history.state,'',`${url.pathname}${url.search}${url.hash}`);
+     void loadAnnouncementAnalysis(date);
++    void load(false);
+   }
+   async function loadAnnouncementAnalysis(targetDate:string):Promise<void>{
+     const id=++analysisSequence;analysisController?.abort();
+@@ -641,10 +648,11 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+   }
+   async function load(refresh: boolean): Promise<void> {
+     const id=++sequence;controller?.abort();clearTimeout(timer);controller=new AbortController();const current=controller;
+-    const requestedDate=date;const requestedView=view;let timedOut=false;
++    const requestedDate=date;const requestedView=view;const bindings=requestBindings();
++    const bindingKey=JSON.stringify(bindings);let timedOut=false;
+     timer=setTimeout(()=>{timedOut=true;current.abort();},WORKSPACE_REQUEST_TIMEOUT_MS);
+     const priorRead=(currentValue?.read_context || {}) as JsonObject;
+-    const keep=!!currentValue && currentValue.target_trade_date===date && loadedView===view &&
++    const keep=!!currentValue && currentValue.target_trade_date===date && loadedView===view && loadedBindings===bindingKey &&
+       ['VERIFIED','VERIFIED_WITH_GAPS'].includes(String(priorRead.status));
+     if(!keep)clearResults();
+     panel.dataset.readState=keep?'UPDATING':'LOADING';
+@@ -655,17 +663,18 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+     let refreshFailure='';let refreshedValue: ManagerWorkspace | null = null;
+     try {
+       if(refresh){
+-        try { refreshedValue=await refreshManagerWorkspace(requestedDate,current.signal); }
++        try { refreshedValue=await refreshManagerWorkspace(requestedDate,current.signal,bindings); }
+         catch(error){if(current.signal.aborted)throw error;refreshFailure=failureKind(error,false,false)[0];}
+       }
+       // Reuse successful POST once. Failed POST permits one canonical read,
+       // with no retry/poll loop or implicit collection.
+-      const value=refreshedValue || await requestManagerWorkspace(requestedDate,current.signal,requestedView);
+-      if(!disposed && id===sequence && date===requestedDate && view===requestedView){
++      const value=refreshedValue || await requestManagerWorkspace(requestedDate,current.signal,requestedView,bindings);
++      if(current.signal.aborted)throw new DOMException('Workspace read cancelled','AbortError');
++      if(!disposed && id===sequence && date===requestedDate && view===requestedView && bindingKey===JSON.stringify(requestBindings())){
+         render(value);if(refreshFailure)status.textContent+=` 本次生成失败：${refreshFailure} 以下仅为重新核验的读取状态。`;
+       }
+     } catch(error){
+-      if(!disposed && id===sequence && date===requestedDate && view===requestedView){
++      if(!disposed && id===sequence && date===requestedDate && view===requestedView && bindingKey===JSON.stringify(requestBindings())){
+         const [message,sourceFailure]=failureKind(error,timedOut,current.signal.aborted);
+         if(sourceFailure || !keep){clearResults();panel.dataset.readState='FAILED';filterCount.textContent='读取未完成 · 数量未知';}
+         else {panel.dataset.readState='STALE';filterCount.textContent='上次结果 · 本次读取未完成';}
+@@ -680,8 +689,8 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+     }
+   }
+   const dateChange=()=>{
+-    const next=planDate.value.replace(/-/g,'');
+-    if(/^\d{8}$/.test(next)){
++    const next=normalizedWorkspaceDay(planDate.value);
++    if(next){
+       date=next;
+       const url=new URL(window.location.href);
+       if(url.searchParams.get('plan_date')!==next){
+@@ -692,7 +701,12 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
+       void load(false);
+     }
+   };
+-  const viewChange=()=>{view=viewSelect.value==='dynamic'?'dynamic':'auto';void load(false);};
++  const viewChange=()=>{
++    view=viewSelect.value==='dynamic'?'dynamic':'auto';
++    const url=new URL(window.location.href);url.searchParams.set('view',view);
++    window.history.replaceState(window.history.state,'',`${url.pathname}${url.search}${url.hash}`);
++    void load(false);
++  };
+   const cancelClick=()=>{controller?.abort();};
+   planDate.addEventListener('change',dateChange);viewSelect.addEventListener('change',viewChange);cancelButton.addEventListener('click',cancelClick);
+   const readClick=()=>{void load(false);};const refreshClick=()=>{void load(true);};
+diff --git a/apps/web/src/manager-selection/threeLaneDateBindings.spec.ts b/apps/web/src/manager-selection/threeLaneDateBindings.spec.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..cce4386e0ec1e9c2c56d1fa5886b805788b72ff5
+--- /dev/null
++++ b/apps/web/src/manager-selection/threeLaneDateBindings.spec.ts
+@@ -0,0 +1,171 @@
++/** Synthetic HTTP bodies through the real API validator and DOM; no live owner claim. */
++import { fireEvent, waitFor } from '@testing-library/vue';
++import { afterEach, expect, it, vi } from 'vitest';
++import { mountCatalystObservations } from './catalystObservationPanel';
++import { refreshManagerWorkspace } from '../api/managerWorkspace';
++
++const date = '20261009';
++const disposers: Array<() => void> = [];
++const initialUrl = window.location.href;
++const flags = { RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false };
++
++function body(params: URLSearchParams, identity = 'a') {
++  return { ...flags, schema_version: 'v4.manager_research.workspace.v1', target_trade_date: date,
++    semantic_version: '20260921.manager-semantic.r3.v1', input_identity: identity.repeat(64),
++    date_bindings: { plan_date: date, selection_date: params.get('selection_date') ?? date,
++      announcement_date: params.get('announcement_date') ?? '20261008' },
++    stocks: [], focus_symbols: [], themes: [], materials: [], company_events: [], rejected_relations: [],
++    gaps: ['SYNTHETIC_NO_OWNER_EXECUTION'],
++    lanes: ['STAGE', 'CATALYST', 'CLOSE'].map(lane => ({ lane, owner: `SYNTHETIC_${lane}`,
++      state: 'NOT_RUN', target_date: date, stock_count: null, last_attempt_at: null, last_success_at: null,
++      run_id: null, execution_kind: 'READ_ONLY', failure_reasons: [], next_plan: null,
++      schedule_status: 'UNBOUND', input_coverage: {} })),
++    summary: { stock_count: 0, relation_count: 0, theme_count: 0, reused_material_count: 0, formal_recommendation_count: 0 },
++    briefing: { headline: '', ordering_explanation: '' }, owner_chain: {},
++    plan_context: { plan_trade_date: date, research_cutoff: '2026-10-09T10:00:00+08:00',
++      market_session: '20261008', market_data_verified: false },
++    plan_product: { status: 'NOT_MATERIALIZED', consumed: false }, workspace_plan_attempt: { state: 'NOT_RUN' },
++    read_context: { mode: 'CURRENT_DYNAMIC_PREVIEW', status: 'VERIFIED_WITH_GAPS',
++      contract: '20260923.workspace-history-read.r1', candidate_count_known: false,
++      as_of: '2026-10-09T10:00:00+08:00' },
++  };
++}
++const response = (value: unknown) => new Response(JSON.stringify(value), { status: 200, headers: { 'Content-Type': 'application/json' } });
++const urlOf = (raw: unknown) => new URL(String(raw), window.location.origin);
++const isWorkspace = (url: URL) => /^\/api\/v4\/manager\/research\/workspace(?:\/refresh)?$/.test(url.pathname);
++function installFetch(handler?: (url: URL, init?: RequestInit) => Response | Promise<Response>) {
++  const calls: Array<{ url: URL; init?: RequestInit }> = [];
++  vi.stubGlobal('fetch', vi.fn((raw: unknown, init?: RequestInit) => {
++    const url = urlOf(raw); calls.push({ url, init });
++    if (isWorkspace(url)) return Promise.resolve(handler ? handler(url, init) : response(body(url.searchParams)));
++    // Missing announcement input remains an explicit failed read. The date
++    // selector is still real and must bind the independent workspace request.
++    return Promise.resolve(new Response('', { status: 503 }));
++  }));
++  return calls;
++}
++function mount(query: string) {
++  window.history.replaceState({}, '', `/manager-selection/?${query}#three-lanes`);
++  const host = document.createElement('div'); document.body.append(host);
++  const dispose = mountCatalystObservations(host, date); disposers.push(dispose);
++  return { host, dispose, panel: () => host.querySelector<HTMLElement>('.manager-catalyst-observations')! };
++}
++async function ready(panel: () => HTMLElement) {
++  await waitFor(() => expect(panel().dataset.readState).toBe('READY'));
++}
++afterEach(() => {
++  while (disposers.length) disposers.pop()!();
++  vi.unstubAllGlobals(); vi.restoreAllMocks(); document.body.replaceChildren();
++  window.history.replaceState({}, '', initialUrl);
++});
++
++it('initializes the URL view and normalized aliases and binds both real reads', async () => {
++  const calls = installFetch();
++  const ui = mount(`plan_date=${date}&selection_date=20261008&publication_date=2026-10-07&view=dynamic`);
++  await ready(ui.panel);
++  const get = calls.find(call => isWorkspace(call.url))!.url;
++  expect(get.searchParams.get('view')).toBe('dynamic');
++  expect(get.searchParams.get('selection_date')).toBe('20261008');
++  expect(get.searchParams.get('announcement_date')).toBe('20261007');
++  expect(ui.host.querySelector<HTMLSelectElement>('[aria-label="历史或现在回看"]')!.value).toBe('dynamic');
++  expect(calls.find(call => call.url.pathname.endsWith('/announcements/analysis'))!.url.searchParams.get('publication_date')).toBe('20261007');
++});
++
++it('keeps the original previous-session default and gives the canonical announcement date priority', async () => {
++  const calls = installFetch();
++  const first = mount(`date=${date}&plan_date=${date}`); await ready(first.panel);
++  expect(calls.find(call => isWorkspace(call.url))!.url.searchParams.has('announcement_date')).toBe(false);
++  expect(calls.find(call => call.url.pathname.endsWith('/announcements/analysis'))!.url.searchParams.has('publication_date')).toBe(false);
++  first.dispose(); calls.length = 0;
++  const second = mount(`plan_date=${date}&announcement_date=20261006&publication_date=20261007`); await ready(second.panel);
++  expect(calls.find(call => isWorkspace(call.url))!.url.searchParams.get('announcement_date')).toBe('20261006');
++});
++
++it('clears the previous binding immediately and ignores the older response that arrives last', async () => {
++  let finishOld: (value: Response) => void = () => { throw new Error('old request missing'); };
++  const calls = installFetch(url => {
++    const selected = url.searchParams.get('announcement_date');
++    if (selected === '20261007') return new Promise<Response>(resolve => { finishOld = resolve; });
++    return response(body(url.searchParams, selected === '20261006' ? 'c' : 'a'));
++  });
++  const ui = mount(`plan_date=${date}&announcement_date=20261008&view=dynamic`); await ready(ui.panel);
++  await fireEvent.change(ui.host.querySelector('[aria-label="公告日期"]')!, { target: { value: '2026-10-07' } });
++  expect(ui.panel().dataset.inputIdentity).toBeUndefined();
++  expect(ui.host.textContent).not.toContain(`公告日 20261008`);
++  await fireEvent.change(ui.host.querySelector('[aria-label="公告日期"]')!, { target: { value: '2026-10-06' } });
++  await ready(ui.panel); expect(ui.panel().dataset.inputIdentity).toBe('c'.repeat(64));
++  finishOld(response(body(new URLSearchParams({ announcement_date: '20261007' }), 'b')));
++  await new Promise(resolve => setTimeout(resolve, 0));
++  expect(ui.panel().dataset.inputIdentity).toBe('c'.repeat(64));
++  expect(new URL(window.location.href).searchParams.get('announcement_date')).toBe('20261006');
++  expect(calls.filter(call => isWorkspace(call.url))).toHaveLength(3);
++  expect(calls.filter(call => call.url.pathname.endsWith('/announcements/analysis'))).toHaveLength(3);
++});
++
++it('persists dynamic view and all date bindings across a remount', async () => {
++  const calls = installFetch();
++  const ui = mount(`plan_date=${date}&selection_date=20261008&announcement_date=20261007`); await ready(ui.panel);
++  await fireEvent.change(ui.host.querySelector('[aria-label="历史或现在回看"]')!, { target: { value: 'dynamic' } });
++  await ready(ui.panel);
++  const params = new URL(window.location.href).searchParams;
++  expect(params.get('view')).toBe('dynamic'); expect(window.location.hash).toBe('#three-lanes');
++  ui.dispose();
++  const again = mount(params.toString()); await ready(again.panel);
++  expect(again.host.querySelector<HTMLSelectElement>('[aria-label="历史或现在回看"]')!.value).toBe('dynamic');
++  const last = calls.filter(call => isWorkspace(call.url)).at(-1)!.url.searchParams;
++  expect(last.get('view')).toBe('dynamic'); expect(last.get('announcement_date')).toBe('20261007');
++});
++
++it('passes identical bindings to the original POST and reuses its response once', async () => {
++  const calls = installFetch();
++  const ui = mount(`plan_date=${date}&selection_date=20261008&announcement_date=20261007&view=dynamic`); await ready(ui.panel);
++  const refresh = [...ui.host.querySelectorAll('button')].find(button => button.textContent === '用既有材料生成计划')!;
++  await fireEvent.click(refresh); await ready(ui.panel);
++  const workspaceCalls = calls.filter(call => isWorkspace(call.url));
++  expect(workspaceCalls).toHaveLength(2);
++  expect(workspaceCalls[1].init?.method).toBe('POST');
++  expect(workspaceCalls[1].url.searchParams.get('selection_date')).toBe('20261008');
++  expect(workspaceCalls[1].url.searchParams.get('announcement_date')).toBe('20261007');
++});
++
++it('rejects a POST response with mismatched or omitted requested date bindings', async () => {
++  installFetch(url => response(body(new URLSearchParams({ announcement_date: '20261008' }))));
++  await expect(refreshManagerWorkspace(date, new AbortController().signal, { announcement_date: '20261007' }))
++    .rejects.toThrow('WORKSPACE_DAILY_DATE_BINDING_MISMATCH');
++  installFetch(url => { const value: Record<string, unknown> = body(url.searchParams); delete value.date_bindings; return response(value); });
++  await expect(refreshManagerWorkspace(date, new AbortController().signal, { announcement_date: '20261007' }))
++    .rejects.toThrow('WORKSPACE_DAILY_DATE_BINDING_INVALID');
++});
++
++it('keeps a qualified prior preview only for the same complete binding when transport fails', async () => {
++  let failed = false;
++  installFetch(url => { if (failed) return Promise.reject(new TypeError('synthetic transport failure')); return response(body(url.searchParams)); });
++  const ui = mount(`plan_date=${date}&announcement_date=20261008&view=dynamic`); await ready(ui.panel);
++  failed = true;
++  await fireEvent.click([...ui.host.querySelectorAll('button')].find(button => button.textContent === '读取更新')!);
++  await waitFor(() => expect(ui.panel().dataset.readState).toBe('STALE'));
++  expect(ui.panel().dataset.inputIdentity).toBe('a'.repeat(64));
++  await fireEvent.change(ui.host.querySelector('[aria-label="公告日期"]')!, { target: { value: '2026-10-07' } });
++  await waitFor(() => expect(ui.panel().dataset.readState).toBe('FAILED'));
++  expect(ui.panel().dataset.inputIdentity).toBeUndefined();
++  expect(ui.host.textContent).not.toContain('公告日 20261008');
++});
++
++it('does not render a cancelled read even if the transport returns success later', async () => {
++  let finish: (value: Response) => void = () => { throw new Error('pending request missing'); };
++  let pending = false; let signal: AbortSignal | undefined;
++  installFetch((url, init) => {
++    if (!pending) return response(body(url.searchParams));
++    signal = init?.signal ?? undefined;
++    return new Promise<Response>(resolve => { finish = resolve; });
++  });
++  const ui = mount(`plan_date=${date}&announcement_date=20261008&view=dynamic`); await ready(ui.panel);
++  pending = true;
++  await fireEvent.click([...ui.host.querySelectorAll('button')].find(button => button.textContent === '读取更新')!);
++  await fireEvent.click([...ui.host.querySelectorAll('button')].find(button => button.textContent === '取消本次读取')!);
++  expect(signal?.aborted).toBe(true);
++  finish(response(body(new URLSearchParams({ announcement_date: '20261008' }), 'b')));
++  await waitFor(() => expect(ui.panel().dataset.readState).toBe('STALE'));
++  expect(ui.panel().dataset.inputIdentity).toBe('a'.repeat(64));
++  expect(ui.host.textContent).toContain('已取消本次读取');
++});
+diff --git a/ops/run_manager_announcement_cycle.py b/ops/run_manager_announcement_cycle.py
+index e492fcb3d3e2487288d5b4e57e6bee40916892cd..8b5c90c4a3771b7339a72389b14e9fa972700e08 100644
+--- a/ops/run_manager_announcement_cycle.py
++++ b/ops/run_manager_announcement_cycle.py
+@@ -116,6 +116,7 @@ def _saved_owner_readback(service:Any,target:str,saved:Mapping[str,Any]) -> dict
+         'status':'CURRENT','run_id':run_id,'sha256':saved.get('sha256'),
+         'generated_at':saved.get('generated_at'),
+         'execution_kind':saved.get('execution_kind','MANUAL_REFRESH'),
++        'execution_context':deepcopy(saved.get('execution_context')),
+         'original_owner':saved.get('owner'),'consumed':True,
+     }
+     value['workspace_plan_attempt']=service.store._read(
+diff --git a/stage_center/consumer.py b/stage_center/consumer.py
+index 73a87bae17b933d46ca3036e8253a40d0fc2606d..940c3989a144e342674ede16dc4c3e42afa93441 100644
+--- a/stage_center/consumer.py
++++ b/stage_center/consumer.py
+@@ -664,7 +664,10 @@ class StageSelectionConsumer:
+             natural = _project_market(
+                 market, envelope, trade_date=trade_date, stage_id=stage_id,
+             )
+-            if natural.get("selection_mode") == "BACKFILL":
++            # Manager consumes the original HK selection, including its
++            # immutable trio identity. Ordinary HK runs need the same exact
++            # provenance check already used for recovery observations.
++            if market == "HK_CONNECT" or natural.get("selection_mode") == "BACKFILL":
+                 natural.update(_verified_selection_provenance(
+                     self.store,
+                     trade_date=trade_date,
+diff --git a/tests/test_manager_three_lane_channels_r1.py b/tests/test_manager_three_lane_channels_r1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..a850689cf36af3a270d7a6eecb92aabd57338c18
+--- /dev/null
++++ b/tests/test_manager_three_lane_channels_r1.py
+@@ -0,0 +1,295 @@
++"""Original selection contracts, using synthetic inputs and no producer writes."""
++from copy import deepcopy
++
++import pytest
++
++from test_manager_research_selection_ledger import TARGET, _fixture
++from v4.manager_research.research_attention import build_research_selection_ledger
++from v4.manager_research.workspace_daily_channels import build_daily_channels
++from v4.manager_research.workspace_projection import FLAGS, digest
++
++
++def workspace(screen, cards):
++    return dict(target_trade_date=TARGET,
++        date_bindings=dict(plan_date=TARGET, selection_date=TARGET, announcement_date='20260930'),
++        market_screen=screen,
++        research_attention=dict(research_selection=build_research_selection_ledger(screen, cards, TARGET)))
++
++
++def channel(value, name='OVERSOLD'):
++    return next(row for row in build_daily_channels(value)['channels'] if row['channel'] == name)
++
++
++def test_daily_uses_original_ledger_decisions_and_keeps_complete_accounting():
++    screen, cards = _fixture()
++    value = workspace(screen, cards)
++    before = deepcopy(value)
++    result = channel(value)
++    ledger = value['research_attention']['research_selection']
++    assert result['owner'] == 'build_research_selection_ledger'
++    assert [(r['symbol'], r['selection_status']) for r in result['rows']] == [
++        ('HK.00001', 'SELECTED'), ('HK.00002', 'NEAR_CONDITION')]
++    assert result['candidate_count'] == 1
++    assert result['pending_count'] == 1
++    assert result['coverage'] == ledger['coverage']
++    assert result['input_identity'] == ledger['decision_identity']
++    assert result['decision_ledger_ref'] == 'research_attention.research_selection'
++    assert result['formal_selection_input'] is False
++    assert result['as_of_claim'] == 'NONE_RETROSPECTIVE_RESEARCH'
++    assert value == before
++
++
++def test_strict_rows_without_original_research_priority_remain_unresolved():
++    screen, _ = _fixture()
++    result = channel(workspace(screen, []))
++    assert result['status'] == 'PARTIAL'
++    assert result['rows'] == []
++    assert result['candidate_count'] is None
++    assert result['pending_count'] == 3
++    assert result['coverage']['excluded_count'] == 1
++
++
++@pytest.mark.parametrize('broken', ['missing_ledger', 'wrong_target', 'wrong_source', 'wrong_decisions'])
++def test_raw_screen_never_substitutes_for_missing_or_mismatched_ledger(broken):
++    screen, cards = _fixture()
++    value = workspace(screen, cards)
++    ledger = value['research_attention']['research_selection']
++    if broken == 'missing_ledger':
++        value['research_attention'] = {}
++    elif broken == 'wrong_target':
++        ledger['target_trade_date'] = '20261005'
++    elif broken == 'wrong_source':
++        ledger['source_input_identity'] = 'f' * 64
++    else:
++        ledger['decisions'][0]['decision_reason'] = 'changed after original owner projection'
++    result = channel(value)
++    assert result['status'] == 'CANNOT_CONFIRM'
++    assert result['candidate_count'] is None
++    assert result['rows'] == []
++
++
++@pytest.mark.parametrize('state', ['NOT_RUN', 'PENDING_SLOT', 'FAILED'])
++def test_unrun_or_failed_screen_is_unknown_even_with_empty_lists(state):
++    screen = dict(status=state, strict=[], near=[], pending=[], screen_unresolved=[], excluded=[])
++    result = channel(workspace(screen, []))
++    assert result['status'] == 'CANNOT_CONFIRM'
++    assert result['source_status'] == state
++    assert result['candidate_count'] is None
++    assert result['pending_count'] is None
++    assert result['input_identity'] is None
++
++
++def test_complete_original_exclusion_is_a_valid_empty_research_selection():
++    screen, _ = _fixture()
++    screen.update(status='READY', strict=[], near=[], pending=[], cards=[], gaps=[])
++    screen['coverage'].update(input_candidate_count=1, history_complete_count=1,
++        history_pending_count=0, strict_count=0, near_candidate_count=0, selected_count=0,
++        excluded_count=1, screen_unresolved_count=0, row_accounted_count=1)
++    result = channel(workspace(screen, []))
++    assert result['status'] == 'READY_EMPTY'
++    assert result['candidate_count'] == 0
++    assert result['pending_count'] == 0
++    assert result['coverage']['excluded_count'] == 1
++    assert result['rows'] == []
++
++
++def test_source_paths_hashes_priority_and_original_row_locations_survive_summary():
++    screen, cards = _fixture()
++    result = channel(workspace(screen, cards))
++    row = result['rows'][0]
++    assert row['source_refs'] == screen['strict'][0]['source_refs']
++    assert row['source_group'] == 'strict'
++    assert row['source_row_indexes'] == [1]
++    assert row['research_priority']['priority_rank'] == 1
++    assert row['decision_reason_code'] == 'ORIGINAL_STRICT_TWO_GATE_PASSED'
++
++
++def test_display_diagnostics_do_not_change_the_original_selection_ledger_identity():
++    screen, cards = _fixture()
++    before = build_research_selection_ledger(screen, cards, TARGET)
++    screen['pending'][0].update(
++        missing_prior60_dates=['20260825', '20260826', '20260827'],
++        missing_previous5_dates=['20260925'], duplicate_prior60_dates=[], duplicate_previous5_dates=[],
++        volume_source='V4_SHARED_HK_0_2_PANEL_AUTHORITY', volume_unit_status='NOT_PROVEN',
++        history_numeric_status='PARTIAL_UNKNOWN',
++        volume_provenance=dict(unit_status='NOT_PROVEN', gaps=['VOLUME_UNIT_OR_SCALE_NOT_PROVEN']))
++    ledger = build_research_selection_ledger(screen, cards, TARGET)
++    pending = next(row for row in ledger['decisions'] if row['symbol'] == 'HK.00003')
++    assert pending['decision_status'] == 'UNRESOLVED'
++    assert ledger == before
++    screen['strict'][0].update(volume_source='ORIGINAL_VERIFIED_SOURCE',
++        volume_unit_status='NOT_PROVEN',volume_provenance=dict(unit_status='NOT_PROVEN'))
++    result = channel(workspace(screen, cards))
++    assert result['rows'][0]['source_diagnostics']['volume_source'] == 'ORIGINAL_VERIFIED_SOURCE'
++    assert result['input_diagnostics_ref'] == 'rebound_input_diagnostics'
++
++
++HK_DATE = '20261009'
++STAGE = 'STAGE_0935_0940'
++
++
++def hk_workspace():
++    """Synthetic response at the existing verified-reader boundary."""
++    source = dict(source_date=HK_DATE, market='HK_CONNECT', role='HK_CONNECT_FULL_MARKET_AUTHORITY', sha256='a'*64)
++    codes = ['HK.00001', 'HK.00002', 'HK.00999']
++    membership = dict(status='OWNER_VERIFIED', target_trade_date=HK_DATE, codes=codes, source=source,
++        membership_semantics='TARGET_DATE_CAPTURED_HK_CONNECT_AUTHORITY_V2',
++        identity=digest([HK_DATE, codes, source['sha256']]), gaps=[],
++        calendar_applicability=dict(status='APPLICABLE', target_trade_date=HK_DATE))
++    rows = [dict(code=code, name='Synthetic '+code, rank=rank, order=index+1,
++        formal_eligible=False, action_level='NO_BUY', trade_status='WATCH_ONLY',
++        lane_evidence=['ORIGINAL_FOUR_LANE_EVIDENCE'], source_mode='HK_CONNECT_STAGE')
++        for index, (code, rank) in enumerate([('HK.00002', 2), ('HK.00001', 1)])]
++    market = dict(trade_date=HK_DATE, stage_id=STAGE, market='HK_CONNECT',
++        status='READY', selection_status='READY', source_status='READY',
++        run_id='run-'+'b'*24, artifact_id='selection-'+'b'*24,
++        selection_run_id='run-'+'b'*24, algorithm_id='ORIGINAL_ALGORITHM', algorithm_sha256='c'*64,
++        raw_artifact_sha256='d'*64, selection_manifest_receipt_verified=True,
++        selection_artifact_sha256='e'*64, selection_manifest_sha256='f'*64, selection_receipt_sha256='1'*64,
++        requested_rows=100, source_rows=100, selected_rows=2, coverage_ratio=0.02,
++        missing_symbols=[], cannot_confirm=[], rows=rows,
++        source_evidence=['hk_d1_membership=exact_date_top100', 'hk_d1_status=STRICT_0_2_READY',
++                         'hk_d1_sha256='+'2'*64, 'hk_d1_json_sha256='+'2'*64])
++    execution = dict(status='SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED',
++        trade_date=HK_DATE, stage_id=STAGE, observed_sha256='3'*64, receipt_path='/synthetic/runner/receipt.json',
++        natural_verified=False, execution_verified=False,
++        markets={'HK_CONNECT':dict(selection_binding='BOUND_TO_VERIFIED_SELECTION', selected_rows=2,
++            declared_identity={key:market[key] for key in ('run_id','artifact_id','algorithm_sha256','raw_artifact_sha256')})})
++    stage = dict(schema_version='stage_center.selection_consumer.v1', response_source='SHARED_STAGE_CENTER',
++        trade_date=HK_DATE, stage_id=STAGE, selection_markets={'HK_CONNECT':market},
++        execution_evidence=execution, write_performed=False, **FLAGS)
++    return dict(target_trade_date=HK_DATE,
++        date_bindings=dict(plan_date=HK_DATE, selection_date=HK_DATE, announcement_date='20261008'),
++        plan_context=dict(plan_trade_date=HK_DATE, research_cutoff='2026-10-09T10:00:00+08:00'),
++        selection_diagnostics=dict(status='READY', membership=membership, connect_gaps=[]),
++        owner_chain=dict(focus_inputs=dict(status='READY', gaps=[])), stage_selection=stage,
++        focus_symbols=['HK.00999'],
++        stocks=[dict(symbol='HK.00999',name='Unrelated focus',connect_eligibility='VERIFIED_TARGET_UNIVERSE',why_watch=['not Stage'])])
++
++
++def test_hk_consumes_original_stage_order_and_selection_identity_instead_of_workspace_focus():
++    value = hk_workspace(); before = deepcopy(value)
++    result = channel(value, 'HK_CONNECT')
++    assert result['owner'] == 'StageSelectionConsumer/SelectionStore'
++    assert [row['symbol'] for row in result['rows']] == ['HK.00002', 'HK.00001']
++    assert [row['rank'] for row in result['rows']] == [2, 1]
++    assert result['status'] == 'READY' and result['candidate_count'] == 2
++    assert result['natural_run_verified'] is False
++    assert result['run_id'] is None  # No saved plan was fabricated for this read.
++    for row in result['rows']:
++        assert row['formal_eligible'] is False and row['action_level'] == 'NO_BUY'
++        ref = row['source_refs'][0]
++        assert ref['run_id'] == 'run-'+'b'*24
++        assert ref['payload_sha256'] == 'e'*64
++        assert ref['receipt_sha256'] == '1'*64
++        assert ref['raw_artifact_sha256'] == 'd'*64
++    assert value == before
++
++
++@pytest.mark.parametrize('broken', ['missing_stage', 'date', 'stage', 'trio', 'run', 'd1_sha',
++    'd1_status', 'source_failed', 'membership', 'duplicate', 'duplicate_rank', 'empty_status',
++    'cutoff', 'backfill', 'prior', 'replay', 'symbol_conflict', 'row_preselect', 'row_waiting',
++    'row_reference_lane', 'execution_recovery', 'execution_backfill_id', 'row_order', 'row_production'])
++def test_hk_unverified_or_recovery_source_never_falls_back_to_focus(broken):
++    value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
++    if broken == 'missing_stage': value.pop('stage_selection')
++    elif broken == 'date': market['trade_date'] = '20261008'
++    elif broken == 'stage': market['stage_id'] = 'STAGE_0925'
++    elif broken == 'trio': market.pop('selection_receipt_sha256')
++    elif broken == 'run': market['selection_run_id'] = 'run-'+'f'*24
++    elif broken == 'd1_sha': market['source_evidence'].append('hk_d1_binding_sha256='+'9'*64)
++    elif broken == 'd1_status': market['source_evidence'].remove('hk_d1_status=STRICT_0_2_READY')
++    elif broken == 'source_failed': market['source_status'] = 'CANNOT_CONFIRM'
++    elif broken == 'membership': value['selection_diagnostics']['membership']['status'] = 'CANNOT_CONFIRM'
++    elif broken == 'duplicate': market['rows'][1]['code'] = market['rows'][0]['code']
++    elif broken == 'duplicate_rank': market['rows'][1]['rank'] = market['rows'][0]['rank']
++    elif broken == 'empty_status': market['status'] = market['selection_status'] = 'READY_EMPTY'
++    elif broken == 'cutoff': value['plan_context']['research_cutoff'] = '2026-10-09T09:30:00+08:00'
++    elif broken == 'backfill': market['selection_mode'] = 'BACKFILL'
++    elif broken == 'prior': market['source_evidence'].append('hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK')
++    elif broken == 'symbol_conflict': market['rows'][0].update(code='HK.00888', symbol='HK.00002')
++    elif broken == 'row_preselect': market['rows'][0]['source_mode'] = 'HK_CONNECT_D1_PRESELECT_REFERENCE'
++    elif broken == 'row_waiting': market['rows'][0]['second_filter_status'] = 'WAITING_0920_SECOND_FILTER'
++    elif broken == 'row_reference_lane': market['rows'][0]['candidate_lanes'] = ['D1_PRESELECT_REFERENCE']
++    elif broken == 'execution_recovery': stage['execution_evidence']['recovery_mode'] = 'HISTORICAL_BACKFILL'
++    elif broken == 'execution_backfill_id': stage['execution_evidence']['backfill_run_id'] = 'original-backfill-run'
++    elif broken == 'row_order': market['rows'][0]['order'] = True
++    elif broken == 'row_production': market['rows'][0]['production_allowed'] = True
++    else: stage['execution_evidence']['due_status'] = 'LATE_CATCHUP_REPLAY'
++    result = channel(value, 'HK_CONNECT')
++    assert result['status'] == 'CANNOT_CONFIRM'
++    assert result['candidate_count'] is None and result['rows'] == []
++    assert result['gaps']
++
++
++def test_hk_valid_zero_requires_original_full_input_and_matching_selection_receipt():
++    value = hk_workspace(); stage = value['stage_selection']; market = stage['selection_markets']['HK_CONNECT']
++    market.update(status='READY_EMPTY', selection_status='READY_EMPTY', rows=[], selected_rows=0)
++    stage['execution_evidence']['markets']['HK_CONNECT']['selected_rows'] = 0
++    result = channel(value, 'HK_CONNECT')
++    assert result['status'] == 'READY_EMPTY' and result['candidate_count'] == 0
++    market.update(requested_rows=0, source_rows=0)
++    result = channel(value, 'HK_CONNECT')
++    assert result['status'] != 'READY_EMPTY' and result['candidate_count'] is None
++
++
++def test_hk_selection_and_execution_are_separate_and_unbound_execution_is_partial():
++    value = hk_workspace()
++    value['stage_selection'].pop('execution_evidence')
++    result = channel(value, 'HK_CONNECT')
++    assert result['status'] == 'PARTIAL' and result['candidate_count'] == 2
++    assert 'HK_STAGE_EXECUTION_SELECTION_BINDING_UNVERIFIED' in result['gaps']
++    assert result['natural_run_verified'] is False
++    assert len(result['rows']) == 2
++
++
++def three_lane_workspace():
++    """Synthetic values at the three original, already-verified read boundaries."""
++    value = hk_workspace()
++    screen, cards = _fixture()
++    screen.update(target_trade_date=HK_DATE, verified_session='20261008')
++    for group in ('strict', 'near', 'pending', 'excluded', 'screen_unresolved'):
++        for row in screen[group]:
++            row.update(target_monday=int(HK_DATE), verified_session=20261008)
++    value['market_screen'] = screen
++    value['research_attention'] = dict(research_selection=build_research_selection_ledger(screen, cards, HK_DATE))
++    value['announcement_reviewed_analysis'] = dict(products=[dict(
++        target_trade_date=HK_DATE, publication_date='2026-10-08', status='CONSUMED',
++        selection_status='VERIFIED', not_assessed_stock_count=0, product_sha256='4'*64,
++        source_manifest_sha256='6'*64,
++        evidence_run_id='5'*32, owner_available_at='2026-10-09T09:20:00+08:00', gaps=[])],
++        research_references=[dict(target_trade_date=HK_DATE, publication_date='2026-10-08',
++            stock_code='HK.00003', stock_name='Synthetic reviewed announcement',
++            research_status='SELECTED', selection_reasons=['Original reviewed reason'],
++            product_sha256='4'*64, source_manifest_sha256='6'*64,
++            article_refs=[dict(owner='original-announcement-owner', payload_sha256='7'*64)])])
++    return value
++
++
++@pytest.mark.parametrize('missing', ['ANNOUNCEMENT', 'HK_CONNECT', 'OVERSOLD'])
++def test_missing_one_owner_does_not_erase_other_legal_channels_or_invent_zero(missing):
++    value = three_lane_workspace()
++    expected = {row['channel']:row for row in build_daily_channels(value)['channels']}
++    assert [expected[name]['candidate_count'] for name in ('ANNOUNCEMENT', 'HK_CONNECT', 'OVERSOLD')] == [1, 2, 1]
++    value.pop({'ANNOUNCEMENT':'announcement_reviewed_analysis', 'HK_CONNECT':'stage_selection',
++               'OVERSOLD':'research_attention'}[missing])
++    before = deepcopy(value)
++    actual = {row['channel']:row for row in build_daily_channels(value)['channels']}
++    assert actual[missing]['status'] == 'CANNOT_CONFIRM'
++    assert actual[missing]['candidate_count'] is None and actual[missing]['pending_count'] is None
++    assert actual[missing]['rows'] == []
++    for name in set(expected)-{missing}:
++        assert actual[name] == expected[name]
++    assert value == before
++
++
++@pytest.mark.parametrize('broken', ['target', 'publication', 'consumption'])
++def test_announcement_requires_original_exact_date_consumed_product(broken):
++    value = three_lane_workspace()
++    product = value['announcement_reviewed_analysis']['products'][0]
++    key, changed = {'target':('target_trade_date','20261012'),
++        'publication':('publication_date','2026-10-09'), 'consumption':('status','NOT_CONSUMED')}[broken]
++    product[key] = changed
++    result = channel(value, 'ANNOUNCEMENT')
++    assert result['status'] == 'CANNOT_CONFIRM'
++    assert result['candidate_count'] is None and result['rows'] == []
+diff --git a/tests/test_manager_three_lane_history_r1.py b/tests/test_manager_three_lane_history_r1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..697f0157ff78aed4e9af304097c13c6177f3d060
+--- /dev/null
++++ b/tests/test_manager_three_lane_history_r1.py
+@@ -0,0 +1,250 @@
++"""Isolated real store/history behavior. Synthetic plans are not market evidence."""
++from copy import deepcopy
++from datetime import datetime, timedelta
++import hashlib
++from types import SimpleNamespace
++
++import pytest
++
++from v4.manager_research import workspace as w
++from v4.manager_research import workspace_history as history
++from v4.manager_research.store import ManagerResearchStore
++from v4.manager_research.workspace_plan import plan_context
++from v4.manager_research.workspace_projection import SCHEMA, FLAGS, HK, digest, build_workspace
++
++DATE = '20261009'
++OWNER = 'ManagerResearchJobService.refresh_workspace_plan'
++
++
++def stored(store, number, generated, *, started=None, finished=None, padding=0, latest=False, workspace_body=None):
++    run = f'{number:032x}'
++    at = datetime.fromisoformat(generated)
++    body = dict(schema_version=SCHEMA, target_trade_date=DATE,
++        semantic_version='three-lane-history-fixture', stocks=[], themes=[], materials=[],
++        company_events=[], focus_symbols=[], rejected_relations=[], briefing={}, summary={},
++        market_screen={}, announcement_review={}, plan_context=plan_context(DATE, now=at),
++        input_identity='e' * 64, gaps=[], synthetic_padding='x' * padding, **FLAGS)
++    if workspace_body is not None:
++        body = deepcopy(workspace_body)
++    product = dict(schema_version=w.PLAN_SCHEMA, target_trade_date=DATE, run_id=run,
++        generated_at=generated, owner=OWNER, execution_kind='MANUAL_REFRESH',
++        input_identity=body['input_identity'], workspace=body, **FLAGS)
++    product['sha256'] = digest(product)
++    store._write_atomic(store.root/'workspace_plans'/DATE/(run+'.json'), product)
++    if latest:
++        store._write_atomic(store.root/'workspace_plans'/DATE/'latest.json', product)
++    attempt = w.seal_attempt(dict(schema_version=w.ATTEMPT_SCHEMA, target_trade_date=DATE,
++        run_id=run, owner=OWNER, state='SUCCEEDED_EMPTY', execution_kind='MANUAL_REFRESH',
++        started_at=started or generated, finished_at=finished or generated,
++        last_success_at=generated, input_identity=body['input_identity'],
++        input_coverage={}, summary={}, failure_reasons=[], **FLAGS))
++    w.validate_attempt(attempt, DATE)
++    store._write_atomic(store.root/'workspace_plan_runs'/DATE/(run+'.json'), attempt)
++    return product, attempt
++
++
++def hashes(root):
++    return {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
++            for p in root.rglob('*.json')}
++
++
++def test_many_large_retrospective_runs_use_same_owner_journals_without_scan_overflow(tmp_path, monkeypatch):
++    store = ManagerResearchStore(tmp_path/'store')
++    for n in range(1, 7):
++        stored(store, n, f'2026-10-10T10:0{n}:00+08:00', padding=18000, latest=n == 6)
++    monkeypatch.setattr(history, '_MAX_SCAN_BYTES', 65536)
++    before = hashes(store.root)
++    reads = []
++    original = store._io.read_bytes
++    def read(path, **kw):
++        data = original(path, **kw)
++        reads.append((path, len(data)))
++        return data
++    monkeypatch.setattr(store._io, 'read_bytes', read)
++    assert history.select_plan(store, DATE, history.boundary_context(DATE)) is None
++    assert sum(size for path, size in reads if path.startswith('workspace_plans/')) < 65536
++    assert any(path.startswith('workspace_plan_runs/') for path, _ in reads)
++    assert hashes(store.root) == before
++
++
++def test_late_journals_do_not_mask_one_valid_earlier_plan(tmp_path, monkeypatch):
++    store = ManagerResearchStore(tmp_path/'store')
++    expected, _ = stored(store, 1, '2026-10-09T09:28:00+08:00', padding=18000)
++    for n in range(2, 7):
++        stored(store, n, f'2026-10-10T10:0{n}:00+08:00', padding=18000, latest=n == 6)
++    monkeypatch.setattr(history, '_MAX_SCAN_BYTES', 65536)
++    got = history.select_plan(store, DATE, history.boundary_context(DATE))
++    assert got == expected
++
++
++def test_start_before_cutoff_finish_after_cutoff_is_not_pruned(tmp_path):
++    store = ManagerResearchStore(tmp_path/'store')
++    expected, _ = stored(store, 1, '2026-10-09T09:28:00+08:00',
++        started='2026-10-09T09:27:00+08:00', finished='2026-10-09T09:31:00+08:00')
++    stored(store, 2, '2026-10-10T10:00:00+08:00', latest=True)
++    assert history.select_plan(store, DATE, history.boundary_context(DATE)) == expected
++
++
++@pytest.mark.parametrize('corrupt', ['sha', 'owner', 'run', 'date'])
++def test_invalid_journal_cannot_authorize_exclusion(tmp_path, corrupt):
++    store = ManagerResearchStore(tmp_path/'store')
++    _, attempt = stored(store, 1, '2026-10-10T10:00:00+08:00')
++    stored(store, 2, '2026-10-10T10:01:00+08:00', latest=True)
++    changed = deepcopy(attempt)
++    if corrupt == 'sha':
++        changed['sha256'] = '0' * 64
++    else:
++        changed[{'owner': 'owner', 'run': 'run_id', 'date': 'target_trade_date'}[corrupt]] = {
++            'owner': 'another-owner', 'run': 'f' * 32, 'date': '20261008'}[corrupt]
++        changed = w.seal_attempt(changed)
++    store._write_atomic(store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json'), changed)
++    with pytest.raises(ValueError):
++        history.select_plan(store, DATE, history.boundary_context(DATE))
++
++
++def test_missing_journal_falls_back_to_full_verified_product(tmp_path):
++    store = ManagerResearchStore(tmp_path/'store')
++    expected, attempt = stored(store, 1, '2026-10-09T09:28:00+08:00')
++    (store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json')).unlink()
++    stored(store, 2, '2026-10-10T10:00:00+08:00', latest=True)
++    assert history.select_plan(store, DATE, history.boundary_context(DATE)) == expected
++
++
++def test_eligible_product_still_checks_full_product_sha(tmp_path):
++    store = ManagerResearchStore(tmp_path/'store')
++    product, _ = stored(store, 1, '2026-10-09T09:28:00+08:00')
++    path = store.root/'workspace_plans'/DATE/(product['run_id']+'.json')
++    original = path.read_bytes()
++    path.write_bytes(original.replace(b'"gaps":[]', b'"gaps":["tampered"]', 1))
++    stored(store, 2, '2026-10-10T10:00:00+08:00', latest=True)
++    with pytest.raises(ValueError, match='HISTORY_PLAN_IDENTITY_INVALID'):
++        history.select_plan(store, DATE, history.boundary_context(DATE))
++
++
++def test_same_run_journal_symlink_is_not_followed(tmp_path):
++    store = ManagerResearchStore(tmp_path/'store')
++    _, attempt = stored(store, 1, '2026-10-10T10:00:00+08:00')
++    stored(store, 2, '2026-10-10T10:01:00+08:00', latest=True)
++    path = store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json')
++    other = tmp_path/'outside.json'
++    other.write_bytes(path.read_bytes())
++    path.unlink()
++    path.symlink_to(other)
++    with pytest.raises((ValueError, OSError)):
++        history.select_plan(store, DATE, history.boundary_context(DATE))
++
++
++def test_remaining_body_budget_is_enforced_before_read(tmp_path, monkeypatch):
++    store = ManagerResearchStore(tmp_path/'store')
++    for n in range(1, 5):
++        product, attempt = stored(store, n, f'2026-10-10T10:0{n}:00+08:00', padding=18000, latest=n == 4)
++        (store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json')).unlink()
++    monkeypatch.setattr(history, '_MAX_SCAN_BYTES', 65536)
++    reads = []
++    original = store._io.read_bytes
++    def read(path, **kw):
++        data = original(path, **kw)
++        reads.append((path, len(data)))
++        return data
++    monkeypatch.setattr(store._io, 'read_bytes', read)
++    with pytest.raises(ValueError):
++        history.select_plan(store, DATE, history.boundary_context(DATE))
++    assert sum(size for path, size in reads if path.startswith('workspace_plans/')) <= 65536
++
++
++def test_saved_owner_readback_preserves_execution_context_and_rejects_mismatch(tmp_path):
++    from ops.run_manager_announcement_cycle import _saved_owner_readback
++    from v4.manager_research.workspace_plan_autorun import owner_plan_readback
++    store = ManagerResearchStore(tmp_path/'store')
++    product, attempt = stored(store, 1, '2026-10-09T10:00:01+08:00',
++        started='2026-10-09T10:00:00+08:00', finished='2026-10-09T10:00:02+08:00')
++    execution = dict(trigger_kind='SCHEDULED', timing='LATE_CATCHUP',
++        scheduled_for='2026-10-09T10:00:00+08:00', started_at=attempt['started_at'],
++        finished_at=attempt['finished_at'], natural_run_verified=False)
++    product['execution_context'] = deepcopy(execution)
++    product['sha256'] = digest({k: v for k, v in product.items() if k != 'sha256'})
++    attempt['execution_context'] = deepcopy(execution)
++    attempt = w.seal_attempt(attempt)
++    store._write_atomic(store.root/'workspace_plan_runs'/DATE/(attempt['run_id']+'.json'), attempt)
++    service = SimpleNamespace(store=store)
++    got = _saved_owner_readback(service, DATE, product)
++    result = owner_plan_readback(got, DATE, expected_kind='MANUAL_REFRESH')
++    assert result['status'] == 'MATERIALIZED'
++    assert result['execution_context'] == execution
++    got['plan_product']['execution_context']['timing'] = 'UNCLASSIFIED'
++    with pytest.raises(ValueError, match='PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH'):
++        owner_plan_readback(got, DATE, expected_kind='MANUAL_REFRESH')
++    assert product['execution_context'] == execution
++
++
++def frozen_workspace(global_manifest):
++    from v4.manager_research.existing_materials import project_archive
++    payload = dict(archive_date='20261008', articles=[dict(article_id='synthetic-frozen-ref',
++        source_title='Synthetic research fixture', body='Same article and acquisition clocks.',
++        themes=['DATA_CENTER'], published_at='2026-10-08T12:00:00+08:00',
++        retrieved_at='2026-10-08T12:01:00+08:00', available_at='2026-10-08T12:02:00+08:00')])
++    receipt = dict(synthetic_fixture=True, payload_sha256=digest(payload))
++    binding = dict(source_id='V35_RESEARCH_DATA_ROOT', status='VERIFIED',
++        source_root='/synthetic/research', source_date='20261008', slot='', mode='LIVE',
++        manifest_path='manifest.json', write_policy='read_only', recommendation_status='RESEARCH_ONLY',
++        production_allowed=False, buy_gate_updated=False, orders_sent=False,
++        payload_path='research/archives/20261008.json',
++        receipt_path='receipts/research/archives/20261008.json',
++        payload_sha256=digest(payload), receipt_sha256=digest(receipt),
++        manifest_entry_sha256=digest(payload), manifest_sha256=global_manifest)
++    materials, gaps = project_archive(payload, binding, '20261008')
++    return build_workspace(DATE,
++        catalyst=dict(target_trade_date=DATE, status='NOT_MATERIALIZED', cards=[], gaps=[]),
++        materials=materials,
++        plan_context=plan_context(DATE, now=datetime.fromisoformat('2026-10-09T09:28:00+08:00')),
++        source_gaps=gaps)
++
++
++def read_frozen_workspace(tmp_path, monkeypatch, before, after):
++    """Real history/store gates; only original owner I/O is a synthetic boundary."""
++    store = ManagerResearchStore(tmp_path/'store')
++    stored(store, 1, '2026-10-09T09:28:00+08:00', latest=True, workspace_body=before)
++    def recompute(service, date, *, include_saved, context):
++        assert date == DATE and include_saved is False
++        assert context == before['plan_context']
++        return deepcopy(after)
++    monkeypatch.setattr(w, '_compute_workspace', recompute)
++    before_files = hashes(store.root)
++    result = history.read_history(SimpleNamespace(store=store), DATE)
++    assert hashes(store.root) == before_files
++    return result
++
++
++def test_history_accepts_same_semantics_after_global_registry_only_change(tmp_path, monkeypatch):
++    before, after = frozen_workspace('e'*64), frozen_workspace('f'*64)
++    assert before['input_identity'] == after['input_identity']
++    assert before['materials'] != after['materials']
++    result = read_frozen_workspace(tmp_path, monkeypatch, before, after)
++    assert result['plan_product']['consumed'] is True
++    assert result['plan_product']['status'] == 'CURRENT'
++    assert result['read_context']['mode'] == 'HISTORICAL_AS_OF'
++    assert result['materials'] == after['materials']
++
++
++@pytest.mark.parametrize('change', ['payload', 'receipt', 'date', 'path', 'pit', 'raw_source', 'other_manifest'])
++def test_frozen_field_gate_still_rejects_semantic_changes_even_if_component_hash_were_equal(tmp_path, monkeypatch, change):
++    before, after = frozen_workspace('e'*64), frozen_workspace('f'*64)
++    row = after['materials'][0]
++    ref = row['source_refs'][0]
++    if change in {'payload','receipt','date','path'}:
++        key = {'payload':'payload_sha256','receipt':'receipt_sha256',
++               'date':'source_date','path':'payload_path'}[change]
++        ref[key] = {'payload':'a'*64,'receipt':'b'*64,'date':'20261007',
++                    'path':'research/archives/20261007.json'}[change]
++    elif change == 'pit':
++        row['available_at'] = '2026-10-09T10:00:00+08:00'
++    elif change == 'raw_source':
++        row['source_row']['manifest_sha256'] = 'a'*64
++    else:
++        row['source_refs'].append(dict(owner='HK_PANEL_OWNER', manifest_sha256='a'*64))
++    # Deliberately hold the outer prehash equal: frozen-field validation is an
++    # independent guard and must not be disabled by semantic normalization.
++    assert before['input_identity'] == after['input_identity']
++    result = read_frozen_workspace(tmp_path, monkeypatch, before, after)
++    assert result['plan_product']['consumed'] is False
++    assert 'HISTORY_FROZEN_PROJECTION_CHANGED' in result['gaps']
+diff --git a/tests/test_manager_three_lane_rebound_diagnostics_r1.py b/tests/test_manager_three_lane_rebound_diagnostics_r1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..99fab4dbd2b9c9e4ca4e0add6db9292939b840af
+--- /dev/null
++++ b/tests/test_manager_three_lane_rebound_diagnostics_r1.py
+@@ -0,0 +1,154 @@
++"""Real Parquet/calendar calculations with synthetic owner-reader boundaries.
++
++These tests exercise the existing screen math and identity contracts. They do
++not attest a live HK panel, market data, a Mac owner run, or a natural schedule.
++"""
++from copy import deepcopy
++from datetime import datetime
++import hashlib
++import json
++
++import pandas as pd
++import pytest
++
++from v4.manager_research import workspace_plan as plan
++from v4.manager_research.research_attention import build_research_attention
++from v4.manager_research.workspace_projection import build_workspace, digest
++
++
++@pytest.fixture
++def tabular_input(tmp_path, monkeypatch):
++    context = plan.plan_context('20261012', now=datetime.fromisoformat('2026-10-11T12:00:00+08:00'))
++    day = plan.screen_context(context)['market_session']
++    assert day == '20261009'
++    sessions = plan.rebound_history_sessions(day)
++    missing = [sessions['prior60'][0], sessions['previous5'][1]]
++    duplicate = sessions['previous5'][2]
++    rows = []
++    for code in ('HK.00001', 'HK.00002'):
++        for session in [*sessions['prior60'], day]:
++            if code == 'HK.00002' and session in missing:
++                continue
++            row = dict(trade_date_compact=session, code_norm=code, name='Synthetic '+code,
++                open=8.0, high=10.0, low=7.0, close=8.0, pre_close=7.8,
++                trade=200.0 if session == day else 100.0, amount=10000.0)
++            rows.append(row)
++            if code == 'HK.00002' and session == duplicate:
++                rows.append(deepcopy(row))
++    panel_path = tmp_path/'synthetic-panel.parquet'
++    pd.DataFrame(rows).to_parquet(panel_path, index=False)
++    manifest_path = tmp_path/'synthetic-panel.manifest.json'
++    manifest_path.write_text(json.dumps(dict(synthetic_fixture=True)), encoding='utf-8')
++    master_path = tmp_path/'synthetic-master.json'
++    master_path.write_text(json.dumps(dict(synthetic_fixture=True)), encoding='utf-8')
++    sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
++    panel = dict(owner='V4_SHARED_HK_0_2_PANEL_AUTHORITY', panel_path=str(panel_path),
++        panel_sha256=sha(panel_path), panel_manifest_path=str(manifest_path),
++        panel_manifest_sha256=sha(manifest_path), panel_rows=len(rows), panel_code_count=2,
++        source_contract='SYNTHETIC_READER_BOUNDARY_NOT_OWNER_ATTESTATION')
++    master = dict(owner='V4_SHARED_HK_SECURITY_MASTER', captured_at='2026-10-09T17:00:00+08:00',
++        artifact_path=str(master_path), artifact_sha256=sha(master_path),
++        manifest_path=str(master_path), manifest_sha256=sha(master_path),
++        names={code:dict(name='Synthetic '+code) for code in ('HK.00001', 'HK.00002')})
++    calls = []
++
++    def panel_reader(root, requested, **kwargs):
++        calls.append(('panel', requested, deepcopy(kwargs)))
++        assert requested == day
++        assert kwargs['required_history_date'] == sessions['previous5'][-1]
++        return deepcopy(panel), []
++
++    def master_reader(root, requested):
++        calls.append(('master', requested))
++        return deepcopy(master), dict(synthetic_fixture=True)
++
++    monkeypatch.setattr(plan, '_read_hk02_panel_witness', panel_reader)
++    monkeypatch.setattr(plan, '_screen_security_master_witness', master_reader)
++    monkeypatch.setattr(plan, '_read_hk02_daily_supplement_witness', lambda *args, **kwargs: None)
++    return dict(root=tmp_path, context=context, day=day, sessions=sessions,
++        missing=missing, duplicate=duplicate, panel=panel, master=master, calls=calls)
++
++
++def attention(screen, context):
++    return build_research_attention('20261012', context=context, market_screen=screen,
++        stocks=[], material_cards=[], themes=[], announcement_observation=None, us_market=None)
++
++
++def test_optional_diagnostics_preserve_complete_screen_plan_and_ledger_identities(tabular_input):
++    fixture = tabular_input
++    diagnostics = {'rows':['stale'], 'gaps':['stale'], 'source_screen_decision_identity':'stale'}
++    original_shape = plan.read_rebound_screen(fixture['root'], fixture['context'])
++    diagnostic_shape = plan.read_rebound_screen(fixture['root'], fixture['context'], diagnostics=diagnostics)
++    assert original_shape == diagnostic_shape
++    assert diagnostic_shape['status'] == 'READY_WITH_GAPS'
++    assert diagnostic_shape['coverage']['input_candidate_count'] == 2
++    assert len(diagnostic_shape['pending']) == 2  # Unattested panel volume stays unknown.
++    assert diagnostic_shape['coverage']['strict_count'] == 0
++    assert all(row['volume_unit_status'] == 'NOT_PROVEN' for row in diagnostic_shape['pending'])
++    assert attention(original_shape, fixture['context']) == attention(diagnostic_shape, fixture['context'])
++    kwargs = dict(catalyst=dict(target_trade_date='20261012', status='NOT_MATERIALIZED', cards=[], gaps=[]),
++        plan_context=fixture['context'])
++    old_plan = build_workspace('20261012', market_screen=original_shape, **kwargs)
++    new_plan = build_workspace('20261012', market_screen=diagnostic_shape, **kwargs)
++    assert old_plan == new_plan
++    assert old_plan['input_identity'] == new_plan['input_identity']
++    assert len(fixture['calls']) == 4  # Diagnostics add no second owner read.
++    assert diagnostics['source_screen_input_identity'] == diagnostic_shape['input_identity']
++    assert diagnostics['source_screen_decision_identity'] == diagnostic_shape['decision_identity']
++    assert diagnostics['research_cutoff'] == fixture['context']['research_cutoff']
++    assert diagnostics['verified_session'] == fixture['day']
++    assert diagnostics['target_trade_date'] == '20261012'
++    assert diagnostics['sha256'] == digest({key:value for key,value in diagnostics.items() if key != 'sha256'})
++    assert diagnostics['diagnostic_only'] is True
++    assert diagnostics['selection_verdict_modified'] is False
++
++
++def test_missing_and_duplicate_sessions_are_exact_and_diagnostic_refs_are_isolated(tabular_input):
++    fixture = tabular_input
++    diagnostics = {}
++    screen = plan.read_rebound_screen(fixture['root'], fixture['context'], diagnostics=diagnostics)
++    rows = {row['symbol']:row for row in diagnostics['rows']}
++    assert rows['HK.00001']['missing_prior60_dates'] == []
++    assert rows['HK.00001']['missing_previous5_dates'] == []
++    assert rows['HK.00001']['history_numeric_status'] == 'KNOWN'
++    missing = rows['HK.00002']
++    assert missing['missing_prior60_dates'] == fixture['missing']
++    assert missing['missing_previous5_dates'] == [fixture['sessions']['previous5'][1]]
++    assert missing['duplicate_prior60_dates'] == [fixture['duplicate']]
++    assert missing['duplicate_previous5_dates'] == [fixture['duplicate']]
++    assert missing['history_numeric_status'] == 'PARTIAL_UNKNOWN'
++    assert missing['volume_source'] == 'V4_SHARED_HK_0_2_PANEL_AUTHORITY'
++    assert missing['source_refs'][0]['payload_sha256'] == fixture['panel']['panel_sha256']
++    before = deepcopy(screen)
++    missing['source_refs'][0]['payload_sha256'] = 'changed only in diagnostic output'
++    assert screen == before
++    assert all('missing_prior60_dates' not in row for row in screen['pending'])
++
++
++def test_mid_calculation_failure_discards_partial_diagnostics_and_prior_output(tabular_input, monkeypatch):
++    fixture = tabular_input
++    diagnostics = {'rows':['prior success'], 'gaps':['prior gap'],
++        'source_screen_decision_identity':'prior identity', 'sha256':'prior sha'}
++    seen = []
++
++    class FailingNames(dict):
++        def get(self, key, default=None):
++            seen.append(key)
++            if key == 'HK.00002':
++                raise RuntimeError('synthetic second-row read failure')
++            return super().get(key, default)
++
++    master = deepcopy(fixture['master'])
++    master['names'] = FailingNames(master['names'])
++    monkeypatch.setattr(plan, '_screen_security_master_witness', lambda *args: (master, {}))
++    result = plan.read_rebound_screen(fixture['root'], fixture['context'], diagnostics=diagnostics)
++    assert seen == ['HK.00001', 'HK.00002']
++    assert result['status'] == 'CANNOT_CONFIRM'
++    assert result['coverage']['input_candidate_count'] is None
++    assert diagnostics['status'] == 'CANNOT_CONFIRM'
++    assert diagnostics['rows'] == []
++    assert diagnostics['sha256'] is None
++    assert diagnostics['source_screen_input_identity'] is None
++    assert 'source_screen_decision_identity' not in diagnostics
++    assert 'gaps' not in diagnostics
++
+diff --git a/v4/manager_research/workspace.py b/v4/manager_research/workspace.py
+index 6a2ecf4ae398b4c2aae2db151e3701b15f78e76a..9fb99b7217f043e86e48710c6903ab62324d9b96 100644
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -772,7 +772,8 @@ def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, c
+     screen_authority_root = (getattr(service, '_workspace_screen_authority_root', None)
+                              or getattr(service, '_workspace_security_master_root', None))
+     with phase('rebound_screen'):
+-        market_screen = read_rebound_screen(screen_authority_root, context)
++        rebound_input_diagnostics = {}
++        market_screen = read_rebound_screen(screen_authority_root, context, diagnostics=rebound_input_diagnostics)
+     context['market_data_verified']=quote_evidence['verified']
+     with phase('previous_observation'):
+         previous,continuity_gap=_previous_observation(service,date)
+@@ -821,6 +822,10 @@ def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, c
+     timing=project_stage_read_timing(stage,date,timestamp(context['research_cutoff']),
+         attempt=attempts.get('STAGE'),ledger_verified_empty=stage_ledger_verified_empty)
+     value['stage_read_timing']=timing
++    # Same read, same original owner, already covered by projection.stage.
++    # Preserve the untruncated selection envelope so daily summaries do not
++    # invent a Stage selection from the independent workspace focus list.
++    value['stage_selection']=deepcopy(stage)
+     for lane in value.get('lanes',[]):
+         if lane.get('lane')=='STAGE':lane['execution_timing']=timing
+     value['discovery_evidence']=discovery
+@@ -835,6 +840,7 @@ def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, c
+         'authority': market_screen.get('authority'),
+         'data_context': market_screen.get('data_context'),
+     }
++    value['rebound_input_diagnostics'] = rebound_input_diagnostics
+     value['previous_observation_identity']=previous.get('input_identity') if previous else None
+     value['previous_calendar_sha256']=previous.get('calendar_sha256') if previous else None
+     value['existing_material_coverage']=existing['coverage']
+@@ -1133,7 +1139,7 @@ def _readback_plan(store: Any,date: str,current: dict, *, read_at: Any = None) -
+         # Eligibility diagnostics describe this read's owner binding, not the
+         # saved plan's binding. Refresh them without changing its identity,
+         # run_id or sealed bytes; the existing deep-copy overlay stays read-only.
+-        for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','owner_chain','announcement_review','announcement_observation','announcement_reviewed_analysis','us_market_attention','research_attention','stage_read_timing','repair_contract','selection_diagnostics','date_bindings'):
++        for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','rebound_input_diagnostics','owner_chain','announcement_review','announcement_observation','announcement_reviewed_analysis','us_market_attention','research_attention','stage_read_timing','stage_selection','repair_contract','selection_diagnostics','date_bindings'):
+             if key in current:value[key]=deepcopy(current[key])
+         value['us_mapping_research'] = _overlay_us_mapping_attempt(
+             saved['workspace'], current, saved['workspace'].get('plan_context', {}).get('research_cutoff'))
+diff --git a/v4/manager_research/workspace_daily_channels.py b/v4/manager_research/workspace_daily_channels.py
+index 5e6a5a75ab1d1c3bbe8f32e56084356dd57f5984..27f582840f49202cd15b9f31e482d9534a9567fa 100644
+--- a/v4/manager_research/workspace_daily_channels.py
++++ b/v4/manager_research/workspace_daily_channels.py
+@@ -2,10 +2,11 @@
+ from __future__ import annotations
+ 
+ from copy import deepcopy
++from datetime import datetime
+ import re
+ from typing import Any, Mapping
+ 
+-from .workspace_projection import FLAGS, canonical_symbol, digest, timestamp
++from .workspace_projection import FLAGS, HK, canonical_symbol, digest, timestamp
+ 
+ 
+ def _object(value: Any) -> Mapping[str, Any]:
+@@ -27,7 +28,9 @@ def _references(value: Any) -> list[dict[str, Any]]:
+     # nested evidence remain in their existing owner fields, not duplicated.
+     keys = {'card_id','art_code','title','owner','source','source_ref','source_date',
+         'product_sha256','source_sha256','source_manifest_sha256','artifact_sha256',
+-        'sha256','run_id','evidence_run_id','published_at','available_at','generated_at'}
++        'sha256','run_id','evidence_run_id','published_at','available_at','generated_at',
++        'payload_path','payload_sha256','manifest_path','manifest_sha256',
++        'receipt_path','receipt_sha256','artifact_path','path','pointer'}
+     return [{key:item for key,item in row.items() if key in keys
+              and (item is None or isinstance(item,(str,int,float,bool)))} for row in _rows(value)]
+ 
+@@ -76,6 +79,222 @@ def _base(channel: str, bindings: Mapping[str, Any], **extra: Any) -> dict[str,
+         **FLAGS) | extra
+ 
+ 
++def _oversold_channel(value: Mapping[str, Any], bindings: Mapping[str, Any],
++                      execution: Mapping[str, Any]) -> dict[str, Any]:
++    screen = _object(value.get('market_screen'))
++    ledger = _object(_object(value.get('research_attention')).get('research_selection'))
++    result = _base('OVERSOLD', bindings, owner='build_research_selection_ledger',
++        dependencies=['COMPLETED_HK_02_PANEL','PRIOR_60_COMPLETE_SESSIONS',
++                      'VERIFIED_VOLUME_PROVENANCE','ORIGINAL_RESEARCH_SELECTION_LEDGER'], **execution)
++    result.update(data_date=screen.get('verified_session'), source_status=ledger.get('source_status', screen.get('status')),
++        source_input_identity=screen.get('input_identity'),
++        decision_ledger_ref='research_attention.research_selection',
++        input_diagnostics_ref='rebound_input_diagnostics',
++        formal_selection_input=False, as_of_claim='NONE_RETROSPECTIVE_RESEARCH',
++        data_context=deepcopy(screen.get('data_context')), authority=deepcopy(screen.get('authority')),
++        gaps=sorted(set([*_texts(screen.get('gaps')), *_texts(ledger.get('gaps'))])))
++    # Consume the original complete decision ledger. Its strict/near rows may
++    # still be UNRESOLVED (missing priority, duplicate, bad source, or date).
++    # Raw screen groups cannot substitute for this owner verdict.
++    identity_fields = ('target_trade_date','source_date','source_input_identity',
++                       'source_rule_version','decisions','coverage','gaps')
++    bound = bool(ledger.get('schema_version') == 'v4.manager_research.selection_ledger.v1'
++        and ledger.get('target_trade_date') == bindings.get('plan_date')
++        and ledger.get('source_date') == screen.get('verified_session')
++        and ledger.get('source_input_identity') == screen.get('input_identity')
++        and ledger.get('source_rule_version') == screen.get('rule_version')
++        and ledger.get('formal_selection_input') is False
++        and ledger.get('as_of_claim') == 'NONE_RETROSPECTIVE_RESEARCH'
++        and isinstance(ledger.get('decision_identity'), str)
++        and ledger['decision_identity'] == digest({key:ledger.get(key) for key in identity_fields}))
++    if not bound or ledger.get('status') not in {'READY','READY_WITH_GAPS'}:
++        result['gaps'] = sorted(set([*result['gaps'], 'ORIGINAL_RESEARCH_SELECTION_LEDGER_UNVERIFIED']))
++        return result
++    coverage = _object(ledger.get('coverage'))
++    decisions = _rows(ledger.get('decisions'))
++    selected = [row for row in decisions if row.get('decision_status') in {'SELECTED','NEAR_WATCH'}]
++    source_rows = [(group,row) for group in ('strict','near','pending','excluded','screen_unresolved')
++                   for row in _rows(screen.get(group))]
++    result.update(input_identity=ledger['decision_identity'], coverage=deepcopy(coverage),
++        pending_count=coverage.get('unresolved_count'))
++    for row in selected:
++        indexes = row.get('source_row_indexes')
++        group, original = (source_rows[indexes[0]-1] if isinstance(indexes,list) and len(indexes)==1
++            and type(indexes[0]) is int and 0 < indexes[0] <= len(source_rows) else (None,{}))
++        source_diagnostics = ({key:deepcopy(original[key]) for key in (
++            'history_numeric_status','history_raw_status','history_raw_error','volume_source',
++            'volume_unit_status','volume_scale_applied','volume_relative_comparability_status','volume_provenance')
++            if key in original} if original.get('code') == row['symbol'] and group == row.get('source_group')
++                and str(original.get('target_monday')) == bindings.get('plan_date')
++                and str(original.get('verified_session')) == ledger.get('source_date') else {})
++        result['rows'].append(dict(symbol=row['symbol'],name=row['name'],reason=row['decision_reason'],
++            selection_status='SELECTED' if row['decision_status']=='SELECTED' else 'NEAR_CONDITION',
++            data_date=ledger['source_date'],target_trade_date=bindings.get('plan_date'),
++            source_refs=_references(row.get('source_refs')),source_group=row.get('source_group'),
++            source_row_indexes=deepcopy(row.get('source_row_indexes')),
++            source_input_identity=row.get('source_input_identity'),
++            decision_reason_code=row.get('decision_reason_code'),
++            research_priority=deepcopy(row.get('research_priority')),
++            source_metrics=deepcopy(row.get('source_metrics')),
++            source_diagnostics=source_diagnostics,
++            formal_selection_input=False,as_of_claim='NONE_RETROSPECTIVE_RESEARCH',
++            run_id=execution['run_id'],generated_at=execution['generated_at'],
++            product_sha256=execution['product_sha256']))
++    incomplete = ledger['status'] != 'READY' or bool(result['gaps'] or result['pending_count'])
++    count_selected = coverage.get('selected_count')
++    result.update(status='PARTIAL' if incomplete else 'READY' if selected else 'READY_EMPTY',
++        candidate_count=count_selected if count_selected or not incomplete else None,
++        watch_count=coverage.get('near_watch_count'))
++    return result
++
++
++def _hk_stage_channel(value: Mapping[str, Any], bindings: Mapping[str, Any],
++                       execution: Mapping[str, Any]) -> dict[str, Any]:
++    """Read an already verified HK Stage selection; never execute or re-rank."""
++    from contracts.stages import STAGE_DEFINITIONS
++    from .connect_selection import _scope_error, filter_cards
++    target, stage_id = bindings.get('plan_date'), 'STAGE_0935_0940'
++    stage = _object(value.get('stage_selection'))
++    # The existing API retains canonical, untruncated rows under this key.
++    markets = _object(stage.get('selection_markets', stage.get('markets')))
++    market = _object(markets.get('HK_CONNECT'))
++    membership = _object(_object(value.get('selection_diagnostics')).get('membership'))
++    result = _base('HK_CONNECT', bindings, owner='StageSelectionConsumer/SelectionStore',
++        dependencies=['TARGET_HK_UNIVERSE_V2','EXACT_DATE_D1_TOP100','ORIGINAL_STAGE_SELECTION_TRIO',
++                      'ORIGINAL_STAGE_EXECUTION_RECEIPT'], **execution)
++    result.update(authority=deepcopy(membership), stage_selection_ref='stage_selection',
++        source_status=market.get('source_status'), formal_selection_input=False,
++        source_selection={key:deepcopy(market.get(key)) for key in (
++            'trade_date','stage_id','market','status','selection_status','run_id','artifact_id',
++            'selection_run_id','algorithm_id','algorithm_sha256','raw_artifact_sha256',
++            'selection_artifact_sha256','selection_manifest_sha256','selection_receipt_sha256',
++            'selection_manifest_receipt_verified','source_status','source_evidence',
++            'requested_rows','source_rows','selected_rows','missing_symbols','cannot_confirm')})
++    gaps = result['gaps']
++    scope_error = _scope_error(membership, target)
++    if scope_error:
++        gaps.extend([scope_error, *_texts(membership.get('gaps'))])
++    calendar = _object(membership.get('calendar_applicability'))
++    if calendar.get('status') != 'APPLICABLE' or calendar.get('target_trade_date') != target:
++        gaps.append('HK_STAGE_TARGET_CONNECT_CALENDAR_NOT_APPLICABLE_OR_UNVERIFIED')
++    if (stage.get('schema_version') != 'stage_center.selection_consumer.v1'
++            or stage.get('response_source') != 'SHARED_STAGE_CENTER'
++            or any(stage.get(key) is not expected for key, expected in FLAGS.items())
++            or stage.get('write_performed') is not False
++            or stage.get('trade_date') != target or market.get('trade_date') != target
++            or stage.get('stage_id') != stage_id or market.get('stage_id') != stage_id
++            or market.get('market') != 'HK_CONNECT'):
++        gaps.append('HK_ORIGINAL_STAGE_SELECTION_IDENTITY_UNVERIFIED')
++    sha = lambda raw: isinstance(raw, str) and re.fullmatch(r'[0-9a-f]{64}', raw) is not None
++    run = market.get('run_id')
++    if (not isinstance(run, str) or not re.fullmatch(r'run-[0-9a-f]{24}', run)
++            or market.get('artifact_id') != 'selection-'+str(run)[4:]
++            or market.get('selection_run_id') != run
++            or market.get('selection_manifest_receipt_verified') is not True
++            or not all(sha(market.get(key)) for key in ('algorithm_sha256','raw_artifact_sha256',
++                'selection_artifact_sha256','selection_manifest_sha256','selection_receipt_sha256'))):
++        gaps.append('HK_STAGE_SELECTION_TRIO_UNVERIFIED')
++    evidence = _texts(market.get('source_evidence'))
++    d1_shas = [item.partition('=')[2] for item in evidence
++               if item.partition('=')[0] in {'hk_d1_sha256','hk_d1_json_sha256','hk_d1_binding_sha256'}]
++    if ('hk_d1_membership=exact_date_top100' not in evidence
++            or 'hk_d1_status=STRICT_0_2_READY' not in evidence
++            or not d1_shas or not all(sha(item) for item in d1_shas) or len(set(d1_shas)) != 1):
++        gaps.append('HK_STAGE_EXACT_D1_TOP100_IDENTITY_UNVERIFIED')
++    original_rows = market.get('rows')
++    rows = _rows(original_rows)
++    if (not isinstance(original_rows, list) or len(rows) != len(original_rows)
++            or type(market.get('selected_rows')) is not int or market['selected_rows'] != len(rows)
++            or type(market.get('requested_rows')) is not int or market['requested_rows'] != 100
++            or type(market.get('source_rows')) is not int or not 0 < market['source_rows'] <= 100
++            or market.get('selected_rows',0) > market.get('source_rows',0)
++            or market.get('status') != market.get('selection_status')
++            or market.get('status') not in {'READY','READY_EMPTY','PARTIAL_WITH_ROWS'}
++            or market.get('source_status') not in {'READY','READY_EMPTY','PARTIAL_WITH_ROWS'}
++            or market.get('status') == 'READY_EMPTY' and bool(rows)
++            or market.get('status') == 'READY' and not rows
++            or not isinstance(market.get('missing_symbols'), list)
++            or not isinstance(market.get('cannot_confirm'), list)):
++        gaps.append('HK_STAGE_ORIGINAL_INPUT_OR_SELECTION_COUNT_UNVERIFIED')
++    codes, ranks = set(), set()
++    for order, row in enumerate(rows, 1):
++        code, rank = row.get('code'), row.get('rank')
++        if (canonical_symbol(code) != code or code is None or code in codes
++                or 'symbol' in row and row['symbol'] != code
++                or type(rank) is not int or rank <= 0 or str(rank) in ranks
++                or type(row.get('order')) is not int or row['order'] != order
++                or row.get('formal_eligible') is not False or row.get('action_level') != 'NO_BUY'
++                or any(key in row and row[key] is not expected for key, expected in FLAGS.items())
++                or any(key in row and row[key] != expected for key, expected in
++                       (('trade_date',target),('stage_id',stage_id),('market','HK_CONNECT')))):
++            gaps.append('HK_STAGE_ORIGINAL_ROW_IDENTITY_OR_SAFETY_UNVERIFIED')
++        codes.add(str(code)); ranks.add(str(rank))
++    # Recovery artifacts can live at the ordinary key. Keep the original
++    # evidence visible, but do not substitute them for this ordinary lane.
++    source_execution = _object(stage.get('execution_evidence'))
++    source_nodes = (stage, market, source_execution, *rows)
++    markers = [*evidence, *_texts(market.get('cannot_confirm')),
++        *[str(node.get(key) or '') for node in source_nodes
++          for key in ('selection_mode','due_status','attempt_mode','mode','recovery_mode',
++                      'source_mode','status','second_filter_status')],
++        *[item for row in rows for key in ('lane_evidence','candidate_lanes')
++          for item in _texts(row.get(key))]]
++    recovery_markers = ('BACKFILL','LATE_CATCHUP_REPLAY','PRIOR_CONNECT_DATE_FALLBACK',
++        'HK_SECURITIES_OPEN_HK_CONNECT_CLOSED','D1_PRESELECT_REFERENCE','WAITING_0920_SECOND_FILTER',
++        'historical_observation_contract=', 'hk_afterfact_contract=', 'substitute_kind=',
++        'temporal_cutoff_safe=false', 'temporal_cutoff_safe=False')
++    if (any(any(marker in item for marker in recovery_markers) for item in markers)
++            or any(node.get('backfill_run_id') or node.get('backfill_run_ids') or node.get('recovery_provenance')
++                   or node.get('temporal_cutoff_safe') is False for node in source_nodes)):
++        gaps.append('HK_STAGE_RECOVERY_OR_PRIOR_OBSERVATION_NOT_ORDINARY_SELECTION')
++    cutoff = timestamp(_object(value.get('plan_context')).get('research_cutoff'))
++    try:
++        end = datetime.strptime(str(target)+' '+STAGE_DEFINITIONS[stage_id]['cutoff'], '%Y%m%d %H:%M:%S').replace(tzinfo=HK)
++        if cutoff is None or cutoff < end:
++            gaps.append('HK_STAGE_AFTER_RESEARCH_CUTOFF_OR_CUTOFF_UNVERIFIED')
++    except (ValueError, KeyError):
++        gaps.append('HK_STAGE_READ_WINDOW_UNVERIFIED')
++    if gaps:
++        result['gaps'] = sorted(set(gaps))
++        return result
++    result['data_date'] = target
++    result['input_identity'] = digest([membership['identity'],result['source_selection']])
++    execution_market = _object(_object(source_execution.get('markets')).get('HK_CONNECT'))
++    declared = _object(execution_market.get('declared_identity'))
++    execution_bound = (source_execution.get('trade_date') == target and source_execution.get('stage_id') == stage_id
++        and sha(source_execution.get('observed_sha256'))
++        and execution_market.get('selection_binding') == 'BOUND_TO_VERIFIED_SELECTION'
++        and all(declared.get(key) == market.get(key) for key in ('run_id','artifact_id','algorithm_sha256','raw_artifact_sha256'))
++        and type(execution_market.get('selected_rows')) is int
++        and execution_market['selected_rows'] == market['selected_rows'])
++    result['execution_selection_reference'] = 'BOUND' if execution_bound else 'CANNOT_CONFIRM'
++    result['source_execution_evidence_ref'] = 'stage_selection.execution_evidence'
++    if not execution_bound:
++        gaps.append('HK_STAGE_EXECUTION_SELECTION_BINDING_UNVERIFIED')
++    admitted, rejected = filter_cards(rows, membership, target_date=target)
++    gaps.extend(row['reason'] for row in rejected)
++    gaps.extend(_texts(market.get('cannot_confirm')))
++    if market['source_rows'] != 100 or market.get('missing_symbols'):
++        gaps.append('HK_STAGE_D1_INPUT_COVERAGE_INCOMPLETE')
++    source_ref = dict(owner='stage_center.SelectionStore',run_id=run,
++        payload_sha256=market['selection_artifact_sha256'],manifest_sha256=market['selection_manifest_sha256'],
++        receipt_sha256=market['selection_receipt_sha256'],raw_artifact_sha256=market['raw_artifact_sha256'],
++        algorithm_sha256=market['algorithm_sha256'])
++    for row in admitted:
++        reasons = _texts(row.get('reason')) or _texts(row.get('lane_evidence'))
++        result['rows'].append(dict(symbol=row['code'],name=row.get('name') or row.get('stock_name') or row['code'],
++            reason='；'.join(reasons) or None,selection_status='SELECTED',rank=row['rank'],order=row.get('order'),
++            formal_eligible=row['formal_eligible'],action_level=row['action_level'],trade_status=row.get('trade_status'),
++            data_date=target,target_trade_date=target,source_refs=[deepcopy(source_ref)],
++            source_row_ref='stage_selection.selection_markets.HK_CONNECT.rows',
++            run_id=execution['run_id'],generated_at=execution['generated_at'],product_sha256=execution['product_sha256']))
++    incomplete = bool(gaps) or market['status'] == 'PARTIAL_WITH_ROWS' or market['source_status'] == 'PARTIAL_WITH_ROWS'
++    result.update(status='PARTIAL' if incomplete else 'READY' if admitted else 'READY_EMPTY',
++        candidate_count=len(admitted) if admitted or not incomplete else None,
++        pending_count=None if incomplete else 0,selection_rejections=rejected,gaps=sorted(set(gaps)))
++    return result
++
++
+ def build_daily_channels(value: Mapping[str, Any]) -> dict[str, Any]:
+     """Expose stock/reason/date/run without changing owners' rows or ranking."""
+     bindings = dict(_object(value.get('date_bindings')))
+@@ -134,64 +353,8 @@ def build_daily_channels(value: Mapping[str, Any]) -> dict[str, Any]:
+     announcement['other_product_checks']=_checks([p for p in products if p not in exact])
+ 
+     execution = _execution(value)
+-    diagnostics = _object(value.get('selection_diagnostics'))
+-    membership = _object(diagnostics.get('membership'))
+-    focus_inputs = _object(_object(value.get('owner_chain')).get('focus_inputs'))
+-    connect = _base('HK_CONNECT', bindings, owner='EXISTING_WORKSPACE_FOCUS_AND_TARGET_HK_UNIVERSE_V2',
+-        dependencies=['TARGET_HK_UNIVERSE_V2','EXISTING_FOCUS_OWNERS'], **execution)
+-    connect['data_date']=_object(value.get('plan_context')).get('market_session')
+-    connect['input_identity']=membership.get('identity')
+-    from .connect_selection import _scope_error, filter_cards
+-    authority_error = _scope_error(membership, target)
+-    focus=set(value.get('focus_symbols', []))
+-    if authority_error is None:
+-        original_focus=[r for r in _rows(value.get('stocks')) if r.get('symbol') in focus
+-                        and r.get('connect_eligibility')=='VERIFIED_TARGET_UNIVERSE']
+-        verified_focus, rejected_focus=filter_cards(original_focus,membership,target_date=target)
+-        connect['rows']=[dict(symbol=r['symbol'],name=r.get('name') or r['symbol'],
+-            reason='；'.join(_texts(r.get('why_watch'))) or None, selection_status='SELECTED',
+-            data_date=connect['data_date'], target_trade_date=target, source_refs=_references(r.get('evidence',[])),
+-            run_id=execution['run_id'],generated_at=execution['generated_at'],product_sha256=execution['product_sha256'])
+-            for r in verified_focus]
+-        # General selection diagnostics also carry research-attention gaps.
+-        # Use the producer's channel-local dependency list here so a peripheral
+-        # US gap cannot change HK Connect readiness.
+-        connect['gaps']=sorted(set([*_texts(diagnostics.get('connect_gaps')),*_texts(focus_inputs.get('gaps')),
+-                                   *(r['reason'] for r in rejected_focus)]))
+-        if focus_inputs.get('status') != 'READY' and not focus_inputs.get('gaps'):
+-            connect['gaps'].append('FOCUS_OWNER_INPUT_STATUS_NOT_VERIFIED')
+-        incomplete=bool(connect['gaps'] or diagnostics.get('status') not in {'READY','READY_EMPTY'})
+-        connect['status']='PARTIAL' if incomplete else 'READY' if connect['rows'] else 'READY_EMPTY'
+-        if connect['rows'] or not incomplete:
+-            connect['candidate_count']=len(connect['rows'])
+-    else:
+-        connect['gaps']=sorted(set([*_texts(membership.get('gaps')),authority_error]))
+-    connect['authority']=deepcopy(membership)
++    connect = _hk_stage_channel(value, bindings, execution)
+ 
+-    screen = _object(value.get('market_screen'))
+-    oversold = _base('OVERSOLD', bindings, owner='EXISTING_HK_02_REBOUND_TWO_GATE_SCREEN',
+-        dependencies=['COMPLETED_HK_02_PANEL','PRIOR_60_COMPLETE_SESSIONS','VERIFIED_VOLUME_PROVENANCE'], **execution)
+-    oversold.update(data_date=screen.get('verified_session'),input_identity=screen.get('input_identity'),
+-        gaps=_texts(screen.get('gaps')),data_context=deepcopy(screen.get('data_context')))
+-    if screen.get('status') in {'READY','READY_WITH_GAPS'} and screen.get('input_identity'):
+-        for key, classification in [('strict','SELECTED'),('near','NEAR_CONDITION')]:
+-            for row in _rows(screen.get(key)):
+-                symbol=canonical_symbol(row.get('code') or row.get('symbol'))
+-                if symbol is None:
+-                    continue
+-                oversold['rows'].append(dict(symbol=symbol,name=row.get('name') or symbol,
+-                    reason=row.get('reason_for_group') or row.get('reason_for_selection') or row.get('reason_for_near') or row.get('reason') or None,
+-                    selection_status=classification,data_date=screen.get('verified_session'),target_trade_date=target,
+-                    source_refs=_references(row.get('source_refs',[])),run_id=execution['run_id'],
+-                    generated_at=execution['generated_at'],product_sha256=execution['product_sha256']))
+-        oversold['pending_count']=len(_rows(screen.get('pending')))+len(_rows(screen.get('screen_unresolved')))
+-        incomplete=bool(oversold['pending_count'] or oversold['gaps'])
+-        oversold['status']='PARTIAL' if incomplete else 'READY' if oversold['rows'] else 'READY_EMPTY'
+-        selected=sum(r['selection_status']=='SELECTED' for r in oversold['rows'])
+-        oversold['candidate_count']=selected if selected or not incomplete else None
+-        oversold['watch_count']=sum(r['selection_status']=='NEAR_CONDITION' for r in oversold['rows'])
+-    if not oversold['gaps'] and oversold['status']=='CANNOT_CONFIRM':
+-        oversold['gaps']=['SCREEN_INPUT_OR_AUTHORITY_UNVERIFIED']
+-    oversold['authority']=deepcopy(screen.get('authority'))
++    oversold = _oversold_channel(value, bindings, execution)
+     return dict(schema_version='v4.manager_research.daily_channels.v1',date_bindings=bindings,
+         channels=[announcement,connect,oversold],selection_rules_unchanged=True,**FLAGS)
+diff --git a/v4/manager_research/workspace_history.py b/v4/manager_research/workspace_history.py
+index 02d455e8d3ec8ff0c50e2cf34b6acdff206cf756..fbdc87feb7ff3d012bad74ec74f2ef4b5b68f646 100644
+--- a/v4/manager_research/workspace_history.py
++++ b/v4/manager_research/workspace_history.py
+@@ -15,12 +15,14 @@ import re
+ from typing import Any, Mapping
+ from .workspace_projection import FLAGS, HK, SCHEMA, build_workspace, date_token, timestamp, digest
+ from .workspace_plan import plan_context, _screen_empty
++from .workspace_identity import semantic_value
+ from .workspace_read_control import phase, count, checkpoint, contract_identity, READ_CONTRACT
+ from .safety import assert_manager_safe_tree
+ 
+ _MAX_PLAN_BYTES = 32*1024*1024
+ _MAX_SCAN_BYTES = 64*1024*1024
+ _MAX_RUNS = 64
++_MAX_ATTEMPT_BYTES = 64*1024
+ _BUSINESS_FIELDS = ('schema_version', 'semantic_version', 'decision_projection_version',
+     'target_trade_date', 'stocks', 'themes', 'materials', 'company_events', 'focus_symbols',
+     'rejected_relations', 'briefing', 'summary', 'market_screen', 'announcement_review')
+@@ -60,11 +62,12 @@ def _execution_context_qualifies(row: Mapping[str, Any], boundary: Mapping[str,
+ 
+ 
+ def _read_candidate(store: Any, date: str, name: str, *,
+-                    boundary: Mapping[str, Any] | None = None) -> tuple[dict | None, int]:
++                    boundary: Mapping[str, Any] | None = None,
++                    max_bytes: int = _MAX_PLAN_BYTES) -> tuple[dict | None, int]:
+     from .workspace import PLAN_SCHEMA
+     path = f'workspace_plans/{date}/{name}'
+     try:
+-        raw = store._io.read_bytes(path, max_bytes=_MAX_PLAN_BYTES)
++        raw = store._io.read_bytes(path, max_bytes=min(_MAX_PLAN_BYTES, max_bytes))
+     except FileNotFoundError:
+         return None, 0
+     count('saved_plan_bytes', len(raw))
+@@ -112,6 +115,31 @@ def _read_candidate(store: Any, date: str, name: str, *,
+     return row, len(raw)
+ 
+ 
++def _late_owner_run(store: Any, date: str, name: str, limit: datetime) -> bool:
++    """Use the existing small owner journal only to exclude impossible PIT runs.
++
++    The original owner requires started_at <= product.generated_at. A sealed
++    same-run journal starting after the boundary therefore cannot belong to an
++    admissible historical product. It never admits a plan or substitutes for
++    its full SHA/PIT validation. A missing legacy journal falls back to the
++    bounded product read; a damaged/wrong-owner journal is not exclusion proof.
++    """
++    from .workspace import validate_attempt
++    try:
++        raw = store._io.read_bytes(f'workspace_plan_runs/{date}/{name}',
++                                   max_bytes=_MAX_ATTEMPT_BYTES)
++    except FileNotFoundError:
++        return False
++    count('saved_plan_index_bytes', len(raw))
++    attempt = json.loads(raw)
++    assert_manager_safe_tree(attempt)
++    attempt = validate_attempt(attempt, date)
++    if (attempt.get('owner') != 'ManagerResearchJobService.refresh_workspace_plan'
++            or attempt.get('run_id') + '.json' != name):
++        raise ValueError('HISTORY_OWNER_JOURNAL_IDENTITY_INVALID')
++    return timestamp(attempt['started_at']) > limit
++
++
+ def select_plan(store: Any, date: str, boundary: Mapping[str, Any]) -> dict | None:
+     limit = timestamp(boundary['research_cutoff'])
+     def eligible(row: dict | None) -> bool:
+@@ -142,10 +170,17 @@ def select_plan(store: Any, date: str, boundary: Mapping[str, Any]) -> dict | No
+     candidates = []
+     for name in sorted(names):
+         checkpoint()
+-        row, size = _read_candidate(store, date, name, boundary=boundary)
+-        total += size
+-        if total > _MAX_SCAN_BYTES:
++        # Journal metadata is bounded separately (64 runs x 64 KiB). Late
++        # retries cannot exhaust the body budget and hide an earlier plan.
++        if _late_owner_run(store, date, name, limit):
++            count('saved_plan_late_runs_excluded', 1)
++            continue
++        remaining = _MAX_SCAN_BYTES - total
++        if remaining <= 0:
+             raise ValueError('HISTORY_RUN_BYTES_BOUND_EXCEEDED')
++        row, size = _read_candidate(store, date, name, boundary=boundary,
++                                    max_bytes=remaining)
++        total += size
+         if eligible(row):
+             candidates.append(row)
+     if not candidates:
+@@ -327,7 +362,12 @@ def read_history(service: Any, date: str) -> dict:
+         with phase('frozen_business_comparison'):
+             if saved['input_identity'] != verified['input_identity']:
+                 raise ValueError('HISTORY_SOURCE_INPUTS_CHANGED')
+-            if any(saved['workspace'].get(k) != verified.get(k) for k in _BUSINESS_FIELDS):
++            # Reuse the identity contract's exact, narrow registry exception.
++            # Payload/receipt/PIT and original source content still compare in
++            # full; a provenance-only global registry change cannot undo an
++            # already matching semantic input identity here.
++            if any(semantic_value(saved['workspace'].get(k)) != semantic_value(verified.get(k))
++                   for k in _BUSINESS_FIELDS):
+                 raise ValueError('HISTORY_FROZEN_PROJECTION_CHANGED')
+             _pit(verified, timestamp(ctx['research_cutoff']))
+         # The byte identity still protects this whole replay. A deployment
+diff --git a/v4/manager_research/workspace_plan.py b/v4/manager_research/workspace_plan.py
+index 74242a3607b62e1d21e3bdf9e1ee781bb5638096..b0e429be4e559bb1e8e47165f52b68085475eb55 100644
+--- a/v4/manager_research/workspace_plan.py
++++ b/v4/manager_research/workspace_plan.py
+@@ -5,6 +5,7 @@ Connect calendar. Price references are read only through the existing native
+ CloseSnapshotStore, and missing units/session/basis stay UNKNOWN.
+ """
+ from __future__ import annotations
++from copy import deepcopy
+ from datetime import datetime, time, timedelta, timezone
+ import hashlib
+ import json
+@@ -978,7 +979,8 @@ def _screen_supplement_volume_evidence(supplement: Mapping[str, Any],
+         gaps=[])
+ 
+ 
+-def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any]) -> dict:
++def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any], *,
++                        diagnostics: dict | None = None) -> dict:
+     """Recompute the bounded REBOUND_V3 screen from the existing HK panel.
+ 
+     The panel, its manifest and the date-specific security master are only
+@@ -988,7 +990,18 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
+     volume-ratio conditions decide strict/near qualification. Fully known rows
+     failing both existing gates are also returned as exclusions with their
+     exact gate values. Amount and close-to-low rebound remain observations.
++
++    Optional diagnostics describe this same read separately. They do not add
++    fields to the frozen screen/ledger or change its semantic input identity.
+     """
++    diagnostic_rows = []
++    if diagnostics is not None:
++        diagnostics.clear()
++        diagnostics.update(schema_version='v4.manager_research.rebound_input_diagnostics.v1',
++            target_trade_date=context.get('plan_trade_date'),status='CANNOT_CONFIRM',rows=[],
++            source_screen_input_identity=None,verified_session=None,sha256=None,
++            research_cutoff=context.get('research_cutoff'),
++            diagnostic_only=True,selection_verdict_modified=False,**FLAGS)
+     if ('market_session' in context
+             and not re.fullmatch(r'\d{8}', str(context.get('market_session') or ''))):
+         return _screen_empty(context, ['SCREEN_MARKET_SESSION_UNVERIFIED'])
+@@ -1446,6 +1459,15 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
+                 volume_provenance=volume_evidence,
+                 research_boundary='RESEARCH_ONLY; no buy/sell/order conclusion',
+             )
++            if diagnostics is not None:
++                diagnostic_rows.append(dict(symbol=code,
++                    missing_prior60_dates=list(missing_prior60_dates),
++                    missing_previous5_dates=list(missing_previous5_dates),
++                    duplicate_prior60_dates=sorted(duplicate_prior60_dates),
++                    duplicate_previous5_dates=sorted(duplicate_previous5_dates),
++                    history_status=history_status,history_numeric_status=row['history_numeric_status'],
++                    volume_source=row['volume_source'],volume_unit_status=row['volume_unit_status'],
++                    source_refs=deepcopy(row['source_refs'])))
+             # Return recent returns from the panel only when the exact rows are
+             # available. These are background context, never a gate.
+             ordered = code_history.sort_values('trade_date_compact')
+@@ -1541,6 +1563,10 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
+                        row['oversold_cutoff_80pct_prior60_high'], row['volume_ratio_5d'])
+                       for row in excluded_rows],
+             unresolved=[(row['code'], row['exclusion_reason_code']) for row in unresolved_rows]))
++        if diagnostics is not None:
++            diagnostics.update(status=status,rows=diagnostic_rows,verified_session=day,source_screen_input_identity=identity,
++                source_screen_decision_identity=decision_identity,gaps=sorted(set(gaps)))
++            diagnostics['sha256'] = digest({key:value for key,value in diagnostics.items() if key!='sha256'})
+         return dict(schema_version=REBOUND_SCREEN_SCHEMA, rule_version=REBOUND_SCREEN_RULE,
+             target_trade_date=str(context.get('plan_trade_date') or ''), verified_session=day,
+             status=status, cards=selected, strict=strict_rows, near=near_rows, pending=pending,

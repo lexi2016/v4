@@ -1,0 +1,110 @@
+{
+  "after_utc": "2026-10-11T08:25:00.067844+00:00",
+  "artifact_directory": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/o_subreview/original_screen_comparison_20261011T082459203829Z",
+  "assertions": {
+    "candidate_success": true,
+    "complete_plan_equal": true,
+    "complete_research_attention_equal": true,
+    "complete_research_ledger_equal": true,
+    "complete_screen_equal": true,
+    "original_success": true,
+    "plan_input_identity_equal": true,
+    "same_panel_master_reader_calls": true,
+    "source_files_unchanged": true,
+    "unattested_volume_remains_pending": true
+  },
+  "before_utc": "2026-10-11T08:24:59.213569+00:00",
+  "changed_files": [],
+  "command": [
+    "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+    "-B",
+    "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/o_subreview/compare_original_screen.py"
+  ],
+  "environment": {
+    "pandas": "3.0.6",
+    "pyarrow": "26.0.0",
+    "python": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]"
+  },
+  "fixture": {
+    "calls": [
+      [
+        "panel",
+        "20261009",
+        {
+          "required_history_date": "20261008",
+          "research_cutoff": "2026-10-11T12:00:00+08:00"
+        }
+      ],
+      [
+        "master",
+        "20261009"
+      ],
+      [
+        "panel",
+        "20261009",
+        {
+          "required_history_date": "20261008",
+          "research_cutoff": "2026-10-11T12:00:00+08:00"
+        }
+      ],
+      [
+        "master",
+        "20261009"
+      ]
+    ],
+    "context": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "calendar_owner": "contracts.trading_calendar / hk_securities",
+      "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "focus_window_basis": "TWO_COMPLETED_HK_SESSIONS_POST_CLOSE_WINDOW",
+      "focus_window_start": "2026-10-08T16:10:00+08:00",
+      "market_data_verified": false,
+      "market_session": "20261009",
+      "market_session_close": "2026-10-09T16:10:00+08:00",
+      "observation_phase": "PREOPEN_PLAN",
+      "orders_sent": false,
+      "plan_trade_date": "20261012",
+      "price_session_status": "EXPECTED_COMPLETED_SESSION_NOT_QUOTE_VERIFICATION",
+      "production_allowed": false,
+      "research_cutoff": "2026-10-11T12:00:00+08:00",
+      "source_dates": [
+        "20261008",
+        "20261009",
+        "20261010",
+        "20261011"
+      ],
+      "us_market_coverage": "NOT_VERIFIED",
+      "us_market_session": null
+    },
+    "day": "20261009",
+    "duplicate": "20261006",
+    "missing": [
+      "20260716",
+      "20261005"
+    ],
+    "parquet_sha256": "89a67cb2bbe4a3e640a16638407cf8c2a30bb41c44286a640dbe2960fb17f16b"
+  },
+  "limitations": [
+    "One synthetic two-symbol real-Parquet fixture; not a live owner provenance attestation.",
+    "Original top-level modules loaded from the exported baseline; relative imports use the current shared package/dependency namespace.",
+    "Panel/master/supplement reader boundaries are patched identically; real reader calculation bodies, calendar and Parquet are executed.",
+    "No Mac execution, live market selection, or natural scheduling assertion."
+  ],
+  "modules": {
+    "candidate_attention": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/research_attention.py",
+    "candidate_plan": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/workspace_plan.py",
+    "candidate_projection": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/workspace_projection.py",
+    "original_attention": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/baseline_regression/v4/manager_research/research_attention.py",
+    "original_plan": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/baseline_regression/v4/manager_research/workspace_plan.py",
+    "original_projection": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/baseline_regression/v4/manager_research/workspace_projection.py"
+  },
+  "projection_function_ast_equal": {
+    "build_research_attention": true,
+    "build_research_selection_ledger": true,
+    "build_workspace": true
+  },
+  "result": "PASS",
+  "support_py_json_count": 28,
+  "total_hashed_files": 37
+}

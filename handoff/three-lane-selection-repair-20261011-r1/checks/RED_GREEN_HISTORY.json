@@ -1,0 +1,88 @@
+{
+  "note": "Historical development evidence; do not add these counts to final tests or infer unchanged source between phases.",
+  "records": [
+    {
+      "original_execution_path": "/workspace/scratch/ff44f882fe5c/verification/history_red.log",
+      "scope": "Initial history reproduction; earlier source/test revision",
+      "bytes": 20931,
+      "sha256": "da3db64884473b8c11f968206a183c1ba95d8281c18de619f71368803975d9fe",
+      "summary_lines": [
+        "9 failed, 3 passed in 0.94s"
+      ],
+      "current_final_revision": false
+    },
+    {
+      "original_execution_path": "/workspace/scratch/ff44f882fe5c/verification/history_green.log",
+      "scope": "First history repair; final verification separately recorded",
+      "bytes": 99,
+      "sha256": "db510cbb77bb02599d00e961dc8f4c57d973fbc2b5a5b05c6e13701e5388bd2a",
+      "summary_lines": [
+        "12 passed in 0.39s"
+      ],
+      "current_final_revision": false
+    },
+    {
+      "original_execution_path": "/workspace/scratch/ff44f882fe5c/verification/frozen_red.log",
+      "scope": "Historical raw-vs-semantic freeze regression",
+      "bytes": 1164,
+      "sha256": "479e1a31f8a8c47e6019269b1482c1dcbd62a8768ab3e5e1e079f062a77d75a6",
+      "summary_lines": [
+        "1 failed, 19 passed in 0.80s"
+      ],
+      "current_final_revision": false
+    },
+    {
+      "original_execution_path": "/workspace/scratch/ff44f882fe5c/verification/frozen_green.log",
+      "scope": "Semantic freeze repair including negative cases",
+      "bytes": 99,
+      "sha256": "80e97c3cdcd83cba9f794fff45bd5ec40eda8378389ac92ed237856bf85bfb7c",
+      "summary_lines": [
+        "20 passed in 0.63s"
+      ],
+      "current_final_revision": false
+    },
+    {
+      "original_execution_path": "/workspace/scratch/ff44f882fe5c/verification/hk_review_boundaries_red.log",
+      "scope": "Eight independent HK boundary failures before writer correction",
+      "bytes": 27098,
+      "sha256": "676ebeecc52f8e7ff673236e998fba258157b8ecf141f5dbd489e9464b6c153a",
+      "summary_lines": [
+        "8 failed, 31 deselected in 0.83s"
+      ],
+      "current_final_revision": false
+    },
+    {
+      "original_execution_path": "/workspace/scratch/ff44f882fe5c/verification/hk_review_boundaries_green.log",
+      "scope": "HK boundary correction before six later A/D tests",
+      "bytes": 99,
+      "sha256": "0f3a7fd4ea40e492f39699d92bf75925c105f2151e3c2464e247a828c4c51acd",
+      "summary_lines": [
+        "39 passed in 0.66s"
+      ],
+      "current_final_revision": false
+    },
+    {
+      "original_execution_path": "/workspace/scratch/ff44f882fe5c/verification/frontend_cancel_red.log",
+      "scope": "Late canceled response regression",
+      "bytes": 9141,
+      "sha256": "27d24bf1accaa88cf0b658a2a71c105d42154d5cf16eabe5bab57c8cba99bca7",
+      "summary_lines": [
+        "⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯",
+        " Test Files  1 failed (1)",
+        "      Tests  1 failed | 7 skipped (8)"
+      ],
+      "current_final_revision": false
+    },
+    {
+      "original_execution_path": "/workspace/scratch/ff44f882fe5c/verification/frontend_final_green.log",
+      "scope": "Eight targeted date/cancellation tests",
+      "bytes": 1216,
+      "sha256": "6d28ba3b19f353d617bfe2bf58dbaac741398725697b4416c901102120cfddec",
+      "summary_lines": [
+        " Test Files  1 passed (1)",
+        "      Tests  8 passed (8)"
+      ],
+      "current_final_revision": false
+    }
+  ]
+}

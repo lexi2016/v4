@@ -1,0 +1,174 @@
+{
+  "scope": "ENGINEERING_CANDIDATE_ONLY",
+  "candidate_commit": "cd93198cb0de06c8f32386ed1fc808a5b4e53bec",
+  "source_manifest_sha256": "ffb6fd7019366919d9cec4510269119a09789dd5c07f6a01f7eaba1e3ba57215",
+  "writer_runtime": {
+    "os": "Linux",
+    "python": "3.14.6",
+    "pandas": "3.0.6",
+    "pyarrow": "26.0.0"
+  },
+  "backend_targeted": {
+    "status": "PASS_WITH_ONE_UNAVAILABLE_ORIGINAL_MAC_FIXTURE_SKIPPED",
+    "passed": 73,
+    "skipped": 1,
+    "failed": 0,
+    "exit_code": 0,
+    "cwd": "/workspace/scratch/ff44f882fe5c/candidate",
+    "command": [
+      "test_env314/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "-q",
+      "tests/test_manager_three_lane_history_r1.py",
+      "tests/test_manager_three_lane_channels_r1.py",
+      "tests/test_manager_three_lane_rebound_diagnostics_r1.py",
+      "tests/test_manager_research_selection_ledger.py"
+    ],
+    "absolute_python": "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/ff44f882fe5c/candidate:/workspace/scratch/ff44f882fe5c/support_source:/workspace/scratch/ff44f882fe5c/support_source/upstreams"
+    },
+    "log": "checks/final_targeted_backend_exact.log"
+  },
+  "frontend": {
+    "scope": "FINAL_FRONTEND_ENGINEERING_REVIEW_ONLY_NOT_MAC_8873_OR_NATURAL_ACCEPTANCE",
+    "source_hashes": [
+      {
+        "relative_path": "src/manager-selection/catalystObservationPanel.ts",
+        "sha256": "300418ce5d5da9f6686adafbb107cf5db36587fd9bb0af759b27f6881f0eb6cd",
+        "test_copy_bytes_equal": true
+      },
+      {
+        "relative_path": "src/api/managerWorkspace.ts",
+        "sha256": "4203c62b111449f2fd8031bd1e1599829f1a21e543f4fc1a41a35eaff046f707",
+        "test_copy_bytes_equal": true
+      },
+      {
+        "relative_path": "src/manager-selection/threeLaneDateBindings.spec.ts",
+        "sha256": "5a447f20061f3d1563e18c76b240c1ffb062e6dcb10a2595ef73c6dfbf7b7952",
+        "test_copy_bytes_equal": true
+      },
+      {
+        "relative_path": "src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+        "sha256": "1e4e634dd47b89c0d09ca40a1c36df9d57fe1c2123bc1d98e3a5fb8bcb2ee645",
+        "test_copy_bytes_equal": true
+      }
+    ],
+    "environment": {
+      "node": "24.19.0",
+      "platform": "linux-x64",
+      "typescript": "5.9.3",
+      "vitest": "4.1.10",
+      "vite": "7.3.6",
+      "vue_tsc": "3.3.8",
+      "jsdom": "28.1.0"
+    },
+    "behavior_tests": {
+      "cwd": "/workspace/scratch/ff44f882fe5c/frontend_test",
+      "command": "node node_modules/vitest/vitest.mjs run src/manager-selection/threeLaneDateBindings.spec.ts src/manager-selection/catalystObservationPanel.runtime.spec.ts --testNamePattern '^(?!.*renders the actual Eastmoney owner workspace readback)' --reporter=verbose",
+      "exit_code": 0,
+      "passed": 17,
+      "skipped": 1,
+      "new_spec_passed": 8,
+      "original_runtime_passed": 9,
+      "skipped_reason": "Original actual Eastmoney Mac workspace fixture unavailable; test expectation and fixture not modified",
+      "cancel_late_response_regression": "PASS"
+    },
+    "original_config_full_typecheck": {
+      "command": "npm run typecheck -- --pretty false",
+      "exit_code": 2,
+      "diagnostic_count": 97,
+      "diagnostics_identical_to_attached_original_control": true,
+      "candidate_only_diagnostics": [],
+      "missing_local_source_paths": [
+        "src/api/managerDecision.ts",
+        "src/api/managerPreselection.ts",
+        "src/api/managerResearch.ts",
+        "src/api/managerStageSelection.ts",
+        "src/api/managerWorkbenchResearch.ts",
+        "src/api/research_lane.ts",
+        "src/api/selection.ts",
+        "src/contracts/managerDecision.ts",
+        "src/contracts/managerPreselection.ts",
+        "src/contracts/managerStageSelection.ts",
+        "src/contracts/managerWorkbenchResearch.ts",
+        "src/contracts/selection.ts",
+        "src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json"
+      ],
+      "node_types_configuration_errors": [
+        "node:crypto",
+        "node:fs",
+        "node:zlib"
+      ],
+      "original_config_types": [
+        "vitest/globals"
+      ],
+      "node_type_package_installed": true
+    },
+    "focused_typecheck": {
+      "method": "TypeScript createProgram with original tsconfig compilerOptions, changed modules and new spec as roots",
+      "roots": [
+        "src/manager-selection/catalystObservationPanel.ts",
+        "src/api/managerWorkspace.ts",
+        "src/manager-selection/threeLaneDateBindings.spec.ts"
+      ],
+      "transitive_non_declaration_source_file_count": 10,
+      "diagnostic_count": 0,
+      "exit_code": 0,
+      "not_full_project_gate": true
+    },
+    "decision": "APPROVE_SCOPED_FRONTEND_ENGINEERING_FIX_WITH_FULL_PROJECT_TYPECHECK_STILL_FAILED",
+    "limitations": [
+      "Synthetic response bodies with real API validator and DOM; no real owner success inference",
+      "Actual Mac fixture skipped",
+      "Full project typecheck failed identically before and after this fix under supplied partial source/config",
+      "Full application build not executed",
+      "Mac current loading, 8873, actual API/UI and natural runtime acceptance not established"
+    ]
+  },
+  "python_typescript_dom": {
+    "passed": 4,
+    "exit_code": 0,
+    "python_version": "3.14.6",
+    "python_generation_exit_code": 0,
+    "report": "checks/CROSS_LANGUAGE_REVIEW.json",
+    "scope": "SYNTHETIC_PYTHON_TO_TYPESCRIPT_READ_BOUNDARY_ONLY"
+  },
+  "independent_hk": {
+    "passed": 30,
+    "failed": 0,
+    "report": "checks/hk_daily_boundary_summary.json"
+  },
+  "independent_real_selection_store_helper": {
+    "passed": 5,
+    "full_consumer_import": "BLOCKED",
+    "report": "checks/original_selection_provenance_results.json"
+  },
+  "original_python_suites": {
+    "status": "FAILED",
+    "baseline": {
+      "passed": 77,
+      "failure": 29,
+      "error": 0,
+      "skipped": 0
+    },
+    "candidate": {
+      "passed": 77,
+      "failure": 29,
+      "error": 0,
+      "skipped": 0
+    },
+    "candidate_only_failed": [],
+    "report": "checks/original_suite_comparison.json",
+    "warning": "Shared baseline failures remain failures; six original bad_readback injections expose an unchanged original save/readback contract disagreement."
+  },
+  "full_application_build": "NOT_RUN",
+  "actual_mac_api_ui_owner": "NOT_RUN",
+  "natural_run": "NOT_RUN",
+  "support_scope": "28 exact original support files for isolated tests only; not a production dependency bundle"
+}

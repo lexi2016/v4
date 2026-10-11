@@ -1,0 +1,153 @@
+{
+  "scope": "SYNTHETIC_PYTHON_TO_TYPESCRIPT_READ_BOUNDARY_ONLY",
+  "real_owner_executed": false,
+  "real_api_called": false,
+  "natural_run_accepted": false,
+  "python_command": "PYTHONDONTWRITEBYTECODE=1 /workspace/scratch/ff44f882fe5c/test_env314/bin/python /workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/cross_language/generate_projection_cases.py",
+  "vitest_command": "node node_modules/vitest/vitest.mjs run src/pythonProjectionRenderer.spec.ts --reporter=verbose",
+  "vitest_cwd": "/workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/cross_language",
+  "vitest_exit_code": 0,
+  "tests_passed": 4,
+  "tests_failed": 0,
+  "sources": {
+    "candidate/v4/manager_research/workspace_daily_channels.py": "69f6a824a133343dff7c5bf7f0db240ab1d3af0bc3f74b618832982bd2b0b622",
+    "candidate/v4/manager_research/research_attention.py": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+    "candidate/tests/test_manager_three_lane_channels_r1.py": "bcfe4bf1cfe19ed5b7ce5e64655e74696c2f982bdb1c657346e283a6677488a1",
+    "candidate/tests/test_manager_research_selection_ledger.py": "8f8d7c7eee361b63efd44ddea28155004f469e53ef75232e2bb33bd1571e6729",
+    "candidate/apps/web/src/manager-selection/dailyChannels.ts": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4"
+  },
+  "source_bytes_still_match": {
+    "candidate/v4/manager_research/workspace_daily_channels.py": true,
+    "candidate/v4/manager_research/research_attention.py": true,
+    "candidate/tests/test_manager_three_lane_channels_r1.py": true,
+    "candidate/tests/test_manager_research_selection_ledger.py": true,
+    "candidate/apps/web/src/manager-selection/dailyChannels.ts": true
+  },
+  "fixture_adjustment_in_reviewer": "None",
+  "cases": [
+    {
+      "id": "all_read_boundaries",
+      "counts": {
+        "ANNOUNCEMENT": 1,
+        "HK_CONNECT": 2,
+        "OVERSOLD": 1
+      },
+      "statuses": {
+        "ANNOUNCEMENT": "READY",
+        "HK_CONNECT": "READY",
+        "OVERSOLD": "PARTIAL"
+      }
+    },
+    {
+      "id": "missing_ANNOUNCEMENT",
+      "counts": {
+        "ANNOUNCEMENT": null,
+        "HK_CONNECT": 2,
+        "OVERSOLD": 1
+      },
+      "statuses": {
+        "ANNOUNCEMENT": "CANNOT_CONFIRM",
+        "HK_CONNECT": "READY",
+        "OVERSOLD": "PARTIAL"
+      }
+    },
+    {
+      "id": "missing_HK_CONNECT",
+      "counts": {
+        "ANNOUNCEMENT": 1,
+        "HK_CONNECT": null,
+        "OVERSOLD": 1
+      },
+      "statuses": {
+        "ANNOUNCEMENT": "READY",
+        "HK_CONNECT": "CANNOT_CONFIRM",
+        "OVERSOLD": "PARTIAL"
+      }
+    },
+    {
+      "id": "missing_OVERSOLD",
+      "counts": {
+        "ANNOUNCEMENT": 1,
+        "HK_CONNECT": 2,
+        "OVERSOLD": null
+      },
+      "statuses": {
+        "ANNOUNCEMENT": "READY",
+        "HK_CONNECT": "READY",
+        "OVERSOLD": "CANNOT_CONFIRM"
+      }
+    }
+  ],
+  "reviewer_artifact_sha256": {
+    "generate_projection_cases.py": "f37e3958514d26391022a84a40576c56ab7b4fcbed09267e9c132feb8c66f58d",
+    "src/pythonProjectionRenderer.spec.ts": "4cf2adc4fa74319c50225264e1da68cab7297e977002e8fd77249af922301d96",
+    "projection_cases.json": "b4595f17ca231717182caae1052d5e2c2bb7801c8a2339e3a27f4fe3a42461b6",
+    "src/dailyChannels.ts": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4"
+  },
+  "checked": [
+    "Unchanged TS validateDailyChannels accepts actual Python projector output",
+    "Real DOM renders original HK order [HK.00002,HK.00001], retaining rank [2,1] and order [1,2] in details",
+    "Original oversold ledger selected and near rows, source refs, priority preserved",
+    "Synthetic consumed announcement exact product/run/source-manifest bindings visible and retained",
+    "Missing A/H/O becomes CANNOT_CONFIRM with null candidate and pending counts, never zero text",
+    "Other legal channel objects, rendered rows, source details unchanged for each missing owner",
+    "HK/O plan run remains null because no saved plan owner was executed",
+    "Natural acceptance remains CANNOT_CONFIRM on every channel"
+  ],
+  "limits": [
+    "Synthetic read-boundary fixture only; no actual owner import, plan persistence, API process, Mac, or natural execution",
+    "HK source run and original ranks retained in complete source details; no dedicated first-screen rank label added",
+    "Valid CANNOT_CONFIRM projections tested, not arbitrary malformed DTO partial admission"
+  ],
+  "initial_harness_error": {
+    "status": "RESOLVED_REVIEWER_ONLY",
+    "reason": "Vite transformed import.meta.url fixture URL; node fs required a filesystem path",
+    "tests_executed": 0,
+    "log": "harness_initial_failure.log",
+    "fix": "Reviewer-only fixture loader uses process.cwd() + projection_cases.json; candidate untouched"
+  },
+  "python_executable": "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+  "python_version": "3.14.6",
+  "python_full_version": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "python_generation_exit_code": 0,
+  "python_generation_log": "python314_generation.log",
+  "updated_utc": "2026-10-11T08:25:17.309833+00:00",
+  "node_version": "v24.19.0",
+  "support_source_file_count": 28,
+  "support_sources_sha256": {
+    "support_source/ops/run_manager_daily_announcement.py": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+    "support_source/tests/test_us_relation_pipeline_r2.py": "c08e333d2f2d29d6af52800a6f0e2d075a52c863acff4d3d4abcc1e21eb7ac33",
+    "support_source/infrastructure/data_store.py": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+    "support_source/infrastructure/research_lane_source.py": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+    "support_source/infrastructure/market_time.py": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+    "support_source/infrastructure/owned_io.py": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+    "support_source/infrastructure/owned_path.py": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+    "support_source/infrastructure/interprocess_lock.py": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+    "support_source/infrastructure/manager_input_attestation.py": "d26211fd83db00c551be6c11d3bbed58d13d1db054d99699fc377ee5c335f3cc",
+    "support_source/infrastructure/trading_safety.py": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+    "support_source/infrastructure/research_peripheral_store.py": "1bcb74e9194932d5ec3d6ac24d7ec42979532cf495b270a1a04b09082706f4fe",
+    "support_source/infrastructure/__init__.py": "46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b",
+    "support_source/contracts/market_calendar_2026.json": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+    "support_source/contracts/us_equity_calendar.py": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452",
+    "support_source/contracts/stages.py": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+    "support_source/contracts/trading_calendar.py": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+    "support_source/contracts/trading_calendar_2026.json": "703bafff4c81f23e0b4a52418a34f78a8f79fad76064040c18e02031a36e6eb2",
+    "support_source/contracts/us_equity_calendar_2026.json": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f",
+    "support_source/contracts/__init__.py": "6334176641872990a56b559f965a9dc6d65f29ab0a0efc0752ef1a73fe42bc7d",
+    "support_source/upstreams/v3_shared_data/shared_data/store.py": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+    "support_source/upstreams/v3_shared_data/shared_data/paths.py": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+    "support_source/upstreams/v3_shared_data/shared_data/hk_security_master.py": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+    "support_source/upstreams/v3_shared_data/shared_data/collectors.py": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+    "support_source/upstreams/v3_shared_data/shared_data/hashing.py": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+    "support_source/upstreams/v3_shared_data/shared_data/allowlist.py": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+    "support_source/upstreams/v3_shared_data/shared_data/constants.py": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+    "support_source/upstreams/v3_shared_data/shared_data/__init__.py": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4",
+    "support_source/infrastructure/scheduling/manager_announcement_supervisor.py": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa"
+  },
+  "support_sources_match_final_exact_snapshot": true,
+  "support_reference_snapshot": "verification/reviewer_history/o_subreview/exact_support_final_20261011T082039322779Z/hashes_after.json",
+  "generated_fixture_sha256": "b4595f17ca231717182caae1052d5e2c2bb7801c8a2339e3a27f4fe3a42461b6",
+  "generated_fixture_bytes": 185420,
+  "generated_fixture_bytes_equal_prior_environment": true,
+  "previous_environment_record": "CROSS_LANGUAGE_REVIEW_python312_superseded.json"
+}

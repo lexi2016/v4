@@ -1,0 +1,324 @@
+{
+  "candidate_source": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/workspace_history.py",
+  "cases": [
+    {
+      "full_read_status": "NOT_MATERIALIZED",
+      "name": "actual_original_inventory_sizes_late_journals",
+      "plan_bytes_returned": 23388302,
+      "reads": [
+        {
+          "bytes_returned": 23388302,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 691,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        },
+        {
+          "bytes_returned": 691,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000002.json"
+        },
+        {
+          "bytes_returned": 691,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000003.json"
+        },
+        {
+          "bytes_returned": 691,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000004.json"
+        },
+        {
+          "bytes_returned": 691,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000005.json"
+        },
+        {
+          "bytes_returned": 691,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000006.json"
+        }
+      ],
+      "status": "PASS",
+      "synthetic_plan_directory_bytes": 147031510
+    },
+    {
+      "name": "bad_journal_oversize",
+      "reads": [
+        {
+          "bytes_returned": 6660,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 0,
+          "error": "OwnedIOError:OWNED_FILE_TOO_LARGE",
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        }
+      ],
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "name": "bad_journal_malformed_json",
+      "reads": [
+        {
+          "bytes_returned": 6660,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 7,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        }
+      ],
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "name": "bad_journal_non_mapping",
+      "reads": [
+        {
+          "bytes_returned": 6660,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 2,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        }
+      ],
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "name": "bad_journal_invalid_start",
+      "reads": [
+        {
+          "bytes_returned": 6660,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 685,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        }
+      ],
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "name": "bad_journal_invalid_state",
+      "reads": [
+        {
+          "bytes_returned": 6660,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 686,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        }
+      ],
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "name": "bad_journal_unsafe_flags",
+      "reads": [
+        {
+          "bytes_returned": 6660,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 690,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        }
+      ],
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "name": "bad_journal_wrong_input_shape",
+      "reads": [
+        {
+          "bytes_returned": 6660,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 670,
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        }
+      ],
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "name": "bad_journal_directory",
+      "reads": [
+        {
+          "bytes_returned": 6660,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 0,
+          "error": "OwnedIOError:OWNED_FILE_NOT_REGULAR",
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        }
+      ],
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "name": "bad_journal_fifo",
+      "reads": [
+        {
+          "bytes_returned": 6660,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 0,
+          "error": "OwnedIOError:OWNED_FILE_NOT_REGULAR",
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        }
+      ],
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "name": "missing_journals_actual_64mib_budget",
+      "plan_bytes_returned": 56623104,
+      "reads": [
+        {
+          "bytes_returned": 18874368,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        },
+        {
+          "bytes_returned": 0,
+          "error": "FileNotFoundError:[Errno 2] No such file or directory: 'workspace_plan_runs'",
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json"
+        },
+        {
+          "bytes_returned": 18874368,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/00000000000000000000000000000001.json"
+        },
+        {
+          "bytes_returned": 0,
+          "error": "FileNotFoundError:[Errno 2] No such file or directory: 'workspace_plan_runs'",
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000002.json"
+        },
+        {
+          "bytes_returned": 18874368,
+          "max_bytes": 29360128,
+          "path": "workspace_plans/20261009/00000000000000000000000000000002.json"
+        },
+        {
+          "bytes_returned": 0,
+          "error": "FileNotFoundError:[Errno 2] No such file or directory: 'workspace_plan_runs'",
+          "max_bytes": 65536,
+          "path": "workspace_plan_runs/20261009/00000000000000000000000000000003.json"
+        },
+        {
+          "bytes_returned": 0,
+          "error": "OwnedIOError:OWNED_FILE_TOO_LARGE",
+          "max_bytes": 10485760,
+          "path": "workspace_plans/20261009/00000000000000000000000000000003.json"
+        }
+      ],
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "full_read_reason": "HISTORY_PLAN_OWNER_ATTEMPT_INVALID",
+      "name": "missing_early_journal_never_admits_history",
+      "selection": "EARLY_PRODUCT_FOUND",
+      "status": "PASS"
+    },
+    {
+      "boundary": "2026-10-09T09:30:00+08:00",
+      "name": "started_equal_boundary_not_pruned",
+      "selected_generated_at": "2026-10-09T09:30:00+08:00",
+      "status": "PASS"
+    },
+    {
+      "finished_at": "2026-10-09T09:31:00+08:00",
+      "generated_at": "2026-10-09T09:28:00+08:00",
+      "name": "legacy_early_start_late_finish_owner_verified",
+      "owner_attempt_verified": true,
+      "status": "PASS"
+    },
+    {
+      "basis": "Existing explicit context gate still rejects finish after boundary",
+      "name": "explicit_context_late_finish_still_rejected",
+      "selection": null,
+      "status": "PASS"
+    },
+    {
+      "full_read_reason": "HISTORY_PLAN_OWNER_ATTEMPT_INVALID",
+      "name": "eligible_latest_still_requires_owner_on_full_read",
+      "reads": [
+        {
+          "bytes_returned": 6660,
+          "max_bytes": 33554432,
+          "path": "workspace_plans/20261009/latest.json"
+        }
+      ],
+      "selection": "LATEST_FAST_PATH",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid_latest_fails_closed",
+      "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+      "status": "PASS"
+    },
+    {
+      "excluded_late_body_not_admitted": true,
+      "name": "late_corrupt_body_excluded_without_admission",
+      "selection": "EARLY_OWNER_VALID_PLAN",
+      "status": "PASS"
+    },
+    {
+      "name": "existing_64_run_bound",
+      "reason": "HISTORY_RUN_COUNT_BOUND_EXCEEDED",
+      "status": "PASS"
+    },
+    {
+      "name": "existing_256_entry_bound",
+      "reason": "HISTORY_RUN_DIRECTORY_BOUND_EXCEEDED",
+      "status": "PASS"
+    }
+  ],
+  "checked_at_utc": "2026-10-11T07:51:40.726148+00:00",
+  "limits": {
+    "cumulative_plan_bytes": 67108864,
+    "journal_bytes": 65536,
+    "plan_bytes": 33554432,
+    "runs": 64
+  },
+  "passed": 20,
+  "python": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "scope": "SYNTHETIC_INDEPENDENT_REVIEW_NOT_MAC_OR_MARKET_EVIDENCE",
+  "source_sha256_after": "5d10031d3b75d51e4f9cb6de65c99a27494fbe9019631914c6e254caa4264f96",
+  "source_sha256_before": "5d10031d3b75d51e4f9cb6de65c99a27494fbe9019631914c6e254caa4264f96",
+  "source_stable_during_review": true
+}

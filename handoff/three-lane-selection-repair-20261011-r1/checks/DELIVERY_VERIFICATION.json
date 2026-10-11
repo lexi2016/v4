@@ -1,0 +1,296 @@
+{
+  "schema_version": "three_lane.delivery_verification.v1",
+  "scope": "LOCAL_TEMPORARY_PATCH_APPLICATION_AND_READ_ONLY_HELPER_ONLY",
+  "checked_at_utc": "2026-10-11T08:48:07.317175+00:00",
+  "baseline_commit": "31f5a39ce1ee7cd76bbf268e68760b6adc319774",
+  "candidate_commit": "cd93198cb0de06c8f32386ed1fc808a5b4e53bec",
+  "patch_sha256": "7eea3add8687d7f851ca0cf4d7f2925e82971fdcdb86d891e925efbef29edd0d",
+  "manifest_sha256": "ffb6fd7019366919d9cec4510269119a09789dd5c07f6a01f7eaba1e3ba57215",
+  "helper_sha256": "7fbf91d66b5a33eb1c1125ca2cb35de2bc619d1014235e1f0d203bd2689b5567",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "helper_checks_passed": 18,
+  "helper_checks_failed": 0,
+  "patch_apply_and_reverse_verified": true,
+  "patched_paths_exact": [
+    "apps/web/src/api/managerWorkspace.ts",
+    "apps/web/src/manager-selection/catalystObservationPanel.ts",
+    "apps/web/src/manager-selection/threeLaneDateBindings.spec.ts",
+    "ops/run_manager_announcement_cycle.py",
+    "stage_center/consumer.py",
+    "tests/test_manager_three_lane_channels_r1.py",
+    "tests/test_manager_three_lane_history_r1.py",
+    "tests/test_manager_three_lane_rebound_diagnostics_r1.py",
+    "v4/manager_research/workspace.py",
+    "v4/manager_research/workspace_daily_channels.py",
+    "v4/manager_research/workspace_history.py",
+    "v4/manager_research/workspace_plan.py"
+  ],
+  "all_original_unmodified_paths_preserved": true,
+  "temporary_fixture_removed": true,
+  "candidate_source_unmodified": true,
+  "live_mac_tested": false,
+  "deployed": false,
+  "owner_run_verified": false,
+  "api_ui_verified": false,
+  "natural_run_verified": false,
+  "checks": [
+    {
+      "name": "package_after_artifacts_present_and_exact",
+      "status": "PASS",
+      "exit_code": 0,
+      "observed_status": "BYTES_MATCH",
+      "error": null,
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/publication/handoff/three-lane-selection-repair-20261011-r1/check_candidate.py"
+      ]
+    },
+    {
+      "name": "fixed_baseline_before_matches_and_helper_read_only",
+      "status": "PASS",
+      "exit_code": 0,
+      "observed_status": "BYTES_MATCH",
+      "error": null,
+      "target_bytes_unchanged": true,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/publication/handoff/three-lane-selection-repair-20261011-r1/check_candidate.py",
+        "--target",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/baseline",
+        "--phase",
+        "before"
+      ]
+    },
+    {
+      "name": "committed_candidate_after_matches_and_helper_read_only",
+      "status": "PASS",
+      "exit_code": 0,
+      "observed_status": "BYTES_MATCH",
+      "error": null,
+      "target_bytes_unchanged": true,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/publication/handoff/three-lane-selection-repair-20261011-r1/check_candidate.py",
+        "--target",
+        "/workspace/scratch/ff44f882fe5c/candidate",
+        "--phase",
+        "after"
+      ]
+    },
+    {
+      "name": "applied_patch_after_matches_and_helper_read_only",
+      "status": "PASS",
+      "exit_code": 0,
+      "observed_status": "BYTES_MATCH",
+      "error": null,
+      "target_bytes_unchanged": true,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/publication/handoff/three-lane-selection-repair-20261011-r1/check_candidate.py",
+        "--target",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/baseline",
+        "--phase",
+        "after"
+      ]
+    },
+    {
+      "name": "reverse_patch_restores_exact_baseline",
+      "status": "PASS",
+      "exit_code": 0,
+      "observed_status": "BYTES_MATCH",
+      "error": null,
+      "target_bytes_unchanged": true,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/publication/handoff/three-lane-selection-repair-20261011-r1/check_candidate.py",
+        "--target",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/baseline",
+        "--phase",
+        "before"
+      ]
+    },
+    {
+      "name": "local_parallel_edit_rejected_without_writing",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": null,
+      "target_bytes_unchanged": true,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/publication/handoff/three-lane-selection-repair-20261011-r1/check_candidate.py",
+        "--target",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/baseline",
+        "--phase",
+        "before"
+      ]
+    },
+    {
+      "name": "reviewer_null_after_false_positive_regression",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "PATCH_MANIFEST_NULL_IDENTITY_INVALID:apps/web/src/api/managerWorkspace.ts",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/null_after/check_candidate.py"
+      ]
+    },
+    {
+      "name": "non_object_manifest_rejected_as_structured_error",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "PATCH_MANIFEST_NOT_OBJECT",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/non_object_manifest/check_candidate.py"
+      ]
+    },
+    {
+      "name": "non_object_row_rejected_as_structured_error",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "PATCH_MANIFEST_ROW_NOT_OBJECT",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/non_object_row/check_candidate.py"
+      ]
+    },
+    {
+      "name": "missing_after_file_rejected",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "PATCH_AFTER_BYTES_MISMATCH:apps/web/src/api/managerWorkspace.ts",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/missing_after/check_candidate.py"
+      ]
+    },
+    {
+      "name": "tampered_after_file_rejected",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "PATCH_AFTER_BYTES_MISMATCH:apps/web/src/api/managerWorkspace.ts",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/tampered_after/check_candidate.py"
+      ]
+    },
+    {
+      "name": "after_symlink_rejected_even_when_content_matches",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "SYMLINK_PATH_REJECTED:apps/web/src/api/managerWorkspace.ts",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/symlink_after/check_candidate.py"
+      ]
+    },
+    {
+      "name": "after_root_symlink_rejected",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "ROOT_MUST_BE_NON_SYMLINK_DIRECTORY",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/symlink_after_root/check_candidate.py"
+      ]
+    },
+    {
+      "name": "boolean_byte_count_rejected",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "PATCH_MANIFEST_BYTE_IDENTITY_INVALID:apps/web/src/api/managerWorkspace.ts",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/boolean_byte_count/check_candidate.py"
+      ]
+    },
+    {
+      "name": "parent_path_rejected",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "UNSAFE_RELATIVE_PATH",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/unsafe_path/check_candidate.py"
+      ]
+    },
+    {
+      "name": "duplicate_manifest_path_rejected",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "PATCH_MANIFEST_PATHS_INVALID",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/duplicate_path/check_candidate.py"
+      ]
+    },
+    {
+      "name": "modified_null_before_cannot_accept_missing_business_file",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "PATCH_MANIFEST_CHANGE_IDENTITY_INVALID:apps/web/src/api/managerWorkspace.ts",
+      "target_bytes_unchanged": true,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/modified_null_before/check_candidate.py",
+        "--target",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/missing_modified_target",
+        "--phase",
+        "before"
+      ]
+    },
+    {
+      "name": "added_test_cannot_declare_existing_before_image",
+      "status": "PASS",
+      "exit_code": 2,
+      "observed_status": "CANNOT_CONFIRM",
+      "error": "PATCH_MANIFEST_CHANGE_IDENTITY_INVALID:apps/web/src/manager-selection/threeLaneDateBindings.spec.ts",
+      "target_bytes_unchanged": null,
+      "helper_reported_target_writes": 0,
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/scratch/ff44f882fe5c/verification/three-lane-delivery-cvei1sqa/added_with_before/check_candidate.py"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1102 @@
+{
+  "runtime": "Python 3.14.6",
+  "baseline_head": "31f5a39ce1ee7cd76bbf268e68760b6adc319774",
+  "source_hash_changes_during_tests": {
+    "candidate": [],
+    "baseline": [],
+    "support": []
+  },
+  "support_file_count": 28,
+  "original_test_files_identical": {
+    "tests/test_manager_plan_identity_r2.py": true,
+    "tests/test_manager_plan_readback_issue24.py": true,
+    "tests/test_manager_workspace_targeted_r2.py": true,
+    "tests/test_manager_us_daily_chain.py": true,
+    "tests/test_manager_announcement_date_catalog.py": true
+  },
+  "baseline_only_failed": [],
+  "candidate_only_failed": [],
+  "shared_failed": [
+    "tests/test_manager_announcement_date_catalog.py::test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch",
+    "tests/test_manager_announcement_date_catalog.py::test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers",
+    "tests/test_manager_plan_identity_r2.py::test_autorun_cannot_shortcut_stale_plan_by_timestamp_alone",
+    "tests/test_manager_plan_identity_r2.py::test_scheduled_existing_plan_is_not_reused_when_inputs_changed",
+    "tests/test_manager_plan_identity_r2.py::test_scheduled_same_inputs_do_not_double_publish",
+    "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]",
+    "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]",
+    "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]",
+    "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]",
+    "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]",
+    "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]",
+    "tests/test_manager_plan_readback_issue24.py::test_legacy_over_64_mib_is_read_losslessly_without_rewrite",
+    "tests/test_manager_plan_readback_issue24.py::test_null_and_insufficient_evidence_survive_lossless_save",
+    "tests/test_manager_plan_readback_issue24.py::test_success_returns_read_back_terminal_attempt",
+    "tests/test_manager_us_daily_chain.py::test_daily_persistence_readback_keeps_full_assessments_and_artifact_sha",
+    "tests/test_manager_us_daily_chain.py::test_daily_uses_shared_33_symbol_relation_resolution_and_keeps_mover_filter",
+    "tests/test_manager_us_daily_chain.py::test_existing_daily_dispatch_path_reaches_the_same_persisted_owner",
+    "tests/test_manager_us_daily_chain.py::test_relation_source_and_review_sha_changes_invalidate_daily_reuse",
+    "tests/test_manager_us_daily_chain.py::test_sealed_20261009_daily_archive_withholds_20261011_relation_bodies",
+    "tests/test_manager_workspace_targeted_r2.py::test_half_day_close_is_native_and_can_anchor_window",
+    "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_pointer_after_cutoff_fails_closed_without_older_revision",
+    "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_pointer_selects_verified_repair_only_after_it_is_available",
+    "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_rejects_recovery_manifest_pinned_to_the_wrong_parent",
+    "tests/test_manager_workspace_targeted_r2.py::test_local_source_title_and_wechat_preserved",
+    "tests/test_manager_workspace_targeted_r2.py::test_missing_half_day_close_is_an_explicit_calendar_gap",
+    "tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u5357\\u65b9\\u6e2f\\u80a1\\u901a\\u7ea2\\u5229\\u653f\\u7b56\\u53d8\\u5316-master2-expected2]",
+    "tests/test_manager_workspace_targeted_r2.py::test_native_name_separate_source_positions_keep_both_issuers",
+    "tests/test_manager_workspace_targeted_r2.py::test_two_character_unique_chinese_issuer_in_delimited_title",
+    "tests/test_manager_workspace_targeted_r2.py::test_workspace_api_is_bodyless_same_origin_and_original_owner"
+  ],
+  "same_collected_ids": true,
+  "shared_failures_with_changed_message": {
+    "tests/test_manager_workspace_targeted_r2.py::test_workspace_api_is_bodyless_same_origin_and_original_owner": {
+      "baseline": "AssertionError: assert None == '4e7696d2109bfddbfd4f56aa369fcfa2c163bd75196f0971cca02880d15cf823'",
+      "candidate": "AssertionError: assert None == '9f41f3330519819a1fad3b830b8c88d003683b349f75857f66e719aab06c9060'"
+    }
+  },
+  "runs": {
+    "baseline": {
+      "label": "baseline",
+      "command": [
+        "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "tests/test_manager_plan_identity_r2.py",
+        "tests/test_manager_plan_readback_issue24.py",
+        "tests/test_manager_workspace_targeted_r2.py",
+        "tests/test_manager_us_daily_chain.py",
+        "tests/test_manager_announcement_date_catalog.py",
+        "--junitxml=/workspace/scratch/ff44f882fe5c/verification/reviewer_history/original_regressions_baseline_exact.xml",
+        "--basetemp=/workspace/scratch/ff44f882fe5c/verification/reviewer_history/pytest_baseline_exact"
+      ],
+      "cwd": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/baseline_regression",
+      "PYTHONPATH": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/baseline_regression:/workspace/scratch/ff44f882fe5c/support_source:/workspace/scratch/ff44f882fe5c/support_source/upstreams",
+      "started_at_utc": "2026-10-11T08:20:54.400290+00:00",
+      "seconds": 8.963470930000767,
+      "returncode": 1,
+      "counts": {
+        "passed": 77,
+        "failure": 29,
+        "error": 0,
+        "skipped": 0
+      },
+      "log": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/original_regressions_baseline_exact.log",
+      "junit": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/original_regressions_baseline_exact.xml",
+      "cases": {
+        "tests/test_manager_plan_identity_r2.py::test_read_clock_alone_does_not_change_material_input_identity": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_identity_r2.py::test_moving_fallback_boundary_only_changes_identity_when_admission_changes": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_identity_r2.py::test_expiration_and_new_source_changes_still_invalidate": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_identity_r2.py::test_saved_plan_from_later_cutoff_not_consumed_in_earlier_read": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_identity_r2.py::test_scheduled_existing_plan_is_not_reused_when_inputs_changed": {
+          "status": "failure",
+          "detail": {
+            "message": "ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED"
+          }
+        },
+        "tests/test_manager_plan_identity_r2.py::test_scheduled_same_inputs_do_not_double_publish": {
+          "status": "failure",
+          "detail": {
+            "message": "TimeoutError: WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED"
+          }
+        },
+        "tests/test_manager_plan_identity_r2.py::test_autorun_cannot_shortcut_stale_plan_by_timestamp_alone": {
+          "status": "failure",
+          "detail": {
+            "message": "ValueError: PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED"
+          }
+        },
+        "tests/test_manager_plan_identity_r2.py::test_late_call_never_creates_preopen_plan": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_identity_r2.py::test_read_contract_tracks_new_stage_calendar_dependencies": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_legacy_over_64_mib_is_read_losslessly_without_rewrite": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert 'STALE_INPUTS_CHANGED' == 'CURRENT'\n  \n  - CURRENT\n  + STALE_INPUTS_CHANGED"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_ordinary_store_and_shared_reader_keep_64_mib_limit": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_plan_above_cap_rejected_before_json_decode": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_writer_rejects_over_budget_before_any_publication": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_exact_cap_supported_and_writer_bytes_unchanged": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_immutable_run_cannot_be_overwritten": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_run_collision_does_not_overwrite_any_prior_run[run]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_run_collision_does_not_overwrite_any_prior_run[attempt]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>0]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>1]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>2]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>3]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>4]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>5]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>6]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_tampered_sha_is_not_accepted": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_legacy_manual_plan_without_execution_kind_remains_valid": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_cutoff_and_stale_identity_still_control_consumption": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert {'FAILED', 'R...CEEDED_EMPTY'} <= {'FAILED', 'RUNNING'}\n  \n  Extra items in the left set:\n  'SUCCEEDED_EMPTY'"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_success_returns_read_back_terminal_attempt": {
+          "status": "failure",
+          "detail": {
+            "message": "ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_symlink_boundary_is_not_weakened": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_future_oversize_refresh_preserves_old_plan_and_records_failure": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_terminal_attempt_read_failure_cannot_return_saved_success": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_latest_plan_write_failure_leaves_prior_plan_and_no_success": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_missing_plan_has_no_writes_and_is_not_success": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_null_and_insufficient_evidence_survive_lossless_save": {
+          "status": "failure",
+          "detail": {
+            "message": "ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_monday_includes_friday_not_future_monday": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_two_completed_sessions_start_tuesday_window_at_older_session_close": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_half_day_close_is_native_and_can_anchor_window": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert '2026-12-28T16:10:00+08:00' == '2026-12-24T12:10:00+08:00'\n  \n  - 2026-12-24T12:10:00+08:00\n  ?          ^  ^\n  + 2026-12-28T16:10:00+08:00\n  ?          ^  ^"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_half_day_before_native_close_is_not_completed": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_missing_half_day_close_is_an_explicit_calendar_gap": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_two_session_window_keeps_cutoff_and_close_boundaries": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk_calendar_not_mainland_holiday": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_before_close_uses_preceding_complete_session": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_empty_target_catalyst_stage_do_not_block_verified_material_stock": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_six_digit_a_share_code_not_relabelled_as_hk": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_ambiguous_alias_not_mapped": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_future_material_excluded[2026-09-21T10:00:00+08:00]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_future_material_excluded[2026-09-20T23:11:00+08:00]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_missing_publication_not_counted_new": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_old_background_not_new_plan_publication": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_duplicate_materials_one_stock_preserve_all_relations": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_different_companies_have_different_evidence_bound_plans": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_material_not_admitted": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_local_source_title_and_wechat_preserved": {
+          "status": "failure",
+          "detail": {
+            "message": "FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/ff44f882fe5c/verification/reviewer_history/baseline_regression/apps/api/v35_api/app.py'"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_verified_price_not_rejected_merely_because_numeric": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change0]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change1]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change2]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change3]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change4]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change5]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_original_service_future_plan_refresh_does_not_run_catalyst_producer": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_missing_native_identity_is_gap_not_entire_workspace_exception": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_witness_requires_target_manifest_and_checksum": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_pointer_selects_verified_repair_only_after_it_is_available": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert (not ['PLAN_HK_02_PANEL_RECOVERY_LINEAGE_INVALID'])"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_rejects_recovery_manifest_pinned_to_the_wrong_parent": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert ['PLAN_HK_02_...EAGE_INVALID'] == ['PLAN_HK_02_...ENT_MISMATCH']\n  \n  At index 0 diff: 'PLAN_HK_02_PANEL_RECOVERY_LINEAGE_INVALID' != 'PLAN_HK_02_PANEL_RECOVERY_PARENT_MISMATCH'\n  Use -v to get more diff"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_pointer_after_cutoff_fails_closed_without_older_revision": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert (None is None and ['PLAN_HK_02_...EAGE_INVALID'] == ['PLAN_HK_02_...EARCH_CUTOFF']\n  \n  At index 0 diff: 'PLAN_HK_02_PANEL_RECOVERY_LINEAGE_INVALID' != 'PLAN_HK_02_PANEL_AFTER_RESEARCH_CUTOFF'\n  Use -v to get more diff)"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_rejects_corrupt_pointed_recovery_manifest": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_amount_exactly_100m_does_not_pass": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_target_day_before_native_open_is_still_preopen_plan": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_two_character_unique_chinese_issuer_in_delimited_title": {
+          "status": "failure",
+          "detail": {
+            "message": "assert (0 == 1)\n +  where 0 = len([])"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_short_issuer_not_matched_inside_longer_company_name": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u5468\\u5927\\u798f\\u521b\\u5efa\\u8ba2\\u5355\\u5f85\\u6838-master0-expected0]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u78a7\\u6842\\u56ed\\u670d\\u52a1\\u8ba2\\u5355\\u5f85\\u6838-master1-expected1]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u5357\\u65b9\\u6e2f\\u80a1\\u901a\\u7ea2\\u5229\\u653f\\u7b56\\u53d8\\u5316-master2-expected2]": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert [] == ['HK.03469']\n  \n  Right contains one more item: 'HK.03469'\n  Use -v to get more diff"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_native_name_separate_source_positions_keep_both_issuers": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert ['HK.00659'] == ['HK.00659', 'HK.01929']\n  \n  Right contains one more item: 'HK.01929'\n  Use -v to get more diff"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_workspace_api_is_bodyless_same_origin_and_original_owner": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert None == '4e7696d2109bfddbfd4f56aa369fcfa2c163bd75196f0971cca02880d15cf823'"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_tampered_saved_plan_not_presented_as_success": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_source_dates_read_uses_context_not_fixed_natural_day_offsets": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_exact_date_saved_plan_cannot_hide_new_owner_failure": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_us_daily_chain.py::test_daily_uses_shared_33_symbol_relation_resolution_and_keeps_mover_filter": {
+          "status": "failure",
+          "detail": {
+            "message": "assert 0 == 10"
+          }
+        },
+        "tests/test_manager_us_daily_chain.py::test_daily_persistence_readback_keeps_full_assessments_and_artifact_sha": {
+          "status": "failure",
+          "detail": {
+            "message": "assert 0 == 5\n +  where 0 = len([])"
+          }
+        },
+        "tests/test_manager_us_daily_chain.py::test_sealed_20261009_daily_archive_withholds_20261011_relation_bodies": {
+          "status": "failure",
+          "detail": {
+            "message": "assert 0 == 4\n +  where 0 = len([])"
+          }
+        },
+        "tests/test_manager_us_daily_chain.py::test_historical_input_identity_ignores_post_cutoff_current_artifact_sha": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_us_daily_chain.py::test_relation_source_and_review_sha_changes_invalidate_daily_reuse": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert '0671d93de367778f4463da4b12d00328281550e64f97060e123bd53bad6c1f69' != '0671d93de367778f4463da4b12d00328281550e64f97060e123bd53bad6c1f69'"
+          }
+        },
+        "tests/test_manager_us_daily_chain.py::test_existing_daily_dispatch_path_reaches_the_same_persisted_owner": {
+          "status": "failure",
+          "detail": {
+            "message": "assert 0 == 14"
+          }
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_date_url_uses_proven_query_and_does_not_use_latest_five_filter": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert 'SOURCE_IDENT...ECTION_RESULT' == 'CODE_INTERSE...ECTION_RESULT'\n  \n  - CODE_INTERSECTION_ONLY_NOT_SELECTION_RESULT\n  + SOURCE_IDENTITY_RESEARCH_REFERENCE_ONLY_NOT_CONNECT_ELIGIBILITY_OR_SELECTION_RESULT"
+          }
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_zero_total_is_complete_only_with_empty_page_one": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert [{'art_code':...es': [], ...}] == []\n  \n  Left contains one more item: {'art_code': 'AN202609290000000001', 'blob_sha256': 'd72393331c93624ca280f7b5cff3d59df44490f60d0702b77e729074c4236659', 'display_time': '2026-09-29 09:00:00:000', 'matched_master_codes': [], ...}\n  Use -v to get more diff"
+          }
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_missing_hk_source_stock_code_forces_partial_and_retains_original_row[missing]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_missing_hk_source_stock_code_forces_partial_and_retains_original_row[null]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_missing_hk_source_stock_code_forces_partial_and_retains_original_row[empty]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_duplicate_art_code_keeps_rows_but_forces_partial": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_total_drift_and_cross_notice_date_are_partial_and_rows_are_retained": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_missing_terminal_page_is_partial_without_retry": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_explicit_resume_reuses_verified_refs_and_only_requests_missing_page": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_catalog_product_readback_rederives_from_refs": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_api_requires_explicit_publication_date_and_routes_date_catalog_scope": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_existing_owner_persists_and_reuses_date_catalog_without_refetch": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_owner_accepts_saved_refs_without_network_and_rejects_bad_ref_closed": {
+          "status": "passed",
+          "detail": null
+        }
+      },
+      "original_log_sha256": "82e3770b26ccc09bfa11c6e3f15039047a46d5e83df1c3437e263fb122b5ede9",
+      "original_junit_sha256": "947250acce1f4313458c2f9c7a20740a7de7789759324f21809347c5d94ba850"
+    },
+    "candidate": {
+      "label": "candidate",
+      "command": [
+        "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "tests/test_manager_plan_identity_r2.py",
+        "tests/test_manager_plan_readback_issue24.py",
+        "tests/test_manager_workspace_targeted_r2.py",
+        "tests/test_manager_us_daily_chain.py",
+        "tests/test_manager_announcement_date_catalog.py",
+        "--junitxml=/workspace/scratch/ff44f882fe5c/verification/reviewer_history/original_regressions_candidate_exact.xml",
+        "--basetemp=/workspace/scratch/ff44f882fe5c/verification/reviewer_history/pytest_candidate_exact"
+      ],
+      "cwd": "/workspace/scratch/ff44f882fe5c/candidate",
+      "PYTHONPATH": "/workspace/scratch/ff44f882fe5c/candidate:/workspace/scratch/ff44f882fe5c/support_source:/workspace/scratch/ff44f882fe5c/support_source/upstreams",
+      "started_at_utc": "2026-10-11T08:20:54.403972+00:00",
+      "seconds": 7.700337057998695,
+      "returncode": 1,
+      "counts": {
+        "passed": 77,
+        "failure": 29,
+        "error": 0,
+        "skipped": 0
+      },
+      "log": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/original_regressions_candidate_exact.log",
+      "junit": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/original_regressions_candidate_exact.xml",
+      "cases": {
+        "tests/test_manager_plan_identity_r2.py::test_read_clock_alone_does_not_change_material_input_identity": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_identity_r2.py::test_moving_fallback_boundary_only_changes_identity_when_admission_changes": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_identity_r2.py::test_expiration_and_new_source_changes_still_invalidate": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_identity_r2.py::test_saved_plan_from_later_cutoff_not_consumed_in_earlier_read": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_identity_r2.py::test_scheduled_existing_plan_is_not_reused_when_inputs_changed": {
+          "status": "failure",
+          "detail": {
+            "message": "ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED"
+          }
+        },
+        "tests/test_manager_plan_identity_r2.py::test_scheduled_same_inputs_do_not_double_publish": {
+          "status": "failure",
+          "detail": {
+            "message": "TimeoutError: WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED"
+          }
+        },
+        "tests/test_manager_plan_identity_r2.py::test_autorun_cannot_shortcut_stale_plan_by_timestamp_alone": {
+          "status": "failure",
+          "detail": {
+            "message": "ValueError: PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED"
+          }
+        },
+        "tests/test_manager_plan_identity_r2.py::test_late_call_never_creates_preopen_plan": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_identity_r2.py::test_read_contract_tracks_new_stage_calendar_dependencies": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_legacy_over_64_mib_is_read_losslessly_without_rewrite": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert 'STALE_INPUTS_CHANGED' == 'CURRENT'\n  \n  - CURRENT\n  + STALE_INPUTS_CHANGED"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_ordinary_store_and_shared_reader_keep_64_mib_limit": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_plan_above_cap_rejected_before_json_decode": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_writer_rejects_over_budget_before_any_publication": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_exact_cap_supported_and_writer_bytes_unchanged": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_immutable_run_cannot_be_overwritten": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_run_collision_does_not_overwrite_any_prior_run[run]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_run_collision_does_not_overwrite_any_prior_run[attempt]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>0]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>1]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>2]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>3]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>4]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>5]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_existing_plan_identity_validators_remain_fail_closed[<lambda>6]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_tampered_sha_is_not_accepted": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_legacy_manual_plan_without_execution_kind_remains_valid": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_cutoff_and_stale_identity_still_control_consumption": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert {'FAILED', 'R...CEEDED_EMPTY'} <= {'FAILED', 'RUNNING'}\n  \n  Extra items in the left set:\n  'SUCCEEDED_EMPTY'"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_success_returns_read_back_terminal_attempt": {
+          "status": "failure",
+          "detail": {
+            "message": "ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED"
+          }
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_symlink_boundary_is_not_weakened": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_future_oversize_refresh_preserves_old_plan_and_records_failure": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_terminal_attempt_read_failure_cannot_return_saved_success": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_latest_plan_write_failure_leaves_prior_plan_and_no_success": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_missing_plan_has_no_writes_and_is_not_success": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_plan_readback_issue24.py::test_null_and_insufficient_evidence_survive_lossless_save": {
+          "status": "failure",
+          "detail": {
+            "message": "ValueError: WORKSPACE_PLAN_SAVE_READBACK_FAILED"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_monday_includes_friday_not_future_monday": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_two_completed_sessions_start_tuesday_window_at_older_session_close": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_half_day_close_is_native_and_can_anchor_window": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert '2026-12-28T16:10:00+08:00' == '2026-12-24T12:10:00+08:00'\n  \n  - 2026-12-24T12:10:00+08:00\n  ?          ^  ^\n  + 2026-12-28T16:10:00+08:00\n  ?          ^  ^"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_half_day_before_native_close_is_not_completed": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_missing_half_day_close_is_an_explicit_calendar_gap": {
+          "status": "failure",
+          "detail": {
+            "message": "Failed: DID NOT RAISE ValueError"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_two_session_window_keeps_cutoff_and_close_boundaries": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk_calendar_not_mainland_holiday": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_before_close_uses_preceding_complete_session": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_empty_target_catalyst_stage_do_not_block_verified_material_stock": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_six_digit_a_share_code_not_relabelled_as_hk": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_ambiguous_alias_not_mapped": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_future_material_excluded[2026-09-21T10:00:00+08:00]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_future_material_excluded[2026-09-20T23:11:00+08:00]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_missing_publication_not_counted_new": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_old_background_not_new_plan_publication": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_duplicate_materials_one_stock_preserve_all_relations": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_different_companies_have_different_evidence_bound_plans": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_material_not_admitted": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_local_source_title_and_wechat_preserved": {
+          "status": "failure",
+          "detail": {
+            "message": "FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/ff44f882fe5c/candidate/apps/api/v35_api/app.py'"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_verified_price_not_rejected_merely_because_numeric": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change0]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change1]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change2]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change3]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change4]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_unverified_wrong_session_or_currency_quote_no_numeric[change5]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_original_service_future_plan_refresh_does_not_run_catalyst_producer": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_missing_native_identity_is_gap_not_entire_workspace_exception": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_witness_requires_target_manifest_and_checksum": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_pointer_selects_verified_repair_only_after_it_is_available": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert (not ['PLAN_HK_02_PANEL_RECOVERY_LINEAGE_INVALID'])"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_rejects_recovery_manifest_pinned_to_the_wrong_parent": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert ['PLAN_HK_02_...EAGE_INVALID'] == ['PLAN_HK_02_...ENT_MISMATCH']\n  \n  At index 0 diff: 'PLAN_HK_02_PANEL_RECOVERY_LINEAGE_INVALID' != 'PLAN_HK_02_PANEL_RECOVERY_PARENT_MISMATCH'\n  Use -v to get more diff"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_pointer_after_cutoff_fails_closed_without_older_revision": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert (None is None and ['PLAN_HK_02_...EAGE_INVALID'] == ['PLAN_HK_02_...EARCH_CUTOFF']\n  \n  At index 0 diff: 'PLAN_HK_02_PANEL_RECOVERY_LINEAGE_INVALID' != 'PLAN_HK_02_PANEL_AFTER_RESEARCH_CUTOFF'\n  Use -v to get more diff)"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_hk02_panel_rejects_corrupt_pointed_recovery_manifest": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_amount_exactly_100m_does_not_pass": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_target_day_before_native_open_is_still_preopen_plan": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_two_character_unique_chinese_issuer_in_delimited_title": {
+          "status": "failure",
+          "detail": {
+            "message": "assert (0 == 1)\n +  where 0 = len([])"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_short_issuer_not_matched_inside_longer_company_name": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u5468\\u5927\\u798f\\u521b\\u5efa\\u8ba2\\u5355\\u5f85\\u6838-master0-expected0]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u78a7\\u6842\\u56ed\\u670d\\u52a1\\u8ba2\\u5355\\u5f85\\u6838-master1-expected1]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u5357\\u65b9\\u6e2f\\u80a1\\u901a\\u7ea2\\u5229\\u653f\\u7b56\\u53d8\\u5316-master2-expected2]": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert [] == ['HK.03469']\n  \n  Right contains one more item: 'HK.03469'\n  Use -v to get more diff"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_native_name_separate_source_positions_keep_both_issuers": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert ['HK.00659'] == ['HK.00659', 'HK.01929']\n  \n  Right contains one more item: 'HK.01929'\n  Use -v to get more diff"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_workspace_api_is_bodyless_same_origin_and_original_owner": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert None == '9f41f3330519819a1fad3b830b8c88d003683b349f75857f66e719aab06c9060'"
+          }
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_tampered_saved_plan_not_presented_as_success": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_source_dates_read_uses_context_not_fixed_natural_day_offsets": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_workspace_targeted_r2.py::test_exact_date_saved_plan_cannot_hide_new_owner_failure": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_us_daily_chain.py::test_daily_uses_shared_33_symbol_relation_resolution_and_keeps_mover_filter": {
+          "status": "failure",
+          "detail": {
+            "message": "assert 0 == 10"
+          }
+        },
+        "tests/test_manager_us_daily_chain.py::test_daily_persistence_readback_keeps_full_assessments_and_artifact_sha": {
+          "status": "failure",
+          "detail": {
+            "message": "assert 0 == 5\n +  where 0 = len([])"
+          }
+        },
+        "tests/test_manager_us_daily_chain.py::test_sealed_20261009_daily_archive_withholds_20261011_relation_bodies": {
+          "status": "failure",
+          "detail": {
+            "message": "assert 0 == 4\n +  where 0 = len([])"
+          }
+        },
+        "tests/test_manager_us_daily_chain.py::test_historical_input_identity_ignores_post_cutoff_current_artifact_sha": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_us_daily_chain.py::test_relation_source_and_review_sha_changes_invalidate_daily_reuse": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert '0671d93de367778f4463da4b12d00328281550e64f97060e123bd53bad6c1f69' != '0671d93de367778f4463da4b12d00328281550e64f97060e123bd53bad6c1f69'"
+          }
+        },
+        "tests/test_manager_us_daily_chain.py::test_existing_daily_dispatch_path_reaches_the_same_persisted_owner": {
+          "status": "failure",
+          "detail": {
+            "message": "assert 0 == 14"
+          }
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_date_url_uses_proven_query_and_does_not_use_latest_five_filter": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert 'SOURCE_IDENT...ECTION_RESULT' == 'CODE_INTERSE...ECTION_RESULT'\n  \n  - CODE_INTERSECTION_ONLY_NOT_SELECTION_RESULT\n  + SOURCE_IDENTITY_RESEARCH_REFERENCE_ONLY_NOT_CONNECT_ELIGIBILITY_OR_SELECTION_RESULT"
+          }
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_zero_total_is_complete_only_with_empty_page_one": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers": {
+          "status": "failure",
+          "detail": {
+            "message": "AssertionError: assert [{'art_code':...es': [], ...}] == []\n  \n  Left contains one more item: {'art_code': 'AN202609290000000001', 'blob_sha256': 'd72393331c93624ca280f7b5cff3d59df44490f60d0702b77e729074c4236659', 'display_time': '2026-09-29 09:00:00:000', 'matched_master_codes': [], ...}\n  Use -v to get more diff"
+          }
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_missing_hk_source_stock_code_forces_partial_and_retains_original_row[missing]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_missing_hk_source_stock_code_forces_partial_and_retains_original_row[null]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_missing_hk_source_stock_code_forces_partial_and_retains_original_row[empty]": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_duplicate_art_code_keeps_rows_but_forces_partial": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_total_drift_and_cross_notice_date_are_partial_and_rows_are_retained": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_missing_terminal_page_is_partial_without_retry": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_explicit_resume_reuses_verified_refs_and_only_requests_missing_page": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_catalog_product_readback_rederives_from_refs": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_api_requires_explicit_publication_date_and_routes_date_catalog_scope": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_existing_owner_persists_and_reuses_date_catalog_without_refetch": {
+          "status": "passed",
+          "detail": null
+        },
+        "tests/test_manager_announcement_date_catalog.py::test_owner_accepts_saved_refs_without_network_and_rejects_bad_ref_closed": {
+          "status": "passed",
+          "detail": null
+        }
+      },
+      "original_log_sha256": "7a73f69e740f294fa4431c97a620cc83b4a4fbfcb62763269655d17144bf9fb0",
+      "original_junit_sha256": "4d73ba813136bfa80d8a50da1ae86d3861fa52f487495b84b6e8fb3b1e00de95"
+    }
+  },
+  "compaction": {
+    "only_removed": "cases.*.detail.text (full assertion traces); all IDs, terminal messages, counts, commands and failure sets retained",
+    "original_record_path": "/workspace/scratch/ff44f882fe5c/verification/reviewer_history/original_regression_comparison_exact.json",
+    "original_record_bytes": 250147,
+    "original_record_sha256": "1de4220dfc93655927f067e599ce6c3d135d8ec00e5c4c83a02c0c2744d3bfd9",
+    "full_logs_and_fixture_trees_not_uploaded": true
+  }
+}

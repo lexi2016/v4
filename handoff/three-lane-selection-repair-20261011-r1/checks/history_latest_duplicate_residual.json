@@ -1,0 +1,39 @@
+{
+  "scope": "SYNTHETIC_NOT_LIVE",
+  "unique_immutable_plan_bytes": 46137344,
+  "cumulative_limit_bytes": 67108864,
+  "valid_early_owner_verified": true,
+  "selected_run_id": null,
+  "expected_early_run_id": "00000000000000000000000000000002",
+  "error": "OwnedIOError:OWNED_FILE_TOO_LARGE",
+  "plan_bytes_returned": 50331648,
+  "reads": [
+    {
+      "path": "workspace_plans/20261009/latest.json",
+      "max_bytes": 33554432,
+      "bytes_returned": 25165824
+    },
+    {
+      "path": "workspace_plan_runs/20261009/00000000000000000000000000000001.json",
+      "max_bytes": 65536,
+      "bytes_returned": 0,
+      "error": "FileNotFoundError:[Errno 2] No such file or directory: '00000000000000000000000000000001.json'"
+    },
+    {
+      "path": "workspace_plans/20261009/00000000000000000000000000000001.json",
+      "max_bytes": 33554432,
+      "bytes_returned": 25165824
+    },
+    {
+      "path": "workspace_plan_runs/20261009/00000000000000000000000000000002.json",
+      "max_bytes": 65536,
+      "bytes_returned": 691
+    },
+    {
+      "path": "workspace_plans/20261009/00000000000000000000000000000002.json",
+      "max_bytes": 16777216,
+      "bytes_returned": 0,
+      "error": "OwnedIOError:OWNED_FILE_TOO_LARGE"
+    }
+  ]
+}

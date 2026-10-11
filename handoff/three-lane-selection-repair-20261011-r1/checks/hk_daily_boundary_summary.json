@@ -1,0 +1,824 @@
+{
+  "cases": [
+    {
+      "actual": {
+        "candidate_count": 2,
+        "channel_status": "READY",
+        "gaps": [],
+        "natural_run_verified": false,
+        "orders": [
+          1,
+          2
+        ],
+        "pending_count": 0,
+        "rank": [
+          2,
+          1
+        ],
+        "symbols": [
+          "HK.00002",
+          "HK.00001"
+        ]
+      },
+      "expected": {
+        "candidate_count": 2,
+        "channel_status": "READY",
+        "orders": [
+          1,
+          2
+        ],
+        "required_gap": null,
+        "symbols": [
+          "HK.00002",
+          "HK.00001"
+        ]
+      },
+      "input_unchanged": true,
+      "probe": "preserves_original_source_order_rank_and_trio_without_plan_run",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_ROW_IDENTITY_OR_SAFETY_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "different_code_and_symbol_cannot_bypass_target_membership",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": 2,
+        "channel_status": "READY",
+        "gaps": [],
+        "natural_run_verified": false,
+        "orders": [
+          1,
+          2
+        ],
+        "pending_count": 0,
+        "rank": [
+          2,
+          1
+        ],
+        "symbols": [
+          "HK.00002",
+          "HK.00001"
+        ]
+      },
+      "expected": {
+        "candidate_count": 2,
+        "channel_status": "READY",
+        "orders": [
+          1,
+          2
+        ],
+        "required_gap": null,
+        "symbols": [
+          "HK.00002",
+          "HK.00001"
+        ]
+      },
+      "input_unchanged": true,
+      "probe": "same_symbol_alias_is_consistent",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_ROW_IDENTITY_OR_SAFETY_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "duplicate_rank_rejected",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_ROW_IDENTITY_OR_SAFETY_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "bool_order_rejected",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_ROW_IDENTITY_OR_SAFETY_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "nonsequential_original_projection_order_rejected",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_ROW_IDENTITY_OR_SAFETY_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "declared_row_safety_conflict_production_allowed",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_ROW_IDENTITY_OR_SAFETY_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "declared_row_safety_conflict_buy_gate_updated",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_ROW_IDENTITY_OR_SAFETY_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "declared_row_safety_conflict_orders_sent",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_ROW_IDENTITY_OR_SAFETY_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "declared_row_safety_conflict_RESEARCH_ONLY",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_RECOVERY_OR_PRIOR_OBSERVATION_NOT_ORDINARY_SELECTION"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "original_row_recovery_marker_source_mode",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_RECOVERY_OR_PRIOR_OBSERVATION_NOT_ORDINARY_SELECTION"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "original_row_recovery_marker_second_filter_status",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_RECOVERY_OR_PRIOR_OBSERVATION_NOT_ORDINARY_SELECTION"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "original_row_recovery_marker_lane_evidence",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_RECOVERY_OR_PRIOR_OBSERVATION_NOT_ORDINARY_SELECTION"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "original_row_recovery_marker_candidate_lanes",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_RECOVERY_OR_PRIOR_OBSERVATION_NOT_ORDINARY_SELECTION"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "execution_recovery_marker_mode",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_RECOVERY_OR_PRIOR_OBSERVATION_NOT_ORDINARY_SELECTION"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "execution_recovery_marker_recovery_mode",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_RECOVERY_OR_PRIOR_OBSERVATION_NOT_ORDINARY_SELECTION"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "execution_recovery_marker_backfill_run_id",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_RECOVERY_OR_PRIOR_OBSERVATION_NOT_ORDINARY_SELECTION"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "execution_recovery_marker_temporal_cutoff_safe",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_ORIGINAL_STAGE_SELECTION_IDENTITY_UNVERIFIED",
+          "HK_STAGE_EXACT_D1_TOP100_IDENTITY_UNVERIFIED",
+          "HK_STAGE_ORIGINAL_INPUT_OR_SELECTION_COUNT_UNVERIFIED",
+          "HK_STAGE_SELECTION_TRIO_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "missing_stage_never_uses_focus",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": 2,
+        "channel_status": "PARTIAL",
+        "gaps": [
+          "HK_STAGE_EXECUTION_SELECTION_BINDING_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [
+          1,
+          2
+        ],
+        "pending_count": null,
+        "rank": [
+          2,
+          1
+        ],
+        "symbols": [
+          "HK.00002",
+          "HK.00001"
+        ]
+      },
+      "expected": {
+        "candidate_count": 2,
+        "channel_status": "PARTIAL",
+        "orders": [
+          1,
+          2
+        ],
+        "required_gap": "HK_STAGE_EXECUTION_SELECTION_BINDING_UNVERIFIED",
+        "symbols": [
+          "HK.00002",
+          "HK.00001"
+        ]
+      },
+      "input_unchanged": true,
+      "probe": "missing_execution_preserves_research_rows_as_partial",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": 0,
+        "channel_status": "READY_EMPTY",
+        "gaps": [],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": 0,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": 0,
+        "channel_status": "READY_EMPTY",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "complete_verified_zero_is_zero",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "PARTIAL",
+        "gaps": [
+          "HK_STAGE_EXECUTION_SELECTION_BINDING_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "PARTIAL",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "zero_without_execution_binding_stays_unknown",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "PARTIAL",
+        "gaps": [
+          "HK_STAGE_D1_INPUT_COVERAGE_INCOMPLETE"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "PARTIAL",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "zero_without_100_complete_original_inputs_stays_unknown",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_INPUT_OR_SELECTION_COUNT_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "no_original_inputs_cannot_be_ready_empty",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_INPUT_OR_SELECTION_COUNT_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "empty_status_with_nonempty_rows_rejected",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_ORIGINAL_INPUT_OR_SELECTION_COUNT_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "selected_count_above_original_input_count_rejected",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_AFTER_RESEARCH_CUTOFF_OR_CUTOFF_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "before_native_094005_cutoff_rejected",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": 2,
+        "channel_status": "READY",
+        "gaps": [],
+        "natural_run_verified": false,
+        "orders": [
+          1,
+          2
+        ],
+        "pending_count": 0,
+        "rank": [
+          2,
+          1
+        ],
+        "symbols": [
+          "HK.00002",
+          "HK.00001"
+        ]
+      },
+      "expected": {
+        "candidate_count": 2,
+        "channel_status": "READY",
+        "orders": [
+          1,
+          2
+        ],
+        "required_gap": null,
+        "symbols": [
+          "HK.00002",
+          "HK.00001"
+        ]
+      },
+      "input_unchanged": true,
+      "probe": "native_094005_cutoff_accepted",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "gaps": [
+          "HK_STAGE_EXACT_D1_TOP100_IDENTITY_UNVERIFIED"
+        ],
+        "natural_run_verified": false,
+        "orders": [],
+        "pending_count": null,
+        "rank": [],
+        "symbols": []
+      },
+      "expected": {
+        "candidate_count": null,
+        "channel_status": "CANNOT_CONFIRM",
+        "orders": null,
+        "required_gap": null,
+        "symbols": []
+      },
+      "input_unchanged": true,
+      "probe": "d1_hash_conflict_rejected",
+      "status": "PASS"
+    },
+    {
+      "actual": {
+        "candidate_count": 1,
+        "channel_status": "PARTIAL",
+        "gaps": [
+          "NOT_IN_TARGET_HK_CONNECT_UNIVERSE"
+        ],
+        "natural_run_verified": false,
+        "orders": [
+          2
+        ],
+        "pending_count": null,
+        "rank": [
+          1
+        ],
+        "symbols": [
+          "HK.00001"
+        ]
+      },
+      "expected": {
+        "candidate_count": 1,
+        "channel_status": "PARTIAL",
+        "orders": [
+          2
+        ],
+        "required_gap": "NOT_IN_TARGET_HK_CONNECT_UNIVERSE",
+        "symbols": [
+          "HK.00001"
+        ]
+      },
+      "input_unchanged": true,
+      "probe": "target_membership_rejection_preserves_later_original_order",
+      "status": "PASS"
+    }
+  ],
+  "failed": 0,
+  "live_or_mac_verified": false,
+  "natural_run_verified": false,
+  "passed": 30,
+  "python_version": "3.14.6 (main, Aug  4 2026, 18:27:20) [Clang 22.1.3 ]",
+  "schema_version": "independent.hk_daily_projection_boundary_review.v1",
+  "scope": "Existing synthetic verified-reader fixture only; Linux Python projection checks; no store/producer/API/Mac execution",
+  "source_snapshot_unchanged_during_run": true,
+  "sources": [
+    {
+      "path": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/workspace_daily_channels.py",
+      "sha256": "69f6a824a133343dff7c5bf7f0db240ab1d3af0bc3f74b618832982bd2b0b622"
+    },
+    {
+      "path": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/workspace.py",
+      "sha256": "6d7119ba6fc762dbcd0ccd43897a26956eb24430e4f54352bed0aace6f9b07a7"
+    },
+    {
+      "path": "/workspace/scratch/ff44f882fe5c/candidate/v4/manager_research/connect_selection.py",
+      "sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291"
+    },
+    {
+      "path": "/workspace/scratch/ff44f882fe5c/candidate/stage_center/consumer.py",
+      "sha256": "cbc91d835c94e88b5065c6e95711017f9e97fd4d5bd7c230b7e88acab54f1557"
+    },
+    {
+      "path": "/workspace/scratch/ff44f882fe5c/candidate/tests/test_manager_three_lane_channels_r1.py",
+      "sha256": "0e888e94196fe6672018a26ac231340dc5266ae25ef3a853e586ce633892c232"
+    }
+  ],
+  "compaction": {
+    "removed": "Repeated synthetic source_refs/source_selection envelopes only",
+    "original_record_sha256": "4104d41f8072cb89a6a82bcc009d1738080fd6374f44554e012d45680cb99fba",
+    "synthetic_scope_retained": true
+  }
+}

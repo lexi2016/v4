@@ -1,0 +1,356 @@
+{
+  "schema_version": "three_lane.independent_final_delivery_review.v1",
+  "phase": "FINAL_CONTENT_REVIEW_COMPLETED_PENDING_WRITER_CHECKSUM_AND_REMOTE_SYNC",
+  "reviewed_at_utc": "2026-10-11T08:40:04.984986+00:00",
+  "reviewer": "/root/announcement_daily_review",
+  "read_only_business_and_publication": true,
+  "candidate_writes": 0,
+  "publication_writes": 0,
+  "candidate_commit_observed": "cd93198cb0de06c8f32386ed1fc808a5b4e53bec",
+  "expected_candidate_commit": "cd93198cb0de06c8f32386ed1fc808a5b4e53bec",
+  "reviewed_publication_sources": {
+    "check_candidate.py": {
+      "sha256": "7fbf91d66b5a33eb1c1125ca2cb35de2bc619d1014235e1f0d203bd2689b5567",
+      "bytes": 6295
+    },
+    "FINAL_REPORT.md": {
+      "sha256": "870c66bbdc586e1e2eadc7e9e0c810dbec35eb0cb6c1e12c8e616a41d535a7d8",
+      "bytes": 15303
+    },
+    "acceptance.json": {
+      "sha256": "2884a502bb46026110c3ac909d15bb0a54d3520a0c63287c24405a2b764d37f4",
+      "bytes": 5990
+    },
+    "checks/DELIVERY_VERIFICATION.json": {
+      "sha256": "849a7b5d48e4baa88be1b7d3ef0ddbbd6bfe3f58a298041e13ea769da0505e63",
+      "bytes": 12015
+    },
+    "BEFORE_AFTER_SHA256.json": {
+      "sha256": "ffb6fd7019366919d9cec4510269119a09789dd5c07f6a01f7eaba1e3ba57215",
+      "bytes": 7751
+    },
+    "changes.patch": {
+      "sha256": "7eea3add8687d7f851ca0cf4d7f2925e82971fdcdb86d891e925efbef29edd0d",
+      "bytes": 102729
+    },
+    "MAC_ACCEPTANCE.md": {
+      "sha256": "f62deb29f0b353756e0709299fad46f712e99e5a8d5f54733fb51441ee5e57f0",
+      "bytes": 17510
+    }
+  },
+  "existing_independent_evidence": {
+    "frontend": "verification/reviewer_frontend/FINAL_FRONTEND_REVIEW.json",
+    "cross_language": "verification/reviewer_frontend/cross_language/CROSS_LANGUAGE_REVIEW.json",
+    "frontend_tests": {
+      "passed": 17,
+      "skipped": 1,
+      "new_date_tests": 8,
+      "original_runtime_tests": 9,
+      "rerun_this_review": false
+    },
+    "cross_language_tests": {
+      "passed": 4,
+      "python_version": "3.14.6",
+      "python_executable": "/workspace/scratch/ff44f882fe5c/test_env314/bin/python",
+      "generated_fixture_sha256": "b4595f17ca231717182caae1052d5e2c2bb7801c8a2339e3a27f4fe3a42461b6",
+      "rerun_this_review": false
+    },
+    "full_typecheck": {
+      "status": "FAILED",
+      "diagnostics": 97,
+      "candidate_only_diagnostics": 0,
+      "baseline_control_diagnostics_identical": true,
+      "rerun_this_review": false
+    }
+  },
+  "candidate_sources_rehashed": {
+    "candidate/apps/web/src/manager-selection/catalystObservationPanel.ts": {
+      "sha256": "300418ce5d5da9f6686adafbb107cf5db36587fd9bb0af759b27f6881f0eb6cd",
+      "equals_prior_independent_evidence": true
+    },
+    "candidate/apps/web/src/api/managerWorkspace.ts": {
+      "sha256": "4203c62b111449f2fd8031bd1e1599829f1a21e543f4fc1a41a35eaff046f707",
+      "equals_prior_independent_evidence": true
+    },
+    "candidate/apps/web/src/manager-selection/threeLaneDateBindings.spec.ts": {
+      "sha256": "5a447f20061f3d1563e18c76b240c1ffb062e6dcb10a2595ef73c6dfbf7b7952",
+      "equals_prior_independent_evidence": true
+    },
+    "candidate/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts": {
+      "sha256": "1e4e634dd47b89c0d09ca40a1c36df9d57fe1c2123bc1d98e3a5fb8bcb2ee645",
+      "equals_prior_independent_evidence": true
+    },
+    "candidate/v4/manager_research/workspace_daily_channels.py": {
+      "sha256": "69f6a824a133343dff7c5bf7f0db240ab1d3af0bc3f74b618832982bd2b0b622",
+      "equals_prior_independent_evidence": true
+    },
+    "candidate/v4/manager_research/research_attention.py": {
+      "sha256": "4073ad6f0c36de045017dc8fa18433438cf63371c13588777117108945aad1bb",
+      "equals_prior_independent_evidence": true
+    },
+    "candidate/tests/test_manager_three_lane_channels_r1.py": {
+      "sha256": "bcfe4bf1cfe19ed5b7ce5e64655e74696c2f982bdb1c657346e283a6677488a1",
+      "equals_prior_independent_evidence": true
+    },
+    "candidate/tests/test_manager_research_selection_ledger.py": {
+      "sha256": "8f8d7c7eee361b63efd44ddea28155004f469e53ef75232e2bb33bd1571e6729",
+      "equals_prior_independent_evidence": true
+    },
+    "candidate/apps/web/src/manager-selection/dailyChannels.ts": {
+      "sha256": "c4983a1bb3f23ea4ee3cfc598b805f2dc765a525b263156a4d7f6428767d24c4",
+      "equals_prior_independent_evidence": true
+    }
+  },
+  "findings": [
+    {
+      "id": "BYTE_HELPER_NULL_AFTER_FALSE_POSITIVE",
+      "severity": "MUST_FIX_BEFORE_BYTE_CHECKER_ACCEPTANCE",
+      "path": "check_candidate.py",
+      "lines": [
+        54,
+        55,
+        56,
+        57,
+        65,
+        67
+      ],
+      "observed": {
+        "synthetic_manifest_rows": 12,
+        "all_after_sha256": null,
+        "all_after_bytes": 0,
+        "after_directory_exists": false,
+        "returned_status": "BYTES_MATCH",
+        "after_artifact_verified_count": 12
+      },
+      "expected": "Missing after images must fail; null before SHA is valid only for an explicitly new target file.",
+      "minimum_recommendation": "Require patch_data is not None. Validate after digest shape and byte count; retain null-before semantics only for additions.",
+      "status": "RESOLVED",
+      "resolution": "Writer added shape/identity checks; independent five-case verification on helper 9488d2e6 passed. Final helper 7fbf91d6 retains those checks and adds explicit change/before contract; Writer reran 18 cases and independent Reviewer checked the two final change-contract counterexamples."
+    },
+    {
+      "id": "BYTE_HELPER_MANIFEST_SHAPE_ERROR_UNHANDLED",
+      "severity": "MINOR_ROBUSTNESS",
+      "path": "check_candidate.py",
+      "lines": [
+        45,
+        48,
+        88
+      ],
+      "observed": {
+        "manifest_files": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "exception": "AttributeError",
+        "caught_by_cli_handler": false
+      },
+      "expected": "Malformed manifest returns a structured CANNOT_CONFIRM with nonzero exit.",
+      "minimum_recommendation": "Explicitly validate top-level manifest and each file row as objects before .get.",
+      "status": "RESOLVED",
+      "resolution": "Writer added shape/identity checks; independent five-case verification on helper 9488d2e6 passed. Final helper 7fbf91d6 retains those checks and adds explicit change/before contract; Writer reran 18 cases and independent Reviewer checked the two final change-contract counterexamples."
+    },
+    {
+      "id": "REPORT_WORKSPACE_CANCELLATION_SCOPE",
+      "severity": "WORDING_PRECISION",
+      "path": "FINAL_REPORT.md",
+      "lines": [
+        72
+      ],
+      "minimum_recommendation": "Qualify canceled/old-response protection as workspace read/refresh chain; prior announcement collection-refresh UI is outside the new cancellation test.",
+      "status": "RESOLVED",
+      "resolution": "Final report explicitly limits cancellation/late-response guarantee to workspace read/refresh, and excludes lower original collection-control requests from the tested scope."
+    },
+    {
+      "id": "REPORT_D_VALID_DTO_SCOPE",
+      "severity": "WORDING_PRECISION",
+      "path": "FINAL_REPORT.md",
+      "lines": [
+        105
+      ],
+      "minimum_recommendation": "Specify legitimate CANNOT_CONFIRM missing-source DTO cases; unchanged TS validator still rejects an arbitrarily malformed entire daily DTO.",
+      "status": "RESOLVED",
+      "resolution": "Final report and acceptance D explicitly limit independent channel retention to valid CANNOT_CONFIRM DTOs; malformed whole-DTO rejection remains unchanged."
+    },
+    {
+      "id": "BYTE_HELPER_CHANGE_BEFORE_IDENTITY_CONSISTENCY",
+      "severity": "DELIVERY_CHECKER_CORRECTNESS",
+      "status": "RESOLVED",
+      "path": "check_candidate.py",
+      "final_lines": [
+        65,
+        75
+      ],
+      "initial_observation": "Writer independently reproduced modified files with null before identities and an empty target returning BYTES_MATCH under the preceding helper.",
+      "resolution": "Final helper requires explicit modified or added_test and enforces complete modified-before identity versus null added-test before identity; independent final two-case check returns CANNOT_CONFIRM/exit2 for both contradictions.",
+      "final_helper_sha256": "7fbf91d66b5a33eb1c1125ca2cb35de2bc619d1014235e1f0d203bd2689b5567"
+    }
+  ],
+  "helper_reproduction": {
+    "python_command": "PYTHONDONTWRITEBYTECODE=1 /workspace/scratch/ff44f882fe5c/test_env314/bin/python - (reviewer-only here-document)",
+    "method": "Compile the read-only helper into an isolated module; create a temporary manifest with twelve unique missing_*.py paths and after_sha256=null/after_bytes=0 under verification/reviewer_frontend; call verify(package, None, before). Then replace reviewer manifest rows with null and capture exception.",
+    "exit_code": 0,
+    "business_or_publication_written": false,
+    "temporary_directory_removed": true,
+    "real_owner_or_api_called": false
+  },
+  "decision": "APPROVE_SCOPED_CANDIDATE_DELIVERY_CONTENT_NOT_MAC_OR_BUSINESS_ACCEPTANCE",
+  "not_claimed": [
+    "Complete application build or typecheck gate",
+    "Actual owner capture/import/save completion",
+    "Current Mac process loading",
+    "8873 API or real UI reload acceptance",
+    "Natural run acceptance"
+  ],
+  "pending": [
+    "Writer adds final reviewer records and seals SHA256SUMS.txt; current stale checksum file was intentionally not treated as a failure",
+    "Writer performs authorized branch sync and exact remote readback; this reviewer has not claimed remote synchronization",
+    "Actual Mac/runtime/8873/API/UI/A/H/O and next natural run evidence remains outside this engineering delivery review"
+  ],
+  "mac_acceptance_initial_review": {
+    "reviewed_at_utc": "2026-10-11T08:41:56.636101+00:00",
+    "sha256": "50149fe84b619e026f3fe33b7b7e88d064f8abfe5abc35700ba9173c843cfb45",
+    "bytes": 17392,
+    "execution_status": "NOT_RUN_INSTRUCTIONS_ONLY",
+    "verified": [
+      "Read-only GET template plan 20261009, selection 20261009, announcement 20261008 and historical/dynamic views match original API router signature",
+      "Historical cutoff stated as 2026-10-09 09:30+08 and late-plan/journal residual preserved",
+      "Original router explicitly marks manual old-target refresh RETROSPECTIVE with actual clock and natural_run_verified false",
+      "Original daily CLI readback, capture plus resume option, register-handoff and import arguments match exact parser; semantic reader/reviewer registration cannot be replaced by cycle main",
+      "No fabricated evidence_run, reader/reviewer IDs, product/receipt or hardcoded selected-count success",
+      "Fixed plist/activation identities described as observations requiring fresh runtime verification",
+      "AGENTS limits Git sync authority; no merge/deploy/service operations claimed executed",
+      "Full current dependencies, native typecheck/build, original failing suites and owner save gates remain required; synthetic support cannot become production release"
+    ],
+    "source_sha256": {
+      "support_source/ops/run_manager_daily_announcement.py": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+      "candidate/ops/run_manager_announcement_cycle.py": "3fb3c175254c16e703c4530b64bc6da9338c96408ad7ff692dd9b8f6a8b83d82",
+      "candidate/apps/api/v35_api/manager_research_router.py": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "candidate/AGENTS.md": "5b0b7c9bd337d3b30b6f5246538214f598a11dae3c32bf4f9890424a3aefedca"
+    },
+    "findings": [
+      {
+        "id": "MAC_POST_READBACK_SEQUENCE_PRECISION",
+        "severity": "NONBLOCKING_WORDING",
+        "lines": [
+          193
+        ],
+        "recommendation": "Successful POST reuses validated response; one GET fallback only on POST failure, plus GET on explicit page reload. Keep all requests bound to same date tuple without requiring automatic GET after successful POST.",
+        "status": "RESOLVED",
+        "resolution": "MAC_ACCEPTANCE final text explicitly reuses a successful POST response, permits one GET fallback after failure, and checks GET on page reload with the same bindings."
+      }
+    ],
+    "no_candidate_or_publication_writes": true,
+    "cli_commands_executed": false
+  },
+  "updated_at_utc": "2026-10-11T08:51:04.568466+00:00",
+  "initial_review_snapshot": {
+    "phase": "INITIAL_REPORT_AND_BYTE_HELPER_REVIEW_AWAITING_ADDITIONAL_DELIVERY_FILES",
+    "reviewed_publication_sources": {
+      "FINAL_REPORT.md": {
+        "sha256": "71db2a8ef66d0c60916be0583e51c412699c11807c7ea43f0bf4234e264503d3",
+        "bytes": 14882
+      },
+      "check_candidate.py": {
+        "sha256": "3a1081ab8b93cbf9ae5db44e377448a04838fc78be6d18427253c553f54cd386",
+        "bytes": 4159
+      }
+    },
+    "decision": "REPORT_SCOPE_CONSISTENT_BYTE_HELPER_FIX_PENDING_AND_ADDITIONAL_FILES_PENDING",
+    "report_claims_checked": [
+      {
+        "lines": [
+          68,
+          72
+        ],
+        "area": "A and frontend",
+        "verdict": "SUPPORTED_WITH_NARROW_WORKSPACE_REQUEST_SCOPE",
+        "basis": "Exact saved-owner execution_context addition and unchanged original announcement producer; original bindings passed through GET/POST validation; prior DOM tests and source SHA match."
+      },
+      {
+        "lines": [
+          79,
+          80,
+          84,
+          85,
+          90
+        ],
+        "area": "Frontend and Python-to-TS verification",
+        "verdict": "SUPPORTED",
+        "basis": "17 pass / 1 real-Mac-fixture skip, 4 synthetic Python-to-TS DOM tests using Python 3.14.6, original options closure zero diagnostics, full project 97 errors identical baseline."
+      },
+      {
+        "lines": [
+          100,
+          105,
+          106,
+          118,
+          122,
+          130,
+          134
+        ],
+        "area": "A / D / N and runtime authority",
+        "verdict": "SUPPORTED_WITH_D_SCOPE_CLARIFICATION",
+        "basis": "A remains PARTIAL, N NOT_RUN, original collection-disabled binding and no current Mac load claim. D demonstrated only lawful missing-source projections, never arbitrary malformed DTO admission."
+      }
+    ]
+  },
+  "final_verification": {
+    "report": "verification/reviewer_frontend/final_delivery_byte_checks.json",
+    "sha256": "ef9d3dbe5565f344284983899ca13cff9efa1461c7b9d266067078d2a56748d2",
+    "candidate_after_paths_verified": 12,
+    "modified_business_files": 8,
+    "added_test_files": 4,
+    "same_fixed_candidate_commit": true,
+    "manifest_and_patch_unchanged_in_final_delta": true,
+    "copied_evidence_verified_at_prior_snapshot": 27,
+    "exact_original_support_blobs_verified": 28,
+    "preceding_helper_independent_checks": {
+      "sha256": "9488d2e63e698d7b3893d83b93065128d2ea5169c40369228acc45d9a8d89560",
+      "passed": 5,
+      "python": "3.14.6"
+    },
+    "final_helper_independent_delta_checks": {
+      "sha256": "7fbf91d66b5a33eb1c1125ca2cb35de2bc619d1014235e1f0d203bd2689b5567",
+      "passed": 2,
+      "python": "3.14.6"
+    },
+    "writer_final_helper_checks": {
+      "passed": 18,
+      "failed": 0,
+      "python": "3.12.14",
+      "report": "checks/DELIVERY_VERIFICATION.json",
+      "read_and_bound_to_final_helper": true,
+      "not_independently_rerun": true
+    },
+    "acceptance": {
+      "overall": "PARTIAL",
+      "A": "PARTIAL",
+      "H": "PARTIAL",
+      "O": "PARTIAL",
+      "I": "PARTIAL",
+      "R": "PARTIAL",
+      "D": "PARTIAL",
+      "D_engineering": "PASS_SCOPED_VALID_MISSING_DTO",
+      "N": "NOT_RUN"
+    },
+    "actual_A_H_O_run_sha_counts_null": true,
+    "mac_api_ui_and_natural_flags_false": true,
+    "historical_policy": {
+      "late_product_admission_allowed": false,
+      "actual_late_product_admission_count": null
+    },
+    "all_initial_review_findings_resolved": true
+  },
+  "blocking_findings_for_reviewed_delivery_content": [],
+  "engineering_closure_scope": "Frontend date/binding/cancellation and legal missing-channel projection repairs plus reviewed delivery-byte helper; full application typecheck/build and original failing save/readback gates remain unclosed."
+}

@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /workspace/scratch/ff44f882fe5c/verification/reviewer_frontend/cross_language
+
+ ✓ src/pythonProjectionRenderer.spec.ts > renders all three actual Python projections, preserving Stage order and per-stock original reasons 100ms
+ ✓ src/pythonProjectionRenderer.spec.ts > keeps other legal channels when Python reports 'missing_ANNOUNCEMENT', without displaying unknown as zero 13ms
+ ✓ src/pythonProjectionRenderer.spec.ts > keeps other legal channels when Python reports 'missing_HK_CONNECT', without displaying unknown as zero 10ms
+ ✓ src/pythonProjectionRenderer.spec.ts > keeps other legal channels when Python reports 'missing_OVERSOLD', without displaying unknown as zero 10ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  16:23:50
+   Duration  1.58s (transform 121ms, setup 0ms, import 147ms, tests 134ms, environment 715ms)
+
