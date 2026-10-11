@@ -4016,6 +4016,9 @@ def create_app(
             store,
             current_date=current_date,
             stage_selection_root=configured_selection_root,
+            preselection_source_root=(
+                resolved_pool_source if configured_pool_source else None
+            ),
         )
 
     def _stage_projection_status(

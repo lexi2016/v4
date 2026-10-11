@@ -1,0 +1,56 @@
+{
+  "schema_version": "v4_preselection_date_binding_verification.v1",
+  "scope": "candidate-only read and validation; no live release, business data, or scheduler was changed",
+  "active_api_configuration_evidence": {
+    "path": "integration/api.before.plist",
+    "sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+    "api_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+    "api_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+    "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "stage_selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection"
+  },
+  "preselection_dispatch_receipt": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20261009/1730/5816e30a9fcb43c7b7879b8be0385a85.dispatch-receipt.json",
+    "sha256": "40e1c1f34791182b36024d520500483f1aef18ca122e073653223950016b1abf",
+    "target_date": "20261012",
+    "overall_status": "FAILED",
+    "overall_failure_class": "UPSTREAM_NOT_READY",
+    "preselection_pools_status": "SUCCEEDED",
+    "preselection_pools_exit_code": 0,
+    "other_workload": {
+      "workload_id": "research_panel_runtime_evidence",
+      "status": "FAILED",
+      "exit_code": 2,
+      "reason": "RESEARCH_PANEL_RUNTIME_EVIDENCE_NOT_READY"
+    }
+  },
+  "materialized_hk_pool_trio": {
+    "physical_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "trade_date": "20261012",
+    "target_date_top_level": null,
+    "stage_selection_eligible_top_level": null,
+    "signal_date_top_level": null,
+    "source_run_id": "20261012-hk-connect-d1-top100-0-2-d6f38622b186",
+    "source_sha256": "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d",
+    "rows": 100,
+    "row_target_dates": ["20261012"],
+    "row_signal_dates": ["20261009"],
+    "artifact_sha256": "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d",
+    "manifest_sha256": "a0eb3e6a348ea1dc651b6808e7f5f1c98ad06608464076dfa302e1847df2d66c",
+    "receipt_sha256": "f864601096eb45ba07f20092449786d73929f393c7cb737ca1cc2906f9af9d4c",
+    "manifest_matches_artifact": true,
+    "receipt_binds_date_artifact_source_and_run_id": true
+  },
+  "shared_raw_run_recheck": {
+    "configured_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/workspace/v3_shared_data/.runtime/data",
+    "relative_artifact_path": "runs/20261012/HK_CONNECT_D1_TOP100_0_2/20261012-hk-connect-d1-top100-0-2-d6f38622b186/artifact.csv",
+    "artifact_exists": false,
+    "status": "CANNOT_CONFIRM"
+  },
+  "stage_compatibility_finding": {
+    "actual_consumer": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-0920-auto-stage-20261011-r1/app/stage_center/_runner_parts/hk_input_validation.py",
+    "canonical_v35_behavior": "Missing top-level target_date and stage_selection_eligible are tolerated for v3_5.preselection_pool.v1; explicit conflicts fail, and the stage validates exact canonical trio, status, source identity, rows, date, model, and safety fields.",
+    "candidate_api_projection": "Missing optional top-level fields no longer create CANNOT_CONFIRM; status remains REQUIRES_STAGE_CONTRACT_VALIDATION and eligibility remains null.",
+    "no_eligibility_flag_inferred": true
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schema_version": "v4_preselection_date_binding_result.v1",
+  "goal": "Make the verified 20261012 preselection target visible through the configured split roots and keep HK stage reuse reporting aligned with the current canonical V3.5 stage contract.",
+  "writer_status": "READY_FOR_INDEPENDENT_REVIEW",
+  "implementation_status": "IMPLEMENTED",
+  "test_status": "TESTED_BY_INDEPENDENT_REVIEWER",
+  "integration_status": "INTEGRATED",
+  "deployment_status": "DEPLOYED",
+  "changed_files": [
+    {
+      "path": "candidate/app/apps/api/v35_api/app.py",
+      "sha256_before": "b7f0367216acf369ca18f0b408023b11cc3eedf87db79d20af01b7d313efd75e",
+      "sha256_after": "ba40457e4fc6d4f60155c55e4202ac82e870467598d49ea36bcbc2aab5c70eb3"
+    },
+    {
+      "path": "candidate/app/domains/preselection.py",
+      "sha256_before": "8a21fa2caf27e06ea4b6526ff0dd7db99390dda007936aaf99ef8772e6e4305a",
+      "sha256_after": "5b397b2dd3be4f5399c237cf315af67b54fdb60e6a4ecb665237e9329254793b"
+    },
+    {
+      "path": "candidate/app/tests/test_preselection_date_catalog_split_roots.py",
+      "sha256_before": null,
+      "sha256_after": "a3ed480d967b9cfcb74578ea66ca27d4ae911788a310276dd99d5a6d1d579173"
+    }
+  ],
+  "baseline": {
+    "api_release": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+    "api_plist_sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+    "api_plist_sha256_verified": true,
+    "candidate_copy_excluded": [
+      "data",
+      "venv",
+      ".venv",
+      "node_modules",
+      "__pycache__",
+      ".pytest_cache"
+    ]
+  },
+  "implementation": [
+    "Pass the configured preselection source root into date_catalog from the API catalog closure; keep the old single-root path when no separate source root is configured.",
+    "For canonical v3_5.preselection_pool.v1 HK artifacts, treat absent top-level target_date and stage_selection_eligible as optional compatibility metadata. Explicit mismatches or false eligibility remain CANNOT_CONFIRM, and the projection never infers eligibility.",
+    "Add focused regression coverage for split roots, verified future dates, bad SHA, mismatched physical date, duplicate dates, A partial rows, and HK compatibility flags."
+  ],
+  "verification": {
+    "baseline_regression": {
+      "workdir": "/tmp",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH='/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --import-mode=importlib --tb=short --basetemp=/tmp/v4-preselection-date-baseline-red '/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/candidate/app/tests/test_preselection_date_catalog_split_roots.py'",
+      "result": "3 failed, 1 passed against the unchanged API release code; failures reproduce split-root date omission and HK compatibility projection over-reporting."
+    },
+    "focused_regression": {
+      "workdir": "/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/candidate/app",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH='/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/candidate/app/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_PRESELECTION_DATE_BINDING_20261011/candidate/app' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --tb=short --basetemp=/tmp/v4-preselection-date-candidate-final3 tests/test_preselection_date_catalog_split_roots.py tests/test_preselection_slice.py tests/test_date_api_contract.py -k 'not weekends_and_20260619_are_excluded_and_partial_rows_stay_partial'",
+      "result": "27 passed, 1 deselected."
+    },
+    "date_drift_test": {
+      "test": "tests/test_preselection_slice.py::test_weekends_and_20260619_are_excluded_and_partial_rows_stay_partial",
+      "workdir": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH='/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --tb=short --basetemp=/tmp/v4-preselection-baseline-date-drift tests/test_preselection_slice.py::test_weekends_and_20260619_are_excluded_and_partial_rows_stay_partial",
+      "result": "Fails identically against the unchanged baseline on 2026-10-11: expected stage_dates=[], got ['20260622']; this historical-date assertion was excluded from the focused run."
+    },
+    "candidate_api_canary": {
+      "result": "PASS",
+      "date_list_future_target_dates": [
+        "20261012"
+      ],
+      "date_list_occurrences": 1,
+      "date_list_selected_date": "20261009",
+      "preselection_status": "PARTIAL_WITH_ROWS",
+      "a_all_pool_row_count": 371,
+      "market_totals": {
+        "A": 371,
+        "HK": 100
+      },
+      "hk_source_run_id": "20261012-hk-connect-d1-top100-0-2-d6f38622b186",
+      "hk_physical_status": "TRIO_VERIFIED",
+      "hk_stage_reuse_status": "REQUIRES_STAGE_CONTRACT_VALIDATION",
+      "hk_stage_selection_eligible": null
+    },
+    "stage_hk_d1_input_canary": {
+      "result": "STAGE_HK_D1_INPUT_VALIDATED",
+      "artifact_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261012/hkconnect_d1_top100.json",
+      "artifact_sha256": "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d"
+    }
+  },
+  "CANNOT_CONFIRM": [
+    "The shared run artifact.csv, manifest, and receipt referenced by the materialized HK pool were not present under the configured V35_SHARED_DATA_ROOT. The V35 materialized pool trio itself verifies, and the actual stage input validator passes, but the original shared run files cannot be independently re-read from that root.",
+    "No HK selection stage run was executed; the verified result is the stage's exact HK D1 input validation only."
+  ],
+  "review": "PASS / REVIEWED / BEHAVIOR_VERIFIED for frozen scope",
+  "api_status": "API_VERIFIED",
+  "ui_status": "UI_VERIFIED",
+  "runtime_release": "preselection-date-root-20261011-r1",
+  "natural_status": "NATURAL_SLOT_UNVERIFIED",
+  "independent_receipt_sha256": "d1584bb62c1e29827fc09f65b3e751bd6ceb3c1aed3c9ec7531e266011abf540",
+  "regression_monitor": "Existing automation-3 updated with date-catalog/pool-root/HK binding checks; next day 09:25,09:40,09:55, no new scheduler service"
+}

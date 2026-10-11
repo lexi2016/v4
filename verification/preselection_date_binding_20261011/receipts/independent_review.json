@@ -1,0 +1,102 @@
+{
+  "schema_version": "v4_preselection_date_binding_independent_review.v1",
+  "reviewed_at_utc": "2026-10-11T07:30:08Z",
+  "reviewer_identity": "/root/preselection_date_review",
+  "review_status": "PASS_CANDIDATE_SCOPE",
+  "behavior_status": "BEHAVIOR_VERIFIED_CANDIDATE_SCOPE",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "frozen_scope": {
+    "baseline_api_app": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_CHAIN_MAC_20261011_R1/integrated_release/manager-us-mapping-daily-chain-20261011-r1/app",
+    "baseline_files": {
+      "apps/api/v35_api/app.py": "b7f0367216acf369ca18f0b408023b11cc3eedf87db79d20af01b7d313efd75e",
+      "domains/preselection.py": "8a21fa2caf27e06ea4b6526ff0dd7db99390dda007936aaf99ef8772e6e4305a"
+    },
+    "candidate_files": {
+      "apps/api/v35_api/app.py": "ba40457e4fc6d4f60155c55e4202ac82e870467598d49ea36bcbc2aab5c70eb3",
+      "domains/preselection.py": "5b397b2dd3be4f5399c237cf315af67b54fdb60e6a4ecb665237e9329254793b",
+      "tests/test_preselection_date_catalog_split_roots.py": "a3ed480d967b9cfcb74578ea66ca27d4ae911788a310276dd99d5a6d1d579173"
+    },
+    "diff_summary": [
+      "apps/api/v35_api/app.py passes the configured preselection pool source root into date_catalog while preserving None for the unconfigured single-root path.",
+      "domains/preselection.py allows absent optional HK top-level metadata only for canonical v3_5.preselection_pool.v1 artifacts, preserves explicit false/mismatch as CANNOT_CONFIRM, and leaves eligibility null."
+    ]
+  },
+  "reviewed_artifacts": {
+    "SCOPE.json": "eff8e6af80aca9162d885966f1b4ae95f643ce2091cf0a196c5f124bd51fe024",
+    "RESULT.json": "54b5d64e2c50d9229c50c033103c921b770065997a26b2372490765b02acb62c",
+    "HANDOFF.md": "47b5aa1d483cec88e0717d33f045aab0c1ab88de704d18fcdcaf69443eb587f0",
+    "receipts/verification.json": "2223d3a673bef91636f6eb0594d7acdf54018d19254dd89cdfb3fc6d582d7a76"
+  },
+  "verification": {
+    "focused_regression": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<candidate>/upstreams:<candidate> <v3.5-mac-python> -m pytest -q -p no:cacheprovider --tb=short --basetemp=/tmp/v4-preselection-independent-review-20261011 tests/test_preselection_date_catalog_split_roots.py tests/test_preselection_slice.py tests/test_date_api_contract.py -k 'not weekends_and_20260619_are_excluded_and_partial_rows_stay_partial'",
+      "result": "27 passed, 1 deselected",
+      "coverage": [
+        "split configured source root and future 20261012 target",
+        "selected_date remains 20261012",
+        "bad SHA and wrong-date physical trios excluded",
+        "duplicate dates across roots deduplicated",
+        "same-root single-root date API behavior",
+        "HK optional metadata projection and explicit false eligibility"
+      ],
+      "excluded_test": "test_weekends_and_20260619_are_excluded_and_partial_rows_stay_partial",
+      "exclusion_basis": "RESULT.json records the same historical-date assertion failure against the unchanged specified baseline; this reviewer reused that evidence and did not expand the frozen scope."
+    },
+    "candidate_read_only_api_canary": {
+      "roots": {
+        "api_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "stage_selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection"
+      },
+      "date_list": {
+        "future_target_dates": [
+          "20261012"
+        ],
+        "date_occurrences": 1,
+        "requested_date": "20261012",
+        "selected_date": "20261012"
+      },
+      "preselection": {
+        "data_status": "PARTIAL_WITH_ROWS",
+        "a_all_pool_row_count": 371,
+        "market_totals": {
+          "A": 371,
+          "HK": 100
+        },
+        "hk_stage_reuse_status": "REQUIRES_STAGE_CONTRACT_VALIDATION",
+        "hk_stage_selection_eligible": null
+      },
+      "access": "candidate app GET requests only; no pool, pointer, scheduler, selection, or business-data write"
+    },
+    "actual_stage_root_and_validator": {
+      "stage_launchagent": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+      "stage_launchagent_sha256": "37cff63b6034ec0e1e65c2ef834b891e452e493d8dd96828f525ab176e31802a",
+      "stage_config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-0920-auto-stage-20261011-r1/app/stage_center_tick_config.json",
+      "stage_config_sha256": "8fc8b31ccd12ed3c9af792da33a7feefc9320f9bb0c8f9e01cbb34339dfb183f",
+      "stage_config_roots": {
+        "hk_d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection"
+      },
+      "api_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "api_plist_sha256": "8c27d44a9ddc23c0830b35a1bbaaf4e34721b86a2d749ce4c1d7aa60d723a081",
+      "stage_api_root_alignment": "API and Stage use the same V3.5 preselection source root; API stage selection root equals Stage selection_root.",
+      "direct_read_only_call": {
+        "function": "stage_center.runner._validate_hk_d1",
+        "arguments": "hk_d1_root from the loaded stage config, trade_date=20261012, preselection_source_root from the loaded stage config",
+        "result": "STAGE_HK_D1_INPUT_VALIDATED",
+        "artifact_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261012/hkconnect_d1_top100.json",
+        "artifact_sha256": "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d"
+      }
+    }
+  },
+  "cannot_confirm": [
+    "Candidate changes are not integrated into the active 8873 API release; active API/browser date retention and UI row display remain CANNOT_CONFIRM for the controller's integration check.",
+    "The original shared artifact.csv path is absent under the configured V4 shared-data root; independent revalidation of the upstream run manifest and receipt remains CANNOT_CONFIRM.",
+    "No HK selection stage run was executed; the verified behavior is exact HK D1 input validation only."
+  ]
+}
