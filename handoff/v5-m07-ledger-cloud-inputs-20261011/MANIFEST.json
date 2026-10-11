@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "module": "M07 ledger",
+  "candidate": "R2",
+  "scope": "Independent isolated cloud ledger tests only; not whole-M07 acceptance or deployment.",
+  "repository": "lexi2016/v4",
+  "branch": "v5/module-chat-handoffs-20261010",
+  "publication_parent_commit": "62deec72c684e4cea25d7cedd526e09ead2304ba",
+  "fixed_test_dependencies_commit": "f7cb731c384ee6890a87d16c19a5b5a621779477",
+  "r2_dynamic_tests_at_publication": "NOT_RUN",
+  "ledger_after_sha256": "d3ba8dc00de2525ccfc2756193be1338bb800c796c2302f6c97f525a76b5748e",
+  "files": [
+    {
+      "filename": "M07_run_ledger_lane_patch_R2_20261011.zip",
+      "bytes": 7185,
+      "sha256": "10cce79f5297fb2e1db955aada7efc01a0e79008603994886d5c9a4c29f588ba",
+      "git_blob_sha1": "cfe9832dc055e22f9aa7b158f7b10e7060845487"
+    },
+    {
+      "filename": "M07_LEDGER_R2_CLOUD_ACCEPTANCE_INPUTS_20261011.zip",
+      "bytes": 38378,
+      "sha256": "02efc552ac2bc43d101cbcb419648adbb06eb050e0eb7be5c1ab4fd04048031f",
+      "git_blob_sha1": "a0b2d622c37146f89ca713f0fa4d05cdfe7f7701"
+    }
+  ],
+  "known_test_gap": "The new test named test_all_allowed_lanes_real_claim_finish_read_reuse calls identity_key only. Independent acceptance must exercise actual claim/finish/read/reuse.",
+  "patch_path_strip": "Use default -p1 for the a/b headers; author -p0 instruction is incorrect."
+}
