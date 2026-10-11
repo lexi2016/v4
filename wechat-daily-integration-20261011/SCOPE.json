@@ -1,0 +1,37 @@
+{
+  "goal": "Integrate independently accepted WeChat fixes; close one existing October 8 article default workflow through Drive mirror and V4 archive API/UI; sync changes to GitHub",
+  "writer": "/root/wechat_daily_integration_writer",
+  "reviewer": "independent Luna Max Reviewer after delta handoff",
+  "allowed_paths": [
+    "scripts/wechat_article_fetch.py",
+    "scripts/wechat_pipeline_runner.py",
+    "scripts/wechat_macos_ocr.py",
+    "scripts/wechat_yesterday_performance.py",
+    "tests/corresponding fetch and appendix tests",
+    "WORKFLOW_公众号链接固定执行方案.md",
+    "evidence/issue31_daily_integration_20261011",
+    "articles/20261008_ZfZPPo1xSsfROmFZbaqSuw/new immutable return version",
+    "runs/20261011_daily_acceptance_ZfZ/new isolated historical run copy"
+  ],
+  "forbidden": [
+    "old run/return/evidence bytes",
+    "unrelated user edits",
+    "shared market producers/panels",
+    "latest/canonical pools",
+    "scheduler/services",
+    "BUY gate or trading"
+  ],
+  "pass_signal": [
+    "live code SHA bound to independently accepted candidate",
+    "one live daily-runner recovery through cached OCR/package",
+    "new normalized return imported with exact frozen binding",
+    "Drive all-package-member byte roundtrip and return mirror",
+    "exact article-date V4 reference/API/UI report readback",
+    "GitHub remote commit and file hashes verified"
+  ],
+  "stop_rule": "Stop same-input repeat tests after PASS; fix only current reproducible blockers; preserve true market gaps and unreadable source claims; no new source or scope without evidence",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

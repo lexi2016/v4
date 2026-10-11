@@ -1,0 +1,280 @@
+{
+  "schema_version": "issue31-daily-integration-independent-review-v1",
+  "reviewer_identity": "/root/wechat_daily_integration_reviewer",
+  "created_at_utc": "2026-10-11T14:29:08Z",
+  "scope": {
+    "goal": "Independent review of frozen WeChat daily integration, bounded runner/cache canary, lossless return normalization, Drive member/return byte readbacks, and exact 20261008 V4 Stage A API/UI archive.",
+    "writer": "/root/wechat_daily_integration_writer",
+    "reviewer": "/root/wechat_daily_integration_reviewer",
+    "write_scope": "Reviewer findings and receipt under E/reviewer only.",
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "verdict": {
+    "reviewed": "PASS",
+    "tested": "PASS_SCOPED_INDEPENDENT_CANARY_WITH_PRIOR_EXACT_HASH_TESTS_REUSED",
+    "behavior_verified": "PASS_FROZEN_LOCAL_ARCHIVE_TARGET",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0
+  },
+  "integrated_source_bindings": [
+    {
+      "path": "scripts/wechat_article_fetch.py",
+      "sha256": "192564aea7421a9af42b0116c32708848765cbb433c8692351f0db75098b860f",
+      "reviewed_candidate_path": "evidence/issue31_r3_mac_20261011/working/wechat/scripts/wechat_article_fetch.py",
+      "exact_match": true
+    },
+    {
+      "path": "scripts/wechat_pipeline_runner.py",
+      "sha256": "46d8761e44a250642cbcd7a513604fad1148d09726010d6f0eab5f269f256bcd",
+      "reviewed_candidate_path": "evidence/issue31_r3_mac_20261011/working/wechat/scripts/wechat_pipeline_runner.py",
+      "exact_match": true
+    },
+    {
+      "path": "tests/test_wechat_article_fetch_recovery.py",
+      "sha256": "3c2316ff77f291c91bb2d04efe00b3f0304c9c8cdf461d731da48b3435d83e92",
+      "reviewed_candidate_path": "evidence/issue31_r3_mac_20261011/working/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "exact_match": true
+    },
+    {
+      "path": "scripts/wechat_yesterday_performance.py",
+      "sha256": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c",
+      "reviewed_candidate_path": "evidence/issue31_r2_mac_20261009/reviewer/candidate/scripts/wechat_yesterday_performance.py",
+      "exact_match": true
+    },
+    {
+      "path": "tests/test_prior_mentions_performance_appendix.py",
+      "sha256": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588",
+      "reviewed_candidate_path": "evidence/issue31_r2_mac_20261009/reviewer/candidate/tests/test_prior_mentions_performance_appendix.py",
+      "exact_match": true
+    }
+  ],
+  "accepted_candidate_reviews": {
+    "R3": {
+      "verdict": "PASS",
+      "actual_diff_sha256": "739df58d9cfb1213bfa7ff879ecd4ec660c1778acb3d85ad1a92ce619ecc1f12",
+      "receipt_sha256": "bfd9589dc23bd9cdf74ad35eceee4df80b48e50211271b6db5c6df217c21dd09",
+      "focused_regressions": {
+        "result": "PASS",
+        "passed": 8,
+        "subtests_passed": 3,
+        "receipt": "reviewer/focused_regression_tests.json"
+      },
+      "full_fetch_suite": {
+        "result": "PASS",
+        "passed": 25,
+        "subtests_passed": 3,
+        "receipt": "reviewer/full_fetch_recovery_suite.json"
+      }
+    },
+    "R2_appendix": {
+      "appendix_files_match_reviewed_candidate": true,
+      "focused_test_result": "PASS",
+      "focused_test_count": 3,
+      "full_R2_verdict": "FAIL",
+      "superseded_R2_P1": {
+        "id": "R2-MAC-001",
+        "finding": "Text BODY bypasses image-manifest binding",
+        "current_fetch_uses_R3_candidate": true
+      }
+    },
+    "actual_diff_sha256": {
+      "R3": "739df58d9cfb1213bfa7ff879ecd4ec660c1778acb3d85ad1a92ce619ecc1f12",
+      "R2": "d1de7a1bb64ed0756ee4dd9b35906a5f8c5ffa22af9dd939811b1d87441806e3"
+    }
+  },
+  "independent_integration_check": {
+    "runner_command": "python scripts/wechat_pipeline_runner.py --run-dir runs/20261011_daily_acceptance_ZfZPPo1xSsfROmFZbaqSuw/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw --stage prepare_ocr",
+    "result": "STAGES_DONE",
+    "images_prepared": 50,
+    "sliced_images": 0,
+    "scope_note": "prepare_ocr only; no fresh Vision/OCR call. Adoption/default fetch reuse evidence is retained in the writer receipt/logs; exact current code hashes match the accepted R3 candidate.",
+    "inherited_ocr_reuse_receipt": {
+      "status": "REUSED_PRIOR_FULL_OCR",
+      "image_count": 50,
+      "image_sha_to_ocr_sha_matches": 50,
+      "ocr_was_rerun": false,
+      "receipt_target_run": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/runs/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+      "sha256": "9c14a7bea8a576d6663e96e320369ccea65543992635d6c1d8ab0dc918acbc4b",
+      "target_scope_note": "Inherited historical-run receipt; not used alone to claim a fresh ocr_full invocation."
+    },
+    "package_identity": {
+      "package_id": "wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1",
+      "input_digest": "c93e458747fe18fa33373785d79a9b026c15792d02fa9263db7b6f2bda48abc2",
+      "trusted_package_sha256": "c8a0dcfb548012bc8feb4e818e0cad7eead7de5a564a0ecaa85d64ce3763956f",
+      "package_sha256_status": "VERIFIED"
+    }
+  },
+  "return_normalization": {
+    "missing_inputs_entries": 4,
+    "lossless_json_object_roundtrip": true,
+    "summary_differences": [
+      "/artifact_sha256/report.md",
+      "/delivery_contract/new_immutable_version",
+      "/return_id"
+    ],
+    "report_identity_only": true,
+    "old_return_id_occurrences_replaced": 2,
+    "csv_byte_equal": {
+      "coverage.csv": true,
+      "mentions.csv": true,
+      "unmapped.csv": true
+    },
+    "research_content_regenerated": false,
+    "input_digest_unchanged": true,
+    "import_status": "REPORT_AND_STRUCTURED_ARCHIVED",
+    "structure_status": "COMPLETE",
+    "event_dispositions_contract_status": "PASS"
+  },
+  "drive_readback": {
+    "package_members_verified": 56,
+    "image_members_verified": 50,
+    "small_zip_parts": 5,
+    "all_part_raw_bytes_hash_match": true,
+    "single_full_zip_raw_byte_status": "CANNOT_CONFIRM",
+    "return_files_verified": 5,
+    "all_return_raw_bytes_hash_match": true,
+    "start_here_raw_bytes_match": true,
+    "start_here_sha256": "98fe811bf32db0048d6886873f1ba8bd1ac9ec16e15dbbbd2757e10e286c78bf",
+    "appendix_files_raw_bytes_verified": 3
+  },
+  "v4_archive": {
+    "reference_status": "V4_STAGE_A_REFERENCE_INDEXED",
+    "manifest_registered": true,
+    "article_date": "20261008",
+    "date_basis": "article",
+    "api_list_http_status": 200,
+    "api_detail_http_status": 200,
+    "record_id": "e9e06355df5e0bd624b746401019352d22889375d1ef9f68f4cb915acb376641",
+    "source_status": "BOUND_MANIFEST_REGISTERED",
+    "package_sha256_status": "VERIFIED",
+    "report_status": "READABLE",
+    "report_sha256": "7c48ec72bbbcd07729b3aa4c40d74595bc1239fd9cc89e0f7dee60110e639aa4",
+    "report_bytes_equal_local": true,
+    "ui_status": "V4_STAGE_A_UI_VERIFIED",
+    "ui_report_readable": true,
+    "api_artifact_status_counts": {
+      "HASH_MATCH": 5,
+      "NOT_RECHECKED": 54
+    },
+    "semantic_research_accepted": false,
+    "available_at_established": false
+  },
+  "prior_performance_appendix": {
+    "status": "GENERATED_CANNOT_CONFIRM",
+    "rows": 108,
+    "status_counts": {
+      "CANNOT_CONFIRM": 108
+    },
+    "market_data_gaps_disclosed": true
+  },
+  "remote_git_evidence": {
+    "remote_blob_objects_checked": 30,
+    "remote_git_blob_sha_matches": 30,
+    "final_tree_branch_commit": "CANNOT_CONFIRM_PARENT_FINAL_STEP"
+  },
+  "unresolved_cannot_confirm": [
+    "Drive raw-byte readback of the single original ZIP container; all 56 member bytes are verified through the five-part route.",
+    "API marks 54 source artifacts NOT_RECHECKED; this review does not upgrade those states.",
+    "Semantic research acceptance, complete original-image review, and natural-period automation are not established.",
+    "The integration canary did not invoke ocr_full; cache-hit behavior is reused from the independently accepted exact-hash R3 review.",
+    "Final remote GitHub tree/branch commit awaits the parent final step."
+  ],
+  "evidence_bindings": [
+    {
+      "path": "evidence/issue31_daily_integration_20261011/WRITER_RECEIPT.json",
+      "sha256": "929d19d851d576d704b444696f5c6347994ae11458ccb2aff734190ab74b3920"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/INTEGRATION_FILE_HASHES.json",
+      "sha256": "97a90a13a7e5b338f18663d9064855b4c8ef7ab7d2e85ded0a000db736d8a62d"
+    },
+    {
+      "path": "evidence/issue31_r3_mac_20261011/github/actual_diff.patch",
+      "sha256": "739df58d9cfb1213bfa7ff879ecd4ec660c1778acb3d85ad1a92ce619ecc1f12"
+    },
+    {
+      "path": "evidence/issue31_r3_mac_20261011/reviewer/REVIEW_RECEIPT.json",
+      "sha256": "bfd9589dc23bd9cdf74ad35eceee4df80b48e50211271b6db5c6df217c21dd09"
+    },
+    {
+      "path": "evidence/issue31_r2_mac_20261009/ACTUAL_DIFF.patch",
+      "sha256": "d1de7a1bb64ed0756ee4dd9b35906a5f8c5ffa22af9dd939811b1d87441806e3"
+    },
+    {
+      "path": "evidence/issue31_r2_mac_20261009/REVIEW_RECEIPT.json",
+      "sha256": "c64142b70cd04d5319921087a42d97f4a2eb3708413cce688caca65fb4661303"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/reviewer/runner_canary/live_prepare_ocr.log",
+      "sha256": "f59b6a3bcea251acb576d81732f426602a994c0b17176ea64b3a4f638a6acce3"
+    },
+    {
+      "path": "runs/20261011_daily_acceptance_ZfZPPo1xSsfROmFZbaqSuw/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw/OCR_REUSE_RECEIPT.json",
+      "sha256": "9c14a7bea8a576d6663e96e320369ccea65543992635d6c1d8ab0dc918acbc4b"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/LOCAL_FORMAT_NORMALIZATION_RECEIPT.json",
+      "sha256": "4a8123bdf10a28fc1797a321d92befdd76d12f6de7025c9ac8dd1c31793eacd8"
+    },
+    {
+      "path": "articles/20261008_ZfZPPo1xSsfROmFZbaqSuw/return_chat_20261008T163007Z_64a9b86a_local_format_20261011/IMPORT_RECEIPT.json",
+      "sha256": "cbdcad11c438fe7e79842380aa3cbaa1a996236f835a95fbb90673d6d6a4d169"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/drive_transport/ROUNDTRIP_RECEIPT.json",
+      "sha256": "c92d1a3cd8117ebe9013640b4b864d9a196c6b64f1d7904b2967c46ba58ca68d"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/DRIVE_RETURN_MIRROR_RECEIPT.json",
+      "sha256": "018110b715f799c42ecaf72633c8370c48a18eded7f9213ff79e16bf3dce4dc6"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/DRIVE_START_HERE_RECEIPT.json",
+      "sha256": "0242a54541215f671a4ef1e9cc42b0d806bf302106f6a7980d8cbc2a5e47a3dd"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/DRIVE_APPENDIX_MIRROR_RECEIPT.json",
+      "sha256": "4b566829c664ceec28065b21f4782fbbd9fae4ee782561fb2a87ee1889af34b8"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/V4_FULL_SOURCE_INDEX_RECEIPT.json",
+      "sha256": "d0ef2861b87dcc5ced4d5e7acdfa1602e77c16190015826fc7a7cf1a6125947c"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/V4_API_VERIFICATION_RECEIPT.json",
+      "sha256": "973309a8c8fc754dbfb152eee959883e4d99cf337e2112748c0028c385dd8040"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/V4_UI_VERIFICATION_RECEIPT.json",
+      "sha256": "5af46e2c7b3fe6ca41db6c5430418e4c1b7aad8a7b8a9d16be2ef3f61bb7af2a"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/reviewer/api_live_exact_readback.json",
+      "sha256": "856a28d5343794fcaf945fecf5344dfd115c54ee91f1eb50dbac8fa42766a58d"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/V4_UI_READBACK.txt",
+      "sha256": "c1b43eb436e564782da650509c86610c151a783694b06e8a9aba16dfbb33d79c"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/V4_UI_REPORT.png",
+      "sha256": "8c4819d3ddb46e71dd22a248449b4cdc02f8c3d86c3015f6ebebad18a2f31c48"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/appendix_current/PERFORMANCE_APPENDIX_RECEIPT.json",
+      "sha256": "ab862739c086e1c6167e77ce7dd775c9ecbb1bead21fe0e06f44dd3b5cc2a1aa"
+    },
+    {
+      "path": "evidence/issue31_daily_integration_20261011/GITHUB_OBJECT_VERIFICATION.json",
+      "sha256": "c60e6a9b33f1a86ef5c2c0c06a5ebafb7bf96a14052233b622409f88f690a5a4"
+    }
+  ],
+  "findings_document": {
+    "path": "evidence/issue31_daily_integration_20261011/reviewer/REVIEW_FINDINGS.md",
+    "sha256": "2d61e4ee35ffea974b1f6438485e8695e6f16796e2db5a3a666daaff7405cd1c"
+  }
+}

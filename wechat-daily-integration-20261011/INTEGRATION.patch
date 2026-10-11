@@ -1,0 +1,3265 @@
+--- before/scripts/wechat_article_fetch.py
++++ after/scripts/wechat_article_fetch.py
+@@ -8,22 +8,93 @@
+ import argparse
+ import csv
+ import hashlib
++import io
+ import json
++import os
+ import re
+ import runpy
+ import sys
++import tempfile
++import uuid
+ from datetime import datetime, timedelta, timezone
+ from pathlib import Path
+ from pathlib import PureWindowsPath
+ from urllib.parse import urlsplit
++import zipfile
+ 
+ sys.path.insert(0, str(Path(__file__).resolve().parent))
+-from wechat_common import normalize_date, normalize_title, safe_run_path, write_json, _reject_symlink_components  # noqa: E402
++from wechat_common import (
++    _ArticleBodyTextParser, _reject_symlink_components, normalize_date, normalize_title,
++    safe_run_path, write_json,
++)  # noqa: E402
+ 
+ 
+ WECHAT_HOST = "mp.weixin.qq.com"
+ _TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{1,256}$")
+ _CN_TZ = timezone(timedelta(hours=8))
++_PREPARE_MUTABLE_MANIFEST_FIELDS = frozenset({
++    "local_path", "download_status", "image_size", "ocr_text_length",
++})
++_LEGACY_PREPARE_EXTENSION_FIELDS = frozenset({
++    "download_status", "image_size", "ocr_text_length",
++})
++_LEGACY_SUMMARY_PATHS = {
++    "html_path": "wechat_article_raw.html",
++    "image_manifest_path": "wechat_article_image_manifest.csv",
++    "ocr_text_path": "wechat_article_ocr_text.txt",
++    "image_checkpoint_path": "wechat_article_image_checkpoint.json",
++}
++_ADOPTION_EVIDENCE_ROOT = Path("evidence/wechat_article_fetch_adoptions")
++
++
++def _collector_image_contract() -> dict:
++    """Load the bound collector's parser so adapter validation cannot drift."""
++    bundled = Path(__file__).resolve().parent.parent / "external" / "wechat_article_intake.py"
++    candidates = [bundled]
++    if not bundled.is_file():
++        candidates.append(_intake_script())
++    for candidate in candidates:
++        if candidate.is_file() and not candidate.is_symlink():
++            namespace = runpy.run_path(str(candidate.resolve()), run_name="_issue31_collector_contract")
++            if callable(namespace.get("extract_image_urls")):
++                return namespace
++            raise ValueError("bound WeChat collector lacks extract_image_urls")
++    raise FileNotFoundError("bound WeChat collector source is unavailable")
++
++
++def _validate_article_body(html_bytes: bytes, manifest_rows: list[dict[str, str]]) -> None:
++    """Bind every BODY to the collector's ordered, unique image projection."""
++    try:
++        html_text = html_bytes.decode("utf-8-sig", errors="replace")
++        parser = _ArticleBodyTextParser()
++        parser.feed(html_text)
++        parser.close()
++    except (TypeError, ValueError) as exc:
++        raise ValueError("raw article HTML cannot be parsed") from exc
++    if not parser._found_root:
++        raise ValueError("raw article HTML has no js_content BODY block")
++    try:
++        observed = _collector_image_contract()["extract_image_urls"](html_text)
++    except (OSError, RuntimeError, TypeError, ValueError, KeyError) as exc:
++        raise ValueError("real collector image URL projection could not be verified") from exc
++    expected = [str(row.get("url") or "") for row in manifest_rows]
++    if observed != expected:
++        raise ValueError("js_content BODY collector image projection does not exactly match the ordered manifest")
++    if not parser.text().strip() and not observed:
++        raise ValueError("empty-text BODY has no collector images")
++
++
++def _image_source_projection_sha256(fields: list[str], rows: list[dict[str, str]]) -> str:
++    """Bind stable collector source columns while allowing prepare's known edits."""
++    stable_fields = [field for field in fields if field not in _PREPARE_MUTABLE_MANIFEST_FIELDS]
++    if not {"idx", "url"}.issubset(stable_fields) or not ("sha256" in stable_fields or "image_sha256" in stable_fields):
++        raise ValueError("image manifest lacks stable source-projection fields")
++    projection = {
++        "fields": stable_fields,
++        "rows": [{field: str(row.get(field) or "") for field in stable_fields} for row in rows],
++    }
++    payload = json.dumps(projection, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
++    return hashlib.sha256(payload).hexdigest()
+ 
+ 
+ def _intake_script() -> Path:
+@@ -163,7 +234,7 @@
+     *,
+     allow_saved_html: bool = False,
+ ) -> dict[str, str]:
+-    """Require non-blocked, non-partial content and exact article identity."""
++    """Require a verified BODY identity; OCR completeness is a separate stage."""
+ 
+     if not isinstance(summary, dict):
+         raise ValueError("intake summary must be an object")
+@@ -185,10 +256,15 @@
+     if "ERROR" in label or "REJECTED" in label:
+         raise ValueError("intake result is errored or rejected")
+     if "PARTIAL" in label:
+-        # The fetch stage deliberately skips OCR.  Only the collector's
+-        # explicit NEED_OCR label is resumable in that state; saved-HTML or
+-        # any other partial result must not be promoted to an identity PASS.
+-        if not (label.endswith("NEED_OCR") and _first(summary, "ocr_status").upper() == "OCR_SKIPPED"):
++        # Fetch may be complete while an OCR-only stage failed or was skipped.
++        # That is resumable only when the collector explicitly labels the
++        # missing phase and supplies an OCR status; transport/body failures
++        # remain rejected below and by the artifact checks.
++        ocr_status = _first(summary, "ocr_status").upper()
++        ocr_incomplete = ocr_status.startswith("OCR_") and ocr_status not in {
++            "OCR_OK", "OCR_NOT_APPLICABLE",
++        }
++        if not (label.endswith("NEED_OCR") and ocr_incomplete):
+             raise ValueError("intake result is partial")
+     if _first(summary, "fetch_error"):
+         raise ValueError("intake transport is partial or errored")
+@@ -201,7 +277,7 @@
+         raise ValueError("intake requires HTTP 200")
+     if summary.get("article_body_found") is not True:
+         raise ValueError("article body block is missing")
+-    _positive_int(summary.get("text_preview_length"), "text_preview_length")
++    _nonnegative_int(summary.get("text_preview_length"), "text_preview_length")
+     image_count = _nonnegative_int(summary.get("image_count"), "image_count")
+     downloaded = _nonnegative_int(summary.get("downloaded_image_count"), "downloaded_image_count")
+     if downloaded != image_count:
+@@ -424,52 +500,1304 @@
+     return 0
+ 
+ 
++_FETCH_SOURCE_FILES = (
++    "wechat_article_raw.html",
++    "wechat_article_image_manifest.csv",
++    "wechat_article_image_checkpoint.json",
++    "wechat_article_intake_summary.json",
++)
++_DERIVED_OCR_FILES = (
++    "ocr_slice_manifest.json",
++    "windows_ocr_checkpoint.json",
++    "windows_ocr_results.json",
++    "windows_ocr_canary.json",
++    "wechat_article_ocr_summary.json",
++    "wechat_article_ocr_text.txt",
++)
++_CHECKPOINT_PATH_KEYS = frozenset({"local_path", "path", "image_path", "cached_image_path"})
++_PUBLICATION_TEMP_PREFIX = ".wechat_article_fetch_publish."
++
++
++def _attempts_root(run_dir: Path) -> Path:
++    return run_dir / "evidence" / "wechat_article_fetch_attempts"
++
++
++def _write_temporary_payload(path: Path, descriptor: int, payload: bytes) -> None:
++    """Write and fsync a complete private temp file before it becomes visible."""
++    with os.fdopen(descriptor, "wb") as handle:
++        handle.write(payload)
++        handle.flush()
++        os.fsync(handle.fileno())
++
++
++def _write_bytes_create_only(path: Path, payload: bytes, *, label: str,
++                             temp_dir: Path | None = None) -> None:
++    """Atomically publish a complete file without replacing an existing artifact."""
++    _reject_symlink_components(path, label)
++    path.parent.mkdir(parents=True, exist_ok=True)
++    temporary_root = Path(temp_dir) if temp_dir is not None else path.parent
++    _reject_symlink_components(temporary_root, f"temporary directory for {label}")
++    temporary_root.mkdir(parents=True, exist_ok=True)
++    if temporary_root.stat().st_dev != path.parent.stat().st_dev:
++        raise ValueError(f"temporary directory is on a different filesystem for {label}")
++    descriptor, temporary = tempfile.mkstemp(prefix=_PUBLICATION_TEMP_PREFIX, dir=str(temporary_root))
++    temporary_path = Path(temporary)
++    try:
++        _write_temporary_payload(temporary_path, descriptor, payload)
++        _reject_symlink_components(path, label)
++        try:
++            # Hard-link creation is atomic and fails if the destination exists.
++            # The destination can never expose a partially written payload.
++            os.link(temporary_path, path)
++        except FileExistsError:
++            if path.is_symlink() or not path.is_file() or path.read_bytes() != payload:
++                raise ValueError(f"refusing to replace existing {label}: {path}")
++        else:
++            if os.name != "nt":
++                directory_fd = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
++                try:
++                    os.fsync(directory_fd)
++                finally:
++                    os.close(directory_fd)
++    finally:
++        temporary_path.unlink(missing_ok=True)
++
++
++def _cleanup_publication_temps(attempt_dir: Path) -> None:
++    """Remove only adapter-owned leftover temp files after an interrupted promotion."""
++    if attempt_dir.is_symlink() or not attempt_dir.is_dir():
++        raise ValueError("fetch attempt directory is invalid during publication recovery")
++    for path in attempt_dir.iterdir():
++        if not path.name.startswith(_PUBLICATION_TEMP_PREFIX):
++            continue
++        if path.is_symlink() or not path.is_file():
++            raise ValueError(f"refusing to remove non-file publication temp: {path}")
++        path.unlink()
++
++
++def _write_attempt_event(attempt_dir: Path, name: str, value: dict) -> None:
++    payload = json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8-sig")
++    _write_bytes_create_only(attempt_dir / name, payload, label=f"fetch attempt event {name}")
++
++
++def _write_fetch_state(run_dir: Path, value: dict) -> None:
++    path = run_dir / "wechat_article_fetch_state.json"
++    _reject_symlink_components(path, "fetch state")
++    descriptor, temporary = tempfile.mkstemp(prefix=".wechat_article_fetch_state.", dir=str(run_dir))
++    temporary_path = Path(temporary)
++    try:
++        with os.fdopen(descriptor, "wb") as handle:
++            handle.write(json.dumps(value, ensure_ascii=False, indent=2).encode("utf-8-sig"))
++            handle.flush()
++            os.fsync(handle.fileno())
++        os.replace(temporary_path, path)
++    finally:
++        temporary_path.unlink(missing_ok=True)
++
++
++def _collector_args(raw_args: list[str], stage_dir: Path) -> list[str]:
++    """Change only the collector output root; keep its existing CLI contract."""
++    output = list(raw_args)
++    replaced = False
++    index = 0
++    while index < len(output):
++        token = output[index]
++        if token == "--out":
++            if index + 1 >= len(output):
++                raise ValueError("--out requires a value")
++            output[index + 1] = str(stage_dir)
++            replaced = True
++            index += 2
++            continue
++        if token.startswith("--out="):
++            output[index] = f"--out={stage_dir}"
++            replaced = True
++        index += 1
++    if not replaced:
++        raise ValueError("collector output option --out is missing")
++    return output
++
++
++def _resolve_attempt_file(stage_dir: Path, value: object, *, label: str) -> Path:
++    raw = str(value or "").strip()
++    if not raw:
++        raise ValueError(f"{label} path is missing")
++    candidate = Path(raw)
++    candidates: list[Path] = []
++    if candidate.is_absolute():
++        candidates.append(candidate)
++    else:
++        candidates.append(candidate)
++        parts = candidate.parts
++        if len(parts) >= 2 and parts[0] == "runs" and parts[1] == stage_dir.name:
++            candidates.insert(0, Path(*parts[2:]))
++        elif parts and parts[0] == stage_dir.name:
++            candidates.insert(0, Path(*parts[1:]))
++    last_error: Exception | None = None
++    for item in candidates:
++        try:
++            return safe_run_path(stage_dir, item, must_exist=True, label=label)
++        except (OSError, ValueError, FileNotFoundError) as exc:
++            last_error = exc
++    raise ValueError(f"{label} is missing or outside the isolated attempt") from last_error
++
++
++def _resolve_attempt_image(stage_dir: Path, value: object, *, label: str) -> Path:
++    image_root = stage_dir / "wechat_article_images"
++    path = _resolve_attempt_file(stage_dir, value, label=label)
++    if path.parent != image_root.resolve() or path.is_symlink() or not path.is_file():
++        raise ValueError(f"{label} is outside the isolated article image directory")
++    return path
++
++
++def _rewrite_checkpoint_paths(value: object, *, stage_dir: Path) -> object:
++    if isinstance(value, dict):
++        rewritten = {}
++        for key, child in value.items():
++            if key in _CHECKPOINT_PATH_KEYS and isinstance(child, str) and child.strip():
++                path = _resolve_attempt_image(stage_dir, child, label=f"checkpoint {key}")
++                rewritten[key] = path.relative_to(stage_dir.resolve()).as_posix()
++            else:
++                rewritten[key] = _rewrite_checkpoint_paths(child, stage_dir=stage_dir)
++        return rewritten
++    if isinstance(value, list):
++        return [_rewrite_checkpoint_paths(child, stage_dir=stage_dir) for child in value]
++    return value
++
++
++def _prepare_promotion(stage_dir: Path, requested_url: str, *, attempt_id: str = "",
++                       allow_saved_html: bool = False, expected_saved_html_sha256: str = "") -> dict:
++    """Validate an isolated collector result and create normalized root artifacts."""
++    summary_path = safe_run_path(
++        stage_dir, "wechat_article_intake_summary.json", must_exist=True, label="attempt intake summary"
++    )
++    try:
++        summary = json.loads(summary_path.read_text(encoding="utf-8-sig"))
++    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
++        raise ValueError("attempt intake summary is invalid") from exc
++    identity = validate_intake_identity(summary, requested_url, allow_saved_html=allow_saved_html)
++    html_path, manifest_path = _validate_intake_artifacts(stage_dir, summary)
++    html_bytes = html_path.read_bytes()
++    saved_html_sha256 = hashlib.sha256(html_bytes).hexdigest() if allow_saved_html else ""
++    if allow_saved_html and (not expected_saved_html_sha256 or saved_html_sha256 != expected_saved_html_sha256):
++        raise ValueError("saved HTML bytes do not match the explicit CLI input bound to this attempt")
++    with manifest_path.open("r", encoding="utf-8-sig", newline="") as handle:
++        reader = csv.DictReader(handle)
++        fields = list(reader.fieldnames or [])
++        rows = list(reader)
++    _validate_article_body(html_bytes, rows)
++    source_projection_sha256 = _image_source_projection_sha256(fields, rows)
++    image_paths: dict[str, bytes] = {}
++    seen_paths: set[Path] = set()
++    for expected_index, row in enumerate(rows, 1):
++        try:
++            index = int(str(row.get("idx") or ""))
++        except (TypeError, ValueError) as exc:
++            raise ValueError("attempt image manifest index is invalid") from exc
++        if index != expected_index:
++            raise ValueError("attempt image manifest order is not stable")
++        image_value = str(row.get("local_path") or "").strip()
++        if not image_value:
++            raise ValueError("attempt image manifest is missing local_path")
++        image_path = _resolve_attempt_image(stage_dir, image_value, label=f"attempt image {index}")
++        if image_path in seen_paths:
++            raise ValueError("attempt image manifest contains duplicate image paths")
++        seen_paths.add(image_path)
++        expected_sha = str(row.get("image_sha256") or row.get("sha256") or "").strip().lower()
++        actual_bytes = image_path.read_bytes()
++        actual_sha = hashlib.sha256(actual_bytes).hexdigest()
++        if not expected_sha or expected_sha != actual_sha:
++            raise ValueError(f"attempt image {index} SHA-256 does not match its manifest")
++        row["local_path"] = f"wechat_article_images/{image_path.name}"
++        image_paths[row["local_path"]] = actual_bytes
++
++    manifest_buffer = __import__("io").StringIO(newline="")
++    writer = csv.DictWriter(manifest_buffer, fieldnames=fields, extrasaction="raise", lineterminator="\n")
++    writer.writeheader()
++    writer.writerows(rows)
++    manifest_bytes = manifest_buffer.getvalue().encode("utf-8-sig")
++
++    checkpoint_path = stage_dir / "wechat_article_image_checkpoint.json"
++    checkpoint_bytes = None
++    if checkpoint_path.exists() or checkpoint_path.is_symlink():
++        if checkpoint_path.is_symlink() or not checkpoint_path.is_file():
++            raise ValueError("attempt image checkpoint is not a regular file")
++        try:
++            checkpoint = json.loads(checkpoint_path.read_text(encoding="utf-8-sig"))
++        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
++            raise ValueError("attempt image checkpoint is invalid JSON") from exc
++        checkpoint = _rewrite_checkpoint_paths(checkpoint, stage_dir=stage_dir)
++        checkpoint_bytes = json.dumps(checkpoint, ensure_ascii=False, indent=2).encode("utf-8-sig")
++
++    summary = dict(summary)
++    summary.update({
++        "html_path": "wechat_article_raw.html",
++        "image_manifest_path": "wechat_article_image_manifest.csv",
++        "identity_status": "PASS",
++        "identity_validation_version": "wechat-intake-body-identity-v1",
++        "identity_validation_mode": "SAVED_HTML" if allow_saved_html else "HTTP_FETCH",
++        "fetch_attempt_id": attempt_id,
++        "saved_html_sha256": saved_html_sha256 or None,
++        "identity_validation": {
++            "url": identity["url"], "title": identity["title"], "account": identity["account"],
++            "biz": identity["biz"], "article_date": identity["article_date"],
++            "content_hash": identity["content_hash"], "raw_html_sha256": hashlib.sha256(html_bytes).hexdigest(),
++            "saved_html_sha256": saved_html_sha256 or None,
++            "image_manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
++            "image_source_projection_sha256": source_projection_sha256,
++        },
++    })
++    summary_bytes = json.dumps(summary, ensure_ascii=False, indent=2).encode("utf-8-sig")
++    return {
++        "identity": identity,
++        "attempt_id": attempt_id,
++        "allow_saved_html": allow_saved_html,
++        "saved_html_sha256": saved_html_sha256,
++        "image_source_projection_sha256": source_projection_sha256,
++        "summary": summary,
++        "summary_bytes": summary_bytes,
++        "html_bytes": html_bytes,
++        "manifest_bytes": manifest_bytes,
++        "checkpoint_bytes": checkpoint_bytes,
++        "images": image_paths,
++        "artifact_sha256": {
++            "wechat_article_raw.html": hashlib.sha256(html_bytes).hexdigest(),
++            "wechat_article_image_manifest.csv": hashlib.sha256(manifest_bytes).hexdigest(),
++            **{name: hashlib.sha256(data).hexdigest() for name, data in image_paths.items()},
++            **({"wechat_article_image_checkpoint.json": hashlib.sha256(checkpoint_bytes).hexdigest()}
++               if checkpoint_bytes is not None else {}),
++        },
++    }
++
++
++def _promote_verified_attempt(run_dir: Path, attempt_dir: Path, stage_dir: Path,
++                              prepared: dict, requested_url: str, *, status_prefix: str = "SOURCE_CAPTURED") -> dict:
++    """Publish validated BODY/image files create-only; never touch OCR outputs."""
++    _cleanup_publication_temps(attempt_dir)
++    image_dir = run_dir / "wechat_article_images"
++    if image_dir.exists() or image_dir.is_symlink():
++        if image_dir.is_symlink() or not image_dir.is_dir():
++            raise ValueError("existing article image path is not a directory")
++        expected_names = {Path(name).name for name in prepared["images"]}
++        existing_names = {path.name for path in image_dir.iterdir()}
++        if existing_names - expected_names:
++            raise ValueError("existing article image directory contains unbound files")
++    else:
++        _reject_symlink_components(image_dir, "article image directory")
++        image_dir.mkdir(parents=True, exist_ok=True)
++    for relative_name, data in prepared["images"].items():
++        _write_bytes_create_only(
++            image_dir / Path(relative_name).name, data, label="article image", temp_dir=attempt_dir,
++        )
++    for name, data in (
++        ("wechat_article_raw.html", prepared["html_bytes"]),
++        ("wechat_article_image_manifest.csv", prepared["manifest_bytes"]),
++    ):
++        _write_bytes_create_only(run_dir / name, data, label=name, temp_dir=attempt_dir)
++    if prepared["checkpoint_bytes"] is not None:
++        _write_bytes_create_only(
++            run_dir / "wechat_article_image_checkpoint.json", prepared["checkpoint_bytes"],
++            label="article image checkpoint", temp_dir=attempt_dir,
++        )
++    # Summary is the final source commit marker and is never replaced.
++    _write_bytes_create_only(
++        run_dir / "wechat_article_intake_summary.json", prepared["summary_bytes"],
++        label="intake summary", temp_dir=attempt_dir,
++    )
++    identity = validate_intake_identity(
++        prepared["summary"], requested_url, allow_saved_html=prepared["allow_saved_html"]
++    )
++    _validate_intake_artifacts(run_dir, prepared["summary"])
++    state = _source_state(run_dir, prepared["summary"], identity, status_prefix, attempt_dir.name)
++    _write_attempt_event(attempt_dir, "PROMOTION_RECEIPT.json", {
++        "status": "PROMOTED", "attempt_id": attempt_dir.name, "identity": identity,
++        "artifact_sha256": prepared["artifact_sha256"],
++        "image_source_projection_sha256": prepared["image_source_projection_sha256"],
++        "allow_saved_html": prepared["allow_saved_html"],
++        "saved_html_sha256": prepared["saved_html_sha256"] or None,
++        "ocr_artifacts_modified": False,
++    })
++    _write_fetch_state(run_dir, state)
++    return state
++
++
++def _source_state(run_dir: Path, summary: dict, identity: dict, status_prefix: str,
++                  attempt_id: str | None) -> dict:
++    image_count = int(identity["image_count"])
++    ocr_summary_status = _validated_ocr_status(run_dir, summary, image_count)
++    ocr_ready = ocr_summary_status in {"OCR_OK", "OCR_NOT_APPLICABLE"}
++    if ocr_ready:
++        next_missing_stage = "package"
++        status = status_prefix + "_OCR_READY"
++    elif (run_dir / "ocr_slice_manifest.json").is_file():
++        next_missing_stage = "ocr_full"
++        status = status_prefix + "_NEED_OCR"
++    else:
++        next_missing_stage = "prepare_ocr"
++        status = status_prefix + "_NEED_OCR"
++    return {
++        "schema_version": "wechat-article-fetch-state-v1",
++        "status": status,
++        "source_status": "BODY_IDENTITY_VERIFIED",
++        "identity": identity,
++        "image_count": image_count,
++        "ocr_status_from_intake": str(summary.get("ocr_status") or "UNKNOWN"),
++        "ocr_summary_status": ocr_summary_status,
++        "next_missing_stage": next_missing_stage,
++        "attempt_id": attempt_id,
++        "collector_execution_status": "NOT_RERUN_SOURCE_REUSED" if status_prefix == "SOURCE_REUSED" else "SOURCE_CAPTURED",
++        "continuation_status": "RESUME_FROM_VERIFIED_SOURCE" if status_prefix == "SOURCE_REUSED" else "NEXT_STAGE_READY",
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++
++
++def _read_external_anchor(raw: str, label: str) -> tuple[Path, bytes]:
++    value = str(raw or "").strip()
++    if not value or "\x00" in value or ".." in Path(value).parts or ".." in PureWindowsPath(value).parts:
++        raise ValueError(f"unsafe {label} path")
++    path = Path(value).expanduser()
++    if path.is_symlink():
++        raise ValueError(f"{label} must not be a symlink")
++    _reject_symlink_components(path, label)
++    resolved = path.resolve(strict=True)
++    if resolved.is_symlink() or not resolved.is_file():
++        raise ValueError(f"{label} must be a regular file")
++    return resolved, resolved.read_bytes()
++
++
++def _read_strict_csv(data: bytes, label: str) -> tuple[list[str], list[dict[str, str]]]:
++    try:
++        stream = io.StringIO(data.decode("utf-8-sig"), newline="")
++        reader = csv.DictReader(stream)
++        fields = list(reader.fieldnames or [])
++        rows = list(reader)
++    except (UnicodeError, csv.Error) as exc:
++        raise ValueError(f"{label} is not valid UTF-8 CSV") from exc
++    if not fields or len(fields) != len(set(fields)) or any(not field for field in fields):
++        raise ValueError(f"{label} has an empty or duplicate column")
++    if any(None in row for row in rows):
++        raise ValueError(f"{label} has rows with extra columns")
++    return fields, rows
++
++
++def _relative_artifact_value(value: object, *, root: Path, expected: str,
++                             label: str, must_exist: bool) -> Path:
++    raw = str(value or "").strip()
++    if not raw or "\x00" in raw or ".." in Path(raw).parts or ".." in PureWindowsPath(raw).parts:
++        raise ValueError(f"{label} path is empty or unsafe")
++    candidate = Path(raw)
++    root_resolved = root.resolve(strict=False)
++    if candidate.is_absolute():
++        if candidate.resolve(strict=False) != (root_resolved / expected).resolve(strict=False):
++            raise ValueError(f"{label} path is not the exact run-root mapping")
++        relative = Path(expected)
++    else:
++        parts = list(candidate.parts)
++        if len(parts) >= 2 and parts[0] == "runs" and parts[1] == root.name:
++            parts = parts[2:]
++        elif parts and parts[0] == root.name:
++            parts = parts[1:]
++        relative = Path(*parts)
++        if relative.as_posix() != expected:
++            raise ValueError(f"{label} path is not the exact run-root mapping")
++    if must_exist:
++        resolved = safe_run_path(root, relative, must_exist=True, label=label)
++        if resolved.is_symlink() or not resolved.is_file():
++            raise ValueError(f"{label} is not a regular in-run file")
++    return relative
++
++
++def _legacy_summary_path_projection(source: dict, current: dict, *, source_root: Path,
++                                    run_dir: Path) -> dict[str, dict[str, str]]:
++    if set(source) != set(current):
++        raise ValueError("legacy/current source summary fields differ")
++    mappings: dict[str, dict[str, str]] = {}
++    projected = dict(source)
++    for key, relative in _LEGACY_SUMMARY_PATHS.items():
++        if key not in source:
++            continue
++        _relative_artifact_value(
++            source[key], root=source_root, expected=relative,
++            label=f"original summary {key}", must_exist=False,
++        )
++        _relative_artifact_value(
++            current[key], root=run_dir, expected=relative,
++            label=f"current summary {key}", must_exist=True,
++        )
++        projected[key] = current[key]
++        mappings[key] = {"source": str(source[key]), "current": str(current[key])}
++    if projected != current:
++        raise ValueError("legacy source summary differs beyond the four exact path fields")
++    for required in ("html_path", "image_manifest_path"):
++        if required not in mappings:
++            raise ValueError(f"legacy source summary is missing required path field {required}")
++    return mappings
++
++
++def _summary_published_at(summary: dict) -> str:
++    for key in ("published_at", "published_at_iso"):
++        value = str(summary.get(key) or "").strip()
++        if value:
++            return value
++    for key in ("raw_publish_time", "publish_time", "ct"):
++        value = str(summary.get(key) or "").strip()
++        if not value:
++            continue
++        try:
++            timestamp = int(value)
++            if timestamp > 0:
++                return datetime.fromtimestamp(timestamp, tz=_CN_TZ).isoformat()
++        except (TypeError, ValueError, OverflowError, OSError):
++            continue
++    return ""
++
++
++def _validate_legacy_source(run_dir: Path, requested_url: str, *, package_path: str,
++                            expected_package_sha256: str, package_id: str, input_digest: str,
++                            source_summary_path: str | Path, source_manifest_path: str | Path,
++                            source_run_root: str | Path | None = None,
++                            allow_prepare_extensions: bool = False) -> dict:
++    """Revalidate an explicitly frozen historical package without collector/network work."""
++    try:
++        import wechat_chat_handoff as handoff
++    except ImportError as exc:
++        raise ValueError("frozen package validator is unavailable") from exc
++
++    package_file, package_bytes = _read_external_anchor(package_path, "frozen package ZIP")
++    observed_package_sha = hashlib.sha256(package_bytes).hexdigest()
++    expected_package_sha = str(expected_package_sha256 or "").strip().lower()
++    if not re.fullmatch(r"[0-9a-f]{64}", expected_package_sha) or observed_package_sha != expected_package_sha:
++        raise ValueError("frozen package ZIP does not match the externally expected SHA-256")
++    package_identifier = str(package_id or "").strip()
++    expected_input_digest = str(input_digest or "").strip().lower()
++    if not package_identifier or not re.fullmatch(r"[0-9a-f]{64}", expected_input_digest):
++        raise ValueError("frozen package id/input digest is invalid")
++    package_validation = handoff._validate_package_zip(
++        package_file, source_run=None, package_id=package_identifier,
++        declared_sha=expected_package_sha, observed_sha=observed_package_sha,
++    )
++    if (package_validation.get("package_identity_status") != "VERIFIED"
++            or package_validation.get("input_digest") != expected_input_digest):
++        raise ValueError("frozen ZIP is not the expected trusted v2 package")
++
++    try:
++        with zipfile.ZipFile(package_file) as archive:
++            names = handoff._zip_member_names(archive)
++            frozen_manifest = handoff._zip_json(archive, "manifest.json", label="manifest")
++            descriptor = frozen_manifest.get("input_descriptor")
++            package_csv_bytes, package_rows = handoff._zip_manifest_rows(
++                archive, names, int(frozen_manifest["total_images"]),
++            )
++    except (OSError, KeyError, TypeError, ValueError, zipfile.BadZipFile) as exc:
++        raise ValueError("frozen package ZIP cannot be read") from exc
++    if not isinstance(descriptor, dict):
++        raise ValueError("frozen package input descriptor is missing")
++    source_intake_sha = str(frozen_manifest.get("source_intake_sha256") or "").lower()
++    source_manifest_sha = str(frozen_manifest.get("source_manifest_sha256") or "").lower()
++    if not re.fullmatch(r"[0-9a-f]{64}", source_intake_sha) or not re.fullmatch(r"[0-9a-f]{64}", source_manifest_sha):
++        raise ValueError("frozen package does not bind both original intake source files")
++
++    source_summary_file, source_summary_bytes = _read_external_anchor(
++        str(source_summary_path), "original source summary",
++    )
++    source_manifest_file, source_manifest_bytes = _read_external_anchor(
++        str(source_manifest_path), "original source manifest",
++    )
++    if hashlib.sha256(source_summary_bytes).hexdigest() != source_intake_sha:
++        raise ValueError("original source summary SHA-256 differs from trusted package")
++    if hashlib.sha256(source_manifest_bytes).hexdigest() != source_manifest_sha:
++        raise ValueError("original source manifest SHA-256 differs from trusted package")
++    inferred_source_root = source_summary_file.parent.resolve()
++    anchor_source_root = Path(source_run_root).resolve(strict=False) if source_run_root else inferred_source_root
++    if source_run_root is None and source_manifest_file.parent.resolve() != inferred_source_root:
++        raise ValueError("original summary and manifest anchors must come from the same frozen run")
++
++    try:
++        source_summary = handoff._json_no_duplicate_keys(
++            source_summary_bytes, label="original source summary",
++        )
++        current_summary_path = safe_run_path(
++            run_dir, "wechat_article_intake_summary.json", must_exist=True,
++            label="current intake summary",
++        )
++        current_summary_bytes = current_summary_path.read_bytes()
++        current_summary = handoff._json_no_duplicate_keys(
++            current_summary_bytes, label="current intake summary",
++        )
++    except (OSError, ValueError, TypeError) as exc:
++        raise ValueError("legacy source summary is missing or invalid") from exc
++    if not isinstance(source_summary, dict) or not isinstance(current_summary, dict):
++        raise ValueError("legacy source summary must be a JSON object")
++    if str(source_summary.get("identity_status") or "").upper() != "PASS" or str(current_summary.get("identity_status") or "").upper() != "PASS":
++        raise ValueError("legacy source requires identity_status=PASS in both anchored summaries")
++    summary_path_map = _legacy_summary_path_projection(
++        source_summary, current_summary, source_root=anchor_source_root, run_dir=run_dir,
++    )
++    try:
++        source_identity = validate_intake_identity(source_summary, requested_url, allow_saved_html=True)
++        current_identity = validate_intake_identity(current_summary, requested_url, allow_saved_html=True)
++    except (OSError, ValueError, TypeError) as exc:
++        raise ValueError(f"legacy BODY identity is not verified against the request: {exc}") from exc
++    if source_identity != current_identity:
++        raise ValueError("legacy/current summary identities differ")
++    if current_identity["http_status"] not in {"0", "200"}:
++        raise ValueError("historical adoption permits only HTTP 200 or saved-HTML status 0")
++
++    manifest_path = safe_run_path(
++        run_dir, "wechat_article_image_manifest.csv", must_exist=True,
++        label="current image manifest",
++    )
++    current_manifest_bytes = manifest_path.read_bytes()
++    if hashlib.sha256(current_manifest_bytes).hexdigest() == source_manifest_sha:
++        # An original-byte copy is valid only if its image paths already resolve inside this run.
++        pass
++    source_fields, source_rows = _read_strict_csv(source_manifest_bytes, "original source manifest")
++    current_fields, current_rows = _read_strict_csv(current_manifest_bytes, "current image manifest")
++    package_fields, parsed_package_rows = _read_strict_csv(package_csv_bytes, "frozen package manifest.csv")
++    if not (source_fields == current_fields == package_fields):
++        raise ValueError("legacy/current/frozen image manifest column order differs")
++    if not (len(source_rows) == len(current_rows) == len(parsed_package_rows) == int(source_identity["image_count"])):
++        raise ValueError("legacy/current/frozen image manifest row counts differ")
++    if frozen_manifest.get("source_run_id") != run_dir.name:
++        raise ValueError("frozen package source_run_id does not match the isolated run name")
++    if int(frozen_manifest.get("total_images", -1)) != int(source_identity["image_count"]):
++        raise ValueError("frozen package image count differs from the source summary")
++
++    mutable_fields = {"local_path"}
++    if allow_prepare_extensions:
++        mutable_fields.update(_LEGACY_PREPARE_EXTENSION_FIELDS)
++    path_map: list[dict[str, str]] = []
++    stable_fields = [field for field in source_fields if field not in mutable_fields]
++    if not {"idx", "url", "bytes"}.issubset(stable_fields) or not ({"sha256", "image_sha256"} & set(stable_fields)):
++        raise ValueError("legacy manifest lacks stable index/URL/hash/byte columns")
++    for index, (source_row, current_row, package_row) in enumerate(
++            zip(source_rows, current_rows, parsed_package_rows), 1):
++        if any(source_row.get(field) != current_row.get(field) for field in stable_fields):
++            raise ValueError(f"legacy/current manifest differs outside prepare path/status fields at row {index}")
++        if any(current_row.get(field) != package_row.get(field) for field in stable_fields):
++            raise ValueError(f"current manifest differs from trusted frozen package at row {index}")
++        expected_index = f"{index:03d}"
++        if str(current_row.get("idx") or "").strip() != str(index):
++            raise ValueError(f"current manifest order is invalid at IMAGE{expected_index}")
++        source_local = str(source_row.get("local_path") or "").strip()
++        current_local = str(current_row.get("local_path") or "").strip()
++        package_local = str(package_row.get("local_path") or package_row.get("path") or "").strip()
++        if not source_local or not current_local or not package_local:
++            raise ValueError(f"image path is missing at IMAGE{expected_index}")
++        source_parts = Path(source_local)
++        _relative_artifact_value(
++            source_local, root=anchor_source_root,
++            expected=f"wechat_article_images/{source_parts.name}",
++            label=f"original manifest IMAGE{expected_index}", must_exist=False,
++        )
++        _relative_artifact_value(
++            current_local, root=run_dir,
++            expected=f"wechat_article_images/{source_parts.name}",
++            label=f"current manifest IMAGE{expected_index}", must_exist=True,
++        )
++        if Path(current_local).name != source_parts.name:
++            raise ValueError(f"image filename changed during path rebinding at IMAGE{expected_index}")
++        if package_local != f"images/IMAGE{index:03d}{source_parts.suffix.lower()}":
++            raise ValueError(f"frozen package image order/path differs at IMAGE{expected_index}")
++        path_map.append({"index": str(index), "source": source_local, "current": current_local,
++                         "package": package_local})
++
++    package_manifest = frozen_manifest
++    for field, expected in (
++        ("original_url", current_identity["url"]),
++        ("title", current_identity["title"]),
++        ("account", current_identity["account"]),
++        ("biz", current_identity["biz"]),
++        ("article_date", current_identity["article_date"]),
++        ("content_hash", current_identity["content_hash"]),
++        ("total_images", int(current_identity["image_count"])),
++    ):
++        value = package_manifest.get(field)
++        if field == "original_url":
++            value = canonical_article_url(str(value or ""))
++        if value != expected:
++            raise ValueError(f"trusted package identity differs from the source summary: {field}")
++    if package_manifest.get("source_run_id") != run_dir.name:
++        raise ValueError("trusted package identity differs from the current isolated run")
++    published_at = _summary_published_at(current_summary)
++    if not published_at or package_manifest.get("published_at") != published_at:
++        raise ValueError("trusted package published_at differs from the exact source summary")
++    descriptor_identity = descriptor.get("identity")
++    if not isinstance(descriptor_identity, dict) or any(
++            descriptor_identity.get(key) != package_manifest.get(key)
++            for key in ("original_url", "article_id", "title", "account", "biz", "published_at",
++                        "article_date", "content_hash", "source_run_id")):
++        raise ValueError("trusted package descriptor identity is incomplete")
++
++    html_path, validated_manifest_path = _validate_intake_artifacts(run_dir, current_summary)
++    if validated_manifest_path != manifest_path:
++        raise ValueError("current summary manifest path differs from the bound manifest")
++    raw_html_bytes = html_path.read_bytes()
++    raw_html_sha = hashlib.sha256(raw_html_bytes).hexdigest()
++    if raw_html_sha != str(descriptor.get("raw_html_sha256") or "").lower():
++        raise ValueError("current raw HTML SHA-256 differs from the trusted package descriptor")
++    _validate_article_body(raw_html_bytes, current_rows)
++    try:
++        _, _, validated_rows = handoff._manifest_rows(run_dir, {"image_count": len(current_rows)})
++    except (OSError, ValueError, TypeError, RuntimeError, csv.Error) as exc:
++        raise ValueError(f"current image bytes do not match the frozen manifest contract: {exc}") from exc
++    for index, (row, package_row) in enumerate(zip(validated_rows, parsed_package_rows), 1):
++        if (row.get("url") != package_row.get("url")
++                or row.get("sha256") != package_row.get("sha256")
++                or row.get("bytes") != package_row.get("bytes")):
++            raise ValueError(f"current image source/hash/bytes differ from frozen package at IMAGE{index:03d}")
++    if allow_prepare_extensions and "ocr_text_length" in current_fields:
++        try:
++            ocr_records, _ = handoff._ocr_records(run_dir, validated_rows)
++        except (OSError, ValueError, TypeError, RuntimeError, csv.Error):
++            ocr_records = {}
++        for index, (source_row, current_row) in enumerate(zip(source_rows, current_rows), 1):
++            old_length = str(source_row.get("ocr_text_length") or "")
++            new_length = str(current_row.get("ocr_text_length") or "")
++            if old_length == new_length or not new_length:
++                continue
++            record = ocr_records.get(index)
++            if (not re.fullmatch(r"[0-9]+", new_length) or not isinstance(record, dict)
++                    or len(str(record.get("text") or "")) != int(new_length)):
++                raise ValueError(f"post-prepare OCR length is not bound to verified OCR at IMAGE{index:03d}")
++
++    identity = {
++        "url": current_identity["url"], "title": current_identity["title"],
++        "account": current_identity["account"], "biz": current_identity["biz"],
++        "article_date": current_identity["article_date"],
++        "content_hash": current_identity["content_hash"],
++        "image_count": int(current_identity["image_count"]),
++        "source_run_id": run_dir.name,
++    }
++    image_projection = _image_source_projection_sha256(current_fields, current_rows)
++    current_artifacts = {
++        "wechat_article_intake_summary.json": hashlib.sha256(current_summary_bytes).hexdigest(),
++        "wechat_article_raw.html": raw_html_sha,
++        "wechat_article_image_manifest.csv": hashlib.sha256(current_manifest_bytes).hexdigest(),
++        "images": [
++            {"idx": str(row.get("idx") or ""), "url": str(row.get("url") or ""),
++             "sha256": str(row.get("sha256") or row.get("image_sha256") or "").lower(),
++             "bytes": str(row.get("bytes") or "")}
++            for row in current_rows
++        ],
++    }
++    return {
++        "package_file": package_file,
++        "package_sha256": observed_package_sha,
++        "package_id": package_identifier,
++        "input_digest": expected_input_digest,
++        "source_intake_sha256": source_intake_sha,
++        "source_manifest_sha256": source_manifest_sha,
++        "source_summary_path": source_summary_file,
++        "source_manifest_path": source_manifest_file,
++        "source_summary_bytes": source_summary_bytes,
++        "source_manifest_bytes": source_manifest_bytes,
++        "source_run_root": str(anchor_source_root),
++        "source_summary_sha256": hashlib.sha256(source_summary_bytes).hexdigest(),
++        "source_manifest_sha256_observed": hashlib.sha256(source_manifest_bytes).hexdigest(),
++        "current_manifest_sha256": hashlib.sha256(current_manifest_bytes).hexdigest(),
++        "current_summary_sha256": hashlib.sha256(current_summary_bytes).hexdigest(),
++        "summary_path_mapping": summary_path_map,
++        "manifest_path_mapping": path_map,
++        "identity": identity,
++        "image_source_projection_sha256": image_projection,
++        "raw_html_sha256": raw_html_sha,
++        "current_artifacts": current_artifacts,
++        "summary": current_summary,
++        "validated_identity": current_identity,
++    }
++
++
++def _adoption_receipt_payload(run_dir: Path, result: dict) -> dict:
++    state = _source_state(
++        run_dir, result["summary"], result["validated_identity"],
++        "LEGACY_SOURCE_REVALIDATED", None,
++    )
++    ocr_cache_status = state["ocr_summary_status"]
++    state.update(
++        status="LEGACY_SOURCE_REVALIDATED_" + ("OCR_READY" if state["next_missing_stage"] == "package" else "NEED_OCR"),
++        source_status="HISTORICAL_SOURCE_REVALIDATED",
++        collector_execution_status="NOT_INVOKED_HISTORICAL_REVALIDATION",
++        continuation_status="NEXT_STAGE_READY",
++        historical_promotion_claimed=False,
++        collector_invoked=False,
++        network_attempts=0,
++        ocr_cache_status=ocr_cache_status,
++    )
++    receipt = {
++        "receipt_version": "wechat-legacy-source-revalidation-v1",
++        "status": "HISTORICAL_SOURCE_REVALIDATED",
++        "run_dir": str(run_dir.resolve()),
++        "historical_promotion_claimed": False,
++        "collector_invoked": False,
++        "network_attempts": 0,
++        "source_run_root": result["source_run_root"],
++        "source_anchors": {
++            "original_summary_sha256": result["source_summary_sha256"],
++            "expected_summary_sha256": result["source_intake_sha256"],
++            "original_manifest_sha256": result["source_manifest_sha256_observed"],
++            "expected_manifest_sha256": result["source_manifest_sha256"],
++        },
++        "current_artifacts": result["current_artifacts"],
++        "path_rebinding": {
++            "summary": result["summary_path_mapping"],
++            "manifest": result["manifest_path_mapping"],
++        },
++        "identity": result["identity"],
++        "image_source_projection_sha256": result["image_source_projection_sha256"],
++        "package": {
++            "path": str(result["package_file"]),
++            "package_id": result["package_id"],
++            "input_digest": result["input_digest"],
++            "external_expected_sha256": result["package_sha256"],
++            "observed_sha256": result["package_sha256"],
++            "source_run_id": result["identity"]["source_run_id"],
++            "raw_html_sha256": result["raw_html_sha256"],
++        },
++        "ocr_cache_status": ocr_cache_status,
++        "next_missing_stage": state["next_missing_stage"],
++    }
++    return {"receipt": receipt, "state": state}
++
++
++def _persist_legacy_adoption(run_dir: Path, requested_url: str, *, package_path: str,
++                             expected_package_sha256: str, package_id: str, input_digest: str,
++                             source_summary_path: str, source_manifest_path: str) -> dict:
++    result = _validate_legacy_source(
++        run_dir, requested_url, package_path=package_path,
++        expected_package_sha256=expected_package_sha256, package_id=package_id,
++        input_digest=input_digest, source_summary_path=source_summary_path,
++        source_manifest_path=source_manifest_path,
++    )
++    anchor = json.dumps({
++        "package_sha256": result["package_sha256"],
++        "package_path": str(result["package_file"]),
++        "source_summary_sha256": result["source_summary_sha256"],
++        "source_manifest_sha256": result["source_manifest_sha256_observed"],
++        "current_summary_sha256": result["current_summary_sha256"],
++        "current_manifest_sha256": result["current_manifest_sha256"],
++        "source_run_root": result["source_run_root"],
++    }, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    adoption_id = "adopt_" + hashlib.sha256(anchor).hexdigest()[:24]
++    adoption_dir = run_dir / _ADOPTION_EVIDENCE_ROOT / adoption_id
++    _reject_symlink_components(adoption_dir, "legacy adoption evidence")
++    adoption_dir.mkdir(parents=True, exist_ok=True)
++    _write_bytes_create_only(
++        adoption_dir / "ORIGINAL_SOURCE_SUMMARY.json", result["source_summary_bytes"],
++        label="original source summary anchor",
++    )
++    _write_bytes_create_only(
++        adoption_dir / "ORIGINAL_SOURCE_MANIFEST.csv", result["source_manifest_bytes"],
++        label="original source manifest anchor",
++    )
++    record = _adoption_receipt_payload(run_dir, result)
++    record["receipt"].update({
++        "adoption_id": adoption_id,
++        "package_path": str(result["package_file"]),
++        "original_source_summary_sidecar": str((adoption_dir / "ORIGINAL_SOURCE_SUMMARY.json").relative_to(run_dir)),
++        "original_source_manifest_sidecar": str((adoption_dir / "ORIGINAL_SOURCE_MANIFEST.csv").relative_to(run_dir)),
++    })
++    receipt_bytes = json.dumps(record["receipt"], ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8-sig")
++    _write_bytes_create_only(
++        adoption_dir / "REVALIDATION_RECEIPT.json", receipt_bytes,
++        label="historical source revalidation receipt",
++    )
++    record["state"]["revalidation_receipt"] = str(adoption_dir / "REVALIDATION_RECEIPT.json")
++    return record
++
++
++def _verify_adoption_receipt(run_dir: Path, receipt_path: Path, requested_url: str) -> dict:
++    if receipt_path.is_symlink() or not receipt_path.is_file():
++        raise ValueError("historical revalidation receipt is not a regular file")
++    try:
++        receipt = json.loads(receipt_path.read_text(encoding="utf-8-sig"))
++    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
++        raise ValueError("historical revalidation receipt is invalid") from exc
++    if not isinstance(receipt, dict) or receipt.get("receipt_version") != "wechat-legacy-source-revalidation-v1":
++        raise ValueError("historical revalidation receipt version is invalid")
++    if (receipt.get("run_dir") != str(run_dir.resolve())
++            or receipt.get("historical_promotion_claimed") is not False
++            or receipt.get("collector_invoked") is not False
++            or receipt.get("network_attempts") != 0):
++        raise ValueError("historical revalidation receipt scope is invalid")
++    adoption_dir = receipt_path.parent
++    summary_sidecar = safe_run_path(
++        run_dir, receipt.get("original_source_summary_sidecar"), must_exist=True,
++        label="original source summary sidecar",
++    )
++    manifest_sidecar = safe_run_path(
++        run_dir, receipt.get("original_source_manifest_sidecar"), must_exist=True,
++        label="original source manifest sidecar",
++    )
++    expected_sidecar_parent = adoption_dir.resolve()
++    if summary_sidecar.parent.resolve() != expected_sidecar_parent or manifest_sidecar.parent.resolve() != expected_sidecar_parent:
++        raise ValueError("historical source anchors are outside their adoption evidence directory")
++    package = receipt.get("package") if isinstance(receipt.get("package"), dict) else {}
++    if package.get("path") != receipt.get("package_path"):
++        raise ValueError("historical revalidation ZIP path binding is invalid")
++    result = _validate_legacy_source(
++        run_dir, requested_url,
++        package_path=str(package.get("path") or ""),
++        expected_package_sha256=str(package.get("external_expected_sha256") or ""),
++        package_id=str(package.get("package_id") or ""),
++        input_digest=str(package.get("input_digest") or ""),
++        source_summary_path=str(summary_sidecar),
++        source_manifest_path=str(manifest_sidecar),
++        source_run_root=str(receipt.get("source_run_root") or ""),
++        allow_prepare_extensions=(
++            hashlib.sha256(safe_run_path(
++                run_dir, "wechat_article_image_manifest.csv", must_exist=True,
++                label="current image manifest",
++            ).read_bytes()).hexdigest()
++            != str((receipt.get("current_artifacts") or {}).get("wechat_article_image_manifest.csv") or "").lower()
++        ),
++    )
++    expected_payload = _adoption_receipt_payload(run_dir, result)["receipt"]
++    expected_payload.update({
++        "adoption_id": receipt.get("adoption_id"),
++        "package_path": str(result["package_file"]),
++        "original_source_summary_sidecar": str(summary_sidecar.relative_to(run_dir)),
++        "original_source_manifest_sidecar": str(manifest_sidecar.relative_to(run_dir)),
++    })
++    recorded_manifest_sha = str(
++        (receipt.get("current_artifacts") or {}).get("wechat_article_image_manifest.csv") or ""
++    ).lower()
++    if not re.fullmatch(r"[0-9a-f]{64}", recorded_manifest_sha):
++        raise ValueError("historical receipt lacks its original current-manifest SHA-256")
++    # prepare_ocr may update only its established mutable manifest columns.
++    # The source anchors, stable-column comparison, current path checks, image
++    # bytes, and OCR records are revalidated above on every reuse.
++    expected_payload["current_artifacts"]["wechat_article_image_manifest.csv"] = recorded_manifest_sha
++    if receipt != expected_payload:
++        raise ValueError("historical revalidation receipt no longer matches its source/package artifacts")
++    record = _adoption_receipt_payload(run_dir, result)
++    record["state"].update(revalidation_receipt=str(receipt_path))
++    return record
++
++
++def _find_legacy_adoption(run_dir: Path, requested_url: str, *, required: bool) -> dict | None:
++    root = run_dir / _ADOPTION_EVIDENCE_ROOT
++    if not root.exists() and not root.is_symlink():
++        if required:
++            raise ValueError("explicit frozen-package adoption evidence is required for this historical run")
++        return None
++    _reject_symlink_components(root, "historical adoption evidence root")
++    if root.is_symlink() or not root.is_dir():
++        raise ValueError("historical adoption evidence root is unsafe")
++    receipts = sorted(root.glob("adopt_*/REVALIDATION_RECEIPT.json"))
++    valid: list[dict] = []
++    errors: list[str] = []
++    for receipt_path in receipts:
++        try:
++            valid.append(_verify_adoption_receipt(run_dir, receipt_path, requested_url))
++        except (OSError, ValueError, RuntimeError, TypeError, csv.Error) as exc:
++            errors.append(str(exc))
++    if len(valid) > 1:
++        raise ValueError("multiple historical revalidation receipts match this run")
++    if valid:
++        return valid[0]
++    if required:
++        detail = errors[0] if errors else "no complete receipt exists"
++        raise ValueError("explicit frozen-package revalidation failed: " + detail)
++    if receipts:
++        raise ValueError("historical revalidation receipt is invalid: " + (errors[0] if errors else "unknown error"))
++    return None
++
++
++def _validated_ocr_status(run_dir: Path, summary: dict, image_count: int) -> str:
++    """Return a package-consumable OCR status, never trust the summary alone."""
++    summary_path = run_dir / "wechat_article_ocr_summary.json"
++    if summary_path.is_symlink() or not summary_path.is_file():
++        return "NOT_PRESENT"
++    try:
++        raw_summary = json.loads(summary_path.read_text(encoding="utf-8-sig"))
++        if not isinstance(raw_summary, dict):
++            return "INVALID"
++        declared_status = str(raw_summary.get("status") or "INVALID").upper()
++        if declared_status not in {"OCR_OK", "OCR_NOT_APPLICABLE"}:
++            return declared_status
++        from wechat_chat_handoff import _identity_from_intake, _manifest_rows, _ocr_records
++
++        handoff_identity = _identity_from_intake(run_dir)
++        _, _, manifest_rows = _manifest_rows(run_dir, handoff_identity)
++        if len(manifest_rows) != image_count:
++            return "INVALID"
++        _, validated_summary = _ocr_records(run_dir, manifest_rows)
++        validated_status = str(validated_summary.get("status") or "INVALID").upper()
++        if (image_count == 0 and validated_status != "OCR_NOT_APPLICABLE") or (
++            image_count > 0 and validated_status != "OCR_OK"
++        ):
++            return "INVALID"
++        return validated_status
++    except (OSError, UnicodeError, json.JSONDecodeError, ImportError, ValueError, RuntimeError,
++            KeyError, TypeError, csv.Error):
++        return "INVALID"
++
++
++def _explicit_ocr_failure(summary: dict) -> bool:
++    label = _first(summary, "final_label", "decision", "status").upper()
++    ocr_status = _first(summary, "ocr_status").upper()
++    return label.endswith("NEED_OCR") and ocr_status in {
++        "OCR_IMPORT_ERROR", "OCR_ERROR", "OCR_TIMEOUT", "OCR_INTERRUPTED", "OCR_FAILED", "OCR_PARTIAL",
++    }
++
++
++def _existing_verified_source(run_dir: Path, requested_url: str) -> tuple[dict, dict] | None:
++    summary_path = run_dir / "wechat_article_intake_summary.json"
++    if not summary_path.exists() and not summary_path.is_symlink():
++        return None
++    if summary_path.is_symlink() or not summary_path.is_file():
++        raise ValueError("existing intake summary is not a regular file")
++    try:
++        summary = json.loads(summary_path.read_text(encoding="utf-8-sig"))
++    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
++        raise ValueError("existing intake summary is invalid") from exc
++    if not isinstance(summary, dict) or summary.get("identity_status") != "PASS":
++        raise ValueError("existing intake source lacks verified BODY identity; refusing a fresh fetch")
++    allow_saved_html = summary.get("identity_validation_mode") == "SAVED_HTML"
++    saved_html_sha256 = str(summary.get("saved_html_sha256") or "") if allow_saved_html else ""
++    attempt_id = str(summary.get("fetch_attempt_id") or "")
++    if not attempt_id.startswith("attempt_") or Path(attempt_id).name != attempt_id:
++        raise ValueError("existing intake source lacks its bound fetch attempt identity")
++    attempt_dir = _attempts_root(run_dir) / attempt_id
++    promotion_path = attempt_dir / "PROMOTION_RECEIPT.json"
++    _reject_symlink_components(promotion_path, "fetch promotion receipt")
++    if promotion_path.is_symlink():
++        raise ValueError("fetch promotion receipt must not be a symlink")
++    if not promotion_path.exists():
++        # A summary may have been committed just before an interrupted
++        # promotion receipt write. Let the same validated attempt roll forward.
++        return None
++    if not promotion_path.is_file():
++        raise ValueError("fetch promotion receipt is not a regular file")
++    try:
++        promotion = json.loads(promotion_path.read_text(encoding="utf-8-sig"))
++    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
++        raise ValueError("fetch promotion receipt is invalid") from exc
++    if (promotion.get("status") != "PROMOTED" or promotion.get("attempt_id") != attempt_id
++            or promotion.get("allow_saved_html") is not allow_saved_html
++            or (allow_saved_html and promotion.get("saved_html_sha256") != saved_html_sha256)):
++        raise ValueError("source permission/identity is not bound by the immutable promotion receipt")
++    identity = validate_intake_identity(
++        summary, requested_url, allow_saved_html=allow_saved_html,
++    )
++    html_path, manifest_path = _validate_intake_artifacts(run_dir, summary)
++    with manifest_path.open("r", encoding="utf-8-sig", newline="") as handle:
++        reader = csv.DictReader(handle)
++        manifest_fields = list(reader.fieldnames or [])
++        manifest_rows = list(reader)
++    _validate_article_body(html_path.read_bytes(), manifest_rows)
++    source_projection_sha256 = _image_source_projection_sha256(manifest_fields, manifest_rows)
++    validation = summary.get("identity_validation") if isinstance(summary.get("identity_validation"), dict) else {}
++    raw_html_sha256 = hashlib.sha256(html_path.read_bytes()).hexdigest()
++    expected_raw_html_sha256 = str(validation.get("raw_html_sha256") or "").lower()
++    if (not re.fullmatch(r"[0-9a-f]{64}", expected_raw_html_sha256)
++            or raw_html_sha256 != expected_raw_html_sha256):
++        raise ValueError("existing raw HTML differs from its validated source SHA-256")
++    if promotion.get("artifact_sha256", {}).get("wechat_article_raw.html") != raw_html_sha256:
++        raise ValueError("existing raw HTML differs from the immutable promotion receipt")
++    expected_projection = str(validation.get("image_source_projection_sha256") or "").lower()
++    if (not re.fullmatch(r"[0-9a-f]{64}", expected_projection)
++            or source_projection_sha256 != expected_projection
++            or promotion.get("image_source_projection_sha256") != source_projection_sha256):
++        raise ValueError("existing image manifest source projection differs from verified intake")
++    if allow_saved_html:
++        if (not saved_html_sha256 or raw_html_sha256 != saved_html_sha256
++                or validation.get("saved_html_sha256") != raw_html_sha256):
++            raise ValueError("saved HTML bytes differ from the CLI-bound source evidence")
++    return summary, identity
++
++
++def _reject_unbound_source_or_ocr_artifacts(run_dir: Path) -> None:
++    names = (*_FETCH_SOURCE_FILES, "wechat_article_images", *_DERIVED_OCR_FILES)
++    found = [name for name in names if (run_dir / name).exists() or (run_dir / name).is_symlink()]
++    if found:
++        raise ValueError(
++            "run has unbound source/OCR artifacts without a verified intake summary; refusing to overwrite: "
++            + ", ".join(found)
++        )
++
++
++def _recover_pending_attempt(run_dir: Path, requested_url: str) -> tuple[Path, Path, dict] | None:
++    candidates = []
++    root = _attempts_root(run_dir)
++    if not root.exists():
++        return None
++    if root.is_symlink() or not root.is_dir():
++        raise ValueError("fetch attempt evidence root is invalid")
++    for attempt_dir in sorted(root.glob("attempt_*")):
++        if attempt_dir.is_symlink() or not attempt_dir.is_dir():
++            continue
++        promotion_path = attempt_dir / "PROMOTION_RECEIPT.json"
++        if promotion_path.exists() or promotion_path.is_symlink():
++            continue
++        started_path = attempt_dir / "ATTEMPT_STARTED.json"
++        try:
++            started = json.loads(started_path.read_text(encoding="utf-8-sig"))
++        except (OSError, UnicodeError, json.JSONDecodeError):
++            continue
++        if started.get("requested_url") != canonical_article_url(requested_url):
++            continue
++        allow_saved_html = started.get("allow_saved_html") is True
++        saved_html_sha256 = str(started.get("saved_html_sha256") or "") if allow_saved_html else ""
++        if allow_saved_html and not re.fullmatch(r"[0-9a-f]{64}", saved_html_sha256):
++            continue
++        result_path = attempt_dir / "ATTEMPT_RESULT.json"
++        if result_path.is_file() and not result_path.is_symlink():
++            try:
++                attempt_result = json.loads(result_path.read_text(encoding="utf-8-sig"))
++            except (OSError, UnicodeError, json.JSONDecodeError):
++                continue
++            if attempt_result.get("status") == "REJECTED":
++                continue
++        stage_dir = attempt_dir / run_dir.name
++        if not stage_dir.is_dir() or stage_dir.is_symlink():
++            continue
++        try:
++            prepared = _prepare_promotion(
++                stage_dir, requested_url, attempt_id=attempt_dir.name,
++                allow_saved_html=allow_saved_html,
++                expected_saved_html_sha256=saved_html_sha256,
++            )
++        except (OSError, ValueError, RuntimeError):
++            continue
++        candidates.append((attempt_dir, stage_dir, prepared))
++    if len(candidates) > 1:
++        raise ValueError("multiple unpromoted verified fetch attempts exist; refusing to choose one")
++    if not candidates:
++        return None
++    attempt_dir, stage_dir, prepared = candidates[0]
++    result_path = attempt_dir / "ATTEMPT_RESULT.json"
++    if not result_path.exists():
++        _write_attempt_event(attempt_dir, "ATTEMPT_RESULT.json", {
++            "status": "SOURCE_VERIFIED", "attempt_id": attempt_dir.name,
++            "collector_returncode": None, "recovered_after_interruption": True,
++            "reason": "The isolated attempt output passed BODY identity and artifact validation.",
++            "artifact_sha256": prepared["artifact_sha256"],
++            "image_source_projection_sha256": prepared["image_source_projection_sha256"],
++        })
++    return attempt_dir, stage_dir, prepared
++
++
+ def _reject_duplicate_options(argv: list[str], names: set[str]) -> None:
+-    """Reject duplicate identity/output options before argparse keeps one."""
+-
++    """Reject aliases/abbreviations before unknown arguments reach the collector."""
++    aliases = {
++        "-u": "--url", "-o": "--out", "--output": "--out", "--output-dir": "--out",
++        "--html_file": "--html-file",
++    }
++    long_names = {name for name in names if name.startswith("--")}
+     seen: dict[str, int] = {name: 0 for name in names}
+-    for index, token in enumerate(argv):
+-        for name in names:
+-            if token == name or token.startswith(name + "="):
+-                seen[name] += 1
+-                if token == name and index + 1 >= len(argv):
+-                    raise ValueError(f"{name} requires a value")
++    index = 0
++    while index < len(argv):
++        token = argv[index]
++        option = token.split("=", 1)[0]
++        if option in aliases:
++            raise ValueError(f"use canonical option {aliases[option]}; aliases are not forwarded")
++        if option.startswith("-") and not option.startswith("--") and option not in names:
++            if option.startswith("-o") or option.startswith("-u"):
++                raise ValueError("short/abbreviated URL and output options are not allowed")
++        if option.startswith("--") and option not in names and any(name.startswith(option) for name in long_names):
++            raise ValueError("abbreviated URL/output options are not allowed")
++        if option in names:
++            seen[option] += 1
++            if "=" not in token:
++                if index + 1 >= len(argv):
++                    raise ValueError(f"{option} requires a value")
++                index += 2
++                continue
++        index += 1
+     duplicates = [name for name, count in seen.items() if count > 1]
+     if duplicates:
+         raise ValueError(f"duplicate CLI identity/output option: {', '.join(sorted(duplicates))}")
+ 
+ 
+ def main(argv: list[str] | None = None) -> int:
+-    parser = argparse.ArgumentParser(description="Fail-closed local WeChat article intake adapter")
++    parser = argparse.ArgumentParser(description="Fail-closed local WeChat article intake adapter", allow_abbrev=False)
+     parser.add_argument("--url", required=True)
+     parser.add_argument("--out", required=True)
+     parser.add_argument("--html-file", default="")
++    parser.add_argument("--adopt-frozen-package", default="")
++    parser.add_argument("--adopt-package-sha256", default="")
++    parser.add_argument("--adopt-package-id", default="")
++    parser.add_argument("--adopt-input-digest", default="")
++    parser.add_argument("--legacy-source-summary", default="")
++    parser.add_argument("--legacy-source-manifest", default="")
+     raw_args = list(sys.argv[1:] if argv is None else argv)
+-    _reject_duplicate_options(raw_args, {"--url", "--out", "--html-file"})
++    try:
++        _reject_duplicate_options(raw_args, {
++            "--url", "--out", "--html-file", "--adopt-frozen-package",
++            "--adopt-package-sha256", "--adopt-package-id", "--adopt-input-digest",
++            "--legacy-source-summary", "--legacy-source-manifest",
++        })
++    except ValueError as exc:
++        print(json.dumps({"status": "ERROR", "error": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False))
++        return 2
+     args, _ = parser.parse_known_args(raw_args)
+-    canonical_token_from_url(args.url)
+-    out_dir = _safe_output_dir(args.out)
+-    _existing_identity_conflict(out_dir, args.url)
+-    html_file = _safe_html_file(args.html_file) if args.html_file else None
+-    child_args = raw_args
+-    code = _run_child(_intake_script(), child_args)
+-    if code:
+-        return code
+-    summary_path = safe_run_path(out_dir, "wechat_article_intake_summary.json", must_exist=True)
+-    summary = json.loads(summary_path.read_text(encoding="utf-8-sig"))
+-    identity = validate_intake_identity(summary, args.url, allow_saved_html=html_file is not None)
+-    _validate_intake_artifacts(out_dir, summary)
+-    summary.update(
+-        {
+-            "canonical_url": identity["url"],
+-            "canonical_token": identity["token"],
+-            "article_date": identity["article_date"],
+-            "content_hash": identity["content_hash"],
+-            "identity_status": "PASS",
++    try:
++        canonical_token_from_url(args.url)
++        out_dir = _safe_output_dir(args.out)
++        out_dir.mkdir(parents=True, exist_ok=True)
++        _existing_identity_conflict(out_dir, args.url)
++
++        adoption_values = (
++            args.adopt_frozen_package, args.adopt_package_sha256,
++            args.adopt_package_id, args.adopt_input_digest,
++            args.legacy_source_summary, args.legacy_source_manifest,
++        )
++        if any(adoption_values) and not all(adoption_values):
++            raise ValueError("frozen adoption requires package path/SHA/id/digest and both original source anchors")
++        if all(adoption_values):
++            adopted = _persist_legacy_adoption(
++                out_dir, args.url,
++                package_path=args.adopt_frozen_package,
++                expected_package_sha256=args.adopt_package_sha256,
++                package_id=args.adopt_package_id,
++                input_digest=args.adopt_input_digest,
++                source_summary_path=args.legacy_source_summary,
++                source_manifest_path=args.legacy_source_manifest,
++            )
++            state = adopted["state"]
++            _write_fetch_state(out_dir, state)
++            print(json.dumps(state, ensure_ascii=False))
++            return 0
++
++        prior_adoption = _find_legacy_adoption(out_dir, args.url, required=False)
++        if prior_adoption is not None:
++            state = prior_adoption["state"]
++            state["status"] = "LEGACY_SOURCE_REUSED_" + (
++                "OCR_READY" if state["next_missing_stage"] == "package" else "NEED_OCR"
++            )
++            _write_fetch_state(out_dir, state)
++            print(json.dumps(state, ensure_ascii=False))
++            return 0
++
++        existing = _existing_verified_source(out_dir, args.url)
++        if existing is not None:
++            summary, identity = existing
++            state = _source_state(out_dir, summary, identity, "SOURCE_REUSED", None)
++            _write_fetch_state(out_dir, state)
++            print(json.dumps(state, ensure_ascii=False))
++            return 0
++
++        pending = _recover_pending_attempt(out_dir, args.url)
++        if pending is not None:
++            attempt_dir, stage_dir, prepared = pending
++            state = _promote_verified_attempt(
++                out_dir, attempt_dir, stage_dir, prepared, args.url, status_prefix="SOURCE_RECOVERED"
++            )
++            print(json.dumps(state, ensure_ascii=False))
++            return 0
++
++        _reject_unbound_source_or_ocr_artifacts(out_dir)
++        html_file = _safe_html_file(args.html_file) if args.html_file else None
++        saved_html_sha256 = hashlib.sha256(html_file.read_bytes()).hexdigest() if html_file is not None else ""
++        attempts_root = _attempts_root(out_dir)
++        _reject_symlink_components(attempts_root, "fetch attempt evidence root")
++        attempts_root.mkdir(parents=True, exist_ok=True)
++        attempt_id = "attempt_" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "_" + uuid.uuid4().hex[:12]
++        attempt_dir = attempts_root / attempt_id
++        attempt_dir.mkdir()
++        stage_dir = attempt_dir / out_dir.name
++        stage_dir.mkdir()
++        _write_attempt_event(attempt_dir, "ATTEMPT_STARTED.json", {
++            "status": "STARTED", "attempt_id": attempt_id,
++            "requested_url": canonical_article_url(args.url),
++            "created_at": datetime.now(timezone.utc).isoformat(),
++            "collector_output_isolated": True,
++            "allow_saved_html": html_file is not None,
++            "saved_html_sha256": saved_html_sha256 or None,
++        })
++
++        collector_returncode = None
++        collector_error = None
++        try:
++            collector_returncode = _run_child(_intake_script(), _collector_args(raw_args, stage_dir))
++        except Exception as exc:
++            collector_error = f"{type(exc).__name__}: {exc}"
++
++        try:
++            prepared = _prepare_promotion(
++                stage_dir, args.url, attempt_id=attempt_id,
++                allow_saved_html=html_file is not None,
++                expected_saved_html_sha256=saved_html_sha256,
++            )
++        except (OSError, ValueError, RuntimeError, csv.Error) as exc:
++            reason = collector_error or f"{type(exc).__name__}: {exc}"
++            attempt_result = {
++                "status": "REJECTED", "attempt_id": attempt_id,
++                "collector_returncode": collector_returncode,
++                "reason": reason,
++                "isolated_output": str(stage_dir),
++            }
++            _write_attempt_event(attempt_dir, "ATTEMPT_RESULT.json", attempt_result)
++            state = {
++                "schema_version": "wechat-article-fetch-state-v1",
++                "status": "ATTEMPT_REJECTED",
++                "source_status": "CANNOT_CONFIRM",
++                "next_missing_stage": "fetch",
++                "attempt_id": attempt_id,
++                "attempt_receipt": str(attempt_dir / "ATTEMPT_RESULT.json"),
++                "reason": reason,
++                "production_allowed": False,
++                "buy_gate_updated": False,
++                "orders_sent": False,
++            }
++            _write_fetch_state(out_dir, state)
++            print(json.dumps(state, ensure_ascii=False))
++            return 2
++
++        attempt_result = {
++            "status": "SOURCE_VERIFIED", "attempt_id": attempt_id,
++            "collector_returncode": collector_returncode,
++            "collector_error": collector_error,
++            "identity": prepared["identity"],
++            "artifact_sha256": prepared["artifact_sha256"],
++            "image_source_projection_sha256": prepared["image_source_projection_sha256"],
++            "next_missing_stage": "prepare_ocr" if int(prepared["identity"]["image_count"]) else "body_review_or_package",
++            "nonzero_collector_exit_tolerated": collector_returncode not in (None, 0),
+         }
+-    )
+-    write_json(summary_path, summary)
+-    return 0
++        _write_attempt_event(attempt_dir, "ATTEMPT_RESULT.json", attempt_result)
++        _write_attempt_event(attempt_dir, "SOURCE_VERIFIED.json", {
++            "status": "VERIFIED_BODY_AND_IMAGES", "attempt_id": attempt_id,
++            "identity": prepared["identity"], "artifact_sha256": prepared["artifact_sha256"],
++            "image_source_projection_sha256": prepared["image_source_projection_sha256"],
++        })
++        state = _promote_verified_attempt(out_dir, attempt_dir, stage_dir, prepared, args.url)
++        known_ocr_failure = _explicit_ocr_failure(prepared["summary"])
++        known_ocr_exception = bool(
++            collector_error and collector_error.startswith("ModuleNotFoundError:") and known_ocr_failure
++        )
++        execution_verified = (
++            collector_error is None and collector_returncode in (None, 0)
++        ) or (
++            collector_error is None and known_ocr_failure
++        ) or known_ocr_exception
++        if known_ocr_failure and (collector_error is None or known_ocr_exception):
++            state["collector_execution_status"] = "OCR_IMPORT_ERROR" if "IMPORT_ERROR" in str(prepared["summary"].get("ocr_status", "")) else "OCR_INCOMPLETE"
++            state["continuation_status"] = "RESUME_VIA_PREPARE_OCR"
++            state["source_status"] = "BODY_IDENTITY_VERIFIED"
++        elif execution_verified:
++            state["collector_execution_status"] = "COMPLETE"
++            state["continuation_status"] = "NEXT_STAGE_READY"
++        else:
++            state.update(
++                status="SOURCE_RETAINED_CONTINUATION_UNVERIFIED",
++                source_status="BODY_IDENTITY_VERIFIED",
++                collector_execution_status="UNEXPECTED_EXCEPTION" if collector_error else "NONZERO_EXIT_UNCLASSIFIED",
++                continuation_status="UNVERIFIED",
++            )
++        state["collector_returncode"] = collector_returncode
++        if collector_error:
++            state["collector_error"] = collector_error
++        _write_fetch_state(out_dir, state)
++        print(json.dumps(state, ensure_ascii=False))
++        return 0 if execution_verified else 2
++    except Exception as exc:
++        payload = {"status": "ERROR", "error": f"{type(exc).__name__}: {exc}"}
++        print(json.dumps(payload, ensure_ascii=False))
++        return 2
+ 
+ 
+ if __name__ == "__main__":
+--- before/scripts/wechat_pipeline_runner.py
++++ after/scripts/wechat_pipeline_runner.py
+@@ -182,6 +182,12 @@
+     image_workers: int | None = None,
+     image_retries: int | None = None,
+     fetch_mode: str | None = None,
++    adopt_frozen_package: str = "",
++    adopt_package_sha256: str = "",
++    adopt_package_id: str = "",
++    adopt_input_digest: str = "",
++    legacy_source_summary: str = "",
++    legacy_source_manifest: str = "",
+ ) -> list[str]:
+     """Build the platform-safe read-only fetch command for one run."""
+ 
+@@ -201,6 +207,22 @@
+             str(run_dir),
+             "--skip-ocr",
+         ]
++        adoption_values = (
++            adopt_frozen_package, adopt_package_sha256, adopt_package_id,
++            adopt_input_digest, legacy_source_summary, legacy_source_manifest,
++        )
++        if any(adoption_values) and not all(adoption_values):
++            raise ValueError("historical adoption requires the frozen ZIP identity and both original source anchors")
++        if all(adoption_values):
++            for flag, value in (
++                ("--adopt-frozen-package", adopt_frozen_package),
++                ("--adopt-package-sha256", adopt_package_sha256),
++                ("--adopt-package-id", adopt_package_id),
++                ("--adopt-input-digest", adopt_input_digest),
++                ("--legacy-source-summary", legacy_source_summary),
++                ("--legacy-source-manifest", legacy_source_manifest),
++            ):
++                command.extend([flag, str(value)])
+         if image_workers is not None:
+             command.extend(["--image-workers", str(image_workers)])
+         if image_retries is not None:
+@@ -464,9 +486,12 @@
+     if not expected_url:
+         expected_url = str(summary.get("article_url") or summary.get("url") or "").strip()
+     try:
+-        from wechat_article_fetch import validate_intake_identity
+-
+-        identity = validate_intake_identity(summary, expected_url)
++        import wechat_article_fetch as intake_fetch
++
++        adoption = intake_fetch._find_legacy_adoption(run_dir, expected_url, required=False)
++        identity = intake_fetch.validate_intake_identity(
++            summary, expected_url, allow_saved_html=adoption is not None,
++        )
+     except (OSError, ValueError, TypeError) as exc:
+         raise RuntimeError(f"exact intake identity is not verified: {exc}") from exc
+ 
+@@ -694,6 +719,12 @@
+     image_workers: int | None = None,
+     image_retries: int | None = None,
+     fetch_mode: str | None = None,
++    adopt_frozen_package: str = "",
++    adopt_package_sha256: str = "",
++    adopt_package_id: str = "",
++    adopt_input_digest: str = "",
++    legacy_source_summary: str = "",
++    legacy_source_manifest: str = "",
+ ) -> None:
+     """Fetch source artifacts; tolerate legacy skip-OCR empty-pool exit.
+ 
+@@ -739,6 +770,12 @@
+         image_workers=image_workers,
+         image_retries=image_retries,
+         fetch_mode=fetch_mode,
++        adopt_frozen_package=adopt_frozen_package,
++        adopt_package_sha256=adopt_package_sha256,
++        adopt_package_id=adopt_package_id,
++        adopt_input_digest=adopt_input_digest,
++        legacy_source_summary=legacy_source_summary,
++        legacy_source_manifest=legacy_source_manifest,
+     )
+     completed = subprocess.run(cmd, check=False, capture_output=True, text=True, encoding="utf-8", env=env_utf8)
+     research = load_article_research(run_dir)
+@@ -1568,6 +1605,12 @@
+             image_workers=getattr(args, "image_workers", None),
+             image_retries=getattr(args, "image_retries", None),
+             fetch_mode=getattr(args, "fetch_mode", None),
++            adopt_frozen_package=getattr(args, "adopt_frozen_package", ""),
++            adopt_package_sha256=getattr(args, "adopt_package_sha256", ""),
++            adopt_package_id=getattr(args, "adopt_package_id", ""),
++            adopt_input_digest=getattr(args, "adopt_input_digest", ""),
++            legacy_source_summary=getattr(args, "legacy_source_summary", ""),
++            legacy_source_manifest=getattr(args, "legacy_source_manifest", ""),
+         )
+     elif stage == "prepare_ocr":
+         _sub(PY, "-X", "utf8", str(SCRIPT_DIR / "wechat_prepare_ocr.py"), "--run-dir", str(run_dir))
+@@ -1657,6 +1700,12 @@
+     parser.add_argument("--image-workers", type=int, default=None, help="Fetch image concurrency (1-3 on the Mac intake).")
+     parser.add_argument("--image-retries", type=int, default=None, help="Fetch image retries after the first attempt (0-3).")
+     parser.add_argument("--fetch-mode", choices=("http", "auto", "crawl4ai"), default=None, help="Article HTML transport for the Mac intake.")
++    parser.add_argument("--adopt-frozen-package", default="", help="Explicit trusted legacy package ZIP for read-only source revalidation.")
++    parser.add_argument("--adopt-package-sha256", default="", help="Externally fixed SHA-256 of the legacy package ZIP.")
++    parser.add_argument("--adopt-package-id", default="", help="Package id bound by the trusted ZIP.")
++    parser.add_argument("--adopt-input-digest", default="", help="Input digest bound by the trusted ZIP.")
++    parser.add_argument("--legacy-source-summary", default="", help="Original frozen-run summary whose bytes match the ZIP source_intake_sha256.")
++    parser.add_argument("--legacy-source-manifest", default="", help="Original frozen-run manifest whose bytes match the ZIP source_manifest_sha256.")
+     parser.add_argument("--stage", required=True, help=", 分隔的 stage 或 all")
+     parser.add_argument("--resume", action="store_true", help="按工件存在跳过已完成 stage")
+     parser.add_argument(
+@@ -1677,6 +1726,24 @@
+             "error": "--source-only is restricted to --stage summary",
+         }, ensure_ascii=False))
+         return 2
++
++    adoption_values = (
++        args.adopt_frozen_package, args.adopt_package_sha256, args.adopt_package_id,
++        args.adopt_input_digest, args.legacy_source_summary, args.legacy_source_manifest,
++    )
++    if any(adoption_values):
++        if not all(adoption_values):
++            print(json.dumps({
++                "status": "ERROR",
++                "error": "historical adoption requires the frozen ZIP identity and both original source anchors",
++            }, ensure_ascii=False))
++            return 2
++        if sys.platform != "darwin" or stages != ["fetch"] or args.resume:
++            print(json.dumps({
++                "status": "ERROR",
++                "error": "historical adoption is restricted to a direct Mac --stage fetch run without --resume",
++            }, ensure_ascii=False))
++            return 2
+ 
+     run_dir = validate_run_dir(args.run_dir)
+     try:
+--- before/scripts/wechat_yesterday_performance.py
++++ after/scripts/wechat_yesterday_performance.py
+@@ -760,10 +760,21 @@
+     return _checked_read_path(root / raw, label=label)
+ 
+ 
+-def _read_hk_receipt_and_panel(asset_root: Path, receipt_root: Path, trade_date: str) -> dict:
++def _read_hk_receipt_and_panel(asset_root: Path, receipt_root: Path, trade_date: str,
++                               receipt_facts: dict | None = None) -> dict:
+     receipt_path = _checked_read_path(receipt_root / f"hk-{trade_date}.json", label=f"HK {trade_date} receipt")
+     receipt_bytes = receipt_path.read_bytes()
++    receipt_sha256 = _sha256_bytes(receipt_bytes)
++    if receipt_facts is not None:
++        receipt_facts.update(receipt_path=str(receipt_path), receipt_sha256=receipt_sha256)
+     receipt = _json_no_duplicate_keys(receipt_bytes, label=f"HK {trade_date} receipt")
++    if receipt_facts is not None:
++        receipt_facts.update(
++            receipt_status=receipt.get("status"),
++            receipt_rows=receipt.get("row_count"),
++            universe_count=receipt.get("universe_count"),
++            target_date=receipt.get("target_date"),
++        )
+     authority = receipt.get("authority")
+     if (receipt.get("status") != "READY" or receipt.get("target_date") != trade_date
+             or not isinstance(authority, dict) or authority.get("status") != "READY"
+@@ -792,7 +803,7 @@
+         "date": trade_date,
+         "receipt": receipt,
+         "receipt_path": str(receipt_path),
+-        "receipt_sha256": _sha256_bytes(receipt_bytes),
++        "receipt_sha256": receipt_sha256,
+         "manifest": manifest,
+         "manifest_path": str(manifest_path),
+         "manifest_sha256": _sha256_bytes(manifest_bytes),
+@@ -835,8 +846,6 @@
+ 
+ 
+ def _build_a_bj_panel_probe(runtime: dict, observation_date: str) -> tuple[dict, dict[str, dict]]:
+-    import pandas as pd
+-
+     receipt_path = _checked_read_path(
+         Path(runtime["receipt_root"]) / f"a-{observation_date}.json",
+         label=f"A/BJ {observation_date} panel receipt",
+@@ -844,133 +853,212 @@
+     receipt_bytes = receipt_path.read_bytes()
+     receipt = _json_no_duplicate_keys(receipt_bytes, label=f"A/BJ {observation_date} panel receipt")
+     receipt_status = receipt.get("status")
+-    if receipt_status not in ("READY", "PARTIAL"):
+-        raise PerformanceAppendixError(
+-            f"A/BJ {observation_date} receipt status {receipt_status!r} is not READY or PARTIAL"
+-        )
+-    panel_path = Path(runtime["selector_panel_path"])
+-    panel_sha256 = _sha256_bytes(panel_path.read_bytes())
+-    formula = receipt.get("formula")
+-    if not isinstance(formula, dict):
+-        raise PerformanceAppendixError("A/BJ receipt is missing its formula selector binding")
+-    formula_selector = _checked_read_path(formula.get("selector"), label="A/BJ receipt selector path")
+-    if (receipt.get("target_date") != observation_date or formula.get("target_date") not in (observation_date, int(observation_date))
+-            or str(formula_selector) != str(panel_path)
+-            or receipt.get("selector_sha256") != panel_sha256
+-            or formula.get("selector_sha256") != panel_sha256
+-            or formula.get("status") != "READY"
+-            or receipt.get("production_allowed") is not False
+-            or receipt.get("buy_gate_updated") is not False
+-            or receipt.get("orders_sent") is not False):
+-        raise PerformanceAppendixError("A/BJ receipt does not bind the current configured exact-date selector panel")
+-    frame = pd.read_parquet(
+-        panel_path,
+-        columns=["trade_date", "ts_code", "name", "close", "pre_close", "pct_chg", "market_type"],
+-        engine="pyarrow",
+-    )
+-    frame["trade_date"] = frame["trade_date"].astype(str).str.replace(r"\.0$", "", regex=True).str.zfill(8)
+-    frame["ts_code"] = frame["ts_code"].astype(str).str.strip().str.upper()
+-    frame = frame[frame["trade_date"] == observation_date]
+-    duplicate_codes = set(frame.loc[frame["ts_code"].duplicated(keep=False), "ts_code"].tolist())
+-    rows_by_code = {}
+-    for row in frame.to_dict("records"):
+-        code = row["ts_code"]
+-        if code not in duplicate_codes:
+-            rows_by_code[code] = row
+-    expected_count = receipt.get("row_count")
+-    if expected_count != len(frame):
+-        raise PerformanceAppendixError(
+-            f"A/BJ receipt row_count {expected_count} differs from exact-date parquet rows {len(frame)}"
+-        )
+     sync = receipt.get("sync") if isinstance(receipt.get("sync"), dict) else {}
+     sync_authority = sync.get("authority") if isinstance(sync.get("authority"), dict) else {}
+-    return ({
+-        "status": "PARTIAL_RECEIPT_EXACT_ROWS_OBSERVED" if receipt_status == "PARTIAL" else "EXACT_ROWS_OBSERVED",
++    probe = {
++        "status": "CANNOT_CONFIRM",
++        "binding_status": "CANNOT_CONFIRM",
+         "receipt_status": receipt_status,
+         "receipt_path": str(receipt_path),
+         "receipt_sha256": _sha256_bytes(receipt_bytes),
+-        "receipt_row_count": expected_count,
++        "receipt_row_count": receipt.get("row_count"),
++        "receipt_target_date_file_count": receipt.get("target_date_file_count"),
+         "receipt_target_count": receipt.get("target_count"),
+         "receipt_accepted_count": receipt.get("accepted_count"),
+         "receipt_coverage_rate": receipt.get("coverage_rate"),
+-        "formula_status": formula.get("status"),
+         "sync_authority_status": sync_authority.get("authority_status"),
+-        "selector_pointer_path": runtime["selector_pointer_path"],
+-        "selector_pointer_sha256": runtime["selector_pointer_sha256"],
+-        "selector_panel_path": str(panel_path),
+-        "selector_panel_sha256": panel_sha256,
+-        "exact_date_rows": len(frame),
+-        "exact_date_unique_codes": frame["ts_code"].nunique(),
+-        "duplicate_codes": sorted(duplicate_codes),
+-        "reason": (
+-            "Per-code exact-date rows are usable where row identity and close/pre_close/pct_chg reconcile. "
+-            "The lane receipt is PARTIAL and its sync authority remains separately disclosed."
+-            if receipt_status == "PARTIAL" else
+-            "Per-code exact-date rows are used only after matching the configured pointer and receipt."
+-        ),
+-    }, rows_by_code)
+-
++        "selector_pointer_path": runtime.get("selector_pointer_path"),
++        "selector_pointer_sha256": runtime.get("selector_pointer_sha256"),
++        "selector_panel_path": runtime.get("selector_panel_path"),
++        "selector_panel_sha256": None,
++        "exact_date_rows": None,
++        "exact_date_unique_codes": None,
++        "duplicate_codes": [],
++    }
++    try:
++        if receipt_status not in ("READY", "PARTIAL"):
++            probe["reason"] = f"A/BJ {observation_date} receipt status {receipt_status!r} is not READY or PARTIAL."
++            return probe, {}
++        panel_path = _checked_read_path(Path(runtime["selector_panel_path"]), label="configured selector panel")
++        panel_bytes = panel_path.read_bytes()
++        panel_sha256 = _sha256_bytes(panel_bytes)
++        probe.update(selector_panel_path=str(panel_path), selector_panel_sha256=panel_sha256)
++        formula = receipt.get("formula")
++        if not isinstance(formula, dict):
++            probe["reason"] = "A/BJ receipt is missing its formula selector binding."
++            return probe, {}
++        formula_selector = _checked_read_path(formula.get("selector"), label="A/BJ receipt selector path")
++        exact_binding = (
++            receipt.get("target_date") == observation_date
++            and formula.get("target_date") in (observation_date, int(observation_date))
++            and str(formula_selector) == str(panel_path)
++            and receipt.get("selector_sha256") == panel_sha256
++            and formula.get("selector_sha256") == panel_sha256
++            and formula.get("status") == "READY"
++            and receipt.get("production_allowed") is False
++            and receipt.get("buy_gate_updated") is False
++            and receipt.get("orders_sent") is False
++        )
++        probe["formula_status"] = formula.get("status")
++        if not exact_binding:
++            probe["reason"] = "A/BJ receipt does not bind the current configured exact-date selector panel."
++            return probe, {}
++
++        import pandas as pd
++
++        frame = pd.read_parquet(
++            panel_path,
++            columns=["trade_date", "ts_code", "name", "close", "pre_close", "pct_chg", "market_type"],
++            engine="pyarrow",
++        )
++        frame["trade_date"] = frame["trade_date"].astype(str).str.replace(r"\.0$", "", regex=True).str.zfill(8)
++        frame["ts_code"] = frame["ts_code"].astype(str).str.strip().str.upper()
++        frame = frame[frame["trade_date"] == observation_date]
++        duplicate_codes = set(frame.loc[frame["ts_code"].duplicated(keep=False), "ts_code"].tolist())
++        rows_by_code = {}
++        for row in frame.to_dict("records"):
++            code = row["ts_code"]
++            if code not in duplicate_codes:
++                rows_by_code[code] = row
++        probe.update(
++            exact_date_rows=len(frame),
++            exact_date_unique_codes=frame["ts_code"].nunique(),
++            duplicate_codes=sorted(duplicate_codes),
++        )
++        expected_count = receipt.get("row_count")
++        if isinstance(expected_count, bool) or not isinstance(expected_count, int) or expected_count != len(frame):
++            probe["reason"] = (
++                f"A/BJ receipt row_count {expected_count!r} differs from exact-date parquet rows {len(frame)}; "
++                "no A/BJ price rows are released."
++            )
++            probe["binding_error"] = "ROW_COUNT_MISMATCH"
++            return probe, {}
++        probe.update(
++            status="PARTIAL_RECEIPT_EXACT_ROWS_OBSERVED" if receipt_status == "PARTIAL" else "EXACT_ROWS_OBSERVED",
++            binding_status="BOUND",
++            reason=(
++                "The receipt is PARTIAL; only unique exact-date rows that reconcile are usable, and the receipt "
++                "coverage and sync authority remain separately disclosed."
++                if receipt_status == "PARTIAL" else
++                "Per-code exact-date rows are used only after matching the configured pointer and receipt."
++            ),
++        )
++        return probe, rows_by_code
++    except (OSError, PerformanceAppendixError, ImportError, ValueError, RuntimeError) as exc:
++        probe["reason"] = f"{type(exc).__name__}: {exc}"
++        return probe, {}
+ 
+ def _build_hk_panel_probe(runtime: dict, observation_date: str, prior_session_date: str,
+                           calendar_status: dict) -> tuple[dict, dict, dict, dict]:
+-    asset_root = _checked_read_path(runtime["hk_asset_root"], label="configured HK asset root")
+-    receipt_root = _checked_read_path(runtime["receipt_root"], label="configured panel receipt root")
+-    current = _read_hk_receipt_and_panel(asset_root, receipt_root, observation_date)
+-    previous = _read_hk_receipt_and_panel(asset_root, receipt_root, prior_session_date)
+-    if current["manifest"].get("parent_panel_sha256") != previous["panel_sha256"]:
+-        raise PerformanceAppendixError("current HK panel does not link to the exact previous-session panel SHA")
+-    current_rows = _read_hk_date_rows(Path(current["panel_path"]), observation_date)
+-    current_previous_rows = _read_hk_date_rows(Path(current["panel_path"]), prior_session_date)
+-    previous_rows = _read_hk_date_rows(Path(previous["panel_path"]), prior_session_date)
+-    if len(current_rows) != current["panel_rows"] or len(previous_rows) != previous["panel_rows"]:
+-        raise PerformanceAppendixError("HK exact-date parquet row counts differ from their receipts")
+-    current_by_code, current_duplicates = _index_rows_by_code(current_rows)
+-    current_previous_by_code, current_previous_duplicates = _index_rows_by_code(current_previous_rows)
+-    previous_by_code, previous_duplicates = _index_rows_by_code(previous_rows)
+-    native = current["manifest"].get("native_observation", {})
+-    price_meta = (native.get("fields") or {}).get("price", {}) if isinstance(native, dict) else {}
++    receipt_root_value = str(runtime.get("receipt_root") or "")
++    current_receipt_path = str(Path(receipt_root_value) / f"hk-{observation_date}.json") if receipt_root_value else ""
++    previous_receipt_path = str(Path(receipt_root_value) / f"hk-{prior_session_date}.json") if receipt_root_value else ""
+     probe = {
+-        "status": "VERIFIED_EXACT_DATE_PANEL_CHAIN",
++        "status": "CANNOT_CONFIRM",
++        "binding_status": "CANNOT_CONFIRM",
+         "target_date": observation_date,
+         "previous_hk_session_date": prior_session_date,
+         "calendar_status": calendar_status.get("HK"),
+-        "current_receipt_path": current["receipt_path"],
+-        "current_receipt_sha256": current["receipt_sha256"],
+-        "current_receipt_status": current["receipt"].get("status"),
+-        "current_receipt_rows": current["panel_rows"],
+-        "current_universe_count": current["universe_count"],
+-        "current_manifest_path": current["manifest_path"],
+-        "current_manifest_sha256": current["manifest_sha256"],
+-        "current_panel_path": current["panel_path"],
+-        "current_panel_sha256": current["panel_sha256"],
+-        "previous_receipt_path": previous["receipt_path"],
+-        "previous_receipt_sha256": previous["receipt_sha256"],
+-        "previous_receipt_status": previous["receipt"].get("status"),
+-        "previous_receipt_rows": previous["panel_rows"],
+-        "previous_manifest_path": previous["manifest_path"],
+-        "previous_manifest_sha256": previous["manifest_sha256"],
+-        "previous_panel_path": previous["panel_path"],
+-        "previous_panel_sha256": previous["panel_sha256"],
+-        "parent_panel_sha256_matches": True,
+-        "current_rows_by_code": len(current_by_code),
+-        "previous_rows_by_code": len(previous_by_code),
+-        "duplicate_codes": {
+-            "current": sorted(current_duplicates),
+-            "current_panel_previous_date": sorted(current_previous_duplicates),
+-            "previous_panel": sorted(previous_duplicates),
+-        },
+-        "native_session_finality": native.get("session_finality"),
+-        "native_price_transform": price_meta.get("transform"),
+-        "native_currency_status": price_meta.get("currency_status"),
++        "current_receipt_path": current_receipt_path,
++        "current_receipt_status": "CANNOT_CONFIRM",
++        "previous_receipt_path": previous_receipt_path,
++        "previous_receipt_status": "CANNOT_CONFIRM",
++        "missing_previous_receipt_date": prior_session_date,
++        "missing_previous_receipt_path": previous_receipt_path,
++        "parent_panel_sha256_matches": False,
+         "corporate_action_adjustment_status": "NOT_VERIFIED",
+-        "reason": (
+-            "Uses the configured HK asset panel only. For each observed listing, current panel pre_close "
+-            "must equal the prior-session close reproduced in both the current panel and its parent panel. "
+-            "Provider session finality, corporate-action factors, and dividend adjustment are not attested."
+-        ),
+     }
+-    return probe, current_by_code, current_previous_by_code, previous_by_code
+-
++    current_receipt_facts: dict = {}
++    try:
++        asset_root = _checked_read_path(runtime["hk_asset_root"], label="configured HK asset root")
++        receipt_root = _checked_read_path(runtime["receipt_root"], label="configured panel receipt root")
++        current = _read_hk_receipt_and_panel(
++            asset_root, receipt_root, observation_date, receipt_facts=current_receipt_facts,
++        )
++    except (OSError, PerformanceAppendixError, ValueError, RuntimeError) as exc:
++        if current_receipt_facts:
++            probe.update(
++                current_receipt_path=current_receipt_facts.get("receipt_path", current_receipt_path),
++                current_receipt_sha256=current_receipt_facts.get("receipt_sha256"),
++                current_receipt_status=current_receipt_facts.get("receipt_status", "CANNOT_CONFIRM"),
++                current_receipt_rows=current_receipt_facts.get("receipt_rows"),
++                current_universe_count=current_receipt_facts.get("universe_count"),
++                current_receipt_target_date=current_receipt_facts.get("target_date"),
++                current_receipt_read_status="READ_OK_BINDING_FAILED",
++            )
++        probe["reason"] = f"{type(exc).__name__}: {exc}"
++        if not current_receipt_facts:
++            probe["missing_current_receipt_date"] = observation_date
++        return probe, {}, {}, {}
++
++    probe.update(
++        current_receipt_path=current["receipt_path"],
++        current_receipt_sha256=current["receipt_sha256"],
++        current_receipt_status=current["receipt"].get("status"),
++        current_receipt_rows=current["panel_rows"],
++        current_universe_count=current["universe_count"],
++        current_manifest_path=current["manifest_path"],
++        current_manifest_sha256=current["manifest_sha256"],
++        current_panel_path=current["panel_path"],
++        current_panel_sha256=current["panel_sha256"],
++    )
++    try:
++        previous = _read_hk_receipt_and_panel(asset_root, receipt_root, prior_session_date)
++    except (OSError, PerformanceAppendixError, ValueError, RuntimeError) as exc:
++        probe["previous_receipt_status"] = "MISSING_OR_INVALID"
++        probe["reason"] = f"{type(exc).__name__}: {exc}"
++        probe["missing_previous_receipt_date"] = prior_session_date
++        probe["missing_previous_receipt_path"] = previous_receipt_path
++        return probe, {}, {}, {}
++
++    probe.update(
++        previous_receipt_path=previous["receipt_path"],
++        previous_receipt_sha256=previous["receipt_sha256"],
++        previous_receipt_status=previous["receipt"].get("status"),
++        previous_receipt_rows=previous["panel_rows"],
++        previous_manifest_path=previous["manifest_path"],
++        previous_manifest_sha256=previous["manifest_sha256"],
++        previous_panel_path=previous["panel_path"],
++        previous_panel_sha256=previous["panel_sha256"],
++    )
++    try:
++        if current["manifest"].get("parent_panel_sha256") != previous["panel_sha256"]:
++            probe["reason"] = "Current HK panel does not link to the exact previous-session panel SHA."
++            return probe, {}, {}, {}
++        current_rows = _read_hk_date_rows(Path(current["panel_path"]), observation_date)
++        current_previous_rows = _read_hk_date_rows(Path(current["panel_path"]), prior_session_date)
++        previous_rows = _read_hk_date_rows(Path(previous["panel_path"]), prior_session_date)
++        if len(current_rows) != current["panel_rows"] or len(previous_rows) != previous["panel_rows"]:
++            probe["reason"] = "HK exact-date parquet row counts differ from their receipts."
++            return probe, {}, {}, {}
++        current_by_code, current_duplicates = _index_rows_by_code(current_rows)
++        current_previous_by_code, current_previous_duplicates = _index_rows_by_code(current_previous_rows)
++        previous_by_code, previous_duplicates = _index_rows_by_code(previous_rows)
++        native = current["manifest"].get("native_observation", {})
++        price_meta = (native.get("fields") or {}).get("price", {}) if isinstance(native, dict) else {}
++        probe.update({
++            "status": "VERIFIED_EXACT_DATE_PANEL_CHAIN",
++            "binding_status": "BOUND",
++            "parent_panel_sha256_matches": True,
++            "current_rows_by_code": len(current_by_code),
++            "previous_rows_by_code": len(previous_by_code),
++            "duplicate_codes": {
++                "current": sorted(current_duplicates),
++                "current_panel_previous_date": sorted(current_previous_duplicates),
++                "previous_panel": sorted(previous_duplicates),
++            },
++            "native_session_finality": native.get("session_finality"),
++            "native_price_transform": price_meta.get("transform"),
++            "native_currency_status": price_meta.get("currency_status"),
++            "reason": (
++                "Uses the configured HK asset panel only. Each observed listing requires current and prior-session "
++                "rows to reconcile through the parent panel; provider finality and corporate-action adjustment remain unverified."
++            ),
++        })
++        return probe, current_by_code, current_previous_by_code, previous_by_code
++    except (OSError, PerformanceAppendixError, ImportError, ValueError, RuntimeError, KeyError, TypeError) as exc:
++        probe["reason"] = f"{type(exc).__name__}: {exc}"
++        return probe, {}, {}, {}
+ 
+ def _count_market_rows(rows: list[dict], market: str, source_probe: dict) -> dict:
+     relevant = [row for row in rows if row["market"] == market]
+@@ -1081,15 +1169,22 @@
+             row["source_receipt_path"] = str(Path(runtime["receipt_root"]) / f"a-{observation_date}.json")
+             try:
+                 if "_a_panel_cache" not in locals():
+-                    a_probe, a_rows_by_code = _build_a_bj_panel_probe(runtime, observation_date)
++                    try:
++                        a_probe, a_rows_by_code = _build_a_bj_panel_probe(runtime, observation_date)
++                    except (OSError, PerformanceAppendixError, ImportError, ValueError, RuntimeError) as exc:
++                        a_probe, a_rows_by_code = ({
++                            "status": "CANNOT_CONFIRM", "binding_status": "CANNOT_CONFIRM",
++                            "reason": f"{type(exc).__name__}: {exc}",
++                        }, {})
+                     _a_panel_cache = (a_probe, a_rows_by_code)
+                 else:
+                     a_probe, a_rows_by_code = _a_panel_cache
+-                row["source_receipt_sha256"] = a_probe["receipt_sha256"]
++                if a_probe.get("receipt_sha256"):
++                    row["source_receipt_sha256"] = a_probe["receipt_sha256"]
+                 exact_row = a_rows_by_code.get(source["code"])
+                 expected_type = "BJ" if market == "BJ" else "A_SHARE"
+                 if exact_row is None:
+-                    reason = "No unique exact-date selector row exists for this listing code."
++                    reason = a_probe.get("reason") or "No unique exact-date selector row exists for this listing code."
+                     if source["code"] in a_probe.get("duplicate_codes", []):
+                         reason = "The configured selector panel has duplicate exact-date rows for this listing code."
+                     row.update({"status": "CANNOT_CONFIRM", "reason": reason})
+@@ -1129,22 +1224,32 @@
+             else:
+                 try:
+                     if "_hk_panel_cache" not in locals():
+-                        _hk_probe, hk_rows, hk_current_prev_rows, hk_prior_rows = _build_hk_panel_probe(
+-                            runtime, observation_date, prior_session, calendar_status
+-                        )
++                        try:
++                            _hk_probe, hk_rows, hk_current_prev_rows, hk_prior_rows = _build_hk_panel_probe(
++                                runtime, observation_date, prior_session, calendar_status
++                            )
++                        except (OSError, PerformanceAppendixError, ImportError, ValueError, RuntimeError, KeyError, TypeError) as exc:
++                            _hk_probe, hk_rows, hk_current_prev_rows, hk_prior_rows = ({
++                                "status": "CANNOT_CONFIRM", "binding_status": "CANNOT_CONFIRM",
++                                "reason": f"{type(exc).__name__}: {exc}",
++                            }, {}, {}, {})
+                         _hk_panel_cache = (_hk_probe, hk_rows, hk_current_prev_rows, hk_prior_rows)
+                     else:
+                         _hk_probe, hk_rows, hk_current_prev_rows, hk_prior_rows = _hk_panel_cache
+-                    row["source_receipt_path"] = _hk_probe["current_receipt_path"]
+-                    row["source_receipt_sha256"] = _hk_probe["current_receipt_sha256"]
+-                    row["source_manifest_sha256"] = _hk_probe["current_manifest_sha256"]
+-                    row["source_sha256"] = _hk_probe["current_panel_sha256"]
++                    if _hk_probe.get("current_receipt_path"):
++                        row["source_receipt_path"] = _hk_probe["current_receipt_path"]
++                    if _hk_probe.get("current_receipt_sha256"):
++                        row["source_receipt_sha256"] = _hk_probe["current_receipt_sha256"]
++                    if _hk_probe.get("current_manifest_sha256"):
++                        row["source_manifest_sha256"] = _hk_probe["current_manifest_sha256"]
++                    if _hk_probe.get("current_panel_sha256"):
++                        row["source_sha256"] = _hk_probe["current_panel_sha256"]
+                     code_norm = "HK." + source["code"].split(".", 1)[0]
+                     current_row = hk_rows.get(code_norm)
+                     current_previous_row = hk_current_prev_rows.get(code_norm)
+                     prior_row = hk_prior_rows.get(code_norm)
+                     if current_row is None or current_previous_row is None or prior_row is None:
+-                        row.update({"status": "CANNOT_CONFIRM", "reason": "The configured HK panel chain lacks a unique current and prior-session row for this listing."})
++                        row.update({"status": "CANNOT_CONFIRM", "reason": _hk_probe.get("reason") or "The configured HK panel chain lacks a unique current and prior-session row for this listing."})
+                     else:
+                         raw_prices = (current_row.get("close"), current_row.get("pre_close"),
+                                       prior_row.get("close"), current_previous_row.get("close"))
+@@ -1184,11 +1289,11 @@
+         by_market[market].append(row)
+ 
+     a_probe = _a_panel_cache[0] if "_a_panel_cache" in locals() else {
+-        "status": "CANNOT_CONFIRM",
++        "status": "CANNOT_CONFIRM", "binding_status": "CANNOT_CONFIRM",
+         "reason": runtime_error or "No valid exact-date A/BJ panel binding was available.",
+     }
+     hk_probe = _hk_panel_cache[0] if "_hk_panel_cache" in locals() else {
+-        "status": "CANNOT_CONFIRM",
++        "status": "CANNOT_CONFIRM", "binding_status": "CANNOT_CONFIRM",
+         "reason": runtime_error or "No valid exact-date HK receipt/asset panel chain was available.",
+     }
+     market_probes = {"A": a_probe, "BJ": a_probe, "HK": hk_probe}
+@@ -1260,6 +1365,36 @@
+     runtime = result.get("runtime_configuration", {})
+     a_probe = result["source_data_probe"]["markets"]["A"]
+     hk_probe = result["source_data_probe"]["markets"]["HK"]
++    if a_probe.get("receipt_target_date_file_count") is not None:
++        a_coverage = a_probe.get("receipt_coverage_rate")
++        a_coverage_text = f"{float(a_coverage):.6f}" if _positive_finite_number(a_coverage) or a_coverage == 0 else "CANNOT_CONFIRM"
++        a_binding_note = (
++            "面板与receipt绑定失败，所有A/BJ行情均CANNOT_CONFIRM。"
++            if a_probe.get("binding_status") != "BOUND" else
++            "只使用唯一exact-date行并逐行复算。"
++        )
++        a_disclosure = (
++            f"receipt {a_probe.get('receipt_path', 'CANNOT_CONFIRM')} SHA-256 {a_probe.get('receipt_sha256', 'CANNOT_CONFIRM')} "
++            f"状态 {a_probe.get('receipt_status', 'CANNOT_CONFIRM')}；target_date_file_count "
++            f"{a_probe.get('receipt_target_date_file_count')}/{a_probe.get('receipt_target_count')} "
++            f"(coverage_rate={a_coverage_text})；receipt row_count {a_probe.get('receipt_row_count', 'CANNOT_CONFIRM')}；"
++            f"sync authority {a_probe.get('sync_authority_status', 'CANNOT_CONFIRM')}；binding {a_probe.get('binding_status', 'CANNOT_CONFIRM')}。"
++            f"{a_probe.get('receipt_target_date_file_count')}/{a_probe.get('receipt_target_count')}是面板覆盖统计，"
++            f"不是{result.get('unique_listings', 'CANNOT_CONFIRM')}只代码的匹配率。{a_binding_note}"
++        )
++    else:
++        a_disclosure = (
++            f"运行配置 evidence {runtime.get('evidence_path', 'CANNOT_CONFIRM')}；selector pointer "
++            f"{a_probe.get('selector_pointer_path', 'CANNOT_CONFIRM')}；receipt "
++            f"{a_probe.get('receipt_path', 'CANNOT_CONFIRM')} SHA-256 {a_probe.get('receipt_sha256', 'CANNOT_CONFIRM')}；"
++            f"状态 {a_probe.get('receipt_status', a_probe.get('status'))}；binding {a_probe.get('binding_status', 'CANNOT_CONFIRM')}；"
++            f"{a_probe.get('reason', 'A/BJ receipt coverage is not available.')}"
++        )
++    hk_missing_prior = (
++        f"；前一交易日回执 {hk_probe.get('missing_previous_receipt_date')} "
++        f"{hk_probe.get('missing_previous_receipt_path')} 状态 {hk_probe.get('previous_receipt_status')}"
++        if hk_probe.get('missing_previous_receipt_date') else ""
++    )
+     lines = [
+         f"### 前篇公众号提及股票的今日表现（观察附录；前篇文章日 {source['article_date']}；观察日 {observation['date']}）",
+         "",
+@@ -1286,8 +1421,8 @@
+     lines.extend([
+         "",
+         "数据来源与缺口说明：",
+-        f"- A/BJ：运行配置 evidence {runtime.get('evidence_path', 'CANNOT_CONFIRM')}；selector pointer {a_probe.get('selector_pointer_path', 'CANNOT_CONFIRM')}；目标面板 SHA {a_probe.get('selector_panel_sha256', 'CANNOT_CONFIRM')}；receipt {a_probe.get('receipt_path', 'CANNOT_CONFIRM')} 状态 {a_probe.get('receipt_status', a_probe.get('status'))}，receipt 覆盖 {a_probe.get('receipt_row_count', '—')}/{a_probe.get('receipt_target_count', '—')}，sync authority {a_probe.get('sync_authority_status', 'CANNOT_CONFIRM')}。逐行精确匹配可用，面板部分状态如实披露。",
+-        f"- HK：当前面板 SHA {hk_probe.get('current_panel_sha256', 'CANNOT_CONFIRM')}；前序面板 SHA {hk_probe.get('previous_panel_sha256', 'CANNOT_CONFIRM')}；receipt 状态 {hk_probe.get('current_receipt_status', hk_probe.get('status'))}；父面板 SHA 链匹配 {hk_probe.get('parent_panel_sha256_matches', False)}；公司行动/复权核验 {hk_probe.get('corporate_action_adjustment_status', 'NOT_VERIFIED')}。",
++        f"- A/BJ：{a_disclosure}",
++        f"- HK：当前receipt {hk_probe.get('current_receipt_path', 'CANNOT_CONFIRM')} SHA-256 {hk_probe.get('current_receipt_sha256', 'CANNOT_CONFIRM')}；状态 {hk_probe.get('current_receipt_status', hk_probe.get('status'))}；当前面板 SHA {hk_probe.get('current_panel_sha256', 'CANNOT_CONFIRM')}；前序面板 SHA {hk_probe.get('previous_panel_sha256', 'CANNOT_CONFIRM')}；父面板 SHA 链匹配 {hk_probe.get('parent_panel_sha256_matches', False)}；binding {hk_probe.get('binding_status', 'CANNOT_CONFIRM')}；公司行动/复权核验 {hk_probe.get('corporate_action_adjustment_status', 'NOT_VERIFIED')}{hk_missing_prior}。",
+         "",
+         "### 全部归档上市代码",
+         "",
+@@ -1311,6 +1446,7 @@
+     lines.extend([
+         "",
+         f"市场日历 SHA-256：{observation['calendar_sha256']}。运行指针发现文件 SHA-256：{runtime.get('evidence_sha256', 'CANNOT_CONFIRM')}。完整逐行值、路径及校验状态见同身份绑定的 JSON 附录。",
++        "没有有效价格观察不表示0%收益；失败绑定的行情字段保持null。",
+         "",
+         "RESEARCH_ONLY / WATCH_ONLY / NO_BUY_GATE；production_allowed=false、buy_gate_updated=false、orders_sent=false。",
+     ])
+--- before/tests/test_prior_mentions_performance_appendix.py
++++ after/tests/test_prior_mentions_performance_appendix.py
+@@ -9,6 +9,7 @@
+ import tempfile
+ import unittest
+ from pathlib import Path
++from unittest.mock import patch
+ 
+ try:
+     import pandas as pd
+@@ -316,6 +317,28 @@
+             yp._load_prior_article_mentions(self.article_dir)
+ 
+     @unittest.skipIf(pd is None, "pandas and pyarrow are required for the parquet integration fixture")
++    def test_hk_receipt_facts_survive_current_panel_sha_failure(self) -> None:
++        receipt_path = self.receipt_root / "hk-20260928.json"
++        receipt_bytes = receipt_path.read_bytes()
++        expected_receipt = json.loads(receipt_bytes)
++        current_panel = self.hk_asset_root / "panels/20260928-test/current.parquet"
++        current_panel.write_bytes(current_panel.read_bytes() + b"tampered-after-receipt")
++
++        result = self._build()
++
++        probe = result["source_data_probe"]["markets"]["HK"]
++        self.assertEqual(probe["current_receipt_status"], expected_receipt["status"])
++        self.assertEqual(probe["current_receipt_sha256"], _sha(receipt_bytes))
++        self.assertEqual(probe["current_receipt_rows"], expected_receipt["row_count"])
++        self.assertEqual(probe["current_receipt_read_status"], "READ_OK_BINDING_FAILED")
++        self.assertEqual(probe["binding_status"], "CANNOT_CONFIRM")
++        self.assertEqual(result["market_summary"]["HK"]["observed_listings"], 0)
++        self.assertTrue(all(
++            row["status"] == "CANNOT_CONFIRM" and row["pct_chg_close"] is None
++            for row in result["rows"] if row["market"] == "HK"
++        ))
++
++    @unittest.skipIf(pd is None, "pandas and pyarrow are required for the parquet integration fixture")
+     def test_runtime_pointer_target_must_match_loaded_environment_evidence(self) -> None:
+         evidence = json.loads(self.runtime_evidence.read_text())
+         evidence["pointer_targets"]["V35_RESEARCH_PANEL_A_SELECTOR_POINTER"] = str(self.root / "wrong.parquet")
+@@ -341,6 +364,129 @@
+             self.assertEqual(result["market_summary"][market]["status"], "CANNOT_CONFIRM")
+             self.assertEqual(result["market_summary"][market]["observed_listings"], 0)
+ 
++    def _write_108_partial_failure_fixture(self) -> None:
++        synthetic_mentions = []
++        a_codes = [f"{600000 + index:06d}.SH" for index in range(81)]
++        bj_codes = [f"{920001 + index:06d}.BJ" for index in range(3)]
++        hk_codes = [f"{index:05d}.HK" for index in range(1, 25)]
++        for market, codes in (("A", a_codes), ("BJ", bj_codes), ("HK", hk_codes)):
++            for index, code in enumerate(codes, 1):
++                synthetic_mentions.append({
++                    "market": market, "code": code, "name": f"synthetic-{market}-{index:03d}",
++                    "source_index": "BODY", "entity_id": f"synthetic-{market}-{index:03d}",
++                })
++        mentions_path = self.article_dir / "mentions.csv"
++        with mentions_path.open("w", encoding="utf-8", newline="") as stream:
++            writer = csv.DictWriter(stream, fieldnames=["market", "code", "name", "source_index", "entity_id"])
++            writer.writeheader()
++            writer.writerows(synthetic_mentions)
++        mentions_sha = _sha(mentions_path.read_bytes())
++        summary_path = self.article_dir / "summary.json"
++        summary = json.loads(summary_path.read_text(encoding="utf-8"))
++        summary["mentions_counts"] = {"total": 108, "A": 81, "BJ": 3, "HK": 24}
++        summary.setdefault("artifact_sha256", {})["mentions.csv"] = mentions_sha
++        summary_bytes = json.dumps(summary).encode("utf-8")
++        summary_path.write_bytes(summary_bytes)
++        receipt_path = self.article_dir / "IMPORT_RECEIPT.json"
++        archive_receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
++        archive_receipt["archived_files"]["mentions"]["sha256"] = mentions_sha
++        archive_receipt["archived_files"]["summary"]["sha256"] = _sha(summary_bytes)
++        receipt_path.write_text(json.dumps(archive_receipt), encoding="utf-8")
++
++        panel_rows = []
++        for code, market_type in [(code, "A_SHARE") for code in a_codes] + [(code, "BJ") for code in bj_codes]:
++            panel_rows.append({
++                "trade_date": "20260928", "ts_code": code, "name": "synthetic",
++                "close": 10.0, "pre_close": 10.0, "pct_chg": 0.0, "market_type": market_type,
++            })
++        self.selector_panel.unlink()
++        pd.DataFrame(panel_rows).to_parquet(self.selector_panel, index=False)
++        selector_sha = _sha(self.selector_panel.read_bytes())
++        a_receipt = {
++            "status": "PARTIAL", "target_date": "20260928", "target_date_file_count": 5137,
++            "target_count": 5800, "accepted_count": 5137,
++            "coverage_rate": 0.8856896551724138, "row_count": 5261,
++            "selector_sha256": selector_sha, "production_allowed": False,
++            "buy_gate_updated": False, "orders_sent": False,
++            "formula": {"status": "READY", "target_date": 20260928,
++                        "selector": str(self.selector_panel), "selector_sha256": selector_sha},
++            "sync": {"authority": {"authority_status": "REBUILD_REQUIRED"}},
++        }
++        (self.receipt_root / "a-20260928.json").write_text(json.dumps(a_receipt), encoding="utf-8")
++        (self.receipt_root / "hk-20260925.json").unlink()
++
++    @unittest.skipIf(pd is None, "pandas and pyarrow are required for the parquet integration fixture")
++    def test_failed_a_bj_and_hk_probes_are_cached_once(self) -> None:
++        self._write_108_partial_failure_fixture()
++        with patch.object(yp, "_build_a_bj_panel_probe", wraps=yp._build_a_bj_panel_probe) as a_probe_call, \
++                patch.object(yp, "_build_hk_panel_probe", wraps=yp._build_hk_panel_probe) as hk_probe_call:
++            self._build()
++        self.assertEqual(a_probe_call.call_count, 1)
++        self.assertEqual(hk_probe_call.call_count, 1)
++
++    @unittest.skipIf(pd is None, "pandas and pyarrow are required for the parquet integration fixture")
++    def test_failed_bindings_preserve_receipt_and_all_108_rows_in_json_and_markdown(self) -> None:
++        self._write_108_partial_failure_fixture()
++        result = self._build()
++        runtime = result["runtime_configuration"]
++        _, a_rows = yp._build_a_bj_panel_probe(runtime, "20260928")
++        _, hk_current, hk_current_previous, hk_previous = yp._build_hk_panel_probe(
++            runtime, "20260928", "20260925", {"HK": "FULL_TRADING_DAY"}
++        )
++        self.assertEqual(a_rows, {})
++        self.assertEqual(hk_current, {})
++        self.assertEqual(hk_current_previous, {})
++        self.assertEqual(hk_previous, {})
++        self.assertEqual(result["unique_listings"], 108)
++        self.assertEqual(result["market_summary"]["A"]["mentioned_listings"], 81)
++        self.assertEqual(result["market_summary"]["BJ"]["mentioned_listings"], 3)
++        self.assertEqual(result["market_summary"]["HK"]["mentioned_listings"], 24)
++        self.assertTrue(all(row["status"] == "CANNOT_CONFIRM" for row in result["rows"]))
++        self.assertTrue(all(row["close"] is None and row["pre_close"] is None
++                            and row["pct_chg_close"] is None for row in result["rows"]))
++        self.assertTrue(all(result["market_summary"][market]["observed_listings"] == 0
++                            for market in ("A", "BJ", "HK")))
++
++        a_probe = result["source_data_probe"]["markets"]["A"]
++        self.assertEqual(a_probe["receipt_status"], "PARTIAL")
++        self.assertEqual(a_probe["receipt_target_date_file_count"], 5137)
++        self.assertEqual(a_probe["receipt_target_count"], 5800)
++        self.assertEqual(a_probe["receipt_coverage_rate"], 0.8856896551724138)
++        self.assertEqual(a_probe["receipt_row_count"], 5261)
++        self.assertEqual(a_probe["sync_authority_status"], "REBUILD_REQUIRED")
++        self.assertEqual(a_probe["binding_status"], "CANNOT_CONFIRM")
++        self.assertEqual(len(a_probe["receipt_sha256"]), 64)
++        a_receipt_bytes = (self.receipt_root / "a-20260928.json").read_bytes()
++        self.assertEqual(Path(a_probe["receipt_path"]).read_bytes(), a_receipt_bytes)
++        self.assertEqual(a_probe["receipt_sha256"], _sha(a_receipt_bytes))
++        hk_probe = result["source_data_probe"]["markets"]["HK"]
++        self.assertEqual(hk_probe["current_receipt_status"], "READY")
++        self.assertEqual(hk_probe["missing_previous_receipt_date"], "20260925")
++        self.assertEqual(hk_probe["binding_status"], "CANNOT_CONFIRM")
++        self.assertEqual(Path(hk_probe["missing_previous_receipt_path"]),
++                         self.receipt_root / "hk-20260925.json")
++        hk_receipt_bytes = (self.receipt_root / "hk-20260928.json").read_bytes()
++        self.assertEqual(hk_probe["current_receipt_sha256"], _sha(hk_receipt_bytes))
++
++        markdown = yp.render_prior_mentions_performance_appendix(result)
++        self.assertIn("5137/5800", markdown)
++        self.assertIn("5261", markdown)
++        self.assertIn("REBUILD_REQUIRED", markdown)
++        self.assertIn("不是108只代码的匹配率", markdown)
++        self.assertIn(a_probe["receipt_path"], markdown)
++        self.assertIn(a_probe["receipt_sha256"], markdown)
++        self.assertIn(hk_probe["current_receipt_path"], markdown)
++        self.assertIn(hk_probe["current_receipt_sha256"], markdown)
++        self.assertIn("20260925", markdown)
++        self.assertIn("CANNOT_CONFIRM", markdown)
++        self.assertIn("没有有效价格观察不表示0%收益", markdown)
++        payload = json.dumps(result, ensure_ascii=False, allow_nan=False)
++        for token in ('"receipt_status": "PARTIAL"', '"receipt_target_date_file_count": 5137',
++                      '"receipt_target_count": 5800', '"receipt_row_count": 5261',
++                      '"sync_authority_status": "REBUILD_REQUIRED"',
++                      '"missing_previous_receipt_date": "20260925"', '"unique_listings": 108'):
++            self.assertIn(token, payload)
++
+ 
+ if __name__ == "__main__":
+     unittest.main()
+--- before/tests/test_wechat_article_fetch_recovery.py
++++ after/tests/test_wechat_article_fetch_recovery.py
+@@ -0,0 +1,977 @@
++# -*- coding: utf-8 -*-
++"""Offline recovery tests through the real fetch adapter main()."""
++from __future__ import annotations
++
++import csv
++import hashlib
++import json
++import os
++import shutil
++import sys
++import subprocess
++import tempfile
++import textwrap
++import time
++import unittest
++from pathlib import Path
++from unittest.mock import patch
++
++_DEFAULT_SCRIPT_DIR = Path(__file__).resolve().parents[1] / "scripts"
++_SCRIPT_DIR = Path(os.environ.get("ISSUE31_FETCH_SCRIPTS", _DEFAULT_SCRIPT_DIR)).resolve()
++sys.path.insert(0, str(_SCRIPT_DIR))
++import wechat_article_fetch as fetch  # noqa: E402
++import wechat_chat_handoff as handoff  # noqa: E402
++import wechat_pipeline_runner as runner  # noqa: E402
++import wechat_prepare_ocr as prepare_ocr  # noqa: E402
++
++_COLLECTOR_PATH = Path(__file__).resolve().parents[1] / "external" / "wechat_article_intake.py"
++_COLLECTOR_NAMESPACE = __import__("runpy").run_path(str(_COLLECTOR_PATH))
++collector_extract_image_urls = _COLLECTOR_NAMESPACE["extract_image_urls"]
++
++
++URL = "https://mp.weixin.qq.com/s/OfflineFixtureToken"
++
++
++class WechatArticleFetchRecoveryTests(unittest.TestCase):
++    def setUp(self) -> None:
++        self.temp = tempfile.TemporaryDirectory()
++        self.root = Path(self.temp.name)
++        self.run_dir = self.root / "run"
++        self.run_dir.mkdir()
++        self.collector = self.root / "fixture_collector.py"
++        self.collector_calls = self.collector.with_suffix(".calls")
++        self._write_collector()
++
++    def tearDown(self) -> None:
++        self.temp.cleanup()
++
++    def _write_collector(self) -> None:
++        self.collector.write_text(
++            '''from __future__ import annotations
++import argparse, csv, hashlib, json
++from pathlib import Path
++from urllib.parse import urlsplit
++from PIL import Image
++
++parser = argparse.ArgumentParser()
++parser.add_argument("--url", required=True)
++parser.add_argument("--out", required=True)
++parser.add_argument("--html-file", default="")
++args, _ = parser.parse_known_args()
++out = Path(args.out)
++out.mkdir(parents=True, exist_ok=True)
++callfile = Path(__file__).with_suffix(".calls")
++count = int(callfile.read_text() or "0") + 1 if callfile.exists() else 1
++callfile.write_text(str(count))
++token = urlsplit(args.url).path.rsplit("/", 1)[-1]
++mode_path = Path(__file__).with_suffix(".mode")
++mode = mode_path.read_text() if mode_path.exists() else "source_then_verify"
++if count == 1 and mode != "verify_first":
++    image_tags = "".join(f'<img data-src="https://mmbiz.qpic.cn/fixture/{index}"/>' for index in range(1, 51))
++    if mode == "saved_html":
++        body = Path(args.html_file).read_bytes()
++    elif mode == "image_only":
++        body = f'<!doctype html><html><body><div id="js_content">{image_tags}</div></body></html>'.encode()
++    else:
++        body = f'<!doctype html><html><body><div id="js_content">offline verified article body{image_tags}</div></body></html>'.encode()
++    (out / "wechat_article_raw.html").write_bytes(body)
++    image_dir = out / "wechat_article_images"
++    image_dir.mkdir(exist_ok=True)
++    manifest = out / "wechat_article_image_manifest.csv"
++    image_rows, checkpoint_rows = [], []
++    for index in range(1, 51):
++        image_path = image_dir / f"img_{index:02d}.png"
++        Image.new("RGB", (16, 24), (index, 92, 141)).save(image_path, format="PNG")
++        image = image_path.read_bytes()
++        image_sha = hashlib.sha256(image).hexdigest()
++        image_url = f"https://mmbiz.qpic.cn/fixture/{index}"
++        image_rows.append({"idx": index, "url": image_url, "local_path": str(image_path),
++                           "download_status": "OK", "image_size": "16x24", "sha256": image_sha, "bytes": len(image)})
++        checkpoint_rows.append({"idx": index, "url": image_url, "local_path": str(image_path),
++                                "sha256": image_sha, "status": "OK"})
++    with manifest.open("w", encoding="utf-8-sig", newline="") as stream:
++        writer = csv.DictWriter(stream, fieldnames=["idx", "url", "local_path", "download_status", "image_size", "sha256", "bytes"])
++        writer.writeheader()
++        writer.writerows(image_rows)
++    (out / "wechat_article_image_checkpoint.json").write_text(json.dumps(checkpoint_rows))
++    summary = {"article_url": args.url, "canonical_url": args.url, "canonical_token": token,
++        "title": "离线合成文章", "account_name": "合成公众号", "biz": "fixture-biz",
++        "article_date": "20261008", "published_at": "2026-10-08T12:00:00+08:00",
++        "content_hash": hashlib.sha256(body).hexdigest(),
++        "http_status": 0 if mode == "saved_html" else (503 if mode == "http_failure" else 200),
++        "html_bytes": len(body), "article_body_found": True,
++        "text_preview_length": 0 if mode == "image_only" else 18, "image_count": 50, "downloaded_image_count": 50,
++        "final_label": "WECHAT_RESEARCH_INTAKE_PARTIAL_NEED_OCR",
++        "ocr_status": "OCR_SKIPPED" if mode == "saved_html" else "OCR_IMPORT_ERROR",
++        "ocr_error": "" if mode == "saved_html" else "ModuleNotFoundError: No module named easyocr", "fetch_error": "",
++        "html_path": str(out / "wechat_article_raw.html"),
++        "image_manifest_path": str(manifest)}
++    (out / "wechat_article_intake_summary.json").write_text(json.dumps(summary))
++    if mode == "module_not_found":
++        raise ModuleNotFoundError("No module named easyocr")
++    if mode == "unknown_exception":
++        raise RuntimeError("unexpected post-capture failure")
++    if mode == "saved_html":
++        raise SystemExit(0)
++    raise SystemExit(17)
++
++body = b"<html><body><script>SecItPtPage/verify</script></body></html>"
++(out / "wechat_article_raw.html").write_bytes(body)
++(out / "wechat_article_image_manifest.csv").write_text("idx,url,local_path,download_status\\n")
++summary = {"article_url": args.url, "canonical_url": args.url, "canonical_token": token,
++    "final_label": "WECHAT_RESEARCH_INTAKE_BLOCKED_BY_WECHAT_VERIFY", "http_status": 200,
++    "html_bytes": len(body), "article_body_found": False, "text_preview_length": 0,
++    "image_count": 0, "downloaded_image_count": 0,
++    "html_path": str(out / "wechat_article_raw.html"),
++    "image_manifest_path": str(out / "wechat_article_image_manifest.csv")}
++(out / "wechat_article_intake_summary.json").write_text(json.dumps(summary))
++''',
++            encoding="utf-8",
++        )
++
++    def _call(self, extra: list[str] | None = None) -> int:
++        with patch.object(fetch, "_intake_script", return_value=self.collector):
++            return fetch.main(["--url", URL, "--out", str(self.run_dir), "--skip-ocr", "--image-workers", "3", *(extra or [])])
++
++    def _prepare_historical_package_fixture(self) -> tuple[Path, Path, Path, Path, dict[str, object]]:
++        """Build a frozen v2 source plus a path-rebound run without live inputs."""
++        self.assertEqual(self._call(), 0)
++        self.assertEqual(prepare_ocr.main(["--run-dir", str(self.run_dir)]), 0)
++        with (self.run_dir / "wechat_article_image_manifest.csv").open(
++            "r", encoding="utf-8-sig", newline=""
++        ) as stream:
++            rows = list(csv.DictReader(stream))
++        results = []
++        for index, row in enumerate(rows, 1):
++            text = f"fixture OCR {index}"
++            results.append({
++                "index": index,
++                "name": Path(row["local_path"]).name,
++                "path": row["local_path"],
++                "image_sha256": row["sha256"],
++                "status": "OCR_OK",
++                "text": text,
++                "text_length": len(text),
++                "engine": "OFFLINE_FIXTURE",
++                "parts": [],
++                "error": "",
++            })
++        (self.run_dir / "windows_ocr_results.json").write_text(json.dumps(results), encoding="utf-8")
++        (self.run_dir / "windows_ocr_checkpoint.json").write_text(json.dumps(results), encoding="utf-8")
++        ocr_text = "\n\n".join(
++            f"=====IMAGE{item['index']:03d} {item['name']} [OCR_OK=====\n{item['text']}"
++            for item in results
++        )
++        (self.run_dir / "wechat_article_ocr_text.txt").write_text(ocr_text, encoding="utf-8")
++        (self.run_dir / "wechat_article_ocr_summary.json").write_text(json.dumps({
++            "status": "OCR_OK", "mode": "Full", "image_count": 50,
++            "ocr_applicable": True, "body_source_required": False,
++            "processed_count": 50, "ok_count": 50,
++            "timeout_count": 0, "error_count": 0, "empty_count": 0,
++            "text_length": sum(item["text_length"] for item in results),
++            "engine": "OFFLINE_FIXTURE",
++        }), encoding="utf-8")
++
++        # The exact source summary is legacy-shaped: BODY identity is present,
++        # while no R2 attempt/promotion claim is synthesized.
++        summary_path = self.run_dir / "wechat_article_intake_summary.json"
++        summary = json.loads(summary_path.read_text(encoding="utf-8-sig"))
++        for key in (
++            "fetch_attempt_id", "identity_validation_version", "identity_validation_mode",
++            "identity_validation", "saved_html_sha256",
++        ):
++            summary.pop(key, None)
++        summary["identity_status"] = "PASS"
++        # Historical saved-HTML intake has no HTTP transport response. The
++        # explicitly trusted package plus exact original source anchors must
++        # authorize this shape; an unanchored status=0 source stays rejected.
++        summary["http_status"] = 0
++        summary["fetch_mode"] = "saved_html"
++        summary["ocr_text_path"] = str(self.run_dir / "wechat_article_ocr_text.txt")
++        summary["image_checkpoint_path"] = str(self.run_dir / "wechat_article_image_checkpoint.json")
++        summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8-sig")
++
++        legacy_summary = summary_path
++        manifest_path = self.run_dir / "wechat_article_image_manifest.csv"
++        legacy_manifest = manifest_path
++        package_dir = self.root / "frozen_package"
++        receipt = handoff.package_run(self.run_dir, package_dir, "legacy_fixture_r1")
++        frozen_zip = package_dir / receipt["zip"]["path"]
++
++        rebound_parent = self.root / "rebound"
++        rebound_parent.mkdir()
++        rebound_run = rebound_parent / self.run_dir.name
++        shutil.copytree(self.run_dir, rebound_run)
++        attempts = rebound_run / "evidence" / "wechat_article_fetch_attempts"
++        if attempts.exists():
++            shutil.rmtree(attempts)
++        (rebound_run / "wechat_article_fetch_state.json").unlink(missing_ok=True)
++        rebound_summary_path = rebound_run / "wechat_article_intake_summary.json"
++        rebound_summary = json.loads(rebound_summary_path.read_text(encoding="utf-8-sig"))
++        path_fields = {
++            "html_path": "wechat_article_raw.html",
++            "image_manifest_path": "wechat_article_image_manifest.csv",
++            "image_checkpoint_path": "wechat_article_image_checkpoint.json",
++            "ocr_text_path": "wechat_article_ocr_text.txt",
++        }
++        for key, relative in path_fields.items():
++            if key in rebound_summary:
++                rebound_summary[key] = str(rebound_run / relative)
++        rebound_summary_path.write_text(
++            json.dumps(rebound_summary, ensure_ascii=False, indent=2), encoding="utf-8-sig"
++        )
++        rebound_manifest_path = rebound_run / "wechat_article_image_manifest.csv"
++        with rebound_manifest_path.open("r", encoding="utf-8-sig", newline="") as stream:
++            reader = csv.DictReader(stream)
++            fields = list(reader.fieldnames or [])
++            rebound_rows = list(reader)
++        for row in rebound_rows:
++            row["local_path"] = str(rebound_run / "wechat_article_images" / Path(row["local_path"]).name)
++        with rebound_manifest_path.open("w", encoding="utf-8-sig", newline="") as stream:
++            writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
++            writer.writeheader()
++            writer.writerows(rebound_rows)
++
++        article = {
++            "url": URL,
++            "title": summary["title"],
++            "target_date": summary["article_date"],
++            "account": summary["account_name"],
++            "biz": summary["biz"],
++            "content_hash": summary["content_hash"],
++        }
++        (rebound_run / "article_research.json").write_text(
++            json.dumps({"schema_version": 1, "article": article}, ensure_ascii=False), encoding="utf-8"
++        )
++        ocr_cache_names = {
++            "windows_ocr_results.json", "windows_ocr_checkpoint.json",
++            "wechat_article_ocr_text.txt", "wechat_article_ocr_summary.json",
++        }
++        ocr_hashes = {
++            name: hashlib.sha256((rebound_run / name).read_bytes()).hexdigest()
++            for name in ocr_cache_names
++        }
++        return rebound_run, frozen_zip, legacy_summary, legacy_manifest, {
++            "package_id": receipt["package_id"],
++            "input_digest": receipt["input_digest"],
++            "package_sha256": receipt["zip"]["sha256"],
++            "ocr_hashes": ocr_hashes,
++        }
++
++    def test_ocr_failure_preserves_verified_source_and_resume_does_not_refetch(self) -> None:
++        first_code = self._call()
++        raw_path = self.run_dir / "wechat_article_raw.html"
++        manifest_path = self.run_dir / "wechat_article_image_manifest.csv"
++        summary_path = self.run_dir / "wechat_article_intake_summary.json"
++        image_dir = self.run_dir / "wechat_article_images"
++        image_paths = [image_dir / f"img_{index:02d}.png" for index in range(1, 51)]
++        image_path = image_paths[0]
++        self.assertEqual(first_code, 0)
++        self.assertTrue(raw_path.is_file())
++        self.assertEqual(json.loads(summary_path.read_text(encoding="utf-8-sig"))["identity_status"], "PASS")
++        self.assertEqual(json.loads(summary_path.read_text(encoding="utf-8-sig"))["ocr_status"], "OCR_IMPORT_ERROR")
++        self.assertEqual(prepare_ocr.main(["--run-dir", str(self.run_dir)]), 0)
++        tracked_paths = [raw_path, manifest_path, summary_path,
++                         self.run_dir / "wechat_article_image_checkpoint.json",
++                         self.run_dir / "ocr_slice_manifest.json", *image_paths]
++        before = {
++            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
++            for path in tracked_paths
++        }
++
++        second_code = self._call()
++        state_path = self.run_dir / "wechat_article_fetch_state.json"
++        state = json.loads(state_path.read_text(encoding="utf-8-sig"))
++        self.assertEqual(second_code, 0)
++        self.assertEqual(self.collector_calls.read_text(), "1")
++        self.assertEqual(state["status"], "SOURCE_REUSED_NEED_OCR")
++        self.assertEqual(state["next_missing_stage"], "ocr_full")
++        self.assertEqual(before, {
++            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
++            for path in tracked_paths
++        })
++        rows = list(csv.DictReader(manifest_path.read_text(encoding="utf-8-sig").splitlines()))
++        self.assertEqual([row["idx"] for row in rows], [str(index) for index in range(1, 51)])
++        self.assertEqual([row["url"] for row in rows], [f"https://mmbiz.qpic.cn/fixture/{index}" for index in range(1, 51)])
++        self.assertEqual([Path(row["local_path"]).resolve() for row in rows], [path.resolve() for path in image_paths])
++        self.assertIn("ocr_text_length", rows[0])
++
++    def test_verify_page_is_kept_only_as_attempt_evidence(self) -> None:
++        self.collector.with_suffix(".mode").write_text("verify_first", encoding="utf-8")
++        code = self._call()
++        self.assertNotEqual(code, 0)
++        self.assertFalse((self.run_dir / "wechat_article_raw.html").exists())
++        self.assertFalse((self.run_dir / "wechat_article_intake_summary.json").exists())
++        attempt_receipts = list((self.run_dir / "evidence" / "wechat_article_fetch_attempts").glob("*/ATTEMPT_RESULT.json"))
++        self.assertEqual(len(attempt_receipts), 1)
++        receipt = json.loads(attempt_receipts[0].read_text(encoding="utf-8-sig"))
++        self.assertEqual(receipt["status"], "REJECTED")
++        self.assertIn("verification", receipt["reason"].lower())
++
++    def test_module_not_found_after_complete_body_is_source_only_resume(self) -> None:
++        self.collector.with_suffix(".mode").write_text("module_not_found", encoding="utf-8")
++        code = self._call()
++        state = json.loads((self.run_dir / "wechat_article_fetch_state.json").read_text(encoding="utf-8-sig"))
++        self.assertEqual(code, 0)
++        self.assertEqual(state["source_status"], "BODY_IDENTITY_VERIFIED")
++        self.assertEqual(state["collector_execution_status"], "OCR_IMPORT_ERROR")
++        self.assertEqual(state["continuation_status"], "RESUME_VIA_PREPARE_OCR")
++        self.assertEqual(state["next_missing_stage"], "prepare_ocr")
++        self.assertTrue((self.run_dir / "wechat_article_raw.html").is_file())
++
++    def test_explicit_saved_html_permission_is_bound_to_attempt_and_source_bytes(self) -> None:
++        self.collector.with_suffix(".mode").write_text("saved_html", encoding="utf-8")
++        saved_html = self.root / "saved_article.html"
++        image_tags = "".join(
++            f'<img data-src="https://mmbiz.qpic.cn/fixture/{index}"/>' for index in range(1, 51)
++        )
++        saved_bytes = f'<!doctype html><html><body><div id="js_content">saved offline fixture{image_tags}</div></body></html>'.encode()
++        saved_html.write_bytes(saved_bytes)
++        code = self._call(["--html-file", str(saved_html)])
++        summary = json.loads((self.run_dir / "wechat_article_intake_summary.json").read_text(encoding="utf-8-sig"))
++        promotion = json.loads(next((self.run_dir / "evidence" / "wechat_article_fetch_attempts").glob("*/PROMOTION_RECEIPT.json")).read_text(encoding="utf-8-sig"))
++        self.assertEqual(code, 0)
++        self.assertEqual(summary["identity_validation_mode"], "SAVED_HTML")
++        self.assertEqual(summary["saved_html_sha256"], hashlib.sha256(saved_bytes).hexdigest())
++        self.assertTrue(promotion["allow_saved_html"])
++        self.assertEqual(promotion["saved_html_sha256"], hashlib.sha256(saved_bytes).hexdigest())
++        self.assertEqual(self._call(["--html-file", str(saved_html)]), 0)
++        self.assertEqual(self.collector_calls.read_text(), "1")
++
++    def test_unknown_exception_retains_source_but_does_not_claim_fetch_pass(self) -> None:
++        self.collector.with_suffix(".mode").write_text("unknown_exception", encoding="utf-8")
++        code = self._call()
++        state = json.loads((self.run_dir / "wechat_article_fetch_state.json").read_text(encoding="utf-8-sig"))
++        self.assertEqual(code, 2)
++        self.assertEqual(state["status"], "SOURCE_RETAINED_CONTINUATION_UNVERIFIED")
++        self.assertEqual(state["source_status"], "BODY_IDENTITY_VERIFIED")
++        self.assertEqual(state["collector_execution_status"], "UNEXPECTED_EXCEPTION")
++        self.assertEqual(state["continuation_status"], "UNVERIFIED")
++        self.assertTrue((self.run_dir / "wechat_article_raw.html").is_file())
++
++    def test_interrupted_promotion_recovers_the_same_verified_attempt(self) -> None:
++        real_write = fetch._write_bytes_create_only
++        interrupted = {"done": False}
++
++        def interrupt_after_first_image(path: Path, payload: bytes, *, label: str,
++                                        temp_dir: Path | None = None) -> None:
++            real_write(path, payload, label=label, temp_dir=temp_dir)
++            if label == "article image" and not interrupted["done"]:
++                interrupted["done"] = True
++                raise KeyboardInterrupt("offline promotion interruption fixture")
++
++        with patch.object(fetch, "_intake_script", return_value=self.collector), \
++                patch.object(fetch, "_write_bytes_create_only", side_effect=interrupt_after_first_image):
++            with self.assertRaises(KeyboardInterrupt):
++                fetch.main(["--url", URL, "--out", str(self.run_dir), "--skip-ocr"])
++        self.assertFalse((self.run_dir / "wechat_article_intake_summary.json").exists())
++        self.assertTrue((self.run_dir / "wechat_article_images" / "img_01.png").is_file())
++        code = self._call()
++        state = json.loads((self.run_dir / "wechat_article_fetch_state.json").read_text(encoding="utf-8-sig"))
++        self.assertEqual(code, 0)
++        self.assertEqual(self.collector_calls.read_text(), "1")
++        self.assertTrue((self.run_dir / "wechat_article_intake_summary.json").is_file())
++        self.assertEqual(state["status"], "SOURCE_RECOVERED_NEED_OCR")
++        self.assertEqual(state["next_missing_stage"], "prepare_ocr")
++
++    def test_process_killed_during_temp_image_write_rolls_forward_atomically(self) -> None:
++        marker = self.root / "partial_temp_write_started"
++        collector = self.root / "sigkill_collector.py"
++        collector.write_text(
++            '''import argparse, csv, hashlib, json
++from pathlib import Path
++from urllib.parse import urlsplit
++from PIL import Image
++callfile = Path(__file__).with_suffix(".calls")
++callfile.write_text(str(int(callfile.read_text() or "0") + 1) if callfile.exists() else "1")
++parser = argparse.ArgumentParser()
++parser.add_argument("--url", required=True)
++parser.add_argument("--out", required=True)
++args, _ = parser.parse_known_args()
++out = Path(args.out)
++out.mkdir(parents=True, exist_ok=True)
++body = b'<!doctype html><html><body><div id="js_content">valid body<img data-src="https://mmbiz.qpic.cn/fixture/1"/></div></body></html>'
++(out / "wechat_article_raw.html").write_bytes(body)
++image_dir = out / "wechat_article_images"
++image_dir.mkdir(exist_ok=True)
++image_path = image_dir / "img_01.png"
++Image.new("RGB", (8, 12), (20, 30, 40)).save(image_path, format="PNG")
++image = image_path.read_bytes()
++image_sha = hashlib.sha256(image).hexdigest()
++manifest = out / "wechat_article_image_manifest.csv"
++with manifest.open("w", encoding="utf-8-sig", newline="") as stream:
++    writer = csv.DictWriter(stream, fieldnames=["idx", "url", "local_path", "download_status", "image_size", "sha256", "bytes"])
++    writer.writeheader()
++    writer.writerow({"idx": 1, "url": "https://mmbiz.qpic.cn/fixture/1", "local_path": str(image_path),
++        "download_status": "OK", "image_size": "8x12", "sha256": image_sha, "bytes": len(image)})
++(out / "wechat_article_image_checkpoint.json").write_text(json.dumps([{"idx": 1, "url": "https://mmbiz.qpic.cn/fixture/1",
++    "local_path": str(image_path), "sha256": image_sha, "status": "OK"}]))
++token = urlsplit(args.url).path.rsplit("/", 1)[-1]
++summary = {"article_url": args.url, "canonical_url": args.url, "canonical_token": token,
++    "title": "offline", "account_name": "fixture", "biz": "fixture-biz", "article_date": "20261008",
++    "content_hash": hashlib.sha256(body).hexdigest(), "http_status": 200, "html_bytes": len(body),
++    "article_body_found": True, "text_preview_length": 10, "image_count": 1, "downloaded_image_count": 1,
++    "final_label": "WECHAT_RESEARCH_INTAKE_PARTIAL_NEED_OCR", "ocr_status": "OCR_IMPORT_ERROR",
++    "fetch_error": "", "html_path": str(out / "wechat_article_raw.html"),
++    "image_manifest_path": str(manifest)}
++(out / "wechat_article_intake_summary.json").write_text(json.dumps(summary))
++raise SystemExit(17)
++''',
++            encoding="utf-8",
++        )
++        child = self.root / "first_sigkill_attempt.py"
++        child.write_text(
++            textwrap.dedent(
++                f'''\
++                import os, sys, time
++                from pathlib import Path
++                sys.path.insert(0, {str(Path(fetch.__file__).resolve().parent)!r})
++                import wechat_article_fetch as fetch
++                fetch._intake_script = lambda: Path({str(collector)!r})
++                marker = Path({str(marker)!r})
++                original_write = fetch._write_bytes_create_only
++                def stop_during_temp_write(temp_path, descriptor, payload):
++                    with os.fdopen(descriptor, "wb") as handle:
++                        handle.write(payload[:max(1, len(payload) // 2)])
++                        handle.flush()
++                        os.fsync(handle.fileno())
++                    marker.write_text(str(temp_path))
++                    while True:
++                        time.sleep(0.05)
++                def select_image_write(path, payload, *, label, temp_dir=None):
++                    if label == "article image":
++                        fetch._write_temporary_payload = stop_during_temp_write
++                    return original_write(path, payload, label=label, temp_dir=temp_dir)
++                fetch._write_bytes_create_only = select_image_write
++                raise SystemExit(fetch.main(["--url", {URL!r}, "--out", {str(self.run_dir)!r}]))
++                '''
++            ),
++            encoding="utf-8",
++        )
++        environment = dict(os.environ)
++        environment["PYTHONDONTWRITEBYTECODE"] = "1"
++        environment["PYTHONPATH"] = ":".join([
++            str(Path(fetch.__file__).resolve().parent),
++            str(Path(__file__).resolve().parent),
++        ])
++        process = subprocess.Popen(
++            [sys.executable, str(child)], env=environment,
++            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
++        )
++        deadline = time.monotonic() + 10
++        try:
++            while time.monotonic() < deadline and not marker.exists():
++                if process.poll() is not None:
++                    break
++                time.sleep(0.02)
++            self.assertTrue(marker.exists(), "child did not reach the injected partial temp-write window")
++            temporary_path = Path(marker.read_text())
++            self.assertGreater(temporary_path.stat().st_size, 0)
++            self.assertLess(temporary_path.stat().st_size, 100)
++            target_path = self.run_dir / "wechat_article_images" / "img_01.png"
++            self.assertFalse(target_path.exists(), "partial bytes became visible at the final image path")
++        finally:
++            if process.poll() is None:
++                process.kill()
++            child_output = process.communicate(timeout=5)[0].decode("utf-8", errors="replace")
++
++        with patch.object(fetch, "_intake_script", return_value=collector):
++            code = fetch.main(["--url", URL, "--out", str(self.run_dir)])
++
++        state = json.loads((self.run_dir / "wechat_article_fetch_state.json").read_text(encoding="utf-8-sig"))
++        self.assertEqual(code, 0, f"pending attempt did not recover after SIGKILL: {child_output!r}")
++        self.assertFalse(temporary_path.exists())
++        self.assertEqual(state["status"], "SOURCE_RECOVERED_NEED_OCR")
++        self.assertEqual(collector.with_suffix(".calls").read_text(), "1")
++        self.assertEqual([path.name for path in (self.run_dir / "wechat_article_images").iterdir()], ["img_01.png"])
++
++    def test_malformed_old_summary_with_orphan_images_refuses_new_collector(self) -> None:
++        (self.run_dir / "wechat_article_intake_summary.json").write_text("{bad json", encoding="utf-8")
++        image_dir = self.run_dir / "wechat_article_images"
++        image_dir.mkdir()
++        (image_dir / "old.png").write_bytes(b"orphan")
++        code = self._call()
++        self.assertNotEqual(code, 0)
++        self.assertFalse(self.collector_calls.exists())
++        self.assertEqual((image_dir / "old.png").read_bytes(), b"orphan")
++
++    def test_image_only_body_is_valid_when_ordered_images_match_manifest(self) -> None:
++        self.collector.with_suffix(".mode").write_text("image_only", encoding="utf-8")
++
++        code = self._call()
++
++        summary = json.loads((self.run_dir / "wechat_article_intake_summary.json").read_text(encoding="utf-8-sig"))
++        self.assertEqual(code, 0)
++        self.assertEqual(summary["text_preview_length"], 0)
++        self.assertEqual(summary["identity_status"], "PASS")
++        rows = list(csv.DictReader((self.run_dir / "wechat_article_image_manifest.csv").open(encoding="utf-8-sig", newline="")))
++        fetch._validate_article_body((self.run_dir / "wechat_article_raw.html").read_bytes(), rows)
++
++    def test_http_failure_keeps_candidate_outputs_only_in_attempt_evidence(self) -> None:
++        self.collector.with_suffix(".mode").write_text("http_failure", encoding="utf-8")
++
++        code = self._call()
++
++        self.assertNotEqual(code, 0)
++        for name in fetch._FETCH_SOURCE_FILES:
++            self.assertFalse((self.run_dir / name).exists(), f"HTTP failure promoted {name}")
++        self.assertFalse((self.run_dir / "wechat_article_images").exists())
++        attempts = list((self.run_dir / "evidence" / "wechat_article_fetch_attempts").glob("attempt_*"))
++        self.assertEqual(len(attempts), 1)
++        attempt = attempts[0]
++        self.assertTrue((attempt / self.run_dir.name / "wechat_article_raw.html").is_file())
++        result = json.loads((attempt / "ATTEMPT_RESULT.json").read_text(encoding="utf-8-sig"))
++        self.assertEqual(result["status"], "REJECTED")
++        self.assertIn("HTTP 200", result["reason"])
++
++    def test_changed_raw_html_is_not_accepted_from_stale_http_identity(self) -> None:
++        self.assertEqual(self._call(), 0)
++        html_path = self.run_dir / "wechat_article_raw.html"
++        original_sha = hashlib.sha256(html_path.read_bytes()).hexdigest()
++        summary = json.loads((self.run_dir / "wechat_article_intake_summary.json").read_text(encoding="utf-8-sig"))
++        self.assertEqual(summary["identity_validation"]["raw_html_sha256"], original_sha)
++        html_path.write_bytes(b'<!doctype html><html><body><div id="js_content">changed source bytes</div></body></html>')
++
++        code = self._call()
++
++        self.assertNotEqual(code, 0, "cached HTTP source with a raw HTML SHA mismatch was reused")
++        self.assertEqual(self.collector_calls.read_text(), "1", "rejected cache must not overwrite it with another fetch")
++
++    def test_changed_image_url_after_prepare_is_not_accepted_as_same_source(self) -> None:
++        self.assertEqual(self._call(), 0)
++        self.assertEqual(prepare_ocr.main(["--run-dir", str(self.run_dir)]), 0)
++        manifest_path = self.run_dir / "wechat_article_image_manifest.csv"
++        with manifest_path.open("r", encoding="utf-8-sig", newline="") as stream:
++            reader = csv.DictReader(stream)
++            fields = list(reader.fieldnames or [])
++            rows = list(reader)
++        rows[0]["url"] = "https://mmbiz.qpic.cn/fixture/replaced-url"
++        with manifest_path.open("w", encoding="utf-8-sig", newline="") as stream:
++            writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
++            writer.writeheader()
++            writer.writerows(rows)
++
++        code = self._call()
++
++        self.assertNotEqual(code, 0, "changed image URL was accepted as reusable source evidence")
++        self.assertEqual(self.collector_calls.read_text(), "1")
++
++    def test_ocr_ok_summary_without_valid_ocr_artifacts_is_not_package_ready(self) -> None:
++        self.assertEqual(self._call(), 0)
++        summary_path = self.run_dir / "wechat_article_ocr_summary.json"
++        summary_path.write_text(json.dumps({"status": "OCR_OK", "image_count": 50}), encoding="utf-8")
++        self.assertFalse((self.run_dir / "windows_ocr_results.json").exists())
++        self.assertFalse((self.run_dir / "windows_ocr_checkpoint.json").exists())
++
++        self.assertEqual(self._call(), 0)
++        state = json.loads((self.run_dir / "wechat_article_fetch_state.json").read_text(encoding="utf-8-sig"))
++
++        self.assertNotEqual(state["next_missing_stage"], "package", "summary status alone was treated as complete OCR")
++        self.assertEqual(state["ocr_summary_status"], "INVALID")
++        self.assertEqual(self.collector_calls.read_text(), "1")
++
++    def test_valid_full_ocr_cache_is_reused_and_package_is_next_stage(self) -> None:
++        self.assertEqual(self._call(), 0)
++        self.assertEqual(prepare_ocr.main(["--run-dir", str(self.run_dir)]), 0)
++        with (self.run_dir / "wechat_article_image_manifest.csv").open("r", encoding="utf-8-sig", newline="") as stream:
++            rows = list(csv.DictReader(stream))
++        results = []
++        for index, row in enumerate(rows, 1):
++            text = f"fixture OCR {index}"
++            results.append({
++                "index": index,
++                "name": Path(row["local_path"]).name,
++                "path": row["local_path"],
++                "image_sha256": row["sha256"],
++                "status": "OCR_OK",
++                "text": text,
++                "text_length": len(text),
++                "engine": "OFFLINE_FIXTURE",
++                "parts": [],
++                "error": "",
++            })
++        (self.run_dir / "windows_ocr_results.json").write_text(json.dumps(results), encoding="utf-8")
++        (self.run_dir / "windows_ocr_checkpoint.json").write_text(json.dumps(results), encoding="utf-8")
++        text = "\n\n".join(
++            f"=====IMAGE{item['index']:03d} {item['name']} [OCR_OK=====\n{item['text']}"
++            for item in results
++        )
++        (self.run_dir / "wechat_article_ocr_text.txt").write_text(text, encoding="utf-8")
++        (self.run_dir / "wechat_article_ocr_summary.json").write_text(json.dumps({
++            "status": "OCR_OK", "mode": "Full", "image_count": 50,
++            "ocr_applicable": True, "body_source_required": False,
++            "processed_count": 50, "ok_count": 50,
++            "timeout_count": 0, "error_count": 0, "empty_count": 0,
++            "text_length": sum(item["text_length"] for item in results),
++            "engine": "OFFLINE_FIXTURE",
++        }), encoding="utf-8")
++        ocr_files_before = {
++            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
++            for path in self.run_dir.iterdir()
++            if path.is_file() and "ocr" in path.name.lower()
++        }
++        self.assertEqual(fetch._validated_ocr_status(self.run_dir, {}, 50), "OCR_OK")
++
++        self.assertEqual(self._call(), 0)
++        state = json.loads((self.run_dir / "wechat_article_fetch_state.json").read_text(encoding="utf-8-sig"))
++        self.assertEqual(self.collector_calls.read_text(), "1")
++        self.assertEqual(state["ocr_summary_status"], "OCR_OK")
++        self.assertEqual(state["next_missing_stage"], "package")
++        self.assertEqual(ocr_files_before, {
++            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
++            for path in self.run_dir.iterdir()
++            if path.is_file() and "ocr" in path.name.lower()
++        })
++
++    def test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache(self) -> None:
++        run_dir, frozen_zip, legacy_summary, legacy_manifest, frozen = self._prepare_historical_package_fixture()
++        source_names = (
++            "wechat_article_intake_summary.json",
++            "wechat_article_raw.html",
++            "wechat_article_image_manifest.csv",
++            "wechat_article_image_checkpoint.json",
++        )
++        source_before = {
++            name: hashlib.sha256((run_dir / name).read_bytes()).hexdigest()
++            for name in source_names
++        }
++        ocr_before = frozen["ocr_hashes"]
++        with patch.object(fetch, "_intake_script") as collector_entry:
++            self.assertEqual(fetch.main(["--url", URL, "--out", str(run_dir), "--skip-ocr"]), 2)
++            collector_entry.assert_not_called()
++        args = [
++            "--run-dir", str(run_dir), "--url", URL,
++            "--title", "离线合成文章", "--target-date", "20261008",
++            "--stage", "fetch",
++            "--adopt-frozen-package", str(frozen_zip),
++            "--adopt-package-sha256", str(frozen["package_sha256"]),
++            "--adopt-package-id", str(frozen["package_id"]),
++            "--adopt-input-digest", str(frozen["input_digest"]),
++            "--legacy-source-summary", str(legacy_summary),
++            "--legacy-source-manifest", str(legacy_manifest),
++        ]
++
++        with patch.object(runner.sys, "platform", "darwin"):
++            self.assertEqual(runner.main(args), 0)
++
++        receipt_paths = list((run_dir / "evidence" / "wechat_article_fetch_adoptions").glob("*/REVALIDATION_RECEIPT.json"))
++        self.assertEqual(len(receipt_paths), 1)
++        adoption = json.loads(receipt_paths[0].read_text(encoding="utf-8-sig"))
++        self.assertFalse(adoption["historical_promotion_claimed"])
++        self.assertFalse(adoption["collector_invoked"])
++        self.assertEqual(adoption["package"]["package_id"], frozen["package_id"])
++        self.assertEqual(source_before, {
++            name: hashlib.sha256((run_dir / name).read_bytes()).hexdigest()
++            for name in source_names
++        })
++        state = json.loads((run_dir / "wechat_article_fetch_state.json").read_text(encoding="utf-8-sig"))
++        self.assertEqual(state["next_missing_stage"], "package")
++        self.assertEqual(state["historical_promotion_claimed"], False)
++        self.assertEqual(state["ocr_cache_status"], "OCR_OK")
++
++        with (run_dir / "wechat_article_image_manifest.csv").open(
++            "r", encoding="utf-8-sig", newline=""
++        ) as stream:
++            reader = csv.DictReader(stream)
++            manifest_fields_before = list(reader.fieldnames or [])
++            manifest_rows_before = list(reader)
++        source_projection_before = fetch._image_source_projection_sha256(
++            manifest_fields_before, manifest_rows_before,
++        )
++        image_paths_before = [row["local_path"] for row in manifest_rows_before]
++
++        self.assertEqual(prepare_ocr.main(["--run-dir", str(run_dir)]), 0)
++        self.assertEqual(ocr_before, {
++            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
++            for path in run_dir.iterdir()
++            if path.is_file() and path.name in ocr_before
++        })
++        self.assertEqual(
++            {name: source_before[name] for name in source_names if name != "wechat_article_image_manifest.csv"},
++            {
++                name: hashlib.sha256((run_dir / name).read_bytes()).hexdigest()
++                for name in source_names if name != "wechat_article_image_manifest.csv"
++            },
++        )
++        with (run_dir / "wechat_article_image_manifest.csv").open(
++            "r", encoding="utf-8-sig", newline=""
++        ) as stream:
++            reader = csv.DictReader(stream)
++            manifest_fields_after = list(reader.fieldnames or [])
++            manifest_rows_after = list(reader)
++        self.assertEqual(
++            fetch._image_source_projection_sha256(manifest_fields_after, manifest_rows_after),
++            source_projection_before,
++        )
++        self.assertEqual([row["local_path"] for row in manifest_rows_after], image_paths_before)
++        with patch.object(fetch, "_intake_script") as collector_entry:
++            self.assertEqual(fetch.main(["--url", URL, "--out", str(run_dir), "--skip-ocr"]), 0)
++            collector_entry.assert_not_called()
++        reused_state = json.loads(
++            (run_dir / "wechat_article_fetch_state.json").read_text(encoding="utf-8-sig")
++        )
++        self.assertEqual(reused_state["status"], "LEGACY_SOURCE_REUSED_OCR_READY")
++        self.assertFalse(reused_state["collector_invoked"])
++        self.assertFalse(list((run_dir / "evidence" / "wechat_article_fetch_attempts").glob("*/PROMOTION_RECEIPT.json")))
++
++    def test_frozen_adoption_rejects_summary_mutation_and_unsafe_image_rebinding(self) -> None:
++        run_dir, frozen_zip, legacy_summary, legacy_manifest, frozen = self._prepare_historical_package_fixture()
++        args = [
++            "--url", URL, "--out", str(run_dir), "--skip-ocr",
++            "--adopt-frozen-package", str(frozen_zip),
++            "--adopt-package-sha256", str(frozen["package_sha256"]),
++            "--adopt-package-id", str(frozen["package_id"]),
++            "--adopt-input-digest", str(frozen["input_digest"]),
++            "--legacy-source-summary", str(legacy_summary),
++            "--legacy-source-manifest", str(legacy_manifest),
++        ]
++
++        def reject_without_collector() -> None:
++            with patch.object(fetch, "_intake_script") as collector_entry:
++                self.assertEqual(fetch.main(args), 2)
++                collector_entry.assert_not_called()
++
++        summary_path = run_dir / "wechat_article_intake_summary.json"
++        original_summary = summary_path.read_bytes()
++        changed_summary = json.loads(original_summary.decode("utf-8-sig"))
++        changed_summary["description"] = "mutated after frozen package"
++        summary_path.write_text(json.dumps(changed_summary, ensure_ascii=False), encoding="utf-8")
++        reject_without_collector()
++        summary_path.write_bytes(original_summary)
++
++        manifest_path = run_dir / "wechat_article_image_manifest.csv"
++        original_manifest = manifest_path.read_bytes()
++        with manifest_path.open("r", encoding="utf-8-sig", newline="") as stream:
++            reader = csv.DictReader(stream)
++            fields, rows = list(reader.fieldnames or []), list(reader)
++
++        rows[0]["local_path"] = "/tmp/forged/wechat_article_images/img_01.png"
++        with manifest_path.open("w", encoding="utf-8-sig", newline="") as stream:
++            writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
++            writer.writeheader()
++            writer.writerows(rows)
++        reject_without_collector()
++
++        rows[0]["local_path"] = f"{run_dir.name}/wechat_article_images/../outside.png"
++        with manifest_path.open("w", encoding="utf-8-sig", newline="") as stream:
++            writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
++            writer.writeheader()
++            writer.writerows(rows)
++        reject_without_collector()
++
++        rows[0]["local_path"] = str(run_dir / "wechat_article_images" / "img_01.png")
++        with manifest_path.open("w", encoding="utf-8-sig", newline="") as stream:
++            writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
++            writer.writeheader()
++            writer.writerows(rows)
++        image_path = run_dir / "wechat_article_images" / "img_01.png"
++        backup_path = image_path.with_name("img_01.png.writer-test-backup")
++        image_path.rename(backup_path)
++        image_path.symlink_to(self.run_dir / "wechat_article_images" / "img_01.png")
++        try:
++            reject_without_collector()
++        finally:
++            image_path.unlink()
++            backup_path.rename(image_path)
++            manifest_path.write_bytes(original_manifest)
++
++        self.assertFalse(list((run_dir / "evidence" / "wechat_article_fetch_adoptions").glob("*/REVALIDATION_RECEIPT.json")))
++
++    def test_summary_claim_does_not_replace_real_body_html(self) -> None:
++        collector = self.root / "empty_body_collector.py"
++        collector.write_text(
++            '''import argparse, csv, hashlib, json
++from pathlib import Path
++parser = argparse.ArgumentParser()
++parser.add_argument("--url", required=True)
++parser.add_argument("--out", required=True)
++parser.add_argument("--html-file", default="")
++args, _ = parser.parse_known_args()
++out = Path(args.out)
++out.mkdir(parents=True, exist_ok=True)
++html = b"<!doctype html><html><head><title>not an article</title></head><body></body></html>"
++(out / "wechat_article_raw.html").write_bytes(html)
++manifest = out / "wechat_article_image_manifest.csv"
++manifest.write_text("idx,url,local_path,download_status\\n", encoding="utf-8")
++summary = {"article_url": args.url, "canonical_url": args.url, "canonical_token": args.url.rsplit("/", 1)[-1],
++  "title": "自报文章", "account_name": "合成公众号", "biz": "fixture-biz", "article_date": "20261008",
++  "content_hash": hashlib.sha256(html).hexdigest(), "http_status": 200, "html_bytes": len(html),
++  "article_body_found": True, "text_preview_length": 18, "image_count": 0, "downloaded_image_count": 0,
++  "final_label": "WECHAT_RESEARCH_INTAKE_COMPLETE", "fetch_error": "",
++  "html_path": str(out / "wechat_article_raw.html"), "image_manifest_path": str(manifest)}
++(out / "wechat_article_intake_summary.json").write_text(json.dumps(summary))
++raise SystemExit(0)
++''',
++            encoding="utf-8",
++        )
++
++        with patch.object(fetch, "_intake_script", return_value=collector):
++            code = fetch.main(["--url", URL, "--out", str(self.run_dir)])
++
++        self.assertNotEqual(code, 0, "self-reported BODY claim promoted HTML with no js_content BODY")
++        self.assertFalse((self.run_dir / "wechat_article_raw.html").exists())
++
++    def test_output_abbreviation_cannot_escape_the_attempt_root(self) -> None:
++        outside = self.root / "escaped-output"
++
++        code = self._call(["--o", str(outside)])
++
++        self.assertFalse((outside / "wechat_article_raw.html").exists())
++        self.assertNotEqual(code, 0)
++        self.assertFalse(self.collector_calls.exists())
++
++    def test_saved_html_promotion_receipt_gap_recovers_after_summary_commit(self) -> None:
++        self.collector.with_suffix(".mode").write_text("saved_html", encoding="utf-8")
++        saved_html = self.root / "saved_article.html"
++        image_tags = "".join(
++            f'<img data-src="https://mmbiz.qpic.cn/fixture/{index}"/>' for index in range(1, 51)
++        )
++        saved_html.write_text(
++            f'<!doctype html><html><body><div id="js_content">saved offline fixture{image_tags}</div></body></html>',
++            encoding="utf-8",
++        )
++        real_write_event = fetch._write_attempt_event
++
++        def interrupt_before_promotion_receipt(attempt_dir: Path, name: str, value: dict) -> None:
++            if name == "PROMOTION_RECEIPT.json":
++                raise KeyboardInterrupt("offline interruption after summary commit")
++            real_write_event(attempt_dir, name, value)
++
++        with patch.object(fetch, "_intake_script", return_value=self.collector), \
++                patch.object(fetch, "_write_attempt_event", side_effect=interrupt_before_promotion_receipt):
++            with self.assertRaises(KeyboardInterrupt):
++                fetch.main(["--url", URL, "--out", str(self.run_dir), "--html-file", str(saved_html)])
++
++        self.assertTrue((self.run_dir / "wechat_article_intake_summary.json").is_file())
++        self.assertEqual(list((self.run_dir / "evidence" / "wechat_article_fetch_attempts").glob("*/PROMOTION_RECEIPT.json")), [])
++        with patch.object(fetch, "_intake_script", return_value=self.collector):
++            code = fetch.main(["--url", URL, "--out", str(self.run_dir), "--html-file", str(saved_html)])
++
++        self.assertEqual(code, 0)
++        self.assertEqual(self.collector_calls.read_text(), "1")
++        self.assertEqual(len(list((self.run_dir / "evidence" / "wechat_article_fetch_attempts").glob("*/PROMOTION_RECEIPT.json"))), 1)
++
++
++class WechatArticleBodyBindingMacCompatibilityTests(unittest.TestCase):
++    """The BODY/manifest contract must equal the current real collector projection."""
++
++    @staticmethod
++    def _body(inner: str) -> bytes:
++        return (
++            '<!doctype html><html><body><div id="js_content">'
++            + inner
++            + "</div></body></html>"
++        ).encode("utf-8")
++
++    @staticmethod
++    def _rows(urls: list[str]) -> list[dict[str, str]]:
++        return [{"idx": str(index), "url": url} for index, url in enumerate(urls, 1)]
++
++    def test_bound_collector_source_matches_mac_input_binding(self) -> None:
++        digest = hashlib.sha256(_COLLECTOR_PATH.read_bytes()).hexdigest()
++        self.assertEqual(
++            digest,
++            "de9499c2e049bcf6d3da5ea6375831aece5eb2374e338e057f04e60dfd0c6058",
++        )
++
++    def test_text_body_with_missing_projected_manifest_row_is_rejected(self) -> None:
++        url = "https://mmbiz.qpic.cn/fixture/missing-row"
++        body = self._body(f"正文<img data-src=\"{url}\"/>")
++        self.assertEqual(collector_extract_image_urls(body.decode()), [url])
++
++        with self.assertRaisesRegex(ValueError, "manifest"):
++            fetch._validate_article_body(body, [])
++
++    def test_prepare_promotion_rejects_text_body_image_missing_from_manifest(self) -> None:
++        url = "https://mp.weixin.qq.com/s/TokenABC"
++        image_url = "https://mmbiz.qpic.cn/fixture/missing-row"
++        body = self._body(f"正文<img data-src=\"{image_url}\"/>")
++        with tempfile.TemporaryDirectory() as temp_dir:
++            root = Path(temp_dir)
++            html_path = root / "wechat_article_raw.html"
++            manifest_path = root / "wechat_article_image_manifest.csv"
++            html_path.write_bytes(body)
++            manifest_path.write_text("idx,url,sha256\n", encoding="utf-8-sig")
++            summary = {
++                "article_url": url,
++                "canonical_url": url,
++                "canonical_token": "TokenABC",
++                "title": "Fixture article",
++                "account_name": "Fixture account",
++                "biz": "fixture-biz",
++                "article_date": "20261008",
++                "content_hash": "a" * 40,
++                "http_status": 200,
++                "html_bytes": len(body),
++                "article_body_found": True,
++                "text_preview_length": 2,
++                "image_count": 0,
++                "downloaded_image_count": 0,
++                "final_label": "WECHAT_RESEARCH_INTAKE_COMPLETE",
++                "fetch_error": "",
++                "html_path": str(html_path),
++                "image_manifest_path": str(manifest_path),
++            }
++            (root / "wechat_article_intake_summary.json").write_text(
++                json.dumps(summary), encoding="utf-8"
++            )
++
++            with self.assertRaisesRegex(ValueError, "manifest"):
++                fetch._prepare_promotion(root, url, attempt_id="attempt_fixture")
++
++    def test_collector_projection_decodes_amp_filters_and_deduplicates_in_order(self) -> None:
++        first = "https://mmbiz.qpic.cn/fixture/a?x=1&y=2"
++        second = "https://mmbiz.qpic.cn/fixture/encoded/path"
++        body = self._body(
++            "正文"
++            '<img data-src="https://mmbiz.qpic.cn/fixture/a?x=1&amp;y=2"/>'
++            '<img src="https://mmbiz.qpic.cn/fixture/a?x=1&amp;y=2"/>'
++            '<img data-src="https://mmbiz.qpic.cn/fixture/encoded%2Fpath"/>'
++            '<img data-src="https://mmbiz.qpic.cn/fixture/animation?wx_fmt=gif"/>'
++            '<img data-src="https://example.invalid/not-mmbiz.png"/>'
++        )
++        projected = collector_extract_image_urls(body.decode())
++        self.assertEqual(projected, [first, second])
++
++        fetch._validate_article_body(body, self._rows(projected))
++        with self.assertRaises(ValueError):
++            fetch._validate_article_body(body, self._rows([first]))
++
++    def test_text_and_image_only_body_accept_only_ordered_unique_manifest(self) -> None:
++        first = "https://mmbiz.qpic.cn/fixture/first"
++        second = "https://mmbiz.qpic.cn/fixture/second"
++        image_only = self._body(
++            f'<img data-src="{first}"/><img data-src="{first}"/>'
++            f'<img data-src="{second}"/><img data-src="{second}"/>'
++        )
++        self.assertEqual(collector_extract_image_urls(image_only.decode()), [first, second])
++        fetch._validate_article_body(image_only, self._rows([first, second]))
++        for invalid_urls in ([second, first], [first, first, second], [first]):
++            with self.subTest(manifest=invalid_urls):
++                with self.assertRaisesRegex(ValueError, "manifest"):
++                    fetch._validate_article_body(image_only, self._rows(list(invalid_urls)))
++
++        text_body = self._body(f"正文<img data-src=\"{first}\"/><img data-src=\"{second}\"/>")
++        with self.assertRaisesRegex(ValueError, "manifest"):
++            fetch._validate_article_body(text_body, self._rows([first]))
++
++    def test_image_only_gif_or_non_mmbiz_body_does_not_create_image_evidence(self) -> None:
++        body = self._body(
++            '<img data-src="https://mmbiz.qpic.cn/fixture/animation?wx_fmt=gif"/>'
++            '<img data-src="https://example.invalid/cover.png"/>'
++        )
++        self.assertEqual(collector_extract_image_urls(body.decode()), [])
++
++        with self.assertRaises(ValueError):
++            fetch._validate_article_body(body, [])
++
++        text_body = self._body(
++            "正文"
++            '<img data-src="https://mmbiz.qpic.cn/fixture/animation?wx_fmt=gif"/>'
++            '<img data-src="https://example.invalid/cover.png"/>'
++        )
++        fetch._validate_article_body(text_body, [])
++
++
++if __name__ == "__main__":
++    unittest.main()
+--- before/WORKFLOW_公众号链接固定执行方案.md
++++ after/WORKFLOW_公众号链接固定执行方案.md
+@@ -24,6 +24,8 @@
+ package_id应在每个内容版本使用新值；跨目录没有全局ID注册器，验证必须核对(package_id,input_digest,可信ZIP SHA)，不可只认ID。
+ 导入旧报告对照旧冻结ZIP，不对照当前run OCR。发布时间缺失/日期非法、原图不完整、不可解码或OCR切片失败不能PACKAGE_READY。
+ 已有旧OCR无配置指纹可保守复用并标未知，不为新增元数据重跑89图。错误/超时只补缺；空文本终态需原图核查，默认不无穷重试。
++
++日常仍通过现有 `scripts/wechat_pipeline_runner.py` 统一入口，不将 fetch 适配器作为用户默认入口；活动 Mac 验收检查 runner 实际传给 adapter 的 argv 是否带 `--skip-ocr`。R3 Mac 复核已确认显式 adoption、默认 fetch reuse 与 `prepare_ocr` 均经现有 runner 成功，fetch 子进程带 `--skip-ocr`、未触发网络或 OCR；50 张图片通过准备校验且完整 OCR 缓存未重跑。外部采集只在来源身份、真实 `js_content` 正文、有序图片清单及图片 SHA-256 均通过后提升为 run 固定输入；HTTP 失败、验证页、空正文和无效来源只留 attempt 证据。状态按产物记录下一缺失阶段：未准备 OCR 时为 `prepare_ocr`，已有有效 slice manifest 但完整 OCR 尚未通过现有 handoff 校验时为 `ocr_full`；只有完整 OCR 的逐图结果、源 SHA、有序非空文本和切片来源均通过验证后，下一阶段才是 `package`。后续再次调用会复用已验证 BODY、原图及 manifest，不重复请求采集；prepare 合法扩展 manifest 元数据不改变原图字节。未知异常可保留已验证来源，但状态明确标为 continuation 未确认。旧 summary 与遗留图无法相互验证时拒绝自动重抓。
+ 
+ ### 0.2 运行命令
+ ```bash

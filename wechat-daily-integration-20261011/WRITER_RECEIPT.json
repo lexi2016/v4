@@ -1,0 +1,232 @@
+{
+  "schema_version": "issue31-daily-integration-writer-receipt-v1",
+  "created_at": "2026-10-11T14:13:24.020852+00:00",
+  "writer": "/root/wechat_daily_integration_writer",
+  "status": "WRITER_HANDOFF_READY_INDEPENDENT_REVIEW_PENDING",
+  "goal": "Integrate accepted R2/R3 WeChat default-flow changes and run one bounded October 8 historical default-workflow canary through the locally accepted archive steps.",
+  "reviewer_required": "Independent Luna Max Reviewer must inspect the actual diff, frozen PASS scope, target behavior and receipts; writer receipt is not acceptance.",
+  "scope": {
+    "goal": "Integrate independently accepted WeChat fixes; close one existing October 8 article default workflow through Drive mirror and V4 archive API/UI; sync changes to GitHub",
+    "writer": "/root/wechat_daily_integration_writer",
+    "reviewer": "independent Luna Max Reviewer after delta handoff",
+    "allowed_paths": [
+      "scripts/wechat_article_fetch.py",
+      "scripts/wechat_pipeline_runner.py",
+      "scripts/wechat_macos_ocr.py",
+      "scripts/wechat_yesterday_performance.py",
+      "tests/corresponding fetch and appendix tests",
+      "WORKFLOW_公众号链接固定执行方案.md",
+      "evidence/issue31_daily_integration_20261011",
+      "articles/20261008_ZfZPPo1xSsfROmFZbaqSuw/new immutable return version",
+      "runs/20261011_daily_acceptance_ZfZ/new isolated historical run copy"
+    ],
+    "forbidden": [
+      "old run/return/evidence bytes",
+      "unrelated user edits",
+      "shared market producers/panels",
+      "latest/canonical pools",
+      "scheduler/services",
+      "BUY gate or trading"
+    ],
+    "pass_signal": [
+      "live code SHA bound to independently accepted candidate",
+      "one live daily-runner recovery through cached OCR/package",
+      "new normalized return imported with exact frozen binding",
+      "Drive all-package-member byte roundtrip and return mirror",
+      "exact article-date V4 reference/API/UI report readback",
+      "GitHub remote commit and file hashes verified"
+    ],
+    "stop_rule": "Stop same-input repeat tests after PASS; fix only current reproducible blockers; preserve true market gaps and unreadable source claims; no new source or scope without evidence",
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "integrated_files": [
+    {
+      "path": "scripts/wechat_article_fetch.py",
+      "before_sha256": "8c5a2dba2b1dc9c7392d43d9b8023fc2559c62c2dadc99cef8a1e5f3d69381a1",
+      "after_sha256": "192564aea7421a9af42b0116c32708848765cbb433c8692351f0db75098b860f",
+      "bytes": 91948,
+      "change_type": "modified"
+    },
+    {
+      "path": "scripts/wechat_pipeline_runner.py",
+      "before_sha256": "b65fc26d232d2c3f38b5ec72f0b739728ff867a85b3e97da0dc26729ebf5d63e",
+      "after_sha256": "46d8761e44a250642cbcd7a513604fad1148d09726010d6f0eab5f269f256bcd",
+      "bytes": 77999,
+      "change_type": "modified"
+    },
+    {
+      "path": "scripts/wechat_yesterday_performance.py",
+      "before_sha256": "364d441853fd8e0ab977cd35c173143e2639bd77e2a9363d8e1bf6e04f07e51d",
+      "after_sha256": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c",
+      "bytes": 89787,
+      "change_type": "modified"
+    },
+    {
+      "path": "tests/test_prior_mentions_performance_appendix.py",
+      "before_sha256": "621c9d7163595e89f26ed2a818358513a6674992b8e30d175dc124a9cf9aa3ca",
+      "after_sha256": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588",
+      "bytes": 26675,
+      "change_type": "modified"
+    },
+    {
+      "path": "tests/test_wechat_article_fetch_recovery.py",
+      "before_sha256": null,
+      "after_sha256": "3c2316ff77f291c91bb2d04efe00b3f0304c9c8cdf461d731da48b3435d83e92",
+      "bytes": 52232,
+      "change_type": "added"
+    },
+    {
+      "path": "WORKFLOW_公众号链接固定执行方案.md",
+      "before_sha256": "04a3d1cf5be4c8d278a04c76d4e3455d741fa8c2fcfb109b90f1431ac83de345",
+      "after_sha256": "4e1d45155961ff10fc4e6379025374595f14390ea239b7902149903e87ac7f45",
+      "bytes": 37622,
+      "change_type": "modified"
+    },
+    {
+      "path": "scripts/wechat_macos_ocr.py",
+      "before_sha256": "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d",
+      "after_sha256": "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d",
+      "bytes": 40734,
+      "change_type": "unchanged; already matched accepted candidate"
+    }
+  ],
+  "rollback": {
+    "manifest_path": "evidence/issue31_daily_integration_20261011/rollback/PRE_INTEGRATION_FILES.json",
+    "backup_root": "evidence/issue31_daily_integration_20261011/rollback/live_before_20261011",
+    "before_sha_matches_backup": false,
+    "unrelated_user_changes_touched": false
+  },
+  "live_daily_canary": {
+    "run_dir": "runs/20261011_daily_acceptance_ZfZPPo1xSsfROmFZbaqSuw/20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+    "fetch_adopt_command": "python scripts/wechat_pipeline_runner.py --run-dir <isolated-run-copy> --url https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw --title \"风言风语信息更新 10.8\" --target-date 20261008 --stage fetch --adopt-frozen-package <trusted-original-zip> --adopt-package-sha256 c8a0dcfb548012bc8feb4e818e0cad7eead7de5a564a0ecaa85d64ce3763956f --adopt-package-id wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1 --adopt-input-digest c93e458747fe18fa33373785d79a9b026c15792d02fa9263db7b6f2bda48abc2 --legacy-source-summary <original-summary> --legacy-source-manifest <original-image-manifest>",
+    "fetch_default_reuse_command": "python scripts/wechat_pipeline_runner.py --run-dir <isolated-run-copy> --url https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw --title \"风言风语信息更新 10.8\" --target-date 20261008 --stage fetch",
+    "prepare_ocr_command": "python scripts/wechat_pipeline_runner.py --run-dir <isolated-run-copy> --stage prepare_ocr",
+    "stage_logs": [
+      "evidence/issue31_daily_integration_20261011/logs/daily_fetch_adoption.log",
+      "evidence/issue31_daily_integration_20261011/logs/daily_fetch_reuse.log",
+      "evidence/issue31_daily_integration_20261011/logs/daily_prepare_ocr.log"
+    ],
+    "argv_and_network_logs": [
+      "evidence/issue31_daily_integration_20261011/logs/fetch_adoption_child_argv.jsonl",
+      "evidence/issue31_daily_integration_20261011/logs/fetch_adoption_network_events.jsonl",
+      "evidence/issue31_daily_integration_20261011/logs/fetch_reuse_child_argv.jsonl",
+      "evidence/issue31_daily_integration_20261011/logs/fetch_reuse_network_events.jsonl",
+      "evidence/issue31_daily_integration_20261011/logs/prepare_ocr_child_argv.jsonl",
+      "evidence/issue31_daily_integration_20261011/logs/prepare_ocr_network_events.jsonl"
+    ],
+    "result": "STAGES_DONE for fetch adoption, default fetch reuse, and prepare_ocr; no network-guard events recorded.",
+    "ocr_cache_result": {
+      "status": "REUSED_PRIOR_FULL_OCR",
+      "image_count": 50,
+      "image_sha_to_ocr_sha_matches": 50,
+      "ocr_status": "OCR_OK",
+      "ocr_ok_count": 50,
+      "ocr_timeout_count": 0,
+      "ocr_error_count": 0,
+      "ocr_empty_count": 0,
+      "ocr_config_sha256": "631e624bf348d42d2cb2d333e599e412cddd230593e0372663076e8865ba7814"
+    },
+    "package_reused": {
+      "package_id": "wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1",
+      "input_digest": "c93e458747fe18fa33373785d79a9b026c15792d02fa9263db7b6f2bda48abc2",
+      "trusted_zip_sha256": "c8a0dcfb548012bc8feb4e818e0cad7eead7de5a564a0ecaa85d64ce3763956f"
+    }
+  },
+  "normalized_return": {
+    "return_id": "chat_20261008T163007Z_64a9b86a_local_format_20261011",
+    "provenance_receipt": "evidence/issue31_daily_integration_20261011/LOCAL_FORMAT_NORMALIZATION_RECEIPT.json",
+    "import_receipt_path": "articles/20261008_ZfZPPo1xSsfROmFZbaqSuw/return_chat_20261008T163007Z_64a9b86a_local_format_20261011/IMPORT_RECEIPT.json",
+    "import_status": "REPORT_AND_STRUCTURED_ARCHIVED",
+    "input_binding_valid": true,
+    "structure_valid": true,
+    "event_dispositions_contract_status": "PASS",
+    "original_five_files_and_old_import_receipt_preserved": true,
+    "research_content_regenerated": false,
+    "frozen_input_extraction_receipt": "evidence/issue31_daily_integration_20261011/FROZEN_INPUT_EXTRACTION_RECEIPT.json",
+    "frozen_zip_member_count": 56,
+    "input_descriptor_source_count": 53,
+    "input_descriptor_sources_validated": true,
+    "v4_archive_root_relative_manifest": "return_chat_20261008T163007Z_64a9b86a_local_format_20261011/frozen_input/manifest.json",
+    "manifest_sha256": "2e6af73f16241c1331631ef13440128ae971beff1f7014dd10949587442f83f6"
+  },
+  "delegated_cross_stage_receipts_observed": {
+    "drive_return_mirror_receipt": "evidence/issue31_daily_integration_20261011/DRIVE_RETURN_MIRROR_RECEIPT.json",
+    "drive_status": "RETURN_FIVE_FILES_DRIVE_RAW_BYTES_VERIFIED",
+    "v4_full_source_index_receipt": "evidence/issue31_daily_integration_20261011/V4_FULL_SOURCE_INDEX_RECEIPT.json",
+    "v4_index_status": "V4_STAGE_A_REFERENCE_INDEXED",
+    "v4_index_record_id": "e9e06355df5e0bd624b746401019352d22889375d1ef9f68f4cb915acb376641",
+    "api_ui_current_record_validation": "PENDING_PARENT"
+  },
+  "prior_mentions_appendix": {
+    "generator_sha256": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c",
+    "receipt_path": "evidence/issue31_daily_integration_20261011/appendix_current/PERFORMANCE_APPENDIX_RECEIPT.json",
+    "receipt_sha256": "ab862739c086e1c6167e77ce7dd775c9ecbb1bead21fe0e06f44dd3b5cc2a1aa",
+    "appendix_json_sha256": "c65108775cf3d8fc2d6f707278045a549166e9989508fe17980985fe798343f4",
+    "appendix_markdown_sha256": "dfbb34e91b40efa18816cdd55faa2716b177d18e3aa29bd561cf421bb0fe4507",
+    "status": "GENERATED_CANNOT_CONFIRM",
+    "rows": 108,
+    "market_counts": {
+      "A": 81,
+      "BJ": 3,
+      "HK": 24
+    },
+    "observed": 0,
+    "status_counts": {
+      "CANNOT_CONFIRM": 108
+    },
+    "a_bj_receipt_facts_disclosed": true,
+    "market_source_gaps": {
+      "A_BJ": "receipt PARTIAL with coverage/authority disclosed, but it does not bind the current configured selector panel; all 84 prices remain CANNOT_CONFIRM",
+      "HK": "20261008 receipt READY, but 20261007 previous-session receipt is missing/invalid and parent panel SHA chain does not match; all 24 prices remain CANNOT_CONFIRM; corporate-action adjustment NOT_VERIFIED"
+    },
+    "market_performance_semantics": "descriptive single-day prices only; no strategy return or BUY signal"
+  },
+  "commands": [
+    {
+      "command": "evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python scripts/wechat_pipeline_runner.py ... --stage fetch --adopt-frozen-package ...",
+      "evidence": "logs/daily_fetch_adoption.log + logs/fetch_adoption_child_argv.jsonl"
+    },
+    {
+      "command": "evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python scripts/wechat_pipeline_runner.py ... --stage fetch",
+      "evidence": "logs/daily_fetch_reuse.log + logs/fetch_reuse_child_argv.jsonl"
+    },
+    {
+      "command": "evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python scripts/wechat_pipeline_runner.py ... --stage prepare_ocr",
+      "evidence": "logs/daily_prepare_ocr.log + logs/prepare_ocr_child_argv.jsonl"
+    },
+    {
+      "command": "evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python scripts/wechat_chat_handoff.py import --source-run <original-run> --package-id wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1 --package-zip <trusted-original-zip> --package-sha256 c8a0dcfb548012bc8feb4e818e0cad7eead7de5a564a0ecaa85d64ce3763956f --report <normalized-report> --coverage <normalized-coverage> --mentions <normalized-mentions> --unmapped <normalized-unmapped> --summary <normalized-summary> --out-dir <new-immutable-return-version>",
+      "evidence": "logs/local_import.log + new return IMPORT_RECEIPT.json"
+    },
+    {
+      "command": "evidence/wechat_fix_r1_mac_20261008/test_venv/bin/python scripts/wechat_yesterday_performance.py appendix --prior-article-dir articles/20261007_zEUKsbPnmuxDEhIdzoWjWQ --current-package-receipt handoffs/20261008_ZfZPPo1xSsfROmFZbaqSuw/PACKAGE_RECEIPT.json --obs-date 20261008 --runtime-config-evidence evidence/issue31_daily_integration_20261011/appendix_current/runtime_pointer_discovery.json --calendar-json evidence/issue31_daily_integration_20261011/appendix_current/market_calendar_2026.json --out-dir evidence/issue31_daily_integration_20261011/appendix_current",
+      "exit_code": 0,
+      "evidence": "appendix_current/PERFORMANCE_APPENDIX_RECEIPT.json"
+    }
+  ],
+  "tests": {
+    "r2_r3_preintegration_reviewed_tests_repeated": false,
+    "reason": "Frozen reviewed candidate hashes were integrated; assignment forbade redundant same-hash reruns. Verified behavior with one isolated live runner canary and one actual appendix CLI run.",
+    "actual_behavior_checks": [
+      "fetch frozen adoption",
+      "default fetch reuse",
+      "prepare_ocr reads prior OCR cache",
+      "importer preserves binding and event disposition contract",
+      "108-row prior-mentions appendix output"
+    ]
+  },
+  "unresolved_gaps": [
+    "All 108 prior-article listings remain CANNOT_CONFIRM for price observations because current panels/receipts fail binding as documented; no shared data repair was performed.",
+    "Current-record V4 API/UI source-binding readback and GitHub commit/file hash verification remain with parent."
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "next_minimum_action": "Independent reviewer checks this receipt, live code diff and target behavior; parent finishes exact article-date V4 API/UI and GitHub evidence, and links the separate appendix from Drive START_HERE without changing package input_digest."
+}

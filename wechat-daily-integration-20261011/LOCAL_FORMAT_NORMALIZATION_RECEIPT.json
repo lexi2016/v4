@@ -1,0 +1,89 @@
+{
+  "schema_version": "wechat-local-format-normalization-v1",
+  "normalization_type": "LOCAL_FORMAT_NORMALIZATION",
+  "created_by": "Codex local archive normalization; no research regeneration",
+  "article": {
+    "url": "https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw",
+    "article_date": "20261008",
+    "published_at": "2026-10-08T22:52:32+08:00"
+  },
+  "identity": {
+    "package_id": "wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1",
+    "input_digest": "c93e458747fe18fa33373785d79a9b026c15792d02fa9263db7b6f2bda48abc2",
+    "original_return_id": "chat_20261008T163007Z_64a9b86a",
+    "normalized_return_id": "chat_20261008T163007Z_64a9b86a_local_format_20261011"
+  },
+  "frozen_package": {
+    "sha256_trusted": "c8a0dcfb548012bc8feb4e818e0cad7eead7de5a564a0ecaa85d64ce3763956f",
+    "bytes": 11012092,
+    "path": "evidence/issue31_r2_mac_20261009/mac_actual/original_inputs/wechat_chat_materials_wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1.zip"
+  },
+  "original_return_location": "handoffs/20261008_ZfZPPo1xSsfROmFZbaqSuw/return_chat_20261008T163007Z_64a9b86a",
+  "original_article_archive_location": "articles/20261008_ZfZPPo1xSsfROmFZbaqSuw",
+  "original_import_receipt_sha256": "77c176b0649da0207483d074f13645798f99417973b8fef3659957828705c635",
+  "original_five_files_preserved_unchanged": true,
+  "source_files": {
+    "report.md": {
+      "bytes": 106901,
+      "sha256": "fa456d97a8747aca3c9d3da306705acc751865c53081d0505dd10ab8583b3b03"
+    },
+    "coverage.csv": {
+      "bytes": 33646,
+      "sha256": "f5795a7f1a31b878e2028d00ed498d48ec14c9d8675b5150ce851c7e35869912"
+    },
+    "mentions.csv": {
+      "bytes": 43710,
+      "sha256": "0a829cae7fd46013a92562a9552fb6f6aae264336d5988122e898c95552dcf0e"
+    },
+    "unmapped.csv": {
+      "bytes": 13468,
+      "sha256": "7202e1ced61ac9eca420e1aad124bc4125ec4d8f107a46f0ac61381ad8ccead2"
+    },
+    "summary.json": {
+      "bytes": 328998,
+      "sha256": "da6d13ea92e0b5b1acd9446e37234e7bc62f4aeaf27886085c78dc1c00a6c6b3"
+    }
+  },
+  "normalized_files": {
+    "report.md": {
+      "bytes": 106945,
+      "sha256": "7c48ec72bbbcd07729b3aa4c40d74595bc1239fd9cc89e0f7dee60110e639aa4"
+    },
+    "coverage.csv": {
+      "bytes": 33646,
+      "sha256": "f5795a7f1a31b878e2028d00ed498d48ec14c9d8675b5150ce851c7e35869912"
+    },
+    "mentions.csv": {
+      "bytes": 43710,
+      "sha256": "0a829cae7fd46013a92562a9552fb6f6aae264336d5988122e898c95552dcf0e"
+    },
+    "unmapped.csv": {
+      "bytes": 13468,
+      "sha256": "7202e1ced61ac9eca420e1aad124bc4125ec4d8f107a46f0ac61381ad8ccead2"
+    },
+    "summary.json": {
+      "bytes": 328924,
+      "sha256": "4cd829e29afeed7244188ce7ab955439ede9e8042785dd4c73705045ef42aba0"
+    }
+  },
+  "transformations": {
+    "summary.json": [
+      "missing_inputs: four object entries encoded as JSON strings, losslessly",
+      "return_id: new immutable local-normalization identity",
+      "delivery_contract.new_immutable_version: rebound to normalized return_id",
+      "artifact_sha256.report.md: recomputed for identity-only report edit"
+    ],
+    "report.md": [
+      "wechat-return header return_id updated",
+      "回传版本 identity line updated; report research body otherwise byte-identical"
+    ],
+    "coverage.csv": "byte-identical to original",
+    "mentions.csv": "byte-identical to original",
+    "unmapped.csv": "byte-identical to original"
+  },
+  "research_content_regenerated": false,
+  "frozen_input_digest_changed": false,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

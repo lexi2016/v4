@@ -1,0 +1,28 @@
+{
+  "workers": [
+    {
+      "worker": "/root/wechat_daily_integration_writer",
+      "milestone": "live integration + default article canary + immutable return normalization",
+      "dispatch_time": "2026-10-11T14:00:09.002169+00:00",
+      "expected_terminal_type": "WRITER_RECEIPT",
+      "lifecycle_status": "completed",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipt_sha256": "929d19d851d576d704b444696f5c6347994ae11458ccb2aff734190ab74b3920",
+      "reason": "Writer handoff consumed; independent review in progress"
+    },
+    {
+      "worker": "/root/wechat_daily_integration_reviewer",
+      "milestone": "independent live delta and one integration canary",
+      "dispatch_time": "2026-10-11T14:14:00+00:00",
+      "expected_terminal_type": "REVIEW_RECEIPT",
+      "lifecycle_status": "completed",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "reason": "Independent PASS consumed; no actionable P0/P1/P2",
+      "receipt_sha256": "3b57ebbf1c1d5702884387e55bdb39e1137551d1df7a73be344f957fa0a5e3da"
+    }
+  ]
+}
