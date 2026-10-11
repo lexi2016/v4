@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "module": "M01",
+  "candidate": "R10",
+  "scope": "Isolated cloud engineering retests only; not deployable or production acceptance.",
+  "repository": "lexi2016/v4",
+  "branch": "v5/module-chat-handoffs-20261010",
+  "publication_parent_commit": "2081745106c30f9b8da5b9179a5ea7281ce90112",
+  "r10_dynamic_tests_at_publication": "NOT_RUN",
+  "static_fix_status": "Date validation, FileNotFoundError limited to target read_bytes, and exact relative-path equality confirmed in source; dynamic verification pending.",
+  "root_source_guards_and_thin_assembly": "NOT_IMPLEMENTED",
+  "files": [
+    {
+      "filename": "V5_M01_A_SOURCE_R10_CANDIDATE.zip",
+      "bytes": 6579,
+      "sha256": "0e2fa769518046710ed60748dbfd1bb9a80d1c3919da409a0d5798bf031ac72b",
+      "git_blob_sha1": "9f05512428589e6c04a4d31048289460f92d43b7"
+    }
+  ],
+  "baseline_inputs": {
+    "commit": "30d795bca2ed28c6b182eb8778f25dfdc2b2bc0f",
+    "directory": "handoff/v5-m01-mac-inputs-20261011/",
+    "files": [
+      {
+        "filename": "V5_M01_SOURCE_REVIEW_20261010.zip",
+        "sha256": "8643ec4846da31e2a32c95492cdf51648f1a957991a673d197685104d8029933"
+      },
+      {
+        "filename": "V5_M01_HISTORY_GAP_SUPPLEMENT_20261010.zip",
+        "sha256": "f0706bf684f372549f7a75f0f3a3e8ca8e233add7724e26fc5075849916da291"
+      }
+    ]
+  },
+  "r9_baseline": {
+    "commit": "2081745106c30f9b8da5b9179a5ea7281ce90112",
+    "directory": "handoff/v5-m01-r9-cloud-inputs-20261011/",
+    "candidate": "V5_M01_A_SOURCE_R9_CANDIDATE.zip",
+    "sha256": "48a0d8aa99ef710003aa7c09e5330e6e9ffa99af001c0302ec63079ae60f5d48"
+  }
+}
