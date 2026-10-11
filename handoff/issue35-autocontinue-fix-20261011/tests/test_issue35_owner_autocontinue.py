@@ -46,6 +46,9 @@ def owner_service(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(owner, "get_workspace", fresh)
     monkeypatch.setattr(owner, "checkpoint", lambda: None)
     monkeypatch.setattr(owner, "_attach_daily_channels", lambda value: value)
+    # Runtime R1 also projects day channels inside _readback_plan.
+    from v4.manager_research import workspace_daily_channels
+    monkeypatch.setattr(workspace_daily_channels, "build_daily_channels", lambda value: [])
     # These synthetic fingerprints exercise only the saved/current identity
     # comparison.  Real market sources are never bypassed in production.
     monkeypatch.setattr(
