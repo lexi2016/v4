@@ -1,0 +1,164 @@
+{
+  "kind": "DERIVED_SUMMARY_NOT_RAW_RESPONSE",
+  "raw_sha256": "cf091b2ddf57ecbb3d426de527eecbd42cb7bfe715b117bb0745400c41555861",
+  "raw_bytes": 16212,
+  "get_url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261009",
+  "http_status": 200,
+  "selected_fields": {
+    "target_trade_date": "20261009",
+    "stocks": [],
+    "focus_symbols": [],
+    "date_bindings": {
+      "selection_date": "20261009",
+      "announcement_date": "20261008",
+      "plan_date": "20261009"
+    },
+    "read_context": {
+      "mode": "HISTORICAL_AS_OF",
+      "status": "SOURCE_FAILED",
+      "as_of": "2026-10-09T09:30:00+08:00",
+      "boundary_basis": "NATIVE_MANAGER_FIRST_CONTINUOUS_STAGE_MAXIMUM",
+      "candidate_count_known": false,
+      "reason": "HISTORY_RUN_BYTES_BOUND_EXCEEDED",
+      "contract": "20260923.workspace-history-read.r1"
+    },
+    "plan_product": {
+      "status": "SOURCE_FAILED",
+      "consumed": false,
+      "reason": "HISTORY_RUN_BYTES_BOUND_EXCEEDED",
+      "run_id": null,
+      "sha256": null,
+      "original_owner": "ManagerResearchJobService.refresh_workspace_plan"
+    },
+    "daily_channels": {
+      "schema_version": "v4.manager_research.daily_channels.v1",
+      "date_bindings": {
+        "selection_date": "20261009",
+        "announcement_date": "20261008",
+        "plan_date": "20261009"
+      },
+      "channels": [
+        {
+          "channel": "ANNOUNCEMENT",
+          "target_trade_date": "20261009",
+          "selection_date": "20261009",
+          "announcement_date": "20261008",
+          "rows": [],
+          "candidate_count": null,
+          "pending_count": null,
+          "gaps": [
+            "ANNOUNCEMENT_EXACT_DATE_PRODUCT_NOT_CONSUMED"
+          ],
+          "dependencies": [
+            "REGISTERED_REVIEWED_HANDOFF",
+            "OWNER_IMPORT_RECEIPT"
+          ],
+          "status": "CANNOT_CONFIRM",
+          "run_id": null,
+          "generated_at": null,
+          "product_sha256": null,
+          "input_identity": null,
+          "data_date": "20261008",
+          "execution_kind": "READ_ONLY_EXISTING_OWNER_REPLAY",
+          "natural_run_verified": false,
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "owner": "ManagerResearchJobService.import_announcement_analysis",
+          "product_checks": [],
+          "other_product_checks": []
+        },
+        {
+          "channel": "HK_CONNECT",
+          "target_trade_date": "20261009",
+          "selection_date": "20261009",
+          "announcement_date": "20261008",
+          "rows": [],
+          "candidate_count": null,
+          "pending_count": null,
+          "gaps": [
+            "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED"
+          ],
+          "dependencies": [
+            "TARGET_HK_UNIVERSE_V2",
+            "EXISTING_FOCUS_OWNERS"
+          ],
+          "status": "CANNOT_CONFIRM",
+          "run_id": null,
+          "generated_at": null,
+          "product_sha256": null,
+          "input_identity": null,
+          "data_date": "20261008",
+          "execution_kind": "READ_ONLY_EXISTING_OWNER_REPLAY",
+          "natural_run_verified": false,
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "owner": "EXISTING_WORKSPACE_FOCUS_AND_TARGET_HK_UNIVERSE_V2",
+          "attempt_status": "NOT_VERIFIED",
+          "authority": {}
+        },
+        {
+          "channel": "OVERSOLD",
+          "target_trade_date": "20261009",
+          "selection_date": "20261009",
+          "announcement_date": "20261008",
+          "rows": [],
+          "candidate_count": null,
+          "pending_count": null,
+          "gaps": [
+            "HISTORY_EXACT_DATE_MARKET_NOT_VERIFIED"
+          ],
+          "dependencies": [
+            "COMPLETED_HK_02_PANEL",
+            "PRIOR_60_COMPLETE_SESSIONS",
+            "VERIFIED_VOLUME_PROVENANCE"
+          ],
+          "status": "CANNOT_CONFIRM",
+          "run_id": null,
+          "generated_at": null,
+          "product_sha256": null,
+          "input_identity": null,
+          "data_date": "20261008",
+          "execution_kind": "READ_ONLY_EXISTING_OWNER_REPLAY",
+          "natural_run_verified": false,
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "owner": "EXISTING_HK_02_REBOUND_TWO_GATE_SCREEN",
+          "attempt_status": "NOT_VERIFIED",
+          "data_context": {
+            "plan_trade_date": "20261009",
+            "planning_market_session": null,
+            "market_session": "20261008",
+            "market_session_close": "2026-10-08T16:10:00+08:00",
+            "screen_target_trade_date": null,
+            "screen_phase": null,
+            "screen_session_policy": null,
+            "screen_calendar_sha256": null,
+            "screen_session_status": null,
+            "research_cutoff": "2026-10-09T09:30:00+08:00"
+          },
+          "authority": null
+        }
+      ],
+      "selection_rules_unchanged": true,
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "gaps": [
+      "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+      "HISTORY_COVERAGE_UNKNOWN",
+      "HISTORY_RUN_BYTES_BOUND_EXCEEDED"
+    ],
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

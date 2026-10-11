@@ -1,0 +1,65 @@
+{
+  "status": "SELECTION_NOT_COMPLETE",
+  "evidence_sha256": "e18a3a6e746ace631499c9503fdf6c82c819859404210349051dbcce0ba57b73",
+  "target_trade_date": "20261012",
+  "requested_page_source_date": "20261009",
+  "stocks_count": 0,
+  "focus_count": 0,
+  "plan": {
+    "status": "STALE_INPUTS_CHANGED",
+    "run_id": "1e9d511515de47599f05539e43e79b81",
+    "sha256": "1ce6a9e12c4bf692707b38bbf7c73a75acbea499a9cc3d0bc624538da9234aec",
+    "consumed": false
+  },
+  "formal_selection": {
+    "status": "CANNOT_CONFIRM",
+    "reason": "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED",
+    "target_trade_date": "20261012",
+    "candidate_count": null,
+    "membership_status": "CANNOT_CONFIRM",
+    "calendar": {
+      "status": "APPLICABLE",
+      "reason": "HK_CONNECT_TRADING_DAY",
+      "target_trade_date": "20261012",
+      "calendar_owner": "contracts.trading_calendar",
+      "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "hk_securities_state": "FULL_TRADING_DAY",
+      "hk_connect_state": "FULL_TRADING_DAY"
+    },
+    "qualified": false,
+    "buy_allowed": false,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "observed_lanes": {
+    "ANNOUNCEMENT": "ANNOUNCEMENT_EXACT_DATE_PRODUCT_NOT_CONSUMED / ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+    "HK_CONNECT": "HK_UNIVERSE_V2_ARTIFACT_MISSING / TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED",
+    "OVERSOLD": {
+      "status": "PARTIAL_REPLAYED_RESEARCH_SCREEN",
+      "source_date": "20261009",
+      "candidates": 214,
+      "watch": 286,
+      "pending": 34,
+      "formal_selection_input": false
+    }
+  },
+  "repeated_stale": {
+    "components": [
+      "research_attention.material_input",
+      "research_attention.projection"
+    ],
+    "source_refs_identical_except_global_manifest_sha256": true,
+    "global_manifest_before": "6df8883d0f6bc4b314fabae000969769f25d42f89713318509a994d9a50efb23",
+    "global_manifest_after_prefix": "382fb8bb",
+    "manifest_semantic_diff": "CANNOT_CONFIRM"
+  },
+  "handoff_scope_boundary": {
+    "20261009_10_rows": "BACKFILL_OBSERVATION_ARTIFACT",
+    "formal_hk_stage_receipt": "CANNOT_CONFIRM; selected_rows=0; write_performed=false; HK D1 status must be STRICT_0_2_READY"
+  },
+  "code_changed": false,
+  "business_state_changed": false,
+  "natural_verified": false
+}
