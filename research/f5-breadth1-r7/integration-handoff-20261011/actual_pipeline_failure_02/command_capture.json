@@ -1,0 +1,50 @@
+{
+  "action_counts": {
+    "admission": 1,
+    "fit": 0,
+    "predict": 0,
+    "truth_decode": 0
+  },
+  "command": "PYTHON=/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/bin/python3.13 /Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/bin/python3.13 -I -B /Users/lexi/Desktop/学习/因子工厂/workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py --registered-real-chain",
+  "execution_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_20261011_ONE_SHOT",
+  "input_admission_receipt_path": null,
+  "input_admission_receipt_sha256": null,
+  "process_exit_code": 2,
+  "registry_events_for_execution": [
+    {
+      "budget_action_debit": 1,
+      "decision": "RUNNING",
+      "event_sha256": "c5d660d80d5c0ddfefde59e25736b9c696599ed8802d87a3fc82906278d770da",
+      "event_type": "RUN_STARTED",
+      "line": 2384,
+      "previous_event_sha256": "3bd6431b3fe264bd9c3eb58608c05cfcbcf229662cd726229a8aae2a25c6925f",
+      "registry_event_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_20261011_ONE_SHOT_RUN_STARTED",
+      "stage": "BREADTH1_INPUT_ADMISSION_RECOVERY_STARTED"
+    },
+    {
+      "budget_action_debit": 0,
+      "decision": "CANNOT_CONFIRM_ACTION_FAILED",
+      "event_sha256": "3be54f120860676d09b2b7c9f3130e97f9fac3919de3dddf68a7426c34609907",
+      "event_type": "TERMINAL",
+      "line": 2385,
+      "previous_event_sha256": "c5d660d80d5c0ddfefde59e25736b9c696599ed8802d87a3fc82906278d770da",
+      "registry_event_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_20261011_ONE_SHOT_TERMINAL",
+      "stage": "BREADTH1_INPUT_ADMISSION_RECOVERY_TERMINAL"
+    }
+  ],
+  "registry_path": "/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl",
+  "schema": "BREADTH1_R7_RECOVERY_04_COMMAND_CAPTURE_V1",
+  "scope_note": "Single R7 claim already consumed; no rerun or second claim performed.",
+  "stderr_bytes": 0,
+  "stderr_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_04/command_capture/R7_RECOVERY_04_STDERR.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 507,
+  "stdout_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_04/command_capture/R7_RECOVERY_04_STDOUT.log",
+  "stdout_sha256": "5cc49efdfa09a10fcd60dd7583c4766fa324b343a39d2d3064eb658302df9377",
+  "target_input_read_observation": null,
+  "terminal_error": "INPUT_ADMISSION_RELEASE_BINDING_FILE_IDENTITY_MISMATCH",
+  "terminal_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline_recovery_01/PIPELINE_TERMINAL_RECEIPT.json",
+  "terminal_sha256": "9156b689ade72eb5c4ad827d82dc7fceedf0ed412723f8036e16584f8636b01e",
+  "terminal_stage": "input_admission",
+  "terminal_status": "NO_FIT"
+}

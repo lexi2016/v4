@@ -1,0 +1,21 @@
+# R7 parent-panel date recovery scope lock
+
+```text
+GOAL: Repair the R6 admission NameError, bind one new fixed input-admission recovery to the exact R6 receipt and registry lifecycle, and preserve the already-authorized one-fit/one-predict/sealed-evaluation chain if admission passes.
+SOURCE_WRITER: /root/breadth_r2_writer (original supplied R7 provenance; this repair candidate is recorded separately in the repair handoff at after/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/R7_ONE_PROCESS_CANDIDATE_PROVENANCE.json)
+REVIEWER: /root/breadth_r3_review (independent, read-only Luna Max review)
+ALLOWED_PATHS: workspace/f5_breadth1_r3_frozen_input_20261011/src/{f5_breadth1_budget.py,f5_breadth1_inputs.py,run_f5_breadth1.py}; this batch's R7 contract, binding draft, read release, read plan, grant, scope lock, builder, static receipts, and one-shot receipts; official contracts/EXPERIMENT_REGISTRY.jsonl only through the existing locked official adapter; append-only CURRENT_STATE.md, HK_OHLCV_RESEARCH_STATE.md, PROGRESS.md, F5 STATUS.json, and EVIDENCE_INDEX.json sync after a terminal action.
+FORBIDDEN_PATHS: R1/R2 workspaces and artifacts; R3/R4/R5/R6 frozen artifacts or receipts; any unrelated source; raw data and truth before independent R7 REVIEWED PASS; any extra read, fit, prediction, model load, or truth decode beyond the existing one-shot grants; production, BUY gate, service/scheduler, and order changes.
+PASS_SIGNAL: Independent static reviewer verifies the actual R7 diff, all seven source modules for undefined names, R6 linkage and zero-target-read boundary; only after REVIEWED PASS may the registered one-shot R7 admission run. Admission success is not model or effect acceptance.
+STOP_RULE: Stop before target-data reads if review is not PASS, any contract/binding/release/grant identity differs, an R7 debit already exists, or the input differs from the accepted FROZEN_INPUT_AS_OBSERVED_RESEARCH policy with historical producer status LINEAGE_UNAVAILABLE. An R7 action failure is terminal and consumed; no retry/refund. Preserve NO_FIT / EFFECT_NOT_TESTED until the authorized pipeline actually reaches its terminal evaluation.
+```
+
+R6 remains a consumed failed admission action. Its observed two control-document reads (39,673 bytes), zero frozen target-input reads, exact NameError, and registry event SHAs are bound in the R7 pack. Historical producer lineage remains `LINEAGE_UNAVAILABLE`; no lineage evidence is recreated here. Fit, prediction, model-load, and truth-decode counters are zero at this lock.
+
+
+## User-authorized same-identity R7 preflight recovery
+
+The user authorized applying the minimal adapter compatibility repair and continuing the same R7 research chain (user request item `719692583`, root window `01a12ab9-d073-7f13-8866-c95213983a9c`). The earlier `control_and_runtime_preflight` failure is preserved byte-for-byte at `receipts/r7_one_shot_pipeline/PIPELINE_TERMINAL_RECEIPT.json` (SHA256 `53ecf0df022637644c350d2fa50a274712d436d61bc9c2a5f9fff289909c8545`); it occurred before the R7 admission/action claim and has zero R7 action debit. The reviewed repair removes unsupported `candidate_id` event-profile keys, uses the fixed `CANDIDATE_ID` constant for candidate filtering/action-key reconstruction, and routes this authorized continuation to `receipts/r7_one_shot_pipeline_recovery_01`. The original path is never overwritten. R7 route/candidate/grant/execution/action keys and caps remain unchanged; no retry/refund is introduced for any started action.
+
+Before the one registered adapter/recovery-path test, counters remain target reads=0, fit=0, predict=0, model load=0, truth decode=0. Test must terminalize through the official no-fit adapter. Independent reviewer must approve the current source and rebound identity before any target input is opened.
+Updated same-identity R7 code/control hashes: runner `8730da6a5da8e3afc653bd137f9e1b65e86e34b5d07b39ad8f661af323bd0e58`; contract `a8a8ff5a55ed7cc4cff396fcd325e496b375f0cc5f9aa924458e6f862122b616`; binding `b4ab776afc88ab4426c7e8255a0e065c9e5040b29c0b603f84225d2fbc353fd8`; read release `27d5efa63b0b76b0db4ef94c39de62cc608e1ed82c7d42d80b2682c49faf48b2`; read plan `e1f551f5e9a732bf66d397ea7194d61a3c4fd557c96f2802395f9b3fa7cc77c1`; grant `5c01762a267eece1480e0efa536e6530690bf47a9cb7d258ffdcc5c80606523f`.

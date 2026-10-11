@@ -1,0 +1,33 @@
+{
+  "command": [
+    "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/bin/python3.13",
+    "-I",
+    "-B",
+    "/Users/lexi/Desktop/学习/因子工厂/workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py",
+    "--registered-real-chain"
+  ],
+  "cwd": "/Users/lexi/Desktop/学习/因子工厂",
+  "final_status": "TERMINAL_PROCESS_EXITED_REQUIRES_OFFICIAL_RECEIPT_RECONCILIATION",
+  "finished_at_utc": "2026-10-11T11:25:43.482486+00:00",
+  "installer_apply_receipt_sha256": "642999c29aad23b429459dab224952b64235f5e8ad426373cd7fc613111cae8b",
+  "pid": 86466,
+  "postapply_identity_receipt_sha256": "206da56a498c2cbdce7e9bd8b0b1ce9b2f08ee3b73a5ff4c246dc303379dbfdd",
+  "preapply_external_pin_receipt_sha256": "45932572f0055f396d8d44cbcfa514e7692d6cbedba906486bd903a5ce3d6c46",
+  "python_env": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/bin/python3.13",
+  "real_chain_calls": {
+    "fit_calls": null,
+    "input_admission": null,
+    "model_loads": null,
+    "predict_calls": null,
+    "truth_reads": null
+  },
+  "returncode": 2,
+  "schema": "BREADTH1_R7_REGISTERED_REAL_CHAIN_COMMAND_RECEIPT_V1",
+  "started_at_utc": "2026-10-11T11:25:43.241022+00:00",
+  "stderr_bytes": 0,
+  "stderr_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_local_offline_validation_20261011/R7_REGISTERED_REAL_CHAIN.stderr.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 509,
+  "stdout_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_local_offline_validation_20261011/R7_REGISTERED_REAL_CHAIN.stdout.log",
+  "stdout_sha256": "240f162cc973f03b291b7695081cd8f9cc9bfdce8ccdbbcfbe5691bc683f5be9"
+}

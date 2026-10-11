@@ -1,0 +1,31 @@
+{
+  "schema": "BREADTH1_R7_RESUME_READONLY_PREFLIGHT_COMMAND_RECEIPT_V1",
+  "command": "PYTHON=/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/bin/python3.13 /Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/bin/python3.13 -I -B /Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/run_r7_resume_readonly_preflight_probe_02.py",
+  "execution_id": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261011_R7_RESUME_PREFLIGHT_READONLY_02",
+  "reviewer_execution_start_utc": "2026-10-11T13:42:20Z",
+  "reviewer_execution_return_utc": "2026-10-11T13:42:24Z",
+  "elapsed_seconds": 0.297459,
+  "exit_code": 1,
+  "probe_sha256": "fe2a158a3e47de94bb2c176028918540a1ff035c6d5d16c2b46764e5b11a8af5",
+  "contract_sha256": "c2bf73204ac23be648fb93f2c0eeb324e82e2dce5fe7a0f050621f403935b15b",
+  "binding_sha256": "3edda2c1ccb749e5a5e78e6eefcd5112202e3a8dd57f2e5c4ace0f40ca0c2d50",
+  "run_started_event_sha256": "28261af8dbb380e31777b198a790986ed5666757fc236abcfd676b7c547bb3d3",
+  "reviewer_output_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/R7_RESUME_READONLY_PREFLIGHT_02_REVIEWER_OUTPUT.json",
+  "reviewer_output_sha256": "02f043e14d6b55a79a5c5484ce135d23a70f3ddfa7a1483c9f91a034129ba54b",
+  "stdout_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/R7_RESUME_READONLY_PREFLIGHT_02_REVIEWER_STDOUT.log",
+  "stdout_sha256": "db155e2a45baf89bdb4a65ab728c44bb0d32249f6c804b9f033cdd89460bfa7e",
+  "stderr_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/R7_RESUME_READONLY_PREFLIGHT_02_REVIEWER_STDERR.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "target_input_reads": 0,
+  "fit_calls": 0,
+  "predict_calls": 0,
+  "model_load_calls": 0,
+  "truth_reads": 0,
+  "registry_writes_by_probe": 0,
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

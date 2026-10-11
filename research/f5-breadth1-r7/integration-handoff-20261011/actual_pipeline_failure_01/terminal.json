@@ -1,0 +1,61 @@
+{
+  "action_debits": {
+    "admission": null,
+    "fit": null,
+    "predict": null,
+    "truth_decode": null
+  },
+  "action_observation": {
+    "calls": {
+      "admission": null,
+      "fit": null,
+      "predict": null,
+      "truth_decode": null
+    },
+    "debits": {
+      "admission": null,
+      "fit": null,
+      "predict": null,
+      "truth_decode": null
+    },
+    "integrity": "CANNOT_CONFIRM"
+  },
+  "admission_registry_receipt_path": null,
+  "admission_registry_receipt_sha256": null,
+  "admission_status": "NOT_ENTERED",
+  "buy_gate_updated": false,
+  "candidate_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011",
+  "decision": "NO_FIT",
+  "effect_status": "NOT_TESTED",
+  "error": "unsupported event_profile fields: ['candidate_id']",
+  "error_notes": [],
+  "error_type": "RegistryIntegrityError",
+  "evaluation_terminal_path": null,
+  "evaluation_terminal_sha256": null,
+  "exception_chain": [
+    {
+      "error": "unsupported event_profile fields: ['candidate_id']",
+      "error_notes": [],
+      "error_type": "RegistryIntegrityError"
+    }
+  ],
+  "exception_chain_truncated": false,
+  "execution_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_20261011_ONE_SHOT",
+  "input_admission_receipt_path": null,
+  "input_admission_receipt_sha256": null,
+  "input_read_observation": null,
+  "orders_sent": false,
+  "production_allowed": false,
+  "real_fit_calls": 0,
+  "real_model_load_calls": 0,
+  "real_predict_calls": 0,
+  "real_truth_decode_calls": 0,
+  "refund_allowed": false,
+  "research_only": true,
+  "retry_allowed": false,
+  "route_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011",
+  "same_process": true,
+  "schema": "F5_BREADTH1_R7_ONE_PROCESS_TERMINAL_V1",
+  "stage": "control_and_runtime_preflight",
+  "status": "NO_FIT"
+}

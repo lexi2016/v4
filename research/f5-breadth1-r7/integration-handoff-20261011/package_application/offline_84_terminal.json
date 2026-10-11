@@ -1,0 +1,63 @@
+{
+  "arm": "LOCAL_OFFLINE_VALIDATION_84_ONLY",
+  "decision": "ENGINEERING_CANARY_ONLY",
+  "execution_id": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261011_OFFLINE_02",
+  "execution_kind": "NO_FIT_ENGINEERING_CANARY",
+  "experiment_id": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261011",
+  "fixture_operations": "SYNTHETIC_ONLY",
+  "official_registry_terminal_event": {
+    "arm": "LOCAL_OFFLINE_VALIDATION_84_ONLY",
+    "decision": "ENGINEERING_CANARY_ONLY",
+    "deterministic_metrics": {
+      "execution_kind": "NO_FIT_ENGINEERING_CANARY",
+      "fit_call_entered": false,
+      "planned_real_fit_count": 0,
+      "real_fit_budget_debit": 0,
+      "real_fit_returned_count": 0,
+      "selection_slots": null,
+      "truth_positive_denominator": null
+    },
+    "event_sha256": "5240c32d584abbc503137af8336985a3b97f2da9fb6e1252ea503f66b4afc349",
+    "event_type": "TERMINAL",
+    "evidence_level": "ENGINEERING_CANARY_ONLY",
+    "execution_id": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261011_OFFLINE_02",
+    "occurred_at": "2026-10-11T11:20:52.651922+00:00",
+    "previous_event_sha256": "aae517433a6d75fe0943a9cfa5d8433fd4eec83c81b8a36b34284d23a10fa994",
+    "registry_event_id": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261011_OFFLINE_02_TERMINAL",
+    "route_id": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261011",
+    "sealed_status": "NOT_ENTERED",
+    "stage": "OFFLINE_84_VALIDATION_TERMINAL",
+    "track_id": "HK_SPIKE_F5_FIXED_TOP20_RESEARCH",
+    "truth_access": "NOT_READ"
+  },
+  "offline_output_artifacts": {
+    "/private/tmp/breadth1_r7_intake_canonical_20261011/local_offline_validation/CONTROL_IDENTITY_CHECK.json": "3fc02999973df484f9aa1738db933992f95d8e59a789884eb4f43f4b6f996ee6",
+    "/private/tmp/breadth1_r7_intake_canonical_20261011/local_offline_validation/OFFLINE_VALIDATION_RECEIPT.json": "498b21ed8fbdb481627c90595173b1aae0d8c0699dd3234781ecde82e0b48a24",
+    "/private/tmp/breadth1_r7_intake_canonical_20261011/local_offline_validation/STATIC_CHECK.json": "401982f4acb03f2f32de06cac92e221b5b580d77fa4b0d7ace478c97a2ee8735",
+    "/private/tmp/breadth1_r7_intake_canonical_20261011/local_offline_validation/TARGETED_TESTS.log": "7b81b233bc0f7419b85dfe0337fde7fc623ddd1f4b0cb8b48e4ed4fa05242a07"
+  },
+  "offline_output_directory": "/private/tmp/breadth1_r7_intake_canonical_20261011/local_offline_validation",
+  "offline_registry_reads": 0,
+  "offline_registry_writes": 0,
+  "offline_target_data_reads": 0,
+  "python_invocation_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/bin/python3.13",
+  "python_sha256": "95fb891ec36d4022bdf62172f9d3c757fb3c7b1669a274cacc87fe261a535b7e",
+  "real_admission_calls": 0,
+  "real_fit_budget_debit": 0,
+  "real_fit_calls": 0,
+  "real_model_load_calls": 0,
+  "real_predict_calls": 0,
+  "real_truth_decode_calls": 0,
+  "registry_reads_after_terminal": 1,
+  "reported_outcome": "PASS_OFFLINE_ONLY",
+  "route_id": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261011",
+  "schema": "F5_BREADTH1_R7_LOCAL_OFFLINE_VALIDATION_TERMINAL_RECEIPT_V1",
+  "status": "TERMINAL",
+  "stop_reason": "CONTROLLED_TERMINAL",
+  "test_result_reported_by_independent_reviewer": {
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "tests_run": 84
+  }
+}

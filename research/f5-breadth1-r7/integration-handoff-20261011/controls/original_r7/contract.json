@@ -1,0 +1,554 @@
+{
+  "arm": "PLUS64_BREADTH1",
+  "baseline_id": "F5_PLUS64_BASE34_PLUS_PATH_FROZEN_R1_20260926",
+  "budget_proposal": {
+    "auto_retry": false,
+    "candidate_artifacts_are_bound_to_predict_terminal_receipt": true,
+    "control_fit": 0,
+    "control_predict": 0,
+    "evaluator_model_load": 0,
+    "evaluator_predict": 0,
+    "fit": {
+      "max_calls": 1
+    },
+    "input_admission": {
+      "budget_action_key": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:input_admission",
+      "changed_execution_id_or_release_can_reset": false,
+      "durable_debit": "RUN_STARTED under official registry lock before opening read release or target input bytes",
+      "execution_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_INPUT_ADMISSION_ONE_SHOT",
+      "failure_or_interruption_refund": false,
+      "max_calls": 1,
+      "release_sha256_bound_at_claim": true
+    },
+    "input_admission_key_alignment_recovery": {
+      "budget_action_key": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:input_admission_recovery:INPUT_KEY_ALIGNMENT_RECOVERY_R2_20261011",
+      "execution_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_INPUT_KEY_ALIGNMENT_RECOVERY_R2_20261011_ONE_SHOT",
+      "linked_failed_r1_input_admission_is_not_refunded": true,
+      "max_calls": 1,
+      "no_caller_selected_ids_or_release_paths": true,
+      "recovery_failure_or_interruption_refund": false,
+      "scope": "one fixed identity key diagnostic and exact-set alignment check; no fit/predict/model-load/truth action in this grant"
+    },
+    "input_admission_recovery": {
+      "budget_action_key": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:input_admission_recovery:INPUT_ADMISSION_RECOVERY_R1_20261011",
+      "execution_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_INPUT_ADMISSION_RECOVERY_R1_20261011_ONE_SHOT",
+      "linked_failed_input_admission_is_not_refunded": true,
+      "max_calls": 1,
+      "no_caller_selected_ids_or_release_paths": true,
+      "recovery_failure_or_interruption_refund": false,
+      "scope": "one fixed recovery admission check only; no fit/predict/model-load/truth action"
+    },
+    "input_admission_train_label_recovery_r3": {
+      "action_key": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:input_admission_recovery:TRAIN_LABEL_RECOVERY_R3_20261011",
+      "diagnostic_receipt_sha256": "404dc25f7e23c6969d5bc2493923da5cc34522b371310b1fbc07cb96973ac084",
+      "execution_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_TRAIN_LABEL_RECOVERY_R3_20261011_ONE_SHOT",
+      "failure_or_interruption_refund": false,
+      "fit_predict_truth_debit_in_this_grant": 0,
+      "grant_id": "TRAIN_LABEL_RECOVERY_R3_20261011",
+      "linked_failed_receipt_sha256": "76e2c3fa388b90c08033ae8fd4a338a26c9eb73a9dc382b0de301a23b7eac2d5",
+      "max_calls": 1
+    },
+    "predict": {
+      "max_calls": 1
+    },
+    "real_release_issued": false,
+    "refund_on_failure": false,
+    "requires_fit_predict_terminal_event_sha256_before_truth_release": true,
+    "requires_input_admission_receipt_sha256": true,
+    "resource_proposal": {
+      "actual_thread_count_recorded_in_prediction_seal": true,
+      "cpu_threads": "ALL_AVAILABLE_LOGICAL_CPUS",
+      "not_yet_independently_bound": true,
+      "process_tree_rss_bytes_max": null,
+      "process_tree_rss_observation": "OBSERVE_ONLY",
+      "supersedes": "Prior CPU4, RSS 3 GiB, 600 second hard limits; all logical CPUs with RSS/wall observation only. Frozen BCE/tree scientific parameters remain unchanged.",
+      "thread_count_source": "os.process_cpu_count_fallback_os.cpu_count_clamped_at_one",
+      "wall_limit_scope": "PER_WORKER_OBSERVE_ONLY",
+      "wall_seconds_per_worker_max": null,
+      "workers": 1
+    },
+    "truth_decode": {
+      "max_calls": 1
+    }
+  },
+  "candidate_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011",
+  "code_sha256": {
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/__init__.py": "14cd4f13adeed7d5c8730560f6fca0b3f360ae78c6a2a8e7ae8a1c40ad8bf764",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_budget.py": "7da1b9a4fa50ef59b85c6d9b1c0792a829d763a5d3d70233cdcc31ae817746c7",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_core.py": "967cd391d435d82dca11a53a1475af3c2caed990aff17143293f7174b5c187a5",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_evaluate.py": "355ae6ebf149a807d2aed1dc797a0f0fb874e2b40c40ae8066f7e7862e274c36",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_inputs.py": "2c680ff41e616a813007e60efe9dff02a2baba83b5de48b280a6000e1449d424",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_worker.py": "08b20a81d40bd25e24fa6ed282c08fceed31396ad619d3cb8189ef20a366edca",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py": "8730da6a5da8e3afc653bd137f9e1b65e86e34b5d07b39ad8f661af323bd0e58"
+  },
+  "decision_history": [
+    {
+      "decision_id": "R2_RESOURCE_AND_TRUTH_ORDERING_AMENDMENT_20261011",
+      "lineage_status": "LINEAGE_UNAVAILABLE",
+      "model_policy": "Frozen BCE objective, tree structure, seeds, and boosting rounds unchanged; only runtime thread count is overridden.",
+      "real_input_or_model_action_authorized": false,
+      "resource_policy": "ALL_AVAILABLE_LOGICAL_CPUS; process-tree RSS and per-worker wall time observe-only; one worker; no hard thresholds",
+      "truth_policy": "Prepare/fit/predict writes immutable PREDICTIONS_SEALED_AWAITING_TRUTH_RELEASE and AWAITING_TRUTH_RELEASE terminal. Evaluation requires a separate explicit release bound to exact seal, candidate artifacts, and prior action terminal hashes."
+    },
+    {
+      "decision_id": "R2_LOCK_SAFE_ADMISSION_LIFECYCLE_SNAPSHOT_20261011",
+      "implementation_policy": "During atomic action claim, verify the admission lifecycle against the already validated locked registry snapshot. Do not reacquire the same registry lock through list_events; independent unlocked verification continues to use the official adapter.",
+      "lineage_status": "LINEAGE_UNAVAILABLE",
+      "truth_or_model_policy": "No change; actual target reads, fit, predict, model load, and truth decode remain unauthorized and zero."
+    },
+    {
+      "decision_id": "R3_PERSISTENT_SINGLE_ADMISSION_ACTION_20261011",
+      "implementation_policy": "Use the existing official registry lock and candidate action ledger for one fixed route:candidate:input_admission key. The fixed execution ID and expected read-release SHA are recorded before opening the read release or target inputs. Failure/interruption remains consumed; no retries, refunds, or sidecar ledger. Verify the persisted start after releasing the lock; never call list_events inside the lock.",
+      "lineage_status": "LINEAGE_UNAVAILABLE",
+      "research_scope": "No change to feature, source limitation, model, prediction, seal, or truth policy."
+    },
+    {
+      "attempt_receipt_path": "research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/stage2_admission_one_shot/INPUT_ADMISSION_ATTEMPT_RECEIPT.json",
+      "attempt_receipt_sha256": "8349dab1c771867509f64ca4f0fde44cd1b7b4121030ae90e38c4bd9c9570463",
+      "decision": "CANNOT_CONFIRM_ACTION_FAILED",
+      "event": "ONE_SHOT_INPUT_ADMISSION_FAILED_BEFORE_TARGET_INPUT_READS",
+      "execution_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_INPUT_ADMISSION_ONE_SHOT",
+      "fit_calls": 0,
+      "model_loads": 0,
+      "predict_calls": 0,
+      "real_input_target_reads": 0,
+      "retry_or_refund": false,
+      "truth_decode_calls": 0
+    },
+    {
+      "decision_id": "USER_AUTHORIZED_SINGLE_ADMISSION_RECOVERY_R1_20261011",
+      "lineage_status": "LINEAGE_UNAVAILABLE",
+      "previous_failed_admission_remains_consumed": true,
+      "real_read_fit_predict_truth_authorized_in_this_preparation": false,
+      "recovery_action_key": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:input_admission_recovery:INPUT_ADMISSION_RECOVERY_R1_20261011",
+      "recovery_execution_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_INPUT_ADMISSION_RECOVERY_R1_20261011_ONE_SHOT",
+      "user_authorization_source_item_id": "741497767",
+      "user_authorization_text": "允许修复后重新启动一次",
+      "user_authorization_timestamp_utc": "2026-10-11T03:59:36.040635Z"
+    },
+    {
+      "decision_id": "USER_AUTHORIZED_SINGLE_KEY_ALIGNMENT_RECOVERY_R2_20261011",
+      "key_policy": "require unique non-null (session_id, code) keys and exact set equality; reorder only scoreable identity rows to frozen eval_meta/X_eval order",
+      "linked_failed_r1_status": "INPUT_REJECTED",
+      "original_data_and_scientific_parameters_unchanged": true,
+      "real_fit_predict_truth_authorized_in_static_preparation": false,
+      "recovery_action_key": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:input_admission_recovery:INPUT_KEY_ALIGNMENT_RECOVERY_R2_20261011",
+      "recovery_execution_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_INPUT_KEY_ALIGNMENT_RECOVERY_R2_20261011_ONE_SHOT",
+      "user_authorization_source_item_id": "230095514",
+      "user_authorization_text": "就按唯一键对齐修正，原数据和模型参数不变。允许再做一次针对性检查，键集合一致就按原 X_eval 行序映射，然后直接训练一次、完整预测一次、封存评价一次。不要再找历史证据、重复合成测试或反复问我确认。",
+      "user_authorization_timestamp_utc": "2026-10-11T05:12:27.693554Z"
+    },
+    {
+      "date": "2026-10-11",
+      "decision": "PARENT_PANEL_HEADER_RECOVERY_R4_STATIC_PREPARATION",
+      "header_diagnostic_receipt_sha256": "0459b9fe6001a2b93ed4dbdc3d44b6b1f0015621b9b4714c2a52f347dbe7ee5b",
+      "prior_failure_receipt_sha256": "1adbfabc9919745787a7a6c3d77e504660a214b2dbab71014ae3858d803f7e0a",
+      "status": "PENDING_INDEPENDENT_INCREMENTAL_REVIEW"
+    },
+    {
+      "decision": "PARENT_PANEL_DATE_RECOVERY_R5_ENGINEERING_RETRY_STATIC_PREPARATION",
+      "fit_predict_model_load_truth": "NOT_AUTHORIZED_BEFORE_INDEPENDENT_STATIC_REVIEW_PASS",
+      "r4_failure_receipt_sha256": "e58ec6c92b2b2e94fad58c77c0a24c4110c783905b75d06fd0c9a7fd512887b6",
+      "r4_registry_start_event_sha256": "e7d406a605b9d65dd8cecc4ec5621c1784d94ce68ec05cebc8e5fedef994a4f3",
+      "r4_registry_terminal_event_sha256": "df2e455000e9eb6350cf78566049b53eb686ec5f5dc0ea3c59b80d1c27a7a0f8",
+      "recovery_scope": "one new fixed admission audit after the R4 AttributeError repair; preserve all earlier consumed grants",
+      "true_input_reads_started": false
+    },
+    {
+      "decision": "PARENT_PANEL_DATE_RECOVERY_R6_LINKED_PRECALL_FAILURE_RETRY_STATIC_PREPARATION",
+      "fit_predict_model_load_truth": "NO_ACTION_BEFORE_INDEPENDENT_STATIC_REVIEW_PASS",
+      "r4_ancestor_failure_receipt_sha256": "e58ec6c92b2b2e94fad58c77c0a24c4110c783905b75d06fd0c9a7fd512887b6",
+      "r5_failure_receipt_sha256": "6003fc3057fa0f1fbc735a2072e590cb38756efab9cd92875de06376f9973971",
+      "r5_registry_start_event_sha256": "767f6d88d9c3ab9cd3fbe56e80f4e49422ce9600d2200a25715e3cf20388934a",
+      "r5_registry_terminal_event_sha256": "f1a4a5f9149ab029b1e5130576e884a9a6ae5320c40f71c17ad6d3d24d53e39b",
+      "recovery_scope": "one fixed admission recovery after the R5 pre-read binding identity failure; the R5 action debit remains consumed",
+      "true_input_reads_started": false
+    },
+    {
+      "decision": "PARENT_PANEL_DATE_RECOVERY_R7_LINKED_R6_NAMEERROR_REPAIR_STATIC_PREPARATION",
+      "independent_static_review": "PENDING",
+      "lineage_status": "LINEAGE_UNAVAILABLE",
+      "r6_action_debit_remains_consumed": true,
+      "r6_control_document_bytes": 39673,
+      "r6_control_document_reads": 2,
+      "r6_failure_receipt_sha256": "a27eb9f90bb4602838a046416d86051835d5042f0f12af377caf617d2808c7e2",
+      "r6_registry_start_event_sha256": "1316f094c7a24de75ca2bdd8de7c030fded39dec4b11f7d0d14b6908b6b3122c",
+      "r6_registry_terminal_event_sha256": "28700bc957bd1da47b955e1c18abe92ae2bb78a45abb789277fc9ca09bc52737",
+      "r6_target_input_bytes_read": 0,
+      "r6_target_input_files_opened": 0,
+      "recovery_scope": "one new fixed input-admission recovery after the R6 NameError, linked to its exact receipt and registry lifecycle; no retry/refund of R6",
+      "true_read_fit_predict_model_load_truth_counts": {
+        "fit": 0,
+        "model_load": 0,
+        "predict": 0,
+        "target_bytes": 0,
+        "target_files": 0,
+        "truth_decode": 0
+      }
+    },
+    {
+      "decision": "USER_AUTHORIZED_R7_SAME_IDENTITY_PREFLIGHT_COMPATIBILITY_RECOVERY",
+      "authorization_source_item_id": "719692583",
+      "authorization_text": "授权应用这份最小补丁，保留原失败收据、不更换 R7 身份，修复后继续完成训练、预测、封存和评价。同范围内的问题直接修复，不要反复问我，最后给实际结果。",
+      "prior_failure_terminal_path": "research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline/PIPELINE_TERMINAL_RECEIPT.json",
+      "prior_failure_terminal_sha256": "53ecf0df022637644c350d2fa50a274712d436d61bc9c2a5f9fff289909c8545",
+      "prior_failure_action_debit": 0,
+      "same_grant_execution_action_caps": true,
+      "new_fixed_recovery_output_path": "research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline_recovery_01",
+      "runner_source_before_sha256": "166b993c0b1582718a005e1f2a90fdf1622bd8e8ac1a2e770ff38cdfd4394dd9",
+      "runner_source_after_sha256": "8730da6a5da8e3afc653bd137f9e1b65e86e34b5d07b39ad8f661af323bd0e58",
+      "compatibility_patch_sha256": "563f1c11162995e9c975d2309a10c32ff1c5a5f3cb0d35ad0b305a28eb0f6a11",
+      "target_reads_before_reviewer_and_registered_test": 0,
+      "real_action_counts_before_reviewer_and_registered_test": {
+        "fit": 0,
+        "predict": 0,
+        "model_load": 0,
+        "truth_decode": 0
+      }
+    }
+  ],
+  "development_evaluation": {
+    "controls": [
+      "PLUS_PATH_SAVED_SCORES_TOP3",
+      "BASE34_SAVED_SCORES_TOP3"
+    ],
+    "reported_G_rows_not_revalidated": 169986,
+    "reported_NEW_denominator_not_revalidated": 126,
+    "reported_NEW_with_scoreable_opportunity_not_revalidated": 118,
+    "reported_S_rows_not_revalidated": 120084,
+    "reported_positive_known_scoreable_rows_not_revalidated": 574,
+    "reported_scoreable_rows_not_revalidated": 119884,
+    "reported_sessions_not_revalidated": 246,
+    "reported_unknown_rows_not_revalidated": 200,
+    "sealed_data": "NONE; historical 2024 window already exposed",
+    "window": "ORIGINAL_EXPOSED_2024_FULL_WINDOW"
+  },
+  "document_date": "2026-10-11",
+  "experiment_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011",
+  "feature": {
+    "any_inf": "REJECT",
+    "available_at_status": "ASSUMED_AT_SESSION_CLOSE",
+    "base_feature_count": 34,
+    "economic_missing_cause": "CANNOT_CONFIRM_FROM_FEATURE_ROW_FLAG_ALONE",
+    "empty_required_denominator": "REJECT_CANDIDATE_NO_DATE_SKIP",
+    "exact_previous_global_session_return_certified": false,
+    "extra_windows": [],
+    "feature_count": 65,
+    "feature_flag_value_contradiction": "REJECT_FEATURE_ROW_PRESENT_0_WITH_FINITE_RET_1D",
+    "feature_one_nan": "ALLOW_AS_STORED_UNAVAILABLE_RETURN; exclude from finite denominator, count daily, never attribute cause",
+    "feature_zero_finite_or_inf": "REJECT",
+    "feature_zero_nan": "ALLOW_AS_STORED_UNAVAILABLE_RETURN; exclude from finite denominator, count daily; row retained after grid/flag check",
+    "formula": "float32(count(original frozen ret_1d finite and > 0 in complete original fixed proxy pool at session t) / count(original frozen ret_1d finite in that pool at session t))",
+    "full_features_artifact_sha256": "a180ff1828cd9142de1133b710193175a0acb8757065a92b43801a8c2a6dbd5e",
+    "grouping": null,
+    "handcrafted_interactions": false,
+    "incomplete_or_duplicate_full_parent_grid": "REJECT",
+    "lag_fallback": false,
+    "leave_one_out": false,
+    "membership_mode": "FIXED_CURRENT_SNAPSHOT_PROXY",
+    "missing_return_cause": "NOT_INFERRED",
+    "name": "breadth1_positive_finite_share",
+    "original_64_order_nan_float32_row_key_and_mask_unchanged": true,
+    "path_feature_count": 30,
+    "price_basis": "RAW_FROZEN_SOURCE_UNCERTIFIED_ACTION_ADJUSTMENT",
+    "required_sessions": "PREBOUND_UNION_OF_ORIGINAL_TRAIN_KEY_SESSIONS_AND_2024_EVALUATION_CALENDAR",
+    "ret_1d_producer_sha256": null,
+    "return_convention": "USE_ORIGINAL_STORED_RET_1D_NO_RECOMPUTE_OR_CROSS_GAP_FILTER",
+    "smoothing": null,
+    "source_binding_status": "LINEAGE_UNAVAILABLE",
+    "source_manifest_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/input_bundle/input_manifest.json",
+    "source_manifest_sha256": "b151979a05587bdf571f329300bd34b9a03aad68726b1afec7eb735b6ed844a8",
+    "unused_dates": "NO_EXPERIMENT_VALUE_REQUIRED",
+    "zero_in_denominator": true,
+    "zero_in_numerator": false
+  },
+  "goal": "Use one authorized check of existing frozen data for PLUS64+BREADTH1; if and only if it passes, fit once, predict the complete scoreable G domain once, seal, then evaluate once under a separate exact truth release.",
+  "hypothesis": "The proportion of positive original frozen returns may add conditional ranking information beyond existing same-day median-return context and stock-specific features.",
+  "input_admission": {
+    "grant_id": "PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_20261011",
+    "read_plan_path": "research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/REAL_INPUT_READ_PLAN_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY.json",
+    "read_release_path": "research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE.json",
+    "status": "PENDING_INDEPENDENT_STATIC_REVIEW"
+  },
+  "input_paths_and_sha256": {
+    "A_PRETRUTH_SCORES": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/factoryformula65_batch_r1_20260926/recovery/executions/F5_FACTORYFORMULA65_EVAL_RECOVERY_R4_20261010_05/execution/A/PRETRUTH_SCORES.csv.gz",
+      "projection": [
+        "session_id",
+        "code",
+        "scoreable"
+      ],
+      "sha256": "f747850a3456a96fe0b7811d6581fd8cb8d574cc218daf7b18d0db7f4b4b916a",
+      "status": "IDENTITY_ONLY_NO_PROBABILITY"
+    },
+    "controls_and_calendar": {
+      "BASE34_scores": {
+        "parser_id": "CONTROL_SCORE_PANDAS_DEFAULT_CODE_STRING",
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/runs/2024/BASE34/scores.csv.gz",
+        "sha256": "b3c1e4dec4f98f84aad466291bb9968aaa1bdc5993892166c0693f54e956edcd"
+      },
+      "BASE34_top3": {
+        "parser_id": "CONTROL_TOP3_KEY_ONLY_PANDAS_DEFAULT_CODE_STRING",
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/runs/2024/BASE34/top3.csv.gz",
+        "sha256": "182f95feab6ac840c03cb63772e10f918aa1ea5b82c34b36036dd2aded25da40"
+      },
+      "PLUS_PATH_scores": {
+        "parser_id": "CONTROL_SCORE_PANDAS_DEFAULT_CODE_STRING",
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/runs/2024/PLUS_PATH/scores.csv.gz",
+        "sha256": "5e0335ce334b4deda2f88705cde6601adf62c6c0e24a0bdb826d2858001a99cc"
+      },
+      "PLUS_PATH_top3": {
+        "parser_id": "CONTROL_TOP3_KEY_ONLY_PANDAS_DEFAULT_CODE_STRING",
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/runs/2024/PLUS_PATH/top3.csv.gz",
+        "sha256": "c3efc891e6d4432e0d97d64d38500bd61d2ff5fef853d7aa0cd005f5af3a625b"
+      },
+      "calendar": {
+        "parser_id": "CALENDAR_PANDAS_DEFAULT",
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/fold_inputs/2024/eval_calendar.csv.gz",
+        "sha256": "a835467ab5d2270e70022e62233a7f082cb61b500c3101d7eb1ce51dbf93e4c5"
+      }
+    },
+    "frozen_fold_inputs": {
+      "X_eval.npy": {
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/fold_inputs/2024/X_eval.npy",
+        "sha256": "4938737ff77608b817d2f4e788b43196fcc472197085472de9ea7bd56ba324d4"
+      },
+      "X_train.npy": {
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/fold_inputs/2024/X_train.npy",
+        "sha256": "6d35dfff22a799d260ea96baa84f791ef36076eecac9871e0a6f66d4598b0776"
+      },
+      "eval_calendar.csv.gz": {
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/fold_inputs/2024/eval_calendar.csv.gz",
+        "sha256": "a835467ab5d2270e70022e62233a7f082cb61b500c3101d7eb1ce51dbf93e4c5"
+      },
+      "eval_meta.csv.gz": {
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/fold_inputs/2024/eval_meta.csv.gz",
+        "sha256": "fae62a4944ef6aa7bc18c5bf9d8b3a693039cc0ac80b7fff3dc5ac1618db4eac"
+      },
+      "train_keys.csv.gz": {
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/fold_inputs/2024/train_keys.csv.gz",
+        "sha256": "e7a1348be81677373f60053bcd8c3a5a88f8f73ef409e15ef7d32fefbb899df4"
+      },
+      "y_train.npy": {
+        "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/real_training_20260914/fold_inputs/2024/y_train.npy",
+        "sha256": "2ee8f46889ab1c1c2d23bc851b47ed6925a983c08c75bbcfeafd393cace007d6"
+      }
+    },
+    "input_manifest": {
+      "path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/input_bundle/input_manifest.json",
+      "sha256": "b151979a05587bdf571f329300bd34b9a03aad68726b1afec7eb735b6ed844a8",
+      "status": "FROZEN_STATIC_MANIFEST"
+    }
+  },
+  "is_execution_contract": false,
+  "learner": {
+    "early_stopping": false,
+    "extra_calibrator": null,
+    "init_model": null,
+    "init_score": null,
+    "library": "LightGBM",
+    "loss": "EQUAL_WEIGHT_BINARY_BCE",
+    "num_boost_round": 200,
+    "params": {
+      "bagging_fraction": 1.0,
+      "bagging_freq": 0,
+      "bagging_seed": 42,
+      "bin_construct_sample_cnt": 200000,
+      "boost_from_average": true,
+      "boosting_type": "gbdt",
+      "data_random_seed": 42,
+      "deterministic": true,
+      "device_type": "cpu",
+      "feature_fraction": 1.0,
+      "feature_fraction_seed": 42,
+      "force_col_wise": true,
+      "is_unbalance": false,
+      "lambda_l1": 0.0,
+      "lambda_l2": 1.0,
+      "learning_rate": 0.05,
+      "max_bin": 63,
+      "max_depth": 4,
+      "metric": "binary_logloss",
+      "min_data_in_leaf": 50,
+      "min_sum_hessian_in_leaf": 0.001,
+      "num_leaves": 15,
+      "num_threads": "ALL_AVAILABLE_LOGICAL_CPUS_RUNTIME_OVERRIDE",
+      "objective": "binary",
+      "scale_pos_weight": 1.0,
+      "seed": 42,
+      "use_missing": true,
+      "verbosity": -1,
+      "zero_as_missing": false
+    },
+    "runtime_thread_policy": "Resource-only override: effective os.process_cpu_count() with os.cpu_count() fallback; all other frozen BCE/tree parameters unchanged.",
+    "synthetic_fit_allowed": false,
+    "version": "4.6.0"
+  },
+  "metrics": {
+    "additional_candidate_artifact_inputs": 2,
+    "all_evaluation_reads_and_diagnostics_inside_one_official_truth_decode_action": true,
+    "calendar_parser": "pandas default parser, gzip inferred from .gz path; unique session/date map; hash and parse same bytes snapshot",
+    "candidate_csv_parser": "gzip CSV, dtype code=str, float_format %.17g, float_precision=round_trip; hash and parse same bytes snapshot",
+    "candidate_top3_parser": "gzip CSV, dtype code=str, float_format %.17g, float_precision=round_trip; exact score parity with saved candidate score snapshot",
+    "control_score_parser": "original pandas default numeric parser with dtype code=str, inferred gzip from .gz path; hash and parse same bytes snapshot",
+    "control_top3_parser": "pandas default parser, dtype code=str, gzip, usecols=[session_id,code]; key-only read; never reselect controls",
+    "gates": {
+      "G1": "paired_lower(candidate - PLUS_PATH) > 0",
+      "G2": "paired_lower(candidate - BASE34) >= 0.03"
+    },
+    "interval_type": "IDENTIFICATION_BOUNDS_NOT_CONFIDENCE_INTERVALS",
+    "logical_truth_decode_cap": 1,
+    "only_gate_consumer": "G1_AND_G2",
+    "physical_truth_bearing_control_inputs": 5,
+    "report_only": [
+      "known_hits",
+      "selected_unknown",
+      "unique_NEW",
+      "valid_repeat_alerts",
+      "AP_known",
+      "Brier_known",
+      "logloss_known",
+      "original_calibration_reports",
+      "fixed_quarters",
+      "half_years",
+      "rank_buckets_1_3_4_10_gt10",
+      "same_day_top3_replacements"
+    ],
+    "selector": "frozen select_top3; report exact three seats per every bound calendar session",
+    "source_sha256": "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763",
+    "transitive_sources_sha256": {
+      "config/base_features.json": "6284bfe3609ec9f220b4f4baef6e0cb4d3190529830fbcb0d8ff435c0859c7af",
+      "config/contract.json": "17ecffd1304e152da4f611b3ffc4b5e92633fac20d528b93ce9b6f8714b1c4bb",
+      "config/feature_order_64.json": "0188d530e6aca9ba29d2a40b7dcb730bc45cd5528e2b1bd0eb609ae83de0ffc3",
+      "spike5/common.py": "affff27d758d73fdbde3da21af59b94b265d4072cf83036475cd06b0941a4097",
+      "spike5/features.py": "947e8d9a2f2b36e44ecfc8d713e0c492670039838dcf3e5abb9396f17a637c38",
+      "spike5/settings.py": "702c374612806e45647b8cdb8cb345736b6cac689f23df352c00d08735bfb4fc"
+    },
+    "unknown_overlap": "frozen paired helper retains exact shared unknown cancellation"
+  },
+  "one_variable": "bind the exact R6 failed admission lifecycle to the R7 recovery and import the existing R5 failure-summary validator; preserve all input, label, model, and resource definitions",
+  "pass_signal": "Static review may approve only after R3 code, contract, binding, diagnostic metadata, grant, read plan, and read release identities all match; after one bounded admission, continue only on exact PASS and preserve one-fit/one-predict/one-seal/one-truth-decode caps.",
+  "prediction": "If BREADTH1 contains incremental conditional rank information, the frozen daily Top3 paired lower-bound differences may pass both G1 and G2.",
+  "real_action_orchestration": {
+    "current_real_fit_calls": 0,
+    "current_real_model_load_calls": 0,
+    "current_real_predict_calls": 0,
+    "current_real_read_calls": 0,
+    "current_real_truth_decode_calls": 0,
+    "current_release_status": "NOT_ISSUED",
+    "gate_source": "complete saved-artifact evaluation and current_gates_only.passed only",
+    "implemented": "prepare -> one authorized fit worker -> one authorized predict -> immutable prediction seal -> AWAITING_TRUTH_RELEASE terminal -> separate exact-seal truth approval -> saved-artifact evaluation -> terminal; resume does not refit, repredict, or reload the model",
+    "terminal_outcomes": [
+      "AWAITING_TRUTH_RELEASE",
+      "NO_FIT_EFFECT_NOT_TESTED",
+      "EFFECT_CANNOT_CONFIRM",
+      "NO_BREAKTHROUGH",
+      "DIRECTION_ONLY"
+    ],
+    "recovery_output_path": "research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline_recovery_01",
+    "preserved_preflight_failure": {
+      "path": "research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline/PIPELINE_TERMINAL_RECEIPT.json",
+      "sha256": "53ecf0df022637644c350d2fa50a274712d436d61bc9c2a5f9fff289909c8545",
+      "status": "NO_FIT",
+      "stage": "control_and_runtime_preflight"
+    }
+  },
+  "real_action_transition_gate": {
+    "admission_receipt_bytes_and_sha256_verified": false,
+    "contract_identity": "SAME_FROZEN_DRAFT_CONTRACT_AS_INPUT_ADMISSION",
+    "draft_contract_alone_authorizes_real_actions": false,
+    "fixed_admission_registry_lifecycle_verified": false,
+    "lineage_status_remains": "LINEAGE_UNAVAILABLE",
+    "required_admission_receipt_decision": "INPUT_ADMISSION_PASS",
+    "required_final_binding_status": "PASS",
+    "status": "ADMISSION_GATED_PENDING_TRAIN_LABEL_RECOVERY_R3"
+  },
+  "real_release_issued": false,
+  "rejection_condition": "Admission failure before fit means NO_FIT_NOT_TESTED; after one complete valid evaluation, identical Top3 or either direction gate failure closes this candidate as NO_BREAKTHROUGH; both gates passing remains DIRECTION_ONLY.",
+  "resource_controls": {
+    "fit_worker_count": 1,
+    "fit_worker_cpu_threads": "ALL_AVAILABLE_LOGICAL_CPUS",
+    "fit_worker_process_tree_rss_bytes_max": null,
+    "fit_worker_wall_seconds_max": null,
+    "independently_reviewed": false,
+    "monitored_by": "existing_spawned_process-tree RSS and wall monitor pattern",
+    "rss_policy": "OBSERVE_ONLY",
+    "supersedes": "Prior CPU4, RSS 3 GiB, 600 second hard limits; user authorized all logical CPUs and observe-only RSS/wall tracking. BCE/tree parameters remain frozen.",
+    "wall_limit_scope": "PER_WORKER_OBSERVATION_NOT_TOTAL_PREPARE_FIT_EVALUATION_CHAIN",
+    "wall_policy": "OBSERVE_ONLY_PER_WORKER"
+  },
+  "route_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011",
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "research_only": true
+  },
+  "schema": "F5_BREADTH1_CANDIDATE_CONTRACT_V1",
+  "signal_date_range": {
+    "end": "2023-12-31",
+    "start": "2018-01-01",
+    "status": "FROZEN_SOURCE_WINDOW_METADATA_ONLY"
+  },
+  "source_limitation_status": "LINEAGE_UNAVAILABLE",
+  "stage1_limits": {
+    "evaluation_truth_reads": 0,
+    "fit_calls": 0,
+    "fit_count": 0,
+    "model_load_calls": 0,
+    "model_load_count": 0,
+    "predict_calls": 0,
+    "predict_count": 0,
+    "r5_grant_remains_consumed": true,
+    "r5_grant_status": "PENDING_INDEPENDENT_STATIC_REVIEW",
+    "r6_grant_status": "CONSUMED_FAILED_BEFORE_TARGET_DATA_READ",
+    "r6_target_input_read_budget_debit": 0,
+    "r7_grant_status": "PENDING_INDEPENDENT_STATIC_REVIEW",
+    "r7_target_input_read_budget_debit": 0,
+    "real_input_read_budget_debit": 0,
+    "real_target_reads": 0,
+    "status": "PREPARED_PENDING_INDEPENDENT_INCREMENTAL_REVIEW",
+    "synthetic_tests": 0,
+    "truth_read_count": 0
+  },
+  "status": "DRAFT_NO_REAL_RUN",
+  "stop_rule": "Stop before opening any target input if any frozen identity, diagnostic summary, grant/read-plan/release SHA, key/alignment predicate, or bounded read condition differs. A failed admission consumes the R3 recovery debit; no retry, label cast, model parameter change, or inferred historical lineage is allowed.",
+  "synthetic_only": false,
+  "synthetic_test_runtime": {
+    "environment_lock_receipt_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/outputs/HK_SPIKE_F5_INTAKE_20260914/ENVIRONMENT_LOCK_RECEIPT.json",
+    "environment_lock_receipt_sha256": "e00665080e28f74f328463a0f6aabdeda4ed8bd3bf236edbca6ca128208193c6",
+    "fit_calls": 0,
+    "lightgbm_imported": false,
+    "package_source": "REUSED_EXISTING_ACCEPTED_LOCKED_RUNTIME_NO_INSTALL",
+    "packages": {
+      "joblib": "1.5.3",
+      "lightgbm": "4.6.0",
+      "numpy": "2.3.5",
+      "pandas": "2.2.3",
+      "psutil": "7.2.2",
+      "pytest": "9.0.2",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.17.0",
+      "threadpoolctl": "3.6.0"
+    },
+    "python_executable_invocation_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/bin/python3.13",
+    "python_executable_resolved_path": "/Users/lexi/Documents/Codex/2026-08-13/v35-019ff682/runtime/python/cpython-3.13.12-macos-aarch64-none/bin/python3.13",
+    "python_executable_sha256": "95fb891ec36d4022bdf62172f9d3c757fb3c7b1669a274cacc87fe261a535b7e",
+    "python_version": "3.13.12",
+    "requirements_lock_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/requirements.lock.txt",
+    "requirements_lock_sha256": "73348b7f14b4689459de16d626fed1eb8d2d9392fcbebfb38fa2856078c52f78",
+    "site_packages_path": "/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/lib/python3.13/site-packages"
+  },
+  "target_date_range": {
+    "end": "2024-12-31",
+    "start": "2024-01-01",
+    "status": "EXPOSED_DEVELOPMENT_WINDOW_NOT_SEALED"
+  },
+  "track_id": "HK_SPIKE_F5_FIXED_TOP20_RESEARCH",
+  "training_source": {
+    "identity": "ORIGINAL_MATURE_PURGED_2018_2023_ROW_KEYS",
+    "reported_positive_rows_not_revalidated": 899,
+    "reported_rows_not_revalidated": 539631,
+    "split_reconstruction_from_years": false
+  }
+}

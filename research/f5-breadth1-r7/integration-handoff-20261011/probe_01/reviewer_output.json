@@ -1,0 +1,28 @@
+{
+  "schema": "BREADTH1_R7_RESUME_READONLY_PREFLIGHT_REVIEWER_OUTPUT_V1",
+  "reviewer_reported_start_utc": "2026-10-11T13:34:05Z",
+  "reviewer_reported_return_utc": "2026-10-11T13:34:10Z",
+  "reviewer_reported_elapsed_seconds": 0.403,
+  "exit_code": 1,
+  "stdout_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/R7_RESUME_READONLY_PREFLIGHT_REVIEWER_STDOUT.log",
+  "stdout_sha256": "ecd1c517b0773a1eb03efbf9dcdd53c8e04a50ca516129c85db65d6386560818",
+  "stderr_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/R7_RESUME_READONLY_PREFLIGHT_REVIEWER_STDERR.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "result": {
+    "buy_gate_updated": false,
+    "error": "R7_RESUME_ORIGINAL_CONTROL_IDENTITY_MISMATCH",
+    "error_type": "SyntheticChainError",
+    "fit_calls": 0,
+    "model_load_calls": 0,
+    "orders_sent": false,
+    "predict_calls": 0,
+    "production_allowed": false,
+    "registry_writes_by_probe": 0,
+    "research_only": true,
+    "schema": "BREADTH1_R7_RESUME_READONLY_PREFLIGHT_PROBE_V1",
+    "status": "FAIL_READONLY_RESUME_PREFLIGHT",
+    "target_data_file_reads": 0,
+    "truth_reads": 0
+  },
+  "interpretation": "The independent no-target probe reached the R7 original-control verification and rejected an identity predicate; it confirms zero target/model/truth actions and zero R7 action debit. This is a failed engineering validation, not a PASS."
+}

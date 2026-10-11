@@ -1,0 +1,132 @@
+{
+  "schema": "BREADTH1_R7_RESUME_READONLY_PREFLIGHT_BINDING_V1",
+  "status": "STATIC_IDENTITY_FROZEN_REVIEWER_EXECUTION_PENDING",
+  "contract_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/R7_RESUME_READONLY_PREFLIGHT_CONTRACT.json",
+  "contract_sha256": "8ab6b62875379bc9b81a757ddaa150a68c0de27114567e8acf64e1496e6c19f0",
+  "route_id": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261011",
+  "execution_id": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261011_R7_RESUME_PREFLIGHT_READONLY_01",
+  "arm": "LOCAL_R7_RESUME_PREFLIGHT_READONLY_ONLY",
+  "probe_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/run_r7_resume_readonly_preflight_probe.py",
+  "probe_sha256": "50b942f7199b64a76dcc113b3a030bbd85543f068eb1ef940e33724ec541a40f",
+  "registrar_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/register_r7_resume_readonly_preflight.py",
+  "registrar_sha256": "a6eefc976044bd34d30366f68798c5aa47717d8b6c6761301197334825de89e5",
+  "source_sha256": {
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/__init__.py": "14cd4f13adeed7d5c8730560f6fca0b3f360ae78c6a2a8e7ae8a1c40ad8bf764",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_budget.py": "0746398c572ec070f96cfbb27826b3ae6ab5ae7a7839792dd01b0324ebf393cb",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_core.py": "967cd391d435d82dca11a53a1475af3c2caed990aff17143293f7174b5c187a5",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_evaluate.py": "355ae6ebf149a807d2aed1dc797a0f0fb874e2b40c40ae8066f7e7862e274c36",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_inputs.py": "86d7eb720469da17cebf2d05f06e5572dd0365b3e5d96efa6b1deeded5818383",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_worker.py": "08b20a81d40bd25e24fa6ed282c08fceed31396ad619d3cb8189ef20a366edca",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py": "f46f86aa87ccfa3315c6368f9bdedd2cfee6925c3fce16d2b85d364135a3bfdf"
+  },
+  "r7_control_sha256": {
+    "resume_authorization": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/control_resume/R7_RECOVERY_05_RESUME_AUTHORIZATION_V2.json",
+      "sha256": "8152a71196004d14fe97c08fbb85583bbafed03b5c47e86a52dae287f56f99d3"
+    },
+    "resume_contract": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/control_resume/R7_RECOVERY_05_RESUME_CONTRACT_V2.json",
+      "sha256": "925a95959d81379483e68884245f6c3eb4044767f2a60221bd794188bca71032"
+    },
+    "resume_pending_binding": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_PENDING_BINDING_RESUME_02.json",
+      "sha256": "6773f3003e1fd9801d38dd3f1cb3e9bd59b42314fa25067b598bdaa815ced5e5"
+    },
+    "resume_read_release": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE_RESUME_02.json",
+      "sha256": "c0d9e2555516b51c0351495145fdb8fb1a1a289261e66f892ab65449bf51e4ee"
+    },
+    "resume_read_plan": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/control_resume/R7_RECOVERY_05_RESUME_READ_PLAN_V2.json",
+      "sha256": "e62f6db95928c0db7b0b70a41839ca837c2cbf6d6f59c21a41083e2472adb83a"
+    },
+    "original_contract": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/contracts/BREADTH1_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_DRAFT.json",
+      "sha256": "10ae92ab6d1d83b4b9bac0fe0e52d55c9dc2848113bc92604085ed0947d5fd63"
+    },
+    "original_pending_binding": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/REAL_INPUT_BINDING_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_DRAFT.json",
+      "sha256": "3d65c14d85f8623813cb1cdd2195b485f2df564a8511ef44864c064f479f6153"
+    },
+    "original_read_release": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE.json",
+      "sha256": "3368daaca20a00f9e8b4c85535af9e62dcc7dc8b4b688f0c3300e07e7ffbf2ca"
+    },
+    "original_read_plan": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/REAL_INPUT_READ_PLAN_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY.json",
+      "sha256": "9e0b4cb19378725ed11ae51d41a45ef3f5c2f738e07d7e55a2da8d88b602ee8f"
+    },
+    "original_grant": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_GRANT.json",
+      "sha256": "b7d9a2c01b3d444995aa5ef92a0080fd79d8c9832a077591458648c3c5f4cc16"
+    },
+    "preserved_original_terminal": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline/PIPELINE_TERMINAL_RECEIPT.json",
+      "sha256": "53ecf0df022637644c350d2fa50a274712d436d61bc9c2a5f9fff289909c8545"
+    },
+    "preserved_latest_failure_terminal": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline_recovery_01/PIPELINE_TERMINAL_RECEIPT.json",
+      "sha256": "9156b689ade72eb5c4ad827d82dc7fceedf0ed412723f8036e16584f8636b01e"
+    }
+  },
+  "official_dependency_sha256": {
+    "official_registry_adapter": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/registry_adapter.py",
+      "sha256": "8596f2a20c165b5fbc2b92a597cb3e1177f6e40bfefac62753b40b3c7daae17f"
+    },
+    "execution_guard_core": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/execution_guard_core.py",
+      "sha256": "85929366a7b018480085c02f80edd312f7f47de94bab5c32982d4e8637d7d7e0"
+    },
+    "official_registry_builder": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/contracts/build_experiment_registry_backfill_20260821.py",
+      "sha256": "df4bfc89fa5487966a8c7e1c1c50832e140339c2ccda3a02a9a59e5aaaeb58cf"
+    },
+    "official_registry_validator": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/contracts/validate_experiment_registry_append_compatibility_v1.py",
+      "sha256": "80e49d05d13f33ee7e2cb8d4d10cae0e297bcdf5b113ff857d3bd141dea0f438"
+    }
+  },
+  "exact_command": "PYTHON=/Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/bin/python3.13 /Users/lexi/Documents/Codex/2026-09-12/referenced-chatgpt-conversation-this-is-an/work/hk_spike_f5_v1/HK_SPIKE_F5_TRAIN_V1/.venv_locked/bin/python3.13 -I -B /Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/run_r7_resume_readonly_preflight_probe.py",
+  "reads_by_probe": {
+    "target_inputs": 0,
+    "model": 0,
+    "evaluation_truth": 0,
+    "registry_writes": 0,
+    "file_outputs": 0
+  },
+  "read_paths_allowlist": [
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/run_r7_resume_readonly_preflight_probe.py",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/registration/register_r7_resume_readonly_preflight.py",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/control_resume/R7_RECOVERY_05_RESUME_AUTHORIZATION_V2.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/control_resume/R7_RECOVERY_05_RESUME_CONTRACT_V2.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_PENDING_BINDING_RESUME_02.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE_RESUME_02.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/control_resume/R7_RECOVERY_05_RESUME_READ_PLAN_V2.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/contracts/BREADTH1_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_DRAFT.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/REAL_INPUT_BINDING_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_DRAFT.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/REAL_INPUT_READ_PLAN_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_GRANT.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline/PIPELINE_TERMINAL_RECEIPT.json",
+    "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline_recovery_01/PIPELINE_TERMINAL_RECEIPT.json",
+    "/Users/lexi/Desktop/学习/因子工厂/workspace/f5_breadth1_r3_frozen_input_20261011/src/__init__.py",
+    "/Users/lexi/Desktop/学习/因子工厂/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_budget.py",
+    "/Users/lexi/Desktop/学习/因子工厂/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_core.py",
+    "/Users/lexi/Desktop/学习/因子工厂/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_evaluate.py",
+    "/Users/lexi/Desktop/学习/因子工厂/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_inputs.py",
+    "/Users/lexi/Desktop/学习/因子工厂/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_worker.py",
+    "/Users/lexi/Desktop/学习/因子工厂/workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py",
+    "/Users/lexi/Desktop/学习/因子工厂/workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/registry_adapter.py",
+    "/Users/lexi/Desktop/学习/因子工厂/workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/execution_guard_core.py",
+    "/Users/lexi/Desktop/学习/因子工厂/contracts/build_experiment_registry_backfill_20260821.py",
+    "/Users/lexi/Desktop/学习/因子工厂/contracts/validate_experiment_registry_append_compatibility_v1.py"
+  ],
+  "result_expectation": "One stdout JSON object with status PASS_READONLY_RESUME_PREFLIGHT_AND_DUPLICATE_REFUSAL; no stdout redirection or probe side effects.",
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
