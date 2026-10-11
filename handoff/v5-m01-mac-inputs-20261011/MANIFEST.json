@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "module": "M01",
+  "candidate": "R6",
+  "scope": "Isolated engineering candidate and defect reproduction only; not production acceptance or deployment.",
+  "repository": "lexi2016/v4",
+  "branch": "v5/module-chat-handoffs-20261010",
+  "publication_parent_commit": "e07b9e1b8ac62cc7282265d95b9f920ba6407b2e",
+  "mac_tests": "NOT_RUN",
+  "known_defects": "See REVIEW_M01_R6.md. Do not install into active V4/V5 data roots or enable preview production consumption.",
+  "files": [
+    {
+      "filename": "V5_M01_A_SOURCE_R6_CANDIDATE.zip",
+      "bytes": 4866,
+      "sha256": "6e06e48ca55cf04c2122f114d043a4f05d5b25ff440a94b62f0c14782e1cfb08",
+      "git_blob_sha1": "769fa111d30076dca81552826c644a518ad9ab51"
+    },
+    {
+      "filename": "V5_M01_SOURCE_REVIEW_20261010.zip",
+      "bytes": 209876,
+      "sha256": "8643ec4846da31e2a32c95492cdf51648f1a957991a673d197685104d8029933",
+      "git_blob_sha1": "0d2c5fee57caa32f27b2087b1821c1c7db33acf6"
+    },
+    {
+      "filename": "V5_M01_HISTORY_GAP_SUPPLEMENT_20261010.zip",
+      "bytes": 6205,
+      "sha256": "f0706bf684f372549f7a75f0f3a3e8ca8e233add7724e26fc5075849916da291",
+      "git_blob_sha1": "547a4b604078de57853f72de61dbe1665b095af6"
+    },
+    {
+      "filename": "REVIEW_M01_R6.md",
+      "bytes": 7257,
+      "sha256": "03c40de10849ba771a4d17e15583ab60cb1655e0b3d1348058379c2f41eefd36",
+      "git_blob_sha1": "a277a6d5a219aa2134e01d42d3dd581a3c63a738"
+    }
+  ]
+}
