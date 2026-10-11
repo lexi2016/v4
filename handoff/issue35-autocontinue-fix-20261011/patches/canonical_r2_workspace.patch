@@ -1,0 +1,79 @@
+diff --git a/v4/manager_research/workspace.py b/v4/manager_research/workspace.py
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -1037,6 +1037,27 @@
+             raise ValueError('MORNING_PLAN_FULL_OWNER_READERS_REQUIRED')
+     with service.store._transaction(date,'workspace-plan-refresh'):
+         prepared=None;preparation_error=None
++        previous_plan=_read_plan(service.store,date)
++        # An exact-date, same-input manual owner call is a read, not a new run.
++        # This is inside the existing cross-process store transaction.
++        if (not scheduled and previous_plan is not None
++                and previous_plan.get('execution_kind','MANUAL_REFRESH')==execution_kind):
++            try:
++                prepared=get_workspace(service,date,include_saved=False,now=now,**workspace_dates)
++            except _ERROR_TYPES as exc:
++                preparation_error=exc
++            if prepared is not None:
++                reusable=_readback_plan(service.store,date,deepcopy(prepared))
++                product_ref=reusable.get('plan_product',{})
++                if (product_ref.get('status')=='CURRENT'
++                        and product_ref.get('consumed') is True
++                        and product_ref.get('run_id')==previous_plan['run_id']
++                        and product_ref.get('sha256')==previous_plan['sha256']):
++                    owner_attempt=verified_plan_attempt(service.store,previous_plan)
++                    reusable['plan_product']['status']='ALREADY_MATERIALIZED'
++                    reusable['workspace_plan_attempt']=owner_attempt
++                    reusable['workspace_plan_product_attempt']=deepcopy(owner_attempt)
++                    return _attach_daily_channels(reusable)
+         if scheduled:
+             # The outer autorun check is only an optimization. A concurrent
+             # caller may pass it before the first caller commits, so repeat
+@@ -1132,14 +1153,9 @@
+             product['sha256']=digest(product)
+             root=service.store.root/'workspace_plans'/date
+             service.store._write_atomic(root/(run_id+'.json'),product)
+-            service.store._write_atomic(root/'latest.json',product)
+-            # The original readback validates schema/date/input identity/SHA.
+-            # A returned READBACK_FAILED is not an exception: inspect it before
+-            # publishing a successful terminal attempt or last_success_at.
+-            result=_readback_plan(service.store,date,value)
+-            readback=result.get('plan_product',{})
+-            if (readback.get('status')!='CURRENT' or readback.get('consumed') is not True
+-                    or readback.get('run_id')!=run_id or readback.get('sha256')!=product['sha256']):
++            # Verify the immutable run product before publishing any latest pointer.
++            exact_product=service.store._read(root/(run_id+'.json'))
++            if (not isinstance(exact_product,Mapping) or dict(exact_product)!=product):
+                 raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+             attempt.update(state=state,finished_at=_now(),last_success_at=product['generated_at'],
+                 input_identity=value['input_identity'],input_coverage=value['existing_material_coverage'],
+@@ -1149,12 +1165,28 @@
+             terminal=validate_attempt(service.store._read(run_root/'latest.json'),date)
+             if terminal!=seal_attempt(attempt):
+                 raise ValueError('WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED')
+-            result['workspace_plan_attempt']=terminal
++            # Full plan readback requires the same-run terminal owner attempt.
++            # Publish the latest pointer only after that attempt is durable.
++            service.store._write_atomic(root/'latest.json',product)
++            result=_readback_plan(service.store,date,value)
++            readback=result.get('plan_product',{})
++            if (readback.get('status')!='CURRENT' or readback.get('consumed') is not True
++                    or readback.get('run_id')!=run_id or readback.get('sha256')!=product['sha256']):
++                raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
++            result['workspace_plan_attempt']=terminal
++            result['workspace_plan_product_attempt']=deepcopy(terminal)
+             return _attach_daily_channels(result)
+         except _ERROR_TYPES as exc:
+             attempt.pop('success_scope',None)
+             attempt.update(state='FAILED',finished_at=_now(),last_success_at=(prior or {}).get('last_success_at'),
+                 failure_reasons=['WORKSPACE_PLAN_REFRESH_FAILED:'+type(exc).__name__])
+             write_attempt()
++            # Failed refreshes must not replace an older sealed success pointer.
++            # The failed run and attempt remain separately addressable.
++            if previous_plan is not None:
++                latest_path=service.store.root/'workspace_plans'/date/'latest.json'
++                latest=service.store._read(latest_path)
++                if isinstance(latest,Mapping) and latest.get('run_id')==run_id:
++                    service.store._write_atomic(latest_path,previous_plan)
+             raise
+ 
