@@ -1,0 +1,101 @@
+{
+  "receipt_version": 1,
+  "scope": "Saved post-publication evidence readback only; no API re-request or new code tests.",
+  "evidence": {
+    "publication_execution": {
+      "file": "publication-execution.json",
+      "sha256": "d9ffe26462626a7cee1734045184cb2161a324497c38abfbe7306ae00e051e32",
+      "status": "ACTIVATED_AND_VERIFIED",
+      "candidate_manifest_sha256": "f2940d02d408b52bde35258b2366e32a4b7e3ad59193b313b243677d590eae1d",
+      "active_candidate_verification": "PASS",
+      "active_process_pid": "3299"
+    },
+    "api_result_summary": {
+      "file": "API_RESULT_SUMMARY.json",
+      "sha256": "268c3dbf5d5f5aa339467938351d80adf4d81c579fc00ae9c316e648bd09aadd",
+      "date": "20261009",
+      "announcement_date": "20261008",
+      "safety": {
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "channels": {
+        "ANNOUNCEMENT": {
+          "status": "PARTIAL",
+          "candidate_count": 55,
+          "pending_count": 73,
+          "run_id": "88324abcfd8d9ac887cbea3ef7870620",
+          "product_sha256": "4f9217564ab3110125b1f3808a4c344d417c2eee9008fe504c0a4205eca6f6b7",
+          "gaps": [
+            "ANNOUNCEMENT_SELECTION_NOT_ASSESSED"
+          ]
+        },
+        "HK_CONNECT": {
+          "status": "CANNOT_CONFIRM",
+          "candidate_count": null,
+          "pending_count": null,
+          "run_id": null,
+          "product_sha256": null,
+          "gaps": [
+            "HK_ORIGINAL_STAGE_DATE_OR_MARKET_MISMATCH"
+          ]
+        },
+        "OVERSOLD": {
+          "status": "PARTIAL",
+          "candidate_count": 214,
+          "pending_count": 34,
+          "run_id": null,
+          "product_sha256": null,
+          "gaps": [
+            "REBOUND_HISTORY_VOLUME_UNIT_NOT_PROVEN",
+            "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00100",
+            "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00187",
+            "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00719",
+            "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.01065",
+            "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.01108"
+          ]
+        }
+      },
+      "announcement_owner_receipt": "VERIFIED"
+    },
+    "ui_dynamic": {
+      "file": "ui-dynamic.txt",
+      "sha256": "ab78107f671d8691142cf626ad721586335fc0834b1a9279a2a9a51e5d3a9b4c",
+      "view": "date=20261009&plan_date=20261009&view=dynamic",
+      "observed": {
+        "ANNOUNCEMENT": "PARTIAL; 候选55 / 观察32 / 待核73; 20261008; owner receipt VERIFIED; run 88324abcfd8d9ac887cbea3ef7870620; product SHA 4f9217564ab3110125b1f3808a4c344d417c2eee9008fe504c0a4205eca6f6b7",
+        "HK_CONNECT": "CANNOT_CONFIRM; 候选/待核未知; no verified candidate list; HK_ORIGINAL_STAGE_DATE_OR_MARKET_MISMATCH",
+        "OVERSOLD": "PARTIAL; 候选214 / 观察286 / 待核34; run and product SHA CANNOT_CONFIRM; REBOUND_HISTORY_VOLUME_UNIT_NOT_PROVEN",
+        "saved_plan": "STALE_INPUTS_CHANGED; consumed=false"
+      }
+    },
+    "ui_historical": {
+      "file": "ui-historical.txt",
+      "sha256": "47aa8708b2d528a3a1fa3d153a690fb962898dcdcb19cd3a7203c018796c290e",
+      "view": "date=20261009&plan_date=20261009",
+      "observed": "Three historical lane cards show CANNOT_CONFIRM; history failure reason HISTORY_SOURCE_VALIDATION_FAILED."
+    },
+    "actual_research_list": {
+      "file": "实际研究名单.csv",
+      "sha256": "4b666b691426b509e4d5eda8d67d7a0a8662580d2cb800c114fcbd83de09d3fe",
+      "rows": 269,
+      "rows_by_channel": {
+        "ANNOUNCEMENT": 55,
+        "OVERSOLD": 214
+      },
+      "rows_by_status": {
+        "PARTIAL": 269
+      },
+      "stock_details_in_receipt": false
+    }
+  },
+  "assessment": {
+    "display_and_boundary": "BEHAVIOR_VERIFIED",
+    "three_lane_target": "PARTIAL/FAIL_NOT_COMPLETE",
+    "canonical_implementation": "CANNOT_CONFIRM",
+    "natural_period": "CANNOT_CONFIRM",
+    "scope_note": "Verified only what the saved live-page text and publication/API/list evidence display; no claim of completed formal selection or canonical integration."
+  }
+}

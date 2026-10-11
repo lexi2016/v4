@@ -1,0 +1,30 @@
+{
+  "status": "ACTIVATED_AND_VERIFIED",
+  "candidate_manifest_sha256": "f2940d02d408b52bde35258b2366e32a4b7e3ad59193b313b243677d590eae1d",
+  "candidate_plist_sha256": "978a36400a1c2ea4ae058e53baadc1c706c956e65d1c0ac76a3163dc42696d76",
+  "review_receipt_sha256": "137f6f3a8a0f24a434d3444de8ce898a78d5504e4776b366f8694b1d01ee34c7",
+  "loaded_identity": {
+    "state": "running",
+    "pid": "3299",
+    "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_THREE_LANE_LOCAL_INTEGRATION_20261011_R1/release-candidate-20261011-r1/app",
+    "V35_RELEASE_ID": "release-candidate-20261011-r1",
+    "V35_RELEASE_MANIFEST_SHA256": "f2940d02d408b52bde35258b2366e32a4b7e3ad59193b313b243677d590eae1d"
+  },
+  "health": {
+    "status": "ok"
+  },
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "scheduler_unchanged": true,
+  "non_delta_preserved": true,
+  "ui_evidence_sha256": {
+    "ui-historical.txt": "47aa8708b2d528a3a1fa3d153a690fb962898dcdcb19cd3a7203c018796c290e",
+    "ui-dynamic.txt": "ab78107f671d8691142cf626ad721586335fc0834b1a9279a2a9a51e5d3a9b4c",
+    "页面验收.png": "bb35d6f7eea26b64bd86edc28bb70ba7d5590d68aad8383a14f10c76603b858b"
+  },
+  "semantic_acceptance": "PARTIAL; unresolved issue #34",
+  "natural_acceptance": "NATURAL_SLOT_UNVERIFIED"
+}

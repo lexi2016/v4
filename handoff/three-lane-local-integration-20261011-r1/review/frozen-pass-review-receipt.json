@@ -1,0 +1,36 @@
+{
+  "active_pointer": "base",
+  "candidate_manifest_sha256": "f2940d02d408b52bde35258b2366e32a4b7e3ad59193b313b243677d590eae1d",
+  "evidence": {
+    "announcement_ts": {
+      "log_sha256": "30ca4e9fc3797fee22a200210e33ff874b23eabc74d7707cb1125d61b8e9551d",
+      "result": "7 passed, 0 failed"
+    },
+    "focused_vitest": {
+      "baseline": "same one assertion fails on baseline; spec SHA identical",
+      "log_sha256": "a3ea24f625b2ffd8ee2615e226db2a878195dea6d855a97c74ee16c8a1e4ca6a",
+      "result": "58 passed, 1 failed"
+    },
+    "publication_plist": {
+      "result": "PASS; plutil valid; expected values only; Python path precedence preserved",
+      "sha256": "978a36400a1c2ea4ae058e53baadc1c706c956e65d1c0ac76a3163dc42696d76"
+    },
+    "python": {
+      "log_sha256": "4ed80b7149a4f9d04fd98fc0c8d65153cebca399d0f7d5adc45cfad081ec47b7",
+      "result": "97 passed, 1 skipped"
+    },
+    "vite_build": {
+      "log_sha256": "01ac4cadd0ba83f1f14f2154de1c1f1fa83532900de68ae9f16c339e286f8333",
+      "result": "PASS; built JS and HTML match release SHA"
+    }
+  },
+  "release_verifier": {
+    "delta_paths": 16,
+    "non_delta_active_release_bytes_preserved": true,
+    "non_delta_entry_count": 1033,
+    "result": "PASS"
+  },
+  "review_verdict": "PASS_FOR_LOCAL_PUBLICATION",
+  "runtime_api_ui_natural_acceptance": "CANNOT_CONFIRM",
+  "schema_version": "v4.independent_frozen_candidate_review.v1"
+}

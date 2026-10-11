@@ -1,0 +1,215 @@
+{
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "status": "IMPLEMENTED_PARTIAL_INTEGRATION_UNVERIFIED",
+  "files": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "before_sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "after_sha256": "00deed52bdc0b1db387d756546d0212381713276824e3b43b41d95e4d9a1321e",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "before_sha256": "42c7035e2d8f63c40ee08686b864974f7666fa3162a4fb7f8da41e9014113507",
+      "after_sha256": "7ab610631e76268a9495611227efbfa4a50d80e51e935b3532f78b82f7dc164c",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "apps/web/src/manager-selection/__tests__/fixtures/three_lane_daily_synthetic.json",
+      "before_sha256": null,
+      "after_sha256": "cc16691c53ad45334d012c9a549ca53955f8a9522e94fd296d11625bc7726074",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "apps/web/src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "ce4fd7782ab0c8c060dda6212f5eba448a83da62e2bfc9789c71697fbb3dbc57",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "apps/web/src/manager-selection/__tests__/threeLanePanel20261011.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "5b41a1908160eb3d5a6f47ae63de642024859fad6c36110898596f0f647261b6",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "before_sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "after_sha256": "b2d6983ddd941f07564a551c5e6f4bc56dd28d34c9b51b116e6f5a582a50460f",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "before_sha256": "04ed9d4907b1bc7d12b05d0073ac0963bac7d159d653a14db13c08e5d000275f",
+      "after_sha256": "7777227fd15e6db4b5355ef3e6e2d420f0895f1759bb24a47569c9e347eed379",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "before_sha256": "819d5c21d146a95a5b0d8b21173d7169ba7aa99927200561e8ae127e453dcc24",
+      "after_sha256": "d118548d396e3d0aad20e33cdb635edb226c93c69c68b3a42bb1357f55df77c5",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "stage_center/consumer.py",
+      "before_sha256": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489",
+      "after_sha256": "395067424d5e8b8016a239f80091f3c951452cc25cf6278089a54729a85f3be6",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/fixtures/managerAnnouncementAnalysis_compile_shim.ts",
+      "before_sha256": null,
+      "after_sha256": "345d250fb636ac4e6e18866ab59fc5f5de0295532ad8624e29128667f5ca3dd8",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/run_announcement_ts_contracts.sh",
+      "before_sha256": null,
+      "after_sha256": "fdee43af74e997081e04d8b00695e39a22fa7ebe50103ae4791ca03560b2abb1",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/test_announcement_frontend_r1.cjs",
+      "before_sha256": null,
+      "after_sha256": "658b09ec8f60543bd2eb3d56337175013aea12a77e56aa6c2ead959fd4816934",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/test_announcement_owner_closed_loop_r1.py",
+      "before_sha256": null,
+      "after_sha256": "c9b027a83e984abc1698277b2ee7f1e89c30f9d5fbbc70d3d72f393703c92248",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/test_announcement_shared_router_r1.py",
+      "before_sha256": null,
+      "after_sha256": "2398d9eb58fed543fac7a16fea71b111d12c964ae7a5ea5e31b40e83a81c87f6",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/test_hk_connect_backfill_formal_guard.py",
+      "before_sha256": null,
+      "after_sha256": "82bfa6ddf6027f4c9bf0513caa7e061493152217f0ed44dd98fe4770fc88caa6",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/test_three_lane_announcement_20261011.py",
+      "before_sha256": null,
+      "after_sha256": "8111463ad4a5ec2175645e8a9323fbb236dfb1a006f6d53577081a454790b0e2",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/test_three_lane_daily_20261011.py",
+      "before_sha256": null,
+      "after_sha256": "ccb5702fcfbb7d310ea7ae690aa98ec7e937a5f61b943f9a235e619aeba1f26b",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/test_three_lane_history_20261011.py",
+      "before_sha256": null,
+      "after_sha256": "8391cbabdbac6076e224be6248ccf1a42d58b5f03d4e93cad196861e80fa6ebd",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/test_three_lane_identity_20261011.py",
+      "before_sha256": null,
+      "after_sha256": "ace6dd78f7da5ce959e45e1dfe28e41647ca8dc0bee563e60d1748b585040422",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/test_three_lane_review_clock_20261011.py",
+      "before_sha256": null,
+      "after_sha256": "0e7bf950796fe916523c46fcfeeca93e12d7e3738659ae83f9a6ec7754aebe9d",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "tests/three_lane_fixtures/announcement.py",
+      "before_sha256": null,
+      "after_sha256": "ca7b2642656eaf6adb11af252dc59dda10d8cf55e87adfe2ce437cb96bf0066b",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "v4/manager_research/announcement_analysis.py",
+      "before_sha256": "21eb0cf37bfa6f3332f17ca7825a69eaa5bf9082b33d2e3de2d293e8bc3f0685",
+      "after_sha256": "5c9980a5fc4d4b7315756d241ed23a63b99cd469f285f4c8f0b8f7756346fa9e",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "v4/manager_research/research_attention.py",
+      "before_sha256": "3060bab6d15ec616907c22b44a10628356000d9c2fd363f3310a727305e72b4f",
+      "after_sha256": "e2d043524e48498c55d21a111a3ce969e63f97f17e150e44dc08ba5f9a9dea82",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "before_sha256": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0",
+      "after_sha256": "f019bd06718896c01ea720317674072c34d2e6be3007dac96f55d6bae24bb0b6",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "bc0a4bffd177307479f94b93d871d6b18180938195335eea4d3e11a9e85e1086",
+      "after_sha256": "23e7bfd1d1a011f8892df144cd13c696f0b55e0b00588a0de878f04d2dd95004",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "before_sha256": "60839e20df9b61be04629481752ab3072a1088d229c87980e83059b590548e50",
+      "after_sha256": "edde167df83df938d5c2f5f4facb01fc8f2e212a28ef147dfd3a52c834f98d82",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "before_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "after_sha256": "72dce6c3db358eb3d7d058443ec720ebd88ea4bc63f4873cd2c3e90caf253bd6",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "before_sha256": "d2ad875f639e7018e06498fbafb8c379808576425dedf6cfbed590155309bdca",
+      "after_sha256": "2447e40c2a4b92e08d58650afe94a5be26f0c46d07fc6aa654a201422e9594a4",
+      "matches_frozen_runtime_or_test": false,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    },
+    {
+      "path": "v4/manager_research/workspace_identity.py",
+      "before_sha256": "e89a7980549df64a7c28a43d44afee6d1db5896b0b5a92e375b29a8f5c1851d9",
+      "after_sha256": "3107f29b94b79ee3e889fc4b39ee0377742df773ed5643890a4e2d0dc0fda0c0",
+      "matches_frozen_runtime_or_test": true,
+      "status": "IMPLEMENTED; canonical integrated behavior CANNOT_CONFIRM"
+    }
+  ],
+  "gaps": [
+    "workspace_plan_autorun.py owner_plan_readback import missing; outside allowlist",
+    "attention mapping cards regression origin CANNOT_CONFIRM"
+  ],
+  "independent_runtime_candidate_status": "PASS_FOR_LOCAL_PUBLICATION; deployed separately"
+}

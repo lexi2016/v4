@@ -1,0 +1,168 @@
+{
+  "date": "20261009",
+  "announcement_date": "20261008",
+  "historical_plan": {
+    "status": "SOURCE_FAILED",
+    "reason": "HISTORY_SOURCE_VALIDATION_FAILED",
+    "consumed": false
+  },
+  "dynamic_plan": {
+    "status": "STALE_INPUTS_CHANGED",
+    "run_id": "acf0f1ed3e824237a562ebbf7b656b8d",
+    "consumed": false
+  },
+  "dynamic_changed_components": [
+    "announcement_inputs",
+    "announcement_reviewed_analysis",
+    "gated_projection",
+    "projection.market_screen",
+    "projection.plan_context",
+    "research_attention.projection",
+    "us_relation_evidence"
+  ],
+  "channels": [
+    {
+      "channel": "ANNOUNCEMENT",
+      "status": "PARTIAL",
+      "candidate_count": 55,
+      "pending_count": 73,
+      "run_id": "88324abcfd8d9ac887cbea3ef7870620",
+      "product_sha256": "4f9217564ab3110125b1f3808a4c344d417c2eee9008fe504c0a4205eca6f6b7",
+      "input_identity": "2836c5f0a48a7f10a22b5ea4c66af57330663697d193cb1d50cec507f45e046b",
+      "execution_kind": "OWNER_IMPORT_TIMING_NOT_CLASSIFIED",
+      "formal_selection_input": null,
+      "attempt_status": null,
+      "gaps": [
+        "ANNOUNCEMENT_SELECTION_NOT_ASSESSED"
+      ],
+      "gap_count": 1,
+      "selected_rows": 55,
+      "row_count": 87,
+      "examples": [
+        {
+          "symbol": "HK.00065",
+          "name": "弘海高新资源"
+        },
+        {
+          "symbol": "HK.00119",
+          "name": "保利置业集团"
+        },
+        {
+          "symbol": "HK.00177",
+          "name": "江苏宁沪高速公路"
+        },
+        {
+          "symbol": "HK.00182",
+          "name": "协合新能源"
+        },
+        {
+          "symbol": "HK.00189",
+          "name": "东岳集团"
+        },
+        {
+          "symbol": "HK.00232",
+          "name": "大陆航空科技控股"
+        },
+        {
+          "symbol": "HK.00286",
+          "name": "爱帝宫"
+        },
+        {
+          "symbol": "HK.00300",
+          "name": "美的集团"
+        }
+      ]
+    },
+    {
+      "channel": "HK_CONNECT",
+      "status": "CANNOT_CONFIRM",
+      "candidate_count": null,
+      "pending_count": null,
+      "run_id": null,
+      "product_sha256": null,
+      "input_identity": null,
+      "execution_kind": "READ_ONLY_EXISTING_OWNER_REPLAY",
+      "formal_selection_input": null,
+      "attempt_status": null,
+      "gaps": [
+        "HK_ORIGINAL_STAGE_DATE_OR_MARKET_MISMATCH"
+      ],
+      "gap_count": 1,
+      "selected_rows": 0,
+      "row_count": 0,
+      "examples": []
+    },
+    {
+      "channel": "OVERSOLD",
+      "status": "PARTIAL",
+      "candidate_count": 214,
+      "pending_count": 34,
+      "run_id": null,
+      "product_sha256": null,
+      "input_identity": "25e24dd8430757310ba524a8dfc680a5a8ecd05e91dd6e57701f3e201c1a5f8d",
+      "execution_kind": "READ_ONLY_EXISTING_OWNER_REPLAY",
+      "formal_selection_input": false,
+      "attempt_status": "NOT_VERIFIED",
+      "gaps": [
+        "REBOUND_HISTORY_VOLUME_UNIT_NOT_PROVEN",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00100",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00187",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.00719",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.01065",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE:HK.01108"
+      ],
+      "gap_count": 37,
+      "selected_rows": 214,
+      "row_count": 500,
+      "examples": [
+        {
+          "symbol": "HK.00175",
+          "name": "吉利汽车"
+        },
+        {
+          "symbol": "HK.00200",
+          "name": "新濠国际发展"
+        },
+        {
+          "symbol": "HK.00291",
+          "name": "华润啤酒"
+        },
+        {
+          "symbol": "HK.00340",
+          "name": "潼关黄金"
+        },
+        {
+          "symbol": "HK.00425",
+          "name": "敏实集团"
+        },
+        {
+          "symbol": "HK.00564",
+          "name": "中创智领"
+        },
+        {
+          "symbol": "HK.00568",
+          "name": "山东墨龙"
+        },
+        {
+          "symbol": "HK.00666",
+          "name": "瑞浦兰钧"
+        }
+      ]
+    }
+  ],
+  "announcement_owner_receipt": "VERIFIED",
+  "announcement_cutoff": "NOT_REQUESTED",
+  "formal_stock_count": 0,
+  "focus_count": 0,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "api_sha256": {
+    "historical": "3b0e20f1d353e1bcac98742f7dca5f593acc0d91a915dc225d42bb8e1a004706",
+    "dynamic": "1e73a6b3bceeb032171f212f905e879490035b77563087fc26d8c3c733da2e1c",
+    "announcement": "03c5322228ca64130efc2cbe3e84089720a08c2f29b85ff69623fe7ff3f98dfd"
+  }
+}

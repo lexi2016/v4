@@ -1,0 +1,43 @@
+
+ RUN  v4.1.10 /Users/lexi/Desktop/学习/agents调试/V4_THREE_LANE_LOCAL_INTEGRATION_20261011_R1/review/ui-test-stage
+
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > admits the actual Python projection for partial synthetic inputs 2ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > admits the actual Python projection for empty synthetic inputs 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > admits the actual Python projection for missing synthetic inputs 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > admits the actual Python projection for stage synthetic inputs 1ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > retains all 61 native Stage rows and unknown availability after DOM reload 30ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a changed Stage selection_receipt_sha256 binding 1ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a changed Stage run_id binding 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a changed Stage product_sha256 binding 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a Stage projection changed by truncate against its complete original source 1ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a Stage projection changed by empty-zero against its complete original source 1ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a Stage projection changed by empty-unknown against its complete original source 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a Stage projection changed by reverse against its complete original source 1ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a Stage projection changed by name against its complete original source 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a Stage projection changed by reason against its complete original source 3ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a Stage projection changed by lane-evidence against its complete original source 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a Stage projection changed by source-ref against its complete original source 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects a Stage projection changed by membership against its complete original source 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > admits the full ordered member subset and preserves unknown when that subset is empty 1ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects original Stage provenance with historical before admitting daily rows 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects original Stage provenance with backfill-run before admitting daily rows 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects original Stage provenance with backfill-mode before admitting daily rows 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects original Stage provenance with selection_mode=BACKFILL before admitting daily rows 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects original Stage provenance with recovery_mode=HISTORICAL_BACKFILL before admitting daily rows 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects original Stage provenance with HISTORICAL_BACKFILL before admitting daily rows 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects original Stage provenance with substitute_kind=HK_0930_0935_FOR_HK_0925 before admitting daily rows 0ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > keeps a valid zero in its own lane while other lanes remain unknown 1ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > forwards only explicit publication/selection aliases, retaining backend calendar defaults 1ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > validates POST response against the requested publication date 2ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects an unbound GET response when an explicit source date was requested 1ms
+ ✓ src/manager-selection/__tests__/threeLaneDaily20261011.spec.ts > original three-lane readback contracts > rejects an unbound POST response when an explicit source date was requested 0ms
+ ✓ src/manager-selection/__tests__/threeLanePanel20261011.spec.ts > three-lane source dates and explicit review survive reload > leaves calendar default publication with the backend 38ms
+ ✓ src/manager-selection/__tests__/threeLanePanel20261011.spec.ts > three-lane source dates and explicit review survive reload > normalizes explicit aliases and restores dynamic view from the URL 12ms
+ ✓ src/manager-selection/__tests__/threeLanePanel20261011.spec.ts > three-lane source dates and explicit review survive reload > persists view changes and forwards the same bindings to explicit owner refresh 11ms
+ ✓ src/manager-selection/__tests__/threeLanePanel20261011.spec.ts > three-lane source dates and explicit review survive reload > re-reads all channels on publication change and discards the late old response 7ms
+
+ Test Files  2 passed (2)
+      Tests  34 passed (34)
+   Start at  21:29:10
+   Duration  713ms (transform 128ms, setup 0ms, import 274ms, tests 118ms, environment 750ms)
+
