@@ -1,0 +1,39 @@
+{
+  "schema_version": "v4.issue35.failclosed_patch.v1",
+  "repository": "lexi2016/v4",
+  "origin_issue": "https://github.com/lexi2016/v4/issues/35",
+  "fixed_task_commit": "da35e5a331e914d8dd1cf2d8e98954612885d1c5",
+  "parent_handoff_branch": "codex/issue35-autocontinue-fix-20261011",
+  "parent_handoff_commit": "37de6a9970eb9be05a79c5be0e2e5a39bddd6426",
+  "patch": "patches/dispatch_after_issue35_failure_recovery.patch",
+  "patch_sha256": "bb4d50be4211d625d5e280014daad003847a3d284c8b623059918aec6e128049",
+  "patch_bytes": 2177,
+  "target": "v4/manager_research/plan_owner_dispatch.py",
+  "applicable_to_all_three_parent_modes_after_base_patches": true,
+  "before_sha256": "8afc3439070f8ea71b112a51c154775d7eb948c60082ca032f05d9771a34b284",
+  "after_sha256": "ec965df18e153297abdafaace075e6b0e03a7f0085552470dfe0c78007a64b8d",
+  "applies_to_active_live_root": false,
+  "modifies_owner_selection_formula": false,
+  "modifies_ui": false,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "test_scope": "isolated synthetic actual-function AST runner, no production package imports",
+  "tests": {
+    "pre_fix_controlled_read_failure": "ERROR ValueError SYNTHETIC_OWNER_READ_FAILED",
+    "post_fix": "9/9 PASS",
+    "log_sha256": "fe055c1613ae6d58d84264d962cf230cb14ac5afed8b09031da39b7dc1e4c250",
+    "full_suite_sha256": "5c095220f0101098b8b88726b2746c5e1990710d8fddea29971f78dacb1e0353",
+    "full_suite_bytes": 15718,
+    "git_apply_check_and_apply": "PASS",
+    "syntax_py_compile": "PASS",
+    "full_Mac_Python_environment": "NOT_RUN",
+    "Mac_independent_reviewer": "NOT_RUN",
+    "API_8873_UI": "NOT_RUN",
+    "original_natural_scheduler": "NOT_RUN",
+    "three_20261012_real_selection_lists": "CANNOT_CONFIRM"
+  }
+}
