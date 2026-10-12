@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import ResearchView from "./ResearchView.vue";
-import { feedFetchTimeLabel } from "../composables/useResearchLane";
+import { feedFetchTimeLabel, feedPublishedTimeLabel } from "../composables/useResearchLane";
 
 const lane = (researchDate = "20260804") => ({
   schema_version: "v3_5.research_lane.v1",
@@ -134,7 +134,7 @@ describe("ResearchView (research lane)", () => {
     render(ResearchView, { props: { archiveDate: "20260804" } });
 
     const statusStrip = await screen.findByRole("region", { name: "研报状态条" });
-    expect(within(statusStrip).getAllByText("未评估")).toHaveLength(2);
+    expect(within(statusStrip).getAllByText("未评估")).toHaveLength(3);
     expect(within(statusStrip).queryByText("0/0")).toBeNull();
     expect(statusStrip.textContent).not.toContain("重点消息0");
   });
@@ -459,5 +459,145 @@ describe("unverified ZSXQ capture time labels", () => {
     expect(label).toContain("原文发布时间");
     expect(label).toContain("实际抓取时间 CANNOT_CONFIRM");
     expect(label).not.toContain("2026-08-06T00:30:00");
+  });
+
+  it("keeps explicit capture and publication timestamps in separate labels", () => {
+    const row = {
+      fetched_at: "2026-08-04T09:31:00+08:00",
+      published_at: "2026-08-04T09:20:00+08:00",
+    };
+    const capture = feedFetchTimeLabel(row);
+    const publication = feedPublishedTimeLabel(row);
+
+    expect(capture).toContain("2026-08-04 09:31:00+08:00");
+    expect(capture).not.toContain("09:20:00");
+    expect(publication).toContain("2026-08-04 09:20:00+08:00");
+    expect(publication).not.toContain("09:31:00");
+  });
+});
+
+const statusCellValue = (statusStrip: HTMLElement, label: string): string | undefined => {
+  const cell = Array.from(statusStrip.querySelectorAll<HTMLElement>(".hourly-status-cell"))
+    .find((candidate) => candidate.querySelector(".hourly-label")?.textContent?.trim() === label);
+  return cell?.querySelector("strong")?.textContent?.trim();
+};
+
+describe("reactive status and peripheral display contracts", () => {
+  afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+
+  it("keeps missing and invalid new, finance, and AI counts unassessed without substituting totals", async () => {
+    const payload = {
+      ...lane(),
+      research_quality_summary: { raw_item_count: 70, research_item_count: 60, new_item_count: 1.5 },
+      external_finance: { item_count: 11, overview: [] },
+      ai_news: { raw_item_count: 12, items: [] },
+    };
+    stubResearchFetch(payload);
+
+    render(ResearchView, { props: { archiveDate: "20260804" } });
+    const statusStrip = await screen.findByRole("region", { name: "研报状态条" });
+
+    expect(statusCellValue(statusStrip, "本小时新增")).toBe("未评估");
+    expect(statusCellValue(statusStrip, "外部财经")).toBe("未评估");
+    expect(statusCellValue(statusStrip, "AI新闻")).toBe("未评估");
+  });
+
+  it("renders true zero counts and updates the presentation when the selected payload changes", async () => {
+    const first = {
+      ...lane(), research_quality_summary: { new_item_count: 1 },
+      external_finance: { raw_item_count: 1 }, ai_news: { item_count: 1 },
+    };
+    const zero = {
+      ...lane("20260805"), research_quality_summary: { new_item_count: 0 },
+      external_finance: { raw_item_count: 0 }, ai_news: { item_count: 0 },
+    };
+    const fetchMock = vi.fn(async (url: string) => response(
+      url.includes("/api/v3/research/wechat/materials") ? wechatListing() : url.includes("research_date=20260805") ? zero : first,
+    ));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { rerender } = render(ResearchView, { props: { archiveDate: "20260804" } });
+    let statusStrip = await screen.findByRole("region", { name: "研报状态条" });
+    expect(statusCellValue(statusStrip, "本小时新增")).toBe("1");
+    expect(statusCellValue(statusStrip, "外部财经")).toBe("1");
+    expect(statusCellValue(statusStrip, "AI新闻")).toBe("1");
+
+    await rerender({ archiveDate: "20260805" });
+    await waitFor(() => {
+      statusStrip = screen.getByRole("region", { name: "研报状态条" });
+      expect(statusCellValue(statusStrip, "本小时新增")).toBe("0");
+      expect(statusCellValue(statusStrip, "外部财经")).toBe("0");
+      expect(statusCellValue(statusStrip, "AI新闻")).toBe("0");
+    });
+  });
+
+  it("labels LIVE_PERIPHERAL_ONLY and keeps its peripheral cards readable", async () => {
+    const peripheral = {
+      ...lane(),
+      status: "LIVE_PERIPHERAL_ONLY",
+      research_quality_summary: {},
+      morning_news: {
+        articles: [{ title: "外围资料仍可读", fetched_at: "2026-08-04T09:30:00+08:00", published_at: "2026-08-04T09:20:00+08:00" }],
+      },
+    };
+    stubResearchFetch(peripheral);
+
+    const { container } = render(ResearchView, { props: { archiveDate: "20260804" } });
+    expect(await screen.findByText("小时研报未生成，外围资料可查看")).toBeTruthy();
+    expect((await screen.findAllByText("外围资料仍可读")).length).toBeGreaterThan(0);
+    expect(container.querySelector('[aria-label="研报决策台三栏"]')).toBeTruthy();
+  });
+
+  it("keeps timezone-less and unknown timeline times literal without adding a default", async () => {
+    const payload = {
+      ...lane(),
+      stock_research_timeline: [
+        { evidence_id: "naive", stock_code: "600001", stock_name: "无时区", source_title: "naive event", event_time: "2026-08-04T09:25:00" },
+        { evidence_id: "unknown", stock_code: "600002", stock_name: "未知时间", source_title: "unknown event" },
+      ],
+    };
+    stubResearchFetch(payload);
+
+    const { container } = render(ResearchView, { props: { archiveDate: "20260804" } });
+    await screen.findByText("无时区");
+    const rows = Array.from(container.querySelectorAll(".hourly-context-pane .hourly-quality-row")).slice(0, 2);
+    expect(rows.map((row) => row.querySelector(".hourly-label")?.textContent?.trim() ?? "")).toEqual(["09:25", ""]);
+    expect(container.querySelector(".hourly-context-pane")?.textContent).not.toContain("00:00");
+  });
+
+  it("shows a lane read error without substituting another date", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("network unavailable"); }));
+    render(ResearchView, { props: { archiveDate: "20260804" } });
+
+    expect((await screen.findByRole("alert")).textContent).toContain("network unavailable");
+    expect(screen.queryByRole("region", { name: "研报决策台三栏" })).toBeNull();
+  });
+
+  it("ignores a stale exact-date response after a newer request completes", async () => {
+    let resolveFirst: ((value: ReturnType<typeof response>) => void) | undefined;
+    let resolveSecond: ((value: ReturnType<typeof response>) => void) | undefined;
+    let laneRequest = 0;
+    const fetchMock = vi.fn((url: string) => {
+      if (url.includes("/api/v3/research/wechat/materials")) return Promise.resolve(response(wechatListing()));
+      laneRequest += 1;
+      return new Promise<ReturnType<typeof response>>((resolve) => {
+        if (laneRequest === 1) resolveFirst = resolve;
+        else resolveSecond = resolve;
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { rerender } = render(ResearchView, { props: { archiveDate: "20260804" } });
+    await waitFor(() => expect(laneRequest).toBe(1));
+    await rerender({ archiveDate: "20260805" });
+    await waitFor(() => expect(laneRequest).toBe(2));
+
+    resolveSecond?.(response({ ...lane("20260805"), research_quality_summary: { new_item_count: 2 } }));
+    const statusStrip = await screen.findByRole("region", { name: "研报状态条" });
+    await waitFor(() => expect(statusCellValue(statusStrip, "本小时新增")).toBe("2"));
+
+    resolveFirst?.(response({ ...lane("20260804"), research_quality_summary: { new_item_count: 1 } }));
+    await waitFor(() => expect(screen.getByTestId("research-date-identity").textContent).toContain("20260805"));
+    expect(statusCellValue(screen.getByRole("region", { name: "研报状态条" }), "本小时新增")).toBe("2");
   });
 });
