@@ -1,6 +1,112 @@
 /** Read-only, date-bound projection of reviewed HK announcement analysis. */
 export type AnnouncementAnalysisObject = Record<string, unknown>;
 
+export type AnnouncementDisposition =
+  | 'SELECTED_EVENT' | 'SELECTED_PERFORMANCE' | 'CONDITIONAL_WATCH' | 'NOT_SELECTED' | 'NOT_ASSESSED';
+export type AnnouncementDirection = 'POSITIVE' | 'NEGATIVE' | 'MIXED' | 'NEUTRAL' | 'UNKNOWN';
+export type AnnouncementEvidenceSufficiency = 'VERIFIED_EXISTING_FACTS' | 'INSUFFICIENT_EXISTING_FACTS';
+
+export interface AnnouncementWindowSourceIdentity {
+  kind: 'art_code' | 'source_variant_id';
+  id: string;
+}
+
+export interface AnnouncementWindowSourceRef {
+  url: string;
+  blob_sha256: string | null;
+  body_sha256: string;
+}
+
+export interface AnnouncementWindowCandidate {
+  publication_date: string;
+  source_identity: AnnouncementWindowSourceIdentity;
+  source: string | null;
+  title: string | null;
+  issuer_codes: Array<string | { code: string; name?: string }>;
+  classification: string | null;
+  factual_summary: string | null;
+  why_useful: string | null;
+  event_status_assessment: unknown;
+  analysis_kind: string | null;
+  body_status: string | null;
+  semantic_record_sha256: string;
+  source_record_sha256: string;
+  body_text_sha256: string | null;
+  publication_time: string | null;
+  publication_time_basis: string;
+  disposition: AnnouncementDisposition;
+  selection_basis: string | null;
+  direction: AnnouncementDirection;
+  evidence_sufficiency: AnnouncementEvidenceSufficiency;
+  reason: string;
+  risk_notes: string[];
+  supporting_exact_quote: string | null;
+  source_refs: AnnouncementWindowSourceRef[];
+  retrospective_status: 'SOURCE_PUBLISHED_IN_WINDOW';
+  source_record_validation: 'PASS';
+}
+
+export interface AnnouncementWindowCoverage {
+  status: 'COMPLETE' | 'PARTIAL';
+  expected_dates: string[];
+  covered_dates: string[];
+  missing_dates: string[];
+  missing_date_count: number;
+}
+
+export interface AnnouncementPreopenWindowReadback {
+  status: 'VERIFIED' | 'CANNOT_CONFIRM';
+  window_start: string;
+  as_of: string;
+  reason?: 'REGISTERED_WINDOW_NOT_VERIFIED' | 'REGISTERED_WINDOW_BINDING_INVALID'
+    | 'REQUESTED_WINDOW_DOES_NOT_MATCH_REGISTERED_WINDOW';
+  registered_fingerprint_sha256?: string;
+  input_fingerprint_sha256?: string;
+  coverage?: AnnouncementWindowCoverage;
+  retrospective_research?: {
+    status: 'VERIFIED' | 'PARTIAL';
+    candidate_count: number;
+    positive_candidate_count: number;
+    candidates: AnnouncementWindowCandidate[];
+    pending_count: number;
+    pending_queue: Array<{
+      publication_date: string;
+      source_identity: AnnouncementWindowSourceIdentity;
+      reason_codes: string[];
+    }>;
+  };
+  actual_preopen?: {
+    status: 'VERIFIED' | 'CANNOT_CONFIRM';
+    positive_candidate_count: number | null;
+    positive_candidates: Array<{
+      publication_date: string;
+      source_identity: AnnouncementWindowSourceIdentity;
+      source_record_sha256: string;
+      status: 'AVAILABLE_AT_AS_OF';
+      reason_codes: string[];
+    }>;
+    candidate_evaluations: Array<{
+      publication_date: string;
+      source_identity: AnnouncementWindowSourceIdentity;
+      source_record_sha256: string;
+      status: 'AVAILABLE_AT_AS_OF' | 'CANNOT_CONFIRM';
+      reason_codes: string[];
+    }>;
+    gaps: string[];
+  };
+}
+
+export interface AnnouncementPreopenWindowRequest {
+  windowStart: string;
+  asOf: string;
+}
+
+export const ANNOUNCEMENT_PREOPEN_WINDOW = Object.freeze({
+  targetDate: '20261012',
+  windowStart: '2026-10-09T00:00:00+08:00',
+  asOf: '2026-10-12T09:20:00+08:00',
+});
+
 export interface ManagerAnnouncementAnalysis extends AnnouncementAnalysisObject {
   schema_version: 'v4.manager_research.eastmoney_hk_announcement_analysis_read.v1';
   target_trade_date: string;
@@ -8,6 +114,7 @@ export interface ManagerAnnouncementAnalysis extends AnnouncementAnalysisObject 
   date_selection_basis: 'EXPLICIT' | 'PREVIOUS_HK_TRADING_SESSION' | 'CURRENT_TARGET_PREVIOUS_CALENDAR_DAY';
   source_catalog: AnnouncementAnalysisObject;
   analysis: AnnouncementAnalysisObject;
+  preopen_window_readback?: AnnouncementPreopenWindowReadback;
 }
 
 const noSelectionAssessment=()=>({
@@ -26,7 +133,11 @@ const validDate=(value:string)=>{
   const date=new Date(Date.UTC(year,month-1,day));
   return date.getUTCFullYear()===year&&date.getUTCMonth()+1===month&&date.getUTCDate()===day;
 };
+const validIsoDate=(value:unknown)=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&
+  validDate(value.replaceAll('-',''));
 const validSha=(value:unknown)=>typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
+const windowSourceHosts=new Set(['np-cnotice-stock.eastmoney.com','np-anotice-stock.eastmoney.com',
+  'pdf.dfcfw.com','www1.hkexnews.hk','www.hkexnews.hk','sc.hkexnews.hk']);
 const expectedInputs:Record<string,{sha256:string;row_count:number}>={
   semantic_catalog:{sha256:'432a37e3617a33da32e9205ac05e3e39eab2eb75aafd20f6fb4647914d3340d7',row_count:234},
   body_corpus:{sha256:'fec1257e1a0f8ddc30825591dd15e092b94664e7c6d4448d4c33a82ea2abeea4',row_count:234},
@@ -55,6 +166,110 @@ function trustedUrl(value:unknown,hosts:Set<string>):boolean{
   if(typeof value!=='string')return false;
   try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password&&hosts.has(url.hostname);}
   catch{return false;}
+}
+const safeCount=(value:unknown):value is number=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0;
+const nullableText=(value:unknown):value is string|null=>value===null||typeof value==='string';
+function validWindowIdentity(value:unknown):value is AnnouncementWindowSourceIdentity{
+  if(!object(value)||typeof value.kind!=='string'||typeof value.id!=='string'||!value.id)return false;
+  return value.kind==='art_code'?/^[A-Za-z0-9_.:-]+$/.test(value.id):
+    value.kind==='source_variant_id'&&/^HKEX:\d{5,20}$/.test(value.id);
+}
+function validWindowSourceRef(value:unknown):value is AnnouncementWindowSourceRef{
+  if(!object(value)||!trustedUrl(value.url,windowSourceHosts)||!validSha(value.body_sha256)||
+      !(value.blob_sha256===null||validSha(value.blob_sha256)))return false;
+  return !('path' in value)&&!('local_path' in value)&&!('uri' in value);
+}
+function validWindowCandidate(value:unknown):value is AnnouncementWindowCandidate{
+  if(!object(value)||!validIsoDate(value.publication_date)||
+      !validWindowIdentity(value.source_identity)||!nullableText(value.source)||!nullableText(value.title)||
+      !Array.isArray(value.issuer_codes)||value.issuer_codes.some(item=>typeof item==='string'
+        ?!item:!object(item)||typeof item.code!=='string'||!item.code||
+          !(item.name===undefined||typeof item.name==='string'))||
+      !nullableText(value.classification)||!nullableText(value.factual_summary)||!nullableText(value.why_useful)||
+      !nullableText(value.analysis_kind)||!nullableText(value.body_status)||
+      !validSha(value.semantic_record_sha256)||!validSha(value.source_record_sha256)||
+      !(value.body_text_sha256===null||validSha(value.body_text_sha256))||
+      !(value.publication_time===null||typeof value.publication_time==='string')||
+      typeof value.publication_time_basis!=='string'||!value.publication_time_basis||
+      !['SELECTED_EVENT','SELECTED_PERFORMANCE','CONDITIONAL_WATCH','NOT_SELECTED','NOT_ASSESSED'].includes(String(value.disposition))||
+      !nullableText(value.selection_basis)||!['POSITIVE','NEGATIVE','MIXED','NEUTRAL','UNKNOWN'].includes(String(value.direction))||
+      !['VERIFIED_EXISTING_FACTS','INSUFFICIENT_EXISTING_FACTS'].includes(String(value.evidence_sufficiency))||
+      typeof value.reason!=='string'||!value.reason.trim()||!Array.isArray(value.risk_notes)||
+      value.risk_notes.some(note=>typeof note!=='string'||!note.trim())||
+      !nullableText(value.supporting_exact_quote)||!Array.isArray(value.source_refs)||
+      value.source_refs.some(ref=>!validWindowSourceRef(ref))||
+      value.retrospective_status!=='SOURCE_PUBLISHED_IN_WINDOW'||value.source_record_validation!=='PASS')return false;
+  return true;
+}
+function validWindowCoverage(value:unknown):value is AnnouncementWindowCoverage{
+  if(!object(value)||!['COMPLETE','PARTIAL'].includes(String(value.status))||
+      !Array.isArray(value.expected_dates)||!Array.isArray(value.covered_dates)||!Array.isArray(value.missing_dates)||
+      !value.expected_dates.every(day=>typeof day==='string'&&/^\d{8}$/.test(day)&&validDate(day))||
+      !value.covered_dates.every(day=>typeof day==='string'&&/^\d{8}$/.test(day)&&validDate(day))||
+      !value.missing_dates.every(day=>typeof day==='string'&&/^\d{8}$/.test(day)&&validDate(day))||
+      !safeCount(value.missing_date_count))return false;
+  const expected=new Set(value.expected_dates),covered=new Set(value.covered_dates),missing=new Set(value.missing_dates);
+  return expected.size===value.expected_dates.length&&covered.size===value.covered_dates.length&&
+    missing.size===value.missing_dates.length&&value.missing_date_count===missing.size&&
+    [...covered].every(day=>expected.has(day))&&[...missing].every(day=>expected.has(day))&&
+    [...covered].every(day=>!missing.has(day))&&covered.size+missing.size===expected.size&&
+    value.status===(missing.size?'PARTIAL':'COMPLETE');
+}
+const expectedPreopenPositive=(row:AnnouncementWindowCandidate)=>
+  ['SELECTED_EVENT','SELECTED_PERFORMANCE'].includes(row.disposition)&&row.direction==='POSITIVE'&&
+  row.evidence_sufficiency==='VERIFIED_EXISTING_FACTS';
+function validPreopenWindowReadback(raw:unknown,targetDate:string,request:AnnouncementPreopenWindowRequest):boolean{
+  if(!object(raw)||!object(raw.analysis)||!object(raw.preopen_window_readback))return false;
+  const readback=raw.preopen_window_readback;
+  if(readback.window_start!==request.windowStart||readback.as_of!==request.asOf||
+      !['VERIFIED','CANNOT_CONFIRM'].includes(String(readback.status)))return false;
+  if(readback.status==='CANNOT_CONFIRM'){
+    return ['REGISTERED_WINDOW_NOT_VERIFIED','REGISTERED_WINDOW_BINDING_INVALID',
+      'REQUESTED_WINDOW_DOES_NOT_MATCH_REGISTERED_WINDOW'].includes(String(readback.reason))&&
+      (readback.registered_fingerprint_sha256===undefined||validSha(readback.registered_fingerprint_sha256))&&
+      readback.coverage===undefined&&readback.retrospective_research===undefined&&readback.actual_preopen===undefined;
+  }
+  const manifest=object(raw.analysis.source_manifest)?raw.analysis.source_manifest:{};
+  const artifact=object(manifest.preopen_window)?manifest.preopen_window:{};
+  const binding=object(artifact.registered_binding)?artifact.registered_binding:{};
+  const coverage=readback.coverage,retrospective=readback.retrospective_research,actual=readback.actual_preopen;
+  if(raw.analysis.status!=='VERIFIED'||artifact.schema_version!=='v4.manager_research.announcement_preopen_window.v1'||
+      artifact.target_trade_date!==targetDate||artifact.window_start!==request.windowStart||artifact.as_of!==request.asOf||
+      !validSha(artifact.input_fingerprint_sha256)||!validSha(artifact.registered_fingerprint_sha256)||
+      readback.input_fingerprint_sha256!==artifact.input_fingerprint_sha256||
+      readback.registered_fingerprint_sha256!==artifact.registered_fingerprint_sha256||
+      binding.target_trade_date!==targetDate||!validSha(binding.source_semantic_catalog_sha256)||
+      !validSha(binding.source_body_corpus_file_sha256)||!validSha(binding.draft_analysis_product_sha256)||
+      !validSha(binding.draft_source_manifest_sha256)||!validWindowCoverage(coverage)||
+      JSON.stringify(coverage)!==JSON.stringify(artifact.coverage)||!object(retrospective)||
+      !['VERIFIED','PARTIAL'].includes(String(retrospective.status))||
+      !safeCount(retrospective.candidate_count)||!safeCount(retrospective.positive_candidate_count)||
+      !Array.isArray(retrospective.candidates)||retrospective.candidates.some(row=>!validWindowCandidate(row))||
+      retrospective.candidate_count!==retrospective.candidates.length||
+      retrospective.positive_candidate_count!==retrospective.candidates.filter(expectedPreopenPositive).length||
+      !safeCount(retrospective.pending_count)||!Array.isArray(retrospective.pending_queue)||
+      retrospective.pending_count!==retrospective.pending_queue.length||
+      retrospective.pending_queue.some(row=>!object(row)||!validIsoDate(row.publication_date)||
+        !validWindowIdentity(row.source_identity)||!Array.isArray(row.reason_codes)||
+        row.reason_codes.some(code=>typeof code!=='string'||!code))||
+      JSON.stringify(retrospective)!==JSON.stringify(artifact.retrospective_research)||!object(actual)||
+      !['VERIFIED','CANNOT_CONFIRM'].includes(String(actual.status))||
+      !(actual.positive_candidate_count===null||safeCount(actual.positive_candidate_count))||
+      !Array.isArray(actual.positive_candidates)||!Array.isArray(actual.candidate_evaluations)||
+      !Array.isArray(actual.gaps)||actual.gaps.some(gap=>typeof gap!=='string'||!gap)||
+      JSON.stringify(actual)!==JSON.stringify(artifact.actual_preopen))return false;
+  const validEvaluation=(row:unknown)=>object(row)&&validIsoDate(row.publication_date)&&
+    validWindowIdentity(row.source_identity)&&validSha(row.source_record_sha256)&&
+    ['AVAILABLE_AT_AS_OF','CANNOT_CONFIRM'].includes(String(row.status))&&Array.isArray(row.reason_codes)&&
+    row.reason_codes.every(code=>typeof code==='string'&&Boolean(code));
+  if(actual.candidate_evaluations.some((row:unknown)=>!validEvaluation(row))||
+      actual.positive_candidates.some((row:unknown)=>!validEvaluation(row)||
+        !object(row)||row.status!=='AVAILABLE_AT_AS_OF'))return false;
+  return actual.status==='CANNOT_CONFIRM'
+    ?actual.positive_candidate_count===null
+    :safeCount(actual.positive_candidate_count)&&actual.positive_candidate_count===actual.positive_candidates.length&&
+      actual.candidate_evaluations.length===actual.positive_candidates.length&&
+      actual.candidate_evaluations.every((row:unknown)=>object(row)&&row.status==='AVAILABLE_AT_AS_OF');
 }
 function recordIdentity(raw:unknown):string|null{
   if(!object(raw))return null;
@@ -98,7 +313,6 @@ function sourceCodeStats(records:unknown[]):{associations:number;codes:Set<strin
             !trustedUrl(page.source_ref.url,hkexHosts))))return null;
       if(raw.analysis_kind!==hkexPdfBody&&
           (raw.analysis_kind!=='TEXT_INSUFFICIENT_UNASSESSED'||typeof raw.body_status!=='string'||!raw.body_status||
-           raw.body_status===hkexPdfBody||
            raw.selection_status!=='NOT_ASSESSED'))return null;
     }
     associations+=rowCodes.length;rowCodes.forEach(code=>codes.add(code));
@@ -249,7 +463,8 @@ function validStockSelection(value:unknown,analysis:AnnouncementAnalysisObject,t
     notAssessedCount===value.not_assessed_stock_count;
 }
 
-function validate(raw:unknown,targetDate:string,requestedPublicationDate?:string):ManagerAnnouncementAnalysis{
+function validate(raw:unknown,targetDate:string,requestedPublicationDate?:string,
+                  windowRequest?:AnnouncementPreopenWindowRequest):ManagerAnnouncementAnalysis{
   if(!object(raw)||raw.schema_version!=='v4.manager_research.eastmoney_hk_announcement_analysis_read.v1'||
       raw.target_trade_date!==targetDate||typeof raw.publication_date!=='string'||
       !/^\d{4}-\d{2}-\d{2}$/.test(raw.publication_date)||
@@ -424,23 +639,37 @@ function validate(raw:unknown,targetDate:string,requestedPublicationDate?:string
       throw new Error('ANNOUNCEMENT_ANALYSIS_STOCK_SELECTION_INVALID');
     analysis.stock_selection=selection;
   }
+  if(windowRequest&&!validPreopenWindowReadback(raw,targetDate,windowRequest))
+    throw new Error('ANNOUNCEMENT_ANALYSIS_PREOPEN_WINDOW_READBACK_INVALID');
+  if(!windowRequest&&raw.preopen_window_readback!==undefined)
+    throw new Error('ANNOUNCEMENT_ANALYSIS_UNREQUESTED_PREOPEN_WINDOW_READBACK');
   return raw as ManagerAnnouncementAnalysis;
 }
 
 /** Omit publicationDate to let the existing HK market calendar choose the previous session. */
 export async function requestManagerAnnouncementAnalysis(
   targetDate:string,publicationDate:string|undefined,signal:AbortSignal,
+  windowRequest?:AnnouncementPreopenWindowRequest,
 ):Promise<ManagerAnnouncementAnalysis>{
   if(!validDate(targetDate))throw new Error('ANNOUNCEMENT_ANALYSIS_TARGET_DATE_INVALID');
   if(publicationDate!==undefined&&!validDate(publicationDate))
     throw new Error('ANNOUNCEMENT_ANALYSIS_PUBLICATION_DATE_INVALID');
+  if(windowRequest&&(targetDate!==ANNOUNCEMENT_PREOPEN_WINDOW.targetDate||
+      publicationDate!==ANNOUNCEMENT_PREOPEN_WINDOW.targetDate||
+      windowRequest.windowStart!==ANNOUNCEMENT_PREOPEN_WINDOW.windowStart||
+      windowRequest.asOf!==ANNOUNCEMENT_PREOPEN_WINDOW.asOf))
+    throw new Error('ANNOUNCEMENT_ANALYSIS_WINDOW_REQUEST_INVALID');
   const params=new URLSearchParams({date:targetDate});
   if(publicationDate)params.set('publication_date',publicationDate);
+  if(windowRequest){
+    params.set('window_start',windowRequest.windowStart);
+    params.set('as_of',windowRequest.asOf);
+  }
   const response=await fetch(`/api/v4/manager/research/announcements/analysis?${params.toString()}`,{
     method:'GET',signal,credentials:'same-origin',cache:'no-store',
   });
   if(!response.ok)throw new Error(`ANNOUNCEMENT_ANALYSIS_HTTP_${response.status}`);
   let raw:unknown;
   try{raw=await response.json();}catch{throw new Error('ANNOUNCEMENT_ANALYSIS_RESPONSE_JSON_INVALID');}
-  return validate(raw,targetDate,publicationDate);
+  return validate(raw,targetDate,publicationDate,windowRequest);
 }
