@@ -19,7 +19,7 @@ AUTH = ROOT / (
     "research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/"
     "receipts/r7_recovery_06/control_resume/R7_RECOVERY_06_RESUME_AUTHORIZATION_V3.json"
 )
-AUTH_SHA = "5251ebf7f99ff9197d292c48a748f4f112ee50a3b9c02de79a1fee89ebcf85ec"
+AUTH_SHA = "0672916a2cd60dafccc35e52f2bab21e3b27f9be2b5948da96e8b2edef262cd9"
 PYTHON_SHA = "95fb891ec36d4022bdf62172f9d3c757fb3c7b1669a274cacc87fe261a535b7e"
 SOURCE = {
     "__init__.py": "14cd4f13adeed7d5c8730560f6fca0b3f360ae78c6a2a8e7ae8a1c40ad8bf764",
