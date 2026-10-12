@@ -1,0 +1,577 @@
+--- a/src/app_shell/useAppShell.ts
++++ b/src/app_shell/useAppShell.ts
+@@ -45,6 +45,29 @@
+ let stageRequestController: AbortController | null = null;
+ let stageTimelineRequestController: AbortController | null = null;
+ const STAGE_REQUEST_TIMEOUT_MS = 12_000;
++const STAGE_TIMELINE_MAX_CONCURRENCY = 3;
++const STAGE_DEADLINE_MINUTES: Record<string, number> = {
++  STAGE_0925: 9 * 60 + 25,
++  STAGE_0930_0935: 9 * 60 + 35,
++  STAGE_0935_0940: 9 * 60 + 40,
++  STAGE_0940_0945: 9 * 60 + 45,
++  STAGE_0945_1030: 10 * 60 + 30,
++  STAGE_1300_1315: 13 * 60 + 15,
++  STAGE_1445_1500: 15 * 60,
++  STAGE_1545_1555: 15 * 60 + 55,
++};
++const SHANGHAI_DATE_FORMATTER = new Intl.DateTimeFormat("en-CA", {
++  timeZone: "Asia/Shanghai",
++  year: "numeric",
++  month: "2-digit",
++  day: "2-digit",
++});
++const SHANGHAI_TIME_FORMATTER = new Intl.DateTimeFormat("en-GB", {
++  timeZone: "Asia/Shanghai",
++  hour: "2-digit",
++  minute: "2-digit",
++  hourCycle: "h23",
++});
+ 
+ const dateOptions = computed(() =>
+   [...new Set([
+@@ -394,6 +417,40 @@
+   stageSnapshots.value = { ...stageSnapshots.value, [stageId]: snapshot };
+ }
+ 
++function beforeStageDeadline(stageId: string, date: string, now = new Date()) {
++  const deadlineMinute = STAGE_DEADLINE_MINUTES[stageId];
++  if (deadlineMinute === undefined) return false;
++  const dateParts = SHANGHAI_DATE_FORMATTER.formatToParts(now);
++  const datePart = (type: string) => dateParts.find((part) => part.type === type)?.value ?? "";
++  const shanghaiDate = `${datePart("year")}${datePart("month")}${datePart("day")}`;
++  if (date !== shanghaiDate) return false;
++  const timeParts = SHANGHAI_TIME_FORMATTER.formatToParts(now);
++  const timePart = (type: string) => Number(timeParts.find((part) => part.type === type)?.value ?? "0");
++  return timePart("hour") * 60 + timePart("minute") < deadlineMinute;
++}
++
++function isEmptyNotDueStage(stageId: string, date: string, payload: StageWorkbench) {
++  if (!beforeStageDeadline(stageId, date)) return false;
++  const status = payload.stage?.status || payload.stage?.display_status;
++  if (status !== "CANNOT_CONFIRM") return false;
++  const selectedCounts = [
++    payload.selected_a_rows,
++    payload.selected_hk_rows,
++    payload.selected_total_rows,
++    payload.markets?.A?.candidate_count,
++    payload.markets?.HK?.candidate_count,
++  ];
++  if (selectedCounts.some((count) => typeof count === "number" && count > 0)) return false;
++  if ((payload.unified_rows?.length ?? 0) > 0) return false;
++  const reasons = [
++    ...(payload.cannot_confirm ?? []),
++    ...(payload.markets?.A?.cannot_confirm ?? []),
++    ...(payload.markets?.HK?.cannot_confirm ?? []),
++  ].map((reason) => String(reason).replace(/^(A|HK):/, ""));
++  return reasons.length > 0
++    && reasons.every((reason) => reason === "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID");
++}
++
+ function timelineStageSnapshot(stageId: string) {
+   const snapshot = stageSnapshots.value[stageId];
+   return snapshot?.date === selectedDate.value ? snapshot : undefined;
+@@ -401,16 +458,31 @@
+ 
+ function timelineStageStatus(stageId: string) {
+   const snapshot = timelineStageSnapshot(stageId);
+-  if (!snapshot || snapshot.loading) return "读取中";
+-  if (snapshot.error || !snapshot.payload) return "读取失败/点击重试";
+-  return snapshot.payload.stage.status || snapshot.payload.stage.display_status || "CANNOT_CONFIRM";
++  if (!snapshot) return "读取中";
++  if (snapshot.payload) {
++    const status = isEmptyNotDueStage(stageId, snapshot.date, snapshot.payload)
++      ? "待运行（未到时间）"
++      : snapshot.payload.stage.status || snapshot.payload.stage.display_status || "CANNOT_CONFIRM";
++    return snapshot.refreshing ? `${status} · 同日更新中` : status;
++  }
++  if (snapshot.error) return snapshot.refreshing ? "读取失败/点击重试 · 同日更新中" : "读取失败/点击重试";
++  if (snapshot.loading || snapshot.refreshing) return "读取中";
++  return "读取失败/点击重试";
+ }
+ 
+ function timelineStageCounts(stageId: string) {
+   const snapshot = timelineStageSnapshot(stageId);
+-  if (!snapshot || snapshot.loading) return "读取中";
+-  if (snapshot.error || !snapshot.payload) return "读取失败/点击重试";
+-  return `A ${stageCountText(snapshot.payload.selected_a_rows)} / HK ${stageMarketCountText(snapshot.payload.markets?.HK, snapshot.payload.selected_hk_rows)}`;
++  if (!snapshot) return "读取中";
++  if (snapshot.payload) {
++    const counts = isEmptyNotDueStage(stageId, snapshot.date, snapshot.payload)
++      ? "暂无阶段产物"
++      : `A ${stageCountText(snapshot.payload.selected_a_rows)} / HK ${stageMarketCountText(snapshot.payload.markets?.HK, snapshot.payload.selected_hk_rows)}`;
++    if (snapshot.refreshError) return `${counts} · 同日更新未成功`;
++    return snapshot.refreshing ? `${counts} · 同日更新中` : counts;
++  }
++  if (snapshot.error) return snapshot.refreshing ? "读取失败/点击重试 · 同日更新中" : "读取失败/点击重试";
++  if (snapshot.loading || snapshot.refreshing) return "读取中";
++  return "读取失败/点击重试";
+ }
+ 
+ function hasStageTimelineForDate(date: string) {
+@@ -425,36 +497,56 @@
+   const version = ++stageTimelineRequestVersion;
+   const currentPayloadMatches = currentPayload?.trade_date === date
+     && currentPayload.stage?.stage_id === currentStage;
++  const previousSnapshots = stageSnapshots.value;
+   const initialSnapshots: Record<string, StageTimelineSnapshot> = {};
+   for (const stage of stageDefinitions) {
+-    if (stage.id === currentStage && currentPayloadMatches) {
+-      initialSnapshots[stage.id] = { date, loading: false, payload: currentPayload };
++    const existing = previousSnapshots[stage.id];
++    if (existing?.date === date) {
++      initialSnapshots[stage.id] = { ...existing, refreshing: true, refreshError: undefined };
++    } else if (stage.id === currentStage && currentPayloadMatches) {
++      initialSnapshots[stage.id] = { date, loading: false, refreshing: true, payload: currentPayload };
+     } else {
+       initialSnapshots[stage.id] = { date, loading: true };
+     }
+   }
+   stageSnapshots.value = initialSnapshots;
+ 
+-  await Promise.all(stageDefinitions.map(async (stage) => {
+-    try {
+-      const payload = await fetchExactStagePayload(
+-        `/api/v3/workbench/stage?date=${encodeURIComponent(date)}&stage=${encodeURIComponent(stage.id)}&limit=50`,
+-        controller.signal,
+-      );
+-      assertExactStagePayload(payload, date, stage.id);
+-      if (version === stageTimelineRequestVersion && date === selectedDate.value) {
+-        setStageTimelineSnapshot(stage.id, { date, loading: false, payload }, version);
+-        if (stage.id === selectedStage.value) stageWorkbench.value = payload;
+-      }
+-    } catch (reason) {
+-      if (version === stageTimelineRequestVersion && date === selectedDate.value) {
+-        const message = reason instanceof Error && reason.message.includes("超时")
+-          ? "阶段工作台读取超时"
+-          : "阶段工作台读取失败";
+-        setStageTimelineSnapshot(stage.id, { date, loading: false, error: message }, version);
++  const stagesToRead = stageDefinitions;
++  let nextStageIndex = 0;
++  const readNextStage = async () => {
++    while (!controller.signal.aborted) {
++      const stage = stagesToRead[nextStageIndex];
++      if (!stage) return;
++      nextStageIndex += 1;
++      try {
++        const payload = await fetchExactStagePayload(
++          `/api/v3/workbench/stage?date=${encodeURIComponent(date)}&stage=${encodeURIComponent(stage.id)}&limit=50`,
++          controller.signal,
++        );
++        assertExactStagePayload(payload, date, stage.id);
++        if (version === stageTimelineRequestVersion && date === selectedDate.value) {
++          setStageTimelineSnapshot(stage.id, { date, loading: false, payload }, version);
++          if (stage.id === selectedStage.value) stageWorkbench.value = payload;
++        }
++      } catch (reason) {
++        if (version === stageTimelineRequestVersion && date === selectedDate.value) {
++          const message = reason instanceof Error && reason.message.includes("超时")
++            ? "阶段工作台读取超时"
++            : "阶段工作台读取失败";
++          const existing = stageSnapshots.value[stage.id];
++          if (existing?.date === date && existing.payload) {
++            setStageTimelineSnapshot(stage.id, { ...existing, loading: false, refreshing: false, refreshError: message }, version);
++          } else {
++            setStageTimelineSnapshot(stage.id, { date, loading: false, refreshing: false, error: message }, version);
++          }
++        }
+       }
+     }
+-  }));
++  };
++  await Promise.all(Array.from(
++    { length: Math.min(STAGE_TIMELINE_MAX_CONCURRENCY, stagesToRead.length) },
++    () => readNextStage(),
++  ));
+   if (stageTimelineRequestController === controller) stageTimelineRequestController = null;
+ }
+ 
+@@ -516,8 +608,14 @@
+   const version = ++stageRequestVersion;
+   stageLoading.value = true;
+   stageError.value = "";
+-  stageWorkbench.value = null;
+-  setStageTimelineSnapshot(stage, { date: requestedDate, loading: true });
++  const existingSnapshot = stageSnapshots.value[stage];
++  const sameDateSnapshot = existingSnapshot?.date === requestedDate ? existingSnapshot : undefined;
++  stageWorkbench.value = sameDateSnapshot?.payload ?? null;
++  if (sameDateSnapshot) {
++    setStageTimelineSnapshot(stage, { ...sameDateSnapshot, refreshing: true, refreshError: undefined });
++  } else {
++    setStageTimelineSnapshot(stage, { date: requestedDate, loading: true });
++  }
+   try {
+     const url =
+       `/api/v3/workbench/stage?date=${encodeURIComponent(requestedDate)}&stage=${encodeURIComponent(stage)}&limit=50`;
+@@ -535,13 +633,27 @@
+         : "阶段工作台读取失败。";
+       const settled: Record<string, StageTimelineSnapshot> = {};
+       for (const definition of stageDefinitions) {
+-        settled[definition.id] = {
+-          date: requestedDate,
+-          loading: false,
+-          error: definition.id === stage ? stageError.value : "阶段工作台读取失败",
+-        };
++        const existing = stageSnapshots.value[definition.id];
++        if (existing?.date === requestedDate && existing.payload) {
++          settled[definition.id] = {
++            ...existing,
++            loading: false,
++            refreshing: false,
++            ...(definition.id === stage ? { refreshError: stageError.value } : {}),
++          };
++        } else {
++          settled[definition.id] = {
++            ...(existing?.date === requestedDate ? existing : {}),
++            date: requestedDate,
++            loading: false,
++            refreshing: false,
++            error: definition.id === stage ? stageError.value : existing?.error || "阶段工作台读取失败",
++          };
++        }
+       }
+       stageSnapshots.value = settled;
++      const failedStageSnapshot = settled[stage];
++      stageWorkbench.value = failedStageSnapshot?.date === requestedDate ? failedStageSnapshot.payload ?? null : null;
+     }
+   } finally {
+     if (version === stageRequestVersion && requestedDate === selectedDate.value) stageLoading.value = false;
+--- a/src/app_shell/types.ts
++++ b/src/app_shell/types.ts
+@@ -68,6 +68,7 @@
+ };
+ export type StageWorkbench = {
+   ok?: boolean; trade_date?: string;
++  cannot_confirm?: string[];
+   stage: { stage_id: string; label?: string; window?: string; status: string; display_status: string };
+   markets?: { A?: MarketSummary; HK?: MarketSummary };
+   unified_rows: StageRow[];
+@@ -97,8 +98,10 @@
+ export type StageTimelineSnapshot = {
+   date: string;
+   loading: boolean;
++  refreshing?: boolean;
+   payload?: StageWorkbench;
+   error?: string;
++  refreshError?: string;
+ };
+ export type ReviewMetric = {
+   evidence_status?: string; selected_count?: number | null; hit_count?: number | null;
+--- a/src/App.spec.ts
++++ b/src/App.spec.ts
+@@ -152,6 +152,7 @@
+ 
+   afterEach(() => {
+     cleanup();
++    vi.useRealTimers();
+     vi.unstubAllGlobals();
+   });
+ 
+@@ -460,6 +461,307 @@
+     expect(screen.queryByText("港股通候选未加载")).toBeNull();
+   });
+ 
++  it("keeps stage timeline reads under the gateway limit while revalidating the selected snapshot", async () => {
++    const stageIds = [
++      "STAGE_0925",
++      "STAGE_0930_0935",
++      "STAGE_0935_0940",
++      "STAGE_0940_0945",
++      "STAGE_0945_1030",
++      "STAGE_1300_1315",
++      "STAGE_1445_1500",
++      "STAGE_1545_1555",
++    ];
++    const stageById: Record<string, any> = {};
++    stageIds.forEach((stageId) => {
++      const snapshot = structuredClone(referenceStage) as any;
++      snapshot.trade_date = "20260730";
++      snapshot.stage.stage_id = stageId;
++      snapshot.stage.status = `READY_${stageId}`;
++      snapshot.stage.display_status = `READY_${stageId}`;
++      stageById[stageId] = snapshot;
++    });
++    let activeStageRequests = 0;
++    let maxActiveStageRequests = 0;
++    let rejectedStageRequests = 0;
++    let stageRequestCount = 0;
++    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
++      if (url === "/api/v1/runs/date-list") {
++        return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
++      }
++      if (url.startsWith("/api/v3/workbench/stage")) {
++        stageRequestCount += 1;
++        if (activeStageRequests >= 4) {
++          rejectedStageRequests += 1;
++          return { ok: false, json: async () => ({}) };
++        }
++        activeStageRequests += 1;
++        maxActiveStageRequests = Math.max(maxActiveStageRequests, activeStageRequests);
++        const stageId = new URL(url, window.location.origin).searchParams.get("stage") || "STAGE_0925";
++        return {
++          ok: true,
++          json: async () => {
++            await Promise.resolve();
++            activeStageRequests -= 1;
++            return stageById[stageId];
++          },
++        };
++      }
++      return jsonResponse(blockedPool);
++    }));
++
++    render(App);
++
++    const timeline = screen.getByRole("region", { name: "七阶段上下文" });
++    await waitFor(() => expect(within(timeline).getByText("READY_STAGE_1545_1555")).toBeTruthy());
++    expect(rejectedStageRequests).toBe(0);
++    expect(maxActiveStageRequests).toBeLessThanOrEqual(3);
++    expect(stageRequestCount).toBe(stageIds.length + 1);
++  });
++
++  it("preserves every accepted same-date stage snapshot during timeline refresh and direct failure", async () => {
++    const date = "20260730";
++    const stageIds = [
++      "STAGE_0925",
++      "STAGE_0930_0935",
++      "STAGE_0935_0940",
++      "STAGE_0940_0945",
++      "STAGE_0945_1030",
++      "STAGE_1300_1315",
++      "STAGE_1445_1500",
++      "STAGE_1545_1555",
++    ];
++    const stageById: Record<string, any> = {};
++    stageIds.forEach((stageId) => {
++      const snapshot = structuredClone(referenceStage) as any;
++      snapshot.trade_date = date;
++      snapshot.stage.stage_id = stageId;
++      snapshot.stage.status = `READY_${stageId}`;
++      snapshot.stage.display_status = `READY_${stageId}`;
++      snapshot.unified_rows = [{ ...referenceStage.unified_rows[0], name: `ROW_${stageId}` }];
++      stageById[stageId] = snapshot;
++    });
++    const refreshedStageId = stageIds[3];
++    const directRefresh = structuredClone(stageById[refreshedStageId]);
++    directRefresh.stage.status = "DIRECT_REFRESHED";
++    directRefresh.stage.display_status = "DIRECT_REFRESHED";
++    directRefresh.unified_rows = [{ ...referenceStage.unified_rows[0], name: "ROW_DIRECT_REFRESHED" }];
++    const requestCounts = new Map<string, number>();
++    const pendingTimelineRefreshes = new Map<string, (response: ReturnType<typeof jsonResponse>) => void>();
++    let holdTimelineRefresh = false;
++    let failDirectRefresh = false;
++
++    const fetchMock = vi.fn((url: string) => {
++      if (url === "/api/v1/runs/date-list") {
++        return Promise.resolve(jsonResponse({ default_date: date, stage_dates: [date], future_target_dates: [] }));
++      }
++      if (url.startsWith("/api/v3/workbench/stage")) {
++        const stageId = new URL(url, window.location.origin).searchParams.get("stage") || stageIds[0];
++        const count = (requestCounts.get(stageId) ?? 0) + 1;
++        requestCounts.set(stageId, count);
++
++        if (stageId === refreshedStageId && count === 2) return Promise.resolve(jsonResponse(directRefresh));
++        if (failDirectRefresh && stageId === refreshedStageId && count === 4) {
++          return Promise.resolve({ ok: false, json: async () => ({}) });
++        }
++        if (holdTimelineRefresh && count >= 2) {
++          return new Promise<ReturnType<typeof jsonResponse>>((resolve) => {
++            pendingTimelineRefreshes.set(stageId, resolve);
++          });
++        }
++        if (stageId === refreshedStageId && count >= 3) return Promise.resolve(jsonResponse(directRefresh));
++        return Promise.resolve(jsonResponse(stageById[stageId]));
++      }
++      return Promise.resolve(jsonResponse({ ...blockedPool, trade_date: date }));
++    });
++    vi.stubGlobal("fetch", fetchMock);
++
++    window.history.replaceState({}, "", `/?date=${date}&stage=${stageIds[0]}`);
++    render(App);
++
++    const timeline = screen.getByRole("region", { name: "七阶段上下文" });
++    const cards = () => within(timeline).getAllByRole("button").slice(0, stageIds.length);
++    const cardFor = (stageId: string) => cards()[stageIds.indexOf(stageId)];
++    await waitFor(() => {
++      expect(cards().every((button, index) => button.textContent?.includes(`READY_${stageIds[index]}`))).toBe(true);
++    });
++
++    holdTimelineRefresh = true;
++    await fireEvent.click(cardFor(refreshedStageId));
++    await waitFor(() => expect(pendingTimelineRefreshes.size).toBe(3));
++    expect(cardFor(refreshedStageId)?.textContent).toContain("DIRECT_REFRESHED");
++    for (const stageId of stageIds) {
++      expect(cardFor(stageId)?.textContent).toContain(stageId === refreshedStageId ? "DIRECT_REFRESHED" : `READY_${stageId}`);
++    }
++
++    holdTimelineRefresh = false;
++    const initialQueuedReads = [...pendingTimelineRefreshes.entries()];
++    pendingTimelineRefreshes.clear();
++    for (const [stageId, resolve] of initialQueuedReads) {
++      if (stageId === stageIds[0]) resolve({ ok: false, json: async () => ({}) } as any);
++      else resolve(jsonResponse(stageId === refreshedStageId ? directRefresh : stageById[stageId]));
++    }
++    await waitFor(() => expect(cardFor(stageIds[0])?.textContent).toContain("同日更新未成功"));
++    expect(cardFor(stageIds[0])?.textContent).toContain(`READY_${stageIds[0]}`);
++    await waitFor(() => expect(cards().every((button) => !button.textContent?.includes("同日更新中"))).toBe(true));
++
++    const beforeDirectFailure = cards().map((button) => button.textContent);
++    failDirectRefresh = true;
++    await fireEvent.click(cardFor(refreshedStageId));
++    await waitFor(() => expect(cardFor(refreshedStageId)?.textContent).toContain("同日更新未成功"));
++    expect(cardFor(refreshedStageId)?.textContent).toContain("DIRECT_REFRESHED");
++    expect(screen.getByText("ROW_DIRECT_REFRESHED")).toBeTruthy();
++    for (const stageId of stageIds) {
++      if (stageId !== refreshedStageId) {
++        expect(cardFor(stageId)?.textContent).toBe(beforeDirectFailure[stageIds.indexOf(stageId)]);
++      }
++    }
++  });
++
++  it("labels only empty not-yet-due snapshots as pending and preserves artifacts and failures", async () => {
++    vi.useFakeTimers({ toFake: ["Date"] });
++    vi.setSystemTime(new Date("2026-10-12T03:33:00.000Z")); // 11:33 Asia/Shanghai
++    window.history.replaceState({}, "", "/?date=20261012&stage=STAGE_0940_0945");
++    const stageIds = [
++      "STAGE_0925",
++      "STAGE_0930_0935",
++      "STAGE_0935_0940",
++      "STAGE_0940_0945",
++      "STAGE_0945_1030",
++      "STAGE_1300_1315",
++      "STAGE_1445_1500",
++      "STAGE_1545_1555",
++    ];
++    const stageById: Record<string, any> = {};
++    for (const stageId of stageIds) {
++      const snapshot = structuredClone(referenceStage) as any;
++      snapshot.trade_date = "20261012";
++      snapshot.stage.stage_id = stageId;
++      snapshot.unified_rows = [];
++      snapshot.selected_a_rows = 0;
++      snapshot.selected_hk_rows = null;
++      snapshot.selected_total_rows = null;
++      snapshot.stage.status = "CANNOT_CONFIRM";
++      snapshot.stage.display_status = "CANNOT_CONFIRM";
++      snapshot.cannot_confirm = [
++        "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
++        "A:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
++        "HK:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
++      ];
++      snapshot.markets.A.candidate_count = 0;
++      snapshot.markets.HK.candidate_count = null;
++      snapshot.markets.A.cannot_confirm = ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"];
++      snapshot.markets.HK.cannot_confirm = ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"];
++      stageById[stageId] = snapshot;
++    }
++    const observedStage = stageById.STAGE_0940_0945;
++    observedStage.stage.status = "PARTIAL_WITH_ROWS";
++    observedStage.stage.display_status = "PARTIAL_WITH_ROWS";
++    observedStage.selected_a_rows = 10;
++    observedStage.unified_rows = structuredClone(referenceStage.unified_rows);
++    const futureArtifact = stageById.STAGE_1300_1315;
++    futureArtifact.stage.status = "PARTIAL_WITH_ROWS";
++    futureArtifact.stage.display_status = "PARTIAL_WITH_ROWS";
++    futureArtifact.selected_a_rows = 1;
++    futureArtifact.markets.A.candidate_count = 1;
++    futureArtifact.unified_rows = [{ ...referenceStage.unified_rows[0], market: "A", code: "A.000001", name: "已有阶段产物" }];
++    let selectedStageCalls = 0;
++    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
++      if (url === "/api/v1/runs/date-list") {
++        return jsonResponse({ default_date: "20261012", navigation_date: "20261012", stage_dates: ["20261012"], future_target_dates: [] });
++      }
++      if (url.startsWith("/api/v3/workbench/stage")) {
++        const stageId = new URL(url, window.location.origin).searchParams.get("stage") || "STAGE_0925";
++        if (stageId === "STAGE_0940_0945") {
++          selectedStageCalls += 1;
++          if (selectedStageCalls > 1) return { ok: false, json: async () => ({}) };
++        }
++        if (stageId === "STAGE_1545_1555") return { ok: false, json: async () => ({}) };
++        return jsonResponse(stageById[stageId]);
++      }
++      return jsonResponse({ ...blockedPool, trade_date: "20261012" });
++    }));
++
++    render(App);
++
++    const timeline = screen.getByRole("region", { name: "七阶段上下文" });
++    const cardFor = (stageLabel: string) => within(timeline).getAllByRole("button")
++      .find((button) => button.textContent?.includes(stageLabel));
++    await waitFor(() => {
++      expect(within(timeline).getAllByRole("button").slice(0, stageIds.length)
++        .every((button) => !button.textContent?.includes("读取中"))).toBe(true);
++    });
++    expect(cardFor("4. 09:40-09:45")?.textContent).toContain("PARTIAL_WITH_ROWS");
++    expect(cardFor("4. 09:40-09:45")?.textContent).toContain("同日更新未成功");
++    expect(cardFor("5. 09:45-10:30")?.textContent).toContain("CANNOT_CONFIRM");
++    expect(cardFor("6. 13:00-13:15")?.textContent).toContain("PARTIAL_WITH_ROWS");
++    expect(cardFor("7. 14:45-15:00")?.textContent).toContain("未到时间");
++    expect(cardFor("8. 15:45-15:55港股")?.textContent).toContain("读取失败/点击重试");
++  });
++
++  it("does not let queued stage responses from the old date populate the new date", async () => {
++    window.history.replaceState({}, "", "/?date=20261012&stage=STAGE_0925");
++    const oldDateResolvers: Array<(response: ReturnType<typeof jsonResponse>) => void> = [];
++    const snapshotFor = (date: string, stageId: string, status: string) => {
++      const snapshot = structuredClone(referenceStage) as any;
++      snapshot.trade_date = date;
++      snapshot.stage.stage_id = stageId;
++      snapshot.stage.status = status;
++      snapshot.stage.display_status = status;
++      snapshot.unified_rows = [{ ...referenceStage.unified_rows[0], name: `${status} 股票` }];
++      return snapshot;
++    };
++    const fetchMock = vi.fn(async (url: string) => {
++      if (url === "/api/v1/runs/date-list") {
++        return jsonResponse({
++          default_date: "20261012",
++          navigation_date: "20261012",
++          dates: ["20261012", "20261013"],
++          stage_dates: ["20261012", "20261013"],
++          future_target_dates: [],
++        });
++      }
++      if (url.startsWith("/api/v3/workbench/stage")) {
++        const requestUrl = new URL(url, window.location.origin);
++        const date = requestUrl.searchParams.get("date") || "";
++        const stageId = requestUrl.searchParams.get("stage") || "STAGE_0925";
++        if (date === "20261012" && stageId !== "STAGE_0925") {
++          return new Promise<ReturnType<typeof jsonResponse>>((resolve) => oldDateResolvers.push(resolve));
++        }
++        const status = date === "20261012" ? "OLD_DATE_RESPONSE" : "NEW_DATE_RESPONSE";
++        return jsonResponse(snapshotFor(date, stageId, status));
++      }
++      return jsonResponse({ ...blockedPool, trade_date: "20261013" });
++    });
++    vi.stubGlobal("fetch", fetchMock);
++
++    render(App);
++
++    const input = await screen.findByLabelText("交易日（日历选择）") as HTMLInputElement;
++    await waitFor(() => expect(oldDateResolvers.length).toBeGreaterThan(0));
++    const timeline = screen.getByRole("region", { name: "七阶段上下文" });
++    const oldDateStageCalls = fetchMock.mock.calls.filter(([url]) =>
++      String(url).startsWith("/api/v3/workbench/stage?date=20261012"),
++    ).length;
++
++    await fireEvent.change(input, { target: { value: "2026-10-13" } });
++
++    await waitFor(() => expect(input.value).toBe("2026-10-13"));
++    await waitFor(() => {
++      expect(within(timeline).getAllByRole("button").slice(0, 8)
++        .every((button) => button.textContent?.includes("NEW_DATE_RESPONSE"))).toBe(true);
++    });
++    expect(fetchMock.mock.calls.filter(([url]) =>
++      String(url).startsWith("/api/v3/workbench/stage?date=20261012"),
++    ).length).toBe(oldDateStageCalls);
++
++    oldDateResolvers.forEach((resolve) => resolve(jsonResponse(snapshotFor("20261012", "STAGE_0930_0935", "OLD_DATE_LATE_RESPONSE"))));
++    await new Promise((resolve) => window.setTimeout(resolve, 0));
++    expect(within(timeline).getAllByRole("button").slice(0, 8)
++      .every((button) => button.textContent?.includes("NEW_DATE_RESPONSE"))).toBe(true);
++    expect(timeline.textContent).not.toContain("OLD_DATE_LATE_RESPONSE");
++  });
++
+   it("shows the frozen v1.1 identity and separate A/HK auction refresh times", async () => {
+     const v11Stage = structuredClone(referenceStage) as any;
+     v11Stage.selection_mode = "V1_1_CHAMPION_DUAL_MARKET";
