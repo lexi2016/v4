@@ -37,6 +37,26 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec='microseconds')
 
 
+def _same_calendar_publication_day(value: Any, expected_iso: str) -> bool:
+    """Compare supported compact/ISO date encodings without changing saved bytes."""
+    if not isinstance(value, str) or not isinstance(expected_iso, str):
+        return False
+    if re.fullmatch(r'\d{8}', value):
+        source_format = '%Y%m%d'
+    elif re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
+        source_format = '%Y-%m-%d'
+    else:
+        return False
+    if re.fullmatch(r'\d{4}-\d{2}-\d{2}', expected_iso) is None:
+        return False
+    try:
+        source_day = datetime.strptime(value, source_format).date()
+        expected_day = datetime.strptime(expected_iso, '%Y-%m-%d').date()
+    except ValueError:
+        return False
+    return source_day == expected_day
+
+
 def _daily_context(date: str, now: datetime | None = None) -> dict:
     """Build an HK calendar-day query while retaining a real owner cutoff."""
     from contracts.trading_calendar import load_market_calendar, resolve_market_states, TradingDayState
@@ -1979,7 +1999,8 @@ def validate_agent_judgment_receipt(receipt: Any, product: Mapping[str, Any]) ->
 
 _HANDOFF_FILES = ('catalog_read.json', 'hkex_directory_read.json', 'monthly_connect_eligibility.json',
     'body_corpus.json', 'body_corpus_manifest.json', 'body_batch_receipt.json', 'capture_receipt.json', 'semantic_catalog.json',
-    'reader_output.json', 'reviewer_output.json', 'article_decisions.json', 'analysis_product.json')
+    'reader_output.json', 'reviewer_output.json', 'article_decisions.json', 'analysis_product.json',
+    'preopen_window.json')
 
 
 def _handoff_root(store: Any, run_id: str) -> Path:
@@ -2188,6 +2209,7 @@ def _validate_multi_source_terminal_capture(evidence: Path, catalog_read: Mappin
                 or variant.get('matched_connect_codes') != [variant.get('symbol')]
                 or variant.get('symbol') not in eligibility_codes
                 or relative != f'official_variants/{news_id}.json'
+                or not _same_calendar_publication_day(variant.get('publication_date'), publication)
                 or receipt.get('news_id') != news_id
                 or receipt.get('body_status') != variant.get('body_status')
                 or receipt.get('body_artifact') != relative
@@ -2208,7 +2230,7 @@ def _validate_multi_source_terminal_capture(evidence: Path, catalog_read: Mappin
         if (saved.get('schema') != 'v4.manager_research.source_bound_hkex_official_body.v1'
                 or saved.get('source_variant_id') != variant_id
                 or saved.get('target_trade_date') != target
-                or saved.get('publication_date') != publication
+                or not _same_calendar_publication_day(saved.get('publication_date'), publication)
                 or saved.get('body_status') != variant.get('body_status')
                 or saved.get('directory_source_ref') != variant.get('directory_source_ref')
                 or saved.get('body_source_ref') != variant.get('body_source_ref')
@@ -2669,10 +2691,13 @@ def validate_registered_handoff(store: Any, run_id: str, manifest_sha256: str,
         raise ValueError('ANNOUNCEMENT_AGENT_HANDOFF_MANIFEST_INVALID')
     files = manifest.get('files')
     optional_files = {'article_decisions.json', 'hkex_directory_read.json',
-                      'monthly_connect_eligibility.json'}
+                      'monthly_connect_eligibility.json', 'preopen_window.json'}
     required_files = set(_HANDOFF_FILES) - optional_files
     if manifest.get('decision_status') != 'NOT_ASSESSED':
         required_files.add('article_decisions.json')
+    chosen_manifest = product.get('source_manifest') if isinstance(product, Mapping) else None
+    if isinstance(chosen_manifest, Mapping) and isinstance(chosen_manifest.get('preopen_window'), Mapping):
+        required_files.add('preopen_window.json')
     if not isinstance(files, Mapping) or not required_files.issubset(files):
         raise ValueError('ANNOUNCEMENT_AGENT_HANDOFF_FILE_MAP_INVALID')
     paths = {}
@@ -2694,6 +2719,32 @@ def validate_registered_handoff(store: Any, run_id: str, manifest_sha256: str,
             or digest({key: value for key, value in loaded.items() if key != 'sha256'}) != product_sha256
             or chosen != loaded or manifest.get('product_sha256') != product_sha256):
         raise ValueError('ANNOUNCEMENT_AGENT_HANDOFF_PRODUCT_SHA_MISMATCH')
+    source_manifest = chosen.get('source_manifest')
+    preopen_window = source_manifest.get('preopen_window') if isinstance(source_manifest, Mapping) else None
+    preopen_path = paths.get('preopen_window.json')
+    if isinstance(preopen_window, Mapping):
+        if preopen_path is None:
+            raise ValueError('ANNOUNCEMENT_PREOPEN_WINDOW_HANDOFF_FILE_MISSING')
+        registered_window = json.loads(preopen_path.read_text(encoding='utf-8'))
+        if registered_window != preopen_window:
+            raise ValueError('ANNOUNCEMENT_PREOPEN_WINDOW_HANDOFF_PRODUCT_MISMATCH')
+        from .announcement_processing import validate_preopen_window
+        validate_preopen_window(registered_window, target_trade_date=chosen.get('target_trade_date'))
+        binding = registered_window.get('registered_binding')
+        fingerprint = registered_window.get('registered_fingerprint_sha256')
+        if (not isinstance(binding, Mapping)
+                or binding.get('evidence_run_id') != run_id
+                or binding.get('target_trade_date') != chosen.get('target_trade_date')
+                or not isinstance(fingerprint, str)
+                or digest({"input_fingerprint_sha256": registered_window.get("input_fingerprint_sha256"),
+                    "registered_binding": binding}) != fingerprint
+                or manifest.get('preopen_window_input_fingerprint_sha256')
+                    != registered_window.get('input_fingerprint_sha256')
+                or manifest.get('preopen_window_registered_fingerprint_sha256') != fingerprint
+                or manifest.get('preopen_window_sha256') != hashlib.sha256(preopen_path.read_bytes()).hexdigest()):
+            raise ValueError('ANNOUNCEMENT_PREOPEN_WINDOW_HANDOFF_BINDING_INVALID')
+    elif preopen_path is not None:
+        raise ValueError('ANNOUNCEMENT_PREOPEN_WINDOW_UNBOUND')
     receipt = validate_agent_judgment_receipt(chosen.get('agent_judgment_receipt'), chosen)
     reviewer = json.loads(paths['reviewer_output.json'].read_text(encoding='utf-8'))
     decision_document = json.loads(paths['article_decisions.json'].read_text(encoding='utf-8')) if files.get('article_decisions.json') else None
@@ -2706,6 +2757,12 @@ def validate_registered_handoff(store: Any, run_id: str, manifest_sha256: str,
     if decisions is not None and not isinstance(decisions, list):
         raise ValueError('ANNOUNCEMENT_AGENT_HANDOFF_DECISIONS_INVALID')
     expected_decision_sha = digest(decisions) if decisions is not None else None
+    if isinstance(preopen_window, Mapping):
+        binding = preopen_window.get('registered_binding')
+        if (not isinstance(binding, Mapping)
+                or binding.get('decision_file_sha256') != files.get('article_decisions.json')
+                or binding.get('decision_payload_sha256') != expected_decision_sha):
+            raise ValueError('ANNOUNCEMENT_PREOPEN_WINDOW_DECISION_BINDING_INVALID')
     catalog = json.loads(paths['catalog_read.json'].read_text(encoding='utf-8'))
     body = json.loads(paths['body_corpus.json'].read_text(encoding='utf-8'))
     if body.get('schema') == 'v4.manager_research.eastmoney_hk_multi_source_announcement_body_corpus.v1':
