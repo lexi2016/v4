@@ -1,0 +1,69 @@
+{
+  "schema_version": "r8.batch6a.sync_receipt.v1",
+  "batch": "6A",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_parent_commit": "79f726ac3433f00651509be71a60c307d14bd928",
+  "reviewer_identity": "/root/r8_batch6a_review",
+  "reviewed_diff_sha256": "ae7c089072973524c4a24708b4c3e9c0f31d58f80a101351472e1dca074e26b9",
+  "review_report_sha256": "bc4bb169d7a0f2492239511a19cadb16365c93b2c4b889a4ed9d4373a4ebc5ec",
+  "review_receipt_sha256": "2730b105549b5d2bb9dc8065303a4fede9a4cba741d5d465c9846d728b9a8fdb",
+  "REVIEWED": "PASS",
+  "BEHAVIOR_VERIFIED": "PASS",
+  "TESTED": "55 independently passed; 5 fail-closed probes passed",
+  "API_VERIFIED": "NOT_RUN_LIVE",
+  "UI_VERIFIED": "NOT_RUN_LIVE",
+  "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED",
+  "changed_paths": [
+    {
+      "path": "domains/_preselection_parts/date_catalog.py",
+      "before_sha256": "55b87104bfa6f5dab767701a09100eebc7f42c763c55908961838f260e43f131",
+      "after_sha256": "f816a30e8aa99b3f55f077d884379f36beef5f6f25c1d748ccb8df2a2094622f"
+    },
+    {
+      "path": "domains/preselection.py",
+      "before_sha256": "677b3296284b26e82db44767f697af13fe3ca76b5f2f2bd64f8c965aba51f538",
+      "after_sha256": "f0db8c468a86404f2323974e2866c1f4fbe82afa004b366a6a25fa699759ef33"
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_publication.py",
+      "before_sha256": "e4bfd622b1e514e86afe660a0d677ec16a9183703be1f51f3631062eb3103573",
+      "after_sha256": "677e12cecf210b11def8793d4d416ba091fa16453194bb43b2f5d14647d2234d"
+    },
+    {
+      "path": "infrastructure/preselection_pool_sources.py",
+      "before_sha256": "23827109688cabbfb50fc4563cd3c1bdb0220fb6246b349a72836dc0e9b02827",
+      "after_sha256": "0de0adb98b35fe7210d4026fa9f3fc4af254ac6ea68726e76e6ea357e177f2d7"
+    },
+    {
+      "path": "stage_center/_runner_parts/row_evidence.py",
+      "before_sha256": "1df57ab740b17e535abf3744d2a274ae6e99621e82444a1aeb0d6f26010c0952",
+      "after_sha256": "fd385163fc563d3b4f2c19389fc277e962ee424a0a459c164fbcf8b1669a5b42"
+    },
+    {
+      "path": "stage_center/candidate_input.py",
+      "before_sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+      "after_sha256": "d35f9db18aedc5ce5e1a62cac9b773b7c227ebf7ecbeacdf53bcb8af8cd315a5"
+    },
+    {
+      "path": "tests/test_preselection_date_catalog_split_roots.py",
+      "before_sha256": "a0750ea622d6a0bc516597a99f7a1ffc24a9f00c404c95f406d042eacbec2f2e",
+      "after_sha256": "680ad5ec89cb1750268ad31ac9a2e5f2380294380989d1b00b5d7c6755960988"
+    },
+    {
+      "path": "tests/test_preselection_source_root_20261008.py",
+      "before_sha256": "46330d42709005822e381c5566d7097cc54cc841193bee738fca151b9a8af5ff",
+      "after_sha256": "35d70bb5381961f0dac8b2ef0760bf1f9567c4f00b7e31606df557aac4122933"
+    },
+    {
+      "path": "tests/test_stage_pool_gap_chain_r8.py",
+      "before_sha256": null,
+      "after_sha256": "8748c5895634f1f7616625db4ce0e9062739857d6effab4169659858d74ca895"
+    }
+  ],
+  "limitations": [
+    "Synthetic 209-code Stage canary; no quote acquisition or natural slot result",
+    "SHA-pinned fixture-dependent gap suite CANNOT_CONFIRM",
+    "Remote partial source tree is not a standalone runnable deployment"
+  ]
+}

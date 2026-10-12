@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import os
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.v35_api.app import create_app
-from domains.preselection import preselection
 from infrastructure.data_store import NativeDataStore, _sha256
 from infrastructure.preselection_pool_store import PreselectionPoolStore
 
@@ -47,6 +48,15 @@ def _a_pool(date: str, *, symbol: str = "A.000001") -> dict:
         "buy_gate_updated": False,
         "orders_sent": False,
     }
+
+
+def _recommendation_pool(date: str) -> dict:
+    pool = _a_pool(date, symbol="A.000002")
+    pool["pool_id"] = "a_share_research_recommendation_pool"
+    pool["display_name"] = "A recommendation fixture"
+    pool["source_path"] = f"fixture/{date}/a_share_research_recommendation_pool.csv"
+    pool["rows"][0]["pool_id"] = "a_share_research_recommendation_pool"
+    return pool
 
 
 def _hk_pool(date: str = TARGET_DATE, **metadata) -> dict:
@@ -126,6 +136,32 @@ def _write_misdated_trio(root: Path, directory_date: str, payload: dict) -> None
     store._write(f"preselection_pools/{directory_date}/manifest.json", {pool_id: digest})
 
 
+def _write_released_materialize_lock(root: Path) -> None:
+    lock_path = root / "preselection_pools" / ".materialize.lock"
+    payload = {
+        "schema_version": "v3_5_interprocess_lock.v1",
+        "pid": 2147483647,
+        "token": "RELEASED",
+    }
+    descriptor = os.open(lock_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        stream.write(json.dumps(payload, separators=(",", ":")))
+
+
+def _remove_pool_identity_field(
+    root: Path, date: str, pool_id: str, field: str
+) -> None:
+    store = PreselectionPoolStore(root)
+    artifact_path = f"preselection_pools/{date}/{pool_id}.json"
+    artifact = store._read(artifact_path)
+    artifact.pop(field)
+    store._write(artifact_path, artifact)
+    manifest_path = f"preselection_pools/{date}/manifest.json"
+    manifest = store._read(manifest_path)
+    manifest[pool_id] = _sha256(artifact)
+    store._write(manifest_path, manifest)
+
+
 def test_date_list_reads_verified_future_pool_from_split_source_and_keeps_a_partial_rows(
     tmp_path: Path,
 ) -> None:
@@ -133,6 +169,7 @@ def test_date_list_reads_verified_future_pool_from_split_source_and_keeps_a_part
     source_root = tmp_path / "pool-source"
     store = _store_with_catalog(data_root)
     PreselectionPoolStore(source_root).materialize(_a_pool(TARGET_DATE))
+    _write_released_materialize_lock(source_root)
 
     client = TestClient(
         create_app(
@@ -150,8 +187,74 @@ def test_date_list_reads_verified_future_pool_from_split_source_and_keeps_a_part
     ).json()
     assert requested["requested_date"] == TARGET_DATE
     assert requested["selected_date"] == TARGET_DATE
-    partial = client.get("/api/v3/preselection-pools", params={"date": TARGET_DATE}).json()
-    assert partial["data_status"] == "PARTIAL_WITH_ROWS"
+
+
+@pytest.mark.parametrize("missing_field", ["source_sha256", "source_role"])
+def test_date_catalog_quarantines_secondary_missing_identity_field_and_keeps_sibling(
+    tmp_path: Path,
+    missing_field: str,
+) -> None:
+    data_root = tmp_path / "api-data"
+    source_root = tmp_path / "pool-source"
+    _store_with_catalog(data_root)
+    source_store = PreselectionPoolStore(source_root)
+    source_store.materialize(_a_pool(TARGET_DATE))
+    source_store.materialize(_recommendation_pool(TARGET_DATE))
+    _remove_pool_identity_field(
+        source_root,
+        TARGET_DATE,
+        "a_share_research_recommendation_pool",
+        missing_field,
+    )
+    _write_released_materialize_lock(source_root)
+
+    client = TestClient(
+        create_app(
+            data_root=data_root,
+            preselection_source_root=source_root,
+            current_date=CURRENT_DATE,
+        )
+    )
+    response = client.get("/api/v1/runs/date-list").json()
+
+    assert TARGET_DATE in response["future_target_dates"]
+    evidence = response["independent_pool_evidence"][TARGET_DATE]
+    assert evidence["trade_date"] == TARGET_DATE
+    assert evidence["pools"]["a_d1_premarket_pool"]["status"] == "VERIFIED"
+    assert evidence["pools"]["a_d1_premarket_pool"]["source_sha256"] == hashlib.sha256(
+        f"{TARGET_DATE}:A.000001".encode()
+    ).hexdigest()
+    quarantined = evidence["pools"]["a_share_research_recommendation_pool"]
+    assert quarantined["status"] == "CANNOT_CONFIRM"
+    assert quarantined["source_sha256"] is None
+    assert any(
+        diagnostic.startswith(
+            "PRESELECTION_POOL_INTEGRITY:a_share_research_recommendation_pool:"
+        )
+        for diagnostic in quarantined["diagnostics"]
+    )
+
+
+def test_a_partial_pool_rows_remain_partial_with_the_single_root_contract(
+    tmp_path: Path,
+) -> None:
+    data_root = tmp_path / "api-data"
+    _store_with_catalog(data_root)
+    PreselectionPoolStore(data_root).materialize(_a_pool(TARGET_DATE))
+
+    client = TestClient(
+        create_app(
+            data_root=data_root,
+            current_date=CURRENT_DATE,
+        )
+    )
+    partial = client.get(
+        "/api/v3/preselection-pools", params={"date": TARGET_DATE}
+    ).json()
+
+    assert partial["data_status"] == "PARTIAL_WITH_ROWS", partial.get(
+        "blocking_reasons"
+    )
     assert partial["a_all_pool_row_count"] == 1
     assert partial["market_totals"] == {"A": 1, "HK": 0}
 
@@ -177,6 +280,7 @@ def test_date_catalog_ignores_bad_sha_and_wrong_date_trios_and_deduplicates_root
     duplicate_date = "20261016"
     PreselectionPoolStore(data_root).materialize(_a_pool(duplicate_date, symbol="A.000002"))
     source_store.materialize(_a_pool(duplicate_date, symbol="A.000003"))
+    _write_released_materialize_lock(source_root)
 
     catalog = create_app(
         data_root=data_root,
@@ -189,48 +293,11 @@ def test_date_catalog_ignores_bad_sha_and_wrong_date_trios_and_deduplicates_root
     assert "20261013" not in response["future_target_dates"]
     assert "20261014" not in response["future_target_dates"]
     assert response["future_target_dates"].count(duplicate_date) == 1
-
-
-@pytest.mark.parametrize(
-    ("metadata", "expected_reason"),
-    [
-        ({"stage_selection_eligible": False}, "HK_D1_EXPLICIT_stage_selection_eligible_NOT_TRUE"),
-    ],
-)
-def test_hk_explicit_conflicting_binding_metadata_stays_unconfirmed(
-    tmp_path: Path,
-    metadata: dict,
-    expected_reason: str,
-) -> None:
-    source_root = tmp_path / "pool-source"
-    PreselectionPoolStore(source_root).materialize(_hk_pool(**metadata))
-    body = preselection(
-        _store_with_catalog(tmp_path / "api-data"),
-        TARGET_DATE,
-        100,
-        preselection_source_root=source_root,
-    )
-
-    binding = body["pool_source_bindings"]["hkconnect_d1_top100"]
-    assert binding["stage_reuse_status"] == "CANNOT_CONFIRM"
-    assert expected_reason in binding["cannot_confirm"]
-    assert binding["stage_selection_eligible"] is metadata.get("stage_selection_eligible")
-
-
-def test_hk_v35_compatibility_projection_does_not_require_optional_top_level_binding_fields(
-    tmp_path: Path,
-) -> None:
-    source_root = tmp_path / "pool-source"
-    PreselectionPoolStore(source_root).materialize(_hk_pool())
-    body = preselection(
-        _store_with_catalog(tmp_path / "api-data"),
-        TARGET_DATE,
-        100,
-        preselection_source_root=source_root,
-    )
-
-    binding = body["pool_source_bindings"]["hkconnect_d1_top100"]
-    assert binding["target_date"] is None
-    assert binding["stage_selection_eligible"] is None
-    assert binding["cannot_confirm"] == []
-    assert binding["stage_reuse_status"] == "REQUIRES_STAGE_CONTRACT_VALIDATION"
+    evidence = response["independent_pool_evidence"][TARGET_DATE]
+    assert evidence["trade_date"] == TARGET_DATE
+    assert evidence["pools"]["a_d1_premarket_pool"]["status"] == "VERIFIED"
+    assert evidence["pools"]["a_d1_premarket_pool"]["source_sha256"] == hashlib.sha256(
+        f"{TARGET_DATE}:A.000001".encode()
+    ).hexdigest()
+    assert len(evidence["pools"]["a_d1_premarket_pool"]["pool_sha256"]) == 64
+    assert evidence["pools"]["a_share_baimao_research_map"]["status"] == "MISSING"

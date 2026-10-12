@@ -17,6 +17,7 @@ from contracts.trading_calendar import (
 from infrastructure.data_store import NativeDataStore
 from infrastructure.preselection_pool_store import (
     POOL_ORDER,
+    PreselectionPoolIntegrityError,
     PreselectionPoolStore,
     PreselectionSourceResolver,
 )
@@ -69,7 +70,8 @@ def _verified_independent_pool_dates(
     store: NativeDataStore,
     *,
     preselection_source_root: Path | str | None = None,
-) -> tuple[str, ...]:
+    include_evidence: bool = False,
+) -> tuple[str, ...] | tuple[tuple[str, ...], dict[str, Any]]:
     """Discover dates with at least one SHA-verified independent pool.
 
     Pool families are independently published.  Requiring ``read_all`` here
@@ -81,6 +83,7 @@ def _verified_independent_pool_dates(
         globals(),
         store,
         preselection_source_root=preselection_source_root,
+        include_evidence=include_evidence,
     )
 
 
@@ -94,43 +97,92 @@ def preselection(
     preselection_source_root: Path | str | None = None,
 ) -> dict[str, Any]:
     from domains._preselection_parts.pool_assembly import _preselection_body as _v4_impl
+    from infrastructure import preselection_pool_sources as pool_source_reader
+    import infrastructure.preselection_pool_store as pool_store_api
 
     scope = globals()
-    if preselection_source_root is not None:
-        native_pool_store = PreselectionPoolStore
+    pool_read_evidence: dict[str, Any] = {}
 
-        class _ResolvedPoolStore:
-            """Keep the extracted assembler on its existing read_all port."""
+    class _ResolvedPoolStore:
+        """Keep the assembler's read_all port over verified locked snapshots."""
 
-            def __init__(self, root: Path | str) -> None:
-                self._resolver = PreselectionSourceResolver(
-                    root,
-                    source_root=preselection_source_root,
-                )
-                self._root_store = native_pool_store(root)
+        def __init__(self, root: Path | str) -> None:
+            self._resolver = PreselectionSourceResolver(
+                root,
+                source_root=preselection_source_root,
+            )
 
-            def read_all(self, trade_date: str) -> list[dict[str, Any]]:
-                owner = self._resolver.root_for_date(trade_date)
-                if owner == self._resolver.root:
-                    return self._root_store.read_all(trade_date)
+        def read_all(self, trade_date: str) -> list[dict[str, Any]]:
+            date = pool_store_api._date(trade_date)
+            snapshots, integrity_errors = pool_source_reader.read_all_with_quarantine(
+                self._resolver,
+                date,
+                _api=pool_store_api,
+            )
+            owner = self._resolver.root_for_date(date)
+            pool_by_id: dict[str, dict[str, Any]] = {}
+            for snapshot in snapshots:
+                artifact = snapshot.get("artifact")
+                pool_id = artifact.get("pool_id") if isinstance(artifact, Mapping) else None
+                if pool_id not in POOL_ORDER or pool_id in pool_by_id:
+                    raise ValueError("configured preselection snapshot pool identity is invalid")
+                pool_by_id[pool_id] = {
+                    "pool_id": pool_id,
+                    "market_lane": "HK_CONNECT" if pool_id == "hkconnect_d1_top100" else "A_SHARE",
+                    "market": artifact.get("market"),
+                    "status": "VERIFIED",
+                    "source_role": artifact.get("source_role"),
+                    "source_sha256": artifact.get("source_sha256"),
+                    "pool_sha256": snapshot.get("pool_sha256"),
+                    "physical_source_root": snapshot.get("physical_source_root", str(owner)),
+                    "diagnostics": [],
+                }
+            for error in integrity_errors:
+                if not isinstance(error, PreselectionPoolIntegrityError):
+                    raise ValueError("configured preselection quarantine outcome is untyped")
+                if error.pool_id not in POOL_ORDER or error.pool_id in pool_by_id:
+                    raise ValueError("configured preselection quarantine pool identity is invalid")
+                pool_by_id[error.pool_id] = {
+                    "pool_id": error.pool_id,
+                    "market_lane": "HK_CONNECT" if error.pool_id == "hkconnect_d1_top100" else "A_SHARE",
+                    "market": "HK" if error.pool_id == "hkconnect_d1_top100" else "A",
+                    "status": "CANNOT_CONFIRM",
+                    "source_role": None,
+                    "source_sha256": None,
+                    "pool_sha256": None,
+                    "physical_source_root": str(owner),
+                    "diagnostics": [f"PRESELECTION_POOL_INTEGRITY:{error.pool_id}:{error.reason}"],
+                }
+            for pool_id in POOL_ORDER:
+                if pool_id not in pool_by_id:
+                    pool_by_id[pool_id] = {
+                        "pool_id": pool_id,
+                        "market_lane": "HK_CONNECT" if pool_id == "hkconnect_d1_top100" else "A_SHARE",
+                        "market": "HK" if pool_id == "hkconnect_d1_top100" else "A",
+                        "status": "MISSING",
+                        "source_role": None,
+                        "source_sha256": None,
+                        "pool_sha256": None,
+                        "physical_source_root": str(owner),
+                        "diagnostics": [f"POOL_NOT_AVAILABLE:{pool_id}"],
+                    }
+            pool_read_evidence[date] = {
+                "trade_date": date,
+                "physical_source_root": str(owner),
+                "pools": pool_by_id,
+            }
 
-                pools: list[dict[str, Any]] = []
-                with self._resolver.source_read_lease(trade_date):
-                    for pool_id in POOL_ORDER:
-                        try:
-                            pools.append(self._resolver.read_pool(trade_date, pool_id))
-                        except FileNotFoundError:
-                            continue
-                        except (OSError, ValueError):
-                            pools.append(
-                                _unconfirmed_pool_source(pool_id, trade_date)
-                            )
-                if not pools:
-                    raise FileNotFoundError(trade_date)
-                return pools
+            pools = [snapshot["artifact"] for snapshot in snapshots]
+            pools.extend(
+                _unconfirmed_pool_source(error.pool_id, date, error.reason)
+                for error in integrity_errors
+            )
+            if not pools:
+                raise FileNotFoundError(date)
+            return pools
 
-        scope = {**scope, "PreselectionPoolStore": _ResolvedPoolStore}
-    return _v4_impl(
+    scope = {**scope, "PreselectionPoolStore": _ResolvedPoolStore}
+    response = _v4_impl(
         scope,
         store,
         date,
@@ -138,9 +190,15 @@ def preselection(
         offset=offset,
         allow_legacy_flat=allow_legacy_flat,
     )
+    evidence = pool_read_evidence.get(str(date))
+    if evidence is not None:
+        response["pool_source_evidence"] = evidence
+    return response
 
 
-def _unconfirmed_pool_source(pool_id: str, trade_date: str) -> dict[str, Any]:
+def _unconfirmed_pool_source(
+    pool_id: str, trade_date: str, reason: str | None = None
+) -> dict[str, Any]:
     """Quarantine one unreadable source while preserving other verified pools."""
 
     market = "HK" if pool_id == "hkconnect_d1_top100" else (
@@ -159,7 +217,14 @@ def _unconfirmed_pool_source(pool_id: str, trade_date: str) -> dict[str, Any]:
         "signal_date": "",
         "target_date": trade_date,
         "rows": [],
-        "cannot_confirm": [f"POOL_SOURCE_INTEGRITY_UNCONFIRMED:{pool_id}"],
+        "cannot_confirm": [
+            f"POOL_SOURCE_INTEGRITY_UNCONFIRMED:{pool_id}",
+            *(
+                [f"PRESELECTION_POOL_INTEGRITY:{pool_id}:{reason}"]
+                if reason
+                else []
+            ),
+        ],
         "production_allowed": False,
         "buy_gate_updated": False,
         "orders_sent": False,
