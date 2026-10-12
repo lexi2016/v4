@@ -1,0 +1,132 @@
+{
+  "API_execution_verified": false,
+  "API_snapshot_verified": true,
+  "BEHAVIOR_VERIFIED": "PASS",
+  "CANNOT_CONFIRM": [
+    "Live execution is not independently verified by the API: execution_verified=false; the API lists NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING, NO_IMMUTABLE_NATURAL_RECOVERY_HISTORY, RECEIPT_RECORD_TIME_NOT_RECORDED.",
+    "The saved integration/RECOVERY_EXECUTION.json is an older direct-runner invocation with exit code 3, not evidence for the attempt-3 consume command; coordinator-reported exit 0 is not independently established by that file."
+  ],
+  "NATURAL_SLOT_UNVERIFIED": true,
+  "P0_findings": [],
+  "P1_findings": [],
+  "P2_findings": [],
+  "api_snapshots": {
+    "cannot_confirm": [
+      "NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING",
+      "NO_IMMUTABLE_NATURAL_RECOVERY_HISTORY",
+      "RECEIPT_RECORD_TIME_NOT_RECORDED"
+    ],
+    "display_mode": "OBSERVATION_UNVERIFIED",
+    "execution_evidence_status": "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED",
+    "execution_verified": false,
+    "first_three_displayed_hk_codes": [
+      "HK.02670",
+      "HK.02915",
+      "HK.01952"
+    ],
+    "observation_count": 10,
+    "paths": [
+      "integration/AFTER_RECOVERY_API_8873.json",
+      "integration/AFTER_RECOVERY_API_61796.json"
+    ],
+    "recommendation_status": "WATCH_ONLY",
+    "same_sha256": "9dfedcb003360c166b410eeb694f4b0b1579370bee6cffc2db99ee8eb81ce99a",
+    "selected_hk_rows": null,
+    "stage_id": "STAGE_0930_0935",
+    "trade_date": "20261012"
+  },
+  "attempt3_diagnostic": {
+    "attempt_id": "c553310f27aa4d1f87e7cb7320f76b09",
+    "attempt_number": 3,
+    "authorizes_selection": false,
+    "due_status": "LATE_CATCHUP_REPLAY",
+    "errors": [],
+    "evaluated_at": "2026-10-12T11:17:41.752311+08:00",
+    "grants_retry": false,
+    "hk_snapshot_events": 0,
+    "return_sha256": "ef3ee461683ad42ff768696412e5cfdc138cf34fac6381d643857517d56ecc38",
+    "row_evidence_status": "NOT_OBSERVED",
+    "start_sha256": "89aa441499121340d3d9603f5b4f5877316f6b946ee2de4807b7b46c69942ae4"
+  },
+  "execution_command_evidence": {
+    "attempt3_consume_command_exit_code": "CANNOT_CONFIRM_FROM_SAVED_EXECUTION_RECORD",
+    "coordinator_reported_exit_code": 0,
+    "saved_record_describes": "older direct run_stage_center_nodes.py invocation",
+    "saved_record_exit_code": 3,
+    "saved_record_path": "integration/RECOVERY_EXECUTION.json",
+    "saved_record_sha256": "8b56194249c4677da101a3c88dd2e55e736e9f75289085c59d9bd8b9dc3b33c2"
+  },
+  "lineage_and_safety": {
+    "buy_gate_updated": false,
+    "cached_capture_after_stage_cutoff": true,
+    "cached_capture_started_at_utc": "2026-10-12T02:49:31.681972+00:00",
+    "d1_pool_sha256": "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d",
+    "hk_formal_eligibility": false,
+    "orders_sent": false,
+    "pit_safe": false,
+    "production_allowed": false,
+    "research_only": true,
+    "temporal_cutoff_safe": false
+  },
+  "protection": {
+    "a_0925_protection_sha256_after": "2e30ddf9f33a24b3f274e3f1d08b4f7826b3d01d22bcc1437e77f0bb5775ca12",
+    "a_0925_protection_sha256_before": "2e30ddf9f33a24b3f274e3f1d08b4f7826b3d01d22bcc1437e77f0bb5775ca12",
+    "before_evidence_path": "integration/BEFORE_RECOVERY.json",
+    "before_evidence_sha256": "6c2684c15cbeccd3307324f005dd357d37ada8615e4fd70b7bacdce6ea8fc6f5",
+    "preserved_a_run_id": "run-06b4545415863b69e090d09f",
+    "unchanged": true
+  },
+  "recovery_report": {
+    "execution_origin": "HK_ORIGINAL_BUDGET_RECOVERY",
+    "execution_pending": false,
+    "final_receipt_sha256": "75855e8a9878ad192a61a99cbc50186c20b9d5142f60d45d1f8f52119e77e619",
+    "formal_publication_performed": true,
+    "mode": "CONSUME_ATTEMPT3",
+    "node_attempt_count": 3,
+    "node_outcome": "SETTLED_PARTIAL",
+    "path": "evidence/isolated_hk_recovery_20261012_r7/RECOVERY_PREPARED.json",
+    "provider_calls": 0,
+    "run_id": "run-c38534baae0534d1ce1fa5ec",
+    "sha256": "030cd90606457a70b2289ea2a680db0f8ac2a906c436be9f91ab97aae333a2b6",
+    "status": "PARTIAL_WITH_ROWS"
+  },
+  "review_date": "2026-10-12",
+  "review_scope": "attempt-3 stored recovery, read-only store verification, A/0925 protection, saved API snapshots and UI screenshot",
+  "review_status": "PASS",
+  "schema_version": "hk.recovery_readonly_review.v1",
+  "store_readback": {
+    "raw_store": {
+      "artifact_sha256": "61bf5144100e18f28cc193f9425cbf0be640e6c982a88625ea40b59e036556c2",
+      "manifest_sha256": "d7d217a2671527f8371941428f22b02fa0acd1a79ce45689bb724c9684cdfb01",
+      "market": "HK_CONNECT",
+      "row_count": 100,
+      "source_id": "pytdx_exhq",
+      "stage_id": "STAGE_0930_0935",
+      "status": "PARTIAL_WITH_ROWS",
+      "temporal_cutoff_safe": false,
+      "trade_date": "20261012",
+      "verification": "PASS"
+    },
+    "selection_store": {
+      "all_rows_no_buy": true,
+      "artifact_sha256": "46fdc737fd960eaf05e76d51d85572c846dbe72bc224060da48a7c0a389cd552",
+      "row_count": 10,
+      "run_id": "run-c38534baae0534d1ce1fa5ec",
+      "status": "PARTIAL_WITH_ROWS",
+      "verification": "PASS"
+    }
+  },
+  "ui_screenshot": {
+    "behavior_match_to_api": true,
+    "first_two_visible_hk_codes": [
+      "HK.02670",
+      "HK.02915"
+    ],
+    "path": "integration/UI_0930_RECOVERED.png",
+    "sha256": "6fccb356951686db02fb9985a4527a0bfa1f9284e0c281c872a351b22bd90a9d",
+    "visible_cannot_confirm_banner": true,
+    "visible_hk_observation_count": 10,
+    "visible_stage": "09:30–09:35",
+    "visible_status": "PARTIAL_WITH_ROWS"
+  }
+}
