@@ -1,0 +1,33 @@
+{
+  "status": "DEPLOYED",
+  "at": "2026-10-12T05:40:51.358375+00:00",
+  "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/afternoon-auto-stages-20261012-r1/app",
+  "manifest_sha256": "7f0e5cbb565cdb3609e22b0c688ecd29a436d4d13b7bc22696ba85cb37b30d84",
+  "config_sha256": "437b1db3b4ac9f38e6c0e28ad002fa2d22bfcbaba139f4d2290ce35eb898ed54",
+  "plist_sha256": "3fdd9d40472d683005f438bc332373621e30e804681beda304b1dfcb9575a3aa",
+  "changes": {
+    "ops/_run_stage_center_nodes_parts/stage_dispatch.py": {
+      "before": "fc3a40dbee0ee438abaa9723bfee3d96acc86e31ed6e9a79239c04f03c18e11a",
+      "after": "3cd3003857efd3b9ecb3c1cdd6e272483932749f1d9b38c57b9026b3a4c40fc9"
+    },
+    "stage_center_tick_config.json": {
+      "before": "4fae43270f368881727c69f916f3cc22fdb74fd1e5bd5d7496c5fcbdd01c71c4",
+      "after": "437b1db3b4ac9f38e6c0e28ad002fa2d22bfcbaba139f4d2290ce35eb898ed54"
+    }
+  },
+  "other_current_runtime_inventory_identical": true,
+  "preexisting_runtime_generated_cache_drift": [
+    "domains/__pycache__/research.cpython-314.pyc",
+    "ops/_run_stage_center_nodes_parts/__pycache__/node_entry.cpython-314.pyc",
+    "ops/_run_stage_center_nodes_parts/__pycache__/stage_dispatch.cpython-314.pyc"
+  ],
+  "schedule_unchanged": true,
+  "run_at_load": false,
+  "review_sha256": "345ce4649b38d06f887d4bc155d3c2a2899468e4c441b89c0c4aa763a125e4b8",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
