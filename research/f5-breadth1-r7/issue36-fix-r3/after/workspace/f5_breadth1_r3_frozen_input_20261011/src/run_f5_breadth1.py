@@ -274,6 +274,20 @@ def _preflight_registered_r7_resume(
     contract, contract_sha = _read_chain_control(paths["resume_contract"], controls.get("contract_sha256"))
     pending_binding, pending_sha = _read_chain_control(paths["resume_pending_binding"], controls.get("pending_binding_sha256"))
     _, read_release_sha = _read_chain_control(paths["resume_read_release"], controls.get("read_release_sha256"))
+    resume_plan_path = BATCH_ROOT / "receipts" / "r7_recovery_06" / "control_resume" / "R7_RECOVERY_06_RESUME_READ_PLAN_V3.json"
+    resume_plan, resume_plan_sha = _read_chain_control(resume_plan_path, controls.get("read_plan_sha256"))
+    if (
+        resume_plan.get("contract_sha256") != contract_sha
+        or resume_plan.get("pre_admission_binding_sha256") != pending_sha
+        or resume_plan.get("pre_admission_binding_path") != str(paths["resume_pending_binding"].resolve())
+        or resume_plan.get("read_release_sha256") != read_release_sha
+        or resume_plan.get("read_release_path") != str(paths["resume_read_release"].resolve())
+        or resume_plan.get("recovery_execution_id") != PANEL_HEADER_RECOVERY_EXECUTION_ID
+        or resume_plan.get("recovery_action_key") != PANEL_HEADER_RECOVERY_ACTION_KEY
+        or resume_plan.get("recovery_output_path") != str(paths["resume_run"].relative_to(PROJECT_ROOT))
+        or controls.get("read_plan_sha256") != resume_plan_sha
+    ):
+        raise SyntheticChainError("R7_RESUME_V3_PLAN_DOES_NOT_BIND_ACTIVE_INPUT")
     if (
         contract.get("status") != "DRAFT_NO_REAL_RUN"
         or contract.get("is_execution_contract") is not False
