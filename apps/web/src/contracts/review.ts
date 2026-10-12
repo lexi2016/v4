@@ -402,6 +402,12 @@ export type ReviewEnvelope = {
   orders_sent: false;
 };
 
+// Compatibility shape for older callers that consumed a partial envelope.
+// Canonical review requests and views continue to use the exact ReviewEnvelope.
+export type ReviewResponse = Omit<Partial<ReviewEnvelope>, "market_reviews"> & {
+  market_reviews?: { A?: AShareReview; HK?: HkReview };
+};
+
 
 export type ManualReviewResult = {
   status: "READY_FOR_REVIEW" | "ALREADY_EXISTS";

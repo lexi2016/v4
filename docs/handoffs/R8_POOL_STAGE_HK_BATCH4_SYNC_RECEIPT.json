@@ -1,0 +1,90 @@
+{
+  "batch": 4,
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "review_receipt_sha256": "f6735036700cb3b930442bade2e197c47251d2bd39d89e45f30a82f4d76a7825",
+  "review_report_sha256": "3b7764ba5496fe2ade462162918c6c28718bce3fcece2fb0d468c39ed9e5d952",
+  "actualdiff_sha256": "6f09571a68f5b913169f9787cbc6179cdb38483dea5db67ba0ec06da142be84b",
+  "files": [
+    {
+      "path": "apps/web/src/app_shell/useAppShell.ts",
+      "exists_before": true,
+      "before_sha256": "8450f0f0b9331269b9d09956b5d93b6d6561396717cbae9bea7a25441befacbe",
+      "exists_after": true,
+      "after_sha256": "5127b660f70b0a4ac6248231f3a5d8c2a92db9964ae281a028e386c6209cb9d8",
+      "changed_from_batch_start": true,
+      "git_status_before": "?? apps/web/src/app_shell/useAppShell.ts"
+    },
+    {
+      "path": "apps/web/src/app_shell/types.ts",
+      "exists_before": true,
+      "before_sha256": "d6981d7c05322d50032cbcd40978de9fdfadda354095d83d4538b7f830b8ab84",
+      "exists_after": true,
+      "after_sha256": "ac2476ae8e2216162dd9d7545421b7401c923c7c45a6eedc029cef094d089a70",
+      "changed_from_batch_start": true,
+      "git_status_before": "?? apps/web/src/app_shell/types.ts"
+    },
+    {
+      "path": "apps/web/src/app_shell/formatters.ts",
+      "exists_before": true,
+      "before_sha256": "3838bbff3570184af0831b797f5ee4ba7151666ce07597b17fbd1fe72bebbde9",
+      "exists_after": true,
+      "after_sha256": "64bcbb0ccedde190fd82f351034bd0b51b8a2f8d658e62b72a8168c7846c65c2",
+      "changed_from_batch_start": true,
+      "git_status_before": "?? apps/web/src/app_shell/formatters.ts"
+    },
+    {
+      "path": "apps/web/src/contracts/review.ts",
+      "exists_before": true,
+      "before_sha256": "894aca0e6d7018ce96ab37fdf9ae8ff3daed4aa6c131d48a6a7b981883d9a0e8",
+      "exists_after": true,
+      "after_sha256": "da230f3295a619a72650606bda29c0f17b5e9c62447d61566f6e6a3208704945",
+      "changed_from_batch_start": true,
+      "git_status_before": "M apps/web/src/contracts/review.ts"
+    },
+    {
+      "path": "apps/web/src/api/pool_stage.ts",
+      "exists_before": false,
+      "before_sha256": null,
+      "exists_after": true,
+      "after_sha256": "3baf74663ee3c86ed7ff65e39bc138cada85d1de3d47d266d1558a0c231fa6ff",
+      "changed_from_batch_start": true,
+      "git_status_before": ""
+    },
+    {
+      "path": "apps/web/src/api/pool_stage.spec.ts",
+      "exists_before": false,
+      "before_sha256": null,
+      "exists_after": true,
+      "after_sha256": "a2695a1783141de147cfb8621636e784740b6589a7512259b793b5f305a98240",
+      "changed_from_batch_start": true,
+      "git_status_before": ""
+    },
+    {
+      "path": "apps/web/src/App.spec.ts",
+      "exists_before": true,
+      "before_sha256": "8e67d87f39a2fd958513a15c7d7f60f822f040e13d55b85f6485d0f62f6f10be",
+      "exists_after": true,
+      "after_sha256": "e21ad2d910770302a42b56808aae092f59ef8afec55ce2b27e37a90dac175bb3",
+      "changed_from_batch_start": true,
+      "git_status_before": "M apps/web/src/App.spec.ts"
+    },
+    {
+      "path": "apps/web/src/App.vue",
+      "exists_before": true,
+      "before_sha256": "ffbfcde222175c7849dfd5a1089cafe6c104dea2a1760b18645d95bc48780530",
+      "exists_after": true,
+      "after_sha256": "2e8e74b0cb5b8cc6a18a7225f8e168dfcdd68d128945168d48c05d2afd39fc50",
+      "changed_from_batch_start": true,
+      "git_status_before": "M apps/web/src/App.vue"
+    }
+  ],
+  "REVIEWED": "PASS",
+  "BEHAVIOR_VERIFIED": "PASS localfrozenbehavior",
+  "INTEGRATED": false,
+  "DEPLOYED": false,
+  "API_VERIFIED": false,
+  "UI_VERIFIED": false,
+  "NATURAL_VERIFIED": false,
+  "baseline_failures": null
+}
