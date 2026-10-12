@@ -1,6 +1,6 @@
 # 交接：2026-10-12 下午港股通阶段选股与页面恢复
 
-记录时间：2026-10-12 16:31，Asia/Shanghai。本文是未完成工作的交接，不是恢复成功报告。接手前核对实际运行身份；下面的运行状态最后核对于本轮，候选可能继续变化。
+记录时间：2026-10-12 16:34，Asia/Shanghai。本交接冻结截至此时的状态，不因后续 worker 进展反复覆盖。本文不是恢复成功报告；接手应消费后续新 final/receipt，并核对实际运行身份。
 
 ## 目标与用户决定
 
@@ -78,13 +78,15 @@ runtime fixture 新检查在 runner 执行前发现：receipt 的 `A_SHARE.run_i
 
 API Writer 已 FINAL 交接（仅辅助验证完成，未独立验收）：`futu/api_projection/app/apps/api/v35_api/app.py`，SHA256 `864cfafd69b1aa6a8245e40b008f84d75dff8f232fc69723494999a98d5c3863`；baseline app.py SHA256 `1b144675d94ef0efb8d92063b5a5b8b04391108bcb0e9db8b46cbb975bb35dfa`。收据 `futu/api_projection/evidence/WRITER_RECEIPT.json` SHA256 `8b617b701fd5f84be238e93b67075e9fe8ed9e6e5b2aa93f1e89f628b392fd60`。复跑命令：`/Users/lexi/Desktop/学习/v4_app/.venv/bin/python /Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/api_projection/evidence/test_api_projection.py`。系统 Python 缺 FastAPI，勿换测试环境。父级已将该最终候选交同一独立 Reviewer，先验 API 面，不冒充 runtime PASS。
 
+16:34 独立 Reviewer 已完成上述 API 面：`PASS_API_PROJECTION_DIRECT_TEST`，无 P0/P1/P2。两个目标路由复跑显示实际 HK10/源16，观察状态、NO_BUY、false flags 与缺口保留；无效身份/状态遮蔽 HK，A 保持。selection latest 的 receipt SHA 是 canonical JSON SHA，与 receipt 原文件 byte SHA 不同是合同约定，Reviewer 已分别重算匹配，不是新故障。主控已请 Reviewer 保存精简 `futu/api_projection/evidence/INDEPENDENT_REVIEW.json`；接手核对是否已落盘及其 SHA，不能凭待生成路径作证据。API 已达可集成候选状态，**未部署、未实际页面验收**；runtime 面仍未通过。
+
 ## 正在工作的所有者
 
 | Agent | 本批唯一 ownership | 当前终态 |
 | --- | --- | --- |
 | `/root/afternoon_cutoff_writer` | runtime adapter/wrapper/RawStore/registry/dispatcher、13:15 严格一次新来源恢复；已冻结 API RawStore 字节 | RUNNING；生产路径测试仍未通过，扩展 packet 未完成正式交接 |
-| `/root/afternoon_cutoff_review` | 独立只读验收 frozen 实际 diff、真实缓存 runner、A 保持、provider 零调用和 NO_BUY | 等扩展冻结 packet；旧 frozen15_r1 无生产行为 PASS |
-| `/root/afternoon_api_projection_writer` | 新 `futu/api_projection` 下 `apps/api/v35_api/app.py` 候选与必要测试 | FINAL 已消费，待独立 Reviewer；未部署 |
+| `/root/afternoon_cutoff_review` | 独立只读验收 frozen 实际 diff、真实缓存 runner、A 保持、provider 零调用和 NO_BUY | API 面独立 PASS；runtime 等扩展冻结 packet，旧 frozen15_r1 无生产行为 PASS |
+| `/root/afternoon_api_projection_writer` | 新 `futu/api_projection` 下 `apps/api/v35_api/app.py` 候选与必要测试 | FINAL 已消费，API 独立 PASS；未部署 |
 
 API app.py 写权已从 runtime Writer 撤销，两个 Writer 不写同一文件。不要复制或取消健康 worker；接手先消费其新 final/receipt，避免重复派工。候选目录存在不等于交接完成，`frozen15_r2/PACKET.json` 已出现也不能自行视为 PASS。
 
