@@ -1,0 +1,74 @@
+{
+  "budget_facts": {
+    "CaptureBudget_seconds": 45.0,
+    "interval_seconds": 0.5,
+    "max_requests": 57,
+    "real_full_market_elapsed": "NOT_MEASURED",
+    "real_single_request_latency": "NOT_MEASURED"
+  },
+  "candidate": {
+    "activation_status": "NOT_ACTIVATED",
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_HKEX_DIRECT_PREOPEN_20261012_R1/integration/minimal-api-owner-r4-r2/app",
+    "application_inventory_sha256": "a5e9fe67602502a991fd512e4141371270bd114bfec98b6462d18103b4aa309b",
+    "file_count": 1031,
+    "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_HKEX_DIRECT_PREOPEN_20261012_R1/integration/minimal-api-owner-r4-r2/release-manifest.json",
+    "release_manifest_sha256": "042ed01b839516d52f7e243b5ad7a56eece19e6de346d9f5c8cfb539058a5c59",
+    "safety_flags": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    }
+  },
+  "changed_paths": [
+    {
+      "baseline_sha256": "dd016a569a81f53334f01183be03774e062b3fd7b06afab1e98012efb7b1d427",
+      "mode": "0444",
+      "path": "tests/test_manager_hkex_preopen_regression.py",
+      "sha256": "53e2d93b92307a29c7421509acdd27ff04f0f415e38daddfcafc5be60abbe4d3",
+      "size": 33020
+    },
+    {
+      "baseline_sha256": "1827d6826280406370a696ab07f3de91e6af834b2431a2e05805d8c5be24a26f",
+      "mode": "0444",
+      "path": "v4/manager_research/announcement_autorun.py",
+      "sha256": "9bdb97998408016628149f1dc8bf9a56a072b45abb1fe4aa6b7f93df3d716a5a",
+      "size": 30982
+    }
+  ],
+  "frozen_base": {
+    "application_inventory_sha256": "0f0504cc250aaa7384b21b279718c20138ba8f53b4cdca74dd5e287335984b0c",
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_HKEX_DIRECT_PREOPEN_20261012_R1/integration/minimal-api-owner-r4/app",
+    "file_count": 1031,
+    "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_HKEX_DIRECT_PREOPEN_20261012_R1/integration/minimal-api-owner-r4/release-manifest.json",
+    "release_manifest_sha256": "d8fbb6729a0c3fa94de0c057d4662127e7dc819f8034b964c3719e5a668592dc"
+  },
+  "goal": "Preserve completed HKEX full-market evidence when the real legacy collector hits the shared time budget on its initial active-stock-list cache miss.",
+  "limits": [
+    "No budget or request-limit increase; no new producer or network path; no fabricated issuer results."
+  ],
+  "regression": {
+    "focused_command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m pytest -q -p no:cacheprovider --basetemp=/tmp/v4-hkex-r4-r2-focused-final-20261012 tests/test_manager_hkex_preopen_regression.py -k scheduled_refresh_commits_market_before_legacy_active_list_budget_miss --tb=short",
+    "focused_result": "1 passed, 9 deselected in 0.21s",
+    "full_file_command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m pytest -q -p no:cacheprovider --basetemp=/tmp/v4-hkex-r4-r2-suite-final-20261012 tests/test_manager_hkex_preopen_regression.py --tb=short",
+    "full_file_result": "10 passed in 7.05s",
+    "name": "test_scheduled_refresh_commits_market_before_legacy_active_list_budget_miss",
+    "post_fix": "PASS: market directory/body is committed; attempt is PARTIAL; six selected issuers remain unqueried with failed_issuers empty; active-list cache remains absent and transport is not called.",
+    "pre_fix": "RED reproduced against frozen R4 source: real scheduled owner propagated ANNOUNCEMENT_TIME_BUDGET_EXHAUSTED; attempt was FAILED and autorun had no committed product.",
+    "virtual_timing": "Synthetic monotonic clock only: market directory response at t=44.5s, PDF body response at t=45.0s; the uncached real active-list capture then expires before transport. This is not a real network latency measurement."
+  },
+  "review": {
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM_UNTIL_REVIEWER_REPLAY",
+    "REVIEWED": "PENDING_INDEPENDENT_LUNA_MAX_REVIEW"
+  },
+  "runtime_and_publication": {
+    "live_api_ui_service_plist_canonical_git_mutations": "NONE",
+    "natural_slot": "CANNOT_CONFIRM",
+    "real_manager_root_canary": "NOT_RUN_BY_WRITER"
+  },
+  "schema_version": "v4.hkex_preopen.writer_source_closure.v1",
+  "source_delta_path": "/Users/lexi/Desktop/学习/agents调试/V4_HKEX_DIRECT_PREOPEN_20261012_R1/receipts/writer/minimal-api-owner-r4-r2/source-delta-r4-to-r4-r2.diff",
+  "source_delta_sha256": "ad1d1c08ff0fc79850603535a1faea337cc9cec84e906b0485cf49618101bfd1",
+  "status": "IMPLEMENTED_TESTED_REVIEW_PENDING",
+  "unchanged_path_count": 1029
+}

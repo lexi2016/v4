@@ -1,0 +1,23 @@
+{
+  "schema": "v4.hkex.latest_announcement_handoff.failure_snapshot.v1",
+  "observed_owner_started_at": "2026-10-12T14:50:21+08:00",
+  "elapsed_seconds_approx": 48,
+  "response_sha256": "ccbd0a9601703bbbeb0eed8aa3b779ced9bd6c87fbe89d3b0b7323aaa9767951",
+  "status": "PARTIAL",
+  "coverage": {
+    "native_master_count": 693,
+    "queried_issuer_count": 5,
+    "directory_exhaustion": "UNVERIFIED",
+    "all_official_announcements_captured": false,
+    "natural_run_verified": false
+  },
+  "gaps": [
+    "ANNOUNCEMENT_TIME_BUDGET_EXHAUSTED",
+    "CURRENT_FRONTEND_RISK_RENDERING_NOT_VERIFIED",
+    "DOCUMENT_BODY_NOT_PARSED",
+    "OFFICIAL_DIRECTORY_SERVER_PAGINATION_EXHAUSTION_UNVERIFIED",
+    "SOURCE_QUERY_CUTOFF_PRECEDES_CURRENT_PLAN_CUTOFF",
+    "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED"
+  ],
+  "raw_response_packaged": false
+}
