@@ -1,5 +1,10 @@
 /** Readable view for the date-bound, source-separated HK announcement analysis. */
-import type { ManagerAnnouncementAnalysis, AnnouncementAnalysisObject } from '../api/managerAnnouncementAnalysis.js';
+import type {
+  ManagerAnnouncementAnalysis,
+  AnnouncementAnalysisObject,
+  AnnouncementPreopenWindowReadback,
+  AnnouncementWindowCandidate,
+} from '../api/managerAnnouncementAnalysis.js';
 import { verifiedAnnouncementResearchResult } from './dailyChannels.js';
 
 const text=(value:unknown,fallback='未提供')=>typeof value==='string'&&value?value:
@@ -37,12 +42,135 @@ function details(label:string,value:unknown):HTMLDetailsElement{
   const node=element('details');node.append(element('summary',label));
   const pre=element('pre',JSON.stringify(value,null,2));node.append(pre);return node;
 }
+function auditView(value:unknown):unknown{
+  if(Array.isArray(value))return value.map(auditView);
+  if(!value||typeof value!=='object')return value;
+  return Object.fromEntries(Object.entries(value as Record<string,unknown>)
+    .filter(([key])=>!['path','local_path','uri'].includes(key))
+    .map(([key,item])=>[key,auditView(item)]));
+}
 const dispositionLabel=(value:unknown)=>{
   const status=text(value,'NOT_ASSESSED');
   return status==='SELECTED_EVENT'?'入选事件研究':status==='SELECTED_PERFORMANCE'?'入选业绩研究':
     status==='CONDITIONAL_WATCH'?'条件观察':status==='NOT_SELECTED'?'本次未入选':
     status==='NOT_ASSESSED'?'未评估':'状态未识别';
 };
+
+function windowIssuerNames(value:unknown):string{
+  if(!Array.isArray(value))return '发行人 CANNOT_CONFIRM';
+  const names=value.map(item=>{
+    if(typeof item==='string')return item;
+    const issuer=object(item),code=text(issuer.code,''),name=text(issuer.name,'');
+    return code&&name?`${code} ${name}`:code||name;
+  }).filter(Boolean);
+  return names.length?names.join('、'):'发行人 CANNOT_CONFIRM';
+}
+
+function windowCandidateView(candidate:AnnouncementWindowCandidate,group:'positive'|'watch'|'risk'|'other'):HTMLElement{
+  const card=element('article');
+  card.dataset.preopenCandidate=group;
+  card.dataset.preopenSourceIdentity=candidate.source_identity.id;
+  card.append(element('h4',`${candidate.title||candidate.source_identity.id}｜${candidate.source_identity.id}`));
+  card.append(element('p',`${windowIssuerNames(candidate.issuer_codes)}；来源发布日期 ${candidate.publication_date}；发布时间 ${candidate.publication_time||'CANNOT_CONFIRM'}（${candidate.publication_time_basis}）。`));
+  card.append(element('p',`研究分类 ${candidate.classification||'CANNOT_CONFIRM'}；方向 ${candidate.direction}；判定 ${dispositionLabel(candidate.disposition)}；事实充分性 ${candidate.evidence_sufficiency}。`));
+  if(candidate.factual_summary)card.append(element('p',`已核事实：${candidate.factual_summary}`));
+  if(candidate.why_useful)card.append(element('p',`研究依据：${candidate.why_useful}`));
+  card.append(element('p',`审核理由：${candidate.reason}`));
+  for(const risk of candidate.risk_notes)card.append(element('p',`风险/限制：${risk}`));
+  if(candidate.supporting_exact_quote)card.append(element('blockquote',`原文依据：${candidate.supporting_exact_quote}`));
+  const refs=element('div');refs.setAttribute('aria-label','公告原始来源引用');
+  refs.append(element('strong',`原始来源引用（${candidate.source_refs.length}）`));
+  for(const ref of candidate.source_refs){
+    const link=sourceLink(ref.url,`打开来源 ${ref.body_sha256.slice(0,12)}…`);
+    if(link)refs.append(element('span',' '),link);
+    refs.append(element('p',`正文 SHA ${ref.body_sha256}；附件 SHA ${ref.blob_sha256||'CANNOT_CONFIRM'}。`));
+  }
+  card.append(refs);
+  const audit=element('details');audit.append(element('summary','展开逐条来源身份与语义校验 SHA'));
+  audit.append(element('p',`语义 SHA ${candidate.semantic_record_sha256}；来源记录 SHA ${candidate.source_record_sha256}；正文 SHA ${candidate.body_text_sha256||'CANNOT_CONFIRM'}；解析类型 ${candidate.analysis_kind||'CANNOT_CONFIRM'}；正文状态 ${candidate.body_status||'CANNOT_CONFIRM'}。`));
+  card.append(audit);
+  return card;
+}
+
+/** Renders only the exact registered retrospective window; actual cutoff eligibility remains a separate state. */
+export function renderAnnouncementPreopenWindow(
+  host:HTMLElement,
+  value:ManagerAnnouncementAnalysis|undefined,
+  failure:string|undefined,
+):void{
+  host.replaceChildren();
+  host.setAttribute('aria-label','09:20 前港股公告研究窗口');
+  host.append(element('h3','09:20 前公告窗口回看（事后研究）'));
+  if(!value){
+    const status=element('p',failure?`公告窗口读回失败；候选与覆盖未知（${failure}）。`:'正在读取公告窗口；候选与覆盖未知。');
+    status.setAttribute('role','status');host.append(status);return;
+  }
+  const readback=value.preopen_window_readback;
+  if(!readback||readback.status!=='VERIFIED'||!readback.coverage||!readback.retrospective_research||!readback.actual_preopen){
+    const reason=readback?.reason||failure||'ANNOUNCEMENT_PREOPEN_WINDOW_NOT_VERIFIED';
+    const status=element('p',`窗口回读不可确认（${reason}）；不显示为零公告或零候选。`);
+    status.setAttribute('role','status');
+    const actual=element('section');actual.dataset.actualPreopenStatus='CANNOT_CONFIRM';
+    actual.append(element('h4','目标日截止时实际可用性（独立状态）'),
+      element('p','实际盘前资格 CANNOT_CONFIRM；窗口或资格链未核实，不把事后候选计作当时可用。'));
+    host.append(status,actual);return;
+  }
+  renderVerifiedPreopen(host,readback);
+}
+
+function renderVerifiedPreopen(host:HTMLElement,readback:AnnouncementPreopenWindowReadback):void{
+  const coverage=readback.coverage!,research=readback.retrospective_research!,actual=readback.actual_preopen!;
+  const windowStatus=element('p',`来源发布时间窗口 ${readback.window_start} 至 ${readback.as_of}（Asia/Shanghai）；仅显示由已复核语义和原始来源 SHA 绑定的事后研究。`);
+  windowStatus.dataset.preopenWindowBounds='true';host.append(windowStatus);
+  const missing=coverage.missing_dates.length?coverage.missing_dates.join('、'):'无';
+  const coverageText=element('p',`日期覆盖 ${coverage.status}：${coverage.covered_dates.length}/${coverage.expected_dates.length} 日；缺失 ${coverage.missing_date_count} 日（${missing}）。`);
+  coverageText.dataset.preopenCoverage=coverage.status;host.append(coverageText);
+  const candidates=research.candidates;
+  const positives=candidates.filter(candidate=>['SELECTED_EVENT','SELECTED_PERFORMANCE'].includes(candidate.disposition)&&
+    candidate.direction==='POSITIVE'&&candidate.evidence_sufficiency==='VERIFIED_EXISTING_FACTS');
+  const watches=candidates.filter(candidate=>candidate.disposition==='CONDITIONAL_WATCH');
+  const risks=candidates.filter(candidate=>candidate.direction==='NEGATIVE');
+  const others=candidates.filter(candidate=>!positives.includes(candidate)&&!watches.includes(candidate)&&!risks.includes(candidate));
+  const positiveEvents=positives.filter(candidate=>candidate.disposition==='SELECTED_EVENT').length;
+  const positivePerformance=positives.filter(candidate=>candidate.disposition==='SELECTED_PERFORMANCE').length;
+  host.append(element('p',`事后正向研究候选 ${positives.length} 条：事件 ${positiveEvents}，业绩 ${positivePerformance}；候选合计 ${research.candidate_count}；状态 ${research.status}。`));
+  const positiveSection=element('section');positiveSection.dataset.preopenPositive='true';
+  positiveSection.append(element('h4',`正向事件与业绩研究（${positives.length}）`));
+  if(positives.length)for(const candidate of positives)positiveSection.append(windowCandidateView(candidate,'positive'));
+  else positiveSection.append(element('p','当前没有可显示的已核验正向研究候选；这不代表零公告。'));
+  host.append(positiveSection);
+  const watchDetails=element('details');watchDetails.dataset.preopenWatch='true';
+  watchDetails.append(element('summary',`条件观察 WATCH（${watches.length}）`));
+  for(const candidate of watches)watchDetails.append(windowCandidateView(candidate,'watch'));
+  host.append(watchDetails);
+  const riskDetails=element('details');riskDetails.dataset.preopenRisk='true';
+  riskDetails.append(element('summary',`负向事实与风险 RISK（${risks.length}）`));
+  for(const candidate of risks)riskDetails.append(windowCandidateView(candidate,'risk'));
+  host.append(riskDetails);
+  const otherDetails=element('details');otherDetails.dataset.preopenOther='true';
+  otherDetails.append(element('summary',`未入选、未评估或方向未定（${others.length}）`));
+  for(const candidate of others)otherDetails.append(windowCandidateView(candidate,'other'));
+  host.append(otherDetails);
+  const pending=element('details');pending.dataset.preopenPending='true';
+  pending.append(element('summary',`待核队列（${research.pending_count}）`));
+  for(const row of research.pending_queue){
+    pending.append(element('p',`${row.publication_date} · ${row.source_identity.id} · ${row.reason_codes.join('；')||'原因 CANNOT_CONFIRM'}`));
+  }
+  host.append(pending);
+  const actualSection=element('section');actualSection.dataset.actualPreopenStatus=actual.status;
+  actualSection.append(element('h4','目标日截止时实际可用性（独立状态）'));
+  if(actual.status==='VERIFIED'){
+    actualSection.append(element('p',`截止时可用的正向候选 ${actual.positive_candidate_count} 条；这项资格依据单独的来源、review、资格与导入时间链核验。`));
+    for(const candidate of actual.positive_candidates)
+      actualSection.append(element('p',`${candidate.publication_date} · ${candidate.source_identity.id} · ${candidate.reason_codes.join('；')}`));
+  }else{
+    actualSection.append(element('p',`实际盘前资格 CANNOT_CONFIRM；不得把事后候选计作当时可用。缺口：${actual.gaps.join('；')||'资格链证据未核实'}。`));
+  }
+  host.append(actualSection);
+  const receipt=element('details');receipt.append(element('summary','展开注册绑定与覆盖校验摘要'));
+  receipt.append(element('p',`registered fingerprint ${readback.registered_fingerprint_sha256||'CANNOT_CONFIRM'}；input fingerprint ${readback.input_fingerprint_sha256||'CANNOT_CONFIRM'}。`));
+  host.append(receipt);
+}
 /** Independent readback gate: a sealed selection alone is NOT a reviewed owner import. */
 export function verifiedAnnouncementOwnerSelection(value: unknown): {verified:boolean; reason:string; retrospective:boolean} {
   const root=object(value),analysis=object(root.analysis),selection=object(analysis.stock_selection);
@@ -327,7 +455,7 @@ export function renderAnnouncementAnalysis(
     items.append(element('summary',`查看全部 ${records.length} 篇逐条内容与出处`));
     for(const record of records)items.append(recordView(record,decisionsByArticle.get(articleKey(record)),sourceCodeBasis));
     host.append(items,details('目录/语料/解析产品来源 SHA 与导入清单',{
-      source_manifest:analysis.source_manifest,source_manifest_sha256:analysis.source_manifest_sha256,
+      source_manifest:auditView(analysis.source_manifest),source_manifest_sha256:analysis.source_manifest_sha256,
       product_sha256:analysis.product_sha256,gaps:analysis.gaps,
     }));
   }else{
