@@ -1,0 +1,40 @@
+{
+  "schema": "V4_R7_INDEPENDENT_DOCUMENT_REVIEW_RECEIPT_V1",
+  "reviewer": "/root/r7_plan_review",
+  "model": "gpt-6-luna",
+  "reasoning_effort": "max",
+  "verdict": "REVIEWED: PASS",
+  "scope": "design, implementation plan and compact source-audit ledger only",
+  "first_draft_verdict": "FAIL",
+  "five_findings_closed": [
+    "all valid A pool rows and former exclusion test",
+    "pool-local corruption isolated under one root lock; root and lock errors fail closed",
+    "imported legacy close references remain compatible",
+    "StageRunner partial WATCH_ONLY output included in acceptance",
+    "Stage 8 natural versus historical existing regression preserved"
+  ],
+  "reviewed_artifact_sha256": {
+    "docs/superpowers/specs/2026-10-12-pool-stage-hk-review-simplification-design.md": "2ae7d7a8e0dd578b7737187efa9d783e712a5120e61c864e6ee9aae705f961ec",
+    "docs/superpowers/plans/2026-10-12-pool-stage-hk-review-simplification.md": "d8d2a69b4c610bc2f03f860c9b2e6b630068c9c6b2d2390a8495c8e1e216e475",
+    "docs/superpowers/audits/2026-10-12-pool-stage-hk-review/COMPACTION_RECEIPT.json": "1e74c43f2d789550a5f14dc0769f9e968ae552f50a1a298f43832c8429af59c9",
+    "docs/superpowers/audits/2026-10-12-pool-stage-hk-review/COVERAGE_RECEIPT.json": "3998234f601f1321b310283b60bc583b4c2a4d934eb4b328eb7a07a356525e7d",
+    "docs/superpowers/audits/2026-10-12-pool-stage-hk-review/DOCUMENTS_RECEIPT.json": "09621680f0703c04c33b90470cb5c165141379ec2a6d229431dbf0327add51f5",
+    "docs/superpowers/audits/2026-10-12-pool-stage-hk-review/README.md": "89c99adf2a274f12a7d6e432337dc4a6e92df8e59b5168be6aa32060dfc1b8bc",
+    "docs/superpowers/audits/2026-10-12-pool-stage-hk-review/build_bundle.py": "7aaa8c752719305b21c3492e211d18837568bedeae6bb8ef8338123dd91be656",
+    "docs/superpowers/audits/2026-10-12-pool-stage-hk-review/line_actions.csv": "a7eddcb3a42789f680ed95f1f045471d5c49ddf33524c0adcb473a25e5f116fc",
+    "docs/superpowers/audits/2026-10-12-pool-stage-hk-review/line_actions.json": "2c73779e4c260c3d0ef94a4e166cf1a12e4aaa4e1ff073db7fccd7e599ed42b8"
+  },
+  "independent_checks": {
+    "interval_count": 1360,
+    "canonical_source_files": 178,
+    "interval_gaps": 0,
+    "interval_overlaps": 0,
+    "semantic_sha256": "249a14de2f7eb5bf4d6dd272fc85d4a4e855f6d4d392ca6c365cf5ea186ecb34",
+    "method": "read-only inline Python expanded raw, compact JSON and compact CSV; canonical JSON UTF-8 ensure_ascii=False sorted keys compact separators; generator NOT_RUN"
+  },
+  "reviewer_correction": "The suffix …f1f750 was a typo in my final text. The independently computed semantic SHA is 249a14de2f7eb5bf4d6dd272fc85d4a4e855f6d4d392ca6c365cf5ea186ecb34. This correction changes only the mistyped suffix in my report; the review verdict stands.",
+  "business_tests": "NOT_RUN",
+  "services_collectors_runners": "NOT_RUN",
+  "api_ui_natural_behavior": "NOT_RUN / CANNOT_CONFIRM",
+  "business_sources_changed_by_this_round": false
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "V4_R7_LOSSLESS_COMPACTION_RECEIPT_V1",
+  "status": "LOSSLESS_COMPACTION_PASS",
+  "previous_delivered_json_sha256": "f4600ffc995c76e0f2e65965ad7619117c6588089a187467a860575f1fd47fde",
+  "previous_expanded_interval_semantics_sha256": "249a14de2f7eb5bf4d6dd272fc85d4a4e855f6d4d392ca6c365cf5ea186ecb34",
+  "expanded_interval_semantics_sha256": "249a14de2f7eb5bf4d6dd272fc85d4a4e855f6d4d392ca6c365cf5ea186ecb34",
+  "json_round_trip_sha256": "249a14de2f7eb5bf4d6dd272fc85d4a4e855f6d4d392ca6c365cf5ea186ecb34",
+  "csv_round_trip_sha256": "249a14de2f7eb5bf4d6dd272fc85d4a4e855f6d4d392ca6c365cf5ea186ecb34",
+  "ui_alias_semantics_sha256": "38054d772d56eb51378c3141939d1575620936f31a012868786f37bf77742fa0",
+  "previous_ui_alias_semantics_sha256": "38054d772d56eb51378c3141939d1575620936f31a012868786f37bf77742fa0",
+  "ui_inventory_alias_semantics_sha256": "38054d772d56eb51378c3141939d1575620936f31a012868786f37bf77742fa0",
+  "ui_inventory_alias_round_trip": "PASS",
+  "interval_count": 1360,
+  "source_count": 199,
+  "context_count": 790,
+  "string_dictionary_counts": {
+    "symbols": 469,
+    "evidence": 784,
+    "targets": 261,
+    "test_ids": 51,
+    "blockers": 14,
+    "reasons": 588
+  },
+  "encoding": "plain UTF-8 JSON and UTF-8 CSV; no gzip or base64",
+  "field_recovery": "source_id joins sources; context_id joins symbols/evidence/targets/test_ids/blockers; reason_id joins reasons",
+  "lossless_round_trip": "PASS",
+  "outputs": {
+    "line_actions.json": {
+      "sha256": "2c73779e4c260c3d0ef94a4e166cf1a12e4aaa4e1ff073db7fccd7e599ed42b8",
+      "bytes": 839294
+    },
+    "line_actions.csv": {
+      "sha256": "a7eddcb3a42789f680ed95f1f045471d5c49ddf33524c0adcb473a25e5f116fc",
+      "bytes": 113480
+    }
+  }
+}
