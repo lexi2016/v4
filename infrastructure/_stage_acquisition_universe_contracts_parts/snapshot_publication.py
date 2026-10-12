@@ -163,6 +163,8 @@ def _build_strict_stage_acquisition_universe_body(_v4_scope, /, snapshot):
         },
         "pool_contribution_counts": _v4_global(_v4_scope, 'dict')(snapshot.pool_contribution_counts),
         "known_pool_ids": _v4_global(_v4_scope, 'list')(snapshot.known_pool_ids),
-        "available_pool_ids": _v4_global(_v4_scope, 'list')(snapshot.pool_ids),
+        "available_pool_ids": [
+            item["pool_id"] for item in provenance if item.get("available", True) is True
+        ],
     }
     return artifact

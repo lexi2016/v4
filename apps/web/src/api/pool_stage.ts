@@ -227,6 +227,54 @@ function validateMarketSummaries(value: unknown) {
   }
 }
 
+function validateSelectionMarkets(value: unknown, requestedDate: string, stageId: string) {
+  if (Array.isArray(value)) {
+    if (value.some((market) => market !== "A" && market !== "HK")) {
+      invalid("阶段工作台", "selection_markets 数组只允许 A/HK");
+    }
+    return;
+  }
+  if (!isRecord(value)) invalid("阶段工作台", "selection_markets 必须是 A/HK 数组或市场结果对象");
+
+  for (const [market, summaryValue] of Object.entries(value)) {
+    const label = `阶段工作台 selection_markets.${market}`;
+    if (market !== "A_SHARE" && market !== "HK_CONNECT") {
+      invalid("阶段工作台", `selection_markets 含非法市场 ${market}`);
+    }
+    if (!isRecord(summaryValue)) invalid(label, "市场结果必须是对象");
+    if (summaryValue.market !== market) invalid(label, "market 与对象键不一致");
+    if (summaryValue.trade_date !== requestedDate) invalid(label, "trade_date 与请求日期不一致");
+    if (summaryValue.stage_id !== stageId) invalid(label, "stage_id 与请求不一致");
+
+    for (const key of ["status", "selection_status"]) {
+      if (typeof summaryValue[key] !== "string") invalid(label, `缺少 ${key}`);
+      status(summaryValue[key], label);
+    }
+    for (const key of ["source_status", "research_source_status"]) {
+      status(summaryValue[key], label);
+    }
+    for (const key of ["requested_rows", "source_rows", "selected_rows"]) count(summaryValue[key], label, true);
+    const coverage = summaryValue.coverage_ratio;
+    if (coverage !== undefined && coverage !== null && (typeof coverage !== "number" || !Number.isFinite(coverage))) {
+      invalid(label, "coverage_ratio 必须是有限数字或 null");
+    }
+    if (summaryValue.rows !== undefined && summaryValue.rows !== null
+      && (!Array.isArray(summaryValue.rows) || summaryValue.rows.some((row) => !isRecord(row)))) {
+      invalid(label, "rows 必须是行对象数组或 null");
+    }
+    if (summaryValue.source_evidence !== undefined && summaryValue.source_evidence !== null
+      && (!Array.isArray(summaryValue.source_evidence) || summaryValue.source_evidence.some((item) => typeof item !== "string"))) {
+      invalid(label, "source_evidence 必须是字符串数组或 null");
+    }
+    if (summaryValue.cannot_confirm !== undefined && summaryValue.cannot_confirm !== null
+      && (!Array.isArray(summaryValue.cannot_confirm)
+        || summaryValue.cannot_confirm.some((item) => typeof item !== "string" && !isRecord(item)))) {
+      invalid(label, "cannot_confirm 必须是原因数组或 null");
+    }
+    boolean(summaryValue.selection_manifest_receipt_verified, label);
+  }
+}
+
 function validateStageResponse(payload: unknown, requestedDate: string, stageId: string): StageWorkbench {
   assertExactStagePayload(payload, requestedDate, stageId);
   if (!isRecord(payload)) invalid("阶段工作台", "响应不是对象");
@@ -239,11 +287,7 @@ function validateStageResponse(payload: unknown, requestedDate: string, stageId:
   if (typeof record.stage.display_status !== "string") invalid("阶段工作台", "缺少 stage.display_status");
   validateMarketSummaries(record.markets);
   validateMarketSummaries(record.market_summaries);
-  if (record.selection_markets !== undefined) {
-    if (!Array.isArray(record.selection_markets) || record.selection_markets.some((market) => market !== "A" && market !== "HK")) {
-      invalid("阶段工作台", "selection_markets 只允许 A/HK");
-    }
-  }
+  if (record.selection_markets !== undefined) validateSelectionMarkets(record.selection_markets, requestedDate, stageId);
   if (record.selected_a_rows === undefined) invalid("阶段工作台", "缺少 selected_a_rows");
   count(record.selected_a_rows, "阶段工作台");
   for (const key of ["selected_hk_rows", "selected_total_rows"]) count(record[key], "阶段工作台", true);

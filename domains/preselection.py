@@ -121,11 +121,72 @@ def preselection(
             )
             owner = self._resolver.root_for_date(date)
             pool_by_id: dict[str, dict[str, Any]] = {}
+            legacy_pool_source_bindings: dict[str, dict[str, Any]] = {}
+            projection_source_pools: dict[str, dict[str, Any]] = {}
+            legacy_snapshot_fields = (
+                "physical_source_root",
+                "artifact_relative",
+                "manifest_relative",
+                "receipt_relative",
+                "artifact_raw_sha256",
+                "manifest_raw_sha256",
+                "receipt_raw_sha256",
+            )
             for snapshot in snapshots:
                 artifact = snapshot.get("artifact")
                 pool_id = artifact.get("pool_id") if isinstance(artifact, Mapping) else None
                 if pool_id not in POOL_ORDER or pool_id in pool_by_id:
                     raise ValueError("configured preselection snapshot pool identity is invalid")
+                if any(field not in snapshot for field in legacy_snapshot_fields):
+                    raise ValueError("configured preselection snapshot binding is incomplete")
+                cannot_confirm: list[str] = []
+                if pool_id == "hkconnect_d1_top100":
+                    canonical_pool = (
+                        artifact.get("schema_version") == "v3_5.preselection_pool.v1"
+                    )
+                    if "target_date" in artifact and artifact.get("target_date") != date:
+                        cannot_confirm.append(
+                            "HK_D1_EXPLICIT_target_date_MISSING_OR_MISMATCH"
+                        )
+                    elif "target_date" not in artifact and not canonical_pool:
+                        cannot_confirm.append(
+                            "HK_D1_EXPLICIT_target_date_MISSING_OR_MISMATCH"
+                        )
+                    if (
+                        "stage_selection_eligible" in artifact
+                        and artifact.get("stage_selection_eligible") is not True
+                    ):
+                        cannot_confirm.append(
+                            "HK_D1_EXPLICIT_stage_selection_eligible_NOT_TRUE"
+                        )
+                    elif "stage_selection_eligible" not in artifact and not canonical_pool:
+                        cannot_confirm.append(
+                            "HK_D1_EXPLICIT_stage_selection_eligible_NOT_TRUE"
+                        )
+                legacy_binding = {
+                    field: snapshot[field] for field in legacy_snapshot_fields
+                }
+                legacy_binding.update(
+                    {
+                        "trade_date": date,
+                        "target_date": artifact.get("target_date"),
+                        "source_sha256": artifact["source_sha256"],
+                        "source_role": artifact["source_role"],
+                        "source_run_id": artifact.get("source_run_id"),
+                        "stage_selection_eligible": artifact.get(
+                            "stage_selection_eligible"
+                        ),
+                        "physical_status": "TRIO_VERIFIED",
+                        "cannot_confirm": cannot_confirm,
+                        "stage_reuse_status": (
+                            "CANNOT_CONFIRM"
+                            if cannot_confirm
+                            else "REQUIRES_STAGE_CONTRACT_VALIDATION"
+                        ),
+                    }
+                )
+                legacy_pool_source_bindings[str(pool_id)] = legacy_binding
+                projection_source_pools[str(pool_id)] = dict(artifact)
                 pool_by_id[pool_id] = {
                     "pool_id": pool_id,
                     "market_lane": "HK_CONNECT" if pool_id == "hkconnect_d1_top100" else "A_SHARE",
@@ -171,6 +232,13 @@ def preselection(
                 "physical_source_root": str(owner),
                 "pools": pool_by_id,
             }
+            if preselection_source_root is not None:
+                pool_read_evidence[date]["_legacy_pool_source_bindings"] = (
+                    legacy_pool_source_bindings
+                )
+                pool_read_evidence[date]["_projection_source_pools"] = (
+                    projection_source_pools
+                )
 
             pools = [snapshot["artifact"] for snapshot in snapshots]
             pools.extend(
@@ -192,7 +260,35 @@ def preselection(
     )
     evidence = pool_read_evidence.get(str(date))
     if evidence is not None:
+        legacy_bindings = evidence.pop("_legacy_pool_source_bindings", None)
+        projection_source_pools = evidence.pop("_projection_source_pools", {})
         response["pool_source_evidence"] = evidence
+        if response.get("ok") is True and isinstance(legacy_bindings, dict) and legacy_bindings:
+            projected_pools = {
+                str(pool.get("pool_id")): pool
+                for pool in response.get("pools", [])
+                if isinstance(pool, Mapping) and pool.get("pool_id")
+            }
+            for pool_id, binding in legacy_bindings.items():
+                projected = projected_pools.get(pool_id)
+                if projected is None:
+                    projected = projection_source_pools.get(pool_id)
+                if not isinstance(projected, Mapping):
+                    binding["projection_source_matches"] = False
+                    binding["cannot_confirm"].append("PROJECTION_SOURCE_NOT_RETURNED")
+                    binding["stage_reuse_status"] = "CANNOT_CONFIRM"
+                    continue
+                binding["projection_source_matches"] = (
+                    projected.get("source_sha256") == binding["source_sha256"]
+                    and projected.get("source_run_id") == binding["source_run_id"]
+                    and projected.get("source_role") == binding["source_role"]
+                )
+                if not binding["projection_source_matches"]:
+                    binding["cannot_confirm"].append(
+                        "PROJECTION_USES_SEPARATE_REVIEW_CORE_AUTHORITY"
+                    )
+                    binding["stage_reuse_status"] = "CANNOT_CONFIRM"
+            response["pool_source_bindings"] = legacy_bindings
     return response
 
 

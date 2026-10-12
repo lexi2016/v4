@@ -65,6 +65,7 @@ export type MarketSummary = {
   label?: string; candidate_count?: number | null; source_rows?: number | null;
   requested_rows?: number | null; source_status?: string; data_level?: string;
   status?: string; selection_status?: string; selected_rows?: number | null; coverage_ratio?: number | null;
+  source_evidence?: string[];
   cannot_confirm?: string[];
   display_mode?: string; display_reasons?: string[]; observation_count?: number | null;
   selection_mode?: string; backfill_run_id?: string | null; backfill_run_ids?: string[];
@@ -86,8 +87,29 @@ export type OpeningSecondFilter = {
   model_id?: string; model_version?: string; champion_contract?: string;
   markets?: { A?: OpeningSecondFilterMarket; HK?: OpeningSecondFilterMarket };
 };
+export type StageSelectionMarketId = "A_SHARE" | "HK_CONNECT";
+export type StageSelectionMarket = Readonly<Record<string, unknown>> & {
+  market: StageSelectionMarketId;
+  trade_date: string;
+  stage_id: string;
+  status: string;
+  selection_status: string;
+  source_status?: string;
+  research_source_status?: string;
+  requested_rows?: number | null;
+  source_rows?: number | null;
+  selected_rows?: number | null;
+  coverage_ratio?: number | null;
+  rows?: StageRow[] | null;
+  source_evidence?: string[] | null;
+  cannot_confirm?: Array<string | { reason?: string; description?: string }> | null;
+  selection_manifest_receipt_verified?: boolean;
+};
+export type StageSelectionMarkets = readonly ("A" | "HK")[]
+  | Readonly<Partial<Record<StageSelectionMarketId, StageSelectionMarket>>>;
 export type StageWorkbench = {
   ok?: boolean; trade_date?: string;
+  selection_markets?: StageSelectionMarkets;
   stage: { stage_id: string; label?: string; window?: string; status: string; display_status: string };
   markets?: { A?: MarketSummary; HK?: MarketSummary };
   unified_rows: StageRow[];

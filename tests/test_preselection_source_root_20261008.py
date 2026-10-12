@@ -199,6 +199,38 @@ def test_api_reads_exact_source_date_dedupes_a_pools_and_keeps_hk_separate(
     assert first["optional_pool_status"] == "CANNOT_CONFIRM"
     assert not any(row["symbol"].startswith("HK.") for row in first["a_all_pool_rows"])
     assert all(row["market"] == "A" for row in first["unified_rows"])
+    bindings = first["pool_source_bindings"]
+    assert set(bindings) == {
+        "a_d1_premarket_pool",
+        "a_share_research_recommendation_pool",
+        "hkconnect_d1_top100",
+    }
+    binding = bindings["a_d1_premarket_pool"]
+    assert binding["physical_source_root"] == str(_source_root)
+    assert binding["artifact_relative"] == (
+        f"preselection_pools/{DATE}/a_d1_premarket_pool.json"
+    )
+    assert binding["manifest_relative"] == f"preselection_pools/{DATE}/manifest.json"
+    assert binding["receipt_relative"] == (
+        f"preselection_pools/{DATE}/receipts/a_d1_premarket_pool.json"
+    )
+    for field in (
+        "artifact_raw_sha256",
+        "manifest_raw_sha256",
+        "receipt_raw_sha256",
+    ):
+        assert len(binding[field]) == 64
+    assert binding["source_sha256"] == hashlib.sha256(
+        "a_d1_premarket_pool".encode()
+    ).hexdigest()
+    assert binding["source_role"] == "RAW_SOURCE"
+    assert binding["physical_status"] == "TRIO_VERIFIED"
+    assert binding["projection_source_matches"] is True
+    assert binding["cannot_confirm"] == []
+    assert binding["stage_reuse_status"] == "REQUIRES_STAGE_CONTRACT_VALIDATION"
+    assert first["pool_source_evidence"]["pools"]["a_d1_premarket_pool"][
+        "status"
+    ] == "VERIFIED"
 
     second = client.get(
         "/api/v3/preselection-pools",
@@ -399,6 +431,13 @@ def test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows(
         )
         if pool_id != bad_pool_id
     )
+    legacy_bindings = response["pool_source_bindings"]
+    assert bad_pool_id not in legacy_bindings
+    assert legacy_bindings[verified_sibling]["physical_status"] == "TRIO_VERIFIED"
+    assert len(legacy_bindings[verified_sibling]["artifact_raw_sha256"]) == 64
+    assert len(
+        pool_evidence["pools"][verified_sibling]["pool_sha256"]
+    ) == 64
     assert pool_evidence["pools"][verified_sibling]["status"] == "VERIFIED"
     assert pool_evidence["pools"][verified_sibling]["source_sha256"] == hashlib.sha256(
         verified_sibling.encode()
@@ -407,6 +446,29 @@ def test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows(
     assert response["production_allowed"] is False
     assert response["buy_gate_updated"] is False
     assert response["orders_sent"] is False
+
+
+def test_configured_source_date_list_recovers_verified_pool_evidence(
+    tmp_path: Path,
+) -> None:
+    client, source_root = _client(
+        tmp_path,
+        {"a_d1_premarket_pool": [{"symbol": "A.000001"}]},
+    )
+
+    response = client.get(
+        "/api/v1/runs/date-list",
+        params={"date": DATE},
+    ).json()
+
+    assert response["ok"] is True
+    assert response["requested_date"] == DATE
+    assert DATE in response["dates"]
+    evidence = response["independent_pool_evidence"][DATE]
+    assert evidence["pools"]["a_d1_premarket_pool"]["status"] == "VERIFIED"
+    assert evidence["pools"]["a_d1_premarket_pool"]["physical_source_root"] == str(
+        source_root
+    )
 
 
 @pytest.mark.parametrize("missing_field", ["source_sha256", "source_role"])

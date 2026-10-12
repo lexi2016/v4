@@ -90,6 +90,25 @@ function stagePayload(date = "20261012", stageId = "STAGE_1545_1555") {
   };
 }
 
+function selectionMarket(market: "A_SHARE" | "HK_CONNECT", date = "20261012", stageId = "STAGE_1545_1555") {
+  return {
+    market,
+    trade_date: date,
+    stage_id: stageId,
+    status: "PARTIAL_WITH_ROWS",
+    selection_status: "PARTIAL_WITH_ROWS",
+    source_status: "PARTIAL_WITH_ROWS",
+    requested_rows: 16,
+    source_rows: 14,
+    selected_rows: 1,
+    coverage_ratio: 0.0625,
+    rows: [{ code: market === "A_SHARE" ? "A.000001" : "HK.00001" }],
+    source_evidence: ["exact_date=true", "read_only=true"],
+    selection_manifest_receipt_verified: false,
+    selection_manifest_sha256: "a".repeat(64),
+  };
+}
+
 afterEach(() => vi.unstubAllGlobals());
 
 describe("pool and stage API boundary", () => {
@@ -206,6 +225,82 @@ describe("pool and stage API boundary", () => {
     writable.orders_sent = true;
     vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(writable)));
     await expect(loadStageSnapshot("20261012", "STAGE_1545_1555")).rejects.toThrow("只读请求边界");
+  });
+
+  it("accepts current keyed selection market evidence and preserves partial/null results", async () => {
+    const payload = stagePayload() as any;
+    payload.selection_markets = {
+      A_SHARE: selectionMarket("A_SHARE"),
+      HK_CONNECT: selectionMarket("HK_CONNECT"),
+    };
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(payload)));
+
+    const result = await loadStageSnapshot("20261012", "STAGE_1545_1555");
+    expect(result.selection_markets).toEqual(payload.selection_markets);
+
+    const legacy = stagePayload();
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(legacy)));
+    const legacyResult = await loadStageSnapshot("20261012", "STAGE_1545_1555");
+    expect(legacyResult.selection_markets).toEqual(["HK"]);
+
+    const partial = stagePayload() as any;
+    partial.selected_hk_rows = null;
+    partial.selected_total_rows = null;
+    partial.selection_markets = {
+      HK_CONNECT: {
+        ...selectionMarket("HK_CONNECT"),
+        status: "CANNOT_CONFIRM",
+        selection_status: "CANNOT_CONFIRM",
+        selected_rows: null,
+        coverage_ratio: null,
+        rows: null,
+        cannot_confirm: ["HK_SELECTION_CANNOT_CONFIRM"],
+      },
+    };
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(partial)));
+    const partialResult = await loadStageSnapshot("20261012", "STAGE_1545_1555");
+    expect(partialResult.selected_hk_rows).toBeNull();
+    expect(partialResult.selected_total_rows).toBeNull();
+    expect(partialResult.selection_markets).toEqual(partial.selection_markets);
+  });
+
+  it("rejects invalid selection market keys, shapes, aliases, and evidence arrays", async () => {
+    const invalidCases: Array<{ selection_markets: unknown; message: string }> = [
+      { selection_markets: { US: selectionMarket("A_SHARE") }, message: "非法市场" },
+      { selection_markets: { A_SHARE: null }, message: "市场结果必须是对象" },
+      { selection_markets: { A_SHARE: { ...selectionMarket("A_SHARE"), market: "HK_CONNECT" } }, message: "market 与对象键不一致" },
+      { selection_markets: { A_SHARE: { ...selectionMarket("A_SHARE"), selection_status: undefined } }, message: "缺少 selection_status" },
+      { selection_markets: { A_SHARE: { ...selectionMarket("A_SHARE"), rows: ["not-a-row"] } }, message: "rows 必须是行对象数组" },
+      { selection_markets: { A_SHARE: { ...selectionMarket("A_SHARE"), source_evidence: [false] } }, message: "source_evidence 必须是字符串数组" },
+    ];
+    for (const testCase of invalidCases) {
+      const payload = { ...stagePayload(), selection_markets: testCase.selection_markets };
+      vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(payload)));
+      await expect(loadStageSnapshot("20261012", "STAGE_1545_1555")).rejects.toThrow(testCase.message);
+    }
+
+    const invalidLegacyAlias = stagePayload() as any;
+    invalidLegacyAlias.selection_markets = ["HK_CONNECT"];
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(invalidLegacyAlias)));
+    await expect(loadStageSnapshot("20261012", "STAGE_1545_1555")).rejects.toThrow("数组只允许 A/HK");
+  });
+
+  it("rejects keyed selection evidence for another date or stage", async () => {
+    const wrongDate = stagePayload() as any;
+    wrongDate.selection_markets = { A_SHARE: selectionMarket("A_SHARE", "20261011") };
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(wrongDate)));
+    await expect(loadStageSnapshot("20261012", "STAGE_1545_1555")).rejects.toThrow("trade_date 与请求日期不一致");
+
+    const wrongSelectionStage = stagePayload() as any;
+    wrongSelectionStage.selection_markets = {
+      HK_CONNECT: selectionMarket("HK_CONNECT", "20261012", "STAGE_1540_1545"),
+    };
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(wrongSelectionStage)));
+    await expect(loadStageSnapshot("20261012", "STAGE_1545_1555")).rejects.toThrow("stage_id 与请求不一致");
+
+    const wrongOuterDate = stagePayload("20261011");
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(wrongOuterDate)));
+    await expect(loadStageSnapshot("20261012", "STAGE_1545_1555")).rejects.toThrow("日期证据错误");
   });
 
   it("keeps page offset out of stage request input", async () => {

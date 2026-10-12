@@ -3,13 +3,26 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
-from infrastructure.data_store import _canonical_bytes
+from infrastructure.data_store import NativeDataStore, _canonical_bytes
 from infrastructure.preselection_pool_store import PreselectionPoolStore
+from infrastructure.stage_acquisition_universe_contracts import (
+    StageAcquisitionContractError,
+    _semantic_sha,
+    read_strict_a_preselection_snapshot,
+    validate_artifact_against_snapshot,
+    validate_strict_stage_acquisition_artifact,
+)
+from infrastructure.stage_acquisition_universe_commit import (
+    EvidenceIdentity,
+    StrictCommitError,
+    _validate_artifact,
+)
 from ops.materialize_stage_acquisition_universe import materialize_stage_acquisition_universe
 from stage_center.acquisition import SourceResult, build_plan
 from stage_center.candidate_input import read_candidate_input
@@ -87,6 +100,22 @@ def _raw_row(code: str, index: int) -> dict:
         "window_end": "2026-09-11 09:35:00",
         "bar_count": 1,
         "temporal_cutoff_safe": True,
+    }
+
+
+def _safe_consumer_response_summary(payload: dict) -> dict:
+    """Expose response shape/status on failure without serializing row data."""
+    return {
+        "keys": sorted(payload),
+        "status": payload.get("status"),
+        "selection_status": payload.get("selection_status"),
+        "source_status": payload.get("source_status"),
+        "cannot_confirm_count": len(payload.get("cannot_confirm") or []),
+        "row_count": len(payload.get("rows") or []),
+        "row_action_levels": sorted(
+            {str(row.get("action_level")) for row in payload.get("rows") or []}
+        ),
+        "source_evidence_present": "source_evidence" in payload,
     }
 
 
@@ -237,4 +266,227 @@ def test_locked_a_pool_gap_flows_through_candidate_and_selection_readback(
     assert consumed_a["selection_status"] != "READY"
     assert any(reason.startswith(f"{BROKEN_POOL}:") for reason in consumed_a["cannot_confirm"])
     assert all(row["action_level"] == "WATCH_ONLY" for row in consumed_a["rows"])
+    assert "source_evidence" in consumed_a, json.dumps(
+        _safe_consumer_response_summary(consumed_a), sort_keys=True
+    )
     assert f"candidate_source_pool_provenance_sha256={candidate.source_pool_provenance_sha256}" in consumed_a["source_evidence"]
+
+
+def test_rejected_available_a_pool_stays_unavailable_through_selection_readback(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source_root = tmp_path / "physical-pools-available-rejected"
+    candidate_root = tmp_path / "candidate-available-rejected"
+    pool_store = PreselectionPoolStore(source_root)
+    valid_empty_pool = REQUIRED_A_STAGE_POOL_IDS[0]
+    sibling_codes = {
+        pool_id: [f"A.{index:06d}"]
+        for index, pool_id in enumerate(REQUIRED_A_STAGE_POOL_IDS, 1)
+        if pool_id not in {BROKEN_POOL, valid_empty_pool}
+    }
+    rejected_code = "A.009901"
+    for pool_id in REQUIRED_A_STAGE_POOL_IDS:
+        if pool_id == BROKEN_POOL:
+            codes = [rejected_code]
+        elif pool_id == valid_empty_pool:
+            codes = []
+        else:
+            codes = sibling_codes[pool_id]
+        payload = _pool_payload(pool_id, codes)
+        if pool_id == BROKEN_POOL:
+            payload["status"] = "AVAILABLE"
+        elif pool_id == valid_empty_pool:
+            payload["status"] = "VALID_EMPTY"
+        pool_store.materialize(payload)
+    _write_released_materialize_lock(source_root)
+
+    published_candidate = materialize_stage_acquisition_universe(
+        candidate_root,
+        TRADE_DATE,
+        preselection_source_root=source_root,
+        run_id="r8-rejected-available-canary",
+        release_id="r8-rejected-available-test",
+    )
+    candidate = read_candidate_input(candidate_root, TRADE_DATE)
+    assert published_candidate["status"] == "READY"
+    assert len(candidate.codes) == len(REQUIRED_A_STAGE_POOL_IDS) - 2
+    for pool_id, codes in sibling_codes.items():
+        assert codes[0] in candidate.codes
+    assert rejected_code not in candidate.codes
+
+    rejected = next(
+        item for item in candidate.source_pool_provenance
+        if item["pool_id"] == BROKEN_POOL
+    )
+    assert rejected["status"] == "CANNOT_CONFIRM"
+    assert rejected["diagnostics"]
+    assert any(reason.startswith("SOURCE_REJECTED:") for reason in rejected["diagnostics"])
+    assert rejected["pool_sha256"]
+    assert rejected["artifact_raw_sha256"]
+    assert rejected["manifest_raw_sha256"]
+    assert rejected["receipt_raw_sha256"]
+    assert dict(candidate.pool_diagnostics)[BROKEN_POOL]
+    valid_empty = next(
+        item for item in candidate.source_pool_provenance
+        if item["pool_id"] == valid_empty_pool
+    )
+    assert valid_empty["status"] == "VALID_EMPTY"
+    assert valid_empty["row_count"] == 0
+    assert valid_empty["available"] is True
+    assert valid_empty["valid_empty"] is True
+    assert valid_empty_pool in published_candidate["artifact"]["available_pool_ids"]
+    assert BROKEN_POOL not in published_candidate["artifact"]["available_pool_ids"]
+
+    plan = build_plan(candidate_root, TRADE_DATE, "STAGE_0930_0935", candidate=candidate)
+    rows = tuple(
+        _selection_row(code, index)
+        for index, code in enumerate(plan.codes_for("A_SHARE"), 1)
+    )
+    collected = SourceResult(
+        source_id="SYNTHETIC_REJECTED_AVAILABLE_CANARY",
+        status="READY",
+        rows=rows,
+        requested_rows=len(rows),
+        source_evidence=("synthetic_quote_input=true",),
+    )
+    source = _with_candidate_evidence(
+        collected,
+        candidate,
+        candidate_sha=candidate.current_sha256,
+        candidate_run_id=candidate.run_id,
+    )
+    assert len(source.rows) == len(sibling_codes)
+    assert source.status == "CANNOT_CONFIRM"
+    assert any(reason.startswith(f"{BROKEN_POOL}:") for reason in source.cannot_confirm)
+    assert any(
+        item.startswith(f"candidate_source_pool_diagnostic={BROKEN_POOL}:")
+        for item in source.source_evidence
+    )
+    assert (
+        f"candidate_source_pool_sha256={rejected['pool_sha256']}"
+        in source.source_evidence
+    )
+
+    raw = publish_raw_artifact(
+        tmp_path / "raw-available-rejected",
+        trade_date=TRADE_DATE,
+        stage_id="STAGE_0930_0935",
+        market="A_SHARE",
+        source_id=source.source_id,
+        source_status=source.status,
+        rows=source.rows,
+        cannot_confirm=source.cannot_confirm,
+        source_evidence=source.source_evidence,
+        requested_rows=source.requested_rows,
+        missing_symbols=source.missing_symbols,
+        window="09:30-09:35",
+        cutoff_at="09:35:05",
+    )
+    assert raw["status"] == "CANNOT_CONFIRM"
+
+    import stage_center.research_context as research_context
+
+    monkeypatch.setattr(
+        research_context,
+        "load_research_context",
+        lambda *args, **kwargs: SimpleNamespace(
+            by_code={}, source_evidence=("synthetic_empty_research_context=true",), cannot_confirm=()
+        ),
+    )
+    envelope = production_selection_builders("STAGE_0930_0935")["A_SHARE"](
+        source, plan, {**raw, "_v4_research_data_root": tmp_path / "research-available-rejected"}
+    )
+    assert envelope["source_status"] == "CANNOT_CONFIRM"
+    assert envelope["selection_status"] != "READY"
+    assert envelope["source_rows"] == len(sibling_codes)
+    assert envelope["selected_rows"] <= 10
+    assert all(row["action_level"] == "WATCH_ONLY" for row in envelope["rows"])
+    selection_store = SelectionStore(tmp_path / "selection-available-rejected")
+    selection_store.publish(envelope, market="A_SHARE")
+    readback = selection_store.read_verified(TRADE_DATE, "STAGE_0930_0935", "A_SHARE")
+    assert readback["source_status"] == "CANNOT_CONFIRM"
+    assert all(row["action_level"] == "WATCH_ONLY" for row in readback["rows"])
+    readback_evidence = set(readback["source_evidence"])
+    assert f"candidate_source_pool_provenance_sha256={candidate.source_pool_provenance_sha256}" in readback_evidence
+    assert f"candidate_source_pool_status={rejected['status']}" in readback_evidence
+    assert f"candidate_source_pool_sha256={rejected['pool_sha256']}" in readback_evidence
+    assert f"candidate_source_pool_artifact_raw_sha256={rejected['artifact_raw_sha256']}" in readback_evidence
+    assert any(
+        item.startswith(f"candidate_source_pool_diagnostic={BROKEN_POOL}:")
+        for item in readback_evidence
+    )
+    consumed = StageSelectionConsumer(tmp_path / "selection-available-rejected").get(
+        TRADE_DATE, "STAGE_0930_0935", markets=("A_SHARE",)
+    )["markets"]["A_SHARE"]
+    assert consumed["source_status"] == "CANNOT_CONFIRM"
+    assert consumed["selection_status"] != "READY"
+    assert all(row["action_level"] == "WATCH_ONLY" for row in consumed["rows"])
+    assert any(reason.startswith(f"{BROKEN_POOL}:") for reason in consumed["cannot_confirm"])
+    assert "source_evidence" in consumed, json.dumps(
+        _safe_consumer_response_summary(consumed), sort_keys=True
+    )
+    assert (
+        f"candidate_source_pool_provenance_sha256={candidate.source_pool_provenance_sha256}"
+        in consumed["source_evidence"]
+    )
+
+    # The physical rejected AVAILABLE lane cannot be projected as accepted
+    # availability or a valid empty result.  The explicit VALID_EMPTY sibling
+    # above keeps its existing availability and empty-lane semantics.
+    assert (rejected["available"], rejected["valid_empty"]) == (False, False)
+
+    artifact = published_candidate["artifact"]
+    assert validate_strict_stage_acquisition_artifact(artifact) == TRADE_DATE
+    identity = EvidenceIdentity.from_mapping(artifact)
+    _validate_artifact(artifact, TRADE_DATE, identity)
+    snapshot = read_strict_a_preselection_snapshot(
+        NativeDataStore(source_root), TRADE_DATE
+    )
+
+    def rejected_variant(change):
+        variant = deepcopy(artifact)
+        item = next(
+            row for row in variant["source_pool_provenance"]
+            if row["pool_id"] == BROKEN_POOL
+        )
+        change(item)
+        variant["source_pool_provenance_sha256"] = _semantic_sha(
+            variant["source_pool_provenance"]
+        )
+        variant["pool_diagnostics"][BROKEN_POOL] = list(item["diagnostics"])
+        variant["cannot_confirm"] = [
+            "{}:{}".format(pool["pool_id"], reason)
+            for pool in variant["source_pool_provenance"]
+            for reason in pool["diagnostics"]
+        ]
+        return variant
+
+    rejected_bindings = (
+        lambda item: item.update(pool_sha256="invalid"),
+        lambda item: item.update(producer_id=""),
+        lambda item: item.update(source_role=""),
+        lambda item: item["diagnostics"].remove("SOURCE_STATUS_REJECTED:AVAILABLE"),
+        lambda item: item["diagnostics"].__setitem__(
+            slice(None),
+            [reason for reason in item["diagnostics"] if not reason.startswith("SOURCE_REJECTED:")],
+        ),
+        lambda item: item.update(row_count=1),
+        lambda item: item.update(status="FAILED"),
+        lambda item: item.update(available=True),
+        lambda item: item.update(valid_empty=True),
+    )
+    for change in rejected_bindings:
+        malformed = rejected_variant(change)
+        with pytest.raises(StageAcquisitionContractError):
+            validate_strict_stage_acquisition_artifact(malformed)
+        with pytest.raises(StrictCommitError):
+            _validate_artifact(malformed, TRADE_DATE, identity)
+
+    mismatched_physical_sha = rejected_variant(
+        lambda item: item.update(pool_sha256="0" * 64)
+    )
+    # A syntactically valid but substituted hash still cannot be rebound to
+    # the exact-date physical snapshot that authorized publication.
+    assert validate_strict_stage_acquisition_artifact(mismatched_physical_sha) == TRADE_DATE
+    with pytest.raises(StageAcquisitionContractError):
+        validate_artifact_against_snapshot(mismatched_physical_sha, snapshot)

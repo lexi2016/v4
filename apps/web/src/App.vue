@@ -268,6 +268,16 @@ const {
             历史回补 BACKFILL · {{ stageWorkbench?.markets?.A?.backfill_run_ids?.join("、") || stageWorkbench?.markets?.A?.backfill_run_id || "run id CANNOT_CONFIRM" }} · selection {{ stageWorkbench?.markets?.A?.selection_manifest_receipt_verified ? "manifest/receipt 已验证" : "manifest/receipt CANNOT_CONFIRM" }} · runner receipt {{ stageWorkbench?.markets?.A?.runner_receipt_verified ? "已验证" : "CANNOT_CONFIRM" }}
           </p>
           <p v-if="stageWorkbench?.markets?.A?.cannot_confirm?.includes('BACKFILL_NAMESPACE_CONFLICT')" class="evidence-gap">BACKFILL_NAMESPACE_CONFLICT：多个回补批次的优先级无法确认。</p>
+          <details class="preview-note" aria-label="A股候选来源证据">
+            <summary>来源证据 · {{ stageWorkbench?.markets?.A?.source_evidence?.length ? "已提供" : "CANNOT_CONFIRM" }}</summary>
+            <ul v-if="stageWorkbench?.markets?.A?.source_evidence?.length">
+              <li v-for="(item, index) in stageWorkbench.markets.A.source_evidence" :key="`a-source-${index}`">{{ item }}</li>
+            </ul>
+            <ul v-if="stageWorkbench?.markets?.A?.cannot_confirm?.length">
+              <li v-for="(item, index) in stageWorkbench.markets.A.cannot_confirm" :key="`a-gap-${index}`">{{ item }}</li>
+            </ul>
+            <p v-if="!stageWorkbench?.markets?.A?.source_evidence?.length" class="evidence-gap">CANNOT_CONFIRM：A股来源证据缺失或为空。</p>
+          </details>
           <div v-if="!aRows.length" class="empty-card">
             <strong>A股无主表候选</strong>
             <span>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows ?? aSummary.source_rows) }}</span>

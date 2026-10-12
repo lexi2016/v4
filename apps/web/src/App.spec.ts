@@ -241,7 +241,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     expect(screen.getByText(/selection manifest\/receipt 已验证/)).toBeTruthy();
     expect(screen.getByText(/runner receipt CANNOT_CONFIRM/)).toBeTruthy();
     expect(screen.getByText("回补候选")).toBeTruthy();
-    expect(screen.getByText(/BACKFILL_NAMESPACE_CONFLICT/)).toBeTruthy();
+    expect(screen.getAllByText(/BACKFILL_NAMESPACE_CONFLICT/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("routes the selected date to the internal research review entry", async () => {
@@ -668,6 +668,99 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     expect(screen.getAllByText("22.72")).toHaveLength(2);
     expect(screen.getByText("24.83")).toBeTruthy();
     expect(screen.getByText("09:40")).toBeTruthy();
+  });
+
+  it("renders ordinary A-stage source evidence as a collapsed, read-only disclosure", async () => {
+    window.history.replaceState({}, "", "/?date=20260730&stage=STAGE_0930_0935");
+    const stage = structuredClone(referenceStage);
+    stage.stage.stage_id = "STAGE_0930_0935";
+    stage.stage.display_status = "阶段输入部分可确认；仅展示 WATCH_ONLY 观察行。";
+    (stage.markets as Record<string, any>).A = {
+      label: "A股",
+      candidate_count: 1,
+      source_rows: 1,
+      requested_rows: 1,
+      data_level: "WATCH_ONLY",
+      source_evidence: [
+        "pool_id=a_all_pool_rows",
+        "source_sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pool_provenance_sha256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "pool_status=CANNOT_CONFIRM",
+      ],
+      cannot_confirm: ["a_d1_premarket_pool:POOL_ARTIFACT_MISSING"],
+    };
+    stage.unified_rows.unshift({
+      market: "A",
+      code: "A.600000",
+      name: "浦发银行",
+      rank: 1,
+      score: 82,
+      current_change_pct: 1.25,
+      stage_display_decision: "观察",
+      next_validation_time: "09:40",
+      cannot_confirm: [],
+      recommendation_status: "WATCH_ONLY",
+    } as any);
+    stage.selected_a_rows = 1;
+    stage.selected_total_rows = 3;
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") {
+        return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
+      }
+      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(stage);
+      return jsonResponse(blockedPool);
+    }));
+
+    render(App);
+
+    expect(await screen.findByText("浦发银行")).toBeTruthy();
+    expect(screen.getByText(stage.stage.display_status)).toBeTruthy();
+    expect(screen.getByText("1 条")).toBeTruthy();
+    expect(screen.getByText("2 条")).toBeTruthy();
+    const aEvidence = screen.getByLabelText("A股候选来源证据") as HTMLDetailsElement;
+    expect(aEvidence.open).toBe(false);
+    expect(within(aEvidence).getByText(/来源证据 · 已提供/)).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "港股通候选" })).queryByText("pool_id=a_all_pool_rows")).toBeNull();
+
+    await fireEvent.click(within(aEvidence).getByText(/来源证据 · 已提供/));
+    for (const line of [
+      "pool_id=a_all_pool_rows",
+      "source_sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "pool_provenance_sha256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "pool_status=CANNOT_CONFIRM",
+      "a_d1_premarket_pool:POOL_ARTIFACT_MISSING",
+    ]) expect(within(aEvidence).getByText(line, { exact: true })).toBeTruthy();
+    expect(aEvidence.open).toBe(true);
+    expect(screen.getByText("浦发银行")).toBeTruthy();
+    expect(screen.getByText("1 条")).toBeTruthy();
+    expect(screen.getByText("2 条")).toBeTruthy();
+  });
+
+  it.each([
+    ["absent", undefined],
+    ["empty", []],
+  ])("shows CANNOT_CONFIRM when ordinary A-stage source evidence is %s", async (_label, sourceEvidence) => {
+    window.history.replaceState({}, "", "/?date=20260730&stage=STAGE_0930_0935");
+    const stage = structuredClone(referenceStage);
+    stage.stage.stage_id = "STAGE_0930_0935";
+    (stage.markets as Record<string, any>).A = {
+      candidate_count: 0,
+      source_evidence: sourceEvidence as string[] | undefined,
+    };
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") {
+        return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
+      }
+      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(stage);
+      return jsonResponse(blockedPool);
+    }));
+
+    render(App);
+
+    const aEvidence = screen.getByLabelText("A股候选来源证据") as HTMLDetailsElement;
+    expect(within(aEvidence).getByText("来源证据 · CANNOT_CONFIRM")).toBeTruthy();
+    await fireEvent.click(within(aEvidence).getByText("来源证据 · CANNOT_CONFIRM"));
+    expect(within(aEvidence).getByText("CANNOT_CONFIRM：A股来源证据缺失或为空。")).toBeTruthy();
   });
 
   it("adapts native replay fields into a complete A-share candidate card", async () => {
