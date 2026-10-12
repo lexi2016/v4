@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ManagerAnnouncementAnalysis } from '../api/managerAnnouncementAnalysis.js';
-import { renderAnnouncementAnalysis } from './announcementAnalysis.js';
+import { renderAnnouncementAnalysis, renderAnnouncementPreopenWindow } from './announcementAnalysis.js';
 
 const row=(index:number,kind:string)=>({art_code:`AN20260929${String(index).padStart(6,'0')}`,
   title:`Reviewed notice ${index}`,analysis_kind:kind,classification:'BUSINESS_EVENT',
@@ -71,6 +71,50 @@ function attachVerifiedOwnerReadback(value:ManagerAnnouncementAnalysis,selection
 }
 
 describe('renderAnnouncementAnalysis',()=>{
+  it('foregrounds reviewed retrospective positives while keeping watch, risk and actual eligibility separate',()=>{
+    const host=document.createElement('section'),value=verified();
+    const candidate=(id:string,disposition:string,direction:string)=>({
+      publication_date:'2026-10-09',source_identity:{kind:'art_code',id},source:'EASTMONEY',title:`Notice ${id}`,
+      issuer_codes:[{code:'HK.00001',name:'Issuer'}],classification:'BUSINESS_EVENT',
+      factual_summary:'A reviewed source-linked fact.',why_useful:'A bounded research reason.',event_status_assessment:null,
+      analysis_kind:'COMPLETE_API_BODY',body_status:null,semantic_record_sha256:'a'.repeat(64),
+      source_record_sha256:'b'.repeat(64),body_text_sha256:'c'.repeat(64),publication_time:null,
+      publication_time_basis:'CANNOT_CONFIRM',disposition,selection_basis:'EXPLICIT_REVIEW',direction,
+      evidence_sufficiency:disposition==='NOT_ASSESSED'?'INSUFFICIENT_EXISTING_FACTS':'VERIFIED_EXISTING_FACTS',
+      reason:`Reviewed reason for ${id}.`,risk_notes:['A material limitation remains.'],supporting_exact_quote:null,
+      source_refs:[{url:'https://np-anotice-stock.eastmoney.com/api/ann?id=AN20261009000001',blob_sha256:null,body_sha256:'d'.repeat(64)}],
+      retrospective_status:'SOURCE_PUBLISHED_IN_WINDOW',source_record_validation:'PASS',
+    });
+    const candidates=[candidate('AN20261009000001','SELECTED_EVENT','POSITIVE'),
+      candidate('AN20261009000002','CONDITIONAL_WATCH','MIXED'),
+      candidate('AN20261009000003','NOT_SELECTED','NEGATIVE'),
+      candidate('AN20261009000004','NOT_ASSESSED','UNKNOWN')];
+    value.preopen_window_readback={status:'VERIFIED',window_start:'2026-10-09T00:00:00+08:00',
+      as_of:'2026-10-12T09:20:00+08:00',registered_fingerprint_sha256:'e'.repeat(64),input_fingerprint_sha256:'f'.repeat(64),
+      coverage:{status:'PARTIAL',expected_dates:['20261009','20261010','20261011','20261012'],
+        covered_dates:['20261009','20261012'],missing_dates:['20261010','20261011'],missing_date_count:2},
+      retrospective_research:{status:'PARTIAL',candidate_count:4,positive_candidate_count:1,candidates,
+        pending_count:1,pending_queue:[{publication_date:'2026-10-12',
+          source_identity:{kind:'source_variant_id',id:'HKEX:12345678'},reason_codes:['SOURCE_CONTENT_NOT_ASSESSED']}]},
+      actual_preopen:{status:'CANNOT_CONFIRM',positive_candidate_count:null,positive_candidates:[],
+        candidate_evaluations:[],gaps:['QUALIFICATION_AT_CUTOFF_CANNOT_CONFIRM']}} as never;
+
+    renderAnnouncementPreopenWindow(host,value,undefined);
+    expect(host.textContent).toContain('正向事件与业绩研究（1）');
+    expect(host.querySelectorAll('[data-preopen-candidate="positive"]')).toHaveLength(1);
+    expect(host.querySelector('[data-preopen-watch]')?.textContent).toContain('条件观察 WATCH（1）');
+    expect(host.querySelector('[data-preopen-risk]')?.textContent).toContain('负向事实与风险 RISK（1）');
+    expect(host.querySelector('[data-preopen-other]')?.textContent).toContain('未入选、未评估或方向未定（1）');
+    expect((host.querySelector('[data-preopen-watch]') as HTMLDetailsElement)?.open).toBe(false);
+    expect((host.querySelector('[data-preopen-other]') as HTMLDetailsElement)?.open).toBe(false);
+    expect(host.textContent).toContain('缺失 2 日（20261010、20261011）');
+    expect(host.textContent).toContain('实际盘前资格 CANNOT_CONFIRM');
+    expect(host.textContent).toContain('事后正向研究候选 1 条');
+    expect(host.textContent).not.toContain('/Users/');
+    expect(host.querySelector<HTMLAnchorElement>('a[href^="https://np-anotice-stock.eastmoney.com/"]')?.rel)
+      .toContain('noopener');
+  });
+
   it('shows frozen totals, PIT gaps, date selection and all item citations',()=>{
     const host=document.createElement('section'),onDate=vi.fn();
     renderAnnouncementAnalysis(host,verified(),undefined,undefined,onDate);
@@ -103,6 +147,17 @@ describe('renderAnnouncementAnalysis',()=>{
     expect(host.textContent).toContain('尚未导入该日期的解析结果');
     expect(host.textContent).toContain('不能解释为零公告或零解析');
     expect(host.textContent).not.toContain('0 篇完整内容接口正文');
+  });
+
+  it('redacts local registered-window input paths from the daily audit detail',()=>{
+    const host=document.createElement('section'),value=verified();
+    value.analysis.source_manifest={preopen_window:{input_refs:[{path:'/Users/private/semantic.json'},
+      {local_path:'/Users/private/body.json',sha256:'a'.repeat(64)}],registered_binding:{uri:'file:///Users/private/draft.json'},
+      registered_fingerprint_sha256:'b'.repeat(64)}};
+    renderAnnouncementAnalysis(host,value,undefined,undefined,()=>{});
+    expect(host.textContent).not.toContain('/Users/private');
+    expect(host.textContent).not.toContain('file:///');
+    expect(host.textContent).toContain('registered_fingerprint_sha256');
   });
 
   it('shows stock-deduped research selections and explicit exclusion reasons',()=>{
@@ -264,5 +319,26 @@ describe('renderAnnouncementAnalysis',()=>{
     expect(selected?.textContent).toContain('入选研究名单');
     expect(selected?.querySelector('[data-announcement-selection-source-variant="HKEX:12345678"]')?.textContent)
       .toContain('HKEX:12345678');
+
+    const gapValue=structuredClone(value),gapHost=document.createElement('section');
+    const gapAnalysis=gapValue.analysis as Record<string,any>;
+    const gapRecord=(gapAnalysis.records as Record<string,any>[]).find(row=>row.source_variant_id==='HKEX:12345678')!;
+    gapRecord.analysis_kind='TEXT_INSUFFICIENT_UNASSESSED';gapRecord.selection_status='NOT_ASSESSED';
+    gapAnalysis.summary.text_insufficient_unassessed=1;gapAnalysis.summary.complete_hkex_pdf_bodies=0;
+    gapAnalysis.source_manifest.hkex_body_coverage_status='PARTIAL';
+    const gapSelection=gapAnalysis.stock_selection as Record<string,any>;
+    gapSelection.selected_stock_count=0;gapSelection.not_selected_stock_count=1;gapSelection.not_assessed_stock_count=1;
+    const gapDecision=gapSelection.article_decisions.find((row:Record<string,any>)=>row.source_variant_id==='HKEX:12345678');
+    gapDecision.disposition='NOT_ASSESSED';gapDecision.reason='Body captured; semantic content remains insufficient.';
+    const gapStock=gapSelection.stocks.find((row:Record<string,any>)=>row.stock_code==='HK.00001');
+    gapStock.status='NOT_ASSESSED';gapStock.selection_reasons=[];
+    const gapStockArticle=gapStock.articles.find((row:Record<string,any>)=>row.source_variant_id==='HKEX:12345678');
+    gapStockArticle.disposition='NOT_ASSESSED';gapStockArticle.reason=gapDecision.reason;
+    attachVerifiedOwnerReadback(gapValue,gapSelection);
+    renderAnnouncementAnalysis(gapHost,gapValue,undefined,undefined,()=>{});
+    const semanticGap=gapHost.querySelector<HTMLDetailsElement>('details[data-announcement-analysis-source-variant="HKEX:12345678"]');
+    expect(semanticGap?.textContent).toContain('文本不足，未判定');
+    expect(semanticGap?.textContent).toContain('HKEX PDF 采集状态：COMPLETE_HKEX_OFFICIAL_PDF_BODY');
+    expect(gapHost.textContent).toContain('未评估');
   });
 });
