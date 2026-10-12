@@ -1,0 +1,338 @@
+{
+  "schema_version": "v4.hk_close_review_delivery.v1",
+  "task": "20261012 HK close review availability and exact-date refresh R6",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_parent_commit": "2a92c5a75935a28b9717ad8f803c96b93820a165",
+  "remote_branch": "codex/hk-close-review-contract-20261012-r6",
+  "goal": "Fix two unavailable HK close-review cards on official8873, preserve valid existing metrics and refresh exact same-day stage evidence through existing producer",
+  "root_causes": [
+    {
+      "file": "runtime/apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "lines": "20-22",
+      "finding": "The panel returned null for observed_stage_union whenever stage_ids was absent, even when selected_count, hit_count, and selected_codes were present."
+    },
+    {
+      "file": "runtime/apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "lines": "48-66",
+      "finding": "The 0.2 display only read observed_0.2_prob_active; the captured API had models['0.2_prob_active'] READY at 100 selected and 8 Top20 hits, while the observed field was absent."
+    },
+    {
+      "file": "runtime/domains/close_review.py",
+      "lines": "227-232",
+      "finding": "The active implementation treated BACKFILL as unverified but could leave ordinary PARTIAL_WITH_ROWS stages as formal READY despite status/reason evidence."
+    }
+  ],
+  "canonical_source_changes": [
+    {
+      "path": "domains/close_review.py",
+      "baseline_sha256": "24dd8ee1394844d464b06b2b46053d3551f9a088acede1031b5f18bf8ee997ab",
+      "current_sha256": "dba6e97ec45bc7c3eac87801cf06ace95325d4d93af203cabf6a33cf9f0941c2"
+    },
+    {
+      "path": "ops/build_close_review.py",
+      "baseline_sha256": "59ac7798bcb1d54bbd11bbc61803997f36881a29cd1b82ecb663166791d5e0f2",
+      "current_sha256": "6e39ed2fc91f35336f2d490b1a4bafed89b76dd56d3ba96189030a852bbe04aa"
+    },
+    {
+      "path": "apps/api/v35_api/_review_router_parts/hk_projection.py",
+      "baseline_sha256": "957e47da8c2830149e2df108120a766089ba65d93b32209fa6ad1fb6704f6116",
+      "current_sha256": "ed7d612bf17dcf53e1e970bc55e1bf13605901fb81b5cc1161446b5cce370fac"
+    },
+    {
+      "path": "apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "baseline_sha256": "6b7f177f62438e9673d1a7cc8febf8a1670de45292c8dc8ca536f2be4a489351",
+      "current_sha256": "00143b7b42f6c58a3969b2d3fbf92a0312b6424149e6a44ab52517554867dc8c"
+    },
+    {
+      "path": "apps/web/src/contracts/review.ts",
+      "baseline_sha256": "2fcc5edbe4320f7aba66fe4695dd02578c098904104891a0f015355dfa14cb2d",
+      "current_sha256": "894aca0e6d7018ce96ab37fdf9ae8ff3daed4aa6c131d48a6a7b981883d9a0e8"
+    },
+    {
+      "path": "apps/web/src/components/review/HkCloseReviewPanel.spec.ts",
+      "baseline_sha256": "6610c82b122eb3500cbff9dd32c0c01490e236743dedc3fef041396c9d84247b",
+      "current_sha256": "f4149d1a61b1bb0aad00cb6bfd9aa9e92869c5b1d9af0c0d8e140fc4b0c8160d"
+    },
+    {
+      "path": "tests/test_hk_close_review_recovery_r6.py",
+      "baseline": "ABSENT",
+      "current_sha256": "752e808aa3968cb8db4408685b65b8cf6c6f2732924dc5b68b197665851c42b9"
+    }
+  ],
+  "runtime_source_overlays": [
+    {
+      "path": "domains/close_review.py",
+      "candidate": "cand/app/domains/close_review.py",
+      "base_sha256": "d43f6ab574fd2dcac9f7dfe27f24224467cc17cdb6108a0dedecba5eceb9fb73",
+      "candidate_sha256": "3fcb7079419459da6946061def87ae85d68c777134b2451c709675692182ca59",
+      "rollback_backup": "runtime_before/app/domains/close_review.py",
+      "rollback_sha256": "d43f6ab574fd2dcac9f7dfe27f24224467cc17cdb6108a0dedecba5eceb9fb73",
+      "purpose": "Keep partial/cutoff stages out of formal stage metrics while exposing available same-date rows as PARTIAL_RESEARCH_ONLY.",
+      "previous_candidate_sha256": "db8d5b982558f3cfff37ad84a8d309428c33ee86f7120693ac7352885804879f"
+    },
+    {
+      "path": "apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "candidate": "cand/app/apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "base_sha256": "bfb323d4257d1b35ba1b2f93dc5bdd1efa1b5e527cb0561518b4a1175e863072",
+      "candidate_sha256": "ce63145c13be1cb7e92635a00a3fca3bd001d390366f99596323b6af3581917a",
+      "rollback_backup": "runtime_before/app/apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "rollback_sha256": "bfb323d4257d1b35ba1b2f93dc5bdd1efa1b5e527cb0561518b4a1175e863072",
+      "purpose": "Render available partial-union counts without stage metadata and preserve the existing READY 0.2 aggregate when the observed-model field is absent."
+    }
+  ],
+  "canonical_vs_runtime": "Canonical source maintained separately; runtime derives from accepted R4a with only two approved overlays plus rebuilt homepage assets",
+  "review": {
+    "verdict": "PASS",
+    "receipt_sha256": "5cc084df4b15399d0eec8811f485e781a5a8aa5028f0fa3495c02a20137875db",
+    "initial_failure_sha256": "34b75c95cb3e52aacbd40bd173c2a8caac536e79d1eb554ccda5531f546d1771",
+    "initial_failure_closed": "Explicit RESEARCH_ONLY=true added to persisted review root and observed union",
+    "findings": {
+      "P0": [],
+      "P1": [],
+      "P2": [],
+      "closed_prior_findings": [
+        {
+          "id": "R6-SAFETY-001",
+          "former_priority": "P1",
+          "closure_evidence": {
+            "candidate_payload_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_REVIEW_REPAIR_20261012_R6/independent_review/isolated_r6_delta/canary_r6/data/close_reviews/20261012.json",
+            "candidate_payload_sha256": "4a5c10d635370ef59929244d6fbc1a7be8ee2734e41010775effb583ab856bf7",
+            "root": {
+              "RESEARCH_ONLY": true,
+              "production_allowed": false,
+              "buy_gate_updated": false,
+              "orders_sent": false
+            },
+            "observed_stage_union": {
+              "evidence_status": "PARTIAL_RESEARCH_ONLY",
+              "RESEARCH_ONLY": true,
+              "research_only": true,
+              "selected_count": 26,
+              "hit_count": 7
+            },
+            "new_canary_result_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_REVIEW_REPAIR_20261012_R6/independent_review/isolated_r6_delta/canary_r6/CANARY_RESULT.json",
+            "new_canary_result_sha256": "4bc9166a97fdea7d21b99e9d0ab3326b512c040cc5fc0cdd000a71a5a964880c"
+          }
+        }
+      ]
+    },
+    "independent_commands": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python -m pytest -p no:cacheprovider -q --tb=short --basetemp='.../independent_review/isolated_r6_delta/pytest-r6' tests/test_hk_close_review_recovery_r6.py",
+        "result": "PASS: 2 passed in 0.08s",
+        "test_sha256": "752e808aa3968cb8db4408685b65b8cf6c6f2732924dc5b68b197665851c42b9"
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python '.../independent_review/isolated_r6_delta/canary_r6/run_isolated_canary.py'",
+        "result": "PASS: new independent canary; source_inputs_unchanged=true; stage_inputs_unchanged=true",
+        "script_sha256": "c63d367b1fceccc61481e883b421b1d406dde97e5c959c086c16296b4fceb370",
+        "candidate_domain_sha256": "3fcb7079419459da6946061def87ae85d68c777134b2451c709675692182ca59",
+        "canary_receipt_sha256": "461ee07a8bec9be9dede9a00e41b00e110fdad399b9ab2e2ff3df0a2f562a3ed",
+        "canary_result_sha256": "4bc9166a97fdea7d21b99e9d0ab3326b512c040cc5fc0cdd000a71a5a964880c",
+        "payload_sha256": "4a5c10d635370ef59929244d6fbc1a7be8ee2734e41010775effb583ab856bf7"
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python - <<'PY' [ReviewStore.read_reference('20261012') then actual R4a _native_hk_parent projection] PY",
+        "result": "PASS: actual R4a native projection preserved root RESEARCH_ONLY=true, observed_stage_union RESEARCH_ONLY=true and research_only=true, and all prohibited-action flags false",
+        "runtime_review_router_sha256": "ef6e870077fecd1e025ec1a0741ec3f766b76ef914b60661e4f32937acc9e28d"
+      }
+    ],
+    "reused_initial_pass_evidence": {
+      "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_REVIEW_REPAIR_20261012_R6/independent_review/REVIEW_RECEIPT_R6_INITIAL_FAIL.json",
+      "receipt_sha256": "34b75c95cb3e52aacbd40bd173c2a8caac536e79d1eb554ccda5531f546d1771",
+      "unchanged_ui_results": "Canonical/candidate Vitest 5 passed each and isolated candidate vue-tsc exit 0 from initial review; UI and contract hashes are unchanged.",
+      "producer_and_slice_results": "Producer/slice pytest 13 passed with one StarletteDeprecationWarning from initial review; these cases were not rerun for the metadata-only marker repair.",
+      "scope_note": "The new focused R6 test and canary were rerun after the marker repair."
+    }
+  },
+  "writer_commands_and_results": [
+    {
+      "command": "./.venv/bin/python -m pytest -p no:cacheprovider -q --tb=short --basetemp='/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_REVIEW_REPAIR_20261012_R6/pytest-r6-domain' tests/test_hk_close_review_recovery_r6.py",
+      "result": "PASS: 2 passed"
+    },
+    {
+      "command": "./.venv/bin/python -m pytest -p no:cacheprovider -q --tb=short --basetemp='/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_REVIEW_REPAIR_20261012_R6/pytest-existing' tests/test_close_review_producer.py tests/test_close_review_slice.py",
+      "result": "PASS: 13 passed; one StarletteDeprecationWarning"
+    },
+    {
+      "command": "./node_modules/.bin/vitest run src/components/review/HkCloseReviewPanel.spec.ts",
+      "workdir": "apps/web",
+      "result": "PASS: 5 passed"
+    },
+    {
+      "command": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/.bin/vitest run --root /Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_REVIEW_REPAIR_20261012_R6/cand/app/apps/web --config /Users/lexi/Desktop/学习/v4_app/apps/web/vite.config.ts src/components/review/HkCloseReviewPanel.spec.ts --reporter=dot",
+      "result": "PASS: 5 passed"
+    },
+    {
+      "command": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/.bin/vue-tsc --noEmit --pretty false --project /Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_REVIEW_REPAIR_20261012_R6/cand/app/apps/web/tsconfig.json",
+      "result": "PASS: exit code 0; temporary symlink and tsconfig were removed"
+    },
+    {
+      "command": "./node_modules/.bin/vue-tsc --noEmit",
+      "workdir": "apps/web",
+      "result": "Existing unrelated errors only in src/api/managerWorkspace.attention.spec.ts and src/views/ManagerSelectionView.spec.ts; no HK panel error"
+    },
+    {
+      "command": "git diff --check -- domains/close_review.py ops/build_close_review.py apps/api/v35_api/_review_router_parts/hk_projection.py apps/web/src/components/review/HkCloseReviewPanel.vue apps/web/src/contracts/review.ts tests/test_hk_close_review_recovery_r6.py apps/web/src/components/review/HkCloseReviewPanel.spec.ts",
+      "result": "PASS: exit code 0"
+    },
+    {
+      "command": "Python compileall on the three modified canonical Python modules",
+      "result": "PASS; no syntax errors"
+    },
+    {
+      "command": ".venv/bin/python - <<'PY' ... ReviewStore(CANARY_DATA).read_reference('20261012') ... PY",
+      "result": "PASS: isolated ReviewStore payload and receipt readback; formal 100/8 preserved; formal stage union MISSING; observed stage union PARTIAL_RESEARCH_ONLY 26/7"
+    }
+  ],
+  "publication": {
+    "status": "PUBLISHED_EXACT_DATE",
+    "date": "20261012",
+    "command": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "-m",
+      "ops.build_close_review",
+      "--data-root",
+      "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+      "--date",
+      "20261012",
+      "--stage-selection-root",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection"
+    ],
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-review-20261012-r6/app",
+    "data_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "old_payload_sha256": "fb69c2745b768396123e792150e1f13b07f51aba99280b6c6e87f63b13bd50e1",
+    "new_payload_sha256": "4a5c10d635370ef59929244d6fbc1a7be8ee2734e41010775effb583ab856bf7",
+    "identical_to_independently_reviewed_payload": true,
+    "unrelated_manifest_entries_preserved": true,
+    "publication": {
+      "sha256": "4a5c10d635370ef59929244d6fbc1a7be8ee2734e41010775effb583ab856bf7",
+      "payload_path": "close_reviews/20261012.json",
+      "receipt_path": "receipts/close_reviews/20261012.json",
+      "previous_sha256": "fb69c2745b768396123e792150e1f13b07f51aba99280b6c6e87f63b13bd50e1",
+      "supersession_receipt_path": "receipts/close_review_supersessions/20261012/fb69c2745b768396123e792150e1f13b07f51aba99280b6c6e87f63b13bd50e1.json"
+    },
+    "formal_0_2": {
+      "selected_count": 100,
+      "hit_count": 8
+    },
+    "stage_union": {
+      "rows": 70,
+      "selected_count": 26,
+      "hit_count": 7,
+      "status": "PARTIAL_RESEARCH_ONLY"
+    },
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "runtime": {
+    "status": "DEPLOYED_LOCAL_RESEARCH",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-review-20261012-r6/app",
+    "release_id": "hk-close-review-20261012-r6",
+    "loaded_pid": 53774,
+    "plist_before_sha256": "3c80ecb5d75fa790fa13d97abbe9bf553588a19cb1efc232350d942c474e610b",
+    "plist_after_sha256": "7d2051e584db3f72b7fb9e87879133fd922455096135d2ced04504168a83ced6",
+    "release_manifest_sha256": "f387065eef48e1686107eccf4eb49125a9bec8ec735c9ea5326303ae8afee9df",
+    "inventory_sha256": "368e9808cfe57749cdcfcc50f1d55ad5c8add592cd6c7886fca235aec28c9547",
+    "independent_review_sha256": "5cc084df4b15399d0eec8811f485e781a5a8aa5028f0fa3495c02a20137875db",
+    "failed_immediate_bootstrap_preserved": "ACTIVATION_FAILED_R6.json",
+    "bounded_retry": "ACTIVATION_RETRY_R6.json",
+    "natural_verified": false
+  },
+  "api": {
+    "status": "API_VERIFIED",
+    "http_status": 200,
+    "url": "http://127.0.0.1:8873/api/v3/review?date=20261012",
+    "api_sha256": "bcef8ef5160095d0d182174ea4da17fd733e86e457ff0050665d758049cf0e20",
+    "release_id": "hk-close-review-20261012-r6",
+    "loaded_pid": 53774,
+    "loaded_cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-review-20261012-r6/app",
+    "8873_listener_pid_matches": true,
+    "built_main_asset": "main-Fkt8wTKw.js",
+    "close_top20_count": 20,
+    "top20_order_unchanged": true,
+    "formal_0_2": {
+      "status": "READY",
+      "selected_count": 100,
+      "hit_count": 8
+    },
+    "formal_stage_union": "MISSING",
+    "partial_stage_union": {
+      "rows": 70,
+      "selected_count": 26,
+      "hit_count": 7,
+      "stage_count": 7,
+      "expected_stage_count": 7
+    },
+    "A_market_projection_unchanged": true,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "natural_status": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "ui": {
+    "status": "UI_VERIFIED",
+    "url": "http://127.0.0.1:8873/?date=20261012&date_anchor=20260901&stage=STAGE_1545_1555",
+    "date": "20261012",
+    "tab": 1,
+    "reload_performed": true,
+    "same_user_url": true,
+    "cards": {
+      "formal_0_2": "8/20;100 candidate rows",
+      "partial_research_stage_union": "7/20;7/7 stages;70rows;26codes",
+      "close_top20": 20,
+      "stage_evidence_rows": 70
+    },
+    "text_sha256": "d1433340441e6fbc26268447a3fd6a9179dc2a9356a3f4fae27c31eda1f14277",
+    "screenshot_sha256": "3fbddaf2b6f2320460da42ac8bc7e642d6ac8d5815d592a2cc6e2ad7aa2f3342",
+    "known_gap": "Individual research0.2 rows absent; partial stage source/cutoff reasons and PIT unverified preserved",
+    "natural_status": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "known_limits": [
+    "Individual research0.2 rows absent; existing formal aggregate is shown with explicit source label",
+    "All seven stage slots remain PARTIAL_WITH_ROWS with cutoff/source gaps; formal stage union MISSING/null; PIT unverified",
+    "Natural execution not verified; this is manual exact-date recovery",
+    "Canonical workspace-wide vue-tsc has pre-existing unrelated manager test errors"
+  ],
+  "activation_incident": {
+    "first_bootstrap": "exit5 immediately following bootout; old plist restored",
+    "resolution": "Validated job absent, plist valid, service enabled; one bounded bootstrap retry and kickstart both exit0;8873 restored",
+    "failure_receipt_sha256": "f6eeaca40b47383632ac43a7eeab97e477c2b7ce353c7257f2977b395f1c804f",
+    "retry_receipt_sha256": "6bae13e1350bb55a9d406e849f6c1a194e7d0b5e57b9f841ef8513af78c0fe82"
+  },
+  "unrelated_shared_manifest_changes": "Only two21:00 research index entries appeared; exact HK inputs unchanged; entries preserved and published review payload byte-identical to independently accepted payload",
+  "status": [
+    "IMPLEMENTED",
+    "REVIEWED",
+    "TESTED_CANDIDATE",
+    "INTEGRATED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "UI_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "independent_live_verdict": {
+    "verdict": "PASS",
+    "status": "BEHAVIOR_VERIFIED",
+    "receipt_sha256": "6455a57a7aa51e6feaeb27f1650dfee40b7188b715360f7f2b1359761737556e",
+    "verified_inventory_entries": 1031,
+    "fresh_HTTP": "200 byte-identical to API_AFTER",
+    "UI": "independently reviewed original8873 reloaded screenshot",
+    "open_findings": 0,
+    "NATURAL_SLOT_UNVERIFIED": true
+  },
+  "NATURAL_SLOT_UNVERIFIED": true,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "upload_boundary": "Necessary source/tests/runtime overlays and compact evidence only; no raw quotes/account data/screenshots/credentials/venvs/dist"
+}
