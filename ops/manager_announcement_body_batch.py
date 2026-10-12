@@ -112,10 +112,12 @@ def _body_security_match(api: Mapping[str, Any], source_issuers: list[Mapping[st
 
 
 class SharedCaptureGate:
-    """A serialized fetch gate with aggregate time/request/byte limits.
+    """A bounded concurrent fetch gate with aggregate request and byte limits.
 
-    Three workers validate and write independently, but physical requests pass
-    through one lock so cumulative response bytes cannot race past the budget.
+    Request slots and maximum response bytes are reserved under a short lock;
+    transport I/O happens after the lock is released. This keeps rate, time,
+    request, and byte budgets shared across workers without serializing the
+    network calls themselves.
     """
     def __init__(self, *, seconds: float, max_requests: int, max_bytes: int, interval: float):
         self.seconds = seconds
@@ -125,9 +127,12 @@ class SharedCaptureGate:
         self.started = time.monotonic()
         self.requests = 0
         self.response_bytes = 0
-        self._last: float | None = None
-        self._lock = threading.RLock()
-        self._owner: int | None = None
+        self.receipt_cache_hits = 0
+        self.material_cache_hits = 0
+        self._next_request_at: float | None = None
+        self._lock = threading.Lock()
+        self._request_reservations: dict[int, int] = {}
+        self._request_started: set[int] = set()
         self._reserved_bytes = 0
 
     @property
@@ -139,25 +144,35 @@ class SharedCaptureGate:
             raise RuntimeError("BODY_BATCH_TIME_BUDGET_EXHAUSTED")
 
     def before_request(self) -> None:
-        self._lock.acquire()
         owner = threading.get_ident()
-        try:
+        with self._lock:
             self.check()
-            if self.requests >= self.max_requests:
+            if owner in self._request_reservations:
+                raise RuntimeError("BODY_BATCH_REQUEST_RESERVATION_ALREADY_ACTIVE")
+            pending = len(self._request_reservations) - len(self._request_started)
+            if self.requests + pending >= self.max_requests:
                 raise RuntimeError("BODY_BATCH_REQUEST_BUDGET_EXHAUSTED")
             if self.response_bytes + self._reserved_bytes + self.max_response_bytes > self.max_response_bytes_total:
                 raise RuntimeError("BODY_BATCH_RESPONSE_BYTE_BUDGET_EXHAUSTED")
-            if self._last is not None:
-                wait = max(0.0, self.interval - (time.monotonic() - self._last))
-                if wait:
-                    time.sleep(wait)
-            self.check()
-            self.requests += 1
-            self._last = time.monotonic()
-            self._owner = owner
-            self._reserved_bytes = self.max_response_bytes
+            now = time.monotonic()
+            scheduled_at = max(now, self._next_request_at or now)
+            self._next_request_at = scheduled_at + self.interval
+            self._request_reservations[owner] = self.max_response_bytes
+            self._reserved_bytes += self.max_response_bytes
+        try:
+            wait = max(0.0, scheduled_at - time.monotonic())
+            if wait:
+                time.sleep(wait)
+            with self._lock:
+                if owner not in self._request_reservations:
+                    raise RuntimeError("BODY_BATCH_REQUEST_RESERVATION_MISSING")
+                self.check()
+                if owner in self._request_started:
+                    raise RuntimeError("BODY_BATCH_REQUEST_ALREADY_STARTED")
+                self._request_started.add(owner)
+                self.requests += 1
         except Exception:
-            self._lock.release()
+            self.end_request()
             raise
 
     @property
@@ -174,18 +189,43 @@ class SharedCaptureGate:
             raise ValueError("BODY_BATCH_RESPONSE_SIZE_INVALID")
         owner = threading.get_ident()
         with self._lock:
+            reservation = self._request_reservations.get(owner)
+            # A material-store hit did not pass through before_request; those
+            # bytes are reused local evidence, not a physical HTTP response.
+            if reservation is None:
+                return
             self.check()
-            if self._owner == owner:
-                self._reserved_bytes = 0
+            self._request_reservations.pop(owner, None)
+            self._reserved_bytes -= reservation
             if self.response_bytes + size > self.max_response_bytes_total:
                 raise RuntimeError("BODY_BATCH_RESPONSE_BYTE_BUDGET_EXHAUSTED")
             self.response_bytes += size
 
+    def snapshot(self) -> dict[str, int | float]:
+        with self._lock:
+            return {
+                "physical_requests": self.requests,
+                "physical_response_bytes": self.response_bytes,
+                "receipt_cache_hits": self.receipt_cache_hits,
+                "material_cache_hits": self.material_cache_hits,
+                "elapsed_seconds": round(self.elapsed_seconds, 3),
+            }
+
     def end_request(self) -> None:
-        if self._owner == threading.get_ident():
-            self._owner = None
-            self._reserved_bytes = 0
-            self._lock.release()
+        owner = threading.get_ident()
+        with self._lock:
+            reservation = self._request_reservations.pop(owner, 0)
+            self._request_started.discard(owner)
+            self._reserved_bytes = max(0, self._reserved_bytes - reservation)
+
+    def record_cache_hit(self, kind: str) -> None:
+        if kind not in {"receipt", "material"}:
+            raise ValueError("BODY_BATCH_CACHE_HIT_KIND_INVALID")
+        with self._lock:
+            if kind == "receipt":
+                self.receipt_cache_hits += 1
+            else:
+                self.material_cache_hits += 1
 
 
 def _catalog_product(catalog_read: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -297,6 +337,7 @@ def _capture_url(api: Mapping[str, Any], store: Any, provider: Any, gate: Shared
     attempt_path = out_root / "attempts" / f"{url_key}.json"
     receipt_path = out_root / "receipts" / f"{url_key}.json"
     if receipt_path.exists():
+        gate.record_cache_hit("receipt")
         receipt = read_json(receipt_path)
         if receipt.get("request_url") != url:
             raise ValueError("BODY_BATCH_URL_RECEIPT_BINDING_MISMATCH")
@@ -322,7 +363,10 @@ def _capture_url(api: Mapping[str, Any], store: Any, provider: Any, gate: Shared
     try:
         ref = api["capture_eastmoney"](provider, url, budget=gate, force=False)
         raw = api["read_eastmoney_response"](store, ref)
-        gate.record_response_bytes(len(raw))
+        if ref.get("from_cache") is True:
+            gate.record_cache_hit("material")
+        else:
+            gate.record_response_bytes(len(raw))
         if ref.get("http_status") != 200 or not _source_ref_hashes(ref):
             raise ValueError("BODY_BATCH_SOURCE_HTTP_OR_HASH_INVALID")
         receipt.update(status="CAPTURED", source_ref=ref, raw_body_sha256=digest(raw),
@@ -778,7 +822,7 @@ def _capture_hkex_variant(api: Mapping[str, Any], store: Any, provider: Any,
     variant_id = "HKEX:" + news_id
     row = {key: doc.get(key) for key in (
         "source", "source_scope", "news_id", "event_id", "symbol", "name", "title",
-        "publication_date", "published_at", "available_at", "source_url", "directory_ref",
+        "published_at", "available_at", "source_url", "directory_ref",
         "first_directory_ref", "capture_run_id", "capture_revision", "query_cutoff",
         "source_refs", "body_status", "body_reason", "document_sha256")}
     body_ref = next((ref for ref in doc.get("source_refs", []) if isinstance(ref, Mapping)
@@ -794,7 +838,10 @@ def _capture_hkex_variant(api: Mapping[str, Any], store: Any, provider: Any,
         try:
             body_ref = api["capture"](provider, {"url": doc["source_url"], "method": "GET"}, budget=gate)
             raw = api["read_response"](store, body_ref)
-            gate.record_response_bytes(len(raw))
+            if body_ref.get("from_cache") is True:
+                gate.record_cache_hit("material")
+            else:
+                gate.record_response_bytes(len(raw))
             status = "BODY_CAPTURED_UNASSESSED" if body_ref.get("http_status", 0) >= 200 and raw.startswith(b"%PDF") else "BODY_FETCH_FAILED"
         except Exception as exc:
             status = "BODY_FETCH_FAILED"
@@ -1011,6 +1058,8 @@ def run_capture(catalog_read: Mapping[str, Any], material_root: str | Path,
         max_bytes=MAX_RESPONSE_BYTES, interval=REQUEST_INTERVAL_SECONDS)
     gate.set_response_limits(per_response=api["MAX_EASTMONEY_RESPONSE_BYTES"], total=MAX_RESPONSE_BYTES)
     by_art: dict[str, dict[str, Any]] = {}
+    done_counts: dict[str, int] = {}
+    phase_elapsed: dict[str, float] = {}
     with ThreadPoolExecutor(max_workers=WORKERS, thread_name_prefix="hk-ann-body") as pool:
         futures = {pool.submit(_capture_article, api, store, provider, gate, row, output,
                     target_trade_date, publication_date): row for row in rows}
@@ -1028,15 +1077,20 @@ def run_capture(catalog_read: Mapping[str, Any], material_root: str | Path,
             for done in by_art.values():
                 status = str(done.get("body_status", done.get("status", "UNKNOWN")))
                 done_counts[status] = done_counts.get(status, 0) + 1
+            snapshot = gate.snapshot()
             atomic_json(output / "progress.json", {"schema": "v4.manager_research.body_batch_progress.v1",
+                "phase": "EASTMONEY_ARTICLE_BODY",
                 "completed_article_rows": len(by_art), "total_article_rows": len(rows),
-                "body_status_counts": done_counts, "physical_requests": gate.requests,
-                "response_bytes": gate.response_bytes, "elapsed_seconds": round(gate.elapsed_seconds, 3),
+                "body_status_counts": done_counts, **snapshot,
+                "response_bytes": snapshot["physical_response_bytes"],
                 "updated_at": utc_now()})
+    phase_elapsed["eastmoney_article_body"] = gate.elapsed_seconds
     hkex_variants: list[dict[str, Any]] = []
     hkex_status_counts: dict[str, int] = {}
     if hkex_directory_readback is not None:
-        for doc in eligible_hkex_documents:
+        hkex_phase_started = time.monotonic()
+
+        def capture_one_hkex(doc: Mapping[str, Any]) -> dict[str, Any]:
             try:
                 variant = _capture_hkex_variant(api, store, provider, gate, doc, output,
                     target_trade_date, publication_date)
@@ -1052,11 +1106,10 @@ def run_capture(catalog_read: Mapping[str, Any], material_root: str | Path,
                     "source": "HKEX_OFFICIAL",
                     "source_scope": "HKEX_OFFICIAL_FULL_MARKET_DIRECTORY_V1",
                     "news_id": news_id, "symbol": doc.get("symbol"), "title": doc.get("title"),
-                    "publication_date": doc.get("publication_date"),
+                    "publication_date": publication,
                     "published_at": doc.get("published_at"),
                     "source_url": doc.get("source_url"),
                     "directory_source_ref": directory_ref,
-                    "directory_raw_body_sha256": directory_sha,
                     "body_source_ref": None, "body_status": "HKEX_BODY_CAPTURE_FAILED",
                     "body_text": None, "body_text_sha256": None, "pages": [],
                     "cross_source_link_status": "NOT_ASSESSED",
@@ -1073,7 +1126,7 @@ def run_capture(catalog_read: Mapping[str, Any], material_root: str | Path,
                     "source": "HKEX_OFFICIAL",
                     "source_scope": "HKEX_OFFICIAL_FULL_MARKET_DIRECTORY_V1",
                     "news_id": news_id, "symbol": doc.get("symbol"), "name": doc.get("name"),
-                    "title": doc.get("title"), "publication_date": doc.get("publication_date"),
+                    "title": doc.get("title"),
                     "source_url": doc.get("source_url"),
                     "directory_source_ref": directory_ref, "body_source_ref": None,
                     "directory_raw_body_sha256": directory_sha, "body_status": "HKEX_BODY_CAPTURE_FAILED",
@@ -1088,9 +1141,33 @@ def run_capture(catalog_read: Mapping[str, Any], material_root: str | Path,
                 variant["connect_eligibility_status"] = "ELIGIBLE"
                 variant["matched_connect_codes"] = [matched_code] if isinstance(matched_code, str) else []
                 variant["connect_eligibility_identity_sha256"] = eligibility_identity
-            hkex_variants.append(variant)
-            status = str(variant.get("body_status") or "UNKNOWN")
-            hkex_status_counts[status] = hkex_status_counts.get(status, 0) + 1
+            return variant
+
+        variants_by_index: dict[int, dict[str, Any]] = {}
+        with ThreadPoolExecutor(max_workers=WORKERS, thread_name_prefix="hkex-ann-body") as pool:
+            futures = {pool.submit(capture_one_hkex, doc): (index, doc)
+                       for index, doc in enumerate(eligible_hkex_documents)}
+            for future in as_completed(futures):
+                index, _doc = futures[future]
+                variants_by_index[index] = future.result()
+                hkex_status_counts = {}
+                for done in variants_by_index.values():
+                    status = str(done.get("body_status") or "UNKNOWN")
+                    hkex_status_counts[status] = hkex_status_counts.get(status, 0) + 1
+                snapshot = gate.snapshot()
+                atomic_json(output / "progress.json", {
+                    "schema": "v4.manager_research.body_batch_progress.v1",
+                    "phase": "HKEX_OFFICIAL_BODY",
+                    "completed_article_rows": len(by_art), "total_article_rows": len(rows),
+                    "article_body_status_counts": done_counts,
+                    "completed_source_variant_rows": len(variants_by_index),
+                    "total_source_variant_rows": len(eligible_hkex_documents),
+                    "source_variant_body_status_counts": dict(sorted(hkex_status_counts.items())),
+                    **snapshot, "response_bytes": snapshot["physical_response_bytes"],
+                    "updated_at": utc_now(),
+                })
+        hkex_variants = [variants_by_index[index] for index in range(len(eligible_hkex_documents))]
+        phase_elapsed["hkex_official_body"] = max(0.0, time.monotonic() - hkex_phase_started)
     results: list[dict[str, Any]] = []
     corpus_rows: list[dict[str, Any]] = []
     for row in rows:
@@ -1126,6 +1203,10 @@ def run_capture(catalog_read: Mapping[str, Any], material_root: str | Path,
     for item in results:
         status = str(item.get("body_status", item.get("status", "UNKNOWN")))
         status_counts[status] = status_counts.get(status, 0) + 1
+    capture_metrics = gate.snapshot()
+    capture_mode = ("PHYSICAL_HTTP_PERFORMED" if capture_metrics["physical_requests"] > 0 else
+        "CACHED_REPLAY_ONLY" if capture_metrics["receipt_cache_hits"] + capture_metrics["material_cache_hits"] > 0 else
+        "NO_PHYSICAL_HTTP")
     body_manifest = {"schema": "v4.manager_research.source_bound_announcement_body_corpus.v1",
         "target_trade_date": target_trade_date, "publication_date": publication_date,
         "catalog_run_id": catalog["run_id"], "catalog_sha256": catalog["sha256"],
@@ -1136,12 +1217,14 @@ def run_capture(catalog_read: Mapping[str, Any], material_root: str | Path,
         "body_status_counts": status_counts, "semantic_status": "NOT_REVIEWED",
         "article_receipts": _index_rows(results),
         "article_index_shard_count": math.ceil(len(results) / ARTICLE_SHARD_SIZE),
-        "limits": {"workers": WORKERS, "physical_requests": gate.requests,
-            "max_physical_requests": MAX_NETWORK_REQUESTS, "response_bytes": gate.response_bytes,
+        "limits": {"workers": WORKERS, **capture_metrics,
+            "response_bytes": capture_metrics["physical_response_bytes"],
+            "max_physical_requests": MAX_NETWORK_REQUESTS,
             "max_response_bytes": MAX_RESPONSE_BYTES, "max_extended_content_pages": MAX_EXTENDED_CONTENT_PAGES,
             "max_body_characters": MAX_EXTENDED_BODY_CHARACTERS,
-            "elapsed_seconds": round(gate.elapsed_seconds, 3),
-            "request_interval_seconds": REQUEST_INTERVAL_SECONDS}, "generated_at": utc_now()}
+            "request_interval_seconds": REQUEST_INTERVAL_SECONDS,
+            "capture_mode": capture_mode, "llm_inference_count": 0,
+            "phase_elapsed_seconds": dict(phase_elapsed)}, "generated_at": utc_now()}
     if eligibility_identity is not None:
         body_manifest["monthly_connect_eligibility"] = {
             "identity_sha256": eligibility_identity,
@@ -1219,6 +1302,7 @@ def run_capture(catalog_read: Mapping[str, Any], material_root: str | Path,
         "body_corpus_manifest": "body_corpus_manifest.json", "body_corpus_manifest_sha256": manifest_sha,
         "semantic_status": "NOT_REVIEWED", "limits": body_manifest["limits"],
         "started_at": started_at, "terminal_at": utc_now(),
+        "capture_mode": capture_mode, "llm_inference_count": 0,
         "live_import": "NOT_RUN", "live_api_ui": "NOT_VERIFIED", "natural_run": "NOT_VERIFIED"}
     if eligibility_identity is not None:
         batch["monthly_connect_eligibility"] = {
