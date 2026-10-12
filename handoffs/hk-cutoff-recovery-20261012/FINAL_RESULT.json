@@ -1,0 +1,79 @@
+{
+  "trade_date": "20261012",
+  "stage_id": "STAGE_0930_0935",
+  "result": "RESTORED_OBSERVATION_ROWS",
+  "root_cause": {
+    "cutoff": "09:35:05",
+    "natural_snapshot_fetch": "09:36:26.549-09:36:27.622",
+    "after_cutoff_count": 92,
+    "requested": 100,
+    "dispatcher_gap": "Minute-stage recovery excluded by stage and prior-receipt predicates; preview gateway missing two GET routes.",
+    "provider_failure_attempt2": "CANNOT_CONFIRM exact historical child error; original output not retained."
+  },
+  "statuses": {
+    "IMPLEMENTED": "PASS",
+    "TESTED": "PASS independently rerun",
+    "DEPLOYED": "PASS runtime overlay and gateway",
+    "API_VERIFIED": "PASS artifact binding; not execution_verified",
+    "UI_VERIFIED": "PASS 10 observation rows",
+    "BEHAVIOR_VERIFIED": "PASS independent closeout",
+    "NATURAL": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "runtime_stage": "hk-0930-cutoff-recovery-20261012-r1",
+  "runtime_api": "issue35-manager-autocontinue-20261012-r6-integrated",
+  "data": {
+    "pool_rows": 100,
+    "minute_bars": 500,
+    "raw_rows": 100,
+    "observation_rows": 10,
+    "selection_run_id": "run-c38534baae0534d1ce1fa5ec",
+    "selection_artifact_sha256": "46fdc737fd960eaf05e76d51d85572c846dbe72bc224060da48a7c0a389cd552",
+    "selection_manifest_receipt_verified": true,
+    "display_mode": "OBSERVATION_UNVERIFIED",
+    "temporal_cutoff_safe": false,
+    "pit_safe": false,
+    "api_execution_verified": false,
+    "A_and_0925_protection": {
+      "after_sha256": "2e30ddf9f33a24b3f274e3f1d08b4f7826b3d01d22bcc1437e77f0bb5775ca12",
+      "before_sha256": "2e30ddf9f33a24b3f274e3f1d08b4f7826b3d01d22bcc1437e77f0bb5775ca12",
+      "unchanged": true
+    }
+  },
+  "evidence": {
+    "attempt3_report_sha256": "030cd90606457a70b2289ea2a680db0f8ac2a906c436be9f91ab97aae333a2b6",
+    "review_sha256": "0c32d20841090e8f3e4c3ddfb1544ea04cc95b8566389504ff999a1e2088087b",
+    "runtime_hashes": {
+      "ops/_run_stage_center_nodes_parts/stage_dispatch.py": {
+        "runtime_before": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+        "runtime_after": "fc3a40dbee0ee438abaa9723bfee3d96acc86e31ed6e9a79239c04f03c18e11a"
+      },
+      "ops/_run_stage_center_nodes_parts/node_entry.py": {
+        "runtime_before": "6f7b41e2d5fb0bfb90ebf74af9bee7ca2c5431b194eb94ad9a1359c94d1461c3",
+        "runtime_after": "69bd2eebb195e4eecb75fd7892b0ddb43797cd32b46df41e149f35e59ea2ef19"
+      }
+    },
+    "api_sha256": "9dfedcb003360c166b410eeb694f4b0b1579370bee6cffc2db99ee8eb81ce99a",
+    "gateway_api_equal": true,
+    "ui_screenshot_sha256": "6fccb356951686db02fb9985a4527a0bfa1f9284e0c281c872a351b22bd90a9d"
+  },
+  "github": {
+    "repo": "lexi2016/v4",
+    "branch": "codex/hk-cutoff-recovery-20261012",
+    "base_commit": "2379da03d394678123a78cbf748a19d0ecd1d586",
+    "source_verified_commit": "13b0e317aa813f2f4c68ccffff3d56fdd677f7eb",
+    "handoff_verified_commit": "95b575d8474d72851107825c72240a13e0e114b3"
+  },
+  "limitations": [
+    "Canonical pre-edit untracked file SHAs were not captured: CANNOT_CONFIRM.",
+    "Canonical runner lacks prior release scoped capability; canonical dispatch fails closed. Actual deployment uses reviewed release-based overlay, not a whole canonical promotion.",
+    "Natural slot cannot be re-created by later capture; no claim of cutoff-safe or PIT-safe selection.",
+    "Attempt-3 exit zero is parent tool observation; earlier direct-runner exit 3 remains retained separately."
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
