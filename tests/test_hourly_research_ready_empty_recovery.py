@@ -13,6 +13,7 @@ import pytest
 
 from contracts.research import DEDUPE_KEY_FIELDS, SCHEMA_VERSION
 from contracts.research_day_product import EXPECTED_RESEARCH_SLOTS
+import ops.collect_hourly_research_input as hourly_input_module
 from ops.collect_hourly_research_input import build_hourly_research_input
 from ops.materialize_research_day import materialize_research_day
 from ops.run_hourly_research import run_hourly_research_file
@@ -30,6 +31,18 @@ RUN_ID = f"{DATE}_{SLOT}00_run1700"
 RUN_REL = f"external_sources/zsxq_hourly/{RUN_ID}"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 COLLECTOR_SCRIPT = REPO_ROOT / "ops" / "collect_hourly_research_input.py"
+
+
+class _FrozenCollectorDateTime(datetime):
+    @classmethod
+    def now(cls, tz=None):
+        value = cls(2026, 10, 12, 18, 0)
+        return value.replace(tzinfo=tz) if tz is not None else value
+
+
+@pytest.fixture(autouse=True)
+def _freeze_collector_clock(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(hourly_input_module, "datetime", _FrozenCollectorDateTime)
 
 
 def _write_empty_receipt(
@@ -250,6 +263,24 @@ def test_exact_ready_empty_manual_recovery_materializes_with_real_times(tmp_path
     ).hexdigest()
     assert archive["ready_empty_evidence_v1"]["summary_sha256"] == summary_sha
     assert archive["ready_empty_evidence_v1"]["fetch_result_sha256"] == fetch_sha
+
+
+def test_ready_empty_reader_uses_exact_status_not_collector_latest_picker(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _recover_empty_slot(tmp_path)
+    monkeypatch.setattr(
+        hourly_input_module,
+        "_latest_zsxq_status",
+        lambda *_args, **_kwargs: pytest.fail("reader must inspect the exact status path"),
+    )
+
+    archive = HourlyResearchStore(tmp_path).read_exact(DATE, SLOT, mode="LIVE")
+
+    assert archive is not None
+    assert archive["ready_empty_evidence_v1"]["source_input_sha256"] == archive[
+        "source_input_sha256"
+    ]
 
 
 def test_collector_cli_returns_zero_for_exact_ready_empty_manual_recovery(tmp_path: Path) -> None:

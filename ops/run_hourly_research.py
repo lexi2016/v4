@@ -14,7 +14,16 @@ from zoneinfo import ZoneInfo
 
 import contracts.research as research_contract_module
 import domains.research as research_domain_module
+import domains.research_hourly as research_hourly_module
+import infrastructure.interprocess_lock as interprocess_lock_module
+import infrastructure.owned_io as owned_io_module
+import infrastructure.owned_path as owned_path_module
 import infrastructure.data_store as data_store_module
+import infrastructure.market_time as market_time_module
+import infrastructure.research_store as research_store_module
+import infrastructure.trading_safety as trading_safety_module
+import ops.collect_hourly_research_input as collector_module
+import ops.research_shared_bundle as research_shared_bundle_module
 from contracts.runtime_tasks import DispatchMode, DispatchRequest
 from domains.research import build_research_archive
 from domains.research_hourly import validate_hourly_stage_source
@@ -43,12 +52,20 @@ _LATE_RECOVERY_OBSERVATION_FIELDS = frozenset(
 )
 
 
-def _research_transformer_identity_sha256() -> str:
+def _research_transformer_identity_manifest() -> dict[str, Any]:
     components: dict[str, str] = {}
     for module in (
         research_contract_module,
         research_domain_module,
+        research_hourly_module,
         data_store_module,
+        owned_path_module,
+        owned_io_module,
+        interprocess_lock_module,
+        market_time_module,
+        trading_safety_module,
+        collector_module,
+        research_store_module,
     ):
         source_file = inspect.getsourcefile(module)
         if source_file is None:
@@ -56,12 +73,24 @@ def _research_transformer_identity_sha256() -> str:
         components[module.__name__] = hashlib.sha256(
             Path(source_file).read_bytes()
         ).hexdigest()
-    identity = {
-        "schema_version": "v3_5.research_transformer_identity.v1",
+    components["ops.run_hourly_research"] = hashlib.sha256(
+        Path(__file__).read_bytes()
+    ).hexdigest()
+    shared_bundle = research_shared_bundle_module.build_research_shared_bundle()
+    if re.fullmatch(r"[0-9a-f]{64}", str(shared_bundle.get("bundle_sha256") or "")) is None:
+        raise ValueError("hourly research shared bundle identity is invalid")
+    return {
+        "schema_version": "v3_5.research_transformer_identity.v2",
         "python_implementation": platform.python_implementation(),
         "python_version": platform.python_version(),
         "components": components,
+        "shared_bundle_sha256": shared_bundle["bundle_sha256"],
+        "shared_bundle_manifest_sha256": shared_bundle["manifest_sha256"],
     }
+
+
+def _research_transformer_identity_sha256() -> str:
+    identity = _research_transformer_identity_manifest()
     encoded = json.dumps(
         identity,
         ensure_ascii=False,

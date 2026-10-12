@@ -153,21 +153,36 @@ def _HourlyResearchStore__validate_ready_empty_source_body(
         ))
     ):
         raise ValueError("hourly research ready-empty source identity mismatch")
+    status_relative = (
+        f"research_module/runtime_outputs/zsxq_hourly/{archive_date}/{slot}/"
+        f"v35_zsxq_hourly_status_{archive_date}_{slot}.json"
+    )
     try:
         from ops.collect_hourly_research_input import (
-            _cutoff, _latest_zsxq_status, _read_status_artifacts, _strict_as_time,
+            _cutoff, _read_status_artifacts, _strict_as_time,
         )
-        selected = _latest_zsxq_status(self.root, archive_date, slot)
-        if selected is None:
-            raise ValueError("hourly research ready-empty status receipt is missing")
-        status_path, status = selected
+        status_path = self._path(status_relative)
+        status = json.loads(status_path.read_text(encoding="utf-8-sig"))
+        if not isinstance(status, dict) or (
+            status.get("schema_version") != "v3_5.zsxq_hourly_delta.v1"
+            or status.get("source") != "zsxq"
+            or status.get("trade_date") != archive_date
+            or status.get("slot") != slot
+            or status.get("status_path") != status_relative
+            or status.get("fetch_ok") is not True
+            or status.get("status") not in {"READY", "READY_EMPTY"}
+            or status.get("production_allowed") is not False
+            or status.get("buy_gate_updated") is not False
+            or status.get("orders_sent") is not False
+        ):
+            raise ValueError("hourly research ready-empty status receipt identity mismatch")
         artifacts = _read_status_artifacts(
             self.root, archive_date, slot, status_path, status
         )
         cutoff = _cutoff(archive_date, slot)
         fetched = _strict_as_time(status.get("fetched_at"))
         materialized = _strict_as_time(evidence.get("materialized_at"))
-    except (OSError, TypeError) as error:
+    except (OSError, TypeError, UnicodeDecodeError, json.JSONDecodeError) as error:
         raise ValueError("hourly research ready-empty status receipt is unreadable") from error
     run_id = str(status.get("latest_run_id") or "")
     run_relative = f"external_sources/zsxq_hourly/{run_id}"
