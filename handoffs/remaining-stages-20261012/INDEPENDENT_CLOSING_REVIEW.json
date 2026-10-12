@@ -1,0 +1,323 @@
+{
+  "schema_version": "v4.remaining_stage_recovery.integration_closing_review.v1",
+  "review_status": "REVIEWED",
+  "verdict": "PASS_SCOPED_OBSERVATION_READBACK",
+  "reviewer_identity": "/root/remaining_stage_review",
+  "reviewed_at": "2026-10-12T12:40:22.343562+08:00",
+  "scope": "Reuse prior independent r8/backend PASS; read-only close of 20261012 STAGE_0940_0945 and STAGE_0945_1030 formal store/API/UI and corrected scheduler identity.",
+  "states": {
+    "REVIEWED": "PASS",
+    "TESTED": "REUSED_PRIOR_PASS_NO_RERUN",
+    "API_VERIFIED": "PASS_SAVED_READBACKS_AND_STORE_REFERENCES",
+    "UI_VERIFIED": "PASS_SAVED_READBACKS",
+    "BEHAVIOR_VERIFIED": "PASS_OBSERVATION_ROWS_AND_UNVERIFIED_LABELS_ONLY",
+    "DEPLOYED": "CORRECTED_LAUNCHAGENT_IDENTITY_PRESENT_AND_LOADED",
+    "NATURAL_VERIFIED": false,
+    "FORMAL_EXECUTION_VERIFIED": false
+  },
+  "prior_independent_reviews": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/reviewer_r8_replay_20261012/INDEPENDENT_REVIEW.json",
+      "sha256": "b8581b6bcca9a11a770581181d589e68f6fa3f8d6cf537d7a52d8172c60488a1",
+      "verdict": "PASS",
+      "behavior_verified": "PASS_ISOLATED_ONLY",
+      "reused": true
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/prepared_candidate_20261012_r2/independent_review_receipt.json",
+      "sha256": "deda63aa1d1a82149db415b57ab9e4c9dccaefac568cba88563c01c9a34e06de",
+      "verdict": "PASS",
+      "scope": "frozen archive/context-loading behavior",
+      "reused": true
+    }
+  ],
+  "formal_stage_readback": {
+    "STAGE_0940_0945": {
+      "execution_evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/FORMAL_0940_EXECUTION.json",
+        "sha256": "57f0ec4c235041860ee77d82e0a717831187931ebae5ff9d864ad6fb9ce97860"
+      },
+      "started_at": "2026-10-12T12:32:02.276366+08:00",
+      "finished_at": "2026-10-12T12:32:02.694930+08:00",
+      "mode": "MANUAL_RECOVERY",
+      "exit_code": 0,
+      "natural_verified": false,
+      "live_stage_receipt": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261012/STAGE_0940_0945/receipt.json",
+        "sha256": "875c7b1794c817260036e141d8942e50157a7d41e88ffe55759a0f12039d59bd",
+        "matches_api_observed_sha256": true,
+        "observed_sha256": "875c7b1794c817260036e141d8942e50157a7d41e88ffe55759a0f12039d59bd"
+      },
+      "api_snapshots": {
+        "8873": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/API_8873_STAGE_0940_0945_AFTER.json",
+          "sha256": "4d2da30ad3bb458f51d69db346125da01f568402dad193686febda2326e35d36"
+        },
+        "61796": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/API_61796_STAGE_0940_0945_AFTER.json",
+          "sha256": "4d2da30ad3bb458f51d69db346125da01f568402dad193686febda2326e35d36"
+        },
+        "byte_identical": true
+      },
+      "api_status": "PARTIAL_WITH_ROWS",
+      "selected_a_rows": 10,
+      "selected_hk_rows": null,
+      "unified_rows_by_market": {
+        "A": 10,
+        "HK": 10
+      },
+      "execution_evidence_status": "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED",
+      "execution_verified": false,
+      "selection_artifact_binding_status": {
+        "A_SHARE": "SELECTION_TRIO_NOT_RECORDED",
+        "HK_CONNECT": "SELECTION_TRIO_NOT_RECORDED"
+      },
+      "markets": {
+        "A_SHARE": {
+          "raw_run_id": "20261012-a_share_1min_stage_0940_0945-057145c07953e1a7",
+          "raw_artifact_sha256": "29d83d1977796d63464848ac5daeec1e91db274e34e4e5b0b9a2d6f160fc17e7",
+          "raw_status": "CANNOT_CONFIRM",
+          "raw_rows": 361,
+          "raw_requested_rows": 371,
+          "selection": {
+            "run_id": "run-34c64ac2063250e7f61cd086",
+            "artifact_id": "selection-34c64ac2063250e7f61cd086",
+            "artifact_sha256": "86f12b4fde910d6a629a827a956bad46ae6bd3594a59dd5389e2c95c4c364279",
+            "manifest_sha256": "3d68c921db731bd4939a8967d286bc42facc7469838f7168794e44a1b943c743",
+            "receipt_sha256": "5164118f160600cb186762008ae4d45c28b1ec548acbc053103d57f37113f1b8",
+            "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+            "row_count": 10,
+            "status": "PARTIAL_WITH_ROWS",
+            "selection_manifest_receipt_verified": true,
+            "action_levels": {
+              "WATCH_ONLY": 10
+            },
+            "all_formal_eligible_false": true,
+            "matches_read_verified_store": true
+          },
+          "raw_store_run_sha_matches_api": true
+        },
+        "HK_CONNECT": {
+          "raw_run_id": "20261012-hk_connect_1min_stage_0940_0945-b1e618d8beb8ddee",
+          "raw_artifact_sha256": "ac91032befbd3f2bced7447683df658ac5628cabbce38854f9eab6d8151128f5",
+          "raw_status": "PARTIAL_WITH_ROWS",
+          "raw_rows": 100,
+          "raw_requested_rows": 100,
+          "selection": {
+            "run_id": "run-5e750b6ac00293b7855bb959",
+            "artifact_id": "selection-5e750b6ac00293b7855bb959",
+            "artifact_sha256": "b7011229223aa85532dd7492d04c9c94b7e20a7f57c434585f2bca22fba6d84f",
+            "manifest_sha256": "b9f0ffb6399dfc381be45363f4c749a00e8a04059b53a41d73d7011a5b1efdc5",
+            "receipt_sha256": "e2f7b77370f05d6ddc0d64605c98095c0b35cc2108635f8290a3031d6d6b87ab",
+            "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+            "row_count": 10,
+            "status": "PARTIAL_WITH_ROWS",
+            "selection_manifest_receipt_verified": true,
+            "action_levels": {
+              "NO_BUY": 10
+            },
+            "all_formal_eligible_false": true,
+            "matches_read_verified_store": true
+          },
+          "raw_store_run_sha_matches_api": true,
+          "temporal_cutoff_safe": false,
+          "observation_verification": "UNVERIFIED"
+        }
+      }
+    },
+    "STAGE_0945_1030": {
+      "execution_evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/FORMAL_0945_EXECUTION.json",
+        "sha256": "97af5617e40cd711e89ea7c2faccb4aa36f9d63841a983ddfa03b16881585ae0"
+      },
+      "started_at": "2026-10-12T12:32:13.744375+08:00",
+      "finished_at": "2026-10-12T12:32:14.125698+08:00",
+      "mode": "MANUAL_RECOVERY_NORMAL_DISPATCH",
+      "exit_code": 0,
+      "natural_verified": false,
+      "live_stage_receipt": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261012/STAGE_0945_1030/receipt.json",
+        "sha256": "28b05a7360a464e25bacc98bfa7865b4da5ad3a3fa62ec5ff26e9de789f2d53b",
+        "matches_api_observed_sha256": true,
+        "observed_sha256": "28b05a7360a464e25bacc98bfa7865b4da5ad3a3fa62ec5ff26e9de789f2d53b"
+      },
+      "api_snapshots": {
+        "8873": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/API_8873_STAGE_0945_1030_AFTER.json",
+          "sha256": "8fb73e6738935d7265425db6b097fb432ca30e19ffeb12a5e9f4dee39f7ea469"
+        },
+        "61796": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/API_61796_STAGE_0945_1030_AFTER.json",
+          "sha256": "8fb73e6738935d7265425db6b097fb432ca30e19ffeb12a5e9f4dee39f7ea469"
+        },
+        "byte_identical": true
+      },
+      "api_status": "PARTIAL_WITH_ROWS",
+      "selected_a_rows": 10,
+      "selected_hk_rows": null,
+      "unified_rows_by_market": {
+        "A": 10,
+        "HK": 10
+      },
+      "execution_evidence_status": "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED",
+      "execution_verified": false,
+      "selection_artifact_binding_status": {
+        "A_SHARE": "SELECTION_TRIO_NOT_RECORDED",
+        "HK_CONNECT": "SELECTION_TRIO_NOT_RECORDED"
+      },
+      "markets": {
+        "A_SHARE": {
+          "raw_run_id": "20261012-a_share_1min_stage_0945_1030-9fb2a3e317acdbd0",
+          "raw_artifact_sha256": "f59db74e678cdab9f81baaa70ca4b026cb96cb2731c2e81ed05c75d5b6fa1dcf",
+          "raw_status": "CANNOT_CONFIRM",
+          "raw_rows": 361,
+          "raw_requested_rows": 371,
+          "selection": {
+            "run_id": "run-5f443a7ef302bc1b65cc8a1d",
+            "artifact_id": "selection-5f443a7ef302bc1b65cc8a1d",
+            "artifact_sha256": "d9b085ba6eb5ac444c786e00f67dbbf95403c3b818ab62f793e5c1d85b6f63d6",
+            "manifest_sha256": "6fbed7e787126b7daf6b10bad5eed8228ce062973ad96fec8d2dafa5da39057c",
+            "receipt_sha256": "2400d1a0068e081907f66c50cec9088cad69138c38b1b3c2ad2b6658de1795d4",
+            "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+            "row_count": 10,
+            "status": "PARTIAL_WITH_ROWS",
+            "selection_manifest_receipt_verified": true,
+            "action_levels": {
+              "WATCH_ONLY": 10
+            },
+            "all_formal_eligible_false": true,
+            "matches_read_verified_store": true
+          },
+          "raw_store_run_sha_matches_api": true
+        },
+        "HK_CONNECT": {
+          "raw_run_id": "20261012-hk_connect_1min_stage_0945_1030-a18f472ebca4ccae",
+          "raw_artifact_sha256": "7ca6916c92b89e1748303e072e42fb86bf25a300fe39c2a136d34de3c0aed043",
+          "raw_status": "PARTIAL_WITH_ROWS",
+          "raw_rows": 99,
+          "raw_requested_rows": 100,
+          "selection": {
+            "run_id": "run-8e42e2beca799295bbe52ab9",
+            "artifact_id": "selection-8e42e2beca799295bbe52ab9",
+            "artifact_sha256": "5b95e1426aa96f269ab3d90df67bf808e7e8ab0cff2c80878b2958acf2fb1cb0",
+            "manifest_sha256": "397f63e5bde73acd4a24f43719b892c0342f4f560da6d79b8aeb2971db521127",
+            "receipt_sha256": "af389348fa043344b59d5c5f622c7c11ecbc6197cf5d3e2c061b2833c63f88ec",
+            "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+            "row_count": 10,
+            "status": "PARTIAL_WITH_ROWS",
+            "selection_manifest_receipt_verified": true,
+            "action_levels": {
+              "NO_BUY": 10
+            },
+            "all_formal_eligible_false": true,
+            "matches_read_verified_store": true
+          },
+          "raw_store_run_sha_matches_api": true,
+          "temporal_cutoff_safe": false,
+          "observation_verification": "UNVERIFIED"
+        }
+      }
+    }
+  },
+  "ui_readback": {
+    "evidence": {
+      "UI_0940_AFTER.txt": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/UI_0940_AFTER.txt",
+        "sha256": "f9b95a9c4959023a10a86e49f7997f3bb5d1b303b2903c6cf1b08e0e14e41c8c"
+      },
+      "UI_0945_AFTER.txt": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/UI_0945_AFTER.txt",
+        "sha256": "1f883dc2fec2409695c1962b5ad2d5ddf7ebe171442cfaaa407cfb5c2ad0b08f"
+      },
+      "UI_TIMELINE_AFTER_RECOVERY.png": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/UI_TIMELINE_AFTER_RECOVERY.png",
+        "sha256": "46a1c5c19da07fdec48bad19cb266893726d711dfd24fb215eb100c4c51cbbf3"
+      }
+    },
+    "observed": "Morning first five stage cards show PARTIAL_WITH_ROWS, A 10 / HK 10 observation rows, unverified; 13:00, 14:45, 15:45 cards show pending/not due. The selected 09:40 and 09:45 views each show 10 HK observation rows marked unverified.",
+    "visual_inspection": "UI_TIMELINE_AFTER_RECOVERY.png visibly matches the saved timeline summary."
+  },
+  "preservation": {
+    "prior_stage_receipts_unchanged": [
+      {
+        "stage_id": "STAGE_0925",
+        "before_snapshot": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/STAGE_0925_BEFORE_RECEIPT.json",
+          "sha256": "9b2bf55348e55f9c462da6dc013cf71d1bdf0904c6bb973004f4726596ae598c"
+        },
+        "live_receipt_sha256": "9b2bf55348e55f9c462da6dc013cf71d1bdf0904c6bb973004f4726596ae598c",
+        "unchanged": true
+      },
+      {
+        "stage_id": "STAGE_0930_0935",
+        "before_snapshot": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/STAGE_0930_0935_BEFORE_RECEIPT.json",
+          "sha256": "75855e8a9878ad192a61a99cbc50186c20b9d5142f60d45d1f8f52119e77e619"
+        },
+        "live_receipt_sha256": "75855e8a9878ad192a61a99cbc50186c20b9d5142f60d45d1f8f52119e77e619",
+        "unchanged": true
+      },
+      {
+        "stage_id": "STAGE_0935_0940",
+        "before_snapshot": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/STAGE_0935_0940_BEFORE_RECEIPT.json",
+          "sha256": "39b2939810e0b7144bd1d434ec940fc042e95572f2ba2e885b7a063cbd0ff72b"
+        },
+        "live_receipt_sha256": "39b2939810e0b7144bd1d434ec940fc042e95572f2ba2e885b7a063cbd0ff72b",
+        "unchanged": true
+      }
+    ],
+    "stage_0940_a_lane_preserved": true,
+    "basis": "r8 controlled-execution receipt records a_lane_preserved=true and execution_markets=[HK_CONNECT]; post-run A raw and selection run/artifact references remain available and match API/store verification."
+  },
+  "deployment_identity": {
+    "receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/STAGE_IDENTITY_CORRECTED.json",
+      "sha256": "351934f8ccda8cd747d1d2bc93cabc7185aaabc44687737604675387a9d42e18"
+    },
+    "corrected_fields": {
+      "V35_RELEASE_ID": "remaining-stages-recovery-20261012-r1",
+      "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/release-manifest.json",
+      "V35_RELEASE_MANIFEST_SHA256": "6bb5592a316e2bb822f2cfb7743074887c46a9894a5ef7b3b975bd05958eda79"
+    },
+    "installed_plist": {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+      "sha256": "8217c3cb61795e0059a01014617b6c8fce9027328e1d11c9f0f4e808322a2b8d"
+    },
+    "stage_after_plist": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/integration/stage.after.plist",
+      "sha256": "8217c3cb61795e0059a01014617b6c8fce9027328e1d11c9f0f4e808322a2b8d"
+    },
+    "installed_matches_recorded_sha256": true,
+    "schedule_unchanged": true,
+    "run_at_load": false,
+    "launchctl_print_readback": {
+      "label": "gui/501/com.lexi.stage-center.scheduler",
+      "exit_code": 0,
+      "state": "not running",
+      "runs": 0,
+      "last_exit_code": "never",
+      "loaded_release_id": "remaining-stages-recovery-20261012-r1",
+      "loaded_manifest_sha256": "6bb5592a316e2bb822f2cfb7743074887c46a9894a5ef7b3b975bd05958eda79"
+    },
+    "natural_schedule_execution": "CANNOT_CONFIRM; scheduler currently has not run in this activation."
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "stage_runner_write_performed": true,
+    "reviewer_operations": "read-only; no stage/provider/test rerun"
+  },
+  "risk_review": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "caveats": [
+      "API stage execution_evidence remains SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED with execution_verified=false because the stage receipt binding reports SELECTION_TRIO_NOT_RECORDED. Raw/selection store latest pointers, run IDs, SHAs, API references, and selection trios were independently verified; do not promote this to formal selection/execution verification.",
+      "HK rows remain observation-only: 09:40 TDX capture was after cutoff and HK active snapshot was not collected; 09:45 raw coverage is 99/100 with unsafe active-snapshot cutoff. selected_hk_rows remains null, all ten HK rows have NO_BUY and formal_eligible=false, and natural_verified=false."
+    ]
+  },
+  "evidence_boundary": "This receipt verifies the saved date-bound observation presentation and the actual run/store/API identity links. It does not assert PIT-safe HK input, formal HK selection, execution_verified=true, or a natural schedule result."
+}
