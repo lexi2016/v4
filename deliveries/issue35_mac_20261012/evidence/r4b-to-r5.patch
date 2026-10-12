@@ -1,0 +1,134 @@
+--- a/tests/test_manager_us_mapping_research.py
++++ b/tests/test_manager_us_mapping_research.py
+@@ -97,7 +97,7 @@
+         attach_current_relation_evidence,
+     )
+     from v4.manager_research.us_market_bridge import project_us_market
+-    from v4.manager_research.workspace_projection import digest
++
+ 
+     service = _isolated_service(tmp_path)
+     cutoff = "2026-09-30T09:27:30+08:00"
+@@ -121,10 +121,12 @@
+     result = attach_current_relation_evidence(bridge)
+     overlay = result["relation_evidence"]
+     assert overlay["current_bridge_source_payload_sha256"] == bridge_sha
+-    assert overlay["assessment_identity"] == digest([
+-        "20260930", bridge["expected_us_session"], bridge_sha,
+-        bridge["research_cutoff"], None, [], [],
+-    ])
++    later_cutoff = "2026-09-30T09:27:31+08:00"
++    later = attach_current_relation_evidence({**bridge, "research_cutoff": later_cutoff})
++    assert later["research_cutoff"] == later_cutoff
++    assert overlay["assessment_identity"] == later["relation_evidence"]["assessment_identity"]
++    assert overlay["post_cutoff_relation_count"] == later["relation_evidence"]["post_cutoff_relation_count"]
++    assert overlay["current_bridge_source_payload_sha256"] == later["relation_evidence"]["current_bridge_source_payload_sha256"]
+     assert overlay["artifact_sha256"] is None
+     assert all(source["relation_source"] != "CURRENT_REVIEWED_RELATION_EVIDENCE"
+                for source in overlay["relation_source_artifacts"])
+@@ -523,6 +525,12 @@
+     assert fresh_projection["relation_evidence"]["reviewed_seed_relation_count"] == 4
+     assert fresh_projection["relation_evidence"]["current_reviewed_relation_count"] == 10
+     assert fresh_projection["relation_evidence"]["withheld_candidate_count"] == 0
++    # Crossing the recorded source/review availability boundaries changes the
++    # eligible relations and therefore remains a distinct semantic identity.
++    assert (
++        old_projection["relation_evidence"]["assessment_identity"]
++        != fresh_projection["relation_evidence"]["assessment_identity"]
++    )
+     assert fresh_rows["NVDA"]["relation_count"] == 5
+     assert fresh_rows["AMD"]["relation_count"] == 1
+     assert {(relation["us_symbol"], relation["hk_symbol"])
+--- a/v4/manager_research/us_mapping_research.py
++++ b/v4/manager_research/us_mapping_research.py
+@@ -1510,11 +1510,6 @@
+         str(evidence.get("artifact_sha256"))
+         if evidence is not None and current_evidence_selected else None
+     )
+-    overlay_identity = digest([
+-        target_date, session, bridge_source_payload_sha,
+-        result.get("research_cutoff"), artifact_sha, eligible_cards,
+-        eligible_current_symbol_assessments,
+-    ])
+     gaps = ["RELATION_EVIDENCE_COVERAGE_NOT_COMPLETE"]
+     if post_cutoff_count:
+         gaps.append("RELATION_EVIDENCE_AFTER_CURRENT_CUTOFF")
+@@ -1533,6 +1528,42 @@
+     if current_artifact_error:
+         gaps.append(current_artifact_error)
+     gaps.extend(seed_gaps)
++
++    # A saved workspace identity represents source bindings and the actual
++    # cutoff decisions. It must not include the read clock itself: when the
++    # source bytes, available_at results, counts, and gaps are unchanged, a
++    # later dynamic replay is the same material identity. Crossing a real
++    # source/review availability boundary changes these hashed results.
++    identity_inputs = {
++        "schema": "v4.manager_research.current_relation_assessment_identity.v2",
++        "target_trade_date": target_date,
++        "current_bridge_session": session,
++        "current_bridge_source_payload_sha256": bridge_source_payload_sha,
++        "configured_us_symbols": sorted(configured_symbols),
++        "current_relation_source": {
++            "evidence_file_sha256": hashlib.sha256(evidence_raw).hexdigest() if evidence_raw else None,
++            "evidence_artifact_sha256": evidence.get("artifact_sha256") if evidence is not None else None,
++            "review_receipt_sha256": review_info.get("receipt_sha256") if review_info else None,
++            "reviewed_at": review_info.get("reviewed_at") if review_info else None,
++        },
++        "seed_source": deepcopy(dict(seed_availability)) if isinstance(seed_availability, Mapping) else None,
++        "eligibility_results": {
++            "eligible_relations": eligible_cards,
++            "eligible_symbol_assessments": eligible_current_symbol_assessments,
++            "post_cutoff_counts": {
++                "relations": post_cutoff_count,
++                "relation_reviews": post_cutoff_review_count,
++                "review_pending_relations": review_pending_count,
++                "symbol_assessments": post_cutoff_assessment_count,
++                "symbol_assessment_reviews": post_cutoff_assessment_review_count,
++                "review_pending_symbol_assessments": assessment_review_pending_count,
++            },
++            "current_review_status": current_review_status,
++            "withheld_candidate_count": len(withheld_candidates),
++            "gaps": sorted(set(gaps)),
++        },
++    }
++    overlay_identity = digest(identity_inputs)
+     relation_source_artifacts = []
+     if seed_availability and seed_relations:
+         relation_source_artifacts.append({
+--- a/v4/manager_research/workspace_projection.py
++++ b/v4/manager_research/workspace_projection.py
+@@ -191,6 +191,24 @@
+ 
+     cards = screen.get('cards')
+     return count('strict_count'), count('near_count'), len(cards) if isinstance(cards, list) else None
++
++
++def _market_screen_identity_projection(screen: Mapping[str, Any] | None) -> Mapping[str, Any] | None:
++    """Keep the visible screen cutoff out of identity unless it changes a result.
++
++    The cutoff still controls the screen's source reads and eligibility before
++    this projection is built. Only the raw read-clock leaf is omitted; every
++    source identity, decision, gap, result, and phase remains part of identity.
++    """
++    if not isinstance(screen, Mapping):
++        return screen
++    value = deepcopy(dict(screen))
++    data_context = value.get('data_context')
++    if isinstance(data_context, Mapping):
++        identity_context = dict(data_context)
++        identity_context.pop('research_cutoff', None)
++        value['data_context'] = identity_context
++    return value
+ 
+ 
+ def build_workspace(date: str, *, catalyst: Mapping[str, Any], materials: Sequence[Mapping[str, Any]] = (),
+@@ -479,7 +497,7 @@
+     identity_inputs = dict(decision_projection_version='20260921.manager-decision-ux.a1',
+         semantic_version=SEMANTIC_VERSION,catalyst=catalyst,materials=materials,stage=stage,close=close,
+         discovered_cards=discovered_cards,discovery_rejections=discovery_rejections,price_quotes=price_quotes,
+-        market_screen=screen,
++        market_screen=_market_screen_identity_projection(screen),
+         plan_context={k:v for k,v in context.items() if k!='research_cutoff'} if plan_context else None)
+     result= dict(schema_version=SCHEMA,semantic_version=SEMANTIC_VERSION,rejected_relations=rejected_relations,
+         decision_projection_version='20260921.manager-decision-ux.a1',

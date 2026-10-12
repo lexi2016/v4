@@ -1,0 +1,301 @@
+{
+  "CANNOT_CONFIRM": [
+    "R6 dynamic GET/current projection and input-identity result against current source, cutoff, eligibility, and available_at data.",
+    "Whether the single R6 owner POST returns a new CURRENT materialization or exact ALREADY_MATERIALIZED reuse.",
+    "Current live lock/protected-date status and live plist/service preimages; pending receipt says these were not read.",
+    "R6 target13 canary, R6 enabled stage, publication, service reload, API/UI result, and natural target-date behavior."
+  ],
+  "conditional_parent_commands": {
+    "current_execution03_result": "NOT_RUN; do not execute the existing helper while it still pins d8 as latest.",
+    "expected_fresh_canary": {
+      "candidate_manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+      "candidate_release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+      "old_d8_and_357_files": "MUST_REMAIN_EXACT",
+      "owner_route": "one original owner POST and one GET",
+      "owner_terminal_attempt": "REQUIRED",
+      "product_current_and_full_identity": "REQUIRED",
+      "target_trade_date": "20261013"
+    },
+    "pair_execute_or_rollback_argv": "CANNOT_CONFIRM; R6 stage/binding/pair plan do not yet exist.",
+    "r6_original_canary_argv_after_handler_fix_only": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_canary.py",
+      "--app-root",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+      "--target-date",
+      "20261013",
+      "--output-dir",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03",
+      "--accept-existing-current13",
+      "--execute"
+    ],
+    "r6_original_prepare_argv_after_parent_accepts_canary_and_fresh_current_preimages": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_prepare.py",
+      "--app-root",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+      "--target-date",
+      "20261013",
+      "--canary-path",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03/plan-canary.json",
+      "--output-dir",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-r6/after-canary",
+      "--stage-enabled"
+    ],
+    "stage_status_from_pending_receipt": "DO_NOT_RUN_UNTIL_PARENT_ACCEPTS_FRESH_R6_CANARY_AND_CURRENT_PREIMAGES"
+  },
+  "exact_preimages": {
+    "archived_r3_version_still_exact": {
+      "input_identity": "3c3f32668945d572af760fdc9b36ad5c577a7167720dc8aaba3fd60ccae9bbd3",
+      "product_file_bytes": 40992670,
+      "product_file_sha256": "777c6496402ea7d2313ed7c09ff7be2ae1e5597659bcbfb6b42fe3fdd051522a",
+      "product_sha256_field": "7ba36ad92af7cccaadbcdacca3a2eddc9488a80e28ddd9185ebba2e5afffc49c",
+      "run_file_bytes": 356369,
+      "run_file_sha256": "9ca32cee34b42727666c6c96e0cc9396a387bc48e332f232621232c6dbd1aee2",
+      "run_id": "d8a35106712a4387accf214c3ee3772d"
+    },
+    "current_and_archived_source_classification": "d8 is an immutable R3 historical version and must remain hash-pinned; it is not the current latest. 357 is the exact accepted R4b latest preimage. Do not replace d8 pins with 357: preserve both, while separately validating 357 as the current R4b preimage.",
+    "r4b_accepted_execution02_canary": {
+      "attempt_state": "PARTIAL",
+      "candidate_manifest_sha256": "ccf0bbec4b58910f180320e4288f09e0af2a8143c542f2183eab977d01746b9f",
+      "input_identity": "efbf9d580a587edeb58fb80fa4358b45afe45a5d10236f28ad1d3d9d50daa0c9",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-02/plan-canary.json",
+      "product_sha256_field": "ae8b8cfc4f1e44003aa75d803ca29fa6e1e088766ae98b5c0471884f699f22c3",
+      "run_id": "357d984e400541a48c41f65ec0018b62",
+      "sha256": "4cfe936e7e52611544a95b6bccd692bb1cf47f823d3c5c91f0c9bbc09497ea63"
+    },
+    "read_only_current_state_observed": {
+      "current_attempt_state": "PARTIAL",
+      "current_input_identity": "efbf9d580a587edeb58fb80fa4358b45afe45a5d10236f28ad1d3d9d50daa0c9",
+      "current_product_file_and_latest": {
+        "bytes": 40992670,
+        "sha256": "99a31d918381320e493bc518cdfa6db91f4ee1e0ed2bbfb5120ca39a18e7aad3"
+      },
+      "current_product_sha256_field": "ae8b8cfc4f1e44003aa75d803ca29fa6e1e088766ae98b5c0471884f699f22c3",
+      "current_run_file_and_latest": {
+        "bytes": 356369,
+        "sha256": "f2b9288197aa94ae101225e8fdb5245ea10c96a838cc77441bbe4ff18224a834"
+      },
+      "current_run_id": "357d984e400541a48c41f65ec0018b62",
+      "execution_kind": "MANUAL_REFRESH",
+      "owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "read_only_observation_only": true,
+      "state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+      "target_date": "20261013"
+    }
+  },
+  "findings": [
+    {
+      "evidence": [
+        {
+          "claim": "_CURRENT13_ACCEPTANCE pins d8/R3 bytes and _current13_existing_preimage requires those bytes to be both current latest pointers.",
+          "lines": "169-220, 251-303, 326-374",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_canary.py",
+          "sha256": "8567287bee4c8920880694855b5ed1420623220801ec2d5bb44b2595eb49c703"
+        },
+        {
+          "claim": "accepted R4b execution02 identifies 357 as current, with d8 only as preserved prior version.",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/phase4-issue35-target13/parent-current13-execution-02.stdout.json",
+          "sha256": "1029218d51f69afb86283d46131904045f185de568a0a2eaa9cae3bc451dd821"
+        },
+        {
+          "claim": "inactive R6 candidate identity and manifest are exact, but no canary/owner call has occurred.",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/phase6-integration-preparation/integrated-release-verification.json",
+          "sha256": "85de5ecc6f58af640ac288d96dbf780d650a81dff300363466212ca7091d0af4"
+        }
+      ],
+      "id": "P1-01",
+      "priority": "P1",
+      "required_change": "Add an R6-scoped exact preimage contract: independently pin/verify d8 historical run+product bytes from the R4b execution02 state_preimage, and pin/verify 357 as current R4b run/product/latest bytes and fields from the accepted execution02 canary plus the observed exact state. Before owner call require target13, same state root, exact files/write-set, free mutex, and unchanged protected dates. Keep both histories immutable. After a changed-input R6 result permit only d8+357+the exact new run+latest; for exact reuse permit only d8+357+latest with latest still 357. Never broaden to arbitrary old/new state.",
+      "title": "The current13 handler pins the wrong latest preimage for R6."
+    },
+    {
+      "evidence": [
+        {
+          "claim": "R6 removes only the raw research_cutoff leaf from identity while retaining source, decision, and gap inputs.",
+          "lines": "194-216, 489-505",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/workspace_projection.py",
+          "sha256": "831a9235892aa740c643d1ddd73550d88f30ecf1efe9a2e4e16ca956dd467961"
+        },
+        {
+          "claim": "R6 identity replaces the raw clock leaf with source bindings, review/availability, eligible results, cutoff counts, status, and gaps.",
+          "lines": "1510-1572",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/us_mapping_research.py",
+          "sha256": "90d34e32fb8052a0e1fab3994d099e386bec2a644c7a5762485e0924332a6a72"
+        },
+        {
+          "claim": "R6 has an idempotent ALREADY_MATERIALIZED path and a full pre-success commit readback path.",
+          "lines": "1194-1243, 1303-1323, 1428-1485",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/workspace.py",
+          "sha256": "f1e61a8003b638a4b4ecfbf67b9028e5f1d16e315edfe4ebd78e1f3de31bba96"
+        }
+      ],
+      "id": "P2-01",
+      "priority": "P2",
+      "required_change": "Treat 357 only as an exact preservation preimage, not as proof of R6 CURRENT. Let the original R6 owner recompute the target using its current source, eligibility, available_at, cutoff, and PIT gates; accept stage preparation only after a fresh GET is CURRENT with matching run/product/input/owner/terminal identity. A clock-only change may be identity-stable, while genuine source/eligibility/cutoff changes must invalidate and be re-evaluated. Current R6 result is CANNOT_CONFIRM until the parent-owned call.",
+      "title": "Clock/source migration makes old-plan CURRENT status unproven until the R6 owner runs."
+    },
+    {
+      "evidence": [
+        {
+          "claim": "same-input manual refresh returns ALREADY_MATERIALIZED; failed refresh writes a FAILED run attempt while leaving previous success product latest intact.",
+          "lines": "1303-1323, 1485-1497",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/workspace.py",
+          "sha256": "f1e61a8003b638a4b4ecfbf67b9028e5f1d16e315edfe4ebd78e1f3de31bba96"
+        },
+        {
+          "claim": "canary accepts only CURRENT from refresh and failure preservation requires previous run_latest unchanged/no new journal.",
+          "lines": "57-83, 302-374, 908-955",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_canary.py",
+          "sha256": "8567287bee4c8920880694855b5ed1420623220801ec2d5bb44b2595eb49c703"
+        },
+        {
+          "claim": "four existing temp-state tests use only a single prior-run fixture; no two-prior-generation/reuse/failure-journal matrix is present.",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/test_issue35_phase4_current13_acceptance.py"
+        }
+      ],
+      "id": "P2-02",
+      "priority": "P2",
+      "required_change": "Preserve original owner reuse and failure semantics. Do not issue a second POST or force new materialization. If exact same-input reuse is admitted as a canary outcome, record it as reuse (not a new run) only when the R6 GET is CURRENT and all owner/product/attempt identities equal the pinned state; otherwise fail closed. On a failed fresh attempt, prove d8 and 357 version files and the prior plan latest remain exact, while recognizing only that exact new FAILED run journal/latest transition; do not call it a successful plan.",
+      "title": "Same-input owner reuse and failure journaling need explicit exact outcomes."
+    },
+    {
+      "evidence": [
+        {
+          "claim": "_validate_owner_pair checks attempt kind/state but does not compare its run_id/SHA/owner/input/finished time or require GET attempt equals POST attempt and product attempt.",
+          "lines": "57-83, 932-945",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_canary.py",
+          "sha256": "8567287bee4c8920880694855b5ed1420623220801ec2d5bb44b2595eb49c703"
+        },
+        {
+          "claim": "R6 source internally checks exact product/readback/terminal attempt before committing success.",
+          "lines": "1194-1226",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/workspace.py",
+          "sha256": "f1e61a8003b638a4b4ecfbf67b9028e5f1d16e315edfe4ebd78e1f3de31bba96"
+        }
+      ],
+      "id": "P2-03",
+      "priority": "P2",
+      "required_change": "Before producing the R6 canary PASS artifact, compare POST and GET target/run/product SHA/input identity/owner, require CURRENT/consumed and diagnostics MATCH/readback VERIFIED, and require the complete POST, GET, persisted, and product attempt objects to agree on terminal run/SHA/state/owner/execution kind/identity. Retain the R6 source commit gate; wrapper verification is an additional acceptance boundary.",
+      "title": "The canary wrapper does not independently record the full terminal-attempt identity required by this gate."
+    }
+  ],
+  "minimal_writer_scope_proposal": {
+    "important_root_split": "Update only API release identity to R6. Do not replace the preserved HK scheduler V35_APP_ROOT or V4_MANAGER_ANNOUNCEMENT_APP_ROOT with the R6 API app root; the five-path R4b-to-R6 delta contains no manager-cycle/scheduler source change.",
+    "must_remain_r4b": [
+      "live before plist/binding CAS preimages until freshly observed",
+      "existing HK scheduler app root, scheduler WorkingDirectory/ProgramArguments/label/ownership and unchanged cycle source",
+      "canonical API release lock, observer/reload and rollback order, target date and safety flags"
+    ],
+    "original_owner_route": [
+      "POST /api/v4/manager/research/workspace/refresh?date=20261013",
+      "GET /api/v4/manager/research/workspace?date=20261013"
+    ],
+    "preserve_immutable": [
+      "R4b release and manifest",
+      "R4b execution02 canary and exact d8/357 history",
+      "R4b enabled stage/rollback preimage receipts",
+      "R6 integrated app inventory/source SHA"
+    ],
+    "required_negative_controls": [
+      "R4b-current 357 mismatch",
+      "d8 archive mismatch/removal",
+      "extra file or third unexpected prior run",
+      "wrong R6 manifest/path",
+      "CURRENT missing or stale input/eligibility/cutoff change",
+      "wrong POST/GET product identity",
+      "nonterminal/mismatched owner attempt",
+      "same-input reuse with no extra file",
+      "failed owner journal with prior product latest preserved",
+      "mutex/protected-date/preimage race"
+    ],
+    "strict_version_pins_to_update": [
+      "API release root/app root/release id/manifest and inventory hashes to the verified R6 integrated candidate",
+      "fresh R6 canary output path/hash",
+      "new R6 stage dir/receipt/after-file hashes when generated",
+      "API loaded release identity check to the R6 release id"
+    ],
+    "tests": "Add focused temp-only transport tests for the multi-generation and result matrix; do not repeat the already-passed R6 runtime/observer/lock suites.",
+    "versioned_paths": "Use R6-scoped helper/adapter artifacts under E/tools/phase6-r6; do not rewrite accepted R4b helper/adapter pins in place."
+  },
+  "reviewed_diff": {
+    "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+    "candidate_inventory": {
+      "entry_count": 1049,
+      "sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d"
+    },
+    "candidate_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/release-manifest.json",
+    "candidate_manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+    "candidate_release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+    "candidate_status": "PASS_INACTIVE_R6_ORIGINAL_INTEGRATOR_CANDIDATE",
+    "integration_receipt": {
+      "activation_status": "NOT_ACTIVATED",
+      "active_pointer_changed": false,
+      "canary_status": "NOT_RUN",
+      "owner_calls": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/phase6-integration-preparation/integrated-release-verification.json",
+      "sha256": "85de5ecc6f58af640ac288d96dbf780d650a81dff300363466212ca7091d0af4"
+    },
+    "source_delta": {
+      "changed_paths": [
+        "tests/test_manager_plan_readback_issue24.py",
+        "tests/test_manager_us_mapping_research.py",
+        "v4/manager_research/workspace.py",
+        "v4/manager_research/workspace_projection.py",
+        "v4/manager_research/us_mapping_research.py"
+      ],
+      "r4b_to_r6_delta_receipt_sha256": "8865b682dfcd47dac0d4c0bd4c9bbb8e58e22ab1b0a9dcde6f1178bbd4d8507d",
+      "r6_source_only_manifest_sha256": "719288940d28bdc948baa4b034b781f69423260322dae0c930c745b304e4f359",
+      "reviewed_behavior": [
+        "R6 workspace.py adds a read-only candidate commit view, checks exact product/readback/run/input/owner/terminal-attempt identity before terminal success, then reads back the sealed attempt before publishing plan latest.",
+        "R6 workspace_projection.py removes only the raw research_cutoff leaf from the identity projection; source/decision/gap/result content remains included.",
+        "R6 us_mapping_research.py excludes the read clock while retaining source hashes, review timestamps, seed availability, eligible results, post-cutoff counts, review status, and gaps."
+      ],
+      "source_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d"
+    }
+  },
+  "reviewer": "/root/issue35_mac_reviewer",
+  "schema_version": "v4.issue35.phase6.publication_contract_independent_review.v1",
+  "scope": {
+    "forbidden_actions_respected": [
+      "owner calls",
+      "API or HTTP",
+      "service/plist/lock mutation",
+      "canary/stage execution",
+      "Git",
+      "source or candidate mutation",
+      "tests rerun"
+    ],
+    "mode": "READ_ONLY_CONTRACT_DIAGNOSIS",
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/PHASE6_PUBLICATION_CONTRACT_DIAG_SCOPE.md",
+    "sha256": "7184377bdcfca606f41e9f21e467bc9829b827fed3ec60b32638d82da2c1c5a8"
+  },
+  "tests_and_acceptance": {
+    "existing_canary_temp_tests": "Four tests read, no tests rerun; they cover one prior version and do not cover the R3->R4b->R6 two-generation preimage.",
+    "existing_r6_writer_evidence": {
+      "broad_after_fixture_correction": "NOT_RUN",
+      "broad_before_fixture_correction": "1 failed, 57 passed",
+      "prior_r6_owner_negative_cases": "writer says six rejection assertions passed in the 57 broad passes; not independently rerun here",
+      "targeted_fixture_correction": "1 passed in 0.27s"
+    },
+    "reviewer_test_execution": "NOT_RUN_BY_SCOPE"
+  },
+  "verdict": {
+    "P0": [],
+    "P1": [
+      "R4b current13 preflight treats archived d8 as latest and therefore rejects the accepted current 357 preimage; no R6 owner POST is safe until the handler separates historical and current state."
+    ],
+    "P2": [
+      "The original owner has a same-input ALREADY_MATERIALIZED path that the canary validator rejects; whether the R6 request takes that path is CANNOT_CONFIRM without the parent-owned call.",
+      "The current canary validator does not independently bind the returned terminal attempt/readback fields to the exact current product; the R6 owner code adds an internal exact gate, but the requested canary evidence contract is not fully encoded by this helper.",
+      "The current failure-preservation checker expects no run-journal change; R6 intentionally leaves an exact FAILED attempt journal while preserving the previous successful plan latest, so failure evidence needs a distinct exact transition check.",
+      "No transport regression tests currently cover the two-generation d8/357 preimage, same-input reuse, or R6 failure journal; existing current13 tests cover only a one-prior-run fixture."
+    ],
+    "behavior_verified": "CANNOT_CONFIRM_R6_OWNER_CANARY_NOT_RUN",
+    "publication_contract": "FAIL_BOUNDED_CURRENT13_PREIMAGE_AND_RESULT_ACCEPTOR",
+    "reviewed": true,
+    "tested_by_reviewer": "NOT_RUN_SCOPE_DIAGNOSTIC_ONLY"
+  }
+}

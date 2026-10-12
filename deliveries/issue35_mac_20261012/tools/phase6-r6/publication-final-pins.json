@@ -1,0 +1,307 @@
+{
+  "accepted_current13": {
+    "CANNOT_CONFIRM": [
+      "Full research and PIT completeness; persisted owner attempt is PARTIAL and exact input/source gaps are included above.",
+      "Live API process identity at port 8873; the original URL is an in-process ASGI base URL.",
+      "Stage preparation, pair publication, activation, API/UI readback, and a natural target-date run."
+    ],
+    "canary_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03-completed/plan-canary.json",
+    "canary_sha256": "888174bd56e73f75026804150b7980cb01aa7f660ba840f24ea4b186cdb6ab14",
+    "completion_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03-completed/completion-receipt.json",
+    "completion_sha256": "b83f137df6cfdf6d225553c0e2a5ecbc9df38fee74898f1920b8af9372a67f46",
+    "execution_kind": "MANUAL_REFRESH",
+    "formal_recommendation_count": 0,
+    "input_identity": "1d10c2e881ddda942884e7bc5252b0897eb65a2846f3a98cad97ca237b5c88af",
+    "original_http_call_count": 2,
+    "owner_attempt_state": "PARTIAL",
+    "product_sha256": "2ed6871c47825caca03b21a3fe49b6a35b4dd5605f2b5c985f043ce6cbb1d78f",
+    "run_id": "92f257a7a0a841c081d48005f8a3fe3e",
+    "status": "PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING",
+    "top_level_gap_count": 3294,
+    "top_level_gap_sha256": "6f63adc4e2a621f5da75a79db44303fd3139d0ec2824a2d7a74dcdf811b89734"
+  },
+  "artifact_pins": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/release-manifest.json",
+      "role": "r6_release_manifest",
+      "sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/ops/run_manager_announcement_cycle.py",
+      "role": "r6_cycle_source",
+      "sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "role": "r6_supervisor_source",
+      "sha256": "2c624cc324c3120bda9e4917717b9cfe2b4244e34410b508781e60c5f3841a7b"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03-completed/plan-canary.json",
+      "role": "r6_canary",
+      "sha256": "888174bd56e73f75026804150b7980cb01aa7f660ba840f24ea4b186cdb6ab14"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03-completed/completion-receipt.json",
+      "role": "r6_completion",
+      "sha256": "b83f137df6cfdf6d225553c0e2a5ecbc9df38fee74898f1920b8af9372a67f46"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-01/.plan-canary-validation.json",
+      "role": "d8_archived_validation",
+      "sha256": "86104f1556cb52209f18876dd18d494efeea0505ed4301054c2a63a223a48844"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-01/failure-receipt.json",
+      "role": "d8_archived_failure",
+      "sha256": "0720e0e14b0e67aaf502593286cc92dc636357372d6de03bfe74a1c5ab66c7fb"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-02/plan-canary.json",
+      "role": "357_archived_canary",
+      "sha256": "4cfe936e7e52611544a95b6bccd692bb1cf47f823d3c5c91f0c9bbc09497ea63"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-02/operation-receipt.json",
+      "role": "357_archived_operation",
+      "sha256": "1029218d51f69afb86283d46131904045f185de568a0a2eaa9cae3bc451dd821"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03/state-preimage.json",
+      "role": "current13_state_preimage",
+      "sha256": "1f37c32b04a35821dcce645e580fd85f7c52b19ee749c9d41cfc50d9c0b0bfd9"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/phase6-parent-saved-completion-r3/parent-execution.json",
+      "role": "parent_completion_execution",
+      "sha256": "7e868adf59413d36c9647a803837084c2648019c859feb4708bbffb892a59951"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/phase6-parent-saved-completion-r3/parent-stage-execution-retry.json",
+      "role": "parent_stage_retry_execution",
+      "sha256": "4be11ee692e2373c7b871c9b507825add5e65c1fdc0e2d85c0e703688ed5de4c"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/activation-stage-receipt.json",
+      "role": "original_enabled_stage_receipt",
+      "sha256": "b48ca24876efc7b48a7af093f7d761a22e0b014652c7cbb08ce8d3c45efbb453"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/com.lexi.v35.api-only.plist",
+      "role": "original_enabled_stage_api",
+      "sha256": "0d8b4fac90932e09db1946a0c39373fe132c65705a0df02b654e133b6ba84bbc"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/com.lexi.v35.scheduler.plist",
+      "role": "original_enabled_stage_scheduler",
+      "sha256": "b105111ff03987acc772fe025a17ba4976aa2f8cb58f2b763462a9cb4a06cad6"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/manager-plan-binding.json",
+      "role": "original_enabled_stage_binding",
+      "sha256": "74c2f02d0abc940c110ceb9cb0dddf950f4e2dc09c6a93afea405c882dd16e84"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase4-issue35-target13-enabled-r4b/manager-plan-binding.json",
+      "role": "current_live_api_binding",
+      "sha256": "dd5b901504f580bfe428726ffd325e9c50df99fec04a69b55e54fbb0c5261d73"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/issue35_phase6_r6_publication_adapter.py",
+      "role": "original_frozen_r6_adapter",
+      "sha256": "9d0137917b2432137a777aca44521f0409656ae2a9d062a181082f9f476274b6"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/publication-pending-pins.json",
+      "role": "original_publication_pending_pins",
+      "sha256": "75809c1385ebac711340729b59e275efeca272b91afa751c2cead2cf7229b861"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/ops/api_release_integration.py",
+      "role": "canonical_integrator",
+      "sha256": "718dfd1ba18facfb4204e30c557a330bc3a6a45b1636a18ff95a76263e697c9c"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_RESEARCH_R4_MAC_20261009/local_fix/r4_mac_fix_20261010_r5/test_support/publication/api_only_cutover_issue32_r4.py",
+      "role": "original_observer",
+      "sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_common.py",
+      "role": "activation_common",
+      "sha256": "d5e8c8aaf591d10df2343dfe1d870019ee431ad708d6478b0863c9cd53a0fa84"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_prepare.py",
+      "role": "activation_prepare",
+      "sha256": "4fd235e44a8ed4c4019ece257d5a7c9e9cf2964b1654a9315a3943ceec99e410"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/issue35_phase6_r6_canary.py",
+      "role": "r6_canary_wrapper",
+      "sha256": "642b81a3f50b54dd1fa7ac688d87162004a01c08cb494c8a402fe55e168e7c5e"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_canary.py",
+      "role": "r4b_canary_source",
+      "sha256": "8567287bee4c8920880694855b5ed1420623220801ec2d5bb44b2595eb49c703"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/test_issue35_phase6_r6_transport.py",
+      "role": "r6_transport_test",
+      "sha256": "e480be3f864b8e51211793e31bff999f4ad3e8e97aed53a07434efc809ef5acf"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_pair_publication_adapter_r3_noop.py",
+      "role": "phase4_previous_adapter",
+      "sha256": "7971552107f2da3365af208a766cbc39822c7164ab911610138e9273a6b65b9e"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/phase4-issue35-target13/pair-env-rootcause.json",
+      "role": "phase4_rootcause_receipt",
+      "sha256": "358d22cd6408d0a5b3e041d02c3e439e9d3fe6e40abdb8e9d70815c9f312c1e9"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/PHASE4_SERVICE_OBSERVER_FIX_SCOPE.md",
+      "role": "phase4_observer_scope",
+      "sha256": "04e0b3fa85c000b73baf13041c65c78758b0f7e2e8d93afcd82e803fc7a694ba"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/phase4-issue35-target13/service-observer-rootcause.json",
+      "role": "phase4_observer_rootcause",
+      "sha256": "0d89662f6db5b918066185ea2ba1b9eaf800d5be701a901599475ce18ca1097c"
+    }
+  ],
+  "candidate": {
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+    "inventory_entry_count": 1049,
+    "inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+    "manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/release-manifest.json",
+    "manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+    "release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+    "release_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated"
+  },
+  "enabled_stage": {
+    "api_changed_environment_keys": [
+      "PYTHONPATH",
+      "V35_APP_ROOT",
+      "V35_RELEASE_ID",
+      "V35_RELEASE_MANIFEST_PATH",
+      "V35_RELEASE_MANIFEST_SHA256",
+      "V4_MANAGER_PLAN_OWNER_BINDING_PATH"
+    ],
+    "canary_sha256": "888174bd56e73f75026804150b7980cb01aa7f660ba840f24ea4b186cdb6ab14",
+    "candidate_cycle_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+    "directory": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary",
+    "files": {
+      "api": "0d8b4fac90932e09db1946a0c39373fe132c65705a0df02b654e133b6ba84bbc",
+      "binding": "74c2f02d0abc940c110ceb9cb0dddf950f4e2dc09c6a93afea405c882dd16e84",
+      "receipt": "b48ca24876efc7b48a7af093f7d761a22e0b014652c7cbb08ce8d3c45efbb453",
+      "scheduler": "b105111ff03987acc772fe025a17ba4976aa2f8cb58f2b763462a9cb4a06cad6"
+    },
+    "launchctl_called": false,
+    "live_plists_modified": false,
+    "manager_state_modified_by_stager": false,
+    "scheduler_app_root_preserved": true,
+    "scheduler_changed_environment_keys": [
+      "V4_MANAGER_ANNOUNCEMENT_APP_ROOT",
+      "V4_MANAGER_ANNOUNCEMENT_BINDING",
+      "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256"
+    ],
+    "scheduler_cycle_sha_mode": "NOOP_MATCHES_CANDIDATE",
+    "scheduler_hk_root_and_task_preserved": true,
+    "scheduler_working_directory_preserved": true,
+    "status": "PREPARED_NOT_ACTIVATED",
+    "target_trade_date": "20261013"
+  },
+  "environment_contract": {
+    "allowed_safety": {
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false,
+      "research_only": true
+    },
+    "announcement_collection_enabled": false,
+    "api_changed_keys": [
+      "PYTHONPATH",
+      "V35_APP_ROOT",
+      "V35_RELEASE_ID",
+      "V35_RELEASE_MANIFEST_PATH",
+      "V35_RELEASE_MANIFEST_SHA256",
+      "V4_MANAGER_PLAN_OWNER_BINDING_PATH"
+    ],
+    "cycle_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+    "cycle_sha_key": "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256",
+    "hk_scheduler_root_and_program_arguments_preserved": true,
+    "scheduler_changed_keys": [
+      "V4_MANAGER_ANNOUNCEMENT_APP_ROOT",
+      "V4_MANAGER_ANNOUNCEMENT_BINDING",
+      "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256"
+    ]
+  },
+  "live_preimages": {
+    "api": {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "sha256": "3a5824f505c7e514c64eaa5d1af509365feceaae008e49db394896df6e796301"
+    },
+    "api_binding": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase4-issue35-target13-enabled-r4b/manager-plan-binding.json",
+      "sha256": "dd5b901504f580bfe428726ffd325e9c50df99fec04a69b55e54fbb0c5261d73"
+    },
+    "scheduler": {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "sha256": "e59c3f794535ec92106d6df62bc268002305fb68902da952d133fc5208b9d1e1"
+    },
+    "scheduler_binding": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase4-issue35-target13-enabled-r4b/manager-plan-binding.json",
+      "sha256": "dd5b901504f580bfe428726ffd325e9c50df99fec04a69b55e54fbb0c5261d73"
+    }
+  },
+  "parent_completion": {
+    "execution_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/phase6-parent-saved-completion-r3/parent-execution.json",
+    "execution_sha256": "7e868adf59413d36c9647a803837084c2648019c859feb4708bbffb892a59951",
+    "stage_retry_exit_code": 0,
+    "stage_retry_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/phase6-parent-saved-completion-r3/parent-stage-execution-retry.json",
+    "stage_retry_sha256": "4be11ee692e2373c7b871c9b507825add5e65c1fdc0e2d85c0e703688ed5de4c",
+    "stage_retry_status": "PREPARED_NOT_ACTIVATED"
+  },
+  "preserved_history": {
+    "357_execution02": {
+      "canary_sha256": "4cfe936e7e52611544a95b6bccd692bb1cf47f823d3c5c91f0c9bbc09497ea63",
+      "input_identity": "efbf9d580a587edeb58fb80fa4358b45afe45a5d10236f28ad1d3d9d50daa0c9",
+      "manifest_sha256": "ccf0bbec4b58910f180320e4288f09e0af2a8143c542f2183eab977d01746b9f",
+      "operation_sha256": "1029218d51f69afb86283d46131904045f185de568a0a2eaa9cae3bc451dd821",
+      "product_sha256": "ae8b8cfc4f1e44003aa75d803ca29fa6e1e088766ae98b5c0471884f699f22c3",
+      "run_id": "357d984e400541a48c41f65ec0018b62"
+    },
+    "d8_execution01": {
+      "failure_sha256": "0720e0e14b0e67aaf502593286cc92dc636357372d6de03bfe74a1c5ab66c7fb",
+      "input_identity": "3c3f32668945d572af760fdc9b36ad5c577a7167720dc8aaba3fd60ccae9bbd3",
+      "manifest_sha256": "7aa0653999eb1b126c0f0e7420db8a278d7340831653a75ab1286fb292ea7f85",
+      "product_sha256": "7ba36ad92af7cccaadbcdacca3a2eddc9488a80e28ddd9185ebba2e5afffc49c",
+      "run_id": "d8a35106712a4387accf214c3ee3772d",
+      "validation_sha256": "86104f1556cb52209f18876dd18d494efeea0505ed4301054c2a63a223a48844"
+    }
+  },
+  "research_boundary": {
+    "formal_recommendation_count": 0,
+    "full_research_and_pit_completeness": "CANNOT_CONFIRM",
+    "live_api_port_identity": "CANNOT_CONFIRM",
+    "natural_target_date_run": "CANNOT_CONFIRM",
+    "owner_attempt_state": "PARTIAL",
+    "status": "MANUAL_ASGI_PARTIAL_FORMAL_COUNT_ZERO"
+  },
+  "schema_version": "v4.issue35.phase6.r6_publication_final_pins.v1",
+  "source_files": {
+    "cycle": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/ops/run_manager_announcement_cycle.py",
+      "sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44"
+    },
+    "supervisor": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256": "2c624cc324c3120bda9e4917717b9cfe2b4244e34410b508781e60c5f3841a7b"
+    }
+  },
+  "status": "READY_FOR_EXACT_R6_PAIR_PREPARATION",
+  "target_trade_date": "20261013"
+}

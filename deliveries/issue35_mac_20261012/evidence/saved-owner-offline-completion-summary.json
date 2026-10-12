@@ -1,0 +1,166 @@
+{
+  "schema_version": "issue35.parent.offline_completion.compact_summary.v1",
+  "original_full_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03-completed/completion-receipt.json",
+    "sha256": "b83f137df6cfdf6d225553c0e2a5ecbc9df38fee74898f1920b8af9372a67f46",
+    "bytes": 397869
+  },
+  "completed_canary": {
+    "owner_evidence_kind": "DERIVED_VALIDATED_PROJECTION_WITH_RAW_HTTP_PROVENANCE",
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03-completed/plan-canary.json",
+    "projection_refs": {
+      "readback": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/.execution-03-completed.r2-private-1956bf01d82f4c5380b83cbe9e1c1473/support/readback.verified-projection.http-evidence.json",
+        "sha256": "743415a82e8bacee92e0db561c443217cf2382c46031428d3db7b8212fba36ba"
+      },
+      "refresh": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/.execution-03-completed.r2-private-1956bf01d82f4c5380b83cbe9e1c1473/support/refresh.verified-projection.http-evidence.json",
+        "sha256": "00e391fee11d2d9db2947f306ef9fc49eee69e459a59d1412bdddeb7018ce5d6"
+      }
+    },
+    "schema_version": "manager_daily_chain.plan_refresh_owner_evidence.v2",
+    "sha256": "888174bd56e73f75026804150b7980cb01aa7f660ba840f24ea4b186cdb6ab14",
+    "status": "PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING"
+  },
+  "status": "PASS_OFFLINE_SAVED_OWNER_READBACK_COMPLETION",
+  "target_trade_date": "20261013",
+  "candidate": {
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+    "application_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+    "manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+    "original_canary_source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/issue35_phase6_r6_canary.py",
+    "original_canary_source_sha256": "642b81a3f50b54dd1fa7ac688d87162004a01c08cb494c8a402fe55e168e7c5e",
+    "owner_source_inventory_sha256": "c99fa01f8b946bae46da2c7982cd9bc564e0085ecdd769f983600b3dee41d52e",
+    "release_id": "issue35-manager-autocontinue-20261012-r6-integrated"
+  },
+  "original_transport_identity": {
+    "base_url": "http://127.0.0.1:8873",
+    "base_url_is_not_live_process_verification": true,
+    "live_process_at_port_8873": "CANNOT_CONFIRM",
+    "mode": "IN_PROCESS_HTTPX_ASGI_TRANSPORT",
+    "source": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/issue35_phase6_r6_canary.py",
+    "source_sha256": "642b81a3f50b54dd1fa7ac688d87162004a01c08cb494c8a402fe55e168e7c5e"
+  },
+  "original_event_timestamps": {
+    "get_product_checked_at_local": "2026-10-12T06:03:17.717108+08:00",
+    "http_transport_timestamps": "NOT_CAPTURED; owner-context, product-readback and parent-finish timestamps are preserved separately",
+    "offline_acceptance_clock_local": "2026-10-12T07:19:46.179506+08:00",
+    "owner_context_finished_at_local": "2026-10-12T06:03:12.871346+08:00",
+    "owner_request_started_at_local": "2026-10-12T06:02:59.487836+08:00",
+    "parent_process_finished_at_utc": "2026-10-11T22:03:31.528580+00:00",
+    "post_product_checked_at_local": "2026-10-12T06:03:14.857665+08:00",
+    "preimage_clock_local": "2026-10-12T06:02:58.374955+08:00",
+    "terminal_attempt_finished_at_local": "2026-10-12T06:03:14.195417+08:00",
+    "terminal_attempt_started_at_local": "2026-10-12T06:02:59.487836+08:00"
+  },
+  "offline_completion_actions": {
+    "activation_status": "NOT_ACTIVATED",
+    "http_calls": 0,
+    "launchctl_called": false,
+    "manager_state_writes": 0,
+    "original_failure_receipt_modified": false,
+    "original_raw_http_artifacts_modified": false,
+    "output_publication": "ATOMIC_SIBLING_DIRECTORY_RENAME_EXCL",
+    "owner_calls": 0,
+    "plists_written": 0,
+    "service_calls": 0
+  },
+  "atomic_publication": {
+    "final_directory_published_after_all_gates": true,
+    "interrupted_workspace_policy": "REFUSE_REUSE_OR_AUTOMATIC_DELETION; inspect manually",
+    "no_replace_flag": "RENAME_EXCL",
+    "persistent_projection_support_directory": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/.execution-03-completed.r2-private-1956bf01d82f4c5380b83cbe9e1c1473/support",
+    "private_workspace_prefix": ".execution-03-completed.r2-private-"
+  },
+  "current_state_verification": {
+    "archived_d8_preserved": true,
+    "current_fresh_product_file_sha256": "82dd41fac020e8ddaef5854ab33af427480305e27673253ba5de96eef3097a4d",
+    "current_fresh_run_sha256": "10a676d659467a1fb45f84b5a4646bd0cd75279c4a4471e1bb5861172d3b61fa",
+    "fresh_92f_is_current": true,
+    "latest_pointer_bytes_match_fresh_records": true,
+    "owner_mutex_nonblocking_probe": "FREE_AT_READBACK",
+    "prior_357_preserved": true,
+    "protected_date_maps": "ALL_SIX_MATCH_ORIGINAL_PREIMAGE",
+    "status": "PASS_R6_FRESH_MATERIALIZATION_PRIOR_GENERATIONS_PRESERVED",
+    "target_write_set": [
+      "357d984e400541a48c41f65ec0018b62.json",
+      "92f257a7a0a841c081d48005f8a3fe3e.json",
+      "d8a35106712a4387accf214c3ee3772d.json",
+      "latest.json"
+    ]
+  },
+  "owner_result": {
+    "business_completeness": "PARTIAL",
+    "input_identity": "1d10c2e881ddda942884e7bc5252b0897eb65a2846f3a98cad97ca237b5c88af",
+    "natural_run_verified": false,
+    "product_sha256": "2ed6871c47825caca03b21a3fe49b6a35b4dd5605f2b5c985f043ce6cbb1d78f",
+    "research_and_pit_completeness": "CANNOT_CONFIRM",
+    "run_id": "92f257a7a0a841c081d48005f8a3fe3e",
+    "state": "PARTIAL",
+    "terminal_attempt_sha256": "8a057dab3239183db14c06cee13d75644f80d186db8168fe88c48169f4c2fbf7"
+  },
+  "coverage_summary": {
+    "attempt_summary": {
+      "focus_count": 0,
+      "formal_recommendation_count": 0,
+      "input_relation_count": 0,
+      "market_screen_card_count": 500,
+      "market_screen_near_count": 286,
+      "market_screen_strict_count": 214,
+      "rejected_fragment_count": 1503,
+      "relation_count": 0,
+      "reused_material_count": 3186,
+      "stock_count": 0,
+      "theme_count": 4
+    },
+    "pit_and_source_coverage": {
+      "attempted_artifact_count": 57,
+      "completeness": "CANNOT_CONFIRM",
+      "excluded_after_cutoff_count": 0,
+      "global_market_coverage": "NOT_ESTABLISHED",
+      "natural_run_verified": false,
+      "verified_artifact_count": 53,
+      "vibe_exact_input_sha_bound": false,
+      "vibe_gaps": [
+        "VIBE_EXACT_INPUT_SHA_NOT_BOUND:20261008",
+        "VIBE_EXACT_INPUT_SHA_NOT_BOUND:20261009",
+        "VIBE_EXACT_INPUT_SHA_NOT_BOUND:20261012",
+        "VIBE_OWNER_READ_FAILED:20261008",
+        "VIBE_OWNER_READ_FAILED:20261009",
+        "VIBE_OWNER_READ_FAILED:20261012"
+      ],
+      "vibe_owner_verification_status": "FAILED",
+      "vibe_status": "SOURCE_FAILED"
+    },
+    "failure_count": 3294,
+    "failure_list_canonical_sha256": "6f63adc4e2a621f5da75a79db44303fd3139d0ec2824a2d7a74dcdf811b89734",
+    "failure_category_counts": {
+      "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW": 1,
+      "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING": 3075,
+      "ARCHIVE_ARTICLE_STRUCTURED_THEME_MISSING": 175,
+      "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING": 1,
+      "DISCOVERY_REQUIRES_CURRENT_VERIFIED_CATALYST_INPUT_INVENTORY": 1,
+      "HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED": 1,
+      "REBOUND_HISTORY_VOLUME_UNIT_NOT_PROVEN": 1,
+      "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE": 34,
+      "SCREEN_VOLUME_UNIT_OR_SCALE_NOT_PROVEN": 1,
+      "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED": 1,
+      "VIBE_INPUT_READ_FAILED": 3
+    },
+    "runtime_gaps": [
+      "STAGE_EXECUTION_LEDGER_NOT_EXPLICITLY_BOUND",
+      "NEXT_SCHEDULE_UNVERIFIED_ORIGINAL_RUNTIME_PLAN_READER_NOT_SUPPLIED"
+    ]
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "CANNOT_CONFIRM": [
+    "Full research and PIT completeness; persisted owner attempt is PARTIAL and exact input/source gaps are included above.",
+    "Live API process identity at port 8873; the original URL is an in-process ASGI base URL.",
+    "Stage preparation, pair publication, activation, API/UI readback, and a natural target-date run."
+  ]
+}

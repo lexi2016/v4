@@ -1,0 +1,144 @@
+{
+  "CANNOT_CONFIRM": [
+    "Independent R2 reviewer verdict and reviewer test rerun.",
+    "Parent execution of the offline completion and its real current date, current target state, protected-date maps, mutex, or completion output bytes.",
+    "Current stage-helper canary-age result or live plist preflight; original 60-minute maximum is unchanged and no age claim is made.",
+    "Stage preparation, pair publication, activation, API/UI readback, or natural target-date execution.",
+    "Live API process identity at port 8873; execution03 used the already pinned in-process ASGITransport proof.",
+    "Full research/PIT completeness or natural completeness; the saved attempt is PARTIAL."
+  ],
+  "actions_not_performed": [
+    "actual offline completion CLI",
+    "actual execution03 or other live owner/state reads/writes",
+    "HTTP/API/owner calls",
+    "canary/activation stage",
+    "plist/service/launchctl operation",
+    "Git action",
+    "any source/canonical/candidate edit"
+  ],
+  "audit_snapshot": {
+    "pinned_owner_terminal_attempt_finish_local": "2026-10-12T06:03:14.195417+08:00",
+    "r2_private_prefix_entries": [],
+    "target_final_output_exists": false,
+    "target_final_output_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03-completed",
+    "terminal_attempt_elapsed_at_audit_clock": "49m17.8s; this is not a canary-age result",
+    "utc": "2026-10-11T22:52:32Z"
+  },
+  "changed_files": [
+    {
+      "path": "tools/phase6-r6/complete_issue35_r6_saved_canary_r2.py",
+      "role": "new versioned atomic saved-completion helper",
+      "sha256": "048fc95accfc64a15976471ecc4628afba413937d08d435046057368e25d0d5c"
+    },
+    {
+      "path": "tools/phase6-r6/test_issue35_r6_saved_completion_r2.py",
+      "role": "new temp-only regression suite",
+      "sha256": "5af1841ae8c84671934d0911272f22af83ef2c1e84f5ef0a7412610ee5cf3e37"
+    },
+    {
+      "bytes": 28964,
+      "path": "receipts/phase6-saved-completion-atomic-r2/original-to-r2.patch",
+      "sha256": "c4d5ef00626be394d73b4c4abc65f89771d45c09a5ac6a7b3f0da29fb9096226"
+    },
+    {
+      "bytes": 3026,
+      "path": "receipts/phase6-saved-completion-atomic-r2/source-and-contract-pins.json",
+      "sha256": "2e7a6ac38f9678e342365e688f247e51d3d4035451472e1ec71b9a5cedf644aa"
+    },
+    {
+      "bytes": 1937,
+      "path": "receipts/phase6-saved-completion-atomic-r2/focused-test-receipt.json",
+      "sha256": "a37eccd26aace7e975ad438d7166334ec58483f8d406a31435be3acc5a10a8ad"
+    },
+    {
+      "bytes": 3695,
+      "path": "receipts/phase6-saved-completion-atomic-r2/parent-command-contracts.json",
+      "sha256": "eb9753145394586e9d06ba8e1a7600d9efa48839c10778d04b7ab4b2c8ababfe"
+    },
+    {
+      "bytes": 99,
+      "path": "receipts/phase6-saved-completion-atomic-r2/pytest-r2-atomic-final.log",
+      "sha256": "d208b14414932319f88e22f28d299643797c0f5144a5213f41caf3c447fe60d7"
+    },
+    {
+      "bytes": 99,
+      "path": "receipts/phase6-saved-completion-atomic-r2/pytest-r2-atomic-final-002.log",
+      "sha256": "317bcea011f29d6b63a59e38cd0c64c7ec3761308fd492caf34180c412028d55"
+    },
+    {
+      "bytes": 99,
+      "path": "receipts/phase6-saved-completion-atomic-r2/pytest-r2-atomic-final-003.log",
+      "sha256": "87d695a00a0dc204b151ffb07f67cb701080d061b46a05e19cb690fa0d6ed715"
+    },
+    {
+      "path": "receipts/phase6-saved-completion-atomic-r2/writer-closure.json",
+      "role": "this receipt; digest is returned to parent after write"
+    }
+  ],
+  "diff": {
+    "base_path": "tools/phase6-r6/complete_issue35_r6_saved_canary.py",
+    "base_sha256": "4c5bcce92c25bab0bccb1da4b3550129365079f7da9072ccc647774fa840e3dc",
+    "bytes": 28964,
+    "path": "receipts/phase6-saved-completion-atomic-r2/original-to-r2.patch",
+    "sha256": "c4d5ef00626be394d73b4c4abc65f89771d45c09a5ac6a7b3f0da29fb9096226"
+  },
+  "goal": "Repair only the bounded premature-canary-publication and imported-common-unpinned findings; publish the derived stage-consumable directory only after all gates pass.",
+  "implementation": {
+    "atomic_publish": "macOS renameatx_np with AT_FDCWD=-2 and RENAME_EXCL=0x4; no fallback replace/copy path",
+    "common_pin_checked_again_during_verification": true,
+    "common_pin_checked_before_import": true,
+    "failure_cleanup": "caught prepublication errors remove only the newly created exact private workspace; fixed output stays absent",
+    "interrupted_retry": "any matching private R2 workspace is refused and retained for manual inspection; never reused/deleted automatically",
+    "late_gate_order": [
+      "protected-date maps",
+      "fresh current target-state write set",
+      "owner mutex",
+      "real current next-HK-session date"
+    ],
+    "private_workspace_mode": "0700",
+    "publish_set": "six original companion filenames under a private sibling directory",
+    "stage_consumer_validation": "frozen R6 candidate contract _validate_plan_canary validates the private canary before publication",
+    "successful_support": "projection evidence/body support stays in the private sibling workspace because the final canary references it; parent must preserve that support directory"
+  },
+  "parent_commands": {
+    "conditional_stage_status": "NOT_RUN_CONDITIONAL_ON_PARENT_ACCEPTANCE_AND_ORIGINAL_HELPER_FRESHNESS",
+    "offline_completion_status": "NOT_RUN_BY_WRITER_PENDING_REVIEW_AND_PARENT_CURRENT_CHECKS",
+    "path": "receipts/phase6-saved-completion-atomic-r2/parent-command-contracts.json",
+    "sha256": "eb9753145394586e9d06ba8e1a7600d9efa48839c10778d04b7ab4b2c8ababfe",
+    "stage_helper_max_age_minutes": 60,
+    "stage_helper_sha256": "53e19fdcedb973d5f0e68fe52a95950c32575e092377dda0ca361d39c1d327cb"
+  },
+  "pass_signal": "Complete output is privately built and stage-consumer validated, all mutable acceptance gates and receipt checks are rerun, and RENAME_EXCL atomically publishes the complete directory; prepublication failures leave no final-path plan-canary.",
+  "pins": {
+    "fixed_validator_sha256": "a67527a80a9d1399ec2eac076c5b27d538971d588918ea7b2ee1921a9f95be34",
+    "frozen_application_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+    "frozen_release_manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+    "imported_common_sha256": "d5e8c8aaf591d10df2343dfe1d870019ee431ad708d6478b0863c9cd53a0fa84",
+    "input_review_sha256": "969c75b7a18593b02a45ef3ab7f6c94451054c933b5826ed1359b34fb6527ef5",
+    "normalized_self_sha256": "529db3d81ab08769723568ba325575941dcacd53a39dc96e326c9b311d792c79",
+    "original_helper_sha256": "4c5bcce92c25bab0bccb1da4b3550129365079f7da9072ccc647774fa840e3dc",
+    "r2_scope_sha256": "e38925839c8f63ac06c84e4e901356a7529368c907d81c8bec606be0b93017f1"
+  },
+  "reviewer_required": "Different-identity independent Luna Max Reviewer; rerun the actual R2 focused test command and inspect its diff, scope, and target behavior.",
+  "schema_version": "issue35.phase6.saved_completion_atomic_r2.writer_closure.v1",
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "stop_rule": "Do not run completion, stage, or any live action before separate-identity review and explicit parent-controlled current checks. If RENAME_EXCL is unavailable, final output/prefix preexists, saved inputs drift, or any real late gate fails, report and stop; do not bypass, overwrite, retry owner, or alter the 60-minute rule.",
+  "verification": {
+    "AST_parse": "PASS",
+    "CLI_help": "PASS; helper was invoked with --help only; saved completion CLI was not run",
+    "coverage": [
+      "successful publication and original stage-consumer acceptance",
+      "late date/protected-date/current-state/final-mutex failure cleanup",
+      "receipt-size failure cleanup",
+      "no-overwrite and RENAME_EXCL destination race",
+      "stale interrupted workspace refusal",
+      "common.py and R2 scope drift rejection",
+      "synthetic state bytes unchanged and owner invocation forbidden"
+    ],
+    "focused_test_log_sha256": "87d695a00a0dc204b151ffb07f67cb701080d061b46a05e19cb690fa0d6ed715",
+    "focused_test_result": "11 passed in 1.47s",
+    "reviewer_test_rerun": "NOT_RUN_PENDING_INDEPENDENT_REVIEW",
+    "writer_test_status": "PASS_WRITER_AUXILIARY_ONLY"
+  },
+  "writer": "issue35_mac_writer"
+}

@@ -1,0 +1,464 @@
+{
+  "schema": "v4.issue35.scoped_delivery_files.v1",
+  "baseline_commit": "37de6a9970eb9be05a79c5be0e2e5a39bddd6426",
+  "covered_files": 76,
+  "excludes_self": true,
+  "files": [
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/apps/api/v35_api/app.py",
+      "git_blob_sha": "bc2492b62b72c9efbed711b8b90d855a90a917aa",
+      "sha256": "1b144675d94ef0efb8d92063b5a5b8b04391108bcb0e9db8b46cbb975bb35dfa",
+      "utf8_bytes": 327569
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "git_blob_sha": "abbcdfd22668aeefe64a52d4b5f0500e0ed8ba68",
+      "sha256": "2c624cc324c3120bda9e4917717b9cfe2b4244e34410b508781e60c5f3841a7b",
+      "utf8_bytes": 34172
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/v4/manager_research/plan_owner_dispatch.py",
+      "git_blob_sha": "0b74a9f239e8911ca95e5c89a0ac8d9a38d0aad1",
+      "sha256": "8afc3439070f8ea71b112a51c154775d7eb948c60082ca032f05d9771a34b284",
+      "utf8_bytes": 55651
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/v4/manager_research/service.py",
+      "git_blob_sha": "e11f62136b8c60f1066aac9677db726841067165",
+      "sha256": "63d73b19708fbcabc78598b61b50b0ed525aea4fa15d1de20f2d18faa83cc87e",
+      "utf8_bytes": 95455
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/v4/manager_research/workspace.py",
+      "git_blob_sha": "45d50ea518d02e571d2cf8aefaaf8b1334ca2730",
+      "sha256": "f1e61a8003b638a4b4ecfbf67b9028e5f1d16e315edfe4ebd78e1f3de31bba96",
+      "utf8_bytes": 91066
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/v4/manager_research/workspace_daily_channels.py",
+      "git_blob_sha": "6b282a0b59cf9feea8bcf9815189e8c14a9877b5",
+      "sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "utf8_bytes": 20097
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/v4/manager_research/workspace_history.py",
+      "git_blob_sha": "43ba4ee62afb36a7959383aeceddb553bfab9828",
+      "sha256": "54b2e5273cb4d79f2876cd6e8041c19cb2977887de015868293019e560382483",
+      "utf8_bytes": 28732
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/v4/manager_research/us_mapping_research.py",
+      "git_blob_sha": "1ce4f9799eb85138603c03ff5a4b5161f2525333",
+      "sha256": "90d34e32fb8052a0e1fab3994d099e386bec2a644c7a5762485e0924332a6a72",
+      "utf8_bytes": 111532
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/v4/manager_research/workspace_projection.py",
+      "git_blob_sha": "ac3f9c457c2a002be77df505f0d661e8a4ba9abb",
+      "sha256": "831a9235892aa740c643d1ddd73550d88f30ecf1efe9a2e4e16ca956dd467961",
+      "utf8_bytes": 32058
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_dynamic_reload_identity.py",
+      "git_blob_sha": "0d5b0281071d273c585dd47af02c7b8f431af29d",
+      "sha256": "bc36c15a39d35c18735b32934192ad77f29b5b9353856a5f8b7d7daf709da3b8",
+      "utf8_bytes": 12849
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/r4b-to-r5.patch",
+      "git_blob_sha": "a70951149eda1e72e5734de31483e77cffd5f4e0",
+      "sha256": "4efb49194b834f2e37465f337eb8481020543ed21547ccbe689a0c12fa533e06",
+      "utf8_bytes": 7147
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/issue35_phase4_common.py",
+      "git_blob_sha": "a097f6b336957c13d6edb57e28e26b0f3aebe6bd",
+      "sha256": "d5e8c8aaf591d10df2343dfe1d870019ee431ad708d6478b0863c9cd53a0fa84",
+      "utf8_bytes": 24410
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/issue35_phase4_canary.py",
+      "git_blob_sha": "56325c0cf7694caf714411839cd687ed451c21cc",
+      "sha256": "8567287bee4c8920880694855b5ed1420623220801ec2d5bb44b2595eb49c703",
+      "utf8_bytes": 73572
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/issue35_phase4_prepare.py",
+      "git_blob_sha": "9414526338bca9af995b8c30e48169412767afdc",
+      "sha256": "4fd235e44a8ed4c4019ece257d5a7c9e9cf2964b1654a9315a3943ceec99e410",
+      "utf8_bytes": 19781
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/issue35_phase4_pair_publication_adapter_r3_noop.py",
+      "git_blob_sha": "916fb4c7fa44e85fb43a6fd5070196fb3d17522b",
+      "sha256": "7971552107f2da3365af208a766cbc39822c7164ab911610138e9273a6b65b9e",
+      "utf8_bytes": 61809
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_phase4_pair_cycle_noop.py",
+      "git_blob_sha": "a538257da5a2cb1a7018cbf0102ce8e43c9c40c0",
+      "sha256": "7365e25e278bccaf5edc63f5bddc44be837804f067c44fd9b67b008fd816272b",
+      "utf8_bytes": 3052
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/test_issue35_phase4_current13_acceptance.py",
+      "git_blob_sha": "38312c24650a7f735115945bb81590c84418d330",
+      "sha256": "3010aef33b10eec096d07867c2f735ecd6413a4f118426626e968e8383a92120",
+      "utf8_bytes": 4223
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_canary_evidence_size.py",
+      "git_blob_sha": "8544804810a9b1d57d9ac2a9eca50c37fc240d22",
+      "sha256": "1b23e8683951f7991dee70e664ce2282930d12634d259e44cad0c8f3f190becb",
+      "utf8_bytes": 8342
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_owner_autocontinue.py",
+      "git_blob_sha": "ccfed9f5f338470c3e65152bcd1b2a946f344fd4",
+      "sha256": "763617d98fa2d6cf7ce76a43bdcc5d98c0961a988082519db2d64714b2c3e4cc",
+      "utf8_bytes": 12372
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/issue35_manual_empty_lock_recovery.py",
+      "git_blob_sha": "8b36942200e0c81c75a3d4b8ee1fca8987c58576",
+      "sha256": "8cf74085d698f0a9c74cbcfa9cb26acddba85e4707648f6a28972b4f72c1d988",
+      "utf8_bytes": 37528
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_manual_empty_lock_recovery.py",
+      "git_blob_sha": "3fb10fc4c62743fed26c3c3b8e7bee64350095a6",
+      "sha256": "c3668538d71deba55e2b1f9a211bd3b78ac6b3600dbdc7f7f6b08372d6f5eaa5",
+      "utf8_bytes": 10322
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/canonical_delta/apps/api/v35_api/app.py",
+      "git_blob_sha": "6ec369b4309e32588a09519371f6065de544bf29",
+      "sha256": "40fbefd92acc8d0a1037dd25e95ffad3592caf86c4e16e47120d54b7ade9ad67",
+      "utf8_bytes": 343178
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/canonical_delta/v4/manager_research/workspace.py",
+      "git_blob_sha": "3f33df048d5f9ea347b42a773164c461a2a31205",
+      "sha256": "70a2bc81739778066f9183bb7acac8a6560f5a5b9e42329f8d47333f82289f3d",
+      "utf8_bytes": 79834
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/canonical_delta/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "git_blob_sha": "74ca93bf8b088bc58989ec27ad44061ed731640d",
+      "sha256": "58ffe0af96222ded75cdaea4f105e63dcb78cd7bea113cd3743f8cbe4b38161f",
+      "utf8_bytes": 28384
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/issue35_phase4_pair_publication_adapter_r4_observer.py",
+      "git_blob_sha": "a3b45ab2ee298ce1ed291f6bc9734763b4488f47",
+      "sha256": "25c381c6921c00bf9877d0237e8e418bef4a6426d6546fc84a8d145c9e9b6d3c",
+      "utf8_bytes": 68876
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_phase4_pair_service_observer.py",
+      "git_blob_sha": "3841b8265e7e8a86d8b5099ae100b739447959a1",
+      "sha256": "4f5fbe587d5bd74ea7ae50261241e35566bfe4ab871007addbebeb647c35560c",
+      "utf8_bytes": 8449
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/r3-to-r4-observer.diff",
+      "git_blob_sha": "de98c81930e71aba2cc0b6bfd03d7167327b2d23",
+      "sha256": "c9cf8213f74c16b79dc5918816b229c72374336bf9d6937d941d99130b58d1d9",
+      "utf8_bytes": 17518
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/tests/test_manager_plan_readback_issue24.py",
+      "git_blob_sha": "91b14225c14e709f432721fd8a8b29dd86aa7a84",
+      "sha256": "0c48e83dbb447a0b33a5870dc1a65a358e72fb45173b332034323441a9289508",
+      "utf8_bytes": 16852
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/runtime_delta/tests/test_manager_us_mapping_research.py",
+      "git_blob_sha": "9150461edcfc8da82dd3417b42976fed6e0a213c",
+      "sha256": "9b40db81f7be548ce5a3a3a2fd3b1f8226b38b20242c13ed2ca0bbd841d93731",
+      "utf8_bytes": 62802
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_owner_readback_commit_order.py",
+      "git_blob_sha": "7e1505ee2b58195ed84504b15317b90e29e63d94",
+      "sha256": "00f921bba8d702b289589df032d2b6b02ef4fdaaf9d9eac28b2f8e553d215e5d",
+      "utf8_bytes": 4180
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/r5-to-r6.patch",
+      "git_blob_sha": "ad6b27cbabd4bf9cecdd2157ff6a4a4b31896337",
+      "sha256": "9e7221c2c011da73b599209e1a987e1e222e882b0e158580aa72ac2f5d10bade",
+      "utf8_bytes": 17964
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/r6-source-independent-review.json",
+      "git_blob_sha": "19c6aa959f3dd1966b01a7a9af57fbd08471f9ce",
+      "sha256": "f47be2aa1b07f7b20f83831effa460ac345b886fb09fd9bfa0737cadc42c9827",
+      "utf8_bytes": 11345
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/r6-integrated-release-verification.json",
+      "git_blob_sha": "e68d75d96daa96e17e34945567896f6fb2cd61d7",
+      "sha256": "85de5ecc6f58af640ac288d96dbf780d650a81dff300363466212ca7091d0af4",
+      "utf8_bytes": 5725
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/r6-publication-contract-review.json",
+      "git_blob_sha": "28de3ba2052a52a812b91c41f5e5c1abeca40cc4",
+      "sha256": "f996a8fdbf2c22b2cffce756f644a6dc8b8b561f630e12f76b8314b65811b56c",
+      "utf8_bytes": 20833
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/canonical_delta/v4/manager_research/workspace_projection.py",
+      "git_blob_sha": "8cf4123d917ba5770e85c04f79a1e8bbd6393e60",
+      "sha256": "97561f248534ab55db9f550d7e891249fe75191fa2a1cf2285c14e226f8bfc86",
+      "utf8_bytes": 32132
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/canonical_delta/v4/manager_research/us_mapping_research.py",
+      "git_blob_sha": "20afd7f665dda04c14d987eee5f23f6b4b4efd50",
+      "sha256": "886178f1e4b90b4e5e68f94cfeddc808f39e596740b295550edb6b8cd60b5e84",
+      "utf8_bytes": 68048
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/canonical_delta/v4/manager_research/workspace_announcements.py",
+      "git_blob_sha": "db2651cc0ff9934c86a933cd5fe465069fc8476b",
+      "sha256": "ba3849913eb768ae166e6fa796246d27742a76ce7fd8469356470570dacc3e73",
+      "utf8_bytes": 173107
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/canonical_delta/tests/test_manager_us_mapping_research.py",
+      "git_blob_sha": "e9ec5cc4da5498e1cdd83dd9c3b1d2adb0b1562f",
+      "sha256": "713aeeaf6b400ab7d11b73df7b401e88584cb3516f211ddeb5dc6d91cf3c85a5",
+      "utf8_bytes": 61573
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/canonical-final-independent-review.json",
+      "git_blob_sha": "2a0285129a72ef3570f88f6bcb56a3b2df0da74b",
+      "sha256": "b0c084594c147b796a99ac487fed0bdc778b096ddb46d16f25430bb67984bd4c",
+      "utf8_bytes": 11634
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/canonical-final.patch",
+      "git_blob_sha": "29eebb520cd94149a5252b7225cda21d32e0ae54",
+      "sha256": "98512b5772ada2d8ac24ebfd8501b5368a355eb0c0afe603b90f88f186176cff",
+      "utf8_bytes": 54708
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/phase6-r6/issue35_phase6_r6_canary.py",
+      "git_blob_sha": "5ed973fb2863d2b54e521cabe6d77f46b57f1568",
+      "sha256": "642b81a3f50b54dd1fa7ac688d87162004a01c08cb494c8a402fe55e168e7c5e",
+      "utf8_bytes": 95529
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/phase6-r6/issue35_phase6_r6_publication_adapter.py",
+      "git_blob_sha": "9f0b55c5dae7117653c3106cdf03e8c1815d62e4",
+      "sha256": "9d0137917b2432137a777aca44521f0409656ae2a9d062a181082f9f476274b6",
+      "utf8_bytes": 72238
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_phase6_r6_transport.py",
+      "git_blob_sha": "66e4bb0aa054ac5c02cf37e2d51194aac6beef1f",
+      "sha256": "e480be3f864b8e51211793e31bff999f4ad3e8e97aed53a07434efc809ef5acf",
+      "utf8_bytes": 23953
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/r4b-to-r6-transport.patch",
+      "git_blob_sha": "e9905fba68ebad67d5dc35077f0d1df0f09a57b4",
+      "sha256": "ebeb1d3140497664e6aac5789c90c9dd9674f4f52b2e09c3c350530bd7ea7361",
+      "utf8_bytes": 70831
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/r6-transport-independent-review.json",
+      "git_blob_sha": "8488d2a70ff46d93bc14ec8cd06db157f4715506",
+      "sha256": "d62f3309d0f025705851ce2fd135b0af15d6ce3162dc0e6634d66b0f1f30c30c",
+      "utf8_bytes": 22838
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/execution03-validator-diagnosis.json",
+      "git_blob_sha": "0e65b47032102c403e26ddfaa4fe6c159df6f4f7",
+      "sha256": "362a8b53ba07a7c5e7159683f5e4c618244bd500d6faa13d43fa2b925e1ffdc2",
+      "utf8_bytes": 15113
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/execution03-original-failure.json",
+      "git_blob_sha": "6c7aa3b1bd4b357ed1ba806ac5546e9e59e320a1",
+      "sha256": "f2db8ef16a9592b6dcf3a4d8330c5b1a94cb2a96b26ad0ba74ad4db0efd3f703",
+      "utf8_bytes": 750
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/phase6-r6/issue35_phase6_r6_canary_readback_fix.py",
+      "git_blob_sha": "1aba5778fb9a61da39c18781d039836f92fff1d1",
+      "sha256": "a67527a80a9d1399ec2eac076c5b27d538971d588918ea7b2ee1921a9f95be34",
+      "utf8_bytes": 96435
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/phase6-r6/complete_issue35_r6_saved_canary.py",
+      "git_blob_sha": "35874cee677eba794e3e17188ec11dc3874a85f5",
+      "sha256": "4c5bcce92c25bab0bccb1da4b3550129365079f7da9072ccc647774fa840e3dc",
+      "utf8_bytes": 55534
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_r6_get_dto_saved_completion.py",
+      "git_blob_sha": "18f6a75e47e7903b0186e24153aae61f9f6c37c1",
+      "sha256": "15886863e811ddb4f16cff5846632947641f6c3f03319637bf12f5802ce6cb63",
+      "utf8_bytes": 30411
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/r6-original-to-get-readback-fix.patch",
+      "git_blob_sha": "7a7ecdf1b0d7ac8d16521f257b910bed759d9307",
+      "sha256": "4ddd0d008b3d03f9e7bed2f264cb2acfe1f947c4b35b72fcc2289d5adf89ba15",
+      "utf8_bytes": 1950
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/canonical_delta/tests/test_manager_plan_readback_issue24.py",
+      "git_blob_sha": "91b14225c14e709f432721fd8a8b29dd86aa7a84",
+      "sha256": "0c48e83dbb447a0b33a5870dc1a65a358e72fb45173b332034323441a9289508",
+      "utf8_bytes": 16852
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/get-dto-saved-completion-r1-independent-review.json",
+      "git_blob_sha": "6940d0fd208f9ebc251063c63e80fceaac6fc008",
+      "sha256": "969c75b7a18593b02a45ef3ab7f6c94451054c933b5826ed1359b34fb6527ef5",
+      "utf8_bytes": 9110
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/phase6-r6/complete_issue35_r6_saved_canary_r2.py",
+      "git_blob_sha": "5c6a3bbc3dc7cc66d7904f7412c464a07dfb91aa",
+      "sha256": "048fc95accfc64a15976471ecc4628afba413937d08d435046057368e25d0d5c",
+      "utf8_bytes": 65693
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_r6_saved_completion_r2.py",
+      "git_blob_sha": "e3cfe8129f369807925a51a45c555611b7657bf2",
+      "sha256": "5af1841ae8c84671934d0911272f22af83ef2c1e84f5ef0a7412610ee5cf3e37",
+      "utf8_bytes": 13310
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/saved-completion-original-to-r2.patch",
+      "git_blob_sha": "3cc12b1fcacf92e7fc2aa84e954523ba5bc65515",
+      "sha256": "c4d5ef00626be394d73b4c4abc65f89771d45c09a5ac6a7b3f0da29fb9096226",
+      "utf8_bytes": 28964
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/saved-completion-r2-writer-closure.json",
+      "git_blob_sha": "73bc34c7e83b6070ad56bc2d7b6516257d20e506",
+      "sha256": "5e26d213fea842838cf11a18b65c1622aeb378b5ddb7461533ac451b390cd075",
+      "utf8_bytes": 8345
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/saved-completion-r2-independent-review.json",
+      "git_blob_sha": "1202c6a5ebc0c793165adbe3099206611b550555",
+      "sha256": "9b6a7a496770a35567f4ac449f23a20609044c4893b1cfc206f52ee32786a7f0",
+      "utf8_bytes": 9229
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/saved-completion-r2-real-preflight-failure.json",
+      "git_blob_sha": "4c5056a953cc892e6a5786f82e3e07b3188caae6",
+      "sha256": "b21a76a3b66e082e13f1d121f87be8a5391103ae68b45b9e377b50ec2e80d4af",
+      "utf8_bytes": 963
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/saved-completion-real-nesting-diagnosis.json",
+      "git_blob_sha": "b6cfcd63aef5dc7a05b111e384e41525d25041fd",
+      "sha256": "9225ba4ad3303f0aca61a963405f0926951a720110cc961e0d3ff4709a098d0a",
+      "utf8_bytes": 8898
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/phase6-r6/complete_issue35_r6_saved_canary_r3.py",
+      "git_blob_sha": "1e02cf5cecfa05ed72004391256c39225b5d2328",
+      "sha256": "bb76958fcc10befcb682b332b01abc6e9e3ace232d8ef851349d1c9755a64ed9",
+      "utf8_bytes": 65673
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_r6_saved_completion_r3.py",
+      "git_blob_sha": "4afcf1e359d404a4d3d3d26393e2043f59226833",
+      "sha256": "48cf5be643b3e3ede7ab7c0001e9000a39072b36a031a137f973c0ae2392345f",
+      "utf8_bytes": 7333
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/saved-completion-r2-to-r3.patch",
+      "git_blob_sha": "ce919084cbcd6c383a196274d512d6b1614f680c",
+      "sha256": "97db228eb298f6afc07f44d923e711bb7be3a6f1a7ba8792127c00ace33959a2",
+      "utf8_bytes": 1782
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/saved-completion-r3-writer-closure.json",
+      "git_blob_sha": "9ebf18964d1824498749d643941ae7fbfac5edb8",
+      "sha256": "aa617c055cdc104631e3195a4afeec92e6c54ed7021dffaaa54604ebb2e0aae8",
+      "utf8_bytes": 5336
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/saved-owner-offline-completion-summary.json",
+      "git_blob_sha": "59f54cd3e845f340016f4051abccbb90b74122a0",
+      "sha256": "5addae941b7644314bbb3b61a4f112ff520e9cfc755489146d9067f38f9b85f2",
+      "utf8_bytes": 8713
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/saved-completion-r3-independent-review.json",
+      "git_blob_sha": "49fa04489663a7aa278da5cb87ad02e238ee21bd",
+      "sha256": "808b05ce8aa8cacc36c002d0c44ba3bc0e04b33c45ed85e0a966da784a8877cf",
+      "utf8_bytes": 7434
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/r6-enabled-staging-receipt.json",
+      "git_blob_sha": "15354801a86fad0e193d091b9d2d44f0edbac87f",
+      "sha256": "b48ca24876efc7b48a7af093f7d761a22e0b014652c7cbb08ce8d3c45efbb453",
+      "utf8_bytes": 8913
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/phase6-r6/issue35_phase6_r6_publication_adapter_r2.py",
+      "git_blob_sha": "a8b6f93fc337ae0105abbebbba261c3bf565fbc1",
+      "sha256": "46b91706ade2d25cea7c81e6228a514466c52bb07efb05b7854200fc1e5b30bf",
+      "utf8_bytes": 90395
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tests/test_issue35_phase6_r6_publication_final_pins.py",
+      "git_blob_sha": "e4b69f05c69b8d364bf9c6248ca74e78d0f3241e",
+      "sha256": "a4b213d46eb74e233b43d1129dcbff0540cb07bc0cf72ce955dfd54c63f559ac",
+      "utf8_bytes": 5595
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/tools/phase6-r6/publication-final-pins.json",
+      "git_blob_sha": "e40d2e3036f2884e8e1072f817ea3faed7817b9d",
+      "sha256": "c48bed875f52c51158d6fdae930dc026b576e7442cfdf17714c1d96f23c10bdb",
+      "utf8_bytes": 17840
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/final-publication-writer-closure.json",
+      "git_blob_sha": "354b5634d8a120612c0c6741709ee417ac5300bd",
+      "sha256": "8198a1c5da0ef72163a18b3e8454adef1d0e1af367b6317d46f830cf2b9bc0c8",
+      "utf8_bytes": 28946
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/final-publication-independent-review.json",
+      "git_blob_sha": "d5afb7e783d374f78c7bef3f8bc54bc0cda38236",
+      "sha256": "8a3f17b1dd72415450a2da8492befaab60306bb4fbb0d80b4f574c05c84a2edd",
+      "utf8_bytes": 13731
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/date12-live-independent-review.json",
+      "git_blob_sha": "ba7f554b1e170302e3258999a69bed836be8e5ee",
+      "sha256": "e5a2b52cdf1f728bdcbcfe5508b6581e11bfc629ec4d44f71e4b388cd3b0adbb",
+      "utf8_bytes": 11083
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/date12-normal-reload-ui-proof.json",
+      "git_blob_sha": "1a2c8c049ddb0c22cdda1cfbda0c1900beb0f7e2",
+      "sha256": "8152be312f198e431871dc41ff0877ed1b8a32a6097544e9edec2d4cfc9b10e3",
+      "utf8_bytes": 2386
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/evidence/delivery-status-before-natural.json",
+      "git_blob_sha": "16ff49c8906da6165f585301c0f80d881515efd1",
+      "sha256": "7ccc579c2f9cc721ddb3debf1b5aad679213a9168d4ab9d0c7c4e0cd8a4dabec",
+      "utf8_bytes": 9662
+    },
+    {
+      "path": "deliveries/issue35_mac_20261012/README.md",
+      "git_blob_sha": "401f411ca9e90580dc19a4077d55995db02aec00",
+      "sha256": "3d75e37cab08344b647220e2618c15f0d3966a6a70d192b6c261953f86a3d517",
+      "utf8_bytes": 4229
+    }
+  ]
+}

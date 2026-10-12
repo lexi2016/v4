@@ -1,0 +1,79 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "active_base": {
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r4b/app",
+    "application_inventory_entry_count": 1049,
+    "application_inventory_sha256": "bc132d23a95c00087743072ff29458397e4721de04f38d675217469185b0ea74",
+    "release_id": "issue35-manager-autocontinue-20261012-r4b",
+    "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r4b/release-manifest.json",
+    "release_manifest_sha256": "ccf0bbec4b58910f180320e4288f09e0af2a8143c542f2183eab977d01746b9f",
+    "release_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r4b"
+  },
+  "active_pointer_changed": false,
+  "canary_status": "NOT_RUN",
+  "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+  "candidate_inventory_entry_count": 1049,
+  "candidate_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated",
+  "delta_entries": [
+    {
+      "after_sha256": "0c48e83dbb447a0b33a5870dc1a65a358e72fb45173b332034323441a9289508",
+      "before_sha256": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989",
+      "path": "tests/test_manager_plan_readback_issue24.py",
+      "unified_diff_hunk_count": 9,
+      "unified_diff_sha256": "a8836c4d79b5208ce6440dcfc214d4130eba9c95035f851e9678bd54506bb8b3"
+    },
+    {
+      "after_sha256": "9b40db81f7be548ce5a3a3a2fd3b1f8226b38b20242c13ed2ca0bbd841d93731",
+      "before_sha256": "0f4efa5448a8a1417453d76909906d6e8c68e0b1d3530f06c18b1adb3fc4fe46",
+      "path": "tests/test_manager_us_mapping_research.py",
+      "unified_diff_hunk_count": 8,
+      "unified_diff_sha256": "b6a4121d1a80fad5068ddceef93e3c859800d92119533f81641726dbfe24b55d"
+    },
+    {
+      "after_sha256": "90d34e32fb8052a0e1fab3994d099e386bec2a644c7a5762485e0924332a6a72",
+      "before_sha256": "2ec555741d0647f8cee7fd65050bdb80b28816dde816cd475367f34b3d24a1e0",
+      "path": "v4/manager_research/us_mapping_research.py",
+      "unified_diff_hunk_count": 2,
+      "unified_diff_sha256": "2f961395f36c6f8bfb49afc1a57d398e9488e97aec89c33b2afe66e538d0367d"
+    },
+    {
+      "after_sha256": "f1e61a8003b638a4b4ecfbf67b9028e5f1d16e315edfe4ebd78e1f3de31bba96",
+      "before_sha256": "6d8d4b9e38f3a2ee2fba0ced339c396f0b0a09ff06429b290363047c8040deb6",
+      "path": "v4/manager_research/workspace.py",
+      "unified_diff_hunk_count": 7,
+      "unified_diff_sha256": "2029981246f67631525cb69e731302464d92e420dd695d669570a7feb74759f6"
+    },
+    {
+      "after_sha256": "831a9235892aa740c643d1ddd73550d88f30ecf1efe9a2e4e16ca956dd467961",
+      "before_sha256": "5eb3276cd8514253b8e47cbe801c2d052a3080c76113809315d9334a852d1ffa",
+      "path": "v4/manager_research/workspace_projection.py",
+      "unified_diff_hunk_count": 2,
+      "unified_diff_sha256": "7999dabd74289d38f1276768f801f82e42062b27f78a2d966c67bc5592c570a2"
+    }
+  ],
+  "delta_path_count": 5,
+  "manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/release-manifest.json",
+  "manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+  "non_delta_active_bytes_preserved": true,
+  "non_delta_active_entry_count": 1044,
+  "non_delta_active_inventory_sha256": "45062cc13449bd8b35442fa22dc24d160c02e243b351d3a63ce2b1db7609b7df",
+  "original_integrator_path": "/Users/lexi/Desktop/学习/v4_app/ops/api_release_integration.py",
+  "original_integrator_sha256": "718dfd1ba18facfb4204e30c557a330bc3a6a45b1636a18ff95a76263e697c9c",
+  "r6_source_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+  "r6_source_only_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6/r6-source-only-manifest.json",
+  "r6_source_only_manifest_sha256": "719288940d28bdc948baa4b034b781f69423260322dae0c930c745b304e4f359",
+  "release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+  "schema_version": "v4.issue35.phase6.integrated_release_verification.v1",
+  "source_delta_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/api-integration-delta-receipt.json",
+  "source_delta_receipt_sha256": "8865b682dfcd47dac0d4c0bd4c9bbb8e58e22ab1b0a9dcde6f1178bbd4d8507d",
+  "status": "PASS_INACTIVE_R6_ORIGINAL_INTEGRATOR_CANDIDATE",
+  "verified_candidate_identity": {
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+    "application_inventory_entry_count": 1049,
+    "application_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+    "release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+    "release_manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+    "release_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated"
+  }
+}

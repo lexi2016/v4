@@ -1,0 +1,232 @@
+{
+  "schema_version": "v4.issue35.phase6.final_r6_publication_independent_review.v1",
+  "reviewer": "issue35_mac_reviewer",
+  "review_date_local": "2026-10-12",
+  "status": "PASS_BOUNDED_FINAL_R6_PAIR_PACKAGE",
+  "REVIEWED": "PASS_EXACT_FROZEN_ADAPTER_PIN_PLAN_DELTA",
+  "TESTED": "PASS_FOCUSED_TEMP_ONLY",
+  "BEHAVIOR_VERIFIED": "PINNED_STATIC_PAIR_AND_NOOP_ENV_BEHAVIOR_ONLY",
+  "verdict": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "findings": "No actionable correctness, security, behavioral-regression, or missing focused-test issue found within the frozen final R6 pair publication scope."
+  },
+  "scope": {
+    "review_scope_path": "E/PHASE6_FINAL_R6_PUBLICATION_REVIEW_SCOPE.md",
+    "review_scope_sha256": "d4b4d1395d73ef4e748f5f1a25044fed46c91b184dd6b5f56d2040327b37eb2c",
+    "pins_scope_path": "E/PHASE6_FINAL_R6_PUBLICATION_PINS_SCOPE.md",
+    "pins_scope_sha256": "6f447c03bc3e087418bcc7c8a6f9f146cae4b4c6fef535f495cc8a936b10a555",
+    "corrected_writer_closure_path": "E/receipts/phase6-final-publication-preparation/writer-package-closure-final-corrected.json",
+    "corrected_writer_closure_sha256": "8198a1c5da0ef72163a18b3e8454adef1d0e1af367b6317d46f830cf2b9bc0c8",
+    "superseded_closure": {
+      "path": "E/receipts/phase6-final-publication-preparation/writer-package-closure-final.json",
+      "sha256": "4ffe668ab2b486d1f9a550f1a8d220c9ab28dd956420fe5fd484d878981b9498",
+      "correction": "Corrected only the overlong pins-scope SHA and closure metadata. Adapter, tests, pins, pair plan, argv, identities, and live artifacts are unchanged."
+    }
+  },
+  "reviewed_artifacts": {
+    "adapter": {
+      "path": "E/tools/phase6-r6/issue35_phase6_r6_publication_adapter_r2.py",
+      "sha256": "46b91706ade2d25cea7c81e6228a514466c52bb07efb05b7854200fc1e5b30bf",
+      "frozen_base_path": "E/tools/phase6-r6/issue35_phase6_r6_publication_adapter.py",
+      "frozen_base_sha256": "9d0137917b2432137a777aca44521f0409656ae2a9d062a181082f9f476274b6"
+    },
+    "final_pin_document": {
+      "path": "E/tools/phase6-r6/publication-final-pins.json",
+      "sha256": "c48bed875f52c51158d6fdae930dc026b576e7442cfdf17714c1d96f23c10bdb",
+      "exact_fields_and_values_validated_against_adapter": true,
+      "pinned_artifact_references": 30,
+      "all_30_references_independently_checked_by_focused_test": true
+    },
+    "pair_template": {
+      "path": "E/staged_config/phase6-final-pair/r6-pair-final-r3/pair-plan.template.json",
+      "sha256": "49b05c920ae7227c30609c8c15543a32174d5c1b278fcb84d281abe5d4bf73d8"
+    },
+    "prepared_pair_plan": {
+      "path": "E/staged_config/phase6-final-pair/r6-pair-final-r3/pair-plan.json",
+      "sha256": "198b300b7c1b917dc05c868416bf814d67920514d7868bf288bd8c3fd14b3c14",
+      "status": "PREPARED_CHECK_ONLY_NOT_PUBLISHED",
+      "required_confirmation": "ISSUE35_PAIR_20261013_7f9a45f27a1f8e45",
+      "confirmation_recomputed_from_plan": true,
+      "operator_argv_and_shell_strings_match_shlex_join": true
+    },
+    "focused_test": {
+      "path": "E/tools/phase6-r6/test_issue35_phase6_r6_publication_final_pins.py",
+      "sha256": "a4b213d46eb74e233b43d1129dcbff0540cb07bc0cf72ce955dfd54c63f559ac"
+    }
+  },
+  "findings_and_evidence": {
+    "adapter_delta": {
+      "code": [
+        "Pins the accepted R6 manifest/source pair, completed target13 canary and completion receipt, d8 and 357 history, original enabled stage, live before bytes, canonical integrator, original observer, and helper lineage.",
+        "Changes only the API release identity to the R6 release and the exact phase6 operation-receipt location in the shared execution/rollback body; original observer, wait/recovery, CAS, and rollback helper function bodies are byte-equivalent to the frozen base.",
+        "Uses structured argv vectors for check/execute/rollback; shell strings are generated from those vectors with shlex.join."
+      ],
+      "relevant_lines": [
+        "Adapter 150-294: exact final pin document, 30 immutable artifact hashes, canary/completion identity and PARTIAL/gap gates.",
+        "Adapter 828-911: exact staged paths and hashes; six-key API delta; three-key scheduler delta; scheduler HK root, working directory and ProgramArguments preserved; candidate-matching cycle SHA no-op.",
+        "Adapter 914-999: candidate source, canary, completion, stage status, before/after plist hashes and stage-file pins are required.",
+        "Adapter 1031-1040: confirmation derives from the canonical plan bytes; operator argv points at this exact R2 helper and shell text is generated with shlex.join.",
+        "Adapter 449-539 and 1082-1113: CAS/recovery and observer/wait semantics match the frozen source.",
+        "Adapter 1116-1241: shared lock and current bytes are rechecked, exact API-then-scheduler CAS/readback precedes reload; guarded recovery order and unexpected-byte stop behavior remain unchanged."
+      ]
+    },
+    "identities": {
+      "target_trade_date": "20261013",
+      "candidate_release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+      "candidate_manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+      "candidate_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+      "candidate_inventory_entry_count": 1049,
+      "candidate_cycle_source_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "candidate_supervisor_source_sha256": "2c624cc324c3120bda9e4917717b9cfe2b4244e34410b508781e60c5f3841a7b",
+      "preserved_d8_execution01_run_id": "d8a35106712a4387accf214c3ee3772d",
+      "preserved_357_execution02_run_id": "357d984e400541a48c41f65ec0018b62",
+      "current13_run_id": "92f257a7a0a841c081d48005f8a3fe3e",
+      "current13_product_sha256": "2ed6871c47825caca03b21a3fe49b6a35b4dd5605f2b5c985f043ce6cbb1d78f",
+      "current13_input_identity": "1d10c2e881ddda942884e7bc5252b0897eb65a2846f3a98cad97ca237b5c88af",
+      "current13_canary_sha256": "888174bd56e73f75026804150b7980cb01aa7f660ba840f24ea4b186cdb6ab14",
+      "current13_terminal_attempt": {
+        "attempt_sha256": "8a057dab3239183db14c06cee13d75644f80d186db8168fe88c48169f4c2fbf7",
+        "state": "PARTIAL",
+        "finished_at_utc": "2026-10-11T22:03:14.195417+00:00",
+        "owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "execution_kind": "MANUAL_REFRESH"
+      },
+      "current13_completion_receipt_sha256": "b83f137df6cfdf6d225553c0e2a5ecbc9df38fee74898f1920b8af9372a67f46",
+      "current13_formal_recommendation_count": 0,
+      "current13_top_level_gap_count": 3294,
+      "current13_top_level_gap_sha256": "6f63adc4e2a621f5da75a79db44303fd3139d0ec2824a2d7a74dcdf811b89734"
+    },
+    "staged_environment": {
+      "api_changed_keys": [
+        "PYTHONPATH",
+        "V35_APP_ROOT",
+        "V35_RELEASE_ID",
+        "V35_RELEASE_MANIFEST_PATH",
+        "V35_RELEASE_MANIFEST_SHA256",
+        "V4_MANAGER_PLAN_OWNER_BINDING_PATH"
+      ],
+      "scheduler_changed_keys": [
+        "V4_MANAGER_ANNOUNCEMENT_APP_ROOT",
+        "V4_MANAGER_ANNOUNCEMENT_BINDING",
+        "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256"
+      ],
+      "scheduler_cycle_mode": "NOOP_MATCHES_CANDIDATE",
+      "scheduler_cycle_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "scheduler_hk_root_working_directory_program_arguments_preserved": true,
+      "static_plist_parse_result": "API delta exactly six listed keys; scheduler delta exactly three listed keys; scheduler WorkingDirectory and ProgramArguments unchanged; V35_APP_ROOT unchanged; cycle SHA unchanged and equals candidate."
+    },
+    "safety": {
+      "current13_status": "PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING",
+      "owner_attempt_state": "PARTIAL",
+      "formal_recommendation_count": 0,
+      "research_only": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "announcement_collection_enabled": false,
+      "no_new_owner_post_get": true
+    },
+    "parent_preflight_gates": [
+      "Run exact check-only argv below with default expect=before and require PASS_CHECK_ONLY.",
+      "Recheck the real live API and scheduler plist before hashes immediately before execute.",
+      "Require the pinned R6 candidate verifier, canonical shared API release lock, exact staged postimages and original service observer contracts to pass at call time.",
+      "Execute only with both plists at exact before bytes; never reload either service before both exact after bytes read back.",
+      "Rollback only with explicit expected-current=pair-after and exact CAS guards; unexpected bytes stop without overwrite."
+    ]
+  },
+  "prior_accepted_evidence_reused": [
+    {
+      "path": "E/receipts/independent-review/phase6-r6-transport/reviewer-receipt.json",
+      "sha256": "d62f3309d0f025705851ce2fd135b0af15d6ce3162dc0e6634d66b0f1f30c30c",
+      "result": "P0/P1/P2 zero; 27-test temp-state review passed."
+    },
+    {
+      "path": "E/receipts/independent-review/phase4/service-observer/independent-review-pinfix.json",
+      "sha256": "1b15b89d7934e715af5994e364363fe8c031b3588ab94c85ef08a356489c1d2d",
+      "result": "PASS_BOUNDED_REVIEW; P0/P1/P2 zero."
+    },
+    {
+      "path": "E/receipts/independent-review/phase6-saved-completion-atomic-r2/reviewer-receipt.json",
+      "sha256": "9b6a7a496770a35567f4ac449f23a20609044c4893b1cfc206f52ee32786a7f0",
+      "result": "PASS_BOUNDED_R2_ATOMIC_SAVED_COMPLETION; P0/P1/P2 zero."
+    },
+    {
+      "path": "E/receipts/independent-review/phase6-get-dto-saved-completion/reviewer-receipt.json",
+      "sha256": "969c75b7a18593b02a45ef3ab7f6c94451054c933b5826ed1359b34fb6527ef5",
+      "result": "Prior GET DTO review reused per frozen scope. Its earlier P1 was the saved-completion early-publication defect reviewed again and accepted as fixed by R2 atomic review; this R6 task did not repeat those tests."
+    }
+  ],
+  "focused_test_rerun": {
+    "command_argv": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--import-mode=importlib",
+      "--basetemp=/tmp/issue35-final-r6-publication-review-20261012-001",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/test_issue35_phase6_r6_publication_final_pins.py"
+    ],
+    "result": "19 passed in 0.02s",
+    "cases": [
+      "Immutable final pin document matches exact adapter contract.",
+      "All 30 artifact pins are present and byte-matched.",
+      "Identity drift negative controls reject changes to candidate, canary, completion, d8/357 history, stage, live preimages, environment contract, and research boundary.",
+      "Unlisted pin fields reject.",
+      "Candidate-matching unchanged cycle SHA no-op accepts; wrong cycle rejects; changed-cycle path still requires exact candidate; extra scheduler environment deltas reject."
+    ]
+  },
+  "parent_operator_argv": {
+    "required_confirmation": "ISSUE35_PAIR_20261013_7f9a45f27a1f8e45",
+    "check_only_default_before": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/issue35_phase6_r6_publication_adapter_r2.py",
+      "check",
+      "--pair-dir",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-final-pair/r6-pair-final-r3"
+    ],
+    "execute_main_owned_only_after_preconditions": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/issue35_phase6_r6_publication_adapter_r2.py",
+      "execute",
+      "--pair-dir",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-final-pair/r6-pair-final-r3",
+      "--confirm",
+      "ISSUE35_PAIR_20261013_7f9a45f27a1f8e45"
+    ],
+    "guarded_rollback_main_owned_only": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/issue35_phase6_r6_publication_adapter_r2.py",
+      "rollback",
+      "--pair-dir",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-final-pair/r6-pair-final-r3",
+      "--confirm",
+      "ISSUE35_PAIR_20261013_7f9a45f27a1f8e45",
+      "--expected-current",
+      "pair-after"
+    ],
+    "reviewer_classification": "SAFE_AFTER_CALL_TIME_CHECK_AND_LOCK_CONDITIONS_ONLY",
+    "reviewer_did_not_run_any_operator_argv": true
+  },
+  "CANNOT_CONFIRM": [
+    "Current loaded API and scheduler identities or actual live runtime environment; no launchctl or live observer call was made.",
+    "Current live plist bytes at parent execution time; parent must rerun the exact read-only check and enforce before-hash CAS under the canonical lock.",
+    "Parent publication or rollback, service reload, API health, port-8873 process identity, UI readback, or natural 20261013 execution.",
+    "Full research/PIT completeness; current manual ASGI saved attempt remains PARTIAL, formal recommendation count is zero, and 3294 top-level gaps are recorded."
+  ],
+  "actions_not_performed": [
+    "Live HTTP or API",
+    "Owner calls",
+    "launchctl or service actions",
+    "Publication execute or rollback",
+    "Git",
+    "Business/source/state/plist writes"
+  ]
+}

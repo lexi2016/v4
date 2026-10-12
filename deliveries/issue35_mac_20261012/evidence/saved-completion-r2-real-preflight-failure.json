@@ -1,0 +1,22 @@
+{
+  "schema_version": "issue35.parent.saved_completion_r2.preflight_failure.v1",
+  "observed_utc": "2026-10-11T23:01:41.989919+00:00",
+  "stage": "READ_ONLY verify_saved_execution before completion CLI or output creation",
+  "helper_sha256": "048fc95accfc64a15976471ecc4628afba413937d08d435046057368e25d0d5c",
+  "independent_review_sha256": "9b6a7a496770a35567f4ac449f23a20609044c4893b1cfc206f52ee32786a7f0",
+  "review_artifact_pins_checked": 9,
+  "error": "R6_SAVED_PREIMAGE_R4B_RECEIPT_PINS_MISMATCH",
+  "error_location": "complete_issue35_r6_saved_canary_r2.py:406 _r4b_state_snapshot called at760 verify_saved_execution",
+  "new_http_owner_calls": 0,
+  "completion_cli_run": false,
+  "stage_services_or_plists_changed": false,
+  "completion_output_exists": false,
+  "private_prefix_entries": [],
+  "owner_state_writes": 0,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

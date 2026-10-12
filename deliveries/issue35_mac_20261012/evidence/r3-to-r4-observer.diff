@@ -1,0 +1,273 @@
+--- /Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_pair_publication_adapter_r3_noop.py
++++ /Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_pair_publication_adapter_r4_observer.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Task-local, fail-closed API + existing scheduler publication adapter.
++"""Task-local R4, fail-closed API + existing scheduler publication adapter.
+ 
+ The normal commands are read-only. ``template`` snapshots current preimages
+ under the task staging root; ``prepare`` pins an enabled pair produced by the
+@@ -51,7 +51,7 @@
+ ORIGINAL_CANARY = TASK_ROOT / "E/tools/issue35_phase4_canary.py"
+ ORIGINAL_CANARY_SHA256 = "8567287bee4c8920880694855b5ed1420623220801ec2d5bb44b2595eb49c703"
+ TARGET_DATE = "20261013"
+-DEFAULT_PAIR_DIR = TASK_ROOT / "E/staged_config/phase4-issue35-target13-pair-r3-noop"
++DEFAULT_PAIR_DIR = TASK_ROOT / "E/staged_config/phase4-issue35-target13-pair-r4-observer"
+ BEFORE_NAMES = {"api": "api-before.plist", "scheduler": "scheduler-before.plist",
+                 "binding": "manager-binding-before.json"}
+ AFTER_NAMES = {"api": "api-after.enabled.plist", "scheduler": "scheduler-after.enabled.plist",
+@@ -81,6 +81,12 @@
+ ROOT_CAUSE_RECEIPT = TASK_ROOT / "E/receipts/phase4-issue35-target13/pair-env-rootcause.json"
+ ROOT_CAUSE_RECEIPT_SHA256 = "358d22cd6408d0a5b3e041d02c3e439e9d3fe6e40abdb8e9d70815c9f312c1e9"
+ ENV_NOOP_SCOPE_SHA256 = "90cc4c8fa9c00ccbcc82766cec17ba664a1326be5d9fb3aa65fadd46583b7435"
++PREVIOUS_ADAPTER = TASK_ROOT / "E/tools/issue35_phase4_pair_publication_adapter_r3_noop.py"
++PREVIOUS_ADAPTER_SHA256 = "7971552107f2da3365af208a766cbc39822c7164ab911610138e9273a6b65b9e"
++SERVICE_OBSERVER_SCOPE_SHA256 = "04e0b3fa85c000b73baf13041c65c78758b0f7e2e8d93afcd82e803fc7a694ba"
++SERVICE_OBSERVER_ROOT_CAUSE_RECEIPT = TASK_ROOT / "E/receipts/phase4-issue35-target13/service-observer-rootcause.json"
++SERVICE_OBSERVER_ROOT_CAUSE_RECEIPT_SHA256 = "0d89662f6db5b918066185ea2ba1b9eaf800d5be701a901599475ce18ca1097c"
++SERVICE_OBSERVER_FIX_SCOPE = TASK_ROOT / "E/PHASE4_SERVICE_OBSERVER_FIX_SCOPE.md"
+ CANDIDATE_SOURCE_FILES = {
+     "cycle": "ops/run_manager_announcement_cycle.py",
+     "supervisor": "infrastructure/scheduling/manager_announcement_supervisor.py",
+@@ -171,6 +177,75 @@
+ def load_observer() -> types.ModuleType:
+     observer = import_pinned(ORIGINAL_OBSERVER, ORIGINAL_OBSERVER_SHA256, "issue35_phase4_original_observer")
+     return observer
++
++
++def _scheduler_observation_from_output(label: str, output: str) -> dict[str, Any]:
++    """Apply the scheduler contract without demanding API-only V35 identity keys."""
++    if label != SCHEDULER_LABEL:
++        raise ValueError("PAIR_SCHEDULER_OBSERVER_LABEL_NOT_ALLOWED")
++    state = re.search(r"(?m)^\s*state\s*=\s*(\S+)", output)
++    pid = re.search(r"(?m)^\s*pid\s*=\s*(\d+)\s*$", output)
++    if not state:
++        return {"state": "UNKNOWN", "identity": None,
++                "error": "SCHEDULER_LAUNCHCTL_STATE_MISSING", "label": label}
++    if state.group(1) != "running":
++        return {"state": "UNKNOWN", "identity": None,
++                "reported_state": state.group(1), "error": "SCHEDULER_NOT_RUNNING", "label": label}
++    if not pid:
++        return {"state": "UNKNOWN", "identity": None,
++                "reported_state": state.group(1), "error": "SCHEDULER_PID_MISSING", "label": label}
++    return {"state": "LOADED", "identity": {"state": "running", "pid": pid.group(1)},
++            "label": label, "observer_contract": "EXACT_LABEL_RUNNING_PID"}
++
++
++def _observe_pair_service(observer: Any, label: str) -> dict[str, Any]:
++    """Observe a known pair label using its own fail-closed runtime contract."""
++    if label not in {API_LABEL, SCHEDULER_LABEL}:
++        raise ValueError("PAIR_SERVICE_OBSERVER_LABEL_NOT_ALLOWED")
++    observer.LABEL = label
++    if label == API_LABEL:
++        # Preserve the pinned original observer's complete API release identity gate.
++        try:
++            observed = observer._observe_loaded()
++        except Exception as exc:
++            return {"state": "UNKNOWN", "identity": None,
++                    "error": "API_OBSERVER_FAILED:" + type(exc).__name__}
++        if not isinstance(observed, Mapping):
++            return {"state": "UNKNOWN", "identity": None, "error": "API_OBSERVER_RESULT_INVALID"}
++        if observed.get("state") == "LOADED":
++            identity = observed.get("identity")
++            required = ("V35_APP_ROOT", "V35_RELEASE_ID", "V35_RELEASE_MANIFEST_SHA256")
++            if not isinstance(identity, Mapping) or any(key not in identity for key in required):
++                return {"state": "UNKNOWN", "identity": None,
++                        "error": "API_OBSERVER_IDENTITY_INCOMPLETE"}
++        return dict(observed)
++    try:
++        output = observer._launchctl_print()
++    except Exception as exc:
++        message = str(exc)
++        if message.startswith("API_ONLY_LAUNCH_AGENT_NOT_LOADED:"):
++            return {"state": "NOT_LOADED", "identity": None, "label": label}
++        # Do not turn launchctl errors into an unloaded result or retain raw details.
++        return {"state": "UNKNOWN", "identity": None,
++                "error": "SCHEDULER_LAUNCHCTL_QUERY_FAILED:" + type(exc).__name__, "label": label}
++    return _scheduler_observation_from_output(label, output)
++
++
++def _recovery_service_observation(observer: Any, label: str) -> dict[str, Any]:
++    """Refuse recovery bootout decisions when either service state is ambiguous."""
++    observed = _observe_pair_service(observer, label)
++    if observed.get("state") not in {"LOADED", "NOT_LOADED"}:
++        raise ValueError("PAIR_RECOVERY_REFUSES_UNKNOWN_SERVICE_STATE:" + label)
++    return observed
++
++
++def _observe_original_pair(observer: Any) -> tuple[dict[str, Any], dict[str, Any]]:
++    """Require the original API identity and the scheduler's own loaded contract."""
++    api = _observe_pair_service(observer, API_LABEL)
++    scheduler = _observe_pair_service(observer, SCHEDULER_LABEL)
++    if api.get("state") != "LOADED" or scheduler.get("state") != "LOADED":
++        raise ValueError("BOTH_ORIGINAL_SERVICES_MUST_BE_LOADED_BEFORE_PAIR_SWITCH")
++    return api, scheduler
+ 
+ 
+ def env_from_plist(value: Mapping[str, Any]) -> dict[str, str]:
+@@ -326,10 +401,13 @@
+             match = re.search(rf"(?m)^\s*{re.escape(key)}=([^\r\n]+)", raw)
+             if match:
+                 env[key] = match.group(1)
+-        try:
+-            parsed = observer._loaded_identity(raw)
+-        except Exception as exc:
+-            parsed = {"status": "CANNOT_CONFIRM", "error": type(exc).__name__ + ":" + str(exc)}
++        if label == API_LABEL:
++            try:
++                parsed = observer._loaded_identity(raw)
++            except Exception as exc:
++                parsed = {"status": "CANNOT_CONFIRM", "error": type(exc).__name__ + ":" + str(exc)}
++        else:
++            parsed = _scheduler_observation_from_output(label, raw)
+         return {"state": state.group(1) if state else "CANNOT_CONFIRM",
+                 "pid": pid.group(1) if pid else None,
+                 "standard_identity": parsed, "allowlisted_environment": env}
+@@ -422,6 +500,14 @@
+         raise ValueError("PINNED_ENABLED_STAGE_SHA_MISMATCH")
+     if sha(exact_bytes(ROOT_CAUSE_RECEIPT, "ENV_NOOP_ROOT_CAUSE")) != ROOT_CAUSE_RECEIPT_SHA256:
+         raise ValueError("ENV_NOOP_ROOT_CAUSE_SHA_MISMATCH")
++    if (sha(exact_bytes(SERVICE_OBSERVER_FIX_SCOPE, "SERVICE_OBSERVER_FIX_SCOPE"))
++            != SERVICE_OBSERVER_SCOPE_SHA256):
++        raise ValueError("SERVICE_OBSERVER_FIX_SCOPE_SHA_MISMATCH")
++    if (sha(exact_bytes(SERVICE_OBSERVER_ROOT_CAUSE_RECEIPT, "SERVICE_OBSERVER_ROOT_CAUSE"))
++            != SERVICE_OBSERVER_ROOT_CAUSE_RECEIPT_SHA256):
++        raise ValueError("SERVICE_OBSERVER_ROOT_CAUSE_SHA_MISMATCH")
++    if sha(exact_bytes(PREVIOUS_ADAPTER, "PREVIOUS_R3_ADAPTER")) != PREVIOUS_ADAPTER_SHA256:
++        raise ValueError("PREVIOUS_R3_ADAPTER_SHA_MISMATCH")
+     candidate_source_files = {
+         key: {"path": str(APP_ROOT / relative),
+               "sha256": sha(exact_bytes(APP_ROOT / relative, "PINNED_CANDIDATE_SOURCE_" + key.upper()))}
+@@ -445,6 +531,16 @@
+                       "root_cause_receipt_sha256": ROOT_CAUSE_RECEIPT_SHA256,
+                       "accepted_scheduler_delta": sorted(EXPECTED_SCHEDULER_NOOP_DELTA),
+                       "unchanged_cycle_sha_must_equal_candidate": True},
++        "service_observer_fix": {
++            "scope_path": str(SERVICE_OBSERVER_FIX_SCOPE),
++            "scope_sha256": SERVICE_OBSERVER_SCOPE_SHA256,
++            "root_cause_receipt": str(SERVICE_OBSERVER_ROOT_CAUSE_RECEIPT),
++            "root_cause_receipt_sha256": SERVICE_OBSERVER_ROOT_CAUSE_RECEIPT_SHA256,
++            "previous_adapter_path": str(PREVIOUS_ADAPTER),
++            "previous_adapter_sha256": PREVIOUS_ADAPTER_SHA256,
++            "api_observer_contract": "PINNED_ORIGINAL_API_RELEASE_IDENTITY",
++            "scheduler_observer_contract": "EXACT_LABEL_LAUNCHCTL_RUNNING_STATE_AND_NUMERIC_PID",
++        },
+         "candidate_source_files": candidate_source_files,
+         "target13_canary": {"path": str(EXISTING_CANARY_PATH),
+                              "sha256": sha(canary_raw),
+@@ -614,6 +710,27 @@
+         raise ValueError("PAIR_ENV_NOOP_BASIS_PIN_MISMATCH")
+     if sha(exact_bytes(ROOT_CAUSE_RECEIPT, "ENV_NOOP_ROOT_CAUSE")) != ROOT_CAUSE_RECEIPT_SHA256:
+         raise ValueError("ENV_NOOP_ROOT_CAUSE_SHA_MISMATCH")
++    service_fix = value.get("service_observer_fix", {})
++    expected_service_fix = {
++        "scope_path": str(SERVICE_OBSERVER_FIX_SCOPE),
++        "scope_sha256": SERVICE_OBSERVER_SCOPE_SHA256,
++        "root_cause_receipt": str(SERVICE_OBSERVER_ROOT_CAUSE_RECEIPT),
++        "root_cause_receipt_sha256": SERVICE_OBSERVER_ROOT_CAUSE_RECEIPT_SHA256,
++        "previous_adapter_path": str(PREVIOUS_ADAPTER),
++        "previous_adapter_sha256": PREVIOUS_ADAPTER_SHA256,
++        "api_observer_contract": "PINNED_ORIGINAL_API_RELEASE_IDENTITY",
++        "scheduler_observer_contract": "EXACT_LABEL_LAUNCHCTL_RUNNING_STATE_AND_NUMERIC_PID",
++    }
++    if service_fix != expected_service_fix:
++        raise ValueError("PAIR_SERVICE_OBSERVER_FIX_BASIS_PIN_MISMATCH")
++    if (sha(exact_bytes(SERVICE_OBSERVER_FIX_SCOPE, "SERVICE_OBSERVER_FIX_SCOPE"))
++            != SERVICE_OBSERVER_SCOPE_SHA256):
++        raise ValueError("SERVICE_OBSERVER_FIX_SCOPE_SHA_MISMATCH")
++    if (sha(exact_bytes(SERVICE_OBSERVER_ROOT_CAUSE_RECEIPT, "SERVICE_OBSERVER_ROOT_CAUSE"))
++            != SERVICE_OBSERVER_ROOT_CAUSE_RECEIPT_SHA256):
++        raise ValueError("SERVICE_OBSERVER_ROOT_CAUSE_SHA_MISMATCH")
++    if sha(exact_bytes(PREVIOUS_ADAPTER, "PREVIOUS_R3_ADAPTER")) != PREVIOUS_ADAPTER_SHA256:
++        raise ValueError("PREVIOUS_R3_ADAPTER_SHA_MISMATCH")
+     source_files = value.get("candidate_source_files")
+     if not isinstance(source_files, dict) or set(source_files) != set(CANDIDATE_SOURCE_FILES):
+         raise ValueError("PAIR_CANDIDATE_SOURCE_PIN_SET_MISMATCH")
+@@ -674,9 +791,9 @@
+                                          "after_path": str(stage_dir / "com.lexi.v35.scheduler.plist"), "after_sha256": details["scheduler_sha256"]}}
+     result["required_confirmation"] = "ISSUE35_PAIR_20261013_" + sha(json_bytes(result))[:16]
+     result["operator_commands"] = {
+-        "check_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/issue35_phase4_pair_publication_adapter_r3_noop.py check --pair-dir {pair_dir}",
+-        "execute_main_owned_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/issue35_phase4_pair_publication_adapter_r3_noop.py execute --pair-dir {pair_dir} --confirm {result['required_confirmation']}",
+-        "rollback_main_owned_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/issue35_phase4_pair_publication_adapter_r3_noop.py rollback --pair-dir {pair_dir} --confirm {result['required_confirmation']} --expected-current pair-after",
++        "check_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/issue35_phase4_pair_publication_adapter_r4_observer.py check --pair-dir {pair_dir}",
++        "execute_main_owned_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/issue35_phase4_pair_publication_adapter_r4_observer.py execute --pair-dir {pair_dir} --confirm {result['required_confirmation']}",
++        "rollback_main_owned_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/issue35_phase4_pair_publication_adapter_r4_observer.py rollback --pair-dir {pair_dir} --confirm {result['required_confirmation']} --expected-current pair-after",
+     }
+     complete_path = pair_dir / "pair-plan.json"
+     write_json_exclusive(complete_path, result)
+@@ -730,23 +847,27 @@
+ 
+ 
+ def _wait_label(observer: Any, label: str, expected_loaded: bool, timeout: float = 30.0) -> dict[str, Any]:
+-    observer.LABEL = label
++    if label not in {API_LABEL, SCHEDULER_LABEL}:
++        raise ValueError("PAIR_SERVICE_OBSERVER_LABEL_NOT_ALLOWED")
+     deadline = time.monotonic() + timeout
+-    latest: dict[str, Any] = {}
++    latest: dict[str, Any] = {"state": "UNKNOWN", "error": "NO_OBSERVATION"}
+     while time.monotonic() < deadline:
+-        try:
+-            raw = observer._launchctl_print()
+-            state = re.search(r"(?m)^\s*state\s*=\s*(\S+)", raw)
+-            pid = re.search(r"(?m)^\s*pid\s*=\s*(\d+)", raw)
+-            latest = {"present": True, "state": state.group(1) if state else "CANNOT_CONFIRM",
+-                      "pid": pid.group(1) if pid else None}
+-        except Exception as exc:
+-            latest = {"present": False, "error": type(exc).__name__ + ":" + str(exc)[:200]}
+-        loaded = latest.get("present") is True and latest.get("state") == "running"
+-        if loaded == expected_loaded:
+-            return latest
+-        time.sleep(0.25)
+-    raise ValueError("LAUNCHCTL_STATE_TIMEOUT:" + label + ":" + json.dumps(latest, sort_keys=True))
++        latest = _observe_pair_service(observer, label)
++        if expected_loaded and latest.get("state") == "LOADED":
++            identity = latest.get("identity")
++            pid = identity.get("pid") if isinstance(identity, Mapping) else None
++            return {"present": True, "state": "running", "pid": pid}
++        if not expected_loaded and latest.get("state") == "NOT_LOADED":
++            return {"present": False, "error": "SERVICE_NOT_LOADED"}
++        remaining = deadline - time.monotonic()
++        if remaining <= 0:
++            break
++        time.sleep(min(0.25, remaining))
++    identity = latest.get("identity")
++    pid = identity.get("pid") if isinstance(identity, Mapping) else None
++    summary = {"observer_state": latest.get("state"), "reported_state": latest.get("reported_state"),
++               "pid": pid, "error": latest.get("error")}
++    raise ValueError("LAUNCHCTL_STATE_TIMEOUT:" + label + ":" + json.dumps(summary, sort_keys=True))
+ 
+ 
+ def execute_or_rollback(pair_dir: Path, action: str, confirmation: str,
+@@ -786,11 +907,7 @@
+                           "scheduler": exact_bytes(Path(plan["files"]["scheduler"]["path"]), "BEFORE_SCHEDULER")}
+             after_raw = {"api": exact_bytes(Path(plan["pair_cas"]["api"]["after_path"]), "AFTER_API"),
+                          "scheduler": exact_bytes(Path(plan["pair_cas"]["scheduler"]["after_path"]), "AFTER_SCHEDULER")}
+-        original_api_loaded = observer._observe_loaded()
+-        observer.LABEL = SCHEDULER_LABEL
+-        scheduler_loaded = observer._observe_loaded()
+-        if original_api_loaded.get("state") != "LOADED" or scheduler_loaded.get("state") != "LOADED":
+-            raise ValueError("BOTH_ORIGINAL_SERVICES_MUST_BE_LOADED_BEFORE_PAIR_SWITCH")
++        original_api_loaded, scheduler_loaded = _observe_original_pair(observer)
+         operation = {"schema_version": "v4.issue35.phase4.pair_operation.v1",
+                      "action": action, "target_trade_date": TARGET_DATE,
+                      "plan_sha256": sha(exact_bytes(pair_dir / "pair-plan.json", "PAIR_PLAN")),
+@@ -798,7 +915,7 @@
+                      "after_sha256": {k: sha(v) for k, v in after_raw.items()},
+                      "observer_before": {"api": original_api_loaded, "scheduler": scheduler_loaded},
+                      "service_actions": [], "cas_actions": [], "status": "IN_PROGRESS"}
+-        operation_path = TASK_ROOT / "E/receipts/phase4-issue35-target13" / ("pair-" + action + "-operation.json")
++        operation_path = TASK_ROOT / "E/receipts/phase4-issue35-target13/service-observer-fix" / ("pair-" + action + "-operation.json")
+         if operation_path.exists() or operation_path.is_symlink():
+             raise FileExistsError("PAIR_OPERATION_RECEIPT_EXISTS:" + str(operation_path))
+         write_json_exclusive(operation_path, operation)
+@@ -854,8 +971,7 @@
+                     operation["recovery"] = recovery
+                     # Any candidate labels still loaded must be stopped before loading originals.
+                     for label, plist in ((API_LABEL, API_PLIST), (SCHEDULER_LABEL, SCHEDULER_PLIST)):
+-                        observer.LABEL = label
+-                        state = observer._observe_loaded()
++                        state = _recovery_service_observation(observer, label)
+                         if state.get("state") == "LOADED":
+                             _launch_action(observer, label, plist, "bootout")
+                             _wait_label(observer, label, False)

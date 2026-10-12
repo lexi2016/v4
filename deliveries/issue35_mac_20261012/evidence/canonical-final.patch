@@ -1,0 +1,1063 @@
+--- preimage/v4/manager_research/workspace.py
++++ canonical/v4/manager_research/workspace.py
+@@ -936,16 +936,21 @@
+ 
+ 
+ def _readback_plan(store: Any,date: str,current: dict, *, read_at: Any = None, current_review: bool = False) -> dict:
+-    from copy import deepcopy
+     try:
+         saved=_read_plan(store,date)
+         attempt=store._read(store.root/'workspace_plan_runs'/date/'latest.json')
+         if attempt is not None:attempt=validate_attempt(attempt,date)
+     except _ERROR_TYPES as exc:
+-        # Tampered/stale stored results never hide a freshly verified read-only
+-        # projection, and are NOT presented as successfully read back.
+-        current['plan_product']=dict(status='READBACK_FAILED',reason=type(exc).__name__)
++        current['plan_product']=dict(status='READBACK_FAILED',reason=type(exc).__name__,consumed=False,
++            input_identity_diagnostics=dict(status='CANNOT_CONFIRM',
++                reason='STORED_PLAN_VERIFICATION_FAILED',changed_components=[]),
++            run_readback=_plan_run_readback(None,None,read_at=read_at or _now(),verified=False))
+         return current
++    read_time = (read_at.astimezone(HK) if isinstance(read_at, datetime)
++                 and read_at.tzinfo is not None and read_at.utcoffset() is not None
++                 else timestamp(read_at) if read_at is not None else timestamp(_now()))
++    if read_time is None:
++        read_time = timestamp(_now())
+     saved_cutoff=timestamp(((saved or {}).get('workspace') or {}).get('plan_context',{}).get('research_cutoff'))
+     current_cutoff=timestamp(current.get('plan_context',{}).get('research_cutoff'))
+     after_cutoff=bool(saved is not None and (saved_cutoff is None or current_cutoff is None or saved_cutoff>current_cutoff))
+@@ -977,18 +982,98 @@
+         # run_id or sealed bytes; the existing deep-copy overlay stays read-only.
+         for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','owner_chain','announcement_review','announcement_observation','announcement_reviewed_analysis','us_market_attention','research_attention','stage_read_timing','stage_selection_readback','repair_contract','selection_diagnostics','date_bindings'):
+             if key in current:value[key]=deepcopy(current[key])
+-        value['runtime_status_read_at']=current['plan_context']['research_cutoff']
+-    value['plan_product']=dict(status='CURRENT' if same else ('PLAN_AFTER_READ_CUTOFF' if after_cutoff else 'STALE_INPUTS_CHANGED' if saved else 'NOT_MATERIALIZED'),
++        value['runtime_status_read_at']=read_time.isoformat() if read_time is not None else _now()
++    value['plan_product']=dict(status='CURRENT' if same else ('OWNER_ATTEMPT_UNVERIFIED' if plan_attempt_error else 'PLAN_AFTER_READ_CUTOFF' if after_cutoff else 'STALE_INPUTS_CHANGED' if saved else 'NOT_MATERIALIZED'),
+         run_id=saved.get('run_id') if saved else None,generated_at=saved.get('generated_at') if saved else None,
+         sha256=saved.get('sha256') if saved else None,
+         execution_kind=saved.get('execution_kind','MANUAL_REFRESH') if saved else None,
+         original_owner='ManagerResearchJobService.refresh_workspace_plan',
+-        last_checked_at=current['plan_context']['research_cutoff'],consumed=same,
+-        input_identity_diagnostics=identity_diagnostics)
++        last_checked_at=read_time.isoformat() if read_time is not None else _now(),consumed=same,
++        input_identity_diagnostics=identity_diagnostics,
++        run_readback=_plan_run_readback(saved,verified_attempt,
++            read_at=read_time.isoformat() if read_time is not None else _now(),verified=same))
++    if plan_attempt_error:
++        value['plan_product']['reason'] = plan_attempt_error
+     value['workspace_plan_attempt']=attempt
+     value['workspace_plan_product_attempt']=deepcopy(verified_attempt) if same else None
+     value['observation_mode']='EXACT_DATE_PLAN_READBACK' if same else 'READ_ONLY_EXISTING_OWNER_PREVIEW'
+     return value
++
++
++class _PlanCommitReadView:
++    """Private read-only view of the exact product and sealed attempt to commit.
++
++    The normal reader intentionally requires a terminal owner attempt before it
++    exposes CURRENT. The owner verifies the full intended commit while the
++    public latest pointer still names the previous product (or is absent).
++    This view overlays only the candidate paths for one private read and is
++    never written or returned to a caller.
++    """
++    def __init__(self, store: Any, date: str, product: Mapping[str, Any],
++                 terminal_attempt: Mapping[str, Any]):
++        self.root = Path(store.root)
++        self._store = store
++        token = date_token(date)
++        run_id = str(product.get('run_id') or '')
++        self._candidate_reads = {
++            self.root/'workspace_plans'/token/'latest.json': deepcopy(dict(product)),
++            self.root/'workspace_plan_runs'/token/'latest.json': deepcopy(dict(terminal_attempt)),
++            self.root/'workspace_plan_runs'/token/(run_id+'.json'): deepcopy(dict(terminal_attempt)),
++        }
++
++    def _read(self, path: Any) -> Any:
++        candidate = self._candidate_reads.get(Path(path))
++        return deepcopy(candidate) if candidate is not None else self._store._read(path)
++
++
++def _plan_readback_matches_commit(result: Any, product: Mapping[str, Any],
++                                  terminal_attempt: Mapping[str, Any]) -> bool:
++    if not isinstance(result, Mapping):
++        return False
++    reference = result.get('plan_product')
++    diagnostics = reference.get('input_identity_diagnostics') if isinstance(reference, Mapping) else None
++    run_readback = reference.get('run_readback') if isinstance(reference, Mapping) else None
++    observed_attempt = result.get('workspace_plan_attempt')
++    product_attempt = result.get('workspace_plan_product_attempt')
++    owner = 'ManagerResearchJobService.refresh_workspace_plan'
++    return bool(
++        result.get('target_trade_date') == product.get('target_trade_date')
++        and result.get('input_identity') == product.get('input_identity')
++        and isinstance(reference, Mapping)
++        and reference.get('status') == 'CURRENT'
++        and reference.get('consumed') is True
++        and reference.get('run_id') == product.get('run_id')
++        and reference.get('sha256') == product.get('sha256')
++        and reference.get('execution_kind', 'MANUAL_REFRESH') == product.get('execution_kind', 'MANUAL_REFRESH')
++        and reference.get('original_owner') == owner
++        and isinstance(diagnostics, Mapping) and diagnostics.get('status') == 'MATCH'
++        and isinstance(run_readback, Mapping)
++        and run_readback.get('status') == 'VERIFIED'
++        and run_readback.get('target_trade_date') == product.get('target_trade_date')
++        and run_readback.get('run_id') == product.get('run_id')
++        and run_readback.get('artifact_sha256') == product.get('sha256')
++        and run_readback.get('input_identity') == product.get('input_identity')
++        and run_readback.get('owner') == owner
++        and run_readback.get('owner_attempt_run_id') == terminal_attempt.get('run_id')
++        and run_readback.get('owner_attempt_sha256') == terminal_attempt.get('sha256')
++        and run_readback.get('owner_attempt_state') == terminal_attempt.get('state')
++        and isinstance(observed_attempt, Mapping) and dict(observed_attempt) == dict(terminal_attempt)
++        and isinstance(product_attempt, Mapping) and dict(product_attempt) == dict(terminal_attempt)
++    )
++
++
++def _verify_plan_commit_before_publication(store: Any, date: str, current: Mapping[str, Any],
++                                           product: Mapping[str, Any],
++                                           terminal_attempt: Mapping[str, Any]) -> dict:
++    """Run the real full reader against an unpublished candidate commit."""
++    view = _PlanCommitReadView(store, date, product, terminal_attempt)
++    saved = _read_plan(view, date)
++    if not isinstance(saved, Mapping) or dict(saved) != dict(product):
++        raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
++    result = _readback_plan(view, date, deepcopy(dict(current)))
++    if not _plan_readback_matches_commit(result, product, terminal_attempt):
++        raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
++    return result
+ 
+ 
+ def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+@@ -1138,12 +1223,12 @@
+                 raise preparation_error
+             value=prepared if prepared is not None else get_workspace(
+                 service,date,include_saved=False,now=now,**workspace_dates)
++            completed_at=_now()
++            if deadline is not None and timestamp(completed_at) >= deadline.astimezone(timezone.utc):
++                raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED')
+             failures=sorted(set(value['gaps']))
+             state='PARTIAL' if failures else ('SUCCEEDED' if value['stocks'] else 'SUCCEEDED_EMPTY')
+             checkpoint()
+-            completed_at=_now()
+-            if deadline is not None and timestamp(completed_at) >= deadline.astimezone(timezone.utc):
+-                raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED')
+             product=dict(schema_version=PLAN_SCHEMA,target_trade_date=date,run_id=run_id,
+                 generated_at=completed_at,owner='ManagerResearchJobService.refresh_workspace_plan',
+                 execution_kind=execution_kind,input_identity=value['input_identity'],workspace=value,**FLAGS)
+@@ -1151,25 +1236,52 @@
+             product['sha256']=digest(product)
+             root=service.store.root/'workspace_plans'/date
+             service.store._write_atomic(root/(run_id+'.json'),product)
+-            # Verify the immutable run product before publishing any latest pointer.
++            # Read back the immutable product before moving owner state.
+             exact_product=service.store._read(root/(run_id+'.json'))
+             if (not isinstance(exact_product,Mapping) or dict(exact_product)!=product):
+                 raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+-            attempt.update(state=state,finished_at=_now(),last_success_at=product['generated_at'],
++            # Bind the still-running owner attempt to the exact input before
++            # preparing any terminal success state.
++            attempt['input_identity']=product['input_identity']
++            write_attempt()
++            running_attempt=validate_attempt(
++                service.store._read(run_root/(run_id+'.json')),date)
++            running_latest=validate_attempt(service.store._read(run_root/'latest.json'),date)
++            expected_running=validate_attempt(seal_attempt(attempt),date)
++            if (running_attempt!=expected_running or running_latest!=expected_running
++                    or expected_running.get('state')!='RUNNING'
++                    or expected_running.get('run_id')!=product.get('run_id')
++                    or expected_running.get('owner')!=product.get('owner')
++                    or expected_running.get('execution_kind')!=execution_kind
++                    or expected_running.get('input_identity')!=product.get('input_identity')
++                    or 'finished_at' in expected_running or 'success_scope' in expected_running):
++                raise ValueError('WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED')
++            finished_at=_now()
++            if deadline is not None and timestamp(finished_at) >= deadline.astimezone(timezone.utc):
++                raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_TERMINAL_DEADLINE_EXCEEDED')
++            attempt.update(state=state,finished_at=finished_at,last_success_at=product['generated_at'],
+                 input_identity=value['input_identity'],input_coverage=value['existing_material_coverage'],
+                 summary=value['summary'],failure_reasons=failures,
+                 success_scope='EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE')
++            planned_terminal=validate_attempt(seal_attempt(attempt),date)
++            # The public reader needs a terminal owner attempt. Verify the
++            # complete intended product/run/SHA/identity/owner contract via a
++            # private read view before persisting terminal success.
++            result=_verify_plan_commit_before_publication(service.store,date,value,
++                product,planned_terminal)
++            checkpoint()
++            if deadline is not None and timestamp(_now()) >= deadline.astimezone(timezone.utc):
++                raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_TERMINAL_DEADLINE_EXCEEDED')
+             write_attempt()
+-            terminal=validate_attempt(service.store._read(run_root/'latest.json'),date)
+-            if terminal!=seal_attempt(attempt):
++            terminal=validate_attempt(service.store._read(run_root/(run_id+'.json')),date)
++            terminal_latest=validate_attempt(service.store._read(run_root/'latest.json'),date)
++            if terminal!=planned_terminal or terminal_latest!=planned_terminal:
+                 raise ValueError('WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED')
+-            # Full plan readback requires the same-run terminal owner attempt.
+-            # Publish the latest pointer only after that attempt is durable.
++            # Only the exact commit already checked through the original reader
++            # becomes public latest.
+             service.store._write_atomic(root/'latest.json',product)
+-            result=_readback_plan(service.store,date,value)
+-            readback=result.get('plan_product',{})
+-            if (readback.get('status')!='CURRENT' or readback.get('consumed') is not True
+-                    or readback.get('run_id')!=run_id or readback.get('sha256')!=product['sha256']):
++            published=_read_plan(service.store,date)
++            if not isinstance(published,Mapping) or dict(published)!=product:
+                 raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+             result['workspace_plan_attempt']=terminal
+             result['workspace_plan_product_attempt']=deepcopy(terminal)
+--- preimage/v4/manager_research/workspace_projection.py
++++ canonical/v4/manager_research/workspace_projection.py
+@@ -191,6 +191,24 @@
+ 
+     cards = screen.get('cards')
+     return count('strict_count'), count('near_count'), len(cards) if isinstance(cards, list) else None
++
++
++def _market_screen_identity_projection(screen: Mapping[str, Any] | None) -> Mapping[str, Any] | None:
++    """Keep the visible screen cutoff out of identity unless it changes a result.
++
++    The cutoff still controls the screen's source reads and eligibility before
++    this projection is built. Only the raw read-clock leaf is omitted; every
++    source identity, decision, gap, result, and phase remains part of identity.
++    """
++    if not isinstance(screen, Mapping):
++        return screen
++    value = deepcopy(dict(screen))
++    data_context = value.get('data_context')
++    if isinstance(data_context, Mapping):
++        identity_context = dict(data_context)
++        identity_context.pop('research_cutoff', None)
++        value['data_context'] = identity_context
++    return value
+ 
+ 
+ def build_workspace(date: str, *, catalyst: Mapping[str, Any], materials: Sequence[Mapping[str, Any]] = (),
+@@ -480,7 +498,7 @@
+     identity_inputs = dict(decision_projection_version='20260921.manager-decision-ux.a1',
+         semantic_version=SEMANTIC_VERSION,catalyst=catalyst,materials=materials,stage=stage,close=close,
+         discovered_cards=discovered_cards,discovery_rejections=discovery_rejections,price_quotes=price_quotes,
+-        market_screen=screen,
++        market_screen=_market_screen_identity_projection(screen),
+         plan_context={k:v for k,v in context.items() if k!='research_cutoff'} if plan_context else None)
+     result= dict(schema_version=SCHEMA,semantic_version=SEMANTIC_VERSION,rejected_relations=rejected_relations,
+         decision_projection_version='20260921.manager-decision-ux.a1',
+--- preimage/v4/manager_research/us_mapping_research.py
++++ canonical/v4/manager_research/us_mapping_research.py
+@@ -838,11 +838,6 @@
+         str(evidence.get("artifact_sha256"))
+         if evidence is not None and current_evidence_selected else None
+     )
+-    overlay_identity = digest([
+-        target_date, session, bridge_source_payload_sha,
+-        result.get("research_cutoff"), artifact_sha, eligible_cards,
+-        eligible_current_symbol_assessments,
+-    ])
+     gaps = ["RELATION_EVIDENCE_COVERAGE_NOT_COMPLETE"]
+     if post_cutoff_count:
+         gaps.append("RELATION_EVIDENCE_AFTER_CURRENT_CUTOFF")
+@@ -861,6 +856,42 @@
+     if current_artifact_error:
+         gaps.append(current_artifact_error)
+     gaps.extend(seed_gaps)
++
++    # A saved workspace identity represents source bindings and the actual
++    # cutoff decisions. It must not include the read clock itself: when the
++    # source bytes, available_at results, counts, and gaps are unchanged, a
++    # later dynamic replay is the same material identity. Crossing a real
++    # source/review availability boundary changes these hashed results.
++    identity_inputs = {
++        "schema": "v4.manager_research.current_relation_assessment_identity.v2",
++        "target_trade_date": target_date,
++        "current_bridge_session": session,
++        "current_bridge_source_payload_sha256": bridge_source_payload_sha,
++        "configured_us_symbols": sorted(configured_symbols),
++        "current_relation_source": {
++            "evidence_file_sha256": hashlib.sha256(evidence_raw).hexdigest() if evidence_raw else None,
++            "evidence_artifact_sha256": evidence.get("artifact_sha256") if evidence is not None else None,
++            "review_receipt_sha256": review_info.get("receipt_sha256") if review_info else None,
++            "reviewed_at": review_info.get("reviewed_at") if review_info else None,
++        },
++        "seed_source": deepcopy(dict(seed_availability)) if isinstance(seed_availability, Mapping) else None,
++        "eligibility_results": {
++            "eligible_relations": eligible_cards,
++            "eligible_symbol_assessments": eligible_current_symbol_assessments,
++            "post_cutoff_counts": {
++                "relations": post_cutoff_count,
++                "relation_reviews": post_cutoff_review_count,
++                "review_pending_relations": review_pending_count,
++                "symbol_assessments": post_cutoff_assessment_count,
++                "symbol_assessment_reviews": post_cutoff_assessment_review_count,
++                "review_pending_symbol_assessments": assessment_review_pending_count,
++            },
++            "current_review_status": current_review_status,
++            "withheld_candidate_count": len(withheld_candidates),
++            "gaps": sorted(set(gaps)),
++        },
++    }
++    overlay_identity = digest(identity_inputs)
+     relation_source_artifacts = []
+     if seed_availability and seed_relations:
+         relation_source_artifacts.append({
+--- preimage/tests/test_manager_plan_readback_issue24.py
++++ canonical/tests/test_manager_plan_readback_issue24.py
+@@ -4,12 +4,15 @@
+ separate commands; these tests do not invoke unrelated collection/owner suites.
+ """
+ from copy import deepcopy
++import hashlib
++import re
+ from types import SimpleNamespace
+ 
+ import pytest
+ from infrastructure.owned_io import SafeRoot
+ from v4.manager_research import store as s
+ from v4.manager_research import workspace as w
++from v4.manager_research.workspace_identity import identity_components_valid
+ 
+ DATE = '20261002'
+ RUN = 'a' * 32
+@@ -17,18 +20,35 @@
+ LIMIT = 320 * 1024 * 1024
+ 
+ 
++def _text_sha256(value):
++    digest = hashlib.sha256()
++    for offset in range(0, len(value), 1024 * 1024):
++        digest.update(value[offset:offset + 1024 * 1024].encode('utf-8'))
++    return digest.hexdigest()
++
++
+ def current(body=''):
+-    return dict(target_trade_date=DATE, input_identity='d'*64,
++    component = w.identity_component({
++        'fixture_source': 'issue24-real-owner-contract',
++        'authoritative_evidence_sha256': _text_sha256(body),
++    })
++    components = {'fixture_source': component}
++    identity = w.digest([component['sha256']])
++    return dict(target_trade_date=DATE, input_identity=identity,
++                input_identity_schema=w.INPUT_IDENTITY_SCHEMA,
++                input_identity_components=components,
++                date_bindings={'selection_date': DATE, 'announcement_date': DATE},
+                 semantic_version='issue24-fixture', plan_context={'research_cutoff': TIME},
+                 gaps=[], stocks=[], existing_material_coverage={}, summary={}, lanes=[],
+                 authoritative_evidence={'body': body}, **w.FLAGS)
+ 
+ 
+ def plan(body='', *, run=RUN):
++    workspace = current(body)
+     row = dict(schema_version=w.PLAN_SCHEMA, target_trade_date=DATE, run_id=run,
+                generated_at=TIME, owner='ManagerResearchJobService.refresh_workspace_plan',
+-               execution_kind='MANUAL_REFRESH', input_identity='d'*64,
+-               workspace=current(body), read_contract_sha256='c'*64, **w.FLAGS)
++               execution_kind='MANUAL_REFRESH', input_identity=workspace['input_identity'],
++               workspace=workspace, read_contract_sha256='c'*64, **w.FLAGS)
+     row['sha256'] = w.digest(row)
+     return row
+ 
+@@ -39,6 +59,35 @@
+ 
+ def put_legacy(store, row):
+     store._io.write_bytes(str(latest(store).relative_to(store.root)), s.canonical_json(row))
++    generated = row.get('generated_at')
++    workspace = row.get('workspace')
++    execution_kind = row.get('execution_kind', 'MANUAL_REFRESH')
++    if (row.get('schema_version') != w.PLAN_SCHEMA or row.get('target_trade_date') != DATE
++            or not re.fullmatch(r'[0-9a-f]{32}', str(row.get('run_id', '')))
++            or row.get('owner') != 'ManagerResearchJobService.refresh_workspace_plan'
++            or execution_kind not in {'MANUAL_REFRESH', 'SCHEDULED_PREOPEN', 'SCHEDULED_MORNING'}
++            or w.timestamp(generated) is None or not isinstance(workspace, dict)
++            or row.get('sha256') != w.digest({k: v for k, v in row.items() if k != 'sha256'})
++            or row.get('input_identity') != workspace.get('input_identity')
++            or not identity_components_valid(workspace)):
++        return
++    failures = sorted(set(workspace.get('gaps') or []))
++    owner_state = 'PARTIAL' if failures else ('SUCCEEDED' if workspace.get('stocks') else 'SUCCEEDED_EMPTY')
++    attempt = dict(schema_version=w.ATTEMPT_SCHEMA, target_trade_date=DATE,
++        run_id=row['run_id'], owner=row['owner'], state=owner_state,
++        execution_kind=execution_kind, started_at=generated, finished_at=generated,
++        last_success_at=generated, failure_reasons=failures,
++        input_identity=row['input_identity'],
++        input_coverage=deepcopy(workspace.get('existing_material_coverage', {})),
++        summary=deepcopy(workspace.get('summary', {})),
++        success_scope='EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE',
++        **w.FLAGS)
++    if isinstance(row.get('execution_context'), dict):
++        attempt['execution_context'] = deepcopy(row['execution_context'])
++    attempt = w.validate_attempt(w.seal_attempt(attempt), DATE)
++    run_root = store.root/'workspace_plan_runs'/DATE
++    store._write_atomic(run_root/(row['run_id']+'.json'), attempt)
++    store._write_atomic(run_root/'latest.json', attempt)
+ 
+ 
+ def seal(row):
+@@ -54,9 +103,11 @@
+     before = latest(store).stat()
+     got = w._read_plan(store, DATE)
+     assert got == row
++    assert got['workspace']['input_identity_schema'] == w.INPUT_IDENTITY_SCHEMA
++    assert identity_components_valid(got['workspace'])
+     after = latest(store).stat()
+     assert (before.st_ino, before.st_size, before.st_mtime_ns) == (after.st_ino, after.st_size, after.st_mtime_ns)
+-    assert w._readback_plan(store, DATE, current())['plan_product']['status'] == 'CURRENT'
++    assert w._readback_plan(store, DATE, deepcopy(got['workspace']))['plan_product']['status'] == 'CURRENT'
+ 
+ 
+ def test_ordinary_store_and_shared_reader_keep_64_mib_limit(tmp_path):
+--- preimage/tests/test_manager_us_mapping_research.py
++++ canonical/tests/test_manager_us_mapping_research.py
+@@ -97,7 +97,6 @@
+         attach_current_relation_evidence,
+     )
+     from v4.manager_research.us_market_bridge import project_us_market
+-    from v4.manager_research.workspace_projection import digest
+ 
+     service = _isolated_service(tmp_path)
+     cutoff = "2026-09-30T09:27:30+08:00"
+@@ -121,10 +120,12 @@
+     result = attach_current_relation_evidence(bridge)
+     overlay = result["relation_evidence"]
+     assert overlay["current_bridge_source_payload_sha256"] == bridge_sha
+-    assert overlay["assessment_identity"] == digest([
+-        "20260930", bridge["expected_us_session"], bridge_sha,
+-        bridge["research_cutoff"], None, [], [],
+-    ])
++    later_cutoff = "2026-09-30T09:27:31+08:00"
++    later = attach_current_relation_evidence({**bridge, "research_cutoff": later_cutoff})
++    assert later["research_cutoff"] == later_cutoff
++    assert overlay["assessment_identity"] == later["relation_evidence"]["assessment_identity"]
++    assert overlay["post_cutoff_relation_count"] == later["relation_evidence"]["post_cutoff_relation_count"]
++    assert overlay["current_bridge_source_payload_sha256"] == later["relation_evidence"]["current_bridge_source_payload_sha256"]
+     assert overlay["artifact_sha256"] is None
+     assert all(source["relation_source"] != "CURRENT_REVIEWED_RELATION_EVIDENCE"
+                for source in overlay["relation_source_artifacts"])
+@@ -523,6 +524,12 @@
+     assert fresh_projection["relation_evidence"]["reviewed_seed_relation_count"] == 4
+     assert fresh_projection["relation_evidence"]["current_reviewed_relation_count"] == 10
+     assert fresh_projection["relation_evidence"]["withheld_candidate_count"] == 0
++    # Crossing a recorded source/review availability boundary changes the
++    # eligible relations and therefore remains a distinct semantic identity.
++    assert (
++        old_projection["relation_evidence"]["assessment_identity"]
++        != fresh_projection["relation_evidence"]["assessment_identity"]
++    )
+     assert fresh_rows["NVDA"]["relation_count"] == 5
+     assert fresh_rows["AMD"]["relation_count"] == 1
+     assert {(relation["us_symbol"], relation["hk_symbol"])
+--- preimage/v4/manager_research/workspace_announcements.py
++++ canonical/v4/manager_research/workspace_announcements.py
+@@ -2301,10 +2301,146 @@
+     invalid = any(item['status'] == 'NOT_CONSUMED_INVALID' for item in products)
+     status = ('PARTIAL' if consumed and incomplete else 'CANNOT_CONFIRM' if invalid
+               else 'PARTIAL' if gaps or incomplete else 'READY' if references else 'READY_EMPTY')
+-    return dict(status=status, plan_cutoff=cutoff, products=products,
++    return dict(status=status, plan_cutoff=context.get("research_cutoff"), products=products,
+         research_references=references, gaps=sorted(set(gaps)), consumed_product_sha256s=consumed,
+         input_identity=digest(consumed), **FLAGS)
+ 
++
++def read_analysis_consumption(service: Any, target_trade_date: str, publication_date: str,
++                              *, cutoff: str | None = None,
++                              analysis_readback: Mapping[str, Any] | None = None) -> dict[str, Any]:
++    """Validate one exact imported product through the same API/plan read contract.
++
++    This is a read only projection. In particular, a legacy product may remain
++    readable by the R3 analysis API while its missing judgment prevents plan
++    consumption. Observed identities survive rejection so that a failed older
++    pair cannot be confused with the current product.
++    """
++    from .announcement_analysis import _publication_date, product_path
++    target = date_token(target_trade_date)
++    publication = _publication_date(publication_date)
++    item = dict(schema_version='v4.manager_research.announcement_analysis_consumption.v1',
++        target_trade_date=target, publication_date=publication,
++        status='NOT_IMPORTED', validation_status='NOT_IMPORTED', consumed=False,
++        product_sha256=None, source_manifest_sha256=None, catalog_product_sha256=None,
++        source_run_id=None, evidence_run_id=None, handoff_manifest_sha256=None,
++        agent_judgment_receipt_sha256=None, owner_import_receipt_sha256=None,
++        owner_handoff_binding_status='NOT_VERIFIED', decision_status=None,
++        selection_status='NOT_ASSESSED', stock_count=None, selected_stock_count=None,
++        conditional_watch_count=None, not_selected_stock_count=None,
++        not_assessed_stock_count=None, reviewed_at=None, owner_available_at=None,
++        latest_source_or_review_at=None, plan_cutoff=cutoff,
++        cutoff_status='NOT_REQUESTED' if cutoff is None else 'NOT_EVALUATED',
++        failure_stage=None, gaps=[], research_references=[], **FLAGS)
++    stage = 'PRODUCT_READ'
++    try:
++        path = product_path(service.store, target, publication)
++        product = service.store._read(path)
++        if product is None:
++            item.update(gaps=['ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED'])
++            return item
++        if not isinstance(product, Mapping):
++            raise ValueError('ANNOUNCEMENT_ANALYSIS_PRODUCT_IDENTITY_INVALID')
++        manifest = product.get('source_manifest')
++        manifest = manifest if isinstance(manifest, Mapping) else {}
++        judgment = product.get('agent_judgment_receipt')
++        judgment = judgment if isinstance(judgment, Mapping) else {}
++        item.update(product_sha256=product.get('sha256'),
++            source_manifest_sha256=product.get('source_manifest_sha256'),
++            catalog_product_sha256=manifest.get('catalog_product_sha256'),
++            source_run_id=manifest.get('catalog_run_id'),
++            evidence_run_id=judgment.get('evidence_run_id'),
++            agent_judgment_receipt_sha256=judgment.get('sha256'))
++        stage = 'SOURCE_READBACK'
++        readback = (analysis_readback if analysis_readback is not None
++                    else service.get_announcement_analysis(target, publication))
++        analysis = readback.get('analysis') if isinstance(readback, Mapping) else None
++        if (not isinstance(analysis, Mapping) or analysis.get('status') != 'VERIFIED'
++                or analysis.get('product_sha256') != product.get('sha256')):
++            raise ValueError('ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_INVALID')
++        if (product.get('target_trade_date') != target
++                or product.get('publication_date') != publication
++                or readback.get('target_trade_date') != target
++                or readback.get('publication_date') != publication
++                or analysis.get('source_manifest_sha256') != product.get('source_manifest_sha256')
++                or readback.get('source_catalog', {}).get('catalog_product_sha256') != manifest.get('catalog_product_sha256')):
++            raise ValueError('ANNOUNCEMENT_ANALYSIS_SOURCE_IDENTITY_INVALID')
++        stage = 'JUDGMENT_RECEIPT'
++        agent_receipt = validate_agent_judgment_receipt(product.get('agent_judgment_receipt'), product)
++        item.update(decision_status=agent_receipt['decision_status'], reviewed_at=agent_receipt['reviewed_at'])
++        stage = 'OWNER_IMPORT_RECEIPT'
++        owner_raw = service.store._read(path.with_name('owner_import_receipt.v1.json'))
++        if isinstance(owner_raw, Mapping):
++            item.update(owner_import_receipt_sha256=owner_raw.get('sha256'),
++                owner_available_at=owner_raw.get('available_at'),
++                handoff_manifest_sha256=owner_raw.get('handoff_manifest_sha256'))
++        owner_receipt = validate_owner_analysis_import_receipt(owner_raw, product)
++        stage = 'HANDOFF_MANIFEST'
++        manifest_path = _handoff_root(service.store, agent_receipt['evidence_run_id']) / 'handoff_manifest.v1.json'
++        if manifest_path.is_symlink() or not manifest_path.is_file():
++            raise ValueError('ANNOUNCEMENT_AGENT_HANDOFF_MANIFEST_MISSING')
++        handoff_manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
++        expected_manifest_sha = owner_receipt.get('handoff_manifest_sha256') or handoff_manifest.get('sha256')
++        item['handoff_manifest_sha256'] = expected_manifest_sha
++        stage = 'REGISTERED_HANDOFF'
++        validate_registered_handoff(service.store, agent_receipt['evidence_run_id'],
++            expected_manifest_sha, product.get('sha256'), product)
++        item['owner_handoff_binding_status'] = (
++            'PRODUCT_PARENT_HANDOFF_BOUND' if 'handoff_manifest_sha256' in owner_receipt
++            else 'LEGACY_PRODUCT_PARENT_ONLY_CURRENT_HANDOFF_VERIFIED')
++        stage = 'SOURCE_TIME'
++        times, sources_complete = _analysis_time_refs(product)
++        review_time = timestamp(agent_receipt.get('reviewed_at'))
++        import_time = timestamp(owner_receipt.get('available_at'))
++        if not sources_complete or review_time is None or import_time is None:
++            raise ValueError('ANNOUNCEMENT_ANALYSIS_SOURCE_OR_REVIEW_TIME_MISSING')
++        latest = max([*times, review_time, import_time])
++        item.update(validation_status='VERIFIED', latest_source_or_review_at=latest.isoformat(), status='VERIFIED')
++        selection = None
++        if agent_receipt['decision_status'] == 'EXPLICIT_DISPOSITIONS':
++            from .announcement_selection import read_projection
++            selection = read_projection(product)
++            item.update(selection_status=selection.get('status'), stock_count=selection.get('stock_count'),
++                selected_stock_count=selection.get('selected_stock_count'),
++                conditional_watch_count=selection.get('conditional_watch_count'),
++                not_selected_stock_count=selection.get('not_selected_stock_count'),
++                not_assessed_stock_count=selection.get('not_assessed_stock_count'))
++        stage = 'CUTOFF'
++        if cutoff is not None:
++            cutoff_time = timestamp(cutoff)
++            if cutoff_time is None:
++                raise ValueError('ANNOUNCEMENT_ANALYSIS_PLAN_CUTOFF_INVALID')
++            if latest > cutoff_time:
++                item.update(status='NOT_CONSUMED_AFTER_CUTOFF', cutoff_status='AFTER_CUTOFF',
++                    failure_stage=stage, gaps=['ANNOUNCEMENT_ANALYSIS_NOT_AVAILABLE_AT_PLAN_CUTOFF'])
++                return item
++            item.update(status='CONSUMED', consumed=True, cutoff_status='SATISFIED')
++        if selection is not None and item['consumed']:
++            for stock in selection.get('stocks', []):
++                if stock.get('status') not in {'SELECTED', 'CONDITIONAL_WATCH'}:
++                    continue
++                item['research_references'].append(dict(
++                    stock_code=stock.get('stock_code'), stock_name=stock.get('stock_name'),
++                    research_status=stock.get('status'), target_trade_date=target, publication_date=publication,
++                    product_sha256=product['sha256'], source_manifest_sha256=product['source_manifest_sha256'],
++                    evidence_run_id=item['evidence_run_id'], handoff_manifest_sha256=expected_manifest_sha,
++                    owner_import_receipt_sha256=item['owner_import_receipt_sha256'],
++                    reviewed_at=item['reviewed_at'], owner_available_at=item['owner_available_at'],
++                    selection_reasons=deepcopy(stock.get('selection_reasons', [])),
++                    risk_notes=deepcopy(stock.get('risk_notes', [])),
++                    article_refs=[{key: deepcopy(article.get(key)) for key in (
++                        'art_code', 'title', 'disposition', 'reason', 'risk_notes',
++                        'factual_summary', 'source_sha256')}
++                        for article in stock.get('articles', [])
++                        if article.get('disposition') in {'SELECTED_EVENT', 'SELECTED_PERFORMANCE', 'CONDITIONAL_WATCH'}],
++                    point_in_time_status=manifest.get('point_in_time_status'),
++                    connect_eligibility_status=manifest.get('connect_eligibility_status'), **FLAGS))
++        return item
++    except (OSError, ValueError, KeyError, TypeError, RuntimeError, ImportError) as exc:
++        detail = str(exc) if re.fullmatch(r'[A-Z][A-Z0-9_]{0,127}', str(exc) or '') else type(exc).__name__
++        item.update(status='NOT_CONSUMED_INVALID', validation_status='CANNOT_CONFIRM',
++            consumed=False, failure_stage=stage, gaps=[detail], research_references=[])
++        return item
+ 
+ def read_announcement_research_result(service: Any, target_trade_date: str,
+                                       publication_date: str, *, cutoff: str | None = None,
+--- /dev/null
++++ canonical/tests/test_issue35_dynamic_reload_identity.py
+@@ -0,0 +1,342 @@
++from __future__ import annotations
++
++from copy import deepcopy
++from datetime import datetime, timedelta
++import json
++from pathlib import Path
++
++import pytest
++
++from v4.manager_research import store as store_module
++from v4.manager_research import workspace as workspace_owner
++from v4.manager_research.us_mapping_research import (
++    CURRENT_RELATION_EVIDENCE_PATH,
++    CURRENT_RELATION_REVIEW_PATH,
++    attach_current_relation_evidence,
++)
++from v4.manager_research.workspace_projection import (
++    build_workspace,
++    digest,
++    identity_component,
++    timestamp,
++)
++
++
++TARGET_DATE = "20261012"
++SAVED_CUTOFF = "2026-10-12T03:18:19.084242+08:00"
++RELOAD_CUTOFF = "2026-10-12T03:32:31.526271+08:00"
++SCREEN_SOURCE_SHA = "1" * 64
++US_SOURCE_SHA = "2" * 64
++PLAN_RUN_ID = "a" * 32
++FIXED_RESEARCH_ATTENTION_ID = "b" * 64
++FIXED_ANNOUNCEMENT_INPUT_ID = "c" * 64
++
++
++def _screen(
++    cutoff: str,
++    *,
++    target_date: str = TARGET_DATE,
++    source_sha: str = SCREEN_SOURCE_SHA,
++    rows: list[dict] | None = None,
++    decision_identity: str = "d" * 64,
++) -> dict:
++    cards = deepcopy(rows) if rows is not None else [
++        {
++            "code": "00001",
++            "classification": "STRICT_REBOUND",
++            "close": 10.0,
++            "source_refs": [{"payload_sha256": source_sha}],
++        }
++    ]
++    return {
++        "schema_version": "v4.manager_research.rebound_screen.v1",
++        "rule_version": "REBOUND_V3",
++        "target_trade_date": target_date,
++        "verified_session": "20261009",
++        "status": "READY_WITH_GAPS",
++        "cards": cards,
++        "strict": deepcopy(cards),
++        "near": [],
++        "pending": [],
++        "excluded": [],
++        "screen_unresolved": [],
++        "decision_identity": decision_identity,
++        "gaps": ["SYNTHETIC_SOURCE_GAP"],
++        "coverage": {"strict_count": len(cards), "near_count": 0},
++        "input_identity": "e" * 64,
++        "authority": {
++            "panel_witness": {
++                "owner": "SYNTHETIC_TEST_FIXTURE",
++                "payload_sha256": source_sha,
++                "panel_manifest_sha256": "f" * 64,
++            }
++        },
++        "data_context": {
++            "plan_trade_date": target_date,
++            "planning_market_session": "20261009",
++            "market_session": "20261009",
++            "market_session_close": "2026-10-09T16:00:00+08:00",
++            "screen_target_trade_date": target_date,
++            "screen_phase": "PREOPEN_COMPLETED_SESSION",
++            "screen_session_policy": "COMPLETED_FULL_HK_SECURITIES_SESSION",
++            "screen_calendar_sha256": "0" * 64,
++            "screen_session_status": "EXPECTED_COMPLETED_SESSION_NOT_DATA_VERIFICATION",
++            "research_cutoff": cutoff,
++        },
++        "main_screen_ready": True,
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++
++
++def _relation_symbols() -> list[str]:
++    artifact = json.loads(CURRENT_RELATION_EVIDENCE_PATH.read_bytes())
++    return sorted(
++        {
++            str(item["us_symbol"])
++            for item in [*artifact.get("relations", []), *artifact.get("symbol_assessments", [])]
++            if isinstance(item, dict) and item.get("us_symbol")
++        }
++    )
++
++
++def _bridge(
++    cutoff: str,
++    *,
++    target_date: str = TARGET_DATE,
++    source_sha: str = US_SOURCE_SHA,
++) -> dict:
++    return {
++        "status": "READY",
++        "target_trade_date": target_date,
++        "expected_us_session": "20261009",
++        "research_cutoff": cutoff,
++        "source_identity": {"status": "VERIFIED", "payload_sha256": source_sha},
++        "symbol_assessments": [
++            {"symbol": symbol, "quote_status": "VERIFIED"}
++            for symbol in _relation_symbols()
++        ],
++    }
++
++
++def _workspace_product(
++    cutoff: str,
++    *,
++    target_date: str = TARGET_DATE,
++    screen_source_sha: str = SCREEN_SOURCE_SHA,
++    screen_rows: list[dict] | None = None,
++    screen_decision: str = "d" * 64,
++    us_source_sha: str = US_SOURCE_SHA,
++) -> dict:
++    screen = _screen(
++        cutoff,
++        target_date=target_date,
++        source_sha=screen_source_sha,
++        rows=screen_rows,
++        decision_identity=screen_decision,
++    )
++    projection = build_workspace(
++        target_date,
++        catalyst={"status": "EMPTY", "target_trade_date": target_date, "cards": [], "gaps": []},
++        market_screen=screen,
++        plan_context={
++            "plan_trade_date": target_date,
++            "research_cutoff": cutoff,
++            "market_session": "20261009",
++            "planning_market_session": "20261009",
++            "market_session_close": "2026-10-09T16:00:00+08:00",
++            "screen_phase": "PREOPEN_COMPLETED_SESSION",
++            "screen_calendar_sha256": "0" * 64,
++        },
++    )
++
++    # Match the existing production identity composition for the projection,
++    # research attention, announcement input, and current US-relation identity.
++    # The two unrelated extensions stay fixed so the test isolates the changed
++    # source components without invoking any live owner or request path.
++    us_market = attach_current_relation_evidence(
++        _bridge(cutoff, target_date=target_date, source_sha=us_source_sha)
++    )
++    relation_evidence = us_market["relation_evidence"]
++    base_identity = projection["input_identity"]
++    components = projection["input_identity_components"]
++    components["gated_projection"] = identity_component(base_identity)
++    components["us_relation_evidence"] = identity_component(
++        relation_evidence["assessment_identity"],
++        sources=[deepcopy(dict(relation_evidence))],
++    )
++    projection["us_market_attention"] = us_market
++    projection["input_identity"] = digest(
++        [
++            base_identity,
++            FIXED_RESEARCH_ATTENTION_ID,
++            FIXED_ANNOUNCEMENT_INPUT_ID,
++            relation_evidence["assessment_identity"],
++        ]
++    )
++    return projection
++
++
++def _save_readback_fixture(tmp_path: Path, product: dict):
++    store = store_module.ManagerResearchStore(tmp_path)
++    target_date = product["target_trade_date"]
++    generated_at = product["plan_context"]["research_cutoff"]
++    generated = datetime.fromisoformat(generated_at)
++    row = {
++        "schema_version": workspace_owner.PLAN_SCHEMA,
++        "target_trade_date": target_date,
++        "run_id": PLAN_RUN_ID,
++        "generated_at": generated_at,
++        "owner": "ManagerResearchJobService.refresh_workspace_plan",
++        "execution_kind": "MANUAL_REFRESH",
++        "input_identity": product["input_identity"],
++        "workspace": deepcopy(product),
++        "read_contract_sha256": "f" * 64,
++        **workspace_owner.FLAGS,
++    }
++    row["sha256"] = digest({key: value for key, value in row.items() if key != "sha256"})
++    store._write_atomic(
++        store.root / "workspace_plans" / target_date / "latest.json",
++        row,
++    )
++
++    attempt = {
++        "schema_version": workspace_owner.ATTEMPT_SCHEMA,
++        "target_trade_date": target_date,
++        "run_id": PLAN_RUN_ID,
++        "owner": "ManagerResearchJobService.refresh_workspace_plan",
++        "state": "SUCCEEDED_EMPTY",
++        "execution_kind": "MANUAL_REFRESH",
++        "input_identity": product["input_identity"],
++        "started_at": (generated - timedelta(seconds=1)).isoformat(),
++        "finished_at": (generated + timedelta(seconds=1)).isoformat(),
++        "failure_reasons": [],
++        **workspace_owner.FLAGS,
++    }
++    attempt = workspace_owner.seal_attempt(attempt)
++    attempt_root = store.root / "workspace_plan_runs" / target_date
++    store._write_atomic(attempt_root / (PLAN_RUN_ID + ".json"), attempt)
++    store._write_atomic(attempt_root / "latest.json", attempt)
++    return store
++
++
++def _readback(store, product: dict) -> dict:
++    read_at = datetime.fromisoformat(product["plan_context"]["research_cutoff"])
++    return workspace_owner._readback_plan(
++        store,
++        TARGET_DATE,
++        deepcopy(product),
++        read_at=read_at,
++    )
++
++
++def test_same_sources_and_eligibility_remain_current_after_dynamic_reload(tmp_path):
++    saved = _workspace_product(SAVED_CUTOFF)
++    fresh = _workspace_product(RELOAD_CUTOFF)
++
++    assert saved["market_screen"]["data_context"]["research_cutoff"] == SAVED_CUTOFF
++    assert fresh["market_screen"]["data_context"]["research_cutoff"] == RELOAD_CUTOFF
++    assert saved["us_market_attention"]["research_cutoff"] == SAVED_CUTOFF
++    assert fresh["us_market_attention"]["research_cutoff"] == RELOAD_CUTOFF
++    assert saved["market_screen"]["data_context"] != fresh["market_screen"]["data_context"]
++    assert (
++        saved["us_market_attention"]["relation_evidence"]
++        == fresh["us_market_attention"]["relation_evidence"]
++    )
++    assert saved["input_identity"] == fresh["input_identity"]
++
++    store = _save_readback_fixture(tmp_path, saved)
++    reloaded = _readback(store, fresh)
++    assert reloaded["plan_product"]["status"] == "CURRENT"
++    assert reloaded["plan_product"]["consumed"] is True
++    assert reloaded["plan_product"]["run_id"] == PLAN_RUN_ID
++    assert reloaded["plan_context"]["research_cutoff"] == SAVED_CUTOFF
++    assert reloaded["market_screen"]["data_context"]["research_cutoff"] == RELOAD_CUTOFF
++    assert reloaded["us_market_attention"]["research_cutoff"] == RELOAD_CUTOFF
++
++
++@pytest.mark.parametrize(
++    "change",
++    ["screen_source_sha", "screen_rows", "screen_decision", "us_source_sha", "target_date"],
++)
++def test_real_source_row_decision_or_date_changes_still_fail_closed(tmp_path, change):
++    saved = _workspace_product(SAVED_CUTOFF)
++    store = _save_readback_fixture(tmp_path, saved)
++    kwargs = {}
++    target_date = TARGET_DATE
++    if change == "screen_source_sha":
++        kwargs["screen_source_sha"] = "7" * 64
++    elif change == "screen_rows":
++        kwargs["screen_rows"] = [
++            {
++                "code": "00001",
++                "classification": "STRICT_REBOUND",
++                "close": 11.0,
++                "source_refs": [{"payload_sha256": SCREEN_SOURCE_SHA}],
++            }
++        ]
++    elif change == "screen_decision":
++        kwargs["screen_decision"] = "8" * 64
++    elif change == "us_source_sha":
++        kwargs["us_source_sha"] = "9" * 64
++    elif change == "target_date":
++        target_date = "20261013"
++
++    changed = _workspace_product(RELOAD_CUTOFF, target_date=target_date, **kwargs)
++    assert changed["input_identity"] != saved["input_identity"]
++    reloaded = _readback(store, changed)
++    assert reloaded["plan_product"]["status"] == "STALE_INPUTS_CHANGED"
++    assert reloaded["plan_product"]["consumed"] is False
++
++
++def test_actual_available_at_crossings_change_cutoff_result_and_saved_identity(tmp_path):
++    artifact = json.loads(CURRENT_RELATION_EVIDENCE_PATH.read_bytes())
++    review = json.loads(CURRENT_RELATION_REVIEW_PATH.read_bytes())
++    card = artifact["relations"][0]
++    source_available_at = timestamp(card["available_at"])
++    review_available_at = timestamp(review["reviewed_at"])
++    assert source_available_at is not None
++    assert review_available_at is not None
++    effective_available_at = max(source_available_at, review_available_at)
++
++    before_source = (source_available_at - timedelta(seconds=1)).isoformat()
++    after_source = (source_available_at + timedelta(seconds=1)).isoformat()
++    before_source_projection = attach_current_relation_evidence(_bridge(before_source))[
++        "relation_evidence"
++    ]
++    after_source_projection = attach_current_relation_evidence(_bridge(after_source))[
++        "relation_evidence"
++    ]
++    assert (
++        before_source_projection["post_cutoff_relation_count"]
++        > after_source_projection["post_cutoff_relation_count"]
++    )
++    assert (
++        before_source_projection["assessment_identity"]
++        != after_source_projection["assessment_identity"]
++    )
++
++    before_review = (effective_available_at - timedelta(seconds=1)).isoformat()
++    after_review = (effective_available_at + timedelta(seconds=1)).isoformat()
++    before_review_projection = attach_current_relation_evidence(_bridge(before_review))[
++        "relation_evidence"
++    ]
++    after_review_projection = attach_current_relation_evidence(_bridge(after_review))[
++        "relation_evidence"
++    ]
++    assert before_review_projection["current_reviewed_relation_count"] == 0
++    assert after_review_projection["current_reviewed_relation_count"] > 0
++    assert (
++        before_review_projection["assessment_identity"]
++        != after_review_projection["assessment_identity"]
++    )
++
++    saved = _workspace_product(before_review)
++    changed = _workspace_product(after_review)
++    assert changed["input_identity"] != saved["input_identity"]
++    store = _save_readback_fixture(tmp_path, saved)
++    reloaded = _readback(store, changed)
++    assert reloaded["plan_product"]["status"] == "STALE_INPUTS_CHANGED"
++    assert reloaded["plan_product"]["consumed"] is False
+--- /dev/null
++++ canonical/tests/test_issue35_owner_readback_commit_order.py
+@@ -0,0 +1,116 @@
++from copy import deepcopy
++from types import SimpleNamespace
++
++import pytest
++
++from v4.manager_research import store as s
++from v4.manager_research import workspace as w
++
++
++DATE = '20261002'
++RUN = 'a' * 32
++TIME = '2026-10-03T00:00:00+00:00'
++
++
++def _current():
++    component = w.identity_component({'source': 'issue35-readback-commit-order'})
++    components = {'fixture_source': component}
++    return dict(target_trade_date=DATE,
++        input_identity=w.digest([component['sha256']]),
++        input_identity_schema=w.INPUT_IDENTITY_SCHEMA,
++        input_identity_components=components,
++        date_bindings={'selection_date': DATE, 'announcement_date': DATE},
++        semantic_version='issue35-commit-order-fixture',
++        plan_context={'research_cutoff': TIME}, gaps=[], stocks=[],
++        existing_material_coverage={}, summary={}, lanes=[],
++        **w.FLAGS)
++
++
++def _latest_plan(store):
++    return store.root/'workspace_plans'/DATE/'latest.json'
++
++
++def _latest_attempt(store):
++    return store.root/'workspace_plan_runs'/DATE/'latest.json'
++
++
++def _run_attempt(store):
++    return store.root/'workspace_plan_runs'/DATE/(RUN+'.json')
++
++
++def _refresh(store):
++    return w.refresh_workspace_plan(SimpleNamespace(store=store), DATE)
++
++
++def _pin_run(monkeypatch):
++    monkeypatch.setattr(w, '_now', lambda: TIME)
++    monkeypatch.setattr(w, 'uuid4', lambda: SimpleNamespace(hex=RUN))
++    monkeypatch.setattr(w, 'get_workspace', lambda *args, **kwargs: _current())
++
++
++def test_rejected_candidate_readback_never_publishes_latest_or_success(tmp_path, monkeypatch):
++    store = s.ManagerResearchStore(tmp_path)
++    _pin_run(monkeypatch)
++    read = store._read
++    write = store._write_atomic
++    writes = []
++
++    def recording_write(path, value):
++        if 'workspace_plan_runs' in path.parts:
++            writes.append(deepcopy(dict(value)))
++        return write(path, value)
++
++    monkeypatch.setattr(store, '_write_atomic', recording_write)
++
++    def wrong_readback(view, date, current):
++        # The commit view contains the candidate for this private check, while
++        # the actual public pointer and owner lifecycle remain unpublished.
++        assert view._read(_latest_plan(view))['run_id'] == RUN
++        assert read(_latest_plan(store)) is None
++        running = read(_latest_attempt(store))
++        assert running['state'] == 'RUNNING'
++        assert running['input_identity'] == current['input_identity']
++        return {**current, 'plan_product': {
++            'status': 'CURRENT', 'run_id': RUN, 'sha256': '0' * 64, 'consumed': True}}
++
++    monkeypatch.setattr(w, '_readback_plan', wrong_readback)
++    with pytest.raises(ValueError, match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
++        _refresh(store)
++
++    assert not _latest_plan(store).exists()
++    assert {row['state'] for row in writes} <= {'RUNNING', 'FAILED'}
++    assert read(_latest_attempt(store))['state'] == 'FAILED'
++
++
++def test_mismatched_running_owner_attempt_blocks_success_commit(tmp_path, monkeypatch):
++    store = s.ManagerResearchStore(tmp_path)
++    _pin_run(monkeypatch)
++    read = store._read
++    latest_attempt_path = _latest_attempt(store)
++
++    def mismatched_running_read(path):
++        row = read(path)
++        if (path == latest_attempt_path and isinstance(row, dict)
++                and row.get('state') == 'RUNNING' and row.get('input_identity')):
++            changed = deepcopy(row)
++            changed['input_identity'] = 'f' * 64
++            changed['sha256'] = w.digest({k: v for k, v in changed.items() if k != 'sha256'})
++            return changed
++        return row
++
++    monkeypatch.setattr(store, '_read', mismatched_running_read)
++    writes = []
++    write = store._write_atomic
++
++    def recording_write(path, value):
++        if 'workspace_plan_runs' in path.parts:
++            writes.append(deepcopy(dict(value)))
++        return write(path, value)
++
++    monkeypatch.setattr(store, '_write_atomic', recording_write)
++    with pytest.raises(ValueError, match='WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED'):
++        _refresh(store)
++
++    assert not _latest_plan(store).exists()
++    assert {row['state'] for row in writes} <= {'RUNNING', 'FAILED'}
++    assert read(_latest_attempt(store))['state'] == 'FAILED'

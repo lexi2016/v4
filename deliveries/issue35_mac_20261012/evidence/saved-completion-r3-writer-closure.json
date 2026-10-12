@@ -1,0 +1,113 @@
+{
+  "CANNOT_CONFIRM": [
+    "Independent R3 review and reviewer rerun.",
+    "Parent offline completion with its real next-session, release, current-state, protected-date, and mutex checks.",
+    "Canary freshness at any later stage-preparation invocation; original 60-minute limit is unchanged.",
+    "Stage preparation/publication/activation/API/UI/natural target; live API identity; complete research or PIT coverage."
+  ],
+  "actions_not_performed": [
+    "completion CLI",
+    "full verifier",
+    "current owner-state read/write",
+    "HTTP or owner",
+    "stage helper",
+    "services/plists/launchctl",
+    "Git"
+  ],
+  "behavior_evidence": {
+    "authentic_preimage": "Pinned 7,146-byte execution03 preimage; R2 pure snapshot reproduces the exact mismatch; R3 pure snapshot accepts the same nested six references.",
+    "current_state_read_or_write": false,
+    "negative_controls": "All six nested path/SHA fields tested both missing and changed; all reject.",
+    "serialization": "Pure _canary_record plus JSON round-trip preserves the exact nested six-field reference object."
+  },
+  "changed_files": [
+    {
+      "path": "tools/phase6-r6/complete_issue35_r6_saved_canary_r3.py",
+      "sha256": "bb76958fcc10befcb682b332b01abc6e9e3ace232d8ef851349d1c9755a64ed9"
+    },
+    {
+      "path": "tools/phase6-r6/test_issue35_r6_saved_completion_r3.py",
+      "sha256": "48cf5be643b3e3ede7ab7c0001e9000a39072b36a031a137f973c0ae2392345f"
+    },
+    {
+      "path": "receipts/phase6-saved-completion-nesting-r3/original-to-r3.patch",
+      "sha256": "97db228eb298f6afc07f44d923e711bb7be3a6f1a7ba8792127c00ace33959a2"
+    },
+    {
+      "path": "receipts/phase6-saved-completion-nesting-r3/source-and-preimage-pins.json",
+      "sha256": "06bcaae07ef9f082a70a74a6c7639860a7a56d6d9264172d2d946d37939cbf68"
+    },
+    {
+      "path": "receipts/phase6-saved-completion-nesting-r3/focused-test-receipt.json",
+      "sha256": "eb3528a34bbe67a627612fce111f7cbffc7a4535011fffe381789a6dd3dc7de7"
+    },
+    {
+      "path": "receipts/phase6-saved-completion-nesting-r3/parent-command-contracts.json",
+      "sha256": "3394216b565b13f6052a00e549d2bd25c764f865f8d278e94a7e1e396f54c17c"
+    },
+    {
+      "path": "receipts/phase6-saved-completion-nesting-r3/pytest-r3-nesting-final.log",
+      "sha256": "26fbeab7ccff6016c0eb186fed2d6c5c8bb7ebf0eba5f3ea48ddc8a7ecbe5314"
+    },
+    {
+      "hash_reported_after_write": true,
+      "path": "receipts/phase6-saved-completion-nesting-r3/writer-closure.json"
+    }
+  ],
+  "goal": "Correct the two saved R4b receipt-pin lookups to follow the authentic nested execution03 preimage while preserving R2 atomic/common/GET and identity gates.",
+  "parent_commands": {
+    "offline_completion_argv_path": "receipts/phase6-saved-completion-nesting-r3/parent-command-contracts.json",
+    "offline_completion_not_run_by_writer": true,
+    "stage_freshness": "CANNOT_CONFIRM until parent uses the accepted canary and actual original helper clock check.",
+    "unchanged_conditional_stage_command_not_run": true
+  },
+  "reviewer_required": "Different-identity independent Luna Max Reviewer must inspect the exact R2-to-R3 diff, scope, tests, and target behavior and rerun the focused test.",
+  "schema_version": "issue35.phase6.saved_completion_nesting_r3.writer_closure.v1",
+  "source_delta": {
+    "minimality_check": "After restoring the two old lookups and old self-hash constant, R3 bytes equal the frozen R2 helper exactly.",
+    "original_to_r3_patch": {
+      "bytes": 1782,
+      "path": "receipts/phase6-saved-completion-nesting-r3/original-to-r3.patch",
+      "sha256": "97db228eb298f6afc07f44d923e711bb7be3a6f1a7ba8792127c00ace33959a2"
+    },
+    "semantic_changes": [
+      "_r4b_state_snapshot reads prior.get(\"r4b_two_generation_receipt_pins\").",
+      "_canary_record serializes prior[\"r4b_two_generation_receipt_pins\"]."
+    ],
+    "versioned_metadata_change": "R3 normalized self-source SHA256."
+  },
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "test": {
+    "command_argv": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--import-mode=importlib",
+      "--basetemp=/tmp/issue35-r3-nesting-pytest-final-002",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/test_issue35_r6_saved_completion_r3.py"
+    ],
+    "exit_code": 0,
+    "full_verifier_or_completion_cli": false,
+    "live_current_state_read": false,
+    "output": {
+      "bytes": 99,
+      "path": "receipts/phase6-saved-completion-nesting-r3/pytest-r3-nesting-final.log",
+      "sha256": "26fbeab7ccff6016c0eb186fed2d6c5c8bb7ebf0eba5f3ea48ddc8a7ecbe5314"
+    },
+    "owner_http_or_stage": false,
+    "result": "15 passed in 0.04s",
+    "schema_version": "issue35.phase6.saved_completion_nesting_r3.focused_test_receipt.v1",
+    "scope": "Only the changed nesting coverage; no R2 full atomic or GET suite was repeated.",
+    "tests": {
+      "authentic_execution03_preimage_old_r2_rejection_and_r3_acceptance": 1,
+      "nested_reference_field_negative_controls": 12,
+      "serialized_canary_contains_nested_reference_map": 1,
+      "source_pin_and_frozen_r2_base": 1
+    }
+  },
+  "writer": "issue35_mac_writer"
+}

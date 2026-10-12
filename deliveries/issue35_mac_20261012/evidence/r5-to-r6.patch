@@ -1,0 +1,313 @@
+--- R5/tests/test_manager_plan_readback_issue24.py
++++ R6/tests/test_manager_plan_readback_issue24.py
+@@ -4,12 +4,15 @@
+ separate commands; these tests do not invoke unrelated collection/owner suites.
+ """
+ from copy import deepcopy
++import hashlib
++import re
+ from types import SimpleNamespace
+ 
+ import pytest
+ from infrastructure.owned_io import SafeRoot
+ from v4.manager_research import store as s
+ from v4.manager_research import workspace as w
++from v4.manager_research.workspace_identity import identity_components_valid
+ 
+ DATE = '20261002'
+ RUN = 'a' * 32
+@@ -17,18 +20,35 @@
+ LIMIT = 320 * 1024 * 1024
+ 
+ 
++def _text_sha256(value):
++    digest = hashlib.sha256()
++    for offset in range(0, len(value), 1024 * 1024):
++        digest.update(value[offset:offset + 1024 * 1024].encode('utf-8'))
++    return digest.hexdigest()
++
++
+ def current(body=''):
+-    return dict(target_trade_date=DATE, input_identity='d'*64,
++    component = w.identity_component({
++        'fixture_source': 'issue24-real-owner-contract',
++        'authoritative_evidence_sha256': _text_sha256(body),
++    })
++    components = {'fixture_source': component}
++    identity = w.digest([component['sha256']])
++    return dict(target_trade_date=DATE, input_identity=identity,
++                input_identity_schema=w.INPUT_IDENTITY_SCHEMA,
++                input_identity_components=components,
++                date_bindings={'selection_date': DATE, 'announcement_date': DATE},
+                 semantic_version='issue24-fixture', plan_context={'research_cutoff': TIME},
+                 gaps=[], stocks=[], existing_material_coverage={}, summary={}, lanes=[],
+                 authoritative_evidence={'body': body}, **w.FLAGS)
+ 
+ 
+ def plan(body='', *, run=RUN):
++    workspace = current(body)
+     row = dict(schema_version=w.PLAN_SCHEMA, target_trade_date=DATE, run_id=run,
+                generated_at=TIME, owner='ManagerResearchJobService.refresh_workspace_plan',
+-               execution_kind='MANUAL_REFRESH', input_identity='d'*64,
+-               workspace=current(body), read_contract_sha256='c'*64, **w.FLAGS)
++               execution_kind='MANUAL_REFRESH', input_identity=workspace['input_identity'],
++               workspace=workspace, read_contract_sha256='c'*64, **w.FLAGS)
+     row['sha256'] = w.digest(row)
+     return row
+ 
+@@ -39,6 +59,35 @@
+ 
+ def put_legacy(store, row):
+     store._io.write_bytes(str(latest(store).relative_to(store.root)), s.canonical_json(row))
++    generated = row.get('generated_at')
++    workspace = row.get('workspace')
++    execution_kind = row.get('execution_kind', 'MANUAL_REFRESH')
++    if (row.get('schema_version') != w.PLAN_SCHEMA or row.get('target_trade_date') != DATE
++            or not re.fullmatch(r'[0-9a-f]{32}', str(row.get('run_id', '')))
++            or row.get('owner') != 'ManagerResearchJobService.refresh_workspace_plan'
++            or execution_kind not in {'MANUAL_REFRESH', 'SCHEDULED_PREOPEN', 'SCHEDULED_MORNING'}
++            or w.timestamp(generated) is None or not isinstance(workspace, dict)
++            or row.get('sha256') != w.digest({k: v for k, v in row.items() if k != 'sha256'})
++            or row.get('input_identity') != workspace.get('input_identity')
++            or not identity_components_valid(workspace)):
++        return
++    failures = sorted(set(workspace.get('gaps') or []))
++    owner_state = 'PARTIAL' if failures else ('SUCCEEDED' if workspace.get('stocks') else 'SUCCEEDED_EMPTY')
++    attempt = dict(schema_version=w.ATTEMPT_SCHEMA, target_trade_date=DATE,
++        run_id=row['run_id'], owner=row['owner'], state=owner_state,
++        execution_kind=execution_kind, started_at=generated, finished_at=generated,
++        last_success_at=generated, failure_reasons=failures,
++        input_identity=row['input_identity'],
++        input_coverage=deepcopy(workspace.get('existing_material_coverage', {})),
++        summary=deepcopy(workspace.get('summary', {})),
++        success_scope='EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE',
++        **w.FLAGS)
++    if isinstance(row.get('execution_context'), dict):
++        attempt['execution_context'] = deepcopy(row['execution_context'])
++    attempt = w.validate_attempt(w.seal_attempt(attempt), DATE)
++    run_root = store.root/'workspace_plan_runs'/DATE
++    store._write_atomic(run_root/(row['run_id']+'.json'), attempt)
++    store._write_atomic(run_root/'latest.json', attempt)
+ 
+ 
+ def seal(row):
+@@ -54,9 +103,11 @@
+     before = latest(store).stat()
+     got = w._read_plan(store, DATE)
+     assert got == row
++    assert got['workspace']['input_identity_schema'] == w.INPUT_IDENTITY_SCHEMA
++    assert identity_components_valid(got['workspace'])
+     after = latest(store).stat()
+     assert (before.st_ino, before.st_size, before.st_mtime_ns) == (after.st_ino, after.st_size, after.st_mtime_ns)
+-    assert w._readback_plan(store, DATE, current())['plan_product']['status'] == 'CURRENT'
++    assert w._readback_plan(store, DATE, deepcopy(got['workspace']))['plan_product']['status'] == 'CURRENT'
+ 
+ 
+ def test_ordinary_store_and_shared_reader_keep_64_mib_limit(tmp_path):
+--- R5/tests/test_manager_us_mapping_research.py
++++ R6/tests/test_manager_us_mapping_research.py
+@@ -263,12 +263,25 @@
+     monkeypatch.setenv("V4_MANAGER_PLAN_OWNER_BINDING_PATH", str(binding_path))
+     from infrastructure.scheduling import manager_announcement_supervisor
+     from v4.manager_research import plan_owner_dispatch
+-    monkeypatch.setattr(manager_announcement_supervisor, "validate_binding",
+-        lambda value, expected_app=None: value if Path(value["app_root"]).resolve() == expected_app.resolve() else (_ for _ in ()).throw(ValueError("APP_ROOT_MISMATCH")))
++
++    def validate_binding(value, expected_app=None, *, expected_owner_app=None):
++        expected = expected_owner_app or expected_app
++        if Path(value["app_root"]).resolve() != expected.resolve():
++            raise ValueError("APP_ROOT_MISMATCH")
++        return value
++
++    monkeypatch.setattr(manager_announcement_supervisor, "validate_binding", validate_binding)
+     monkeypatch.setattr(plan_owner_dispatch, "clock_now", lambda: datetime(2026, 9, 30, 9, 27, 30, tzinfo=HK))
+-    service.refresh_workspace_plan = lambda _date, **_kwargs: {
++    plan_owner_calls = []
++    service.refresh_workspace_plan = lambda _date, **_kwargs: plan_owner_calls.append((_date, _kwargs)) or {
+         "plan_product": {"run_id": "isolated-plan", "generated_at": "2026-09-30T09:27:30+08:00"}
+     }
++    us_owner_calls = []
++    original_us_owner = service.refresh_us_mapping_research
++    def record_us_owner(*args, **kwargs):
++        us_owner_calls.append((args, kwargs))
++        return original_us_owner(*args, **kwargs)
++    monkeypatch.setattr(service, "refresh_us_mapping_research", record_us_owner)
+ 
+     from apps.api.v35_api.manager_research_router import create_manager_research_router
+     app = FastAPI()
+@@ -282,14 +295,29 @@
+         assert response.status_code == 200, response.text
+         result = response.json()
+         assert result["target_trade_date"] == "20260930"
+-        assert result["us_mapping_research"]["status"] == "PARTIAL"
+-        assert result["us_mapping_research"]["coverage"]["matched_hk_relation_count"] is None
+-        assert read_workspace_mapping(service, "20260930")["daily_run"]["matches"] == []
++        assert result["branch"] == "PREOPEN"
++        assert result["plan_result"]["status"] == "FAILED"
++        assert result["plan_result"]["failure_code"] == "PLAN_OWNER_EXECUTION_FAILED"
++        assert [(date, kwargs["execution_kind"]) for date, kwargs in plan_owner_calls] == [
++            ("20260930", "SCHEDULED_PREOPEN")
++        ]
++        assert result["us_mapping_research"]["status"] == "NOT_ATTEMPTED"
++        assert result["us_mapping_research"]["preparation_status"] == "NOT_ATTEMPTED"
++        assert result["us_mapping_research"]["execution_attempted"] is False
++        assert result["us_mapping_research"]["matches"] is None
++        assert result["us_mapping_research"]["gaps"] == [
++            "US_MAPPING_REQUIRES_INDEPENDENT_OWNER_DISPATCH"
++        ]
++        assert us_owner_calls == []
++        daily_run = read_workspace_mapping(service, "20260930")["daily_run"]
++        assert daily_run["status"] == "NOT_RUN"
++        assert daily_run["run_id"] is None
++        assert daily_run["matches"] == []
+         workspace = client.get("/api/v4/manager/research/workspace?date=20260930&view=historical")
+         assert workspace.status_code == 200
+         projected = workspace.json()["us_mapping_research"]
+-        assert projected["daily_run"]["run_id"] == result["us_mapping_research"]["run_id"]
+-        assert projected["daily_run"]["status"] == "PARTIAL"
++        assert projected["daily_run"]["run_id"] is None
++        assert projected["daily_run"]["status"] == "NOT_RUN"
+         assert projected["daily_run"]["matches"] == []
+         assert projected["reviewed_research"]["us_session_date"] == "20260929"
+         next_date = client.get("/api/v4/manager/research/workspace?date=20261002&view=historical")
+--- R5/v4/manager_research/workspace.py
++++ R6/v4/manager_research/workspace.py
+@@ -1165,6 +1165,82 @@
+     return value
+ 
+ 
++class _PlanCommitReadView:
++    """Private read-only view of the exact product and sealed attempt to commit.
++
++    The normal reader intentionally requires a terminal owner attempt before it
++    exposes CURRENT.  The owner must therefore verify the complete planned
++    commit while the public latest pointer still names the prior product (or is
++    absent).  This view overlays only those exact candidate paths for one
++    private call; it never writes and is never returned to a caller.
++    """
++    def __init__(self, store: Any, date: str, product: Mapping[str, Any],
++                 terminal_attempt: Mapping[str, Any]):
++        self.root = Path(store.root)
++        self._store = store
++        token = date_token(date)
++        run_id = str(product.get('run_id') or '')
++        self._candidate_reads = {
++            self.root/'workspace_plans'/token/'latest.json': deepcopy(dict(product)),
++            self.root/'workspace_plan_runs'/token/'latest.json': deepcopy(dict(terminal_attempt)),
++            self.root/'workspace_plan_runs'/token/(run_id+'.json'): deepcopy(dict(terminal_attempt)),
++        }
++
++    def _read(self, path: Any) -> Any:
++        candidate = self._candidate_reads.get(Path(path))
++        return deepcopy(candidate) if candidate is not None else self._store._read(path)
++
++
++def _plan_readback_matches_commit(result: Any, product: Mapping[str, Any],
++                                  terminal_attempt: Mapping[str, Any]) -> bool:
++    if not isinstance(result, Mapping):
++        return False
++    reference = result.get('plan_product')
++    diagnostics = reference.get('input_identity_diagnostics') if isinstance(reference, Mapping) else None
++    run_readback = reference.get('run_readback') if isinstance(reference, Mapping) else None
++    observed_attempt = result.get('workspace_plan_attempt')
++    product_attempt = result.get('workspace_plan_product_attempt')
++    owner = 'ManagerResearchJobService.refresh_workspace_plan'
++    return bool(
++        result.get('target_trade_date') == product.get('target_trade_date')
++        and result.get('input_identity') == product.get('input_identity')
++        and isinstance(reference, Mapping)
++        and reference.get('status') == 'CURRENT'
++        and reference.get('consumed') is True
++        and reference.get('run_id') == product.get('run_id')
++        and reference.get('sha256') == product.get('sha256')
++        and reference.get('execution_kind', 'MANUAL_REFRESH') == product.get('execution_kind', 'MANUAL_REFRESH')
++        and reference.get('original_owner') == owner
++        and isinstance(diagnostics, Mapping) and diagnostics.get('status') == 'MATCH'
++        and isinstance(run_readback, Mapping)
++        and run_readback.get('status') == 'VERIFIED'
++        and run_readback.get('target_trade_date') == product.get('target_trade_date')
++        and run_readback.get('run_id') == product.get('run_id')
++        and run_readback.get('artifact_sha256') == product.get('sha256')
++        and run_readback.get('input_identity') == product.get('input_identity')
++        and run_readback.get('owner') == owner
++        and run_readback.get('owner_attempt_run_id') == terminal_attempt.get('run_id')
++        and run_readback.get('owner_attempt_sha256') == terminal_attempt.get('sha256')
++        and run_readback.get('owner_attempt_state') == terminal_attempt.get('state')
++        and isinstance(observed_attempt, Mapping) and dict(observed_attempt) == dict(terminal_attempt)
++        and isinstance(product_attempt, Mapping) and dict(product_attempt) == dict(terminal_attempt)
++    )
++
++
++def _verify_plan_commit_before_publication(store: Any, date: str, current: Mapping[str, Any],
++                                           product: Mapping[str, Any],
++                                           terminal_attempt: Mapping[str, Any]) -> dict:
++    """Run the real full readback against an unpublished, exact commit view."""
++    view = _PlanCommitReadView(store, date, product, terminal_attempt)
++    saved = _read_plan(view, date)
++    if not isinstance(saved, Mapping) or dict(saved) != dict(product):
++        raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
++    result = _readback_plan(view, date, deepcopy(dict(current)))
++    if not _plan_readback_matches_commit(result, product, terminal_attempt):
++        raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
++    return result
++
++
+ def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+                            now: datetime | None = None, deadline: datetime | None = None,
+                            execution_context: Mapping[str, Any] | None = None,
+@@ -1352,6 +1428,22 @@
+             exact_product=service.store._read(root/(run_id+'.json'))
+             if (not isinstance(exact_product,Mapping) or dict(exact_product)!=product):
+                 raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
++            # Bind the still-running owner attempt to this exact input before
++            # any success state is prepared or written.
++            attempt['input_identity']=product['input_identity']
++            write_attempt()
++            running_attempt=validate_attempt(
++                service.store._read(run_root/(run_id+'.json')),date)
++            running_latest=validate_attempt(service.store._read(run_root/'latest.json'),date)
++            expected_running=validate_attempt(seal_attempt(attempt),date)
++            if (running_attempt!=expected_running or running_latest!=expected_running
++                    or expected_running.get('state')!='RUNNING'
++                    or expected_running.get('run_id')!=product.get('run_id')
++                    or expected_running.get('owner')!=product.get('owner')
++                    or expected_running.get('execution_kind')!=execution_kind
++                    or expected_running.get('input_identity')!=product.get('input_identity')
++                    or 'finished_at' in expected_running or 'success_scope' in expected_running):
++                raise ValueError('WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED')
+             finished_at=_now()
+             if deadline is not None and timestamp(finished_at) >= deadline.astimezone(timezone.utc):
+                 raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_TERMINAL_DEADLINE_EXCEEDED')
+@@ -1359,16 +1451,27 @@
+                 input_identity=value['input_identity'],input_coverage=value['existing_material_coverage'],
+                 summary=value['summary'],failure_reasons=failures,
+                 success_scope='EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE')
++            planned_terminal=validate_attempt(seal_attempt(attempt),date)
++            # The exact public reader needs a terminal attempt. Verify the
++            # complete intended product/run/SHA/identity/owner contract through
++            # a private overlay before writing that terminal success state.
++            result=_verify_plan_commit_before_publication(service.store,date,value,
++                product,planned_terminal)
++            checkpoint()
++            if deadline is not None and timestamp(_now()) >= deadline.astimezone(timezone.utc):
++                raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_TERMINAL_DEADLINE_EXCEEDED')
+             write_attempt()
+-            terminal=validate_attempt(service.store._read(run_root/'latest.json'),date)
+-            if terminal!=seal_attempt(attempt):
++            terminal=validate_attempt(service.store._read(run_root/(run_id+'.json')),date)
++            terminal_latest=validate_attempt(service.store._read(run_root/'latest.json'),date)
++            if terminal!=planned_terminal or terminal_latest!=planned_terminal:
+                 raise ValueError('WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED')
+-            # The full reader requires this exact terminal owner attempt.
++            # Only the already-verified, exact commit becomes publicly latest.
+             service.store._write_atomic(root/'latest.json',product)
+-            result=_readback_plan(service.store,date,value)
+-            if result.get('plan_product',{}).get('consumed') is not True:
++            published=_read_plan(service.store,date)
++            if not isinstance(published,Mapping) or dict(published)!=product:
+                 raise ValueError('WORKSPACE_PLAN_SAVE_READBACK_FAILED')
+             result['workspace_plan_attempt']=terminal
++            result['workspace_plan_product_attempt']=deepcopy(terminal)
+             from .workspace_daily_channels import build_daily_channels
+             result['daily_channels']=build_daily_channels(result)
+             # Atomic journal publication and owner readback also consume time.

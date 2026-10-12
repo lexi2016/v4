@@ -1,0 +1,1045 @@
+--- /Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_canary.py
++++ /Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/issue35_phase6_r6_canary.py
+@@ -21,6 +21,7 @@
+ from typing import Any
+ from zoneinfo import ZoneInfo
+ 
++sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+ import issue35_phase4_common as common
+ 
+ 
+@@ -59,38 +60,84 @@
+     product = refresh.get("plan_product")
+     get_product = readback.get("plan_product")
+     persisted = refresh.get("persisted_store")
+-    attempt = refresh.get("workspace_plan_attempt")
+-    safety = refresh.get("safety")
++    refresh_attempt = refresh.get("workspace_plan_attempt")
++    readback_attempt = readback.get("workspace_plan_attempt")
++    refresh_product_attempt = refresh.get("workspace_plan_product_attempt")
++    readback_product_attempt = readback.get("workspace_plan_product_attempt")
++    refresh_status = product.get("status") if isinstance(product, dict) else None
+     if (refresh.get("target_trade_date") != target or readback.get("target_trade_date") != target
+             or refresh.get("formal_recommendation_count") != 0
+             or refresh.get("store_latest_matches_http_plan_product") is not True
+             or not isinstance(product, dict) or not isinstance(get_product, dict)
+-            or product.get("status") != "CURRENT" or get_product.get("status") != "CURRENT"
++            or refresh_status not in {"CURRENT", "ALREADY_MATERIALIZED"}
++            or get_product.get("status") != "CURRENT"
+             or product.get("consumed") is not True or get_product.get("consumed") is not True
+             or product.get("run_id") != get_product.get("run_id")
+             or product.get("sha256") != get_product.get("sha256")
+             or product.get("original_owner") != common.OWNER
+             or get_product.get("original_owner") != common.OWNER
+-            or not isinstance(persisted, dict) or persisted.get("target_trade_date") != target
+-            or persisted.get("run_id") != product.get("run_id")
+-            or persisted.get("product_sha256") != product.get("sha256")
+-            or persisted.get("execution_kind") != "MANUAL_REFRESH"
+-            or persisted.get("owner") != common.OWNER
+-            or not isinstance(attempt, dict)
+-            or attempt.get("execution_kind") != "MANUAL_REFRESH"
+-            or attempt.get("state") not in {"SUCCEEDED", "PARTIAL"}
+             or refresh.get("input_identity") != readback.get("input_identity")
+             or not isinstance(refresh.get("input_identity"), str)
+             or not re.fullmatch(r"[0-9a-f]{64}", refresh["input_identity"])
+-            or safety != common.SAFETY
+-            or any(persisted.get(key) != value for key, value in common.SAFETY.items())):
++            or refresh.get("execution_kind") != "MANUAL_REFRESH"
++            or readback.get("execution_kind") != "MANUAL_REFRESH"
++            or refresh.get("safety") != common.SAFETY
++            or readback.get("safety") != common.SAFETY
++            or not isinstance(refresh_attempt, dict)
++            or refresh_attempt != readback_attempt
++            or refresh_attempt != refresh_product_attempt
++            or refresh_attempt != readback_product_attempt):
+         raise ValueError("CANARY_OWNER_READBACK_MISMATCH")
+     run_id = str(product.get("run_id") or "")
+     product_sha = str(product.get("sha256") or "")
+     input_identity = str(refresh.get("input_identity") or "")
+     if (not re.fullmatch(r"[0-9a-f]{32}", run_id)
+-            or not re.fullmatch(r"[0-9a-f]{64}", product_sha)):
++            or not re.fullmatch(r"[0-9a-f]{64}", product_sha)
++            or product.get("execution_kind") != "MANUAL_REFRESH"
++            or get_product.get("execution_kind") != "MANUAL_REFRESH"):
+         raise ValueError("CANARY_PRODUCT_IDENTITY_INVALID")
++    attempt = refresh_attempt
++    if (attempt.get("target_trade_date") != target or attempt.get("run_id") != run_id
++            or attempt.get("sha256") is None
++            or not re.fullmatch(r"[0-9a-f]{64}", str(attempt.get("sha256")))
++            or attempt.get("input_identity") != input_identity
++            or attempt.get("owner") != common.OWNER
++            or attempt.get("execution_kind") != "MANUAL_REFRESH"
++            or attempt.get("state") not in {"SUCCEEDED", "SUCCEEDED_EMPTY", "PARTIAL"}
++            or not isinstance(attempt.get("finished_at"), str) or not attempt.get("finished_at")
++            or common.canonical_sha({key: value for key, value in attempt.items() if key != "sha256"})
++            != attempt.get("sha256")
++            or any(attempt.get(key) != value for key, value in common.SAFETY.items())):
++        raise ValueError("CANARY_OWNER_TERMINAL_ATTEMPT_INVALID")
++    for body, body_product in ((refresh, product), (readback, get_product)):
++        diagnostics = body_product.get("input_identity_diagnostics")
++        run_readback = body_product.get("run_readback")
++        if (not isinstance(diagnostics, dict) or diagnostics.get("status") != "MATCH"
++                or diagnostics.get("current_input_identity") != input_identity
++                or diagnostics.get("saved_input_identity") != input_identity
++                or not isinstance(run_readback, dict) or run_readback.get("status") != "VERIFIED"
++                or run_readback.get("target_trade_date") != target
++                or run_readback.get("run_id") != run_id
++                or run_readback.get("artifact_sha256") != product_sha
++                or run_readback.get("input_identity") != input_identity
++                or run_readback.get("owner") != common.OWNER
++                or run_readback.get("owner_attempt_run_id") != run_id
++                or run_readback.get("owner_attempt_sha256") != attempt.get("sha256")
++                or run_readback.get("owner_attempt_state") != attempt.get("state")
++                or run_readback.get("owner_finished_at") != attempt.get("finished_at")):
++            raise ValueError("CANARY_OWNER_PRODUCT_READBACK_IDENTITY_MISMATCH")
++    if persisted is not None and (
++            not isinstance(persisted, dict) or persisted.get("target_trade_date") != target
++            or persisted.get("run_id") != run_id
++            or persisted.get("product_sha256") != product_sha
++            or persisted.get("execution_kind") != "MANUAL_REFRESH"
++            or persisted.get("owner") != common.OWNER
++            or any(persisted.get(key) != value for key, value in common.SAFETY.items())):
++        raise ValueError("CANARY_PERSISTED_IDENTITY_MISMATCH")
++    if refresh_status == "CURRENT" and not isinstance(persisted, dict):
++        raise ValueError("CANARY_FRESH_PERSISTED_STORE_MISSING")
++    if refresh_status == "ALREADY_MATERIALIZED" and persisted is not None and not isinstance(persisted, dict):
++        raise ValueError("CANARY_REUSE_PERSISTED_STORE_INVALID")
+     return run_id, product_sha, input_identity, str(attempt["state"])
+ 
+ 
+@@ -164,19 +211,42 @@
+     },
+ }
+ 
+-_CURRENT13_ACCEPTANCE = {
++_R6_CURRENT13_ACCEPTANCE = {
+     "target_trade_date": "20261013",
+-    "run_id": "d8a35106712a4387accf214c3ee3772d",
+-    "product_sha256": "7ba36ad92af7cccaadbcdacca3a2eddc9488a80e28ddd9185ebba2e5afffc49c",
+-    "input_identity": "3c3f32668945d572af760fdc9b36ad5c577a7167720dc8aaba3fd60ccae9bbd3",
+-    "root_cause_receipt": common.TASK_ROOT / "receipts/phase3-issue35-target13/root-cause-readonly-01.json",
+-    "root_cause_receipt_sha256": "4a672771af82f0bcb5fcdfd7af4b552981021d484dc3092da7d9aa2b2574154d",
+-    "r3_manifest_sha256": "7aa0653999eb1b126c0f0e7420db8a278d7340831653a75ab1286fb292ea7f85",
+-    "r4_manifest_sha256": "ccf0bbec4b58910f180320e4288f09e0af2a8143c542f2183eab977d01746b9f",
+-    "run_file_sha256": "9ca32cee34b42727666c6c96e0cc9396a387bc48e332f232621232c6dbd1aee2",
+-    "run_file_bytes": 356369,
+-    "product_file_sha256": "777c6496402ea7d2313ed7c09ff7be2ae1e5597659bcbfb6b42fe3fdd051522a",
+-    "product_file_bytes": 40992670,
++    "release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
++    "release_root": str(common.TASK_ROOT / "integrated_release" / "issue35-manager-autocontinue-20261012-r6-integrated"),
++    "app_root": str(common.TASK_ROOT / "integrated_release" / "issue35-manager-autocontinue-20261012-r6-integrated" / "app"),
++    "release_manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
++    "application_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
++    "state_root": str(common.DEFAULT_MANAGER_STATE_ROOT),
++    "r4b_canary_path": common.TASK_ROOT / "receipts/plan_canary_runs/20261013/execution-02/plan-canary.json",
++    "r4b_canary_sha256": "4cfe936e7e52611544a95b6bccd692bb1cf47f823d3c5c91f0c9bbc09497ea63",
++    "r4b_state_preimage_path": common.TASK_ROOT / "receipts/plan_canary_runs/20261013/execution-02/state-preimage.json",
++    "r4b_state_preimage_sha256": "56af33340d7ed7256f287c626aa546acf459f73895ca6cd28bdbfc94df2e9f9c",
++    "contract_review_path": common.TASK_ROOT / "review/phase6-publication-contract/independent-review.json",
++    "contract_review_sha256": "f996a8fdbf2c22b2cffce756f644a6dc8b8b561f630e12f76b8314b65811b56c",
++    "archived": {
++        "run_id": "d8a35106712a4387accf214c3ee3772d",
++        "input_identity": "3c3f32668945d572af760fdc9b36ad5c577a7167720dc8aaba3fd60ccae9bbd3",
++        "product_sha256": "7ba36ad92af7cccaadbcdacca3a2eddc9488a80e28ddd9185ebba2e5afffc49c",
++        "run_bytes": 356369,
++        "run_sha256": "9ca32cee34b42727666c6c96e0cc9396a387bc48e332f232621232c6dbd1aee2",
++        "product_bytes": 40992670,
++        "product_sha256_file": "777c6496402ea7d2313ed7c09ff7be2ae1e5597659bcbfb6b42fe3fdd051522a",
++        "state": "PARTIAL",
++        "release_manifest_sha256": "7aa0653999eb1b126c0f0e7420db8a278d7340831653a75ab1286fb292ea7f85",
++    },
++    "current": {
++        "run_id": "357d984e400541a48c41f65ec0018b62",
++        "input_identity": "efbf9d580a587edeb58fb80fa4358b45afe45a5d10236f28ad1d3d9d50daa0c9",
++        "product_sha256": "ae8b8cfc4f1e44003aa75d803ca29fa6e1e088766ae98b5c0471884f699f22c3",
++        "run_bytes": 356369,
++        "run_sha256": "f2b9288197aa94ae101225e8fdb5245ea10c96a838cc77441bbe4ff18224a834",
++        "product_bytes": 40992670,
++        "product_sha256_file": "99a31d918381320e493bc518cdfa6db91f4ee1e0ed2bbfb5120ca39a18e7aad3",
++        "state": "PARTIAL",
++        "release_manifest_sha256": "ccf0bbec4b58910f180320e4288f09e0af2a8143c542f2183eab977d01746b9f",
++    },
+ }
+ 
+ 
+@@ -194,170 +264,384 @@
+     return raw
+ 
+ 
++def _r6_receipt_pins() -> dict[str, Any]:
++    """Bind the two distinct R4b target13 generations to immutable task receipts."""
++    pins = _R6_CURRENT13_ACCEPTANCE
++    archived = pins["archived"]
++    current = pins["current"]
++    state_preimage = _read_pinned_json(pins["r4b_state_preimage_path"],
++                                       pins["r4b_state_preimage_sha256"],
++                                       "R6_R4B_STATE_PREIMAGE")
++    accepted = _read_pinned_json(pins["r4b_canary_path"], pins["r4b_canary_sha256"],
++                                 "R6_R4B_ACCEPTED_CANARY")
++    review = _read_pinned_json(pins["contract_review_path"], pins["contract_review_sha256"],
++                               "R6_PUBLICATION_CONTRACT_REVIEW")
++    d8 = state_preimage.get("prior_target_owner_state", {})
++    d8_files = d8.get("files", {}) if isinstance(d8, dict) else {}
++    d8_run = d8_files.get("run_file", {}) if isinstance(d8_files, dict) else {}
++    d8_product = d8_files.get("product_file", {}) if isinstance(d8_files, dict) else {}
++    report_preimages = review.get("exact_preimages", {})
++    report_archived = report_preimages.get("archived_r3_version_still_exact", {})
++    report_current = report_preimages.get("read_only_current_state_observed", {})
++    report_plan = review.get("reviewed_diff", {})
++    accepted_state = accepted.get("state_preimage", {})
++    accepted_owner = accepted.get("owner_state_acceptance", {})
++    accepted_write = accepted_owner.get("post_owner_write_set", {})
++    accepted_prior = accepted_state
++    if (state_preimage.get("target_trade_date") != pins["target_trade_date"]
++            or state_preimage.get("manager_state_root") != pins["state_root"]
++            or state_preimage.get("target_preexisted") is not True
++            or d8.get("run_id") != archived["run_id"]
++            or d8.get("product_sha256") != archived["product_sha256"]
++            or d8.get("input_identity") != archived["input_identity"]
++            or d8_run.get("bytes") != archived["run_bytes"]
++            or d8_run.get("sha256") != archived["run_sha256"]
++            or d8_product.get("bytes") != archived["product_bytes"]
++            or d8_product.get("sha256") != archived["product_sha256_file"]
++            or accepted_prior.get("prior_run_id") != archived["run_id"]
++            or accepted_prior.get("prior_product_sha256") != archived["product_sha256"]
++            or accepted_prior.get("prior_input_identity") != archived["input_identity"]
++            or accepted_prior.get("prior_state_files", {}).get("run_file", {}).get("sha256") != archived["run_sha256"]
++            or accepted_prior.get("prior_state_files", {}).get("product_file", {}).get("sha256") != archived["product_sha256_file"]
++            or accepted.get("status") != "PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING"
++            or accepted.get("target_trade_date") != pins["target_trade_date"]
++            or accepted.get("candidate_release_id") != "issue35-manager-autocontinue-20261012-r4b"
++            or accepted.get("candidate_release_manifest_sha256") != "ccf0bbec4b58910f180320e4288f09e0af2a8143c542f2183eab977d01746b9f"
++            or accepted.get("execution_kind") != "MANUAL_REFRESH"
++            or accepted.get("owner") != common.OWNER
++            or accepted.get("owner_attempt_state") != current["state"]
++            or accepted.get("run_id") != current["run_id"]
++            or accepted.get("product_sha256") != current["product_sha256"]
++            or accepted.get("input_identity") != current["input_identity"]
++            or accepted_owner.get("mode") != "CURRENT13_EXISTING_TARGET_NONDESTRUCTIVE"
++            or accepted_owner.get("prior_run_id") != archived["run_id"]
++            or accepted_owner.get("prior_product_sha256") != archived["product_sha256"]
++            or accepted_owner.get("prior_input_identity") != archived["input_identity"]
++            or accepted_owner.get("prior_version_files_preserved") is not True
++            or accepted_state.get("target_preexisted") is not True
++            or accepted_state.get("prior_run_id") != archived["run_id"]
++            or accepted_write.get("prior_run_id") != archived["run_id"]
++            or accepted_write.get("current_run_id") != current["run_id"]
++            or accepted_write.get("current_product_sha256") != current["product_sha256"]
++            or accepted_write.get("prior_version_files_preserved") is not True
++            or report_archived.get("run_id") != archived["run_id"]
++            or report_archived.get("run_file_sha256") != archived["run_sha256"]
++            or report_archived.get("product_file_sha256") != archived["product_sha256_file"]
++            or report_archived.get("product_sha256_field") != archived["product_sha256"]
++            or report_current.get("current_run_id") != current["run_id"]
++            or report_current.get("current_input_identity") != current["input_identity"]
++            or report_current.get("current_product_sha256_field") != current["product_sha256"]
++            or report_current.get("current_attempt_state") != current["state"]
++            or report_current.get("execution_kind") != "MANUAL_REFRESH"
++            or report_current.get("owner") != common.OWNER
++            or report_current.get("target_date") != pins["target_trade_date"]
++            or report_current.get("state_root") != pins["state_root"]
++            or report_current.get("current_run_file_and_latest", {}).get("bytes") != current["run_bytes"]
++            or report_current.get("current_run_file_and_latest", {}).get("sha256") != current["run_sha256"]
++            or report_current.get("current_product_file_and_latest", {}).get("bytes") != current["product_bytes"]
++            or report_current.get("current_product_file_and_latest", {}).get("sha256") != current["product_sha256_file"]
++            or report_plan.get("candidate_manifest_sha256") != pins["release_manifest_sha256"]
++            or report_plan.get("candidate_status") != "PASS_INACTIVE_R6_ORIGINAL_INTEGRATOR_CANDIDATE"):
++        raise ValueError("R6_TWO_GENERATION_RECEIPT_CONTRACT_MISMATCH")
++    return {"archived": archived, "current": current,
++            "protected_dates_sha256": state_preimage.get("protected_dates_sha256"),
++            "r4b_state_preimage_path": str(pins["r4b_state_preimage_path"]),
++            "r4b_state_preimage_sha256": pins["r4b_state_preimage_sha256"],
++            "r4b_canary_path": str(pins["r4b_canary_path"]),
++            "r4b_canary_sha256": pins["r4b_canary_sha256"],
++            "contract_review_path": str(pins["contract_review_path"]),
++            "contract_review_sha256": pins["contract_review_sha256"]}
++
++
++def _decode_record(raw: bytes, label: str) -> dict[str, Any]:
++    try:
++        value = json.loads(raw)
++    except (UnicodeError, json.JSONDecodeError) as exc:
++        raise ValueError(label + "_INVALID_JSON") from exc
++    if not isinstance(value, dict):
++        raise ValueError(label + "_INVALID_JSON")
++    return value
++
++
++def _state_file_row(path: Path, label: str) -> tuple[bytes, dict[str, Any]]:
++    raw = _stable_exact_bytes(path, "R6_" + label.upper())
++    return raw, {"path": str(path), "bytes": len(raw), "sha256": common.sha256_bytes(raw)}
++
++
++def _capture_r6_state_preimage(state_root: Path, target: str,
++                               receipt_pins: dict[str, Any]) -> dict[str, Any]:
++    """Require the exact d8 archive plus the distinct 357 R4b current generation."""
++    if target != _R6_CURRENT13_ACCEPTANCE["target_trade_date"]:
++        raise ValueError("R6_CURRENT13_TARGET_NOT_PINNED")
++    if str(state_root) != _R6_CURRENT13_ACCEPTANCE["state_root"]:
++        raise ValueError("R6_MANAGER_STATE_ROOT_MISMATCH")
++    archived = receipt_pins["archived"]
++    current = receipt_pins["current"]
++    run_root = state_root / "workspace_plan_runs" / target
++    plan_root = state_root / "workspace_plans" / target
++    expected = {"latest.json", archived["run_id"] + ".json", current["run_id"] + ".json"}
++    _directory_write_set(run_root, expected, "R6_TWO_GENERATION_RUN_PREIMAGE")
++    _directory_write_set(plan_root, expected, "R6_TWO_GENERATION_PRODUCT_PREIMAGE")
++    paths = {
++        "archived_run": run_root / (archived["run_id"] + ".json"),
++        "archived_product": plan_root / (archived["run_id"] + ".json"),
++        "current_run": run_root / (current["run_id"] + ".json"),
++        "current_run_latest": run_root / "latest.json",
++        "current_product": plan_root / (current["run_id"] + ".json"),
++        "current_product_latest": plan_root / "latest.json",
++    }
++    observed: dict[str, dict[str, Any]] = {}
++    raw_files: dict[str, bytes] = {}
++    for label, path in paths.items():
++        raw_files[label], observed[label] = _state_file_row(path, label)
++    expected_files = {
++        "archived_run": (archived["run_bytes"], archived["run_sha256"]),
++        "archived_product": (archived["product_bytes"], archived["product_sha256_file"]),
++        "current_run": (current["run_bytes"], current["run_sha256"]),
++        "current_run_latest": (current["run_bytes"], current["run_sha256"]),
++        "current_product": (current["product_bytes"], current["product_sha256_file"]),
++        "current_product_latest": (current["product_bytes"], current["product_sha256_file"]),
++    }
++    for label, (size, digest) in expected_files.items():
++        if observed[label]["bytes"] != size or observed[label]["sha256"] != digest:
++            raise ValueError("R6_TWO_GENERATION_PREIMAGE_SHA_OR_SIZE_MISMATCH:" + label)
++    if (raw_files["current_run"] != raw_files["current_run_latest"]
++            or raw_files["current_product"] != raw_files["current_product_latest"]):
++        raise ValueError("R6_CURRENT_LATEST_POINTER_BYTES_MISMATCH")
++    archived_run = _decode_record(raw_files["archived_run"], "R6_ARCHIVED_RUN")
++    archived_product = _decode_record(raw_files["archived_product"], "R6_ARCHIVED_PRODUCT")
++    current_run = _decode_record(raw_files["current_run"], "R6_CURRENT_RUN")
++    current_product = _decode_record(raw_files["current_product"], "R6_CURRENT_PRODUCT")
++    for record, row, expected_state, label in (
++            (archived_run, archived, archived["state"], "ARCHIVED_RUN"),
++            (current_run, current, current["state"], "CURRENT_RUN")):
++        if (record.get("target_trade_date") != target or record.get("run_id") != row["run_id"]
++                or record.get("input_identity") != row["input_identity"]
++                or record.get("state") != expected_state or record.get("owner") != common.OWNER
++                or record.get("execution_kind") != "MANUAL_REFRESH"
++                or not isinstance(record.get("sha256"), str)
++                or common.canonical_sha({key: value for key, value in record.items() if key != "sha256"})
++                != record.get("sha256")
++                or any(record.get(key) != value for key, value in common.SAFETY.items())):
++            raise ValueError("R6_TWO_GENERATION_RUN_IDENTITY_MISMATCH:" + label)
++    for record, row, label in ((archived_product, archived, "ARCHIVED_PRODUCT"),
++                               (current_product, current, "CURRENT_PRODUCT")):
++        if (record.get("target_trade_date") != target or record.get("run_id") != row["run_id"]
++                or record.get("input_identity") != row["input_identity"]
++                or record.get("sha256") != row["product_sha256"]
++                or record.get("owner") != common.OWNER
++                or record.get("execution_kind") != "MANUAL_REFRESH"
++                or any(record.get(key) != value for key, value in common.SAFETY.items())):
++            raise ValueError("R6_TWO_GENERATION_PRODUCT_IDENTITY_MISMATCH:" + label)
++    lock_path = state_root / ".locks" / (target + "-workspace-plan-refresh.mutex")
++    if not _kernel_lock_is_free(lock_path):
++        raise ValueError("R6_OWNER_LOCK_BUSY")
++    protected = common.protected_state_hashes(state_root)
++    if protected != receipt_pins["protected_dates_sha256"]:
++        raise ValueError("R6_PROTECTED_DATES_PREIMAGE_MISMATCH")
++    if not _kernel_lock_is_free(lock_path):
++        raise ValueError("R6_OWNER_LOCK_CHANGED_DURING_PREFLIGHT")
++    return {"target_trade_date": target, "manager_state_root": str(state_root),
++            "archived": {"run_id": archived["run_id"], "product_sha256": archived["product_sha256"],
++                         "input_identity": archived["input_identity"], "state": archived["state"]},
++            "current": {"run_id": current["run_id"], "product_sha256": current["product_sha256"],
++                        "input_identity": current["input_identity"], "state": current["state"]},
++            "state_files": observed, "expected_run_names": sorted(expected),
++            "expected_product_names": sorted(expected),
++            "protected_dates_sha256": protected, "owner_lock_free": True,
++            "receipt_pins": receipt_pins, "http_calls": 0, "state_writes": 0,
++            "safety": common.SAFETY}
++
++
+ def _current13_existing_preimage(identity: dict[str, Any], target: str,
+                                  now: datetime) -> dict[str, Any]:
+-    """Read-only exact preimage gate for the one previously written target-13 run."""
+-    pins = _CURRENT13_ACCEPTANCE
++    """Read-only R6 gate: preserve d8 as history and pin 357 as current R4b latest."""
++    pins = _R6_CURRENT13_ACCEPTANCE
+     release = identity["release"]
+     state_root = identity["state_root"]
+     if target != pins["target_trade_date"]:
+-        raise ValueError("CURRENT13_ACCEPTANCE_TARGET_NOT_PINNED")
+-    if (release["manifest_sha256"] != pins["r4_manifest_sha256"]
+-            or release["manifest"]["candidate"].get("release_id") != "issue35-manager-autocontinue-20261012-r4b"):
+-        raise ValueError("CURRENT13_ACCEPTANCE_REQUIRES_R4B_RELEASE")
++        raise ValueError("R6_CURRENT13_TARGET_NOT_PINNED")
++    if (release["manifest_sha256"] != pins["release_manifest_sha256"]
++            or str(release["release_root"]) != pins["release_root"]
++            or str(release["app_root"]) != pins["app_root"]
++            or release["application_inventory_sha256"] != pins["application_inventory_sha256"]
++            or release["manifest"]["candidate"].get("release_id") != pins["release_id"]):
++        raise ValueError("R6_CURRENT13_REQUIRES_VERIFIED_R6_RELEASE")
+     common.require_next_session(target, release["app_root"], now)
+-
+-    root_cause_raw = _stable_exact_bytes(pins["root_cause_receipt"], "CURRENT13_ROOT_CAUSE")
+-    if common.sha256_bytes(root_cause_raw) != pins["root_cause_receipt_sha256"]:
+-        raise ValueError("CURRENT13_ROOT_CAUSE_SHA_MISMATCH")
+-    root_cause = json.loads(root_cause_raw)
+-    actual = root_cause.get("actual_run_identity", {})
+-    if (root_cause.get("status") != "ROOT_CAUSE_CONFIRMED_BOUNDED_EVIDENCE_SIZE_LIMIT"
+-            or actual.get("run_id") != pins["run_id"]
+-            or actual.get("product_sha256") != pins["product_sha256"]
+-            or actual.get("input_identity") != pins["input_identity"]
+-            or actual.get("candidate_release_manifest_sha256") != pins["r3_manifest_sha256"]):
+-        raise ValueError("CURRENT13_ROOT_CAUSE_IDENTITY_MISMATCH")
+-    if state_root != common.DEFAULT_MANAGER_STATE_ROOT:
+-        raise ValueError("CURRENT13_MANAGER_STATE_ROOT_MISMATCH")
+-
++    if str(state_root) != pins["state_root"]:
++        raise ValueError("R6_MANAGER_STATE_ROOT_MISMATCH")
++    receipt_pins = _r6_receipt_pins()
++    snapshot = _capture_r6_state_preimage(state_root, target, receipt_pins)
++    snapshot.update({"prior_run_id": snapshot["current"]["run_id"],
++                     "prior_product_sha256": snapshot["current"]["product_sha256"],
++                     "prior_input_identity": snapshot["current"]["input_identity"],
++                     "prior_owner_attempt_state": snapshot["current"]["state"],
++                     "prior_release_manifest_sha256": pins["current"]["release_manifest_sha256"],
++                     "r4b_two_generation_receipt_pins": {
++                         key: receipt_pins[key] for key in ("r4b_state_preimage_path",
++                             "r4b_state_preimage_sha256", "r4b_canary_path", "r4b_canary_sha256",
++                             "contract_review_path", "contract_review_sha256")}})
++    return snapshot
++
++
++def _assert_current13_preimage_unchanged(state_root: Path, preimage: dict[str, Any]) -> None:
++    """Immediately before POST, recheck both histories, latest, lock and protected dates."""
++    observed = _capture_r6_state_preimage(state_root, preimage["target_trade_date"],
++                                          preimage["receipt_pins"])
++    if observed["state_files"] != preimage["state_files"]:
++        raise ValueError("R6_TWO_GENERATION_PREIMAGE_CHANGED_BEFORE_POST")
++
++
++def _verify_preserved_r6_versions(state_root: Path, target: str,
++                                 preimage: dict[str, Any]) -> None:
+     run_root = state_root / "workspace_plan_runs" / target
+     plan_root = state_root / "workspace_plans" / target
+-    run_file = run_root / (pins["run_id"] + ".json")
+-    run_latest = run_root / "latest.json"
+-    product_file = plan_root / (pins["run_id"] + ".json")
+-    product_latest = plan_root / "latest.json"
+-    lock_path = state_root / ".locks" / (target + "-workspace-plan-refresh.mutex")
+-    before_lock = _kernel_lock_is_free(lock_path)
+-    if not before_lock:
+-        raise ValueError("CURRENT13_OWNER_LOCK_BUSY")
+-    run_raw = _stable_exact_bytes(run_file, "CURRENT13_RUN_FILE")
+-    run_latest_raw = _stable_exact_bytes(run_latest, "CURRENT13_RUN_LATEST")
+-    product_raw = _stable_exact_bytes(product_file, "CURRENT13_PRODUCT_FILE")
+-    product_latest_raw = _stable_exact_bytes(product_latest, "CURRENT13_PRODUCT_LATEST")
+-    expected_names = {"latest.json", pins["run_id"] + ".json"}
+-    _directory_write_set(run_root, expected_names, "CURRENT13_RUN_PREIMAGE")
+-    _directory_write_set(plan_root, expected_names, "CURRENT13_PRODUCT_PREIMAGE")
+-    hashes = {
+-        "run_file": common.sha256_bytes(run_raw),
+-        "run_latest": common.sha256_bytes(run_latest_raw),
+-        "product_file": common.sha256_bytes(product_raw),
+-        "product_latest": common.sha256_bytes(product_latest_raw),
+-    }
+-    if (len(run_raw) != pins["run_file_bytes"] or len(product_raw) != pins["product_file_bytes"]
+-            or hashes["run_file"] != pins["run_file_sha256"]
+-            or hashes["run_latest"] != pins["run_file_sha256"]
+-            or hashes["product_file"] != pins["product_file_sha256"]
+-            or hashes["product_latest"] != pins["product_file_sha256"]
+-            or run_raw != run_latest_raw or product_raw != product_latest_raw):
+-        raise ValueError("CURRENT13_OWNER_PREIMAGE_SHA_OR_SIZE_MISMATCH")
+-    run = json.loads(run_raw)
+-    product = json.loads(product_raw)
+-    if (run.get("target_trade_date") != target or run.get("run_id") != pins["run_id"]
+-            or run.get("input_identity") != pins["input_identity"] or run.get("state") != "PARTIAL"
+-            or run.get("owner") != common.OWNER or run.get("execution_kind") != "MANUAL_REFRESH"
+-            or any(run.get(k) != v for k, v in common.SAFETY.items())
+-            or product.get("target_trade_date") != target or product.get("run_id") != pins["run_id"]
+-            or product.get("sha256") != pins["product_sha256"]
+-            or product.get("input_identity") != pins["input_identity"]
+-            or product.get("owner") != common.OWNER or product.get("execution_kind") != "MANUAL_REFRESH"
+-            or any(product.get(k) != v for k, v in common.SAFETY.items())):
+-        raise ValueError("CURRENT13_OWNER_PREIMAGE_IDENTITY_MISMATCH")
+-    raw_evidence_checks = []
+-    for row in root_cause.get("evidence_files", []):
+-        rel = Path(str(row.get("path") or ""))
+-        if rel.is_absolute() or ".." in rel.parts or not rel.parts:
+-            raise ValueError("CURRENT13_RAW_EVIDENCE_PATH_INVALID")
+-        path = common.TASK_ROOT.parent / rel
+-        raw = _stable_exact_bytes(path, "CURRENT13_RAW_EVIDENCE")
+-        if len(raw) != row.get("bytes") or common.sha256_bytes(raw) != row.get("sha256"):
+-            raise ValueError("CURRENT13_RAW_EVIDENCE_PIN_MISMATCH:" + rel.name)
+-        raw_evidence_checks.append({"path": str(path), "bytes": len(raw), "sha256": row["sha256"]})
+-    if not _kernel_lock_is_free(lock_path):
+-        raise ValueError("CURRENT13_OWNER_LOCK_CHANGED_DURING_PREFLIGHT")
+-    protected = common.protected_state_hashes(state_root)
+-    return {
+-        "target_trade_date": target,
+-        "manager_state_root": str(state_root),
+-        "prior_run_id": pins["run_id"],
+-        "prior_product_sha256": pins["product_sha256"],
+-        "prior_input_identity": pins["input_identity"],
+-        "prior_owner_attempt_state": run["state"],
+-        "prior_release_manifest_sha256": pins["r3_manifest_sha256"],
+-        "prior_state_files": {
+-            "run_file": {"path": str(run_file), "bytes": len(run_raw), "sha256": hashes["run_file"]},
+-            "run_latest": {"path": str(run_latest), "bytes": len(run_latest_raw), "sha256": hashes["run_latest"]},
+-            "product_file": {"path": str(product_file), "bytes": len(product_raw), "sha256": hashes["product_file"]},
+-            "product_latest": {"path": str(product_latest), "bytes": len(product_latest_raw), "sha256": hashes["product_latest"]},
+-        },
+-        "prior_raw_http_evidence_unchanged": raw_evidence_checks,
+-        "protected_dates_sha256": protected,
+-        "owner_lock_free": True,
+-        "http_calls": 0,
+-        "state_writes": 0,
+-        "safety": common.SAFETY,
+-    }
++    for label, path in (
++            ("archived_run", run_root / (preimage["archived"]["run_id"] + ".json")),
++            ("archived_product", plan_root / (preimage["archived"]["run_id"] + ".json")),
++            ("current_run", run_root / (preimage["current"]["run_id"] + ".json")),
++            ("current_product", plan_root / (preimage["current"]["run_id"] + ".json"))):
++        raw = _stable_exact_bytes(path, "R6_PRESERVED_" + label.upper())
++        row = preimage["state_files"][label]
++        if len(raw) != row["bytes"] or common.sha256_bytes(raw) != row["sha256"]:
++            raise ValueError("R6_PRESERVED_HISTORY_MUTATED:" + label)
+ 
+ 
+ def _assert_current13_failure_preserved(state_root: Path, preimage: dict[str, Any]) -> dict[str, Any]:
+-    """On failed owner calls, require the original latest pointers and files byte-identical."""
+-    observed = {}
+-    for label in ("run_file", "run_latest", "product_file", "product_latest"):
+-        row = preimage["prior_state_files"][label]
+-        raw = _stable_exact_bytes(Path(row["path"]), "CURRENT13_FAILURE_PREIMAGE_" + label.upper())
+-        observed[label] = {"bytes": len(raw), "sha256": common.sha256_bytes(raw)}
+-        if len(raw) != row["bytes"] or observed[label]["sha256"] != row["sha256"]:
+-            raise ValueError("CURRENT13_FAILURE_CHANGED_PRIOR_LATEST_OR_RUN:" + label)
++    """Accept only one exact FAILED run journal while old product latest remains 357."""
+     target = preimage["target_trade_date"]
+-    expected = {"latest.json", preimage["prior_run_id"] + ".json"}
+-    _directory_write_set(state_root / "workspace_plan_runs" / target, expected, "CURRENT13_FAILURE_RUN")
+-    _directory_write_set(state_root / "workspace_plans" / target, expected, "CURRENT13_FAILURE_PRODUCT")
++    run_root = state_root / "workspace_plan_runs" / target
++    plan_root = state_root / "workspace_plans" / target
++    archived = preimage["archived"]["run_id"]
++    current = preimage["current"]["run_id"]
++    run_latest_raw = _stable_exact_bytes(run_root / "latest.json", "R6_FAILURE_RUN_LATEST")
++    failed = _decode_record(run_latest_raw, "R6_FAILURE_RUN_LATEST")
++    failed_id = failed.get("run_id")
++    if (not isinstance(failed_id, str) or not re.fullmatch(r"[0-9a-f]{32}", failed_id)
++            or failed_id in {archived, current}):
++        raise ValueError("R6_FAILURE_NO_EXACT_NEW_FAILED_ATTEMPT")
++    expected_runs = {"latest.json", archived + ".json", current + ".json", failed_id + ".json"}
++    expected_products = {"latest.json", archived + ".json", current + ".json"}
++    _directory_write_set(run_root, expected_runs, "R6_FAILURE_RUN")
++    _directory_write_set(plan_root, expected_products, "R6_FAILURE_PRODUCT")
++    failed_raw = _stable_exact_bytes(run_root / (failed_id + ".json"), "R6_FAILURE_RUN_RECORD")
++    if failed_raw != run_latest_raw:
++        raise ValueError("R6_FAILURE_RUN_LATEST_BYTES_MISMATCH")
++    plan_latest_raw = _stable_exact_bytes(plan_root / "latest.json", "R6_FAILURE_PRODUCT_LATEST")
++    current_product_raw = _stable_exact_bytes(plan_root / (current + ".json"), "R6_FAILURE_CURRENT_PRODUCT")
++    if (plan_latest_raw != current_product_raw
++            or common.sha256_bytes(plan_latest_raw) != preimage["state_files"]["current_product_latest"]["sha256"]):
++        raise ValueError("R6_FAILURE_PRIOR_PRODUCT_LATEST_CHANGED")
++    _verify_preserved_r6_versions(state_root, target, preimage)
++    if (failed.get("target_trade_date") != target or failed.get("state") != "FAILED"
++            or failed.get("owner") != common.OWNER
++            or failed.get("execution_kind") != "MANUAL_REFRESH"
++            or not isinstance(failed.get("finished_at"), str) or not failed.get("finished_at")
++            or not isinstance(failed.get("failure_reasons"), list) or not failed.get("failure_reasons")
++            or "success_scope" in failed
++            or common.canonical_sha({key: value for key, value in failed.items() if key != "sha256"})
++            != failed.get("sha256")
++            or any(failed.get(key) != value for key, value in common.SAFETY.items())):
++        raise ValueError("R6_FAILURE_ATTEMPT_IDENTITY_INVALID")
++    input_identity = failed.get("input_identity")
++    if input_identity is not None and (not isinstance(input_identity, str)
++            or not re.fullmatch(r"[0-9a-f]{64}", input_identity)):
++        raise ValueError("R6_FAILURE_ATTEMPT_INPUT_IDENTITY_INVALID")
++    if common.protected_state_hashes(state_root) != preimage["protected_dates_sha256"]:
++        raise ValueError("R6_FAILURE_PROTECTED_DATES_CHANGED")
+     if not _kernel_lock_is_free(state_root / ".locks" / (target + "-workspace-plan-refresh.mutex")):
+-        raise ValueError("CURRENT13_FAILURE_OWNER_LOCK_BUSY")
+-    return {"status": "PASS_PRIOR_LATEST_PRESERVED", "files": observed,
+-            "owner_lock_free": True, "writes": 0}
+-
+-
+-def _assert_current13_preimage_unchanged(state_root: Path, preimage: dict[str, Any]) -> None:
+-    """Recheck the pinned target-13 state immediately before issuing POST."""
+-    target = preimage["target_trade_date"]
+-    for label, row in preimage["prior_state_files"].items():
+-        raw = _stable_exact_bytes(Path(row["path"]), "CURRENT13_PREPOST_" + label.upper())
+-        if len(raw) != row["bytes"] or common.sha256_bytes(raw) != row["sha256"]:
+-            raise ValueError("CURRENT13_PREIMAGE_CHANGED_BEFORE_POST:" + label)
+-    expected = {"latest.json", preimage["prior_run_id"] + ".json"}
+-    _directory_write_set(state_root / "workspace_plan_runs" / target, expected, "CURRENT13_PREPOST_RUN")
+-    _directory_write_set(state_root / "workspace_plans" / target, expected, "CURRENT13_PREPOST_PRODUCT")
+-    if common.protected_state_hashes(state_root) != preimage["protected_dates_sha256"]:
+-        raise ValueError("CURRENT13_PROTECTED_STATE_CHANGED_BEFORE_POST")
+-    if not _kernel_lock_is_free(state_root / ".locks" / (target + "-workspace-plan-refresh.mutex")):
+-        raise ValueError("CURRENT13_OWNER_LOCK_BUSY_BEFORE_POST")
++        raise ValueError("R6_FAILURE_OWNER_LOCK_BUSY")
++    return {"status": "PASS_EXACT_FAILED_RUN_JOURNAL_PRIOR_PRODUCT_LATEST_PRESERVED",
++            "failed_run_id": failed_id, "failed_attempt_sha256": failed.get("sha256"),
++            "failed_state": "FAILED", "archived_run_id_preserved": archived,
++            "prior_current_run_id_preserved": current,
++            "prior_product_latest_sha256": common.sha256_bytes(plan_latest_raw),
++            "allowed_run_write_set": sorted(expected_runs),
++            "allowed_product_write_set": sorted(expected_products),
++            "owner_lock_free": True, "canary_success": False}
+ 
+ 
+ def _verify_current13_success_write_set(state_root: Path, target: str,
+                                        run_id: str, product_sha: str,
++                                       input_identity: str, attempt: dict[str, Any],
++                                       outcome: str,
+                                        preimage: dict[str, Any]) -> dict[str, Any]:
+-    old_run_id = str(preimage["prior_run_id"])
++    archived = preimage["archived"]["run_id"]
++    current = preimage["current"]["run_id"]
+     run_root = state_root / "workspace_plan_runs" / target
+     plan_root = state_root / "workspace_plans" / target
+-    expected = {"latest.json", old_run_id + ".json", run_id + ".json"}
+-    if run_id == old_run_id:
+-        expected.remove(run_id + ".json")
+-    _directory_write_set(run_root, expected, "CURRENT13_SUCCESS_RUN")
+-    _directory_write_set(plan_root, expected, "CURRENT13_SUCCESS_PRODUCT")
+-    prior = preimage["prior_state_files"]
+-    for label, row in (("run_file", prior["run_file"]), ("product_file", prior["product_file"])):
+-        raw = _stable_exact_bytes(Path(row["path"]), "CURRENT13_SUCCESS_PRIOR_" + label.upper())
+-        if len(raw) != row["bytes"] or common.sha256_bytes(raw) != row["sha256"]:
+-            raise ValueError("CURRENT13_SUCCESS_PRIOR_VERSION_MUTATED:" + label)
++    if outcome == "REUSE":
++        if (run_id != current or product_sha != preimage["current"]["product_sha256"]
++                or input_identity != preimage["current"]["input_identity"]):
++            raise ValueError("R6_REUSE_IDENTITY_NOT_CURRENT_R4B_PRODUCT")
++        _directory_write_set(run_root, {"latest.json", archived + ".json", current + ".json"},
++                             "R6_REUSE_RUN")
++        _directory_write_set(plan_root, {"latest.json", archived + ".json", current + ".json"},
++                             "R6_REUSE_PRODUCT")
++        observed = _capture_r6_state_preimage(state_root, target, preimage["receipt_pins"])
++        if observed["state_files"] != preimage["state_files"]:
++            raise ValueError("R6_REUSE_MATERIALIZED_STATE_CHANGED")
++        current_attempt_raw = _stable_exact_bytes(run_root / (current + ".json"), "R6_REUSE_CURRENT_ATTEMPT")
++        current_attempt = _decode_record(current_attempt_raw, "R6_REUSE_CURRENT_ATTEMPT")
++        if (attempt != current_attempt or attempt.get("run_id") != current
++                or attempt.get("input_identity") != input_identity):
++            raise ValueError("R6_REUSE_ATTEMPT_IDENTITY_MISMATCH")
++        allowed = sorted({"latest.json", archived + ".json", current + ".json"})
++        return {"status": "PASS_R6_REUSE_NO_NEW_MATERIALIZATION",
++                "mode": "REUSE", "current_run_id": current,
++                "current_product_sha256": product_sha, "input_identity": input_identity,
++                "archived_version_preserved": True, "r4b_current_version_preserved": True,
++                "latest_still_357": True, "new_files": [],
++                "allowed_run_write_set": allowed, "allowed_product_write_set": allowed,
++                "allowed_target_write_set": allowed,
++                "expected_durable_paths": [str(run_root / name) for name in allowed]
++                    + [str(plan_root / name) for name in allowed],
++                "owner_lock_free": True}
++    if outcome != "FRESH":
++        raise ValueError("R6_OWNER_OUTCOME_UNKNOWN")
++    if (not re.fullmatch(r"[0-9a-f]{32}", run_id) or run_id in {archived, current}
++            or input_identity == preimage["current"]["input_identity"]):
++        raise ValueError("R6_FRESH_RESULT_DID_NOT_CHANGE_INPUT_IDENTITY")
++    expected = {"latest.json", archived + ".json", current + ".json", run_id + ".json"}
++    _directory_write_set(run_root, expected, "R6_FRESH_RUN")
++    _directory_write_set(plan_root, expected, "R6_FRESH_PRODUCT")
++    _verify_preserved_r6_versions(state_root, target, preimage)
++    run_latest_raw = _stable_exact_bytes(run_root / "latest.json", "R6_FRESH_RUN_LATEST")
++    run_file_raw = _stable_exact_bytes(run_root / (run_id + ".json"), "R6_FRESH_RUN_RECORD")
++    product_latest_raw = _stable_exact_bytes(plan_root / "latest.json", "R6_FRESH_PRODUCT_LATEST")
++    product_file_raw = _stable_exact_bytes(plan_root / (run_id + ".json"), "R6_FRESH_PRODUCT_RECORD")
++    if run_latest_raw != run_file_raw or product_latest_raw != product_file_raw:
++        raise ValueError("R6_FRESH_LATEST_POINTER_BYTES_MISMATCH")
++    run_record = _decode_record(run_file_raw, "R6_FRESH_RUN_RECORD")
++    product_record = _decode_record(product_file_raw, "R6_FRESH_PRODUCT_RECORD")
++    if (run_record != attempt or run_record.get("run_id") != run_id
++            or run_record.get("target_trade_date") != target
++            or run_record.get("input_identity") != input_identity
++            or run_record.get("state") not in {"SUCCEEDED", "SUCCEEDED_EMPTY", "PARTIAL"}
++            or product_record.get("run_id") != run_id
++            or product_record.get("target_trade_date") != target
++            or product_record.get("input_identity") != input_identity
++            or product_record.get("sha256") != product_sha
++            or product_record.get("owner") != common.OWNER
++            or product_record.get("execution_kind") != "MANUAL_REFRESH"
++            or common.canonical_sha({key: value for key, value in product_record.items()
++                                     if key != "sha256"}) != product_sha
++            or any(product_record.get(key) != value for key, value in common.SAFETY.items())):
++        raise ValueError("R6_FRESH_PERSISTED_PRODUCT_ATTEMPT_MISMATCH")
++    if common.protected_state_hashes(state_root) != preimage["protected_dates_sha256"]:
++        raise ValueError("R6_FRESH_PROTECTED_DATES_CHANGED")
+     if not _kernel_lock_is_free(state_root / ".locks" / (target + "-workspace-plan-refresh.mutex")):
+-        raise ValueError("CURRENT13_SUCCESS_OWNER_LOCK_BUSY")
+-    return {"status": "PASS_PRIOR_VERSION_PRESERVED",
+-            "prior_run_id": old_run_id,
+-            "current_run_id": run_id,
+-            "current_product_sha256": product_sha,
+-            "prior_version_files_preserved": True,
+-            "allowed_target_write_set": sorted(expected),
++        raise ValueError("R6_FRESH_OWNER_LOCK_BUSY")
++    allowed = sorted(expected)
++    return {"status": "PASS_R6_FRESH_MATERIALIZATION_PRIOR_GENERATIONS_PRESERVED",
++            "mode": "FRESH", "archived_run_id": archived,
++            "r4b_prior_current_run_id": current, "current_run_id": run_id,
++            "current_product_sha256": product_sha, "input_identity": input_identity,
++            "archived_version_preserved": True, "r4b_current_version_preserved": True,
++            "allowed_run_write_set": allowed, "allowed_product_write_set": allowed,
++            "allowed_target_write_set": allowed,
++            "expected_durable_paths": [str(run_root / name) for name in allowed]
++                + [str(plan_root / name) for name in allowed],
+             "owner_lock_free": True}
+ 
+ 
+@@ -952,6 +1236,8 @@
+         expected_run = f"{run_id}.json"
+         lock = state_root / ".locks" / f"{target}-workspace-plan-refresh.mutex"
+         current13_state_check = None
++        owner_outcome = ("REUSE" if refresh_body["plan_product"].get("status") == "ALREADY_MATERIALIZED"
++                         else "FRESH")
+         if existing_preimage is None:
+             expected_files = {"latest.json", expected_run}
+             run_files = {p.name for p in run_root.iterdir() if p.is_file() and not p.is_symlink()} if run_root.is_dir() else set()
+@@ -959,7 +1245,8 @@
+             write_set_valid = run_files == expected_files and plan_files == expected_files
+         else:
+             current13_state_check = _verify_current13_success_write_set(
+-                state_root, target, run_id, product_sha, existing_preimage
++                state_root, target, run_id, product_sha, input_identity,
++                refresh_body["workspace_plan_attempt"], owner_outcome, existing_preimage
+             )
+             write_set_valid = True
+         if (not write_set_valid or not _kernel_lock_is_free(lock)
+@@ -1018,6 +1305,17 @@
+             "candidate_application_inventory_sha256": release["application_inventory_sha256"],
+             "candidate_manager_source_inventory_sha256": common.canonical_sha(release["binding_files"]),
+             "owner_evidence": {"refresh": refresh_ref, "readback": readback_ref},
++            "owner_terminal_attempt": {
++                "run_id": refresh_body["workspace_plan_attempt"]["run_id"],
++                "sha256": refresh_body["workspace_plan_attempt"]["sha256"],
++                "state": refresh_body["workspace_plan_attempt"]["state"],
++                "owner": refresh_body["workspace_plan_attempt"]["owner"],
++                "execution_kind": refresh_body["workspace_plan_attempt"]["execution_kind"],
++                "input_identity": refresh_body["workspace_plan_attempt"]["input_identity"],
++                "finished_at": refresh_body["workspace_plan_attempt"]["finished_at"],
++                "post_get_persisted_product_equal": True,
++            },
++            "owner_materialization_outcome": owner_outcome,
+             "state_preimage": ({
+                 "protected_dates_sha256": protected_before,
+                 "target_preexisted": False,
+@@ -1026,24 +1324,31 @@
+             } if existing_preimage is None else {
+                 "protected_dates_sha256": protected_before,
+                 "target_preexisted": True,
+-                "prior_run_id": existing_preimage["prior_run_id"],
+-                "prior_product_sha256": existing_preimage["prior_product_sha256"],
+-                "prior_input_identity": existing_preimage["prior_input_identity"],
+-                "prior_state_files": existing_preimage["prior_state_files"],
+-                "expected_durable_paths": [str(run_root / "latest.json"), str(run_root / (existing_preimage["prior_run_id"] + ".json")),
+-                                           str(plan_root / "latest.json"), str(plan_root / (existing_preimage["prior_run_id"] + ".json"))]
+-                    + ([] if run_id == existing_preimage["prior_run_id"] else
+-                       [str(run_root / expected_run), str(plan_root / expected_run)]),
+-                "allowed_transition": "preserve prior versioned run/product bytes; latest may advance only to this exact validated POST/GET run",
++                "archived_generation": existing_preimage["archived"],
++                "r4b_current_generation": existing_preimage["current"],
++                "two_generation_state_files": existing_preimage["state_files"],
++                "r4b_receipt_pins": existing_preimage["r4b_two_generation_receipt_pins"],
++                "expected_durable_paths": current13_state_check.get("expected_durable_paths",
++                    [str(run_root / name) for name in current13_state_check["allowed_run_write_set"]]
++                    + [str(plan_root / name) for name in current13_state_check["allowed_product_write_set"]]),
++                "allowed_transition": ("reuse: d8 and 357 version files plus latest remain byte-identical" if owner_outcome == "REUSE"
++                    else "fresh: preserve d8 and 357 version files; only the exact validated new run/product and latest pointers may be added or advanced"),
+             }),
+             "owner_state_acceptance": ({"mode": "FRESH_TARGET", "prior_target_state": "ABSENT"}
+                                         if existing_preimage is None else {
+-                "mode": "CURRENT13_EXISTING_TARGET_NONDESTRUCTIVE",
++                "mode": "R6_CURRENT13_" + owner_outcome,
+                 "preimage_verified": True,
+-                "prior_run_id": existing_preimage["prior_run_id"],
+-                "prior_product_sha256": existing_preimage["prior_product_sha256"],
+-                "prior_input_identity": existing_preimage["prior_input_identity"],
+-                "prior_version_files_preserved": True,
++                "archived_r3_generation_preserved": existing_preimage["archived"],
++                "r4b_current_generation_preserved_before_call": existing_preimage["current"],
++                "owner_attempt_identity_verified": {
++                    "run_id": refresh_body["workspace_plan_attempt"]["run_id"],
++                    "sha256": refresh_body["workspace_plan_attempt"]["sha256"],
++                    "state": refresh_body["workspace_plan_attempt"]["state"],
++                    "owner": refresh_body["workspace_plan_attempt"]["owner"],
++                    "execution_kind": refresh_body["workspace_plan_attempt"]["execution_kind"],
++                    "input_identity": refresh_body["workspace_plan_attempt"]["input_identity"],
++                    "finished_at": refresh_body["workspace_plan_attempt"]["finished_at"],
++                },
+                 "post_owner_write_set": current13_state_check,
+             }),
+             "safety": common.SAFETY,
+@@ -1076,10 +1381,10 @@
+             "input_identity": input_identity,
+             "owner_attempt_state": attempt_state,
+             "owner_state_acceptance": ({"mode": "FRESH_TARGET"} if existing_preimage is None else {
+-                "mode": "CURRENT13_EXISTING_TARGET_NONDESTRUCTIVE",
+-                "prior_run_id": existing_preimage["prior_run_id"],
+-                "prior_product_sha256": existing_preimage["prior_product_sha256"],
+-                "prior_version_files_preserved": True,
++                "mode": "R6_CURRENT13_" + owner_outcome,
++                "archived_r3_run_id": existing_preimage["archived"]["run_id"],
++                "r4b_prior_current_run_id": existing_preimage["current"]["run_id"],
++                "prior_generations_preserved": True,
+                 "post_owner_write_set": current13_state_check,
+             }),
+             "candidate_release_manifest_sha256": release["manifest_sha256"],
+@@ -1126,7 +1431,7 @@
+     parser.add_argument("--api-plist", type=Path, default=common.LIVE_API_PLIST)
+     parser.add_argument("--scheduler-plist", type=Path, default=common.LIVE_SCHEDULER_PLIST)
+     parser.add_argument("--output-dir", type=str,
+-                        help="new directory below task receipts; defaults to execution-01 or recovery execution-02")
++                        help="new directory below task receipts; R6 target13 defaults to execution-03")
+     parser.add_argument("--execute", action="store_true",
+                         help="explicitly run the exact owner POST/GET; writes only target-date plan state")
+     parser.add_argument("--recover-existing", action="store_true",
+@@ -1134,7 +1439,7 @@
+     parser.add_argument("--verify-only", action="store_true",
+                         help="with --recover-existing, validate evidence and current state without writing receipts")
+     parser.add_argument("--accept-existing-current13", action="store_true",
+-                        help="target-20261013 only: read-only exact preflight; add --execute only for parent-owned POST/GET")
++                        help="R6 target-20261013 only: verify exact d8 archive plus 357 current preimage; add --execute only for parent-owned POST/GET")
+     args = parser.parse_args(argv)
+     if args.execute and args.recover_existing:
+         parser.error("--execute and --recover-existing are mutually exclusive")
+@@ -1142,7 +1447,7 @@
+         parser.error("--verify-only requires --recover-existing")
+     if args.accept_existing_current13 and args.recover_existing:
+         parser.error("--accept-existing-current13 cannot combine with --recover-existing")
+-    if args.accept_existing_current13 and args.target_date != _CURRENT13_ACCEPTANCE["target_trade_date"]:
++    if args.accept_existing_current13 and args.target_date != _R6_CURRENT13_ACCEPTANCE["target_trade_date"]:
+         parser.error("--accept-existing-current13 is pinned to 20261013")
+     app_root = args.app_root
+     release, live, identity = _load_identity(app_root, args.api_plist, args.scheduler_plist)
+@@ -1150,8 +1455,8 @@
+     common.require_next_session(args.target_date, app_root, now)
+     runtime_roots = common.resolve_api_runtime_roots(live["api"], live["api_env"])
+     output = _output_path(args.output_dir, args.target_date,
+-                          default_execution=("execution-02" if args.recover_existing or args.accept_existing_current13
+-                                             else "execution-01"))
++                          default_execution=("execution-03" if args.accept_existing_current13
++                                             else "execution-02" if args.recover_existing else "execution-01"))
+     if args.accept_existing_current13 and not args.execute and not args.recover_existing:
+         if runtime_roots["stage_mode"] != "shared":
+             raise ValueError("CURRENT13_ACCEPTANCE_API_STAGE_MODE_NOT_SHARED")
+@@ -1159,7 +1464,7 @@
+         if output.exists() or output.is_symlink():
+             raise FileExistsError("CURRENT13_ACCEPTANCE_OUTPUT_ALREADY_EXISTS:" + str(output))
+         result = {
+-            "status": "READY_FOR_PARENT_OWNED_CURRENT13_POST_GET_ACCEPTANCE",
++            "status": "READY_FOR_PARENT_OWNED_R6_CURRENT13_POST_GET_ACCEPTANCE",
+             "mode": "READ_ONLY_PREFLIGHT_NO_HTTP_NO_STATE_WRITE",
+             "target_trade_date": args.target_date,
+             "candidate_release_id": release["manifest"]["candidate"]["release_id"],
+@@ -1284,11 +1589,11 @@
+                 "GET " + common.API_BASE_URL + f"/api/v4/manager/research/workspace?date={args.target_date}",
+             ],
+             "prior_target_owner_state": (None if existing_preimage is None else {
+-                "run_id": existing_preimage["prior_run_id"],
+-                "product_sha256": existing_preimage["prior_product_sha256"],
+-                "input_identity": existing_preimage["prior_input_identity"],
+-                "files": existing_preimage["prior_state_files"],
+-                "allowed_transition": "preserve prior run/product files; only latest and at most one new run/product version may change after a valid POST/GET",
++                "archived_generation": existing_preimage["archived"],
++                "r4b_current_generation": existing_preimage["current"],
++                "files": existing_preimage["state_files"],
++                "r4b_two_generation_receipt_pins": existing_preimage["r4b_two_generation_receipt_pins"],
++                "allowed_transition": "preserve d8 and 357 version files; only exact changed-input fresh R6 materialization or verified same-input REUSE is accepted",
+             }),
+             "safety": common.SAFETY,
+         }
+@@ -1315,7 +1620,7 @@
+                     )
+                 except Exception as preservation_error:
+                     failure["prior_owner_state_preservation"] = {
+-                        "status": "FAIL_CANNOT_CONFIRM_PRIOR_LATEST_PRESERVED",
++                        "status": "FAIL_CANNOT_CONFIRM_EXACT_FAILED_JOURNAL_AND_PRIOR_PRODUCT_LATEST_PRESERVED",
+                         "error": type(preservation_error).__name__ + ":" + str(preservation_error),
+                         "writes": "NOT_ATTEMPTED",
+                     }
+--- /Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/issue35_phase4_pair_publication_adapter_r4_observer.py
++++ /Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/issue35_phase6_r6_publication_adapter.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Task-local R4, fail-closed API + existing scheduler publication adapter.
++"""Task-local R6, fail-closed API + existing scheduler publication adapter.
+ 
+ The normal commands are read-only. ``template`` snapshots current preimages
+ under the task staging root; ``prepare`` pins an enabled pair produced by the
+@@ -32,10 +32,10 @@
+ sys.dont_write_bytecode = True
+ 
+ TASK_ROOT = Path("/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1")
+-RELEASE_ROOT = TASK_ROOT / "E/integrated_release/issue35-manager-autocontinue-20261012-r4b"
++RELEASE_ROOT = TASK_ROOT / "E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated"
+ APP_ROOT = RELEASE_ROOT / "app"
+-MANIFEST_SHA256 = "ccf0bbec4b58910f180320e4288f09e0af2a8143c542f2183eab977d01746b9f"
+-INVENTORY_SHA256 = "bc132d23a95c00087743072ff29458397e4721de04f38d675217469185b0ea74"
++MANIFEST_SHA256 = "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7"
++INVENTORY_SHA256 = "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d"
+ API_PLIST = Path("/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist")
+ SCHEDULER_PLIST = Path("/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist")
+ API_LABEL = "com.lexi.v35.api-only"
+@@ -48,10 +48,13 @@
+ ACTIVATION_COMMON_SHA256 = "d5e8c8aaf591d10df2343dfe1d870019ee431ad708d6478b0863c9cd53a0fa84"
+ ORIGINAL_PREPARE = TASK_ROOT / "E/tools/issue35_phase4_prepare.py"
+ ORIGINAL_PREPARE_SHA256 = "4fd235e44a8ed4c4019ece257d5a7c9e9cf2964b1654a9315a3943ceec99e410"
+-ORIGINAL_CANARY = TASK_ROOT / "E/tools/issue35_phase4_canary.py"
+-ORIGINAL_CANARY_SHA256 = "8567287bee4c8920880694855b5ed1420623220801ec2d5bb44b2595eb49c703"
++ORIGINAL_CANARY = TASK_ROOT / "E/tools/phase6-r6/issue35_phase6_r6_canary.py"
++ORIGINAL_CANARY_SHA256 = "642b81a3f50b54dd1fa7ac688d87162004a01c08cb494c8a402fe55e168e7c5e"
+ TARGET_DATE = "20261013"
+-DEFAULT_PAIR_DIR = TASK_ROOT / "E/staged_config/phase4-issue35-target13-pair-r4-observer"
++R4B_CANARY_SOURCE = TASK_ROOT / "E/tools/issue35_phase4_canary.py"
++R4B_CANARY_SOURCE_SHA256 = "8567287bee4c8920880694855b5ed1420623220801ec2d5bb44b2595eb49c703"
++R6_TRANSPORT_TEST = TASK_ROOT / "E/tools/phase6-r6/test_issue35_phase6_r6_transport.py"
++DEFAULT_PAIR_DIR = TASK_ROOT / "E/staged_config/phase6-r6/after-canary/pair-r6"
+ BEFORE_NAMES = {"api": "api-before.plist", "scheduler": "scheduler-before.plist",
+                 "binding": "manager-binding-before.json"}
+ AFTER_NAMES = {"api": "api-after.enabled.plist", "scheduler": "scheduler-after.enabled.plist",
+@@ -68,16 +71,18 @@
+ }
+ EXPECTED_SCHEDULER_NOOP_DELTA = EXPECTED_SCHEDULER_ENV_DELTA - {"V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256"}
+ CYCLE_SHA_ENV_KEY = "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256"
+-EXISTING_CANARY_PATH = TASK_ROOT / "E/receipts/plan_canary_runs/20261013/execution-02/plan-canary.json"
+-EXISTING_CANARY_SHA256 = "4cfe936e7e52611544a95b6bccd692bb1cf47f823d3c5c91f0c9bbc09497ea63"
+-EXISTING_STAGE_DIR = TASK_ROOT / "E/staged_config/phase4-issue35-target13-enabled-r4b"
++EXISTING_CANARY_PATH = TASK_ROOT / "E/receipts/plan_canary_runs/20261013/execution-03/plan-canary.json"
++EXISTING_CANARY_SHA256 = "PENDING_PARENT_R6_CANARY_AND_INDEPENDENT_REVIEW"
++EXISTING_STAGE_DIR = TASK_ROOT / "E/staged_config/phase6-r6/after-canary"
+ EXISTING_STAGE_RECEIPT = EXISTING_STAGE_DIR / "activation-stage-receipt.json"
+ EXISTING_STAGE_SHA256 = {
+-    "api": "3a5824f505c7e514c64eaa5d1af509365feceaae008e49db394896df6e796301",
+-    "scheduler": "e59c3f794535ec92106d6df62bc268002305fb68902da952d133fc5208b9d1e1",
+-    "binding": "dd5b901504f580bfe428726ffd325e9c50df99fec04a69b55e54fbb0c5261d73",
+-    "receipt": "9cde2d4163ba7e88b8e14e249c508c1407a981b0640b91fac5ab34215d349363",
++    "api": "PENDING_PARENT_ORIGINAL_PREPARE_AND_INDEPENDENT_REVIEW",
++    "scheduler": "PENDING_PARENT_ORIGINAL_PREPARE_AND_INDEPENDENT_REVIEW",
++    "binding": "PENDING_PARENT_ORIGINAL_PREPARE_AND_INDEPENDENT_REVIEW",
++    "receipt": "PENDING_PARENT_ORIGINAL_PREPARE_AND_INDEPENDENT_REVIEW",
+ }
++PUBLICATION_PENDING_PINS = TASK_ROOT / "E/tools/phase6-r6/publication-pending-pins.json"
++PUBLICATION_PENDING_PINS_SHA256 = "75809c1385ebac711340729b59e275efeca272b91afa751c2cead2cf7229b861"
+ ROOT_CAUSE_RECEIPT = TASK_ROOT / "E/receipts/phase4-issue35-target13/pair-env-rootcause.json"
+ ROOT_CAUSE_RECEIPT_SHA256 = "358d22cd6408d0a5b3e041d02c3e439e9d3fe6e40abdb8e9d70815c9f312c1e9"
+ ENV_NOOP_SCOPE_SHA256 = "90cc4c8fa9c00ccbcc82766cec17ba664a1326be5d9fb3aa65fadd46583b7435"
+@@ -123,6 +128,51 @@
+     if path.is_symlink() or not path.is_file() or path.resolve(strict=True) != path:
+         raise ValueError(label + "_NOT_EXACT_REGULAR_FILE")
+     return path.read_bytes()
++
++
++def verify_r6_transport_pins() -> dict[str, Any]:
++    """Require the immutable R6 transport record and pending canary/stage pins."""
++    raw = exact_bytes(PUBLICATION_PENDING_PINS, "R6_PUBLICATION_PENDING_PINS")
++    if sha(raw) != PUBLICATION_PENDING_PINS_SHA256:
++        raise ValueError("R6_PUBLICATION_PENDING_PINS_SHA_MISMATCH")
++    try:
++        pins = json.loads(raw)
++    except (UnicodeError, json.JSONDecodeError) as exc:
++        raise ValueError("R6_PUBLICATION_PENDING_PINS_INVALID") from exc
++    if not isinstance(pins, dict):
++        raise ValueError("R6_PUBLICATION_PENDING_PINS_INVALID")
++    candidate = pins.get("candidate", {})
++    transport = pins.get("r6_transport", {})
++    pending = pins.get("pending_stage", {})
++    wrapper = transport.get("canary_wrapper", {}) if isinstance(transport, dict) else {}
++    original = transport.get("r4b_canary_source", {}) if isinstance(transport, dict) else {}
++    test = transport.get("temp_transport_test", {}) if isinstance(transport, dict) else {}
++    if (candidate.get("release_root") != str(RELEASE_ROOT)
++            or candidate.get("app_root") != str(APP_ROOT)
++            or candidate.get("release_id") != "issue35-manager-autocontinue-20261012-r6-integrated"
++            or candidate.get("manifest_sha256") != MANIFEST_SHA256
++            or candidate.get("inventory_sha256") != INVENTORY_SHA256
++            or transport.get("status") != "READY_FOR_REVIEW_PENDING_R6_CANARY_AND_STAGE"
++            or wrapper.get("path") != str(ORIGINAL_CANARY)
++            or wrapper.get("sha256") != ORIGINAL_CANARY_SHA256
++            or sha(exact_bytes(ORIGINAL_CANARY, "R6_CANARY_WRAPPER")) != ORIGINAL_CANARY_SHA256
++            or original.get("path") != str(R4B_CANARY_SOURCE)
++            or original.get("sha256") != R4B_CANARY_SOURCE_SHA256
++            or sha(exact_bytes(R4B_CANARY_SOURCE, "R4B_CANARY_SOURCE")) != R4B_CANARY_SOURCE_SHA256
++            or transport.get("publication_adapter", {}).get("path") != str(Path(__file__).resolve())
++            or test.get("path") != str(R6_TRANSPORT_TEST)
++            or sha(exact_bytes(R6_TRANSPORT_TEST, "R6_TRANSPORT_TEST")) != test.get("sha256")
++            or pending.get("status") != "ROLLBACK_PREIMAGES_ONLY_NO_ENABLED_AFTER_FILES"
++            or pending.get("dir") != str(EXISTING_STAGE_DIR)
++            or pending.get("canary_path") != str(EXISTING_CANARY_PATH)
++            or pending.get("canary_sha256") != EXISTING_CANARY_SHA256
++            or pending.get("enabled_stage_sha256") != EXISTING_STAGE_SHA256
++            or not isinstance(EXISTING_CANARY_SHA256, str)
++            or not EXISTING_CANARY_SHA256.startswith("PENDING_")
++            or not all(isinstance(value, str) and value.startswith("PENDING_")
++                       for value in EXISTING_STAGE_SHA256.values())):
++        raise ValueError("R6_PUBLICATION_TRANSPORT_PINS_MISMATCH")
++    return pins
+ 
+ 
+ def write_exclusive(path: Path, raw: bytes, mode: int = 0o600) -> None:
+@@ -470,6 +520,7 @@
+ 
+ 
+ def template(pair_dir: Path, observer_receipt: Path) -> dict[str, Any]:
++    verify_r6_transport_pins()
+     if pair_dir != DEFAULT_PAIR_DIR or TASK_ROOT / "E/staged_config" not in pair_dir.parents:
+         raise ValueError("PAIR_TEMPLATE_PATH_OUTSIDE_PHASE4_SCOPE")
+     if pair_dir.exists() or pair_dir.is_symlink():
+@@ -552,7 +603,7 @@
+                                    "sha256": stage_hashes},
+         "target_trade_date": TARGET_DATE,
+         "candidate": {"release_root": str(RELEASE_ROOT), "app_root": str(APP_ROOT),
+-                      "release_id": "issue35-manager-autocontinue-20261012-r4b",
++                      "release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+                       "manifest_path": str(RELEASE_ROOT / "release-manifest.json"),
+                       "manifest_sha256": MANIFEST_SHA256,
+                       "inventory_sha256": candidate["candidate"]["application_inventory_sha256"]},
+@@ -590,7 +641,7 @@
+             "rollback_owner_boundary": "Main-owned later operation only; adapter execute is not run in writer phase.",
+         },
+         "current13_owner_acceptance": {
+-            "mode": "EXISTING_TARGET13_CANARY_PINNED_NO_RERUN",
++            "mode": "R6_TARGET13_CANARY_PINNED_NO_RERUN",
+             "canary_path": str(EXISTING_CANARY_PATH),
+             "canary_sha256": sha(canary_raw),
+             "accepted_run_id": canary_value.get("run_id"),
+@@ -600,7 +651,7 @@
+             "root_cause_receipt": str(ROOT_CAUSE_RECEIPT),
+             "root_cause_receipt_sha256": ROOT_CAUSE_RECEIPT_SHA256,
+             "parent_execute_command": None,
+-            "execute_preflight": "The exact execution-02 canary is already present and pinned; do not repeat owner POST/GET or write target13 state in this adapter phase.",
++            "execute_preflight": "The exact execution-03 R6 canary must already be present and independently accepted; do not repeat owner POST/GET or write target13 state in this adapter phase.",
+             "writer_template_side_effects": {"http_calls": 0, "owner_state_writes": 0, "launchctl_calls": 0},
+         },
+         "old_phase2_preview": {"path": str(TASK_ROOT / "E/staged_config/issue35-manager-autocontinue-20261012-r3-pending-r4"),
+@@ -617,6 +668,7 @@
+ 
+ def validate_stage_pair(stage_dir: Path, prep_receipt_path: Path,
+                         canary_path: Path) -> tuple[dict[str, Any], dict[str, bytes]]:
++    verify_r6_transport_pins()
+     if (stage_dir != EXISTING_STAGE_DIR or prep_receipt_path != EXISTING_STAGE_RECEIPT
+             or canary_path != EXISTING_CANARY_PATH):
+         raise ValueError("EXISTING_TARGET13_STAGE_AND_CANARY_PATHS_REQUIRED")
+@@ -701,6 +753,7 @@
+ 
+ 
+ def verify_pair_pins(value: Mapping[str, Any]) -> None:
++    verify_r6_transport_pins()
+     if value.get("publication_adapter") != publication_adapter_identity():
+         raise ValueError("PAIR_PUBLICATION_ADAPTER_PIN_MISMATCH")
+     fix_basis = value.get("fix_basis", {})
+@@ -791,9 +844,9 @@
+                                          "after_path": str(stage_dir / "com.lexi.v35.scheduler.plist"), "after_sha256": details["scheduler_sha256"]}}
+     result["required_confirmation"] = "ISSUE35_PAIR_20261013_" + sha(json_bytes(result))[:16]
+     result["operator_commands"] = {
+-        "check_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/issue35_phase4_pair_publication_adapter_r4_observer.py check --pair-dir {pair_dir}",
+-        "execute_main_owned_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/issue35_phase4_pair_publication_adapter_r4_observer.py execute --pair-dir {pair_dir} --confirm {result['required_confirmation']}",
+-        "rollback_main_owned_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/issue35_phase4_pair_publication_adapter_r4_observer.py rollback --pair-dir {pair_dir} --confirm {result['required_confirmation']} --expected-current pair-after",
++        "check_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/phase6-r6/issue35_phase6_r6_publication_adapter.py check --pair-dir {pair_dir}",
++        "execute_main_owned_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/phase6-r6/issue35_phase6_r6_publication_adapter.py execute --pair-dir {pair_dir} --confirm {result['required_confirmation']}",
++        "rollback_main_owned_only": f"{sys.executable} -B {TASK_ROOT}/E/tools/phase6-r6/issue35_phase6_r6_publication_adapter.py rollback --pair-dir {pair_dir} --confirm {result['required_confirmation']} --expected-current pair-after",
+     }
+     complete_path = pair_dir / "pair-plan.json"
+     write_json_exclusive(complete_path, result)

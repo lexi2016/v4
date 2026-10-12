@@ -1,0 +1,160 @@
+{
+  "CANNOT_CONFIRM": [
+    "Any source repair and independent retest; this receipt is diagnosis only.",
+    "Current live owner state, mutex, stage freshness, API/UI, and natural target-date result."
+  ],
+  "actions_not_performed": [
+    "No helper invocation or test rerun by reviewer",
+    "No completion CLI/output generation",
+    "No HTTP/owner/state/live service/plist/stage/Git action",
+    "No source or raw evidence modification"
+  ],
+  "authoritative_producer_evidence": [
+    {
+      "detail": "The saved execution03 preimage producer places r4b_two_generation_receipt_pins inside prior_target_owner_state.",
+      "lines": "1590-1614",
+      "path": "E/tools/phase6-r6/issue35_phase6_r6_canary_readback_fix.py"
+    },
+    {
+      "detail": "Frozen current13 static pins bind the R4b state-preimage, canary, and contract review paths and SHAs; actual referenced files hash to those values.",
+      "lines": "228-241,281-367",
+      "path": "E/tools/phase6-r6/issue35_phase6_r6_canary_readback_fix.py"
+    },
+    {
+      "detail": "R2 reads and checks the field at the top level, causing the exact error.",
+      "lines": "356-406",
+      "path": "E/tools/phase6-r6/complete_issue35_r6_saved_canary_r2.py"
+    },
+    {
+      "detail": "R2 later serializes the same refs from the wrong top-level path; update this alongside the verifier lookup.",
+      "lines": "822-830,896-903",
+      "path": "E/tools/phase6-r6/complete_issue35_r6_saved_canary_r2.py"
+    },
+    {
+      "detail": "Synthetic fixture uses top-level placement and masks producer shape.",
+      "lines": "334-355",
+      "path": "E/tools/phase6-r6/test_issue35_r6_get_dto_saved_completion.py"
+    }
+  ],
+  "diagnosis": {
+    "actual_nested_path": "prior_target_owner_state.r4b_two_generation_receipt_pins",
+    "actual_preimage_top_level_keys": [
+      "api_app_root",
+      "application_inventory_sha256",
+      "current_clock_local",
+      "http_calls_expected",
+      "manager_state_root",
+      "owner_source_inventory_sha256",
+      "prior_target_owner_state",
+      "protected_dates_sha256",
+      "release_manifest_sha256",
+      "safety",
+      "schema_version",
+      "target_preexisted",
+      "target_trade_date"
+    ],
+    "actual_top_level_r4b_two_generation_receipt_pins_present": false,
+    "classification": "ARTIFACT_SHAPE_ERROR; NO_PINNED_IDENTITY_DRIFT_IN_THE_SIX_RECEIPT_REFERENCES",
+    "field_comparison": {
+      "all_six_path_and_sha_fields_equal_authoritative_values": true,
+      "contract_review_path": {
+        "actual": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/review/phase6-publication-contract/independent-review.json",
+        "expected_same": true,
+        "expected_sha256": "f996a8fdbf2c22b2cffce756f644a6dc8b8b561f630e12f76b8314b65811b56c"
+      },
+      "r4b_canary_path": {
+        "actual": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-02/plan-canary.json",
+        "expected_same": true,
+        "expected_sha256": "4cfe936e7e52611544a95b6bccd692bb1cf47f823d3c5c91f0c9bbc09497ea63"
+      },
+      "r4b_state_preimage_path": {
+        "actual": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-02/state-preimage.json",
+        "expected_same": true,
+        "expected_sha256": "56af33340d7ed7256f287c626aa546acf459f73895ca6cd28bdbfc94df2e9f9c"
+      }
+    },
+    "second_required_site": "After correcting the first lookup, _canary_record line902 also indexes source_preimage['r4b_two_generation_receipt_pins']; it must read the same nested prior mapping. Its local prior is already assigned from source_preimage['prior_target_owner_state'] at line827.",
+    "values_match_authoritative_static_pins": true,
+    "why_error_is_deterministic": "R2 _r4b_state_snapshot assigns saved_refs = source_preimage.get('r4b_two_generation_receipt_pins') at line396. The authentic execution03 preimage has that key only inside prior_target_owner_state, so saved_refs is None and the not-dict branch raises the reported mismatch at line406. This is a schema-level false rejection, not evidence the six saved paths or SHAs changed.",
+    "why_focused_tests_missed_it": "R2 tests use BASE.saved_execution. That synthetic fixture writes r4b_two_generation_receipt_pins at top level (E/tools/phase6-r6/test_issue35_r6_get_dto_saved_completion.py:334-355), matching the verifier's incorrect assumption instead of the authentic producer. R2 tests passed 11/11 but did not cover the actual saved preimage shape."
+  },
+  "failure": {
+    "call_site": "E/tools/phase6-r6/complete_issue35_r6_saved_canary_r2.py:752-760",
+    "error": "R6_SAVED_PREIMAGE_R4B_RECEIPT_PINS_MISMATCH",
+    "failed_before": "completion CLI, output directory creation, private workspace creation, any owner/HTTP/state write",
+    "helper_location": "E/tools/phase6-r6/complete_issue35_r6_saved_canary_r2.py:396-406",
+    "reported_by_parent": true
+  },
+  "input_pins": {
+    "authoritative_contract_review": {
+      "path": "E/review/phase6-publication-contract/independent-review.json",
+      "sha256": "f996a8fdbf2c22b2cffce756f644a6dc8b8b561f630e12f76b8314b65811b56c"
+    },
+    "authoritative_r4b_canary": {
+      "path": "E/receipts/plan_canary_runs/20261013/execution-02/plan-canary.json",
+      "sha256": "4cfe936e7e52611544a95b6bccd692bb1cf47f823d3c5c91f0c9bbc09497ea63"
+    },
+    "authoritative_r4b_preimage": {
+      "path": "E/receipts/plan_canary_runs/20261013/execution-02/state-preimage.json",
+      "sha256": "56af33340d7ed7256f287c626aa546acf459f73895ca6cd28bdbfc94df2e9f9c"
+    },
+    "fixed_r6_canary_validator": {
+      "path": "E/tools/phase6-r6/issue35_phase6_r6_canary_readback_fix.py",
+      "sha256": "a67527a80a9d1399ec2eac076c5b27d538971d588918ea7b2ee1921a9f95be34"
+    },
+    "parent_preflight_failure": {
+      "path": "E/receipts/phase6-parent-saved-completion-r2/parent-preflight-failure.json",
+      "sha256": "b21a76a3b66e082e13f1d121f87be8a5391103ae68b45b9e377b50ec2e80d4af"
+    },
+    "r2_helper": {
+      "path": "E/tools/phase6-r6/complete_issue35_r6_saved_canary_r2.py",
+      "sha256": "048fc95accfc64a15976471ecc4628afba413937d08d435046057368e25d0d5c"
+    },
+    "r2_prior_review": {
+      "path": "E/review/phase6-saved-completion-atomic-r2/independent-review.json",
+      "sha256": "9b6a7a496770a35567f4ac449f23a20609044c4893b1cfc206f52ee32786a7f0"
+    },
+    "r2_test": {
+      "path": "E/tools/phase6-r6/test_issue35_r6_saved_completion_r2.py",
+      "sha256": "5af1841ae8c84671934d0911272f22af83ef2c1e84f5ef0a7412610ee5cf3e37"
+    },
+    "r6_canary_source": {
+      "path": "E/tools/phase6-r6/issue35_phase6_r6_canary.py",
+      "sha256": "642b81a3f50b54dd1fa7ac688d87162004a01c08cb494c8a402fe55e168e7c5e"
+    },
+    "saved_execution03_preimage": {
+      "bytes": 7146,
+      "path": "E/receipts/plan_canary_runs/20261013/execution-03/state-preimage.json",
+      "sha256": "1f37c32b04a35821dcce645e580fd85f7c52b19ee749c9d41cfc50d9c0b0bfd9"
+    }
+  },
+  "minimal_legal_fix": {
+    "code_only": "In _r4b_state_snapshot, source saved_refs from prior.get('r4b_two_generation_receipt_pins') and compare all six keys/values exactly as today. In _canary_record, read prior['r4b_two_generation_receipt_pins'] using the already established nested prior object.",
+    "preserve": "Do not alter or regenerate execution03 raw evidence, any authoritative R4b paths/SHAs, generation/run/product/input/file SHA checks, protected-date or mutex gates. Do not flatten or rewrite the saved artifact merely to satisfy the helper.",
+    "regression": "Amend the new R2 temp fixture or add a focused case so its preimage has the authentic nested shape; assert exact static pin acceptance and that completed output serializes the same nested receipt pins."
+  },
+  "reviewed": "READ_ONLY_STATIC_DIAGNOSIS",
+  "schema_version": "issue35.phase6.real_saved_preimage_diagnosis.v1",
+  "scope": {
+    "allowed_output_paths": [
+      "E/review/phase6-real-saved-preimage/diagnosis.json",
+      "E/receipts/independent-review/phase6-real-saved-preimage/diagnosis-receipt.json"
+    ],
+    "path": "E/PHASE6_REAL_SAVED_PREIMAGE_DIAG_SCOPE.md",
+    "sha256": "a2987acddc0b1f43e2a721e8247e010f1f4764d9c5586c28f4136494d3bea85a"
+  },
+  "severity": {
+    "P0": [],
+    "P1": [
+      {
+        "finding": "Current R2 offline preflight is blocked on the authentic pinned execution03 preimage; its reference lookup rejects the production-shaped saved evidence before completion. It fails closed and causes no data mutation."
+      }
+    ],
+    "P2": [
+      {
+        "finding": "The R2 focused fixture does not mirror the real producer's nested receipt-reference shape, so its 11 passing tests did not catch this deterministic blocker."
+      }
+    ]
+  },
+  "status": "DIAGNOSIS_CONFIRMED_SAVED_RECEIPT_NESTING_MISMATCH"
+}

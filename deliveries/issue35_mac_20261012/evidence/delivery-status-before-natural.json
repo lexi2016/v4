@@ -1,0 +1,195 @@
+{
+  "schema": "v4.issue35.mac.integration.delivery.v1",
+  "written_at_utc": "2026-10-11T23:59:51.909384+00:00",
+  "baseline_git_commit": "37de6a9970eb9be05a79c5be0e2e5a39bddd6426",
+  "baseline_git_tree": "d1408d1e87ec1e71ef0121fc6a015de79c3fbf0e",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_final_sources": [
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/workspace.py",
+      "exists": true,
+      "sha256": "70a2bc81739778066f9183bb7acac8a6560f5a5b9e42329f8d47333f82289f3d",
+      "bytes": 79834
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/workspace_projection.py",
+      "exists": true,
+      "sha256": "97561f248534ab55db9f550d7e891249fe75191fa2a1cf2285c14e226f8bfc86",
+      "bytes": 32132
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/us_mapping_research.py",
+      "exists": true,
+      "sha256": "886178f1e4b90b4e5e68f94cfeddc808f39e596740b295550edb6b8cd60b5e84",
+      "bytes": 68048
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/workspace_announcements.py",
+      "exists": true,
+      "sha256": "ba3849913eb768ae166e6fa796246d27742a76ce7fd8469356470570dacc3e73",
+      "bytes": 173107
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/tests/test_manager_plan_readback_issue24.py",
+      "exists": true,
+      "sha256": "0c48e83dbb447a0b33a5870dc1a65a358e72fb45173b332034323441a9289508",
+      "bytes": 16852
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/tests/test_manager_us_mapping_research.py",
+      "exists": true,
+      "sha256": "713aeeaf6b400ab7d11b73df7b401e88584cb3516f211ddeb5dc6d91cf3c85a5",
+      "bytes": 61573
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/tests/test_issue35_dynamic_reload_identity.py",
+      "exists": true,
+      "sha256": "bc36c15a39d35c18735b32934192ad77f29b5b9353856a5f8b7d7daf709da3b8",
+      "bytes": 12849
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/tests/test_issue35_owner_readback_commit_order.py",
+      "exists": true,
+      "sha256": "00f921bba8d702b289589df032d2b6b02ef4fdaaf9d9eac28b2f8e553d215e5d",
+      "bytes": 4180
+    }
+  ],
+  "canonical_phase6_preimages": [
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/workspace.py",
+      "sha256": "95ef1eeea9fbf4269cccc47cf3c5d2f5f74f1d59026bfc226016365ce6fb84c2",
+      "size": 72887
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/workspace_projection.py",
+      "sha256": "95213e37ac8c793395b58e5153c34b311af911b27020487a965878ccb870e068",
+      "size": 31315
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/us_mapping_research.py",
+      "sha256": "ca84481ae4e4c819ad1743d7c3bae14b6851fb35daa74572b7c70ff130f5730a",
+      "size": 66153
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/tests/test_manager_plan_readback_issue24.py",
+      "sha256": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989",
+      "size": 13936
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/tests/test_manager_us_mapping_research.py",
+      "sha256": "0f4efa5448a8a1417453d76909906d6e8c68e0b1d3530f06c18b1adb3fc4fe46",
+      "size": 60979
+    }
+  ],
+  "runtime_release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+  "runtime_manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+  "runtime_file_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+  "runtime_file_count": 1049,
+  "deployment": {
+    "api": {
+      "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+      "label": "com.lexi.v35.api-only",
+      "loaded_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "loaded_plist_sha256": "0d8b4fac90932e09db1946a0c39373fe132c65705a0df02b654e133b6ba84bbc",
+      "manifest_matches_loaded_plist": true,
+      "manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+      "pid": 62318,
+      "release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+      "safety": {
+        "RESEARCH_ONLY": true,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "state": "running"
+    },
+    "identity_observation": "Fresh read-only launchctl print and ps. API label/PID/R6 root/manifest matched. Scheduler label/PID and original HK root/working directory matched; its manager-announcement app root points to the R6 integrated app.",
+    "publication_execution": {
+      "path": "E/receipts/phase6-parent-publication/parent-publication-execution.json",
+      "sha256": "879576ba7caea9668ced1c03d13c58bf38a8b16a76048f2a588ce0d8cafb76da",
+      "status": "PUBLISHED_AND_BOTH_LABELS_RELOADED",
+      "stdout_path": "E/receipts/phase6-parent-publication/publication.stdout.json",
+      "stdout_sha256": "b63d56a87a63b17d9c719c5728ff7d8d0e3fd865ccca4f2e017c5ce30648c44e"
+    },
+    "scheduler": {
+      "announcement_cycle_sha256_pin": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "announcement_plan_canary_sha256_pin": "888174bd56e73f75026804150b7980cb01aa7f660ba840f24ea4b186cdb6ab14",
+      "binding_safety": {
+        "announcement_collection_enabled": false,
+        "buy_gate_updated": false,
+        "enabled": true,
+        "orders_sent": false,
+        "production_allowed": false,
+        "research_only": true
+      },
+      "label": "com.lexi.v35.scheduler",
+      "loaded_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "loaded_plist_sha256": "b105111ff03987acc772fe025a17ba4976aa2f8cb58f2b763462a9cb4a06cad6",
+      "manager_announcement_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+      "manager_plan_binding_path": "E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/manager-plan-binding.json",
+      "manager_plan_binding_sha256": "74c2f02d0abc940c110ceb9cb0dddf950f4e2dc09c6a93afea405c882dd16e84",
+      "manifest_matches_loaded_plist": true,
+      "manifest_sha256": "2d6af44c2573227170c8617f44c87693738fc1dd2fbc7e785f3e2a52a3f2b3a4",
+      "pid": 62322,
+      "release_id": "hk-auto-d1-20261011-r1",
+      "state": "running",
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-d1-20261011-r1/app"
+    }
+  },
+  "date12_live_at_review_time": {
+    "changed_components": [],
+    "consumed": true,
+    "execution_kind": "MANUAL_REFRESH",
+    "input_identity": "fb51ca666bae7e2cd19282d63d3ef72e9b5767c9b4e9379d68a5edf530762867",
+    "input_identity_status": "MATCH",
+    "owner": "ManagerResearchJobService.refresh_workspace_plan",
+    "product_sha256": "ca9622ce6e1fdd4d716de09200a3f8031d319fa8f8f7ccd9298fce9167fbb55e",
+    "run_id": "9aeaedf3b8bf40f8963462be98445b24",
+    "status": "CURRENT",
+    "target_trade_date": "20261012"
+  },
+  "date12_terminal": {
+    "formal_recommendation_count": 0,
+    "owner_attempt_run_id": "9aeaedf3b8bf40f8963462be98445b24",
+    "owner_attempt_sha256": "221eb9b069de56735f8162812cb450fb3118a0ea9ace1a179d77e15ca9fbda46",
+    "owner_attempt_state": "PARTIAL",
+    "status": "VERIFIED"
+  },
+  "UI_VERIFIED": "BOUNDED_NORMAL_RELOAD_DOM; SCREENSHOT_CANNOT_CONFIRM",
+  "BEHAVIOR_VERIFIED": "PASS_ONE_READ_ONLY_SAME_QUERY_GET_MATCHES_PERSISTED_TERMINAL_AND_PARENT_NORMAL_RELOAD_DOM",
+  "NATURAL_VERIFIED": "CANNOT_CONFIRM; future actual originalowner slots pending",
+  "business_limits": [
+    "Overall saved attempt is PARTIAL with 3,294 recorded failure reasons; formal recommendation count is zero.",
+    "Announcement research is not PIT-proven and was not consumed by the saved plan.",
+    "HK Connect target membership/authority is unverified.",
+    "Oversold has unproven historical volume units and incomplete history; it is not a formal selection input.",
+    "US quote/attention coverage is 33/33 and the UI reports 12/12 individual linked-or-gap assessments; separate mapping is partial with 10 reviewed, 7 matched, 7 HK relations, incomplete relation evidence, no full-market coverage, and CANNOT_CONFIRM target eligibility.",
+    "Manual refresh is not a natural run; natural-period acceptance is CANNOT_CONFIRM.",
+    "Screenshot/pixels are CANNOT_CONFIRM; parent-pinned read-only DOM is the UI evidence used.",
+    "The current GET body SHA differs from the saved parent GET body; exact whole-body differences are CANNOT_CONFIRM."
+  ],
+  "independent_live_receipt_sha256": "e5a2b52cdf1f728bdcbcfe5508b6581e11bfc629ec4d44f71e4b388cd3b0adbb",
+  "day11_catchup": {
+    "target_trade_date": "20261012",
+    "publication_date": "2026-10-11",
+    "trigger_kind": "MANUAL_CATCHUP",
+    "catalog_run_id": "857879bcf0664cc487e3cdee38ade0a9",
+    "evidence_run_id": "6557712adca825b670f28c5169655db1",
+    "article_rows": 23,
+    "complete_body_count": 21,
+    "body_capture_failed": 2,
+    "body_capture_failure_codes": [
+      "BODY_CONTENT_116_H_STOCK_IDENTITY_MISMATCH",
+      "BODY_CONTENT_PAGE_LIMIT_EXCEEDED"
+    ],
+    "semantic_status": "INDEPENDENT_REVIEW_PENDING",
+    "natural_run_verified": false
+  },
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "delivery_type": "SCOPED_CANONICAL_AND_RUNTIME_DELTAS_AND_MAC_TOOLS_NOT_STANDALONE_FULL_APP"
+}

@@ -1,0 +1,151 @@
+{
+  "CANNOT_CONFIRM": [
+    "Parent execution of offline completion, current target date/preimage/mutex checks, or completion-output bytes.",
+    "Live API process identity at port 8873; the raw URL is used by an in-process httpx.ASGITransport.",
+    "Target13 stage preparation/publication/activation and actual API/UI readback.",
+    "Natural HK execution, complete market coverage, PIT completeness, or selection readiness; owner attempt is PARTIAL."
+  ],
+  "get_dto_fix_review": {
+    "behavior": "POST retains top-level execution_kind and nested safety requirements. Reader-shaped GET may omit optional top-level execution_kind and nested safety aliases, but it must preserve all direct boolean safety fields; present aliases must match exactly. Nested plan_product execution kind, status, consumed flag, owner, run/product/input identity, diagnostic MATCH, VERIFIED run readback, and equal terminal attempt identity/state/timestamps remain checked.",
+    "negative_controls": "Focused tests cover every absent/false direct safety flag, contradictory optional aliases, wrong product status/run/product/input identity, stale diagnostics, owner mismatch, unverified run-readback, failed terminal attempt, and missing nested product execution kind.",
+    "patch_matches_pins": true
+  },
+  "observed_utc": "2026-10-11 22:39:31 UTC",
+  "parent_offline_argv": {
+    "argv": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/complete_issue35_r6_saved_canary.py"
+    ],
+    "not_run_by_reviewer": true,
+    "source_command_sha256": "2444469516f069194ab7267551bb7034bfcb89676f23b2b14faa5c4d0b47cc5e"
+  },
+  "pins_verified": {
+    "conditional_stage_command": {
+      "path": "E/receipts/phase6-get-dto-saved-completion/conditional-stage-enabled-command.json",
+      "sha256": "ebeb5659e31d67dd8f95f6b17952e5465589f5b596ab01faa85e1fe9b6879d72"
+    },
+    "focused_tests": {
+      "path": "E/tools/phase6-r6/test_issue35_r6_get_dto_saved_completion.py",
+      "sha256": "15886863e811ddb4f16cff5846632947641f6c3f03319637bf12f5802ce6cb63"
+    },
+    "get_dto_fix": {
+      "path": "E/tools/phase6-r6/issue35_phase6_r6_canary_readback_fix.py",
+      "sha256": "a67527a80a9d1399ec2eac076c5b27d538971d588918ea7b2ee1921a9f95be34"
+    },
+    "original_to_fixed_patch": {
+      "path": "E/receipts/phase6-get-dto-saved-completion/r6-original-to-get-readback-fix.patch",
+      "sha256": "4ddd0d008b3d03f9e7bed2f264cb2acfe1f947c4b35b72fcc2289d5adf89ba15"
+    },
+    "parent_offline_command": {
+      "path": "E/receipts/phase6-get-dto-saved-completion/parent-offline-completion-command.json",
+      "sha256": "2444469516f069194ab7267551bb7034bfcb89676f23b2b14faa5c4d0b47cc5e"
+    },
+    "prior_formal_diagnosis": {
+      "path": "E/review/phase6-execution03-readback/independent-review.json",
+      "sha256": "362a8b53ba07a7c5e7159683f5e4c618244bd500d6faa13d43fa2b925e1ffdc2"
+    },
+    "saved_completion_helper": {
+      "path": "E/tools/phase6-r6/complete_issue35_r6_saved_canary.py",
+      "sha256": "4c5bcce92c25bab0bccb1da4b3550129365079f7da9072ccc647774fa840e3dc"
+    },
+    "source_and_saved_state_pins": {
+      "path": "E/receipts/phase6-get-dto-saved-completion/source-and-saved-state-pins.json",
+      "sha256": "8e1ee40210c69da8266a59e4998f20b3562a3774babf19a56fb6f3c0005e38cd"
+    }
+  },
+  "schema_version": "issue35.phase6.get_dto_saved_completion_independent_review.v1",
+  "scope": {
+    "allowed_review_outputs": [
+      "E/review/phase6-get-dto-saved-completion/**",
+      "E/receipts/independent-review/phase6-get-dto-saved-completion/**"
+    ],
+    "path": "E/PHASE6_GET_DTO_SAVED_COMPLETION_REVIEW_SCOPE.md",
+    "sha256": "15b3b3bbfa9efe2c81b64f63d739fa38aae5b7d96de1c2aa5592a4c9fbd898c5",
+    "writer_closure_path": "E/receipts/phase6-get-dto-saved-completion/phase6-get-dto-saved-completion-writer-closure.json",
+    "writer_closure_sha256": "355cabd6081793f09c2607b15e61a35e6ed4bdbc041755f80db7513a0fc3fa93"
+  },
+  "scope_controls": {
+    "completion_cli_run": false,
+    "git_actions": false,
+    "live_service_or_plist_or_launchctl_actions": false,
+    "manager_state_writes": false,
+    "new_http_or_owner_calls": false,
+    "output_paths_written_by_reviewer": [
+      "E/review/phase6-get-dto-saved-completion/independent-review.json",
+      "E/receipts/independent-review/phase6-get-dto-saved-completion/reviewer-receipt.json"
+    ],
+    "stage_or_activation_actions": false
+  },
+  "test_evidence": {
+    "command_argv": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--import-mode=importlib",
+      "--basetemp=/tmp/issue35-phase6-getdto-review-20261012-002",
+      "E/tools/phase6-r6/test_issue35_r6_get_dto_saved_completion.py"
+    ],
+    "exit_code": 0,
+    "fixtures": "Saved-completion path is exercised only against synthetic tmp_path manager state; owner invocation is monkeypatched to fail if called.",
+    "result": "31 passed in 1.59s"
+  },
+  "verdict": {
+    "BEHAVIOR_VERIFIED": "GET_DTO_VALIDATOR_AND_SYNTHETIC_SAVED_COMPLETION_ONLY",
+    "P0": [],
+    "P1": [
+      {
+        "code": "STAGE_ACCEPTABLE_CANARY_LEFT_ON_COMPLETION_FAILURE",
+        "evidence": [
+          {
+            "detail": "The helper writes plan-canary.json before its post-write protected-date check (908-909), fresh-state recheck (910-916), mutex recheck (917-919), and completion-receipt size/write check (1010-1014). Exceptions at any of those gates leave the already-written canary and partial output directory in place.",
+            "lines": "895-900",
+            "path": "E/tools/phase6-r6/complete_issue35_r6_saved_canary.py"
+          },
+          {
+            "detail": "The plan-canary validator accepts the canary from its path and validates its internal evidence; it does not require the companion completion-receipt.json. The separately pinned conditional stage argv consumes plan-canary.json directly.",
+            "lines": "231-267, 322-400",
+            "path": "E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/infrastructure/scheduling/manager_announcement_supervisor.py"
+          }
+        ],
+        "impact": "A nonzero offline-completion run can leave a valid PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING canary that the later stage-preparation command accepts, even though final post-write state/mutex/receipt checks did not complete. No automatic stage run is shown; the risk is that the partial artifact remains stage-acceptable.",
+        "minimal_fix": "Do not publish plan-canary.json until all verification, post-write state/mutex/date gates, and receipt construction/size checks pass. Prefer writing into a new private temporary output directory and publishing the complete set at the fixed path only after success; add a regression forcing a post-write gate failure and asserting no stage-acceptable canary exists. Make retry behavior explicit for an interrupted partial output.",
+        "severity": "P1"
+      }
+    ],
+    "P2": [
+      {
+        "code": "COMMON_VERIFICATION_SUPPORT_MODULE_NOT_PINNED_BY_COMPLETION_CLI",
+        "evidence": [
+          {
+            "detail": "The verifier imports issue35_phase4_common.py at module load and pins its own normalized source plus the fixed validator, but _verify_source_pins does not pin or hash-check the imported support module.",
+            "lines": "21-37, 215-224",
+            "path": "E/tools/phase6-r6/complete_issue35_r6_saved_canary.py"
+          },
+          {
+            "detail": "The unpinned module supplies next-session selection, release loading, protected-date hashing, task/state roots, and related acceptance constants used by the parent command.",
+            "lines": "466, 684, 725, 730-734",
+            "path": "E/tools/phase6-r6/complete_issue35_r6_saved_canary.py"
+          },
+          {
+            "detail": "The prior frozen diagnosis records common.py SHA-256 d5e8c8aaf591d10df2343dfe1d870019ee431ad708d6478b0863c9cd53a0fa84; the current file has that same hash, but this CLI does not enforce the pin.",
+            "lines": "216-219",
+            "path": "E/review/phase6-execution03-readback/independent-review.json"
+          }
+        ],
+        "impact": "A support-module change after review could alter the command's date/state checks without changing the pinned completion-helper or GET-fix hashes.",
+        "minimal_fix": "Pin issue35_phase4_common.py to the already recorded SHA-256 in _verify_source_pins and add a drift-rejection test, or include an explicit parent preflight that verifies the same hash immediately before running the exact argv.",
+        "severity": "P2"
+      }
+    ],
+    "P2_other": "NONE",
+    "REVIEWED": "FAIL_BOUNDED",
+    "SAFE_FOR_PARENT_OFFLINE_COMPLETION_ARGV": false,
+    "TESTED": "PASS_FOCUSED_TEMP_ONLY",
+    "status": "FAIL_BOUNDED_CANARY_PUBLISHED_BEFORE_FINAL_ACCEPTANCE_GATES"
+  }
+}

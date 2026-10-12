@@ -1,0 +1,145 @@
+{
+  "BEHAVIOR_VERIFIED": "SYNTHETIC_SAVED_COMPLETION_AND_TEMP_STAGE_CONSUMER_ONLY",
+  "CANNOT_CONFIRM": [
+    "Parent execution of the offline completion or its real current date, target state, protected-date maps, mutex, and output bytes.",
+    "The new final canary's real age under the unchanged 60-minute stage-helper gate or live plist preflight.",
+    "Stage preparation, pair publication, activation, live API/UI readback, and natural target-date execution.",
+    "Live API process identity at port 8873; the saved POST/GET evidence is from pinned in-process ASGITransport.",
+    "Full research/PIT completeness; the saved owner attempt remains PARTIAL."
+  ],
+  "REVIEWED": "PASS_EXACT_FROZEN_R2_DIFF",
+  "SAFE_FOR_PARENT_OFFLINE_COMPLETION_ARGV": true,
+  "TESTED": "PASS_FOCUSED_TEMP_ONLY",
+  "actions_not_performed": [
+    "completion CLI",
+    "live HTTP or owner call",
+    "live state/plist/service/launchctl operation",
+    "stage or activation",
+    "Git action",
+    "source or canonical modification"
+  ],
+  "behavior_review": {
+    "atomicity": "The helper builds all six stage files under a 0700 private sibling, stage-validates the private canary, verifies exact file set/content hashes, constructs bounded completion receipt, reruns protected-date/current-state/mutex/current-next-session gates, then uses macOS renameatx_np RENAME_EXCL as the sole fixed-path publication. On tested prepublication failures the private workspace is removed; interrupted workspaces are refused and preserved; destination races do not overwrite.",
+    "clock_and_freshness": "Original request/context/terminal-attempt/POST product/GET product/parent timestamps are preserved separately. HTTP transport timestamps are explicitly NOT_CAPTURED. Offline acceptance clock is separately labeled; the helper re-samples current clock at final gate and exposes that in prepublication_recheck. The conditional original stage helper SHA and 60-minute maximum are unchanged; no freshness pass is claimed or overridden.",
+    "common_pin": "Exact common.py SHA is checked before module import and rechecked during every verifier call before reliance; import path is checked. Drift rejection is covered.",
+    "source_and_behavior_preservation": "Diff is exactly the frozen patch. Existing fixed GET validator and all R1 saved-evidence/identity/terminal/PARTIAL/manual-ASGI checks remain unchanged; the parent offline command has no overrides and does not call HTTP/owner/services or write manager state/plists.",
+    "support_references": "The published canary references projection evidence under the retained private sibling support directory. The success test confirms these refs still resolve after publish rename, and the parent command contract explicitly requires preserving that support directory."
+  },
+  "parent_commands": {
+    "conditional_original_stage": {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/prepare_daily_chain_activation.py",
+        "--app-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+        "--target-date",
+        "20261013",
+        "--api-plist",
+        "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+        "--scheduler-plist",
+        "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+        "--canary-path",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03-completed/plan-canary.json",
+        "--output-dir",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary",
+        "--stage-enabled"
+      ],
+      "gate": "Only after parent accepts the real offline completion output and independently verifies the actual original helper's 60-minute canary age against real current time and current live preconditions; stop if stale. No activation/install/reload is authorized by this receipt.",
+      "status": "NOT_RUN_CONDITIONAL"
+    },
+    "offline_completion": {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/complete_issue35_r6_saved_canary_r2.py"
+      ],
+      "not_run_by_reviewer": true,
+      "preconditions": [
+        "Use exact pinned interpreter/helper and argv only.",
+        "Parent independently checks real current HK target date/session, candidate/source pins, execution03 fresh target-state identity/write set, protected-date maps and owner mutex.",
+        "Fixed completion output path and R2 private prefix must be absent; any drift, stale prefix, busy mutex, or failed gate means stop."
+      ],
+      "status": "SAFE_AFTER_PARENT_CURRENT_CHECKS_AND_REVIEW_ACCEPTANCE"
+    }
+  },
+  "pins": {
+    "actual_diff": {
+      "actual_diff_byte_content_matches_patch": true,
+      "base_sha256": "4c5bcce92c25bab0bccb1da4b3550129365079f7da9072ccc647774fa840e3dc",
+      "path": "E/receipts/phase6-saved-completion-atomic-r2/original-to-r2.patch",
+      "sha256": "c4d5ef00626be394d73b4c4abc65f89771d45c09a5ac6a7b3f0da29fb9096226"
+    },
+    "common_dependency": {
+      "path": "E/tools/issue35_phase4_common.py",
+      "sha256": "d5e8c8aaf591d10df2343dfe1d870019ee431ad708d6478b0863c9cd53a0fa84"
+    },
+    "fixed_get_validator": {
+      "path": "E/tools/phase6-r6/issue35_phase6_r6_canary_readback_fix.py",
+      "sha256": "a67527a80a9d1399ec2eac076c5b27d538971d588918ea7b2ee1921a9f95be34"
+    },
+    "parent_command_contracts": {
+      "path": "E/receipts/phase6-saved-completion-atomic-r2/parent-command-contracts.json",
+      "sha256": "eb9753145394586e9d06ba8e1a7600d9efa48839c10778d04b7ab4b2c8ababfe"
+    },
+    "prior_get_review": {
+      "path": "E/review/phase6-get-dto-saved-completion/independent-review.json",
+      "sha256": "969c75b7a18593b02a45ef3ab7f6c94451054c933b5826ed1359b34fb6527ef5"
+    },
+    "r2_helper": {
+      "path": "E/tools/phase6-r6/complete_issue35_r6_saved_canary_r2.py",
+      "sha256": "048fc95accfc64a15976471ecc4628afba413937d08d435046057368e25d0d5c"
+    },
+    "r2_tests": {
+      "path": "E/tools/phase6-r6/test_issue35_r6_saved_completion_r2.py",
+      "sha256": "5af1841ae8c84671934d0911272f22af83ef2c1e84f5ef0a7412610ee5cf3e37"
+    },
+    "source_and_contract_pins": {
+      "path": "E/receipts/phase6-saved-completion-atomic-r2/source-and-contract-pins.json",
+      "sha256": "2e7a6ac38f9678e342365e688f247e51d3d4035451472e1ec71b9a5cedf644aa"
+    },
+    "unchanged_stage_helper": {
+      "frozen_max_canary_age_minutes": 60,
+      "path": "E/tools/prepare_daily_chain_activation.py",
+      "sha256": "53e19fdcedb973d5f0e68fe52a95950c32575e092377dda0ca361d39c1d327cb"
+    }
+  },
+  "schema_version": "issue35.phase6.saved_completion_atomic_r2.independent_review.v1",
+  "scope": {
+    "allowed_output_paths": [
+      "E/review/phase6-saved-completion-atomic-r2/independent-review.json",
+      "E/receipts/independent-review/phase6-saved-completion-atomic-r2/reviewer-receipt.json"
+    ],
+    "path": "E/PHASE6_SAVED_COMPLETION_ATOMIC_R2_REVIEW_SCOPE.md",
+    "sha256": "71454e51d4d1e54a672f5b51efc89ec73cb73670ad2792ccccaa80fd8377565d",
+    "writer_closure_path": "E/receipts/phase6-saved-completion-atomic-r2/writer-closure.json",
+    "writer_closure_sha256": "5e26d213fea842838cf11a18b65c1622aeb378b5ddb7461533ac451b390cd075",
+    "writer_scope_path": "E/PHASE6_SAVED_COMPLETION_ATOMIC_R2_SCOPE.md",
+    "writer_scope_sha256": "e38925839c8f63ac06c84e4e901356a7529368c907d81c8bec606be0b93017f1"
+  },
+  "status": "PASS_BOUNDED_R2_ATOMIC_SAVED_COMPLETION",
+  "test_evidence": {
+    "argv": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--import-mode=importlib",
+      "--basetemp=E/review/phase6-saved-completion-atomic-r2/tmp-review-01",
+      "E/tools/phase6-r6/test_issue35_r6_saved_completion_r2.py"
+    ],
+    "coverage": "Successful real temp-directory rename and stage-consumer validation; support refs remain readable after rename; protected-date/current-state/mutex/current-date and receipt-size late failures clean all private output and leave fixed path absent; RENAME_EXCL destination race preserves winner; stale private workspace is retained/refused; common and review-scope drift reject; synthetic state bytes unchanged; owner call monkeypatched to fail.",
+    "exit_code": 0,
+    "result": "11 passed in 1.51s",
+    "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1"
+  },
+  "verdict": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "finding": "No actionable correctness, security, behavioral-regression, or missing focused-test issue found within the frozen R2 scope."
+  }
+}

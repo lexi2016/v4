@@ -1,0 +1,215 @@
+{
+  "actual_diff": {
+    "announcement_helper": {
+      "accepted_r6_workspace_announcements_sha256": "de1948b09578a75e65e775a5ab6f6b2399eb3bce688f77b3ec8be6f5246bdf5a",
+      "canonical_extracted_helper_equals_r6_lines_2377_2511": true,
+      "canonical_preimage_sha256": "edde167df83df938d5c2f5f4facb01fc8f2e212a28ef147dfd3a52c834f98d82",
+      "helper_bytes": 9390,
+      "helper_fragment_sha256": "edc145296f495225fb38a83a6f027126dce2e16d969438c9358aa207729303f6"
+    },
+    "canonical_semantic_merge_patch_sha256": "b888cf2fe3631a36f7fd38ef541d9b95f352040382aea2562bec9ebb04778fde",
+    "cutoff_dto": {
+      "intermediate_preimage_sha256": "969e75bb31b0f0c89f04f90c59b2d6491f7d85b9f312eb38b31bce381dd72091",
+      "new": "plan_cutoff=context.get(\"research_cutoff\")",
+      "old": "plan_cutoff=cutoff",
+      "only_byte_change_from_intermediate_preimage": true,
+      "parsed_cutoff_still_used_for_comparison": true
+    },
+    "files_in_diff": 8,
+    "independent_diff_bytes": 54708,
+    "independent_diff_path": "E/review/phase6-canonical-final/actual-source-diff.patch",
+    "independent_diff_sha256": "98512b5772ada2d8ac24ebfd8501b5368a355eb0c0afe603b90f88f186176cff",
+    "reviewed_deltas": [
+      {
+        "behavior": "Adds explicit failed/owner readback diagnostics and a private candidate view; validates complete date/input/product/run/SHA/owner/terminal-attempt identity through the real reader before success attempt and public latest publication. Same-input reuse, failure journal, and previous-latest preservation remain.",
+        "evidence_lines": "916-1076,1123-1302",
+        "path": "v4/manager_research/workspace.py"
+      },
+      {
+        "behavior": "Omits only market_screen.data_context.research_cutoff from identity while retaining the complete projection and all other source/result fields.",
+        "evidence_lines": "196-211,494-502",
+        "path": "v4/manager_research/workspace_projection.py"
+      },
+      {
+        "behavior": "Removes raw read clock from relation identity; v2 identity binds source payload/evidence/review/seed identities, eligible rows, cutoff-result counts, review state, withheld count and gaps. Existing available_at and review-time comparisons remain at 653-735.",
+        "evidence_lines": "420-455,638-894",
+        "path": "v4/manager_research/us_mapping_research.py"
+      },
+      {
+        "behavior": "Retains six parametrized unsuccessful-readback rejection cases and exercises success return, terminal-attempt failures, late publication failure, prior pointer/history and symlink boundary.",
+        "evidence_lines": "194-243,246-313",
+        "path": "tests/test_manager_plan_readback_issue24.py"
+      },
+      {
+        "behavior": "Same-source later clock remains CURRENT; source/row/decision/date changes and source/review available_at crossings change identity and fail closed.",
+        "evidence_lines": "235-342",
+        "path": "tests/test_issue35_dynamic_reload_identity.py"
+      },
+      {
+        "behavior": "Rejects a mismatched full candidate readback before public latest or terminal success; rejects altered RUNNING owner identity.",
+        "evidence_lines": "51-116",
+        "path": "tests/test_issue35_owner_readback_commit_order.py"
+      },
+      {
+        "behavior": "Restores the exact read-only R6 consumption validator; existing source/owner/handoff/time/cutoff/selection/count/PIT fail-closed gates remain. The only subsequent DTO change returns ISO context cutoff while parsed cutoff remains used for temporal comparisons.",
+        "evidence_lines": "2232-2306,2309-2443,2445-2553",
+        "path": "v4/manager_research/workspace_announcements.py"
+      },
+      {
+        "behavior": "Adds clock-only identity stability and cutoff-result change assertion; existing in-process scheduled API wrong-binding 409 and synthetic date/session-specific API readbacks remain passing.",
+        "evidence_lines": "94-131,243-304,382-446,523-536",
+        "path": "tests/test_manager_us_mapping_research.py"
+      }
+    ],
+    "workspace_announcements_final_patch_sha256": "cdacc7ce29f81af00c73a0e032fe86e5909bcabb96e41b4c09cb8b1148ef85c6",
+    "writer_diff_verification_path": "E/receipts/phase6-integration-preparation/canonical-final-diff-verification.json",
+    "writer_diff_verification_sha256": "25dd05dc5ac005a89c78054d77291daa5b0fcdd1d3f3890ae5b896c318ccf355"
+  },
+  "behavior_review": {
+    "announcement_public_read_gates": "PASS_STATIC_AND_TEMP_API_TESTS",
+    "announcement_readback_helper_byte_parity": "PASS",
+    "clock_only_dynamic_reload": "PASS",
+    "live_behavior": "CANNOT_CONFIRM_NOT_RUN",
+    "owner_success_order": "PASS",
+    "same_input_and_failure_history": "PASS",
+    "six_original_readback_rejection_cases": "PASS",
+    "source_row_decision_date_and_availability_cutoff_invalidation": "PASS",
+    "synthetic_date_and_session_readbacks": "PASS_TEST_FIXTURE_ONLY",
+    "targeted_api_wrong_binding": "PASS_HTTP_409_IN_TESTCLIENT"
+  },
+  "history": {
+    "broader_application_suite": "NOT_RUN_BY_REVIEWER; prior BASELINE_FAIL classifications are unchanged and are not upgraded by the targeted result",
+    "pre_helper_baseline": "56 passed, 2 focused API failures due missing canonical helper; retained as historical and superseded by final run",
+    "writer_two_api_fix_test": "2 passed; receipt E/receipts/phase6-integration-preparation/canonical-json-time-fix/targeted-two-api-test-receipt.json SHA-256 e589eeadd987fff6de0652cf042789bfa9c16c3385fa2a6f21e7d30be21f2def"
+  },
+  "release_boundary": {
+    "candidate_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+    "candidate_manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+    "candidate_release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+    "candidate_state": "PASS_INACTIVE_SOURCE_ONLY_CANDIDATE",
+    "live_api_or_ui": "CANNOT_CONFIRM_NOT_RUN",
+    "natural_target_date": "CANNOT_CONFIRM_NOT_OBSERVED",
+    "service_activation": "CANNOT_CONFIRM_NOT_DEPLOYED",
+    "target13_canary_or_stage": "CANNOT_CONFIRM_NOT_RUN"
+  },
+  "review_status": "REVIEWED",
+  "reviewed_at_utc": "2026-10-11T21:45:58Z",
+  "reviewer_agent": "/root/issue35_mac_reviewer",
+  "schema_version": "v4.issue35.phase6.canonical_final_independent_review.v1",
+  "scope": {
+    "forbidden_actions_performed": [],
+    "path": "E/PHASE6_CANONICAL_FINAL_REVIEW_SCOPE.md",
+    "sha256": "3bbd45bcc071f29c918ad81d428b90b3bb0bd8630d9026bf930e2e3a7b10dbed",
+    "source_freeze_path": "E/receipts/phase6-canonical-final-source-freeze.json",
+    "source_freeze_sha256": "f436dfe3a33da07f5da8b9930bb0c3521e2e1b0833fac6450d9c2d849efc1f5b"
+  },
+  "source_pins": {
+    "all_eight_files_match_freeze_before_and_after_tests": true,
+    "canonical_five_preimages_manifest_sha256": "1b513466c64d18a95161747b802dd196d5cbc69d23012bc6b4eec036e43ea6b4",
+    "files": [
+      {
+        "path": "v4/manager_research/workspace.py",
+        "preimage_sha256": "95ef1eeea9fbf4269cccc47cf3c5d2f5f74f1d59026bfc226016365ce6fb84c2",
+        "sha256": "70a2bc81739778066f9183bb7acac8a6560f5a5b9e42329f8d47333f82289f3d"
+      },
+      {
+        "path": "v4/manager_research/workspace_projection.py",
+        "preimage_sha256": "95213e37ac8c793395b58e5153c34b311af911b27020487a965878ccb870e068",
+        "sha256": "97561f248534ab55db9f550d7e891249fe75191fa2a1cf2285c14e226f8bfc86"
+      },
+      {
+        "path": "v4/manager_research/us_mapping_research.py",
+        "preimage_sha256": "ca84481ae4e4c819ad1743d7c3bae14b6851fb35daa74572b7c70ff130f5730a",
+        "sha256": "886178f1e4b90b4e5e68f94cfeddc808f39e596740b295550edb6b8cd60b5e84"
+      },
+      {
+        "path": "v4/manager_research/workspace_announcements.py",
+        "preimage_sha256": "edde167df83df938d5c2f5f4facb01fc8f2e212a28ef147dfd3a52c834f98d82",
+        "sha256": "ba3849913eb768ae166e6fa796246d27742a76ce7fd8469356470570dacc3e73"
+      },
+      {
+        "path": "tests/test_manager_plan_readback_issue24.py",
+        "preimage_sha256": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989",
+        "sha256": "0c48e83dbb447a0b33a5870dc1a65a358e72fb45173b332034323441a9289508"
+      },
+      {
+        "path": "tests/test_manager_us_mapping_research.py",
+        "preimage_sha256": "0f4efa5448a8a1417453d76909906d6e8c68e0b1d3530f06c18b1adb3fc4fe46",
+        "sha256": "713aeeaf6b400ab7d11b73df7b401e88584cb3516f211ddeb5dc6d91cf3c85a5"
+      },
+      {
+        "change": "new allowed regression test",
+        "path": "tests/test_issue35_dynamic_reload_identity.py",
+        "sha256": "bc36c15a39d35c18735b32934192ad77f29b5b9353856a5f8b7d7daf709da3b8"
+      },
+      {
+        "change": "new allowed regression test",
+        "path": "tests/test_issue35_owner_readback_commit_order.py",
+        "sha256": "00f921bba8d702b289589df032d2b6b02ef4fdaaf9d9eac28b2f8e553d215e5d"
+      }
+    ],
+    "writer_closure_path": "E/receipts/phase6-integration-preparation/phase6-writer-closure.json",
+    "writer_closure_sha256": "da1ec4e1f60779f5b26540fde28e88e052ca2e85296eb878e6bd8eb6d2b63f7c"
+  },
+  "tests": {
+    "command": {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--import-mode=importlib",
+        "--basetemp",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/independent-review/phase6-canonical-final/pytest-review-01",
+        "/Users/lexi/Desktop/学习/v4_app/tests/test_manager_plan_readback_issue24.py",
+        "/Users/lexi/Desktop/学习/v4_app/tests/test_manager_us_mapping_research.py",
+        "/Users/lexi/Desktop/学习/v4_app/tests/test_issue35_dynamic_reload_identity.py",
+        "/Users/lexi/Desktop/学习/v4_app/tests/test_issue35_owner_readback_commit_order.py"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/v4_app",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "/Users/lexi/Desktop/学习/v4_app"
+      },
+      "exit_code": 0,
+      "stdout": "58 passed in 1.55s",
+      "temporary_state_path": "E/receipts/independent-review/phase6-canonical-final/pytest-review-01"
+    },
+    "status": "PASS",
+    "test_input_fingerprints": [
+      {
+        "path": "v4/manager_research/us_mapping_relation_evidence_20261011.json",
+        "sha256": "69e09810a8c5fcaa52cf1b16d339756b67a6ea6c8eb7837c440bea86fdaebfb0"
+      },
+      {
+        "path": "v4/manager_research/us_mapping_relation_evidence_review_20261011.json",
+        "sha256": "5e24b82049ca848f7536b084166537415722375414cfc762da8b179919947350"
+      },
+      {
+        "path": "v4/manager_research/us_mapping_reviewed_20260930.json",
+        "sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a"
+      },
+      {
+        "path": "v4/manager_research/us_mapping_relation_registry.json",
+        "sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe"
+      },
+      {
+        "access": "read-only fixture source copied into tmp_path by test helper",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/20260929/external_finance.json",
+        "sha256": "7eb0094a0546f62f5346dddd795977e8bbda3520e34eed03f2556b2fdfd81566"
+      }
+    ]
+  },
+  "verdict": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "behavior_verified": "PASS_TEMP_STORE_ONLY",
+    "canonical_semantic_scope": "PASS",
+    "scope_limit": "This is source and temporary-store behavior acceptance only.",
+    "tested": "PASS"
+  }
+}

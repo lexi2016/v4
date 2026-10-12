@@ -1,0 +1,32 @@
+--- E/tools/phase6-r6/issue35_phase6_r6_canary.py
++++ E/tools/phase6-r6/issue35_phase6_r6_canary_readback_fix.py
+@@ -80,13 +80,27 @@
+             or not isinstance(refresh.get("input_identity"), str)
+             or not re.fullmatch(r"[0-9a-f]{64}", refresh["input_identity"])
+             or refresh.get("execution_kind") != "MANUAL_REFRESH"
+-            or readback.get("execution_kind") != "MANUAL_REFRESH"
+             or refresh.get("safety") != common.SAFETY
+-            or readback.get("safety") != common.SAFETY
+             or not isinstance(refresh_attempt, dict)
+             or refresh_attempt != readback_attempt
+             or refresh_attempt != refresh_product_attempt
+             or refresh_attempt != readback_product_attempt):
++        raise ValueError("CANARY_OWNER_READBACK_MISMATCH")
++    # POST returns the execution/safety wrapper; the reader-shaped GET returns
++    # execution_kind on plan_product and exposes the four safety fields directly.
++    # Keep optional envelope aliases compatible only when they agree exactly.
++    if ("execution_kind" in readback
++            and readback.get("execution_kind") != "MANUAL_REFRESH"):
++        raise ValueError("CANARY_OWNER_READBACK_MISMATCH")
++    if "safety" in readback:
++        safety_alias = readback.get("safety")
++        if (not isinstance(safety_alias, dict) or set(safety_alias) != set(common.SAFETY)
++                or any(type(safety_alias.get(key)) is not bool
++                       or safety_alias.get(key) is not expected
++                       for key, expected in common.SAFETY.items())):
++            raise ValueError("CANARY_OWNER_READBACK_MISMATCH")
++    if any(type(readback.get(key)) is not bool or readback.get(key) is not expected
++           for key, expected in common.SAFETY.items()):
+         raise ValueError("CANARY_OWNER_READBACK_MISMATCH")
+     run_id = str(product.get("run_id") or "")
+     product_sha = str(product.get("sha256") or "")

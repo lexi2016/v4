@@ -1,0 +1,29 @@
+--- a/tools/phase6-r6/complete_issue35_r6_saved_canary_r2.py
++++ b/tools/phase6-r6/complete_issue35_r6_saved_canary_r3.py
+@@ -23,7 +23,7 @@
+ from typing import Any
+ from zoneinfo import ZoneInfo
+ 
+-SELF_SOURCE_SHA256 = "529db3d81ab08769723568ba325575941dcacd53a39dc96e326c9b311d792c79"
++SELF_SOURCE_SHA256 = "16b056f9bcee8cfd62a8c6ef30f72f3d8e66526744abeb11b72f7cea798255f6"
+ FIXED_VALIDATOR_SHA256 = "a67527a80a9d1399ec2eac076c5b27d538971d588918ea7b2ee1921a9f95be34"
+ COMMON_SHA256 = "d5e8c8aaf591d10df2343dfe1d870019ee431ad708d6478b0863c9cd53a0fa84"
+ R2_SCOPE_SHA256 = "e38925839c8f63ac06c84e4e901356a7529368c907d81c8bec606be0b93017f1"
+@@ -393,7 +393,7 @@
+                 or row.get("sha256") != expected[sha_key]
+                 or row.get("path") != str(state_root / expected_names[label])):
+             raise ValueError("R6_SAVED_PREIMAGE_FILE_PIN_MISMATCH:" + label)
+-    saved_refs = source_preimage.get("r4b_two_generation_receipt_pins")
++    saved_refs = prior.get("r4b_two_generation_receipt_pins")
+     expected_refs = {
+         key: receipt_pins.get(key) for key in (
+             "r4b_state_preimage_path", "r4b_state_preimage_sha256",
+@@ -899,7 +899,7 @@
+             "archived_generation": prior["archived_generation"],
+             "r4b_current_generation": prior["r4b_current_generation"],
+             "two_generation_state_files": prior["files"],
+-            "r4b_receipt_pins": source_preimage["r4b_two_generation_receipt_pins"],
++            "r4b_receipt_pins": prior["r4b_two_generation_receipt_pins"],
+             "expected_durable_paths": outcome["expected_durable_paths"],
+             "allowed_transition": "fresh: preserve d8 and 357 version files; only the exact validated new run/product and latest pointers may be added or advanced",
+         },

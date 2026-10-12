@@ -1,0 +1,136 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "active_api_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r4b/app",
+  "active_api_release_id": "issue35-manager-autocontinue-20261012-r4b",
+  "api_changed_environment_keys": [
+    "PYTHONPATH",
+    "V35_APP_ROOT",
+    "V35_RELEASE_ID",
+    "V35_RELEASE_MANIFEST_PATH",
+    "V35_RELEASE_MANIFEST_SHA256",
+    "V4_MANAGER_PLAN_OWNER_BINDING_PATH"
+  ],
+  "api_environment_updates": {
+    "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+    "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+    "V35_RELEASE_ID": "issue35-manager-autocontinue-20261012-r6-integrated",
+    "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/release-manifest.json",
+    "V35_RELEASE_MANIFEST_SHA256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+    "V4_MANAGER_PLAN_OWNER_BINDING_PATH": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/manager-plan-binding.json"
+  },
+  "api_expected_changed_environment_keys": [
+    "PYTHONPATH",
+    "V35_APP_ROOT",
+    "V35_RELEASE_ID",
+    "V35_RELEASE_MANIFEST_PATH",
+    "V35_RELEASE_MANIFEST_SHA256",
+    "V4_MANAGER_PLAN_OWNER_BINDING_PATH"
+  ],
+  "application_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+  "binding_inventory_sha256": "c99fa01f8b946bae46da2c7982cd9bc564e0085ecdd769f983600b3dee41d52e",
+  "canary_freshness": {
+    "age_seconds": 96.835868,
+    "canary_clock_local": "2026-10-12T07:19:46.179506+08:00",
+    "max_age_minutes": 60,
+    "next_hk_session_at_canary_clock": "20261013",
+    "next_hk_session_at_validation": "20261013",
+    "target_trade_date": "20261013",
+    "validated_at_local": "2026-10-12T07:21:23.015374+08:00"
+  },
+  "canary_freshness_policy": {
+    "checks": [
+      "canary clock is not in the future",
+      "canary age is at most 60 minutes",
+      "target is next HK session at canary clock",
+      "target is next HK session at validation clock"
+    ],
+    "current_clock_source": "datetime.now(Asia/Hong_Kong)",
+    "max_age_minutes": 60,
+    "rechecked_immediately_before_enabled_staging": true
+  },
+  "canary_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03-completed/plan-canary.json",
+  "canary_sha256": "888174bd56e73f75026804150b7980cb01aa7f660ba840f24ea4b186cdb6ab14",
+  "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+  "current_api_binding_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase4-issue35-target13-enabled-r4b/manager-plan-binding.json",
+  "current_api_binding_sha256": "dd5b901504f580bfe428726ffd325e9c50df99fec04a69b55e54fbb0c5261d73",
+  "current_api_plist_sha256": "3a5824f505c7e514c64eaa5d1af509365feceaae008e49db394896df6e796301",
+  "current_scheduler_binding_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase4-issue35-target13-enabled-r4b/manager-plan-binding.json",
+  "current_scheduler_binding_sha256": "dd5b901504f580bfe428726ffd325e9c50df99fec04a69b55e54fbb0c5261d73",
+  "current_scheduler_plist_sha256": "e59c3f794535ec92106d6df62bc268002305fb68902da952d133fc5208b9d1e1",
+  "daily_automation": {
+    "enabled": true,
+    "max_attempts_per_target_date": 5,
+    "same_day_catchup_slots_local": [
+      "10:00",
+      "12:30",
+      "15:45",
+      "18:30",
+      "22:30"
+    ],
+    "status": "PROPOSAL_ONLY",
+    "us_mapping_budget_seconds": 5
+  },
+  "launchctl_called": false,
+  "live_plists_modified": false,
+  "manager_state_modified_by_stager": false,
+  "manager_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+  "owner_source_inventory_sha256": "c99fa01f8b946bae46da2c7982cd9bc564e0085ecdd769f983600b3dee41d52e",
+  "plan_material_refresh": {
+    "enabled": true,
+    "end_local": "23:00",
+    "max_attempts_per_target_date": 3,
+    "retry_backoff_seconds": 600,
+    "start_local": "16:00",
+    "status": "PROPOSAL_ONLY"
+  },
+  "preserved_api_working_data_roots": {
+    "data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+    "host": "127.0.0.1",
+    "ledger_root": null,
+    "port": 8873,
+    "preselection_source_root_argument": null,
+    "shared_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/workspace/v3_shared_data/.runtime/data",
+    "stage_mode": "shared",
+    "stage_selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r4b/app"
+  },
+  "release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+  "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/release-manifest.json",
+  "release_manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "scheduler_app_root_preserved": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-d1-20261011-r1/app",
+  "scheduler_changed_environment_keys": [
+    "V4_MANAGER_ANNOUNCEMENT_APP_ROOT",
+    "V4_MANAGER_ANNOUNCEMENT_BINDING",
+    "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256"
+  ],
+  "scheduler_expected_changed_environment_keys": [
+    "V4_MANAGER_ANNOUNCEMENT_APP_ROOT",
+    "V4_MANAGER_ANNOUNCEMENT_BINDING",
+    "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256"
+  ],
+  "scheduler_hk_root_and_task_preserved": true,
+  "scheduler_manager_hook_updates": {
+    "V4_MANAGER_ANNOUNCEMENT_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+    "V4_MANAGER_ANNOUNCEMENT_BINDING": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/manager-plan-binding.json",
+    "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+    "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256": "888174bd56e73f75026804150b7980cb01aa7f660ba840f24ea4b186cdb6ab14"
+  },
+  "scheduler_working_directory_preserved": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-d1-20261011-r1/app",
+  "schema_version": "v4.us_daily_chain.activation_stage.v1",
+  "security_master_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+  "staged_api_plist_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/com.lexi.v35.api-only.plist",
+  "staged_api_plist_sha256": "0d8b4fac90932e09db1946a0c39373fe132c65705a0df02b654e133b6ba84bbc",
+  "staged_binding_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/manager-plan-binding.json",
+  "staged_binding_sha256": "74c2f02d0abc940c110ceb9cb0dddf950f4e2dc09c6a93afea405c882dd16e84",
+  "staged_scheduler_plist_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/com.lexi.v35.scheduler.plist",
+  "staged_scheduler_plist_sha256": "b105111ff03987acc772fe025a17ba4976aa2f8cb58f2b763462a9cb4a06cad6",
+  "staging_output_dir": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary",
+  "status": "PREPARED_NOT_ACTIVATED",
+  "target_trade_date": "20261013"
+}

@@ -1,0 +1,252 @@
+{
+  "CANNOT_CONFIRM": [
+    "Whether the live API process at port 8873 was independently revalidated against the R6 release at request time; no new service/process/plist inspection or GET was authorized.",
+    "A versioned source fix, independent test run, offline completion receipt, stage activation, API/UI readback, or natural HK run.",
+    "Full research/PIT completeness or target13 selection readiness; persisted terminal state is PARTIAL."
+  ],
+  "actions_taken": {
+    "new_http": false,
+    "offline_probe_file_writes": false,
+    "offline_saved_body_validator_call": true,
+    "owner_or_service_action": false,
+    "state_or_plist_write": false,
+    "test_suite_run": false
+  },
+  "current_state_verification": {
+    "archived_d8_product_sha256": "777c6496402ea7d2313ed7c09ff7be2ae1e5597659bcbfb6b42fe3fdd051522a",
+    "archived_d8_run_sha256": "9ca32cee34b42727666c6c96e0cc9396a387bc48e332f232621232c6dbd1aee2",
+    "both_latest_files_equal_new_92f_files": true,
+    "d8_and_357_immutable_files_match_preimage": true,
+    "direct_flock_probe": "NOT_RUN_AVOIDED_LIVE_LOCK_ACQUISITION",
+    "mutex_lsof_exit_code": 1,
+    "mutex_open_descriptor_observed": false,
+    "mutex_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/.locks/20261013-workspace-plan-refresh.mutex",
+    "new_92f_product_file_sha256": "82dd41fac020e8ddaef5854ab33af427480305e27673253ba5de96eef3097a4d",
+    "new_92f_run_file_sha256": "10a676d659467a1fb45f84b5a4646bd0cd75279c4a4471e1bb5861172d3b61fa",
+    "observed_utc": "[object Object]",
+    "preimage_r4b_generation_preserved": true,
+    "product_directory_entries": [
+      "357d984e400541a48c41f65ec0018b62.json",
+      "92f257a7a0a841c081d48005f8a3fe3e.json",
+      "d8a35106712a4387accf214c3ee3772d.json",
+      "latest.json"
+    ],
+    "protected_20261007_08_09_hash_maps_match_preimage": true,
+    "r4b_357_product_sha256": "99a31d918381320e493bc518cdfa6db91f4ee1e0ed2bbfb5120ca39a18e7aad3",
+    "r4b_357_run_sha256": "f2b9288197aa94ae101225e8fdb5245ea10c96a838cc77441bbe4ff18224a834",
+    "run_directory_entries": [
+      "357d984e400541a48c41f65ec0018b62.json",
+      "92f257a7a0a841c081d48005f8a3fe3e.json",
+      "d8a35106712a4387accf214c3ee3772d.json",
+      "latest.json"
+    ],
+    "state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+    "write_set_exact_no_extra_target_files": true
+  },
+  "exact_mismatch": {
+    "POST_GET_schema_difference": "POST handler appends top-level execution_kind and nested safety at manager_research_router.py:388-407; GET is a different reader projection.",
+    "actual_GET_contract": "workspace._readback_plan returns the saved workspace plus nested plan_product execution_kind and terminal attempts (workspace.py:1135-1161); router GET returns that workspace directly (manager_research_router.py:206-258). It does not add top-level execution_kind or a nested safety object. The four safety flags remain direct GET fields.",
+    "actual_GET_fields": {
+      "consumed": true,
+      "diagnostic_status": "MATCH",
+      "execution_kind": "ABSENT_AT_TOP_LEVEL; plan_product.execution_kind=MANUAL_REFRESH",
+      "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "plan_product_status": "CURRENT",
+      "run_readback_status": "VERIFIED",
+      "safety": "ABSENT_AS_NESTED_OBJECT; direct flags are RESEARCH_ONLY=true, production_allowed=false, buy_gate_updated=false, orders_sent=false"
+    },
+    "offline_probe": {
+      "in_memory_alias_probe": "PASS; supplying only execution_kind from nested GET plan_product and safety from already-present GET direct flags made the unchanged helper return the exact run, product SHA, input SHA and PARTIAL state",
+      "network_or_file_write": false,
+      "original_saved_body_call": "ValueError:CANARY_OWNER_READBACK_MISMATCH"
+    },
+    "validator_condition": "R6 helper lines 82-85 checks refresh.execution_kind, readback.execution_kind, refresh.safety, readback.safety; line 90 raises CANARY_OWNER_READBACK_MISMATCH."
+  },
+  "observed_utc": "2026-10-11 22:11:33 UTC",
+  "owner_result": {
+    "business_limit": "This is an owner materialization/readback result only. The terminal state is PARTIAL (0 formal recommendations and 0 focus stocks; many acquisition-time/source gaps); full research completeness and selection readiness are CANNOT_CONFIRM. Natural run is false.",
+    "consumed": true,
+    "diagnostics": {
+      "changed_components": [],
+      "current_input_identity": "1d10c2e881ddda942884e7bc5252b0897eb65a2846f3a98cad97ca237b5c88af",
+      "saved_input_identity": "1d10c2e881ddda942884e7bc5252b0897eb65a2846f3a98cad97ca237b5c88af",
+      "status": "MATCH"
+    },
+    "input_coverage": {
+      "attempted_artifact_count": 57,
+      "excluded_after_cutoff_count": 0,
+      "global_market_coverage": "NOT_ESTABLISHED",
+      "verified_artifact_count": 53,
+      "vibe_exact_input_sha_bound": false,
+      "vibe_owner_verification_status": "FAILED"
+    },
+    "input_identity": "1d10c2e881ddda942884e7bc5252b0897eb65a2846f3a98cad97ca237b5c88af",
+    "prior_357_input_identity": "efbf9d580a587edeb58fb80fa4358b45afe45a5d10236f28ad1d3d9d50daa0c9",
+    "product_file_sha256": "82dd41fac020e8ddaef5854ab33af427480305e27673253ba5de96eef3097a4d",
+    "product_record_sha256": "2ed6871c47825caca03b21a3fe49b6a35b4dd5605f2b5c985f043ce6cbb1d78f",
+    "research_cutoff": "2026-10-12T06:02:59.487836+08:00",
+    "run_id": "92f257a7a0a841c081d48005f8a3fe3e",
+    "run_readback": {
+      "artifact_sha256": "2ed6871c47825caca03b21a3fe49b6a35b4dd5605f2b5c985f043ce6cbb1d78f",
+      "input_identity": "1d10c2e881ddda942884e7bc5252b0897eb65a2846f3a98cad97ca237b5c88af",
+      "owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "owner_attempt_sha256": "8a057dab3239183db14c06cee13d75644f80d186db8168fe88c48169f4c2fbf7",
+      "owner_attempt_state": "PARTIAL",
+      "owner_finished_at": "2026-10-11T22:03:14.195417+00:00",
+      "run_id": "92f257a7a0a841c081d48005f8a3fe3e",
+      "status": "VERIFIED",
+      "target_trade_date": "20261013"
+    },
+    "status": "CURRENT",
+    "target_trade_date": "20261013",
+    "terminal_attempt": {
+      "canonical_sha_matches": true,
+      "execution_kind": "MANUAL_REFRESH",
+      "file_sha256": "10a676d659467a1fb45f84b5a4646bd0cd75279c4a4471e1bb5861172d3b61fa",
+      "finished_at": "2026-10-11T22:03:14.195417+00:00",
+      "input_identity": "1d10c2e881ddda942884e7bc5252b0897eb65a2846f3a98cad97ca237b5c88af",
+      "owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "product_and_run_attempt_equal": true,
+      "refresh_and_get_attempt_equal": true,
+      "safety": {
+        "RESEARCH_ONLY": true,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "sha256": "8a057dab3239183db14c06cee13d75644f80d186db8168fe88c48169f4c2fbf7",
+      "started_at": "2026-10-12T06:02:59.487836+08:00",
+      "state": "PARTIAL",
+      "target_trade_date": "20261013"
+    }
+  },
+  "recommendation": {
+    "existing_recover_existing_mode": "Do not assume it handles execution-03: the helper CLI documents this mode as pinned to execution-01.",
+    "focused_test": "Add the realistic GET-envelope regression and negative mutations for status, run/product/input identity, diagnostics, terminal attempt and each safety flag. Do not model GET as a POST response.",
+    "no_second_owner_post": true,
+    "offline_saved_evidence_completion": "A new offline-only verifier may consume the exact immutable execution-03 preimage, HTTP evidence/raw bodies, failure receipt and current d8/357/92f state; confirm exact hashes, one POST/GET, full identities, allowed three-generation write set, latest pointer bytes, mutex/protected dates; write only a new recovery/completion receipt referencing original artifacts. Never rewrite execution-03 raw responses or its failure receipt.",
+    "versioned_fix": "Use the reader-shaped GET envelope; retain the POST checks and validate GET direct safety flags plus the nested product execution_kind and existing full terminal/run-readback contract."
+  },
+  "saved_execution": {
+    "canary_disabled_binding": {
+      "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+      "path": "E/receipts/plan_canary_runs/20261013/execution-03/canary-disabled-binding.json",
+      "sha256": "7fb32b88c2b8cba2ecbb117e070066536cd16f4d88ff6649fb9b3d345a346a55"
+    },
+    "failure_receipt": {
+      "error_code": "CANARY_OWNER_READBACK_MISMATCH",
+      "launchctl_called": false,
+      "path": "E/receipts/plan_canary_runs/20261013/execution-03/failure-receipt.json",
+      "preservation_writes": "NOT_ATTEMPTED",
+      "secondary_state_check": "R6_FAILURE_PRODUCT_WRITE_SET_MISMATCH",
+      "sha256": "f2db8ef16a9592b6dcf3a4d8330c5b1a94cb2a96b26ad0ba74ad4db0efd3f703"
+    },
+    "parent_execution": {
+      "exit_code": 1,
+      "path": "E/receipts/phase6-parent-target13-canary/parent-execution.json",
+      "sha256": "9b24e6688f0b75ff1d38fee727397e98d392eb8c95a52fe1dab45234935647a7",
+      "stderr_sha256": "9022f08b688a9059c9154f4d01843e49ea638498085230355fc3321900c0c4a8"
+    },
+    "readback": {
+      "evidence_path": "E/receipts/plan_canary_runs/20261013/execution-03/readback.http-evidence.json",
+      "evidence_sha256": "db52eff49454dcf659eef928bbce52ca4222a0949c1f0dbe481b3e7d60a6c9e9",
+      "http_status": 200,
+      "method": "GET",
+      "response_bytes": 41770154,
+      "response_path": "E/receipts/plan_canary_runs/20261013/execution-03/readback.response.bin",
+      "response_sha256": "edc9f989cccde5b33372f1e961a0aabfffd4f48ec2b4e504d5f2847450e91bec",
+      "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261013"
+    },
+    "refresh": {
+      "evidence_path": "E/receipts/plan_canary_runs/20261013/execution-03/refresh.http-evidence.json",
+      "evidence_sha256": "4fcb6e3008c853fdb215add9ae03e25d4ff79d52fc11d0b6259940dd43496553",
+      "http_status": 200,
+      "method": "POST",
+      "response_bytes": 41768246,
+      "response_path": "E/receipts/plan_canary_runs/20261013/execution-03/refresh.response.bin",
+      "response_sha256": "8a9d367e81cdeaab65e582bb61209aaf894086c9c83995839a1662a6c7c41729",
+      "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace/refresh?date=20261013"
+    },
+    "state_preimage": {
+      "path": "E/receipts/plan_canary_runs/20261013/execution-03/state-preimage.json",
+      "sha256": "1f37c32b04a35821dcce645e580fd85f7c52b19ee749c9d41cfc50d9c0b0bfd9"
+    }
+  },
+  "schema_version": "issue35.phase6.execution03_readback_independent_review.v1",
+  "scope": {
+    "allowed_outputs": [
+      "E/review/phase6-execution03-readback/**",
+      "E/receipts/independent-review/phase6-execution03-readback/**"
+    ],
+    "goal": "diagnose the exact CANARY_OWNER_READBACK_MISMATCH and determine whether saved POST/GET plus current owner state establish a safe owner materialization without a second POST",
+    "path": "E/PHASE6_EXECUTION03_READBACK_DIAG_SCOPE.md",
+    "prohibited_actions_respected": [
+      "new HTTP",
+      "owner/API/service action",
+      "stage activation",
+      "state/plist/lock/config mutation",
+      "Git",
+      "test suite"
+    ],
+    "sha256": "ad9d6655435cc79afcace60e6917035a09190a1e4b090a4c29e8a4f4d33fc677"
+  },
+  "sha_note": "The report file SHA-256 is returned separately; matching review and receipt copies are byte-identical.",
+  "source_pins": {
+    "GET_and_POST_routes": {
+      "GET_lines": "206-258",
+      "POST_response_lines": "388-407",
+      "path": "E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/apps/api/v35_api/manager_research_router.py",
+      "sha256": "66fb00132e135c30e4e6165b2fb9e8dff836b05fca65d1cdd187e48c7738dc33"
+    },
+    "R6_release_manifest": {
+      "path": "E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/release-manifest.json",
+      "sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7"
+    },
+    "R6_transport_tests": {
+      "lines": "141-185, 378-400",
+      "path": "E/tools/phase6-r6/test_issue35_phase6_r6_transport.py",
+      "sha256": "e480be3f864b8e51211793e31bff999f4ad3e8e97aed53a07434efc809ef5acf"
+    },
+    "R6_validator": {
+      "lines": "58-141",
+      "path": "E/tools/phase6-r6/issue35_phase6_r6_canary.py",
+      "sha256": "642b81a3f50b54dd1fa7ac688d87162004a01c08cb494c8a402fe55e168e7c5e"
+    },
+    "common": {
+      "path": "E/tools/issue35_phase4_common.py",
+      "sha256": "d5e8c8aaf591d10df2343dfe1d870019ee431ad708d6478b0863c9cd53a0fa84"
+    },
+    "reader": {
+      "lines": "1096-1165",
+      "path": "E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/workspace.py",
+      "sha256": "f1e61a8003b638a4b4ecfbf67b9028e5f1d16e315edfe4ebd78e1f3de31bba96"
+    }
+  },
+  "verdict": {
+    "P0": [],
+    "P1": [
+      {
+        "code": "R6_GET_ENVELOPE_FALSE_REJECTION",
+        "evidence": "The R6 validator requires readback.execution_kind and readback.safety at issue35_phase6_r6_canary.py:82-85; the actual GET reader contract and saved GET body omit both fields. This raises at line 90 after the owner has already materialized run 92f257a7a0a841c081d48005f8a3fe3e and moved latest pointers.",
+        "impact": "False failure blocks canary acceptance after one real POST+GET; failure preservation then reports R6_FAILURE_PRODUCT_WRITE_SET_MISMATCH because it expects a failed attempt to leave product latest at 357. A blind retry could issue another owner write.",
+        "minimal_fix": "Keep POST envelope execution_kind and safety checks. For GET, require the four existing direct safety flags to equal common.SAFETY; rely on the already-existing nested plan_product.execution_kind, original_owner, diagnostics, run_readback, and exact terminal-attempt checks. Do not weaken status, identity, cutoff, or safety gates.",
+        "severity": "P1"
+      }
+    ],
+    "P2": [
+      {
+        "code": "OWNER_PAIR_FIXTURE_MISMODELS_GET",
+        "evidence": "test_issue35_phase6_r6_transport.py:179-185 fabricates readback.execution_kind and readback.safety, fields absent from the actual GET route response.",
+        "impact": "The fixture makes the normal schema pass and fails to catch the exact production-shaped false negative.",
+        "minimal_test": "Add a focused offline test with the actual GET projection shape (direct safety flags, nested plan_product.execution_kind, no top-level execution_kind or nested safety). Assert acceptance and retain negative controls for wrong flags, status, input identity, diagnostic, owner, run_readback and attempt.",
+        "severity": "P2"
+      }
+    ],
+    "P2_other": "NONE",
+    "REVIEWED": "PASS_DIAGNOSIS",
+    "TESTED": "NOT_RUN_SCOPE_PROHIBITS_TEST_SUITES",
+    "offline_validator_probe": "PASS_SCHEMA_ALIAS_PROBE_ONLY",
+    "owner_transport": "SAVED_POST_GET_AND_STATE_MATCH; OWNER_RESULT_PARTIAL",
+    "status": "FAIL_BOUNDED_VALIDATOR_FALSE_NEGATIVE"
+  }
+}

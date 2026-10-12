@@ -1,0 +1,230 @@
+{
+  "BEHAVIOR_VERIFIED": "PASS_ONE_READ_ONLY_SAME_QUERY_GET_MATCHES_PERSISTED_TERMINAL_AND_PARENT_NORMAL_RELOAD_DOM",
+  "REVIEWED": "PASS_CURRENT_R6_SOURCE_SERVICE_AND_DATE12_RECEIPTS",
+  "TESTED": "NOT_RUN_CODE_UNCHANGED_REUSE_PRIOR_ACCEPTED_TEST_EVIDENCE",
+  "deployment": {
+    "api": {
+      "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+      "label": "com.lexi.v35.api-only",
+      "loaded_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "loaded_plist_sha256": "0d8b4fac90932e09db1946a0c39373fe132c65705a0df02b654e133b6ba84bbc",
+      "manifest_matches_loaded_plist": true,
+      "manifest_sha256": "a63b80727953068d123f768ab608c5a6cf45758aa3ca234c71a8c8892d7cfaf7",
+      "pid": 62318,
+      "release_id": "issue35-manager-autocontinue-20261012-r6-integrated",
+      "safety": {
+        "RESEARCH_ONLY": true,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "state": "running"
+    },
+    "identity_observation": "Fresh read-only launchctl print and ps. API label/PID/R6 root/manifest matched. Scheduler label/PID and original HK root/working directory matched; its manager-announcement app root points to the R6 integrated app.",
+    "publication_execution": {
+      "path": "E/receipts/phase6-parent-publication/parent-publication-execution.json",
+      "sha256": "879576ba7caea9668ced1c03d13c58bf38a8b16a76048f2a588ce0d8cafb76da",
+      "status": "PUBLISHED_AND_BOTH_LABELS_RELOADED",
+      "stdout_path": "E/receipts/phase6-parent-publication/publication.stdout.json",
+      "stdout_sha256": "b63d56a87a63b17d9c719c5728ff7d8d0e3fd865ccca4f2e017c5ce30648c44e"
+    },
+    "scheduler": {
+      "announcement_cycle_sha256_pin": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "announcement_plan_canary_sha256_pin": "888174bd56e73f75026804150b7980cb01aa7f660ba840f24ea4b186cdb6ab14",
+      "binding_safety": {
+        "announcement_collection_enabled": false,
+        "buy_gate_updated": false,
+        "enabled": true,
+        "orders_sent": false,
+        "production_allowed": false,
+        "research_only": true
+      },
+      "label": "com.lexi.v35.scheduler",
+      "loaded_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "loaded_plist_sha256": "b105111ff03987acc772fe025a17ba4976aa2f8cb58f2b763462a9cb4a06cad6",
+      "manager_announcement_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+      "manager_plan_binding_path": "E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/manager-plan-binding.json",
+      "manager_plan_binding_sha256": "74c2f02d0abc940c110ceb9cb0dddf950f4e2dc09c6a93afea405c882dd16e84",
+      "manifest_matches_loaded_plist": true,
+      "manifest_sha256": "2d6af44c2573227170c8617f44c87693738fc1dd2fbc7e785f3e2a52a3f2b3a4",
+      "pid": 62322,
+      "release_id": "hk-auto-d1-20261011-r1",
+      "state": "running",
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-d1-20261011-r1/app"
+    }
+  },
+  "independent_live_get": {
+    "announcement": {
+      "candidate_count": 103,
+      "gaps": [
+        "HISTORICAL_PIT_NOT_PROVEN",
+        "RESEARCH_ONLY_NOT_PLAN_CONSUMED"
+      ],
+      "product_sha256": "b34ed5b8aee4d7535b3909fa0fd3c5e3ea7343c1ef93d8153604e5bf77850e4e",
+      "run_id": "cf6527760d314a190a612dc563edd812",
+      "source_date": "20261009",
+      "status": "PARTIAL",
+      "unassessed_count": 54,
+      "watch_count": 44
+    },
+    "elapsed_ms": 12846,
+    "explicit_selection_or_announcement_date_override": false,
+    "hk_connect": {
+      "status": "CANNOT_CONFIRM",
+      "target_authority": "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED"
+    },
+    "http_status": 200,
+    "matches_original_ui_query": true,
+    "method": "GET",
+    "oversold": {
+      "formal_selection_input": false,
+      "gaps": [
+        "REBOUND_HISTORY_VOLUME_UNIT_NOT_PROVEN",
+        "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE"
+      ],
+      "natural_run_verified": false,
+      "source_date": "20261009",
+      "status": "PARTIAL",
+      "strict_candidate_count": 214,
+      "unassessed_count": 34,
+      "watch_count": 286
+    },
+    "plan_product": {
+      "changed_components": [],
+      "consumed": true,
+      "execution_kind": "MANUAL_REFRESH",
+      "input_identity": "fb51ca666bae7e2cd19282d63d3ef72e9b5767c9b4e9379d68a5edf530762867",
+      "input_identity_status": "MATCH",
+      "owner": "ManagerResearchJobService.refresh_workspace_plan",
+      "product_sha256": "ca9622ce6e1fdd4d716de09200a3f8031d319fa8f8f7ccd9298fce9167fbb55e",
+      "run_id": "9aeaedf3b8bf40f8963462be98445b24",
+      "status": "CURRENT",
+      "target_trade_date": "20261012"
+    },
+    "prior_parent_get": {
+      "bytes": 42881131,
+      "path": "E/receipts/phase6-live-date12/workspace-ui-query-get.response.json",
+      "sha256": "565e558b44c45ea6446a639b6d7c35f1db4082324b6344c7d8e49df69afa2913"
+    },
+    "raw_body_equivalence": "CANNOT_CONFIRM; current body was hashed and selected acceptance fields extracted in memory, not retained for byte comparison",
+    "response_body_saved": false,
+    "response_bytes": 42881131,
+    "response_sha256": "4c63ef08458e04dcde36c6c62060ee6cec8d5827bf08f10e22af2117d069df6a",
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    },
+    "terminal_readback": {
+      "formal_recommendation_count": 0,
+      "owner_attempt_run_id": "9aeaedf3b8bf40f8963462be98445b24",
+      "owner_attempt_sha256": "221eb9b069de56735f8162812cb450fb3118a0ea9ace1a179d77e15ca9fbda46",
+      "owner_attempt_state": "PARTIAL",
+      "status": "VERIFIED"
+    },
+    "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261012&view=dynamic",
+    "us_attention_and_mapping": {
+      "configured_us_universe_count": 33,
+      "full_market_coverage": false,
+      "gap": "RELATION_EVIDENCE_COVERAGE_NOT_COMPLETE",
+      "mapping_run_id": "387bc86edaf44d17aa6eddd8d4ba1d05",
+      "mapping_status": "COMPLETED",
+      "matched_hk_relation_count": 7,
+      "matched_us_symbol_count": 7,
+      "quote_coverage": {
+        "assessed": 33,
+        "available": 33,
+        "requested": 33,
+        "status": "READY",
+        "unassessed": 0
+      },
+      "relationship_coverage": "PARTIAL_SOURCE_EVIDENCE_COVERAGE",
+      "reviewed_us_symbol_count": 10,
+      "source_session": "20261009",
+      "target_date_eligibility": "CANNOT_CONFIRM",
+      "ui_individual_linked_or_gap_evaluations": "12/12"
+    }
+  },
+  "limitations": [
+    "Overall saved attempt is PARTIAL with 3,294 recorded failure reasons; formal recommendation count is zero.",
+    "Announcement research is not PIT-proven and was not consumed by the saved plan.",
+    "HK Connect target membership/authority is unverified.",
+    "Oversold has unproven historical volume units and incomplete history; it is not a formal selection input.",
+    "US quote/attention coverage is 33/33 and the UI reports 12/12 individual linked-or-gap assessments; separate mapping is partial with 10 reviewed, 7 matched, 7 HK relations, incomplete relation evidence, no full-market coverage, and CANNOT_CONFIRM target eligibility.",
+    "Manual refresh is not a natural run; natural-period acceptance is CANNOT_CONFIRM.",
+    "Screenshot/pixels are CANNOT_CONFIRM; parent-pinned read-only DOM is the UI evidence used.",
+    "The current GET body SHA differs from the saved parent GET body; exact whole-body differences are CANNOT_CONFIRM."
+  ],
+  "next_phase_boundary": "A subsequent parent-reported prerequisite read, catch-up capture, and natural-run work remain separate from this frozen acceptance and were not independently reviewed here.",
+  "next_scheduled_slot": {
+    "evidence": "Pinned response lane reports SCHEDULER_PLAN_NOT_BOUND and next_plan null. Its stage overview lists STAGE_0935_0940 at 2026-10-12T09:40:05+08:00 but binding_verified=false and owner_called=false, so it is not a proven live owner slot.",
+    "new_timer_created": false,
+    "next_legally_scheduled_workspace_owner_slot": "CANNOT_CONFIRM"
+  },
+  "parent_ui_readback": {
+    "action_sequence": [
+      "generate-plan clicked once after publication",
+      "normal page reload once",
+      "read-only DOM text observed"
+    ],
+    "announcement": {
+      "candidate_count": 103,
+      "status": "PARTIAL",
+      "unassessed_count": 54,
+      "watch_count": 44
+    },
+    "browser_tab": "browser3/tab1",
+    "observed_at_utc": "2026-10-11T23:45:38.541226+00:00",
+    "oversold": {
+      "candidate_count": 214,
+      "status": "PARTIAL",
+      "unassessed_count": 34,
+      "watch_count": 286
+    },
+    "path": "E/receipts/phase6-live-date12/ui-normal-reload-parent-proof.json",
+    "screenshot": "CANNOT_CONFIRM; supported screenshot returned zero viewport width twice; no unsupported capture used",
+    "sha256": "8152be312f198e431871dc41ff0877ed1b8a32a6097544e9edec2d4cfc9b10e3",
+    "url": "http://127.0.0.1:8873/manager-selection/?date=20261009&plan_date=20261012&view=dynamic",
+    "us_mapping": {
+      "individual_linked_or_gap_assessments": "12/12",
+      "quote_coverage": "33/33",
+      "relationship_coverage": "PARTIAL_SOURCE_EVIDENCE_COVERAGE",
+      "target_connect_eligibility": "CANNOT_CONFIRM"
+    },
+    "visible_date_bindings": "source/selection 20261012; announcement 20261009; plan 20261012",
+    "visible_execution_kind": "MANUAL_REFRESH",
+    "visible_plan_status": "CURRENT",
+    "visible_read_status": "VERIFIED_WITH_GAPS",
+    "visible_stale_inputs_changed": false
+  },
+  "reviewed_at_utc": "2026-10-11T23:52:20Z",
+  "reviewer": "issue35_mac_reviewer",
+  "schema_version": "v4.issue35.phase6.live_date12.independent_review.v1",
+  "scope": {
+    "actions_not_performed": [
+      "POST or collection",
+      "owner rerun",
+      "UI refresh or reload",
+      "service/plist/state/schedule/Git mutation",
+      "screenshot capture"
+    ],
+    "actions_performed": [
+      "read-only launchctl, plist, manifest, binding, process and saved-receipt inspection",
+      "one read-only GET to the exact UI-bound workspace query"
+    ],
+    "path": "E/PHASE6_LIVE_DATE12_ACCEPTANCE_SCOPE.md",
+    "sha256": "d9b964c5199f60123139108c6c3c791e48ee24238af33ba92d2e83b583b33b87"
+  },
+  "status": "PASS_BOUNDED_DATE12_CURRENT_UI_AND_LIVE_GET",
+  "unchanged_tests": {
+    "reason": "No code changed; frozen scope instructs reuse of accepted code tests.",
+    "rerun": false
+  },
+  "verdict": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "findings": "No actionable regression found within the frozen live date12 acceptance scope. This pass confirms deployment identity and selected-date saved-plan readback only; it does not establish complete business, PIT, formal-selection, or natural-run acceptance."
+  }
+}

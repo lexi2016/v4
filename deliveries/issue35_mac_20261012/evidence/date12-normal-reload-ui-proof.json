@@ -1,0 +1,59 @@
+{
+  "schema_version": "v4.issue35.phase6.date12.ui_parent_readback.v1",
+  "observed_at_utc": "2026-10-11T23:45:38.541226+00:00",
+  "browser_id": "3",
+  "tab_id": "1",
+  "url": "http://127.0.0.1:8873/manager-selection/?date=20261009&plan_date=20261012&view=dynamic",
+  "action_sequence": [
+    "original 用既有材料生成计划 button clicked once after publication",
+    "normal page reload once",
+    "Cua read-only DOM text observed after asynchronous read completed"
+  ],
+  "visible_plan_status": "CURRENT",
+  "visible_execution_kind": "MANUAL_REFRESH",
+  "visible_read_status": "VERIFIED_WITH_GAPS",
+  "visible_stale_inputs_changed": false,
+  "visible_plan_notice": "已保存研究草案（未正式冻结）",
+  "visible_date_bindings": "来源/选股日 20261012 · 公告日 20261009 · 计划日 20261012",
+  "announcement": {
+    "status": "PARTIAL",
+    "candidate_count": 103,
+    "watch_count": 44,
+    "unassessed_count": 54,
+    "source_date": "20261009",
+    "run_id": "cf6527760d314a190a612dc563edd812",
+    "product_sha256": "b34ed5b8aee4d7535b3909fa0fd3c5e3ea7343c1ef93d8153604e5bf77850e4e"
+  },
+  "oversold": {
+    "status": "PARTIAL",
+    "candidate_count": 214,
+    "watch_count": 286,
+    "unassessed_count": 34,
+    "source_date": "20261009",
+    "run_id": "9aeaedf3b8bf40f8963462be98445b24",
+    "product_sha256": "ca9622ce6e1fdd4d716de09200a3f8031d319fa8f8f7ccd9298fce9167fbb55e",
+    "visible_gaps": [
+      "REBOUND_HISTORY_VOLUME_UNIT_NOT_PROVEN",
+      "SCREEN_HISTORY_OR_VOLUME_INCOMPLETE"
+    ],
+    "gap_count": 36
+  },
+  "us_mapping": {
+    "target_date": "20261012",
+    "source_session": "20261009",
+    "quote_coverage": "33/33",
+    "relationship_coverage": "PARTIAL_SOURCE_EVIDENCE_COVERAGE",
+    "individual_linked_or_gap_evaluations": "12/12",
+    "target_connect_eligibility": "CANNOT_CONFIRM",
+    "relationship_sha256": "a19eeea91d08981a7c01e1c8a82174af1e61fb12442b05a10199328155f1d11e"
+  },
+  "screenshot": "CANNOT_CONFIRM: supported tab screenshot failed with zero viewport width twice, including after documented visibility set; no unsupported screenshot tool used",
+  "manual_is_natural": false,
+  "full_business_acceptance": "CANNOT_CONFIRM: explicit source/PIT/eligibility/history gaps retained",
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

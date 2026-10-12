@@ -1,0 +1,20 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "error_code": "CANARY_OWNER_READBACK_MISMATCH",
+  "launchctl_called": false,
+  "manager_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+  "prior_owner_state_preservation": {
+    "error": "ValueError:R6_FAILURE_PRODUCT_WRITE_SET_MISMATCH",
+    "status": "FAIL_CANNOT_CONFIRM_EXACT_FAILED_JOURNAL_AND_PRIOR_PRODUCT_LATEST_PRESERVED",
+    "writes": "NOT_ATTEMPTED"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "manager_daily_chain.plan_canary_failure.v1",
+  "status": "FAIL_CANNOT_BIND_PLAN_ACTIVATION",
+  "target_trade_date": "20261013"
+}

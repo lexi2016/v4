@@ -1,0 +1,207 @@
+{
+  "schema_version": "v4.issue35.phase6.independent_review.v1",
+  "review_status": "REVIEWED",
+  "verdict": {
+    "r6_source_only_candidate": "PASS",
+    "code_scope": "PASS_OWNER_READBACK_COMMIT_ORDER",
+    "tested": "PASS",
+    "behavior_verified": "PASS_TEMP_STORE_ONLY",
+    "canonical_or_live_acceptance": "CANNOT_CONFIRM"
+  },
+  "scope": {
+    "independent_acceptance_scope_path": "E/PHASE6_INDEPENDENT_ACCEPTANCE_SCOPE.md",
+    "independent_acceptance_scope_sha256": "adce2c8c48a25da22a94c6457423db8b6b2d26812ab9e1a224ceff4ce82cd13f",
+    "writer_fix_scope_path": "E/PHASE6_OWNER_READBACK_FIX_SCOPE.md",
+    "writer_fix_scope_sha256": "1ba28562be212c76b0fda8e74e0efaac0deb5e25d4e72e31b35b56a0dbb54631",
+    "writer_closure_path": "E/receipts/phase6-owner-readback/writer-closure.json",
+    "writer_closure_sha256": "c9905d4728c8b8a0c77c05cbab3c5ad155e4a6ecab8be2e18ce7f884e022199f",
+    "allowed_review_output_roots": [
+      "E/review/phase6-owner-readback/",
+      "E/receipts/independent-review/phase6-owner-readback/"
+    ],
+    "forbidden_actions_performed": []
+  },
+  "pins": {
+    "r5_parent_manifest_sha256": "58f3287bd70a693cc95bb6186a16e34a35ed7bab6707df1b8403a95cfbf06669",
+    "r5_inventory_sha256": "e75d804e0b0ebb4e6f01edb23c0cfc5f707f98edf4070cd8a087d6dc3618129f",
+    "r6_source_manifest_sha256": "719288940d28bdc948baa4b034b781f69423260322dae0c930c745b304e4f359",
+    "r6_inventory_sha256": "5244040fa11b2721a84b92d30d6189f4da83b2d3f8eb99259ba60f3e7d993b5d",
+    "r5_to_r6_patch_sha256": "9e7221c2c011da73b599209e1a987e1e222e882b0e158580aa72ac2f5d10bade",
+    "canonical_workspace_preimage_sha256": "95ef1eeea9fbf4269cccc47cf3c5d2f5f74f1d59026bfc226016365ce6fb84c2",
+    "r6_workspace_sha256": "f1e61a8003b638a4b4ecfbf67b9028e5f1d16e315edfe4ebd78e1f3de31bba96",
+    "r6_plan_readback_test_sha256": "0c48e83dbb447a0b33a5870dc1a65a358e72fb45173b332034323441a9289508",
+    "r6_scheduled_route_test_sha256": "9b40db81f7be548ce5a3a3a2fd3b1f8226b38b20242c13ed2ca0bbd841d93731",
+    "focused_clock_test_sha256": "bc36c15a39d35c18735b32934192ad77f29b5b9353856a5f8b7d7daf709da3b8",
+    "new_commit_order_test_sha256": "00f921bba8d702b289589df032d2b6b02ef4fdaaf9d9eac28b2f8e553d215e5d",
+    "r5_clock_projection_sha256": "831a9235892aa740c643d1ddd73550d88f30ecf1efe9a2e4e16ca956dd467961",
+    "r5_clock_us_mapping_sha256": "90d34e32fb8052a0e1fab3994d099e386bec2a644c7a5762485e0924332a6a72"
+  },
+  "inventory_review": {
+    "r5_entry_count": 1049,
+    "r6_entry_count": 1049,
+    "manifest_entries_and_aggregates_recomputed": true,
+    "path_sets_equal": true,
+    "r5_to_r6_changed_path_count": 3,
+    "changed_paths": [
+      "tests/test_manager_plan_readback_issue24.py",
+      "tests/test_manager_us_mapping_research.py",
+      "v4/manager_research/workspace.py"
+    ],
+    "r5_clock_sources_byte_identical": true,
+    "patch_bytes_recomputed_from_actual_trees": true,
+    "r6_manifest_status": "SOURCE_ONLY_CANDIDATE_NOT_INTEGRATED",
+    "integration_status": "NOT_INTEGRATED",
+    "deployment_status": "NOT_DEPLOYED"
+  },
+  "behavior_review": {
+    "prepublication_exact_readback": {
+      "status": "PASS",
+      "evidence": [
+        "R6 app/v4/manager_research/workspace.py:1168-1241",
+        "R6 app/v4/manager_research/workspace.py:1426-1476"
+      ],
+      "checks": [
+        "immutable candidate product readback equals intended product",
+        "RUNNING attempt is sealed and reread exactly at per-run and latest paths with matching run/owner/kind/input identity",
+        "full _readback_plan runs through a private three-path candidate view while real public product pointer is unchanged",
+        "exact status CURRENT and consumed=true, input identity diagnostics MATCH, run/SHA/date/kind/owner and verified owner-attempt identifiers/hashes/states must match",
+        "terminal attempt writes only after candidate check, then both real attempt paths are reread exactly before public latest pointer publication",
+        "actual latest product is reread and compared to the intended immutable product"
+      ]
+    },
+    "failure_and_history": {
+      "status": "PASS",
+      "evidence": [
+        "R6 app/v4/manager_research/workspace.py:1483-1495",
+        "R6 app/tests/test_manager_plan_readback_issue24.py:220-243",
+        "R6 app/tests/test_manager_plan_readback_issue24.py:298-313",
+        "E/tests/test_issue35_owner_readback_commit_order.py:51-116"
+      ],
+      "checks": [
+        "rejected candidate readback leaves no latest product and terminal attempt is FAILED",
+        "mismatched RUNNING attempt input identity blocks success",
+        "post-publication failure restores exact previous pointer when present and retains failed run history",
+        "six existing negative status assertions remain present and pass"
+      ]
+    },
+    "public_owner_readback_gate": {
+      "status": "PASS_TEMP_STORE_ONLY",
+      "evidence": [
+        "R6 app/v4/manager_research/workspace.py:1053-1071",
+        "R6 app/v4/manager_research/workspace.py:1096-1165",
+        "R6 app/v4/manager_research/workspace_plan_autorun.py:40-110"
+      ],
+      "summary": "Public readback path is unchanged and still verifies the exact same-run terminal attempt; private candidate view is local to prepublication helper and is not returned."
+    },
+    "preopen_route_fixture": {
+      "status": "PASS",
+      "evidence": [
+        "R6 app/tests/test_manager_us_mapping_research.py:244-333",
+        "R6 app/ops/run_manager_announcement_cycle.py:209-245",
+        "R6 app/v4/manager_research/plan_owner_dispatch.py:443-483",
+        "R6 app/apps/api/v35_api/manager_research_router.py:439-455"
+      ],
+      "assertions": [
+        "09:27:30 HKT resolves /scheduled-cycle to PREOPEN for 20260930",
+        "one SCHEDULED_PREOPEN plan-owner invocation",
+        "US mapping owner call count is zero and response is NOT_ATTEMPTED",
+        "wrong binding returns 409"
+      ]
+    },
+    "clock_identity": {
+      "status": "PASS",
+      "summary": "All seven focused R5 clock identity cases were included in the independent 58-test pass; both R5 clock source files are byte-identical in R6."
+    }
+  },
+  "test_runs": [
+    {
+      "label": "R6 owner-readback + scheduled-route + clock-identity + commit-order suites",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6/app",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6/app"
+      },
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--basetemp",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/review/phase6-owner-readback/tmp/reviewer-final-01",
+        "tests/test_manager_plan_readback_issue24.py",
+        "tests/test_manager_us_mapping_research.py",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tests/test_issue35_dynamic_reload_identity.py",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tests/test_issue35_owner_readback_commit_order.py"
+      ],
+      "exit_code": 0,
+      "stdout": "..........................................................               [100%]\n58 passed in 1.46s\n",
+      "temporary_state_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/review/phase6-owner-readback/tmp/reviewer-final-01",
+      "status": "PASS"
+    },
+    {
+      "label": "existing direct owner refresh followed by normal service GET",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6/app",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6/app"
+      },
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--basetemp",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/review/phase6-owner-readback/tmp/public-get-smoke",
+        "tests/test_manager_workspace_targeted_r2.py::test_original_service_future_plan_refresh_does_not_run_catalyst_producer"
+      ],
+      "exit_code": 0,
+      "stdout": ".                                                                        [100%]\n1 passed in 0.22s\n",
+      "temporary_state_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/review/phase6-owner-readback/tmp/public-get-smoke",
+      "status": "PASS"
+    }
+  ],
+  "execution_note": {
+    "initial_attempt": "One initial pytest command used a malformed absolute path for the first test file and exited 4 before collection (file-not-found; no tests ran). The corrected combined command above passed; this is not a product failure."
+  },
+  "findings": {
+    "P0": [],
+    "P1": [
+      {
+        "id": "CANONICAL_PREIMAGE_STILL_HAS_ORIGINAL_COMMIT_ORDER",
+        "scope": "baseline/integration boundary, not an R6 candidate defect",
+        "evidence": {
+          "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/workspace.py",
+          "sha256": "95ef1eeea9fbf4269cccc47cf3c5d2f5f74f1d59026bfc226016365ce6fb84c2",
+          "lines": "1158-1173",
+          "detail": "Pinned canonical preimage still writes the terminal attempt, publishes latest.json, and only then performs _readback_plan/consumed checks. R6 is marked SOURCE_ONLY_CANDIDATE_NOT_INTEGRATED."
+        },
+        "impact": "The R6 source-only PASS cannot be represented as a fix to the canonical or live path. Canonical semantic integration and independent verification remain required before any integrated-behavior claim.",
+        "status": "CONFIRMED_SOURCE; ACTIVE_DEPLOYMENT_CANNOT_CONFIRM"
+      }
+    ],
+    "P2": []
+  },
+  "acceptance": {
+    "r6_candidate_review": "PASS",
+    "r6_candidate_tests": "PASS",
+    "r6_temporary_owner_readback_behavior": "PASS",
+    "canonical_integration": "CANNOT_CONFIRM_NOT_PERFORMED",
+    "live_public_api_or_ui": "CANNOT_CONFIRM_NOT_RUN",
+    "service_activation": "CANNOT_CONFIRM_NOT_DEPLOYED",
+    "natural_target_date": "CANNOT_CONFIRM_NOT_OBSERVED",
+    "full_application_suite": "CANNOT_CONFIRM_NOT_IN_SCOPE"
+  },
+  "canonical_merge_boundary": {
+    "canonical_preimage_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/workspace.py",
+    "canonical_preimage_sha256": "95ef1eeea9fbf4269cccc47cf3c5d2f5f74f1d59026bfc226016365ce6fb84c2",
+    "detail": "Canonical workspace.py is a distinct preimage: its _readback_plan does not emit R6 run_readback diagnostics and its refresh flow has the old commit ordering. Apply reviewed semantic hunks to the actual canonical preimage, not the R5/R6 file wholesale."
+  }
+}

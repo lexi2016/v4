@@ -1,0 +1,147 @@
+{
+  "schema_version": "issue35.phase6.saved_completion_nesting_r3.independent_review.v1",
+  "reviewer": "issue35_mac_reviewer",
+  "reviewed_at_local_date": "2026-10-12",
+  "scope": {
+    "path": "E/PHASE6_SAVED_COMPLETION_NESTING_R3_REVIEW_SCOPE.md",
+    "sha256": "a2c1050d146cef7b6687be4b061d4b87abfc498e38e04cd262814a3966dc6269",
+    "writer_closure_path": "E/receipts/phase6-saved-completion-nesting-r3/writer-closure.json",
+    "writer_closure_sha256": "aa617c055cdc104631e3195a4afeec92e6c54ed7021dffaaa54604ebb2e0aae8"
+  },
+  "status": "PASS_BOUNDED_R3_NESTED_PREIMAGE_REPAIR",
+  "REVIEWED": true,
+  "TESTED": true,
+  "BEHAVIOR_VERIFIED": "PURE_AUTHENTIC_EXECUTION03_PREIMAGE_AND_CANARY_SERIALIZATION_ONLY",
+  "verdict": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "findings": "No actionable correctness, security, behavioral-regression, or missing focused-test finding within the frozen R3 scope."
+  },
+  "reviewed_inputs": {
+    "helper": {
+      "path": "E/tools/phase6-r6/complete_issue35_r6_saved_canary_r3.py",
+      "sha256": "bb76958fcc10befcb682b332b01abc6e9e3ace232d8ef851349d1c9755a64ed9",
+      "normalized_self_sha256_verified": "16b056f9bcee8cfd62a8c6ef30f72f3d8e66526744abeb11b72f7cea798255f6"
+    },
+    "focused_test": {
+      "path": "E/tools/phase6-r6/test_issue35_r6_saved_completion_r3.py",
+      "sha256": "48cf5be643b3e3ede7ab7c0001e9000a39072b36a031a137f973c0ae2392345f"
+    },
+    "frozen_diff": {
+      "path": "E/receipts/phase6-saved-completion-nesting-r3/original-to-r3.patch",
+      "sha256": "97db228eb298f6afc07f44d923e711bb7be3a6f1a7ba8792127c00ace33959a2",
+      "actual_r2_to_r3_diff_matches_after_normalized_a_b_headers": true,
+      "content": [
+        "R3 self-source hash metadata changes to the versioned normalized R3 identity.",
+        "_r4b_state_snapshot reads prior_target_owner_state.r4b_two_generation_receipt_pins.",
+        "_canary_record serializes that same nested reference map."
+      ]
+    },
+    "source_and_preimage_pins": {
+      "path": "E/receipts/phase6-saved-completion-nesting-r3/source-and-preimage-pins.json",
+      "sha256": "06bcaae07ef9f082a70a74a6c7639860a7a56d6d9264172d2d946d37939cbf68",
+      "every_relative_static_input_pin_rechecked": true,
+      "authentic_preimage": {
+        "path": "E/receipts/plan_canary_runs/20261013/execution-03/state-preimage.json",
+        "bytes": 7146,
+        "sha256": "1f37c32b04a35821dcce645e580fd85f7c52b19ee749c9d41cfc50d9c0b0bfd9",
+        "nested_under": "prior_target_owner_state.r4b_two_generation_receipt_pins",
+        "top_level_map_absent": true
+      }
+    },
+    "reused_independent_acceptance": [
+      {
+        "path": "E/review/phase6-saved-completion-atomic-r2/independent-review.json",
+        "sha256": "9b6a7a496770a35567f4ac449f23a20609044c4893b1cfc206f52ee32786a7f0",
+        "status": "PASS_BOUNDED_R2_ATOMIC_SAVED_COMPLETION",
+        "P0": 0,
+        "P1": 0,
+        "P2": 0
+      },
+      {
+        "path": "E/review/phase6-get-dto-saved-completion/independent-review.json",
+        "sha256": "969c75b7a18593b02a45ef3ab7f6c94451054c933b5826ed1359b34fb6527ef5",
+        "note": "Prior 31-test GET DTO evidence reused as scoped input; R2 review covers the accepted atomic completion implementation."
+      }
+    ]
+  },
+  "target_behavior": {
+    "lines": [
+      "R3 helper 356-426 validates the nested six path/SHA references against frozen pins and still rejects missing or changed entries.",
+      "R3 helper 822-904 serializes the authentic nested map into state_preimage.r4b_receipt_pins.",
+      "Focused tests 94-117 use the pinned authentic preimage to demonstrate R2 rejection and R3 acceptance.",
+      "Focused tests 119-129 exercise missing and changed variants for all six fields.",
+      "Focused tests 132-184 verify serialized JSON preserves the exact nested reference map.",
+      "Focused tests 186-191 verify the R2 base SHA and R3 source pin."
+    ],
+    "preserved_contract": "No other semantic diff was present; the previously accepted R2 atomic/common/GET/generation/PARTIAL/manual-ASGI gates remain unchanged by this patch."
+  },
+  "focused_test": {
+    "argv": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--import-mode=importlib",
+      "--basetemp=/tmp/issue35-r3-nesting-independent-review-20261012-001",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/test_issue35_r6_saved_completion_r3.py"
+    ],
+    "result": "15 passed in 0.04s",
+    "test_scope": "Only the 15 focused R3 nesting tests; no full verifier or completion CLI."
+  },
+  "parent_next_action": {
+    "offline_completion_verdict": "SAFE_AFTER_PARENT_REAL_PREFLIGHT",
+    "argv": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/phase6-r6/complete_issue35_r6_saved_canary_r3.py"
+    ],
+    "required_preconditions": [
+      "Parent rechecks the real target date, byte-pinned R6 candidate, current execution03 target-state identity/write set, protected-date maps, and owner mutex.",
+      "Fixed final output and the R2 private workspace prefix remain absent."
+    ],
+    "not_run_by_reviewer": true,
+    "conditional_stage": {
+      "status": "CANNOT_CONFIRM_UNTIL_R3_COMPLETES_AND_ORIGINAL_HELPER_CHECKS_REAL_FRESHNESS",
+      "unchanged_freshness_limit_minutes": 60,
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/tools/prepare_daily_chain_activation.py",
+        "--app-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+        "--target-date",
+        "20261013",
+        "--api-plist",
+        "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+        "--scheduler-plist",
+        "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+        "--canary-path",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/receipts/plan_canary_runs/20261013/execution-03-completed/plan-canary.json",
+        "--output-dir",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary",
+        "--stage-enabled"
+      ],
+      "execute_only_if_original_helper_accepts_current_canary_age_and_live_preflight": true,
+      "not_run_by_reviewer": true
+    }
+  },
+  "CANNOT_CONFIRM": [
+    "Parent offline completion and its real current date, target-state, protected-date, mutex, and output-absence preflight.",
+    "Accepted canary freshness under the unchanged 60-minute stage gate.",
+    "Stage preparation/publication/activation, live API/UI readback, natural target-date execution, complete research coverage, or PIT completeness."
+  ],
+  "actions_not_performed": [
+    "Completion CLI",
+    "Full verifier",
+    "Owner or live current-state read/write",
+    "HTTP or API",
+    "Stage helper",
+    "Services, plists, or launchctl",
+    "Git"
+  ]
+}
