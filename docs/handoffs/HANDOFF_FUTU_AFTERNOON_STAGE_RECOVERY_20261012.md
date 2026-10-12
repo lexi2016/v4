@@ -1,6 +1,6 @@
 # 交接：2026-10-12 下午港股通阶段选股与页面恢复
 
-记录时间：2026-10-12 16:27，Asia/Shanghai。本文是未完成工作的交接，不是恢复成功报告。接手前核对实际运行身份；下面的运行状态最后核对于本轮，候选可能继续变化。
+记录时间：2026-10-12 16:31，Asia/Shanghai。本文是未完成工作的交接，不是恢复成功报告。接手前核对实际运行身份；下面的运行状态最后核对于本轮，候选可能继续变化。
 
 ## 目标与用户决定
 
@@ -20,7 +20,7 @@
 | `STAGE_1445_1500` | A 股 10 只保留；港股未恢复；原 receipt 为 attempt 1/3 | 富途缓存已有 100 只；真实原 runner 隔离测试仍有 fixture 问题，未正式补跑 |
 | `STAGE_1545_1555` | 已有 HK 10 只，run `run-a97bb6a8560dedce4e4a4679`；receipt 为 `RECOVERY`、`SETTLED` | API 保留行但将计数置空，页面未显示；不能称 `NATURAL_VERIFIED` |
 
-13:15 原 A 股 run：`run-3b2d201a` 为先前记录的简称，接手应从下面正式 receipt 读完整 ID；不可用简称作为绑定。15:00 原 A 股完整 run：`run-6bb61f95527796da3cd57bd2`。两者已成功，恢复只处理缺失 HK，不重采 A、不替换其 run。
+13:15 原 A 股 selection run：`run-3b2d201a7635f0fab5ab4f6d`。15:00 原 A 股 selection run：`run-6bb61f95527796da3cd57bd2`。两者已成功，恢复只处理缺失 HK，不重采 A、不替换其 run；raw run ID 另从 raw latest 读取，不能混用。
 
 15:55 的原 Stage8 来源是 `FUTU_RTDATA_NATURAL`，实际消费活跃 D-1 交集 16 只，输出 10 只。该既有产物可用于本轮页面恢复；不得冒称它消费了 100 只，也不得为改写这个事实重新采集或扩大原 Stage8 池。
 
@@ -72,7 +72,11 @@
 
 16:28 新进展：API 候选只读 GET 已得到 HK10、`OBSERVATION_UNVERIFIED`、`formal_eligible=false`、`NO_BUY`、`execution_verified=false`，原 `HK_FORMAL_ELIGIBILITY_FALSE` 保留，正在冻结可复跑证据，仍未独立验收或部署。原 15:55 CSV/receipt/API 行没有显式 `temporal_cutoff_safe` 字段；该字段缺失保持 `CANNOT_CONFIRM`，不人为制造 false，更不能当成 true。
 
-runtime fixture 新检查在 runner 执行前发现：receipt 的 `A_SHARE.run_id` 是 **selection run ID**，raw latest 有独立的 **raw run ID**。把 selection ID 交给 `RawStore.verify_run` 会报 `run trio incomplete`。各 reader 必须使用自己 exact latest entry 的 run ID；这次只做预检，未运行 runner/provider。Writer 正修此 fixture 绑定，尚无最终真实生产路径 PASS。
+runtime fixture 新检查在 runner 执行前发现：receipt 的 `A_SHARE.run_id` 是 **selection run ID**，raw latest 有独立的 **raw run ID**。把 selection ID 交给 `RawStore.verify_run` 会报 `run trio incomplete`。各 reader 必须使用自己 exact latest entry 的 run ID。
+
+16:30 最新 runtime 结果：fixture 已按原始 metadata 修正，原 reader 确认 A raw 361 行、selection 10 行；原 dispatcher 的 `execution_markets=[HK_CONNECT]`，真实隔离 CLI 复用富途缓存，provider guard 未触发。但 selection registry 的 `_is_futu_rtd_afterfact_observation` 在 `_attach_hk_authority` 把 quote name 换成 D-1 权威显示 name 后再哈希，错误拒绝通过 RawStore 的 raw projection，并报 `HK_LANE_EVIDENCE_MISSING`。Writer 正修这一处显示 name 差异；仍必须保留 price/volume/turnover 对冻结数据的数值绑定，不能仅相信可复制的 projection marker，否则会重开前次 P2。当前仍无 runtime 最终 PASS。
+
+API Writer 已 FINAL 交接（仅辅助验证完成，未独立验收）：`futu/api_projection/app/apps/api/v35_api/app.py`，SHA256 `864cfafd69b1aa6a8245e40b008f84d75dff8f232fc69723494999a98d5c3863`；baseline app.py SHA256 `1b144675d94ef0efb8d92063b5a5b8b04391108bcb0e9db8b46cbb975bb35dfa`。收据 `futu/api_projection/evidence/WRITER_RECEIPT.json` SHA256 `8b617b701fd5f84be238e93b67075e9fe8ed9e6e5b2aa93f1e89f628b392fd60`。复跑命令：`/Users/lexi/Desktop/学习/v4_app/.venv/bin/python /Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/api_projection/evidence/test_api_projection.py`。系统 Python 缺 FastAPI，勿换测试环境。父级已将该最终候选交同一独立 Reviewer，先验 API 面，不冒充 runtime PASS。
 
 ## 正在工作的所有者
 
@@ -80,7 +84,7 @@ runtime fixture 新检查在 runner 执行前发现：receipt 的 `A_SHARE.run_i
 | --- | --- | --- |
 | `/root/afternoon_cutoff_writer` | runtime adapter/wrapper/RawStore/registry/dispatcher、13:15 严格一次新来源恢复；已冻结 API RawStore 字节 | RUNNING；生产路径测试仍未通过，扩展 packet 未完成正式交接 |
 | `/root/afternoon_cutoff_review` | 独立只读验收 frozen 实际 diff、真实缓存 runner、A 保持、provider 零调用和 NO_BUY | 等扩展冻结 packet；旧 frozen15_r1 无生产行为 PASS |
-| `/root/afternoon_api_projection_writer` | 新 `futu/api_projection` 下 `apps/api/v35_api/app.py` 候选与必要测试 | RUNNING；已定位计数置空原因，未交最终候选 |
+| `/root/afternoon_api_projection_writer` | 新 `futu/api_projection` 下 `apps/api/v35_api/app.py` 候选与必要测试 | FINAL 已消费，待独立 Reviewer；未部署 |
 
 API app.py 写权已从 runtime Writer 撤销，两个 Writer 不写同一文件。不要复制或取消健康 worker；接手先消费其新 final/receipt，避免重复派工。候选目录存在不等于交接完成，`frozen15_r2/PACKET.json` 已出现也不能自行视为 PASS。
 
