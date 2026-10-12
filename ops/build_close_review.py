@@ -8,7 +8,10 @@ from typing import Any
 
 from domains.close_review import _REVIEW_STAGE_IDS, build_native_close_review
 from infrastructure.data_store import _sha256
-from infrastructure.hkconnect_close_store import CloseSnapshotStore
+from infrastructure.hkconnect_close_store import (
+    CloseSnapshotStore,
+    futu_close_capture_time_gap,
+)
 from infrastructure.preselection_pool_store import PreselectionPoolStore
 from infrastructure.review_store import ReviewStore
 from stage_center.consumer import StageSelectionConsumer
@@ -150,6 +153,9 @@ def build_close_review(
 ) -> dict[str, Any]:
     data_root = Path(data_root)
     snapshot, snapshot_sha = CloseSnapshotStore(data_root).read_snapshot(trade_date)
+    capture_gap = futu_close_capture_time_gap(snapshot, trade_date)
+    if capture_gap is not None:
+        raise ValueError(capture_gap)
     try:
         preselection = PreselectionPoolStore(data_root).read_pool(
             trade_date,
@@ -173,6 +179,31 @@ def build_close_review(
         stage_rows=stage_rows,
         close_source_sha256=snapshot_sha,
         stage_evidence=stage_evidence,
+        close_source_evidence={
+            "source_mode": snapshot.get("source_mode"),
+            "source_input_sha256": snapshot.get("source_input_sha256"),
+            "source_capture": snapshot.get("source_capture"),
+        },
+        model_source_evidence={
+            "pool_id": preselection.get("pool_id", "hkconnect_d1_top100")
+            if isinstance(preselection, dict)
+            else "hkconnect_d1_top100",
+            "trade_date": preselection.get("trade_date", trade_date)
+            if isinstance(preselection, dict)
+            else trade_date,
+            "source_role": preselection.get("source_role")
+            if isinstance(preselection, dict)
+            else None,
+            "source_sha256": preselection.get("source_sha256")
+            if isinstance(preselection, dict)
+            else None,
+            "source_manifest_sha256": preselection.get("source_manifest_sha256")
+            if isinstance(preselection, dict)
+            else None,
+            "source_receipt_sha256": preselection.get("source_receipt_sha256")
+            if isinstance(preselection, dict)
+            else None,
+        },
     )
     # Verified local pool storage does not prove upstream source/PIT availability.
     if isinstance(preselection, dict) and (

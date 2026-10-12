@@ -105,6 +105,8 @@ def build_native_close_review(
     stage_rows: dict[str, list[dict[str, Any]] | None],
     close_source_sha256: str,
     stage_evidence: dict[str, dict[str, Any]] | None = None,
+    close_source_evidence: dict[str, Any] | None = None,
+    model_source_evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Calculate the frozen close-Top20 review from V3.5-owned inputs."""
     prepared_close: list[dict[str, Any]] = []
@@ -339,6 +341,8 @@ def build_native_close_review(
         "missing_stages": missing_stages,
         "unverified_stages": unverified_stages,
         "stage_input_evidence": stage_evidence_map,
+        "close_source_evidence": dict(close_source_evidence or {}),
+        "model_source_evidence": dict(model_source_evidence or {}),
         "cannot_confirm": cannot_confirm,
         "close_source_sha256": close_source_sha256,
         "evidence_mode": "V3_5_NATIVE_PRODUCTION",

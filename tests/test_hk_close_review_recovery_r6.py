@@ -104,6 +104,50 @@ def test_same_date_formal_model_stays_formal_while_partial_stage_rows_stay_resea
     assert result["orders_sent"] is False
 
 
+def test_partial_stage_union_keeps_research_only_safety_fields() -> None:
+    trade_date = "20261012"
+    stage_id = _REVIEW_STAGE_IDS[0]
+    result = build_native_close_review(
+        trade_date,
+        close_rows=[
+            {
+                "trade_date": trade_date,
+                "code": f"HK.{index:05d}",
+                "close": 100 + index,
+                "pre_close": 100,
+                "amount": index,
+            }
+            for index in range(1, 21)
+        ],
+        model_rows=[
+            {
+                "target_date": trade_date,
+                "market": "HK",
+                "symbol": f"HK.{index:05d}",
+                "pool_rank": index,
+            }
+            for index in range(1, 101)
+        ],
+        stage_rows={
+            item: ([{"market": "HK", "code": "HK.00001"}] if item == stage_id else None)
+            for item in _REVIEW_STAGE_IDS
+        },
+        close_source_sha256="b" * 64,
+        stage_evidence={stage_id: {"status": "READY", "cannot_confirm": []}},
+    )
+
+    assert result["stage_union"]["evidence_status"] == "MISSING"
+    observed = result["observed_stage_union"]
+    assert observed["evidence_status"] == "PARTIAL_RESEARCH_ONLY"
+    assert observed["RESEARCH_ONLY"] is True
+    assert observed["research_only"] is True
+    assert observed["recommendation_status"] == "NO_BUY"
+    assert observed["pit_status"] == "UNVERIFIED"
+    assert observed["production_allowed"] is False
+    assert observed["buy_gate_updated"] is False
+    assert observed["orders_sent"] is False
+
+
 def test_hk_review_projection_preserves_partial_observation_contract_fields() -> None:
     observed = {
         "evidence_status": "PARTIAL_RESEARCH_ONLY",

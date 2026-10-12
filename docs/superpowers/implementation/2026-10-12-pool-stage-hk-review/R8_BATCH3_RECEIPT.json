@@ -1,0 +1,85 @@
+{
+  "batch": "R8_BATCH3",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_parent_commit": "aa214bd3d3c9d10d7b8b1233d05dd13188eb1767",
+  "writer": "/root/r8_batch3_writer",
+  "reviewer": "/root/r8_batch3_review",
+  "REVIEWED": "PASS",
+  "BEHAVIOR_VERIFIED": "PASS",
+  "independent_test_result": "30 passed (5 suites) +1 passed legacy exact-date slice; Starlette deprecation warnings",
+  "files": [
+    {
+      "path": "ops/collect_hkconnect_close_snapshot.py",
+      "before_sha256": "901905f77532fe61674d2f423b6fab1babc86b3b6f5e3aeb5a34abce91630c76",
+      "after_sha256": "ff97600d73ce1d72550e4b8e4064338323d566039cf772ee97a046d43d7c2e38",
+      "changed": true
+    },
+    {
+      "path": "ops/build_close_review.py",
+      "before_sha256": "6e39ed2fc91f35336f2d490b1a4bafed89b76dd56d3ba96189030a852bbe04aa",
+      "after_sha256": "587dd999e991c499a390d5e1a5ddbb868525e0b47b475b8041148a487df7c4ed",
+      "changed": true
+    },
+    {
+      "path": "domains/close_review.py",
+      "before_sha256": "dba6e97ec45bc7c3eac87801cf06ace95325d4d93af203cabf6a33cf9f0941c2",
+      "after_sha256": "11112e42497b33d6ebe18e6420951d87458230b419403490ae2841d988a92073",
+      "changed": true
+    },
+    {
+      "path": "infrastructure/review_store.py",
+      "before_sha256": "12278920fe02965163916ac9e1bc8143fb42d7aa4e05e8c90cf02afb9e5d399c",
+      "after_sha256": "33d32597c99f4f0e41343a6d039d04e90a9d52981b6f2472febfaca2cfdfae0b",
+      "changed": true
+    },
+    {
+      "path": "infrastructure/hkconnect_close_store.py",
+      "before_sha256": "aea05a0ec8b4b42e6c140715fb1bf80ffcf49ded1f25f5bb59bc3c952bce4bf8",
+      "after_sha256": "a3ce27b1cacd1c50bf41866d5b7ec079b97f752b57518aedfaf25cd7b65dc219",
+      "changed": true
+    },
+    {
+      "path": "tests/test_close_review_producer.py",
+      "before_sha256": "c2501b342755bfa97064ceae1a8df0c936f912c9a635fc88c059d660d62b655f",
+      "after_sha256": "99b3d9f025aebf69b0e047b79f67aa644f194030100fc306aa85c2b0afbb3246",
+      "changed": true
+    },
+    {
+      "path": "tests/test_close_review_verified_inputs.py",
+      "before_sha256": "2be3e11c169faf458055d9767dbe6cf85b01ff8e3b9f91ee296e18473b826d50",
+      "after_sha256": "a792bbe6b3f9b48ba36d8a3ae16388fd33a6dd39dc9bd992c14270b2e59b323f",
+      "changed": true
+    },
+    {
+      "path": "tests/test_hk_close_review_recovery_r6.py",
+      "before_sha256": "752e808aa3968cb8db4408685b65b8cf6c6f2732924dc5b68b197665851c42b9",
+      "after_sha256": "3ad7306209b4670c19f8a3f07f6623d2a12797a7bb111bae9d3bc4b67af8992a",
+      "changed": true
+    },
+    {
+      "path": "tests/test_close_snapshot_idempotent_reuse.py",
+      "before_sha256": "bffc5419861fa1b1274f8403bf9259b9471b94ad2aba5b1ca75c78218038f9fc",
+      "after_sha256": "761ba39eee29229ede338df71246f1b1ae5cfe0d27769af5f0c535d54131d0ac",
+      "changed": true
+    }
+  ],
+  "actual_diff_sha256": "fcab223aa44547826d4c85aae6cdd3ebb5ac4956a8ef3dd5e9590970ab8c9456",
+  "review_receipt_sha256": "c508eb10a3395fa0bf7f7e69bf6cb5b8e5721ad32894c1931d247c36d7a59f1d",
+  "scope_expansion": "one direct cache-fixture test, beforeSHA bffc5419861fa1b1274f8403bf9259b9471b94ad2aba5b1ca75c78218038f9fc",
+  "verified_behavior": [
+    "Futu provider update_time + timezone kept distinct from query time; existing16:10cutoff/sourceSHA validated",
+    "Unknown-time immutable cache stays readable but cannot serve as fresh Futu formal input",
+    "Known TDX VIPDOC importer contract preserved, never labeled Futu",
+    "Exact missing and corrupt inputs separated; native marker required; imported legacy reference still readable/supersedable; seven-stage union preserved"
+  ],
+  "deployment": "NOT_DEPLOYED",
+  "API_VERIFIED": "PENDING",
+  "UI_VERIFIED": "PENDING",
+  "NATURAL_VERIFIED": "NOT_RUN",
+  "live_Futu": "NOT_RUN",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
