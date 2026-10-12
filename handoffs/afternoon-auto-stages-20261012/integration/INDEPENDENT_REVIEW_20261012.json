@@ -1,0 +1,121 @@
+{
+  "schema_version": "v4.afternoon_cutoff_recovery.independent_review.v1",
+  "review_status": "REVIEWED",
+  "verdict": "PASS_FROZEN_CANDIDATE_SCOPE",
+  "reviewer_identity": "/root/afternoon_cutoff_review",
+  "reviewed_at_utc": "2026-10-12 05:39:18 UTC",
+  "candidate": {
+    "patch_sha256": "d38fc76fe5a35f36446a340c2b16ee10218da069edd91864c4461af0355c2837",
+    "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/overlay/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+    "source_sha256": "3cd3003857efd3b9ecb3c1cdd6e272483932749f1d9b38c57b9026b3a4c40fc9",
+    "focused_test_sha256": "61f7db812cd347c58ac6cb96ee77820bdd05b7f8360613ced5f7aafd7938041b",
+    "release_base_stage_dispatch_sha256": "fc3a40dbee0ee438abaa9723bfee3d96acc86e31ed6e9a79239c04f03c18e11a",
+    "release_node_entry_sha256": "69bd2eebb195e4eecb75fd7892b0ddb43797cd32b46df41e149f35e59ea2ef19"
+  },
+  "baseline_failure": {
+    "summary_path": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/integration/INITIAL_FAILURE_SUMMARY.json",
+    "summary_sha256": "d1ac9a00618ee73a117fe48930c0a389050d3f7700be2702b73e88f2ed2d3694",
+    "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261012/STAGE_1300_1315/receipt.json",
+    "receipt_sha256": "cc093fc5875bd18fa07beb9f37b57f35414101cb4e01d86a1e06bdafaf5ff216",
+    "observed_at": "2026-10-12T13:19:55.233861+08:00",
+    "facts": {
+      "trade_date": "20261012",
+      "stage_id": "STAGE_1300_1315",
+      "dispatch_mode": "NATURAL",
+      "due_status": "LATE_CATCHUP_REPLAY",
+      "node_attempt_count": 1,
+      "A_SHARE_selected_rows": 10,
+      "A_SHARE_run_id": "run-3b2d201a7635f0fab5ab4f6d",
+      "HK_CONNECT_selected_rows": 0,
+      "HK_CONNECT_status": "CANNOT_CONFIRM",
+      "HK_CONNECT_write_performed": false,
+      "HK_CONNECT_cause": "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE",
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "test_results": [
+    {
+      "suite": "candidate focused tests",
+      "result": "7 passed",
+      "exit_code": 0,
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp=/tmp/v4-afternoon-candidate-review-20261012 /Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/tests/test_afternoon_hk_cutoff_recovery_20261012.py",
+      "coverage": "Exact receipt hash and receipt shape; fixed date/stage/A run/budget/safety; natural 13:00 and 14:45 allowed, 15:45 denied; fake-runner dispatch checks HK-only scope, attempt 2/3, unchanged A receipt/pointer, NO_BUY, OBSERVATION_UNVERIFIED, temporal_cutoff_safe=false, and preserved prior bytes."
+    },
+    {
+      "suite": "original HK cutoff and collector regressions",
+      "path": "/Users/lexi/Desktop/学习/v4_app/tests/test_hk_minute_cutoff_recovery_20261012.py",
+      "sha256": "6172d1ca4793d9be666e9cb9708bc83817d587ca99d78669666bf7b6226ad531",
+      "result": "5 passed",
+      "exit_code": 0,
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp=/tmp/v4-afternoon-original-review-20261012 tests/test_hk_minute_cutoff_recovery_20261012.py",
+      "coverage": "Settled-partial skip baseline; HK-only/A preservation; unknown continuation and exhausted-budget rejection; unsafe cutoff observation rows remain WATCH_ONLY/NO_BUY; scoped-runner fail-closed behavior."
+    }
+  ],
+  "combined_test_run": {
+    "result": "11 passed, 1 failed in one combined pytest process",
+    "diagnosis": "The focused test inserts the selected release app root at sys.path[0], so the legacy test's final direct import resolves release ops modules while its minimal Runner lacks due_decisions. Running each complete file in a separate process yielded 7/7 and 5/5. The combined result is not used as candidate acceptance."
+  },
+  "code_evidence": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/overlay/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "lines": "16-24, 50-104",
+      "evidence": "Initial match is fixed to 20261012/STAGE_1300_1315, attempt 1 of max 3, exact A run ID and 10 rows, HK zero rows with only HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE, settled NATURAL late receipt, and all safety flags false."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/overlay/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "lines": "376-431, 566-632",
+      "evidence": "Only the two named stages receive the added natural observation flag. Recovery retains the existing per-stage lock and under-lock receipt recheck, scopes runner to HK_CONNECT, and persists the shared attempt counter before collector execution."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app/stage_center/runner.py",
+      "lines": "426-455",
+      "evidence": "Selected release implements the existing cross-process SlotLock with a date-and-stage keyed slot path."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "lines": "265-271, 393-425",
+      "evidence": "Explicit --node returns one node; the CLI's post-cutoff mode dispatches that one node as RECOVERY."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app/stage_center/_live_collectors_parts/hk_minute.py",
+      "lines": "87-113",
+      "evidence": "Late recovery preserves the unsafe cause and source rows as PARTIAL_WITH_ROWS; ordinary unsafe collection remains CANNOT_CONFIRM with no rows."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "lines": "285-310",
+      "evidence": "Degraded observations use the existing four-lane selector and do not manufacture a live gainer lane."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app/stage_center/_selection_parts/hk_four_lanes.py",
+      "lines": "92-97",
+      "evidence": "Observation rows are formal_eligible=false and action_level=NO_BUY."
+    }
+  ],
+  "states": {
+    "REVIEWED": "PASS",
+    "TESTED": "PASS_INDEPENDENT_RERUN",
+    "BEHAVIOR_VERIFIED": "PASS_ISOLATED_CANDIDATE_DISPATCH_AND_PRESERVATION_ONLY",
+    "ACTUAL_LOCK_ACQUISITION": "CANNOT_CONFIRM_TEST_REPLACES_SLOTLOCK_WITH_NOOP",
+    "FORMAL_TDX_RAWSTORE_SELECTIONSTORE_RESULT": "CANNOT_CONFIRM",
+    "POST_RECOVERY_API_UI_RESULT": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "formal_cli_executed_by_reviewer": false,
+    "release_modified_by_reviewer": false,
+    "provider_invoked_by_reviewer": false
+  },
+  "acceptance_boundary": "The PASS is for frozen candidate code and isolated dispatch behavior only. The focused dispatch test uses a fake runner and NoopLock; it does not prove live TDX/RawStore/SelectionStore output, real lock acquisition, API/UI readback, or a natural post-recovery result. The formal CLI entry remains NOT_RUN by this reviewer and those results remain CANNOT_CONFIRM for the later integration/closing step."
+}
