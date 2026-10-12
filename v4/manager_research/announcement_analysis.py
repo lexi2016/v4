@@ -816,11 +816,15 @@ def _verify_hkex_variant_body(variant: Mapping[str, Any], publication: str) -> N
     """Validate an official directory/body pair while keeping it separate from EM IDs."""
     kind, identity = _record_identity(variant)
     news_id = variant.get("news_id")
+    try:
+        variant_publication = _publication_date(variant.get("publication_date"))
+    except ValueError:
+        variant_publication = None
     if (kind != "source_variant_id" or identity != "HKEX:" + str(news_id)
             or not isinstance(news_id, str) or re.fullmatch(r"\d{5,20}", news_id) is None
             or variant.get("source") != "HKEX_OFFICIAL"
             or variant.get("source_scope") != _HKEX_DIRECTORY_SCOPE
-            or variant.get("publication_date") != publication.replace("-", "")
+            or variant_publication != _publication_date(publication)
             or not _safe_url(variant.get("source_url"))
             or "art_code" in variant
             or variant.get("cross_source_link_status") != "NOT_ASSESSED"):
@@ -878,7 +882,7 @@ def _verify_hkex_variant_body(variant: Mapping[str, Any], publication: str) -> N
                 or re.fullmatch(r"[0-9a-f]{64}", body_text_sha) is None
                 or sha256(expected_text.encode("utf-8")).hexdigest() != body_text_sha):
             raise ValueError("ANNOUNCEMENT_ANALYSIS_HKEX_BODY_TEXT_SHA_MISMATCH")
-    elif status in {"HKEX_BODY_CAPTURE_FAILED", "HKEX_OFFICIAL_PDF_TEXT_UNREADABLE",
+    elif status in {"BODY_FORMAT_UNSUPPORTED", "HKEX_BODY_CAPTURE_FAILED", "HKEX_OFFICIAL_PDF_TEXT_UNREADABLE",
                     "HKEX_OFFICIAL_PDF_BODY_UNREADABLE", "BODY_CAPTURE_FAILED",
                     "BODY_FETCH_FAILED", "BODY_NOT_CAPTURED"}:
         if pages or variant.get("body_text") is not None or variant.get("body_text_sha256") is not None:
@@ -908,7 +912,8 @@ def _analysis_hkex_record(record: Mapping[str, Any], variant: Mapping[str, Any])
             or record.get("title") not in {None, variant.get("title")}):
         raise ValueError("ANNOUNCEMENT_ANALYSIS_HKEX_SEMANTIC_BINDING_MISMATCH")
     status = variant.get("body_status")
-    if status == _HKEX_COMPLETE_BODY:
+    reader_content_gap = has_reader_declared_content_gap(record)
+    if status == _HKEX_COMPLETE_BODY and not reader_content_gap:
         kind = _HKEX_COMPLETE_BODY
     else:
         kind = "TEXT_INSUFFICIENT_UNASSESSED"
@@ -933,6 +938,9 @@ def _analysis_hkex_record(record: Mapping[str, Any], variant: Mapping[str, Any])
         "directory_source_ref": directory_ref,
         "body_source_ref": body_ref,
     }
+    date_semantics = deepcopy(record.get("date_semantics")) if isinstance(record.get("date_semantics"), Mapping) else {}
+    if reader_content_gap:
+        date_semantics["content_api_semantic_read_status"] = "INCOMPLETE_SOURCE_GAP"
     out = {
         "source_variant_id": variant_id,
         "source": "HKEX_OFFICIAL",
@@ -947,7 +955,7 @@ def _analysis_hkex_record(record: Mapping[str, Any], variant: Mapping[str, Any])
         "why_useful": record.get("why_useful"),
         "research_priority": record.get("research_priority"),
         "event_status_assessment": record.get("event_status_assessment"),
-        "date_semantics": deepcopy(record.get("date_semantics")) if isinstance(record.get("date_semantics"), Mapping) else {},
+        "date_semantics": date_semantics,
         "cutoff_boundary": deepcopy(record.get("cutoff_boundary")),
         "analysis_kind": kind,
         "body_status": status,
@@ -1347,7 +1355,8 @@ def _build_multi_source_product(semantic_catalog: Mapping[str, Any], body_corpus
         "eligible_eastmoney_announcements": len(eligible_codes),
         "hkex_official_announcements": len(variant_by_id),
         "combined_eligible_announcements": len(out_records),
-        "complete_hkex_pdf_bodies": kinds.get(_HKEX_COMPLETE_BODY, 0),
+        "complete_hkex_pdf_bodies": sum(
+            variant.get("body_status") == _HKEX_COMPLETE_BODY for variant in variant_by_id.values()),
     }
     unresolved_gap = hkex_unresolved_count > 0
     if not variant_by_id and unresolved_gap:
@@ -1581,16 +1590,20 @@ def _validate_multi_source_product(product: Mapping[str, Any], target: str,
                 or listing_source.get("body_source_ref") != evidence.get("body_source_ref")
                 or row.get("title") != evidence.get("title")
                 or row.get("issuer_codes") != [{"code": evidence.get("symbol"), "name": evidence.get("name")}]
-                or row.get("selection_status") != (None if evidence.get("body_status") == _HKEX_COMPLETE_BODY else "NOT_ASSESSED")):
+                or row.get("selection_status") != (None if evidence.get("body_status") == _HKEX_COMPLETE_BODY
+                    and not has_reader_declared_content_gap(row) else "NOT_ASSESSED")):
             raise ValueError("ANNOUNCEMENT_ANALYSIS_HKEX_RECORD_SOURCE_MISMATCH")
         if evidence.get("symbol") not in eligibility_codes:
             raise ValueError("ANNOUNCEMENT_ANALYSIS_HKEX_CONNECT_ELIGIBILITY_MISMATCH")
 
+    complete_hkex_reader_gaps = sum(
+        row.get("body_status") == _HKEX_COMPLETE_BODY and has_reader_declared_content_gap(row)
+        for row in by_identity.values())
     expected_kinds = {
         "COMPLETE_API_BODY": counts.get("complete_api_bodies", 0),
         "LONG_PDF_KEY_SECTION_READ": counts.get("long_pdf_focus_reads", 0),
         "TEXT_INSUFFICIENT_UNASSESSED": counts.get("text_insufficient_unassessed", 0),
-        _HKEX_COMPLETE_BODY: counts.get("complete_hkex_pdf_bodies", 0),
+        _HKEX_COMPLETE_BODY: counts.get("complete_hkex_pdf_bodies", 0) - complete_hkex_reader_gaps,
     }
     if kinds != {key: value for key, value in expected_kinds.items() if value}:
         raise ValueError("ANNOUNCEMENT_ANALYSIS_KIND_COUNTS_MISMATCH")
