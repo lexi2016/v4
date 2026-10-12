@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { requestManagerAnnouncementAnalysis } from './managerAnnouncementAnalysis.js';
+import { ANNOUNCEMENT_PREOPEN_WINDOW, requestManagerAnnouncementAnalysis } from './managerAnnouncementAnalysis.js';
 
 const catalog={status:'COMPLETE',readback_status:'VERIFIED',source_scope:'EASTMONEY_HK_DATE_CATALOG',
   publication_date:'2026-09-29',is_hkex_complete_directory:false,directory_record_count:744,
@@ -32,6 +32,40 @@ function payload(verified=true,publicationDate='2026-09-29',
       source_manifest:manifest,source_manifest_sha256:'d'.repeat(64),product_sha256:'e'.repeat(64),
       first_publication_and_cutoff_status:'CANNOT_CONFIRM',novelty_vs_prior_status:'CANNOT_CONFIRM',
       point_in_time_status:'CANNOT_CONFIRM'}:{status:'NOT_IMPORTED',summary:null,records:[]}};
+}
+function preopenPayload(){
+  const body=payload(true,'2026-10-12','EXPLICIT','20261012') as unknown as Record<string,any>;
+  const coverage={status:'PARTIAL',expected_dates:['20261009','20261010','20261011','20261012'],
+    covered_dates:['20261009','20261012'],missing_dates:['20261010','20261011'],missing_date_count:2};
+  const candidate={publication_date:'2026-10-09',source_identity:{kind:'art_code',id:'AN20261009000001'},
+    source:'EASTMONEY',title:'Reviewed event',issuer_codes:[{code:'HK.00001',name:'Issuer'}],
+    classification:'BUSINESS_EVENT',factual_summary:'An explicit product milestone was disclosed.',
+    why_useful:'It changes the issuer product timeline.',event_status_assessment:null,
+    analysis_kind:'COMPLETE_API_BODY',body_status:null,semantic_record_sha256:'a'.repeat(64),
+    source_record_sha256:'b'.repeat(64),body_text_sha256:'c'.repeat(64),publication_time:'2026-10-09T10:00:00+08:00',
+    publication_time_basis:'OFFICIAL_SOURCE_TIMESTAMP',disposition:'SELECTED_EVENT',selection_basis:'EXPLICIT_REVIEW',
+    direction:'POSITIVE',evidence_sufficiency:'VERIFIED_EXISTING_FACTS',reason:'Reviewed concrete event.',risk_notes:['Commercial effect remains unconfirmed.'],
+    supporting_exact_quote:'A short exact source quote.',source_refs:[{url:'https://np-anotice-stock.eastmoney.com/api/ann?id=AN20261009000001',
+      blob_sha256:null,body_sha256:'d'.repeat(64)}],retrospective_status:'SOURCE_PUBLISHED_IN_WINDOW',source_record_validation:'PASS'};
+  const retrospective={status:'PARTIAL',candidate_count:1,positive_candidate_count:1,candidates:[candidate],
+    pending_count:1,pending_queue:[{publication_date:'2026-10-12',source_identity:{kind:'source_variant_id',id:'HKEX:12345678'},
+      reason_codes:['QUALIFICATION_AT_CUTOFF_CANNOT_CONFIRM']}]};
+  const actual={status:'CANNOT_CONFIRM',positive_candidate_count:null,positive_candidates:[],
+    candidate_evaluations:[{publication_date:'2026-10-09',source_identity:candidate.source_identity,
+      source_record_sha256:candidate.source_record_sha256,status:'CANNOT_CONFIRM',reason_codes:['OWNER_IMPORT_AFTER_CUTOFF']}],
+    gaps:['QUALIFICATION_AT_CUTOFF_CANNOT_CONFIRM']};
+  const binding={target_trade_date:'20261012',source_semantic_catalog_sha256:'e'.repeat(64),
+    source_body_corpus_file_sha256:'f'.repeat(64),draft_analysis_product_sha256:'1'.repeat(64),
+    draft_source_manifest_sha256:'2'.repeat(64)};
+  const artifact={schema_version:'v4.manager_research.announcement_preopen_window.v1',target_trade_date:'20261012',
+    window_start:ANNOUNCEMENT_PREOPEN_WINDOW.windowStart,as_of:ANNOUNCEMENT_PREOPEN_WINDOW.asOf,
+    input_fingerprint_sha256:'3'.repeat(64),registered_fingerprint_sha256:'4'.repeat(64),registered_binding:binding,
+    coverage,retrospective_research:retrospective,actual_preopen:actual};
+  body.analysis.source_manifest.preopen_window=artifact;
+  body.preopen_window_readback={status:'VERIFIED',window_start:artifact.window_start,as_of:artifact.as_of,
+    registered_fingerprint_sha256:artifact.registered_fingerprint_sha256,
+    input_fingerprint_sha256:artifact.input_fingerprint_sha256,coverage,retrospective_research:retrospective,actual_preopen:actual};
+  return body;
 }
 function dynamicPayload(){
   const publicationDate='2026-10-06',targetDate='20261007';
@@ -134,6 +168,28 @@ function multiSourcePayload(){
 afterEach(()=>vi.unstubAllGlobals());
 
 describe('requestManagerAnnouncementAnalysis',()=>{
+  it('requests the exact 09:20 window and validates its registered projection separately from actual eligibility',async()=>{
+    const body=preopenPayload();
+    vi.stubGlobal('fetch',vi.fn(async(url:string)=>{
+      const parsed=new URL(url,'https://v4.local');
+      expect(parsed.searchParams.get('window_start')).toBe(ANNOUNCEMENT_PREOPEN_WINDOW.windowStart);
+      expect(parsed.searchParams.get('as_of')).toBe(ANNOUNCEMENT_PREOPEN_WINDOW.asOf);
+      expect(parsed.searchParams.get('publication_date')).toBe('20261012');
+      return {ok:true,json:async()=>body};
+    }));
+    const value=await requestManagerAnnouncementAnalysis('20261012','20261012',new AbortController().signal,
+      {windowStart:ANNOUNCEMENT_PREOPEN_WINDOW.windowStart,asOf:ANNOUNCEMENT_PREOPEN_WINDOW.asOf});
+    expect(value.preopen_window_readback?.status).toBe('VERIFIED');
+    expect(value.preopen_window_readback?.retrospective_research?.positive_candidate_count).toBe(1);
+    expect(value.preopen_window_readback?.actual_preopen?.status).toBe('CANNOT_CONFIRM');
+
+    body.preopen_window_readback.retrospective_research.candidate_count=0;
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>body})));
+    await expect(requestManagerAnnouncementAnalysis('20261012','20261012',new AbortController().signal,
+      {windowStart:ANNOUNCEMENT_PREOPEN_WINDOW.windowStart,asOf:ANNOUNCEMENT_PREOPEN_WINDOW.asOf}))
+      .rejects.toThrow('ANNOUNCEMENT_ANALYSIS_PREOPEN_WINDOW_READBACK_INVALID');
+  });
+
   it('uses the server HK calendar by default and validates all frozen source identities',async()=>{
     const responseBody=payload();const fetcher=vi.fn(async(url:string)=>{
       expect(url).toContain('date=20260930');expect(url).not.toContain('publication_date=');
@@ -289,5 +345,28 @@ describe('requestManagerAnnouncementAnalysis',()=>{
     vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>fakeJoin})));
     await expect(requestManagerAnnouncementAnalysis('20261007','20261006',new AbortController().signal))
       .rejects.toThrow('ANNOUNCEMENT_ANALYSIS_STOCK_SELECTION_INVALID');
+  });
+
+  it('accepts a captured HKEX body whose semantic record remains explicitly unassessed',async()=>{
+    const body=multiSourcePayload();
+    const analysis=body.analysis as Record<string,any>,manifest=analysis.source_manifest as Record<string,any>;
+    const record=(analysis.records as Record<string,any>[]).find(row=>row.source_variant_id==='HKEX:12345678')!;
+    record.analysis_kind='TEXT_INSUFFICIENT_UNASSESSED';record.selection_status='NOT_ASSESSED';
+    const counts=manifest.counts as Record<string,number>;
+    counts.text_insufficient_unassessed=1;counts.complete_hkex_pdf_bodies=0;
+    const summary=analysis.summary as Record<string,number>;
+    summary.text_insufficient_unassessed=1;summary.complete_hkex_pdf_bodies=0;
+    manifest.hkex_body_coverage_status='PARTIAL';
+    const selection=analysis.stock_selection as Record<string,any>;
+    selection.not_selected_stock_count=1;selection.not_assessed_stock_count=1;
+    selection.article_decisions.find((row:Record<string,any>)=>row.source_variant_id==='HKEX:12345678').disposition='NOT_ASSESSED';
+    selection.stocks[0].status='NOT_ASSESSED';
+    selection.stocks[0].articles.find((row:Record<string,any>)=>row.source_variant_id==='HKEX:12345678').disposition='NOT_ASSESSED';
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>body})));
+    const value=await requestManagerAnnouncementAnalysis('20261007','20261006',new AbortController().signal);
+    expect(value.analysis.status).toBe('VERIFIED');
+    const accepted=(value.analysis.records as Record<string,any>[]).find(row=>row.source_variant_id==='HKEX:12345678');
+    expect(accepted?.analysis_kind).toBe('TEXT_INSUFFICIENT_UNASSESSED');
+    expect(accepted?.body_status).toBe('COMPLETE_HKEX_OFFICIAL_PDF_BODY');
   });
 });
