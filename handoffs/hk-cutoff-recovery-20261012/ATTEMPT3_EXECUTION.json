@@ -1,0 +1,16 @@
+{
+  "schema": "v4.parent_tool_execution_receipt.v1",
+  "source": "parent tools.exec_command observed result chunk_id 10a6cf",
+  "command": [
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "-B",
+    "/Users/lexi/Desktop/学习/agents调试/V4_HK_CUTOFF_RECOVERY_20261012/evidence/prepare_hk_cached_recovery.py",
+    "--mode",
+    "consume-attempt3",
+    "--output-root",
+    "/Users/lexi/Desktop/学习/agents调试/V4_HK_CUTOFF_RECOVERY_20261012/evidence/isolated_hk_recovery_20261012_r7"
+  ],
+  "exit_code": 0,
+  "runner_report_sha256": "030cd90606457a70b2289ea2a680db0f8ac2a906c436be9f91ab97aae333a2b6",
+  "scope": "Parent tool observation; separate from older RECOVERY_EXECUTION.json exit 3. Independent reviewer did not verify this command log."
+}
