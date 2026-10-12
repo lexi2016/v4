@@ -18,7 +18,6 @@ const loading = ref(false);
 const error = ref("");
 let requestVersion = 0;
 const feedFilter = ref<string>(props.initialFeedFilter === "wechat" ? "wechat" : "latest");
-const morningFilter = ref("all");
 const requestedMode = ref<"EXACT" | "LATEST">("EXACT");
 const updateDiagnostic = computed(() => payload.value?.update_diagnostic as { state?: string; message?: string } | undefined);
 

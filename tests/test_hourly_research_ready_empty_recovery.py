@@ -283,6 +283,24 @@ def test_ready_empty_reader_uses_exact_status_not_collector_latest_picker(
     ]
 
 
+def test_ready_empty_reader_accepts_existing_v1_receipt_shape(tmp_path: Path) -> None:
+    _recover_empty_slot(tmp_path)
+    receipt_path = tmp_path / f"receipts/research/hourly/live/{DATE}/{SLOT}.json"
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    receipt.pop("hourly_artifact_status", None)
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+
+    archive = HourlyResearchStore(tmp_path).read_exact(DATE, SLOT, mode="LIVE")
+
+    assert archive is not None
+    assert archive["ready_empty_evidence_v1"]["slot"] == SLOT
+
+    receipt["unrecognized_field"] = True
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    with pytest.raises(ValueError, match="manifest or receipt mismatch"):
+        HourlyResearchStore(tmp_path).read_exact(DATE, SLOT, mode="LIVE")
+
+
 def test_collector_cli_returns_zero_for_exact_ready_empty_manual_recovery(tmp_path: Path) -> None:
     _write_empty_receipt(tmp_path)
 

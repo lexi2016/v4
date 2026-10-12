@@ -1,33 +1,145 @@
-# V4 research workbench simplification plan
+# 研报工作台代码精简与优化实施计划
 
-Status: approved four-batch plan; execute serially with one Writer per batch and a separate read-only Reviewer before integration.
+这是用户已批准并明确要求实施的四批计划。实施状态以各批实际源码、独立验收和发布回读为准。
 
-## Frozen target and baselines
+## 1．目标、范围与执行方式
 
-Unify the hourly research implementation used by the API and scheduler candidates while preserving their public facades, source provenance, immutable artifacts, UI behavior, and all unrelated manager, selection, and overlay methods. The sole source worktree is `/Users/lexi/.codex/worktrees/research-workbench-simplification/v4_app`, seeded from canonical source commit `55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054`. The current-source baseline and runtime module SHAs are recorded in the controller's `baseline.json`.
+目标：在保留现有业务行为和页面流程的前提下，收敛研报代码版本，减少隐式依赖、重复规则和前端重复转换，让后续修改能在明确位置完成。
 
-Runtime comparison is bound to matching input identity. At the start of this plan, the API had naturally advanced to `20261012/2300`, payload SHA `9fa6d40f37c52f79d9cdc1626498320cb4089d231e5a2598cb76234f459cc099`, with 19 declared gaps; the browser still displayed the `2200` page. The day API uses `archive_date` and returned `8/8 READY_WITH_DECLARED_GAPS`. These are read-only comparison anchors. Do not pin latest to `2200`, rewrite a natural artifact, or compare outputs from different source SHAs.
+架构：保留 Vue、FastAPI、文件归档及现有调度体系。API 和调度独立发布，共享研报模块从同一份源码构建，不新增服务、数据库、数据 producer 或依赖框架。
 
-## Preserved boundaries
+范围：
+- 小时研报的输入读取、证据验证、执行、归档和只读查询。
+- 研报决策台的请求适配、状态、计数、时间和展示转换。
+- 上述模块的必要测试、构建清单和发布验证。
 
-- Preserve every non-hourly method's source bytes in shared store facades, including manager, selection, and overlay methods. Keep runtime-specific hourly extensions behind their existing facade when they are not common.
-- Keep A/HK date and pool boundaries, source SHA, manifest, run ID, PIT checks, read-only research status, and `production_allowed=false`, `buy_gate_updated=false`, `orders_sent=false` unchanged.
-- Do not add a producer, fetch a second copy of existing evidence, write business inputs/artifacts/receipts/latest, alter active releases, or touch Vibe 8910, services, or schedules.
-- Use isolated fixtures and candidates for tests. API, page, deployment, and natural-period claims require their own later readback evidence.
+日级产品仅验证兼容性，不重写其业务逻辑。经理选股、公告分析、公众号归档、OCR 生产、行情采集、Vibe 8910 和整个调度系统不纳入本批改造。
 
-## Serial batches
+主控负责范围、交接、集成、发布及最终状态。唯一 Luna Max Writer 修改允许路径；不同 identity 的 Luna Max Reviewer 复跑相关测试，出具独立验收。四批串行实施，每批独立提交、验收和回退；通过后不重复无变化的检查。
 
-| Batch | Owned change | Acceptance evidence |
-| --- | --- | --- |
-| 1. Shared version and dependency identity | Extract one shared hourly store implementation with compatible entrypoints. Publish a deterministic path/SHA bundle for common modules and include that bundle plus relevant runtime dependency bytes in transformer identity. Keep existing archive and receipt immutable on equivalent output; reject conflicting output. | Focused hourly runner and ready-empty tests; candidate API and scheduler bundles have identical common paths and SHAs; runtime-specific adapter SHAs and preserved methods are recorded. Independent Reviewer must inspect the exact diff and rerun the focused tests. No release action in this batch. |
-| 2. Exact evidence read and time validation | Move status/run evidence reads to one common evidence reader; make time validation pure; remove the reverse collector-to-store bridge and the temporary hourly bridge. | Offline exact-source tests cover source SHA, receipt/run/path identity, slot/date/cutoff, missing/tampered/cross-run evidence, and rejection cases. The same frozen input SHA is used in all comparisons. |
-| 3. Page contract and status | Keep unassessed distinct from a verified effective zero; preserve declared gaps and source provenance through API and page projections. | API and UI tests prove missing/unassessed, verified zero, and populated states remain distinct and date-bound. Reloaded API/page evidence is reported separately from test results. |
-| 4. Confirmed dead code and integration | Remove only code proven unreachable after the first three batches and integrate the reviewed common implementation. | Reference search and scoped regression tests pass. Record candidate SHAs, release identity, API `archive_date` readback, reloaded page state, and natural-slot evidence independently. Do not call a layer complete without its receipt. |
+共同约束：保留真实 CANNOT_CONFIRM、日期/市场绑定、manifest/run_id/SHA、原子发布和 latest 防倒退；保持 RESEARCH_ONLY=true、production_allowed=false、buy_gate_updated=false、orders_sent=false。
 
-## Review, release, and readback
+## 2．实施批次与具体交付
 
-Each batch stops at a candidate handoff until a different-identity Reviewer records `REVIEWED` and `BEHAVIOR_VERIFIED` for that frozen scope. Writer test results are supporting evidence only. Controller-owned integration, release, and browser readback remain separate states; this plan does not authorize deployment, push, service or schedule changes, or writes to runtime data. If a required runtime action is later authorized, record the exact candidate SHA and dependencies before release, then read the API using `archive_date`, reload the existing 8873 page, and wait for a natural slot before making natural-run claims. Keep any layer without direct evidence at `CANNOT_CONFIRM`.
+### 批次一：收敛小时研报源码与发布版本
 
-## Stop rule
+交付：小时链路有一份可追溯的源码；API 与调度包携带的共同模块内容一致。
 
-Stop the current batch on behavior drift, wider date/PIT scope, data loss, hidden evidence gaps, historical writes, or any non-target method change. Preserve the reproducer, before snapshot, diff, and hashes; do not mask the issue with a fallback or broader rewrite.
+- [ ] 冻结当前源码及绑定的 API、调度发布包身份，记录目标文件 SHA、已有修改和有效修复。复用上一轮修复证据，仅检查本轮身份变化。
+- [ ] 对同名文件实际差异归类为业务差异、发布入口差异、机械拆分差异；保留入口差异，将运行包中的有效业务修复回收到源码。
+- [ ] 修改限于小时 collector、runner、小时 domain、归档 store 的小时方法及必要依赖；store 的 selection、manager overlay 等职责不随本批重构。
+- [ ] 从冻结源码快照生成共享模块清单，按相对路径记录 SHA；API 和调度从该快照取共同模块，沿用不可变 release 和差量集成机制。
+- [ ] 必要拆分模块纳入代码身份计算；重试复用绑定实际执行代码，不能只凭主文件未变复用旧验收。
+- [ ] 先隔离候选验证，不编辑活动 release，不整包覆盖其他模块。
+
+兼容规则：现有 Python 导入入口、CLI 参数、归档路径和 JSON schema 不变；原始输入和历史产物不改写。代码身份变化后沿用 transform-validation 重新验证；同一产物内容相同保留原 payload/receipt，内容冲突拒绝覆盖。
+
+通过条件：共享清单在源码、候选 API、候选调度间完全匹配；小时链路回归通过；非差量发布文件保持原字节。
+
+### 批次二：消除基础层反向依赖，收敛公共校验
+
+交付：store、runner 不再导入 collector 私有函数；共同规则有明确入口，各业务边界独立核验证据。
+
+| 模块 | 职责与接口 |
+| --- | --- |
+| infrastructure/research_source_evidence.py | read_zsxq_slot_evidence(data_root, business_date, slot)：读取精确时段 status、summary、fetch result，返回内容及实际字节 SHA；无有效证据返回 None |
+| domains/research_source_validation.py | 无文件读写的时间解析、slot cutoff、人工物化时间形状判断和阶段输入验证 |
+
+返回对象固定包含 status 路径、status/summary/fetch 内容及三份文件 SHA。每份文件以同一次读取的字节完成解析和计算，不使用跨请求缓存。
+
+- [ ] 精确回执读取迁入 infrastructure，collector、runner、store 共用。
+- [ ] collector 原私有入口作为过渡包装调用新模块；全仓核引用后在批次四删除无消费者包装。
+- [ ] 抽取重复时间解析及人工物化判断。来源回执要求显式时区；既有 producer 的无时区时间沿用上海时区解释。页面不能因此升格为已验证。
+- [ ] 保留 runner、stage reader 各自的 cutoff 和观察时间边界，不机械合并为宽松规则。
+- [ ] 迁出函数普通导入、明确参数，不依赖 globals() 或 _v4_global。
+- [ ] 小时 store 读取和发布辅助函数改为普通模块调用；保留类、锁、公开方法，其他 _parts 不批量改写。
+
+明确保留日期、slot、run_id、来源路径、SHA、回执内容校验；owned root 内精确绝对路径兼容；拒绝越界、穿越、跨 run。20261012/1700 人工 READY_EMPTY 仅保留当前恢复边界，不扩展为通用空结果授权。“时间形状符合人工恢复”与“证明允许发布”分开，前者不能授权后者。原始回执没有声明 SHA 时保留诊断，不补造历史声明。
+
+通过条件：小时 store/runner 对 collector 私有读取函数依赖为零；本批迁出函数 globals bridge 为零；有效与无效输入原裁决一致。
+
+### 批次三：收敛页面合同、状态和展示转换
+
+交付：按明确字段展示，缺失值不冒充零，组件复用同一展示转换。
+
+主要路径：apps/web/src/api/research_lane.ts、apps/web/src/composables/useResearchLane.ts、apps/web/src/components/research/ResearchStatusStrip.vue，必要的 ResearchView.vue 与对应测试。
+
+- [ ] 合并 HTTP/JSON 读取机制，保留公开签名和研报 legacy 兼容、manager 严格合同两种校验模式。合并传输代码不改变验证强度或请求策略。
+- [ ] EXACT 日期相等检查、LATEST 实际来源日期展示、requestVersion 防过期覆盖不变；不加请求缓存或扩取消机制。
+- [ ] 状态条集中生成类型明确的展示对象，标签和字段不散落重复判断。
+- [ ] “本小时新增”仅接受非负整数 new_item_count；缺失或无效为“未评估”，真实 0 为 0。不以 raw_item_count 或 research_item_count 替代，不加去重统计。
+- [ ] 财经、AI 计数同样区分有效零和缺失，仅保留已有明确兼容别名，不新增猜测 fallback。
+- [ ] LIVE_PERIPHERAL_ONLY 显示“小时研报未生成，外围资料可查看”，允许阅读已有外围内容。
+- [ ] 采集时间、原文时间、恢复执行时间分别表达；时间线复用现有格式规则，保留未知、无时区证据，不加默认时间。
+- [ ] 状态条派生值响应式计算，payload 改变后更新。
+- [ ] 保留三栏、筛选、来源栏、公众号入口；仅收敛重复转换，不删除重复展示区域。
+
+不新增/删除 HTTP 路由，不改变归档 schema；新增类型仅用于前端内部展示。缺失计数显示“未评估”是明确允许的行为修正。
+
+通过条件：正常、空、缺失、外围可读、部分完成、错误状态可辨认；切日期无旧响应；缺口和来源信息完整保留。
+
+### 批次四：删除确认无用代码，完成集成交付
+
+- [ ] 删除无消费者的 morningFilter；stockTitle() 等出口仅在全仓无消费者且无公开兼容责任时删除，否则保留。
+- [ ] 删除批次二被替代且无消费者的私有包装/重复实现，退出旧执行路径。
+- [ ] 保留日级 loader、公众号接口和两个 research router 边界，不因名称相似合并或删除。
+- [ ] 仅清理由本批引入的无用导入/类型；不全仓格式化、不重命名历史接口、不清旧快照。
+- [ ] 最新活动 release 明确差量集成，核对非目标模块未替换。
+- [ ] 独立验收后发布必要 API/调度候选及前端构建，用内置浏览器验证用户原 URL：http://127.0.0.1:8873/?date=20261012&view=research&date_anchor=20260901。
+- [ ] 必要源码、测试、精简结果同步私有 lexi2016/v4 新分支 codex/research-workbench-simplification-20261012-r1；读回 commit 与关键文件 SHA。排除原始业务数据、凭证、构建目录。
+
+## 3．测试与验收矩阵
+
+优先复用既有测试，仅为真实缺口及本批行为变化补测试。
+
+| 场景 | 必须保持或达到的结果 |
+| --- | --- |
+| 正常小时输入 | 文章、股票证据、来源、安全字段一致 |
+| 同输入、同代码重试 | 复用已验证产物，不重复构建或覆盖 |
+| 同输入、代码身份变化 | 重新验证；相同内容保留产物，冲突拒绝覆盖 |
+| 合规 17 点空结果 | READY_EMPTY、人工恢复标记及实际物化时间保留 |
+| 缺失、失败、partial、伪空结果 | 不冒充有效空产物 |
+| SHA 篡改、跨日期/slot/run、越界路径 | 拒绝读取或发布，明确错误 |
+| 晚于 latest 的历史恢复 | 合规恢复可执行，latest 不倒退 |
+| 日产品消费空时段 | 既有有效空时段覆盖统计保留 |
+| 计数缺失、无效、真实零 | 未评估、未评估、0 |
+| 快速切日期、显式 latest | 不混日期，不被旧响应覆盖 |
+| 无采集时间、原文无时区 | 未知状态及原始证据保留 |
+| OCR/重点消息未生成、partial | 不显示完成或有效零 |
+| 公众号、筛选、三栏、窄屏 | 流程可用，无挤压、横向溢出 |
+
+后端按变更面运行 hourly runner、ready-empty recovery、hourly regressions、lane、day materialization、release integration；前端研报视图/请求合同测试、typecheck、build。独立 Reviewer 复跑相关检查。
+
+无关失败记录基线，不顺手修；新增失败必须解决。固定时钟等价比较仅排除预先列明的执行身份字段，不能排除来源时间、状态、来源 SHA、安全字段。
+
+## 4．发布、回退与停止条件
+
+顺序：候选验证 → 独立验收 → 差量集成 → API/调度加载核对 → API 回读 → 内置浏览器。
+
+共同模块来自同一快照，各自入口和其他模块独立。历史输入/产物/回执不改写，不主动重跑全天。回退仅切回上一份已验收代码 release，不删数据、不回退 latest、不用全局 reset/clean/stash。
+
+目标行为变化、日期/PIT 放宽、有效数据丢失、真实缺口隐藏、历史覆盖或非目标模块变化时停止本批，保留复现并回退候选。手工/隔离验证分别记录；真实自然时段发生且证据有效才标 NATURAL_VERIFIED。本计划不新增监控或计划任务。
+
+最终分别报告 IMPLEMENTED、REVIEWED、TESTED、DEPLOYED、API_VERIFIED、UI_VERIFIED 与自然执行状态。
+
+## 5．完成标准与默认决定
+
+1. 共享模块在源码与两个运行包间可逐文件定源，不再独立维护业务补丁副本。
+2. 小时 store/runner 不反向依赖 collector 私有函数；迁出逻辑不依赖 globals bridge。
+3. 公共规则只有一份实现，各业务边界仍独立验证真实证据。
+4. 页面状态、时间、计数语义明确，真实缺口保留，流程通过内置浏览器。
+5. 被替代旧实现退出；无关代码和用户已有修改保留。
+6. 必要变更独立验收、差量发布、私有仓库读回核验。
+
+默认保持依赖、布局、接口、业务规则；不设行数减少比例，不扩成全系统重构或性能工程。计划保存为 docs/superpowers/plans/2026-10-12-research-workbench-simplification.md。活动 release 身份若变化，以最新实际 base 差量集成并保留无关修复，不把启动时快照冒充活动版本。
+
+
+## 实施记录（截至 2026-10-13；状态按证据分层）
+
+- 批次一独立复核：REVIEWED / BEHAVIOR_VERIFIED PASS；review receipt `reviewer/task-1-r2/review.json`，SHA-256 `5ca28ab9225d0c7838f38525739a07f91916e64c50dccec04e86309680aa84ac`。共同模块 bundle SHA `b7d0ecc71b63e8309ce4202a25da65e9d05889d5f8503bb3c79d6a20775a6c19`。
+- 批次二独立复核：REVIEWED / BEHAVIOR_VERIFIED PASS；receipt `reviewer/task-2-r2/review.json`，SHA-256 `f9afe1409b90087f97c32e3da5ad990f3202dc95caae03d921aa328ce0eb81d9`。
+- 批次三独立复核：REVIEWED / BEHAVIOR_VERIFIED PASS；receipt `reviewer/task-3/review.json`，SHA-256 `ed6020863a58f2b20a89475e74d4a0512c6d578b15e8c376f748ef3f7c62ace7`。人工物化时刻仍为 CANNOT_CONFIRM：lane contract 只有 `source_generated_at`/`source_binding`，没有 `materialized_at`/`execution_origin`。
+- 批次四源码改动仅为移除确认未使用的 `morningFilter` 和已无源码消费者的 collector 过渡包装 `_read_status_artifacts`。兼容入口、日级 loader、公众号接口及两个 research router 保留。完整源码/候选适配、before/after SHA 与验证命令见 `evidence/writer/task-4-report.json`、`task-4-changed-files.json`、`task-4-allowed-file-inventory.json`、`task-4-runtime-adapter-inventory.json` 和 `task-4-diff.patch`。
+- 批次四候选组合验证：`evidence/writer/task-4-candidate-verification-r4-final3.json` SHA-256 `feacea6cf63d1a81a1efc90eb8439053a8ed0a44dc93f9a722f7fdb9377ef21a` 为 PASS；API/scheduler shared bundle SHA 均为 `57c89f9c0561723fb17532590ae53b779a97b075625c97102d1522933542fb65`。此为候选验收，不替代本批独立 Reviewer verdict。
+- 批次四定向源码测试：109 passed，1 项已知外围 fixture 缺少 `captured_at` 的无关用例按冻结范围 deselect；前端研报测试 38 passed，Vite build PASS。`npm run typecheck` 保留批次三已知的四个未改文件诊断（managerWorkspace.attention.spec.ts 两个 TS18048，ManagerSelectionView.spec.ts 两个 TS2578）；无新类型错误。
+- 最终 API 候选基于 `announcement-preopen-20261012-r4`，scheduler 候选基于 `research-hourly-empty-20261012-r4`。本批仅生成隔离候选；API/调度发布、API 回读、浏览器 UI、私有 GitHub 同步和自然时段状态由主控按批准计划完成/记录。自然执行只在真实发生且证据有效时记录，不等待或新增监控。

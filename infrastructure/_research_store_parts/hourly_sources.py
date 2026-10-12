@@ -50,11 +50,26 @@ def _HourlyResearchStore_read_exact_body(self, archive_date, slot, *, mode):
         return None
     payload = self._read(relative)
     digest = _sha256(payload)
+    receipt_matches = False
+    if receipt_path.is_file():
+        expected_receipt = self._receipt(
+            payload, digest, slot=normalized_slot, mode=normalized_mode
+        )
+        actual_receipt = self._read(receipt_relative)
+        receipt_matches = actual_receipt == expected_receipt
+        if (
+            not receipt_matches
+            and expected_receipt.get("hourly_artifact_status") == "READY_EMPTY"
+        ):
+            # The v1 receipt predates this derived field; accept only its exact
+            # former shape and keep the source proof checks below unchanged.
+            legacy_receipt = dict(expected_receipt)
+            legacy_receipt.pop("hourly_artifact_status")
+            receipt_matches = actual_receipt == legacy_receipt
     if (
         manifest.get(relative) != digest
         or not receipt_path.is_file()
-        or self._read(receipt_relative)
-        != self._receipt(payload, digest, slot=normalized_slot, mode=normalized_mode)
+        or not receipt_matches
         or validate_research_archive(payload) != archive_date
     ):
         raise ValueError("hourly research manifest or receipt mismatch")

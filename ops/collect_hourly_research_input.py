@@ -224,30 +224,6 @@ def _latest_zsxq_status(
     return evidence.status_path, evidence.status
 
 
-def _read_status_artifacts(
-    data_root: Path, business_date: str, slot: str,
-    status_path: Path, status: Mapping[str, Any],
-) -> tuple[dict[str, Any], dict[str, Any], str, str, str] | None:
-    """Read the exact owned status run's summary and fetch receipt."""
-    evidence = read_zsxq_slot_evidence(data_root, business_date, slot)
-    if evidence is None:
-        return None
-    try:
-        if Path(status_path).resolve() != evidence.status_path.resolve():
-            return None
-    except OSError:
-        return None
-    if dict(status) != evidence.status:
-        return None
-    return (
-        evidence.summary,
-        evidence.fetch_result,
-        evidence.status_sha256,
-        evidence.summary_sha256,
-        evidence.fetch_result_sha256,
-    )
-
-
 def _source_quality(
     *, body: str, code: str, theme: str, source_type: str, cannot_confirm: list[str]
 ) -> tuple[str, str]:
