@@ -1,0 +1,43 @@
+{
+  "batch": 5,
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "REVIEWED": "PASS",
+  "BEHAVIOR_VERIFIED": "PASS localreadpath removal",
+  "files": [
+    {
+      "path": "domains/_preselection_parts/optional_pool_merge.py",
+      "snapshot": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/before/domains/_preselection_parts/optional_pool_merge.py",
+      "before_sha256": "7f94dab97f49c27f282f3a0039c3b6b957046d178aefc750dd6f393ddead3807",
+      "current_exists": false,
+      "after_sha256": null,
+      "change": "deleted"
+    },
+    {
+      "path": "domains/preselection.py",
+      "snapshot": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/before/domains/preselection.py",
+      "before_sha256": "499c5ad2df56a474eb83c63446f044b2d390d70e17aa3956cb535e67b4843597",
+      "current_exists": true,
+      "after_sha256": "677b3296284b26e82db44767f697af13fe3ca76b5f2f2bd64f8c965aba51f538",
+      "change": "changed"
+    },
+    {
+      "path": "tests/test_preselection_slice.py",
+      "snapshot": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/before/tests/test_preselection_slice.py",
+      "before_sha256": "f576b68bfe5ef9f9c06f9b7265efb854c1d2efd5f96b96750a10a80ca1449740",
+      "current_exists": true,
+      "after_sha256": "17cefc4933b34ce4111a70b093692b88c6067c5e4b6cc5c6316dccbe32121a40",
+      "change": "changed"
+    }
+  ],
+  "removed_production_lines": 127,
+  "deleted_module_remote_already_absent": true,
+  "review_report_sha256": "abc47205b937de8234bd7700b5e80221a63a14a52229fc5a5a38393d185744af",
+  "actualdiff_sha256": "7d81eb30207bbcb1f4b3d85fe6762012a1e80b95ff9a7154990b8391133ea3e5",
+  "DEPLOYED": false,
+  "API_VERIFIED": false,
+  "UI_VERIFIED": false,
+  "NATURAL_VERIFIED": false,
+  "separate_integration_P1": "configuredAPI/datecatalog typedpoollocalerror escapes; preciselyauthorizedin6A",
+  "baseline_failures": "9 reproduced unchanged before/after; malformedHKfixtureprovenance remains rejected"
+}
