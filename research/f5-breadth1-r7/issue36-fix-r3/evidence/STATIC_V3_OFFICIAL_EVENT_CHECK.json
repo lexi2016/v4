@@ -1,0 +1,33 @@
+{
+  "schema": "F5_R7_V3_STATIC_OFFICIAL_EVENT_AND_CONTROLS_CHECK_V1",
+  "status": "PASS_STATIC_NO_TARGET",
+  "source": "Github fixed official 6-event excerpt and immutable Mac receipt evidence",
+  "checks": {
+    "r7_original_logical_identity_equal": true,
+    "r7_original_debit_exactly_one": true,
+    "r7_two_events_no_new_logical_claim": true,
+    "r7_sha_bound": true,
+    "r7_event_id_bound": true,
+    "r7_start_terminal_link": true,
+    "old_failed_resume02_frozen": true,
+    "v3_new_input_sha": true,
+    "v3_resume_release_exact_four": true,
+    "v3_read_plan_active": true,
+    "v3_read_plan_path": true,
+    "v3_authorization_future_output": true,
+    "v3_source_ids": true
+  },
+  "negative_cases": {
+    "missing_terminal_id_must_fail": true,
+    "forged_terminal_id_must_fail": true,
+    "mismatched_terminal_sha_must_fail": true,
+    "new_debit_would_be_rejected": true
+  },
+  "truth_access": false,
+  "model_calls": 0,
+  "target_file_reads": 0,
+  "model_loads": 0,
+  "new_r7_logical_claims": 0,
+  "full_mac_native_adapter_preflight": "NOT_RUN",
+  "mac_real_resume": "NOT_RUN"
+}
