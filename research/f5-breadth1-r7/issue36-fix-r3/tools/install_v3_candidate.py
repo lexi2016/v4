@@ -67,8 +67,10 @@ def digest(path: Path, maximum: int = 20 * 1024 * 1024) -> str:
 
 
 def check(root: Path) -> dict:
-    if root.resolve() != ROOT.resolve():
-        raise ValueError("PROJECT_ROOT_NOT_EXACT")
+    if root.is_symlink() or not root.is_dir():
+        raise ValueError("BUNDLE_ROOT_MISSING_OR_SYMLINK")
+    if not ROOT.is_dir() or not BATCH.is_dir():
+        raise ValueError("FIXED_PROJECT_AND_BATCH_ROOT_REQUIRED")
     if OUT_RUN.exists() or OUT_RUN.is_symlink() or OUT_BIND.exists() or OUT_BIND.is_symlink():
         raise ValueError("RESUME03_PREVIOUSLY_STARTED_OR_BINDING_PRESENT")
     if digest(ORIGINAL_TERMINAL) != ORIGINAL_TERMINAL_SHA:
