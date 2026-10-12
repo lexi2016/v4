@@ -206,7 +206,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
         else:
             if self.config.shared_data_root is None or self.config.python_path is None:
                 raise _v4_global(_v4_scope, 'RunnerError')("production shared_data_root and python_path are required")
-            from stage_center.live_collectors import production_collectors, production_selection_builders
+            from stage_center.live_collectors import production_collectors
             if self.collectors:
                 collectors = self.collectors
             elif stage_id == "STAGE_1545_1555":
@@ -253,10 +253,6 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                     hk_auction_root=self.config.hk_auction_root,
                     hk_stage_replay_root=self.config.hk_stage_replay_root,
                 )
-            if self.config.selection_builders is None:
-                builders = production_selection_builders(stage_id)
-            else:
-                builders = self.config.selection_builders
         missing_raw_markets = _v4_global(_v4_scope, 'tuple')(market for market in markets if market not in existing_raw_verified)
         if not _v4_global(_v4_scope, 'set')(missing_raw_markets).issubset(_v4_global(_v4_scope, 'set')(collectors)):
             raise _v4_global(_v4_scope, 'RunnerError')(f"collectors are missing required markets {missing_raw_markets!r}")

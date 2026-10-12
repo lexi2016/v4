@@ -1,0 +1,36 @@
+{
+  "batch": "R8_BATCH2",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_parent_commit": "148c9c4a683b2b332a5aef5f073d42be4f25de7f",
+  "writer": "/root/r8_batch2_writer",
+  "reviewer": "/root/r8_batch2_review",
+  "REVIEWED": "PASS",
+  "BEHAVIOR_VERIFIED": "PASS",
+  "independent_test_result": "5 passed in0.18s",
+  "files": [
+    {
+      "path": "stage_center/_runner_parts/slot_execution.py",
+      "before_sha256": "bb2f2e20baebf1b345c6c89bc3a19c260564480cef8ede9b9f11ca6cf9f25cd1",
+      "after_sha256": "717e1b4a888fd9504b10514cd2064a259e842942c482a7497831a5db2962fcb7"
+    },
+    {
+      "path": "tests/test_hk_observation_calendar_20260925.py",
+      "before_sha256": "ac5375f23d57f9eb9191eb392485c982666dc78b13f7181603acb5952aec3801",
+      "after_sha256": "3d96628a2843c3d0584a1f8c0a7de903d7c083dcb80beb27e6087bed238c3c4a"
+    }
+  ],
+  "review_receipt_sha256": "f95ed1bbdff1bd9d3a9d848e8cec663c24e45f3ccb1fde480cf470a6028e95f9",
+  "deployment": "NOT_DEPLOYED",
+  "API_VERIFIED": "PENDING",
+  "UI_VERIFIED": "PENDING",
+  "NATURAL_VERIFIED": "NOT_RUN",
+  "limitations": [
+    "Explicit configured builder mapping retained by source inspection; no separate runtime node.",
+    "StageCenter currently registered-not-running; tests do not prove natural execution."
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
