@@ -714,6 +714,28 @@ class SelectionStore:
         from stage_center._selection_parts.store_publication import _SelectionStore_publish_body as _v4_impl
         return _v4_impl(globals(), self, envelope, market=market, replace_failed_run_id=replace_failed_run_id)
 
+    def publish_hk_futu_kline_enrichment_pair(
+        self,
+        candidate_document_bytes: bytes,
+        *,
+        expected_candidate_sha256: str,
+        expected_input_baseline_sha256: str,
+        expected_originals_by_stage: Mapping[str, Mapping[str, str]],
+    ) -> dict[str, Any]:
+        """CAS-publish the frozen 2026-10-12 HK Futu K_1M enrichment pair."""
+        from stage_center._selection_parts.store_publication import (
+            _SelectionStore_publish_hk_futu_kline_enrichment_pair_body as _v4_impl,
+        )
+
+        return _v4_impl(
+            globals(),
+            self,
+            candidate_document_bytes,
+            expected_candidate_sha256=expected_candidate_sha256,
+            expected_input_baseline_sha256=expected_input_baseline_sha256,
+            expected_originals_by_stage=expected_originals_by_stage,
+        )
+
     def read_verified(self, trade_date: str, stage_id: str, market: str) -> dict[str, Any]:
         latest = self._latest()
         key = self._key(trade_date, stage_id, market)

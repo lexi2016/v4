@@ -1,0 +1,112 @@
+{
+  "schema": "v4.futu_kline_r5.delivery.v1",
+  "trade_date": "20261012",
+  "goal": "Enrich the existing two HK afternoon selections and display their four card fields",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_git_baseline": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_baseline": "3551939bb89777b43748b2811e91ff2707316c7f",
+  "stage_runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-primary-afternoon-20261012-r4/app",
+  "api_runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-api-projection-20261012-r4a/app",
+  "publication_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "publication_source": "canonical R5 enrichment CLI; no runtime service reload",
+  "provider": {
+    "source": "Futu get_cur_kline K_1M AuType.NONE 1000 once per symbol",
+    "symbols": 11,
+    "target_date_rows_per_symbol": 331,
+    "historical_requests": 0,
+    "historical_orderbook": "CANNOT_CONFIRM; no cutoff-bound snapshots; current book was not substituted"
+  },
+  "metrics": {
+    "change": "(stage last / stage first open - 1) * 100",
+    "support": "effective stage minute low",
+    "pressure": "effective stage minute high",
+    "invalidation": "effective stage minute low",
+    "effective_1300_window": "13:01 through 13:14; 14 bars per symbol",
+    "effective_1445_window": "14:46 through 14:59; 14 bars per symbol",
+    "ranking": "unchanged; field enrichment only"
+  },
+  "new_runs": {
+    "STAGE_1300_1315": "run-b883eb9b151b3a0eaf9e8425",
+    "STAGE_1445_1500": "run-059d5a7d3c7cd078bfac671e"
+  },
+  "verified": {
+    "REVIEWED": "PASS",
+    "TESTED": "independent focused suite 10 passed",
+    "BEHAVIOR_VERIFIED": "independent isolated actual store/consumer canary",
+    "INTEGRATED": "canonical CAS publication exit 0",
+    "API_VERIFIED": "10 rows and four numeric fields in both slots on 8873 and 61796",
+    "UI_VERIFIED": "20 rows match official 8873 API display precision in existing browser; 61796 also verified earlier",
+    "NATURAL_VERIFIED": "NOT_VERIFIED; afterfact observations only"
+  },
+  "preservation": {
+    "original_input_files_unchanged": 24,
+    "dispatcher_receipts_unchanged": 23,
+    "A_rows_unchanged": true,
+    "STAGE_1545_1555_unchanged": true,
+    "latest_changed_slots": 2
+  },
+  "gaps": [
+    "Historical orderbook snapshot unavailable",
+    "Afterfact captures are not PIT safe",
+    "Old dispatcher receipt selection identity differs from new manual enrichment identity; API exposes conflict and retains unverified status",
+    "Original RT_DATA receipt still reports combined OHLC/orderbook unavailable; original receipt is preserved while new K_1M enrichment has numeric OHLC fields",
+    "Provider subscription-release receipt CANNOT_CONFIRM",
+    "Exact task-start bytes for four expanded source files were not saved; reconstructed references are not exact before snapshots",
+    "Remote integration manifest wrapper digest span CANNOT_CONFIRM; reviewer directly verified the exact wrapper against canonical and remote-base restoration. Full file SHA is used for upload verification.",
+    "Full runtime replay of the supplied remote commit NOT_RUN; no full remote checkout."
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "writer_receipt_sha256": "4a7bfdfd9ed211fcd81abda2487905c509753fc76f84c0aec2c6016d6dc91a79",
+  "review_receipt_sha256": "b9d0fe4adee233c40885e2a30a8f9ae45e447cb15f5385a08efbddac212c04c0",
+  "source_manifest_sha256": "35e154cda92e43cc32ef0eee8fed82d34d8d7545112c26adb4031b202548fe87",
+  "candidate_sha256": "c4e15f595494a40a42700165d8d0f72377de4e02ac01c85f4fcded3ff8452c4d",
+  "formal_publication_sha256": "e733c44b0f8876ab91a2f931d4105abf370c86acae5a696e8936b25326ea0cd9",
+  "api_verified_sha256": "ee0c70562ef9416d2ac374bf2464a3af7143d83b0f34365b0c5d0a6e23859a1c",
+  "ui_verified_sha256": "2a32ac6a7fc934513d73a62ada27677a4f4a5d0fdafd41a99beedd2ea1338955",
+  "preservation_sha256": "9255fe845875566357aa81b34312fe5589800974eddaecb74c2dca4d3174f5fa",
+  "canonical_source_after_sha256": {
+    "ops/enrich_hk_stage_futu_kline.py": "809e01dee269cdd12d45c9da0e63533cfdc76ace045750c3f3c5c8544a8c8922",
+    "stage_center/selection.py": "68020ee753d9a0c931ba0ae527b0b956c75f84eac7b714dd82b05f1e440b3f4d",
+    "stage_center/_selection_parts/store_publication.py": "a158852bc2afae077f53722ca8239b2c59fe9649cc5ccca05cfbba41202c24f0",
+    "tests/test_futu_kline_enrichment_r5.py": "a6ce94178f1b8554f53a6f786fa62d2a36764ad7a83780110cf3b1c97a1fd18b"
+  },
+  "remote_integration_receipt_sha256": "93e13c6e97dfc2adf09d69b7d5460db4059523f62ab20231eb49d1b8914477a0",
+  "github_branch": "codex/futu-kline-enrichment-20261012-r5",
+  "github_source_files": [
+    {
+      "path": "ops/enrich_hk_stage_futu_kline.py",
+      "chars": 56345,
+      "bytes": 56353,
+      "sha256": "809e01dee269cdd12d45c9da0e63533cfdc76ace045750c3f3c5c8544a8c8922",
+      "git_blob_sha": "c75036bdcc2523c87dbcd02519578d56f20baa4a"
+    },
+    {
+      "path": "stage_center/selection.py",
+      "chars": 32652,
+      "bytes": 32652,
+      "sha256": "9b5e1332edb68b14d69960f9fb0dd2a4ac3f71c9319e4c9c1eeb0133e7f6263c",
+      "git_blob_sha": "8fec9fa8f8c2e2eb61787311ca1220e3470e2ab1"
+    },
+    {
+      "path": "stage_center/_selection_parts/store_publication.py",
+      "chars": 39726,
+      "bytes": 39726,
+      "sha256": "7be6e03b5302e0d748294d1395f0bec2ecd6b2a996ef30180c6301a87ee58733",
+      "git_blob_sha": "4c081e5d7f20eb71dfe1cd387eed323b195e25ed"
+    },
+    {
+      "path": "tests/test_futu_kline_enrichment_r5.py",
+      "chars": 22449,
+      "bytes": 22449,
+      "sha256": "a6ce94178f1b8554f53a6f786fa62d2a36764ad7a83780110cf3b1c97a1fd18b",
+      "git_blob_sha": "f68e6cb3120b3e9176ddfded7168047c8613357a"
+    }
+  ],
+  "ui_official_8873_verified_sha256": "877ef48d48d42aa457b3752ebaa32e64bce59915fc53806e1827444434789ee8",
+  "remote_sync_review_sha256": "cab877d58cbc50185b2081c355173f2074a896b7528eb997be8e37a364765d88",
+  "remote_sync_review": "PASS; staged extension byte identity proven; canonical focused suite independently passed 10/10; full remote checkout runtime NOT_RUN",
+  "upload_policy": "Explicit 4 source/test files plus this compact aggregate receipt only; .orig/.rej, raw provider data, full responses and screenshots excluded"
+}
