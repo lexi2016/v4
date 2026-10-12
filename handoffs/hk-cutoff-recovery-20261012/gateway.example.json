@@ -1,0 +1,87 @@
+{
+  "schema_version": "v5.api_gateway.v1",
+  "modules": {
+    "manager": {
+      "port": 60036,
+      "timeout_seconds": 15,
+      "max_inflight": 4,
+      "release_id": "m18-6daed627-mac"
+    },
+    "announcement": {
+      "port": 60037,
+      "timeout_seconds": 15,
+      "max_inflight": 4,
+      "release_id": "m18-6daed627-mac"
+    },
+    "hk_review": {
+      "port": 53781,
+      "timeout_seconds": 5,
+      "max_inflight": 4,
+      "release_id": "review-readback-44b514a"
+    },
+    "v4_date_directory": {
+      "port": 8873,
+      "timeout_seconds": 5,
+      "max_inflight": 4,
+      "release_id": "v4-date-list-20261012"
+    }
+  },
+  "routes": [
+    {
+      "path": "/api/v4/manager/research/workspace",
+      "module_id": "manager",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v4/manager/research/announcements",
+      "module_id": "announcement",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v4/manager/research/announcements/analysis",
+      "module_id": "announcement",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v4/manager/research/announcements/selection",
+      "module_id": "announcement",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/runs/date-list",
+      "module_id": "v4_date_directory",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v3/workbench/stage",
+      "module_id": "v4_date_directory",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v3/preselection-pools",
+      "module_id": "v4_date_directory",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v3/review",
+      "module_id": "hk_review",
+      "methods": [
+        "GET"
+      ]
+    }
+  ]
+}
