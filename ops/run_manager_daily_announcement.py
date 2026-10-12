@@ -17,6 +17,7 @@ import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
+from time import perf_counter
 from types import SimpleNamespace
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -36,6 +37,9 @@ from v4.manager_research.announcement_analysis import (
     product_path,
 )
 from v4.manager_research.announcement_selection import attach_extension, make_extension
+from v4.manager_research.announcement_processing import (
+    build_incremental_processing, process_saved_window, validate_preopen_window,
+)
 from v4.manager_research.workspace_announcements import (
     validate_agent_judgment_receipt,
     validate_owner_analysis_import_receipt,
@@ -997,6 +1001,60 @@ def _register_handoff(args: argparse.Namespace) -> dict[str, Any]:
     built = _build(build_args, reviewed=False, include_product=True,
         terminal_body_capture=terminal_capture)
     product = built["product"]
+    preopen_window = None
+    preopen_window_sha = None
+    if args.preopen_window_json:
+        window_path = Path(args.preopen_window_json).expanduser()
+        if window_path.is_symlink() or not window_path.is_file():
+            raise ValueError("ANNOUNCEMENT_PREOPEN_WINDOW_INPUT_MISSING")
+        try:
+            window_payload = json.loads(window_path.read_text(encoding="utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("ANNOUNCEMENT_PREOPEN_WINDOW_INPUT_INVALID") from exc
+        preopen_window = validate_preopen_window(window_payload, target_trade_date=target,
+            semantic_sha256=semantic_sha, body_sha256=body_sha, decisions=decisions_value)
+        current_day = next((row for row in preopen_window.get("source_days", [])
+            if isinstance(row, dict) and row.get("publication_date") == publication), None)
+        current_draft_ref = (current_day.get("source_files", {}).get("analysis_product")
+            if isinstance(current_day, dict)
+            and isinstance(current_day.get("source_files"), dict) else None)
+        if not isinstance(current_draft_ref, dict):
+            raise ValueError("ANNOUNCEMENT_PREOPEN_WINDOW_DRAFT_BINDING_MISMATCH")
+        current_draft_path = Path(current_draft_ref.get("path", ""))
+        try:
+            current_draft = json.loads(current_draft_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("ANNOUNCEMENT_PREOPEN_WINDOW_DRAFT_BINDING_MISMATCH") from exc
+        if (not isinstance(current_day, dict)
+                or current_day.get("product_readiness") != "DERIVED_DRAFT_UNREGISTERED"
+                or current_draft_ref.get("sha256") != current_day.get("analysis_product_sha256")
+                or current_draft.get("sha256") != product.get("sha256")
+                or current_draft.get("source_manifest_sha256") != product.get("source_manifest_sha256")
+                or current_day.get("semantic_catalog_sha256") != semantic_sha
+                or current_day.get("body_corpus_sha256") != body_sha):
+            raise ValueError("ANNOUNCEMENT_PREOPEN_WINDOW_DRAFT_BINDING_MISMATCH")
+        binding = {"evidence_run_id": args.evidence_run_id,
+            "target_trade_date": target, "publication_date": publication,
+            "source_semantic_catalog_sha256": semantic_sha,
+            "source_body_corpus_file_sha256": body_sha,
+            "decision_file_sha256": decisions_sha,
+            "decision_payload_sha256": decision_payload_sha,
+            "draft_analysis_product_sha256": current_day["analysis_product_sha256"],
+            "draft_source_manifest_sha256": product.get("source_manifest_sha256")}
+        preopen_window["registered_binding"] = binding
+        preopen_window["registered_fingerprint_sha256"] = digest({
+            "input_fingerprint_sha256": preopen_window["input_fingerprint_sha256"],
+            "registered_binding": binding})
+    incremental_processing = build_incremental_processing(product, body, decisions_value,
+        target_trade_date=target, publication_date=publication,
+        semantic_sha256=semantic_sha, body_sha256=body_sha,
+        decision_sha256=decisions_sha, reviewer_sha256=reviewer_sha)
+    product["source_manifest"]["incremental_processing"] = incremental_processing
+    if preopen_window is not None:
+        product["source_manifest"]["preopen_window"] = preopen_window
+    product["source_manifest_sha256"] = digest(product["source_manifest"])
+    product.pop("sha256", None)
+    product["sha256"] = digest(product)
     manifest = {
         "schema_version": "v4.manager_research.announcement_agent_handoff.v1",
         "evidence_run_id": args.evidence_run_id, "target_trade_date": target,
@@ -1039,6 +1097,10 @@ def _register_handoff(args: argparse.Namespace) -> dict[str, Any]:
         product = attach_extension(product, extension)
         if digest(extension.get("article_decisions")) != decision_payload_sha:
             raise ValueError("ANNOUNCEMENT_HANDOFF_DECISIONS_NOT_CANONICAL")
+    if preopen_window is not None:
+        window_path = evidence / "preopen_window.json"
+        _write_exclusive(window_path, preopen_window)
+        preopen_window_sha = _file_sha(window_path)
     validate_agent_judgment_receipt(receipt, product)
     product_path = evidence / "analysis_product.json"
     product_raw = (json.dumps(product, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
@@ -1049,8 +1111,14 @@ def _register_handoff(args: argparse.Namespace) -> dict[str, Any]:
         if product_path.read_bytes() != product_raw:
             raise ValueError("ANNOUNCEMENT_HANDOFF_PRODUCT_EXISTS_WITH_DIFFERENT_BYTES")
     files["analysis_product.json"] = hashlib.sha256(product_raw).hexdigest()
+    if preopen_window_sha is not None:
+        files["preopen_window.json"] = preopen_window_sha
     manifest["files"] = files
     manifest["product_sha256"] = product["sha256"]
+    if preopen_window is not None:
+        manifest["preopen_window_sha256"] = preopen_window_sha
+        manifest["preopen_window_input_fingerprint_sha256"] = preopen_window["input_fingerprint_sha256"]
+        manifest["preopen_window_registered_fingerprint_sha256"] = preopen_window["registered_fingerprint_sha256"]
     manifest["sha256"] = digest(manifest)
     manifest_path = evidence / "handoff_manifest.v1.json"
     _write_exclusive(manifest_path, manifest)
@@ -1061,6 +1129,12 @@ def _register_handoff(args: argparse.Namespace) -> dict[str, Any]:
         "reader_output_sha256": reader_sha, "reviewer_output_sha256": reviewer_sha,
         "decision_status": decision_status, "reader_identity": args.reader_identity,
         "reviewer_identity": args.reviewer_identity, "external_review_status": "DECLARED",
+        "incremental_processing_fingerprint_sha256": incremental_processing["input_fingerprint_sha256"],
+        "incremental_processing_counts": incremental_processing["counts"],
+        "preopen_window_input_fingerprint_sha256": (
+            preopen_window.get("input_fingerprint_sha256") if preopen_window is not None else None),
+        "preopen_window_registered_fingerprint_sha256": (
+            preopen_window.get("registered_fingerprint_sha256") if preopen_window is not None else None),
         "output_binding_status": "OUTPUT_BOUND", **FLAGS}
 
 
@@ -1090,6 +1164,39 @@ def _readback(args: argparse.Namespace) -> dict[str, Any]:
         "publication_date": publication, "product_sha256": analysis.get("product_sha256"),
         "owner_available_at": validated_receipt.get("available_at"),
         "owner_receipt_sha256": validated_receipt.get("sha256"), **FLAGS}
+
+
+def _process_saved_window(args: argparse.Namespace) -> dict[str, Any]:
+    manifest_path = Path(args.inputs_manifest).expanduser()
+    if manifest_path.is_symlink() or not manifest_path.is_file():
+        raise ValueError("ANNOUNCEMENT_WINDOW_INPUT_MANIFEST_MISSING")
+    raw = manifest_path.read_bytes()
+    manifest_sha = hashlib.sha256(raw).hexdigest()
+    try:
+        manifest = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("ANNOUNCEMENT_WINDOW_INPUT_MANIFEST_INVALID") from exc
+    started = perf_counter()
+    result = process_saved_window(manifest, base_dir=manifest_path.parent)
+    elapsed = perf_counter() - started
+    result["processing"]["elapsed_seconds"] = round(elapsed, 6)
+    result["input_manifest_file_sha256"] = manifest_sha
+    output = Path(args.out).expanduser()
+    _write_exclusive(output, result)
+    return {"status": result["status"], "output": str(output.resolve()),
+        "target_trade_date": result["target_trade_date"], "window_start": result["window_start"],
+        "as_of": result["as_of"], "input_fingerprint_sha256": result["input_fingerprint_sha256"],
+        "input_manifest_file_sha256": manifest_sha, "coverage": result["coverage"],
+        "retrospective_research": {
+            "status": result["retrospective_research"]["status"],
+            "candidate_count": result["retrospective_research"]["candidate_count"],
+            "positive_candidate_count": result["retrospective_research"]["positive_candidate_count"],
+            "pending_count": result["retrospective_research"]["pending_count"]},
+        "actual_preopen": {"status": result["actual_preopen"]["status"],
+            "positive_candidate_count": result["actual_preopen"]["positive_candidate_count"],
+            "gaps": result["actual_preopen"]["gaps"]},
+        "processing": result["processing"], "physical_http_request_count": 0,
+        "llm_inference_count": 0, **FLAGS}
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -1134,6 +1241,7 @@ def _parser() -> argparse.ArgumentParser:
     register.add_argument("--semantic-catalog", required=True)
     register.add_argument("--reviewer-output", required=True)
     register.add_argument("--decisions")
+    register.add_argument("--preopen-window-json")
     register.add_argument("--parent-task-id", required=True)
     register.add_argument("--reader-identity", required=True)
     register.add_argument("--reviewer-identity", required=True)
@@ -1141,6 +1249,10 @@ def _parser() -> argparse.ArgumentParser:
     readback.add_argument("--target-date", required=True)
     readback.add_argument("--publication-date", required=True)
     readback.add_argument("--api-base", required=True)
+    window = sub.add_parser("process-saved-window",
+        help="derive a bounded pre-open window from SHA-bound saved products and reviewed rule files")
+    window.add_argument("--inputs-manifest", required=True)
+    window.add_argument("--out", required=True)
     return parser
 
 
@@ -1161,6 +1273,9 @@ def main() -> int:
             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         elif args.command == "register-handoff":
             result = _register_handoff(args)
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+        elif args.command == "process-saved-window":
+            result = _process_saved_window(args)
             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         else:
             result = _readback(args)
