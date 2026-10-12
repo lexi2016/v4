@@ -1,0 +1,1038 @@
+--- a/contracts/research.py
++++ b/contracts/research.py
+@@ -4,6 +4,7 @@
+ import re
+ from datetime import datetime
+ from typing import Any, Mapping
++from zoneinfo import ZoneInfo
+ 
+ 
+ SCHEMA_VERSION = "v3_5.research_archive.v1"
+@@ -81,6 +82,14 @@
+     "buy_gate_updated",
+     "orders_sent",
+ }
++_READY_EMPTY_EVIDENCE_FIELDS = {
++    "schema_version", "trade_date", "slot", "status", "source_input_sha256",
++    "source_receipt_path", "source_receipt_sha256", "fetch_ok", "fetch_success",
++    "summary_sha256", "fetch_result_sha256",
++    "page_count", "topic_count", "effective_topic_count", "fetched_at",
++    "source_cutoff", "capture_origin", "materialization_origin",
++    "materialized_at", "available_at", "natural_execution_verified",
++}
+ 
+ 
+ def _archive_date(value: Any) -> str:
+@@ -111,8 +120,67 @@
+     return value
+ 
+ 
++def _ready_empty_evidence(
++    value: Any, *, archive_date: str, source_sha: str, source_generated_at: str,
++) -> None:
++    if not isinstance(value, Mapping) or set(value) != _READY_EMPTY_EVIDENCE_FIELDS:
++        raise ValueError("invalid research ready-empty evidence fields")
++    if (
++        archive_date != "20261012"
++        or value.get("schema_version") != "v3_5.zsxq_ready_empty.v1"
++        or value.get("trade_date") != archive_date
++        or value.get("slot") != "1700"
++        or value.get("status") != "READY_EMPTY"
++        or value.get("source_input_sha256") != source_sha
++        or value.get("source_receipt_path") != (
++            f"research_module/runtime_outputs/zsxq_hourly/{archive_date}/1700/"
++            f"v35_zsxq_hourly_status_{archive_date}_1700.json"
++        )
++        or not _SHA256.fullmatch(str(value.get("source_receipt_sha256") or ""))
++        or not _SHA256.fullmatch(str(value.get("summary_sha256") or ""))
++        or not _SHA256.fullmatch(str(value.get("fetch_result_sha256") or ""))
++        or value.get("fetch_ok") is not True
++        or type(value.get("fetch_ok")) is not bool
++        or value.get("fetch_success") is not True
++        or type(value.get("fetch_success")) is not bool
++        or type(value.get("page_count")) is not int
++        or value.get("page_count") < 1
++        or type(value.get("topic_count")) is not int
++        or value.get("topic_count") != 0
++        or type(value.get("effective_topic_count")) is not int
++        or value.get("effective_topic_count") != 0
++        or value.get("capture_origin") != "ORIGINAL_SLOT"
++        or value.get("materialization_origin") != "MANUAL_RECOVERY"
++        or value.get("natural_execution_verified") is not False
++        or type(value.get("natural_execution_verified")) is not bool
++    ):
++        raise ValueError("invalid research ready-empty source identity")
++    cutoff = datetime.strptime("202610121700", "%Y%m%d%H%M").replace(
++        tzinfo=ZoneInfo("Asia/Shanghai"), second=59
++    )
++    fetched = datetime.fromisoformat(_aware_timestamp(value.get("fetched_at"), "ready_empty.fetched_at").replace("Z", "+00:00")).astimezone(cutoff.tzinfo)
++    declared_cutoff = datetime.fromisoformat(_aware_timestamp(value.get("source_cutoff"), "ready_empty.source_cutoff").replace("Z", "+00:00")).astimezone(cutoff.tzinfo)
++    materialized = datetime.fromisoformat(_aware_timestamp(value.get("materialized_at"), "ready_empty.materialized_at").replace("Z", "+00:00")).astimezone(cutoff.tzinfo)
++    available = datetime.fromisoformat(_aware_timestamp(value.get("available_at"), "ready_empty.available_at").replace("Z", "+00:00")).astimezone(cutoff.tzinfo)
++    generated = datetime.fromisoformat(_aware_timestamp(source_generated_at, "source_generated_at").replace("Z", "+00:00")).astimezone(cutoff.tzinfo)
++    if (
++        declared_cutoff != cutoff
++        or fetched.strftime("%Y%m%d") != archive_date
++        or fetched > cutoff
++        or materialized.strftime("%Y%m%d") != archive_date
++        or materialized < cutoff
++        or available != materialized
++        or generated != materialized
++    ):
++        raise ValueError("research ready-empty time provenance mismatch")
++
++
+ def validate_research_archive(payload: Mapping[str, Any]) -> str:
+-    if not isinstance(payload, Mapping) or set(payload) != _TOP_LEVEL_FIELDS:
++    if (
++        not isinstance(payload, Mapping)
++        or not _TOP_LEVEL_FIELDS.issubset(payload)
++        or set(payload) - (_TOP_LEVEL_FIELDS | {"ready_empty_evidence_v1"})
++    ):
+         raise ValueError("invalid research archive fields")
+     if payload.get("schema_version") != SCHEMA_VERSION:
+         raise ValueError("invalid research archive schema")
+@@ -138,10 +206,20 @@
+ 
+     articles = payload.get("articles")
+     stock_pool = payload.get("stock_pool")
+-    if not isinstance(articles, list) or not articles:
+-        raise ValueError("research archive requires articles")
+-    if not isinstance(stock_pool, list) or not stock_pool:
+-        raise ValueError("research archive requires stock pool")
++    has_empty_evidence = "ready_empty_evidence_v1" in payload
++    if not isinstance(articles, list) or not isinstance(stock_pool, list):
++        raise ValueError("research archive rows must be lists")
++    if not has_empty_evidence and (not articles or not stock_pool):
++        raise ValueError("research archive requires articles and stock pool")
++    if has_empty_evidence:
++        _ready_empty_evidence(
++            payload.get("ready_empty_evidence_v1"),
++            archive_date=archive_date,
++            source_sha=str(payload.get("source_input_sha256") or ""),
++            source_generated_at=str(payload.get("source_generated_at") or ""),
++        )
++        if articles or stock_pool or payload.get("article_count") != 0 or payload.get("stock_pool_count") != 0 or payload.get("source_counts") != {}:
++            raise ValueError("research ready-empty archive contains rows or counts")
+     if payload.get("article_count") != len(articles):
+         raise ValueError("research article count mismatch")
+     if payload.get("stock_pool_count") != len(stock_pool):
+--- a/domains/research.py
++++ b/domains/research.py
+@@ -271,6 +271,12 @@
+         "buy_gate_updated": False,
+         "orders_sent": False,
+     }
++    ready_empty_source_proof = manifest.get("ready_empty_source_proof")
++    if isinstance(ready_empty_source_proof, Mapping):
++        payload["ready_empty_evidence_v1"] = {
++            **dict(ready_empty_source_proof),
++            "source_input_sha256": source_input_sha256.lower(),
++        }
+     validate_research_archive(payload)
+     return payload
+ 
+--- a/infrastructure/manager_input_attestation.py
++++ b/infrastructure/manager_input_attestation.py
+@@ -115,13 +115,72 @@
+         raise PublicationError('CATALYST_SOURCE_RECEIPTS_MISSING')
+     date=manifest['trade_date']; slot=manifest['hourly_slot']
+     expected=f'research_module/runtime_outputs/zsxq_hourly/{date}/{slot}/v35_zsxq_hourly_status_{date}_{slot}.json'
++    manual_empty = (
++        manifest.get('materialization_origin') == 'MANUAL_RECOVERY'
++        and manifest.get('capture_origin') == 'ORIGINAL_SLOT'
++        and manifest.get('original_time_capture') is True
++        and manifest.get('natural_execution_verified') is False
++    )
+     output=[]
+     for ref in sorted(refs):
+         if ref!=expected: raise PublicationError('CATALYST_SOURCE_RECEIPT_OWNER_MISMATCH')
+         path=resolve(data_root,ref); value=load(path)
+         if (value.get('trade_date')!=date or value.get('slot')!=slot or value.get('status_path')!=ref
+-            or value.get('fetch_ok') is not True or value.get('status')!='READY'):
++            or value.get('source')!='zsxq' or value.get('fetch_ok') is not True
++            or value.get('status') not in ({'READY','READY_EMPTY'} if manual_empty else {'READY'})):
+             raise PublicationError('CATALYST_SOURCE_RECEIPT_INVALID')
++        # The path declaration is not sufficient provenance. Reconcile the
++        # exact owned status bytes with its run-bound summary and fetch result.
++        try:
++            from ops.collect_hourly_research_input import (
++                _read_status_artifacts, _strict_as_time, _cutoff,
++            )
++            artifacts=_read_status_artifacts(data_root,date,slot,path,value)
++            receipt_sha=digest(path.read_bytes())
++            fetched=_strict_as_time(value.get('fetched_at'))
++            cutoff=_strict_as_time(value.get('source_cutoff'))
++        except (OSError,ValueError,TypeError):
++            artifacts=None; receipt_sha=''; fetched=None; cutoff=None
++        if artifacts is None or fetched is None or cutoff is None:
++            raise PublicationError('CATALYST_SOURCE_RECEIPT_INVALID')
++        declared_receipt_sha=str(manifest.get('source_receipt_sha256') or '').lower()
++        if declared_receipt_sha and declared_receipt_sha!=receipt_sha:
++            raise PublicationError('CATALYST_SOURCE_RECEIPT_SHA_MISMATCH')
++        if manual_empty:
++            expected_cutoff=_cutoff(date,slot)
++            if (value.get('status')!='READY_EMPTY' or not declared_receipt_sha
++                or manifest.get('source_cutoff')!=value.get('source_cutoff')
++                or cutoff!=expected_cutoff or fetched.strftime('%Y%m%d')!=date
++                or fetched>expected_cutoff):
++                raise PublicationError('CATALYST_READY_EMPTY_RECEIPT_INVALID')
++            proof=manifest.get('ready_empty_source_proof')
++            expected_proof={
++                'schema_version':'v3_5.zsxq_ready_empty.v1',
++                'trade_date':date,'slot':slot,'status':'READY_EMPTY',
++                'source_receipt_path':expected,'source_receipt_sha256':receipt_sha,
++                'summary_sha256':artifacts[3],
++                'fetch_result_sha256':artifacts[4],
++                'fetch_ok':True,'fetch_success':True,
++                'page_count':value.get('page_count'),'topic_count':0,
++                'effective_topic_count':0,'fetched_at':value.get('fetched_at'),
++                'source_cutoff':value.get('source_cutoff'),
++                'capture_origin':'ORIGINAL_SLOT',
++                'materialization_origin':'MANUAL_RECOVERY',
++                'materialized_at':manifest.get('materialized_at'),
++                'available_at':manifest.get('available_at'),
++                'natural_execution_verified':False,
++            }
++            try:
++                materialized=aware(manifest.get('materialized_at'))
++            except (TypeError,ValueError):
++                materialized=None
++            if (proof!=expected_proof or materialized is None
++                or materialized.strftime('%Y%m%d')!=date
++                or materialized<expected_cutoff or materialized>available_at
++                or manifest.get('available_at')!=manifest.get('materialized_at')
++                or manifest.get('generated_at')!=manifest.get('materialized_at')
++                or manifest.get('published_at')!=manifest.get('materialized_at')):
++                raise PublicationError('CATALYST_READY_EMPTY_PROOF_INVALID')
+         if aware(value.get('fetched_at'))>available_at:
+             raise PublicationError('CATALYST_SOURCE_FETCH_AFTER_PUBLICATION')
+         # The existing collector already validates the source's item quality.
+--- a/infrastructure/research_store.py
++++ b/infrastructure/research_store.py
+@@ -2715,6 +2715,171 @@
+     def _path(self, relative: str) -> Path:
+         return resolve_owned_path(self.root, relative)
+ 
++    def _normalize_ready_empty_owned_path(self, value: Any, expected_relative: str) -> str:
++        """Accept the exact source path in relative or owned-root absolute form."""
++        if not isinstance(value, str) or not value:
++            raise ValueError("hourly research ready-empty run path is missing")
++        declared = Path(value)
++        if declared.is_absolute():
++            try:
++                relative = declared.relative_to(Path(self.root).resolve(strict=False)).as_posix()
++            except ValueError as error:
++                raise ValueError("hourly research ready-empty run path is outside the owned root") from error
++        else:
++            relative = value
++        if relative != expected_relative:
++            raise ValueError("hourly research ready-empty run path identity mismatch")
++        try:
++            actual_path = resolve_owned_path(self.root, relative)
++            expected_path = resolve_owned_path(self.root, expected_relative)
++        except ValueError as error:
++            raise ValueError("hourly research ready-empty run path is invalid") from error
++        if actual_path != expected_path:
++            raise ValueError("hourly research ready-empty run path identity mismatch")
++        return expected_relative
++
++    def _validate_ready_empty_source(
++        self, payload: Mapping[str, Any], *, archive_date: str, slot: str, mode: str
++    ) -> None:
++        """Reconcile a recovery archive with its exact physical source receipt."""
++        evidence = payload.get("ready_empty_evidence_v1")
++        if not isinstance(evidence, Mapping):
++            raise ValueError("hourly research ready-empty evidence is missing")
++        if mode != "LIVE" or slot != "1700":
++            raise ValueError("hourly research ready-empty source is outside the recovery slot")
++        source_relative = f"research/incoming/{archive_date}/{slot}.json"
++        try:
++            source_bytes = self._path(source_relative).read_bytes()
++            source_sha = hashlib.sha256(source_bytes).hexdigest()
++            source = json.loads(source_bytes.decode("utf-8-sig"))
++        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
++            raise ValueError("hourly research ready-empty source witness is missing") from error
++        if source_sha != payload.get("source_input_sha256") or not isinstance(source, dict):
++            raise ValueError("hourly research ready-empty source witness SHA mismatch")
++        manifest = source.get("source_manifest")
++        hourly = source.get("hourly_research")
++        if not isinstance(manifest, dict) or not isinstance(hourly, dict):
++            raise ValueError("hourly research ready-empty source manifest is missing")
++        source_proof = manifest.get("ready_empty_source_proof")
++        if not isinstance(source_proof, dict) or dict(evidence) != {
++            **source_proof, "source_input_sha256": source_sha,
++        }:
++            raise ValueError("hourly research ready-empty source proof mismatch")
++        expected_receipt = (
++            f"research_module/runtime_outputs/zsxq_hourly/{archive_date}/{slot}/"
++            f"v35_zsxq_hourly_status_{archive_date}_{slot}.json"
++        )
++        if (
++            source.get("trade_date") != archive_date
++            or source.get("slot") != slot
++            or manifest.get("trade_date") != archive_date
++            or manifest.get("hourly_slot") != slot
++            or manifest.get("source_receipts") != [expected_receipt]
++            or manifest.get("source_receipt_sha256") != evidence.get("source_receipt_sha256")
++            or manifest.get("capture_origin") != "ORIGINAL_SLOT"
++            or manifest.get("materialization_origin") != "MANUAL_RECOVERY"
++            or manifest.get("natural_execution_verified") is not False
++            or manifest.get("source_cutoff") != evidence.get("source_cutoff")
++            or manifest.get("fetched_at") != evidence.get("fetched_at")
++            or manifest.get("materialized_at") != evidence.get("materialized_at")
++            or manifest.get("available_at") != evidence.get("available_at")
++            or manifest.get("generated_at") != evidence.get("materialized_at")
++            or manifest.get("published_at") != evidence.get("materialized_at")
++            or hourly.get("trade_date") != archive_date
++            or hourly.get("latest_slot") != slot
++            or hourly.get("status") != "READY_EMPTY"
++            or type(hourly.get("row_count")) is not int
++            or hourly.get("row_count") != 0
++            or any(source.get(name) != [] for name in (
++                "raw_items", "research_items", "stock_research_timeline", "stock_research_daily"
++            ))
++        ):
++            raise ValueError("hourly research ready-empty source identity mismatch")
++        try:
++            receipt_path = self._path(expected_receipt)
++            receipt_bytes = receipt_path.read_bytes()
++            status = json.loads(receipt_bytes.decode("utf-8-sig"))
++            cutoff = datetime.strptime(f"{archive_date}{slot}", "%Y%m%d%H%M").replace(
++                tzinfo=ZoneInfo("Asia/Shanghai"), second=59
++            )
++            fetched = datetime.fromisoformat(str(evidence.get("fetched_at")).replace("Z", "+00:00"))
++            source_cutoff = datetime.fromisoformat(str(evidence.get("source_cutoff")).replace("Z", "+00:00"))
++            materialized = datetime.fromisoformat(str(evidence.get("materialized_at")).replace("Z", "+00:00"))
++            available = datetime.fromisoformat(str(evidence.get("available_at")).replace("Z", "+00:00"))
++        except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError) as error:
++            raise ValueError("hourly research ready-empty status receipt is unreadable") from error
++        if any(value.tzinfo is None or value.utcoffset() is None for value in (fetched, source_cutoff, materialized, available)):
++            raise ValueError("hourly research ready-empty timestamps must include timezone")
++        run_id = str(status.get("latest_run_id") or "")
++        run_relative = f"external_sources/zsxq_hourly/{run_id}"
++        paths = status.get("paths")
++        if (
++            not re.fullmatch(rf"{archive_date}_{slot}00_[A-Za-z0-9_-]+", run_id)
++            or not isinstance(paths, Mapping)
++        ):
++            raise ValueError("hourly research ready-empty run identity mismatch")
++        try:
++            self._normalize_ready_empty_owned_path(paths.get("run_dir"), run_relative)
++            summary_relative = self._normalize_ready_empty_owned_path(
++                paths.get("summary"), f"{run_relative}/zsxq_summary.json"
++            )
++            fetch_relative = self._normalize_ready_empty_owned_path(
++                paths.get("fetch_result"), f"{run_relative}/zsxq_recent_topics_fetch_result.json"
++            )
++            summary_bytes = self._path(summary_relative).read_bytes()
++            fetch_bytes = self._path(fetch_relative).read_bytes()
++            summary = json.loads(summary_bytes.decode("utf-8-sig"))
++            fetch = json.loads(fetch_bytes.decode("utf-8-sig"))
++        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
++            raise ValueError("hourly research ready-empty run artifacts are unreadable") from error
++        if (
++            not isinstance(status, dict)
++            or not isinstance(summary, dict)
++            or not isinstance(fetch, dict)
++            or status.get("schema_version") != "v3_5.zsxq_hourly_delta.v1"
++            or status.get("source") != "zsxq"
++            or status.get("trade_date") != archive_date
++            or status.get("slot") != slot
++            or status.get("status_path") != expected_receipt
++            or status.get("status") != "READY_EMPTY"
++            or status.get("fetch_ok") is not True
++            or status.get("production_allowed") is not False
++            or status.get("buy_gate_updated") is not False
++            or status.get("orders_sent") is not False
++            or hashlib.sha256(receipt_bytes).hexdigest() != evidence.get("source_receipt_sha256")
++            or hashlib.sha256(summary_bytes).hexdigest() != evidence.get("summary_sha256")
++            or hashlib.sha256(fetch_bytes).hexdigest() != evidence.get("fetch_result_sha256")
++            or type(status.get("page_count")) is not int
++            or status.get("page_count") < 1
++            or type(status.get("topic_count")) is not int
++            or status.get("topic_count") != 0
++            or type(status.get("effective_topic_count")) is not int
++            or status.get("effective_topic_count") != 0
++            or status.get("fetched_at") != evidence.get("fetched_at")
++            or status.get("source_cutoff") != evidence.get("source_cutoff")
++            or status.get("source_cutoff") != cutoff.isoformat(timespec="seconds")
++            or source_cutoff.astimezone(cutoff.tzinfo) != cutoff
++            or fetched.astimezone(cutoff.tzinfo).strftime("%Y%m%d") != archive_date
++            or fetched.astimezone(cutoff.tzinfo) > cutoff
++            or materialized.astimezone(cutoff.tzinfo).strftime("%Y%m%d") != archive_date
++            or materialized.astimezone(cutoff.tzinfo) < cutoff
++            or available.astimezone(cutoff.tzinfo) != materialized.astimezone(cutoff.tzinfo)
++            or summary.get("ok") is not True
++            or type(summary.get("raw_topic_count")) is not int
++            or summary.get("raw_topic_count") != 0
++            or type(summary.get("effective_topic_count")) is not int
++            or summary.get("effective_topic_count") != 0
++            or summary.get("effective_topics") != []
++            or summary.get("stock_lookup_error") not in {None, ""}
++            or fetch.get("ok") is not True
++            or fetch.get("success") is not True
++            or type(fetch.get("count")) is not int
++            or fetch.get("count") != 0
++            or type(fetch.get("page_count")) is not int
++            or fetch.get("page_count") != status.get("page_count")
++        ):
++            raise ValueError("hourly research ready-empty status receipt mismatch")
++
+     @staticmethod
+     def _relative(archive_date: str, slot: str, mode: str) -> str:
+         return f"research/hourly/{mode.lower()}/{archive_date}/{slot}.json"
+@@ -3063,7 +3228,7 @@
+         payload: Mapping[str, Any], digest: str, *, slot: str, mode: str
+     ) -> dict[str, Any]:
+         archive_date = str(payload["archive_date"])
+-        return {
++        receipt = {
+             "schema_version": "v3_5.hourly_research_receipt.v1",
+             "archive_date": archive_date,
+             "slot": slot,
+@@ -3079,6 +3244,10 @@
+             "buy_gate_updated": False,
+             "orders_sent": False,
+         }
++        evidence = payload.get("ready_empty_evidence_v1")
++        if isinstance(evidence, Mapping):
++            receipt["ready_empty_evidence_v1"] = dict(evidence)
++        return receipt
+ 
+     @staticmethod
+     def _transform_validation(
+@@ -3124,6 +3293,14 @@
+             raise ValueError(
+                 "hourly research mode must be LIVE, REPLAY, or BACKFILL"
+             )
++        if "ready_empty_evidence_v1" in payload:
++            self._validate_ready_empty_source(
++                payload,
++                archive_date=archive_date,
++                slot=normalized_slot,
++                mode=normalized_mode,
++            )
++        verified_ready_empty_source = "ready_empty_evidence_v1" in payload
+         normalized_transformer_sha = None
+         if transformer_identity_sha256 is not None:
+             normalized_transformer_sha = str(
+@@ -3156,7 +3333,7 @@
+             receipt_path = self._path(receipt_relative)
+             interrupted_recovery = not existing and payload_path.exists()
+             if normalized_mode == "LIVE" and not (
+-                existing or interrupted_recovery
++                existing or interrupted_recovery or verified_ready_empty_source
+             ):
+                 self._assert_latest_not_backwards(
+                     archive_date, normalized_slot
+@@ -4236,6 +4413,13 @@
+             or validate_research_archive(payload) != archive_date
+         ):
+             raise ValueError("hourly research manifest or receipt mismatch")
++        if "ready_empty_evidence_v1" in payload:
++            self._validate_ready_empty_source(
++                payload,
++                archive_date=archive_date,
++                slot=normalized_slot,
++                mode=normalized_mode,
++            )
+         return payload
+ 
+     def reuse_matching_source(
+--- a/ops/collect_hourly_research_input.py
++++ b/ops/collect_hourly_research_input.py
+@@ -451,8 +451,20 @@
+     ).replace(tzinfo=_SHANGHAI, second=59)
+ 
+ 
++def _strict_as_time(value: Any) -> datetime | None:
++    if not isinstance(value, str) or not value.strip():
++        return None
++    try:
++        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
++    except ValueError:
++        return None
++    if parsed.tzinfo is None or parsed.utcoffset() is None:
++        return None
++    return parsed.astimezone(_SHANGHAI)
++
++
+ def _latest_zsxq_status(
+-    data_root: Path, business_date: str, slot: str
++    data_root: Path, business_date: str, slot: str, *, allow_ready_empty: bool = False
+ ) -> tuple[Path, dict[str, Any]] | None:
+     root = resolve_owned_path(
+         data_root,
+@@ -483,16 +495,104 @@
+             continue
+         if payload.get("fetch_ok") is not True:
+             continue
++        if (
++            payload.get("schema_version") != "v3_5.zsxq_hourly_delta.v1"
++            or payload.get("source") != "zsxq"
++            or payload.get("production_allowed") is not False
++            or payload.get("buy_gate_updated") is not False
++            or payload.get("orders_sent") is not False
++        ):
++            continue
+         # Only a verified READY status for this exact slot can materialize
+         # the requested source; READY_EMPTY and failed refreshes remain a
+         # typed evidence boundary.
+-        if payload.get("status") != "READY":
++        if payload.get("status") != "READY" and not (
++            allow_ready_empty and payload.get("status") == "READY_EMPTY"
++        ):
+             continue
+         candidates.append((int(slot), path, payload))
+     if not candidates:
+         return None
+     _, path, payload = max(candidates, key=lambda item: item[0])
+     return path, payload
++
++
++def _read_status_artifacts(
++    data_root: Path, business_date: str, slot: str,
++    status_path: Path, status: Mapping[str, Any],
++) -> tuple[dict[str, Any], dict[str, Any], str, str, str] | None:
++    run_id = str(status.get("latest_run_id") or "")
++    if not re.fullmatch(rf"{business_date}_{slot}00_[A-Za-z0-9_-]+", run_id):
++        return None
++    run_relative = f"external_sources/zsxq_hourly/{run_id}"
++    paths = status.get("paths")
++    if not isinstance(paths, Mapping) or paths.get("run_dir") != run_relative:
++        return None
++
++    def read_exact(value: Any, name: str) -> tuple[dict[str, Any], str] | None:
++        expected = f"{run_relative}/{name}"
++        if not isinstance(value, str) or not value:
++            return None
++        candidate = Path(value)
++        if candidate.is_absolute():
++            try:
++                value = candidate.absolute().relative_to(Path(data_root).resolve()).as_posix()
++            except ValueError:
++                return None
++        if value != expected:
++            return None
++        try:
++            raw = resolve_owned_path(data_root, expected).read_bytes()
++            result = json.loads(raw.decode("utf-8-sig"))
++        except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError):
++            return None
++        return (dict(result), hashlib.sha256(raw).hexdigest()) if isinstance(result, Mapping) else None
++
++    summary_artifact = read_exact(paths.get("summary"), "zsxq_summary.json")
++    fetch_artifact = read_exact(paths.get("fetch_result"), "zsxq_recent_topics_fetch_result.json")
++    try:
++        receipt_path = resolve_owned_path(data_root, str(status.get("status_path") or ""))
++        receipt_sha = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
++    except (OSError, ValueError):
++        return None
++    fetched = _strict_as_time(status.get("fetched_at"))
++    source_cutoff = _strict_as_time(status.get("source_cutoff"))
++    if summary_artifact is None or fetch_artifact is None:
++        return None
++    summary, summary_sha = summary_artifact
++    fetch, fetch_result_sha = fetch_artifact
++    if (
++        fetched is None
++        or source_cutoff != _cutoff(business_date, slot)
++        or summary.get("ok") is not True or fetch.get("ok") is not True
++        or fetch.get("success") is not True
++        or fetch.get("page_count") != status.get("page_count")
++        or summary.get("raw_topic_count") != status.get("topic_count")
++        or summary.get("effective_topic_count") != status.get("effective_topic_count")
++    ):
++        return None
++    if status.get("status") == "READY_EMPTY" and (
++        fetched.strftime("%Y%m%d") != business_date
++        or fetched > _cutoff(business_date, slot)
++        or type(status.get("page_count")) is not int
++        or status.get("page_count") < 1
++        or type(status.get("topic_count")) is not int
++        or status.get("topic_count") != 0
++        or type(status.get("effective_topic_count")) is not int
++        or status.get("effective_topic_count") != 0
++        or type(summary.get("raw_topic_count")) is not int
++        or summary.get("raw_topic_count") != 0
++        or type(summary.get("effective_topic_count")) is not int
++        or summary.get("effective_topic_count") != 0
++        or summary.get("effective_topics") != []
++        or summary.get("stock_lookup_error") not in {None, ""}
++        or type(fetch.get("count")) is not int
++        or fetch.get("count") != 0
++        or type(fetch.get("page_count")) is not int
++        or fetch.get("page_count") != status.get("page_count")
++    ):
++        return None
++    return summary, fetch, receipt_sha, summary_sha, fetch_result_sha
+ 
+ 
+ def _source_quality(
+@@ -523,9 +623,11 @@
+ 
+ 
+ def _zsxq_rows(
+-    data_root: Path, business_date: str, slot: str
++    data_root: Path, business_date: str, slot: str, *, allow_ready_empty: bool = False
+ ) -> tuple[list[dict[str, Any]], list[str]]:
+-    selected = _latest_zsxq_status(data_root, business_date, slot)
++    selected = _latest_zsxq_status(
++        data_root, business_date, slot, allow_ready_empty=allow_ready_empty
++    )
+     if selected is None:
+         return [], ["ZSXQ_STATUS_NOT_AVAILABLE_BY_SLOT"]
+     status_path, status = selected
+@@ -538,11 +640,16 @@
+         source_cutoff = _as_time(status.get("source_cutoff"))
+         if source_cutoff is None or source_cutoff > cutoff:
+             return [], ["ZSXQ_STATUS_NOT_POINT_IN_TIME_SAFE"]
+-    paths = status.get("paths") if isinstance(status.get("paths"), Mapping) else {}
+-    summary_path = Path(str(paths.get("summary") or ""))
+-    summary = _read_json(summary_path) if summary_path.is_file() else {}
+-    if not summary:
++    artifacts = _read_status_artifacts(
++        data_root, business_date, slot, status_path, status
++    )
++    if artifacts is None:
+         return [], ["ZSXQ_SUMMARY_UNREADABLE"]
++    summary = artifacts[0]
++    if status.get("status") == "READY_EMPTY":
++        if allow_ready_empty:
++            return [], []
++        return [], ["ZSXQ_READY_EMPTY_REQUIRES_MANUAL_RECOVERY"]
+     boundary = [
+         str(value)
+         for value in status.get("cannot_confirm") or []
+@@ -654,11 +761,37 @@
+     business_date: str,
+     slot: str,
+     repair_expected_old_input_sha256: str | None = None,
++    manual_recovery: bool = False,
+ ) -> dict[str, Any]:
+     if slot not in _SLOTS:
+         raise ValueError("hourly research slot must be 0830 or 0700 through 2300")
+     datetime.strptime(business_date, "%Y%m%d")
+-    rows, gaps = _zsxq_rows(Path(data_root), business_date, slot)
++    if manual_recovery and (business_date, slot) != ("20261012", "1700"):
++        raise ValueError("manual empty recovery is limited to 20261012/1700")
++    selected = _latest_zsxq_status(
++        Path(data_root), business_date, slot, allow_ready_empty=manual_recovery
++    )
++    status = selected[1] if selected is not None else {}
++    artifacts = (
++        _read_status_artifacts(Path(data_root), business_date, slot, *selected)
++        if selected is not None
++        else None
++    )
++    fetched_at = _strict_as_time(status.get("fetched_at"))
++    cutoff = _cutoff(business_date, slot)
++    manual_empty_proof = bool(
++        manual_recovery
++        and selected is not None
++        and status.get("status") == "READY_EMPTY"
++        and artifacts is not None
++        and fetched_at is not None
++        and fetched_at.strftime("%Y%m%d") == business_date
++        and fetched_at <= cutoff
++        and datetime.now(_SHANGHAI) >= cutoff
++    )
++    rows, gaps = _zsxq_rows(
++        Path(data_root), business_date, slot, allow_ready_empty=manual_empty_proof
++    )
+     stock_master = {
+         str(row["stock_code"]): {
+             "name": str(row["stock_name"]),
+@@ -670,7 +803,7 @@
+     cutoff = _cutoff(business_date, slot)
+     repair_requested = repair_expected_old_input_sha256 is not None
+     late_recovery = "ZSXQ_RECOVERY_FETCHED_AFTER_SLOT" in gaps
+-    recovery_observation = late_recovery or repair_requested
++    recovery_observation = late_recovery or repair_requested or manual_empty_proof
+     now = datetime.now(_SHANGHAI)
+     # A late replay keeps the actual collection time.  Clamping it to the
+     # historical slot would fabricate a natural in-slot execution receipt.
+@@ -699,6 +832,52 @@
+             "natural_execution_verified": False,
+         }
+     )
++    materialized_at = now
++    if manual_empty_proof:
++        status_receipt = str(status["status_path"])
++        source_cutoff = str(status["source_cutoff"])
++        receipt_sha = artifacts[2]
++        snapshot["source_manifest"].update(
++            {
++                "generated_at": materialized_at.isoformat(timespec="seconds"),
++                "published_at": materialized_at.isoformat(timespec="seconds"),
++                "hourly_slot": slot,
++                "trade_date": business_date,
++                "source_receipts": [status_receipt],
++                "source_receipt_sha256": receipt_sha,
++                "fetched_at": str(status["fetched_at"]),
++                "source_cutoff": source_cutoff,
++                "pit_cutoff": source_cutoff,
++                "capture_origin": "ORIGINAL_SLOT",
++                "original_time_capture": True,
++                "materialization_origin": "MANUAL_RECOVERY",
++                "materialized_at": materialized_at.isoformat(timespec="seconds"),
++                "available_at": materialized_at.isoformat(timespec="seconds"),
++                "natural_execution_verified": False,
++                "ready_empty_source_proof": {
++                    "schema_version": "v3_5.zsxq_ready_empty.v1",
++                    "trade_date": business_date,
++                    "slot": slot,
++                    "status": "READY_EMPTY",
++                    "source_receipt_path": status_receipt,
++                    "source_receipt_sha256": receipt_sha,
++                    "summary_sha256": artifacts[3],
++                    "fetch_result_sha256": artifacts[4],
++                    "fetch_ok": status.get("fetch_ok"),
++                    "fetch_success": artifacts[1].get("success"),
++                    "page_count": status.get("page_count"),
++                    "topic_count": status.get("topic_count"),
++                    "effective_topic_count": status.get("effective_topic_count"),
++                    "fetched_at": str(status["fetched_at"]),
++                    "source_cutoff": source_cutoff,
++                    "capture_origin": "ORIGINAL_SLOT",
++                    "materialization_origin": "MANUAL_RECOVERY",
++                    "materialized_at": materialized_at.isoformat(timespec="seconds"),
++                    "available_at": materialized_at.isoformat(timespec="seconds"),
++                    "natural_execution_verified": False,
++                },
++            }
++        )
+     # Keep the declared request context on the source itself as well as in
+     # its manifest.  Explicit late recovery validates both representations
+     # before it can create a superseding artifact.
+@@ -722,14 +901,15 @@
+     # the original evidence gap visible, without occupying an immutable slot.
+     source_manifest = snapshot["source_manifest"]
+     missing = []
+-    if not rows or not snapshot.get("stock_research_timeline"):
+-        missing.append("EXACT_SOURCE_ROWS_MISSING")
+-    if not source_manifest.get("source_receipts"):
+-        missing.append("EXACT_SOURCE_RECEIPTS_MISSING")
+-    if not source_manifest.get("source_types"):
+-        missing.append("EXACT_SOURCE_TYPES_MISSING")
+-    if snapshot.get("quality_status") == "QUALITY_FAIL":
+-        missing.append("SOURCE_QUALITY_FAIL")
++    if not manual_empty_proof:
++        if not rows or not snapshot.get("stock_research_timeline"):
++            missing.append("EXACT_SOURCE_ROWS_MISSING")
++        if not source_manifest.get("source_receipts"):
++            missing.append("EXACT_SOURCE_RECEIPTS_MISSING")
++        if not source_manifest.get("source_types"):
++            missing.append("EXACT_SOURCE_TYPES_MISSING")
++        if snapshot.get("quality_status") == "QUALITY_FAIL":
++            missing.append("SOURCE_QUALITY_FAIL")
+     def unavailable(reasons: list[str], *, existing_sha: str | None = None) -> dict[str, Any]:
+         return {
+             "schema_version": "v3_5.hourly_research_input_run.v1",
+@@ -793,7 +973,24 @@
+         "manager_publication": manager_publication,
+         "source_sha256": hashlib.sha256(published_path.read_bytes()).hexdigest(),
+         "recovery": published_path != destination,
+-        "capture_origin": "LATE_RECOVERY" if recovery_observation else "ORIGINAL_SLOT",
++        "capture_origin": "ORIGINAL_SLOT" if manual_empty_proof else (
++            "LATE_RECOVERY" if recovery_observation else "ORIGINAL_SLOT"
++        ),
++        "execution_origin": "MANUAL_RECOVERY" if manual_empty_proof else (
++            "LATE_RECOVERY" if recovery_observation else "ORIGINAL_SLOT"
++        ),
++        "materialized_at": materialized_at.isoformat(timespec="seconds"),
++        **(
++            {
++                "available_at": materialized_at.isoformat(timespec="seconds"),
++                "source_receipt_sha256": artifacts[2],
++                "summary_sha256": artifacts[3],
++                "fetch_result_sha256": artifacts[4],
++                "source_cutoff": str(status["source_cutoff"]),
++                "fetched_at": str(status["fetched_at"]),
++            }
++            if manual_empty_proof and artifacts is not None else {}
++        ),
+         "natural_execution_verified": False,
+         "production_allowed": False,
+         "buy_gate_updated": False,
+@@ -807,15 +1004,20 @@
+     parser.add_argument("--date", required=True)
+     parser.add_argument("--slot", required=True)
+     parser.add_argument("--repair-expected-old-input-sha256")
++    parser.add_argument("--manual-recovery", action="store_true")
+     args = parser.parse_args()
+     result = build_hourly_research_input(
+         data_root=args.data_root,
+         business_date=args.date,
+         slot=args.slot,
+         repair_expected_old_input_sha256=args.repair_expected_old_input_sha256,
++        manual_recovery=args.manual_recovery,
+     )
+     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+-    return 0 if result["status"] == "READY_WITH_RESEARCH_POOL" else 2
++    return 0 if result.get("status") in {
++        "READY_WITH_RESEARCH_POOL",
++        "READY_EMPTY",
++    } else 2
+ 
+ 
+ if __name__ == "__main__":
+--- a/ops/run_hourly_research.py
++++ b/ops/run_hourly_research.py
+@@ -209,9 +209,9 @@
+     publication: dict[str, Any] | None,
+     execution_origin: str = "ORIGINAL_SLOT",
+     natural_execution_verified: bool = False,
++    ready_empty: bool = False,
+ ) -> dict[str, Any]:
+     store = NativeDataStore(data_root)
+-    ready_empty = publication is None
+     artifact_relative = f"hourly_research/{business_date}/{slot}/summary.json"
+     summary = {
+         "schema_version": "v3_5.hourly_research_summary.v1",
+@@ -239,6 +239,8 @@
+         "event_reason": (
+             "hourly_research_late_recovery_completed"
+             if execution_origin == "LATE_RECOVERY"
++            else "hourly_research_manual_recovery_completed"
++            if execution_origin == "MANUAL_RECOVERY"
+             else "hourly_research_generation_completed"
+         ),
+         "execution_origin": execution_origin,
+@@ -298,6 +300,126 @@
+         "execution_origin": execution_origin,
+         "natural_execution_verified": bool(natural_execution_verified),
+     }
++
++
++def _verified_manual_empty_source(
++    *, data_root: Path, source_payload: dict[str, Any], source_sha256: str,
++    source_identity: str, business_date: str, slot: str, mode: str,
++) -> bool:
++    if (business_date, slot, mode) != ("20261012", "1700", "LIVE"):
++        return False
++    expected_input = f"research/incoming/{business_date}/{slot}.json"
++    if source_identity != expected_input:
++        return False
++    input_path = resolve_owned_path(data_root, expected_input)
++    try:
++        input_bytes = input_path.read_bytes()
++        source = json.loads(input_bytes.decode("utf-8-sig"))
++    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
++        return False
++    if hashlib.sha256(input_bytes).hexdigest() != source_sha256 or source != source_payload:
++        return False
++    manifest = source.get("source_manifest")
++    hourly = source.get("hourly_research")
++    expected_receipt = (
++        f"research_module/runtime_outputs/zsxq_hourly/{business_date}/{slot}/"
++        f"v35_zsxq_hourly_status_{business_date}_{slot}.json"
++    )
++    if (
++        not isinstance(manifest, dict) or not isinstance(hourly, dict)
++        or source.get("schema_version") != "v3_research_lane.v2"
++        or source.get("trade_date") != business_date or source.get("slot") != slot
++        or manifest.get("trade_date") != business_date
++        or manifest.get("hourly_slot") != slot
++        or manifest.get("source_receipts") != [expected_receipt]
++        or manifest.get("capture_origin") != "ORIGINAL_SLOT"
++        or manifest.get("original_time_capture") is not True
++        or manifest.get("materialization_origin") != "MANUAL_RECOVERY"
++        or manifest.get("natural_execution_verified") is not False
++        or hourly.get("status") != "READY_EMPTY"
++        or hourly.get("trade_date") != business_date
++        or hourly.get("latest_slot") != slot
++        or type(hourly.get("row_count")) is not int or hourly.get("row_count") != 0
++        or any(source.get(name) != [] for name in (
++            "raw_items", "research_items", "stock_research_timeline", "stock_research_daily"
++        ))
++        or source.get("write_policy") != "read_only"
++        or source.get("default_status") != "RESEARCH_ONLY"
++        or source.get("buy_gate_effect") != "none"
++        or source.get("live_order_effect") != "none"
++        or any(source.get(key) is not False for key in (
++            "production_allowed", "buy_gate_updated", "orders_sent"
++        ) if key in source)
++    ):
++        return False
++    try:
++        from ops.collect_hourly_research_input import (
++            _read_status_artifacts, _strict_as_time, _cutoff,
++        )
++        status_path = resolve_owned_path(data_root, expected_receipt)
++        status = json.loads(status_path.read_text(encoding="utf-8-sig"))
++        artifacts = _read_status_artifacts(
++            data_root, business_date, slot, status_path, status
++        )
++        cutoff = _cutoff(business_date, slot)
++        fetched = _strict_as_time(status.get("fetched_at"))
++        source_cutoff = _strict_as_time(status.get("source_cutoff"))
++        materialized = _strict_as_time(manifest.get("materialized_at"))
++        available = _strict_as_time(manifest.get("available_at"))
++    except (OSError, ValueError, TypeError, json.JSONDecodeError):
++        return False
++    if artifacts is None or fetched is None or source_cutoff is None or materialized is None or available is None:
++        return False
++    receipt_sha = hashlib.sha256(status_path.read_bytes()).hexdigest()
++    if (
++        status.get("schema_version") != "v3_5.zsxq_hourly_delta.v1"
++        or status.get("source") != "zsxq"
++        or status.get("trade_date") != business_date
++        or status.get("slot") != slot
++        or status.get("status_path") != expected_receipt
++        or status.get("status") != "READY_EMPTY"
++        or status.get("fetch_ok") is not True
++        or status.get("production_allowed") is not False
++        or status.get("buy_gate_updated") is not False
++        or status.get("orders_sent") is not False
++    ):
++        return False
++    proof = manifest.get("ready_empty_source_proof")
++    expected_proof = {
++        "schema_version": "v3_5.zsxq_ready_empty.v1",
++        "trade_date": business_date, "slot": slot, "status": "READY_EMPTY",
++        "source_receipt_path": expected_receipt,
++        "source_receipt_sha256": receipt_sha,
++        "summary_sha256": artifacts[3],
++        "fetch_result_sha256": artifacts[4],
++        "fetch_ok": True, "fetch_success": True,
++        "page_count": status.get("page_count"),
++        "topic_count": 0, "effective_topic_count": 0,
++        "fetched_at": status.get("fetched_at"),
++        "source_cutoff": status.get("source_cutoff"),
++        "capture_origin": "ORIGINAL_SLOT",
++        "materialization_origin": "MANUAL_RECOVERY",
++        "materialized_at": manifest.get("materialized_at"),
++        "available_at": manifest.get("available_at"),
++        "natural_execution_verified": False,
++    }
++    if (
++        artifacts[2] != receipt_sha
++        or manifest.get("source_receipt_sha256") != receipt_sha
++        or manifest.get("source_cutoff") != status.get("source_cutoff")
++        or manifest.get("pit_cutoff") != status.get("source_cutoff")
++        or manifest.get("fetched_at") != status.get("fetched_at")
++        or manifest.get("generated_at") != manifest.get("materialized_at")
++        or manifest.get("published_at") != manifest.get("materialized_at")
++        or manifest.get("available_at") != manifest.get("materialized_at")
++        or proof != expected_proof
++        or source_cutoff != cutoff
++        or fetched.strftime("%Y%m%d") != business_date or fetched > cutoff
++        or materialized.strftime("%Y%m%d") != business_date
++        or materialized < cutoff or available != materialized
++    ):
++        return False
++    return True
+ 
+ 
+ def _timestamp(value: Any, field: str) -> datetime:
+@@ -478,6 +600,37 @@
+             or (recovery_info or {}).get("repair_authorization") is not None
+         )
+     )
++    verified_manual_empty = _verified_manual_empty_source(
++        data_root=data_root,
++        source_payload=source_payload,
++        source_sha256=source_sha,
++        source_identity=source_identity,
++        business_date=request.business_date,
++        slot=request.slot,
++        mode=request.mode.value,
++    )
++    # Let a structurally empty manual candidate reach the explicit
++    # NOT_MATERIALIZED boundary when its source receipt no longer verifies.
++    # This clock allowance does not authorize archive publication.
++    source_manifest = source_payload.get("source_manifest")
++    source_hourly = source_payload.get("hourly_research")
++    manual_empty_time_shape = (
++        source_identity == f"research/incoming/{request.business_date}/{request.slot}.json"
++        and (request.business_date, request.slot, request.mode.value)
++        == ("20261012", "1700", "LIVE")
++        and isinstance(source_manifest, dict)
++        and source_manifest.get("materialization_origin") == "MANUAL_RECOVERY"
++        and source_manifest.get("capture_origin") == "ORIGINAL_SLOT"
++        and source_manifest.get("original_time_capture") is True
++        and source_manifest.get("natural_execution_verified") is False
++        and isinstance(source_hourly, dict)
++        and source_hourly.get("status") == "READY_EMPTY"
++        and type(source_hourly.get("row_count")) is int
++        and source_hourly.get("row_count") == 0
++        and all(source_payload.get(name) == [] for name in (
++            "raw_items", "research_items", "stock_research_timeline", "stock_research_daily"
++        ))
++    )
+     if verified_recovery:
+         manifest = source_payload.get("source_manifest")
+         cutoff = datetime.strptime(
+@@ -501,7 +654,9 @@
+         source_payload,
+         business_date=request.business_date,
+         slot=request.slot,
+-        allow_late_observation_times=verified_late_recovery,
++        allow_late_observation_times=(
++            verified_late_recovery or verified_manual_empty or manual_empty_time_shape
++        ),
+     )
+     store = HourlyResearchStore(data_root)
+     transformer_identity_sha = _research_transformer_identity_sha256()
+@@ -517,7 +672,7 @@
+     research_items = source_payload.get("research_items")
+     if isinstance(raw_items, list) and isinstance(research_items, list):
+         has_rows = has_rows and bool(raw_items) and bool(research_items)
+-    if not has_rows:
++    if not has_rows and not verified_manual_empty:
+         return {
+             "schema_version": "v3_5.hourly_research_run.v1",
+             "status": "NOT_MATERIALIZED",
+@@ -637,7 +792,7 @@
+     publication = None
+     late_recovery_reuse = False
+     archive_payload: dict[str, Any] | None = None
+-    if has_rows:
++    if has_rows or verified_manual_empty:
+         if verified_recovery:
+             # Build before the first store mutation so a retry can compare
+             # the already-committed hourly payload and the generic archive
+@@ -822,8 +977,13 @@
+         mode=request.mode.value,
+         source_sha256=source_sha,
+         publication=publication,
+-        execution_origin="LATE_RECOVERY" if verified_recovery else "ORIGINAL_SLOT",
++        execution_origin=(
++            "MANUAL_RECOVERY" if verified_manual_empty
++            else "LATE_RECOVERY" if verified_recovery
++            else "ORIGINAL_SLOT"
++        ),
+         natural_execution_verified=False,
++        ready_empty=verified_manual_empty,
+     )
+     return {
+         "schema_version": "v3_5.hourly_research_run.v1",
+@@ -835,7 +995,25 @@
+         "source_path": source_identity,
+         "external_source_sha256": source_sha,
+         "external_source_read_only": True,
+-        "execution_origin": "LATE_RECOVERY" if verified_recovery else "ORIGINAL_SLOT",
++        "execution_origin": (
++            "MANUAL_RECOVERY" if verified_manual_empty
++            else "LATE_RECOVERY" if verified_recovery
++            else "ORIGINAL_SLOT"
++        ),
++        "capture_origin": "ORIGINAL_SLOT" if verified_manual_empty else (
++            "LATE_RECOVERY" if verified_recovery else "ORIGINAL_SLOT"
++        ),
++        "hourly_artifact_status": "READY_EMPTY" if verified_manual_empty else "READY_WITH_RESEARCH_POOL",
++        **(
++            {
++                "source_receipt_sha256": source_payload["source_manifest"]["source_receipt_sha256"],
++                "source_cutoff": source_payload["source_manifest"]["source_cutoff"],
++                "fetched_at": source_payload["source_manifest"]["fetched_at"],
++                "materialized_at": source_payload["source_manifest"]["materialized_at"],
++                "available_at": source_payload["source_manifest"]["available_at"],
++            }
++            if verified_manual_empty else {}
++        ),
+         "late_recovery_first_admission": late_first_admission,
+         "late_recovery_idempotent_reuse": late_recovery_reuse,
+         "natural_execution_verified": False,

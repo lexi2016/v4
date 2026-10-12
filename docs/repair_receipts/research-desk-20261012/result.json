@@ -1,0 +1,165 @@
+{
+  "schema_version": "v4.research_desk_repair_result.v1",
+  "date": "20261012",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "github_base_commit": "883dccd962c5330f30c5407a0106dea104f28816",
+  "scope": "Receipt-bound acquisition times, truthful missing states, responsive feed; exact 1700 authenticated empty recovery. Morning-time UI expansion stopped by user.",
+  "root_causes": [
+    "Archive lost receipt-backed acquisition clock; reader now reconciles exact owned source receipts.",
+    "Research-only policy text was counted as an evidence failure; true entity gaps retain trace.",
+    "1700 successful empty upstream was rejected; physical proof permits exact manual empty archive.",
+    "Actual source receipts use owned absolute paths.",
+    "Later latest slot blocked exact 1700 recovery; verified empty may publish without changing latest."
+  ],
+  "runtime": {
+    "api_release": "research-desk-20261012-r4",
+    "scheduler_release": "research-hourly-empty-20261012-r4"
+  },
+  "status": {
+    "independent_review": "PASS",
+    "deployed": true,
+    "api_verified": true,
+    "ui_verified": true,
+    "manual_1700_recovery": "SUCCEEDED",
+    "natural_execution_verified": false
+  },
+  "recovery": {
+    "slot": "1700",
+    "hourly_artifact_status": "READY_EMPTY",
+    "execution_origin": "MANUAL_RECOVERY",
+    "fetched_at": "2026-10-12T17:00:00+08:00",
+    "materialized_at": "2026-10-12T22:06:53+08:00",
+    "available_at": "2026-10-12T22:06:53+08:00",
+    "external_source_sha256": "7fdd82b622af70725b73c42fe29e0ef4b0da36d79c626d871e769048e1c87b9a",
+    "source_receipt_sha256": "805cdaacb3ad6cfa0e7e0484212cc28fdcba9e054ce3eef57aaa39950a90147c",
+    "payload_sha256": "2a1e0f225961467561916c288aa985b31dc82f0afa820f4e7126a2dfb162560b",
+    "latest_updated": false,
+    "natural_execution_verified": false
+  },
+  "day": {
+    "status": "READY_WITH_DECLARED_GAPS",
+    "expected_slots": 8,
+    "ready_slots": 8,
+    "complete": true,
+    "declared_gaps": [
+      "JYG_STOCK_MENTIONS_REGISTRY_MISSING"
+    ]
+  },
+  "ui": {
+    "url": "http://127.0.0.1:8873/?date=20261012&view=research&date_anchor=20260901",
+    "feed_width": 603,
+    "viewport_width": 684,
+    "verified_capture_shown": true,
+    "gaps_visible": true
+  },
+  "remaining_gaps": [
+    "JYG mention registry missing",
+    "OCR and key messages not assessed",
+    "Original receipt SHA not declared in legacy manifest",
+    "Unverified stock-entity mappings",
+    "Morning acquisition/timezone evidence unavailable"
+  ],
+  "tests": {
+    "lane": 11,
+    "ready_empty_recovery": 13,
+    "research_view": 18,
+    "actual_api_scheduler_checks": "PASS",
+    "owned_absolute_and_cross_run_checks": "PASS",
+    "older_slot_latest_preservation_checks": "PASS",
+    "known_unrelated_failure": "US-session fixture lacks captured_at; outside scope, unchanged",
+    "natural_slot": "NOT_RUN"
+  },
+  "canonical_file_sha256": {
+    "apps/api/v35_api/_research_lane_router_parts/lane_response.py": "6df2d6c6e733453415bfa178b45f6b7b6da902082fad15d9196494644cb2b833",
+    "apps/web/src/components/research/ResearchStatusStrip.vue": "11e947423f947f040e9637232009ea2ff39dfc0b9ca68639e6824b4b16bce211",
+    "apps/web/src/styles/v3-research-lane.css": "9ac6b90990525ee792585029ff5097d06c13412947086fe816eed7371a85562a",
+    "apps/web/src/views/ResearchView.spec.ts": "fc74683f08fa079a9ea03064cfcfea808ff14b7730c6f94a3c577f47042dcf4a",
+    "contracts/research.py": "ea6316f4338b5776967b477c9b38cdcc749fd615c3a0e9f73f08e4df71b23d1c",
+    "domains/research.py": "56fb884d39981f4ab5e5e16ec7acdf9d34c287ca72de230a0d7a148cec17e692",
+    "infrastructure/research_lane_source.py": "02d1a4fdb919b87e7e8775a3dd527fe62dbcab85df180c37965d21440c9ed191",
+    "infrastructure/research_store.py": "4460d35b5d22b2f80bac7699f532d033fd514b57ddebc33bff6242d14e6f9dcc",
+    "infrastructure/_research_store_parts/hourly_sources.py": "2e8289bfd9db458a1c8c5c3c46c7054a84c2b195ee6bebedfbf12e530b25bcf1",
+    "infrastructure/_research_store_parts/hourly_publish.py": "861fe156c242993e262c28effec3303733bc3598a6d9396170e1d3d9b9e92d8b",
+    "infrastructure/manager_input_attestation.py": "e69103a511407b1dbeb49150ce98ae02d0ab3676787fd1f177b0ec6fa4e1c088",
+    "ops/collect_hourly_research_input.py": "829fc02d18d102f30d7d346512a486a88160903c2d93c7c7c9c8917630b722a6",
+    "ops/run_hourly_research.py": "215e670ade2fa84db3ee58d7a8deb674e8b92b201b2a4d98fe2430bb50c5d6fc",
+    "tests/test_research_lane.py": "853a76b6f30dab83d3877ff78724234774dfe3cc31a77fd4c60b9b2bb94e58a8",
+    "tests/test_hourly_research_ready_empty_recovery.py": "c3c1d42f81102b33da930931b8062ca83275ec3de283fefe81395d3c1199d99d"
+  },
+  "actual_api_targets": [
+    {
+      "path": "apps/api/v35_api/research_lane_router.py",
+      "before_sha256": "4c923e9184f192852f74d3427c980e02d26ce1af2386a2e4d27dd77f06b5939a",
+      "after_sha256": "9886081b7656f0501421a8f0a810635859f56c60557f4d4fd2e63820d58b1c2c"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchStatusStrip.vue",
+      "before_sha256": "6742edf7cdc3d0c22f1e54dd2408dee319667c40d481d578379aa2253d8538d2",
+      "after_sha256": "11e947423f947f040e9637232009ea2ff39dfc0b9ca68639e6824b4b16bce211"
+    },
+    {
+      "path": "apps/web/src/styles/v3-research-lane.css",
+      "before_sha256": "bb0c24242e3b546e272649c20de0c677445e1b02b6cc63f145ec49d4dd051c38",
+      "after_sha256": "9ac6b90990525ee792585029ff5097d06c13412947086fe816eed7371a85562a"
+    },
+    {
+      "path": "contracts/research.py",
+      "before_sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "after_sha256": "ea6316f4338b5776967b477c9b38cdcc749fd615c3a0e9f73f08e4df71b23d1c"
+    },
+    {
+      "path": "domains/research.py",
+      "before_sha256": "2ad669ea58f08338605885547ec065921ec63cc0047460bb2acd153151fb214b",
+      "after_sha256": "b32be929f154ce77b29d354aedf743e7e29ece3f2e82483432f1e9856143f8a4"
+    },
+    {
+      "path": "infrastructure/research_lane_source.py",
+      "before_sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "after_sha256": "02d1a4fdb919b87e7e8775a3dd527fe62dbcab85df180c37965d21440c9ed191"
+    },
+    {
+      "path": "infrastructure/research_store.py",
+      "before_sha256": "471ad4ceb0c34f080da674d147df5bb96045c5e7998ab41ba2845297ab63ab6f",
+      "after_sha256": "4611fa7c57f98dd1933f0f3e62b7e4ecd7fe05ef989ced06e530a8b5fdf25ed9"
+    }
+  ],
+  "actual_scheduler_targets": [
+    {
+      "path": "contracts/research.py",
+      "before_sha256": "d34ea72b4605b64647ee8c0ff9278f8fb1740435c8e3110a2fe4d39d4bb01605",
+      "after_sha256": "7a73b970a3dd9d3830f133183f4fbaf62663cda2c425676ff48e8c5a044f74a5"
+    },
+    {
+      "path": "domains/research.py",
+      "before_sha256": "486c182e202e7ed7f9e689be1c1c61f7ea9fd3e23f5876f861f57210ec64ee10",
+      "after_sha256": "dfeea8475446cc42c43bf1b9e31ec3878fadd87069c079cf53d3ef139316d5fc"
+    },
+    {
+      "path": "infrastructure/manager_input_attestation.py",
+      "before_sha256": "d26211fd83db00c551be6c11d3bbed58d13d1db054d99699fc377ee5c335f3cc",
+      "after_sha256": "e69103a511407b1dbeb49150ce98ae02d0ab3676787fd1f177b0ec6fa4e1c088"
+    },
+    {
+      "path": "infrastructure/research_store.py",
+      "before_sha256": "db508a5c6908edcd97ec78047b563b8c8ee7861cace3f12f6ac9709f8ae0dc70",
+      "after_sha256": "20b3b5a7e36ab7440e817e082744822a15e149d22e004759e10ddf70a320467a"
+    },
+    {
+      "path": "ops/collect_hourly_research_input.py",
+      "before_sha256": "66b941f5a066250c4fd9830170302b8b1f7041760a37c6e4bf02ea222aa307ab",
+      "after_sha256": "e854fdaab04d1d3bd7dd421c21a8fb41fe185e192397580212ed2244183e56ea"
+    },
+    {
+      "path": "ops/run_hourly_research.py",
+      "before_sha256": "24b1437016be4bdb9ee06c6ac7b10136e89f7e276179551ceb7ba90a09e78cd0",
+      "after_sha256": "32b559adce903e42c17e841745d089da703843872bd42ceadcf63d0668c58867"
+    }
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
