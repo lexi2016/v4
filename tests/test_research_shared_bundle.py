@@ -39,6 +39,8 @@ def test_bundle_records_stable_relative_paths_and_raw_file_shas() -> None:
     assert "infrastructure/research_hourly_store.py" in modules
     assert "infrastructure/_research_store_parts/hourly_sources.py" in modules
     assert "infrastructure/_research_store_parts/hourly_publish.py" in modules
+    assert "infrastructure/research_source_evidence.py" in modules
+    assert "domains/research_source_validation.py" in modules
     assert "ops/research_shared_bundle.py" in modules
     assert "infrastructure/trading_safety.py" in modules
     assert all(
@@ -75,6 +77,8 @@ def test_transformer_identity_binds_bundle_and_runtime_dependencies(
         "infrastructure.trading_safety",
         "infrastructure.research_store",
         "ops.collect_hourly_research_input",
+        "infrastructure.research_source_evidence",
+        "domains.research_source_validation",
         "ops.run_hourly_research",
     }
     assert expected_components.issubset(identity["components"])

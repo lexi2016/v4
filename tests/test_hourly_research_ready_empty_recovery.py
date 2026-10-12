@@ -389,6 +389,34 @@ def test_runner_rejects_changed_run_artifact_sha(tmp_path: Path, artifact_name: 
     assert not (tmp_path / f"research/hourly/live/{DATE}/{SLOT}.json").exists()
 
 
+def test_manual_empty_time_shape_without_source_proof_does_not_authorize_publish(
+    tmp_path: Path,
+) -> None:
+    _write_empty_receipt(tmp_path)
+    collected = build_hourly_research_input(
+        data_root=tmp_path, business_date=DATE, slot=SLOT, manual_recovery=True
+    )
+    incoming = tmp_path / "research/incoming" / DATE / f"{SLOT}.json"
+    source_payload = json.loads(incoming.read_text(encoding="utf-8"))
+    source_payload["source_manifest"].pop("ready_empty_source_proof")
+    source_payload["source_manifest"].pop("source_receipt_sha256")
+    incoming.write_text(json.dumps(source_payload, ensure_ascii=False), encoding="utf-8")
+
+    result = run_hourly_research_file(
+        data_root=tmp_path,
+        source=None,
+        business_date=DATE,
+        target_date=DATE,
+        slot=SLOT,
+        mode="LIVE",
+    )
+
+    assert collected["status"] == "READY_EMPTY"
+    assert result["status"] == "NOT_MATERIALIZED"
+    assert result["hourly_artifact_status"] == "NOT_MATERIALIZED"
+    assert not (tmp_path / f"research/hourly/live/{DATE}/{SLOT}.json").exists()
+
+
 def test_publication_attestation_reconciles_exact_ready_empty_proof(tmp_path: Path) -> None:
     _write_empty_receipt(tmp_path)
     build_hourly_research_input(

@@ -22,7 +22,15 @@ from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
 from domains.research_hourly import build_research_lane_snapshot
+from domains.research_source_validation import (
+    collector_source_cutoff,
+    strict_source_receipt_time,
+)
 from infrastructure.owned_path import resolve_owned_path
+from infrastructure.research_source_evidence import (
+    ZsxqSlotEvidence,
+    read_zsxq_slot_evidence,
+)
 
 
 _SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -200,50 +208,20 @@ def _as_time(value: Any) -> datetime | None:
 
 def _strict_as_time(value: Any) -> datetime | None:
     """Parse a source-receipt timestamp only when its timezone is explicit."""
-    if not isinstance(value, str) or not value.strip():
-        return None
-    try:
-        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    if parsed.tzinfo is None or parsed.utcoffset() is None:
-        return None
-    return parsed.astimezone(_SHANGHAI)
+    return strict_source_receipt_time(value)
 
 
 def _cutoff(business_date: str, slot: str) -> datetime:
-    return datetime.strptime(
-        business_date + slot, "%Y%m%d%H%M"
-    ).replace(tzinfo=_SHANGHAI, second=59)
+    return collector_source_cutoff(business_date, slot)
 
 
 def _latest_zsxq_status(
     data_root: Path, business_date: str, slot: str
 ) -> tuple[Path, dict[str, Any]] | None:
-    relative = (
-        f"research_module/runtime_outputs/zsxq_hourly/{business_date}/{slot}/"
-        f"v35_zsxq_hourly_status_{business_date}_{slot}.json"
-    )
-    try:
-        path = resolve_owned_path(data_root, relative)
-        payload = _read_json(path)
-    except (OSError, ValueError):
+    evidence = read_zsxq_slot_evidence(data_root, business_date, slot)
+    if evidence is None:
         return None
-    if (
-        not payload
-        or payload.get("schema_version") != "v3_5.zsxq_hourly_delta.v1"
-        or payload.get("source") != "zsxq"
-        or payload.get("trade_date") != business_date
-        or payload.get("slot") != slot
-        or payload.get("status_path") != relative
-        or payload.get("fetch_ok") is not True
-        or payload.get("status") not in {"READY", "READY_EMPTY"}
-        or payload.get("production_allowed") is not False
-        or payload.get("buy_gate_updated") is not False
-        or payload.get("orders_sent") is not False
-    ):
-        return None
-    return path, payload
+    return evidence.status_path, evidence.status
 
 
 def _read_status_artifacts(
@@ -251,86 +229,23 @@ def _read_status_artifacts(
     status_path: Path, status: Mapping[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any], str, str, str] | None:
     """Read the exact owned status run's summary and fetch receipt."""
-    run_id = str(status.get("latest_run_id") or "")
-    if not re.fullmatch(rf"{business_date}_{slot}00_[A-Za-z0-9_-]+", run_id):
+    evidence = read_zsxq_slot_evidence(data_root, business_date, slot)
+    if evidence is None:
         return None
-    run_relative = f"external_sources/zsxq_hourly/{run_id}"
-    paths = status.get("paths")
-    if not isinstance(paths, Mapping) or paths.get("run_dir") != run_relative:
-        return None
-
-    def read_exact(value: Any, name: str) -> tuple[dict[str, Any], str] | None:
-        expected = f"{run_relative}/{name}"
-        if not isinstance(value, str) or not value:
-            return None
-        candidate = Path(value)
-        if candidate.is_absolute():
-            try:
-                value = candidate.absolute().relative_to(Path(data_root).resolve()).as_posix()
-            except ValueError:
-                return None
-        if value != expected:
-            return None
-        try:
-            raw = resolve_owned_path(data_root, expected).read_bytes()
-            result = json.loads(raw.decode("utf-8-sig"))
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError):
-            return None
-        return (dict(result), hashlib.sha256(raw).hexdigest()) if isinstance(result, Mapping) else None
-
-    summary_artifact = read_exact(paths.get("summary"), "zsxq_summary.json")
-    fetch_artifact = read_exact(
-        paths.get("fetch_result"), "zsxq_recent_topics_fetch_result.json"
-    )
-    receipt_path = resolve_owned_path(data_root, str(status.get("status_path") or ""))
     try:
-        receipt_sha = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+        if Path(status_path).resolve() != evidence.status_path.resolve():
+            return None
     except OSError:
         return None
-    if summary_artifact is None or fetch_artifact is None:
+    if dict(status) != evidence.status:
         return None
-    summary, summary_sha = summary_artifact
-    fetch_result, fetch_result_sha = fetch_artifact
-    fetched_at = _strict_as_time(status.get("fetched_at"))
-    source_cutoff = _strict_as_time(status.get("source_cutoff"))
-    expected_cutoff = _cutoff(business_date, slot)
-    if (
-        fetched_at is None
-        or source_cutoff != expected_cutoff
-        or summary.get("ok") is not True
-        or fetch_result.get("ok") is not True
-        or fetch_result.get("success") is not True
-        or fetch_result.get("page_count") != status.get("page_count")
-        or summary.get("raw_topic_count") != status.get("topic_count")
-        or summary.get("effective_topic_count") != status.get("effective_topic_count")
-    ):
-        return None
-    if status.get("status") == "READY_EMPTY":
-        page_count = status.get("page_count")
-        topic_count = status.get("topic_count")
-        effective_topic_count = status.get("effective_topic_count")
-        if (
-            fetched_at.strftime("%Y%m%d") != business_date
-            or fetched_at > expected_cutoff
-            or type(page_count) is not int
-            or page_count < 1
-            or type(topic_count) is not int
-            or topic_count != 0
-            or type(effective_topic_count) is not int
-            or effective_topic_count != 0
-            or type(summary.get("raw_topic_count")) is not int
-            or summary.get("raw_topic_count") != 0
-            or type(summary.get("effective_topic_count")) is not int
-            or summary.get("effective_topic_count") != 0
-            or summary.get("effective_topics") != []
-            or summary.get("stock_lookup_error") not in {None, ""}
-            or type(fetch_result.get("count")) is not int
-            or fetch_result.get("count") != 0
-        or type(fetch_result.get("page_count")) is not int
-        or fetch_result.get("page_count") < 1
-        ):
-            return None
-    return summary, fetch_result, receipt_sha, summary_sha, fetch_result_sha
+    return (
+        evidence.summary,
+        evidence.fetch_result,
+        evidence.status_sha256,
+        evidence.summary_sha256,
+        evidence.fetch_result_sha256,
+    )
 
 
 def _source_quality(
@@ -361,12 +276,13 @@ def _source_quality(
 
 
 def _zsxq_rows(
-    data_root: Path, business_date: str, slot: str, *, allow_ready_empty: bool = False
+    data_root: Path, business_date: str, slot: str, *, allow_ready_empty: bool = False,
+    evidence: ZsxqSlotEvidence | None = None,
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    selected = _latest_zsxq_status(data_root, business_date, slot)
-    if selected is None:
+    evidence = evidence or read_zsxq_slot_evidence(data_root, business_date, slot)
+    if evidence is None:
         return [], ["ZSXQ_STATUS_NOT_AVAILABLE_BY_SLOT"]
-    status_path, status = selected
+    status_path, status = evidence.status_path, evidence.status
     fetched_at = _as_time(status.get("fetched_at"))
     cutoff = _cutoff(business_date, slot)
     if fetched_at is None:
@@ -376,10 +292,7 @@ def _zsxq_rows(
         source_cutoff = _as_time(status.get("source_cutoff"))
         if source_cutoff is None or source_cutoff > cutoff:
             return [], ["ZSXQ_STATUS_NOT_POINT_IN_TIME_SAFE"]
-    artifacts = _read_status_artifacts(data_root, business_date, slot, status_path, status)
-    if artifacts is None:
-        return [], ["ZSXQ_SUMMARY_UNREADABLE"]
-    summary, _, *_ = artifacts
+    summary = evidence.summary
     if status.get("status") == "READY_EMPTY":
         if allow_ready_empty:
             return [], []
@@ -489,19 +402,13 @@ def build_hourly_research_input(
     datetime.strptime(business_date, "%Y%m%d")
     if manual_recovery and slot != "1700":
         raise ValueError("manual empty recovery is limited to the reviewed 17:00 slot")
-    selected = _latest_zsxq_status(Path(data_root), business_date, slot)
-    status = selected[1] if selected is not None else {}
-    artifacts = (
-        _read_status_artifacts(Path(data_root), business_date, slot, *selected)
-        if selected is not None
-        else None
-    )
+    evidence = read_zsxq_slot_evidence(Path(data_root), business_date, slot)
+    status = evidence.status if evidence is not None else {}
     fetched_at = _strict_as_time(status.get("fetched_at"))
     manual_empty_proof = bool(
         manual_recovery
-        and selected is not None
+        and evidence is not None
         and status.get("status") == "READY_EMPTY"
-        and artifacts is not None
         and fetched_at is not None
         and fetched_at.strftime("%Y%m%d") == business_date
         and fetched_at <= _cutoff(business_date, slot)
@@ -510,6 +417,7 @@ def build_hourly_research_input(
     rows, gaps = _zsxq_rows(
         Path(data_root), business_date, slot,
         allow_ready_empty=manual_empty_proof,
+        evidence=evidence,
     )
     stock_master = {
         str(row["stock_code"]): {
@@ -536,7 +444,7 @@ def build_hourly_research_input(
                 {
                     "trade_date": business_date,
                     "source_receipts": [str(status["status_path"])],
-                    "source_receipt_sha256": artifacts[2],
+                    "source_receipt_sha256": evidence.status_sha256,
                     "fetched_at": str(status["fetched_at"]),
                     "source_cutoff": str(status["source_cutoff"]),
                     "pit_cutoff": str(status["source_cutoff"]),
@@ -552,11 +460,11 @@ def build_hourly_research_input(
                         "slot": slot,
                         "status": "READY_EMPTY",
                         "source_receipt_path": str(status["status_path"]),
-                        "source_receipt_sha256": artifacts[2],
-                        "summary_sha256": artifacts[3],
-                        "fetch_result_sha256": artifacts[4],
+                        "source_receipt_sha256": evidence.status_sha256,
+                        "summary_sha256": evidence.summary_sha256,
+                        "fetch_result_sha256": evidence.fetch_result_sha256,
                         "fetch_ok": status.get("fetch_ok"),
-                        "fetch_success": artifacts[1].get("success"),
+                        "fetch_success": evidence.fetch_result.get("success"),
                         "page_count": status.get("page_count"),
                         "topic_count": status.get("topic_count"),
                         "effective_topic_count": status.get("effective_topic_count"),
@@ -641,13 +549,13 @@ def build_hourly_research_input(
         **(
             {
                 "available_at": materialized_at.isoformat(timespec="seconds"),
-                "source_receipt_sha256": artifacts[2],
-                "summary_sha256": artifacts[3],
-                "fetch_result_sha256": artifacts[4],
+                "source_receipt_sha256": evidence.status_sha256,
+                "summary_sha256": evidence.summary_sha256,
+                "fetch_result_sha256": evidence.fetch_result_sha256,
                 "source_cutoff": str(status["source_cutoff"]),
                 "fetched_at": str(status["fetched_at"]),
             }
-            if manual_empty_proof and artifacts is not None
+            if manual_empty_proof and evidence is not None
             else {}
         ),
         "natural_execution_verified": False,

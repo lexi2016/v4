@@ -1,37 +1,43 @@
-"""infrastructure.research_store: hourly_sources (review candidate, not deployment)."""
+"""Shared, explicit source and archive validation for hourly research."""
 from __future__ import annotations
+
 import hashlib
 import json
-from ._namespace import read_global as _v4_global
+import re
+from collections.abc import Mapping
+from pathlib import Path
+
+from contracts.research import validate_research_archive
+from domains.research_source_validation import (
+    collector_source_cutoff,
+    strict_source_receipt_time,
+)
+from infrastructure.data_store import _date, _sha256
+from infrastructure.owned_path import resolve_owned_path
+from infrastructure.research_source_evidence import read_zsxq_slot_evidence
+from infrastructure.research_hourly_store import _MODES, _SHA256, _slot
 
 
-
-
-def _HourlyResearchStore_read_latest_for_date_body(_v4_scope, /, self, archive_date, *, mode):
+def _HourlyResearchStore_read_latest_for_date_body(self, archive_date, *, mode):
     """Read the highest verified slot for one exact date only."""
-
-    archive_date = _v4_global(_v4_scope, '_date')(archive_date)
+    archive_date = _date(archive_date)
     slots = self.list_slots(archive_date, mode=mode)
     if not slots:
         return None
     slot = slots[-1]
     payload = self.read_exact(archive_date, slot, mode=mode)
     if payload is None:
-        raise _v4_global(_v4_scope, 'ValueError')("hourly research manifest or receipt mismatch")
+        raise ValueError("hourly research manifest or receipt mismatch")
     return slot, payload
 
 
-def _HourlyResearchStore_read_exact_body(_v4_scope, /, self, archive_date, slot, *, mode):
-    archive_date = _v4_global(_v4_scope, '_date')(archive_date)
-    normalized_slot = _v4_global(_v4_scope, '_slot')(slot)
-    normalized_mode = _v4_global(_v4_scope, 'str')(mode).upper()
-    if normalized_mode not in _v4_global(_v4_scope, '_MODES'):
-        raise _v4_global(_v4_scope, 'ValueError')(
-            "hourly research mode must be LIVE, REPLAY, or BACKFILL"
-        )
-    relative = self._relative(
-        archive_date, normalized_slot, normalized_mode
-    )
+def _HourlyResearchStore_read_exact_body(self, archive_date, slot, *, mode):
+    archive_date = _date(archive_date)
+    normalized_slot = _slot(slot)
+    normalized_mode = str(mode).upper()
+    if normalized_mode not in _MODES:
+        raise ValueError("hourly research mode must be LIVE, REPLAY, or BACKFILL")
+    relative = self._relative(archive_date, normalized_slot, normalized_mode)
     receipt_relative = self._receipt_relative(
         archive_date, normalized_slot, normalized_mode
     )
@@ -40,26 +46,20 @@ def _HourlyResearchStore_read_exact_body(_v4_scope, /, self, archive_date, slot,
     manifest = self._manifest()
     if not payload_path.is_file():
         if payload_path.exists() or receipt_path.exists() or relative in manifest:
-            raise _v4_global(_v4_scope, 'ValueError')("hourly research manifest or receipt mismatch")
+            raise ValueError("hourly research manifest or receipt mismatch")
         return None
     payload = self._read(relative)
-    digest = _v4_global(_v4_scope, '_sha256')(payload)
+    digest = _sha256(payload)
     if (
         manifest.get(relative) != digest
         or not receipt_path.is_file()
         or self._read(receipt_relative)
-        != self._receipt(
-            payload,
-            digest,
-            slot=normalized_slot,
-            mode=normalized_mode,
-        )
-        or _v4_global(_v4_scope, 'validate_research_archive')(payload) != archive_date
+        != self._receipt(payload, digest, slot=normalized_slot, mode=normalized_mode)
+        or validate_research_archive(payload) != archive_date
     ):
-        raise _v4_global(_v4_scope, 'ValueError')("hourly research manifest or receipt mismatch")
+        raise ValueError("hourly research manifest or receipt mismatch")
     if "ready_empty_evidence_v1" in payload:
         _HourlyResearchStore__validate_ready_empty_source_body(
-            _v4_scope,
             self,
             payload,
             archive_date=archive_date,
@@ -70,12 +70,9 @@ def _HourlyResearchStore_read_exact_body(_v4_scope, /, self, archive_date, slot,
 
 
 def _HourlyResearchStore__normalize_ready_empty_owned_path_body(
-    _v4_scope, /, self, value, expected_relative
+    self, value, expected_relative
 ):
     """Normalize a run artifact declaration to its exact owned relative path."""
-    ValueError = _v4_global(_v4_scope, 'ValueError')
-    Path = _v4_global(_v4_scope, 'Path')
-    resolve_owned_path = _v4_global(_v4_scope, 'resolve_owned_path')
     if not isinstance(value, str) or not value:
         raise ValueError("hourly research ready-empty run path is missing")
     declared = Path(value)
@@ -103,14 +100,13 @@ def _HourlyResearchStore__normalize_ready_empty_owned_path_body(
 
 
 def _HourlyResearchStore__validate_ready_empty_source_body(
-    _v4_scope, /, self, payload, *, archive_date, slot, mode
+    self, payload, *, archive_date, slot, mode
 ):
     """Revalidate the exact incoming source and authenticated empty receipt."""
-    ValueError = _v4_global(_v4_scope, 'ValueError')
     if mode != "LIVE" or slot != "1700":
         raise ValueError("hourly research ready-empty source is outside the recovery slot")
     evidence = payload.get("ready_empty_evidence_v1")
-    if not isinstance(evidence, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(evidence, Mapping):
         raise ValueError("hourly research ready-empty source evidence is missing")
     source_relative = f"research/incoming/{archive_date}/{slot}.json"
     try:
@@ -126,7 +122,7 @@ def _HourlyResearchStore__validate_ready_empty_source_body(
     if not isinstance(manifest, dict):
         raise ValueError("hourly research ready-empty source manifest is missing")
     source_proof = manifest.get("ready_empty_source_proof")
-    if not isinstance(source_proof, dict) or evidence != {
+    if not isinstance(source_proof, dict) or dict(evidence) != {
         **source_proof,
         "source_input_sha256": source_sha,
     }:
@@ -148,73 +144,52 @@ def _HourlyResearchStore__validate_ready_empty_source_body(
         or hourly.get("status") != "READY_EMPTY"
         or type(hourly.get("row_count")) is not int
         or hourly.get("row_count") != 0
-        or any(source.get(name) != [] for name in (
-            "raw_items", "research_items", "stock_research_timeline", "stock_research_daily"
-        ))
+        or any(
+            source.get(name) != []
+            for name in (
+                "raw_items", "research_items", "stock_research_timeline",
+                "stock_research_daily",
+            )
+        )
     ):
         raise ValueError("hourly research ready-empty source identity mismatch")
-    status_relative = (
-        f"research_module/runtime_outputs/zsxq_hourly/{archive_date}/{slot}/"
-        f"v35_zsxq_hourly_status_{archive_date}_{slot}.json"
-    )
-    try:
-        from ops.collect_hourly_research_input import (
-            _cutoff, _read_status_artifacts, _strict_as_time,
-        )
-        status_path = self._path(status_relative)
-        status = json.loads(status_path.read_text(encoding="utf-8-sig"))
-        if not isinstance(status, dict) or (
-            status.get("schema_version") != "v3_5.zsxq_hourly_delta.v1"
-            or status.get("source") != "zsxq"
-            or status.get("trade_date") != archive_date
-            or status.get("slot") != slot
-            or status.get("status_path") != status_relative
-            or status.get("fetch_ok") is not True
-            or status.get("status") not in {"READY", "READY_EMPTY"}
-            or status.get("production_allowed") is not False
-            or status.get("buy_gate_updated") is not False
-            or status.get("orders_sent") is not False
-        ):
-            raise ValueError("hourly research ready-empty status receipt identity mismatch")
-        artifacts = _read_status_artifacts(
-            self.root, archive_date, slot, status_path, status
-        )
-        cutoff = _cutoff(archive_date, slot)
-        fetched = _strict_as_time(status.get("fetched_at"))
-        materialized = _strict_as_time(evidence.get("materialized_at"))
-    except (OSError, TypeError, UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise ValueError("hourly research ready-empty status receipt is unreadable") from error
+
+    evidence_files = read_zsxq_slot_evidence(self.root, archive_date, slot)
+    if evidence_files is None:
+        raise ValueError("hourly research ready-empty status receipt identity mismatch")
+    status = evidence_files.status
+    cutoff = collector_source_cutoff(archive_date, slot)
+    fetched = strict_source_receipt_time(status.get("fetched_at"))
+    materialized = strict_source_receipt_time(evidence.get("materialized_at"))
     run_id = str(status.get("latest_run_id") or "")
     run_relative = f"external_sources/zsxq_hourly/{run_id}"
     paths = status.get("paths")
     try:
-        re = _v4_global(_v4_scope, 're')
         if re.fullmatch(rf"{archive_date}_{slot}00_[A-Za-z0-9_-]+", run_id) is None:
             raise ValueError("hourly research ready-empty run identity mismatch")
-        if not isinstance(paths, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(paths, Mapping):
             raise ValueError("hourly research ready-empty run identity mismatch")
         _HourlyResearchStore__normalize_ready_empty_owned_path_body(
-            _v4_scope, self, paths.get("run_dir"), run_relative
+            self, paths.get("run_dir"), run_relative
         )
         _HourlyResearchStore__normalize_ready_empty_owned_path_body(
-            _v4_scope, self, paths.get("summary"),
+            self, paths.get("summary"),
             f"{run_relative}/zsxq_summary.json",
         )
         _HourlyResearchStore__normalize_ready_empty_owned_path_body(
-            _v4_scope, self, paths.get("fetch_result"),
+            self, paths.get("fetch_result"),
             f"{run_relative}/zsxq_recent_topics_fetch_result.json",
         )
     except ValueError as error:
         raise ValueError("hourly research ready-empty run identity mismatch") from error
     if (
-        artifacts is None
-        or status.get("status") != "READY_EMPTY"
+        status.get("status") != "READY_EMPTY"
         or status.get("status_path") != evidence.get("source_receipt_path")
-        or artifacts[2] != evidence.get("source_receipt_sha256")
-        or artifacts[3] != evidence.get("summary_sha256")
-        or artifacts[4] != evidence.get("fetch_result_sha256")
+        or evidence_files.status_sha256 != evidence.get("source_receipt_sha256")
+        or evidence_files.summary_sha256 != evidence.get("summary_sha256")
+        or evidence_files.fetch_result_sha256 != evidence.get("fetch_result_sha256")
         or status.get("fetch_ok") is not True
-        or artifacts[1].get("success") is not True
+        or evidence_files.fetch_result.get("success") is not True
         or type(status.get("page_count")) is not int
         or status.get("page_count") < 1
         or status.get("topic_count") != 0
@@ -238,26 +213,23 @@ def _HourlyResearchStore__validate_ready_empty_source_body(
         raise ValueError("hourly research ready-empty status receipt mismatch")
 
 
-def _HourlyResearchStore_reuse_matching_source_body(_v4_scope, /, self, archive_date, slot, *, mode, source_input_sha256, transformer_identity_sha256):
+def _HourlyResearchStore_reuse_matching_source_body(
+    self, archive_date, slot, *, mode, source_input_sha256,
+    transformer_identity_sha256,
+):
     """Republish a finalized exact artifact only when its source is identical."""
-    archive_date = _v4_global(_v4_scope, '_date')(archive_date)
-    normalized_slot = _v4_global(_v4_scope, '_slot')(slot)
-    normalized_mode = _v4_global(_v4_scope, 'str')(mode).upper()
-    if normalized_mode not in _v4_global(_v4_scope, '_MODES'):
-        raise _v4_global(_v4_scope, 'ValueError')(
-            "hourly research mode must be LIVE, REPLAY, or BACKFILL"
-        )
-    normalized_source_sha = _v4_global(_v4_scope, 'str')(source_input_sha256).lower()
-    if not _v4_global(_v4_scope, '_SHA256').fullmatch(normalized_source_sha):
-        raise _v4_global(_v4_scope, 'ValueError')("hourly research source SHA must be SHA-256")
-    normalized_transformer_sha = _v4_global(_v4_scope, 'str')(transformer_identity_sha256).lower()
-    if not _v4_global(_v4_scope, '_SHA256').fullmatch(normalized_transformer_sha):
-        raise _v4_global(_v4_scope, 'ValueError')("hourly research transformer identity must be SHA-256")
-    relative = self._relative(
-        archive_date,
-        normalized_slot,
-        normalized_mode,
-    )
+    archive_date = _date(archive_date)
+    normalized_slot = _slot(slot)
+    normalized_mode = str(mode).upper()
+    if normalized_mode not in _MODES:
+        raise ValueError("hourly research mode must be LIVE, REPLAY, or BACKFILL")
+    normalized_source_sha = str(source_input_sha256).lower()
+    if not _SHA256.fullmatch(normalized_source_sha):
+        raise ValueError("hourly research source SHA must be SHA-256")
+    normalized_transformer_sha = str(transformer_identity_sha256).lower()
+    if not _SHA256.fullmatch(normalized_transformer_sha):
+        raise ValueError("hourly research transformer identity must be SHA-256")
+    relative = self._relative(archive_date, normalized_slot, normalized_mode)
     validation_relative = self._transform_validation_relative(
         archive_date,
         normalized_slot,
@@ -270,20 +242,16 @@ def _HourlyResearchStore_reuse_matching_source_body(_v4_scope, /, self, archive_
         validation_path = self._path(validation_relative)
         if not validation_path.is_file():
             if validation_path.exists():
-                raise _v4_global(_v4_scope, 'ValueError')(
-                    "invalid hourly research transform validation"
-                )
+                raise ValueError("invalid hourly research transform validation")
             return None
         if relative not in self._manifest():
-            raise _v4_global(_v4_scope, 'ValueError')("orphan hourly research transform validation")
+            raise ValueError("orphan hourly research transform validation")
         payload = self.read_exact(
-            archive_date,
-            normalized_slot,
-            mode=normalized_mode,
+            archive_date, normalized_slot, mode=normalized_mode
         )
         if payload is None:
-            raise _v4_global(_v4_scope, 'ValueError')("hourly research manifest or receipt mismatch")
-        digest = _v4_global(_v4_scope, '_sha256')(payload)
+            raise ValueError("hourly research manifest or receipt mismatch")
+        digest = _sha256(payload)
         expected_validation = self._transform_validation(
             payload,
             digest,
@@ -295,17 +263,12 @@ def _HourlyResearchStore_reuse_matching_source_body(_v4_scope, /, self, archive_
             payload["source_input_sha256"] != normalized_source_sha
             or self._read(validation_relative) != expected_validation
         ):
-            raise _v4_global(_v4_scope, 'ValueError')(
-                "hourly research transform validation mismatch"
-            )
+            raise ValueError("hourly research transform validation mismatch")
         if normalized_mode == "LIVE" and not self._latest_is_after(
-            archive_date,
-            normalized_slot,
+            archive_date, normalized_slot
         ):
             latest_updated = self._update_latest(
-                archive_date,
-                normalized_slot,
-                digest,
+                archive_date, normalized_slot, digest
             )
     return {
         "archive_date": archive_date,
@@ -313,9 +276,7 @@ def _HourlyResearchStore_reuse_matching_source_body(_v4_scope, /, self, archive_
         "mode": normalized_mode,
         "payload_path": relative,
         "receipt_path": self._receipt_relative(
-            archive_date,
-            normalized_slot,
-            normalized_mode,
+            archive_date, normalized_slot, normalized_mode
         ),
         "payload_sha256": digest,
         "latest_updated": latest_updated,
@@ -325,20 +286,28 @@ def _HourlyResearchStore_reuse_matching_source_body(_v4_scope, /, self, archive_
     }
 
 
-def _HourlyResearchStore_read_latest_body(_v4_scope, /, self):
+def _HourlyResearchStore_read_latest_body(self):
     relative = "research/hourly/latest.json"
     pointer_path = self._path(relative)
     if not pointer_path.is_file():
         if pointer_path.exists():
-            raise _v4_global(_v4_scope, 'ValueError')("invalid hourly research latest pointer")
+            raise ValueError("invalid hourly research latest pointer")
         return None
     pointer = self._read(relative)
     self._validate_pointer(pointer)
     payload = self.read_exact(
-        _v4_global(_v4_scope, 'str')(pointer["archive_date"]),
-        _v4_global(_v4_scope, 'str')(pointer["slot"]),
-        mode="LIVE",
+        str(pointer["archive_date"]), str(pointer["slot"]), mode="LIVE"
     )
-    if payload is None or _v4_global(_v4_scope, '_sha256')(payload) != pointer["payload_sha256"]:
-        raise _v4_global(_v4_scope, 'ValueError')("hourly research latest pointer target mismatch")
+    if payload is None or _sha256(payload) != pointer["payload_sha256"]:
+        raise ValueError("hourly research latest pointer target mismatch")
     return payload
+
+
+__all__ = [
+    "_HourlyResearchStore__normalize_ready_empty_owned_path_body",
+    "_HourlyResearchStore__validate_ready_empty_source_body",
+    "_HourlyResearchStore_read_exact_body",
+    "_HourlyResearchStore_read_latest_body",
+    "_HourlyResearchStore_read_latest_for_date_body",
+    "_HourlyResearchStore_reuse_matching_source_body",
+]

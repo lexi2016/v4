@@ -30,7 +30,7 @@ class HourlyResearchStore(NativeDataStore):
         from infrastructure._research_store_parts.hourly_sources import (
             _HourlyResearchStore__normalize_ready_empty_owned_path_body as _v4_impl,
         )
-        return _v4_impl(globals(), self, value, expected_relative)
+        return _v4_impl(self, value, expected_relative)
 
     def _validate_ready_empty_source(
         self,
@@ -44,7 +44,6 @@ class HourlyResearchStore(NativeDataStore):
             _HourlyResearchStore__validate_ready_empty_source_body as _v4_impl,
         )
         return _v4_impl(
-            globals(),
             self,
             payload,
             archive_date=archive_date,
@@ -72,14 +71,14 @@ class HourlyResearchStore(NativeDataStore):
         transformer_identity_sha256: str,
     ) -> str:
         from infrastructure._research_store_parts.hourly_publish import _HourlyResearchStore__transform_validation_relative_body as _v4_impl
-        return _v4_impl(globals(), archive_date, slot, mode, source_input_sha256, transformer_identity_sha256)
+        return _v4_impl(archive_date, slot, mode, source_input_sha256, transformer_identity_sha256)
 
     @staticmethod
     def _receipt(
         payload: Mapping[str, Any], digest: str, *, slot: str, mode: str
     ) -> dict[str, Any]:
         from infrastructure._research_store_parts.hourly_publish import _HourlyResearchStore__receipt_body as _v4_impl
-        return _v4_impl(globals(), payload, digest, slot=slot, mode=mode)
+        return _v4_impl(payload, digest, slot=slot, mode=mode)
 
     @staticmethod
     def _transform_validation(
@@ -91,7 +90,7 @@ class HourlyResearchStore(NativeDataStore):
         transformer_identity_sha256: str,
     ) -> dict[str, Any]:
         from infrastructure._research_store_parts.hourly_publish import _HourlyResearchStore__transform_validation_body as _v4_impl
-        return _v4_impl(globals(), payload, digest, slot=slot, mode=mode, transformer_identity_sha256=transformer_identity_sha256)
+        return _v4_impl(payload, digest, slot=slot, mode=mode, transformer_identity_sha256=transformer_identity_sha256)
 
     def publish(
         self,
@@ -102,7 +101,7 @@ class HourlyResearchStore(NativeDataStore):
         transformer_identity_sha256: str | None = None,
     ) -> dict[str, Any]:
         from infrastructure._research_store_parts.hourly_publish import _HourlyResearchStore_publish_body as _v4_impl
-        return _v4_impl(globals(), self, payload, slot=slot, mode=mode, transformer_identity_sha256=transformer_identity_sha256)
+        return _v4_impl(self, payload, slot=slot, mode=mode, transformer_identity_sha256=transformer_identity_sha256)
 
     def _publish_transform_validation_locked(
         self,
@@ -114,7 +113,7 @@ class HourlyResearchStore(NativeDataStore):
         transformer_identity_sha256: str,
     ) -> None:
         from infrastructure._research_store_parts.hourly_publish import _HourlyResearchStore__publish_transform_validation_locked_body as _v4_impl
-        return _v4_impl(globals(), self, payload, digest, slot=slot, mode=mode, transformer_identity_sha256=transformer_identity_sha256)
+        return _v4_impl(self, payload, digest, slot=slot, mode=mode, transformer_identity_sha256=transformer_identity_sha256)
 
     def _assert_latest_not_backwards(
         self, archive_date: str, slot: str
@@ -126,18 +125,18 @@ class HourlyResearchStore(NativeDataStore):
 
     def _latest_is_after(self, archive_date: str, slot: str) -> bool:
         from infrastructure._research_store_parts.hourly_publish import _HourlyResearchStore__latest_is_after_body as _v4_impl
-        return _v4_impl(globals(), self, archive_date, slot)
+        return _v4_impl(self, archive_date, slot)
 
     def _update_latest(
         self, archive_date: str, slot: str, digest: str
     ) -> bool:
         from infrastructure._research_store_parts.hourly_publish import _HourlyResearchStore__update_latest_body as _v4_impl
-        return _v4_impl(globals(), self, archive_date, slot, digest)
+        return _v4_impl(self, archive_date, slot, digest)
 
     @staticmethod
     def _validate_pointer(pointer: Mapping[str, Any]) -> None:
         from infrastructure._research_store_parts.hourly_publish import _HourlyResearchStore__validate_pointer_body as _v4_impl
-        return _v4_impl(globals(), pointer)
+        return _v4_impl(pointer)
 
     def list_slots(self, archive_date: str, *, mode: str) -> list[str]:
         """Return verified slots for one exact archive date.
@@ -202,13 +201,13 @@ class HourlyResearchStore(NativeDataStore):
     ) -> tuple[str, dict[str, Any]] | None:
         """Read the highest verified slot for one exact date only."""
         from infrastructure._research_store_parts.hourly_sources import _HourlyResearchStore_read_latest_for_date_body as _v4_impl
-        return _v4_impl(globals(), self, archive_date, mode=mode)
+        return _v4_impl(self, archive_date, mode=mode)
 
     def read_exact(
         self, archive_date: str, slot: str, *, mode: str
     ) -> dict[str, Any] | None:
         from infrastructure._research_store_parts.hourly_sources import _HourlyResearchStore_read_exact_body as _v4_impl
-        return _v4_impl(globals(), self, archive_date, slot, mode=mode)
+        return _v4_impl(self, archive_date, slot, mode=mode)
 
     def reuse_matching_source(
         self,
@@ -221,10 +220,10 @@ class HourlyResearchStore(NativeDataStore):
     ) -> dict[str, Any] | None:
         """Republish a finalized exact artifact only when its source is identical."""
         from infrastructure._research_store_parts.hourly_sources import _HourlyResearchStore_reuse_matching_source_body as _v4_impl
-        return _v4_impl(globals(), self, archive_date, slot, mode=mode, source_input_sha256=source_input_sha256, transformer_identity_sha256=transformer_identity_sha256)
+        return _v4_impl(self, archive_date, slot, mode=mode, source_input_sha256=source_input_sha256, transformer_identity_sha256=transformer_identity_sha256)
 
     def read_latest(self) -> dict[str, Any] | None:
         from infrastructure._research_store_parts.hourly_sources import _HourlyResearchStore_read_latest_body as _v4_impl
-        return _v4_impl(globals(), self)
+        return _v4_impl(self)
 
 __all__ = ["HourlyResearchStore"]

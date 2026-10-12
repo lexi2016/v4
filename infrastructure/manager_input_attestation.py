@@ -16,6 +16,12 @@ import tempfile
 from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
+from domains.research_source_validation import (
+    collector_source_cutoff,
+    strict_source_receipt_time,
+)
+from infrastructure.research_source_evidence import read_zsxq_slot_evidence
+
 SCHEMA = 'v4.manager_input_publication.v1'
 PRODUCER = 'ops.collect_hourly_research_input'
 HK = ZoneInfo('Asia/Hong_Kong')
@@ -124,30 +130,25 @@ def _source_bindings(data_root: Path, manifest: Mapping[str,Any], available_at: 
     output=[]
     for ref in sorted(refs):
         if ref!=expected: raise PublicationError('CATALYST_SOURCE_RECEIPT_OWNER_MISMATCH')
-        path=resolve(data_root,ref); value=load(path)
+        path=resolve(data_root,ref)
+        evidence=read_zsxq_slot_evidence(data_root,date,slot)
+        if evidence is None or evidence.status_path.resolve()!=path.resolve():
+            raise PublicationError('CATALYST_SOURCE_RECEIPT_INVALID')
+        value=evidence.status
         if (value.get('trade_date')!=date or value.get('slot')!=slot or value.get('status_path')!=ref
             or value.get('source')!='zsxq' or value.get('fetch_ok') is not True
             or value.get('status') not in ({'READY','READY_EMPTY'} if manual_empty else {'READY'})):
             raise PublicationError('CATALYST_SOURCE_RECEIPT_INVALID')
-        # The path declaration is not sufficient provenance. Reconcile the
-        # exact owned status bytes with its run-bound summary and fetch result.
-        try:
-            from ops.collect_hourly_research_input import (
-                _read_status_artifacts, _strict_as_time, _cutoff,
-            )
-            artifacts=_read_status_artifacts(data_root,date,slot,path,value)
-            receipt_sha=digest(path.read_bytes())
-            fetched=_strict_as_time(value.get('fetched_at'))
-            cutoff=_strict_as_time(value.get('source_cutoff'))
-        except (OSError,ValueError,TypeError):
-            artifacts=None; receipt_sha=''; fetched=None; cutoff=None
-        if artifacts is None or fetched is None or cutoff is None:
+        fetched=strict_source_receipt_time(value.get('fetched_at'))
+        cutoff=strict_source_receipt_time(value.get('source_cutoff'))
+        if fetched is None or cutoff is None:
             raise PublicationError('CATALYST_SOURCE_RECEIPT_INVALID')
+        receipt_sha=evidence.status_sha256
         declared_receipt_sha=str(manifest.get('source_receipt_sha256') or '').lower()
         if declared_receipt_sha and declared_receipt_sha!=receipt_sha:
             raise PublicationError('CATALYST_SOURCE_RECEIPT_SHA_MISMATCH')
         if manual_empty:
-            expected_cutoff=_cutoff(date,slot)
+            expected_cutoff=collector_source_cutoff(date,slot)
             if (value.get('status')!='READY_EMPTY' or not declared_receipt_sha
                 or manifest.get('source_cutoff')!=value.get('source_cutoff')
                 or cutoff!=expected_cutoff or fetched.strftime('%Y%m%d')!=date
@@ -158,8 +159,8 @@ def _source_bindings(data_root: Path, manifest: Mapping[str,Any], available_at: 
                 'schema_version':'v3_5.zsxq_ready_empty.v1',
                 'trade_date':date,'slot':slot,'status':'READY_EMPTY',
                 'source_receipt_path':expected,'source_receipt_sha256':receipt_sha,
-                'summary_sha256':artifacts[3],
-                'fetch_result_sha256':artifacts[4],
+                'summary_sha256':evidence.summary_sha256,
+                'fetch_result_sha256':evidence.fetch_result_sha256,
                 'fetch_ok':True,'fetch_success':True,
                 'page_count':value.get('page_count'),'topic_count':0,
                 'effective_topic_count':0,'fetched_at':value.get('fetched_at'),
@@ -188,7 +189,7 @@ def _source_bindings(data_root: Path, manifest: Mapping[str,Any], available_at: 
         for key in ('generated_at','available_at','captured_at','completed_at','published_at'):
             if value.get(key) is not None and aware(value[key])>available_at:
                 raise PublicationError('CATALYST_SOURCE_RECEIPT_AFTER_PUBLICATION')
-        output.append({'artifact_ref':ref,'sha256':digest(path.read_bytes())})
+        output.append({'artifact_ref':ref,'sha256':receipt_sha})
     return output
 
 

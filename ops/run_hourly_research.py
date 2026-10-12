@@ -10,7 +10,6 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import contracts.research as research_contract_module
 import domains.research as research_domain_module
@@ -21,34 +20,26 @@ import infrastructure.owned_path as owned_path_module
 import infrastructure.data_store as data_store_module
 import infrastructure.market_time as market_time_module
 import infrastructure.research_store as research_store_module
+import infrastructure.research_source_evidence as research_source_evidence_module
 import infrastructure.trading_safety as trading_safety_module
 import ops.collect_hourly_research_input as collector_module
 import ops.research_shared_bundle as research_shared_bundle_module
+import domains.research_source_validation as research_source_validation_module
 from contracts.runtime_tasks import DispatchMode, DispatchRequest
 from domains.research import build_research_archive
-from domains.research_hourly import validate_hourly_stage_source
 from infrastructure.data_store import NativeDataStore, _sha256
 from infrastructure.owned_path import resolve_owned_path
 from infrastructure.owned_io import SafeRoot
 from infrastructure.research_store import HourlyResearchStore, ResearchArchiveStore
-from ops.collect_hourly_research_input import (
-    _latest_zsxq_status,
-    _read_status_artifacts,
-    _strict_as_time,
-    _cutoff,
-)
-
-
-_SHANGHAI = ZoneInfo("Asia/Shanghai")
-_TIMELINE_TIME_FIELDS = (
-    "event_time",
-    "source_published_at",
-    "first_seen_at",
-    "last_checked_at",
-)
-_DAILY_TIME_FIELDS = ("first_seen_time", "last_seen_time")
-_LATE_RECOVERY_OBSERVATION_FIELDS = frozenset(
-    {"first_seen_at", "last_checked_at", "first_seen_time", "last_seen_time"}
+from infrastructure.research_source_evidence import read_zsxq_slot_evidence
+from domains.research_source_validation import (
+    collector_source_cutoff,
+    runner_manual_empty_time_shape,
+    runner_source_cutoff,
+    runner_timestamp,
+    strict_source_receipt_time,
+    validate_hourly_stage_source,
+    validate_runner_point_in_time_source,
 )
 
 
@@ -65,6 +56,8 @@ def _research_transformer_identity_manifest() -> dict[str, Any]:
         market_time_module,
         trading_safety_module,
         collector_module,
+        research_source_evidence_module,
+        research_source_validation_module,
         research_store_module,
     ):
         source_file = inspect.getsourcefile(module)
@@ -228,17 +221,7 @@ def _publish_runtime_evidence(
 
 
 def _timestamp(value: Any, field: str) -> datetime:
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"hourly research point-in-time field is missing: {field}")
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError as error:
-        raise ValueError(
-            f"invalid hourly research point-in-time field: {field}"
-        ) from error
-    if parsed.tzinfo is None or parsed.utcoffset() is None:
-        parsed = parsed.replace(tzinfo=_SHANGHAI)
-    return parsed.astimezone(_SHANGHAI)
+    return runner_timestamp(value, field)
 
 
 def _validate_point_in_time_source(
@@ -249,67 +232,13 @@ def _validate_point_in_time_source(
     allow_late_observation_times: bool = False,
     allow_manual_materialization: bool = False,
 ) -> None:
-    manifest = source.get("source_manifest")
-    if not isinstance(manifest, dict) or manifest.get("hourly_slot") != slot:
-        raise ValueError("hourly research source slot is missing or mismatched")
-    cutoff = datetime.strptime(
-        f"{business_date}{slot}", "%Y%m%d%H%M"
-    ).replace(tzinfo=_SHANGHAI, second=59, microsecond=999999)
-    manifest_times = [
-        (field, manifest[field])
-        for field in ("generated_at", "published_at")
-        if manifest.get(field) not in {None, ""}
-    ]
-    if not manifest_times:
-        raise ValueError(
-            "hourly research point-in-time manifest timestamp is missing"
-        )
-    manual_materialization = False
-    if allow_manual_materialization:
-        materialized = manifest.get("materialized_at")
-        try:
-            materialized_time = _timestamp(materialized, "source_manifest.materialized_at")
-        except ValueError:
-            materialized_time = None
-        manual_materialization = (
-            manifest.get("materialization_origin") == "MANUAL_RECOVERY"
-            and manifest.get("capture_origin") == "ORIGINAL_SLOT"
-            and manifest.get("original_time_capture") is True
-            and manifest.get("natural_execution_verified") is False
-            and materialized_time is not None
-            and materialized_time.strftime("%Y%m%d") == business_date
-            and materialized_time >= cutoff
-            and manifest.get("generated_at") == materialized
-            and manifest.get("published_at") == materialized
-        )
-    for field, value in manifest_times:
-        if _timestamp(value, f"source_manifest.{field}") > cutoff and not manual_materialization:
-            raise ValueError("hourly research source is not point-in-time safe")
-    for collection, fields in (
-        ("stock_research_timeline", _TIMELINE_TIME_FIELDS),
-        ("stock_research_daily", _DAILY_TIME_FIELDS),
-    ):
-        rows = source.get(collection)
-        if not isinstance(rows, list):
-            raise ValueError(f"hourly research source {collection} is missing")
-        for index, row in enumerate(rows):
-            if not isinstance(row, dict):
-                raise ValueError(f"hourly research source {collection} is invalid")
-            for field in fields:
-                value = row.get(field)
-                if value in {None, ""}:
-                    continue
-                parsed = _timestamp(value, f"{collection}[{index}].{field}")
-                if (
-                    parsed > cutoff
-                    and not (
-                        allow_late_observation_times
-                        and field in _LATE_RECOVERY_OBSERVATION_FIELDS
-                    )
-                ):
-                    raise ValueError(
-                        "hourly research source is not point-in-time safe"
-                    )
+    return validate_runner_point_in_time_source(
+        source,
+        business_date=business_date,
+        slot=slot,
+        allow_late_observation_times=allow_late_observation_times,
+        allow_manual_materialization=allow_manual_materialization,
+    )
 
 
 def _verified_manual_empty_source(
@@ -345,21 +274,17 @@ def _verified_manual_empty_source(
         or not re.fullmatch(r"[0-9a-f]{64}", str(manifest.get("source_receipt_sha256") or ""))
     ):
         return False
-    selected = _latest_zsxq_status(data_root, business_date, slot)
-    if selected is None:
+    evidence = read_zsxq_slot_evidence(data_root, business_date, slot)
+    if evidence is None:
         return False
-    status_path, status = selected
+    status, status_path = evidence.status, evidence.status_path
     if status.get("status") != "READY_EMPTY":
         return False
-    artifacts = _read_status_artifacts(
-        data_root, business_date, slot, status_path, status
-    )
     if (
-        artifacts is None
-        or artifacts[2] != manifest.get("source_receipt_sha256")
+        evidence.status_sha256 != manifest.get("source_receipt_sha256")
         or manifest.get("fetched_at") != status.get("fetched_at")
         or manifest.get("source_cutoff") != status.get("source_cutoff")
-        or manifest.get("pit_cutoff") != _cutoff(business_date, slot).isoformat(timespec="seconds")
+        or manifest.get("pit_cutoff") != collector_source_cutoff(business_date, slot).isoformat(timespec="seconds")
         or manifest.get("source_cutoff") != manifest.get("pit_cutoff")
     ):
         return False
@@ -372,9 +297,9 @@ def _verified_manual_empty_source(
         "slot": slot,
         "status": "READY_EMPTY",
         "source_receipt_path": expected_receipt,
-        "source_receipt_sha256": artifacts[2],
-        "summary_sha256": artifacts[3],
-        "fetch_result_sha256": artifacts[4],
+        "source_receipt_sha256": evidence.status_sha256,
+        "summary_sha256": evidence.summary_sha256,
+        "fetch_result_sha256": evidence.fetch_result_sha256,
         "fetch_ok": True,
         "fetch_success": True,
         "page_count": status.get("page_count"),
@@ -390,15 +315,15 @@ def _verified_manual_empty_source(
     }
     if source_proof != expected_proof:
         return False
-    fetched_at = _strict_as_time(status.get("fetched_at"))
-    materialized_at = _strict_as_time(manifest.get("materialized_at"))
+    fetched_at = strict_source_receipt_time(status.get("fetched_at"))
+    materialized_at = strict_source_receipt_time(manifest.get("materialized_at"))
     if (
         fetched_at is None
         or fetched_at.strftime("%Y%m%d") != business_date
-        or fetched_at > _cutoff(business_date, slot)
+        or fetched_at > collector_source_cutoff(business_date, slot)
         or materialized_at is None
         or materialized_at.strftime("%Y%m%d") != business_date
-        or materialized_at < _cutoff(business_date, slot)
+        or materialized_at < collector_source_cutoff(business_date, slot)
         or manifest.get("available_at") != manifest.get("materialized_at")
         or manifest.get("generated_at") != manifest.get("materialized_at")
         or manifest.get("published_at") != manifest.get("materialized_at")
@@ -457,9 +382,7 @@ def run_hourly_research_file(
     source_payload = json.loads(raw.decode("utf-8-sig"))
     if not isinstance(source_payload, dict):
         raise ValueError("hourly research source must be an object")
-    stage_cutoff = datetime.strptime(
-        f"{request.business_date}{request.slot}", "%Y%m%d%H%M"
-    ).replace(tzinfo=_SHANGHAI, second=59, microsecond=999999)
+    stage_cutoff = runner_source_cutoff(request.business_date, request.slot)
     source_manifest = source_payload.get("source_manifest")
     source_pit_cutoff = (
         str(source_manifest.get("pit_cutoff") or "")
@@ -503,24 +426,14 @@ def run_hourly_research_file(
     # This lets an unauthenticated empty candidate reach the existing
     # NOT_MATERIALIZED guard instead of being misreported as a PIT-time error.
     # Only verified_manual_empty can authorize publication below.
-    source_hourly = source_payload.get("hourly_research")
-    source_manifest = source_payload.get("source_manifest")
     manual_empty_time_shape = (
         source is None
-        and (request.business_date, request.slot, request.mode.value)
-        == ("20261012", "1700", "LIVE")
-        and isinstance(source_manifest, dict)
-        and source_manifest.get("materialization_origin") == "MANUAL_RECOVERY"
-        and source_manifest.get("capture_origin") == "ORIGINAL_SLOT"
-        and source_manifest.get("original_time_capture") is True
-        and source_manifest.get("natural_execution_verified") is False
-        and isinstance(source_hourly, dict)
-        and source_hourly.get("status") == "READY_EMPTY"
-        and type(source_hourly.get("row_count")) is int
-        and source_hourly.get("row_count") == 0
-        and all(source_payload.get(name) == [] for name in (
-            "raw_items", "research_items", "stock_research_timeline", "stock_research_daily"
-        ))
+        and runner_manual_empty_time_shape(
+            source_payload,
+            business_date=request.business_date,
+            slot=request.slot,
+            mode=request.mode.value,
+        )
     )
     manual_empty_time_allowed = verified_manual_empty or manual_empty_time_shape
     _validate_point_in_time_source(
