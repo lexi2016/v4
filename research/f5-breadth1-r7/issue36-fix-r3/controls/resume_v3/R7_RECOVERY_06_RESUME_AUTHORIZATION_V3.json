@@ -1,0 +1,120 @@
+{
+  "authorization_basis": {
+    "parent_adjudication": "Reuse the original consumed R7 claim; record physical invocation 2 separately on the existing zero-quota engineering-validation route. Do not append another R7 admission event or reset any debit.",
+    "review_gate": "No target input read until independent reviewer passes actual source, controls, and registered wrapper identity.",
+    "source_item_id": "719692583",
+    "text": "授权应用这份最小补丁，保留原失败收据、不更换 R7 身份，修复后继续完成训练、预测、封存和评价。同范围内的问题直接修复，不要反复问我，最后给实际结果。",
+    "timestamp_utc": "2026-10-11T12:05:50.181793Z"
+  },
+  "original_control_identity": {
+    "contract_sha256": "10ae92ab6d1d83b4b9bac0fe0e52d55c9dc2848113bc92604085ed0947d5fd63",
+    "grant_sha256": "b7d9a2c01b3d444995aa5ef92a0080fd79d8c9832a077591458648c3c5f4cc16",
+    "pending_binding_sha256": "3d65c14d85f8623813cb1cdd2195b485f2df564a8511ef44864c064f479f6153",
+    "read_plan_sha256": "9e0b4cb19378725ed11ae51d41a45ef3f5c2f738e07d7e55a2da8d88b602ee8f",
+    "read_release_sha256": "3368daaca20a00f9e8b4c85535af9e62dcc7dc8b4b688f0c3300e07e7ffbf2ca"
+  },
+  "original_r7_identity": {
+    "action_key": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011:input_admission_recovery:PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_20261011",
+    "candidate_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011",
+    "contract_sha256": "10ae92ab6d1d83b4b9bac0fe0e52d55c9dc2848113bc92604085ed0947d5fd63",
+    "execution_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_20261011_ONE_SHOT",
+    "grant_id": "PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_20261011",
+    "input_binding_sha256": "3d65c14d85f8623813cb1cdd2195b485f2df564a8511ef44864c064f479f6153",
+    "logical_action_cap": 1,
+    "logical_action_debit_consumed": 1,
+    "read_release_sha256": "3368daaca20a00f9e8b4c85535af9e62dcc7dc8b4b688f0c3300e07e7ffbf2ca",
+    "route_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011"
+  },
+  "preserved_original_failure": {
+    "error": "INPUT_ADMISSION_RELEASE_BINDING_FILE_IDENTITY_MISMATCH",
+    "fit_calls": 0,
+    "input_read_observation": null,
+    "model_load_calls": 0,
+    "official_registry_action_debit": 1,
+    "pipeline_terminal_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline_recovery_01/PIPELINE_TERMINAL_RECEIPT.json",
+    "pipeline_terminal_sha256": "9156b689ade72eb5c4ad827d82dc7fceedf0ed412723f8036e16584f8636b01e",
+    "predict_calls": 0,
+    "prior_preflight_terminal_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_one_shot_pipeline/PIPELINE_TERMINAL_RECEIPT.json",
+    "prior_preflight_terminal_sha256": "53ecf0df022637644c350d2fa50a274712d436d61bc9c2a5f9fff289909c8545",
+    "stage": "input_admission",
+    "start_event_sha256": "c5d660d80d5c0ddfefde59e25736b9c696599ed8802d87a3fc82906278d770da",
+    "terminal_event_sha256": "3be54f120860676d09b2b7c9f3130e97f9fac3919de3dddf68a7426c34609907",
+    "terminal_status": "NO_FIT",
+    "truth_decode_calls": 0,
+    "terminal_event_id": "F5_PLUS64_BREADTH1_R3_FROZEN_INPUT_20261011_PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_20261011_ONE_SHOT_TERMINAL"
+  },
+  "read_release_normalization": {
+    "only_mutation_json_pointers": [
+      "/contract_sha256",
+      "/input_binding_sha256",
+      "/files/input_binding/path",
+      "/files/input_binding/sha256"
+    ],
+    "original_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE.json",
+    "original_sha256": "3368daaca20a00f9e8b4c85535af9e62dcc7dc8b4b688f0c3300e07e7ffbf2ca",
+    "resume_binding_sha256": "08c74f7edc012be666b462bc594bd6bd4987a8d36e35e21d300e416e7a98b3e9",
+    "resume_contract_sha256": "83d2b3d71db93cfd3ba35eb5895577791c82cb0c50565b7202a5bb5a413d880b",
+    "resume_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE_RESUME_03.json",
+    "resume_sha256": "4e2570c2693117d6b7743913ec18d539bc9f6223e6048d395fa70db81ad090bf"
+  },
+  "resume_control_identity": {
+    "contract_sha256": "83d2b3d71db93cfd3ba35eb5895577791c82cb0c50565b7202a5bb5a413d880b",
+    "pending_binding_sha256": "08c74f7edc012be666b462bc594bd6bd4987a8d36e35e21d300e416e7a98b3e9",
+    "read_release_sha256": "4e2570c2693117d6b7743913ec18d539bc9f6223e6048d395fa70db81ad090bf",
+    "read_plan_sha256": "5b8bf48ddb8edfe2474f285b54c0da518420760bd5febda1630a2ae85cda8140",
+    "grant_sha256": "b7d9a2c01b3d444995aa5ef92a0080fd79d8c9832a077591458648c3c5f4cc16"
+  },
+  "resume_execution": {
+    "additional_r7_action_debit": 0,
+    "fit_cap": 1,
+    "immutable_sha_linked_checkpoints": [
+      "PRETARGET_RESUME_AUTHENTICATED",
+      "INPUT_ADMISSION",
+      "PREDICTIONS_SEALED",
+      "SEALED_EVALUATION",
+      "ATTEMPT_TERMINAL"
+    ],
+    "physical_invocation_count_including_prior": 2,
+    "physical_invocation_index": 3,
+    "predict_cap": 1,
+    "r7_logical_admission_debit_total": 1,
+    "r7_new_claim_or_refund": false,
+    "read_plan_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_06/control_resume/R7_RECOVERY_06_RESUME_READ_PLAN_V3.json",
+    "read_plan_sha256": "5b8bf48ddb8edfe2474f285b54c0da518420760bd5febda1630a2ae85cda8140",
+    "read_release_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/bindings/PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE_RESUME_03.json",
+    "read_release_sha256": "4e2570c2693117d6b7743913ec18d539bc9f6223e6048d395fa70db81ad090bf",
+    "registration_claim": "ExecutionGuard.claim_no_fit(max_real_fit_debits=0), before target reads",
+    "registration_execution_id": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261012_R7_RESUME_PROCESS_03",
+    "registration_route": "F5_PLUS64_BREADTH1_R7_ONE_PROCESS_LOCAL_VALIDATION_20261011",
+    "resume_output_dir": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/resume_invocation_02",
+    "same_process_input_cache_fit_predict_seal_eval": true,
+    "truth_decode_cap": 1,
+    "logical_r7_action_debit_total": 1,
+    "recovery_output_path": "research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_06/resume_invocation_03"
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "research_only": true
+  },
+  "schema": "BREADTH1_R7_PRETARGET_RESUME_AUTHORIZATION_V3",
+  "source_sha256": {
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/__init__.py": "14cd4f13adeed7d5c8730560f6fca0b3f360ae78c6a2a8e7ae8a1c40ad8bf764",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_budget.py": "fca2feceeb829b16a80dd54b87c224e2cb2a50a4a1ef4e1546734e53e454746d",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_core.py": "967cd391d435d82dca11a53a1475af3c2caed990aff17143293f7174b5c187a5",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_evaluate.py": "355ae6ebf149a807d2aed1dc797a0f0fb874e2b40c40ae8066f7e7862e274c36",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_inputs.py": "215a528d89a718cda2f3f8c7a9e1275b637425dc23e32da11233cb30b819a742",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_worker.py": "08b20a81d40bd25e24fa6ed282c08fceed31396ad619d3cb8189ef20a366edca",
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py": "5e4b7a782d6b76b606ac312767203c1f56f92dd0ef4d5cfa3218666b8acbef25"
+  },
+  "status": "AUTHORIZED_PRETARGET_ENGINEERING_RESUMPTION",
+  "previous_engineering_attempt": {
+    "pipeline_terminal_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/breadth1_r3_frozen_input_20261011/receipts/r7_recovery_05/resume_invocation_02/PIPELINE_TERMINAL_RECEIPT.json",
+    "pipeline_terminal_sha256": "254e63c23c0b9b11b2685725796b4ebcfcafc234fd1eb5b2d086f04e655e76bd",
+    "prior_physical_invocation_index": 2,
+    "prior_result": "NO_FIT",
+    "claim_increment": 0
+  },
+  "user_request_basis": "Issue #36 user follow-up 2026-10-12: repair the missing original terminal_event_id contract, preserve R7 debit=1 and failed resume_invocation_02, use a versioned physical resume_03 only after independent target-free preflight PASS"
+}
