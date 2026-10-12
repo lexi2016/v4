@@ -1,0 +1,62 @@
+{
+  "batch": "R8_BATCH1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_parent_commit": "f36af4404bbbfddae8a2c05f09f156fa8d946c34",
+  "writer": "/root/r8_batch1_writer",
+  "reviewer": "/root/r8_batch1_review",
+  "REVIEWED": "PASS",
+  "BEHAVIOR_VERIFIED": "PASS",
+  "independent_test_result": "20 passed, 1 Starlette deprecation warning",
+  "test_command": "uv run --group dev python -m pytest -q --basetemp=/tmp/v4-r8-b1-final2 tests/test_stage_input_producer.py tests/test_preselection_pool_partial_read.py tests/test_stage_projection_regressions.py::test_stage_projection_propagates_partial_market_reason_without_status_upgrade tests/test_preselection_source_root_20261008.py::test_api_reads_exact_source_date_dedupes_a_pools_and_keeps_hk_separate",
+  "files": [
+    {
+      "path": "domains/stage_input_producer.py",
+      "before_sha256": "63870feb84b47a20db45083bcc04a97fdd5a7671e5f0e240331ae6d65263ba4b",
+      "after_sha256": "c2a39c9581c03101bca40067a107c012388eec01c6979517cf97e4bef76d8b6a"
+    },
+    {
+      "path": "infrastructure/preselection_pool_store.py",
+      "before_sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+      "after_sha256": "7a2a213cecad1ed1cfc96f6c9c0dd18b960fcbd9c932cbe0be444a35952502e1"
+    },
+    {
+      "path": "infrastructure/preselection_pool_readers.py",
+      "before_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "after_sha256": "7b153abba65eb2387a3f2d87c96466ab5cf38aa331f51b4661940f4c9149c9cc"
+    },
+    {
+      "path": "tests/test_stage_input_producer.py",
+      "before_sha256": "b8345f5d06c78acbed734bf352953d50e5a8b65fb2fc671df671d428074e68ba",
+      "after_sha256": "b0ad6d804c6157d2345dd9ba12cc251b91d6cd0ca63499137e02220cb7ac7538"
+    },
+    {
+      "path": "tests/test_preselection_pool_partial_read.py",
+      "before_sha256": null,
+      "after_sha256": "97cb4f456ccfc5f2f6c0beb8ad1fad23b194d2fdec72e189b7b4f1818132bc11"
+    },
+    {
+      "path": "tests/test_stage_projection_regressions.py",
+      "before_sha256": "01cba86a73a93f15e896e88e697877c350eb243caf469aecc9c1db8297279ce9",
+      "after_sha256": "e890b3e6a1a818c9e86569507171c4e81a8671bb9dc7c9d98570b50ed621abe6"
+    }
+  ],
+  "runtime_api_release": "research-desk-20261012-r4",
+  "runtime_scheduler_release": "research-hourly-empty-20261012-r4",
+  "runtime_identity_manifest_sha256": "930996aa39a645a2b620fe71b6522ff32228ac8d05aa19b79034c655c1b18f61",
+  "deployment": "NOT_DEPLOYED",
+  "API_VERIFIED": "PENDING",
+  "UI_VERIFIED": "PENDING",
+  "NATURAL_VERIFIED": "NOT_RUN",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "review_report_sha256": "cdf58ac4f0fc97f7fda6bd57f56a22e7bfff5ce2a5f5000a9419f4f2e57537fd",
+  "actual_diff_sha256": "8f6cfcda8f6691040bfd54c037b0162b2004b0e2604e879c5684e9eb5ec32c8a",
+  "limitations": [
+    "Active main stage route is shared read-only consumer; Native producer not automatically executed.",
+    "Nonblocking Reviewer P2: missing A sibling also marks retained HK row CANNOT_CONFIRM; no READY upgrade.",
+    "Remote is partial project, not full deployable source."
+  ]
+}
