@@ -1,0 +1,217 @@
+{
+  "schema": "v4_futu_r4_source_integration_manifest_v1",
+  "status": "WRITER_TESTED_PENDING_INDEPENDENT_REVIEW",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_branch_at_start": "codex/system-consolidation-20260912",
+  "canonical_head_at_start": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "frozen_packet_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/recovery_r4/PACKET_MANIFEST_R4.json",
+  "frozen_packet_manifest_sha256": "8d79ddc00fc6accd17fb2d330bc207867aebc4f82afca8c0998ce3e2b3c792bd",
+  "source_files": {
+    "task_start": {
+      "stage_center/_live_collectors_parts/hk_minute.py": {
+        "sha256": "f0cc3c69fb2ce3a544904c10814954f850a277f5ad80df0da525a1e69a8365f9",
+        "initial_status": "untracked"
+      },
+      "stage_center/_live_collectors_parts/selection_builder_registry.py": {
+        "sha256": "8b3552498b125ae90c56964799f3cf0e644a077243f7be4c37ea23261214379a",
+        "initial_status": "untracked"
+      },
+      "stage_center/raw_store.py": {
+        "sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547",
+        "initial_status": "tracked_dirty"
+      },
+      "stage_center/_runner_parts/slot_execution.py": {
+        "sha256": "86ea1de7e32e6f29deb6622b4af37b4723e0b086d4c700cd513671ceed719d8a",
+        "initial_status": "untracked"
+      },
+      "ops/_run_stage_center_nodes_parts/stage_dispatch.py": {
+        "sha256": "8f0220eece86a15ae7048e59230635c70e02a420e8f2172ce5105ffc6c14bb3a",
+        "initial_status": "untracked"
+      },
+      "apps/api/v35_api/app.py": {
+        "sha256": "40fbefd92acc8d0a1037dd25e95ffad3592caf86c4e16e47120d54b7ade9ad67",
+        "initial_status": "verified_task_start_snapshot_saved_before_edit",
+        "snapshot": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/recovery_r4/source_integration/api_delta/canonical_app_before.py"
+      },
+      "tests/test_futu_observation_api_projection_r4.py": {
+        "sha256": null,
+        "initial_status": "did_not_exist"
+      }
+    },
+    "final_sha256": {
+      "stage_center/_live_collectors_parts/hk_minute.py": "fef66bc3f7cb8913b3c7f29ffdeaf5d91dd2f18bc905b07c52c261b5caaeb615",
+      "stage_center/_live_collectors_parts/selection_builder_registry.py": "781d7a9fabc26b185b5320ec751f0bb2322a0828414b6024efaa3c4519be0d85",
+      "stage_center/raw_store.py": "a4b5f950ccd6e54320473eb5d5bf61679f836a8bdbac47619674ffd2d3d50e48",
+      "stage_center/_runner_parts/slot_execution.py": "bb2f2e20baebf1b345c6c89bc3a19c260564480cef8ede9b9f11ca6cf9f25cd1",
+      "ops/_run_stage_center_nodes_parts/stage_dispatch.py": "53384a9cff63b70f7ff9bc415f896491325d6e7a79f5fa167d44f207179348a9",
+      "tests/test_futu_afternoon_recovery_r4.py": "ad63909eabf12436292eaf7cc7a8611b54efc95a19c8e887b119bcd0f91238bb",
+      "apps/api/v35_api/app.py": "d6632563997987f7b98519709c6111ee8fc114bed69711bdb768b31c7fd732a7",
+      "tests/test_futu_observation_api_projection_r4.py": "2da03a25b0b749f1f45ecb781314ad166fe224f5558c75e12f88acbd528e8194"
+    }
+  },
+  "allowed_changed_files": [
+    "stage_center/_live_collectors_parts/hk_minute.py",
+    "stage_center/_live_collectors_parts/selection_builder_registry.py",
+    "stage_center/raw_store.py",
+    "stage_center/_runner_parts/slot_execution.py",
+    "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+    "tests/test_futu_afternoon_recovery_r4.py",
+    "apps/api/v35_api/app.py",
+    "tests/test_futu_observation_api_projection_r4.py"
+  ],
+  "diff_scope": {
+    "stage_center/raw_store.py": "Adds the Futu after-fact observation contract, pinned evidence markers, exact-row projection allowance, and validation/readback handling for explicitly temporal-unsafe observations.",
+    "stage_center/_live_collectors_parts/hk_minute.py": "Adds the shared Futu bridge load path for only STAGE_1300_1315 and STAGE_1445_1500; leaves STAGE_1555 replay routing intact.",
+    "stage_center/_live_collectors_parts/selection_builder_registry.py": "Binds Futu after-fact markers to the verified RawStore result shape and keeps the selection action boundary NO_BUY.",
+    "stage_center/_runner_parts/slot_execution.py": "Maps the exact Futu source/marker contract and avoids routing it through the legacy row projection while retaining RawStore fixed-SHA validation.",
+    "ops/_run_stage_center_nodes_parts/stage_dispatch.py": "Adds exact date/stage/mode/receipt/dataset SHA gates, one-use 13:00 allowance, same-day recovery under slot lock, HK-only scoped execution, stale-failure cleanup after row-bearing success, and explicit unsafe/NO_BUY receipt markers.",
+    "tests/test_futu_afternoon_recovery_r4.py": "Adds hermetic tests for Futu source loading/identity, recovery receipt gating and one-use behavior, after-fact failure handling, NO_BUY flags, and preserving the Stage1555 replay path.",
+    "apps/api/v35_api/app.py": "Merges only the two independently reviewed HK projection function blocks: _hk_display_mode and project_shared_selection. Valid OBSERVATION_UNVERIFIED rows retain visible counts with PARTIAL_WITH_ROWS and NO_BUY; CANNOT_CONFIRM rows are suppressed from HK display/unified rows and selection_markets.",
+    "tests/test_futu_observation_api_projection_r4.py": "Hermetic direct projection regressions for valid HK observation counts, NO_BUY flags, and hiding HK rows when identity or status is invalid while preserving A rows."
+  },
+  "diff_receipt": {
+    "task_start_file_bytes_preserved": "PARTIAL",
+    "recovered_exact_baselines": [
+      {
+        "file": "apps/api/v35_api/app.py",
+        "snapshot": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/recovery_r4/source_integration/api_delta/canonical_app_before.py",
+        "sha256": "40fbefd92acc8d0a1037dd25e95ffad3592caf86c4e16e47120d54b7ade9ad67"
+      },
+      {
+        "file": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+        "snapshot": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/recovery_r4/source_integration/baseline_remote_stage_dispatch.py",
+        "sha256": "8f0220eece86a15ae7048e59230635c70e02a420e8f2172ce5105ffc6c14bb3a",
+        "recovery_source": "GitHub frozen commit 109337ae9152217db919763633c54bfe7780a50a; recovered by controller; exact task-start SHA match independently rehashed by writer."
+      }
+    ],
+    "unavailable_task_start_bytes": [
+      {
+        "file": "stage_center/_live_collectors_parts/hk_minute.py",
+        "sha256": "f0cc3c69fb2ce3a544904c10814954f850a277f5ad80df0da525a1e69a8365f9"
+      },
+      {
+        "file": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+        "sha256": "8b3552498b125ae90c56964799f3cf0e644a077243f7be4c37ea23261214379a"
+      },
+      {
+        "file": "stage_center/raw_store.py",
+        "sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547"
+      },
+      {
+        "file": "stage_center/_runner_parts/slot_execution.py",
+        "sha256": "86ea1de7e32e6f29deb6622b4af37b4723e0b086d4c700cd513671ceed719d8a"
+      }
+    ],
+    "exact_task_start_unified_diff": "API exact diff is available at api_delta/canonical_app_delta.patch; dispatch exact task-start bytes were restored by the controller and match the task-start SHA. Exact diffs for the four remaining V4 source files are CANNOT_CONFIRM because their task-start bytes were not retained and the frozen GitHub commit returned 404 for those paths.",
+    "review_action": "Independent reviewer must inspect actual changed source files, the exact API patch, and frozen PASS scope."
+  },
+  "validation": {
+    "compile_command": ".venv/bin/python -m py_compile stage_center/raw_store.py stage_center/_live_collectors_parts/hk_minute.py stage_center/_live_collectors_parts/selection_builder_registry.py stage_center/_runner_parts/slot_execution.py ops/_run_stage_center_nodes_parts/stage_dispatch.py tests/test_futu_afternoon_recovery_r4.py",
+    "compile_result": "PASS, exit 0",
+    "focused_regression_command": ".venv/bin/python -m pytest -q tests/test_futu_afternoon_recovery_r4.py tests/test_hk_stage8_v4_recovery.py tests/test_hkconnect_stage_replay_provider.py tests/test_hk_stage0930_temporal_false_observation.py tests/test_hk_minute_cutoff_recovery_20261012.py::test_canonical_collector_keeps_cutoff_unsafe_exhq_rows_watch_only tests/test_hk_minute_cutoff_recovery_20261012.py::test_canonical_candidate_fails_closed_without_scoped_runner --tb=short --basetemp=/tmp/futu-r4-handoff-check",
+    "focused_regression_result": "PASS, 31 passed in 0.16s",
+    "existing_historical_contract_command": ".venv/bin/python -m pytest -q tests/test_hk_historical_observation_contract.py --tb=short --basetemp=/tmp/futu-r4-historical-contract-check",
+    "existing_historical_contract_result": "3 passed, 2 failed. Failures: test_afterfact_closed_connect_uses_exact_target_split_date_pool and test_afterfact_closed_connect_rejects_invalid_target_pool_without_prior_fallback; both raise ValueError(\"missing historical pool provenance fields\") from infrastructure/preselection_pool_store.py:320. That file is outside this task scope and was not changed.",
+    "plist_inspection": "Read-only plistlib parse of /Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist; only allowlisted non-sensitive program arguments and environment keys were printed.",
+    "api_compile_command": ".venv/bin/python -m py_compile apps/api/v35_api/app.py tests/test_futu_observation_api_projection_r4.py",
+    "api_compile_result": "PASS, exit 0",
+    "api_projection_regression_command": ".venv/bin/python -m pytest -q tests/test_futu_observation_api_projection_r4.py --tb=short --basetemp=/tmp/futu-r4-api-delta-check",
+    "api_projection_regression_result": "PASS, 2 passed in 0.16s",
+    "frozen_candidate_script_adaptation": {
+      "test_source": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/api_projection/evidence/test_api_projection.py",
+      "result": "The unchanged frozen candidate script reached the canonical API but stopped at its candidate-specific assertion that execution_evidence.execution_verified is false; the current canonical response has execution_evidence=null. The adapted hermetic canonical regression above covers the exact approved projection behavior without asserting unrelated response fields.",
+      "initial_temp_root_attempt": "A first adapted run placed its temporary data root under /tmp and was rejected by the runtime graph reparse guard because /tmp resolves through /private/tmp; the successful regression uses a temporary directory under the repository and cleans it up."
+    }
+  },
+  "original_cli_instructions": {
+    "launch_agent": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "entrypoint": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-primary-afternoon-20261012-r4/app/ops/run_stage_center_nodes.py",
+    "config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-primary-afternoon-20261012-r4/app/stage_center_tick_config.json",
+    "safety_environment": {
+      "RESEARCH_ONLY": "1",
+      "PRODUCTION_ALLOWED": "false",
+      "BUY_GATE_UPDATED": "false",
+      "ORDERS_SENT": "false",
+      "production_allowed": "false",
+      "buy_gate_updated": "false",
+      "orders_sent": "false"
+    },
+    "retry_environment": {
+      "NODE_MAX_ATTEMPTS": "3",
+      "NODE_RETRY_BACKOFF_SECONDS": "60",
+      "V4_STAGE_DEADLINE_POLICY": "observe"
+    },
+    "dataset_environment": "V4_HK_FUTU_AFTERFACT_DATASET is absent from the LaunchAgent plist; set it to the existing frozen packet cache file for each invocation and verify the recorded SHA before running.",
+    "sequence": [
+      {
+        "stage": "STAGE_1445_1500",
+        "trade_date": "20261012",
+        "dataset_sha256": "4a310b4920dc5c6ebb7ac8b9f50d1e73d2dcb4d0ef685fef329358c09c2223d0",
+        "dataset_path": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/rt_data_fixedpool100_1445_dataset_20261012.json"
+      },
+      {
+        "stage": "STAGE_1300_1315",
+        "trade_date": "20261012",
+        "prior_receipt_sha256": "1e7a2fe0b3236de35b79688af6c34b4b2798f16a8bd1e0d6bc0bcf9d7758d0d6",
+        "dataset_sha256": "63cba10b805b60dc7108ac7d633b0b1c32da2211b04fd976e1cd637ce083afe0",
+        "dataset_path": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/rt_data_fixedpool100_dataset_20261012.json"
+      }
+    ],
+    "command_template": "Run STAGE_1445_1500 first, then STAGE_1300_1315, setting the shown cached-file environment for each. The writer did not execute these commands; the controller subsequently reported both original CLI runs successful.",
+    "commands": [
+      {
+        "environment": "V4_HK_FUTU_AFTERFACT_DATASET='/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/rt_data_fixedpool100_1445_dataset_20261012.json'",
+        "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B '/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-primary-afternoon-20261012-r4/app/ops/run_stage_center_nodes.py' --config '/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-primary-afternoon-20261012-r4/app/stage_center_tick_config.json' --trade-date 20261012 --node STAGE_1445_1500",
+        "dataset_sha256": "4a310b4920dc5c6ebb7ac8b9f50d1e73d2dcb4d0ef685fef329358c09c2223d0"
+      },
+      {
+        "environment": "V4_HK_FUTU_AFTERFACT_DATASET='/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/rt_data_fixedpool100_dataset_20261012.json'",
+        "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B '/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-primary-afternoon-20261012-r4/app/ops/run_stage_center_nodes.py' --config '/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-primary-afternoon-20261012-r4/app/stage_center_tick_config.json' --trade-date 20261012 --node STAGE_1300_1315",
+        "prior_receipt_sha256": "1e7a2fe0b3236de35b79688af6c34b4b2798f16a8bd1e0d6bc0bcf9d7758d0d6",
+        "dataset_sha256": "63cba10b805b60dc7108ac7d633b0b1c32da2211b04fd976e1cd637ce083afe0"
+      }
+    ]
+  },
+  "cannot_confirm": [
+    "Exact task-start diffs for hk_minute.py, selection_builder_registry.py, raw_store.py, and slot_execution.py because their task-start bytes were not retained; only task-start hashes remain. The dispatch baseline was recovered exactly, and the API baseline was snapshotted before edit.",
+    "The unchanged frozen candidate API test script assumes execution_evidence.execution_verified is present; the current canonical response omits execution_evidence. Targeted adapted projection tests pass, but that unrelated response field was not changed.",
+    "Independent Reviewer verdict is pending.",
+    "Two existing tests in tests/test_hk_historical_observation_contract.py still fail on missing historical pool provenance fields in infrastructure/preselection_pool_store.py:320; this path is outside the task scope."
+  ],
+  "api_delta": {
+    "canonical_path": "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/app.py",
+    "task_start_sha256": "40fbefd92acc8d0a1037dd25e95ffad3592caf86c4e16e47120d54b7ade9ad67",
+    "task_start_byte_snapshot": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/recovery_r4/source_integration/api_delta/canonical_app_before.py",
+    "task_start_snapshot_sha256": "40fbefd92acc8d0a1037dd25e95ffad3592caf86c4e16e47120d54b7ade9ad67",
+    "final_sha256": "d6632563997987f7b98519709c6111ee8fc114bed69711bdb768b31c7fd732a7",
+    "reviewed_candidate_sha256": "864cfafd69b1aa6a8245e40b008f84d75dff8f232fc69723494999a98d5c3863",
+    "reviewed_candidate_baseline_sha256": "1b144675d94ef0efb8d92063b5a5b8b04391108bcb0e9db8b46cbb975bb35dfa",
+    "exact_delta_patch": "/Users/lexi/Desktop/学习/agents调试/V4_AFTERNOON_AUTO_STAGES_20261012/futu/recovery_r4/source_integration/api_delta/canonical_app_delta.patch",
+    "exact_delta_patch_sha256": "289dc3c75a0e0618f730c6db143faa9a1e60945ec4226e7e33a817fe3841d06e",
+    "scope": [
+      "_hk_display_mode",
+      "project_shared_selection"
+    ],
+    "non_scope_canonical_changes_preserved": [
+      "HKEX existing name fields",
+      "selection_run_id projection fields",
+      "all other current canonical app code"
+    ]
+  },
+  "controller_reported_integration": {
+    "source": "parent controller message after writer handoff; recorded as controller-reported, not re-run by this writer",
+    "formal_stage_candidate": "independently PASS and deployed",
+    "cached_original_cli_runs": "13:00 and 14:45 both successful",
+    "formal_provider_guard_invocations": 0,
+    "API_surfaces": "ports 8873 and 61796; all three stages returned HK 10",
+    "13_15_A_share": "original run and bytes preserved"
+  },
+  "writer_actions_not_run": [
+    "Original CLI commands (controller reported them successful afterward; writer did not rerun)",
+    "Futu/provider calls or network access",
+    "Live release writes/install/deploy",
+    "API service restart or UI/natural-slot verification",
+    "Git mutation/commit/push"
+  ]
+}

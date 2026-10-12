@@ -10,10 +10,9 @@ from typing import Any, Mapping
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
+from apps.api.v35_api.module_proxy import configure_module_role
 
 from apps.api.v35_api.baimao_router import create_baimao_router
-from apps.api.v35_api.preselection_router import create_preselection_router
-from apps.api.v35_api.preselection_service import PreselectionPoolService
 from apps.api.v35_api.manager_research_router import create_manager_research_router
 from apps.api.v35_api.manager_workbench_router import create_manager_workbench_router, ManagerWorkbenchResearchReader
 from apps.api.v35_api.research_lane_router import create_research_lane_router
@@ -23,22 +22,21 @@ from apps.api.v35_api.review_router import create_review_router
 from apps.api.v35_api.research_router import create_research_router
 from contracts.stages import FROZEN_STAGE_IDS, STAGE_DEFINITIONS
 from contracts.trading_safety import TRADING_SAFETY_FLAGS
-from domains.preselection import date_catalog
+from domains import preselection as preselection_domain
+from domains.preselection import OPTIONAL_DAILY_POOL_IDS, date_catalog, preselection
 from domains.stage_input_producer import ReadOnlyQuoteProvider, StageInputProducer
 from domains.stages import StageRunner
 from infrastructure.data_store import NativeDataStore
 from infrastructure.futu_quote_provider import FutuQuoteProvider
 from infrastructure.hkconnect_stage_replay_provider import HkConnectStageReplayProvider
 from infrastructure.opening_second_filter_store import OpeningSecondFilterStore
+from infrastructure.preselection_pool_store import PreselectionPoolStore
 from infrastructure.review_store import ReviewStore
 from infrastructure.research_lane_source import ResearchLaneSource
 from infrastructure.stage_quote_provider import StageQuoteProvider
 from infrastructure.stage_store import StageStore
 from infrastructure.tdx_minute_replay_provider import TdxMinuteReplayProvider
 from stage_center.consumer import StageSelectionConsumer
-from stage_center.research_read_binding import ApprovedResearchReadBinding, ResearchReadError
-
-_STAGE_RESEARCH_READER_SHA256 = "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05"
 
 
 _MANAGER_RESEARCH_RUNTIME_PACKAGE = "_v4_manager_research_runtime"
@@ -3902,6 +3900,193 @@ def _strict_date(value: str) -> str:
     return value
 
 
+def _is_sha256(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdef" for character in value)
+    )
+
+
+def _is_exact_configured_hk_pool(payload: Mapping[str, Any], target_date: str) -> bool:
+    """Accept only a complete, exact-date HK 0.2 pool from the configured root."""
+    signal_date = payload.get("signal_date")
+    provenance = payload.get("historical_provenance")
+    rows = payload.get("rows")
+    eligibility_date = (
+        provenance.get("eligibility_source_date")
+        if isinstance(provenance, Mapping)
+        else None
+    )
+    if (
+        payload.get("schema_version") != "v3_5.preselection_pool.v1"
+        or payload.get("pool_id") != "hkconnect_d1_top100"
+        or payload.get("market") != "HK"
+        or payload.get("status") != "STRICT_0_2_READY"
+        or payload.get("producer_id") != "v3_shared_hk_0_2_consumer_v1"
+        or payload.get("source_role") != "SHARED_VERIFIED_HK_0_2"
+        or payload.get("trade_date") != target_date
+        or payload.get("target_date") != target_date
+        or not isinstance(signal_date, str)
+        or len(signal_date) != 8
+        or not signal_date.isdigit()
+        or signal_date >= target_date
+        or not _is_sha256(payload.get("source_sha256"))
+        or not str(payload.get("source_run_id") or "").strip()
+        or not _is_sha256(payload.get("source_manifest_sha256"))
+        or not _is_sha256(payload.get("source_receipt_sha256"))
+        or payload.get("stage_selection_eligible") is not True
+        or not isinstance(provenance, Mapping)
+        or provenance.get("schema_version") != "v4.hk_d1_split_date_provenance.v1"
+        or provenance.get("price_signal_date") != signal_date
+        or not isinstance(eligibility_date, str)
+        or len(eligibility_date) != 8
+        or not eligibility_date.isdigit()
+        or eligibility_date > signal_date
+        or not str(provenance.get("eligibility_source_run_id") or "").strip()
+        or not _is_sha256(provenance.get("eligibility_source_artifact_sha256"))
+        or not str(provenance.get("eligibility_source_captured_at") or "").strip()
+        or provenance.get("d1_source_run_id") != payload.get("source_run_id")
+        or provenance.get("d1_source_artifact_sha256") != payload.get("source_sha256")
+        or provenance.get("d1_source_manifest_sha256") != payload.get("source_manifest_sha256")
+        or provenance.get("d1_source_receipt_sha256") != payload.get("source_receipt_sha256")
+        or not isinstance(rows, list)
+        or len(rows) != 100
+        or any(payload.get(flag) is not False for flag in TRADING_SAFETY_FLAGS)
+    ):
+        return False
+    symbols: set[str] = set()
+    ranks: set[int] = set()
+    for row in rows:
+        if not isinstance(row, Mapping):
+            return False
+        symbol = str(row.get("symbol") or row.get("code") or "").strip().upper()
+        rank = row.get("pool_rank")
+        if (
+            len(symbol) != 8
+            or not symbol.startswith("HK.")
+            or not symbol[3:].isdigit()
+            or row.get("pool_id") != "hkconnect_d1_top100"
+            or row.get("market") != "HK"
+            or row.get("trade_date") != target_date
+            or row.get("target_date") != target_date
+            or row.get("signal_date") != signal_date
+            or isinstance(rank, bool)
+            or not isinstance(rank, int)
+            or rank not in range(1, 101)
+            or any(row.get(flag) is not False for flag in TRADING_SAFETY_FLAGS)
+            or str(row.get("recommendation_status") or "").upper() not in {"WATCH_ONLY", "WATCH_ONLY_BACKTEST_GATED"}
+        ):
+            return False
+        symbols.add(symbol)
+        ranks.add(rank)
+    return len(symbols) == 100 and len(ranks) == 100
+
+
+def _preselection_response_from_pools(
+    pools: list[dict[str, Any]], *, trade_date: str, limit: int, offset: int
+) -> dict[str, Any]:
+    """Render merged exact-date pool reads with the existing API page contract."""
+    pools = preselection_domain._replace_review_core_fupan_pool(pools, trade_date)
+    pools = preselection_domain._replace_review_core_stage7_pool(pools, trade_date)
+    pools = preselection_domain._complete_independent_pool_set(pools, trade_date)
+    payload = preselection_domain._project_independent_pools(pools, trade_date)
+    rows = payload["rows"]
+    status = "READY_WITH_ROWS" if payload.get("producer_status") == "CANONICAL_COMPLETE" else "PARTIAL_WITH_ROWS"
+    if not rows:
+        raise ValueError("exact-date pool projection has no rows")
+    response = {
+        key: payload.get(key, [] if key.endswith("rows") or key == "pools" or key == "cannot_confirm" else {})
+        for key in ("pools", "unified_rows", "a_source_only_rows", "a_all_pool_rows", "startup_ensure", "strict_0_2_status", "evidence_paths", "cannot_confirm")
+    }
+    response.update({
+        "ok": True,
+        "data_status": status,
+        "blocking_reasons": list(payload.get("blocking_reasons", [])),
+        "schema_version": "v3_preselection_pools.v1",
+        "trade_date": trade_date,
+        "module_id": "unified_preselection_pools",
+        "write_policy": "read_only",
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+        "recommendation_status": "WATCH_ONLY_BACKTEST_GATED",
+        "pool_count": len(payload.get("pools", [])),
+        "row_count": len(rows),
+        "unified_row_count": len(payload.get("unified_rows", rows)),
+        "a_source_only_row_count": len(payload.get("a_source_only_rows", [])),
+        "a_all_pool_row_count": len(payload.get("a_all_pool_rows", rows)),
+        "rows": [],
+        "daily_readiness_status": payload.get("daily_readiness_status", status),
+        "mandatory_pool_ids": list(payload.get("mandatory_pool_ids", ())),
+        "optional_pool_ids": list(payload.get("optional_pool_ids", OPTIONAL_DAILY_POOL_IDS)),
+    })
+    response["market_totals"] = payload.get("market_totals", preselection_domain._market_totals(rows))
+    response["hk_pool_version"] = payload.get("hk_pool_version")
+    response["hk_pool_role"] = payload.get("hk_pool_role")
+    response["input_fingerprint"] = preselection_domain._input_fingerprint(payload.get("pools", []), trade_date)
+    response["source_digests"] = {
+        str(pool.get("pool_id") or ""): str(pool.get("source_sha256") or "")
+        for pool in payload.get("pools", [])
+        if str(pool.get("pool_id") or "")
+    }
+    full_arrays = {
+        "unified_rows": list(response["unified_rows"]),
+        "a_source_only_rows": list(response["a_source_only_rows"]),
+        "a_all_pool_rows": list(response["a_all_pool_rows"]),
+    }
+    array_pagination = {
+        name: preselection_domain._page_metadata(array_rows, limit=limit, offset=offset)
+        for name, array_rows in full_arrays.items()
+    }
+    response["unified_rows"] = preselection_domain._page_per_market(full_arrays["unified_rows"], limit, offset)
+    response["a_source_only_rows"] = preselection_domain._page_per_market(full_arrays["a_source_only_rows"], limit, offset)
+    response["a_all_pool_rows"] = preselection_domain._page_per_market(full_arrays["a_all_pool_rows"], limit, offset)
+    paged_pools: list[dict[str, Any]] = []
+    pool_pagination: dict[str, dict[str, Any]] = {}
+    for pool in response["pools"]:
+        full_pool_rows = list(pool.get("rows", []))
+        metadata = preselection_domain._page_metadata(
+            full_pool_rows, limit=limit, offset=offset, status=str(pool.get("status") or "")
+        )
+        pool_id = str(pool.get("pool_id") or "")
+        pool_pagination[pool_id] = metadata
+        paged_pools.append({
+            **pool,
+            "pool_size": len(full_pool_rows),
+            "returned_rows": metadata["returned_rows"],
+            "rows": preselection_domain._page_per_market(full_pool_rows, limit, offset),
+            "page_offset": offset,
+            "page_limit": limit,
+            "has_more": metadata["has_more"],
+            "complete": metadata["complete"],
+        })
+    response["pools"] = paged_pools
+    response["rows"] = [row for pool in paged_pools for row in pool.get("rows", [])]
+    has_more = any(metadata["has_more"] for metadata in (*array_pagination.values(), *pool_pagination.values()))
+    response["pagination"] = {
+        "offset": offset,
+        "limit": limit,
+        "next_offset": offset + limit if has_more else None,
+        "has_more": has_more,
+        "complete": not has_more and status == "READY_WITH_ROWS" and all(
+            metadata["complete"]
+            for pool_id, metadata in pool_pagination.items()
+            if pool_id not in OPTIONAL_DAILY_POOL_IDS
+        ),
+        "arrays": array_pagination,
+        "pools": pool_pagination,
+    }
+    response["a_all_pool_complete"] = array_pagination["a_all_pool_rows"]["complete"]
+    response["unified_rows_complete"] = array_pagination["unified_rows"]["complete"]
+    response["a_source_only_rows_complete"] = array_pagination["a_source_only_rows"]["complete"]
+    response["optional_pool_status"] = payload.get("optional_pool_status", "CANNOT_CONFIRM")
+    response["daily_readiness_status"] = payload.get("daily_readiness_status", status)
+    response["mandatory_pool_ids"] = list(payload.get("mandatory_pool_ids", ()))
+    response["optional_pool_ids"] = list(payload.get("optional_pool_ids", OPTIONAL_DAILY_POOL_IDS))
+    return response
+
+
 def create_app(
     data_root: Path | None = None,
     quote_provider: ReadOnlyQuoteProvider | None = None,
@@ -3916,10 +4101,19 @@ def create_app(
     research_ledger_root: Path | str | None = None,
     morning_news_data_root: Path | str | None = None,
     preselection_source_root: Path | str | None = None,
-    stage_center_research_binding_path: Path | str | None = None,
-    stage_center_research_binding_sha256: str | None = None,
+    module_role: str = "combined",
 ) -> FastAPI:
-    app = FastAPI(title="V3.5", version="0.1.0")
+    if module_role not in {"combined", "gateway", "stage", "manager"}:
+        raise ValueError("V35_API_ROLE_UNSUPPORTED")
+    if module_role != "combined" and stage_center_selection_root is None and not os.environ.get("V35_STAGE_CENTER_SELECTION_ROOT"):
+        raise ValueError("V35_API_ROLE_REQUIRES_SHARED_STAGE_SELECTION_ROOT")
+    app = FastAPI(
+        title="V3.5",
+        version="0.1.0",
+        docs_url=None if module_role in {"stage", "manager"} else "/docs",
+        redoc_url=None if module_role in {"stage", "manager"} else "/redoc",
+        openapi_url=None if module_role in {"stage", "manager"} else "/openapi.json",
+    )
     store = NativeDataStore(data_root or Path.cwd() / ".runtime" / "data")
     review_store = ReviewStore(store.root)
     configured_research_root = research_data_root or os.environ.get("V35_RESEARCH_DATA_ROOT")
@@ -3956,18 +4150,6 @@ def create_app(
         )
         if configured_selection_root is not None
         else None
-    )
-    approved_research_reader = (
-        ApprovedResearchReadBinding(
-            binding_path=(stage_center_research_binding_path
-                          if stage_center_research_binding_path is not None
-                          else Path(__file__).resolve().parents[3] / "stage_center/approved_research_read.json"),
-            history_root=configured_selection_root,
-            api_root=Path(__file__).resolve().parents[3],
-            expected_reader_sha256=_STAGE_RESEARCH_READER_SHA256,
-            expected_binding_sha256=stage_center_research_binding_sha256,
-            a_name_pool_root=shared_selection_consumer.a_name_pool_root,
-        ) if shared_selection_consumer is not None else None
     )
     if shared_selection_consumer is None:
         stage_store = StageStore(store.root)
@@ -4099,7 +4281,15 @@ def create_app(
         if status == "CANNOT_CONFIRM" or not identity_present:
             if not reasons:
                 reasons.append("SELECTION_ARTIFACT_MISSING_OR_INVALID")
-            return ("OBSERVATION_UNVERIFIED" if rows else "CANNOT_CONFIRM"), reasons
+            return "CANNOT_CONFIRM", reasons
+
+        if (
+            status not in {"READY", "PARTIAL_WITH_ROWS"}
+            or selection_status not in {"READY", "PARTIAL_WITH_ROWS"}
+            or market_payload.get("source_status") not in {"READY", "PARTIAL_WITH_ROWS"}
+        ):
+            reasons.append("HK_SELECTION_OR_SOURCE_STATUS_NOT_READY")
+            return "CANNOT_CONFIRM", list(dict.fromkeys(reasons))
 
         execution = execution_market if isinstance(execution_market, Mapping) else {}
         binding = execution.get("selection_binding")
@@ -4136,6 +4326,7 @@ def create_app(
         ordinary_hk_display: bool = False,
     ) -> dict:
         canonical_markets = payload.get("markets", {})
+        selection_markets = canonical_markets
         frontend_markets: dict[str, dict] = {}
         unified_rows: list[dict] = []
         aliases = {"A_SHARE": "A", "HK_CONNECT": "HK"}
@@ -4145,7 +4336,6 @@ def create_app(
         backfill_provenance_fields = frozenset(
             {
                 "selection_mode",
-                "selection_run_id",
                 "backfill_run_id",
                 "backfill_run_ids",
                 "selection_manifest_sha256",
@@ -4161,6 +4351,7 @@ def create_app(
         for canonical_market, market_payload in canonical_markets.items():
             alias = aliases.get(canonical_market, canonical_market)
             rows = list(market_payload.get("rows") or [])[:limit]
+            projected_rows = rows
             frontend_markets[alias] = {
                 key: market_payload.get(key)
                 for key in (
@@ -4192,7 +4383,6 @@ def create_app(
                     "name_authority_missing_count",
                     "name_authority_error",
                     "selection_mode",
-                    "selection_run_id",
                     "backfill_run_id",
                     "backfill_run_ids",
                     "selection_manifest_sha256",
@@ -4216,14 +4406,28 @@ def create_app(
                 )
                 frontend_markets[alias]["display_mode"] = display_mode
                 frontend_markets[alias]["display_reasons"] = display_reasons
-                frontend_markets[alias]["observation_count"] = len(rows)
-                if display_mode in {"CANNOT_CONFIRM", "OBSERVATION_UNVERIFIED"}:
+                frontend_markets[alias]["observation_count"] = (
+                    len(rows) if display_mode != "CANNOT_CONFIRM" else None
+                )
+                if display_mode == "CANNOT_CONFIRM":
+                    projected_rows = []
+                    frontend_markets[alias]["rows"] = projected_rows
                     frontend_markets[alias]["candidate_count"] = None
-                    frontend_markets[alias]["status"] = (
-                        "PARTIAL_WITH_ROWS" if display_mode == "OBSERVATION_UNVERIFIED" else "CANNOT_CONFIRM"
-                    )
+                    frontend_markets[alias]["status"] = "CANNOT_CONFIRM"
                     frontend_markets[alias]["selected_rows"] = None
-            for row in rows:
+                    if selection_markets is canonical_markets:
+                        selection_markets = dict(canonical_markets)
+                    selection_markets[canonical_market] = {
+                        **market_payload,
+                        "rows": [],
+                    }
+                elif display_mode == "OBSERVATION_UNVERIFIED":
+                    # These rows have a valid selection identity and source
+                    # status, but remain observations because formal or
+                    # execution evidence is incomplete. Keep their count
+                    # visible without promoting their eligibility or action.
+                    frontend_markets[alias]["status"] = "PARTIAL_WITH_ROWS"
+            for row in projected_rows:
                 unified_rows.append(
                     {
                         **dict(row),
@@ -4237,7 +4441,7 @@ def create_app(
         selected_a = len(a_rows)
         hk_display_mode = frontend_markets.get("HK", {}).get("display_mode")
         selected_hk = (
-            None if hk_display_mode in {"CANNOT_CONFIRM", "OBSERVATION_UNVERIFIED"}
+            None if hk_display_mode == "CANNOT_CONFIRM"
             else len(hk_rows)
         )
         selected_total = None if selected_hk is None else selected_a + selected_hk
@@ -4263,7 +4467,7 @@ def create_app(
         return {
             **payload,
             "status": stage_status,
-            "selection_markets": canonical_markets,
+            "selection_markets": selection_markets,
             "markets": frontend_markets,
             "market_summaries": frontend_markets,
             "unified_rows": unified_rows,
@@ -4739,15 +4943,151 @@ def create_app(
         response["runtime_identity"] = identity
         return response
 
-    app.include_router(create_preselection_router(
-        PreselectionPoolService(
+    @app.get("/api/v3/preselection-pools")
+    def preselection_pools(
+        date: str | None = None,
+        limit: int = Query(default=200, ge=1, le=300),
+        offset: int = Query(default=0, ge=0),
+        page: int | None = Query(default=None, ge=1),
+    ) -> dict:
+        requested = _strict_date(date) if date is not None else None
+        catalog = _catalog()
+        selected = requested or catalog["default_date"] or catalog["system_date"]
+        page_offset = (page - 1) * limit if page is not None else offset
+        response = preselection(
             store,
-            configured_pool_source=bool(configured_pool_source),
-            resolved_pool_source=resolved_pool_source,
-        ),
-        get_catalog=_catalog,
-        validate_date=_strict_date,
-    ))
+            selected,
+            limit,
+            offset=page_offset,
+            preselection_source_root=resolved_pool_source,
+        )
+        if configured_pool_source:
+            configured_root = resolved_pool_source.expanduser().resolve()
+            local_root = store.root.expanduser().resolve()
+            if configured_root != local_root:
+                try:
+                    local_pools = PreselectionPoolStore(store.root).read_all(selected)
+                except FileNotFoundError:
+                    local_pools = []
+                except (OSError, ValueError, TypeError, KeyError):
+                    local_pools = None
+                if local_pools:
+                    local_hk_pool = next(
+                        (pool for pool in local_pools if pool.get("pool_id") == "hkconnect_d1_top100"),
+                        None,
+                    )
+                    local_hk_missing = local_hk_pool is None or (
+                        local_hk_pool.get("status") == "CANNOT_CONFIRM"
+                        and not local_hk_pool.get("rows")
+                        and local_hk_pool.get("source_role") == "EXPECTED_MISSING"
+                        and local_hk_pool.get("source_path") == ""
+                    )
+                    local_hk_ready = bool(local_hk_pool and local_hk_pool.get("rows")) and (
+                        str(local_hk_pool.get("status") or "").upper().endswith("_READY")
+                        or str(local_hk_pool.get("status") or "").upper() in {"READY", "MATERIALIZED", "AVAILABLE"}
+                    )
+                    if local_hk_missing and not local_hk_ready:
+                        source_pending = False
+                        source_unconfirmed: str | None = None
+                        try:
+                            from infrastructure.interprocess_lock import owned_interprocess_lock
+
+                            source_store = PreselectionPoolStore(resolved_pool_source)
+                            with owned_interprocess_lock(
+                                source_store.root / ".import.lock",
+                                timeout_seconds=10,
+                                timeout_message="data-root import lock timeout",
+                            ) as source_lock:
+                                pending_relative_for = getattr(
+                                    source_store, "_pending_relative", None
+                                )
+                                pending_relative = (
+                                    pending_relative_for(
+                                        trade_date=selected,
+                                        pool_id="hkconnect_d1_top100",
+                                    )
+                                    if callable(pending_relative_for)
+                                    else (
+                                        "preselection_pending_commits/"
+                                        f"{selected}/hkconnect_d1_top100.json"
+                                    )
+                                )
+                                try:
+                                    source_store._io.read_bytes(pending_relative)
+                                except FileNotFoundError:
+                                    snapshot_reader = source_store.read_pool_snapshot
+                                    if "lock_lease" in inspect.signature(
+                                        snapshot_reader
+                                    ).parameters:
+                                        source_snapshot = snapshot_reader(
+                                            selected,
+                                            "hkconnect_d1_top100",
+                                            lock_lease=source_lock,
+                                        )
+                                    else:
+                                        # R9's descriptor-anchored snapshot reader
+                                        # is already read-only and does not accept a
+                                        # lease keyword.  The caller still holds the
+                                        # same root import lock around pending check
+                                        # and trio read.
+                                        source_snapshot = snapshot_reader(
+                                            selected, "hkconnect_d1_top100"
+                                        )
+                                else:
+                                    source_pending = True
+                                    source_snapshot = None
+                        except FileNotFoundError:
+                            source_snapshot = None
+                        except OSError:
+                            source_snapshot = None
+                            source_unconfirmed = "source_read_unavailable"
+                        except (ValueError, TypeError, KeyError):
+                            source_snapshot = None
+                            source_unconfirmed = "source_integrity_unconfirmed"
+                        if source_pending or source_unconfirmed is not None:
+                            response["configured_hk_pool_fallback"] = {
+                                "applied": False,
+                                "status": "CANNOT_CONFIRM",
+                                "reason": (
+                                    "source_pending_commit"
+                                    if source_pending
+                                    else source_unconfirmed
+                                ),
+                                "read_policy": "read_only_exact_date",
+                                "target_date": selected,
+                                "production_allowed": False,
+                                "buy_gate_updated": False,
+                                "orders_sent": False,
+                            }
+                        source_pool = source_snapshot.get("artifact") if isinstance(source_snapshot, Mapping) else None
+                        if isinstance(source_pool, Mapping) and _is_exact_configured_hk_pool(source_pool, selected):
+                            merged_pools = [
+                                pool for pool in local_pools
+                                if pool.get("pool_id") != "hkconnect_d1_top100"
+                            ]
+                            merged_pools.append(dict(source_pool))
+                            response = _preselection_response_from_pools(
+                                merged_pools,
+                                trade_date=selected,
+                                limit=limit,
+                                offset=page_offset,
+                            )
+                            response["configured_hk_pool_fallback"] = {
+                                "applied": True,
+                                "read_policy": "read_only_exact_date",
+                                "target_date": selected,
+                                "pool_artifact_sha256": source_snapshot.get("artifact_raw_sha256"),
+                                "pool_manifest_sha256": source_snapshot.get("manifest_raw_sha256"),
+                                "pool_receipt_sha256": source_snapshot.get("receipt_raw_sha256"),
+                                "producer_run_id": source_pool.get("source_run_id"),
+                                "producer_artifact_sha256": source_pool.get("source_sha256"),
+                                "producer_manifest_sha256": source_pool.get("source_manifest_sha256"),
+                                "producer_receipt_sha256": source_pool.get("source_receipt_sha256"),
+                            }
+        response["requested_date"] = requested
+        response["selected_date"] = selected
+        response["page"] = page if page is not None else (page_offset // limit) + 1
+        return response
 
     @app.get("/api/v3/workbench/stage")
     def stage_workbench(
@@ -4762,29 +5102,6 @@ def create_app(
             selected = _catalog()["system_date"]
         if stage not in FROZEN_STAGE_IDS:
             raise HTTPException(status_code=422, detail="unknown stage")
-        # The optional release-owned binding handles only its exact approved
-        # date/stage/run. All ordinary history and legacy exact bindings below
-        # retain their original configured root and verification contract.
-        if approved_research_reader is not None and ((market is None) == (backfill_run_id is None)):
-            try:
-                research_payload = approved_research_reader.get(
-                    selected, stage, markets=None if market is None else (market,),
-                    backfill_run_id=backfill_run_id,
-                )
-            except ResearchReadError as error:
-                raise HTTPException(status_code=409, detail="approved research read binding is unavailable or invalid") from error
-            if research_payload is not None:
-                response = project_shared_selection(research_payload, limit, ordinary_hk_display=True)
-                # The existing HK display intentionally withholds a formal
-                # selected count. Verified research rows still make this
-                # exact composed response partial when its other lane fails.
-                if research_payload.get("status") == "PARTIAL_WITH_ROWS":
-                    response["status"] = "PARTIAL_WITH_ROWS"
-                    response["stage"].update(status="PARTIAL_WITH_ROWS", display_status="PARTIAL_WITH_ROWS")
-                if market is not None:
-                    response.update(market=market, selection_mode="HISTORICAL_BACKFILL_READ_ONLY",
-                                    response_source="SHARED_STAGE_CENTER_BACKFILL")
-                return response
         if market is not None or backfill_run_id is not None:
             if market is None or backfill_run_id is None:
                 raise HTTPException(status_code=422, detail="market and backfill_run_id must be supplied together")
@@ -5309,6 +5626,7 @@ def create_app(
         catalyst_news_owner_root=(Path(os.environ["V4_MANAGER_NEWS_OWNER_ROOT"])
                                   if os.environ.get("V4_MANAGER_NEWS_OWNER_ROOT") else None),
         workspace_us_market_reader=manager_us_market_reader,
+        workspace_stage_selection_reader=shared_selection_consumer,
     )
     app.state.manager_research_service = manager_research_service
     app.include_router(create_manager_research_router(manager_research_service))
@@ -5322,4 +5640,4 @@ def create_app(
     if dist.is_dir():
         app.mount("/", _RevalidatingStaticFiles(directory=dist, html=True), name="web")
 
-    return app
+    return configure_module_role(app, module_role)

@@ -1,0 +1,140 @@
+{
+  "schema": "v4_futu_r4_independent_source_review_v1",
+  "reviewer_identity": "/root/futu_r4_reviewer",
+  "reviewed_at": "2026-10-12",
+  "scope": [
+    "canonical R4 five-source increment",
+    "tests/test_futu_afternoon_recovery_r4.py and frozen focused regression command",
+    "canonical apps/api/v35_api/app.py two-hunk projection increment",
+    "tests/test_futu_observation_api_projection_r4.py"
+  ],
+  "frozen_inputs": {
+    "packet_manifest_sha256": "8d79ddc00fc6accd17fb2d330bc207867aebc4f82afca8c0998ce3e2b3c792bd",
+    "source_manifest_sha256": "e66e85932160fa8f35cb5d142b09cb6809813edc3a97b4adf2e9ad5eebc85412",
+    "writer_receipt_sha256": "063f65083a33d3a988a6ab14814bb615f3a157eabf47ed47707cb5ec6c2840fd",
+    "api_delta_patch_sha256": "289dc3c75a0e0618f730c6db143faa9a1e60945ec4226e7e33a817fe3841d06e"
+  },
+  "final_hashes_verified_against_manifest": {
+    "stage_center/_live_collectors_parts/hk_minute.py": "fef66bc3f7cb8913b3c7f29ffdeaf5d91dd2f18bc905b07c52c261b5caaeb615",
+    "stage_center/_live_collectors_parts/selection_builder_registry.py": "781d7a9fabc26b185b5320ec751f0bb2322a0828414b6024efaa3c4519be0d85",
+    "stage_center/raw_store.py": "a4b5f950ccd6e54320473eb5d5bf61679f836a8bdbac47619674ffd2d3d50e48",
+    "stage_center/_runner_parts/slot_execution.py": "bb2f2e20baebf1b345c6c89bc3a19c260564480cef8ede9b9f11ca6cf9f25cd1",
+    "ops/_run_stage_center_nodes_parts/stage_dispatch.py": "53384a9cff63b70f7ff9bc415f896491325d6e7a79f5fa167d44f207179348a9",
+    "tests/test_futu_afternoon_recovery_r4.py": "ad63909eabf12436292eaf7cc7a8611b54efc95a19c8e887b119bcd0f91238bb",
+    "apps/api/v35_api/app.py": "d6632563997987f7b98519709c6111ee8fc114bed69711bdb768b31c7fd732a7",
+    "tests/test_futu_observation_api_projection_r4.py": "2da03a25b0b749f1f45ecb781314ad166fe224f5558c75e12f88acbd528e8194"
+  },
+  "diff_evidence": {
+    "exact_task_start_diff_verified": {
+      "ops/_run_stage_center_nodes_parts/stage_dispatch.py": {
+        "baseline_sha256": "8f0220eece86a15ae7048e59230635c70e02a420e8f2172ce5105ffc6c14bb3a",
+        "reviewed": true,
+        "scope": "Futu exact identity gates, one-time Stage 13 marker, HK-only scope/receipt merge, and final unsafe/NO_BUY projection"
+      },
+      "apps/api/v35_api/app.py": {
+        "baseline_sha256": "40fbefd92acc8d0a1037dd25e95ffad3592caf86c4e16e47120d54b7ade9ad67",
+        "final_sha256": "d6632563997987f7b98519709c6111ee8fc114bed69711bdb768b31c7fd732a7",
+        "reviewed": true,
+        "scope": "_hk_display_mode and project_shared_selection only"
+      }
+    },
+    "task_start_diff": "CANNOT_CONFIRM for hk_minute.py, selection_builder_registry.py, raw_store.py, and slot_execution.py because their task-start bytes were not retained; current final hashes match the frozen manifest, and the current source paths were reviewed against the frozen candidate responsibilities."
+  },
+  "review": {
+    "review_verdict": "REVIEWED_PASS_WITH_NONBLOCKING_P2",
+    "behavior_verdict": "BEHAVIOR_VERIFIED_FOR_BOUNDED_CACHED_RECOVERY_AND_PROJECTION",
+    "natural_verdict": "CANNOT_CONFIRM",
+    "p0": [],
+    "p1": [],
+    "p2": [
+      {
+        "id": "R4-API-PROJECTION-STATUS-GATE-TEST-COVERAGE",
+        "evidence": "apps/api/v35_api/app.py:4286-4292 rejects a market whose selection_status or source_status is outside READY/PARTIAL_WITH_ROWS. tests/test_futu_observation_api_projection_r4.py:129-148 tests only missing artifact_id and market_payload.status=CANNOT_CONFIRM; the latter takes the earlier return path and does not exercise the new selection_status/source_status guard.",
+        "risk": "A regression in either new status subcondition would not be caught by the added focused API tests.",
+        "recommendation": "Add direct cases with valid identity and market status PARTIAL_WITH_ROWS while selection_status=CANNOT_CONFIRM and source_status=CANNOT_CONFIRM; assert HK rows/counts are suppressed and A rows remain.",
+        "confirmed_implementation_bug": false,
+        "blocking": false
+      }
+    ],
+    "source_behavior_reviewed": [
+      "The Futu route is restricted to the two exact 2026-10-12 afternoon stages, binds the 100-code D-1 pool and fixed provider/raw projections, and carries temporal_cutoff_safe=false, PIT/formal/natural CANNOT_CONFIRM and NO_BUY markers.",
+      "Stage 1555 remains replay-only; missing/invalid after-fact authorization fails closed and the afternoon primary route does not silently fall back to PyTDX.",
+      "The dispatch path binds the frozen receipt/dataset identities, retains the original three-attempt budget, consumes the Stage 13 authorization before the single HK-only run, preserves the A lane and prior receipt bytes, and clears only the matching stale failure after a row-bearing result.",
+      "The canonical API projection retains valid observation counts as PARTIAL_WITH_ROWS while preserving NO_BUY, and suppresses rows in both display and selection_markets when identity or status is invalid."
+    ]
+  },
+  "tests": {
+    "canonical_source_compile": {
+      "result": "PASS",
+      "details": "Independent py_compile of all five canonical source modules and the R4 focused test module passed in the preceding review window; final hashes above are unchanged."
+    },
+    "canonical_focused_regressions": {
+      "command": "env PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q tests/test_futu_afternoon_recovery_r4.py tests/test_hk_stage8_v4_recovery.py tests/test_hkconnect_stage_replay_provider.py tests/test_hk_stage0930_temporal_false_observation.py tests/test_hk_minute_cutoff_recovery_20261012.py::test_canonical_collector_keeps_cutoff_unsafe_exhq_rows_watch_only tests/test_hk_minute_cutoff_recovery_20261012.py::test_canonical_candidate_fails_closed_without_scoped_runner --tb=short --basetemp=/tmp/futu-r4-independent-review-20261012 -p no:cacheprovider",
+      "result": "PASS: 31 passed in 0.15s, independently rerun against the final canonical source hashes."
+    },
+    "canonical_api_compile": {
+      "command": "PYTHONPYCACHEPREFIX=/tmp/futu-r4-api-review-pycache-20261012 .venv/bin/python -m py_compile apps/api/v35_api/app.py tests/test_futu_observation_api_projection_r4.py",
+      "result": "PASS, exit 0."
+    },
+    "canonical_api_projection": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q tests/test_futu_observation_api_projection_r4.py --tb=short --basetemp=/tmp/futu-r4-api-review-20261012 -p no:cacheprovider",
+      "result": "PASS: 2 passed in 0.17s."
+    },
+    "adjacent_historical_contract": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q tests/test_hk_historical_observation_contract.py --tb=short --basetemp=/tmp/futu-r4-historical-review-20261012 -p no:cacheprovider",
+      "result": "3 passed, 2 failed; both failures occur at infrastructure/preselection_pool_store.py:320 while materializing test pools lacking required historical provenance fields, before the Futu R4 path. Whether these failures existed at task start is CANNOT_CONFIRM; the failing infrastructure file is outside this scope."
+    }
+  },
+  "acceptance_evidence": {
+    "formal_recovery_receipt": {
+      "path": "controller/FORMAL_RECOVERY_RECEIPT.json",
+      "sha256": "a3ee704dd9a183564e5773f2ab54ab8ae2e06e041a447d3b8b98b3f012f26a03",
+      "observed": "Both cached afternoon stages report PARTIAL_WITH_ROWS, temporal_cutoff_safe=false, execution_verified=false, NO_BUY, and unchanged A bytes; both provider guard logs are []. Each stage has 100 raw rows and 10 selection rows."
+    },
+    "formal_cli_summaries": {
+      "STAGE_1445_1500": {
+        "path": "controller/FORMAL_1500_STDOUT.json",
+        "sha256": "a1faded873da1661abe8fddcee29c155890bc60c84c444b6a330cef1f673eea6"
+      },
+      "STAGE_1300_1315": {
+        "path": "controller/FORMAL_1315_STDOUT.json",
+        "sha256": "056a6adb27dfd86039405258cc51be3d11cefbc40d94d162c6ef4421e3161319"
+      },
+      "note": "Both are NODES_COMPLETE with the corresponding HK market PARTIAL_WITH_ROWS; these stdout JSON summaries declare output_truncated=true, so receipt/artifact hashes remain the detailed evidence."
+    },
+    "api_readback": {
+      "path": "controller/FORMAL_API_READBACK.json",
+      "sha256": "c741973106f547e1b85cceb082803fe7b14bf8c29b75084ce6fa88730ae18c0e",
+      "observed": "Ports 8873 and 61796 workbench readback show 10 HK rows per date-bound stage in OBSERVATION_UNVERIFIED mode. The 61796 stage-center selection route is reported 404; the 8873 selection readback succeeded."
+    },
+    "ui_dom": {
+      "STAGE_1300_1315": "controller/UI_STAGE_1300_1315.txt sha256 dad0a582b2a73662a7bb112863e75f9009b48b5e4a184a1c988ca0df43c6d304",
+      "STAGE_1445_1500": "controller/UI_STAGE_1445_1500.txt sha256 c5f647a8dc6243d69c0ff25520fdf1bf1302310f6b24e728805ca0814777b504",
+      "STAGE_1545_1555": "controller/UI_STAGE_1545_1555.txt sha256 55dd85190abb832c0e403237cca5908f5816c01c1868e8999578806972a1dbfc",
+      "limitation": "The displayed lineage text remains CANNOT_CONFIRM for natural/recovery receipt lineage; natural_verified=false."
+    },
+    "unresolved_data_limitations": [
+      "The 13:15 and 15:00 RT_DATA projection lacks OHLC/order-book and derived support/pressure/invalidation fields.",
+      "Full archival original provider response bytes remain CANNOT_CONFIRM.",
+      "After-target-cutoff evidence does not establish natural-slot success."
+    ],
+    "display_name_authority_check": {
+      "frozen_pool_artifact": "independent_review/runner_fixtures_r4/STAGE_{1300_1315,1445_1500}/preselection_source/preselection_pools/20261012/hkconnect_d1_top100.json",
+      "pool_sha256_each_stage": "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d",
+      "pool_rows_each_stage": 100,
+      "method": "Matched each observed UI HK code/name pair against the exact frozen D-1 Top100 display name mapping.",
+      "result": {
+        "STAGE_1300_1315": {
+          "ui_dom_sha256": "dad0a582b2a73662a7bb112863e75f9009b48b5e4a184a1c988ca0df43c6d304",
+          "matches": "10/10"
+        },
+        "STAGE_1445_1500": {
+          "ui_dom_sha256": "c5f647a8dc6243d69c0ff25520fdf1bf1302310f6b24e728805ca0814777b504",
+          "matches": "10/10"
+        }
+      },
+      "note": "The selection CSV intentionally has no name column; the verified display labels are supplied by the D-1 authority projection."
+    }
+  },
+  "mutations": "No business source, API, service, live root, or Git state was modified by this reviewer. Only this receipt was added under the reviewer evidence directory."
+}

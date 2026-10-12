@@ -1,0 +1,98 @@
+{
+  "schema": "v4.futu_afternoon_recovery_r4_independent_review.v1",
+  "reviewer_identity": "/root/futu_r4_reviewer",
+  "review_date": "2026-10-12",
+  "verdict": "PASS_FROZEN_STAGE_SCOPE",
+  "scope": "Frozen R4 candidate overlay for HK afternoon StageCenter recovery on 2026-10-12; read-only review and isolated fixture behavior only.",
+  "candidate_identity": {
+    "packet_manifest_sha256": "8d79ddc00fc6accd17fb2d330bc207867aebc4f82afca8c0998ce3e2b3c792bd",
+    "candidate_overlay_sha256": "d6f3d63e51e586331888c52f68ad0a6bcf1883c201ed111fbefaea3c65340d1f",
+    "source_file_count": 5,
+    "candidate_and_active_base_shas_match_packet_manifest": true
+  },
+  "reviewed_risks": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "tests": [
+    {
+      "name": "real StageCenter CLI canary",
+      "command": "PYTHONDONTWRITEBYTECODE=1 <v4-venv-python> <independent_review/tests/run_real_stagecenter_canary.py>",
+      "result": "PASS",
+      "result_file": "REAL_STAGECENTER_CANARY_RESULT.json",
+      "result_sha256": "d6fa07c6436ba75d61983d124fc5589ffe6a5f3ac1ab399dce05343401d9b938",
+      "scope_note": "Copied harness directed subprocess cwd to independent_review fixture root; candidate source and test logic remained unchanged."
+    },
+    {
+      "name": "binding, negative cases, and default Futu route",
+      "command": "env PYTHONPATH=<provider_guard> PYTHONDONTWRITEBYTECODE=1 V4_R4_PROVIDER_GUARD_LOG=<independent_review/provider_guard_events_binding.json> <v4-venv-python> <independent_review/tests/verify_candidate_bindings_and_default_route.py>",
+      "result": "PASS",
+      "result_file": "binding_route_check_r4/BINDING_ROUTE_CHECK_RESULT.json",
+      "result_sha256": "1065396dc8ff6c6c889e528c2df11307a5629c82335a8f10d6d36b8f22309db1"
+    }
+  ],
+  "behavior_evidence": {
+    "isolated_candidate_cli": "BEHAVIOR_VERIFIED",
+    "stage_1300_1315": {
+      "node_status": "PARTIAL_WITH_ROWS",
+      "hk_raw_rows": 100,
+      "hk_selection_rows": 10,
+      "provider_guard_count": 0,
+      "repeat_status": "SKIPPED_FUTU_RECOVERY_CONSUMED",
+      "repeat_write_performed": false,
+      "temporal_cutoff_safe": false,
+      "execution_verified": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "stage_1445_1500": {
+      "node_status": "PARTIAL_WITH_ROWS",
+      "hk_raw_rows": 100,
+      "hk_selection_rows": 10,
+      "provider_guard_count": 0,
+      "temporal_cutoff_safe": false,
+      "execution_verified": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "negative_binding_cases": "PASS: wrong date, pool, stage, dataset SHA and raw projection mutations rejected; temporal-safe selector case fails closed.",
+    "a_share_preservation": "PASS: A-share selection rows and existing bytes preserved in isolated 13:15 and 15:00 runs.",
+    "stage8_replay": "PASS: preserved by binding/default-route check."
+  },
+  "api_compatibility": {
+    "static_read_side_review": "PASS_NO_RAWSTORE_OVERLAY_REQUIRED_FOR_CURRENT_SELECTION_READERS",
+    "api_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-api-projection-20261012-r4a/app",
+    "api_release_raw_store_sha256": "655e7ec293bdb227ad1c3f7d7ecebb9152ea19bcc1e8de3933d0b2dd5bf1ecb4",
+    "stage_r1_raw_store_sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde",
+    "r4_candidate_raw_store_sha256": "800acddb67a3e234342b7ab84cd26849018bc0b24247d5c4a26414a6d1bc6248",
+    "research_selection_endpoint": "research_router.py:475-501 uses ResearchSelectionStore.read_exact_with_lineage",
+    "workbench_approved_reader": "research_read_binding.py:267-289 validates StageSelectionConsumer SelectionStore selection trio; app.py:4792-4807 projects verified selection; it does not call RawStore.verify_run",
+    "approved_reader_identity_scope": "research_read_binding.py:26-36 pins 20261009/STAGE_0930_0935 and fixed selection run ids; 20261012 API/UI projection is CANNOT_CONFIRM",
+    "api_tdx_temporal_false_contract": "API raw_store.py:60-127 and :163-218 preserves exact 20260924 TDX after-fact research contract; wholesale replacement by the R4 stage candidate would discard it",
+    "minimum_api_file_for_future_direct_raw_consumer": "If a later API reader directly consumes Futu raw artifacts, merge only the Futu raw contract into this API release stage_center/raw_store.py while preserving the existing TDX contract; no such consumer is used by the reviewed selection projection."
+  },
+  "acceptance_boundaries": {
+    "REVIEWED": "PASS",
+    "BEHAVIOR_VERIFIED": "PASS_FOR_ISOLATED_CANDIDATE_STAGECENTER_CLI",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "limitations": [
+    "The fixture canary does not establish active API/service deployment or page readback.",
+    "The real Futu provider was guarded and not invoked; live provider availability and natural-period results remain CANNOT_CONFIRM.",
+    "Provider-guard zero-event evidence is fixture-only; reuse with original plist/newrelease/canonical import lock is CANNOT_CONFIRM."
+  ],
+  "provider_guard_assessment": {
+    "sitecustomize_file": "tests/provider_guard/sitecustomize.py:22-37 blocks Futu/PyTDX imports; :40-67 blocks subprocess and socket connection APIs; :70-75 writes a guard event log on exit.",
+    "separate_from_write_guard": true,
+    "offline_write_guard_activation": "ops/_run_stage_center_nodes_parts/node_entry.py:570-571 installs stage_center.end_to_end_deadline.install_offline_canary_guard only when V4_STAGE_CANARY_ROOT is set; the CANARY_DIR_FD_OUTSIDE_ROOT check is in that separate canary-only guard.",
+    "tested_environment": "Fixture CLI canary used the candidate runtime, fixture config/roots and V4_STAGE_CANARY_ROOT; provider event count was zero. Its harness sets PYTHONPATH=str(GUARD_PATH), replacing the inherited PYTHONPATH.",
+    "formal_full_plist_newrelease_cli_reuse": "CANNOT_CONFIRM: sitecustomize is mechanically separable from the write guard, but was not run with the original plist environment, newrelease config/roots, or canonical import lock; its global builtins.__import__ monkeypatch and PYTHONPATH replacement can affect that environment.",
+    "recommendation_for_acceptance_report": "Classify zero-provider proof as fixture-only until independently checked under the formal environment; do not copy the CANARY write guard to canonical roots."
+  }
+}

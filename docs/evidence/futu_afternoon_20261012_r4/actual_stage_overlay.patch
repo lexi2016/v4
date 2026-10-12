@@ -1,0 +1,1295 @@
+--- active-r1/stage_center/_live_collectors_parts/hk_minute.py
++++ recovery_r4/stage_center/_live_collectors_parts/hk_minute.py
+@@ -1,6 +1,215 @@
+ """stage_center.live_collectors: hk_minute (review candidate, not deployment)."""
+ from __future__ import annotations
++import hashlib
++import json
++import os
++from pathlib import Path
+ from ._namespace import read_global as _v4_global
++
++
++_FUTU_AFTERFACT_DATASET_PROFILES = {
++    "STAGE_1300_1315": {
++        "dataset_sha256": "63cba10b805b60dc7108ac7d633b0b1c32da2211b04fd976e1cd637ce083afe0",
++        "window": "13:00-13:15",
++        "cutoff": "13:15:00",
++        "observed_times": tuple(f"2026-10-12 13:{minute:02d}:00" for minute in range(1, 15)),
++    },
++    "STAGE_1445_1500": {
++        "dataset_sha256": "4a310b4920dc5c6ebb7ac8b9f50d1e73d2dcb4d0ef685fef329358c09c2223d0",
++        "window": "14:45-15:00",
++        "cutoff": "15:00:00",
++        "observed_times": tuple(f"2026-10-12 14:{minute:02d}:00" for minute in range(45, 60)),
++    },
++}
++
++
++def _load_futu_afterfact_source(plan, *, codes):
++    """Read only the frozen date/stage RT_DATA evidence when recovery enables it."""
++    dataset_path = os.environ.get("V4_HK_FUTU_AFTERFACT_DATASET")
++    if not dataset_path:
++        return None
++    from stage_center.acquisition import SourceResult
++    from stage_center.raw_store import (
++        HK_FUTU_RTDATA_CODE_SET_SHA256,
++        HK_FUTU_RTDATA_OBSERVATION_CONTRACT,
++        HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256,
++        HK_FUTU_RTDATA_POOL_SOURCE_SHA256,
++        HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1300,
++        HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1445,
++        HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1300,
++        HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1445,
++        HK_FUTU_RTDATA_SOURCE_ID,
++        _HK_FUTU_RTDATA_CANNOT_CONFIRM,
++        _HK_FUTU_RTDATA_STAGE_PROFILES,
++        _futu_rtd_observation_markers,
++        _futu_rtd_raw_projection_sha256,
++    )
++
++    profile = _FUTU_AFTERFACT_DATASET_PROFILES.get(plan.stage_id)
++    if (
++        profile is None
++        or plan.trade_date != "20261012"
++        or getattr(plan, "same_day_late_observation_recovery", False) is not True
++        or getattr(plan, "historical_backfill", False)
++    ):
++        return SourceResult(
++            HK_FUTU_RTDATA_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(codes),
++            cannot_confirm=("FUTU_RT_DATA_AFTERFACT_SCOPE_MISMATCH",),
++            source_evidence=("futu_afterfact_dataset_enabled=true",),
++        )
++    dataset_file = Path(dataset_path).expanduser()
++    try:
++        dataset_bytes = dataset_file.read_bytes()
++        dataset_sha = hashlib.sha256(dataset_bytes).hexdigest()
++        dataset = json.loads(dataset_bytes)
++    except (OSError, ValueError, json.JSONDecodeError) as error:
++        return SourceResult(
++            HK_FUTU_RTDATA_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(codes),
++            cannot_confirm=(f"FUTU_RT_DATA_DATASET_UNAVAILABLE:{type(error).__name__}",),
++            source_evidence=("futu_afterfact_dataset_enabled=true",),
++        )
++    stage_profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(plan.stage_id)
++    if (
++        dataset_sha != profile["dataset_sha256"]
++        or dataset.get("trade_date") != "20261012"
++        or dataset.get("stage_id") != plan.stage_id
++        or dataset.get("pool", {}).get("artifact_sha256") != HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256
++        or dataset.get("pool", {}).get("source_sha256") != HK_FUTU_RTDATA_POOL_SOURCE_SHA256
++        or dataset.get("pool", {}).get("code_set_sha256") != HK_FUTU_RTDATA_CODE_SET_SHA256
++        or dataset.get("pool", {}).get("code_count") != 100
++        or set(str(code).upper() for code in codes) != set(str(code).upper() for code in dataset.get("pool", {}).get("codes", ()))
++        or len({str(code).upper() for code in codes}) != len(codes)
++        or len({str(code).upper() for code in dataset.get("pool", {}).get("codes", ())}) != len(dataset.get("pool", {}).get("codes", ()))
++        or len(codes) != 100
++        or stage_profile is None
++    ):
++        return SourceResult(
++            HK_FUTU_RTDATA_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(codes),
++            cannot_confirm=("FUTU_RT_DATA_CAPTURE_IDENTITY_MISMATCH",),
++            source_evidence=("futu_afterfact_dataset_enabled=true", f"futu_afterfact_capture_sha256={dataset_sha}"),
++        )
++
++    target_start, target_end = profile["window"].split("-")
++    target = [
++        row for row in dataset.get("provider_rows", ())
++        if isinstance(row, dict)
++        and str(row.get("code") or "").upper() in set(str(code).upper() for code in codes)
++        and row.get("is_blank") is False
++        and f"2026-10-12 {target_start}:00" <= str(row.get("time") or "") < f"2026-10-12 {target_end}:00"
++    ]
++    code_order = [str(code).upper() for code in codes]
++    per_code = {code: [] for code in code_order}
++    for row in target:
++        per_code[str(row["code"]).upper()].append(row)
++    expected_times = profile["observed_times"]
++    if (
++        len(target) != len(code_order) * len(expected_times)
++        or any(tuple(sorted(str(row.get("time") or "") for row in per_code[code])) != expected_times for code in code_order)
++    ):
++        return SourceResult(
++            HK_FUTU_RTDATA_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(codes),
++            cannot_confirm=("FUTU_RT_DATA_TARGET_WINDOW_COVERAGE_MISMATCH",),
++            source_evidence=("futu_afterfact_dataset_enabled=true", f"futu_afterfact_capture_sha256={dataset_sha}"),
++        )
++    provider_rows_sha256 = hashlib.sha256(
++        json.dumps(
++            sorted(target, key=lambda row: (str(row.get("code") or "").upper(), str(row.get("time") or ""))),
++            ensure_ascii=False,
++            sort_keys=True,
++            separators=(",", ":"),
++        ).encode("utf-8")
++    ).hexdigest()
++    expected_provider_sha = stage_profile[7]
++    if provider_rows_sha256 != expected_provider_sha:
++        return SourceResult(
++            HK_FUTU_RTDATA_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(codes),
++            cannot_confirm=("FUTU_RT_DATA_PROVIDER_ROWS_SHA_MISMATCH",),
++            source_evidence=("futu_afterfact_dataset_enabled=true", f"futu_afterfact_capture_sha256={dataset_sha}"),
++        )
++
++    capture_batch = {
++        str(code).upper(): batch_index
++        for batch_index, capture in enumerate(dataset.get("capture_sources", ()), start=1)
++        for code in capture.get("codes", ())
++    }
++    last_timestamp = expected_times[-1]
++    last_rows = {str(row["code"]).upper(): row for row in target if row.get("time") == last_timestamp}
++    row_start = f"2026-10-12 {stage_profile[2]}"
++    row_end = f"2026-10-12 {stage_profile[3]}"
++    observations_per_code = stage_profile[4]
++    rows = []
++    for code in code_order:
++        row = last_rows[code]
++        rows.append({
++            "batch_index": capture_batch.get(code),
++            "code": code,
++            "name": row.get("name") or "",
++            "update_time": last_timestamp,
++            "last_price": row.get("cur_price"),
++            "open_price": None,
++            "high_price": None,
++            "low_price": None,
++            "prev_close_price": row.get("last_close"),
++            "turnover": row.get("turnover"),
++            "volume": row.get("volume"),
++            "bid_price": None,
++            "ask_price": None,
++            "bid_vol": None,
++            "ask_vol": None,
++            "window_start": row_start,
++            "window_end": row_end,
++            "bar_count": observations_per_code,
++            "temporal_cutoff_safe": False,
++        })
++    expected_projection_sha = stage_profile[8]
++    if _futu_rtd_raw_projection_sha256(rows) != expected_projection_sha:
++        return SourceResult(
++            HK_FUTU_RTDATA_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(codes),
++            cannot_confirm=("FUTU_RT_DATA_RAW_PROJECTION_SHA_MISMATCH",),
++            source_evidence=("futu_afterfact_dataset_enabled=true", f"futu_afterfact_capture_sha256={dataset_sha}"),
++        )
++    evidence = list(_futu_rtd_observation_markers(plan.stage_id, dataset_sha))
++    evidence.extend((
++        f"futu_afterfact_target_provider_rows_sha256={provider_rows_sha256}",
++        "futu_afterfact_provider_fields=avg_price,code,cur_price,is_blank,last_close,name,opened_mins,time,turnover,volume",
++        "futu_afterfact_missing_ohlc_fields=open_price,high_price,low_price",
++        "futu_afterfact_missing_orderbook_fields=bid_price,ask_price,bid_vol,ask_vol",
++        "futu_afterfact_dataset_basename=rt_data_fixedpool100_dataset_20261012.json" if plan.stage_id == "STAGE_1300_1315" else "futu_afterfact_dataset_basename=rt_data_fixedpool100_1445_dataset_20261012.json",
++    ))
++    expected_projection_marker = (
++        f"futu_afterfact_raw_projection_sha256={HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1300}"
++        if plan.stage_id == "STAGE_1300_1315"
++        else f"futu_afterfact_raw_projection_sha256={HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1445}"
++    )
++    if expected_projection_marker not in evidence:
++        return SourceResult(
++            HK_FUTU_RTDATA_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(codes),
++            cannot_confirm=("FUTU_RT_DATA_CONTRACT_MARKERS_INVALID",),
++            source_evidence=tuple(evidence),
++        )
++    return SourceResult(
++        source_id=HK_FUTU_RTDATA_SOURCE_ID,
++        status="PARTIAL_WITH_ROWS",
++        rows=tuple(rows),
++        cannot_confirm=tuple(_HK_FUTU_RTDATA_CANNOT_CONFIRM),
++        requested_rows=100,
++        missing_symbols=(),
++        source_evidence=tuple(dict.fromkeys(evidence)),
++    )
+ 
+ 
+ def _collect_hk_minute_body(_v4_scope, /, plan, *, codes, python_path, shared_root, process_runner, replay_provider):
+@@ -18,6 +227,30 @@
+         # scan is not an equivalent source and must never be used as a
+         # fallback when the exact replay provider is unavailable.
+         return _v4_global(_v4_scope, '_collect_hk_stage8_replay')(plan, codes=codes, replay_provider=replay_provider)
++    futu_afterfact = _load_futu_afterfact_source(plan, codes=codes)
++    if futu_afterfact is not None:
++        return futu_afterfact
++    if plan.stage_id in {"STAGE_1300_1315", "STAGE_1445_1500"}:
++        # The afternoon HK collectors use the shared quote-only Futu route as
++        # their primary minute source. A failed or partial Futu result remains
++        # visible as such; it must not silently fall back to PyTDX.
++        root = _v4_global(_v4_scope, '_shared_scripts_root')(shared_root)
++        module = _v4_global(_v4_scope, '_load_shared_module')(root, "scripts.live_acquisition.futu_bridge")
++        scoped_runner = _v4_global(_v4_scope, '_scoped_process_runner')(root, process_runner)
++        result = module.collect_futu_minute(
++            python_path,
++            plan.trade_date,
++            plan.stage_id,
++            _v4_global(_v4_scope, 'list')(codes),
++            market="HK_CONNECT",
++            process_runner=scoped_runner,
++        )
++        return _v4_global(_v4_scope, '_to_source')(
++            result,
++            source_id="futu",
++            route="shared_futu_hkconnect_minute",
++            requested=_v4_global(_v4_scope, 'len')(codes),
++        )
+     root = _v4_global(_v4_scope, '_shared_scripts_root')(shared_root)
+     module = _v4_global(_v4_scope, '_load_shared_module')(root, "scripts.live_acquisition.pytdx_exhq")
+     scoped_runner = _v4_global(_v4_scope, '_scoped_process_runner')(root, process_runner)
+--- active-r1/stage_center/_live_collectors_parts/selection_builder_registry.py
++++ recovery_r4/stage_center/_live_collectors_parts/selection_builder_registry.py
+@@ -1,6 +1,153 @@
+ """stage_center.live_collectors: selection_builder_registry (review candidate, not deployment)."""
+ from __future__ import annotations
++import hashlib
++import json
+ from ._namespace import read_global as _v4_global
++
++
++_HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256 = "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d"
++_HK_FUTU_RTDATA_POOL_SOURCE_SHA256 = "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d"
++_HK_FUTU_RTDATA_CODE_SET_SHA256 = "5e7ad70ddcd6bcf1ab5007ef8c5f365258e77d6e8d52ade5be2177cb24ae1223"
++_HK_FUTU_RTDATA_STAGE_PROFILES = {
++    "STAGE_1300_1315": (
++        "13:00-13:15", "13:15:00", "13:00:00", "13:14:00", 14, 1400,
++        "63cba10b805b60dc7108ac7d633b0b1c32da2211b04fd976e1cd637ce083afe0",
++        "018175c4cd1e7d2278033da39d79d09e3856468400ea384f104584551e304ad9",
++        "54770c58c801f21a61363abee5db5a1eaf015e99a117be75eca758f229ba431b",
++        "3b3cc0a321c1a45abc973d88a73c2c5d9c03731a1f5ac5746ce7c48ea8ae1b73",
++    ),
++    "STAGE_1445_1500": (
++        "14:45-15:00", "15:00:00", "14:45:00", "14:59:00", 15, 1500,
++        "4a310b4920dc5c6ebb7ac8b9f50d1e73d2dcb4d0ef685fef329358c09c2223d0",
++        "0517c61ca85c25e2213a3ff787509d2c7285ec26b473e2a07daa579dab358f05",
++        "66e27894b45c5e9b15f25d3e0edf2a3d0a437ac80c12bd228017bc01c9c92132",
++        "c49ebb533922769b78c7c7d94b7e6b0e3e06ba8fc3961c0611b0ca326ad77d15",
++    ),
++}
++_HK_FUTU_RTDATA_OBSERVATION_CONTRACT = "HK_FUTU_RTDATA_AFTERFACT_RESEARCH_20261012_R1"
++_HK_FUTU_RTDATA_SOURCE_ID = "futu_rt_data_afterfact"
++_HK_FUTU_RTDATA_CANNOT_CONFIRM = {
++    "FUTU_RT_DATA_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT",
++    "FUTU_RT_DATA_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
++    "FUTU_RT_DATA_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
++    "FUTU_RT_DATA_OHLC_AND_ORDERBOOK_UNAVAILABLE",
++}
++
++
++def _is_futu_rtd_afterfact_observation(source, plan, raw, rows) -> bool:
++    """Admit only the independently verified fixed-pool 2026-10-12 Futu observations."""
++    profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(plan.stage_id)
++    if profile is None:
++        return False
++    window, cutoff, row_start_time, row_end_time, observations_per_code, observation_count, capture_sha, provider_sha, projection_sha, projection_without_name_sha = profile
++    required_evidence = {
++        f"futu_observation_contract={_HK_FUTU_RTDATA_OBSERVATION_CONTRACT}",
++        "futu_afterfact_target_date=20261012",
++        f"futu_afterfact_stage_id={plan.stage_id}",
++        "futu_afterfact_market=HK_CONNECT",
++        f"futu_afterfact_source_id={_HK_FUTU_RTDATA_SOURCE_ID}",
++        f"futu_afterfact_window={window}",
++        f"futu_afterfact_cutoff={cutoff}",
++        f"futu_afterfact_row_window_start={row_start_time}",
++        f"futu_afterfact_row_window_end={row_end_time}",
++        f"futu_afterfact_pool_artifact_sha256={_HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256}",
++        f"futu_afterfact_pool_source_sha256={_HK_FUTU_RTDATA_POOL_SOURCE_SHA256}",
++        f"futu_afterfact_code_set_sha256={_HK_FUTU_RTDATA_CODE_SET_SHA256}",
++        "futu_afterfact_requested_code_count=100",
++        "futu_afterfact_completed_code_count=100",
++        f"futu_afterfact_observations_per_code={observations_per_code}",
++        f"futu_afterfact_nonblank_observation_count={observation_count}",
++        f"futu_afterfact_capture_sha256={capture_sha}",
++        "futu_afterfact_temporal_cutoff_safe=false",
++        "futu_afterfact_pit_safe=false",
++        "futu_afterfact_formal_stage_eligibility=CANNOT_CONFIRM",
++        "futu_afterfact_natural_time_capture=CANNOT_CONFIRM",
++        "futu_afterfact_selection_action_boundary=NO_BUY",
++        f"futu_afterfact_target_provider_rows_sha256={provider_sha}",
++        f"futu_afterfact_raw_projection_sha256={projection_sha}",
++        "research_only=true",
++        "production_allowed=false",
++        "buy_gate_updated=false",
++        "orders_sent=false",
++    }
++    evidence = set(str(item) for item in (source.source_evidence or ()))
++    raw_evidence = set(str(item) for item in (raw.get("source_evidence") or ()))
++    if (
++        plan.trade_date != "20261012"
++        or source.source_id != _HK_FUTU_RTDATA_SOURCE_ID
++        or source.status != "PARTIAL_WITH_ROWS"
++        or source.requested_rows != 100
++        or source.missing_symbols
++        or len(rows) != 100
++        or raw.get("trade_date") != "20261012"
++        or raw.get("stage_id") != plan.stage_id
++        or raw.get("market") != "HK_CONNECT"
++        or raw.get("source_id") != _HK_FUTU_RTDATA_SOURCE_ID
++        or raw.get("status") != "PARTIAL_WITH_ROWS"
++        or raw.get("source_status") != "PARTIAL_WITH_ROWS"
++        or raw.get("research_observation_contract") != _HK_FUTU_RTDATA_OBSERVATION_CONTRACT
++        or raw.get("window") != window
++        or raw.get("cutoff_at") != cutoff
++        or raw.get("row_count") != 100
++        or raw.get("requested_rows") != 100
++        or raw.get("missing_symbols")
++        or raw.get("temporal_cutoff_safe") is not False
++        or raw.get("production_allowed") is not False
++        or raw.get("buy_gate_updated") is not False
++        or raw.get("orders_sent") is not False
++        or not _HK_FUTU_RTDATA_CANNOT_CONFIRM.issubset(set(source.cannot_confirm or ()))
++        or not _HK_FUTU_RTDATA_CANNOT_CONFIRM.issubset(set(raw.get("cannot_confirm") or ()))
++        or not required_evidence.issubset(evidence)
++        or not required_evidence.issubset(raw_evidence)
++    ):
++        return False
++    raw_source_rows = list(source.rows)
++    codes = [str(row.get("code") or "").strip().upper() for row in raw_source_rows]
++    if len(set(codes)) != 100:
++        return False
++    code_set_sha = hashlib.sha256(
++        json.dumps(tuple(sorted(codes)), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++    if code_set_sha != _HK_FUTU_RTDATA_CODE_SET_SHA256:
++        return False
++    # Bind every raw field other than display name to the immutable capture.
++    # D-1 authority may replace a quote-provider name, but it must not alter
++    # the captured prices, volume, turnover, timestamps, or other raw fields.
++    from stage_center.raw_store import RAW_FIELDS
++    projection_fields = tuple(field for field in RAW_FIELDS if field != "name")
++    projection_without_name = [
++        {
++            field: ("" if row.get(field) in (None, "") else str(row.get(field)))
++            for field in projection_fields
++        }
++        for row in sorted(raw_source_rows, key=lambda item: str(item.get("code") or "").upper())
++    ]
++    selection_projection_sha = hashlib.sha256(
++        json.dumps(projection_without_name, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++    if selection_projection_sha != projection_without_name_sha:
++        return False
++    # RawStore separately verified the full original provider projection,
++    # including the provider name, before D-1 authority was overlaid.
++    raw_projection_marker = f"futu_afterfact_raw_projection_sha256={profile[8]}"
++    if raw_projection_marker not in evidence or raw_projection_marker not in raw_evidence:
++        return False
++    update_time = f"2026-10-12 {row_end_time}"
++    for row in raw_source_rows:
++        if (
++            row.get("update_time") != update_time
++            or row.get("temporal_cutoff_safe") not in (False, "False", "false")
++            or row.get("window_start") != f"2026-10-12 {row_start_time}"
++            or row.get("window_end") != update_time
++            or row.get("bar_count") not in (observations_per_code, str(observations_per_code))
++            or row.get("last_price") in (None, "")
++            or row.get("prev_close_price") in (None, "")
++            or any(row.get(field) not in (None, "") for field in (
++                "open_price", "high_price", "low_price", "bid_price", "ask_price", "bid_vol", "ask_vol"
++            ))
++        ):
++            return False
++    return True
+ 
+ 
+ def _production_selection_builders_body(_v4_scope, /, stage_id, *, research_root, morning_root):
+@@ -283,6 +430,32 @@
+                 if "LIVE_HKCONNECT_GAINER" in item["candidate_lanes"]
+             ]
+         if not active_rows:
++            if _is_futu_rtd_afterfact_observation(source, plan, raw, rows):
++                # This exact Futu RT_DATA profile is an after-fact observation
++                # only. Reuse the frozen four-lane selector with no asserted
++                # live lane; all resulting rows retain NO_BUY semantics.
++                return select_hk_four_lane(
++                    rows,
++                    plan.trade_date,
++                    plan.stage_id,
++                    _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]),
++                    source_status="PARTIAL_WITH_ROWS",
++                    requested_rows=100,
++                    missing_symbols=source.missing_symbols,
++                    cannot_confirm=source.cannot_confirm,
++                    source_evidence=_v4_global(_v4_scope, 'tuple')(
++                        _v4_global(_v4_scope, 'dict').fromkeys(
++                            (
++                                *raw.get("source_evidence", ()),
++                                *source.source_evidence,
++                                *d1_evidence,
++                                top10_contract_evidence,
++                                "hk_lane_authority_missing",
++                                "hk_selection_mode=FUTU_RT_DATA_AFTERFACT_OBSERVATION",
++                            )
++                        )
++                    ),
++                )
+             if (
+                 rows
+                 and source.status == "PARTIAL_WITH_ROWS"
+--- active-r1/stage_center/raw_store.py
++++ recovery_r4/stage_center/raw_store.py
+@@ -9,6 +9,7 @@
+ from __future__ import annotations
+ 
+ import csv
++from contextvars import ContextVar
+ import hashlib
+ import json
+ import os
+@@ -68,6 +69,218 @@
+ }
+ 
+ 
++# One-day Futu RT_DATA observation contract. It permits preserved after-cutoff
++# observations only; it never asserts candle OHLC, PIT safety, or formal eligibility.
++HK_FUTU_RTDATA_OBSERVATION_CONTRACT = "HK_FUTU_RTDATA_AFTERFACT_RESEARCH_20261012_R1"
++HK_FUTU_RTDATA_SOURCE_ID = "futu_rt_data_afterfact"
++HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256 = "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d"
++HK_FUTU_RTDATA_POOL_SOURCE_SHA256 = "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d"
++HK_FUTU_RTDATA_CODE_SET_SHA256 = "5e7ad70ddcd6bcf1ab5007ef8c5f365258e77d6e8d52ade5be2177cb24ae1223"
++HK_FUTU_RTDATA_CAPTURE_SHA256_1300 = "63cba10b805b60dc7108ac7d633b0b1c32da2211b04fd976e1cd637ce083afe0"
++HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1300 = "018175c4cd1e7d2278033da39d79d09e3856468400ea384f104584551e304ad9"
++HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1300 = "54770c58c801f21a61363abee5db5a1eaf015e99a117be75eca758f229ba431b"
++HK_FUTU_RTDATA_CAPTURE_SHA256_1445 = "4a310b4920dc5c6ebb7ac8b9f50d1e73d2dcb4d0ef685fef329358c09c2223d0"
++HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1445 = "0517c61ca85c25e2213a3ff787509d2c7285ec26b473e2a07daa579dab358f05"
++HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1445 = "66e27894b45c5e9b15f25d3e0edf2a3d0a437ac80c12bd228017bc01c9c92132"
++_HK_FUTU_RTDATA_STAGE_PROFILES = {
++    "STAGE_1300_1315": (
++        "13:00-13:15", "13:15:00", "13:00:00", "13:14:00", 14, 1400,
++        HK_FUTU_RTDATA_CAPTURE_SHA256_1300,
++        HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1300,
++        HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1300,
++    ),
++    "STAGE_1445_1500": (
++        "14:45-15:00", "15:00:00", "14:45:00", "14:59:00", 15, 1500,
++        HK_FUTU_RTDATA_CAPTURE_SHA256_1445,
++        HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1445,
++        HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1445,
++    ),
++}
++_HK_FUTU_RTDATA_CANNOT_CONFIRM = (
++    "FUTU_RT_DATA_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT",
++    "FUTU_RT_DATA_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
++    "FUTU_RT_DATA_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
++    "FUTU_RT_DATA_OHLC_AND_ORDERBOOK_UNAVAILABLE",
++)
++
++
++def _futu_rtd_observation_markers(stage_id: str, capture_sha256: str) -> tuple[str, ...]:
++    profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(stage_id)
++    if profile is None:
++        return ()
++    window, cutoff, start, end, observations_per_code, observation_count, _, provider_rows_sha256, projection_sha256 = profile
++    return (
++        f"futu_observation_contract={HK_FUTU_RTDATA_OBSERVATION_CONTRACT}",
++        "futu_afterfact_target_date=20261012",
++        f"futu_afterfact_stage_id={stage_id}",
++        "futu_afterfact_market=HK_CONNECT",
++        f"futu_afterfact_source_id={HK_FUTU_RTDATA_SOURCE_ID}",
++        f"futu_afterfact_window={window}",
++        f"futu_afterfact_cutoff={cutoff}",
++        f"futu_afterfact_row_window_start={start}",
++        f"futu_afterfact_row_window_end={end}",
++        f"futu_afterfact_pool_artifact_sha256={HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256}",
++        f"futu_afterfact_pool_source_sha256={HK_FUTU_RTDATA_POOL_SOURCE_SHA256}",
++        f"futu_afterfact_code_set_sha256={HK_FUTU_RTDATA_CODE_SET_SHA256}",
++        "futu_afterfact_requested_code_count=100",
++        "futu_afterfact_completed_code_count=100",
++        f"futu_afterfact_observations_per_code={observations_per_code}",
++        f"futu_afterfact_nonblank_observation_count={observation_count}",
++        f"futu_afterfact_capture_sha256={capture_sha256}",
++        "futu_afterfact_temporal_cutoff_safe=false",
++        "futu_afterfact_pit_safe=false",
++        "futu_afterfact_formal_stage_eligibility=CANNOT_CONFIRM",
++        "futu_afterfact_natural_time_capture=CANNOT_CONFIRM",
++        "futu_afterfact_selection_action_boundary=NO_BUY",
++        f"futu_afterfact_target_provider_rows_sha256={provider_rows_sha256}",
++        f"futu_afterfact_raw_projection_sha256={projection_sha256}",
++        "research_only=true",
++        "production_allowed=false",
++        "buy_gate_updated=false",
++        "orders_sent=false",
++    )
++
++
++def _futu_rtd_raw_projection_sha256(rows: Sequence[Mapping[str, Any]]) -> str:
++    projected = [
++        {
++            field: ("" if row.get(field) in (None, "") else str(row.get(field)))
++            for field in RAW_FIELDS
++        }
++        for row in sorted(rows, key=lambda item: str(item.get("code") or "").upper())
++    ]
++    return hashlib.sha256(
++        json.dumps(projected, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++
++
++def _allows_hk_futu_rtd_temporal_false_observation(
++    *,
++    enabled: bool,
++    trade_date: str,
++    stage_id: str,
++    market: str,
++    source_id: str,
++    source_status: str,
++    rows: Sequence[Mapping[str, Any]],
++    requested_rows: int | None,
++    missing_symbols: Sequence[str],
++    cannot_confirm: Sequence[str],
++    source_evidence: Sequence[str],
++    window: str | None,
++    cutoff_at: str | None,
++    manifest_temporal_cutoff_safe: bool | None = False,
++) -> bool:
++    if enabled is not True or manifest_temporal_cutoff_safe is not False:
++        return False
++    profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(stage_id)
++    if (
++        trade_date != "20261012"
++        or market != "HK_CONNECT"
++        or source_id != HK_FUTU_RTDATA_SOURCE_ID
++        or source_status != "PARTIAL_WITH_ROWS"
++        or profile is None
++        or (window, cutoff_at) != profile[:2]
++        or requested_rows != 100
++        or bool(missing_symbols)
++        or len(rows) != 100
++        or not set(_HK_FUTU_RTDATA_CANNOT_CONFIRM).issubset(set(str(item) for item in cannot_confirm))
++    ):
++        return False
++    evidence = set(str(item) for item in source_evidence)
++    capture_sha = next((item.split("=", 1)[1] for item in evidence if item.startswith("futu_afterfact_capture_sha256=")), "")
++    if not _SHA_RE.fullmatch(capture_sha):
++        return False
++    if capture_sha != profile[6]:
++        return False
++    if not set(_futu_rtd_observation_markers(stage_id, capture_sha)).issubset(evidence):
++        return False
++    codes = [str(row.get("code") or "").upper() for row in rows]
++    if len(set(codes)) != 100 or any(not _MARKET_CODE["HK_CONNECT"].fullmatch(code) for code in codes):
++        return False
++    code_set_sha = hashlib.sha256(
++        json.dumps(tuple(sorted(codes)), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++    if code_set_sha != HK_FUTU_RTDATA_CODE_SET_SHA256:
++        return False
++    if _futu_rtd_raw_projection_sha256(rows) != profile[8]:
++        return False
++    row_start = f"2026-10-12 {profile[2]}"
++    row_end = f"2026-10-12 {profile[3]}"
++    for row in rows:
++        if set(row) != set(RAW_FIELDS):
++            return False
++        if (
++            row.get("temporal_cutoff_safe") is not False
++            or row.get("window_start") != row_start
++            or row.get("window_end") != row_end
++            or row.get("update_time") != row_end
++            or row.get("bar_count") not in (profile[4], str(profile[4]))
++            or row.get("last_price") in (None, "")
++            or row.get("prev_close_price") in (None, "")
++            or any(row.get(field) not in (None, "") for field in (
++                "open_price", "high_price", "low_price", "bid_price", "ask_price", "bid_vol", "ask_vol"
++            ))
++        ):
++            return False
++    return True
++
++
++_FUTU_RTD_OBSERVATION_CONTEXT: ContextVar[dict[str, Any] | None] = ContextVar(
++    "stage_center_futu_rtd_observation_context", default=None
++)
++
++
++@contextmanager
++def futu_rtd_observation_scope(
++    *,
++    research_observation_contract: str | None,
++    trade_date: str,
++    stage_id: str,
++    market: str,
++    source_id: str,
++    source_status: str,
++    rows: Sequence[Mapping[str, Any]],
++    requested_rows: int | None,
++    missing_symbols: Sequence[str],
++    cannot_confirm: Sequence[str],
++    source_evidence: Sequence[str],
++    window: str | None,
++    cutoff_at: str | None,
++):
++    context = {
++        "enabled": research_observation_contract == HK_FUTU_RTDATA_OBSERVATION_CONTRACT,
++        "trade_date": trade_date,
++        "stage_id": stage_id,
++        "market": market,
++        "source_id": source_id,
++        "source_status": source_status,
++        "rows": rows,
++        "requested_rows": requested_rows,
++        "missing_symbols": missing_symbols,
++        "cannot_confirm": cannot_confirm,
++        "source_evidence": source_evidence,
++        "window": window,
++        "cutoff_at": cutoff_at,
++    }
++    if not _allows_hk_futu_rtd_temporal_false_observation(**context):
++        raise RawStoreError("Futu after-fact observation contract mismatch")
++    token = _FUTU_RTD_OBSERVATION_CONTEXT.set(context)
++    try:
++        yield
++    finally:
++        _FUTU_RTD_OBSERVATION_CONTEXT.reset(token)
++
++
++def _mark_futu_rtd_observation_result(result: Mapping[str, Any]) -> dict[str, Any]:
++    marked = dict(result)
++    marked["research_observation_contract"] = HK_FUTU_RTDATA_OBSERVATION_CONTRACT
++    marked["temporal_cutoff_safe"] = False
++    marked["pit_safe"] = False
++    marked.update(SAFETY_FLAGS)
++    return marked
++
++
+ class RawStoreError(ValueError):
+     """Fail-closed raw artifact validation, conflict, or integrity error."""
+ 
+@@ -195,6 +408,23 @@
+ ) -> tuple[list[dict[str, Any]], list[str]]:
+     """Validate the frozen 19-field raw shape without dropping evidence."""
+     from stage_center._raw_store_parts.receipt_identity import _validate_rows_body as _v4_impl
++    context = _FUTU_RTD_OBSERVATION_CONTEXT.get()
++    if context is not None and _allows_hk_futu_rtd_temporal_false_observation(
++        **{**context, "rows": rows}
++    ):
++        # Validate the frozen shape/window using its existing validator, then
++        # restore the provider's explicit false safety value before persistence.
++        checked, issues = _v4_impl(
++            globals(),
++            tuple({**dict(row), "temporal_cutoff_safe": True} for row in rows),
++            trade_date=trade_date,
++            stage_id=stage_id,
++            market=market,
++        )
++        return [
++            {**row, "temporal_cutoff_safe": False}
++            for row in checked
++        ], issues
+     return _v4_impl(globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market)
+ 
+ 
+@@ -257,12 +487,42 @@
+         return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, market=market, run_id=run_id, expected_owner=expected_owner)
+ 
+     def verify_run(self, trade_date: str, stage_id: str, market: str, run_id: str) -> dict[str, Any]:
+-        return self._verify_run_paths(
++        verified = self._verify_run_paths(
+             trade_date=trade_date,
+             stage_id=stage_id,
+             market=market,
+             run_id=run_id,
+         )
++        if verified.get("source_id") == HK_FUTU_RTDATA_SOURCE_ID:
++            manifest = _read_json(_safe_relative(self.root, verified["manifest_relative"]))
++            artifact_path = _safe_relative(self.root, verified["artifact_relative"])
++            rows: list[dict[str, Any]] = []
++            with artifact_path.open("r", encoding="utf-8-sig", newline="") as stream:
++                for raw in csv.DictReader(stream):
++                    row = {field: raw.get(field, "") for field in RAW_FIELDS}
++                    row["temporal_cutoff_safe"] = (
++                        False if str(row["temporal_cutoff_safe"]).strip().lower() == "false" else True
++                    )
++                    rows.append(row)
++            if not _allows_hk_futu_rtd_temporal_false_observation(
++                enabled=True,
++                trade_date=trade_date,
++                stage_id=stage_id,
++                market=market,
++                source_id=str(verified.get("source_id") or ""),
++                source_status=str(verified.get("source_status") or ""),
++                rows=rows,
++                requested_rows=verified.get("requested_rows"),
++                missing_symbols=verified.get("missing_symbols", ()),
++                cannot_confirm=verified.get("cannot_confirm", ()),
++                source_evidence=verified.get("source_evidence", ()),
++                window=verified.get("window"),
++                cutoff_at=verified.get("cutoff_at"),
++                manifest_temporal_cutoff_safe=manifest.get("temporal_cutoff_safe"),
++            ):
++                raise RawStoreError("Futu after-fact observation contract mismatch")
++            verified = _mark_futu_rtd_observation_result(verified)
++        return verified
+ 
+     def verify_latest(self, trade_date: str, stage_id: str, market: str) -> dict[str, Any]:
+         latest = self._load_latest()
+@@ -295,9 +555,30 @@
+         missing_symbols: Sequence[str] = (),
+         window: str | None = None,
+         cutoff_at: str | None = None,
++        research_observation_contract: str | None = None,
+     ) -> dict[str, Any]:
+         from stage_center._raw_store_parts.transaction_publish import _RawStore_publish_body as _v4_impl
+-        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at)
++        if research_observation_contract is None:
++            result = _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at)
++            context = _FUTU_RTD_OBSERVATION_CONTEXT.get()
++            return _mark_futu_rtd_observation_result(result) if context and context.get("enabled") is True else result
++        with futu_rtd_observation_scope(
++            research_observation_contract=research_observation_contract,
++            trade_date=trade_date,
++            stage_id=stage_id,
++            market=market,
++            source_id=source_id,
++            source_status=source_status,
++            rows=rows,
++            requested_rows=requested_rows,
++            missing_symbols=missing_symbols,
++            cannot_confirm=cannot_confirm,
++            source_evidence=source_evidence,
++            window=window,
++            cutoff_at=cutoff_at,
++        ):
++            result = _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at)
++            return _mark_futu_rtd_observation_result(result)
+ 
+     def _load_bundle_latest(self) -> dict[str, Any]:
+         from stage_center._raw_store_parts.codec import _RawStore__load_bundle_latest_body as _v4_impl
+@@ -345,6 +626,24 @@
+     missing_symbols: Sequence[str] = (),
+     window: str | None = None,
+     cutoff_at: str | None = None,
++    research_observation_contract: str | None = None,
+ ) -> dict[str, Any]:
+     from stage_center._raw_store_parts.transaction_publish import _publish_raw_artifact_body as _v4_impl
+-    return _v4_impl(globals(), root, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at)
++    if research_observation_contract is None:
++        return _v4_impl(globals(), root, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at)
++    with futu_rtd_observation_scope(
++        research_observation_contract=research_observation_contract,
++        trade_date=trade_date,
++        stage_id=stage_id,
++        market=market,
++        source_id=source_id,
++        source_status=source_status,
++        rows=rows,
++        requested_rows=requested_rows,
++        missing_symbols=missing_symbols,
++        cannot_confirm=cannot_confirm,
++        source_evidence=source_evidence,
++        window=window,
++        cutoff_at=cutoff_at,
++    ):
++        return _v4_impl(globals(), root, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at)
+--- active-r1/stage_center/_runner_parts/slot_execution.py
++++ recovery_r4/stage_center/_runner_parts/slot_execution.py
+@@ -573,12 +573,52 @@
+             source = sources[market]
+             if source.status == "CANNOT_CONFIRM" and not source.rows:
+                 continue
+-            projected_rows[market] = _v4_global(_v4_scope, '_project_raw_rows')(
+-                source.rows,
+-                trade_date=trade_date,
+-                stage_id=stage_id,
+-                market=market,
+-            )
++            futu_observation_contract = None
++            if (
++                market == "HK_CONNECT"
++                and source.source_id == "futu_rt_data_afterfact"
++                and "futu_observation_contract=HK_FUTU_RTDATA_AFTERFACT_RESEARCH_20261012_R1"
++                in source.source_evidence
++            ):
++                from stage_center.raw_store import (
++                    HK_FUTU_RTDATA_OBSERVATION_CONTRACT,
++                    RAW_FIELDS,
++                    futu_rtd_observation_scope,
++                )
++
++                futu_observation_contract = HK_FUTU_RTDATA_OBSERVATION_CONTRACT
++                projection_input = tuple(
++                    {field: row[field] for field in RAW_FIELDS}
++                    for row in source.rows
++                )
++                with futu_rtd_observation_scope(
++                    research_observation_contract=futu_observation_contract,
++                    trade_date=trade_date,
++                    stage_id=stage_id,
++                    market=market,
++                    source_id=source.source_id,
++                    source_status=source.status,
++                    rows=projection_input,
++                    requested_rows=source.requested_rows,
++                    missing_symbols=source.missing_symbols,
++                    cannot_confirm=source.cannot_confirm,
++                    source_evidence=source.source_evidence,
++                    window=stage_spec.window,
++                    cutoff_at=stage_spec.cutoff,
++                ):
++                    projected_rows[market] = _v4_global(_v4_scope, '_project_raw_rows')(
++                        source.rows,
++                        trade_date=trade_date,
++                        stage_id=stage_id,
++                        market=market,
++                    )
++            else:
++                projected_rows[market] = _v4_global(_v4_scope, '_project_raw_rows')(
++                    source.rows,
++                    trade_date=trade_date,
++                    stage_id=stage_id,
++                    market=market,
++                )
+         for market in markets:
+             source = sources[market]
+             # A zero-row CANNOT_CONFIRM is a receipt-only outcome.  It
+@@ -606,6 +646,13 @@
+                 missing_symbols=source.missing_symbols,
+                 window=window,
+                 cutoff_at=cutoff_at,
++                research_observation_contract=(
++                    "HK_FUTU_RTDATA_AFTERFACT_RESEARCH_20261012_R1"
++                    if source.source_id == "futu_rt_data_afterfact"
++                    and "futu_observation_contract=HK_FUTU_RTDATA_AFTERFACT_RESEARCH_20261012_R1"
++                    in source.source_evidence
++                    else None
++                ),
+             )
+             write_performed = True
+             _v4_global(_v4_scope, '_deadline').end_write("RAW_PUBLISH", market=market, artifact_sha256=raw_markets[market].get("artifact_sha256"))
+--- active-r1/ops/_run_stage_center_nodes_parts/stage_dispatch.py
++++ recovery_r4/ops/_run_stage_center_nodes_parts/stage_dispatch.py
+@@ -1,5 +1,8 @@
+ """ops.run_stage_center_nodes: stage_dispatch (review candidate, not deployment)."""
+ from __future__ import annotations
++import hashlib
++import os
++from pathlib import Path
+ from ._namespace import read_global as _v4_global
+ 
+ 
+@@ -22,6 +25,223 @@
+     "STAGE_1300_1315",
+     "STAGE_1445_1500",
+ })
++_HK_FUTU_1445_RECOVERY_DATE = "20261012"
++_HK_FUTU_1445_RECOVERY_STAGE = "STAGE_1445_1500"
++_HK_FUTU_1445_PRIOR_RECEIPT_SHA256 = "907f00b0c7b2280315cc642c37fc71360fdfcc9d3949374c0c183c7ab7cc837f"
++_HK_FUTU_1445_DATASET_SHA256 = "4a310b4920dc5c6ebb7ac8b9f50d1e73d2dcb4d0ef685fef329358c09c2223d0"
++_HK_FUTU_1300_RECOVERY_DATE = "20261012"
++_HK_FUTU_1300_RECOVERY_STAGE = "STAGE_1300_1315"
++_HK_FUTU_1300_PRIOR_RECEIPT_SHA256 = "1e7a2fe0b3236de35b79688af6c34b4b2798f16a8bd1e0d6bc0bcf9d7758d0d6"
++_HK_FUTU_1300_DATASET_SHA256 = "63cba10b805b60dc7108ac7d633b0b1c32da2211b04fd976e1cd637ce083afe0"
++_HK_FUTU_1300_CONSUMPTION_MARKER = "futu_afterfact_1300_once.json"
++
++
++def _clear_stale_scoped_recovery_failure(prior, result, *, origin):
++    """Drop only an unchanged prior failure after a row-bearing HK recovery."""
++    if origin != "HK_ORIGINAL_BUDGET_RECOVERY" or not isinstance(prior, dict) or not isinstance(result, dict):
++        return result
++    prior_error = prior.get("error")
++    prior_layer = prior.get("first_failed_layer")
++    if not prior_error or result.get("error") != prior_error or result.get("first_failed_layer") != prior_layer:
++        return result
++    hk = (result.get("markets") or {}).get("HK_CONNECT")
++    if (
++        result.get("status") != "PARTIAL_WITH_ROWS"
++        or not isinstance(hk, dict)
++        or hk.get("selection_status") != "PARTIAL_WITH_ROWS"
++        or type(hk.get("selected_rows")) is not int
++        or hk.get("selected_rows") <= 0
++        or not isinstance(hk.get("run_id"), str)
++        or not hk.get("run_id")
++        or not isinstance(hk.get("raw_artifact_sha256"), str)
++        or len(hk.get("raw_artifact_sha256")) != 64
++        or any(char not in "0123456789abcdef" for char in hk["raw_artifact_sha256"])
++    ):
++        return result
++    cleaned = dict(result)
++    # Explicit nulls override the frozen prior receipt during the final
++    # scoped merge while the byte-exact prior remains archived separately.
++    cleaned["error"] = None
++    cleaned["first_failed_layer"] = None
++    return cleaned
++
++
++def _same_day_hk_1445_futu_recovery_shape(
++    receipt, /, *, mode, trade_date, stage_id, attempt_count, max_attempts,
++    receipt_sha256, dataset_sha256,
++):
++    """Allow one exact cached Futu observation recovery inside the existing slot."""
++
++    if (
++        mode != "RECOVERY"
++        or trade_date != _HK_FUTU_1445_RECOVERY_DATE
++        or stage_id != _HK_FUTU_1445_RECOVERY_STAGE
++        or receipt_sha256 != _HK_FUTU_1445_PRIOR_RECEIPT_SHA256
++        or dataset_sha256 != _HK_FUTU_1445_DATASET_SHA256
++        or type(attempt_count) is not int
++        or type(max_attempts) is not int
++        or attempt_count != 1
++        or max_attempts != 3
++        or not isinstance(receipt, dict)
++        or any(
++            receipt.get(flag) is not False
++            for flag in ("production_allowed", "buy_gate_updated", "orders_sent")
++        )
++    ):
++        return False
++    required = {
++        "schema_version": "stage_center.runner.receipt.v1",
++        "trade_date": _HK_FUTU_1445_RECOVERY_DATE,
++        "stage_id": _HK_FUTU_1445_RECOVERY_STAGE,
++        "node_id": _HK_FUTU_1445_RECOVERY_STAGE,
++        "status": "PARTIAL_WITH_ROWS",
++        "due_status": "LATE_CATCHUP_REPLAY",
++        "dispatch_mode": "NATURAL",
++        "node_outcome": "SETTLED_PARTIAL",
++        "node_attempt_count": 1,
++        "write_performed": True,
++        "retry_exhausted": False,
++        "candidate_current_sha256": "c26102284e3eca12614118c3481e139ad805d65719d300f23e30887a9bf548b9",
++        "candidate_run_id": "20261012-a_share_stage_acquisition_universe_v3-8923902e3cc4",
++    }
++    if type(receipt.get("node_attempt_count")) is not int or any(
++        receipt.get(key) != value for key, value in required.items()
++    ):
++        return False
++    markets = receipt.get("markets")
++    if not isinstance(markets, dict):
++        return False
++    a_share = markets.get("A_SHARE")
++    hk = markets.get("HK_CONNECT")
++    return (
++        isinstance(a_share, dict)
++        and a_share.get("market") == "A_SHARE"
++        and a_share.get("selection_status") == "PARTIAL_WITH_ROWS"
++        and type(a_share.get("selected_rows")) is int
++        and a_share.get("selected_rows") == 10
++        and a_share.get("run_id") == "run-6bb61f95527796da3cd57bd2"
++        and isinstance(hk, dict)
++        and hk.get("market") == "HK_CONNECT"
++        and hk.get("status") == "CANNOT_CONFIRM"
++        and hk.get("source_status") == "CANNOT_CONFIRM"
++        and hk.get("selection_status") == "CANNOT_CONFIRM"
++        and type(hk.get("selected_rows")) is int
++        and hk.get("selected_rows") == 0
++        and hk.get("write_performed") is False
++        and hk.get("cannot_confirm") == [
++            "PyTDX ExHQ probe execution failed",
++            "PyTDX ExHQ probe returned an error",
++            "PyTDX ExHQ batch coverage incomplete: completed=0/100",
++        ]
++    )
++
++
++def _frozen_hk_futu_1445_hashes(config, trade_date, stage_id, mode):
++    if (
++        mode != "RECOVERY"
++        or trade_date != _HK_FUTU_1445_RECOVERY_DATE
++        or stage_id != _HK_FUTU_1445_RECOVERY_STAGE
++    ):
++        return None, None
++    receipt_path = (
++        Path(str(config["receipt_root"])).expanduser().resolve()
++        / trade_date / stage_id / "receipt.json"
++    )
++    dataset_path = os.environ.get("V4_HK_FUTU_AFTERFACT_DATASET")
++    try:
++        receipt_sha256 = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
++    except OSError:
++        receipt_sha256 = None
++    try:
++        dataset_sha256 = hashlib.sha256(Path(dataset_path).expanduser().read_bytes()).hexdigest() if dataset_path else None
++    except OSError:
++        dataset_sha256 = None
++    return receipt_sha256, dataset_sha256
++
++
++def _frozen_hk_futu_1300_hashes(config, trade_date, stage_id, mode):
++    if (
++        mode != "RECOVERY"
++        or trade_date != _HK_FUTU_1300_RECOVERY_DATE
++        or stage_id != _HK_FUTU_1300_RECOVERY_STAGE
++    ):
++        return None, None
++    receipt_path = (
++        Path(str(config["receipt_root"])).expanduser().resolve()
++        / trade_date / stage_id / "receipt.json"
++    )
++    dataset_path = os.environ.get("V4_HK_FUTU_AFTERFACT_DATASET")
++    try:
++        receipt_sha256 = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
++    except OSError:
++        receipt_sha256 = None
++    try:
++        dataset_sha256 = hashlib.sha256(Path(dataset_path).expanduser().read_bytes()).hexdigest() if dataset_path else None
++    except OSError:
++        dataset_sha256 = None
++    return receipt_sha256, dataset_sha256
++
++
++def _same_day_hk_1300_futu_recovery_shape(
++    receipt, /, *, mode, trade_date, stage_id, attempt_count, max_attempts,
++    receipt_sha256, dataset_sha256,
++):
++    """Authorize one exact new-source recovery after the original budget is exhausted."""
++    if (
++        mode != "RECOVERY"
++        or trade_date != _HK_FUTU_1300_RECOVERY_DATE
++        or stage_id != _HK_FUTU_1300_RECOVERY_STAGE
++        or receipt_sha256 != _HK_FUTU_1300_PRIOR_RECEIPT_SHA256
++        or dataset_sha256 != _HK_FUTU_1300_DATASET_SHA256
++        or type(attempt_count) is not int
++        or type(max_attempts) is not int
++        or attempt_count != 3
++        or max_attempts != 3
++        or not isinstance(receipt, dict)
++        or any(receipt.get(flag) is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent"))
++    ):
++        return False
++    required = {
++        "schema_version": "stage_center.runner.receipt.v1",
++        "trade_date": _HK_FUTU_1300_RECOVERY_DATE,
++        "stage_id": _HK_FUTU_1300_RECOVERY_STAGE,
++        "node_id": _HK_FUTU_1300_RECOVERY_STAGE,
++        "status": "CANNOT_CONFIRM",
++        "due_status": "LATE_CATCHUP_REPLAY",
++        "dispatch_mode": "RECOVERY",
++        "node_outcome": "TRANSIENT",
++        "node_attempt_count": 3,
++        "retry_exhausted": True,
++        "write_performed": False,
++        "candidate_current_sha256": "c26102284e3eca12614118c3481e139ad805d65719d300f23e30887a9bf548b9",
++        "candidate_run_id": "20261012-a_share_stage_acquisition_universe_v3-8923902e3cc4",
++        "execution_origin": "HK_ORIGINAL_BUDGET_RECOVERY",
++        "execution_markets": ["HK_CONNECT"],
++    }
++    if type(receipt.get("node_attempt_count")) is not int or any(
++        receipt.get(key) != value for key, value in required.items()
++    ):
++        return False
++    markets = receipt.get("markets")
++    if not isinstance(markets, dict):
++        return False
++    a_share = markets.get("A_SHARE")
++    hk = markets.get("HK_CONNECT")
++    return (
++        isinstance(a_share, dict)
++        and a_share.get("selection_status") == "PARTIAL_WITH_ROWS"
++        and type(a_share.get("selected_rows")) is int
++        and a_share.get("selected_rows") == 10
++        and a_share.get("run_id") == "run-3b2d201a7635f0fab5ab4f6d"
++        and isinstance(hk, dict)
++        and hk.get("selected_rows") in (None, 0)
++        and hk.get("write_performed") in (None, False)
++        and hk.get("cannot_confirm") == [
++            "PyTDX ExHQ probe execution failed",
++            "PyTDX ExHQ probe returned an error",
++            "PyTDX ExHQ batch coverage incomplete: completed=0/100",
++        ]
++    )
+ 
+ 
+ def _same_day_late_observation_recovery(
+@@ -364,6 +584,53 @@
+     if rearm_marker.exists() and not _v4_global(_v4_scope, '_stage_settled')(receipt):
+         attempt_count = _v4_global(_v4_scope, 'max')(attempt_count, max_attempts + 1)
+         existing_status = "CANNOT_CONFIRM"
++    futu_1445_receipt_sha256, futu_1445_dataset_sha256 = _frozen_hk_futu_1445_hashes(
++        config, trade_date, stage_id, mode
++    )
++    same_day_futu_1445_recovery = (
++        not rearm_marker.exists()
++        and _same_day_hk_1445_futu_recovery_shape(
++            receipt,
++            mode=mode,
++            trade_date=trade_date,
++            stage_id=stage_id,
++            attempt_count=attempt_count,
++            max_attempts=max_attempts,
++            receipt_sha256=futu_1445_receipt_sha256,
++            dataset_sha256=futu_1445_dataset_sha256,
++        )
++    )
++    futu_1300_receipt_sha256, futu_1300_dataset_sha256 = _frozen_hk_futu_1300_hashes(
++        config, trade_date, stage_id, mode
++    )
++    futu_1300_marker = _v4_global(_v4_scope, '_receipt_path')(config, trade_date, stage_id).parent / _HK_FUTU_1300_CONSUMPTION_MARKER
++    if (
++        trade_date == _HK_FUTU_1300_RECOVERY_DATE
++        and stage_id == _HK_FUTU_1300_RECOVERY_STAGE
++        and (futu_1300_marker.exists() or futu_1300_marker.is_symlink())
++    ):
++        return {
++            "status": "SKIPPED_FUTU_RECOVERY_CONSUMED",
++            "trade_date": trade_date,
++            "stage_id": stage_id,
++            "node_id": stage_id,
++            "dispatch_mode": mode,
++            "node_attempt_count": attempt_count,
++            "retry_exhausted": True,
++            "write_performed": False,
++            "first_failed_layer": "FUTU_AFTERFACT_ONE_TIME_ALLOWANCE_ALREADY_CONSUMED",
++            **_v4_global(_v4_scope, '_safe_flags')(),
++        }
++    same_day_futu_1300_recovery = _same_day_hk_1300_futu_recovery_shape(
++        receipt,
++        mode=mode,
++        trade_date=trade_date,
++        stage_id=stage_id,
++        attempt_count=attempt_count,
++        max_attempts=max_attempts,
++        receipt_sha256=futu_1300_receipt_sha256,
++        dataset_sha256=futu_1300_dataset_sha256,
++    )
+     from .node_entry import _a_0925_repair_authority, _ISSUE11_MARKER
+     repair = None
+     repair_marker = _v4_global(_v4_scope, '_receipt_path')(config, trade_date, stage_id).parent / _ISSUE11_MARKER
+@@ -388,7 +655,7 @@
+     ) or _same_day_hk_1300_1315_recovery(
+         receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
+         attempt_count=attempt_count, max_attempts=max_attempts,
+-    )
++    ) or same_day_futu_1445_recovery or same_day_futu_1300_recovery
+     if (
+         (
+             trade_date == _HK_0930_0935_CUTOFF_RECOVERY_DATE
+@@ -420,7 +687,8 @@
+                     "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
+                     "first_failed_layer": "HK_RECOVERY_SCOPE_UNSAFE", "write_performed": False,
+                     **_v4_global(_v4_scope, '_safe_flags')()}
+-    if (hk_lane_recovery and existing_status in _v4_global(_v4_scope, 'TRANSIENT_STATUSES')
++    if (hk_lane_recovery and not same_day_futu_1300_recovery
++            and existing_status in _v4_global(_v4_scope, 'TRANSIENT_STATUSES')
+             and not _v4_global(_v4_scope, '_retry_is_due')(
+                 receipt, _v4_global(_v4_scope, '_as_shanghai')(evaluated_at),
+                 retry_backoff_seconds=retry_backoff)):
+@@ -444,6 +712,7 @@
+                 receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
+                 attempt_count=attempt_count, max_attempts=max_attempts,
+             )
++            or same_day_futu_1445_recovery
+         ):
+             settled_recovery_decision = _v4_global(_v4_scope, 'next')(
+                 (
+@@ -581,6 +850,74 @@
+         if _v4_global(_v4_scope, '_read_receipt')(config, trade_date, stage_id) != receipt:
+             return {"status": "SKIPPED_RECEIPT_CHANGED", "stage_id": stage_id,
+                     "trade_date": trade_date, "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
++        if same_day_futu_1445_recovery:
++            locked_receipt_sha256, locked_dataset_sha256 = _frozen_hk_futu_1445_hashes(
++                config, trade_date, stage_id, mode
++            )
++            if (
++                rearm_marker.exists()
++                or not _same_day_hk_1445_futu_recovery_shape(
++                    receipt,
++                    mode=mode,
++                    trade_date=trade_date,
++                    stage_id=stage_id,
++                    attempt_count=attempt_count,
++                    max_attempts=max_attempts,
++                    receipt_sha256=locked_receipt_sha256,
++                    dataset_sha256=locked_dataset_sha256,
++                )
++            ):
++                return {"status": "SKIPPED_RECEIPT_CHANGED", "stage_id": stage_id,
++                        "trade_date": trade_date, "write_performed": False,
++                        **_v4_global(_v4_scope, '_safe_flags')()}
++        if same_day_futu_1300_recovery:
++            locked_receipt_sha256, locked_dataset_sha256 = _frozen_hk_futu_1300_hashes(
++                config, trade_date, stage_id, mode
++            )
++            if (
++                futu_1300_marker.exists()
++                or futu_1300_marker.is_symlink()
++                or not _same_day_hk_1300_futu_recovery_shape(
++                    receipt,
++                    mode=mode,
++                    trade_date=trade_date,
++                    stage_id=stage_id,
++                    attempt_count=attempt_count,
++                    max_attempts=max_attempts,
++                    receipt_sha256=locked_receipt_sha256,
++                    dataset_sha256=locked_dataset_sha256,
++                )
++            ):
++                return {"status": "SKIPPED_FUTU_RECOVERY_IDENTITY_CHANGED", "stage_id": stage_id,
++                        "trade_date": trade_date, "write_performed": False,
++                        **_v4_global(_v4_scope, '_safe_flags')()}
++            from infrastructure.owned_io import SafeRoot
++            grant = {
++                "schema_version": "stage_center.futu_afterfact_one_time.v1",
++                "trade_date": _HK_FUTU_1300_RECOVERY_DATE,
++                "stage_id": _HK_FUTU_1300_RECOVERY_STAGE,
++                "source_id": "futu_rt_data_afterfact",
++                "original_receipt_sha256": _HK_FUTU_1300_PRIOR_RECEIPT_SHA256,
++                "dataset_sha256": _HK_FUTU_1300_DATASET_SHA256,
++                "consumed_before_runner": True,
++                "consumed_attempt_number": attempt_count + 1,
++                "consumed_at": _v4_global(_v4_scope, '_as_shanghai')(evaluated_at).isoformat(),
++                **_v4_global(_v4_scope, '_safe_flags')(),
++            }
++            raw_grant = (_v4_global(_v4_scope, 'json').dumps(
++                grant, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
++            ) + "\n").encode()
++            try:
++                SafeRoot(futu_1300_marker.parent).write_bytes(
++                    _HK_FUTU_1300_CONSUMPTION_MARKER,
++                    raw_grant,
++                    require_absent=True,
++                )
++            except FileExistsError:
++                return {"status": "SKIPPED_FUTU_RECOVERY_CONSUMED", "stage_id": stage_id,
++                        "trade_date": trade_date, "write_performed": False,
++                        "first_failed_layer": "FUTU_AFTERFACT_ONE_TIME_ALLOWANCE_ALREADY_CONSUMED",
++                        **_v4_global(_v4_scope, '_safe_flags')()}
+         if repair is not None:
+             from infrastructure.owned_io import SafeRoot
+             refreshed = _a_0925_repair_authority(_v4_scope, config, trade_date, stage_id, receipt, evaluated_at, mode)
+@@ -668,6 +1005,10 @@
+                         "write_performed": False} for market in scope.markets},
+                     "write_performed": False,
+                 }, trade_date, stage_id)
++            result = _clear_stale_scoped_recovery_failure(
++                receipt or {}, result,
++                origin="HK_ORIGINAL_BUDGET_RECOVERY" if hk_lane_recovery else "A_REPAIR_RECOVERY",
++            )
+             attempt_journal.finish(result)
+         result["attempt_diagnostic"] = attempt_journal.summary()
+         _v4_global(_v4_scope, '_deadline').event("BUSINESS_RETURN", status=result.get("status"))
+@@ -691,6 +1032,24 @@
+                           repair_recovery_marker=_ISSUE11_MARKER,
+                           result_origin="CODE_REPAIR_RECOVERY", real_time_success=False,
+                           evidence_limit=repair["evidence_limit"])
++        if same_day_futu_1300_recovery:
++            result.update(
++                futu_afterfact_authorization_consumed=True,
++                futu_afterfact_original_receipt_sha256=_HK_FUTU_1300_PRIOR_RECEIPT_SHA256,
++                futu_afterfact_dataset_sha256=_HK_FUTU_1300_DATASET_SHA256,
++                futu_afterfact_consumption_marker=_HK_FUTU_1300_CONSUMPTION_MARKER,
++            )
++        hk_result = (result.get("markets") or {}).get("HK_CONNECT")
++        hk_evidence = hk_result.get("source_evidence", ()) if isinstance(hk_result, dict) else ()
++        if (
++            "futu_observation_contract=HK_FUTU_RTDATA_AFTERFACT_RESEARCH_20261012_R1" in hk_evidence
++            and "futu_afterfact_temporal_cutoff_safe=false" in hk_evidence
++        ):
++            result.update(
++                temporal_cutoff_safe=False,
++                execution_verified=False,
++                selection_action_boundary="NO_BUY",
++            )
+         status = _v4_global(_v4_scope, 'str')(result.get("status") or "CANNOT_CONFIRM")
+         if status == "PARTIAL_WITH_ROWS" and result.get("write_performed") is False:
+             # A partial status without a committed write is not a valid

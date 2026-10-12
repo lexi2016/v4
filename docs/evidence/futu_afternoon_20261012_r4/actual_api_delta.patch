@@ -1,0 +1,88 @@
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -4099,7 +4099,15 @@
+         if status == "CANNOT_CONFIRM" or not identity_present:
+             if not reasons:
+                 reasons.append("SELECTION_ARTIFACT_MISSING_OR_INVALID")
+-            return ("OBSERVATION_UNVERIFIED" if rows else "CANNOT_CONFIRM"), reasons
++            return "CANNOT_CONFIRM", reasons
++
++        if (
++            status not in {"READY", "PARTIAL_WITH_ROWS"}
++            or selection_status not in {"READY", "PARTIAL_WITH_ROWS"}
++            or market_payload.get("source_status") not in {"READY", "PARTIAL_WITH_ROWS"}
++        ):
++            reasons.append("HK_SELECTION_OR_SOURCE_STATUS_NOT_READY")
++            return "CANNOT_CONFIRM", list(dict.fromkeys(reasons))
+ 
+         execution = execution_market if isinstance(execution_market, Mapping) else {}
+         binding = execution.get("selection_binding")
+@@ -4136,6 +4144,7 @@
+         ordinary_hk_display: bool = False,
+     ) -> dict:
+         canonical_markets = payload.get("markets", {})
++        selection_markets = canonical_markets
+         frontend_markets: dict[str, dict] = {}
+         unified_rows: list[dict] = []
+         aliases = {"A_SHARE": "A", "HK_CONNECT": "HK"}
+@@ -4161,6 +4170,7 @@
+         for canonical_market, market_payload in canonical_markets.items():
+             alias = aliases.get(canonical_market, canonical_market)
+             rows = list(market_payload.get("rows") or [])[:limit]
++            projected_rows = rows
+             frontend_markets[alias] = {
+                 key: market_payload.get(key)
+                 for key in (
+@@ -4216,14 +4226,28 @@
+                 )
+                 frontend_markets[alias]["display_mode"] = display_mode
+                 frontend_markets[alias]["display_reasons"] = display_reasons
+-                frontend_markets[alias]["observation_count"] = len(rows)
+-                if display_mode in {"CANNOT_CONFIRM", "OBSERVATION_UNVERIFIED"}:
++                frontend_markets[alias]["observation_count"] = (
++                    len(rows) if display_mode != "CANNOT_CONFIRM" else None
++                )
++                if display_mode == "CANNOT_CONFIRM":
++                    projected_rows = []
++                    frontend_markets[alias]["rows"] = projected_rows
+                     frontend_markets[alias]["candidate_count"] = None
+-                    frontend_markets[alias]["status"] = (
+-                        "PARTIAL_WITH_ROWS" if display_mode == "OBSERVATION_UNVERIFIED" else "CANNOT_CONFIRM"
+-                    )
++                    frontend_markets[alias]["status"] = "CANNOT_CONFIRM"
+                     frontend_markets[alias]["selected_rows"] = None
+-            for row in rows:
++                    if selection_markets is canonical_markets:
++                        selection_markets = dict(canonical_markets)
++                    selection_markets[canonical_market] = {
++                        **market_payload,
++                        "rows": [],
++                    }
++                elif display_mode == "OBSERVATION_UNVERIFIED":
++                    # These rows have a valid selection identity and source
++                    # status, but remain observations because formal or
++                    # execution evidence is incomplete. Keep their count
++                    # visible without promoting their eligibility or action.
++                    frontend_markets[alias]["status"] = "PARTIAL_WITH_ROWS"
++            for row in projected_rows:
+                 unified_rows.append(
+                     {
+                         **dict(row),
+@@ -4237,7 +4261,7 @@
+         selected_a = len(a_rows)
+         hk_display_mode = frontend_markets.get("HK", {}).get("display_mode")
+         selected_hk = (
+-            None if hk_display_mode in {"CANNOT_CONFIRM", "OBSERVATION_UNVERIFIED"}
++            None if hk_display_mode == "CANNOT_CONFIRM"
+             else len(hk_rows)
+         )
+         selected_total = None if selected_hk is None else selected_a + selected_hk
+@@ -4263,7 +4287,7 @@
+         return {
+             **payload,
+             "status": stage_status,
+-            "selection_markets": canonical_markets,
++            "selection_markets": selection_markets,
+             "markets": frontend_markets,
+             "market_summaries": frontend_markets,
+             "unified_rows": unified_rows,

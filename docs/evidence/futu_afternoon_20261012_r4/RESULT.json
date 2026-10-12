@@ -1,0 +1,251 @@
+{
+  "schema": "v4.futu_afternoon_recovery_20261012_r4.result.v1",
+  "at_utc": "2026-10-12T10:19:04.931865+00:00",
+  "goal": "Futu primary afternoon HK selection and display",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_base_commit": "109337ae9152217db919763633c54bfe7780a50a",
+  "source_hashes": {
+    "stage_center/_live_collectors_parts/hk_minute.py": "fef66bc3f7cb8913b3c7f29ffdeaf5d91dd2f18bc905b07c52c261b5caaeb615",
+    "stage_center/_live_collectors_parts/selection_builder_registry.py": "781d7a9fabc26b185b5320ec751f0bb2322a0828414b6024efaa3c4519be0d85",
+    "stage_center/raw_store.py": "a4b5f950ccd6e54320473eb5d5bf61679f836a8bdbac47619674ffd2d3d50e48",
+    "stage_center/_runner_parts/slot_execution.py": "bb2f2e20baebf1b345c6c89bc3a19c260564480cef8ede9b9f11ca6cf9f25cd1",
+    "ops/_run_stage_center_nodes_parts/stage_dispatch.py": "53384a9cff63b70f7ff9bc415f896491325d6e7a79f5fa167d44f207179348a9",
+    "tests/test_futu_afternoon_recovery_r4.py": "ad63909eabf12436292eaf7cc7a8611b54efc95a19c8e887b119bcd0f91238bb",
+    "apps/api/v35_api/app.py": "d6632563997987f7b98519709c6111ee8fc114bed69711bdb768b31c7fd732a7",
+    "tests/test_futu_observation_api_projection_r4.py": "2da03a25b0b749f1f45ecb781314ad166fe224f5558c75e12f88acbd528e8194"
+  },
+  "actual_stage_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-primary-afternoon-20261012-r4/app",
+  "actual_stage_manifest_sha256": "f6d40837d72f17575580bf2c3547d06c42d5cf6af350f2dd9b43be54e1488eda",
+  "actual_api_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-api-projection-20261012-r4a/app",
+  "actual_api_app_sha256": "864cfafd69b1aa6a8245e40b008f84d75dff8f232fc69723494999a98d5c3863",
+  "review": {
+    "runtime": "PASS_FROZEN_STAGE_SCOPE",
+    "runtime_receipt_sha256": "c73f686f3909d5f4e6f0cfdfdd153c9a8e8e9ebc858bb63aa9b723799b0e2385",
+    "canonical": "REVIEWED_PASS_WITH_ONE_NONBLOCKING_P2_TEST_GAP",
+    "source_receipt_sha256": "d7e2376a3773f597346798f03840ec41aaa9e8687ed70b8f6dad0adec5888f9c",
+    "P2": "Add invalid selection_status/source_status API regression cases; implementation reviewed correct; no P0/P1 confirmed",
+    "tests": "independent focused31 andAPI2 PASS; adjacent historical3PASS2FAIL missing fixture provenance beforeR4path; prior baseline status CANNOT_CONFIRM"
+  },
+  "formal_recovery": {
+    "manual_cached_cli": "15 then13 exact original entrypoint+full plist env; one execution each",
+    "provider_guard": {
+      "1315": [],
+      "1500": []
+    },
+    "hk": [
+      {
+        "root": "raw",
+        "stage": "STAGE_1300_1315",
+        "rows": 100,
+        "run_id": "20261012-hk_connect_1min_stage_1300_1315-38fffd41692b2daa",
+        "sha256": "dfac1af8dbb4fd390c3df445604d13c09d0765058b6be355a8b2325f038f93b6"
+      },
+      {
+        "root": "raw",
+        "stage": "STAGE_1445_1500",
+        "rows": 100,
+        "run_id": "20261012-hk_connect_1min_stage_1445_1500-77d23840bc79b26d",
+        "sha256": "c8aaa31e84a6d46fc96f4aa0cbc70436da82c26b63ad1361d4bc5df547d471db"
+      },
+      {
+        "root": "selection",
+        "stage": "STAGE_1300_1315",
+        "rows": 10,
+        "run_id": "run-bdede6a8a80bda3266e69e68",
+        "sha256": "832d4d143a29e0aaaa148f7fe555dfae239c4cd5f3ac3b37564bef3e9bd66bd4"
+      },
+      {
+        "root": "selection",
+        "stage": "STAGE_1445_1500",
+        "rows": 10,
+        "run_id": "run-504b199463282379e17b0cb4",
+        "sha256": "ceba4102c0abbfe0a93e6a2e904ef9028934160cedd38d2f1a8374d9ac252830"
+      }
+    ],
+    "A_bytes_changed": [],
+    "receipts": {
+      "STAGE_1300_1315": {
+        "sha256": "b17610758f91693efa9a0ea1d8f5a8e63570c6af68df558fd9aa90ea65853e03",
+        "status": "PARTIAL_WITH_ROWS",
+        "execution_origin": "HK_ORIGINAL_BUDGET_RECOVERY",
+        "dispatch_mode": "RECOVERY",
+        "node_attempt_count": 4,
+        "retry_exhausted": false,
+        "futu_afterfact_authorization_consumed": true,
+        "temporal_cutoff_safe": false,
+        "execution_verified": false,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "STAGE_1445_1500": {
+        "sha256": "efdf4f2e4a2efb05c45a03b58d0c05fe2bcd964baeb6f29cadc0eceb178ccf76",
+        "status": "PARTIAL_WITH_ROWS",
+        "execution_origin": "HK_ORIGINAL_BUDGET_RECOVERY",
+        "dispatch_mode": "RECOVERY",
+        "node_attempt_count": 2,
+        "retry_exhausted": false,
+        "futu_afterfact_authorization_consumed": null,
+        "temporal_cutoff_safe": false,
+        "execution_verified": false,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      }
+    }
+  },
+  "API": [
+    {
+      "port": 8873,
+      "stage": "STAGE_1300_1315",
+      "status": "PARTIAL_WITH_ROWS",
+      "trade_date": "20261012",
+      "selected_hk_rows": 10,
+      "markets": {
+        "A": {
+          "rows": 10,
+          "selected_rows": 10,
+          "run_id": "run-3b2d201a7635f0fab5ab4f6d",
+          "display_mode": null
+        },
+        "HK": {
+          "rows": 10,
+          "selected_rows": 10,
+          "run_id": "run-bdede6a8a80bda3266e69e68",
+          "display_mode": "OBSERVATION_UNVERIFIED"
+        }
+      }
+    },
+    {
+      "port": 8873,
+      "stage": "STAGE_1445_1500",
+      "status": "PARTIAL_WITH_ROWS",
+      "trade_date": "20261012",
+      "selected_hk_rows": 10,
+      "markets": {
+        "A": {
+          "rows": 10,
+          "selected_rows": 10,
+          "run_id": "run-6bb61f95527796da3cd57bd2",
+          "display_mode": null
+        },
+        "HK": {
+          "rows": 10,
+          "selected_rows": 10,
+          "run_id": "run-504b199463282379e17b0cb4",
+          "display_mode": "OBSERVATION_UNVERIFIED"
+        }
+      }
+    },
+    {
+      "port": 8873,
+      "stage": "STAGE_1545_1555",
+      "status": "PARTIAL_WITH_ROWS",
+      "trade_date": "20261012",
+      "selected_hk_rows": 10,
+      "markets": {
+        "HK": {
+          "rows": 10,
+          "selected_rows": 10,
+          "run_id": "run-a97bb6a8560dedce4e4a4679",
+          "display_mode": "OBSERVATION_UNVERIFIED"
+        }
+      }
+    },
+    {
+      "port": 61796,
+      "stage": "STAGE_1300_1315",
+      "status": "PARTIAL_WITH_ROWS",
+      "trade_date": "20261012",
+      "selected_hk_rows": 10,
+      "markets": {
+        "A": {
+          "rows": 10,
+          "selected_rows": 10,
+          "run_id": "run-3b2d201a7635f0fab5ab4f6d",
+          "display_mode": null
+        },
+        "HK": {
+          "rows": 10,
+          "selected_rows": 10,
+          "run_id": "run-bdede6a8a80bda3266e69e68",
+          "display_mode": "OBSERVATION_UNVERIFIED"
+        }
+      }
+    },
+    {
+      "port": 61796,
+      "stage": "STAGE_1445_1500",
+      "status": "PARTIAL_WITH_ROWS",
+      "trade_date": "20261012",
+      "selected_hk_rows": 10,
+      "markets": {
+        "A": {
+          "rows": 10,
+          "selected_rows": 10,
+          "run_id": "run-6bb61f95527796da3cd57bd2",
+          "display_mode": null
+        },
+        "HK": {
+          "rows": 10,
+          "selected_rows": 10,
+          "run_id": "run-504b199463282379e17b0cb4",
+          "display_mode": "OBSERVATION_UNVERIFIED"
+        }
+      }
+    },
+    {
+      "port": 61796,
+      "stage": "STAGE_1545_1555",
+      "status": "PARTIAL_WITH_ROWS",
+      "trade_date": "20261012",
+      "selected_hk_rows": 10,
+      "markets": {
+        "HK": {
+          "rows": 10,
+          "selected_rows": 10,
+          "run_id": "run-a97bb6a8560dedce4e4a4679",
+          "display_mode": "OBSERVATION_UNVERIFIED"
+        }
+      }
+    }
+  ],
+  "UI": {
+    "STAGE_1300_1315": {
+      "hk_cards": 10,
+      "dom_sha256": "dad0a582b2a73662a7bb112863e75f9009b48b5e4a184a1c988ca0df43c6d304",
+      "screenshot_sha256": "455bc217a84571bec2a4e81224f18710369d0b961567f569adeccfc4536493e8"
+    },
+    "STAGE_1445_1500": {
+      "hk_cards": 10,
+      "dom_sha256": "c5f647a8dc6243d69c0ff25520fdf1bf1302310f6b24e728805ca0814777b504",
+      "screenshot_sha256": "a4c67401ad6b34a627f393ba31793561d6d948c5997a7ddbe44492dfc07498ee"
+    },
+    "STAGE_1545_1555": {
+      "hk_cards": 10,
+      "dom_sha256": "55dd85190abb832c0e403237cca5908f5816c01c1868e8999578806972a1dbfc",
+      "screenshot_sha256": "c5b502da9c95cab749761c69ebc1e6790991477ebc6f8c3011eee62a6564d287"
+    }
+  },
+  "failure_reasons": {
+    "1315": "TDX ExHQ failure zero of100 and original3attempts exhausted",
+    "1500": "TDX failure plus Futu pool order/name overlay provenance binding mismatch",
+    "1555": "HK10 selection already existed but projection count wasnull"
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "action_level": "NO_BUY",
+    "natural_verified": false
+  },
+  "limitations": [
+    "RT_DATA13/15 lacks OHLC/orderbook and stage-derived return/support/pressure/invalidation",
+    "Afterfact recovery does not verify natural-slot capture/execution",
+    "Four canonical task-start exact diffs CANNOT_CONFIRM; start/final SHAs recorded; dispatch/API exact deltas verified",
+    "Original full rawresponse archival byte reproducibility CANNOT_CONFIRM",
+    "UI natural/recovery lineage remains CANNOT_CONFIRM"
+  ]
+}
