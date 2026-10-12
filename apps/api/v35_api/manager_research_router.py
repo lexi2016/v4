@@ -375,8 +375,20 @@ def create_manager_research_router(service: Any) -> APIRouter:
 
     @router.get("/announcements/analysis")
     def read_announcement_analysis(date: str | None = None,
-                                   publication_date: str | None = None) -> dict[str, Any]:
+                                   publication_date: str | None = None,
+                                   window_start: str | None = None,
+                                   as_of: str | None = None) -> dict[str, Any]:
         target = _date(date)
+        if (window_start is None) != (as_of is None):
+            raise HTTPException(status_code=422,
+                detail="announcement window requires both window_start and as_of")
+        if window_start is not None:
+            from v4.manager_research.announcement_processing import _window_datetime
+            try:
+                window_start = _window_datetime(window_start, "window_start").isoformat()
+                as_of = _window_datetime(as_of, "as_of").isoformat()
+            except ValueError as exc:
+                raise HTTPException(status_code=422, detail="announcement window timestamp is invalid") from exc
         publication = None
         if publication_date is not None:
             if re.fullmatch(r"(?:\d{8}|\d{4}-\d{2}-\d{2})", publication_date) is None:
@@ -390,6 +402,7 @@ def create_manager_research_router(service: Any) -> APIRouter:
             result = service.get_announcement_analysis(target, publication)
             analysis = result.get("analysis") if isinstance(result, dict) else None
             product_sha = analysis.get("product_sha256") if isinstance(analysis, dict) else None
+            raw_product = None
             if isinstance(product_sha, str):
                 from v4.manager_research.announcement_analysis import product_path
                 from v4.manager_research.workspace_announcements import validate_owner_analysis_import_receipt
@@ -412,6 +425,17 @@ def create_manager_research_router(service: Any) -> APIRouter:
             from v4.manager_research.workspace_announcements import read_analysis_consumption
             result["consumption_validation"] = read_analysis_consumption(
                 service, target, result.get("publication_date"), analysis_readback=result)
+            if window_start is not None and as_of is not None:
+                from v4.manager_research.announcement_processing import read_preopen_window
+                consumption = result.get("consumption_validation")
+                handoff_verified = (isinstance(consumption, Mapping)
+                    and consumption.get("validation_status") == "VERIFIED"
+                    and consumption.get("owner_handoff_binding_status") in {
+                        "PRODUCT_PARENT_HANDOFF_BOUND",
+                        "LEGACY_PRODUCT_PARENT_ONLY_CURRENT_HANDOFF_VERIFIED"})
+                result["preopen_window_readback"] = read_preopen_window(
+                    raw_product, window_start=window_start, as_of=as_of,
+                    handoff_verified=handoff_verified)
             from v4.manager_research.workspace_announcements import read_announcement_research_result
             result["research_result"] = read_announcement_research_result(
                 service, target, result.get("publication_date"), analysis_readback=result)
