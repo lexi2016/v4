@@ -1,0 +1,87 @@
+--- runtime/domains/research.py
++++ candidate_overlay/domains/research.py
+@@ -224,6 +224,76 @@
+     }
+     sanitized, _ = _redact_legacy_runtime_paths(extension)
+     return sanitized
++
++
++def _report_role_warning_reasons(source: Mapping[str, Any]) -> list[str]:
++    """Project source-bound excluded report entities as non-blocking warnings.
++
++    The audit is part of the immutable hourly source witness.  Only emit a
++    warning after its affected-code summary agrees with the individually
++    excluded evidence and every evidence path resolves to a declared source
++    receipt.  This keeps the projection deterministic without binding it to a
++    particular date or source digest.
++    """
++    audit = source.get("report_entity_audit")
++    if audit is None:
++        return []
++    if not isinstance(audit, Mapping) or audit.get("policy_version") != "report_subject_scoring.v1":
++        raise ValueError("REPORT_ROLE_AUDIT_POLICY_MISSING_OR_UNKNOWN")
++
++    affected = audit.get("affected_codes")
++    excluded = audit.get("excluded_evidence")
++    manifest = source.get("source_manifest")
++    receipts = manifest.get("source_receipts") if isinstance(manifest, Mapping) else None
++    source_date = _text(source.get("trade_date"))
++    source_slot = _text(source.get("slot") or (manifest or {}).get("hourly_slot")) if isinstance(manifest, Mapping) else ""
++    if (
++        re.fullmatch(r"\d{8}", source_date) is None
++        or re.fullmatch(r"(?:[01]\d|2[0-3])[0-5]\d", source_slot) is None
++        or not isinstance(manifest, Mapping)
++        or manifest.get("trade_date") != source_date
++        or manifest.get("hourly_slot") != source_slot
++        or not isinstance(affected, list)
++        or any(not isinstance(code, str) or re.fullmatch(r"\d{6}", code) is None for code in affected)
++        or affected != sorted(set(affected))
++        or not isinstance(excluded, list)
++        or type(audit.get("excluded_evidence_count")) is not int
++        or audit.get("excluded_evidence_count") != len(excluded)
++        or not isinstance(receipts, list)
++        or not receipts
++        or any(not isinstance(path, str) or not path.strip() for path in receipts)
++        or len(receipts) != len(set(receipts))
++    ):
++        raise ValueError("REPORT_ROLE_AUDIT_SHAPE_INVALID")
++
++    excluded_codes: set[str] = set()
++    evidence_ids: set[str] = set()
++    for item in excluded:
++        if not isinstance(item, Mapping):
++            raise ValueError("REPORT_ROLE_AUDIT_EXCLUDED_EVIDENCE_INVALID")
++        role = item.get("entity_role")
++        code = item.get("stock_code")
++        evidence_id = item.get("evidence_id")
++        source_path = item.get("source_path")
++        if (
++            not isinstance(role, str)
++            or not role.strip()
++            or item.get("research_subject_eligible") is not False
++            or not isinstance(code, str)
++            or re.fullmatch(r"\d{6}", code) is None
++            or not isinstance(evidence_id, str)
++            or not evidence_id.strip()
++            or evidence_id in evidence_ids
++            or not isinstance(source_path, str)
++            or source_path not in receipts
++        ):
++            raise ValueError("REPORT_ROLE_AUDIT_EXCLUDED_EVIDENCE_INVALID")
++        evidence_ids.add(evidence_id)
++        excluded_codes.add(code)
++
++    if sorted(excluded_codes) != affected:
++        raise ValueError("REPORT_ROLE_AUDIT_AFFECTED_CODE_MISMATCH")
++    return [f"REPORT_ROLE_EVIDENCE_EXCLUDED:{code}" for code in affected]
+ 
+ 
+ def _dedupe_timeline(rows: list[Any]) -> list[dict[str, Any]]:
+@@ -379,6 +449,7 @@
+         cannot_confirm.append(f"LEGACY_SOURCE_CANNOT_CONFIRM_COUNT:{len(source_gaps)}")
+     if path_redactions:
+         cannot_confirm.append(f"LEGACY_RUNTIME_PATHS_REDACTED:{path_redactions}")
++    cannot_confirm.extend(_report_role_warning_reasons(source))
+     payload = {
+         "schema_version": SCHEMA_VERSION,
+         "archive_date": archive_date,
