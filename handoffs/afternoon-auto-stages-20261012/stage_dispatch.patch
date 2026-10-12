@@ -1,0 +1,166 @@
+--- release/app/ops/_run_stage_center_nodes_parts/stage_dispatch.py
++++ candidate/overlay/ops/_run_stage_center_nodes_parts/stage_dispatch.py
+@@ -13,10 +13,27 @@
+     "END_TO_END_5S_EXCEEDED_BEFORE_RECEIPT",
+     "END_TO_END_5S_EXCEEDED_AFTER_RECEIPT_DURABILITY",
+ }
+-
+-
+-def _same_day_late_observation_recovery(_v4_scope, /, *, mode, trade_date, evaluated_at, decision):
+-    if mode != "RECOVERY" or decision.status != "LATE_CATCHUP_REPLAY":
++_HK_1300_1315_CUTOFF_RECOVERY_DATE = "20261012"
++_HK_1300_1315_CUTOFF_RECOVERY_STAGE = "STAGE_1300_1315"
++_HK_1300_1315_CUTOFF_RECOVERY_CAUSE = "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE"
++_HK_1300_1315_CUTOFF_RECOVERY_A_RUN_ID = "run-3b2d201a7635f0fab5ab4f6d"
++_NATURAL_LATE_OBSERVATION_DATE = "20261012"
++_NATURAL_LATE_OBSERVATION_STAGES = frozenset({
++    "STAGE_1300_1315",
++    "STAGE_1445_1500",
++})
++
++
++def _same_day_late_observation_recovery(
++    _v4_scope, /, *, mode, trade_date, evaluated_at, decision, stage_id=None
++):
++    natural_afternoon_observation = (
++        mode == "NATURAL"
++        and trade_date == _NATURAL_LATE_OBSERVATION_DATE
++        and stage_id in _NATURAL_LATE_OBSERVATION_STAGES
++        and getattr(decision, "stage_id", None) == stage_id
++    )
++    if (mode != "RECOVERY" and not natural_afternoon_observation) or decision.status != "LATE_CATCHUP_REPLAY":
+         return False
+     if getattr(decision, "trade_date", None) != trade_date:
+         return False
+@@ -28,6 +45,92 @@
+         return False
+     local_cutoff = _v4_global(_v4_scope, '_as_shanghai')(scheduled_at)
+     return local_now > local_cutoff
++
++
++def _same_day_hk_1300_1315_cutoff_recovery_shape(
++    receipt, /, *, mode, trade_date, stage_id, attempt_count, max_attempts
++):
++    """Match only the original 2026-10-12 13:00 natural HK cutoff receipt."""
++
++    if (
++        mode != "RECOVERY"
++        or trade_date != _HK_1300_1315_CUTOFF_RECOVERY_DATE
++        or stage_id != _HK_1300_1315_CUTOFF_RECOVERY_STAGE
++        or not isinstance(receipt, dict)
++        or type(attempt_count) is not int
++        or type(max_attempts) is not int
++        or attempt_count != 1
++        or max_attempts != 3
++        or any(receipt.get(flag) is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent"))
++    ):
++        return False
++    required = {
++        "schema_version": "stage_center.runner.receipt.v1",
++        "trade_date": _HK_1300_1315_CUTOFF_RECOVERY_DATE,
++        "stage_id": _HK_1300_1315_CUTOFF_RECOVERY_STAGE,
++        "node_id": _HK_1300_1315_CUTOFF_RECOVERY_STAGE,
++        "status": "PARTIAL_WITH_ROWS",
++        "due_status": "LATE_CATCHUP_REPLAY",
++        "dispatch_mode": "NATURAL",
++        "node_outcome": "SETTLED_PARTIAL",
++        "node_attempt_count": 1,
++        "write_performed": True,
++    }
++    if type(receipt.get("node_attempt_count")) is not int or any(
++        receipt.get(key) != value for key, value in required.items()
++    ):
++        return False
++    markets = receipt.get("markets")
++    if not isinstance(markets, dict):
++        return False
++    a_share = markets.get("A_SHARE")
++    hk = markets.get("HK_CONNECT")
++    return (
++        isinstance(a_share, dict)
++        and a_share.get("market") == "A_SHARE"
++        and a_share.get("selection_status") == "PARTIAL_WITH_ROWS"
++        and type(a_share.get("selected_rows")) is int
++        and a_share.get("selected_rows") == 10
++        and a_share.get("run_id") == _HK_1300_1315_CUTOFF_RECOVERY_A_RUN_ID
++        and isinstance(hk, dict)
++        and hk.get("market") == "HK_CONNECT"
++        and hk.get("status") == "CANNOT_CONFIRM"
++        and hk.get("source_status") == "CANNOT_CONFIRM"
++        and hk.get("selection_status") == "CANNOT_CONFIRM"
++        and type(hk.get("selected_rows")) is int
++        and hk.get("selected_rows") == 0
++        and hk.get("write_performed") is False
++        and hk.get("cannot_confirm") == [_HK_1300_1315_CUTOFF_RECOVERY_CAUSE]
++    )
++
++
++def _same_day_hk_1300_1315_recovery(
++    receipt, /, *, mode, trade_date, stage_id, attempt_count, max_attempts
++):
++    if (
++        mode != "RECOVERY"
++        or trade_date != _HK_1300_1315_CUTOFF_RECOVERY_DATE
++        or stage_id != _HK_1300_1315_CUTOFF_RECOVERY_STAGE
++    ):
++        return False
++    if _same_day_hk_1300_1315_cutoff_recovery_shape(
++        receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
++        attempt_count=attempt_count, max_attempts=max_attempts,
++    ):
++        return True
++    return (
++        isinstance(receipt, dict)
++        and receipt.get("trade_date") == trade_date
++        and receipt.get("stage_id") == stage_id
++        and receipt.get("node_id") == stage_id
++        and receipt.get("dispatch_mode") == "RECOVERY"
++        and type(attempt_count) is int
++        and type(max_attempts) is int
++        and _continued_hk_lane_recovery(
++            receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
++            attempt_count=attempt_count, max_attempts=max_attempts,
++        )
++    )
+ 
+ 
+ def _settled_partial_hk_cutoff_recovery_shape(
+@@ -282,10 +385,17 @@
+     ) or _same_day_hk_0930_0935_recovery(
+         receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
+         attempt_count=attempt_count, max_attempts=max_attempts,
++    ) or _same_day_hk_1300_1315_recovery(
++        receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
++        attempt_count=attempt_count, max_attempts=max_attempts,
+     )
+     if (
+-        trade_date == _HK_0930_0935_CUTOFF_RECOVERY_DATE
+-        and stage_id == _HK_0930_0935_CUTOFF_RECOVERY_STAGE
++        (
++            trade_date == _HK_0930_0935_CUTOFF_RECOVERY_DATE
++            and stage_id == _HK_0930_0935_CUTOFF_RECOVERY_STAGE
++            or trade_date == _HK_1300_1315_CUTOFF_RECOVERY_DATE
++            and stage_id == _HK_1300_1315_CUTOFF_RECOVERY_STAGE
++        )
+         and existing_status in _v4_global(_v4_scope, 'TRANSIENT_STATUSES')
+         and isinstance(receipt, dict)
+         and ("execution_origin" in receipt or "execution_markets" in receipt)
+@@ -327,6 +437,10 @@
+                 attempt_count=attempt_count, max_attempts=max_attempts,
+             )
+             or _same_day_hk_0930_0935_cutoff_recovery_shape(
++                receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
++                attempt_count=attempt_count, max_attempts=max_attempts,
++            )
++            or _same_day_hk_1300_1315_cutoff_recovery_shape(
+                 receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
+                 attempt_count=attempt_count, max_attempts=max_attempts,
+             )
+@@ -446,6 +560,7 @@
+         trade_date=trade_date,
+         evaluated_at=evaluated_at,
+         decision=decision,
++        stage_id=stage_id,
+     )
+ 
+     lock = SlotLock(_slot_lock_path(runner.config, trade_date, stage_id))
