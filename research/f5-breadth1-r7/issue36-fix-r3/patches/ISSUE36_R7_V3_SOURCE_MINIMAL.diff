@@ -1,0 +1,224 @@
+diff --git a/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_budget.py b/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_budget.py
+index 604a53f..5e238d1 100644
+--- a/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_budget.py
++++ b/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_budget.py
+@@ -88,12 +88,12 @@
+ PANEL_HEADER_RECOVERY_PRIOR_FAILURE_TERMINAL_PATH = BATCH_ROOT / "receipts" / "r7_one_shot_pipeline" / "PIPELINE_TERMINAL_RECEIPT.json"
+ PANEL_HEADER_RECOVERY_PRIOR_FAILURE_TERMINAL_SHA256 = "53ecf0df022637644c350d2fa50a274712d436d61bc9c2a5f9fff289909c8545"
+ PANEL_HEADER_RECOVERY_PRIOR_FAILURE_ACTION_DEBIT = 0
+-PANEL_HEADER_RECOVERY_RESUME_AUTH_PATH = BATCH_ROOT / "receipts" / "r7_recovery_05" / "control_resume" / "R7_RECOVERY_05_RESUME_AUTHORIZATION_V2.json"
+-PANEL_HEADER_RECOVERY_RESUME_CONTRACT_PATH = BATCH_ROOT / "receipts" / "r7_recovery_05" / "control_resume" / "R7_RECOVERY_05_RESUME_CONTRACT_V2.json"
+-PANEL_HEADER_RECOVERY_RESUME_PENDING_BINDING_PATH = BATCH_ROOT / "bindings" / "PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_PENDING_BINDING_RESUME_02.json"
+-PANEL_HEADER_RECOVERY_RESUME_READ_RELEASE_PATH = BATCH_ROOT / "bindings" / "PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE_RESUME_02.json"
+-PANEL_HEADER_RECOVERY_RESUME_FINAL_BINDING_PATH = BATCH_ROOT / "bindings" / "PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_ADMITTED_BINDING_RESUME_02.json"
+-PANEL_HEADER_RECOVERY_RESUME_RUN_PATH = BATCH_ROOT / "receipts" / "r7_recovery_05" / "resume_invocation_02"
++PANEL_HEADER_RECOVERY_RESUME_AUTH_PATH = BATCH_ROOT / "receipts" / "r7_recovery_06" / "control_resume" / "R7_RECOVERY_06_RESUME_AUTHORIZATION_V3.json"
++PANEL_HEADER_RECOVERY_RESUME_CONTRACT_PATH = BATCH_ROOT / "receipts" / "r7_recovery_06" / "control_resume" / "R7_RECOVERY_06_RESUME_CONTRACT_V3.json"
++PANEL_HEADER_RECOVERY_RESUME_PENDING_BINDING_PATH = BATCH_ROOT / "bindings" / "PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_PENDING_BINDING_RESUME_03.json"
++PANEL_HEADER_RECOVERY_RESUME_READ_RELEASE_PATH = BATCH_ROOT / "bindings" / "PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE_RESUME_03.json"
++PANEL_HEADER_RECOVERY_RESUME_FINAL_BINDING_PATH = BATCH_ROOT / "bindings" / "PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_ADMITTED_BINDING_RESUME_03.json"
++PANEL_HEADER_RECOVERY_RESUME_RUN_PATH = BATCH_ROOT / "receipts" / "r7_recovery_06" / "resume_invocation_03"
+ PANEL_HEADER_RECOVERY_RESUME_CHECKPOINT_PATH = PANEL_HEADER_RECOVERY_RESUME_RUN_PATH / "RESUME_CHECKPOINT_PRETARGET.json"
+ PANEL_HEADER_R4_RUNTIME_FAILURE_RECEIPT_SHA256 = "e58ec6c92b2b2e94fad58c77c0a24c4110c783905b75d06fd0c9a7fd512887b6"
+ PANEL_HEADER_R4_RUNTIME_FAILURE_RECEIPT_PATH = BATCH_ROOT / "receipts" / "r4_one_shot_pipeline" / "R4_ADMISSION_RUNTIME_FAILURE_RECEIPT.json"
+@@ -921,7 +921,7 @@
+         or not _is_sha(auth_sha)
+         or not isinstance(checkpoint_path_value, str) or not Path(checkpoint_path_value).is_absolute()
+         or not _is_sha(checkpoint_sha)
+-        or resume.get("physical_invocation_index") != 2
++        or resume.get("physical_invocation_index") != 3
+         or resume.get("logical_r7_action_debit_total") != 1
+         or resume.get("additional_r7_action_debit") != 0
+         or resume.get("resume_contract_sha256") != contract_sha256
+@@ -931,8 +931,8 @@
+         raise ActionBudgetIdentityDrift("R7_RESUME_RECEIPT_IDENTITY_INCOMPLETE")
+     auth_path = Path(auth_path_value)
+     checkpoint_path = Path(checkpoint_path_value)
+-    control_root = batch_root / "receipts" / "r7_recovery_05" / "control_resume"
+-    run_root = batch_root / "receipts" / "r7_recovery_05" / "resume_invocation_02"
++    control_root = batch_root / "receipts" / "r7_recovery_06" / "control_resume"
++    run_root = batch_root / "receipts" / "r7_recovery_06" / "resume_invocation_03"
+     try:
+         auth_path.resolve(strict=True).relative_to(control_root.resolve())
+         checkpoint_path.resolve(strict=True).relative_to(run_root.resolve())
+@@ -953,7 +953,7 @@
+     failure = auth.get("preserved_original_failure")
+     controls = auth.get("resume_control_identity")
+     if (
+-        auth.get("schema") != "BREADTH1_R7_PRETARGET_RESUME_AUTHORIZATION_V2"
++        auth.get("schema") != "BREADTH1_R7_PRETARGET_RESUME_AUTHORIZATION_V3"
+         or auth.get("status") != "AUTHORIZED_PRETARGET_ENGINEERING_RESUMPTION"
+         or not isinstance(old_identity, Mapping)
+         or not isinstance(failure, Mapping)
+@@ -965,7 +965,8 @@
+         or old_identity.get("action_key") != PANEL_HEADER_RECOVERY_ACTION_KEY
+         or old_identity.get("logical_action_cap") != 1
+         or old_identity.get("logical_action_debit_consumed") != 1
+-        or failure.get("start_event_sha256") != resume.get("original_start_event_sha256")
++        or failure.get("terminal_event_id") != f"{PANEL_HEADER_RECOVERY_EXECUTION_ID}_TERMINAL"
++         or failure.get("start_event_sha256") != resume.get("original_start_event_sha256")
+         or failure.get("terminal_event_sha256") != resume.get("original_failed_terminal_event_sha256")
+         or controls.get("contract_sha256") != contract_sha256
+         or controls.get("pending_binding_sha256") != input_binding_sha256
+@@ -975,7 +976,7 @@
+         or checkpoint.get("authorization_sha256") != auth_sha
+         or checkpoint.get("r7_start_event_sha256") != resume.get("original_start_event_sha256")
+         or checkpoint.get("r7_failed_terminal_event_sha256") != resume.get("original_failed_terminal_event_sha256")
+-        or checkpoint.get("physical_invocation_index") != 2
++        or checkpoint.get("physical_invocation_index") != 3
+         or checkpoint.get("additional_r7_action_debit") != 0
+         or any(checkpoint.get(name) != 0 for name in ("target_input_reads", "fit_calls", "predict_calls", "model_load_calls", "truth_decode_calls"))
+     ):
+@@ -1009,6 +1010,23 @@
+         or failure_path.stat().st_size != len(failure_path.read_bytes())
+     ):
+         raise ActionBudgetIdentityDrift("R7_RESUME_PRIOR_FAILURE_CONTENT_MISMATCH")
++    # Versioned physical resume03: the failed resume02 terminal is immutable.
++    prior2 = auth.get("previous_engineering_attempt")
++    prior2_file = batch_root / "receipts" / "r7_recovery_05" / "resume_invocation_02" / "PIPELINE_TERMINAL_RECEIPT.json"
++    if (not isinstance(prior2, Mapping)
++            or prior2.get("pipeline_terminal_path") != str(prior2_file.resolve())
++            or prior2.get("pipeline_terminal_sha256") != "254e63c23c0b9b11b2685725796b4ebcfcafc234fd1eb5b2d086f04e655e76bd"
++            or prior2_file.is_symlink() or not prior2_file.is_file()
++            or sha256_file(prior2_file) != prior2.get("pipeline_terminal_sha256")):
++        raise ActionBudgetIdentityDrift("R7_PREVIOUS_ENGINEERING_ATTEMPT_NOT_FROZEN")
++    prior2_value = _parse_json_object(prior2_file.read_bytes(), "R7_PREVIOUS_ENGINEERING_ATTEMPT")
++    if (prior2_value.get("stage") != "input_admission"
++            or prior2_value.get("status") != "NO_FIT"
++            or prior2_value.get("error") != "FIRST_PASS_FIXED_INPUT_ADMISSION_ACTION_NOT_PRESENT_IN_OFFICIAL_REGISTRY"
++            or prior2_value.get("action_debits") != {"admission": 1, "fit": 0, "predict": 0, "truth_decode": 0}
++            or prior2_value.get("input_read_observation") is not None
++            or any(prior2_value.get(k) != 0 for k in ("real_fit_calls", "real_predict_calls", "real_model_load_calls", "real_truth_decode_calls"))):
++        raise ActionBudgetIdentityDrift("R7_PREVIOUS_ENGINEERING_ATTEMPT_STATUS_MISMATCH")
+     return {"authorization": auth, "authorization_sha256": auth_sha,
+             "checkpoint": checkpoint, "checkpoint_sha256": checkpoint_sha}
+ 
+diff --git a/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_inputs.py b/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_inputs.py
+index 042c357..a5acdfb 100644
+--- a/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_inputs.py
++++ b/workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_inputs.py
+@@ -522,7 +522,7 @@
+                 "authorization_sha256": resume.get("authorization_sha256"),
+                 "checkpoint_path": resume.get("checkpoint_path"),
+                 "checkpoint_sha256": resume.get("checkpoint_sha256"),
+-                "physical_invocation_index": 2,
++                "physical_invocation_index": 3,
+                 "logical_r7_action_debit_total": 1,
+                 "additional_r7_action_debit": 0,
+                 "original_start_event_sha256": start.get("event_sha256"),
+diff --git a/workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py b/workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py
+index 8c8a6f6..137a7f3 100644
+--- a/workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py
++++ b/workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py
+@@ -221,8 +221,23 @@
+     ):
+         raise SyntheticChainError("R7_RESUME_FIXED_PATH_OR_NO_OVERWRITE_GATE_FAILED")
+     authorization, authorization_sha = _read_chain_control(paths["resume_authorization"], authorization_sha256)
+-    if authorization.get("schema") != "BREADTH1_R7_PRETARGET_RESUME_AUTHORIZATION_V2" or authorization.get("status") != "AUTHORIZED_PRETARGET_ENGINEERING_RESUMPTION":
+-        raise SyntheticChainError("R7_RESUME_AUTHORIZATION_STATUS_MISMATCH")
++    if authorization.get("schema") != "BREADTH1_R7_PRETARGET_RESUME_AUTHORIZATION_V3" or authorization.get("status") != "AUTHORIZED_PRETARGET_ENGINEERING_RESUMPTION":
++        raise SyntheticChainError("R7_RESUME_AUTHORIZATION_STATUS_MISMATCH")
++    # Previous physical attempt must remain in place and be exactly failed.
++    previous = authorization.get("previous_engineering_attempt")
++    previous_path = BATCH_ROOT / "receipts" / "r7_recovery_05" / "resume_invocation_02" / "PIPELINE_TERMINAL_RECEIPT.json"
++    if (not isinstance(previous, Mapping)
++            or previous.get("pipeline_terminal_path") != str(previous_path.resolve())
++            or previous.get("pipeline_terminal_sha256") != "254e63c23c0b9b11b2685725796b4ebcfcafc234fd1eb5b2d086f04e655e76bd"):
++        raise SyntheticChainError("R7_PREVIOUS_ENGINEERING_ATTEMPT_IDENTITY_MISSING")
++    previous_terminal, _ = _read_chain_control(previous_path, previous["pipeline_terminal_sha256"])
++    if (previous_terminal.get("stage") != "input_admission"
++            or previous_terminal.get("status") != "NO_FIT"
++            or previous_terminal.get("error") != "FIRST_PASS_FIXED_INPUT_ADMISSION_ACTION_NOT_PRESENT_IN_OFFICIAL_REGISTRY"
++            or previous_terminal.get("action_debits") != {"admission": 1, "fit": 0, "predict": 0, "truth_decode": 0}
++            or previous_terminal.get("input_read_observation") is not None
++            or any(previous_terminal.get(k) != 0 for k in ("real_fit_calls", "real_predict_calls", "real_model_load_calls", "real_truth_decode_calls"))):
++        raise SyntheticChainError("R7_PREVIOUS_ENGINEERING_ATTEMPT_NOT_PRETARGET")
+     old_identity = authorization.get("original_r7_identity")
+     failure = authorization.get("preserved_original_failure")
+     controls = authorization.get("resume_control_identity")
+@@ -259,6 +274,20 @@
+     contract, contract_sha = _read_chain_control(paths["resume_contract"], controls.get("contract_sha256"))
+     pending_binding, pending_sha = _read_chain_control(paths["resume_pending_binding"], controls.get("pending_binding_sha256"))
+     _, read_release_sha = _read_chain_control(paths["resume_read_release"], controls.get("read_release_sha256"))
++    resume_plan_path = BATCH_ROOT / "receipts" / "r7_recovery_06" / "control_resume" / "R7_RECOVERY_06_RESUME_READ_PLAN_V3.json"
++    resume_plan, resume_plan_sha = _read_chain_control(resume_plan_path, controls.get("read_plan_sha256"))
++    if (
++        resume_plan.get("contract_sha256") != contract_sha
++        or resume_plan.get("pre_admission_binding_sha256") != pending_sha
++        or resume_plan.get("pre_admission_binding_path") != str(paths["resume_pending_binding"].resolve())
++        or resume_plan.get("read_release_sha256") != read_release_sha
++        or resume_plan.get("read_release_path") != str(paths["resume_read_release"].resolve())
++        or resume_plan.get("recovery_execution_id") != PANEL_HEADER_RECOVERY_EXECUTION_ID
++        or resume_plan.get("recovery_action_key") != PANEL_HEADER_RECOVERY_ACTION_KEY
++        or resume_plan.get("recovery_output_path") != str(paths["resume_run"].relative_to(PROJECT_ROOT))
++        or controls.get("read_plan_sha256") != resume_plan_sha
++    ):
++        raise SyntheticChainError("R7_RESUME_V3_PLAN_DOES_NOT_BIND_ACTIVE_INPUT")
+     if (
+         contract.get("status") != "DRAFT_NO_REAL_RUN"
+         or contract.get("is_execution_contract") is not False
+@@ -300,7 +329,9 @@
+     start, terminal = (starts[0], terminals[0]) if len(starts) == len(terminals) == 1 else ({}, {})
+     fit_keys = {f"{ROUTE_ID}:{CANDIDATE_ID}:{name}" for name in ("fit", "predict", "truth_decode")}
+     if (
+-        len(starts) != 1 or len(terminals) != 1 or len(action_events) != 2
++        failure.get("terminal_event_id") != f"{PANEL_HEADER_RECOVERY_EXECUTION_ID}_TERMINAL"
++        or terminal.get("registry_event_id") != failure.get("terminal_event_id")
++        or len(starts) != 1 or len(terminals) != 1 or len(action_events) != 2
+         or start.get("execution_id") != PANEL_HEADER_RECOVERY_EXECUTION_ID
+         or start.get("event_sha256") != failure.get("start_event_sha256")
+         or terminal.get("event_sha256") != failure.get("terminal_event_sha256")
+@@ -490,7 +521,7 @@
+             "original_r7_execution_id": PANEL_HEADER_RECOVERY_EXECUTION_ID,
+             "logical_r7_debit_total": 1,
+             "additional_r7_debit": 0,
+-            "physical_invocation_index": 2,
++            "physical_invocation_index": 3,
+             "resume_contract_sha256": action_budget.contract_sha256,
+             "resume_input_binding_sha256": action_budget.input_binding_sha256,
+         }
+@@ -633,7 +664,7 @@
+                 "resume_contract_sha256": preflight["contract_sha256"],
+                 "resume_input_binding_sha256": preflight["pending_binding_sha256"],
+                 "resume_read_release_sha256": preflight["resume_release"].expected_sha256,
+-                "physical_invocation_index": 2,
++                "physical_invocation_index": 3,
+                 "logical_r7_action_debit_total": 1,
+                 "additional_r7_action_debit": 0,
+                 "target_input_reads": 0,
+@@ -797,7 +828,7 @@
+                 "action_calls": calls,
+                 "action_integrity": observation["integrity"],
+                 "error": error,
+-                "physical_invocation_index": 2,
++                "physical_invocation_index": 3,
+                 "logical_r7_action_debit_total": 1,
+                 "additional_r7_action_debit": 0,
+             },
+@@ -823,7 +854,7 @@
+             "NOT_TESTED" if status == "NO_FIT" else "CANNOT_CONFIRM"
+         ),
+         "retry_allowed": False, "refund_allowed": False, "same_process": True,
+-        "physical_invocation_index": 2 if resume_mode else 1,
++        "physical_invocation_index": 3 if resume_mode else 1,
+         "prior_failure_terminal_sha256": (
+             sha256_file(paths["run"] / "PIPELINE_TERMINAL_RECEIPT.json") if resume_mode else None
+         ),
+@@ -883,7 +914,7 @@
+         "occurred_at": datetime.now(timezone.utc).isoformat(),
+         "authorization_path": str(PANEL_HEADER_RECOVERY_RESUME_AUTH_PATH.resolve()),
+         "authorization_sha256": sha256_file(PANEL_HEADER_RECOVERY_RESUME_AUTH_PATH),
+-        "physical_invocation_index": 2,
++        "physical_invocation_index": 3,
+         "logical_r7_action_debit_total": 1,
+         "additional_r7_action_debit": 0,
+         "previous_checkpoint": dict(previous) if isinstance(previous, Mapping) else None,
+@@ -2097,7 +2128,7 @@
+                 "original_failed_terminal_event_sha256": resume["resume_failure_terminal_event"]["event_sha256"],
+                 "logical_r7_action_debit_total": 1,
+                 "additional_r7_action_debit": 0,
+-                "physical_invocation_index": 2,
++                "physical_invocation_index": 3,
+             } if resume is not None else None),
+             "observed_input_artifacts_hashed_by_registry_terminal": [
+                 {
