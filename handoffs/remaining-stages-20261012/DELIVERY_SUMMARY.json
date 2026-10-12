@@ -1,0 +1,305 @@
+{
+  "goal": "Restore missing 09:40 HK and 09:45 A/HK outputs through the original stage selection path; correct misleading stage-card errors.",
+  "baseline_commit": "42ca843dd704d3c0f96aba78f16c50026f370a64",
+  "canonical_head_at_start": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "branch": "codex/remaining-stages-20261012",
+  "candidate_and_deployment": {
+    "status": "PREPARED_NOT_ACTIVATED",
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1",
+    "manifest_sha256": "6bb5592a316e2bb822f2cfb7743074887c46a9894a5ef7b3b975bd05958eda79",
+    "baseline_manifest_sha256": "869ed01d35174ef4f5c567969bcd979627167d46632327eb742a4f18e5da078d",
+    "changed_files": {
+      "domains/research.py": {
+        "before": {
+          "path": "domains/research.py",
+          "kind": "file",
+          "sha256": "2ad669ea58f08338605885547ec065921ec63cc0047460bb2acd153151fb214b",
+          "mode": "0644",
+          "size": 17502
+        },
+        "after": {
+          "path": "domains/research.py",
+          "kind": "file",
+          "sha256": "166ea3e10dcb49828226c9f6760a5c4674832574d66297c3cd7ba0bb3fa7d15d",
+          "mode": "0644",
+          "size": 20834
+        }
+      },
+      "stage_center_tick_config.json": {
+        "before": {
+          "path": "stage_center_tick_config.json",
+          "kind": "file",
+          "sha256": "fa8f36908efe06bd477f420be8aa71df8f0de19db16a7a819672eaede66d3cd8",
+          "mode": "0644",
+          "size": 2827
+        },
+        "after": {
+          "path": "stage_center_tick_config.json",
+          "kind": "file",
+          "sha256": "4fae43270f368881727c69f916f3cc22fdb74fd1e5bd5d7496c5fcbdd01c71c4",
+          "mode": "0644",
+          "size": 2831
+        }
+      }
+    },
+    "other_inventory_identical": true,
+    "independent_review_sha256": "deda63aa1d1a82149db415b57ab9e4c9dccaefac568cba88563c01c9a34e06de"
+  },
+  "backend_independent_review": {
+    "schema_version": "v4.remaining_stage_independent_review.v1",
+    "candidate": "20261012 STAGE_0945_1030 runtime archive-warning projection overlay",
+    "verdict": "PASS",
+    "states": {
+      "REVIEWED": "PASS",
+      "TESTED": "PASS",
+      "BEHAVIOR_VERIFIED": "PASS for frozen archive/context-loading scope",
+      "INTEGRATED": "NO",
+      "DEPLOYED": "NO"
+    },
+    "actual_diff": {
+      "patch_path": "runtime_warning_projection.patch",
+      "patch_sha256": "47ee01a081b4116a563082f112d2f95778316bcdef66544249a2308e889edc2a",
+      "added_lines": 71,
+      "candidate_domain_sha256": "166ea3e10dcb49828226c9f6760a5c4674832574d66297c3cd7ba0bb3fa7d15d",
+      "baseline_domain_sha256": "2ad669ea58f08338605885547ec065921ec63cc0047460bb2acd153151fb214b",
+      "scope": "generic source-bound report-role warning helper plus one build_research_archive cannot_confirm projection call"
+    },
+    "independent_isolated_replay": {
+      "result": "PASS",
+      "trade_date": "20261012",
+      "stage_cutoff": "10:30:00",
+      "selected_slot": "1000",
+      "source_input_sha256": "ddad45f292139a43650d054832b0fe85352e8e144231c00d4fbe4d7f7c34090f",
+      "source_witness_sha256": "ddad45f292139a43650d054832b0fe85352e8e144231c00d4fbe4d7f7c34090f",
+      "archive_sha256": "56e62635b8d6ae14585996ba6747ba23bc55114b12fe7deea79f28ce388b3a21",
+      "candidate_projection_sha256": "56e62635b8d6ae14585996ba6747ba23bc55114b12fe7deea79f28ce388b3a21",
+      "row_group_counts": [
+        35,
+        35,
+        0
+      ],
+      "witness_evidence_count": 9,
+      "warning": "REPORT_ROLE_EVIDENCE_EXCLUDED:300750",
+      "source_witness_tamper": "RESEARCH_SOURCE_WITNESS_SHA_MISMATCH",
+      "archive_warning_removal_tamper": "RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH",
+      "candidate_context_loaded": true
+    },
+    "earlier_stage_checks": [
+      {
+        "cutoff": "08:45:00",
+        "selected_slot": "0830",
+        "candidate_archive_projection_matches": true
+      },
+      {
+        "cutoff": "09:45:00",
+        "selected_slot": "0900",
+        "candidate_archive_projection_matches": true
+      }
+    ],
+    "focused_tests": {
+      "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest -q tests/test_stage_historical_research_projection.py::test_report_role_audit_projects_generically_only_when_source_and_receipt_bind tests/test_stage_research_context_v4.py::test_exact_20260929_report_role_warnings_are_source_bound_and_non_blocking",
+      "result": "2 passed"
+    },
+    "risk_review": {
+      "P0": [],
+      "P1": [],
+      "P2": []
+    },
+    "caveat": {
+      "status": "CANNOT_CONFIRM outside frozen PASS scope",
+      "detail": "The runtime ResearchContext loads the 10:00 archive and retains source-witness SHA evidence, but does not surface REPORT_ROLE_EVIDENCE_EXCLUDED:300750 in context.source_evidence or context.cannot_confirm. The archive itself contains the warning and warning-removal tampering fails the full projection SHA check. The frozen backend acceptance specified archive projection and tamper behavior, not downstream warning presentation."
+    },
+    "execution_boundary": "Only isolated read-only validation and two focused tests ran; no live release/service/data mutation or business-stage execution."
+  },
+  "ui_independent_review": {
+    "schema_version": "m18.stage_status_ui_p2_independent_review.v1",
+    "candidate": "M18 stage-status UI P2",
+    "verdict": "PASS",
+    "states": {
+      "REVIEWED": "PASS",
+      "TESTED": "PASS",
+      "BEHAVIOR_VERIFIED": "PASS in focused UI test harness",
+      "INTEGRATED": "CANNOT_CONFIRM; candidate not installed or loaded by 61796",
+      "UI_VERIFIED": "CANNOT_CONFIRM; no live page reload performed",
+      "NATURAL_VERIFIED": "CANNOT_CONFIRM; no natural-period observation"
+    },
+    "actual_delta": {
+      "diff_path": "m18_stage_status_ui_p2_delta.diff",
+      "patch_applies_from_pre_p2_snapshot_to_exact_current_sources": true,
+      "files": {
+        "src/app_shell/useAppShell.ts": {
+          "p1_sha256": "89ba832aadd09daa7275bd15b2123cd64a219cb88d1991dbb337f12df0fa4bc4",
+          "p2_sha256": "4a21ee3176df7550def6a6b3c89d4ec7a83b19249430ae0f74939a9b5eabaf94"
+        },
+        "src/app_shell/types.ts": {
+          "p1_sha256": "efd5c741a3ecd3b98b972dc74a3ae9d5c387a986ccb67eea06ce6c4abafa2410",
+          "p2_sha256": "ceb03c5b53e6ff3c75815b944c692f75e45da65a1a65f2b31bc6fd3320abab44"
+        },
+        "src/App.spec.ts": {
+          "p1_sha256": "5b1cbca19b3e496a0cde12b916972a2a599e3cbca5de99624d2b1214318c8eaf",
+          "p2_sha256": "98be0fcb47275cb54f73400dd21aed9084f5b440c4bd6b90d2526fbc104f6206"
+        }
+      }
+    },
+    "target_test": {
+      "command": "npm run test -- src/App.spec.ts -t \"preserves every accepted same-date stage snapshot during timeline refresh and direct failure\" --reporter=dot",
+      "result": "1 passed; 48 skipped",
+      "coverage": "keeps all eight same-date payload cards visible while queued refresh is pending; shows queue failure beside retained payload; preserves selected detail and all other cards after direct refresh failure"
+    },
+    "typecheck": "PASS: npm run typecheck",
+    "candidate_manifest": {
+      "sha256": "a69bd6f9075deeede363c8bb4af1996d997e1a62431c252248edb967dbaa5654",
+      "entries": 11,
+      "all_entries_match_candidate_dist": true,
+      "index_sha256": "1bd1b74f21ff3469aab3c8dd13284e45752604ad0c8e5f6c2f3829a086a5e199",
+      "main_bundle_sha256": "4515b5a99e191950721a0edea45947ca231a7b4e9bd7e81578e558f3e1689825"
+    },
+    "risk_review": {
+      "P0": [],
+      "P1": [],
+      "P2": []
+    },
+    "integration_boundary": "Install/reload runbook is marked for later authorized use; no process, gateway configuration, live dist, service, or business data was changed."
+  },
+  "formal_result": {
+    "observed_at": "2026-10-12T12:34:31.906080+08:00",
+    "trade_date": "20261012",
+    "mode": "MANUAL_RECOVERY",
+    "natural_slot_verified": false,
+    "source_root": "/Users/lexi/Desktop/学习/v4_app",
+    "runtime_stage_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app",
+    "api_release": "issue35-manager-autocontinue-20261012-r6-integrated",
+    "ui_release": "stage-status-20261012-r2",
+    "stages": {
+      "STAGE_0940_0945": {
+        "status": "PARTIAL_WITH_ROWS",
+        "a_rows": 10,
+        "hk_observation_rows": 10,
+        "selected_hk_rows": null,
+        "display_mode": "OBSERVATION_UNVERIFIED",
+        "same_result_both_ports": true,
+        "receipt_sha256": "875c7b1794c817260036e141d8942e50157a7d41e88ffe55759a0f12039d59bd",
+        "markets": {
+          "A": {
+            "run_id": "run-34c64ac2063250e7f61cd086",
+            "source_rows": 361,
+            "requested_rows": 371,
+            "selection_manifest_sha256": "3d68c921db731bd4939a8967d286bc42facc7469838f7168794e44a1b943c743",
+            "selection_artifact_sha256": "86f12b4fde910d6a629a827a956bad46ae6bd3594a59dd5389e2c95c4c364279",
+            "selection_receipt_sha256": "5164118f160600cb186762008ae4d45c28b1ec548acbc053103d57f37113f1b8",
+            "selection_manifest_receipt_verified": true
+          },
+          "HK": {
+            "run_id": "run-5e750b6ac00293b7855bb959",
+            "source_rows": 100,
+            "requested_rows": 100,
+            "selection_manifest_sha256": "b9f0ffb6399dfc381be45363f4c749a00e8a04059b53a41d73d7011a5b1efdc5",
+            "selection_artifact_sha256": "b7011229223aa85532dd7492d04c9c94b7e20a7f57c434585f2bca22fba6d84f",
+            "selection_receipt_sha256": "e2f7b77370f05d6ddc0d64605c98095c0b35cc2108635f8290a3031d6d6b87ab",
+            "selection_manifest_receipt_verified": true
+          }
+        }
+      },
+      "STAGE_0945_1030": {
+        "status": "PARTIAL_WITH_ROWS",
+        "a_rows": 10,
+        "hk_observation_rows": 10,
+        "selected_hk_rows": null,
+        "display_mode": "OBSERVATION_UNVERIFIED",
+        "same_result_both_ports": true,
+        "receipt_sha256": "28b05a7360a464e25bacc98bfa7865b4da5ad3a3fa62ec5ff26e9de789f2d53b",
+        "markets": {
+          "A": {
+            "run_id": "run-5f443a7ef302bc1b65cc8a1d",
+            "source_rows": 361,
+            "requested_rows": 371,
+            "selection_manifest_sha256": "6fbed7e787126b7daf6b10bad5eed8228ce062973ad96fec8d2dafa5da39057c",
+            "selection_artifact_sha256": "d9b085ba6eb5ac444c786e00f67dbbf95403c3b818ab62f793e5c1d85b6f63d6",
+            "selection_receipt_sha256": "2400d1a0068e081907f66c50cec9088cad69138c38b1b3c2ad2b6658de1795d4",
+            "selection_manifest_receipt_verified": true
+          },
+          "HK": {
+            "run_id": "run-8e42e2beca799295bbe52ab9",
+            "source_rows": 99,
+            "requested_rows": 100,
+            "selection_manifest_sha256": "397f63e5bde73acd4a24f43719b892c0342f4f560da6d79b8aeb2971db521127",
+            "selection_artifact_sha256": "5b95e1426aa96f269ab3d90df67bf808e7e8ab0cff2c80878b2958acf2fb1cb0",
+            "selection_receipt_sha256": "af389348fa043344b59d5c5f622c7c11ecbc6197cf5d3e2c061b2833c63f88ec",
+            "selection_manifest_receipt_verified": true
+          }
+        }
+      }
+    },
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "earlier_receipts_unchanged": {
+      "STAGE_0925": true,
+      "STAGE_0930_0935": true,
+      "STAGE_0935_0940": true
+    },
+    "hk_only_0940_a_preserved": true,
+    "afternoon_status": "NOT_DUE; natural execution not yet verified"
+  },
+  "formal_execution": [
+    {
+      "stage": "STAGE_0940_0945",
+      "started_at": "2026-10-12T12:32:02.276366+08:00",
+      "finished_at": "2026-10-12T12:32:02.694930+08:00",
+      "command": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/prepare_remaining_stages_recovery_20261012.py",
+        "--mode",
+        "consume-0940",
+        "--app-root",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app",
+        "--config",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app/stage_center_tick_config.json",
+        "--candidate-domain",
+        "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/prepared_candidate_20261012_r2/candidate_overlay/domains/research.py",
+        "--output-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_REMAINING_STAGE_RECOVERY_20261012/isolated_remaining_stages_recovery_20261012_r8_formal_0940"
+      ],
+      "exit_code": 0,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app",
+      "mode": "MANUAL_RECOVERY",
+      "natural_verified": false
+    },
+    {
+      "stage": "STAGE_0945_1030",
+      "started_at": "2026-10-12T12:32:13.744375+08:00",
+      "finished_at": "2026-10-12T12:32:14.125698+08:00",
+      "command": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app/ops/run_stage_center_nodes.py",
+        "--config",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app/stage_center_tick_config.json",
+        "--node",
+        "STAGE_0945_1030",
+        "--trade-date",
+        "20261012"
+      ],
+      "exit_code": 0,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/remaining-stages-recovery-20261012-r1/app",
+      "mode": "MANUAL_RECOVERY_NORMAL_DISPATCH",
+      "natural_verified": false
+    }
+  ],
+  "proof_files": {
+    "UI_0940_AFTER.txt": "f9b95a9c4959023a10a86e49f7997f3bb5d1b303b2903c6cf1b08e0e14e41c8c",
+    "UI_0945_AFTER.txt": "1f883dc2fec2409695c1962b5ad2d5ddf7ebe171442cfaaa407cfb5c2ad0b08f",
+    "UI_TIMELINE_AFTER_RECOVERY.png": "46a1c5c19da07fdec48bad19cb266893726d711dfd24fb215eb100c4c51cbbf3"
+  },
+  "limits": [
+    "Manual recovery does not establish natural-slot success or PIT safety.",
+    "09:45 raw coverage A 361/371 and HK 99/100, missing HK.02632; unsafe temporal flags retained.",
+    "Source-bound warning presentation downstream of ResearchContext is outside this patch scope.",
+    "Optional unchanged historical cap fixture returned SKIPPED_ALREADY_SETTLED rather than PARTIAL_COMMIT_RETRY_REQUIRED; out-of-scope failure retained."
+  ],
+  "synced_data_boundary": "Source code, patches, necessary tests and compact evidence only; no raw market rows or account data."
+}
