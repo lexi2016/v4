@@ -1,0 +1,58 @@
+{
+  "schema": "ISSUE36_R7_VERSIONED_V3_SHA_REBIND_V1",
+  "baseline_commit": "d05afe94110c6fe6d171a99b7e4ccb1e15248c9f",
+  "historical_r7_logical_identity": "UNCHANGED",
+  "historical_r7_admission_debit": 1,
+  "new_r7_admission_debit": 0,
+  "original_failure_terminal_02_sha256": "254e63c23c0b9b11b2685725796b4ebcfcafc234fd1eb5b2d086f04e655e76bd",
+  "current_v3_source_code": {
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_budget.py": {
+      "before": "0746398c572ec070f96cfbb27826b3ae6ab5ae7a7839792dd01b0324ebf393cb",
+      "after": "fca2feceeb829b16a80dd54b87c224e2cb2a50a4a1ef4e1546734e53e454746d"
+    },
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/f5_breadth1_inputs.py": {
+      "before": "86d7eb720469da17cebf2d05f06e5572dd0365b3e5d96efa6b1deeded5818383",
+      "after": "215a528d89a718cda2f3f8c7a9e1275b637425dc23e32da11233cb30b819a742"
+    },
+    "workspace/f5_breadth1_r3_frozen_input_20261011/src/run_f5_breadth1.py": {
+      "before": "49b7d01ab6dff04ed5130a55466826804589569b2ccd13d698a7dfe8df61b673",
+      "after": "5e4b7a782d6b76b606ac312767203c1f56f92dd0ef4d5cfa3218666b8acbef25"
+    }
+  },
+  "current_v3_controls": {
+    "R7_RECOVERY_06_RESUME_CONTRACT_V3.json": "7c158df66723be964945335a40355ef72b7b4f6574713a9177961c5fad9b9c0e",
+    "PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_PENDING_BINDING_RESUME_03.json": "a27d5ac129a014b739bb05283579a4739d15610494d725a9ea652e9ff0b7aef7",
+    "PARENT_PANEL_DATE_RECOVERY_R7_ENGINEERING_RETRY_READ_RELEASE_RESUME_03.json": "ea4228111f2c010d5c74a455696e9dd288497d8c7646e0246c0c5fb08761925c",
+    "R7_RECOVERY_06_RESUME_READ_PLAN_V3.json": "1c4efe4a5beb01ac5eaa65e873e544d322baa82deb8b198bb966dc199a987810",
+    "R7_RECOVERY_06_RESUME_AUTHORIZATION_V3.json": "0672916a2cd60dafccc35e52f2bab21e3b27f9be2b5948da96e8b2edef262cd9"
+  },
+  "current_v3_auxiliary": {
+    "launcher/r7_resume_v3_launcher.py": {
+      "sha256": "6879dce51eee81adf194a021b9d50a8c23dc399a164be7e758b6d685003d6ba0",
+      "bytes": 6352,
+      "git_blob_sha": "bed4a187f4ff5017bf7cd32264cf2d6193833445"
+    },
+    "tools/install_v3_candidate.py": {
+      "sha256": "8ccbc1c6e03cb2fa540091a3352382c21ad58c149ac22f58c6fa2490e5c1be08",
+      "bytes": 8363,
+      "git_blob_sha": "27d9a143e7d06fca71cbce6cbdec3d56e0ce8b74"
+    },
+    "patches/ISSUE36_R7_V3_SOURCE_MINIMAL.diff": {
+      "sha256": "86c8578da978d2296e084074f3357e5c825b26cf1382a0f2d09a3391e44a8448",
+      "bytes": 16377,
+      "git_blob_sha": "80960397c13aa38a5d0110cc338ff140b32620e7"
+    }
+  },
+  "unchanged_modules": [
+    "__init__.py",
+    "f5_breadth1_core.py",
+    "f5_breadth1_evaluate.py",
+    "f5_breadth1_worker.py"
+  ],
+  "real_mac_preflight": "NOT_RUN",
+  "real_fit": 0,
+  "real_predict": 0,
+  "real_model_load": 0,
+  "real_truth": 0,
+  "notes": "Version 3 is a separate physical attempt, not a new original R7 action key or refund. Only four read release fields differ from original R7."
+}
