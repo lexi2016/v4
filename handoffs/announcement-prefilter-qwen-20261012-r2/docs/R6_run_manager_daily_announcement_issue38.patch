@@ -1,0 +1,45 @@
+--- a/ops/run_manager_daily_announcement.py
++++ b/ops/run_manager_daily_announcement.py
+@@ -670,6 +670,15 @@
+         help="same ManagerResearch state root used by the API; material refs are read from its materials store")
+     capture.add_argument("--resume-evidence-run-id", default=None,
+         help="resume the exact saved catalog run without POST refresh; requires matching date pair and owner GET readback")
++    capture.add_argument("--prefilter-after-capture", action="store_true",
++        help="post-capture script/Qwen research triage in the same evidence run; does not import to owner")
++    capture.add_argument("--prefilter-cache-root", help="durable cache for verified local Qwen reads")
++    capture.add_argument("--prefilter-model-pid", type=int)
++    capture.add_argument("--prefilter-model-dir")
++    capture.add_argument("--prefilter-model-name", default="")
++    capture.add_argument("--prefilter-model-revision", default="")
++    capture.add_argument("--prefilter-model-endpoint", default="http://127.0.0.1:8199/v1/chat/completions")
++    capture.add_argument("--prefilter-model-alias", default="")
+     prepare = sub.add_parser("prepare", help="validate exact date-bound source artifacts without writing")
+     prepare.add_argument("--target-date", required=True)
+     prepare.add_argument("--publication-date", required=True)
+@@ -719,6 +728,26 @@
+             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+         elif args.command == "capture":
+             result = _capture(args)
++            if args.prefilter_after_capture:
++                if not args.prefilter_cache_root:
++                    raise ValueError("PREFILTER_CACHE_ROOT_REQUIRED")
++                from ops.run_manager_announcement_prefilter import run_from_evidence
++                import uuid
++                evidence = (Path(args.research_state_root).expanduser().absolute()
++                    / "announcement_agent_runs" / result["evidence_run_id"] / "evidence")
++                triage = run_from_evidence(
++                    evidence_root=evidence, cache_root=Path(args.prefilter_cache_root),
++                    output=evidence / "prefilter_runs" / (uuid.uuid4().hex + ".json"),
++                    model_pid=args.prefilter_model_pid,
++                    model_dir=args.prefilter_model_dir,
++                    model_name=args.prefilter_model_name,
++                    revision=args.prefilter_model_revision,
++                    endpoint=args.prefilter_model_endpoint,
++                    alias=args.prefilter_model_alias)
++                result = {**result, "prefilter_status": triage["status"],
++                    "prefilter_receipt_sha256": triage["sha256"],
++                    "prefilter_unassessed_rows": triage["unassessed_rows"],
++                    "owner_import_status": "NOT_RUN"}
+             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+         elif args.command == "build-reviewed":
+             result = _build(args, reviewed=True)
