@@ -1,0 +1,171 @@
+{
+  "schema_version": "v4.announcement_prefilter_handoff_writer_receipt.v1",
+  "writer": "announcement_prefilter_handoff_writer (Luna Max)",
+  "reviewer_required": "different-identity Luna Max read-only reviewer",
+  "status": "READY_FOR_INDEPENDENT_REVIEW_NOT_ACCEPTED",
+  "scope": {
+    "goal": "prepare Chinese announcement prefilter/Qwen3.8 implementation handoff with exact source snapshots and Vibe references",
+    "source_task_directory": "/Users/lexi/Desktop/学习/agents调试/V4_ANNOUNCEMENT_PREFILTER_QWEN_HANDOFF_20261012_R1",
+    "allowed_paths": [
+      "package/**",
+      "receipts/writer/**"
+    ],
+    "forbidden_actions_observed": {
+      "business_source_edits": false,
+      "model_calls": false,
+      "data_collection": false,
+      "git": false,
+      "network": false,
+      "service_or_scheduler_actions": false,
+      "external_actions": false
+    }
+  },
+  "changed_files": [
+    "package/CHAT_PROMPT.md",
+    "package/README.md",
+    "package/REQUIREMENTS.md",
+    "package/SOURCE_MAP.md",
+    "package/hooks/canonical/apps/api/v35_api/manager_research_router.api-routes.lines-345-479.fragment",
+    "package/hooks/canonical/v4/manager_research/plan_owner_dispatch.execute_bound_plan_cycle.lines-221-288.fragment",
+    "package/hooks/canonical/v4/manager_research/plan_owner_dispatch.request_bound_plan_cycle.lines-291-380.fragment",
+    "package/hooks/canonical/v4/manager_research/service.service-owner-methods.lines-423-464.fragment",
+    "package/hooks/r6-8873/apps/api/v35_api/manager_research_router.api-routes.lines-345-479.fragment",
+    "package/hooks/r6-8873/infrastructure/scheduling/manager_announcement_supervisor.AnnouncementSupervisor.lines-560-586.fragment",
+    "package/hooks/r6-8873/infrastructure/scheduling/manager_announcement_supervisor.run_bound_child.lines-532-557.fragment",
+    "package/hooks/r6-8873/ops/run_v35_macos_scheduler_daemon.daemon-loop.lines-341-355.fragment",
+    "package/hooks/r6-8873/v4/manager_research/plan_owner_dispatch.execute_bound_plan_cycle.lines-795-800.fragment",
+    "package/hooks/r6-8873/v4/manager_research/plan_owner_dispatch.request_bound_plan_cycle.lines-803-804.fragment",
+    "package/hooks/r6-8873/v4/manager_research/service.service-owner-methods.lines-423-464.fragment",
+    "package/manifest.json",
+    "package/source/canonical/infrastructure/scheduling/manager_announcement_supervisor.py",
+    "package/source/canonical/ops/manager_announcement_body_batch.py",
+    "package/source/canonical/ops/run_manager_announcement_cycle.py",
+    "package/source/canonical/ops/run_manager_daily_announcement.py",
+    "package/source/canonical/v4/manager_research/announcement_analysis.py",
+    "package/source/canonical/v4/manager_research/announcement_autorun.py",
+    "package/source/canonical/v4/manager_research/announcement_catalog.py",
+    "package/source/canonical/v4/manager_research/announcement_materials.py",
+    "package/source/canonical/v4/manager_research/announcement_observation.py",
+    "package/source/canonical/v4/manager_research/announcement_selection.py",
+    "package/source/canonical/v4/manager_research/announcement_source.py",
+    "package/source/canonical/v4/manager_research/workspace_announcements.py",
+    "package/source/canonical/v4/manager_research/workspace_daily_channels.py",
+    "package/source/r6-8873/infrastructure/scheduling/manager_announcement_supervisor.py",
+    "package/source/r6-8873/ops/manager_announcement_body_batch.py",
+    "package/source/r6-8873/ops/run_manager_announcement_cycle.py",
+    "package/source/r6-8873/ops/run_manager_daily_announcement.py",
+    "package/source/r6-8873/v4/manager_research/announcement_analysis.py",
+    "package/source/r6-8873/v4/manager_research/announcement_autorun.py",
+    "package/source/r6-8873/v4/manager_research/announcement_catalog.py",
+    "package/source/r6-8873/v4/manager_research/announcement_materials.py",
+    "package/source/r6-8873/v4/manager_research/announcement_observation.py",
+    "package/source/r6-8873/v4/manager_research/announcement_selection.py",
+    "package/source/r6-8873/v4/manager_research/announcement_source.py",
+    "package/source/r6-8873/v4/manager_research/workspace_announcements.py",
+    "package/source/r6-8873/v4/manager_research/workspace_daily_channels.py",
+    "package/vibe-reference/snippets/api_announcements_cache_900s.txt",
+    "package/vibe-reference/snippets/astock_announcements_15_metadata.txt",
+    "package/vibe-reference/snippets/intel_user_triggered_industry_25_title_summary.txt",
+    "package/vibe-reference/snippets/intel_watchlist_aggregate_sort_display_60.txt",
+    "package/vibe-reference/snippets/newsradar_rss_date_redline_summary160.txt",
+    "package/vibe-reference/snippets/newsradar_translation_default12_max20_success_cache.txt",
+    "package/vibe-reference/snippets/stockdata_context_recent_5_announcement_titles.txt",
+    "receipts/writer/writer_receipt.json"
+  ],
+  "package_inventory": {
+    "file_count_including_manifest": 49,
+    "bytes_including_manifest": 1217476,
+    "manifest_sha256": "efd8366b6c3d9359ff9637a10b38b3d8a4b3a3426a79a67da89c9c1ae18f7c38",
+    "inventory_digest_sha256": "a86525b617e7909af0882816423083d92c5c49ba5971c08b0788e8253c99297a",
+    "manifest_file_entries": 48,
+    "canonical_and_r6_source_snapshots": 26,
+    "v4_hook_excerpts": 11,
+    "vibe_snippets": 7
+  },
+  "commands_run": [
+    {
+      "command": "cat '/Users/lexi/Desktop/学习/agents调试/V4_ANNOUNCEMENT_PREFILTER_QWEN_HANDOFF_20261012_R1/SCOPE.md'",
+      "purpose": "read the frozen task scope"
+    },
+    {
+      "command": "rg --files '/Users/lexi/Desktop/学习/v4_app' | rg '(^|/)(run_manager_daily_announcement\\.py|manager_announcement_body_batch\\.py|run_manager_announcement_cycle\\.py|manager_announcement_supervisor\\.py|announcement_(source|catalog|analysis|selection|autorun|materials|observation)\\.py|workspace_(announcements|daily_channels)\\.py)$'",
+      "purpose": "locate canonical source modules"
+    },
+    {
+      "command": "rg --files '<declared R6 app root>' | rg '<same selected source module pattern>'",
+      "purpose": "locate R6 source modules"
+    },
+    {
+      "command": "python3 - <<'PY' ... PY",
+      "purpose": "read-only source bytes, SHA-256, line counts and local imports for the selected canonical/R6 modules"
+    },
+    {
+      "command": "rg -n 'announcement|manager.supervisor|plan_owner|daily.reader' <selected API/scheduler paths>",
+      "purpose": "locate API and scheduler hooks; no runtime invocation"
+    },
+    {
+      "command": "nl -ba '<manager_research_router.py>' | sed -n '330,480p'; nl -ba '<service.py>' | sed -n '420,470p'; nl -ba '<plan_owner_dispatch.py>' | sed -n '225,330p'",
+      "purpose": "read exact API/owner/dispatcher source ranges"
+    },
+    {
+      "command": "python3 - <<'PY' ... PY",
+      "purpose": "extract exact V4 source snapshots, API/scheduler fragments, and Vibe source line fragments with SHA-256"
+    },
+    {
+      "command": "python3 - <<'PY' ... PY",
+      "purpose": "write the Chinese README, requirements, Chat prompt, source map and JSON manifest inside package/"
+    },
+    {
+      "command": "python3 - <<'PY' ... PY",
+      "purpose": "parse manifest and recompute all listed files; verify V4/Vibe excerpt source identity; scan credential-shaped values and raw-evidence exclusions"
+    },
+    {
+      "command": "python3 - <<'PY' ... PY",
+      "purpose": "UTF-8 and required-content checks for the four handoff documents; refresh package file hashes in manifest"
+    }
+  ],
+  "verification": {
+    "business_tests": "NOT_RUN_BY_SCOPE",
+    "model_validation": "NOT_RUN_BY_SCOPE",
+    "manifest_json_parse": "PASS",
+    "package_file_hash_inventory": "PASS",
+    "source_snapshot_byte_identity": "PASS",
+    "v4_hook_excerpt_identity": "PASS",
+    "vibe_rawfile_and_snippet_hashes": "PASS",
+    "credential_shape_scan": "PASS_NO_CANDIDATES",
+    "raw_evidence_payload_exclusion": "PASS",
+    "document_utf8_and_required_content": "PASS"
+  },
+  "frozen_corpus": {
+    "target_trade_date": "20261012",
+    "publication_date": "2026-10-11",
+    "evidence_run_id": "6557712adca825b670f28c5169655db1",
+    "catalog_rows": 23,
+    "complete_bodies": 21,
+    "body_capture_failures": 2,
+    "semantic_status": "NOT_REVIEWED",
+    "corpus_payload_in_package": false,
+    "issuer_completeness": "CANNOT_CONFIRM"
+  },
+  "independent_review": {
+    "status": "PENDING",
+    "required_receipt": "REVIEWED / BEHAVIOR_VERIFIED from a different-identity Luna Max Reviewer"
+  },
+  "remote_delivery": {
+    "status": "NOT_IMPLEMENTED_NOT_RUN",
+    "repository": "private lexi2016/v4",
+    "target_branch": "codex/announcement-prefilter-qwen-handoff-20261012-r1",
+    "target_directory": "handoffs/announcement-prefilter-qwen-20261012-r1",
+    "readback": "NOT_RUN"
+  },
+  "CANNOT_CONFIRM": [
+    "The actual 8873 process and loaded source root/SHA were not inspected; the R6 root is the path declared by the task and its bytes were hashed locally.",
+    "Vibe PID 1093/root was supplied by the task and not checked against a running process.",
+    "The actual local Qwen3.8 weights, revision, modelname, config SHA, service route and provider token usage are not verified; prior alias/model labels conflict.",
+    "Static source candidates do not establish that the current heartbeat invokes AnnouncementSupervisor.tick or that the daily V4 chain reaches owner import/readback.",
+    "Frozen announcement semantics remain NOT_REVIEWED; labels, high-value recall denominator and numeric pass threshold are not yet independently frozen.",
+    "The frozen corpus reports 23 rows, 21 complete bodies, 2 capture failures, and issuer completeness CANNOT_CONFIRM; no body payload or catalog response was copied.",
+    "The source overlay is not a complete runnable dependency closure; omitted dependencies and existing tests are listed in SOURCE_MAP.md.",
+    "No API/UI verification, natural-period execution, deployment, or GitHub branch/issue upload was performed."
+  ]
+}

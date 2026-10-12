@@ -1,0 +1,27 @@
+class AnnouncementSupervisor:
+    def __init__(self,binding_path: str | None, *, runner: Callable=run_bound_child):
+        self.binding_path=binding_path;self.runner=runner;self.thread:threading.Thread|None=None
+        self.cancel=threading.Event();self.last_minute:str|None=None
+        self.last_result:dict={'status':'NOT_RUN' if binding_path else 'DISABLED'}
+
+    def tick(self,now:datetime) -> None:
+        if not self.binding_path or self.cancel.is_set():return
+        # No filesystem/calendar/owner import or wait on the original scheduler
+        # thread. Exact HK calendar and all bindings are checked in the worker
+        # thread/process. This cheap exclusion rejects the close window first.
+        if now.tzinfo is None:return
+        from zoneinfo import ZoneInfo
+        local=now.astimezone(ZoneInfo('Asia/Shanghai'))
+        clock=(local.hour,local.minute,local.second)
+        if not (7,0,0)<=clock<(23,0,0) or (15,19,0)<=clock<(15,40,0):return
+        minute=local.strftime('%Y%m%d%H%M')
+        if minute==self.last_minute or self.thread is not None and self.thread.is_alive():return
+        self.last_minute=minute
+        def run():
+            try:self.last_result=self.runner(self.binding_path,self.cancel) or {'status':'EXITED'}
+            except Exception as exc:self.last_result={'status':'FAILED','reason':type(exc).__name__}
+        self.thread=threading.Thread(target=run,name='manager-announcement-bounded-child',daemon=True)
+        self.thread.start()  # Never join/wait on the scheduler's critical thread.
+
+    def stop(self) -> None:
+        self.cancel.set()

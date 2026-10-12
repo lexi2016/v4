@@ -1,0 +1,2 @@
+def request_bound_plan_cycle(binding_path: str | Path, target_date: str) -> dict[str, Any]:
+    return _request_bound_cycle(binding_path,target_date,daily_mode=False)

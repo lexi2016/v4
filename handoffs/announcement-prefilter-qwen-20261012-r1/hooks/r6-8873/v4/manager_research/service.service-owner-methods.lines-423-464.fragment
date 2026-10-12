@@ -1,0 +1,42 @@
+                                    execution_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+        """Persist a bounded daily US-to-HK projection from the injected owner.
+
+        The builder runs in a single non-queueing read lane; only this caller
+        can publish its accepted result. A timed-out reader can never write.
+        """
+        from .us_mapping_research import persist_daily_run
+        return persist_daily_run(self, target_trade_date, now=now,
+            timeout_seconds=timeout_seconds, execution_context=execution_context)
+
+    def refresh_announcements(self, target_trade_date: str, *, resume: bool = False,
+                              schedule: Mapping[str, Any] | None = None,
+                              source_scope: str | None = None,
+                              publication_date: str | None = None,
+                              issuer_code: str | None = None,
+                              issuer_codes: list[str] | None = None) -> dict[str, Any]:
+        """Explicit bounded capture by this owner, separate from plan projection."""
+        from .workspace_announcements import refresh
+        return refresh(self, target_trade_date, resume=resume, schedule=schedule,
+                       source_scope=source_scope, publication_date=publication_date, issuer_code=issuer_code,
+                       issuer_codes=issuer_codes)
+
+    def get_announcement_date_catalog(self, target_trade_date: str,
+                                     publication_date: str) -> dict[str, Any]:
+        from .workspace_announcements import read_date_catalog
+        return read_date_catalog(self, strict_trade_date(target_trade_date), publication_date)
+
+    def get_announcement_analysis(self, target_trade_date: str,
+                                  publication_date: str | None = None) -> dict[str, Any]:
+        from .announcement_analysis import read
+        return read(self, strict_trade_date(target_trade_date), publication_date)
+
+    def import_announcement_analysis(self, product: Mapping[str, Any]) -> dict[str, Any]:
+        """Import legacy product bytes or an exact registered handoff reference.
+
+        Registered references publish/read back the existing owner receipt;
+        both direct callers and the HTTP route use this same transaction.
+        """
+        from .announcement_analysis import import_product
+        return import_product(self, product)
+
+    def accept_saved_date_catalog_refs(self, target_trade_date: str, publication_date: str,

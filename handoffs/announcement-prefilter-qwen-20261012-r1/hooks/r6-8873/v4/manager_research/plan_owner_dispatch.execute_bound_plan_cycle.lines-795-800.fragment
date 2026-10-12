@@ -1,0 +1,6 @@
+def execute_bound_plan_cycle(service: Any, target_date: str, binding_sha256: str) -> dict[str, Any]:
+    binding, parent_identity, _now = _admit_bound_cycle(service,target_date,binding_sha256,daily_mode=False)
+    date = parent_identity["target_trade_date"]
+    return service._workspace_reads.run(
+        (date, "SCHEDULED_PLAN_OWNER", parent_identity["trigger_id"]),
+        lambda: _execute_serialized_cycle(service, binding, parent_identity), seconds=30.0)

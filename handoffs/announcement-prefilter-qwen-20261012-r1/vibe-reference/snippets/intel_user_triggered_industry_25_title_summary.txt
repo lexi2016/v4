@@ -1,0 +1,17 @@
+  const genDigest = async (ind: Industry) => {
+    setDigests((d) => ({ ...d, [ind.key]: { loading: true } }));
+    const ctx = ind.items.slice(0, 25).map((it) => `[${it.time}] ${it.source}｜${it.translated_title || it.zh || it.title}`).join("\n");
+    const prompt =
+      `以下是「${ind.name}」赛道近期资讯。请提炼「今日要点」3-5 条：每条一句话（≤40 字），` +
+      `只客观陈述重要事件 / 趋势，不推荐标的、不预测涨跌、不构成建议。直接用「- 」列点，不要多余前后缀。\n\n${ctx}`;
+    try {
+      let acc = "";
+      await chatStream([{ role: "user", content: prompt }], `${ind.name}赛道资讯`, {
+        onDelta: (t) => { acc += t; setDigests((d) => ({ ...d, [ind.key]: { text: acc } })); },
+      });
+    } catch (e) {
+      setDigests((d) => ({ ...d, [ind.key]: { err: e instanceof ApiError ? e.message : "生成失败" } }));
+    }
+  };
+
+  // 一键提炼全部赛道要点（串行，带进度；单赛道按需的按钮仍保留）

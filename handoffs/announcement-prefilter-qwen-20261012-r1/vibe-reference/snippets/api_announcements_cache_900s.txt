@@ -1,0 +1,15 @@
+
+
+@app.get("/api/announcements")
+def announcements(code: str = Query(...)):
+    """个股近期公告（东财，仅 requests）。缓存 15 分钟/代码。"""
+    code = _validate(code)
+    hit = _ANN_CACHE.get(code)
+    if hit and _time.time() - hit[0] < 900:
+        return {"data": hit[1]}
+    try:
+        data = astock.announcements(code)
+        _ANN_CACHE[code] = (_time.time(), data)
+        return {"data": data}
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(502, f"公告源异常：{e}") from e

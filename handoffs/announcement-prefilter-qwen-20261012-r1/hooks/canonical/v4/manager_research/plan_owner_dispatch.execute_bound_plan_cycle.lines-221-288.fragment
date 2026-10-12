@@ -1,0 +1,68 @@
+def execute_bound_plan_cycle(service: Any, target_date: str, binding_sha256: str) -> dict[str, Any]:
+    binding_path = os.environ.get("V4_MANAGER_PLAN_OWNER_BINDING_PATH", "").strip()
+    if not binding_path:
+        raise ValueError("PLAN_OWNER_SERVER_BINDING_NOT_CONFIGURED")
+    raw = _raw_binding(binding_path)
+    actual_sha = hashlib.sha256(raw).hexdigest()
+    if not re.fullmatch(r"[0-9a-f]{64}", str(binding_sha256 or "")) or actual_sha != binding_sha256:
+        raise ValueError("PLAN_OWNER_BINDING_SHA_MISMATCH")
+    try:
+        binding_value = json.loads(raw)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("PLAN_OWNER_BINDING_JSON_INVALID") from exc
+    from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+    binding = validate_binding(binding_value, expected_app=APP_ROOT)
+    if not binding.get("enabled"):
+        raise ValueError("PLAN_OWNER_BINDING_DISABLED")
+    state_root = Path(str(binding.get("manager_state_root") or "")).resolve()
+    master_root = Path(str(binding.get("security_master_root") or "")).resolve()
+    service_master = getattr(service, "_workspace_security_master_root", None)
+    if Path(service.store.root).resolve() != state_root or service_master is None or Path(service_master).resolve() != master_root:
+        raise ValueError("PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH")
+    if (getattr(service, "_existing_research_source", None) is None
+            or getattr(service, "_workspace_us_market_reader", None) is None):
+        raise ValueError("PLAN_OWNER_FULL_READERS_REQUIRED")
+    date = date_token(target_date)
+    now = clock_now()
+    if now.tzinfo is None or _expected_target(binding, now) != date:
+        raise ValueError("PLAN_OWNER_TARGET_DATE_OR_WINDOW_MISMATCH")
+    source_date = now.astimezone(HK).strftime("%Y%m%d")
+    branch = _scheduled_branch(binding, source_date, date, now)
+    parent_identity = _parent_trigger_identity(source_date, date, branch, actual_sha)
+    daily = None
+    if branch == "PREOPEN" and date == source_date:
+        # Persist the same-date US mapping before the owner computes its plan;
+        # workspace.py reads only the saved owner artifact and enforces cutoff.
+        try:
+            daily = _prepare_us_mapping(service, date, now)
+        except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+            daily = {"status": "FAILED", "target_trade_date": date,
+                     "gaps": ["US_MAPPING_DAILY_OWNER_FAILED:" + type(exc).__name__], **FLAGS}
+    from ops.run_manager_announcement_cycle import run_scheduled_plan_target
+    result = service._workspace_reads.run(
+        (date, "SCHEDULED_PLAN_OWNER", parent_identity["trigger_id"]),
+        lambda: run_scheduled_plan_target(service, date, now.astimezone(HK).strftime("%Y%m%d"),
+            now=now, plan_config=binding.get("plan_material_refresh"),
+            preopen_config=binding.get("preopen_plan"),
+            morning_plan_config=binding.get("morning_plan")), seconds=30.0)
+    if result.get("branch") != branch:
+        raise ValueError("PLAN_OWNER_PARENT_TRIGGER_BRANCH_READBACK_MISMATCH")
+    if branch == "PREOPEN" and date == source_date:
+        daily = daily or {"status": "CANNOT_CONFIRM", "target_trade_date": date,
+                          "gaps": ["US_MAPPING_DAILY_OWNER_RESULT_MISSING"], **FLAGS}
+        result = {**result, "us_mapping_research": compact_cycle_receipt(daily)}
+        if daily.get("status") not in {"COMPLETED", "VALID_EMPTY"}:
+            result["status"] = "FAILED" if result.get("status") == "FAILED" else "PARTIAL"
+    else:
+        result = {**result, "us_mapping_research": {
+            "status": "NOT_DUE_US_SESSION_NOT_CLOSED", "target_trade_date": date,
+            "source_date": now.astimezone(HK).strftime("%Y%m%d"), **FLAGS}}
+    return {
+        **compact_cycle_receipt(result),
+        "schema_version": SCHEMA,
+        "owner": OWNER,
+        "binding_sha256": actual_sha,
+        "target_trade_date": date,
+        "parent_trigger_receipt": _parent_trigger_receipt(parent_identity, now=now, result=result),
+        **FLAGS,
+    }

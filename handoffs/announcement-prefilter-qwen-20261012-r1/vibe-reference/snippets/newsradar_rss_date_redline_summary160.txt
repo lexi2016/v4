@@ -1,0 +1,42 @@
+
+def _fetch_source(src: dict, per: int, cutoff, redline: list[str]):
+    """抓单个 RSS 源；返回 items 列表，出错返回 None。"""
+    try:
+        req = urllib.request.Request(src["url"], headers={
+            "User-Agent": UA,
+            "Accept": "application/rss+xml,application/atom+xml,application/xml,text/xml,*/*",
+        })
+        with urllib.request.urlopen(req, timeout=14) as r:
+            raw = r.read()
+        root = ET.fromstring(raw)
+        out = []
+        for n in [e for e in root.iter() if _local(e.tag) in ("item", "entry")]:
+            if len(out) >= per:
+                break
+            d = {"title": "", "url": "", "time": "", "ts": 0, "summary": "", "source": src["name"]}
+            rawtime = ""
+            for c in n:
+                t = _local(c.tag)
+                if t == "title" and not d["title"]:
+                    d["title"] = (c.text or "").strip()
+                elif t == "link" and not d["url"]:
+                    d["url"] = c.get("href") or (c.text or "").strip()
+                elif t in ("pubDate", "published", "updated", "date") and not rawtime:
+                    rawtime = (c.text or "").strip()
+                elif t in ("description", "summary", "content") and not d["summary"]:
+                    d["summary"] = _strip_html(c.text or "")[:160]
+            if not d["title"]:
+                continue
+            blob = (d["title"] + " " + d["summary"]).lower()
+            if any(k in blob for k in redline):  # 合规红线过滤
+                continue
+            dt = _parse_dt(rawtime)
+            if dt is not None:
+                if cutoff and dt < cutoff:
+                    continue
+                d["time"] = dt.astimezone(BEIJING).strftime("%m-%d %H:%M")
+                d["ts"] = int(dt.timestamp())
+            else:
+                d["time"] = "—"
+            out.append(d)
+        return out

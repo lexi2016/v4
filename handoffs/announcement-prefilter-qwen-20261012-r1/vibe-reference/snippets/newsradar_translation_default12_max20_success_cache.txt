@@ -1,0 +1,62 @@
+def translate_items(
+    items: list[dict],
+    translator,
+    *,
+    cache_path: str | None = None,
+    limit: int = 12,
+) -> dict:
+    """Translate a small active-category batch and persist only metadata.
+
+    ``translator`` is injected by the API layer.  It receives bounded item
+    dictionaries and may return either ``{item_id: title}`` or a list of
+    ``{item_id, translated_title}``; no credentials or model configuration are
+    read here.
+    """
+    entries = _load_translation_cache(cache_path)
+    bounded = [decorate_item(x, cache=entries) for x in (items or []) if isinstance(x, dict)][: max(0, min(int(limit), 20))]
+    pending = [x for x in bounded if not (
+        entries.get(x["item_id"], {}).get("status") == "TRANSLATED"
+        and _valid_translation_text(entries.get(x["item_id"], {}).get("translated_title"), x["original_title"])
+    )]
+    pending = pending[: max(0, min(int(limit), 20))]
+    translated: dict[str, str] = {}
+    error_type = None
+    error_message = None
+    if pending:
+        payload = [{"item_id": x["item_id"], "title": x["original_title"], "source": x.get("source"), "time": x.get("time")} for x in pending]
+        try:
+            expected_ids = {x["item_id"] for x in pending}
+            originals = {x["item_id"]: x["original_title"] for x in pending}
+            translated = parse_translation_response(translator(payload), expected_ids, originals)
+        except TranslationProviderError as exc:
+            error_type = exc.error_type
+            error_message = translation_error_message(error_type)
+        except TranslationResponseError as exc:
+            error_type = exc.error_type
+            error_message = translation_error_message(error_type)
+        except Exception as exc:  # noqa: BLE001 — original titles remain visible
+            # ``vr.app`` is also imported as a top-level module by the local
+            # server.  Accept a matching error code from that module copy so
+            # package-style test imports cannot collapse EMPTY/DONE/PARSE into
+            # the generic provider failure.  The allowlist keeps this safe.
+            external_error_type = getattr(exc, "error_type", None)
+            error_type = external_error_type if external_error_type in TRANSLATION_ERROR_MESSAGES else "PROVIDER_ERROR"
+            error_message = translation_error_message(error_type)
+    updates: dict[str, dict] = {}
+    for item in pending:
+        key = item["item_id"]
+        value = translated.get(key)
+        if value is not None:
+            updates[key] = {
+                "status": "TRANSLATED", "translated_title": value,
+                "input_sha256": _translation_input_hash(item),
+            }
+        else:
+            updates[key] = {
+                "status": "ERROR", "translated_title": None,
+                "input_sha256": _translation_input_hash(item),
+                "error_type": error_type or "MISSING_ITEM",
+                "error_message": error_message or translation_error_message(error_type or "MISSING_ITEM"),
+            }
+    if pending:
+        entries = _commit_translation_updates(updates, cache_path)

@@ -1,0 +1,162 @@
+{
+  "schema_version": "v4.announcement_prefilter_handoff_independent_review.v1",
+  "reviewer": {
+    "identity": "/root/announcement_prefilter_handoff_reviewer",
+    "role": "different-identity Luna Max read-only Reviewer",
+    "writer_identity": "announcement_prefilter_handoff_writer (Luna Max)",
+    "review_date": "2026-10-12"
+  },
+  "status": "PACKAGING_REVIEW_PASS",
+  "review_boundary": "Frozen PASS scope: handoff package correctness, source/Vibe byte provenance, root/date separation, handoff locator completeness, and excluded payload scan.",
+  "behavior_status": {
+    "bounded_handoff_package": "BEHAVIOR_VERIFIED",
+    "business_implementation": "NOT_REVIEWED",
+    "business_runtime_or_daily_chain": "CANNOT_CONFIRM"
+  },
+  "findings": [],
+  "risk_assessment": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "checks": [
+    {
+      "id": "package_inventory",
+      "status": "PASS",
+      "evidence": {
+        "manifest_sha256": "efd8366b6c3d9359ff9637a10b38b3d8a4b3a3426a79a67da89c9c1ae18f7c38",
+        "manifest_entries": 48,
+        "actual_files_including_manifest": 49,
+        "actual_bytes_including_manifest": 1217476,
+        "all_manifest_entries_match_package_bytes_and_sha256": true
+      }
+    },
+    {
+      "id": "v4_source_snapshots_and_root_separation",
+      "status": "PASS",
+      "evidence": {
+        "source_snapshots_verified_against_local_original_bytes": 26,
+        "snapshots_per_root": {
+          "canonical": 13,
+          "r6-8873": 13
+        },
+        "selected_root_comparison_entries_verified": 13,
+        "byte_identical_entries": 7,
+        "byte_different_entries": 6,
+        "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+        "r6_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+        "roots_kept_in_separate_package_trees": true
+      },
+      "evidence_location": "package/manifest.json source_inventory and selected_root_comparison; package/source/canonical/**; package/source/r6-8873/**; package/SOURCE_MAP.md sections 1-3."
+    },
+    {
+      "id": "v4_api_scheduler_hook_excerpts",
+      "status": "PASS",
+      "evidence": {
+        "fragments_verified_against_original_path_sha_and_inclusive_line_slice": 11,
+        "package_paths_and_source_hashes_recorded_in_manifest": true
+      },
+      "evidence_location": "package/manifest.json v4_hook_excerpts; package/hooks/canonical/**; package/hooks/r6-8873/**."
+    },
+    {
+      "id": "vibe_reference_excerpts",
+      "status": "PASS",
+      "evidence": {
+        "snippets_verified_against_original_file_sha_and_inclusive_line_slice": 7,
+        "package_paths_and_source_hashes_recorded_in_manifest": true
+      },
+      "evidence_location": "package/manifest.json vibe_snippets; package/vibe-reference/snippets/**; package/SOURCE_MAP.md section 4."
+    },
+    {
+      "id": "handoff_requirements_and_acceptance_boundary",
+      "status": "PASS",
+      "coverage": [
+        "Deterministic routing skips only fully evidenced routine notices; major, uncertain, unknown, mixed, conflicting, or anomalous items route to verified local Qwen body analysis or remain unassessed.",
+        "No title TopN truncation and no extra full-AI baseline calls; quality labels and recall threshold are frozen before model results are opened.",
+        "Cache identity, same-key singleflight, failures not cached as success, provider-reported token usage, and zero-new-token repeat behavior are specified.",
+        "Partial body failures remain NOT_ASSESSED and visible in complete-catalog reconciliation.",
+        "The target 20261012 / publication 2026-10-11 date pair, source identities, and no pub09 fallback are explicit.",
+        "The alias/model identity conflict and the two named semantic counterexamples are recorded as acceptance blockers/regressions.",
+        "The original scheduler, owner import/readback, existing workspace/daily consumer, and no manual daily reading as a substitute for automation are explicit.",
+        "No separate panel; HK D-1, PIT/available_at, BUY gate, and research-only boundaries are preserved."
+      ],
+      "evidence_location": "package/README.md; package/REQUIREMENTS.md sections Goal, Frozen input, Deterministic routing, Local Qwen, Cache, Daily chain, Acceptance; package/CHAT_PROMPT.md."
+    },
+    {
+      "id": "test_dependency_and_gap_locations",
+      "status": "PASS",
+      "evidence": {
+        "eight_focused_existing_test_paths_present_in_canonical_repo": true,
+        "test_paths_are_not_copied_or_run": true,
+        "missing_dependency_closure_and_required_new_regression_areas_are_named": true
+      },
+      "evidence_location": "package/SOURCE_MAP.md lines 35-37; referenced tests: tests/test_manager_announcement_daily.py, test_manager_announcement_daily_flow.py, test_manager_announcement_analysis.py, test_manager_announcement_selection.py, test_manager_announcement_api_and_integrity.py, test_manager_announcement_supervisor.py, test_manager_announcement_targeted_one_day.py, test_manager_announcement_autorun.py."
+    },
+    {
+      "id": "frozen_corpus_and_date_provenance",
+      "status": "PASS",
+      "evidence": {
+        "target_trade_date": "20261012",
+        "publication_date": "2026-10-11",
+        "evidence_run_id": "6557712adca825b670f28c5169655db1",
+        "catalog_rows": 23,
+        "complete_bodies": 21,
+        "body_capture_failures": 2,
+        "semantic_status": "NOT_REVIEWED",
+        "issuer_completeness": "CANNOT_CONFIRM",
+        "live_import": "NOT_RUN",
+        "live_api_ui": "NOT_VERIFIED",
+        "natural_run": "NOT_VERIFIED",
+        "manifest_and_writer_receipt_counts_dates_and_statuses_consistent": true
+      },
+      "evidence_location": "package/manifest.json frozen_external_evidence; package/README.md; package/REQUIREMENTS.md."
+    },
+    {
+      "id": "sensitive_and_excluded_payload_boundary",
+      "status": "PASS_WITH_BOUNDED_SCAN",
+      "evidence": {
+        "credential_pattern_candidates": 0,
+        "patterns_checked": [
+          "private-key PEM header",
+          "AWS access-key shape",
+          "GitHub token shape",
+          "Slack token shape",
+          "OpenAI key shape",
+          "long Bearer credential shape"
+        ],
+        "package_extensions": {
+          ".fragment": 11,
+          ".json": 1,
+          ".md": 4,
+          ".py": 26,
+          ".txt": 7
+        },
+        "raw_body_or_account_or_market_payload_filenames": 0,
+        "manifest_frozen_external_evidence_included_content": false,
+        "raw_corpus_hash_is_reference_only": true
+      },
+      "limitation": "Pattern scanning does not prove absence of every possible secret encoding; the package inventory contains only source, excerpts, handoff documents, and manifest."
+    }
+  ],
+  "not_run_or_not_verified": {
+    "business_regression_tests": "NOT_RUN_BY_FROZEN_REVIEW_SCOPE",
+    "model_or_semantic_validation": "NOT_RUN; frozen corpus remains NOT_REVIEWED",
+    "git_diff_or_remote_branch_readback": "NOT_RUN_BY_REVIEWER_SCOPE",
+    "live_api_ui_natural_run": "NOT_VERIFIED_IN_THIS_REVIEW"
+  },
+  "runtime_identity_evidence": {
+    "writer_claim": "Writer receipt says it did not inspect running 8873/Vibe source identity; package labels these runtime identities CANNOT_CONFIRM.",
+    "parent_supplied_current_observation": {
+      "v4_8873": {
+        "pid": 62318,
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app"
+      },
+      "vibe_8910": {
+        "pid": 1093,
+        "cwd": "/Users/lexi/Desktop/学习/vibe-astock"
+      }
+    },
+    "reviewer_independent_runtime_check": "NOT_RUN; parent observation is retained as supplied evidence and not upgraded to reviewer-verified source SHA."
+  },
+  "acceptance_disposition": "Package meets the frozen handoff packaging PASS signal. This receipt does not accept, implement, test, or verify business behavior, model quality, runtime identity, API/UI, deployment, or natural execution."
+}

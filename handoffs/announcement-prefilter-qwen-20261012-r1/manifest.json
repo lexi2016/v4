@@ -1,0 +1,847 @@
+{
+  "schema_version": "v4.announcement_prefilter_handoff_manifest.v1",
+  "status": "HANDOFF_PREPARED_ONLY",
+  "scope": {
+    "goal": "Chinese implementation handoff with source snapshots and Vibe excerpts; no business implementation in this batch",
+    "allowed_write_paths": [
+      "package/**",
+      "receipts/writer/**"
+    ],
+    "remote_repository": "private lexi2016/v4",
+    "base_commit": "b123f8a49f60f3c8d0db4348a997fa59e8a32537",
+    "base_tree": "f1f62cd6f18334ac1adb3022e4e5a3f210f568f1",
+    "target_branch": "codex/announcement-prefilter-qwen-handoff-20261012-r1",
+    "target_directory": "handoffs/announcement-prefilter-qwen-20261012-r1",
+    "current_remote_status": "NOT_IMPLEMENTED_NOT_RUN"
+  },
+  "source_roots": {
+    "canonical": "/Users/lexi/Desktop/学习/v4_app",
+    "r6-8873_declared_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app",
+    "vibe_reference_root": "/Users/lexi/Desktop/学习/vibe-astock",
+    "runtime_identity_status": "CANNOT_CONFIRM; filesystem source hashes only, no live process/API check"
+  },
+  "source_inventory": [
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/run_manager_daily_announcement.py",
+      "package_path": "source/canonical/ops/run_manager_daily_announcement.py",
+      "bytes": 43325,
+      "lines": 743,
+      "source_sha256": "47f7fabf43c8acb7dbf1d784396d093c2835e15b23d1d90d294824a3303b7057",
+      "snapshot_sha256": "47f7fabf43c8acb7dbf1d784396d093c2835e15b23d1d90d294824a3303b7057",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/manager_announcement_body_batch.py",
+      "package_path": "source/canonical/ops/manager_announcement_body_batch.py",
+      "bytes": 42252,
+      "lines": 755,
+      "source_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "snapshot_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/run_manager_announcement_cycle.py",
+      "package_path": "source/canonical/ops/run_manager_announcement_cycle.py",
+      "bytes": 24568,
+      "lines": 428,
+      "source_sha256": "7f552cafca130557d96a26dd8c6aa83ee1545b3cefd8e5716431739a0d6a54fc",
+      "snapshot_sha256": "7f552cafca130557d96a26dd8c6aa83ee1545b3cefd8e5716431739a0d6a54fc",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "package_path": "source/canonical/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 28384,
+      "lines": 482,
+      "source_sha256": "58ffe0af96222ded75cdaea4f105e63dcb78cd7bea113cd3743f8cbe4b38161f",
+      "snapshot_sha256": "58ffe0af96222ded75cdaea4f105e63dcb78cd7bea113cd3743f8cbe4b38161f",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/announcement_source.py",
+      "package_path": "source/canonical/v4/manager_research/announcement_source.py",
+      "bytes": 47475,
+      "lines": 816,
+      "source_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "snapshot_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/announcement_catalog.py",
+      "package_path": "source/canonical/v4/manager_research/announcement_catalog.py",
+      "bytes": 30995,
+      "lines": 546,
+      "source_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "snapshot_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/announcement_analysis.py",
+      "package_path": "source/canonical/v4/manager_research/announcement_analysis.py",
+      "bytes": 73815,
+      "lines": 1308,
+      "source_sha256": "5c9980a5fc4d4b7315756d241ed23a63b99cd469f285f4c8f0b8f7756346fa9e",
+      "snapshot_sha256": "5c9980a5fc4d4b7315756d241ed23a63b99cd469f285f4c8f0b8f7756346fa9e",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/announcement_selection.py",
+      "package_path": "source/canonical/v4/manager_research/announcement_selection.py",
+      "bytes": 16007,
+      "lines": 321,
+      "source_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "snapshot_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/announcement_autorun.py",
+      "package_path": "source/canonical/v4/manager_research/announcement_autorun.py",
+      "bytes": 21749,
+      "lines": 340,
+      "source_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "snapshot_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/announcement_materials.py",
+      "package_path": "source/canonical/v4/manager_research/announcement_materials.py",
+      "bytes": 10727,
+      "lines": 166,
+      "source_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "snapshot_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/announcement_observation.py",
+      "package_path": "source/canonical/v4/manager_research/announcement_observation.py",
+      "bytes": 5435,
+      "lines": 77,
+      "source_sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed",
+      "snapshot_sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/workspace_announcements.py",
+      "package_path": "source/canonical/v4/manager_research/workspace_announcements.py",
+      "bytes": 173107,
+      "lines": 2561,
+      "source_sha256": "ba3849913eb768ae166e6fa796246d27742a76ce7fd8469356470570dacc3e73",
+      "snapshot_sha256": "ba3849913eb768ae166e6fa796246d27742a76ce7fd8469356470570dacc3e73",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/workspace_daily_channels.py",
+      "package_path": "source/canonical/v4/manager_research/workspace_daily_channels.py",
+      "bytes": 20097,
+      "lines": 322,
+      "source_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "snapshot_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/ops/run_manager_daily_announcement.py",
+      "package_path": "source/r6-8873/ops/run_manager_daily_announcement.py",
+      "bytes": 43298,
+      "lines": 742,
+      "source_sha256": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+      "snapshot_sha256": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/ops/manager_announcement_body_batch.py",
+      "package_path": "source/r6-8873/ops/manager_announcement_body_batch.py",
+      "bytes": 42252,
+      "lines": 755,
+      "source_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "snapshot_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/ops/run_manager_announcement_cycle.py",
+      "package_path": "source/r6-8873/ops/run_manager_announcement_cycle.py",
+      "bytes": 37015,
+      "lines": 608,
+      "source_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "snapshot_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "package_path": "source/r6-8873/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 34172,
+      "lines": 586,
+      "source_sha256": "2c624cc324c3120bda9e4917717b9cfe2b4244e34410b508781e60c5f3841a7b",
+      "snapshot_sha256": "2c624cc324c3120bda9e4917717b9cfe2b4244e34410b508781e60c5f3841a7b",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/announcement_source.py",
+      "package_path": "source/r6-8873/v4/manager_research/announcement_source.py",
+      "bytes": 47475,
+      "lines": 816,
+      "source_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "snapshot_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/announcement_catalog.py",
+      "package_path": "source/r6-8873/v4/manager_research/announcement_catalog.py",
+      "bytes": 30995,
+      "lines": 546,
+      "source_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "snapshot_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/announcement_analysis.py",
+      "package_path": "source/r6-8873/v4/manager_research/announcement_analysis.py",
+      "bytes": 77092,
+      "lines": 1364,
+      "source_sha256": "04f95eaf26b2e0e38a61ddcb112ceab93a0d5b3390ec0c5368ec2c7ab378103a",
+      "snapshot_sha256": "04f95eaf26b2e0e38a61ddcb112ceab93a0d5b3390ec0c5368ec2c7ab378103a",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/announcement_selection.py",
+      "package_path": "source/r6-8873/v4/manager_research/announcement_selection.py",
+      "bytes": 16007,
+      "lines": 321,
+      "source_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "snapshot_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/announcement_autorun.py",
+      "package_path": "source/r6-8873/v4/manager_research/announcement_autorun.py",
+      "bytes": 21749,
+      "lines": 340,
+      "source_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "snapshot_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/announcement_materials.py",
+      "package_path": "source/r6-8873/v4/manager_research/announcement_materials.py",
+      "bytes": 10727,
+      "lines": 166,
+      "source_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "snapshot_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/announcement_observation.py",
+      "package_path": "source/r6-8873/v4/manager_research/announcement_observation.py",
+      "bytes": 5599,
+      "lines": 79,
+      "source_sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54",
+      "snapshot_sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/workspace_announcements.py",
+      "package_path": "source/r6-8873/v4/manager_research/workspace_announcements.py",
+      "bytes": 177748,
+      "lines": 2663,
+      "source_sha256": "de1948b09578a75e65e775a5ab6f6b2399eb3bce688f77b3ec8be6f5246bdf5a",
+      "snapshot_sha256": "de1948b09578a75e65e775a5ab6f6b2399eb3bce688f77b3ec8be6f5246bdf5a",
+      "byte_identical": true
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/workspace_daily_channels.py",
+      "package_path": "source/r6-8873/v4/manager_research/workspace_daily_channels.py",
+      "bytes": 20097,
+      "lines": 322,
+      "source_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "snapshot_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "byte_identical": true
+    }
+  ],
+  "selected_root_comparison": [
+    {
+      "source_path": "ops/run_manager_daily_announcement.py",
+      "canonical_sha256": "47f7fabf43c8acb7dbf1d784396d093c2835e15b23d1d90d294824a3303b7057",
+      "r6_sha256": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e",
+      "byte_identical": false
+    },
+    {
+      "source_path": "ops/manager_announcement_body_batch.py",
+      "canonical_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "r6_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "byte_identical": true
+    },
+    {
+      "source_path": "ops/run_manager_announcement_cycle.py",
+      "canonical_sha256": "7f552cafca130557d96a26dd8c6aa83ee1545b3cefd8e5716431739a0d6a54fc",
+      "r6_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "byte_identical": false
+    },
+    {
+      "source_path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "canonical_sha256": "58ffe0af96222ded75cdaea4f105e63dcb78cd7bea113cd3743f8cbe4b38161f",
+      "r6_sha256": "2c624cc324c3120bda9e4917717b9cfe2b4244e34410b508781e60c5f3841a7b",
+      "byte_identical": false
+    },
+    {
+      "source_path": "v4/manager_research/announcement_source.py",
+      "canonical_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "r6_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "byte_identical": true
+    },
+    {
+      "source_path": "v4/manager_research/announcement_catalog.py",
+      "canonical_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "r6_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "byte_identical": true
+    },
+    {
+      "source_path": "v4/manager_research/announcement_analysis.py",
+      "canonical_sha256": "5c9980a5fc4d4b7315756d241ed23a63b99cd469f285f4c8f0b8f7756346fa9e",
+      "r6_sha256": "04f95eaf26b2e0e38a61ddcb112ceab93a0d5b3390ec0c5368ec2c7ab378103a",
+      "byte_identical": false
+    },
+    {
+      "source_path": "v4/manager_research/announcement_selection.py",
+      "canonical_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "r6_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "byte_identical": true
+    },
+    {
+      "source_path": "v4/manager_research/announcement_autorun.py",
+      "canonical_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "r6_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "byte_identical": true
+    },
+    {
+      "source_path": "v4/manager_research/announcement_materials.py",
+      "canonical_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "r6_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "byte_identical": true
+    },
+    {
+      "source_path": "v4/manager_research/announcement_observation.py",
+      "canonical_sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed",
+      "r6_sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54",
+      "byte_identical": false
+    },
+    {
+      "source_path": "v4/manager_research/workspace_announcements.py",
+      "canonical_sha256": "ba3849913eb768ae166e6fa796246d27742a76ce7fd8469356470570dacc3e73",
+      "r6_sha256": "de1948b09578a75e65e775a5ab6f6b2399eb3bce688f77b3ec8be6f5246bdf5a",
+      "byte_identical": false
+    },
+    {
+      "source_path": "v4/manager_research/workspace_daily_channels.py",
+      "canonical_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "r6_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "byte_identical": true
+    }
+  ],
+  "vibe_snippets": [
+    {
+      "source_root": "/Users/lexi/Desktop/学习/vibe-astock",
+      "source_file": "vr/astock.py",
+      "start_line": 316,
+      "end_line": 337,
+      "rawfile_sha256": "9f09c396523b232acf69a942eba6d07066535f21fb54bdb0475e32154abb4f6b",
+      "snippet_name": "astock_announcements_15_metadata",
+      "package_path": "vibe-reference/snippets/astock_announcements_15_metadata.txt",
+      "snippet_bytes": 1025,
+      "snippet_sha256": "6f7d3e1faf5f57d5f4cf943fff36bd9e1603539b7a793aa52d2839f36e589441",
+      "byte_identical_lines": true
+    },
+    {
+      "source_root": "/Users/lexi/Desktop/学习/vibe-astock",
+      "source_file": "vr/app.py",
+      "start_line": 479,
+      "end_line": 493,
+      "rawfile_sha256": "ed6c99f8081dc9aa8bf1467a0d9d6827ebcca6c93cfa096b9c4087e71aada889",
+      "snippet_name": "api_announcements_cache_900s",
+      "package_path": "vibe-reference/snippets/api_announcements_cache_900s.txt",
+      "snippet_bytes": 533,
+      "snippet_sha256": "4d83355738557785ff5989199afd098fa60c143495e36562c44b1065d931906b",
+      "byte_identical_lines": true
+    },
+    {
+      "source_root": "/Users/lexi/Desktop/学习/vibe-astock",
+      "source_file": "frontend/src/pages/Intel.tsx",
+      "start_line": 269,
+      "end_line": 340,
+      "rawfile_sha256": "3404c2dc4668a7357b1ce170b94f0de773c2813e10f1a12f80f571c570a493e4",
+      "snippet_name": "intel_watchlist_aggregate_sort_display_60",
+      "package_path": "vibe-reference/snippets/intel_watchlist_aggregate_sort_display_60.txt",
+      "snippet_bytes": 3836,
+      "snippet_sha256": "42217570251fd534ace3d6e5768a0a72d996b740edbd14039f1b38976bbdb827",
+      "byte_identical_lines": true
+    },
+    {
+      "source_root": "/Users/lexi/Desktop/学习/vibe-astock",
+      "source_file": "frontend/src/pages/Intel.tsx",
+      "start_line": 119,
+      "end_line": 135,
+      "rawfile_sha256": "3404c2dc4668a7357b1ce170b94f0de773c2813e10f1a12f80f571c570a493e4",
+      "snippet_name": "intel_user_triggered_industry_25_title_summary",
+      "package_path": "vibe-reference/snippets/intel_user_triggered_industry_25_title_summary.txt",
+      "snippet_bytes": 1020,
+      "snippet_sha256": "7b8021b04cd01bff83e9456f55ffeb06719790b7345c76634a6b03a446a001d9",
+      "byte_identical_lines": true
+    },
+    {
+      "source_root": "/Users/lexi/Desktop/学习/vibe-astock",
+      "source_file": "frontend/src/pages/StockData.tsx",
+      "start_line": 178,
+      "end_line": 185,
+      "rawfile_sha256": "cf8fef396a3332ac37419962153ad24100006c6e659ec36b851bf2b88e736722",
+      "snippet_name": "stockdata_context_recent_5_announcement_titles",
+      "package_path": "vibe-reference/snippets/stockdata_context_recent_5_announcement_titles.txt",
+      "snippet_bytes": 1119,
+      "snippet_sha256": "ed2f6d9d7008cb61ac819ece4717e2e608230f90023613f9a1d8f8e7536c7dcb",
+      "byte_identical_lines": true
+    },
+    {
+      "source_root": "/Users/lexi/Desktop/学习/vibe-astock",
+      "source_file": "vr/newsradar.py",
+      "start_line": 110,
+      "end_line": 151,
+      "rawfile_sha256": "7fc09c855bbc36bf1df161b4d18965e5d588a1381d825197d3760d1b7d7d5e1b",
+      "snippet_name": "newsradar_rss_date_redline_summary160",
+      "package_path": "vibe-reference/snippets/newsradar_rss_date_redline_summary160.txt",
+      "snippet_bytes": 1893,
+      "snippet_sha256": "796bee6d3780bac8db1037f2f8afa605c5d856092fdc3fa0f85af59aa4375b1e",
+      "byte_identical_lines": true
+    },
+    {
+      "source_root": "/Users/lexi/Desktop/学习/vibe-astock",
+      "source_file": "vr/newsradar.py",
+      "start_line": 520,
+      "end_line": 581,
+      "rawfile_sha256": "7fc09c855bbc36bf1df161b4d18965e5d588a1381d825197d3760d1b7d7d5e1b",
+      "snippet_name": "newsradar_translation_default12_max20_success_cache",
+      "package_path": "vibe-reference/snippets/newsradar_translation_default12_max20_success_cache.txt",
+      "snippet_bytes": 3119,
+      "snippet_sha256": "b1b1b39b9f400b05277a1d391eb4e0a81c3b220c5c09ee08c9f86ea0cd76eb8e",
+      "byte_identical_lines": true
+    }
+  ],
+  "v4_hook_excerpts": [
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/manager_research_router.py",
+      "package_path": "hooks/canonical/apps/api/v35_api/manager_research_router.api-routes.lines-345-479.fragment",
+      "start_line": 345,
+      "end_line": 479,
+      "purpose": "manager_research_api_routes",
+      "source_sha256": "00deed52bdc0b1db387d756546d0212381713276824e3b43b41d95e4d9a1321e",
+      "fragment_sha256": "321fb25d876579323abb6177913ca923c69c6d0d741036c635ff7448059ca139",
+      "fragment_bytes": 9300
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/service.py",
+      "package_path": "hooks/canonical/v4/manager_research/service.service-owner-methods.lines-423-464.fragment",
+      "start_line": 423,
+      "end_line": 464,
+      "purpose": "service_announcement_owner_methods",
+      "source_sha256": "3f3cabbe1ed130063f0f25e36ec254ede085a6accaf92fa37831b0dbaeb7616e",
+      "fragment_sha256": "44adeb07502e8249b3603176dc5afc69887d70aedf253866865ab24c271953a7",
+      "fragment_bytes": 2596
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/plan_owner_dispatch.py",
+      "package_path": "hooks/canonical/v4/manager_research/plan_owner_dispatch.execute_bound_plan_cycle.lines-221-288.fragment",
+      "start_line": 221,
+      "end_line": 288,
+      "purpose": "execute_bound_plan_cycle",
+      "source_sha256": "ea9bacf79a6a574e0ef34ffa03cace77a18da5257b36b0497a08ca00414cd643",
+      "fragment_sha256": "3c3055524241e25cb85e9656d40eb1145b0ce6414431e8ff6ec3015fd593b865",
+      "fragment_bytes": 4146
+    },
+    {
+      "source_root_id": "canonical",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/plan_owner_dispatch.py",
+      "package_path": "hooks/canonical/v4/manager_research/plan_owner_dispatch.request_bound_plan_cycle.lines-291-380.fragment",
+      "start_line": 291,
+      "end_line": 380,
+      "purpose": "request_bound_plan_cycle",
+      "source_sha256": "ea9bacf79a6a574e0ef34ffa03cace77a18da5257b36b0497a08ca00414cd643",
+      "fragment_sha256": "c52c6cd97f64e031e746748d7a2f3f55ca27071aae420e2fb8f8f3d92473bc9d",
+      "fragment_bytes": 5629
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/apps/api/v35_api/manager_research_router.py",
+      "package_path": "hooks/r6-8873/apps/api/v35_api/manager_research_router.api-routes.lines-345-479.fragment",
+      "start_line": 345,
+      "end_line": 479,
+      "purpose": "manager_research_api_routes",
+      "source_sha256": "66fb00132e135c30e4e6165b2fb9e8dff836b05fca65d1cdd187e48c7738dc33",
+      "fragment_sha256": "9321dbfb69dee148c3fe2e2d285dfdb5ac57ea2069a68e3151ced9211f337ba2",
+      "fragment_bytes": 8165
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/service.py",
+      "package_path": "hooks/r6-8873/v4/manager_research/service.service-owner-methods.lines-423-464.fragment",
+      "start_line": 423,
+      "end_line": 464,
+      "purpose": "service_announcement_owner_methods",
+      "source_sha256": "63d73b19708fbcabc78598b61b50b0ed525aea4fa15d1de20f2d18faa83cc87e",
+      "fragment_sha256": "37ecdeff705de03febe4c562a266741c94de0ce89be1744d7ddf66ee1f7f6ca4",
+      "fragment_bytes": 2504
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/plan_owner_dispatch.py",
+      "package_path": "hooks/r6-8873/v4/manager_research/plan_owner_dispatch.execute_bound_plan_cycle.lines-795-800.fragment",
+      "start_line": 795,
+      "end_line": 800,
+      "purpose": "execute_bound_plan_cycle",
+      "source_sha256": "8afc3439070f8ea71b112a51c154775d7eb948c60082ca032f05d9771a34b284",
+      "fragment_sha256": "587dcf52502b917b05119a0aae46a4ae22c00f2a6b5e7dca9c2589a73a3b689b",
+      "fragment_bytes": 462
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/v4/manager_research/plan_owner_dispatch.py",
+      "package_path": "hooks/r6-8873/v4/manager_research/plan_owner_dispatch.request_bound_plan_cycle.lines-803-804.fragment",
+      "start_line": 803,
+      "end_line": 804,
+      "purpose": "request_bound_plan_cycle",
+      "source_sha256": "8afc3439070f8ea71b112a51c154775d7eb948c60082ca032f05d9771a34b284",
+      "fragment_sha256": "63a1dd55aaf92f84b2d338508c769b35e90d69a8821deec17e2196b0faf4efe5",
+      "fragment_bytes": 167
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "package_path": "hooks/r6-8873/infrastructure/scheduling/manager_announcement_supervisor.run_bound_child.lines-532-557.fragment",
+      "start_line": 532,
+      "end_line": 557,
+      "purpose": "run_bound_child",
+      "source_sha256": "2c624cc324c3120bda9e4917717b9cfe2b4244e34410b508781e60c5f3841a7b",
+      "fragment_sha256": "ffc25a5043dbdef2496f02cb855b0afd223acb4573707383e5275053dbb0792d",
+      "fragment_bytes": 1647
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "package_path": "hooks/r6-8873/infrastructure/scheduling/manager_announcement_supervisor.AnnouncementSupervisor.lines-560-586.fragment",
+      "start_line": 560,
+      "end_line": 586,
+      "purpose": "AnnouncementSupervisor",
+      "source_sha256": "2c624cc324c3120bda9e4917717b9cfe2b4244e34410b508781e60c5f3841a7b",
+      "fragment_sha256": "37a1b353ec1828288b617e03bdefa28130c72c19c530ff29b2a9601b62c6f1bc",
+      "fragment_bytes": 1602
+    },
+    {
+      "source_root_id": "r6-8873",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/integrated_release/issue35-manager-autocontinue-20261012-r6-integrated/app/ops/run_v35_macos_scheduler_daemon.py",
+      "package_path": "hooks/r6-8873/ops/run_v35_macos_scheduler_daemon.daemon-loop.lines-341-355.fragment",
+      "start_line": 341,
+      "end_line": 355,
+      "purpose": "scheduler_minute_cycle_dispatch",
+      "source_sha256": "c5a922e5f5dc71bd5df61a1ee72eb7fceb0d8347142c5297981242f207b226d9",
+      "fragment_sha256": "f2ea4f81cf4097021a4ba8ad73478bbd2c51ac19d764866ac1b38993c4c8b4e5",
+      "fragment_bytes": 582
+    }
+  ],
+  "frozen_external_evidence": {
+    "included_content": false,
+    "target_trade_date": "20261012",
+    "publication_date": "2026-10-11",
+    "evidence_run_id": "6557712adca825b670f28c5169655db1",
+    "catalog_run_id": "857879bcf0664cc487e3cdee38ade0a9",
+    "catalog_sha256": "cba0d503693550bdfd78a5c1e9238ffe05fa99cca0020e08048961ea6a6a58d5",
+    "local_evidence_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/announcement_agent_runs/6557712adca825b670f28c5169655db1/evidence",
+    "body_manifest_sha256": "4a314445b6531728e86c5f4488af1cd80ee7b3e15766d48921b0e5c73d1607a2",
+    "capture_receipt_sha256": "afbe77870eb0c09899102f98efc3348365af76532d695f08e589a8d84626fe13",
+    "body_batch_receipt_sha256": "f26bff4900447c901cabf2c1679bc485cbe6e23a54345c172dbfa7964620545b",
+    "body_corpus_sha256_recorded_in_capture_receipt": "cc8f005184ad205cacf77b4df3c918345f9cdd8bb9e9c07477a375b74f90a8f1",
+    "catalog_article_count": 23,
+    "complete_body_count": 21,
+    "body_capture_failed_count": 2,
+    "semantic_status": "NOT_REVIEWED",
+    "issuer_completeness": "CANNOT_CONFIRM",
+    "live_import": "NOT_RUN",
+    "live_api_ui": "NOT_VERIFIED",
+    "natural_run": "NOT_VERIFIED"
+  },
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "inventory_exclusions": [
+    "package/manifest.json (self-reference)",
+    "receipts/writer/writer_receipt.json (receipt includes package inventory digest and manifest SHA; its own SHA is reported separately)"
+  ],
+  "files": [
+    {
+      "path": "CHAT_PROMPT.md",
+      "bytes": 2464,
+      "sha256": "2d29d87627fcb7999f52e6719c8a43bee444ac29fb10a244876de7682c95c9f7"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1640,
+      "sha256": "2d6fea5a4ef94a2ea9aaf315079292912bd04454994d48e8e69ba465b4910d32"
+    },
+    {
+      "path": "REQUIREMENTS.md",
+      "bytes": 10681,
+      "sha256": "8f196c7299aba28c4a1936cbf01a01b7236b4e3987f662c9dbdcfade5f62aa48"
+    },
+    {
+      "path": "SOURCE_MAP.md",
+      "bytes": 9099,
+      "sha256": "64bd3632e97cdfa5bd76ba1bbb9c3fadbde3e28a147b4c7b652684f2e0cbed6d"
+    },
+    {
+      "path": "hooks/canonical/apps/api/v35_api/manager_research_router.api-routes.lines-345-479.fragment",
+      "bytes": 9300,
+      "sha256": "321fb25d876579323abb6177913ca923c69c6d0d741036c635ff7448059ca139"
+    },
+    {
+      "path": "hooks/canonical/v4/manager_research/plan_owner_dispatch.execute_bound_plan_cycle.lines-221-288.fragment",
+      "bytes": 4146,
+      "sha256": "3c3055524241e25cb85e9656d40eb1145b0ce6414431e8ff6ec3015fd593b865"
+    },
+    {
+      "path": "hooks/canonical/v4/manager_research/plan_owner_dispatch.request_bound_plan_cycle.lines-291-380.fragment",
+      "bytes": 5629,
+      "sha256": "c52c6cd97f64e031e746748d7a2f3f55ca27071aae420e2fb8f8f3d92473bc9d"
+    },
+    {
+      "path": "hooks/canonical/v4/manager_research/service.service-owner-methods.lines-423-464.fragment",
+      "bytes": 2596,
+      "sha256": "44adeb07502e8249b3603176dc5afc69887d70aedf253866865ab24c271953a7"
+    },
+    {
+      "path": "hooks/r6-8873/apps/api/v35_api/manager_research_router.api-routes.lines-345-479.fragment",
+      "bytes": 8165,
+      "sha256": "9321dbfb69dee148c3fe2e2d285dfdb5ac57ea2069a68e3151ced9211f337ba2"
+    },
+    {
+      "path": "hooks/r6-8873/infrastructure/scheduling/manager_announcement_supervisor.AnnouncementSupervisor.lines-560-586.fragment",
+      "bytes": 1602,
+      "sha256": "37a1b353ec1828288b617e03bdefa28130c72c19c530ff29b2a9601b62c6f1bc"
+    },
+    {
+      "path": "hooks/r6-8873/infrastructure/scheduling/manager_announcement_supervisor.run_bound_child.lines-532-557.fragment",
+      "bytes": 1647,
+      "sha256": "ffc25a5043dbdef2496f02cb855b0afd223acb4573707383e5275053dbb0792d"
+    },
+    {
+      "path": "hooks/r6-8873/ops/run_v35_macos_scheduler_daemon.daemon-loop.lines-341-355.fragment",
+      "bytes": 582,
+      "sha256": "f2ea4f81cf4097021a4ba8ad73478bbd2c51ac19d764866ac1b38993c4c8b4e5"
+    },
+    {
+      "path": "hooks/r6-8873/v4/manager_research/plan_owner_dispatch.execute_bound_plan_cycle.lines-795-800.fragment",
+      "bytes": 462,
+      "sha256": "587dcf52502b917b05119a0aae46a4ae22c00f2a6b5e7dca9c2589a73a3b689b"
+    },
+    {
+      "path": "hooks/r6-8873/v4/manager_research/plan_owner_dispatch.request_bound_plan_cycle.lines-803-804.fragment",
+      "bytes": 167,
+      "sha256": "63a1dd55aaf92f84b2d338508c769b35e90d69a8821deec17e2196b0faf4efe5"
+    },
+    {
+      "path": "hooks/r6-8873/v4/manager_research/service.service-owner-methods.lines-423-464.fragment",
+      "bytes": 2504,
+      "sha256": "37ecdeff705de03febe4c562a266741c94de0ce89be1744d7ddf66ee1f7f6ca4"
+    },
+    {
+      "path": "source/canonical/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 28384,
+      "sha256": "58ffe0af96222ded75cdaea4f105e63dcb78cd7bea113cd3743f8cbe4b38161f"
+    },
+    {
+      "path": "source/canonical/ops/manager_announcement_body_batch.py",
+      "bytes": 42252,
+      "sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb"
+    },
+    {
+      "path": "source/canonical/ops/run_manager_announcement_cycle.py",
+      "bytes": 24568,
+      "sha256": "7f552cafca130557d96a26dd8c6aa83ee1545b3cefd8e5716431739a0d6a54fc"
+    },
+    {
+      "path": "source/canonical/ops/run_manager_daily_announcement.py",
+      "bytes": 43325,
+      "sha256": "47f7fabf43c8acb7dbf1d784396d093c2835e15b23d1d90d294824a3303b7057"
+    },
+    {
+      "path": "source/canonical/v4/manager_research/announcement_analysis.py",
+      "bytes": 73815,
+      "sha256": "5c9980a5fc4d4b7315756d241ed23a63b99cd469f285f4c8f0b8f7756346fa9e"
+    },
+    {
+      "path": "source/canonical/v4/manager_research/announcement_autorun.py",
+      "bytes": 21749,
+      "sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d"
+    },
+    {
+      "path": "source/canonical/v4/manager_research/announcement_catalog.py",
+      "bytes": 30995,
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68"
+    },
+    {
+      "path": "source/canonical/v4/manager_research/announcement_materials.py",
+      "bytes": 10727,
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1"
+    },
+    {
+      "path": "source/canonical/v4/manager_research/announcement_observation.py",
+      "bytes": 5435,
+      "sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed"
+    },
+    {
+      "path": "source/canonical/v4/manager_research/announcement_selection.py",
+      "bytes": 16007,
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21"
+    },
+    {
+      "path": "source/canonical/v4/manager_research/announcement_source.py",
+      "bytes": 47475,
+      "sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b"
+    },
+    {
+      "path": "source/canonical/v4/manager_research/workspace_announcements.py",
+      "bytes": 173107,
+      "sha256": "ba3849913eb768ae166e6fa796246d27742a76ce7fd8469356470570dacc3e73"
+    },
+    {
+      "path": "source/canonical/v4/manager_research/workspace_daily_channels.py",
+      "bytes": 20097,
+      "sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a"
+    },
+    {
+      "path": "source/r6-8873/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 34172,
+      "sha256": "2c624cc324c3120bda9e4917717b9cfe2b4244e34410b508781e60c5f3841a7b"
+    },
+    {
+      "path": "source/r6-8873/ops/manager_announcement_body_batch.py",
+      "bytes": 42252,
+      "sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb"
+    },
+    {
+      "path": "source/r6-8873/ops/run_manager_announcement_cycle.py",
+      "bytes": 37015,
+      "sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44"
+    },
+    {
+      "path": "source/r6-8873/ops/run_manager_daily_announcement.py",
+      "bytes": 43298,
+      "sha256": "5e3eb65b3d758082010ba4cc367d03d3b4225e99a1394147a8e09ce9715ec45e"
+    },
+    {
+      "path": "source/r6-8873/v4/manager_research/announcement_analysis.py",
+      "bytes": 77092,
+      "sha256": "04f95eaf26b2e0e38a61ddcb112ceab93a0d5b3390ec0c5368ec2c7ab378103a"
+    },
+    {
+      "path": "source/r6-8873/v4/manager_research/announcement_autorun.py",
+      "bytes": 21749,
+      "sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d"
+    },
+    {
+      "path": "source/r6-8873/v4/manager_research/announcement_catalog.py",
+      "bytes": 30995,
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68"
+    },
+    {
+      "path": "source/r6-8873/v4/manager_research/announcement_materials.py",
+      "bytes": 10727,
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1"
+    },
+    {
+      "path": "source/r6-8873/v4/manager_research/announcement_observation.py",
+      "bytes": 5599,
+      "sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54"
+    },
+    {
+      "path": "source/r6-8873/v4/manager_research/announcement_selection.py",
+      "bytes": 16007,
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21"
+    },
+    {
+      "path": "source/r6-8873/v4/manager_research/announcement_source.py",
+      "bytes": 47475,
+      "sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b"
+    },
+    {
+      "path": "source/r6-8873/v4/manager_research/workspace_announcements.py",
+      "bytes": 177748,
+      "sha256": "de1948b09578a75e65e775a5ab6f6b2399eb3bce688f77b3ec8be6f5246bdf5a"
+    },
+    {
+      "path": "source/r6-8873/v4/manager_research/workspace_daily_channels.py",
+      "bytes": 20097,
+      "sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a"
+    },
+    {
+      "path": "vibe-reference/snippets/api_announcements_cache_900s.txt",
+      "bytes": 533,
+      "sha256": "4d83355738557785ff5989199afd098fa60c143495e36562c44b1065d931906b"
+    },
+    {
+      "path": "vibe-reference/snippets/astock_announcements_15_metadata.txt",
+      "bytes": 1025,
+      "sha256": "6f7d3e1faf5f57d5f4cf943fff36bd9e1603539b7a793aa52d2839f36e589441"
+    },
+    {
+      "path": "vibe-reference/snippets/intel_user_triggered_industry_25_title_summary.txt",
+      "bytes": 1020,
+      "sha256": "7b8021b04cd01bff83e9456f55ffeb06719790b7345c76634a6b03a446a001d9"
+    },
+    {
+      "path": "vibe-reference/snippets/intel_watchlist_aggregate_sort_display_60.txt",
+      "bytes": 3836,
+      "sha256": "42217570251fd534ace3d6e5768a0a72d996b740edbd14039f1b38976bbdb827"
+    },
+    {
+      "path": "vibe-reference/snippets/newsradar_rss_date_redline_summary160.txt",
+      "bytes": 1893,
+      "sha256": "796bee6d3780bac8db1037f2f8afa605c5d856092fdc3fa0f85af59aa4375b1e"
+    },
+    {
+      "path": "vibe-reference/snippets/newsradar_translation_default12_max20_success_cache.txt",
+      "bytes": 3119,
+      "sha256": "b1b1b39b9f400b05277a1d391eb4e0a81c3b220c5c09ee08c9f86ea0cd76eb8e"
+    },
+    {
+      "path": "vibe-reference/snippets/stockdata_context_recent_5_announcement_titles.txt",
+      "bytes": 1119,
+      "sha256": "ed2f6d9d7008cb61ac819ece4717e2e608230f90023613f9a1d8f8e7536c7dcb"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+        while not event.is_set():
+            moment = _as_shanghai(now())
+            minute = _minute_key(moment)
+            if minute != last_minute:
+                last_minute = minute
+                cycles += 1
+                try:
+                    _run_one_cycle(
+                        scheduler_argv,
+                        scheduler_main=scheduler_main,
+                        release_id=release_id,
+                        cycle_number=cycles,
+                        minute=minute,
+                    )
+                except DaemonConfigurationError as error:

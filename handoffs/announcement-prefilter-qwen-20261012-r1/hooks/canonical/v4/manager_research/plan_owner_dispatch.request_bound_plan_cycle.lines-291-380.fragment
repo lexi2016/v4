@@ -1,0 +1,90 @@
+def request_bound_plan_cycle(binding_path: str | Path, target_date: str) -> dict[str, Any]:
+    """One fixed loopback request with no proxy, redirect, retry, or fallback."""
+    raw_binding = _raw_binding(binding_path)
+    sha = hashlib.sha256(raw_binding).hexdigest()
+    date = date_token(target_date)
+    now = clock_now()
+    if now.tzinfo is None:
+        raise ValueError("PLAN_OWNER_CLOCK_MUST_BE_AWARE")
+    try:
+        binding_value = json.loads(raw_binding)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("PLAN_OWNER_BINDING_JSON_INVALID") from exc
+    if not isinstance(binding_value, Mapping):
+        raise ValueError("PLAN_OWNER_BINDING_JSON_INVALID")
+    source_date = now.astimezone(HK).strftime("%Y%m%d")
+    branch = _scheduled_branch(binding_value, source_date, date, now)
+    parent_identity = _parent_trigger_identity(source_date, date, branch, sha)
+    connection = http.client.HTTPConnection("127.0.0.1", 8873, timeout=35.0)
+    try:
+        path = "/api/v4/manager/research/workspace/scheduled-cycle?" + urlencode(
+            {"date": date, "binding_sha256": sha})
+        try:
+            connection.request("POST", path, body=b"", headers={"Content-Length": "0", "Accept": "application/json"})
+            response = connection.getresponse()
+            content_type = response.getheader("Content-Type", "").split(";", 1)[0]
+            raw = response.read(MAX_RESPONSE_BYTES + 1)
+        except (OSError, TimeoutError, http.client.HTTPException):
+            return _rpc_failure_receipt(parent_identity, now=now,
+                                        code="PLAN_OWNER_RPC_TRANSPORT_FAILED")
+        if len(raw) > MAX_RESPONSE_BYTES:
+            return _rpc_failure_receipt(parent_identity, now=now,
+                                        code="PLAN_OWNER_RPC_RESPONSE_TOO_LARGE",
+                                        http_status=response.status)
+        if response.status != 200 or content_type != "application/json":
+            code = f"PLAN_OWNER_RPC_HTTP_{response.status}"
+            if content_type == "application/json":
+                try:
+                    error_body = json.loads(raw)
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    error_body = None
+                detail = error_body.get("detail") if isinstance(error_body, dict) else None
+                if isinstance(detail, str) and detail in KNOWN_RPC_HTTP_ERROR_DETAILS:
+                    code = detail
+            elif response.status == 200:
+                code = "PLAN_OWNER_RPC_CONTENT_TYPE_INVALID"
+            return _rpc_failure_receipt(parent_identity, now=now, code=code,
+                                        http_status=response.status)
+        try:
+            value = json.loads(raw)
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return _rpc_failure_receipt(parent_identity, now=now,
+                                        code="PLAN_OWNER_RPC_RESPONSE_JSON_INVALID",
+                                        http_status=response.status)
+        server_trigger = value.get("parent_trigger_receipt") if isinstance(value, dict) else None
+        server_status = value.get("status") if isinstance(value, dict) else None
+        owner_readback_status = (server_trigger.get("owner_readback_status")
+                                 if isinstance(server_trigger, dict) else None)
+        owner_identity_verified = (
+            isinstance(server_trigger, dict)
+            and re.fullmatch(r"[0-9a-f]{32}", str(server_trigger.get("owner_run_id") or "")) is not None
+            and re.fullmatch(r"[0-9a-f]{64}", str(server_trigger.get("owner_product_sha256") or "")) is not None
+            and re.fullmatch(r"[0-9a-f]{64}", str(server_trigger.get("owner_input_identity") or "")) is not None
+        )
+        if (not isinstance(value, dict) or value.get("schema_version") != SCHEMA
+                or value.get("owner") != OWNER or value.get("target_trade_date") != date
+                or value.get("binding_sha256") != sha
+                or any(value.get(key) is not flag for key, flag in FLAGS.items())
+                or value.get("status") not in {"SUCCEEDED", "PARTIAL", "FAILED"}
+                or not isinstance(server_trigger, dict)
+                or server_trigger.get("schema_version") != PARENT_TRIGGER_SCHEMA
+                or server_trigger.get("trigger_id") != parent_identity["trigger_id"]
+                or server_trigger.get("trigger_kind") != "BOUND_SCHEDULED_PLAN_CYCLE"
+                or server_trigger.get("source_trade_date") != source_date
+                or server_trigger.get("target_trade_date") != date
+                or server_trigger.get("branch") != branch
+                or server_trigger.get("binding_sha256") != sha
+                or server_trigger.get("owner") != OWNER
+                or server_trigger.get("status") != server_status
+                or owner_readback_status not in {"VERIFIED", "UNVERIFIED"}
+                or (owner_readback_status == "VERIFIED" and not owner_identity_verified)
+                or (server_status == "SUCCEEDED" and (
+                    owner_readback_status != "VERIFIED" or not owner_identity_verified
+                ))
+                or (owner_readback_status == "UNVERIFIED" and server_status not in {"PARTIAL", "FAILED"})):
+            return _rpc_failure_receipt(parent_identity, now=now,
+                                        code="PLAN_OWNER_RPC_PARENT_TRIGGER_READBACK_INVALID",
+                                        http_status=response.status)
+        return value
+    finally:
+        connection.close()

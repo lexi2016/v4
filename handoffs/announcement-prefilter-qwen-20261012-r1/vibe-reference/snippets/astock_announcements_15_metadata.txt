@@ -1,0 +1,22 @@
+def announcements(code: str, limit: int = 15) -> list[dict]:
+    """个股近期公告（东财公开接口，仅 requests，稳定）。返回 日期/标题/类型/详情链接。"""
+    import requests
+
+    r = requests.get(
+        "https://np-anotice-stock.eastmoney.com/api/security/ann",
+        params={"sr": -1, "page_size": limit, "page_index": 1, "ann_type": "A",
+                "client_source": "web", "stock_list": code, "f_node": 0, "s_node": 0},
+        headers={"User-Agent": UA}, timeout=20,
+    )
+    lst = (r.json().get("data") or {}).get("list") or []
+    out = []
+    for a in lst:
+        cols = [c.get("column_name") for c in (a.get("columns") or []) if c.get("column_name")]
+        art = a.get("art_code", "")
+        out.append({
+            "date": (a.get("notice_date", "") or "")[:10],
+            "title": a.get("title", ""),
+            "type": cols[0] if cols else "",
+            "url": f"https://data.eastmoney.com/notices/detail/{code}/{art}.html" if art else "",
+        })
+    return out
