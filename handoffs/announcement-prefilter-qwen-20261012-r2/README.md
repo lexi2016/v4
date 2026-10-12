@@ -1,6 +1,6 @@
 # Issue #38 — V4 Announcement Prefilter + Local Qwen (candidate R2)
 
-**Status:** isolated source candidate; **offline regression 14/14 PASS**; original R6 `run_manager_daily_announcement.py` patch dry-run and byte-compare PASS. **NOT DEPLOYED**, **NO REAL QWEN INVOCATION**, **NO FROZEN 23-ARTICLE REPLAY**, **NO OWNER IMPORT / WORKSPACE GET / NATURAL SCHEDULER PROOF**. Do not mark Issue #38 closed on this evidence.
+**Status:** isolated source candidate; **offline regression 15/15 PASS**; original R6 `run_manager_daily_announcement.py` patch dry-run and byte-compare PASS. **NOT DEPLOYED**, **NO REAL QWEN INVOCATION**, **NO FROZEN 23-ARTICLE REPLAY**, **NO OWNER IMPORT / WORKSPACE GET / NATURAL SCHEDULER PROOF**. Do not mark Issue #38 closed on this evidence.
 
 ## Files
 

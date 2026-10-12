@@ -235,3 +235,17 @@ def test_cli_capture_receipt_binding_and_no_model_remains_unassessed(tmp_path):
         run_from_evidence(evidence_root=tmp_path,cache_root=tmp_path/"cache_tmp",
             output=tmp_path/"bad.json")
     assert not (tmp_path/"bad.json").exists()
+
+
+def test_cache_key_is_semantic_not_listing_transport_or_process_pid(tmp_path):
+    from dataclasses import replace
+    c,b=fixture([("A1","重大合同","发行人签署重大合同")])
+    f=Fake(); a=TriageEngine(tmp_path,model(),f)
+    original=a.run(c,b)
+    c["catalog"]["manager_consumer_rows"][0]["source_ref"]={"sha256":sha("new listing material")}
+    changed_proof=replace(model(),proof_sha256="d"*64)
+    second=TriageEngine(tmp_path,changed_proof,f).run(c,b)
+    assert original["new_model_calls"]==1
+    assert second["new_model_calls"]==0 and second["new_model_tokens"]==0
+    assert second["rows"][0]["source_ref"]=={"sha256":sha("new listing material")}
+    assert f.calls==1

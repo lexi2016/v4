@@ -399,12 +399,15 @@ class TriageEngine:
 
     def _analyze(self, row: Mapping[str, Any]) -> tuple[dict[str, Any], int, Any, bool]:
         issuer=row["issuer_codes"][0]["code"]
-        key_data = {"issuer":row["issuer_codes"],"art_code":row["art_code"],
-            "body_sha256":row["body_text_sha256"], "source_ref":row["source_ref"],
+        # Semantic identity only: recaptured listing refs, owner dates and PID
+        # are rebound per run, not reasons to spend model tokens again.
+        key_data = {"issuer_codes":[x["code"] for x in row["issuer_codes"]],
+            "art_code":row["art_code"],"title":str(row["title"] or ""),
+            "body_sha256":row["body_text_sha256"],
             "parser_version":PARSER_VERSION,"rule_version":RULE_VERSION,
             "prompt_version":PROMPT_VERSION,"schema_version":SCHEMA_VERSION,
             "model_identity":{"name":self.identity.name,"revision":self.identity.revision,
-                "config_sha256":self.identity.config_sha256,"proof_sha256":self.identity.proof_sha256}}
+                "config_sha256":self.identity.config_sha256}}
         key=_sha(json.dumps(key_data,sort_keys=True,ensure_ascii=False).encode())
         cache=self.root/"cache"/(key+".json")
         lock=self.root/"cache"/(key+".lock")
