@@ -1,7 +1,7 @@
 """Frozen 60/5 HK oversold AND screen; nothing in here makes an order."""
 from __future__ import annotations
 from decimal import Decimal
-from .common import decimal, hk_symbol, membership, current, valid_sha, result, row
+from .common import decimal, hk_symbol, membership, current, valid_sha, result, row, US_FACTOR_RULES_VERSION
 import hashlib,json
 
 def owner_digest(value):
@@ -126,7 +126,7 @@ def window_metrics(context, record, measures=None):
         reason = str(exc) if str(exc).isidentifier() else "OVERSOLD_EVIDENCE_UNASSESSED"
         raise ValueError(reason) from exc
     # Version the changed price gate; a legacy context retains its original rule.
-    price_ratio = PRICE_RATIO if context.get("rules_version") == PRICE40_RULES_VERSION else LEGACY_PRICE_RATIO
+    price_ratio = PRICE_RATIO if context.get("rules_version") in (PRICE40_RULES_VERSION, US_FACTOR_RULES_VERSION) else LEGACY_PRICE_RATIO
     price_pass = close <= price_ratio * max_high
     ratio = volume / mean_volume
     volume_pass = ratio >= VOLUME_RATIO

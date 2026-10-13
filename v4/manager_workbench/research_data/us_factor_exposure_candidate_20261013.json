@@ -1,0 +1,2885 @@
+{
+  "schema_version": "v4.manager_workbench.us_factor_exposure_candidate.v1",
+  "status": "CANDIDATE_FOR_INDEPENDENT_REVIEW",
+  "target_date": "20261013",
+  "execution_kind": "RETROSPECTIVE",
+  "writer_identity": "/root/manager_writer_sol",
+  "created_at": "2026-10-13T14:06:28.948068+00:00",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "orders_sent": false,
+  "buy_gate_updated": false,
+  "rows": [
+    {
+      "id": "9da47b2098f6d73d6ba44ff5d5cb7de102a24b971cefce6192b3fee8f228488c",
+      "symbol": "HK.00300",
+      "name": "美的集团",
+      "theme": "消费",
+      "proxy_symbols": [
+        "XLY",
+        "XLP"
+      ],
+      "statement": "白电龙头美的集团、海尔智家、格力电器",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 132,
+        "end": 150
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/0830.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261009/0830.json",
+        "receipt_raw_sha256": "5895e5c8cb920a9c5db9796712ff5642fb7b7669e50c1d9fdc9227dba529f795",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/22258225442882111",
+        "article_id": "e587efea3afe549d61e04cba980aa0042aede4833ffc487bec802fe8637b7ca1",
+        "material_id": "f59aa15832c2e986c05df3a3b401e25d5265eff8433861bb1a386bf9aa751c0a",
+        "raw_article_field": "articles[article_id=e587efea3afe549d61e04cba980aa0042aede4833ffc487bec802fe8637b7ca1].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[1065].archive_recorded_at"
+      },
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "03f870d6a56aafb11c4f2fab6e854d5a69e5d3edbac74d0c6739a802eb887c85",
+      "statement_sha256": "18a054eeb37b07568821cb1bcd407bac968538ee415bd31c6281d28b3cdb86f8",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_GROUP_WHITE_GOODS_CLASSIFICATION",
+        "source_stock_code": "000333",
+        "source_stock_name": "美的集团",
+        "name_position_in_statement": 4,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-13T06:17:18.497111+00:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-08T10:00:23+08:00",
+      "collected_at": "2026-10-09T08:30:00+08:00",
+      "first_seen_at": "2026-10-09T08:30:00+08:00",
+      "archive_recorded_at": "2026-10-09T08:30:12+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "Explicit group category, not quantified income weights. Source000333 A/H join not certified; analyst forecasts excluded."
+      ],
+      "supplemental_evidence": [
+        {
+          "kind": "HK issuer metadata plus A-share code in captured disclosure return",
+          "document_title": "翌日披露报表",
+          "published_date": "2026-10-09",
+          "source_owner": "EASTMONEY_MIRROR",
+          "metadata_field": "$.source_issuer_codes[0] = {code: HK.00300, name: 美的集团, source_stock_code: 00300}",
+          "body_excerpt": "證券代號 (如上市) 000333；說明 A股 (於深圳證券交易所上市)",
+          "body_span_chars": {
+            "start": 662,
+            "end": 668
+          },
+          "product_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/products/d2e82c68aadaee498801532e9029e9ae43defce0afd9aa28b94c2382463b2b66.json",
+          "product_sha256": "d2e82c68aadaee498801532e9029e9ae43defce0afd9aa28b94c2382463b2b66",
+          "body_text_sha256": "b48d76fdf107e78980af3f5ce23965525728d47d139b3d6d85330113cf04963b",
+          "content_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/objects/ebf9e76d1e5549d22b0bb9375bec71fac5b15ebeffaba97f83fc2fcee357daec.bin",
+          "content_source_sha256": "ebf9e76d1e5549d22b0bb9375bec71fac5b15ebeffaba97f83fc2fcee357daec",
+          "content_source_available_at": "2026-10-13T06:17:18.408029+00:00",
+          "product_available_at": "2026-10-13T06:17:18.497111+00:00",
+          "content_source_sha_verified_present": true,
+          "source_url": "https://np-cnotice-stock.eastmoney.com/api/content/ann?art_code=AN202610091830269509&client_source=web&page_index=1"
+        }
+      ]
+    },
+    {
+      "id": "fcc0b4b32d1939523124d195f63a1a98953efb1b46a15bcb01e32b0b3107fcb9",
+      "symbol": "HK.00668",
+      "name": "安克创新",
+      "theme": "消费",
+      "proxy_symbols": [
+        "XLY",
+        "XLP"
+      ],
+      "statement": "安克创新 #美国站：2026M9整体实现销售额为2.07亿美元/同比+44.7%",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 18,
+        "end": 58
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/0830.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261008/0830.json",
+        "receipt_raw_sha256": "7f39fa284e991b52f1966e52cc409a2a04e2209f2614091a05895cdf52f848ea",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/14425442145555452",
+        "article_id": "4c81e823d2ae267fe06be4e85822c17ec4dc5b9c075981ea9d094552619b5686",
+        "material_id": "11e6323b20076d070efaf48788ce7abdbabf271828fbc6122c931b48d44c91cb",
+        "raw_article_field": "articles[article_id=4c81e823d2ae267fe06be4e85822c17ec4dc5b9c075981ea9d094552619b5686].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[8].archive_recorded_at"
+      },
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "78d761d95a21b69c821e5309c3c2834f91f803c90ae6908484ec4dddcd26ccc8",
+      "statement_sha256": "3fd417c77546d45b88a8b1c27fca229591a281cd3e1e26561b460b2510939d25",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_ISSUER_RETAIL_CHANNEL_SALES",
+        "source_stock_code": "300866",
+        "source_stock_name": "安克创新",
+        "name_position_in_statement": 0,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-13T06:17:20.134308+00:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-08T08:26:16+08:00",
+      "collected_at": "2026-10-08T08:30:00+08:00",
+      "first_seen_at": "2026-10-08T08:30:00+08:00",
+      "archive_recorded_at": "2026-10-08T08:30:12+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "Third-party Amazon channel estimate, not audited issuer total revenue. A-share300866 join not certified. Consumer basket blends XLY/XLP; no ETF holding/causality asserted."
+      ],
+      "supplemental_evidence": [
+        {
+          "kind": "captured overseas regulatory announcement with HK code and attached A-share announcement code",
+          "document_title": "海外监管公告 - 安克创新科技股份有限公司相关公告",
+          "published_date": "2026-10-09",
+          "source_owner": "EASTMONEY_MIRROR",
+          "metadata_field": "$.source_issuer_codes[0] = {code: HK.00668, name: 安克创新, source_stock_code: 00668}",
+          "body_excerpt_hk": "Anker Innovations Technology Co., Ltd. / 安克創新科技股份有限公司 / （股份代號：00668）",
+          "body_span_chars_hk": {
+            "start": 280,
+            "end": 290
+          },
+          "body_excerpt_a": "证券代码：300866 证券简称：安克创新；安克创新科技股份有限公司",
+          "body_span_chars_a_code": {
+            "start": 962,
+            "end": 973
+          },
+          "product_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/products/a94dbd65ed3fd6b218122a3eba761f75a59dc8ac5c548b755907679300109570.json",
+          "product_sha256": "a94dbd65ed3fd6b218122a3eba761f75a59dc8ac5c548b755907679300109570",
+          "body_text_sha256": "1da145063b6ace31247aebd80b18cb5d644eb1bbebb76739723a620f7c0d04a4",
+          "content_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/objects/b79452a7d446f7d2f2c033ca16bbeecd6f1447fb14126a428e958acafc5558ad.bin",
+          "content_source_sha256": "b79452a7d446f7d2f2c033ca16bbeecd6f1447fb14126a428e958acafc5558ad",
+          "content_source_available_at": "2026-10-13T06:17:19.857450+00:00",
+          "product_available_at": "2026-10-13T06:17:20.134308+00:00",
+          "content_source_sha_verified_present": true,
+          "source_url": "https://np-cnotice-stock.eastmoney.com/api/content/ann?art_code=AN202610091830269290&client_source=web&page_index=1"
+        }
+      ]
+    },
+    {
+      "id": "4d4748a74a7bfb564f488f500b9ff784f44da13a9c47df17a86b53d1269e6089",
+      "symbol": "HK.00981",
+      "name": "中芯国际",
+      "theme": "半导体",
+      "proxy_symbols": [
+        "SOXX"
+      ],
+      "statement": "晶圆代工：中芯国际",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 0,
+        "end": 9
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/0830.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261008/0830.json",
+        "receipt_raw_sha256": "7f39fa284e991b52f1966e52cc409a2a04e2209f2614091a05895cdf52f848ea",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/22258225515484841",
+        "article_id": "aafbb8942a322053f677cbd872ecee2b4f70cc8af144d30338b7a2ec3fdd2265",
+        "material_id": "17cc7d43c9f823b108ca6e8092381525b1f628d270129efd4a7efe5eb6f8bae5",
+        "raw_article_field": "articles[article_id=aafbb8942a322053f677cbd872ecee2b4f70cc8af144d30338b7a2ec3fdd2265].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[473].archive_recorded_at"
+      },
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "fd60b42f67fb23a689e7e4ee9b7be6a3579bd417cb280dbaf00bd081409bbeff",
+      "statement_sha256": "5659b47ba414ffe9cc146eb44705b9ddb4aa59a34b0ad274b95528004f18b5e6",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_WAFER_FOUNDRY_BUSINESS",
+        "source_stock_code": "688981",
+        "source_stock_name": "中芯国际",
+        "name_position_in_statement": 5,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-08T08:30:12+08:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-06T10:20:41+08:00",
+      "collected_at": "2026-10-08T08:30:00+08:00",
+      "first_seen_at": "2026-10-08T08:30:00+08:00",
+      "archive_recorded_at": "2026-10-08T08:30:12+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "A-share 688981 code; current master name matches; legal A/H entity join not independently certified. Forward benefit forecast excluded."
+      ]
+    },
+    {
+      "id": "81da045f42fa77e52f8998b9ac285cfb91bcee2ce0774af1a7a507e4b7866945",
+      "symbol": "HK.01929",
+      "name": "周大福",
+      "theme": "消费",
+      "proxy_symbols": [
+        "XLY",
+        "XLP"
+      ],
+      "statement": "#周大福# 9月中国内地线下店（直营+加盟）总销售同比下滑约小个位数，同店增长约中个位数 国庆10.1-10.7总销售同比下滑19%，同店下滑15%。",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 46,
+        "end": 121
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261011/0830.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261011/0830.json",
+        "receipt_raw_sha256": "9b6b0cee23c42edb8b2f0cf3ca19f1107c9d31953f481184c4a3efcd6ab12c4f",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/45548558814125888",
+        "article_id": "51845b2289b0f42d83fed061bb8ed8f6878d6c9bd0f430a3630cf592270f42f0",
+        "material_id": "707843a44cc17aceb63309e4a739d364488566a989c04eb033d130f3fa54da8e",
+        "raw_article_field": "articles[article_id=51845b2289b0f42d83fed061bb8ed8f6878d6c9bd0f430a3630cf592270f42f0].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[2542].archive_recorded_at"
+      },
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "7e3b50d273a78b10b72d4d854a88368ae9a7f45e04877a7fa21e9f38faf4b0c1",
+      "statement_sha256": "2cd50a0114226194ad9227775f6da4d3da369a19f1d36a1c7f6bf45b12215c7f",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_ISSUER_RETAIL_STORES_SALES",
+        "source_stock_code": "884133",
+        "source_stock_name": "国内",
+        "name_position_in_statement": 1,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-11T08:30:11+08:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-09T19:57:15+08:00",
+      "collected_at": "2026-10-11T08:30:00+08:00",
+      "first_seen_at": "2026-10-11T08:30:00+08:00",
+      "archive_recorded_at": "2026-10-11T08:30:11+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "Retail stores, not gold mining or GLD. Source code884133/name国内 is not issuer identity; exact local subject/currentmaster only. Month/day year not explicit."
+      ]
+    },
+    {
+      "id": "5fa5837b9ca4783cd21af40d4476739b0d4925d5d9255f1cc8b7f5da0f61309b",
+      "symbol": "HK.02268",
+      "name": "药明合联",
+      "theme": "生物医药",
+      "proxy_symbols": [
+        "XBI"
+      ],
+      "statement": "药明康德、药明生物、药明合联盈利实现显著超额增长，驱动因素包括产能利用率提升、经营杠杆释放、高价值药物形态业务占比提升。",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 0,
+        "end": 60
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/0830.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261008/0830.json",
+        "receipt_raw_sha256": "7f39fa284e991b52f1966e52cc409a2a04e2209f2614091a05895cdf52f848ea",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/45548554412148828",
+        "article_id": "6101af90df3ddb4b0343db86716947a26d7dc221c651de40d520aab015ee6e6d",
+        "material_id": "b1fcb6c7f512bc7fb87131199fa95daf55383afe7097e3b88817462142618a7c",
+        "raw_article_field": "articles[article_id=6101af90df3ddb4b0343db86716947a26d7dc221c651de40d520aab015ee6e6d].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[465].archive_recorded_at"
+      },
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "5a7122bed310de26939c1adaf28515e8b0c5598d3658d6458445b82cb955f5fa",
+      "statement_sha256": "0e5310ec3b51d7918d9435e663ed7a924982726fb4deff1768e2d3d2efee4e4e",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_GROUP_DRUG_BUSINESS_PROPOSITION",
+        "source_stock_code": "603259",
+        "source_stock_name": "药明康德",
+        "name_position_in_statement": 10,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-13T06:17:05.859702+00:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-06T13:12:24+08:00",
+      "collected_at": "2026-10-08T08:30:00+08:00",
+      "first_seen_at": "2026-10-08T08:30:00+08:00",
+      "archive_recorded_at": "2026-10-08T08:30:12+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "Shared3issuer drug-business proposition; individual allocation/weights unknown. Source603259 belongs to AppTec, not all group members; no fabricated cross-code legal join."
+      ],
+      "supplemental_evidence": [
+        {
+          "kind": "third-party overseas regulatory announcement body containing coded company-specific operating fact",
+          "document_title": "海外监管公告",
+          "published_date": "2026-10-09",
+          "capture_source_issuer": "HK.09606 映恩生物-B",
+          "source_owner": "EASTMONEY_MIRROR",
+          "body_excerpt": "药明合联    到若干特定里程碑的阶段收费的付款时间表。本集团的履约所创造的资产\n（2268.HK）  无法用于其他客户，故视为不会创造可用作日后其他用途的资产，且本集\n团于验收可交付单位时，有权同时就已履行的服务向客户收取费用。",
+          "body_span_chars_company": {
+            "start": 323112,
+            "end": 323116
+          },
+          "body_span_chars_hk_code": {
+            "start": 323155,
+            "end": 323162
+          },
+          "product_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/products/135e50539490018bc9e57f4657384113789a3fda0f982bff3ffe757b84ef5bb5.json",
+          "product_sha256": "135e50539490018bc9e57f4657384113789a3fda0f982bff3ffe757b84ef5bb5",
+          "body_text_sha256": "a9666aee1cdca2a6590c67c3dd578b108ce4a7177f52e60be2fd98c857d942ed",
+          "content_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/objects/772199e5fd664349c133f7e0578a8a15d5faf95188fa7f160ac193d515a31b0c.bin",
+          "content_source_sha256": "772199e5fd664349c133f7e0578a8a15d5faf95188fa7f160ac193d515a31b0c",
+          "content_source_available_at": "2026-10-13T06:16:53.182724+00:00",
+          "product_available_at": "2026-10-13T06:17:05.859702+00:00",
+          "content_source_sha_verified_present": true,
+          "source_url": "https://np-cnotice-stock.eastmoney.com/api/content/ann?art_code=AN202610091830271692&client_source=web&page_index=1"
+        }
+      ]
+    },
+    {
+      "id": "2c77010d08e492606df9d88e94472e54f31e310fc2c081159490cfa829ed0085",
+      "symbol": "HK.02269",
+      "name": "药明生物",
+      "theme": "生物医药",
+      "proxy_symbols": [
+        "XBI"
+      ],
+      "statement": "药明康德、药明生物、药明合联盈利实现显著超额增长，驱动因素包括产能利用率提升、经营杠杆释放、高价值药物形态业务占比提升。",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 0,
+        "end": 60
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/0830.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261008/0830.json",
+        "receipt_raw_sha256": "7f39fa284e991b52f1966e52cc409a2a04e2209f2614091a05895cdf52f848ea",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/45548554412148828",
+        "article_id": "6101af90df3ddb4b0343db86716947a26d7dc221c651de40d520aab015ee6e6d",
+        "material_id": "b1fcb6c7f512bc7fb87131199fa95daf55383afe7097e3b88817462142618a7c",
+        "raw_article_field": "articles[article_id=6101af90df3ddb4b0343db86716947a26d7dc221c651de40d520aab015ee6e6d].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[465].archive_recorded_at"
+      },
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "5a7122bed310de26939c1adaf28515e8b0c5598d3658d6458445b82cb955f5fa",
+      "statement_sha256": "0e5310ec3b51d7918d9435e663ed7a924982726fb4deff1768e2d3d2efee4e4e",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_GROUP_DRUG_BUSINESS_PROPOSITION",
+        "source_stock_code": "603259",
+        "source_stock_name": "药明康德",
+        "name_position_in_statement": 5,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-13T06:17:05.859702+00:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-06T13:12:24+08:00",
+      "collected_at": "2026-10-08T08:30:00+08:00",
+      "first_seen_at": "2026-10-08T08:30:00+08:00",
+      "archive_recorded_at": "2026-10-08T08:30:12+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "Shared3issuer drug-business proposition; individual allocation/weights unknown. Source603259 belongs to AppTec, not all group members; no fabricated cross-code legal join."
+      ],
+      "supplemental_evidence": [
+        {
+          "kind": "third-party overseas regulatory announcement body containing coded company-specific operating description",
+          "document_title": "海外监管公告",
+          "published_date": "2026-10-09",
+          "capture_source_issuer": "HK.09606 映恩生物-B",
+          "source_owner": "EASTMONEY_MIRROR",
+          "body_excerpt": "药明生物（2269.HK）是全球领先的合同研究、开发和生产（CDMO）服务公司，为生物制剂行业客户提供从生物发现、开发到生产的端到端解决方案，覆盖抗体、双特异性抗体、抗体偶联药物（ADC）及先进治疗模式等复杂生物药全周期。",
+          "body_span_chars_company_and_code": {
+            "start": 383624,
+            "end": 383637
+          },
+          "body_span_chars_hk_code": {
+            "start": 383629,
+            "end": 383636
+          },
+          "product_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/products/135e50539490018bc9e57f4657384113789a3fda0f982bff3ffe757b84ef5bb5.json",
+          "product_sha256": "135e50539490018bc9e57f4657384113789a3fda0f982bff3ffe757b84ef5bb5",
+          "body_text_sha256": "a9666aee1cdca2a6590c67c3dd578b108ce4a7177f52e60be2fd98c857d942ed",
+          "content_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/objects/772199e5fd664349c133f7e0578a8a15d5faf95188fa7f160ac193d515a31b0c.bin",
+          "content_source_sha256": "772199e5fd664349c133f7e0578a8a15d5faf95188fa7f160ac193d515a31b0c",
+          "content_source_available_at": "2026-10-13T06:16:53.182724+00:00",
+          "product_available_at": "2026-10-13T06:17:05.859702+00:00",
+          "content_source_sha_verified_present": true,
+          "source_url": "https://np-cnotice-stock.eastmoney.com/api/content/ann?art_code=AN202610091830271692&client_source=web&page_index=1"
+        }
+      ]
+    },
+    {
+      "id": "3124da325e7f720e5d9b90c3f5703270d79fd488d119e4e64e5e8199fd89a52b",
+      "symbol": "HK.02359",
+      "name": "药明康德",
+      "theme": "生物医药",
+      "proxy_symbols": [
+        "XBI"
+      ],
+      "statement": "药明康德、药明生物、药明合联盈利实现显著超额增长，驱动因素包括产能利用率提升、经营杠杆释放、高价值药物形态业务占比提升。",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 0,
+        "end": 60
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/0830.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261008/0830.json",
+        "receipt_raw_sha256": "7f39fa284e991b52f1966e52cc409a2a04e2209f2614091a05895cdf52f848ea",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/45548554412148828",
+        "article_id": "6101af90df3ddb4b0343db86716947a26d7dc221c651de40d520aab015ee6e6d",
+        "material_id": "b1fcb6c7f512bc7fb87131199fa95daf55383afe7097e3b88817462142618a7c",
+        "raw_article_field": "articles[article_id=6101af90df3ddb4b0343db86716947a26d7dc221c651de40d520aab015ee6e6d].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[465].archive_recorded_at"
+      },
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "5a7122bed310de26939c1adaf28515e8b0c5598d3658d6458445b82cb955f5fa",
+      "statement_sha256": "0e5310ec3b51d7918d9435e663ed7a924982726fb4deff1768e2d3d2efee4e4e",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_GROUP_DRUG_BUSINESS_PROPOSITION",
+        "source_stock_code": "603259",
+        "source_stock_name": "药明康德",
+        "name_position_in_statement": 0,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-13T06:19:42.834065+00:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-06T13:12:24+08:00",
+      "collected_at": "2026-10-08T08:30:00+08:00",
+      "first_seen_at": "2026-10-08T08:30:00+08:00",
+      "archive_recorded_at": "2026-10-08T08:30:12+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "Shared3issuer drug-business proposition; individual allocation/weights unknown. Source603259 belongs to AppTec, not all group members; no fabricated cross-code legal join."
+      ],
+      "supplemental_evidence": [
+        {
+          "kind": "captured Hong Kong issuer board meeting notice",
+          "document_title": "董事会会议召开日期",
+          "published_date": "2026-10-12",
+          "source_owner": "EASTMONEY_MIRROR",
+          "metadata_field": "$.source_issuer_codes[0] = {code: HK.02359, name: 药明康德, source_stock_code: 02359}",
+          "body_excerpt": "WUXI APPTEC CO., LTD. / 無錫藥明康德新藥開發股份有限公司 / （股份代號：2359）; board notice says it will consider the Group's nine-month/Q3 results.",
+          "body_span_chars_entity": {
+            "start": 151,
+            "end": 167
+          },
+          "body_span_chars_hk_code": {
+            "start": 243,
+            "end": 252
+          },
+          "product_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/products/d4d02fcea0bd2c794b845f795b874361f03124f8a8b34106fc95b3c56a589e13.json",
+          "product_sha256": "d4d02fcea0bd2c794b845f795b874361f03124f8a8b34106fc95b3c56a589e13",
+          "body_text_sha256": "6d232e490939f15b2c4cbbea49fbd0d0ef92b89b91a8a9827b2f73732195db7e",
+          "content_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/objects/f2dfd936eb6e04153062d72daec83d6e36b178bc9f8da5d4cd7284cb13a221e0.bin",
+          "content_source_sha256": "f2dfd936eb6e04153062d72daec83d6e36b178bc9f8da5d4cd7284cb13a221e0",
+          "content_source_available_at": "2026-10-13T06:19:42.834065+00:00",
+          "product_available_at": "2026-10-13T06:19:42.834065+00:00",
+          "content_source_sha_verified_present": true,
+          "source_url": "https://np-cnotice-stock.eastmoney.com/api/content/ann?art_code=AN202610121830363254&client_source=web&page_index=1",
+          "target_a_code_603259_present_in_this_body": false
+        }
+      ]
+    },
+    {
+      "id": "ee3089107e669949823468fd962ad44d440f07cc64367f966d09ecf040a43bac",
+      "symbol": "HK.06690",
+      "name": "海尔智家",
+      "theme": "消费",
+      "proxy_symbols": [
+        "XLY",
+        "XLP"
+      ],
+      "statement": "白电龙头美的集团、海尔智家、格力电器",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 132,
+        "end": 150
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/0830.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261009/0830.json",
+        "receipt_raw_sha256": "5895e5c8cb920a9c5db9796712ff5642fb7b7669e50c1d9fdc9227dba529f795",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/22258225442882111",
+        "article_id": "e587efea3afe549d61e04cba980aa0042aede4833ffc487bec802fe8637b7ca1",
+        "material_id": "f59aa15832c2e986c05df3a3b401e25d5265eff8433861bb1a386bf9aa751c0a",
+        "raw_article_field": "articles[article_id=e587efea3afe549d61e04cba980aa0042aede4833ffc487bec802fe8637b7ca1].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[1065].archive_recorded_at"
+      },
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "03f870d6a56aafb11c4f2fab6e854d5a69e5d3edbac74d0c6739a802eb887c85",
+      "statement_sha256": "18a054eeb37b07568821cb1bcd407bac968538ee415bd31c6281d28b3cdb86f8",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_GROUP_WHITE_GOODS_CLASSIFICATION",
+        "source_stock_code": "000333",
+        "source_stock_name": "美的集团",
+        "name_position_in_statement": 9,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-09T08:30:12+08:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-08T10:00:23+08:00",
+      "collected_at": "2026-10-09T08:30:00+08:00",
+      "first_seen_at": "2026-10-09T08:30:00+08:00",
+      "archive_recorded_at": "2026-10-09T08:30:12+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "Group category; source000333 belongs to another subject. Exact group-span/currentmaster identity only; not silent peer-list admission."
+      ]
+    },
+    {
+      "id": "83cd63b2e09434e68bd0c5437d444af675d6fec93814b7bc37596f19cdbf4fbb",
+      "symbol": "HK.09660",
+      "name": "地平线机器人-W",
+      "theme": "自动驾驶",
+      "proxy_symbols": [
+        "DRIV"
+      ],
+      "statement": "地平线机器人 8 月高阶智驾 SoC 出货增长 126%",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 0,
+        "end": 28
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/0830.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261008/0830.json",
+        "receipt_raw_sha256": "7f39fa284e991b52f1966e52cc409a2a04e2209f2614091a05895cdf52f848ea",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/22258225882852581",
+        "article_id": "dc3e471c39701b081d87345eef914d6c6a1c26e84438340ab5154202d434d0a1",
+        "material_id": "2103c60b690c41b9e4216c6bf1b6e7790600f0d0b87ff6d72629d5cff46ef446",
+        "raw_article_field": "articles[article_id=dc3e471c39701b081d87345eef914d6c6a1c26e84438340ab5154202d434d0a1].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[426].archive_recorded_at"
+      },
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "774aa25db9c32bfd75079bcfde341e333d161c0a217a28076bfcde25a41d6dc5",
+      "statement_sha256": "0ed41d860eeef50049a47addc4340c0c6ba2669f6f456b76c8dd833223ee97bc",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_ADAS_CHIP_SHIPMENT",
+        "source_stock_code": "HK.09660",
+        "source_stock_name": "地平线机器人",
+        "name_position_in_statement": 0,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-08T08:30:12+08:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-06T22:46:20+08:00",
+      "collected_at": "2026-10-08T08:30:00+08:00",
+      "first_seen_at": "2026-10-08T08:30:00+08:00",
+      "archive_recorded_at": "2026-10-08T08:30:12+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "Historical August shipment, no explicit year within sentence. No extrapolation to current-period shipment or income."
+      ]
+    },
+    {
+      "id": "d4c53f2ba0fd8a35fa3e5ec9085c5adf1568a0e3e771c362aa3ebdf31374965b",
+      "symbol": "HK.09926",
+      "name": "康方生物",
+      "theme": "生物医药",
+      "proxy_symbols": [
+        "XBI"
+      ],
+      "statement": "康方生物（Akeso）的伊沃西单抗（Ivonescimab，简称Ivo）在一线鳞状非小细胞肺癌（1L SQ NSCLC）中的全球三期临床试验HARMONi-3（H3）",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 27,
+        "end": 110
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/0830.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261010/0830.json",
+        "receipt_raw_sha256": "f6e81d34f34c36ca70144dd17f7d632c05473484a29d082f956db8cfe18d988e",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/55521551288282424",
+        "article_id": "4bc6293782a2f7817e207340fc44b5c8cdb92cd56745723989ef70975c8be47e",
+        "material_id": "1441423aa189737817899078ac5fc893f5c2dfdac36ada766c542e97f5c36ce1",
+        "raw_article_field": "articles[article_id=4bc6293782a2f7817e207340fc44b5c8cdb92cd56745723989ef70975c8be47e].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[1917].archive_recorded_at"
+      },
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "2144361fdf991c3e801624210cfd34bb07b14239645c89ce2ff474dcf6cdce12",
+      "statement_sha256": "9675b21cef320afed4f2a35c6b9c07bf1082a03c737e807dc7d97823cd196275",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_ISSUER_DRUG_TRIAL",
+        "source_stock_code": "HK.09926",
+        "source_stock_name": "康方生物",
+        "name_position_in_statement": 0,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-10T08:30:11+08:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-09T08:35:49+08:00",
+      "collected_at": "2026-10-10T08:30:00+08:00",
+      "first_seen_at": "2026-10-10T08:30:00+08:00",
+      "archive_recorded_at": "2026-10-10T08:30:11+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "Clinical pipeline, not approval or commercial revenue. Expected Q4 result is a forecast not completed outcome."
+      ]
+    },
+    {
+      "id": "14ac2ebf4e54e7397f056c4e4c11c0247cd37667a3c9f8cbe371c113540803f7",
+      "symbol": "HK.09995",
+      "name": "荣昌生物",
+      "theme": "生物医药",
+      "proxy_symbols": [
+        "XBI"
+      ],
+      "statement": "荣昌生物与艾伯维启动RC148联合Temab-A的一线非鳞NSCLC II期临床",
+      "source_field": "source_row.evidence_sentence",
+      "span": {
+        "start": 55,
+        "end": 95
+      },
+      "source_ref": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/0900.json",
+        "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20261010/0900.json",
+        "receipt_raw_sha256": "0d05836ce6e2b56991fcf3ad5d470937c29069b4442e1aeda970969ae812ab80",
+        "url": "https://wx.zsxq.com/dweb2/index/topic_detail/55521551528484214",
+        "article_id": "b37f69c73bfabe1a81a581b538032151af654eac554917cbb55c3e7c9fd399ef",
+        "material_id": "9b00981f0857cab7f539f3805e3826560c3d08e8a824001ac4991cfc5054cdd6",
+        "raw_article_field": "articles[article_id=b37f69c73bfabe1a81a581b538032151af654eac554917cbb55c3e7c9fd399ef].evidence_sentence",
+        "archive_metadata_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+        "archive_metadata_raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+        "archive_field": "workspace.materials[2048].archive_recorded_at"
+      },
+      "source_raw_sha256": "b21178f9f1c8cb9c842cf86577f0c112a1d2bd177b870f345b1b3b272348ef77",
+      "source_row_sha256": "04f5504de5d54ccd5bb6020ba72042c1c96476403df354be70d7648a759ab70b",
+      "statement_sha256": "2e20094c0dcaffcd20b9bc5427c59b4c493f54397c9ffa8f2758835e9946c134",
+      "subject_verification": {
+        "status": "CURRENT_OWNER_NAME_AND_CONNECT_VERIFIED_ORIGINAL_SENTENCE_ANCHORED",
+        "basis": "EXPLICIT_ISSUER_DRUG_TRIAL",
+        "source_stock_code": "688331",
+        "source_stock_name": "荣昌生物",
+        "name_position_in_statement": 0,
+        "identity_refs": [
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+            "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+            "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+            "raw_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/manifest.json",
+            "raw_sha256": "916a780d9f713aa1292abbf1eae02abb511cf0e5c0f991a57f1fff0b0949796f"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/receipt.json",
+            "raw_sha256": "ebe22b9f161e85780673e4bf39d92a0531084f7e887e47f0d39480e0894f8d8e"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/publication.json",
+            "raw_sha256": "77249ed2b3c8c1b63a3ccc2c7a5e6bec75e204705b5f212a01665008db5fbac5"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.authority/5edffc17ac372b1008d2a8a1/capture.json",
+            "raw_sha256": "d59230d943c97628c7554bd98da16efc291a74f1140ca21d81cf4ba27a36017c"
+          },
+          {
+            "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.current.json",
+            "raw_sha256": "4714fe63a5ab73bb2ad6b048639cd3d3e77cc3ab6a3409cf80b8f15526542eef"
+          }
+        ],
+        "target_date": "20261013",
+        "in_current_692": true,
+        "in_monthly_698_connect": true,
+        "monthly_eligibility_source_date": "20261012",
+        "monthly_eligibility_available_at": "2026-10-12T19:58:59.501065+08:00"
+      },
+      "fact_effective_from": null,
+      "fact_effective_through": null,
+      "fact_effective_status": "UNKNOWN",
+      "source_available_at": "2026-10-13T06:17:05.859702+00:00",
+      "source_available_at_basis": "OWNER_ORIGINAL_ARCHIVE_RECORDED_AT",
+      "publication_at": "2026-10-10T08:43:58+08:00",
+      "collected_at": "2026-10-10T09:00:00+08:00",
+      "first_seen_at": "2026-10-10T09:00:00+08:00",
+      "archive_recorded_at": "2026-10-10T09:00:21+08:00",
+      "original_material_available_at": null,
+      "original_material_retrieved_at": null,
+      "source_kind": "ZSXQ_REPORTED_EXCERPT",
+      "fact_status": "REPORTED_FACT_CANDIDATE_NOT_INDEPENDENT_ISSUER_CONFIRMATION",
+      "limitations": [
+        "Owner archived excerpt only; no full original publisher document recovered.",
+        "Owner archive time is not official publication or historical preopen proof.",
+        "Effective endpoints unknown; no income weight, beta or causal sensitivity inferred.",
+        "Joint clinical research, not revenue weight. A-share 688331 code; independent A/H entity join not certified."
+      ],
+      "supplemental_evidence": [
+        {
+          "kind": "third-party overseas regulatory announcement body with A/H codes and company-specific product/licensing fact",
+          "document_title": "海外监管公告",
+          "published_date": "2026-10-09",
+          "capture_source_issuer": "HK.09606 映恩生物-B",
+          "source_owner": "EASTMONEY_MIRROR",
+          "body_excerpt_identity": "荣昌生物（688331.SH/ 9995.HK）",
+          "body_span_chars_identity": {
+            "start": 260459,
+            "end": 260483
+          },
+          "body_excerpt_business": "荣昌生物作为 A 股及港股两地上市的生物制药企业，其核心产品维迪西妥单抗（HER2ADC）亦通过对外授权方式与西雅图基因（Seagen）开展全球合作，采用首付款+里程碑付款+特许权使用费的合作模式，符合创新药行业通行惯例。",
+          "body_span_chars_business_start": 260487,
+          "product_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/products/135e50539490018bc9e57f4657384113789a3fda0f982bff3ffe757b84ef5bb5.json",
+          "product_sha256": "135e50539490018bc9e57f4657384113789a3fda0f982bff3ffe757b84ef5bb5",
+          "body_text_sha256": "a9666aee1cdca2a6590c67c3dd578b108ce4a7177f52e60be2fd98c857d942ed",
+          "content_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/objects/772199e5fd664349c133f7e0578a8a15d5faf95188fa7f160ac193d515a31b0c.bin",
+          "content_source_sha256": "772199e5fd664349c133f7e0578a8a15d5faf95188fa7f160ac193d515a31b0c",
+          "content_source_available_at": "2026-10-13T06:16:53.182724+00:00",
+          "product_available_at": "2026-10-13T06:17:05.859702+00:00",
+          "content_source_sha_verified_present": true,
+          "source_url": "https://np-cnotice-stock.eastmoney.com/api/content/ann?art_code=AN202610091830271692&client_source=web&page_index=1",
+          "body_span_chars_product": {
+            "start": 260517,
+            "end": 260532
+          }
+        }
+      ]
+    }
+  ],
+  "source_artifact": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+    "raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e"
+  },
+  "coverage": {
+    "materials_checked": 3816,
+    "raw_receipt_pairs_verified": 55,
+    "original_rows_exact_verified": 3816,
+    "original108_checked": 108,
+    "original_candidate_stocks": 17,
+    "original108_current_identity_and_connect_match": 108,
+    "exact_name_unique_stock_excerpt_pairs": 365,
+    "exact_name_distinct_stocks": 102,
+    "nonlocator_nonpublisher_unique_pairs": 143,
+    "business_shortlist_pairs_manually_examined": 40,
+    "candidate_facts": 11,
+    "candidate_stocks": 11,
+    "accepted_facts": null,
+    "accepted_stocks": null,
+    "all3816_manual_semantics_certified": false,
+    "scope": "All3816 raw/receipt/excerpt-name/locator checked; all108 individually classified; all business-shortlisted unique pairs manually read. Generic mentions not blanket-approved."
+  },
+  "material_screen_counts": {
+    "NO_EXACT_CURRENT_MASTER_NAME": 1647,
+    "FILE_LOCATOR_REQUIRES_BODY": 1595,
+    "LOCAL_MASTER_NAME_REQUIRES_SEMANTIC_REVIEW": 574
+  },
+  "original108_audit": [
+    {
+      "card_id": "d2d252b03be23e0bff987d513ee992208aa36852ecff8a5025cf943a8c79a6f6",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "1486d07a70845c61d008342414e396ccbda27bccc9fdb791d1a81f2b80e241fd",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "09062188e8de7d15fb5c181b672befcbbaaeb2fdfca48063bedb2f1fafd4685c",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "a68955e885404a4cddbd0221363d99d8f634951cc24cf9989f740d9e9e404565",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "b9de1ee7591a3e4bce1190c60afe8e8a6e8dd663780d590ac0f26e2d3a5c3d46",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "7c10f93ae399daa7bcbeadd0acc59f7c2c64b193af4f144c76a66687b311090a",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "cae46594b17aecc7fbd9c1af4c9928bd450b2edcf59b038128aa9dbe30571962",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "33a877b57714283a5b90ee39e54ddda7da43692767a5eb4afd2e6ca0a73a7629",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "7deda42feaff4c72066c15e9ca5ee7d3e8f66d7f4eb30250e4d23636f22626df",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "a684526302d21e4b3e25dafa92831ebfac1334cc292c7498f38b8affc95bf5e0",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "825489a885bb40c0b80f98c3532f3a47ad7ae752fba18ce46082af36f49c35ac",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "11bd8899714553e90e8334d5fc51b65b76a6f98a639a810af821808c678309f6",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "38bed83717845460b7539453ae3bb9590d45e3c63ea6e045c2beb4ae1fa0b2c5",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "e6c8ba0585cfbde8b63f0bc4392e3584723f8025930f0e78de8e2a1c524462a0",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "340e375b0bbf952bd76ece933d0921fab3f93a1514b31f3d4fae1e8b51289db9",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "2f8392f70c0cdf3392cc664e65c881947c813a122024c80c7de26d286ab68e90",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "3fa5e37c3f99b4734f17cc00971194f0600e30fa35fa385eaef896eb9e663359",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "599e6ebb4d592a5a058edadd7129054e8c37598dc320ccc0dfff5727a2d6780a",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "1be71a4a055366c77818e46faf1cb3bd847fceaeddcffed030802351fd73d552",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "ef350eec6d4947d48b9f1bfaf58a8a96ff6bb6f99e6c424f5dfcec23c86a5a16",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "efca6ef43207014aa3ffcf74d1687ae805470790ee41aeb9ad71efebdb055a7f",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "c4791d1ba053c92651fa01ad1f1a90964c0852b2dbeaf8b55bd3c4709596177d",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "5655be1339e78e1769d3e2439b90f6a3c68ff4f237170e0821ff5e60fae91a0f",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "c4b1cc7851d4abca503f10b5af232192e1151fa3522d63418e4e2d7459267a58",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "81e79d40a7814075c9a85c6c2560a7b71b4c2a549472089cfc9159c72528699a",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "63e3e496fc335f6f962139abdb7e025f15e65c025911b5ce6fada64b38addf43",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "85b25e68ae5fb475bbe44a13d9634d12af6946d0e300f1345ba89d5026ea0385",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "216a4a42d730e3ab8e74d375d8155557284a360c33405494c476b1870d312493",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "fd3ccacd3e30ad1d6326a5a1e2970e27269b57bb63ea4331c43153567abec139",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "d18d3dbfcec03c67a79a1928f1578726406452c9758d5d2f5d1a1f4164748f73",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "150b4fd04f057c6659e6a7dc4eec59b77330c177e5f1105f732d885726e7fc43",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "035119c871e29156c100efba13ad76d1a3e685257d9016f4ea40dd947869fb21",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "47c92ad9a9f7ae6362cee4661f40933f5aeaabf8411f71a4358258852af55301",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "8e102dccde24bad1b1cfbc1355766a1bb77c98d7ef93f7d5755dbae386d360a2",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "835535fb73c545778ec57657c5c474db66328b930e78008c16c865cda86d4573",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "88faa082159f4659c3f1cd6278e52f73d964d8d1795b756e39cb3d3078698729",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "a019aa01c7ff661174f4b10ad92964120dd5adff75f17e0fa7062c11605fd046",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "5066c292f5e99ef55fb998a8a1dae8f38325b9d1cb4b0e5eb427e97c66821558",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "8903de22088d4d55571ef63cf4fb567b585815255b215e77747a72edbc1c69c7",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "a079107fd28224028e4605cbf65a56704d309f40ce2eb208217fbf0038a1fab7",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "6d4c493f46900cfae9a6b1dfbad26b4b89c2eb1aa343cb7cf21631a8820a1699",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "d612e9eeb6b073fab7471e642b6ab96d5f722020c2e023ad070eac49fe051d6d",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "59f3734385d4e911cb0639e8dc64952cad02ed1c957f3eb744466795ee2c5abf",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "74de1baafb418c14fa59fe13cefc7913ec6fc71fa4af8ccde1b34910b614094f",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "1ed652b34391897f722c9445c6d85c65259fd71a1b58f4248715d6a0ea63f1a9",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "f0dd588e2a63d6c92f34737e2380cecb3e56baaff5417e51900ffb6b693e59a7",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "6e151c08d3eccfb1780b8f3f4ab3ad103fed8a8d99469ecacb575fef2851c74f",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "1d5eed75f205cd50fb399eb4715a86e0197370fa9666a6cd603b04c38ded00d2",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "99a7f84232e190d03aca59ed7da6b337888db7cee4176c2995fa1461e8f7034e",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "79c101108ed161c46ed150347e584ec60840021233e94d347b7508692ee79f04",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "d25dafb0dea345e315f22d3903a86a6f88501a9a89948b8a7b2e2cec29dd3a5f",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "74bd427c2dd2ecef28a577bb4ac04d89c8e92319bcbe8d705ff7e4932b8ca8c1",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "c272d9a6905a6ac660a4b084f4dba88279a6db7b9c4d9f649eb93afeaa432924",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "2507a482dc47b58cc611f6a2c066fcc5493f71da3c587512e4cd8376ed8dbf3a",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "1890b2a2c6bf13aaa73f8fa0723241cb914dddb8132f570fabc836dba008ef50",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "a5728994b763abdf88a560408f9d0d543bfb8e89e074603ef034a9885cacb449",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "484a01975d1b7e33821a45b7f9334e63ed05ff1675e25174a19de2267e862477",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "eb136c90a097b6b5ee752fd3f78761473dcf939069a24cd1d8e40762dcfd8f19",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "ce87846eac30bc508debc97f7b74752de3c2cfec21a72af0a252e82c57b8d424",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "74d287cb7e4e00cc7a2c4438c29d1e57c21f7fb906644d19fec7be470e4f0386",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "1f5c34aae7ce0440eb4409044b0ea43e8e0da8d9b38e3ecf0a07409b89808442",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "105cfd1556734124be88818dc2ae950eedb1acc8e5d2df7ea81e1041e6cffe9d",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "c56fa2081d4819f959f7d880881ba3cf1816604c312bb80037bc77b6304348df",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "be6b9d451ba8aa2fcb236c0b61f0259c7b53f96d4c14bad4cb2371ac54775a8e",
+      "symbol": "HK.06821",
+      "name": "凯莱英",
+      "original_article_id": "1d99f548065f7b43bccbfdd7c568d91c24def27d4d9f0c58baaafa589b146c48",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "b6b98ad80d701daff93c618fc5ad699972c0906cbe7e32a9c328d701280b6487",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PEER_RECOMMENDATION_NOT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "ef1ea22567664d7f79fe60321de02da10a2fedefe2a0c3094699a4b0b8fca6ba",
+      "symbol": "HK.06655",
+      "name": "华新建材",
+      "original_article_id": "11fe04fd225e1145c4cb51f025be0038d8980cee2bb7919080b5f45e7f2ffa8a",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "7addc8ca62aacf0b08ca58c1a59be9e0f42a64a5881a6706d17a4a0e314e107a",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "CAPITAL_ISSUANCE_NOT_MAIN_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "911f84d4df68303f0322d1976cf9a8e9349b43b37d1ed4d307ef2861225884f2",
+      "symbol": "HK.06655",
+      "name": "华新建材",
+      "original_article_id": "16b99d8aca9159ee8ff3e38cf07bcf8751fd1d1c6837544fa468720750e9fff7",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "d373d1c6dd132753a3b35fd2fbc7584ec5b3c57d266965fc2a2b332d143e0e2a",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "CAPITAL_ISSUANCE_NOT_MAIN_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "fb48e4a9b9864f967340d34b5a51c1cf749366481301bae18929d5d9015cb425",
+      "symbol": "HK.09660",
+      "name": "地平线机器人-W",
+      "original_article_id": "dc3e471c39701b081d87345eef914d6c6a1c26e84438340ab5154202d434d0a1",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "774aa25db9c32bfd75079bcfde341e333d161c0a217a28076bfcde25a41d6dc5",
+      "status": "FACT_CANDIDATE",
+      "reason": "SUBJECT_FACT_SENT_FOR_INDEPENDENT_REVIEW"
+    },
+    {
+      "card_id": "549dc52788be873acf3f43cd64eb5aa0945133e867bbb5705692bd3d9fb67f8b",
+      "symbol": "HK.02268",
+      "name": "药明合联",
+      "original_article_id": "6101af90df3ddb4b0343db86716947a26d7dc221c651de40d520aab015ee6e6d",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "5a7122bed310de26939c1adaf28515e8b0c5598d3658d6458445b82cb955f5fa",
+      "status": "FACT_CANDIDATE",
+      "reason": "SUBJECT_FACT_SENT_FOR_INDEPENDENT_REVIEW"
+    },
+    {
+      "card_id": "bba243d3e81c5b7fe9224fde8a7b60b250cc19f39cc9fd68f816136ce507b704",
+      "symbol": "HK.00981",
+      "name": "中芯国际",
+      "original_article_id": "aafbb8942a322053f677cbd872ecee2b4f70cc8af144d30338b7a2ec3fdd2265",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce",
+      "source_row_sha256": "fd60b42f67fb23a689e7e4ee9b7be6a3579bd417cb280dbaf00bd081409bbeff",
+      "status": "FACT_CANDIDATE",
+      "reason": "SUBJECT_FACT_SENT_FOR_INDEPENDENT_REVIEW"
+    },
+    {
+      "card_id": "a5d339dffc1644f731b7328362cef84e0b0088859ae1e15b104b6752b30b1923",
+      "symbol": "HK.02603",
+      "name": "吉宏股份",
+      "original_article_id": "53b2d75ccaf296789d68b3b4cd13be9b949dfcaa91ca5e48ca200a780395aea0",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "1eff9020d3dd7f20647050dc6aa9618bf0f5895d3564d60f3b6501dc392654e4",
+      "source_row_sha256": "ac709cb637b194ec7423ce23e3ab3cfe1c7b6b1ccd367996638b58ba7c2c0331",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "AI_ECOMMERCE_PROMOTIONAL_TITLE_WITHOUT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "8398dffe6fceced31dc7a6996f7fe11f3316ac9a9b873c129142fb7d8b11505b",
+      "symbol": "HK.03750",
+      "name": "宁德时代",
+      "original_article_id": "34bfc5e1428982721af6e2f95051813c575c5bc7338674bbb572f3b73c43b556",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "adcbdef5c02b961dd732a8c852507242ae63fd042760fbb81550cf7d2f46b398",
+      "source_row_sha256": "75f5fbd49570138226b019e4f51122e4dd71e569313053e7fab0a96ae7cede5f",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "BUYBACK_HOLDING_PRICE_NOT_BATTERY_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "236cba6606ae16da94e05f01b8b5689acaf36fe5a9d28a805d15ca69f676b7f2",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "5590030c4489a0b09091c2d673193d8f1db6348a686acf5ab25d61b3989168a7",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "5c5799956689d171c3fde28094a0576199d3006f0ec1f9b4e550a83b1f141855",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "4e7b126c6055b12797a08e147d251f9b6581afc208f732b181db22d1f9a54324",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "dcdb31e1d05f46e1f0c18c9f9a1c6982ff67c6c60afe0baba0230c0623a1aa0f",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "7a5fd7f1670473194570cbe1886645a326a0db19194f0b095b34ec4f6baa8b69",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "62e63767a3e914c9e669926f9beabcedf5c3cac1b50eeebebd62dd730fb003f6",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "522aabea5ba8859c25d727d50a79cba6b6bb87c1e23dd7089257fabe2b1d47c8",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "d8378e2c47999b767e315f357e7e8ada5b32b0fadaa27048726e98dc430d242e",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "2c9768d38dd4a46d085c5191624a034b01b12d2b2c0fac651dfe4fcd14a5276b",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "692d9310a18e1e4f98814c35e971eecdce0b17ad2702d008d2a0cad00da0197c",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "1a0d3ee36ca956cd6d91ecb2e60f8f59079ececaa4a111f8bbf45f6373cf865a",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "46cc05b53639021327b3a9562b63ce629792d9137916fbd17eae80bfb209117a",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "1cec4a5a3144af5fe9fac4c8e643368a687ee848fdf63512a5e9c926326e154c",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "4b1f24415b3fa163e3f7085090f6351267d3522dafca84ad0c9b9e599bf00bb8",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "63ffd4ae807f70a45a7b770c6216e635467a48f4d94ac6eaeff25cd27f6e1238",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "96e3ff9511940f07cd60420e398711cf5ad9576d58615436896cd144470efda9",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "29a33be11557e6e8803227b6a05835b76499ecd0b99b7dffd4a314aa26d2a438",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "d948dee88713cf978cc0b5b586a3005a26df9bee1c7905c00f86dbed205b2cdd",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "c7bb1f8ecba8cac2a814e4e9089d1ea97e0c9b51e35e68e8eb3160d1b05584e7",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "03bbded60b0b5c7e8ccdb35b9d95da6016b4f09d94f6b6ce2155e68372ad1276",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "b021b938bf09f637465c82b7ed89e7508d4bde4ac7a0769b71eed675f374bf09",
+      "symbol": "HK.03750",
+      "name": "宁德时代",
+      "original_article_id": "5875336d113f282a0856341c9ab30b75d3156cab56a5835062b61984eafacf45",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "1442c00dc6c7b4415e1e997ab61cdf2b1229a3f5b52e6ab5c7c0fdee3110addc",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "BUYBACK_HOLDING_PRICE_NOT_BATTERY_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "84457ccf819cf55da58b6f3761fcd657022b4ecbfd1a966ba761b32cbe39e49b",
+      "symbol": "HK.02603",
+      "name": "吉宏股份",
+      "original_article_id": "2947082faebfb284b5aea662cf4c68e4a18807e0842b8574e11f2941afdabcd3",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "d017fabcae8bcf0ca0e4605e1dc026ffd075f950de0a60ebb455a240893b43c7",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "AI_ECOMMERCE_PROMOTIONAL_TITLE_WITHOUT_LOCAL_OPERATING_FACT"
+    },
+    {
+      "card_id": "43cbc038529892a6d94245ef4f7913e1a49b0d75ff9e7f767151c55ff0efe4e2",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "9b02c22a184a55198c48f767c3ffca8a5547573db402eca4313b93961673cc7b",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "9323b7695b3012f54e8c57ee662e61e1e64012e424a9f40d2bec85df36576614",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "de176cc6d86fd6c536b35fe193c62744c09f17d83255af03d9b3d8cafd7676ed",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "4fdc45d8eb05d9a85483a34090836a56337c17ea9a2eab41629cb737d1eb60ba",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "54c1c38928a99d25a54829f295ee888f33da411313dcf44696a7b1d09de34d1e",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "0bd5d80815e15ff4b1a62e60996cd7bbb537b6f5dbbfc4da626095767a433056",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "c774aa6802d61a94482b0b925c21495b2071146ec5f003d07c0af280f716f8c9",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "c721477643780188ab044b1464c880dbd7db70ddb04fddc74e1171ff57caa5cc",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "84df7281426a70b4908f1f568936138f410cb99d86fd33fd68e840ea39b2901b",
+      "symbol": "HK.06951",
+      "name": "三环集团",
+      "original_article_id": "a6e2fc4afbe6fb5596ac933d6de00a8b365481eeef48af958c4a54f32bce3279",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63",
+      "source_row_sha256": "d8972da8ded02e81c67054cf87a05a156aaada982f7da87e4da3b49ed135a003",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MLCC_PASSIVE_COMPONENT_NOT_SPECIFIC_OWNER24_THEME"
+    },
+    {
+      "card_id": "ec79a485fc468bbc654342c860eece3e3ccbd544ea2f47c4c4ef4c04bc539697",
+      "symbol": "HK.01187",
+      "name": "可孚医疗",
+      "original_article_id": "3f25d6c520d59d8cc4cd73d3bf02618c3f782bcd76163e97b59e1a02672861c0",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "32da58f8f9afd5be32ffd61883d6578d41676fc55eb01104b368617a4354363b",
+      "source_row_sha256": "f361c7c10990531178b1b484cd08a6ae5738f7fd6d13e7d5e9a5dfa6ed94046a",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MEDICAL_DEVICE_NOT_BIOTECH_DRUG_ETF_EXPOSURE"
+    },
+    {
+      "card_id": "4d4d739c63d84792bee0083d81de22fc88b23b4e155521d314f9b62f5dadf3cd",
+      "symbol": "HK.02475",
+      "name": "立讯精密",
+      "original_article_id": "95baf271a1af29ea5286624173c689b0683ff98a0fe070edf8c248098d9a3e6a",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "32da58f8f9afd5be32ffd61883d6578d41676fc55eb01104b368617a4354363b",
+      "source_row_sha256": "4004ed0e84a7a335a77840e900479c6aaed70a99767218f9ab7c19b9dc3f93f9",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "FUTURE_ACQUISITION_OR_POTENTIAL_AI_EXPANSION_NOT_CURRENT_MAIN_BUSINESS"
+    },
+    {
+      "card_id": "56cd4ffc14f305ae8d1c865495008fe819140f8755fb5aca7410352c19050167",
+      "symbol": "HK.02475",
+      "name": "立讯精密",
+      "original_article_id": "4c911fab63aec77ccc12aee5c2fb8da85778347a09d6f1ea9823794b1b420993",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "32da58f8f9afd5be32ffd61883d6578d41676fc55eb01104b368617a4354363b",
+      "source_row_sha256": "3fb843be00e31549f709ac53fe1c92c3d2681ef947c99a780aa4791c95b5377b",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "FUTURE_ACQUISITION_OR_POTENTIAL_AI_EXPANSION_NOT_CURRENT_MAIN_BUSINESS"
+    },
+    {
+      "card_id": "7917eddbe4c7d1cbb755bef849349203ef1c1ca64d0bed9c1d42a30ae93381ba",
+      "symbol": "HK.01187",
+      "name": "可孚医疗",
+      "original_article_id": "f7524e696eac0bc84297cb0e3c3608edcea023baf7678eef11c722e827353d97",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "60c48b9ca51f0f6003ca5914d55c3c204d9de70b02488af814d36ebb0c37547a",
+      "source_row_sha256": "60245dbbbf9050684b8fff35a158e6c4cef3741703ba3d3bfd07ecaf77ac25c5",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MEDICAL_DEVICE_NOT_BIOTECH_DRUG_ETF_EXPOSURE"
+    },
+    {
+      "card_id": "332dc2df11efbe36307af06eb6de1ef1b69d30e4a2c2841b8b167df2e44adc04",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "288e2f986936bf65c705bdf444c83f34a0027d32ef0eba12f33f792392d9263b",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "538d39b51ea7717bb0bcbd6e7058142645238d816fcaad0f0e53a4eaabd35b15",
+      "source_row_sha256": "a3a8fd0fab2edceaa38db86ca55b8878d7cf526f002a7ab6c91db0aa495dde94",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "e10ef9ba5c184d5efe842157a499f9821862f6057dd18a2bc8dbf67d0a7a778f",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "f926bc347dc32b2a64f67fccc19deab4ce672cba4ccc9f3c3202b019402029a3",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "538d39b51ea7717bb0bcbd6e7058142645238d816fcaad0f0e53a4eaabd35b15",
+      "source_row_sha256": "dc0918fef9cbee7f88fd9480bd94e32be524e3e74e52e7bda581cf9d82e43fda",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "bed061d8b930ade15cf0830cf73b293d9f7b1de06fbcfc342aaddb509db63dd1",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "d5f52fb40c1a7f8ff12578f716046ffffccdbf129984ac1f1bd220ea4a25a169",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "538d39b51ea7717bb0bcbd6e7058142645238d816fcaad0f0e53a4eaabd35b15",
+      "source_row_sha256": "887818335d6b60802471dac408b42f69fa24a23578ca2d7b68d2fbdb2692fbee",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "b047e41fc58ed490ec329d0c949acc569eab4bd91128e655bb810742f4d24887",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "09f755b91c91ec8af66b049a16bcf5fcd0920b9199f4f071bfe9c294685c1cf8",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "538d39b51ea7717bb0bcbd6e7058142645238d816fcaad0f0e53a4eaabd35b15",
+      "source_row_sha256": "54797b3056dc35e6a3ad7cbfe8966ea81b20d73718fec76d30f3153a686d0a2d",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "3d516a34cb3ace57a959805789c3eb26ad46f472c9322f57fbf0e83c95412405",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "817466b8ade62df3863e98e2a42a041659da514ff234d5866abb150af592839f",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "538d39b51ea7717bb0bcbd6e7058142645238d816fcaad0f0e53a4eaabd35b15",
+      "source_row_sha256": "6f6b7a195a5bd783fae62b7badc6eb9b4ed9e3d2b574958e5c02b268ecd6bd1a",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "9a2583eaf82d3aa661d8add540b76a602cd03081d2f021e7bf57a4315ad0babf",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "94a4725339e0715b6c170ec5a6b8cdb979e5107eb3971bfe3394f190d5e270d8",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "538d39b51ea7717bb0bcbd6e7058142645238d816fcaad0f0e53a4eaabd35b15",
+      "source_row_sha256": "5c5bbb90f2181064ec40c8ee99edf65ec3a66daf319b70e63c4fa6580c76d5b8",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "09b66c3d0050aae82e829abb328fe4cb6908ee255977e3c2ca27e1c14ca215e4",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "faa307343091dd106a5eaf9456b2b6175b65c7849d84d37f6a16e7f7025824a5",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "538d39b51ea7717bb0bcbd6e7058142645238d816fcaad0f0e53a4eaabd35b15",
+      "source_row_sha256": "78b2ed40756baaf0c5b11f5053c0769fc9692ab99c8e43b6011d714001bd97ef",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "f88ed3789b887de64f93188a95a656b0b7377acf34ddf95a8f8ef330c7e1ff08",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "5f5a51468a69ac6eba865d7f1c1a867520603103e31ac972cb6bb54ee06548fd",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "5725ffd80cdf24dac2a950bad1c2d6f818d96f3010f278f764027fbcf51fa5ba",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "213c007ea0f79170a588dece3a203fdee7b221f628d65b3ed975f2048226584a",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "c6dfc5130494524e8f79e6c7667d80e9d65fe5b6a486a21d946e3d4860b45a54",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "4e94bb0689df8d5cb804eb46c717ba655e8a68e190db4b7613a87f6f338554e4",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "143ea75532399c6ccf4d5cf2d856d0129d165bb26beb0163540df22185d32c91",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "34be7659637789f1fe9a1f0b10b92576f678f57b6f896f11f91bc65364a24766",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "8a1417c9e7e04916a12c0f9d0ca201eb840aa2312630ae429934694040b77d3d",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "696a78de02cdf8d0de7b817a20e2934f4a0891546b330c3394abb9a66a5edafb",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "985bc6f8ed4958ea4564ce9feb592ca929e3348c399631572e4db413d8ffdf36",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "fe4770e3fc687104ac353886b6da0fef8657212d6f07f356129ce785e7849b41",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "c9462b4422266a9fb25052f116c218d870a67cd0fe273c09b0fc482b5d280859",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "c9b86b171f5edd8d09cd50b53f5ce3e408b3699bbb95652cc1747481594319a7",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "7bc1b46100cab81ed9f9cf40af85cdc0016029e402637f5c8ebc7d5d2818ca90",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "d8af72f62361ce05a44224f088b58b9334786c804296b9396a2d05bd528c7893",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "c0a362e9e87cad7456d9e16137a4d56b2f07d67cc022aec572111dbefee0ca5b",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "582e0b11e8d6d4677c772dfcb89b4fc814c672b8562afb6b5d97e27e4e52efa3",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "8338ee22e1a8710cfa9f19edcea22a75dff117c50a8a30b9375653bf985a72c2",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "a3eea99a7ba4c79fe113d526d4cf8c6e929e4c9805019b3aa859c345c5e55e55",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "26364a4f171da0efaa9d7b30aa0356e435474cc0eac0e0e68e4d5a50eb6471ce",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "a015d4ac3d8c44625a2844b8561a8e5add92388081027578b338d299ecf476cd",
+      "symbol": "HK.01187",
+      "name": "可孚医疗",
+      "original_article_id": "4f1d6be4093ad9a042c1e5979d357740cac987e09941315bdfe66964e9501a63",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "742801ce0a84bc552684f28003fe1166a77bcf714bec650a837f548d54c37bce",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MEDICAL_DEVICE_NOT_BIOTECH_DRUG_ETF_EXPOSURE"
+    },
+    {
+      "card_id": "0f137faa5d9529b717e28e38dd80873436ee4e537160d3d119732060d2cba09f",
+      "symbol": "HK.01187",
+      "name": "可孚医疗",
+      "original_article_id": "bed2f8e8ca3722fd9c9f4c70dd3cff83fba78732edc9d04fbc8a3a0945f6d3ff",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "781245f4a4b2666dd70254da7bce8fe750677cc772f56043a114771c3f1d84cc",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MEDICAL_DEVICE_NOT_BIOTECH_DRUG_ETF_EXPOSURE"
+    },
+    {
+      "card_id": "1d9ded6cd553024ada9d3fb3f4586da6d0be0593a27dc7e41f88e51d0ed3dcba",
+      "symbol": "HK.02475",
+      "name": "立讯精密",
+      "original_article_id": "26b477e90cf13b5a9ea6a04fc1a8d1687aad83c540970fc7e2f8943067293cf2",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "3bf4055f60a64ed2c9a99abf9b3f48343c19798c15e052525eb195741bf99ec6",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "FUTURE_ACQUISITION_OR_POTENTIAL_AI_EXPANSION_NOT_CURRENT_MAIN_BUSINESS"
+    },
+    {
+      "card_id": "a8a741958af18c7d9eb18673caeb60b09b064480bd51eab427055c960f311654",
+      "symbol": "HK.02475",
+      "name": "立讯精密",
+      "original_article_id": "e8f83b95cca0f0f102c02095e5d14af6cdf62a48b5c4666d50f0302eb1aad3af",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "867cbcca9914dc6238df9c140b7bcfe63f88bf4ef3fd96ef56708354653fa368",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "FUTURE_ACQUISITION_OR_POTENTIAL_AI_EXPANSION_NOT_CURRENT_MAIN_BUSINESS"
+    },
+    {
+      "card_id": "4e24d3397e7d27827eb325064b087e2cea6d0818c399e2029d6c3d8701db15e8",
+      "symbol": "HK.09926",
+      "name": "康方生物",
+      "original_article_id": "4bc6293782a2f7817e207340fc44b5c8cdb92cd56745723989ef70975c8be47e",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "2144361fdf991c3e801624210cfd34bb07b14239645c89ce2ff474dcf6cdce12",
+      "status": "FACT_CANDIDATE",
+      "reason": "SUBJECT_FACT_SENT_FOR_INDEPENDENT_REVIEW"
+    },
+    {
+      "card_id": "4455c10db7f436d9382ace2cfbd3bed52b6537a5df37b5c80e89959ede2da020",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "94634b9471676e80482271f5cb422497e6e14f13f3a4ada9dbbbd0149b96d508",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "04993871f265925982b6b33acbd05f72d6a5981193b384099146a66d95b87087",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "9d4d4d62c7404e071deab6d97f66c2e41c650982edb6d97b37a22e4fb3483a23",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "38020ab4ae5018bb2a5cff3c962b4a01a7545718ef2a643bb24c6ee792363c43",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "4c03ffef265465af7a4680f903c2966b3ad0fd32dc74cb99a06391e25b4ef96e",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "62134b6d346cbeda39f446a37b8281055b6032af9d105ad3feef6eccf4cad84c",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "6bc32fa9d6b1de4baeaeee8dbfd154475a7598a813a49e41972fe272583f1352",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "55631049e7bdece2c9410c7ac99a0e8a6eaf75c9388d3245948382bf746d029c",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "08cf4eb839524bb4dd6f03f70ac894d8e5b52263ec81464cd9996ba208493e59",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "74f750b37aa51e145a7e9cc939101287ab0db944cf88b0347da440b42ddf30a8",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "5f1a6c82148170cb8df9a5a04ba63f62931ab88b5323365fd2119ee51974b527",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "29def6cd9b26a231563d67795b86b63562e5bc8c7c9467061ea7d4853cb0c4ea",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "2b53842c3dc2f91994212165a4b5a435067c4f672b972dd28e6d7a8b4bd03045",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "bfb598bf4d717c3095655cdcd190f81b8acfe37c549001e3611d23dfa40a2dbf",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "449abfcab40138e8e862402dd3c3e8159e4b7a298b1dd40df1fd62c9e9c11ca4",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "8882106c52c013e7096b8248c10e633427d2f6d5f80dd93406ceba69e386ec4f",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "b57da8f1fe360c09df70790150d68489974dccd7f053582a9fa5687fdbdc10b1",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "2eb15784ef090779ff5c21a15181a01aa94e8de0aa24143a2d853a7136660016",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "670b66c7f43991b0bff6683939944fb27eddcdf5acb8035a073b9352b51a87c1",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "647847ce1de7615ca4fa925e9f6a53fd8b78d6a0e9c93122d6780e6f22376260",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "88345eff76b7f1c5b98acea0e6091e0c94b70d9a0f7098bb5157d0a074096b90",
+      "symbol": "HK.03750",
+      "name": "宁德时代",
+      "original_article_id": "30da9a21fb80780889021cc22c9e7c5088082c16585d7bf8f4d4112b6b04414a",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6",
+      "source_row_sha256": "e17d676f6276a738729d0dc90392ea936490cb201b73d10315bb34029e4ebcf2",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "BUYBACK_HOLDING_PRICE_NOT_BATTERY_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "be1739173e758b730bf86bed40a242423872076af9e923a6ec29f1c3e2f7480e",
+      "symbol": "HK.09995",
+      "name": "荣昌生物",
+      "original_article_id": "b37f69c73bfabe1a81a581b538032151af654eac554917cbb55c3e7c9fd399ef",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "b21178f9f1c8cb9c842cf86577f0c112a1d2bd177b870f345b1b3b272348ef77",
+      "source_row_sha256": "04f5504de5d54ccd5bb6020ba72042c1c96476403df354be70d7648a759ab70b",
+      "status": "FACT_CANDIDATE",
+      "reason": "SUBJECT_FACT_SENT_FOR_INDEPENDENT_REVIEW"
+    },
+    {
+      "card_id": "221dae90a16cf35c76c8b90cf0943c878c8cfc88fca2b7dc434e82e19cc6f1d9",
+      "symbol": "HK.03228",
+      "name": "景旺电子",
+      "original_article_id": "35dcd8e95b265362c508c8e1e468ea22ec414be82b9568d790f64abf346a7c49",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "b21178f9f1c8cb9c842cf86577f0c112a1d2bd177b870f345b1b3b272348ef77",
+      "source_row_sha256": "eb2061137219d730557b354dbadd2794b505594024203bf5193ef0864745eb8a",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "GENERAL_AI_BOARD_LABEL_NOT_SPECIFIC_ETF_EXPOSURE"
+    },
+    {
+      "card_id": "286437d2875a2a8050fe9cf9238fb7408b8294381bd63064642c591d9c4ff0ab",
+      "symbol": "HK.09995",
+      "name": "荣昌生物",
+      "original_article_id": "eedf31711e5579a179f9cd6846ec79ea70b4b2abc910caad7407075877565314",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "4c23286355c9ed79527c57f2ce08bc95a345467cc048d147efcfe342216d2cda",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "NO_SUFFICIENT_LOCAL_BUSINESS_FACT"
+    },
+    {
+      "card_id": "ea8eac7073b4c35c09be214d460b4bf001bd9681ad53e775aa9dc89fd97e94bb",
+      "symbol": "HK.03228",
+      "name": "景旺电子",
+      "original_article_id": "61eafc3c27c01154d1feed887c77bac98d08d144a866cebe28abb4c4b804cc0b",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "056a43c8ae53ed242cca1c42ae32f105e258ded8880f7e181b373e8a8f83d4ce",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "GENERAL_AI_BOARD_LABEL_NOT_SPECIFIC_ETF_EXPOSURE"
+    },
+    {
+      "card_id": "751d7107a67b438b8cfb8982b837576ac735be64ca23af3e78c06a557439fc07",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "4d0779ae3af39b5499355ef0fc34694dc96725ac42dfeec8f59a2752d1961cf5",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "4eafd1e752babc942c274c71ecb199e8b8f66c729d1bb50beafb5e5c49509254",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "a79ddcbd3ae4b73d7f975edf3002b394538f1fcd3c10fa4706db0c37177b74ba",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "bfc0ad3a7b0ed5ff0336b09a5fa61c94b7d06b71f084693e7a62c61922dece0f",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "544fc2f122a5330bedfef1f39aab36bad85e7ce09e36c1909f706ea04c2dd6eb",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "153d46c3154630d4b62ffe518d5f8a9451261efd52edf0e955604992823bad89",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "e48493fb3e2e31fcb202a65582c182087a33c56ba7950ba2c9a5c2645b0e3ae5",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "aeee76381f795c501bb5f6e5d44db6965d59060fa16536b7d46f32c4947e63e8",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "24e35605c051b520ed86a6e0cfc8e4b54eb9398391658fbb710597e69ea492ba",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "885f8f009dd643d42e323d480ade60e90814a92cac7dd26c244b254fecb546f1",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "614bbf8fd1971897fb347f4ad8ebfb963967ff2091eed387a5e936a64bce2465",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "6ab5fc1b892bf9a8a54ca615b606ac721bca976808ba423759e7f34663a94afb",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "6a9551023da7ece6fd36abd0e952b093e2a8e5823ff3d5aaed682ecef4ac4db6",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "04ff549bd62d35876487819a81ec27b17489a55bdeb775c7a6a9a555b25f359d",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "96857235525d8c3a75b2e18defe052adc065af850dace17b019eab5123f45799",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "d4c5f34a01bbc06e71d52ba44aeece3694a67dea8f164aaa4c6f1c5e9f69382d",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "cd0a76001ec7dfd31cea7fa3dc511fc25a874e0ed953b90cbc14f38aac1b1811",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "be956756554d27a998d54a5e00866e05d5729da1a9e9ae47e7d0d84e506c3d60",
+      "symbol": "HK.01989",
+      "name": "广合科技",
+      "original_article_id": "6233a02812b632b54b8501c6a254fe0b6da94fa83dda5b838e03ae5f66884983",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "79d744d59009b6125c74c63d383b8e582642e6148bfe4aecfd7b97eaba557a71",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "PCB_PEER_PROFIT_FORECAST_NOT_SPECIFIC_ETF_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "c9967ae53c1aab938ffdeb4178657599d82770867117cd217c2c251f783177ca",
+      "symbol": "HK.01187",
+      "name": "可孚医疗",
+      "original_article_id": "6ccebc1096bcf5c839679222f74c63426ffefbc1eb21dc16eb3b9069b2d7373e",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "97f2768881d100acc3618b9f129b65d9088ec87df5d84e53b53bb57c3884fbb0",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MEDICAL_DEVICE_NOT_BIOTECH_DRUG_ETF_EXPOSURE"
+    },
+    {
+      "card_id": "a94b947c48a908a7b304e5dbbb124e732cb5d5af30ba9d55912abeb7c26f30cf",
+      "symbol": "HK.01187",
+      "name": "可孚医疗",
+      "original_article_id": "b5605cebef8e17f994cc30a5b67440b19ff00519123db894ecddb5e3573efdc4",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "6bb7275db42dfd2bebb4759ecfc6bef17319ad32531644412269e5da47ff1d1a",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "MEDICAL_DEVICE_NOT_BIOTECH_DRUG_ETF_EXPOSURE"
+    },
+    {
+      "card_id": "81b523a78d434227f86a3d4358ccaf7c1c3698492872da7e103f47779a83cd28",
+      "symbol": "HK.02475",
+      "name": "立讯精密",
+      "original_article_id": "ff355c77d28cbf26fed0ca170c1a7d40ed4073643e02686009a40ce143a485e4",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "922d88be255f57c4639cecb60c1944e419812f5fdc640537f11742e39139ddde",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "FUTURE_ACQUISITION_OR_POTENTIAL_AI_EXPANSION_NOT_CURRENT_MAIN_BUSINESS"
+    },
+    {
+      "card_id": "3eb1e4bf6b049ae6da25af2d9f8bf866fcb1c936afd4cfee40d893ce5794bdb2",
+      "symbol": "HK.02475",
+      "name": "立讯精密",
+      "original_article_id": "1b164aa2709c9ceb9103f57ba8cb50d968982b925f4af5d45feedac840f57d67",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "be76767161c34a411ea7de51d36311c3a4062838e922b4dc80542ddc02d4258b",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "FUTURE_ACQUISITION_OR_POTENTIAL_AI_EXPANSION_NOT_CURRENT_MAIN_BUSINESS"
+    },
+    {
+      "card_id": "6c8e6e556a3353247807d08f650b9ae3093d1ac177a57bf5d7dd1a9b2b6def15",
+      "symbol": "HK.09926",
+      "name": "康方生物",
+      "original_article_id": "d3b23339c512aa84a415f39fd49e2a1d7571f7b0bbdedb3f1d8a372cfe7fa126",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "5f79d63a24b99be49e93243469d9e4e1568c3b146e998d9fb4c259312f50fc09",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "NO_SUFFICIENT_LOCAL_BUSINESS_FACT"
+    },
+    {
+      "card_id": "3a6700abd4f5c90a3d90b814493843b110a1df922c8b3849e0046713033ff929",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "4c2681e8298422b90b2a35f93c0a2bb01ff8f9f7e227caa11a3c45e991639544",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "5381abfaf8e06d26f959850395db4fe6d415447c8d0dd2622c63cd42e4c3b2b8",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "5f6e10bc5fd7552160116a463fb5aed45e4eb7d35b87f1d585a053f491eb21c9",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "c80fea6366d460a535c3674155e444c9aaf378eb25e8137a9365af71cfd7373c",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "e41f348d4c8b491873e008372059a1c8c7efada24002cd90693bab0fc2cf373e",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "cc9c78cdc56f34ce772fdd5c976ba79afc55baf42f38fcc3b422493bf7b7ba24",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "829017ad7ea7a572256a23e42bcb110468e87a0e22845eeec99b23acff99a341",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "5416518758d10fc215cc3411b126adfcceed86314b5443937632f9df7b64d5f8",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "9a42efa9a36dd2f2f1fc207b8f564062cf35f5a10a6e055ab0994086fa00fca5",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "9ae304f5015d134d582b843fb226a4910913c987f150ddbd1f4ec633f077e53b",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "63549dd4cdcee3f05101218646c97c7953051bdee216bc1a0978ab9cb9216f36",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "c538ec8403504de0b846089bcbbea97ca64990b91998511856b02cefd6873734",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "e368c1c2fb6ccf49c19244ce01ebe61cde1d7bcae7d1e77b6710ac1649986846",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "401a9321b35def7b0625f06c6a9dd7b0112d29dff4d9f70c5ce978615237e3a9",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "437ac656db67efcb8494a7a92c393e683d8a09de381f593592de5d45fada5ce6",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "69cc8102db4fcf694c07ac2791253f27158084770b00ff98f37f967ddf37f9aa",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "29b12b9a47c8368f5997d79b9e431588d006d9ca5a7c3691484f3967c7690a2b",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "363ea0c818d91137f9980c0be61b6b7c0513c42c55098ccd1677f7782dc5ef32",
+      "symbol": "HK.01138",
+      "name": "中远海能",
+      "original_article_id": "3b12ff52924ce859cb2bb309d80a13c4d14bad3cc71f9c28d36707b103af6042",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317",
+      "source_row_sha256": "5293094e819d1443b303477a44c5cc97310b6a62c3e7752bbb1ec5ca0aab0a60",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "OIL_TRANSPORT_NOT_OIL_PRODUCTION_ETF_EXPOSURE_OR_HOTSPOT_LIST"
+    },
+    {
+      "card_id": "90746d1265da1f9f843f690756c1b8686386bc079ad71643ed72cdf5fbf63d5d",
+      "symbol": "HK.03750",
+      "name": "宁德时代",
+      "original_article_id": "042275aacfd7ca95e6d59b7ac5375bb18a32e36fcf27220e20fbeb2997b59cf9",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "f05d77c225b6fe2d3ee661bc8e9c7390cc56cb296921f900716bc5441fe61ba2",
+      "source_row_sha256": "403ed88f4c3b87d8ccc07c6527ebbcd5f406d348cac99c47627c9e44afcd016b",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "BUYBACK_HOLDING_PRICE_NOT_BATTERY_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "48c3630ba206aaf8811e2eb6210792c60c6b9c97bb3121793b1ef6eff9849243",
+      "symbol": "HK.02475",
+      "name": "立讯精密",
+      "original_article_id": "884e64c75be9f9727b469fcd030afac1dfd7348886d9050a3d5bacc39a9974b9",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "3cb1a43e1dc96f69a52c16ca1555cfcb411b9f952d34ca082c79cd5ea19eb50e",
+      "source_row_sha256": "b097a4037916c8c8579cc0fbfd3e53aa7038930c30171d916c6f55b520f45fdd",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "FUTURE_ACQUISITION_OR_POTENTIAL_AI_EXPANSION_NOT_CURRENT_MAIN_BUSINESS"
+    },
+    {
+      "card_id": "22d23b176e1d229871d685ffef40a72698dca086eac3c87c2ee092cfbba9ac11",
+      "symbol": "HK.03750",
+      "name": "宁德时代",
+      "original_article_id": "31871191b98768d6b899444a5adb978051bbef326a0dd2af3de15476c348fb58",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "4f1e325bcef1f1453842a629d25e2c5d457be4968b37b1a6b864405ac1eafd51",
+      "source_row_sha256": "a5d3ac7ddd6a063a70ead57ed725c1d59b7a88e186d1f0b695fc1a607f514c0e",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "BUYBACK_HOLDING_PRICE_NOT_BATTERY_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "1e8f02b8ba70b8ab5b8d3f6c255e5be8b9fcd5ef3dcdbbc04e1d79a1ff198802",
+      "symbol": "HK.00291",
+      "name": "华润啤酒",
+      "original_article_id": "ddc51d7f05565a0a89eb6501fb1785b0369387913e9f97ffd129762dc8cb94a1",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "839182b16a0382a8428f49073522b0357fb2a313d25a51425c2e94a3e3b2d81d",
+      "source_row_sha256": "9401a5b698a6a31b93a465a9e7735b0e2dd263ed828d5c08df02dee4327efcc9",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "DIVIDEND_FORECAST_NOT_PRODUCT_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "55c586657ddbc4845aff85a50c54321a7ecf3aac850c3d9a180751b592050180",
+      "symbol": "HK.03228",
+      "name": "景旺电子",
+      "original_article_id": "d8e635495eb5c84fc0a89d200670816c5c761235655a8977b093b0b9ce547acc",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "97ff070559d727f3e5e80ae8c0a03b9a56c2823324565cd3e727328ab25d36d6",
+      "source_row_sha256": "4825a256e23891d87d5487bb1f28ef2cb816338a5386aa3865ede27b67f70fc8",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "GENERAL_AI_BOARD_LABEL_NOT_SPECIFIC_ETF_EXPOSURE"
+    },
+    {
+      "card_id": "3d00016f0057bf91953172a0db05afe8d3b500862c711a216b8ba0c160f285e6",
+      "symbol": "HK.00291",
+      "name": "华润啤酒",
+      "original_article_id": "8feb93622d3b3de2682616e2b9b7910f14b9c869295ee23dd584fa9836dd387a",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "97ff070559d727f3e5e80ae8c0a03b9a56c2823324565cd3e727328ab25d36d6",
+      "source_row_sha256": "a1da8f44d0af392e40b70e3a6b8ce25e235ef57e6f72b643d375bcd3495fc734",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "DIVIDEND_FORECAST_NOT_PRODUCT_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "dc254037a293e7db794700151e18e661e97cc963e8e7ddd02a1b43762b0ce4e8",
+      "symbol": "HK.02249",
+      "name": "晶合集成",
+      "original_article_id": "49456f3f890557eb40b5ebc9bcdab9d51903f5a71f7bf4b2098cc0dd3ab26374",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "97ff070559d727f3e5e80ae8c0a03b9a56c2823324565cd3e727328ab25d36d6",
+      "source_row_sha256": "d780a3ceb29396b406b444da773b3a39386ac28cc42898259dadb6085aa98b1e",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "CAPACITY_FACT_WITHOUT_PRODUCT_OR_INDUSTRY_PROOF"
+    },
+    {
+      "card_id": "7dd20bcc234ee23619167203c5b9dc4e1fefeebb5708ef7563e6e532e251a617",
+      "symbol": "HK.03750",
+      "name": "宁德时代",
+      "original_article_id": "d25b7db42e8d4630c3999a732a71815e5183dd72068144bd7877319bfbb2644b",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "97ff070559d727f3e5e80ae8c0a03b9a56c2823324565cd3e727328ab25d36d6",
+      "source_row_sha256": "330484bd34ea81324337a67463964984b1f3d703d88b609c3693bc4db002f258",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "BUYBACK_HOLDING_PRICE_NOT_BATTERY_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "86375f072047b3cf70d0d7fc7143d781611d50ae40d06457ef66e9b8adec6c7b",
+      "symbol": "HK.02475",
+      "name": "立讯精密",
+      "original_article_id": "77e1e568bf4058f5eab0feb45ea15ad987f71022c2d6049f7a260b8a2a828bb2",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "97ff070559d727f3e5e80ae8c0a03b9a56c2823324565cd3e727328ab25d36d6",
+      "source_row_sha256": "704ef0f8c9a869299beabaefbafe5622133dcef074e3fca72792928cf46a5029",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "FUTURE_ACQUISITION_OR_POTENTIAL_AI_EXPANSION_NOT_CURRENT_MAIN_BUSINESS"
+    },
+    {
+      "card_id": "3a91efa78a364a22783616fc5b02065729a934c9818e794848e9ccbdb0f93038",
+      "symbol": "HK.03750",
+      "name": "宁德时代",
+      "original_article_id": "1ebeaa307b04e798fdde2daef325b0c76862df13fbb022a77ac98270034b9cf9",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "97ff070559d727f3e5e80ae8c0a03b9a56c2823324565cd3e727328ab25d36d6",
+      "source_row_sha256": "7a68f90091327076a3fc3187092eac7ef732a59f28d68811e93b849fdde7fbd1",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "BUYBACK_HOLDING_PRICE_NOT_BATTERY_BUSINESS_PROOF"
+    },
+    {
+      "card_id": "ac59d82791f32d537e223c97d02353308d6a0ba90cafbfa430f808788284e579",
+      "symbol": "HK.09995",
+      "name": "荣昌生物",
+      "original_article_id": "27f4dcfd8fb191963280495109e21685c2c87a2a6ab8a0de69a4f91efafbf989",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "97ff070559d727f3e5e80ae8c0a03b9a56c2823324565cd3e727328ab25d36d6",
+      "source_row_sha256": "22f07713f135d5f966350f1e72a5be0516a409712fbd05bf30685b1e1633ef4e",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "NO_SUFFICIENT_LOCAL_BUSINESS_FACT"
+    },
+    {
+      "card_id": "31d18b729b6ad3a40310f8ef8447858a1a7e6b20f4e7a377afecc4f81c8ae705",
+      "symbol": "HK.03228",
+      "name": "景旺电子",
+      "original_article_id": "457c4b2ea143dbea718bb846e65a262155f6344c2393060a61441bdcb362c9c0",
+      "current_692_identity_match": true,
+      "monthly_connect": true,
+      "source_raw_sha256": "97ff070559d727f3e5e80ae8c0a03b9a56c2823324565cd3e727328ab25d36d6",
+      "source_row_sha256": "83c710861f96188f5da5819f2208fb27e5d6aa6451414cc447616607db52d890",
+      "status": "REJECTED_FOR_FACTOR",
+      "reason": "GENERAL_AI_BOARD_LABEL_NOT_SPECIFIC_ETF_EXPOSURE"
+    }
+  ],
+  "verified_source_files": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/archives/20261008.json",
+      "raw_sha256": "864967d892687e6af1eeca7a072c2aa36de42d6706e0f7e7257c13e59b74e6cb"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/archives/20261009.json",
+      "raw_sha256": "bd67985b1e3238f56a3a9f536d2a28c16db4b91c75f5d22f9b0d1e63a488fce9"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/archives/20261010.json",
+      "raw_sha256": "f44f4e7f97a5638267e226b13e15b5548674d9e578fddc2848fbdb69e8c2c397"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/archives/20261011.json",
+      "raw_sha256": "7c5b9eb5ac00868b397d619947dc1dc05268b4f3dfb0f0da6d01e42b06668d0d"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/0830.json",
+      "raw_sha256": "2c495f517fa45e82ec53a5a3e5753886ccaca91bb7abc7da0e5c0f55c3c81fce"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/0900.json",
+      "raw_sha256": "a777dd2fe42d1d135443046e7eb12f87651432b6b94d901ddd82ba8bd3827168"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/1000.json",
+      "raw_sha256": "1eff9020d3dd7f20647050dc6aa9618bf0f5895d3564d60f3b6501dc392654e4"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/1100.json",
+      "raw_sha256": "a0790e1a47c40785d378cf934ad3b265b6f5c787e9c9deb08ec2245fe2b9de1d"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/1200.json",
+      "raw_sha256": "1e6789eb1edf267f40c39da3f8855108c1d5fdef0a8d4db989ac1bc6b5b7f44d"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/1300.json",
+      "raw_sha256": "fcc835985c7d27c4fb175809759a3393c0001cc4669b976f73343e7b1b715724"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/1400.json",
+      "raw_sha256": "be2b2d3b6c854c91111c0df15b46c4217ab573f44fb3835328f9857af494e6e5"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/1500.json",
+      "raw_sha256": "3db5aa6af9d16288821894a90bef7ce462b927e9890f2aa1b4ffd3845e6ac180"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/1600.json",
+      "raw_sha256": "bfb89285433f7aae7b166a1e725302e63388be23d51b3e088ceded505ece8736"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/1700.json",
+      "raw_sha256": "1136a7e1b75b38938b4164489472bd249754176285092c4f0b9bc9543863615d"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/1800.json",
+      "raw_sha256": "3fe7660ee396949b9bc8e4c33ae56b760470508d088f9205af3b7cac947a2a2c"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/1900.json",
+      "raw_sha256": "40e46cc5b5e6784363e4ef317c6f8a7273e7638c54ac14d2e471d78a1d097963"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/2000.json",
+      "raw_sha256": "82e65645d59dfe855222755e1df2e8f63dde02bd963c9c5d6b66b5bcd81a903b"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/2100.json",
+      "raw_sha256": "864967d892687e6af1eeca7a072c2aa36de42d6706e0f7e7257c13e59b74e6cb"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/2200.json",
+      "raw_sha256": "adcbdef5c02b961dd732a8c852507242ae63fd042760fbb81550cf7d2f46b398"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261008/2300.json",
+      "raw_sha256": "9cb49cfc5cefbe0b0cbc6d510b0137dcf6ed0e4b5f972ea7bdac5a008884189d"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/0830.json",
+      "raw_sha256": "3cd1b52bb1ec5888fe59452488cf06957d1376cfa59c189970d6496a33bafd63"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/0900.json",
+      "raw_sha256": "86447b975ccfb12078108c8f290493d34ee405d9db419ba9bd5d04ef013ab904"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/1000.json",
+      "raw_sha256": "191b790d07fe64f36b230e4d5cbde59edefc8ab35c451fd8842ff38edf9c3c83"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/1100.json",
+      "raw_sha256": "983d48736acaca2f331c0edd028e19373c950cf3ae27dfc300fc65513b615d1d"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/1200.json",
+      "raw_sha256": "32da58f8f9afd5be32ffd61883d6578d41676fc55eb01104b368617a4354363b"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/1300.json",
+      "raw_sha256": "60c48b9ca51f0f6003ca5914d55c3c204d9de70b02488af814d36ebb0c37547a"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/1400.json",
+      "raw_sha256": "d9a9265ea42340b97def33015e28261584cfb65003220060efcb993d02b0f3bd"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/1500.json",
+      "raw_sha256": "880b309259d1c7a7de96c9cde0fc9034e887d94ee00b8be6f108f2ddc781cc0b"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/1600.json",
+      "raw_sha256": "384e41287bee10bf959cb6f7acf4f54340524714ef2071361584fd495dfc5b9e"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/1800.json",
+      "raw_sha256": "6fe491ba8035e6ad9450f71d5db705403968f537a8a76f619d016aca7d6ac2f2"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/2000.json",
+      "raw_sha256": "538d39b51ea7717bb0bcbd6e7058142645238d816fcaad0f0e53a4eaabd35b15"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/2100.json",
+      "raw_sha256": "bd67985b1e3238f56a3a9f536d2a28c16db4b91c75f5d22f9b0d1e63a488fce9"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/2200.json",
+      "raw_sha256": "70d0cbc946edf5035307acb57d76877d508fd37a5a90f5e66ad1ea5a408ecf50"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261009/2300.json",
+      "raw_sha256": "8fa38fa43e4215174f94d4d32c7fc2e3a714568dde48782a63e34caafd9f2851"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/0830.json",
+      "raw_sha256": "75558a2fa9f32b63528d407e5168d4447fec3c1a7947641eb19cb501240bdfa6"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/0900.json",
+      "raw_sha256": "b21178f9f1c8cb9c842cf86577f0c112a1d2bd177b870f345b1b3b272348ef77"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/1100.json",
+      "raw_sha256": "347721d7965aa27cc790b112adca9d01665d747056b7c47185fabd8e6532031a"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/1400.json",
+      "raw_sha256": "22b5f6c21af2577224b2bbb4fbc76e6e75d089906fe8a487fb19cc74888beaad"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/1500.json",
+      "raw_sha256": "564ce24d3f0f36ae6f27e6d4e7d8e1c520d89cf1c611661b80a79210a857f60d"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/1600.json",
+      "raw_sha256": "bbbd23f17a91654cadf7750eb922ae97e4b5ac8cfc288cd29eb241f0e6424765"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/1900.json",
+      "raw_sha256": "bdbaf4e9613e2548e8433267b78f71f9390a15db983a063aa1ee789d4b00ed2c"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/2000.json",
+      "raw_sha256": "b97ee07371be7e70d91fd56b140497fafc0082db708bb42b1b9b0c9d56ca862c"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/2100.json",
+      "raw_sha256": "f44f4e7f97a5638267e226b13e15b5548674d9e578fddc2848fbdb69e8c2c397"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261010/2300.json",
+      "raw_sha256": "03766d2c04a2ec3f62e19933509e93b3e8c9b6d98a3c417d0aca2fa5f777b916"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261011/0830.json",
+      "raw_sha256": "5d93e13d2a339609998edecff8f8bdd3cab2c736594b69514e9d02253cd25317"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261011/1000.json",
+      "raw_sha256": "f05d77c225b6fe2d3ee661bc8e9c7390cc56cb296921f900716bc5441fe61ba2"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261011/1400.json",
+      "raw_sha256": "3cb1a43e1dc96f69a52c16ca1555cfcb411b9f952d34ca082c79cd5ea19eb50e"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261011/1500.json",
+      "raw_sha256": "4f1e325bcef1f1453842a629d25e2c5d457be4968b37b1a6b864405ac1eafd51"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261011/1800.json",
+      "raw_sha256": "7c0069549a1cf913132382a05af7abbb50a753077fc640554b51a2df84cc75e2"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261011/2000.json",
+      "raw_sha256": "6849cb0055841880e917a8030ebbb905711eb9fd4b9dc594b80d51003aa971d7"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261011/2100.json",
+      "raw_sha256": "7c5b9eb5ac00868b397d619947dc1dc05268b4f3dfb0f0da6d01e42b06668d0d"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261011/2200.json",
+      "raw_sha256": "a328167640f020ddc775bdf3061161319f26795c1acd01f2cc86fa2cd261d6b6"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261011/2300.json",
+      "raw_sha256": "839182b16a0382a8428f49073522b0357fb2a313d25a51425c2e94a3e3b2d81d"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261012/0830.json",
+      "raw_sha256": "97ff070559d727f3e5e80ae8c0a03b9a56c2823324565cd3e727328ab25d36d6"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20261012/0900.json",
+      "raw_sha256": "58047b26c7c63f1c67e12549d2d488dc051dfe53ecc405b4242d823887cfc9fb"
+    }
+  ],
+  "proxy_contract": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/20261012/external_finance.json",
+    "raw_sha256": "26bf3480285f0cd6b94568d0c7ac9c01fd9e1c42c48634c2dd1f9cf5dbc50d37",
+    "owner": "research_peripheral.external_finance",
+    "mapping_version": "v3_5.global_industry_proxy_map.v1",
+    "theme_proxy_members": {
+      "AI算力": [
+        "NVDA",
+        "AVGO",
+        "AMD"
+      ],
+      "CPO": [
+        "COHR",
+        "LITE",
+        "CIEN"
+      ],
+      "半导体": [
+        "SOXX"
+      ],
+      "存储": [
+        "MU",
+        "WDC",
+        "STX"
+      ],
+      "数据中心": [
+        "VRT",
+        "DLR",
+        "EQIX"
+      ],
+      "云计算": [
+        "CLOU"
+      ],
+      "商业航天": [
+        "ARKX"
+      ],
+      "卫星": [
+        "UFO"
+      ],
+      "机器人": [
+        "BOTZ"
+      ],
+      "自动驾驶": [
+        "DRIV"
+      ],
+      "核电": [
+        "NLR"
+      ],
+      "电网": [
+        "GRID"
+      ],
+      "军工": [
+        "ITA"
+      ],
+      "新能源": [
+        "ICLN"
+      ],
+      "光伏": [
+        "TAN"
+      ],
+      "锂电池": [
+        "LIT"
+      ],
+      "石油": [
+        "XLE"
+      ],
+      "天然气": [
+        "FCG"
+      ],
+      "铜/有色": [
+        "COPX"
+      ],
+      "黄金": [
+        "GLD"
+      ],
+      "银行金融": [
+        "KBE"
+      ],
+      "生物医药": [
+        "XBI"
+      ],
+      "消费": [
+        "XLY",
+        "XLP"
+      ],
+      "稀土": [
+        "REMX"
+      ]
+    }
+  },
+  "canary": {
+    "id": "83cd63b2e09434e68bd0c5437d444af675d6fec93814b7bc37596f19cdbf4fbb",
+    "basis": "Original explicit HK code + issuer-specific product statement + complete archive lineage; fixed symbol/theme/id sorting within complete identity class; no returns consulted.",
+    "period_gap": "August statement year/validity UNKNOWN; do not project shipment growth to current period."
+  },
+  "limits": [
+    "Paired review must bind this exact rawSHA and each id; Writer does not issue REVIEWED.",
+    "Consumer available=max(owner archive time, independent actual review time); target13 remains RETROSPECTIVE.",
+    "Effective endpoints remain UNKNOWN, not an invented standing validity window.",
+    "Some A-share/source-group identities need reviewer legal-entity sufficiency assessment; not falsely certified.",
+    "Source-only keyword, publisher, peer recommendation and capital-action records excluded; categorical fact is not revenue weight or price sensitivity."
+  ],
+  "actions": {
+    "network_requests": 0,
+    "model_calls": 0,
+    "business_files_written": 0,
+    "formal_state_written": 0,
+    "source_files_mutated": 0
+  },
+  "supplemental_inventory_ref": {
+    "path": "/private/tmp/mwb-us-factor-identity-inventory-r2.json",
+    "sha256": "2395e3fb21109603dccf5b76089f4e0e25ec808abb0db9ae2d82addf5c4747eb"
+  },
+  "inventory_assembly_generated_at": "2026-10-13T14:39:22Z"
+}

@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from v4.manager_workbench.api import create_router
 from v4.manager_workbench.contracts import PlanSnapshot
 from v4.manager_workbench.display_read import lane_projection
+from v4.manager_workbench.engines.common import US_FACTOR_RULES_VERSION
 OLD=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/528ef6fd4f0b49e7a3ec2b6719fc9afe.json')
 
 @pytest.fixture
@@ -66,6 +67,38 @@ def test_portable_projection_does_not_mutate_or_merge_same_stock_between_lanes()
  other=[dict(symbol='HK.09988',name='Alibaba',decision='NOT_SELECTED',metrics={'price_pass':False})]
  before=copy.deepcopy((rows,other));coverage=NS(model_dump=lambda **k:{'scope_count':33})
  lanes=[NS(lane=NS(value=name),rows=r,state=NS(value='PARTIAL'),coverage=coverage) for name,r in [('US_MAPPING',rows),('OVERSOLD',other)]]
- snap=NS(lanes=lanes,stocks=[]);us=lane_projection(snap,'US_MAPPING',{});over=lane_projection(snap,'OVERSOLD',{},'NOT_SELECTED')
+ snap=NS(lanes=lanes,stocks=[],context=NS(rules_version='POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2'));us=lane_projection(snap,'US_MAPPING',{});over=lane_projection(snap,'OVERSOLD',{},'NOT_SELECTED')
  assert us['stocks'][0]['decision']=='CONDITIONAL_WATCH' and over['stocks'][0]['decision']=='NOT_SELECTED'
  assert (rows,other)==before
+
+
+def test_factor_rules_expand_mapping_details_but_keep_oversold_row_exact():
+ us_rows=[
+  dict(symbol='HK.09988',decision='CONDITIONAL_WATCH',reason='US_REVIEWED_RELATION_CONDITIONAL_ONLY',
+       membership={'eligible':True},evidence_ids=['relation']),
+  dict(symbol='HK.09988',subtype='US_DAILY_RETURN_FACTOR_CANDIDATE',decision='CONDITIONAL_WATCH',
+       reason='US_FACTOR_AT_LEAST_ONE_REVIEWED_POSITIVE_PATH',membership={'eligible':True},
+       evidence_ids=['factor'],factor_paths=[{'theme':'consumer','return_pct':'1.0'}]),
+ ]
+ oversold_rows=[
+  dict(symbol='HK.09988',decision='NOT_SELECTED',reason='OVERSOLD_PRICE_AND_VOLUME_NOT_BOTH_PASS',
+       membership={'eligible':True},evidence_ids=['oversold-0']),
+  dict(symbol='HK.09988',decision='CONDITIONAL_WATCH',reason='OVERSOLD_BOUNDARY_REVIEW_ONLY',
+       membership={'eligible':True},evidence_ids=['oversold-1']),
+ ]
+ lanes=[NS(lane=NS(value='US_MAPPING'),rows=us_rows,evidence_refs=[]),
+        NS(lane=NS(value='OVERSOLD'),rows=oversold_rows,evidence_refs=[])]
+ snap=NS(context=NS(rules_version=US_FACTOR_RULES_VERSION),run_id='factor-run',lanes=lanes,stocks=[])
+ store=NS(get_plan=lambda *a,**k:snap,list_plans=lambda *a:[snap])
+ service=NS(store=store,config=NS(shared_root=None));app=FastAPI();app.include_router(create_router(service));client=TestClient(app)
+
+ us=client.get('/api/v4/manager-workbench/stocks/HK.09988',params=dict(
+  date='20261013',run_id='factor-run',lane='US_MAPPING',row_id='US_MAPPING:1')).json()['data']
+ assert len(us['lane_details'][0]['rows'])==2
+ assert [row.get('subtype') for row in us['lane_details'][0]['rows']]==[None,'US_DAILY_RETURN_FACTOR_CANDIDATE']
+
+ over=client.get('/api/v4/manager-workbench/stocks/HK.09988',params=dict(
+  date='20261013',run_id='factor-run',lane='OVERSOLD',row_id='OVERSOLD:0')).json()['data']
+ assert over['stock']['decision']=='NOT_SELECTED'
+ assert len(over['lane_details'][0]['rows'])==1
+ assert over['lane_details'][0]['rows'][0]['reason']=='OVERSOLD_PRICE_AND_VOLUME_NOT_BOTH_PASS'

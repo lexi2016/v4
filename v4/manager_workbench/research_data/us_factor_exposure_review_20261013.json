@@ -1,0 +1,92 @@
+{
+  "schema": "v4.manager_workbench.us_factor_exposure_review.v1",
+  "artifact_sha256": "7e184c5aaad1b8a9ce2e37bfddf0600bf7e20f86dba512054823ffd971d31d7e",
+  "review_owner": "/root/manager_reviewer_sol",
+  "reviewed_at": "2026-10-13T14:44:23.005624+00:00",
+  "rows": [
+    {
+      "id": "9da47b2098f6d73d6ba44ff5d5cb7de102a24b971cefce6192b3fee8f228488c",
+      "decision": "ACCEPT",
+      "reasons": [
+        "ACCEPT_AS_OF_REPORTED_QUALITATIVE_EXPOSURE: the same frozen Eastmoney content object binds HK00300/market116; its disclosure body names 美的集團股份有限公司 and lists000333 as its Shenzhen A shares. This provides a source-bound A/H identity bridge, not a current-master name-only join. The original ZSXQ sentence reports white-goods business, sufficient for the existing consumer proxy as an unvalidated research candidate.",
+        "LIMITS: share disclosure supplements identity only, not business growth evidence. White-goods/consumer exposure is reported qualitative classification, not audited revenue weights, ETF ownership or positive financial transmission. Fact intervals stay unknown. Available=max(old archive,capture completion,actual review); source_available_at_basis label still names old archive alone and must not be interpreted as the provenance of this combined later timestamp."
+      ]
+    },
+    {
+      "id": "fcc0b4b32d1939523124d195f63a1a98953efb1b46a15bcb01e32b0b3107fcb9",
+      "decision": "ACCEPT",
+      "reasons": [
+        "ACCEPT_AS_OF_REPORTED_QUALITATIVE_EXPOSURE: the original body itself names Anker Innovations Technology Co., Ltd./安克創新科技股份有限公司 with HK00668 and expressly appends that same company Shenzhen announcement with securities code300866. This closes the issuer join using body text, not metadata/name alone. The original Amazon retail-channel report supports a limited consumer-business research exposure.",
+        "LIMITS: regulatory capital-management notice proves identity, not Amazon sales accuracy; original channel estimate remains ZSXQ third-party estimate, not audited total sales. Consumer XLY/XLP uses original owner basket, no new weight/causality or continuous effective period. Combined source availability includes the supplementary capture, and actual review is also required."
+      ]
+    },
+    {
+      "id": "4d4748a74a7bfb564f488f500b9ff784f44da13a9c47df17a86b53d1269e6089",
+      "decision": "REJECT",
+      "reasons": [
+        "REJECT_AH_ISSUER_BINDING_UNPROVEN: excerpt expressly reports wafer-foundry business, but raw688981 toHK.00981 legal identity is not in supplied existing-owner evidence. Forward benefit forecast is excluded, not evidence of a current return mechanism."
+      ]
+    },
+    {
+      "id": "81da045f42fa77e52f8998b9ac285cfb91bcee2ce0774af1a7a507e4b7866945",
+      "decision": "REJECT",
+      "reasons": [
+        "REJECT_BRAND_TO_LISTED_ISSUER_BINDING_UNPROVEN: raw884133/国内 and #周大福# retail-brand sales do not identifyHK.01929 legal reporting entity or consolidate the named mainland stores into it; exact current master name is insufficient. Not rejected simply because month/year or effective endpoints are unknown."
+      ]
+    },
+    {
+      "id": "5fa5837b9ca4783cd21af40d4476739b0d4925d5d9255f1cc8b7f5da0f61309b",
+      "decision": "ACCEPT",
+      "reasons": [
+        "ACCEPT_AS_OF_REPORTED_QUALITATIVE_EXPOSURE: fixed third-party HK09606 regulatory document explicitly identifies 药明合联(2268.HK); its body additionally describes that named company as a bioconjugate CRDMO offering ADC research/development/production services. Target code plus individual business description closes the earlier group-only attribution gap for the existing biopharmaceutical proxy.",
+        "LIMITS: issuer of this evidence is 映恩生物, not 药明合联. Preserve third-party attributed operating description; comparison-table first-person 本集团 must not be reassigned to target or the publishing issuer without context. Not a certification of original group profit-growth sentence, not all-company revenue weights or ETF causality. Null intervals preserved; availability includes full capture and actual review."
+      ]
+    },
+    {
+      "id": "2c77010d08e492606df9d88e94472e54f31e310fc2c081159490cfa829ed0085",
+      "decision": "ACCEPT",
+      "reasons": [
+        "ACCEPT_AS_OF_REPORTED_QUALITATIVE_EXPOSURE: frozen third-party HK09606 document names 药明生物(2269.HK) and describes its CDMO discovery/development/manufacturing services to biopharmaceutical customers. This is individually coded operating evidence, not merely a peer name in a group-growth sentence.",
+        "LIMITS: statement remains a third-party disclosure about target, not target self-confirmation or review of historic group-growth amounts. No revenue exposure weight, current financial transmission or guaranteed duration inferred; combined capture/review availability and null fact intervals retained."
+      ]
+    },
+    {
+      "id": "3124da325e7f720e5d9b90c3f5703270d79fd488d119e4e64e5e8199fd89a52b",
+      "decision": "REJECT",
+      "reasons": [
+        "REJECT_AH_AND_OPERATING_BINDING_STILL_UNPROVEN: new board-meeting notice identifies HK2359/full company name but contains no603259 link and no operating product/business statement. It does not close the original A-share/group-business attribution gap. Meeting/results timetable is not business exposure."
+      ]
+    },
+    {
+      "id": "ee3089107e669949823468fd962ad44d440f07cc64367f966d09ecf040a43bac",
+      "decision": "REJECT",
+      "reasons": [
+        "REJECT_ISSUER_SPECIFIC_ATTRIBUTION_UNPROVEN: excerpt classifies named peers as white-goods leaders but raw000333/美的集团 is notHK.06690; target identification relies on name-only join with no independently bound entity. Preserve it as a reported classification candidate, not accepted listed-issuer exposure."
+      ]
+    },
+    {
+      "id": "83cd63b2e09434e68bd0c5437d444af675d6fec93814b7bc37596f19cdbf4fbb",
+      "decision": "ACCEPT",
+      "reasons": [
+        "ACCEPT_AS_OF_REPORTED_QUALITATIVE_EXPOSURE_ONLY: original row directly bindsHK.09660 and names ADAS SoC shipments; exact original span, archive lineage and current membership verified. Supports automated-driving proxyDRIV under existing owner taxonomy as of this review of archived reporting.",
+        "LIMITS_REQUIRED: third-party ZSXQ report, not issuer confirmation. August year/current shipment growth, ongoing validity, revenue weights and ETF causal sensitivity are not proved; do not extrapolate126% or assert historical PIT. fact_effective endpoints remain null. Consumer availability=max(owner archive time, actual reviewed_at), so earlier cutoff must reject."
+      ]
+    },
+    {
+      "id": "d4c53f2ba0fd8a35fa3e5ec9085c5adf1568a0e3e771c362aa3ebdf31374965b",
+      "decision": "ACCEPT",
+      "reasons": [
+        "ACCEPT_AS_OF_REPORTED_QUALITATIVE_EXPOSURE_ONLY: original row directly bindsHK.09926; exact sentence names Akeso and an Ivonescimab clinical program. Supports reported biopharmaceutical pipeline participation and existing XBI theme, not sole IP ownership or marketed revenue.",
+        "LIMITS_REQUIRED: ZSXQ excerpt jointly mentionsSummit; expected2026Q4 data is a forecast, not completed outcome/approval. Source reports a program as of archived material and this review, not guaranteed current status or historical validity interval. Keep fact_effective null and available=max(archive,review); no historical PIT/causal claim."
+      ]
+    },
+    {
+      "id": "14ac2ebf4e54e7397f056c4e4c11c0247cd37667a3c9f8cbe371c113540803f7",
+      "decision": "ACCEPT",
+      "reasons": [
+        "ACCEPT_AS_OF_REPORTED_QUALITATIVE_EXPOSURE: same third-party disclosure explicitly supplies 荣昌生物(688331.SH/9995.HK) and names its disitamab vedotin ADC product/licensing business. This provides A/H entity linkage and specific biopharmaceutical operating evidence; original clinical-program report remains separately attributed.",
+        "LIMITS: HK09606 disclosure is a third-party statement, not 荣昌 self-disclosure; no approval/commercial success, revenue weights or continued validity inferred. Preserve original ZSXQ limits, exact source roles, combined capture plus actual-review availability and unknown effective endpoints."
+      ]
+    }
+  ]
+}

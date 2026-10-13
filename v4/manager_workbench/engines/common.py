@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 
 VERSION = "v4.manager_workbench.v1"
 RULE = "POSITIVE_OPERATING_RESEARCH_V1"
+US_FACTOR_RULES_VERSION = "POSITIVE_OPERATING_RESEARCH_V1_US_DAILY_RETURN_FACTOR_V1"
 HK = ZoneInfo("Asia/Hong_Kong")
 LANES = ("ANNOUNCEMENT", "US_MAPPING", "OVERSOLD", "STAGE_REFERENCE", "CLOSE_REFERENCE")
 RESEARCH_LANES = LANES[:3]
@@ -74,7 +75,7 @@ def validate_context(context):
     timestamp(context.get("cutoff"))
     if not isinstance(context.get("source_sessions"), dict) or not isinstance(context.get("scope_refs"), dict):
         raise ValueError("MWB_SOURCE_CONTEXT_REQUIRED")
-    if context.get("rules_version") not in (RULE, "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2"):
+    if context.get("rules_version") not in (RULE, "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2", US_FACTOR_RULES_VERSION):
         raise ValueError("MWB_RULE_VERSION")
     return context
 

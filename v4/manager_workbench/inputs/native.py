@@ -12,6 +12,7 @@ from pathlib import Path
 from infrastructure.owned_io import SafeRoot
 from contracts.trading_calendar import load_market_calendar, previous_session, CALENDAR_PATH
 from ..contracts import Coverage, EvidenceRef, Lane, Verification
+from ..engines.common import US_FACTOR_RULES_VERSION
 from .validation import batch, before, owner_digest, raw_sha, symbol, time_value
 
 
@@ -696,10 +697,42 @@ class NativeAdapters:
                           pin["quote_relative"], snapshot.get("available_at", snapshot.get("captured_at"))),
                 self._ref(pin["relation_owner"], "REVIEWED_US_HK_RELATIONS", expected, rsha,
                           pin["relation_relative"], registry.get("available_at"))]
+        factor_payload = None
+        if context.rules_version == US_FACTOR_RULES_VERSION:
+            factor_pin = pin.get("factor_exposure")
+            if isinstance(factor_pin, dict) and factor_pin.get("status") == "READY":
+                candidate, review = factor_pin.get("candidate"), factor_pin.get("review")
+                target_memberships = {}
+                for fact in candidate.get("rows", []) if isinstance(candidate, dict) else []:
+                    if not isinstance(fact, dict): continue
+                    member = self._member(dict(symbol=fact.get("symbol"), evidence_ids=[]), codes, member_ref)
+                    target_memberships[fact.get("id")] = member.get("membership")
+                factor_payload = dict(candidate=candidate, review=review,
+                    candidate_sha256=factor_pin.get("candidate_sha256"),
+                    review_sha256=factor_pin.get("review_sha256"), target_memberships=target_memberships,
+                    hk_scope_count=len(codes) if member_ref else None,
+                    candidate_relative=factor_pin.get("candidate_relative"),
+                    review_relative=factor_pin.get("review_relative"),
+                    evidence_ids=[ref.evidence_id for ref in refs if ref.role in {
+                        "US_FIXED_33_QUOTES", "MONTHLY_CONNECT_MEMBERSHIP",
+                        "US_FACTOR_EXPOSURE_CANDIDATE", "US_FACTOR_EXPOSURE_INDEPENDENT_REVIEW"}])
+                refs.append(self._ref("V4_REVIEWED_US_FACTOR_EXPOSURE", "US_FACTOR_EXPOSURE_CANDIDATE",
+                    context.target_date, factor_pin["candidate_sha256"], factor_pin["candidate_relative"],
+                    candidate.get("created_at")))
+                refs.append(self._ref(review["review_owner"], "US_FACTOR_EXPOSURE_INDEPENDENT_REVIEW",
+                    context.target_date, factor_pin["review_sha256"], factor_pin["review_relative"],
+                    review.get("reviewed_at")))
+            else:
+                factor_payload = dict(gap=(factor_pin or {}).get("gap", pin.get("factor_exposure_gap")
+                    or "US_FACTOR_PAIRED_REVIEW_UNAVAILABLE"), hk_scope_count=len(codes) if member_ref else None)
         for source in registry.get("additional_relation_sources",[]):
             refs.append(self._ref(source["owner"],"REVIEWED_US_HK_RELATIONS",expected,source["sha256"],source["relative"],source["available_at"]))
         if member_ref:
             refs.append(member_ref)
+        if isinstance(factor_payload, dict):
+            factor_payload["evidence_ids"] = [ref.evidence_id for ref in refs if ref.role in {
+                "US_FIXED_33_QUOTES", "MONTHLY_CONNECT_MEMBERSHIP",
+                "US_FACTOR_EXPOSURE_CANDIDATE", "US_FACTOR_EXPOSURE_INDEPENDENT_REVIEW"}]
         quote_rows = snapshot.get("quotes",snapshot.get("symbols",snapshot.get("rows", [])))
         if isinstance(quote_rows, dict):
             quote_rows = [{"symbol":s, **v} for s,v in quote_rows.items()]
@@ -757,9 +790,14 @@ class NativeAdapters:
                 quote=q,evidence_ids=[r.evidence_id for r in refs],
                 reviewed_assessments=[a for a in registry.get("symbol_assessments",[]) if a.get("original",{}).get("us_symbol")==us],
                 proxy_metadata=[dict(label=proxy.get("label"),mapping_type=proxy["mapping_type"],
-                    source_sha256=qsha,owner=pin["quote_owner"],available_at=snapshot.get("available_at",snapshot.get("captured_at")))
-                    for proxy in snapshot.get("rows",[]) if isinstance(proxy,dict) and proxy.get("mapping_type") in ("etf_proxy","etf_basket_proxy")
+                    source_sha256=qsha,owner=pin["quote_owner"],available_at=snapshot.get("available_at",snapshot.get("captured_at")),
+                    **({"owner_row":dict(proxy)} if context.rules_version == US_FACTOR_RULES_VERSION else {}))
+                    for proxy in snapshot.get("rows",[]) if isinstance(proxy,dict) and proxy.get("mapping_type") in (
+                        ("etf_proxy","etf_basket_proxy","stock_basket_proxy") if context.rules_version == US_FACTOR_RULES_VERSION
+                        else ("etf_proxy","etf_basket_proxy"))
                     and us in proxy.get("proxy_symbols",[])]))
+        if factor_payload is not None and records:
+            records[0]["us_factor_payload"] = factor_payload
         return batch(context, Lane.US_MAPPING, records, refs, "Fixed 33 configured US symbols and audited relation scope",
                      Coverage(scope_count=33, observed_count=len(quote_map), gaps=gaps), gaps,
                      member_ref.evidence_id if member_ref else None)

@@ -3,7 +3,8 @@ from __future__ import annotations
 from datetime import date,datetime,timedelta,timezone
 from decimal import Decimal,InvalidOperation
 import hashlib,json
-from .common import current, hk_symbol, membership, result, row, valid_sha,timestamp
+from .common import US_FACTOR_RULES_VERSION, current, hk_symbol, membership, result, row, valid_sha,timestamp
+from .us_factor import run_us_factor
 
 
 def publication_before_cutoff(context, relation):
@@ -113,6 +114,36 @@ def run_us_mapping(context, batch):
                 rows.append(row(base, "CONDITIONAL_WATCH", "US_REVIEWED_RELATION_CONDITIONAL_ONLY",
                     conditions=["RELATION_NOT_A_STRICT_SELECTION_RULE"], **extra))
     out=result("US_MAPPING", batch, context, rows, gaps=gaps)
+    if context.get("rules_version") == US_FACTOR_RULES_VERSION:
+        payload = next((record.get("us_factor_payload") for record in batch.get("records", [])
+                       if isinstance(record, dict) and isinstance(record.get("us_factor_payload"), dict)), None)
+        try:
+            factor_rows, factor_summary = run_us_factor(context, batch, payload)
+        except Exception:
+            # A factor-specific parser/owner failure must not discard the original
+            # independently reviewed US relationship rows.
+            factor_rows = []
+            factor_summary = dict(display_only=True, rules_version=US_FACTOR_RULES_VERSION,
+                target_date=context.get("target_date"), phase=context.get("phase"),
+                us_source_symbol_count=33, proxy_source_count=None, expected_proxy_source_count=24,
+                verified_proxy_source_count=None, unknown_proxy_source_count=None,
+                eligible_hk_scope_count=None, unique_factor_stock_count=0,
+                factor_path_count=0, unknown_factor_stock_count=None, registry_fact_count=None,
+                paired_review_available=False, paired_review_gap="US_FACTOR_ENGINE_FAILED",
+                source_session=(context.get("source_sessions") or {}).get("us"),
+                historical_pit_verified=False, combined_source_and_stock_count=None)
+        out["rows"].extend(factor_rows)
+        holder = next(iter(factor_rows), None) or next(iter(out["rows"]), None)
+        if holder is not None:
+            holder["us_factor_summary"] = factor_summary
+        if factor_summary.get("paired_review_gap"):
+            out["gaps"].append(factor_summary["paired_review_gap"])
+            out["coverage"]["gaps"].append(factor_summary["paired_review_gap"])
+            out["state"] = "PARTIAL"
+        elif factor_summary.get("unknown_factor_stock_count"):
+            out["gaps"].append("US_FACTOR_PATHS_UNASSESSED")
+            out["coverage"]["gaps"].append("US_FACTOR_PATHS_UNASSESSED")
+            out["state"] = "PARTIAL"
     # One US source can have multiple reviewed HK relations: source coverage is
     # measured in unique configured US symbols, not mapped-stock row counts.
     if not out["gaps"] and not any(x.get("positive_change_required") for x in batch["records"]):

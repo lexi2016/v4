@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from infrastructure.owned_io import SafeRoot
+from ..engines.common import US_FACTOR_RULES_VERSION
 from .validation import raw_sha, before, owner_digest
 
 OWNER = 'v35_dispatcher.research_panel_daily_hk'
@@ -177,6 +178,55 @@ SEED_RELATIVE = 'v4/manager_research/us_mapping_reviewed_20260930.json'
 SEED_SHA = 'e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a'
 REGISTRY_RELATIVE = 'v4/manager_research/us_mapping_relation_registry.json'
 REGISTRY_SHA = 'ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe'
+US_FACTOR_CANDIDATE_RELATIVE = 'v4/manager_workbench/research_data/us_factor_exposure_candidate_20261013.json'
+US_FACTOR_CANDIDATE_SHA = '7e184c5aaad1b8a9ce2e37bfddf0600bf7e20f86dba512054823ffd971d31d7e'
+US_FACTOR_REVIEW_RELATIVE = 'v4/manager_workbench/research_data/us_factor_exposure_review_20261013.json'
+US_FACTOR_REVIEW_SHA = '390dcca7f7941f3999b6ef3f890f3a8fa2d08de7057342e7f9cba0be51c45948'
+
+
+def us_factor_exposure(config, context):
+    """Bind only the independently paired retrospective exposure registry."""
+    if context.rules_version != US_FACTOR_RULES_VERSION:
+        return None, [], None
+    root = config.relation_root
+    if root is None:
+        return dict(status='UNAVAILABLE', gap='US_FACTOR_RESEARCH_ROOT_MISSING'), [], 'US_FACTOR_RESEARCH_ROOT_MISSING'
+    try:
+        candidate, csha = read(root, US_FACTOR_CANDIDATE_RELATIVE, US_FACTOR_CANDIDATE_SHA)
+        review, rsha = read(root, US_FACTOR_REVIEW_RELATIVE, US_FACTOR_REVIEW_SHA)
+        if (candidate.get('schema_version') != 'v4.manager_workbench.us_factor_exposure_candidate.v1'
+                or candidate.get('target_date') != context.target_date
+                or candidate.get('RESEARCH_ONLY') is not True or candidate.get('production_allowed') is not False
+                or candidate.get('orders_sent') is not False or candidate.get('buy_gate_updated') is not False
+                or review.get('schema') != 'v4.manager_workbench.us_factor_exposure_review.v1'
+                or review.get('artifact_sha256') != csha
+                or not isinstance(review.get('review_owner'), str) or not review.get('review_owner')):
+            raise ValueError('US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID')
+        checked_time(candidate.get('created_at'), context.cutoff)
+        checked_time(review.get('reviewed_at'), context.cutoff)
+        facts, rows = candidate.get('rows'), review.get('rows')
+        if not isinstance(facts, list) or not isinstance(rows, list):
+            raise ValueError('US_FACTOR_PAIRED_ROWS_INVALID')
+        fact_ids = [fact.get('id') for fact in facts if isinstance(fact, dict)]
+        review_ids = [row.get('id') for row in rows if isinstance(row, dict)]
+        if (len(fact_ids) != len(facts) or len(review_ids) != len(rows)
+                or len(set(fact_ids)) != len(fact_ids) or len(set(review_ids)) != len(review_ids)
+                or set(fact_ids) != set(review_ids)
+                or any(row.get('decision') not in ('ACCEPT', 'REJECT') or not isinstance(row.get('reasons'), list)
+                       for row in rows)):
+            raise ValueError('US_FACTOR_PAIRED_ROW_COVERAGE_INVALID')
+        files_checked = [dict(source_local_path=str(root), relative=US_FACTOR_CANDIDATE_RELATIVE,
+                              sha256=csha),
+                         dict(source_local_path=str(root), relative=US_FACTOR_REVIEW_RELATIVE,
+                              sha256=rsha)]
+        value = dict(status='READY', candidate=candidate, review=review,
+            candidate_relative=US_FACTOR_CANDIDATE_RELATIVE, candidate_sha256=csha,
+            review_relative=US_FACTOR_REVIEW_RELATIVE, review_sha256=rsha,
+            local_path=str(root), checked_files=files_checked)
+        return value, files_checked, None
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        gap = str(error) if isinstance(error, ValueError) else 'US_FACTOR_PAIRED_ARTIFACT_UNAVAILABLE'
+        return dict(status='UNAVAILABLE', gap=gap), [], gap
 
 
 def reviewed_seed(config, context):
@@ -332,10 +382,12 @@ def us_mapping(config, context):
             original['relation_source_refs']=[*original.get('relation_source_refs',[]),*card.get('relation_source_refs',[])]
             original['reviewed_variants']=[*original.get('reviewed_variants',[]),card]
     projection=dict(cards=list(joined.values()),symbol_assessments=assessments,available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=[*seed_sources,*inherited_sources])
+    factor, factor_files, factor_gap = us_factor_exposure(config, context)
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
         relation_local_path=str(config.relation_root),relation_relative=config.relation_evidence_relative,relation_sha256=esha,
         relation_owner=review['reviewer_identity'],relation_projection=projection,configured_symbols=list(US_SYMBOLS),
-        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources],
+        factor_exposure=factor,factor_exposure_gap=factor_gap,
+        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources,*factor_files],
         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
 
 

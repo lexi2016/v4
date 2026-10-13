@@ -16,6 +16,7 @@ from .legacy import LegacyHistory
 from .service import ManagerService
 from .store import StorageConflict, StorageUnavailable
 from .display_read import saved_names, display_stock, us_summary, lane_projection, lane_stock
+from .engines.common import US_FACTOR_RULES_VERSION
 
 PREFIX = "/api/v4/manager-workbench"
 
@@ -172,6 +173,7 @@ def create_router(service: ManagerService) -> APIRouter:
             snap = service.store.get_plan(day, run_id=run_id)
             if not snap:
                 raise _not_found()
+            names=saved_names(snap,service.config.shared_root)
             item = next((s for s in snap.stocks if s.symbol == symbol),None)
             if item is None and not lane:
                 raise _not_found()
@@ -181,11 +183,11 @@ def create_router(service: ManagerService) -> APIRouter:
                 if chosen is None or not row_id or re.fullmatch(re.escape(lane)+r':[0-9]+',row_id) is None:raise HTTPException(422,'LANE_ROW_IDENTITY_INVALID')
                 index=int(row_id.split(':')[1])
                 if index>=len(chosen.rows) or chosen.rows[index].get('symbol')!=symbol:raise HTTPException(422,'LANE_ROW_IDENTITY_INVALID')
-                selected=lane_stock(snap,chosen,index,saved_names(snap,service.config.shared_root))
-            details=[{"lane":l.lane.value,"rows":[r for r in l.rows if r.get("symbol")==symbol],
+                selected=lane_stock(snap,chosen,index,names)
+            details=[{"lane":l.lane.value,"rows":[display_stock(r,names) for r in l.rows if r.get("symbol")==symbol],
                       "evidence_refs":[e.model_dump(mode="json") for e in l.evidence_refs if e.evidence_id in (selected['evidence_ids'] if selected else item.evidence_ids)]}
                      for l in snap.lanes if not lane or l.lane.value==lane]
-            if selected:
+            if selected and not (lane == 'US_MAPPING' and snap.context.rules_version == US_FACTOR_RULES_VERSION):
                 details[0]['rows']=[chosen.rows[index]]
             return envelope("READY", _public({"plan_run_id":snap.run_id,"stock":selected or display_stock(item,saved_names(snap,service.config.shared_root)),
                                                "recommendation_lane":lane,

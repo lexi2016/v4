@@ -103,6 +103,28 @@ export interface DecisionCounts {
   not_selected: NullableCount;
   [key: string]: number | null;
 }
+export interface USFactorSummary extends SafetyFlags {
+  display_only: true;
+  rules_version: string;
+  target_date: string;
+  phase: Phase;
+  us_source_symbol_count: number | null;
+  proxy_source_count: number | null;
+  expected_proxy_source_count: number | null;
+  verified_proxy_source_count: number | null;
+  unknown_proxy_source_count: number | null;
+  eligible_hk_scope_count: number | null;
+  unique_factor_stock_count: number | null;
+  factor_path_count: number | null;
+  unknown_factor_stock_count: number | null;
+  registry_fact_count: number | null;
+  factor_decision_counts?: Record<string, number>;
+  paired_review_available: boolean;
+  paired_review_gap?: string | null;
+  source_session?: string | null;
+  historical_pit_verified: false;
+  combined_source_and_stock_count: null;
+}
 export interface PlanMetadata extends SafetyFlags {
   schema_version?: typeof SCHEMA_VERSION;
   context: RunContext;
@@ -128,9 +150,10 @@ export interface PlanVersion {
 export interface DayData {
   recommendation_counts?: Partial<Record<RecommendationLane, DecisionCounts | null>>;
   recommendation_projection?: {
-    display_only: true; lane: RecommendationLane; count_unit: 'SAVED_LANE_RESEARCH_ROWS';
+    display_only: true; lane: RecommendationLane;
     row_count: number; hk_relation_row_count: number; distinct_hk_count: number;
-    source_only_row_count: number; coverage: Coverage;
+    source_only_row_count: number; coverage: Coverage; count_unit?: 'SAVED_LANE_RESEARCH_ROWS';
+    factor_stock_count?: number | null; factor_path_count?: number | null;
   };
   snapshot: PlanMetadata | null;
   stocks: StockDecision[];
@@ -142,6 +165,7 @@ export interface DayData {
     display_only: true; plan_run_id: string; source_symbol_count: number; source_row_count: number;
     relation_row_count: number; mapped_hk_count: number; source_decision_counts: Record<string, number>;
     mixed_source_count: number; coverage: Coverage; groups: { us_symbol: string; decisions: string[]; rows: Record<string, unknown>[] }[];
+    factor_summary?: USFactorSummary | null;
   } | null;
 }
 export interface StockLaneDetail {

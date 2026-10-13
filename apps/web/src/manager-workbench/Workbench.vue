@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import { useWorkbench } from "./useWorkbench";
-import type { Lane, Phase, PlanVersion, StockDecision } from "./types";
+import type { Lane, Phase, PlanVersion, StockDecision, USFactorSummary } from "./types";
 import { LANES, LANE_LABELS, LANE_STATE_LABELS, JOB_STATE_LABELS, PHASE_LABELS,
   showCount, showText, gapText } from "./types";
 import { conditionLabel, decisionLabel, evidenceLink, firstReason, humanTime, labelForLane,
@@ -38,6 +38,24 @@ function stockLaneEntries(stock: StockDecision, lane: Lane) {
 }
 function detailForLane(lane: Lane) {
   return vm.detail?.data?.lane_details?.find(item => item.lane === lane);
+}
+function factorPaths(row: Record<string, unknown>): Record<string, unknown>[] {
+  return Array.isArray(row.factor_paths)
+    ? row.factor_paths.filter((path): path is Record<string, unknown> => path !== null && typeof path === "object")
+    : [];
+}
+function supplementalEvidence(path: Record<string, unknown>): Record<string, unknown>[] {
+  return Array.isArray(path.supplemental_evidence)
+    ? path.supplemental_evidence.filter((item): item is Record<string, unknown> => item !== null && typeof item === "object")
+    : [];
+}
+function factorPeriod(path: Record<string, unknown>): string {
+  return typeof path.fact_effective_from === "string" && typeof path.fact_effective_through === "string"
+    ? `${path.fact_effective_from} 至 ${path.fact_effective_through}` : "历史有效期间未知";
+}
+function factorSummaryText(summary: USFactorSummary): string {
+  const decisions = summary.factor_decision_counts || {};
+  return `固定美股来源 ${showCount(summary.us_source_symbol_count)} 个；已配置代理主题 ${showCount(summary.proxy_source_count)} / ${showCount(summary.expected_proxy_source_count)} 个（核验通过 ${showCount(summary.verified_proxy_source_count)}，未知 ${showCount(summary.unknown_proxy_source_count)}）；目标日港股通范围 ${showCount(summary.eligible_hk_scope_count)} 只；因子唯一港股 ${showCount(summary.unique_factor_stock_count)} 只，路径 ${showCount(summary.factor_path_count)} 条，未知港股 ${showCount(summary.unknown_factor_stock_count)} 只。结果：条件观察 ${showCount(decisions.CONDITIONAL_WATCH)}，未入选 ${showCount(decisions.NOT_SELECTED)}，待核 ${showCount(decisions.UNASSESSED)}。这些数量属于不同范围，不能相加。`;
 }
 </script>
 
@@ -130,7 +148,7 @@ function detailForLane(lane: Lane) {
         <div><strong>{{ showCount(vm.counts.not_selected) }}</strong><span>未入选</span></div>
       </div>
       <p v-else class="mwb-muted">完整分类计数未知（无已保存计数，不能当作 0）。</p>
-      <p v-if="vm.day?.data?.recommendation_projection" class="mwb-muted">本路径保存 {{ vm.day.data.recommendation_projection.row_count }} 条研究记录；
+      <p v-if="vm.day?.data?.recommendation_projection" class="mwb-muted">本路径保存 {{ vm.day.data.recommendation_projection.row_count }} 条研究记录（计数单位：研究记录）；
         {{ vm.day.data.recommendation_projection.hk_relation_row_count }} 条含港股，涉及 {{ vm.day.data.recommendation_projection.distinct_hk_count }} 只。
         分类数量按完整研究记录计，不受分页影响；默认推荐仅含严格入选和条件观察。无港股关系的来源缺口在下方单独查看。</p>
 
@@ -144,6 +162,12 @@ function detailForLane(lane: Lane) {
           待核 {{ vm.day.data.us_mapping_summary.source_decision_counts.UNASSESSED ?? '未知' }}。
           美股标的数、研究记录数和港股数是不同计量单位；以上只属于美股映射。</p>
         <p v-if="vm.day.data.us_mapping_summary.mixed_source_count">另有 {{ vm.day.data.us_mapping_summary.mixed_source_count }} 个标的包含不同关系结论，逐条保留如下。</p>
+        <article v-if="vm.day.data.us_mapping_summary.factor_summary" class="mwb-factor-summary">
+          <h4>美股代理日收益因子 · 事后研究候选</h4>
+          <p>{{ factorSummaryText(vm.day.data.us_mapping_summary.factor_summary) }}</p>
+          <p>收益会话 {{ vm.day.data.us_mapping_summary.factor_summary.source_session || '未知' }}；目标日 {{ vm.day.data.us_mapping_summary.factor_summary.target_date }}，阶段 {{ PHASE_LABELS[vm.day.data.us_mapping_summary.factor_summary.phase] }}。历史暴露有效期间仍可能未知；本结果未做 PIT 验证，也未验证研究效果。</p>
+          <p v-if="vm.day.data.us_mapping_summary.factor_summary.paired_review_gap">审核材料缺口：{{ vm.day.data.us_mapping_summary.factor_summary.paired_review_gap }}</p>
+        </article>
         <details><summary>查看全部美股来源、港股关系与未入选／待核原因</summary>
           <article v-for="group in vm.day.data.us_mapping_summary.groups" :key="group.us_symbol">
             <h4>{{ group.us_symbol }} · {{ group.decisions.map(decisionLabel).join('、') }}</h4>
@@ -266,6 +290,27 @@ function detailForLane(lane: Lane) {
                     <cite v-if="item.locator">{{ item.locator }}</cite></blockquote>
                 </div>
                 <p v-if="!section.items.length" class="mwb-muted">未提供</p>
+              </section>
+              <section v-if="factorPaths(row).length" class="mwb-research-section">
+                <h5>美股代理日收益路径 · 各路径独立判定</h5>
+                <article v-for="(path, pathIndex) in factorPaths(row)" :key="pathIndex" class="mwb-factor-path">
+                  <p><strong>{{ showText(path.theme) }} · {{ decisionLabel(String(path.decision || 'UNASSESSED')) }}</strong>
+                    · 日收益 {{ path.return_pct === null || path.return_pct === undefined ? '未知' : `${showText(path.return_pct)}%` }}</p>
+                  <p>代理标的 {{ Array.isArray(path.proxy_symbols) ? path.proxy_symbols.join('、') : '未知' }}；行情会话 {{ showText(path.source_session) }}。</p>
+                  <blockquote v-if="path.statement"><small>已审核的原文片段</small><p>{{ showText(path.statement) }}</p></blockquote>
+                  <p>该暴露材料的历史有效期间：{{ factorPeriod(path) }}；审核结论：{{ showText(path.review_decision) }}；PIT 未验证，研究效果未验证。</p>
+                  <details v-if="supplementalEvidence(path).length">
+                    <summary>补充原始出处定位（不代表已接受）</summary>
+                    <article v-for="(item, itemIndex) in supplementalEvidence(path)" :key="itemIndex">
+                      <p>{{ showText(item.document_title) }} · {{ showText(item.source_owner) }} · 发布日期 {{ showText(item.published_date) }}</p>
+                      <p v-if="item.body_excerpt">原文片段：{{ showText(item.body_excerpt) }}</p>
+                      <p v-if="item.body_excerpt_hk">港股身份片段：{{ showText(item.body_excerpt_hk) }}</p>
+                      <p v-if="item.body_excerpt_a">A股身份片段：{{ showText(item.body_excerpt_a) }}</p>
+                      <p>原文位置 {{ showText(item.body_span_chars || item.body_span_chars_hk || item.body_span_chars_a_code) }}；可得时间 {{ showText(item.product_available_at) }}。</p>
+                    </article>
+                  </details>
+                  <p v-for="condition in (Array.isArray(path.conditions) ? path.conditions : [])" :key="String(condition)">待核条件：{{ showText(condition) }}</p>
+                </article>
               </section>
               <section class="mwb-research-section"><h5>风险</h5>
                 <p v-for="risk in researchRisks(row)" :key="risk">{{ risk }}</p>
