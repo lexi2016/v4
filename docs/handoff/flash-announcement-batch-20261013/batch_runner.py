@@ -110,6 +110,17 @@ Assess every supplied article; do not screen by title or invent a numeric materi
 Return one JSON object with exactly one top-level key, "results". Its value must contain one object per supplied article in input order; each object has exactly "article_id" and "reader_output". "reader_output" must conform exactly to the supplied active Reader JSON Schema. Do not add prose, omit IDs, merge IDs, or alter source hashes. Do not set an arbitrary answer word-count limit.
 """
 
+GROUNDED_PROCESS_ADDENDUM = """GROUNDED READER PROCESS (candidate profile; all existing Reader rules and schema remain unchanged):
+The program has checked each supplied article identity, its complete body and body SHA, the source SHA field and provenance-link shapes, and duplicate IDs. Assess every supplied article in full; this integrity gate is not a content screen. Do not omit, downgrade, or select an article because of its title, length, topic, or a new numeric threshold.
+
+Read the complete supplied body before considering any tool. First resolve the article from its own disclosed facts. Preserve decision-relevant subjects, stages, dates, quantities and units, conditions, completion status, estimates/forecasts/unaudited labels, sample/comparator/measurement limits, stated risks, and counter-evidence. Keep issuer statements attributed to that issuer; do not turn them into independent verification or extrapolate from preclinical work to human outcomes. Do not drop a material qualification to make the result shorter, and do not repeat long source passages when a concise explanation and short exact evidence suffice.
+
+Web tools are available only for a specifically named external fact that is absent from the body and could change a Reader field or its decision. Do not search for, fetch, or re-verify facts already supplied in the body, and do not search merely to enrich the answer. If the fact is not material to the assessment, do not search. If a tool is used, keep that external context separate from article-body facts; if it affects the assessment, identify its source URL in the existing reason field. Never use web text as an article quotation.
+
+Return only the unchanged 13-field Reader object and its existing enum values. Keep every article ID and source/body hash exact. Every quote field must be a short, exact, continuous substring of that article's supplied body, including every internal space and line break; never normalize, remove, or rearrange whitespace. Put interpretation in claim/reason, not in the quote. Do not fabricate facts or citations. Do not add fields, impose an arbitrary word/token limit, or drop a valid article when its disposition is uncertain; use the existing NOT_ASSESSED/UNKNOWN contract instead."""
+
+PROMPT_PROFILES = ("legacy", "grounded")
+
 
 class BatchError(ValueError):
     """An input batch or the model response violates the fixed contract."""
@@ -246,11 +257,13 @@ def load_active_contract(path: Path = V4_ANNOUNCEMENT_SOURCE) -> ActiveContract:
     )
 
 
-def build_system_prompt(contract: ActiveContract) -> str:
+def build_system_prompt(contract: ActiveContract, prompt_profile: str = "legacy") -> str:
+    if prompt_profile not in PROMPT_PROFILES:
+        raise BatchError("PROMPT_PROFILE_INVALID")
     schema_text = json.dumps(
         contract.reader_schema, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     )
-    return (
+    prompt = (
         contract.read_prompt
         + "\n\n"
         + BATCH_POLICY_ADDENDUM
@@ -258,6 +271,9 @@ def build_system_prompt(contract: ActiveContract) -> str:
         + schema_text
         + "\nACTIVE_READER_JSON_SCHEMA_END"
     )
+    if prompt_profile == "grounded":
+        prompt += "\n\n" + GROUNDED_PROCESS_ADDENDUM
+    return prompt
 
 
 def _metadata_for_model(article: dict[str, Any]) -> dict[str, Any]:
@@ -275,8 +291,12 @@ def _metadata_for_model(article: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_messages(batch: dict[str, Any], contract: ActiveContract) -> list[dict[str, str]]:
-    system_prompt = build_system_prompt(contract)
+def build_messages(
+    batch: dict[str, Any],
+    contract: ActiveContract,
+    prompt_profile: str = "legacy",
+) -> list[dict[str, str]]:
+    system_prompt = build_system_prompt(contract, prompt_profile)
     article_values = [
         {
             "article_id": item["article_id"],
@@ -529,6 +549,7 @@ def prepare_batch(
     batch: Any,
     contract: ActiveContract | None = None,
     *,
+    prompt_profile: str = "legacy",
     tokenizer_path: Path = OMLX_TOKENIZER_PATH,
     context_limit: int | None = None,
     runtime_limits: dict[str, Any] | None = None,
@@ -539,7 +560,7 @@ def prepare_batch(
     effective_context_limit = (
         runtime_limits["context_limit_tokens"] if context_limit is None else context_limit
     )
-    messages = build_messages(batch, contract)
+    messages = build_messages(batch, contract, prompt_profile)
     tools = make_tool_schema()
     token_count = count_prompt_tokens(messages, tools, tokenizer_path)
     remaining = effective_context_limit - token_count
@@ -572,6 +593,7 @@ def prepare_batch(
             for p in batch["source_products"]
         ],
         "active_prompt_version": contract.prompt_version,
+        "prompt_profile": prompt_profile,
         "active_contract_source_sha256": contract.source_sha256,
         "reader_schema_sha256": sha256_bytes(canonical_json_bytes(contract.reader_schema)),
         "system_prompt_sha256": sha256_bytes(messages[0]["content"].encode("utf-8")),
@@ -1197,6 +1219,7 @@ def write_receipts(
         "formal_selection": "CANNOT_CONFIRM_REQUIRES_INDEPENDENT_REVIEW",
         "pit_status": "CANNOT_CONFIRM",
         "independent_review_status": "NOT_RUN",
+        "prompt_profile": prepare_receipt.get("prompt_profile", "legacy"),
         "thinking_request_override": None,
         "thinking_mode": "inherit_per_model_default",
         "web_tools_enabled": True,
@@ -1270,6 +1293,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("batch_json", type=Path, help="source-validated batch JSON")
     parser.add_argument("--execute", action="store_true", help="perform foreground oMLX inference; otherwise prepare only")
+    parser.add_argument(
+        "--prompt-profile",
+        choices=PROMPT_PROFILES,
+        default="legacy",
+        help="use the unchanged legacy Reader prompt or the bounded grounded workflow; applies to prepare and execute",
+    )
     args = parser.parse_args(argv)
     batch: Any = None
     raw_sha: str | None = None
@@ -1278,7 +1307,7 @@ def main(argv: list[str] | None = None) -> int:
         articles = validate_batch(batch)
         print(f"stage=validated batch_id={batch['batch_id']} articles={len(articles)}", flush=True)
         contract = load_active_contract()
-        prepared = prepare_batch(batch, contract)
+        prepared = prepare_batch(batch, contract, prompt_profile=args.prompt_profile)
         prepared["batch_object_sha256"] = prepared["input_sha256"]
         prepared["input_sha256"] = raw_sha
         prepared["input_sha256_basis"] = "SHA256_OF_INPUT_JSON_FILE_BYTES"
@@ -1304,7 +1333,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         api_key = load_local_api_key()
-        messages = build_messages(batch, contract)
+        messages = build_messages(batch, contract, args.prompt_profile)
         result_status = {article["article_id"]: "REQUEST_FAILED" for article in articles}
         completion: CompletionResult | None = None
         reader_outputs: dict[str, dict[str, Any]] = {}
