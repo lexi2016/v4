@@ -65,7 +65,7 @@ def __snapshot_pool_provenance_body(_v4_scope, /, snapshot):
             # diagnostic-only so the strict aggregate can publish other
             # valid lanes without admitting these rejected rows.
             provenance_status = "CANNOT_CONFIRM"
-            rejected_status = f"SOURCE_STATUS_REJECTED:{source_status}"
+            rejected_status = f"SOURCE_STATUS_REJECTED:{source_status.upper()}"
             if rejected_status not in diagnostics:
                 diagnostics.append(rejected_status)
         provenance.append(
