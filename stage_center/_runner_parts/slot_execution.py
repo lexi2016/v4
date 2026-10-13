@@ -317,6 +317,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             candidate=candidate,
             universe_bindings=universe_bindings,
             historical_backfill=historical_backfill,
+            same_day_late_observation_recovery=bool(getattr(decision, "same_day_late_observation_recovery", False)),
         )
         sources: dict[str, SourceResult] = {}
         selection_sources: dict[str, SourceResult] = {}
@@ -705,8 +706,26 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
         raw_bundle: dict[str, Any] = {"markets": raw_markets}
         if not raw_markets:
             raise _v4_global(_v4_scope, 'RunnerError')("all market collectors returned zero-row CANNOT_CONFIRM")
+        bundle_markets = dict(raw_markets)
+        bundle_required = set(_v4_global(_v4_scope, '_stage_markets_for_date')(stage_id, trade_date))
+        if execution_scope is not None:
+            # Complete the ORIGINAL stage bundle from verified preserved raw;
+            # never recollect/re-publish a sibling or infer a new authority.
+            for sibling in bundle_required - set(markets):
+                preserved = execution_scope.prior.get("markets", {}).get(sibling, {})
+                preserved_sha = preserved.get("raw_artifact_sha256")
+                if not preserved_sha:
+                    continue
+                latest = _v4_global(_v4_scope, '_latest_entry')(
+                    self.config.raw_root, "latest.json", f"{trade_date}/{stage_id}/{sibling}")
+                if latest is None:
+                    raise _v4_global(_v4_scope, 'RunnerError')("preserved raw pointer is missing")
+                verified = raw_store.verify_run(trade_date, stage_id, sibling, str(latest.get("run_id")))
+                if verified.get("artifact_sha256") != preserved_sha:
+                    raise _v4_global(_v4_scope, 'RunnerError')("preserved raw identity changed")
+                bundle_markets[sibling] = verified
         single_market_research_bundle_evidence: str | None = None
-        if _v4_global(_v4_scope, 'set')(raw_markets) == _v4_global(_v4_scope, 'set')(markets):
+        if set(bundle_markets) == bundle_required or historical_backfill:
             exact_hk_only_research_backfill = (
                 historical_backfill is True
                 and trade_date == "20260924"
@@ -733,7 +752,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             else:
                 try:
                     _v4_global(_v4_scope, '_deadline').begin_write("BUNDLE_PUBLISH", stage_id=stage_id)
-                    raw_bundle.update(raw_store.publish_bundle(trade_date=trade_date, stage_id=stage_id, status=("READY" if _v4_global(_v4_scope, 'all')(item["status"] == "READY" for item in raw_markets.values()) else "PARTIAL_WITH_ROWS"), markets=raw_markets))
+                    raw_bundle.update(raw_store.publish_bundle(trade_date=trade_date, stage_id=stage_id, status=("READY" if _v4_global(_v4_scope, 'all')(item["status"] == "READY" for item in bundle_markets.values()) else "PARTIAL_WITH_ROWS"), markets=bundle_markets))
                     _v4_global(_v4_scope, '_deadline').end_write("BUNDLE_PUBLISH", stage_id=stage_id)
                 except _v4_global(_v4_scope, 'RawStoreError') as error:
                     # An immutable raw bundle may have been left absent after

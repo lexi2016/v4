@@ -44,10 +44,9 @@ _HK_0930_0935_RECOVERY_DEADLINE_ERRORS = {
 def _same_day_hk_0930_0935_cutoff_recovery_shape(
     receipt, /, *, mode, trade_date, stage_id, attempt_count, max_attempts
 ):
-    """Match only the original 2026-10-12 zero-HK cutoff failure."""
+    """Match a zero-row HK cutoff failure within the original retry budget."""
     if (
         mode != "RECOVERY"
-        or trade_date != _HK_0930_0935_CUTOFF_RECOVERY_DATE
         or stage_id != _HK_0930_0935_CUTOFF_RECOVERY_STAGE
         or not isinstance(receipt, dict)
         or type(attempt_count) is not int
@@ -59,12 +58,10 @@ def _same_day_hk_0930_0935_cutoff_recovery_shape(
         return False
     required = {
         "schema_version": "stage_center.runner.receipt.v1",
-        "trade_date": _HK_0930_0935_CUTOFF_RECOVERY_DATE,
+        "trade_date": trade_date,
         "stage_id": _HK_0930_0935_CUTOFF_RECOVERY_STAGE,
         "node_id": _HK_0930_0935_CUTOFF_RECOVERY_STAGE,
         "status": "PARTIAL_WITH_ROWS",
-        "due_status": "DUE",
-        "dispatch_mode": "NATURAL",
         "node_outcome": "SETTLED_PARTIAL",
         "node_attempt_count": attempt_count,
         "write_performed": True,
@@ -83,7 +80,9 @@ def _same_day_hk_0930_0935_cutoff_recovery_shape(
         and type(hk.get("selected_rows")) is int
         and hk.get("selected_rows") == 0
         and hk.get("write_performed") is False
-        and hk.get("cannot_confirm") == _HK_0930_0935_CUTOFF_RECOVERY_REASONS
+        and "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE" in hk.get("cannot_confirm", ())
+        and receipt.get("due_status") in {"DUE", "LATE_CATCHUP_REPLAY"}
+        and receipt.get("dispatch_mode") in {"NATURAL", "RECOVERY"}
     )
 
 

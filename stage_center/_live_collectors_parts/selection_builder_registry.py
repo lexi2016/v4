@@ -909,8 +909,8 @@ def _production_selection_builders_body(_v4_scope, /, stage_id, *, research_root
             if (
                 rows
                 and source.status == "PARTIAL_WITH_ROWS"
-                and "active_snapshot_degraded_to_pytdx_observation=true"
-                in source.source_evidence
+                and ("active_snapshot_degraded_to_pytdx_observation=true" in source.source_evidence
+                     or (source.source_id == "futu" and "active_snapshot_degraded_to_futu_observation=true" in source.source_evidence))
             ):
                 # This is the established historical observation contract: the
                 # exact raw rows are useful for a Top-10 watch list even when
@@ -947,7 +947,8 @@ def _production_selection_builders_body(_v4_scope, /, stage_id, *, research_root
                                 *d1_evidence,
                                 top10_contract_evidence,
                                 "hk_lane_authority_missing",
-                                "hk_selection_mode=TDXPY_EXHQ_D1_TOP100_OBSERVATION",
+                                ("hk_selection_mode=FUTU_D1_TOP100_OBSERVATION" if source.source_id == "futu"
+                                 else "hk_selection_mode=TDXPY_EXHQ_D1_TOP100_OBSERVATION"),
                             )
                         )
                     ),
