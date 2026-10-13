@@ -1,0 +1,36 @@
+{
+  "stage": "CAPTURE_DISABLED_DEPLOYMENT_ACCEPTED",
+  "engineering": "REVIEWED_PASS",
+  "deployment": "DEPLOYED",
+  "api": "API_VERIFIED",
+  "ui": "UI_VERIFIED",
+  "behavior": "BEHAVIOR_VERIFIED",
+  "natural": "NATURAL_SLOT_UNVERIFIED",
+  "full_date_semantic": "CANNOT_CONFIRM",
+  "research_effectiveness": "NOT_EVALUATED",
+  "source": "EASTMONEY_HK",
+  "capture_enabled": false,
+  "review_sha256": "b703cc39f350f92025ed08094a13e9949fdf200124164ae83983224e658361fa",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "api_pid": 93541,
+  "scheduler_pid": 93543,
+  "branch": "codex/manager-workbench-rewrite-mac-20261013",
+  "code_commit": "611e2a077ae318bbdba7e4e98f7d46b79e63846f",
+  "user_priority": "Deliver working components first; defer source and input defects to the final remediation batch",
+  "remaining": [
+    "Eastmoney network resets and volatile display_time body cache key",
+    "US mapping authority gaps",
+    "Oversold HK_MASTER_SCOPE_COUNT_MISMATCH",
+    "Stage SOURCE_BYTES_SHA_MISMATCH",
+    "Close exact-date binding missing",
+    "Full-date semantic acceptance",
+    "Real 09:25/intraday/16:30 acceptance"
+  ],
+  "rollback_plan_sha256": "dfc02cda34fdf00cf2f526d0359266bd396ef4bebd0520a9888509d95a54255b",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

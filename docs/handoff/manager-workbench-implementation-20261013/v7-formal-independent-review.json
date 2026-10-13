@@ -1,0 +1,179 @@
+{
+  "schema": "mwb.independent.v7-formal-readback.v1",
+  "verdict": "PASS_CAPTURE_DISABLED_FORMAL_DEPLOYMENT",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "states": {
+    "DEPLOYED": "VERIFIED_API_AND_SCHEDULER_CAPTURE_DISABLED",
+    "API_VERIFIED": "health/stages/page/two saved products/live OpenAPI GET200",
+    "UI_VERIFIED": "Parent formal browser receipt verified; no browser repetition",
+    "BEHAVIOR_VERIFIED": "Formal saved plan/category/count/hash readback; new scheduler startup hook and cutoff-safe late PREOPEN catchup",
+    "NATURAL_VERIFIED": false,
+    "NATURAL_SLOT_UNVERIFIED": "PREOPEN generated15:03after09:25; no natural-slot result"
+  },
+  "plan_sha256": "dfc02cda34fdf00cf2f526d0359266bd396ef4bebd0520a9888509d95a54255b",
+  "apply_journal_sha256": "b00626e8d39bc5b6dae536c7eb4f61515e03a80ca661fe01eb1f28b3a8ecf53b",
+  "formal_postimages_checked": 8099,
+  "services": {
+    "api": {
+      "label": "com.lexi.v35.api-only",
+      "pid": 93541,
+      "state": "running",
+      "plist_sha256": "522cf4c5c4cfc25a3ef5002de03eb3b74b214e0fa20beddee3901685f3d3dea2",
+      "candidate": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/isolated-api-candidate-v7-final/app",
+      "manifest_sha256": "355c38d2933e496c1bfbbb3108a95afb54d87d3bc9066549ca2aa4feaa9de6e1",
+      "live_cwd_verified": true
+    },
+    "scheduler": {
+      "label": "com.lexi.v35.scheduler",
+      "pid": 93543,
+      "state": "running",
+      "plist_sha256": "daf7c329adf89d6ab1160fe16476cb641905f02238d4c745eed9f55f841aa298",
+      "candidate": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/isolated-scheduler-candidate-v7-final/app",
+      "manifest_sha256": "5b405791981162e286800813ecf07b679cdeb8334157bd2ff5a5b4ea727175f9",
+      "live_cwd_verified": true
+    }
+  },
+  "config_sha256": "575bf4b399691638589af2536863046f74b21158ae52e64a94c1e87e4798d2ff",
+  "capture_enabled": false,
+  "lease_present": false,
+  "formal_products": {
+    "fb5b9a669d4242378b5c74877e78a319": {
+      "product_sha256": "518f43800ff7829e3ef4895c113bda443ae61ab9e0edf362e6f296adb94266b0",
+      "counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 1,
+        "observation_only": 0,
+        "not_selected": 0
+      },
+      "phase": "RETROSPECTIVE"
+    },
+    "bbeb6f8462044bb6ad6b3bf811d50762": {
+      "product_sha256": "2b083e95665f400b14e63aadd19611e532cc8d923fa1fa6dd52330d49f1d295c",
+      "counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 6,
+        "observation_only": 0,
+        "not_selected": 1
+      },
+      "phase": "RETROSPECTIVE"
+    }
+  },
+  "local_responses": {
+    "health": {
+      "status": 200,
+      "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288"
+    },
+    "stages": {
+      "status": 200,
+      "sha256": "49488168349c5b68f2b80eb55a3e6797d9a308150fc8f348449a5c83d7e7dcda"
+    },
+    "page": {
+      "status": 200,
+      "sha256": "750b7c694a72dc1ae162815a57ee9b99bbced712c64f76acdb59cca779600c2d"
+    },
+    "fb5b9a669d4242378b5c74877e78a319": {
+      "status": 200,
+      "sha256": "0ef3b05cc079f31f895ab2145ec5dca8842142b3e5c24dba26690f13eb17f9e4",
+      "product_sha256": "518f43800ff7829e3ef4895c113bda443ae61ab9e0edf362e6f296adb94266b0",
+      "counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 1,
+        "observation_only": 0,
+        "not_selected": 0
+      }
+    },
+    "bbeb6f8462044bb6ad6b3bf811d50762": {
+      "status": 200,
+      "sha256": "e0edfa0a191854c892c4a6f92b4495f050857d628003e9a567145971fb9585aa",
+      "product_sha256": "2b083e95665f400b14e63aadd19611e532cc8d923fa1fa6dd52330d49f1d295c",
+      "counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 6,
+        "observation_only": 0,
+        "not_selected": 1
+      }
+    }
+  },
+  "manager_route_methods": {
+    "/api/v3/manager/stage-selection": [
+      "get"
+    ],
+    "/api/v3/research/selection/manager-decision": [
+      "get"
+    ],
+    "/api/v4/manager-workbench/days/{date}": [
+      "get"
+    ],
+    "/api/v4/manager-workbench/stocks/{symbol}": [
+      "get"
+    ],
+    "/api/v4/manager-workbench/history": [
+      "get"
+    ],
+    "/api/v4/manager-workbench/reviews/{date}": [
+      "get"
+    ],
+    "/api/v4/manager-workbench/runs": [
+      "post"
+    ],
+    "/api/v4/manager-workbench/runs/{id}": [
+      "get"
+    ],
+    "/api/v4/manager-workbench/runs/{id}/retry": [
+      "post"
+    ]
+  },
+  "scheduler_hook": {
+    "started_at": "2026-10-13T15:03:51.313293+08:00",
+    "release_id": "manager-workbench-20261013-v7-scheduler",
+    "startup_hook_disabled_diagnostic_count": 0,
+    "daemon_sha256": "b076c635254caded9610e817572d7b039064654d8a91984fc9691d82171dcc77",
+    "hook_sha256": "0d45e31daba2205fb504debcdf4fa1273ac5db9def2ff2f3f2a383f7b1470f97",
+    "plan_material_refresh_only": true,
+    "actual_new_branch": "Live config env + inventory-verified conditional WorkbenchHook startup + new PREOPEN persisted36ms after daemon ready",
+    "ready_hook_attestation": "NOT_EMITTED; no invented critical_task_states",
+    "ongoing_in_memory_thread_introspection": "NOT_RUN"
+  },
+  "preopen": {
+    "run_id": "743153438c6246cc8a08379c728aa6aa",
+    "product_sha256": "c9732619b22e693f1655f7136d12bc5ad986f8fd97fbc3c457d16da72f493ead",
+    "cutoff": "2026-10-13T09:25:00+08:00",
+    "generated_at": "2026-10-13T15:03:51.349926+08:00",
+    "timing": "LATE_CATCHUP",
+    "rows": 0,
+    "counts": "UNKNOWN",
+    "late_material_not_consumed": true
+  },
+  "old_writer_boundary": {
+    "managed_api_old_write_routes": "ABSENT_IN_LIVE_OPENAPI",
+    "managed_scheduler_old_hook": "EXCLUDED_BY_NEW_CONFIG_BRANCH",
+    "known_legacy_collector_process_snapshot_count": 0,
+    "new_collector": "DISABLED; NO LEASE",
+    "global_all_old_hosts_or_idle_collectors": "CANNOT_CONFIRM; not surveyed; no claim of global retirement"
+  },
+  "parent_api_receipt_sha256": "0685c78908eea2f71b8f2e27f8574bf1da6fa3984e744cc12edbccb878737b5e",
+  "parent_ui_receipt_sha256": "a992101d157e19a6f26e43ea29751956b7c5753116601c520f2fc7a3f6b1b008",
+  "formal_records_before_after_unchanged": true,
+  "reviewer_calls": {
+    "external_network": 0,
+    "model": 0,
+    "formal_state_writes": 0,
+    "launchctl_mutations": 0,
+    "local_read_only_GETs_final_receipt_run": 6,
+    "earlier_preflight": "Read-only GETs also occurred before final receipt run; no formal mutations"
+  },
+  "remaining": {
+    "full_day_semantics": "NOT_VERIFIED",
+    "source_capture_gaps": "DEFERRED_BY_USER",
+    "PIT": "CANNOT_CONFIRM",
+    "capture_takeover_activation": "NOT_DONE",
+    "natural_slot": "UNVERIFIED"
+  },
+  "scope_limit": "Deployment verification covers capture-disabled unified new workbench and retained routes; does not assert full-day capture/research, natural run or global old-producer retirement"
+}
