@@ -230,7 +230,7 @@ def _collect_hk_minute_body(_v4_scope, /, plan, *, codes, python_path, shared_ro
     futu_afterfact = _load_futu_afterfact_source(plan, codes=codes)
     if futu_afterfact is not None:
         return futu_afterfact
-    if plan.stage_id in {"STAGE_0930_0935", "STAGE_0935_0940", "STAGE_0940_0945", "STAGE_0945_1030"}:
+    if plan.stage_id in {"STAGE_0930_0935", "STAGE_0935_0940", "STAGE_0940_0945", "STAGE_0945_1030", "STAGE_1300_1315", "STAGE_1445_1500"}:
         # Reuse the proven Futu bridge; keep the fixed D-1 input and stage window.
         root = _v4_global(_v4_scope, '_shared_scripts_root')(shared_root)
         module = _v4_global(_v4_scope, '_load_shared_module')(root, "scripts.live_acquisition.futu_bridge")
@@ -263,31 +263,27 @@ def _collect_hk_minute_body(_v4_scope, /, plan, *, codes, python_path, shared_ro
         refresh = _v4_global(_v4_scope, 'refresh_hk_active_lanes')
         optional = {"snapshot_root": locals().get("snapshot_root"),
                     "pool_artifact_sha256": getattr(plan.universe_bindings.get("HK_CONNECT"), "sha256", None)}
-        return refresh(source, codes=codes, python_path=python_path, shared_root=root,
+        enriched = refresh(source, codes=codes, python_path=python_path, shared_root=root,
                        process_runner=process_runner, trade_date=plan.trade_date, stage_id=plan.stage_id,
                        cutoff_at=_v4_global(_v4_scope, 'STAGE_BY_ID')[plan.stage_id].cutoff,
                        **{key: value for key, value in optional.items() if key in signature(refresh).parameters})
-    if plan.stage_id in {"STAGE_1300_1315", "STAGE_1445_1500"}:
-        # The afternoon HK collectors use the shared quote-only Futu route as
-        # their primary minute source. A failed or partial Futu result remains
-        # visible as such; it must not silently fall back to PyTDX.
-        root = _v4_global(_v4_scope, '_shared_scripts_root')(shared_root)
-        module = _v4_global(_v4_scope, '_load_shared_module')(root, "scripts.live_acquisition.futu_bridge")
-        scoped_runner = _v4_global(_v4_scope, '_scoped_process_runner')(root, process_runner)
-        result = module.collect_futu_minute(
-            python_path,
-            plan.trade_date,
-            plan.stage_id,
-            _v4_global(_v4_scope, 'list')(codes),
-            market="HK_CONNECT",
-            process_runner=scoped_runner,
-        )
-        return _v4_global(_v4_scope, '_to_source')(
-            result,
-            source_id="futu",
-            route="shared_futu_hkconnect_minute",
-            requested=_v4_global(_v4_scope, 'len')(codes),
-        )
+        # A missing timed snapshot must remain a gap, but must not discard
+        # the already collected afternoon bars from the observation list.
+        # A valid snapshot with no matching gainer is not this failure case.
+        snapshot_gaps = {"HK_ACTIVE_SNAPSHOT_UNAVAILABLE", "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE"}
+        if (
+            plan.stage_id in {"STAGE_1300_1315", "STAGE_1445_1500"}
+            and enriched.cannot_confirm
+            and set(enriched.cannot_confirm).issubset(set(source.cannot_confirm) | snapshot_gaps)
+            and set(enriched.cannot_confirm) & snapshot_gaps
+        ):
+            return _v4_global(_v4_scope, 'replace')(
+                source, status="PARTIAL_WITH_ROWS",
+                cannot_confirm=(*enriched.cannot_confirm, "HK_HISTORICAL_ORDERBOOK_UNAVAILABLE"),
+                source_evidence=(*enriched.source_evidence,
+                                 "active_snapshot_degraded_to_futu_observation=true", "pit_safe=false"),
+            )
+        return enriched
     root = _v4_global(_v4_scope, '_shared_scripts_root')(shared_root)
     module = _v4_global(_v4_scope, '_load_shared_module')(root, "scripts.live_acquisition.pytdx_exhq")
     scoped_runner = _v4_global(_v4_scope, '_scoped_process_runner')(root, process_runner)
