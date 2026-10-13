@@ -82,7 +82,10 @@ class ManagerService:
             if snap.run_id != job.run_id:
                 raise StepFailure("CHECKPOINT_RUN_MISMATCH")
             self.jobs.update(job, step="PUBLISH")
-            saved = self.store.commit_plan(snap)
+            try:
+                saved = self.store.commit_plan(snap)
+            except (StorageUnavailable, OSError) as exc:
+                raise StepFailure("PUBLISH_UNAVAILABLE", retryable=True) from exc
             return saved.run_id, JobState.PARTIAL if saved.gaps else JobState.SUCCEEDED
 
         try:
@@ -169,7 +172,10 @@ class ManagerService:
         snap = seal_snapshot(data)
         self.store.save_checkpoint(job.job_id, "PUBLISH", snap.model_dump(mode="json"))
         self.jobs.update(job, step="PUBLISH")
-        saved = self.store.commit_plan(snap)
+        try:
+            saved = self.store.commit_plan(snap)
+        except (StorageUnavailable, OSError) as exc:
+            raise StepFailure("PUBLISH_UNAVAILABLE", retryable=True) from exc
         return saved.run_id, JobState.PARTIAL if partial else JobState.SUCCEEDED
 
     def save_review(self, plan_run_id: str, close_inputs: Any) -> ReviewSummary:

@@ -321,3 +321,43 @@ def test_fake_isolated_cli_canary_simulated_only(tmp_path):
     assert value["output"]["decision"]=="UNASSESSED"
     assert value["event_sha256"]=="e"*64
     # This test substitutes a fake runner. It is NOT real model/auth/isolation evidence.
+
+
+def test_selected_evidence_must_exist_and_precede_cutoff():
+    sample=Path(__file__).resolve().parents[1]/"contract_samples"/"normal.json"
+    obj=json.loads(sample.read_text())
+    obj["lanes"][0]["evidence_refs"][0]["available_at"]="2026-10-13T14:01:00+08:00"
+    with pytest.raises(ValidationError,match="SELECTED_EVIDENCE_AFTER_CUTOFF_OR_UNKNOWN"):
+        seal_snapshot(obj)
+    obj["lanes"][0]["evidence_refs"]=[]
+    with pytest.raises(ValidationError,match="SELECTED_EVIDENCE_AFTER_CUTOFF_OR_UNKNOWN"):
+        seal_snapshot(obj)
+
+
+def _hold_lock(state_root, ready, release):
+    with WorkbenchStore(state_root).lock("multi-process-lock-proof"):
+        ready.set()
+        release.wait(5)
+
+
+def test_file_lock_blocks_a_second_process(tmp_path):
+    import concurrent.futures
+    ctx=multiprocessing.get_context("spawn")
+    acquired=ctx.Event(); release=ctx.Event()
+    p=ctx.Process(target=_hold_lock,args=(str(tmp_path),acquired,release))
+    p.start()
+    try:
+        assert acquired.wait(4)
+        def waiter():
+            with WorkbenchStore(tmp_path).lock("multi-process-lock-proof"):
+                return "ACQUIRED"
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future=pool.submit(waiter)
+            time.sleep(.15)
+            assert not future.done()
+            release.set()
+            assert future.result(timeout=3)=="ACQUIRED"
+    finally:
+        release.set();p.join(4)
+        if p.is_alive():p.terminate();p.join(4)
+    assert p.exitcode==0

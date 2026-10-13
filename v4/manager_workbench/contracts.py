@@ -248,6 +248,17 @@ class PlanSnapshot(Safety):
             raise ValueError("PRODUCT_SHA_MISMATCH")
         if len({s.symbol for s in self.stocks}) != len(self.stocks):
             raise ValueError("DUPLICATE_STOCK")
+        cutoff = datetime.fromisoformat(self.context.cutoff)
+        evidence = {e.evidence_id: e for lane in self.lanes for e in lane.evidence_refs}
+        for stock in self.stocks:
+            if stock.decision in (Decision.SELECTED, Decision.CONDITIONAL_WATCH):
+                if not stock.evidence_ids:
+                    raise ValueError("SELECTED_EVIDENCE_MISSING")
+                for id_ in stock.evidence_ids:
+                    ref = evidence.get(id_)
+                    if (ref is None or ref.verification != Verification.VERIFIED or
+                        ref.available_at is None or datetime.fromisoformat(ref.available_at) > cutoff):
+                        raise ValueError("SELECTED_EVIDENCE_AFTER_CUTOFF_OR_UNKNOWN")
         by_decision = {
             "selected": Decision.SELECTED, "watch": Decision.CONDITIONAL_WATCH,
             "unassessed": Decision.UNASSESSED, "observation_only": Decision.OBSERVATION_ONLY,
