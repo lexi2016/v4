@@ -692,6 +692,15 @@ def _production_selection_builders_body(_v4_scope, /, stage_id, *, research_root
                 "d1_score": row.get("d1_score", row.get("pool_score", row.get("score", ""))),
                 "d1_source_evidence": _v4_global(_v4_scope, 'list')(row.get("d1_source_evidence") or ()),
             })
+            if stage_id == "STAGE_0925":
+                # Keep the auction oracle's rank/score/date fields through
+                # projection; its change is measured from previous close.
+                rows[-1].update({key: row.get(key) for key in (
+                    "rank", "auction_score", "target_date", "signal_date",
+                    "preselect_lane", "reference_price_hkd",
+                    "strict_failure_price_hkd", "bid_price", "ask_price",
+                )})
+                rows[-1]["current_change_pct"] = pct
             model_id = rows[-1].get("d1_model_id")
             d1_status = rows[-1].get("d1_status")
             if model_id:
