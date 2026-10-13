@@ -34,6 +34,8 @@ const {
   qualityScore,
   stageCountText,
   stageMarketCountText,
+  missingStageReceiptMessage,
+  hasMissingStageReceipt,
   hkChangeLabel,
   rowMissingFields,
   hitTop20,
@@ -102,6 +104,7 @@ const {
   timelineStageStatus,
   timelineStageCounts,
   loadStage,
+  loadStageFromUser,
   loadCloseReview,
   ensureStage,
   onDateInputChange,
@@ -143,11 +146,11 @@ const {
         @click="openNextHkTargetPool"
       >查看下一港股开市日预选池：{{ formatDateInput(nextHkTargetDate) }}</button>
       <label>阶段
-        <select v-model="selectedStage" aria-label="阶段" @change="loadStage()">
+        <select v-model="selectedStage" aria-label="阶段" @change="loadStageFromUser()">
           <option v-for="stage in stageDefinitions" :key="stage.id" :value="stage.id">{{ stage.label }}</option>
         </select>
       </label>
-      <button type="button" :disabled="stageLoading || closeReviewLoading" @click="closeReviewActive ? loadCloseReview(reviewFocus, true) : loadStage()">刷新快照</button>
+      <button type="button" :disabled="stageLoading || closeReviewLoading" @click="closeReviewActive ? loadCloseReview(reviewFocus, true) : loadStageFromUser()">刷新快照</button>
       <span class="runtime-state">{{ researchActive ? "研究入口按自然日导航；阶段入口按A股或港股开市日导航" : "V4 · A/HK按各自市场日历导航；回执不代表进程存活，运行状态见任务页" }}</span>
     </section>
     <small v-if="selectedDate" class="selected-date-context" data-testid="selected-date-context">{{ selectedDateContext }}</small>
@@ -156,7 +159,7 @@ const {
     </p>
 
     <nav class="entry-nav" aria-label="功能入口">
-      <button :class="{ active: !taskStatusActive && !researchActive && !closeReviewActive }" type="button" @click="loadStage()">阶段选股</button>
+      <button :class="{ active: !taskStatusActive && !researchActive && !closeReviewActive }" type="button" @click="loadStageFromUser()">阶段选股</button>
       <button type="button" @click="scrollToPool()">D-1 预选池</button>
       <button :class="{ active: researchActive }" type="button" @click="openResearch()">研报决策台</button>
       <button type="button" @click="openManagerSelection()">经理选股工作台</button>
@@ -185,12 +188,12 @@ const {
     <section v-if="!closeReviewActive" class="panel timeline-panel" aria-label="阶段上下文">
       <div class="section-heading">
         <div><span class="eyebrow">阶段分组主视图</span><h2>阶段上下文 v2</h2></div>
-        <p>{{ selectedDate }} · {{ currentStageDefinition.label }} · A股 {{ stageCountText(stageWorkbench?.selected_a_rows) }} / 港股 {{ stageMarketCountText(stageWorkbench?.markets?.HK, stageWorkbench?.selected_hk_rows) }}</p>
+        <p>{{ selectedDate }} · {{ currentStageDefinition.label }} · A股 {{ hasMissingStageReceipt ? "待确认" : stageCountText(stageWorkbench?.selected_a_rows) }} / 港股 {{ stageMarketCountText(stageWorkbench?.markets?.HK, stageWorkbench?.selected_hk_rows) }}</p>
       </div>
       <div class="timeline-grid">
         <button
           v-for="stage in stageDefinitions" :key="stage.id" type="button"
-          :class="{ current: !closeReviewActive && selectedStage === stage.id }" @click="loadStage(stage.id)"
+          :class="{ current: !closeReviewActive && selectedStage === stage.id }" @click="loadStageFromUser(stage.id)"
         >
           <b>{{ stage.timeline }}</b>
           <span>{{ timelineStageStatus(stage.id) }}</span>
@@ -259,11 +262,14 @@ const {
       <p v-if="v11OpeningFilter && showAStageEvidenceGap" class="evidence-note">A股股票仍保留在独立 D-1 池；没有伪造阶段候选。</p>
       <p v-if="stageLoading" role="status">正在读取 {{ selectedDate }} / {{ selectedStage }}。</p>
       <p v-else-if="stageError" role="alert">{{ stageError }}</p>
+      <p v-else-if="hasMissingStageReceipt" class="evidence-gap" role="alert">
+        {{ missingStageReceiptMessage }} · 未执行或回执缺失的候选数待确认，不按 0 条显示。
+      </p>
       <p v-else-if="stageWorkbench" class="stage-display-status">{{ stageWorkbench.stage.display_status }}</p>
 
       <div class="market-columns">
         <section class="market-column" aria-label="A股候选">
-          <div class="market-title"><h3>A股</h3><span>{{ stageCountText(stageWorkbench?.selected_a_rows) }} 条</span></div>
+          <div class="market-title"><h3>A股</h3><span>{{ hasMissingStageReceipt ? "待确认" : `${stageCountText(stageWorkbench?.selected_a_rows)} 条` }}</span></div>
           <p v-if="stageWorkbench?.markets?.A?.selection_mode === 'BACKFILL'" class="evidence-note">
             历史回补 BACKFILL · {{ stageWorkbench?.markets?.A?.backfill_run_ids?.join("、") || stageWorkbench?.markets?.A?.backfill_run_id || "run id CANNOT_CONFIRM" }} · selection {{ stageWorkbench?.markets?.A?.selection_manifest_receipt_verified ? "manifest/receipt 已验证" : "manifest/receipt CANNOT_CONFIRM" }} · runner receipt {{ stageWorkbench?.markets?.A?.runner_receipt_verified ? "已验证" : "CANNOT_CONFIRM" }}
           </p>
@@ -279,8 +285,9 @@ const {
             <p v-if="!stageWorkbench?.markets?.A?.source_evidence?.length" class="evidence-gap">CANNOT_CONFIRM：A股来源证据缺失或为空。</p>
           </details>
           <div v-if="!aRows.length" class="empty-card">
-            <strong>A股无主表候选</strong>
-            <span>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows ?? aSummary.source_rows) }}</span>
+            <strong>{{ hasMissingStageReceipt ? "阶段执行回执缺失" : "A股无主表候选" }}</strong>
+            <span v-if="hasMissingStageReceipt">{{ currentStageDefinition.label }} 阶段 · 行数待确认</span>
+            <span v-else>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows ?? aSummary.source_rows) }}</span>
             <p>{{ stageWorkbench?.stage.display_status || "该阶段数据尚未进入 V3.5。" }}</p>
           </div>
           <article v-for="row in aRows" :key="rowCode(row)" class="candidate-card">

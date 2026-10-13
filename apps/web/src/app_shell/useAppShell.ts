@@ -6,7 +6,7 @@ import { loadPoolSnapshot, loadStageSnapshot, POOL_PAGE_SIZE } from "../api/pool
 import type { ReviewEnvelope } from "../contracts/review";
 import type { DateResponse, ModelSelectionReview, NavigationUrlState, PoolGroup, PoolResponse, StageRow, StageTimelineSnapshot, StageWorkbench } from "./types";
 
-import { poolRows, poolEvidenceReason, poolEvidenceDetails, poolRowCode, poolRowName, poolRowSource, poolRowSourceLane, poolCountLabel, poolRowSignalDate, formatPercent, assertExactResponseDate, formatDateInput, compactDateInput, evidenceValue, rowCode, rowName, rowRank, aShareChangePct, rowSupport, rowPressure, rowInvalidation, rowNextEvidence, rowScore, qualityScore, stageCountText, stageMarketCountText, is0920D1ReferenceRow, hkChangeLabel, rowMissingFields, hitTop20, reviewClassification } from "./formatters";
+import { poolRows, poolEvidenceReason, poolEvidenceDetails, poolRowCode, poolRowName, poolRowSource, poolRowSourceLane, poolCountLabel, poolRowSignalDate, formatPercent, assertExactResponseDate, formatDateInput, compactDateInput, evidenceValue, rowCode, rowName, rowRank, aShareChangePct, rowSupport, rowPressure, rowInvalidation, rowNextEvidence, rowScore, qualityScore, stageCountText, stageMarketCountText, hasExactMissingStageReceipt, exactMissingStageReceiptMessage, is0920D1ReferenceRow, hkChangeLabel, rowMissingFields, hitTop20, reviewClassification } from "./formatters";
 import { createTimeline } from "./timeline";
 
 export function useAppShell() {
@@ -52,6 +52,8 @@ let stageRequestVersion = 0;
 let stageTimelineRequestVersion = 0;
 let stageRequestController: AbortController | null = null;
 let stageTimelineRequestController: AbortController | null = null;
+let userDateIntentVersion = 0;
+let userStageIntentVersion = 0;
 
 const dateOptions = computed(() =>
   [...new Set([
@@ -205,6 +207,10 @@ function isCompactResearchPool(group: PoolGroup) {
 const referenceMode = computed(() =>
   stageWorkbench.value?.selection_mode === "MIGRATED_REFERENCE_WORKBENCH",
 );
+const missingStageReceiptMessage = computed(() =>
+  exactMissingStageReceiptMessage(stageWorkbench.value, selectedDate.value, selectedStage.value),
+);
+const hasMissingStageReceipt = computed(() => Boolean(missingStageReceiptMessage.value));
 const v11OpeningFilter = computed(() =>
   isPreopenStage.value
   && stageWorkbench.value?.selection_mode === "V1_1_CHAMPION_DUAL_MARKET"
@@ -228,7 +234,9 @@ const stageSummary = computed<StageSummary | null>(() => {
     // currently selected stage's local label.
     stage_label: stage?.label,
     phase_status: phaseStatus.value,
-    selected_a_rows: workbench.selected_a_rows,
+    selected_a_rows: hasExactMissingStageReceipt(workbench, selectedDate.value, selectedStage.value)
+      ? null
+      : workbench.selected_a_rows,
     a_source_rows: aSummary.value.source_rows,
     a_candidate_count: aSummary.value.candidate_count,
     selected_hk_rows: workbench.selected_hk_rows,
@@ -413,6 +421,7 @@ function timelineStageCounts(stageId: string) {
   const snapshot = timelineStageSnapshot(stageId);
   if (!snapshot || snapshot.loading) return "读取中";
   if (snapshot.error || !snapshot.payload) return "读取失败/点击重试";
+  if (hasExactMissingStageReceipt(snapshot.payload, selectedDate.value, stageId)) return "A 待确认 / HK 待确认";
   return `A ${stageCountText(snapshot.payload.selected_a_rows)} / HK ${stageMarketCountText(snapshot.payload.markets?.HK, snapshot.payload.selected_hk_rows)}`;
 }
 
@@ -543,6 +552,11 @@ async function loadStage(stage = selectedStage.value, preserveRunStatus = false,
     if (version === stageRequestVersion && requestedDate === selectedDate.value) stageLoading.value = false;
     if (stageRequestController === controller) stageRequestController = null;
   }
+}
+
+function loadStageFromUser(stage = selectedStage.value) {
+  userStageIntentVersion += 1;
+  void loadStage(stage);
 }
 
 async function loadCloseReview(
@@ -705,12 +719,15 @@ async function onDateInputChange(event: Event) {
     return;
   }
   input.setCustomValidity("");
+  userDateIntentVersion += 1;
   selectedDate.value = compact;
   writeSelectedDateToUrl(compact);
   await onDateChange();
 }
 
 onMounted(async () => {
+  const dateIntentAtMount = userDateIntentVersion;
+  const stageIntentAtMount = userStageIntentVersion;
   window.addEventListener("popstate", onBrowserHistoryChange);
   try {
     const [dateList, laneDates] = await Promise.all([
@@ -730,7 +747,12 @@ onMounted(async () => {
     const requestedDate = params.get("date");
     const requestedStage = params.get("stage");
     const requestedView = params.get("view");
-    if (requestedStage && stageDefinitions.some((stage) => stage.id === requestedStage)) {
+    const userSelectedDate = userDateIntentVersion !== dateIntentAtMount
+      && isAllowedDateForView(selectedDate.value)
+      ? selectedDate.value
+      : "";
+    const userSelectedStage = userStageIntentVersion !== stageIntentAtMount;
+    if (!userSelectedStage && requestedStage && stageDefinitions.some((stage) => stage.id === requestedStage)) {
       selectedStage.value = requestedStage;
     }
     if (requestedView === "research") {
@@ -739,7 +761,7 @@ onMounted(async () => {
         && (researchDateOptions.value.includes(requestedDate) || researchDateOptions.value.length === 0)
         ? requestedDate
         : "";
-      selectedDate.value = explicitResearchDate || resolveResearchDate(dateData.value.navigation_date || dateData.value.default_date || "");
+      selectedDate.value = userSelectedDate || explicitResearchDate || resolveResearchDate(dateData.value.navigation_date || dateData.value.default_date || "");
       openResearch();
     } else if (["review", "a-review", "research-review"].includes(requestedView || "")) {
       const explicitTradingDate = requestedDate
@@ -747,7 +769,7 @@ onMounted(async () => {
         && (tradingDateOptions.value.includes(requestedDate) || isHistoricalTradingDate(requestedDate))
         ? requestedDate
         : "";
-      selectedDate.value = explicitTradingDate || resolveTradingDate(dateData.value.navigation_date || dateData.value.default_date || "");
+      selectedDate.value = userSelectedDate || explicitTradingDate || resolveTradingDate(dateData.value.navigation_date || dateData.value.default_date || "");
       await Promise.all([loadPool(), loadCloseReview(requestedView === "research-review" ? "research" : requestedView === "a-review" ? "A" : "HK")]);
     } else {
       const explicitTradingDate = requestedDate
@@ -755,7 +777,10 @@ onMounted(async () => {
         && (tradingDateOptions.value.includes(requestedDate) || isHistoricalTradingDate(requestedDate))
         ? requestedDate
         : "";
-      selectedDate.value = explicitTradingDate || resolveTradingDate(dateData.value.navigation_date || dateData.value.default_date || "");
+      selectedDate.value = userSelectedDate || explicitTradingDate || resolveTradingDate(dateData.value.navigation_date || dateData.value.default_date || "");
+      if (userSelectedDate || userSelectedStage) {
+        bindSelectedDate(selectedDate.value, { view: null, stage: selectedStage.value });
+      }
       await Promise.all([loadPool(), loadStage(undefined, false, false)]);
     }
   } catch {
@@ -800,6 +825,8 @@ onBeforeUnmount(() => {
     qualityScore,
     stageCountText,
     stageMarketCountText,
+    missingStageReceiptMessage,
+    hasMissingStageReceipt,
     hkChangeLabel,
     rowMissingFields,
     hitTop20,
@@ -869,6 +896,7 @@ onBeforeUnmount(() => {
     timelineStageStatus,
     timelineStageCounts,
     loadStage,
+    loadStageFromUser,
     loadCloseReview,
     ensureStage,
     onDateInputChange,

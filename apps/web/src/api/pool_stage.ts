@@ -227,7 +227,83 @@ function validateMarketSummaries(value: unknown) {
   }
 }
 
-function validateSelectionMarkets(value: unknown, requestedDate: string, stageId: string) {
+function hasOnlyUnassessedMarketSummaries(value: unknown) {
+  if (!isRecord(value)) return false;
+  const marketIds = Object.keys(value).sort();
+  if (marketIds.length !== 2 || marketIds[0] !== "A" || marketIds[1] !== "HK") return false;
+  return marketIds.every((market) => {
+    const summary = value[market];
+    if (!isRecord(summary)
+      || summary.status !== "CANNOT_CONFIRM"
+      || (summary.selection_status !== undefined && summary.selection_status !== "CANNOT_CONFIRM")
+      || (summary.display_mode !== undefined && summary.display_mode !== "CANNOT_CONFIRM")
+      || (summary.candidate_count !== null && summary.candidate_count !== 0)) return false;
+    if (["selection_status", "source_status", "data_level"].some((key) =>
+      summary[key] !== undefined && summary[key] !== "CANNOT_CONFIRM")) return false;
+    if (["source_rows", "requested_rows", "selected_rows", "observation_count", "coverage_ratio"].some((key) =>
+      summary[key] !== undefined && summary[key] !== null)) return false;
+    if (summary.rows !== undefined && summary.rows !== null
+      && (!Array.isArray(summary.rows) || summary.rows.length !== 0)) return false;
+    return summary.selection_manifest_receipt_verified === undefined
+      || summary.selection_manifest_receipt_verified === false;
+  });
+}
+
+function hasExactMissingStageReceiptEnvelope(record: JsonRecord, requestedDate: string, stageId: string) {
+  const stage = record.stage;
+  const executionEvidence = record.execution_evidence;
+  const selectionMarkets = record.selection_markets;
+  if (!isRecord(stage) || !isRecord(executionEvidence) || !isRecord(selectionMarkets)) return false;
+  if (!hasOnlyUnassessedMarketSummaries(record.markets)
+    || (record.market_summaries !== undefined && !hasOnlyUnassessedMarketSummaries(record.market_summaries))) return false;
+  const markets = Object.entries(selectionMarkets);
+  if (markets.length !== 2 || !["A_SHARE", "HK_CONNECT"].every((key) => Object.hasOwn(selectionMarkets, key))) {
+    return false;
+  }
+  const unassessedMarkets = markets.every(([market, value]) => isRecord(value)
+    && value.market === market
+    && value.status === "CANNOT_CONFIRM"
+    && value.selection_status === "CANNOT_CONFIRM"
+    && value.selected_rows === null
+    && !Object.hasOwn(value, "trade_date")
+    && !Object.hasOwn(value, "stage_id")
+    && (value.rows === undefined || value.rows === null || (Array.isArray(value.rows) && value.rows.length === 0))
+    && (value.selection_manifest_receipt_verified === undefined || value.selection_manifest_receipt_verified === false));
+  return record.status === "CANNOT_CONFIRM"
+    && stage.stage_id === stageId
+    && stage.status === "CANNOT_CONFIRM"
+    && stage.display_status === "CANNOT_CONFIRM"
+    && executionEvidence.status === "EXECUTION_RECEIPT_MISSING"
+    && executionEvidence.trade_date === requestedDate
+    && executionEvidence.stage_id === stageId
+    && executionEvidence.execution_verified === false
+    && executionEvidence.natural_verified === false
+    && executionEvidence.write_performed === false
+    && Array.isArray(executionEvidence.cannot_confirm)
+    && executionEvidence.cannot_confirm.includes("EXACT_DATE_STAGE_RECEIPT_MISSING")
+    && unassessedMarkets
+    && Array.isArray(record.unified_rows)
+    && record.unified_rows.length === 0
+    && record.selected_hk_rows === null
+    && record.selected_total_rows === null;
+}
+
+function validateStageExecutionEvidence(value: unknown) {
+  if (!isRecord(value)) invalid("阶段工作台 execution_evidence", "必须是对象");
+  status(value.status, "阶段工作台 execution_evidence.status");
+  for (const key of ["trade_date", "stage_id"]) {
+    if (value[key] !== undefined && typeof value[key] !== "string") {
+      invalid("阶段工作台 execution_evidence", `${key} 必须是字符串`);
+    }
+  }
+  for (const key of ["execution_verified", "natural_verified", "write_performed"]) boolean(value[key], "阶段工作台 execution_evidence");
+  if (value.cannot_confirm !== undefined
+    && (!Array.isArray(value.cannot_confirm) || value.cannot_confirm.some((item) => typeof item !== "string"))) {
+    invalid("阶段工作台 execution_evidence", "cannot_confirm 必须是字符串数组");
+  }
+}
+
+function validateSelectionMarkets(value: unknown, requestedDate: string, stageId: string, allowMissingIdentity = false) {
   if (Array.isArray(value)) {
     if (value.some((market) => market !== "A" && market !== "HK")) {
       invalid("阶段工作台", "selection_markets 数组只允许 A/HK");
@@ -243,8 +319,12 @@ function validateSelectionMarkets(value: unknown, requestedDate: string, stageId
     }
     if (!isRecord(summaryValue)) invalid(label, "市场结果必须是对象");
     if (summaryValue.market !== market) invalid(label, "market 与对象键不一致");
-    if (summaryValue.trade_date !== requestedDate) invalid(label, "trade_date 与请求日期不一致");
-    if (summaryValue.stage_id !== stageId) invalid(label, "stage_id 与请求不一致");
+    if (summaryValue.trade_date !== requestedDate && !(allowMissingIdentity && summaryValue.trade_date === undefined)) {
+      invalid(label, "trade_date 与请求日期不一致");
+    }
+    if (summaryValue.stage_id !== stageId && !(allowMissingIdentity && summaryValue.stage_id === undefined)) {
+      invalid(label, "stage_id 与请求不一致");
+    }
 
     for (const key of ["status", "selection_status"]) {
       if (typeof summaryValue[key] !== "string") invalid(label, `缺少 ${key}`);
@@ -271,6 +351,7 @@ function validateSelectionMarkets(value: unknown, requestedDate: string, stageId
         || summaryValue.cannot_confirm.some((item) => typeof item !== "string" && !isRecord(item)))) {
       invalid(label, "cannot_confirm 必须是原因数组或 null");
     }
+    if (allowMissingIdentity && summaryValue.selection_manifest_receipt_verified === undefined) continue;
     boolean(summaryValue.selection_manifest_receipt_verified, label);
   }
 }
@@ -285,9 +366,30 @@ function validateStageResponse(payload: unknown, requestedDate: string, stageId:
   if (!isRecord(record.stage)) invalid("阶段工作台", "缺少 stage 对象");
   status(record.stage.status, "阶段工作台 stage.status");
   if (typeof record.stage.display_status !== "string") invalid("阶段工作台", "缺少 stage.display_status");
+  if (record.execution_evidence !== undefined) {
+    validateStageExecutionEvidence(record.execution_evidence);
+    if (isRecord(record.execution_evidence)
+      && record.execution_evidence.status === "EXECUTION_RECEIPT_MISSING"
+      && (record.execution_evidence.trade_date !== requestedDate || record.execution_evidence.stage_id !== stageId)) {
+      invalid("阶段工作台 execution_evidence", "trade_date/stage_id 与请求不一致");
+    }
+  }
   validateMarketSummaries(record.markets);
   validateMarketSummaries(record.market_summaries);
-  if (record.selection_markets !== undefined) validateSelectionMarkets(record.selection_markets, requestedDate, stageId);
+  const hasMissingExecutionReceipt = isRecord(record.execution_evidence)
+    && record.execution_evidence.status === "EXECUTION_RECEIPT_MISSING";
+  const exactMissingReceipt = hasExactMissingStageReceiptEnvelope(record, requestedDate, stageId);
+  if (hasMissingExecutionReceipt && !exactMissingReceipt) {
+    invalid("阶段工作台", "EXECUTION_RECEIPT_MISSING 缺少严格 CANNOT_CONFIRM 市场映射");
+  }
+  if (record.selection_markets !== undefined) {
+    validateSelectionMarkets(
+      record.selection_markets,
+      requestedDate,
+      stageId,
+      exactMissingReceipt,
+    );
+  }
   if (record.selected_a_rows === undefined) invalid("阶段工作台", "缺少 selected_a_rows");
   count(record.selected_a_rows, "阶段工作台");
   for (const key of ["selected_hk_rows", "selected_total_rows"]) count(record[key], "阶段工作台", true);

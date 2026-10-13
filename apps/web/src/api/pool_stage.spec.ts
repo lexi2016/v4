@@ -303,6 +303,168 @@ describe("pool and stage API boundary", () => {
     await expect(loadStageSnapshot("20261012", "STAGE_1545_1555")).rejects.toThrow("日期证据错误");
   });
 
+  it("accepts only the exact missing-receipt envelope without nested selection identity", async () => {
+    const missingReceipt: any = {
+      trade_date: "20261013",
+      stage_id: "STAGE_1445_1500",
+      status: "CANNOT_CONFIRM",
+      stage: {
+        stage_id: "STAGE_1445_1500",
+        status: "CANNOT_CONFIRM",
+        display_status: "CANNOT_CONFIRM",
+      },
+      markets: {
+        A: { status: "CANNOT_CONFIRM", display_mode: "CANNOT_CONFIRM", candidate_count: null },
+        HK: { status: "CANNOT_CONFIRM", display_mode: "CANNOT_CONFIRM", candidate_count: null },
+      },
+      selection_markets: {
+        A_SHARE: {
+          market: "A_SHARE",
+          status: "CANNOT_CONFIRM",
+          selection_status: "CANNOT_CONFIRM",
+          source_status: "CANNOT_CONFIRM",
+          requested_rows: null,
+          source_rows: null,
+          selected_rows: null,
+          coverage_ratio: null,
+          rows: null,
+          source_evidence: [],
+          cannot_confirm: ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"],
+          selection_manifest_receipt_verified: false,
+        },
+        HK_CONNECT: {
+          market: "HK_CONNECT",
+          status: "CANNOT_CONFIRM",
+          selection_status: "CANNOT_CONFIRM",
+          source_status: "CANNOT_CONFIRM",
+          requested_rows: null,
+          source_rows: null,
+          selected_rows: null,
+          coverage_ratio: null,
+          rows: null,
+          source_evidence: [],
+          cannot_confirm: ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"],
+          selection_manifest_receipt_verified: false,
+        },
+      },
+      execution_evidence: {
+        trade_date: "20261013",
+        stage_id: "STAGE_1445_1500",
+        status: "EXECUTION_RECEIPT_MISSING",
+        execution_verified: false,
+        natural_verified: false,
+        write_performed: false,
+        cannot_confirm: ["EXACT_DATE_STAGE_RECEIPT_MISSING"],
+      },
+      cannot_confirm_codes: [
+        "A:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+        "HK:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+        "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+      ],
+      unified_rows: [],
+      selected_a_rows: 0,
+      selected_hk_rows: null,
+      selected_total_rows: null,
+      selection_mode: "SHARED_STAGE_CENTER_READ_ONLY",
+      RESEARCH_ONLY: true,
+      production_allowed: false,
+      buy_gate_updated: false,
+      orders_sent: false,
+      write_performed: false,
+    };
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(missingReceipt)));
+
+    const accepted = await loadStageSnapshot("20261013", "STAGE_1445_1500");
+    expect(accepted.execution_evidence?.status).toBe("EXECUTION_RECEIPT_MISSING");
+    expect(accepted.execution_evidence?.cannot_confirm).toContain("EXACT_DATE_STAGE_RECEIPT_MISSING");
+    expect(accepted.selected_a_rows).toBe(0);
+    expect(accepted.selected_hk_rows).toBeNull();
+
+    const live0925MissingArtifact = structuredClone(missingReceipt);
+    live0925MissingArtifact.stage_id = "STAGE_0925";
+    live0925MissingArtifact.stage = {
+      ...live0925MissingArtifact.stage,
+      stage_id: "STAGE_0925",
+      cannot_confirm: [
+        "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+        "A:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+        "HK:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+      ],
+    };
+    live0925MissingArtifact.execution_evidence.stage_id = "STAGE_0925";
+    live0925MissingArtifact.selection_markets.A_SHARE.rows = [];
+    delete live0925MissingArtifact.selection_markets.A_SHARE.selection_manifest_receipt_verified;
+    live0925MissingArtifact.selection_markets.HK_CONNECT.rows = [];
+    delete live0925MissingArtifact.selection_markets.HK_CONNECT.selection_manifest_receipt_verified;
+    live0925MissingArtifact.markets = {
+      A: {
+        market: "A_SHARE", status: "CANNOT_CONFIRM", selection_status: "CANNOT_CONFIRM",
+        source_status: "CANNOT_CONFIRM", requested_rows: null, source_rows: null, selected_rows: null,
+        candidate_count: 0, rows: [], cannot_confirm: ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"],
+      },
+      HK: {
+        market: "HK_CONNECT", status: "CANNOT_CONFIRM", selection_status: "CANNOT_CONFIRM",
+        source_status: "CANNOT_CONFIRM", requested_rows: null, source_rows: null, selected_rows: null,
+        candidate_count: null, display_mode: "CANNOT_CONFIRM", observation_count: null, rows: [],
+        cannot_confirm: ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"],
+      },
+    };
+    live0925MissingArtifact.market_summaries = structuredClone(live0925MissingArtifact.markets);
+    live0925MissingArtifact.cannot_confirm = [
+      "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+      "A:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+      "HK:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+    ];
+    live0925MissingArtifact.selected_a_rows = 0;
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(live0925MissingArtifact)));
+    await expect(loadStageSnapshot("20261013", "STAGE_0925")).resolves.toMatchObject({
+      status: "CANNOT_CONFIRM",
+      selected_a_rows: 0,
+      stage: { stage_id: "STAGE_0925", cannot_confirm: expect.arrayContaining(["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"]) },
+    });
+
+    const unsafeMissingArtifact = structuredClone(live0925MissingArtifact);
+    unsafeMissingArtifact.orders_sent = true;
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(unsafeMissingArtifact)));
+    await expect(loadStageSnapshot("20261013", "STAGE_0925")).rejects.toThrow("只读请求边界");
+
+    const wrongDateMissingArtifact = structuredClone(live0925MissingArtifact);
+    wrongDateMissingArtifact.execution_evidence.trade_date = "20261012";
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(wrongDateMissingArtifact)));
+    await expect(loadStageSnapshot("20261013", "STAGE_0925")).rejects.toThrow("trade_date/stage_id");
+
+    const contradictoryReadyEmpty = structuredClone(missingReceipt);
+    contradictoryReadyEmpty.markets.HK.status = "READY_EMPTY";
+    contradictoryReadyEmpty.markets.HK.display_mode = "READY_EMPTY";
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(contradictoryReadyEmpty)));
+    await expect(loadStageSnapshot("20261013", "STAGE_1445_1500"))
+      .rejects.toThrow("EXECUTION_RECEIPT_MISSING 缺少严格 CANNOT_CONFIRM 市场映射");
+
+    const missingMarketSummary = structuredClone(missingReceipt);
+    delete missingMarketSummary.markets.HK;
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(missingMarketSummary)));
+    await expect(loadStageSnapshot("20261013", "STAGE_1445_1500"))
+      .rejects.toThrow("EXECUTION_RECEIPT_MISSING 缺少严格 CANNOT_CONFIRM 市场映射");
+
+    const mismatchedOuterStage = structuredClone(missingReceipt);
+    mismatchedOuterStage.execution_evidence.stage_id = "STAGE_1545_1555";
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(mismatchedOuterStage)));
+    await expect(loadStageSnapshot("20261013", "STAGE_1445_1500")).rejects.toThrow("trade_date/stage_id");
+
+    const ordinaryReadyWithoutIdentity = structuredClone(missingReceipt);
+    ordinaryReadyWithoutIdentity.status = "PARTIAL_WITH_ROWS";
+    ordinaryReadyWithoutIdentity.stage.status = "PARTIAL_WITH_ROWS";
+    ordinaryReadyWithoutIdentity.execution_evidence.status = "PRESENT";
+    ordinaryReadyWithoutIdentity.execution_evidence.cannot_confirm = [];
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(ordinaryReadyWithoutIdentity)));
+    await expect(loadStageSnapshot("20261013", "STAGE_1445_1500")).rejects.toThrow("trade_date");
+
+    const exactOuterDateWrong = structuredClone(missingReceipt);
+    exactOuterDateWrong.trade_date = "20261012";
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(exactOuterDateWrong)));
+    await expect(loadStageSnapshot("20261013", "STAGE_1445_1500")).rejects.toThrow("日期证据错误");
+  });
+
   it("keeps page offset out of stage request input", async () => {
     const fetchMock = vi.fn(async () => jsonResponse(stagePayload()));
     vi.stubGlobal("fetch", fetchMock);

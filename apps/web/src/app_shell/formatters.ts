@@ -1,4 +1,4 @@
-import type { MarketSummary, PoolGroup, PoolRow, ReviewMetric, StageRow } from "./types";
+import type { MarketSummary, PoolGroup, PoolRow, ReviewMetric, StageRow, StageWorkbench } from "./types";
 
 export function poolRows(group: PoolGroup) {
   return group.rows ?? [];
@@ -156,6 +156,41 @@ export function stageMarketCountText(summary: MarketSummary | undefined, selecte
   }
   if (summary?.display_mode === "READY_EMPTY") return "0 条 · 正式空结果已验证";
   return stageCountText(selectedRows);
+}
+export function hasExactMissingStageReceipt(
+  workbench: StageWorkbench | null | undefined,
+  requestedDate: string,
+  requestedStage: string,
+) {
+  const evidence = workbench?.execution_evidence;
+  return workbench?.status === "CANNOT_CONFIRM"
+    && workbench.trade_date === requestedDate
+    && workbench.stage?.stage_id === requestedStage
+    && evidence?.status === "EXECUTION_RECEIPT_MISSING"
+    && evidence.trade_date === requestedDate
+    && evidence.stage_id === requestedStage
+    && evidence.execution_verified === false
+    && evidence.natural_verified === false
+    && evidence.write_performed === false
+    && evidence.cannot_confirm?.includes("EXACT_DATE_STAGE_RECEIPT_MISSING") === true;
+}
+export function exactMissingStageReceiptMessage(
+  workbench: StageWorkbench | null | undefined,
+  requestedDate: string,
+  requestedStage: string,
+) {
+  if (!hasExactMissingStageReceipt(workbench, requestedDate, requestedStage)) return "";
+  const selectionMarkets = workbench?.selection_markets;
+  const selectionReasons = selectionMarkets && !Array.isArray(selectionMarkets)
+    ? Object.values(selectionMarkets).flatMap((market) => market?.cannot_confirm ?? [])
+    : [];
+  const additionalReasons = [...new Set([
+    ...(workbench?.stage.cannot_confirm ?? []),
+    ...(workbench?.cannot_confirm ?? []),
+    ...(workbench?.cannot_confirm_codes ?? []),
+    ...selectionReasons,
+  ].filter((reason): reason is string => typeof reason === "string" && reason !== "EXACT_DATE_STAGE_RECEIPT_MISSING"))];
+  return `${requestedDate} / ${requestedStage} · EXECUTION_RECEIPT_MISSING · EXACT_DATE_STAGE_RECEIPT_MISSING${additionalReasons.length ? ` · ${additionalReasons.join(" · ")}` : ""}`;
 }
 export function is0920D1ReferenceRow(row: StageRow) {
   return row.source_mode === "HK_CONNECT_D1_PRESELECT_REFERENCE"

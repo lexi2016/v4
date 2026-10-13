@@ -90,8 +90,8 @@ export type OpeningSecondFilter = {
 export type StageSelectionMarketId = "A_SHARE" | "HK_CONNECT";
 export type StageSelectionMarket = Readonly<Record<string, unknown>> & {
   market: StageSelectionMarketId;
-  trade_date: string;
-  stage_id: string;
+  trade_date?: string;
+  stage_id?: string;
   status: string;
   selection_status: string;
   source_status?: string;
@@ -107,10 +107,22 @@ export type StageSelectionMarket = Readonly<Record<string, unknown>> & {
 };
 export type StageSelectionMarkets = readonly ("A" | "HK")[]
   | Readonly<Partial<Record<StageSelectionMarketId, StageSelectionMarket>>>;
+export type StageExecutionEvidence = {
+  trade_date?: string;
+  stage_id?: string;
+  status?: string;
+  execution_verified?: boolean;
+  natural_verified?: boolean;
+  write_performed?: boolean;
+  cannot_confirm?: string[];
+};
 export type StageWorkbench = {
-  ok?: boolean; trade_date?: string;
+  ok?: boolean; trade_date?: string; status?: string;
   selection_markets?: StageSelectionMarkets;
-  stage: { stage_id: string; label?: string; window?: string; status: string; display_status: string };
+  execution_evidence?: StageExecutionEvidence;
+  cannot_confirm?: string[];
+  cannot_confirm_codes?: string[];
+  stage: { stage_id: string; label?: string; window?: string; status: string; display_status: string; cannot_confirm?: string[] };
   markets?: { A?: MarketSummary; HK?: MarketSummary };
   unified_rows: StageRow[];
   selected_a_rows: number; selected_hk_rows: number | null; selected_total_rows: number | null;

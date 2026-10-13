@@ -92,6 +92,87 @@ function expectPoolRequest(date: string, offset = 0) {
     expect.objectContaining({ signal: expect.anything() }),
   );
 }
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((accept) => { resolve = accept; });
+  return { promise, resolve };
+}
+function exactMissingStageReceipt(date: string, stageId: string) {
+  return {
+    trade_date: date,
+    stage_id: stageId,
+    status: "CANNOT_CONFIRM",
+    stage: { stage_id: stageId, status: "CANNOT_CONFIRM", display_status: "CANNOT_CONFIRM" },
+    markets: {
+      A: { status: "CANNOT_CONFIRM", display_mode: "CANNOT_CONFIRM", candidate_count: null },
+      HK: { status: "CANNOT_CONFIRM", display_mode: "CANNOT_CONFIRM", candidate_count: null },
+    },
+    selection_markets: {
+      A_SHARE: {
+        market: "A_SHARE", status: "CANNOT_CONFIRM", selection_status: "CANNOT_CONFIRM",
+        source_status: "CANNOT_CONFIRM", requested_rows: null, source_rows: null, selected_rows: null,
+        coverage_ratio: null, rows: null, source_evidence: [],
+        cannot_confirm: ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"],
+        selection_manifest_receipt_verified: false,
+      },
+      HK_CONNECT: {
+        market: "HK_CONNECT", status: "CANNOT_CONFIRM", selection_status: "CANNOT_CONFIRM",
+        source_status: "CANNOT_CONFIRM", requested_rows: null, source_rows: null, selected_rows: null,
+        coverage_ratio: null, rows: null, source_evidence: [],
+        cannot_confirm: ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"],
+        selection_manifest_receipt_verified: false,
+      },
+    },
+    execution_evidence: {
+      trade_date: date,
+      stage_id: stageId,
+      status: "EXECUTION_RECEIPT_MISSING",
+      execution_verified: false,
+      natural_verified: false,
+      write_performed: false,
+      cannot_confirm: ["EXACT_DATE_STAGE_RECEIPT_MISSING"],
+    },
+    cannot_confirm_codes: [
+      "A:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+      "HK:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+      "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+    ],
+    unified_rows: [],
+    selected_a_rows: 0,
+    selected_hk_rows: null,
+    selected_total_rows: null,
+    selection_mode: "SHARED_STAGE_CENTER_READ_ONLY",
+  };
+}
+function missingArtifact0925Stage(date: string) {
+  const payload: any = exactMissingStageReceipt(date, "STAGE_0925");
+  const unavailable = [
+    "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+    "A:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+    "HK:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+  ];
+  payload.stage = { ...payload.stage, window: "09:20-09:25", cannot_confirm: unavailable };
+  payload.cannot_confirm = unavailable;
+  payload.markets = {
+    A: {
+      market: "A_SHARE", status: "CANNOT_CONFIRM", selection_status: "CANNOT_CONFIRM",
+      source_status: "CANNOT_CONFIRM", requested_rows: null, source_rows: null, selected_rows: null,
+      candidate_count: 0, rows: [], cannot_confirm: ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"],
+    },
+    HK: {
+      market: "HK_CONNECT", status: "CANNOT_CONFIRM", selection_status: "CANNOT_CONFIRM",
+      source_status: "CANNOT_CONFIRM", requested_rows: null, source_rows: null, selected_rows: null,
+      candidate_count: null, display_mode: "CANNOT_CONFIRM", observation_count: null, rows: [],
+      cannot_confirm: ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"],
+    },
+  };
+  payload.market_summaries = structuredClone(payload.markets);
+  payload.selection_markets.A_SHARE.rows = [];
+  delete payload.selection_markets.A_SHARE.selection_manifest_receipt_verified;
+  payload.selection_markets.HK_CONNECT.rows = [];
+  delete payload.selection_markets.HK_CONNECT.selection_manifest_receipt_verified;
+  return payload;
+}
 const taskStatus = {
   logical_workload_count: 3,
   active_owner_count: 1,
@@ -2051,5 +2132,193 @@ describe("future target date navigation", () => {
       "/api/v3/workbench/stage?date=20260929&stage=STAGE_0925&limit=50",
       expect.objectContaining({ cache: "no-store" }),
     );
+  });
+});
+
+describe("exact-date stage receipt and fast navigation", () => {
+  afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+
+  const dateList = {
+    default_date: "20261013",
+    navigation_date: "20261013",
+    dates: ["20261012", "20261013"],
+    stage_dates: ["20261012", "20261013"],
+    future_target_dates: [],
+  };
+  const stageResponse = (date: string, stageId: string, displayStatus = `已读取 ${date} ${stageId}`) => ({
+    ...structuredClone(referenceStage),
+    trade_date: date,
+    status: "PARTIAL_WITH_ROWS",
+    stage: { ...referenceStage.stage, stage_id: stageId, status: "PARTIAL_WITH_ROWS", display_status: displayStatus },
+    unified_rows: [],
+  });
+
+  it("renders the exact missing receipt reason and leaves unexecuted counts unassessed", async () => {
+    window.history.replaceState({}, "", "/?date=20261013&stage=STAGE_1445_1500");
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") return jsonResponse(dateList);
+      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
+      if (url.startsWith("/api/v3/workbench/stage?")) {
+        const request = new URL(url, window.location.origin);
+        const date = request.searchParams.get("date") || "";
+        const stageId = request.searchParams.get("stage") || "";
+        return jsonResponse(date === "20261013" && stageId === "STAGE_1445_1500"
+          ? exactMissingStageReceipt(date, stageId)
+          : stageResponse(date, stageId));
+      }
+      if (url.startsWith("/api/v3/preselection-pools?")) {
+        const date = new URL(url, window.location.origin).searchParams.get("date") || "";
+        return jsonResponse({ ...blockedPool, trade_date: date });
+      }
+      return jsonResponse(blockedPool);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { container } = render(App);
+
+    const blocker = await screen.findByRole("alert");
+    expect(blocker.textContent).toContain("20261013 / STAGE_1445_1500");
+    expect(blocker.textContent).toContain("EXECUTION_RECEIPT_MISSING");
+    expect(blocker.textContent).toContain("EXACT_DATE_STAGE_RECEIPT_MISSING");
+    expect(blocker.textContent).toContain("不按 0 条显示");
+    expect(screen.queryByText("阶段工作台读取失败。")).toBeNull();
+
+    const aRegion = screen.getByRole("region", { name: "A股候选" });
+    expect(aRegion.textContent).toContain("待确认");
+    expect(aRegion.textContent).not.toContain("0 条");
+    expect(container.textContent).not.toContain("A 0 / HK");
+    expect(new URLSearchParams(window.location.search).get("date")).toBe("20261013");
+    expect(new URLSearchParams(window.location.search).get("stage")).toBe("STAGE_1445_1500");
+  });
+
+  it("shows the live 09:25 artifact gap with its date and stage without counting A zero", async () => {
+    window.history.replaceState({}, "", "/?date=20261013&stage=STAGE_0925");
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") return jsonResponse(dateList);
+      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
+      if (url.startsWith("/api/v3/workbench/stage?")) {
+        const request = new URL(url, window.location.origin);
+        const date = request.searchParams.get("date") || "";
+        const stageId = request.searchParams.get("stage") || "";
+        return jsonResponse(date === "20261013" && stageId === "STAGE_0925"
+          ? missingArtifact0925Stage(date)
+          : stageResponse(date, stageId));
+      }
+      if (url.startsWith("/api/v3/preselection-pools?")) {
+        const date = new URL(url, window.location.origin).searchParams.get("date") || "";
+        return jsonResponse({ ...blockedPool, trade_date: date });
+      }
+      return jsonResponse(blockedPool);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(App);
+
+    const blocker = await screen.findByRole("alert");
+    expect(blocker.textContent).toContain("20261013 / STAGE_0925");
+    expect(blocker.textContent).toContain("EXECUTION_RECEIPT_MISSING");
+    expect(blocker.textContent).toContain("SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID");
+    const aRegion = screen.getByRole("region", { name: "A股候选" });
+    expect(aRegion.textContent).toContain("待确认");
+    expect(aRegion.textContent).toContain("阶段执行回执缺失");
+    expect(aRegion.textContent).not.toContain("0 条");
+    const timeline = screen.getByRole("region", { name: "阶段上下文" });
+    expect(timeline.textContent).toContain("A 待确认 / HK 待确认");
+    expect(timeline.textContent).not.toContain("A 0 / HK");
+    expect(screen.queryByText("阶段工作台读取失败。")).toBeNull();
+  });
+
+  it("preserves a stage choice made before the mount date catalog finishes", async () => {
+    window.history.replaceState({}, "", "/?date=20261013&stage=STAGE_1445_1500");
+    const dateCatalog = deferred<ReturnType<typeof jsonResponse>>();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") return dateCatalog.promise;
+      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
+      if (url.startsWith("/api/v3/workbench/stage?")) {
+        const request = new URL(url, window.location.origin);
+        return jsonResponse(stageResponse(
+          request.searchParams.get("date") || "",
+          request.searchParams.get("stage") || "",
+        ));
+      }
+      if (url.startsWith("/api/v3/preselection-pools?")) {
+        const date = new URL(url, window.location.origin).searchParams.get("date") || "";
+        return jsonResponse({ ...blockedPool, trade_date: date });
+      }
+      return jsonResponse(blockedPool);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const mounted = render(App);
+    const stageSelect = screen.getByRole("combobox", { name: "阶段" }) as HTMLSelectElement;
+    await fireEvent.update(stageSelect, "STAGE_1545_1555");
+    expect(stageSelect.value).toBe("STAGE_1545_1555");
+
+    dateCatalog.resolve(jsonResponse(dateList));
+    const dateInput = await screen.findByLabelText("交易日（日历选择）") as HTMLInputElement;
+    await waitFor(() => expect(dateInput.value).toBe("2026-10-13"));
+    expect(stageSelect.value).toBe("STAGE_1545_1555");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v3/workbench/stage?date=20261013&stage=STAGE_1545_1555&limit=50",
+      expect.objectContaining({ cache: "no-store" }),
+    );
+    await waitFor(() => expect(new URLSearchParams(window.location.search).get("date")).toBe("20261013"));
+    await waitFor(() => expect(new URLSearchParams(window.location.search).get("stage")).toBe("STAGE_1545_1555"));
+
+    mounted.unmount();
+    fetchMock.mockClear();
+    render(App);
+    const refreshedStageSelect = await screen.findByRole("combobox", { name: "阶段" }) as HTMLSelectElement;
+    await waitFor(() => expect(refreshedStageSelect.value).toBe("STAGE_1545_1555"));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v3/workbench/stage?date=20261013&stage=STAGE_1545_1555&limit=50",
+      expect.objectContaining({ cache: "no-store" }),
+    );
+  });
+
+  it("keeps the latest date and stage when an older stage request resolves last", async () => {
+    window.history.replaceState({}, "", "/?date=20261013&stage=STAGE_1445_1500");
+    const staleStage = deferred<ReturnType<typeof jsonResponse>>();
+    let deferInitialStage = true;
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") return jsonResponse(dateList);
+      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
+      if (url.startsWith("/api/v3/workbench/stage?")) {
+        const request = new URL(url, window.location.origin);
+        const date = request.searchParams.get("date") || "";
+        const stageId = request.searchParams.get("stage") || "";
+        if (deferInitialStage && date === "20261013" && stageId === "STAGE_1445_1500") {
+          deferInitialStage = false;
+          return staleStage.promise;
+        }
+        return jsonResponse(stageResponse(date, stageId));
+      }
+      if (url.startsWith("/api/v3/preselection-pools?")) {
+        const date = new URL(url, window.location.origin).searchParams.get("date") || "";
+        return jsonResponse({ ...blockedPool, trade_date: date });
+      }
+      return jsonResponse(blockedPool);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(App);
+    const dateInput = await screen.findByLabelText("交易日（日历选择）") as HTMLInputElement;
+    await waitFor(() => expect(dateInput.value).toBe("2026-10-13"));
+    await fireEvent.change(dateInput, { target: { value: "2026-10-12" } });
+    const timeline = screen.getByRole("region", { name: "阶段上下文" });
+    const timelineButtons = within(timeline).getAllByRole("button");
+    await fireEvent.click(timelineButtons[7]);
+
+    await waitFor(() => expect(new URLSearchParams(window.location.search).get("date")).toBe("20261012"));
+    await waitFor(() => expect(new URLSearchParams(window.location.search).get("stage")).toBe("STAGE_1545_1555"));
+    await waitFor(() => expect(document.querySelector(".stage-display-status")?.textContent)
+      .toBe("已读取 20261012 STAGE_1545_1555"));
+
+    staleStage.resolve(jsonResponse(stageResponse("20261013", "STAGE_1445_1500", "迟到的旧阶段")));
+    await waitFor(() => expect(document.querySelector(".stage-display-status")?.textContent)
+      .toBe("已读取 20261012 STAGE_1545_1555"));
+    expect(screen.queryByText("迟到的旧阶段")).toBeNull();
+    expect(dateInput.value).toBe("2026-10-12");
+    expect(timelineButtons[7].classList.contains("current")).toBe(true);
   });
 });
