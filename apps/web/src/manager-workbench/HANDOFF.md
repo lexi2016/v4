@@ -3,7 +3,7 @@
 Contract: MWB_V1_20261013, schema_version=v4.manager_workbench.v1.
 Issue: https://github.com/lexi2016/v4/issues/41
 Requirements base: 5017c9125bd970e0bcd5d7bb6efcdae63c58742f.
-B public contract implementation commit: **PENDING** (B issue #39 branch had not been published when C was authored).
+B public contract baseline commit: **761df4b6e7d712a28794c440c9e77fa3cdb8d3cb** (contracts.py plus normative raw PlanSnapshot/Job/Legacy samples, observed 2026-10-13); B HTTP response implementation and its fixed integration commit remain PENDING.
 Only synthetic fixtures are included here. The fixture data cannot establish real-source coverage or deployed UI acceptance.
 
 ## Scope and architecture
@@ -13,7 +13,7 @@ Only synthetic fixtures are included here. The fixture data cannot establish rea
 - route.ts interprets legacy plan_date as target date, validates YYYYMMDD and phase, and writes canonical date/phase/run_id.
 - useWorkbench.ts owns abort/request sequence, isolated day/phase/run identity, same-query stale badges, per-panel reads, POST task polling.
 - Workbench.vue renders five panels, counts independent from pagination, original lane decisions and evidence with no front-end strategy calculation.
-- All decision/scope/rate/top20 calculations belong to A/B. The TypeScript read shapes in types.ts are consumer candidates until B publishes normative samples. In particular, B must confirm DayData.snapshot/versions, HistoryData.entries, ReviewSummary.top20/rate and StockDetails.stock shape before Mac integration.
+- All decision/scope/rate/top20 calculations belong to A/B. The TypeScript read shapes in types.ts are consumer candidates until B publishes normative samples. In particular, B must confirm GET DayData.snapshot/versions, GET HistoryData.entries, ReviewSummary response mapping and StockDetails.stock shape before Mac integration. The C names for StockDecision.membership_status, ReviewSummary.top20_rows/selected_denominator/lane_incremental_coverage/uncovered_reasons, EvidenceRef.source_session/source_url, and RESEARCH_ONLY are aligned to the B contracts.py baseline.
 
 ## Verification (candidate, not production)
 
@@ -31,4 +31,4 @@ Keep the old page and modules unchanged. Mac may first mount the candidate in it
 
 research_only=true; production_allowed=false; buy_gate_updated=false; orders_sent=false are the intended research safety contract, not an observed live claim.
 
-Status: IMPLEMENTED_CANDIDATE; B_CONTRACT_DEPENDENCY=PENDING; REAL_API/UI=NOT_RUN; MAC_NATURAL=NOT_RUN; INDEPENDENT_REVIEWER=NOT_RUN.
+Status: IMPLEMENTED_CANDIDATE; B_CONTRACT_TYPES_PINNED=761df4b6; B_HTTP_BINDING=PENDING; REAL_API/UI=NOT_RUN; MAC_NATURAL=NOT_RUN; INDEPENDENT_REVIEWER=NOT_RUN.

@@ -166,7 +166,7 @@ function stockLane(stock: StockDecision, lane: Lane) {
             <tr v-for="stock in vm.stocks" :key="stock.market + ':' + stock.symbol">
               <td><strong class="mwb-symbol">{{ stock.symbol }}</strong>
                 <span>{{ stock.name }}</span>
-                <small>资格：{{ stock.connect_eligibility || stock.eligibility_status || "待核验" }}</small>
+                <small>资格：{{ stock.membership_status || "待核验" }}</small>
               </td>
               <td><span class="mwb-decision" :data-decision="stock.decision">{{ decisionLabel(stock.decision) }}</span>
                 <small v-if="stockLane(stock, 'STAGE_REFERENCE')">阶段参考 · 观察</small>
@@ -212,7 +212,7 @@ function stockLane(stock: StockDecision, lane: Lane) {
           <span class="mwb-decision" :data-decision="vm.detail.data.stock.decision">
             {{ decisionLabel(vm.detail.data.stock.decision) }}
           </span>
-          <span>资格：{{ vm.detail.data.stock.connect_eligibility || vm.detail.data.stock.eligibility_status || "待核验" }}</span>
+          <span>资格：{{ vm.detail.data.stock.membership_status || "待核验" }}</span>
         </div>
         <div class="mwb-detail-grid">
           <article><h3>依据</h3><p v-for="reason in vm.detail.data.stock.reasons" :key="reason">{{ reason }}</p>
@@ -244,9 +244,9 @@ function stockLane(stock: StockDecision, lane: Lane) {
           <p>本行 evidence_ids：{{ vm.detail.data.stock.evidence_ids?.join(", ") || "未提供" }}</p>
           <article v-for="ev in vm.detail.data.evidence_refs || []" :key="ev.evidence_id">
             <strong>{{ ev.evidence_id }} · {{ ev.owner }}</strong>
-            <p>来源 {{ ev.source_date || ev.session || "未知" }} · 可用 {{ humanTime(ev.available_at) }} · {{ ev.verification || "CANNOT_CONFIRM" }}</p>
+            <p>来源 {{ ev.source_date || ev.source_session || "未知" }} · 可用 {{ humanTime(ev.available_at) }} · {{ ev.verification || "CANNOT_CONFIRM" }}</p>
             <p>SHA256 {{ ev.sha256 || "未知" }} · manifest {{ ev.manifest_ref || "未知" }}</p>
-            <a v-if="evidenceLink(ev.original_url)" :href="evidenceLink(ev.original_url) || undefined"
+            <a v-if="evidenceLink(ev.source_url)" :href="evidenceLink(ev.source_url) || undefined"
               target="_blank" rel="noopener noreferrer">打开原文</a>
           </article>
           <p v-for="gap in vm.detail.data.gaps || []" :key="gapText(gap)">{{ gapText(gap) }}</p>
@@ -330,18 +330,18 @@ function stockLane(stock: StockDecision, lane: Lane) {
         <p>榜单日期：{{ vm.review.data.ranking_date || "未知" }} · 模式：{{ vm.review.data.mode || "未知" }}
           · 实际榜单范围：{{ vm.review.data.evaluation_scope_ref || "未知" }}</p>
         <div class="mwb-counts mwb-review-metrics">
-          <div><strong>{{ metricLabel(vm.review.data.strict_coverage, vm.review.data.top20?.length === 20) }}</strong><span>严格覆盖率（仅 SELECTED）</span></div>
-          <div><strong>{{ metricLabel(vm.review.data.extended_coverage, vm.review.data.top20?.length === 20) }}</strong><span>扩展覆盖率（含条件观察）</span></div>
-          <div><strong>{{ showCount(vm.review.data.selection_denominator) }}</strong><span>实际入选名单分母</span></div>
+          <div><strong>{{ metricLabel(vm.review.data.strict_coverage, vm.review.data.top20_rows?.length === 20) }}</strong><span>严格覆盖率（仅 SELECTED）</span></div>
+          <div><strong>{{ metricLabel(vm.review.data.extended_coverage, vm.review.data.top20_rows?.length === 20) }}</strong><span>扩展覆盖率（含条件观察）</span></div>
+          <div><strong>{{ showCount(vm.review.data.selected_denominator) }}</strong><span>实际入选名单分母</span></div>
         </div>
-        <p v-if="!vm.review.data.top20 || vm.review.data.top20.length !== 20"
+        <p v-if="!vm.review.data.top20_rows || vm.review.data.top20_rows.length !== 20"
           class="mwb-alert" role="status">榜单缺失或不足完整20行，不能宣称完整Top20覆盖率。</p>
-        <div v-if="vm.review.data.top20?.length" class="mwb-table-wrap">
+        <div v-if="vm.review.data.top20_rows?.length" class="mwb-table-wrap">
           <table class="mwb-table">
             <thead><tr><th scope="col">名次</th><th scope="col">股票</th><th scope="col">实际变化</th>
               <th scope="col">严格命中</th><th scope="col">扩展命中</th>
               <th scope="col">贡献路径</th><th scope="col">漏选原因</th></tr></thead>
-            <tbody><tr v-for="(item,i) in vm.review.data.top20" :key="item.symbol + ':' + i">
+            <tbody><tr v-for="(item,i) in vm.review.data.top20_rows" :key="item.symbol + ':' + i">
               <td>{{ item.rank }}</td><td>{{ item.symbol }} {{ item.name || "" }}</td>
               <td>{{ showText(item.actual_change) }}</td>
               <td>{{ item.strict_hit === null || item.strict_hit === undefined ? "未知" : (item.strict_hit ? "是" : "否") }}</td>
@@ -353,9 +353,9 @@ function stockLane(stock: StockDecision, lane: Lane) {
         </div>
         <div class="mwb-detail-grid">
           <article><h3>策略新增覆盖（服务端结果）</h3>
-            <pre>{{ showText(vm.review.data.lane_incremental) }}</pre></article>
+            <pre>{{ showText(vm.review.data.lane_incremental_coverage) }}</pre></article>
           <article><h3>漏选原因（服务端结果）</h3>
-            <pre>{{ showText(vm.review.data.missed_reasons) }}</pre></article>
+            <pre>{{ showText(vm.review.data.uncovered_reasons) }}</pre></article>
         </div>
         <p v-for="gap in vm.review.data.gaps || []" :key="gapText(gap)" class="mwb-muted">缺口：{{ gapText(gap) }}</p>
       </template>
@@ -366,7 +366,7 @@ function stockLane(stock: StockDecision, lane: Lane) {
 
     <footer class="mwb-footer">
       <span>合同 {{ vm.day?.schema_version || "v4.manager_workbench.v1" }}</span>
-      <span>research_only={{ showText(vm.day?.research_only) }} / production_allowed={{ showText(vm.day?.production_allowed) }}</span>
+      <span>RESEARCH_ONLY={{ showText(vm.day?.RESEARCH_ONLY) }} / production_allowed={{ showText(vm.day?.production_allowed) }}</span>
       <span>buy_gate_updated={{ showText(vm.day?.buy_gate_updated) }} / orders_sent={{ showText(vm.day?.orders_sent) }}</span>
       <span v-if="vm.day?.gaps?.length">外层缺口：{{ vm.day.gaps.map(gapText).join("；") }}</span>
       <span>页面不生产选股判定，不触发交易。</span>

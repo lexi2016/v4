@@ -11,7 +11,7 @@ export type EvidenceStatus = "VERIFIED" | "CANNOT_CONFIRM" | "INVALID";
 export type Gap = string | { code?: string; message?: string; owner?: string; [key: string]: unknown };
 export type NullableCount = number | null;
 export interface SafetyFlags {
-  research_only?: boolean;
+  RESEARCH_ONLY?: boolean;
   production_allowed?: boolean;
   buy_gate_updated?: boolean;
   orders_sent?: boolean;
@@ -44,7 +44,7 @@ export interface EvidenceRef {
   owner: string;
   role?: string | null;
   source_date?: string | null;
-  session?: string | null;
+  source_session?: string | null;
   observed_at?: string | null;
   captured_at?: string | null;
   available_at?: string | null;
@@ -52,7 +52,7 @@ export interface EvidenceRef {
   artifact_ref?: string | null;
   manifest_ref?: string | null;
   receipt_ref?: string | null;
-  original_url?: string | null;
+  source_url?: string | null;
   verification?: EvidenceStatus | null;
   gaps?: Gap[] | null;
 }
@@ -69,7 +69,7 @@ export interface LaneDecision {
 export interface StockDecision {
   market: "HK_CONNECT";
   symbol: string;
-  name: string;
+  name: string | null;
   decision: Decision;
   lane_decisions: Partial<Record<Lane, LaneDecision | null>>;
   reasons: string[];
@@ -77,8 +77,7 @@ export interface StockDecision {
   invalidation_conditions: string[];
   risks: string[];
   evidence_ids: string[];
-  connect_eligibility?: string | null;
-  eligibility_status?: string | null;
+  membership_status?: string | null;
   available_at?: string | null;
   changed?: string | null;
   [key: string]: unknown;
@@ -111,7 +110,7 @@ export interface PlanMetadata extends SafetyFlags {
   generated_at?: string | null;
   available_at?: string | null;
   lanes?: LaneResult[];
-  changes?: unknown[] | null;
+  changes?: Record<string, unknown> | null;
   gaps?: Gap[] | null;
 }
 export interface PlanVersion {
@@ -198,12 +197,12 @@ export interface ReviewSummary {
   evaluation_scope_ref?: string | null;
   mode?: string | null;
   ranking_date?: string | null;
-  top20: ReviewRow[] | null;
+  top20_rows: ReviewRow[] | null;
   strict_coverage?: ReviewMetric | null;
   extended_coverage?: ReviewMetric | null;
-  selection_denominator?: number | null;
-  lane_incremental?: Record<string, unknown> | null;
-  missed_reasons?: Record<string, unknown> | null;
+  selected_denominator?: number | null;
+  lane_incremental_coverage?: Record<string, unknown> | null;
+  uncovered_reasons?: string[] | null;
   gaps?: Gap[] | null;
 }
 export const DECISION_LABELS: Record<Decision, string> = {

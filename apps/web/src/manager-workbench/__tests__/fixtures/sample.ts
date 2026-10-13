@@ -4,7 +4,7 @@ import type { DayData, Envelope, JobRecord, ReviewSummary, StockDecision, Histor
 export function wrapped<T>(data: T | null, state = "READY", statusFlags = true): Envelope<T> {
   return {
     schema_version: SCHEMA_VERSION, state, data, gaps: [],
-    ...(statusFlags ? { research_only: true, production_allowed: false, buy_gate_updated: false, orders_sent: false } : {})
+    ...(statusFlags ? { RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false } : {})
   };
 }
 export function sampleStock(symbol = "HK.01234", name = "合成标的"): StockDecision {
@@ -18,7 +18,7 @@ export function sampleStock(symbol = "HK.01234", name = "合成标的"): StockDe
     },
     reasons: ["合成映射线索：等待实际业务证据"], conditions: ["待确认订单/关系"],
     invalidation_conditions: ["映射资格失效"], risks: ["不可作为买入建议"],
-    evidence_ids: ["synthetic-evidence"], eligibility_status: null, available_at: "2026-10-13T09:20:00+08:00",
+    evidence_ids: ["synthetic-evidence"], membership_status: null, available_at: "2026-10-13T09:20:00+08:00",
     changed: "新增观察"
   };
 }
@@ -67,18 +67,18 @@ export function sampleHistory(): HistoryData {
     ]
   };
 }
-export function sampleReview(top20: ReviewSummary["top20"] = Array.from({ length: 20 }, (_, i) => ({
+export function sampleReview(top20: ReviewSummary["top20_rows"] = Array.from({ length: 20 }, (_, i) => ({
   rank: i + 1, symbol: "HK." + String(i + 1).padStart(5, "0"),
   strict_hit: i === 0, extended_hit: i < 3, matched_lanes: i === 0 ? ["ANNOUNCEMENT" as const] : [],
   missed_reason: i === 0 ? null : "未进入合成名单"
 }))): ReviewSummary {
   return {
     target_date: "20261013", plan_run_id: "synthetic-run-1", ranking_date: "20261013",
-    evaluation_scope_ref: "synthetic-top20", top20,
+    evaluation_scope_ref: "synthetic-top20", top20_rows: top20,
     strict_coverage: { numerator: 1, denominator: 20, rate: 0.05 },
     extended_coverage: { numerator: 3, denominator: 20, rate: 0.15 },
-    selection_denominator: 1, lane_incremental: { ANNOUNCEMENT: 1 },
-    missed_reasons: { no_evidence: 17 }
+    selected_denominator: 1, lane_incremental_coverage: { ANNOUNCEMENT: 1 },
+    uncovered_reasons: ["no_evidence:17"]
   };
 }
 export function sampleJob(state: JobRecord["state"] = "FAILED"): JobRecord {

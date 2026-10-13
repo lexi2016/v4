@@ -37,6 +37,14 @@ describe("C manager workbench screen", () => {
     expect(screen.getByText(/orders_sent=false/)).toBeTruthy();
   });
 
+  it("renders B-owned membership_status and uppercase RESEARCH_ONLY without inference", async () => {
+    const stock = sampleStock();
+    stock.membership_status = "VERIFIED";
+    await loadSample({ stocks: [stock] });
+    expect(screen.getByText("资格：VERIFIED")).toBeTruthy();
+    expect(screen.getByText(/RESEARCH_ONLY=true/)).toBeTruthy();
+  });
+
   it("distinguishes valid NOT_RUN and READY_EMPTY without manufacturing counts", async () => {
     install(async () => response(wrapped(null, "NOT_RUN")));
     const { unmount } = render(Workbench);
@@ -100,7 +108,7 @@ describe("C manager workbench screen", () => {
     const spy = install(async url => url.includes("/stocks/") ?
       response(wrapped({ stock: sampleStock(), evidence_refs: [{
         evidence_id: "synthetic-evidence", owner: "synthetic", sha256: "abc", verification: "VERIFIED",
-        original_url: "javascript:alert(1)"
+        source_url: "javascript:alert(1)"
       }] })) : response(wrapped(sampleDay())));
     render(Workbench);
     await screen.findByText("合成标的");
