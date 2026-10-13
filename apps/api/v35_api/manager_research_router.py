@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 import json
 from threading import Event
 import re
-from typing import Any, Literal
+from typing import Any, Literal, Mapping
 
 from starlette.concurrency import run_in_threadpool
 from fastapi import APIRouter, HTTPException, Query, Request
