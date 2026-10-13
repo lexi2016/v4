@@ -95,6 +95,17 @@ class NativeAdapters:
             raise ValueError("SOURCE_OBJECT_REQUIRED")
         return value, raw_sha(raw)
 
+    @staticmethod
+    def _stage_json(root, relative, expected, schema):
+        # This owner hashes canonical JSON, while other sources pin raw bytes.
+        # Keep the distinction local to its two explicitly versioned contracts.
+        raw = SafeRoot(root).read_bytes(relative)
+        value = json.loads(raw)
+        if (not isinstance(value, dict) or value.get("schema_version") != schema or value.get("owner") != "stage_center"
+                or owner_digest(value) != expected):
+            raise ValueError("STAGE_OWNER_SCHEMA_OR_SHA_MISMATCH")
+        return value, raw_sha(raw)
+
     def _manifest(self, name, date, root, context=None):
         pin = self._binding(name, date, context)
         manifest, sha = self._json(root, pin["manifest_relative"], pin["manifest_sha256"])
@@ -175,9 +186,9 @@ class NativeAdapters:
             {"MONTHLY_CONNECT_MEMBERSHIP", "HK_SECURITY_MASTER"}), None)
         for item in value.records:
             primary = default_primary
-            if lane == Lane.ANNOUNCEMENT:
+            if lane == Lane.ANNOUNCEMENT or lane == Lane.OVERSOLD and item.get("comparison_basis"):
                 candidates = [by_id[eid] for eid in item.get("evidence_ids", []) if eid in by_id
-                    and by_id[eid].role in {"ANNOUNCEMENT_BODY", "ANNOUNCEMENT_CAPTURED_BODY"}
+                    and by_id[eid].role in {"ANNOUNCEMENT_BODY", "ANNOUNCEMENT_CAPTURED_BODY", "FUTU_DAILY_HISTORY_RAW"}
                     and by_id[eid].sha256 == item.get("source_sha256")]
                 # Each article owns its evidence identity. Missing or ambiguous
                 # source matches stay unknown instead of borrowing a batch owner.
@@ -210,7 +221,8 @@ class NativeAdapters:
                         return str(v) if v is not None and math.isfinite(float(v)) else None
                     return dict(session=b.get("date"),close=number(b.get("close")),high=number(b.get("high")),
                                 volume=number(b.get("volume")),price_unit=b.get("currency"),volume_unit=b.get("volume_unit"),
-                                adjustment=b.get("price_basis"),available_at=b.get("source_available_at"))
+                                adjustment=b.get("price_basis"),available_at=b.get("source_available_at"),
+                                source_metadata=b.get("source_metadata",{}),comparison_basis_sha256=b.get("comparison_basis_sha256"))
                 row.update(price_unit=prev.get("currency"),volume_unit=prev.get("volume_unit"),adjustment=prev.get("price_basis"),
                     previous_bar=bar(prev),high_history60=[bar(by_date[d]) for d in sixty if d in by_date],
                     volume_history5=[bar(by_date[d]) for d in sixty[-5:] if d in by_date],
@@ -427,6 +439,48 @@ class NativeAdapters:
             "Complete observed pinned multi-source corpus; source rows and official variants remain distinct",
             Coverage(scope_count=len(records),observed_count=len(records),gaps=gaps),gaps)
 
+    def _futu_history(self, context, pin, previous):
+        """Validate one already-captured owner response; never requests a quote."""
+        root=Path(pin['source_local_path']);raw=SafeRoot(root).read_bytes(pin['raw_relative'])
+        if raw_sha(raw)!=pin['raw_sha256']:raise ValueError('FUTU_HISTORY_RAW_SHA_MISMATCH')
+        receipt,rsha=self._json(root,pin['receipt_relative'],pin['receipt_sha256'])
+        request=receipt.get('request',{});sym=symbol(receipt.get('code'))
+        if (receipt.get('source')!='FUTU' or sym!=pin.get('symbol') or receipt.get('return_code')!=0
+                or receipt.get('has_next_page') is not False or receipt.get('raw_sha256')!=raw_sha(raw)
+                or request.get('ktype')!='K_DAY' or request.get('autype')!='NONE'
+                or not before(receipt.get('started_at'),context.cutoff) or not before(receipt.get('finished_at'),context.cutoff)
+                or time_value(receipt['started_at'])>time_value(receipt['finished_at'])):
+            raise ValueError('FUTU_HISTORY_REQUEST_RECEIPT_INVALID')
+        values=json.loads(raw)
+        sessions=[previous];cursor=previous
+        for _ in range(60):
+            cursor=previous_session(self.calendar,cursor,market='hk_securities');sessions.append(cursor)
+        sessions.sort()
+        if (not isinstance(values,list) or len(values)!=61 or receipt.get('row_count')!=61
+                or receipt.get('missing_sessions')!=[] or receipt.get('extra_sessions')!=[]
+                or request.get('start')!=sessions[0][:4]+'-'+sessions[0][4:6]+'-'+sessions[0][6:]
+                or request.get('end')!=previous[:4]+'-'+previous[4:6]+'-'+previous[6:]):
+            raise ValueError('FUTU_HISTORY_EXACT_61_SESSION_INVALID')
+        dates=[]
+        for value in values:
+            text=value.get('time_key')
+            if not isinstance(text,str) or len(text)!=19 or text[10:]!=' 00:00:00' or value.get('code')!=sym:
+                raise ValueError('FUTU_HISTORY_SECURITY_OR_DAY_INVALID')
+            dates.append(text[:10].replace('-',''))
+        if dates!=sessions:raise ValueError('FUTU_HISTORY_SESSION_DUPLICATE_OR_GAP')
+        original_request=dict(source='FUTU',code=sym,request=request)
+        basis=dict(source='FUTU',security_symbol=sym,request=original_request,
+            request_sha256=owner_digest(original_request),raw_sha256=raw_sha(raw),receipt_sha256=rsha,
+            adjustment='RAW',price_comparison='SAME_SOURCE_SECURITY_REQUEST',volume_comparison='SAME_SOURCE_SECURITY_REQUEST',
+            available_at=receipt['finished_at'])
+        bsha=owner_digest(basis)
+        ref=self._ref('FUTU','FUTU_DAILY_HISTORY_RAW',previous,raw_sha(raw),pin['raw_relative'],receipt['finished_at'],receipt=pin['receipt_relative'])
+        bars=[dict(date=d,close=v.get('close'),high=v.get('high'),volume=v.get('volume'),currency=None,volume_unit=None,
+            price_basis='RAW',source_available_at=receipt['finished_at'],suspended=False,comparison_basis_sha256=bsha,
+            source_metadata=dict(source='FUTU',code=v['code'],time_key=v['time_key'],request=original_request,
+                raw_sha256=raw_sha(raw),receipt_sha256=rsha)) for d,v in zip(dates,values)]
+        return sym,bars,basis,ref
+
     def oversold(self, context):
         date = context.source_sessions.get("hk_price") or previous_session(self.calendar, context.target_date, market="hk_securities")
         pin = self._binding("hk_panel", date, context)
@@ -452,7 +506,7 @@ class NativeAdapters:
         master_raw = SafeRoot(root).read_bytes(mrelative)
         if raw_sha(master_raw) != master["artifact_sha256"]:
             raise ValueError("HK_MASTER_SHA_MISMATCH")
-        master_rows = list(csv.DictReader(io.StringIO(master_raw.decode())))
+        master_rows = list(csv.DictReader(io.StringIO(master_raw.decode("utf-8-sig"))))
         master_codes = {symbol(r.get("code", r.get("symbol", r.get("code_norm")))) for r in master_rows}
         master_codes.discard(None)
         if len(master_codes) != master["row_count"]:
@@ -482,7 +536,16 @@ class NativeAdapters:
                         if bar.get("trade_date") <= date and bar["trade_date"] not in existing:
                             existing[bar["trade_date"]] = {**bar, date_col:bar["trade_date"]}
                     by_code[sym] = list(existing.values())
+        futu={};futu_gaps=[]
+        for original in pin.get("futu_history",[]):
+            try:
+                sym,bars,basis,ref=self._futu_history(context,original,date)
+                if sym not in master_codes or sym in futu:raise ValueError("FUTU_HISTORY_SCOPE_OR_DUPLICATE_INVALID")
+                futu[sym]=(bars,basis,ref);refs.append(ref)
+            except (OSError,ValueError,KeyError,TypeError) as exc:
+                futu_gaps.append(str(exc) if isinstance(exc,ValueError) else "FUTU_HISTORY_OWNER_UNAVAILABLE")
         codes, member_ref, gaps = self.membership(context)
+        gaps+=futu_gaps
         if member_ref:
             refs.append(member_ref)
         records = []
@@ -496,10 +559,15 @@ class NativeAdapters:
                                  volume=raw_row.get("volume", raw_row.get("trade")),
                                  volume_unit=volume_unit, price_basis=price_basis, currency=raw_row.get("currency", pin.get("currency")),
                                  suspended=raw_row.get("suspended", False),
-                                 source_available_at=raw_row.get("request_finished_at", pin.get("available_at"))))
+                                 source_available_at=raw_row.get("request_finished_at", pin.get("available_at")),
+                                 source_metadata={k:(None if isinstance(v,float) and pd.isna(v) else v) for k,v in raw_row.items() if k == "source" or k == "source_path" or k.startswith("history_") or k == "native_fields"}))
             record = dict(symbol=code, price_session=date, bars=sorted(bars,key=lambda r:r["date"]),
                           expected_sessions=pin.get("expected_sessions"),
                           evidence_ids=[r.evidence_id for r in refs], name=None)
+            if code in futu:
+                bars,basis,ref=futu[code]
+                record.update(bars=bars,comparison_basis=basis,source_sha256=ref.sha256,available_at=ref.available_at,
+                    evidence_ids=[ref.evidence_id])
             records.append(self._member(record, codes, member_ref))
         return batch(context, Lane.OVERSOLD, records, refs, "Full exact-date security master and shared HK history",
                      Coverage(scope_count=len(master_codes), observed_count=len(records), gaps=gaps), gaps,
@@ -525,6 +593,8 @@ class NativeAdapters:
                           pin["quote_relative"], snapshot.get("available_at", snapshot.get("captured_at"))),
                 self._ref(pin["relation_owner"], "REVIEWED_US_HK_RELATIONS", expected, rsha,
                           pin["relation_relative"], registry.get("available_at"))]
+        for source in registry.get("additional_relation_sources",[]):
+            refs.append(self._ref(source["owner"],"REVIEWED_US_HK_RELATIONS",expected,source["sha256"],source["relative"],source["available_at"]))
         if member_ref:
             refs.append(member_ref)
         quote_rows = snapshot.get("quotes",snapshot.get("symbols",snapshot.get("rows", [])))
@@ -565,9 +635,18 @@ class NativeAdapters:
                     status="REVIEWED" if row["relation_reviewed"] else "CANNOT_CONFIRM",
                     sha256=relation.get("relation_identity_sha256", owner_digest(relation)),
                     review_owner=relation.get("reviewer_identity"), available_at=row["available_at"],
-                    published_at=relation.get("published_at"),relation_type=relation.get("relationship_type")))
+                    published_at=relation.get("published_at"),relation_type=relation.get("relationship_type"),
+                    publication_evidence=relation.get("publication_evidence",[
+                        dict(role=source.get("role"),published_at=source.get("published_at"),
+                             precision="DATE" if isinstance(source.get("published_at"),str) and len(source["published_at"])==10 else "TIMESTAMP",
+                             source_body_sha256=source.get("source_body_sha256"),url=source.get("url"))
+                        for source in relation.get("sources",[])]),
+                    research_priority=relation.get("research_priority"),research_basis=relation.get("reason"),
+                    publication_time_gaps=["RELATION_SOURCE_PUBLICATION_TIME_UNKNOWN"] if any(
+                        source.get("role")=="RELATION" and not source.get("published_at") for source in relation.get("sources",[])) else [],
+                    relation_source_refs=relation.get("relation_source_refs",[])))
             records.append(dict(us_symbol=us,source_session=expected,owner=pin["quote_owner"],source_sha256=qsha,
-                source_status=q.get("research_priority", q.get("priority", "CANNOT_CONFIRM")),
+                source_status="CANNOT_CONFIRM", positive_change_required=True,
                 available_at=snapshot.get("available_at",snapshot.get("captured_at")),relations=relations_for_us,
                 quote=q,evidence_ids=[r.evidence_id for r in refs]))
         return batch(context, Lane.US_MAPPING, records, refs, "Fixed 33 configured US symbols and audited relation scope",
@@ -587,11 +666,13 @@ class NativeAdapters:
                 continue
             rel = entry["artifact_relative"]
             parent = str(Path(rel).parent)
-            manifest, msha = self._json(root, parent + "/manifest.json", entry["manifest_sha256"])
-            receipt, rsha = self._json(root, parent + "/receipt.json", entry["receipt_sha256"])
+            manifest, msha = self._stage_json(root, parent + "/manifest.json", entry["manifest_sha256"],
+                                            "stage_center.selection.manifest.v1")
+            receipt, rsha = self._stage_json(root, parent + "/receipt.json", entry["receipt_sha256"],
+                                           "stage_center.selection.receipt.v1")
             raw = SafeRoot(root).read_bytes(rel)
             if (raw_sha(raw) != entry["artifact_sha256"] or manifest.get("run_id") != entry.get("run_id")
-                    or receipt.get("manifest_sha256") != msha or manifest.get("market") != "HK_CONNECT"
+                    or receipt.get("manifest_sha256") != entry["manifest_sha256"] or manifest.get("market") != "HK_CONNECT"
                     or manifest.get("trade_date") != context.target_date or manifest.get("production_allowed") is not False):
                 gaps.append("STAGE_MANIFEST_RECEIPT_BINDING_INVALID")
                 continue
@@ -599,7 +680,11 @@ class NativeAdapters:
             ref = self._ref("stage_center", entry["role"], context.target_date, raw_sha(raw), rel,
                             available, manifest=parent+"/manifest.json", receipt=parent+"/receipt.json")
             refs.append(ref)
-            parsed = list(csv.DictReader(io.StringIO(raw.decode()))) if rel.endswith(".csv") else json.loads(raw).get("rows", [])
+            refs.extend([self._ref("stage_center", "STAGE_MANIFEST_RAW", context.target_date, msha,
+                                  parent+"/manifest.json", available),
+                         self._ref("stage_center", "STAGE_RECEIPT_RAW", context.target_date, rsha,
+                                  parent+"/receipt.json", available)])
+            parsed = list(csv.DictReader(io.StringIO(raw.decode("utf-8-sig")))) if rel.endswith(".csv") else json.loads(raw).get("rows", [])
             if len(parsed) != manifest.get("row_count"):
                 gaps.append("STAGE_ROW_COUNT_MISMATCH")
                 continue

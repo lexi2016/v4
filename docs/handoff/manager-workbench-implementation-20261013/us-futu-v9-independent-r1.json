@@ -1,0 +1,44 @@
+{
+  "verdict": "PASS",
+  "REVIEWED": "PASS",
+  "TESTED": "3 passed in0.30s; actual operator dryrunPASS",
+  "BEHAVIOR_VERIFIED": [
+    "saved proof/candidate check-only succeeds",
+    "wrong manifest and old V8 reviewedsource rejected",
+    "formal port8873 rejected withoutserverstartup"
+  ],
+  "input_receipt_sha256": "d0ec822bde91cb96a3aa902ed3bc512e7fdd36eff8db3af4c8bba228cc708e87",
+  "helper_sha256s": {
+    "prepare_us_futu_v9.py": "5a7b6b5a1d465d107e1637921c5da5310553df134a709b898afa60e9930699dc",
+    "serve_isolated_candidate_v7.py": "17c98b1bcc1af056d4e7b4b4526945fb64cd9c426be6b7abd4418abd7420c62f",
+    "test_saved_candidate_helper.py": "d32f3ea28908ff6bb5f7ed5d0fa2e590d6ab12b6cbe3867223c32e28532ca0fa"
+  },
+  "plan_sha256": "b5e1dfc133a4e55596b86d6e83ea46c8b46da171ad1104a29ec4c7b636cf01b1",
+  "seven_preimages_sources_backups_match": true,
+  "roles": [
+    {
+      "role": "api",
+      "manifest_sha256": "52bc657607e5c28127061de4a25a5100be819aaf514993b8a2abeab2c53011a3",
+      "exact_four_reviewed_deltas": true,
+      "non_delta_preserved": true
+    },
+    {
+      "role": "scheduler",
+      "manifest_sha256": "cfe5096bd0f6ebd2ab86008f3fe10d984e3503a887908daa27a103c5bc764151",
+      "exact_four_reviewed_deltas": true,
+      "non_delta_preserved": true
+    }
+  ],
+  "config_only_futu_history_binding": true,
+  "futu_raw_sha256": "84a7840ad17449047a8cb3b0afbdfde5a37db19a1da2b4264c78eeaa992cf377",
+  "run_id": "27a27743e22d414c92b7e8ddcff07260",
+  "product_sha256": "d44fe52d5a657c4949272f0db0cb4cd5ddc497f4fb7150e17be88e86db04cd60",
+  "P0_P1_P2": [],
+  "formal_writes_service_model_network_actions": 0,
+  "not_run": [
+    "V9apply/restart",
+    "V9formalAPI/UI",
+    "natural slot"
+  ],
+  "reused": "four business source reviewer66PASS; V8rollback/retry/bootout helperPASS"
+}

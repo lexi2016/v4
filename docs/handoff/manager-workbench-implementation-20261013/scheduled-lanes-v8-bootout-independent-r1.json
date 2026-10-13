@@ -1,0 +1,23 @@
+{
+  "verdict": "PASS",
+  "REVIEWED": "PASS",
+  "TESTED": "PASS",
+  "BEHAVIOR_VERIFIED": [
+    "known old label persists after bootout0: waits for explicit absence",
+    "label never leaves: bounded10s refusal, no replacement",
+    "formal rawbytes checked before every launch command; bootstrap prior r2 guard retained"
+  ],
+  "helper_sha256": "4aa04ee9df5724cb69a3e34c47e029e644a1d342076fe0e9cd521e17204fe26e",
+  "receipt_sha256": "eac4002c581b6ab4b92825d77e49a5d289fc0490740f48ab9b1c5a1b4e43aad4",
+  "test_output": "..                                                                       [100%]\n2 passed, 5 deselected in 0.02s",
+  "reused": "prior5 independentlyPASS+V8 plan identityPASS",
+  "plan_sha256": "a2cdfed934123cabaef7d4afadfb6b625826e251008764383e6cea299afdb6c4",
+  "current_five_preimages_match": true,
+  "candidate_manifest_unchanged": true,
+  "formal_service_model_network_actions": 0,
+  "not_run": [
+    "apply",
+    "restart",
+    "natural16:30"
+  ]
+}

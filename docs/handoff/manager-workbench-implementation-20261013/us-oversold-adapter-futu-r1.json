@@ -1,0 +1,104 @@
+{
+  "state": "IMPLEMENTED_FOR_REVIEW",
+  "branch": "codex/manager-workbench-data-closure-20261013",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "scope": [
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "f88cd81863825896742f6672f78acb572991e6ac12e2cfbe8605c39a8b1786da",
+      "after_sha256": "41a8292dff70547211cc4b8539d1b2fa7884955911e21f241ebc59b001a31b76",
+      "formal_v7_sha256": "b875ad9f3e66c6efff94ede41f6f263ce92926c82c0863c9ef0cfc482beab4cd"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "a03953d8e57a7c16397cdbc0a940b85bac489399bb0e52d29764a9baa35d8b9b",
+      "after_sha256": "2decd5df1360980df89313ff7c37ebd70e5679441d6097718083023917b7e4f8",
+      "formal_v7_sha256": "a03953d8e57a7c16397cdbc0a940b85bac489399bb0e52d29764a9baa35d8b9b"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "before_sha256": "38ce99d89eccd14b54891c13024622240398fcd283cf71782a8f83ee2afd8ebc",
+      "after_sha256": "c5a0130b78533daaee9bf2d4e7c34e6a7d42bf9eb8a6b164815e30de29616c39",
+      "formal_v7_sha256": "38ce99d89eccd14b54891c13024622240398fcd283cf71782a8f83ee2afd8ebc"
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "before_sha256": "a300af9e42f8c2c224b72105b66279e05002fbe9b2e22e90f894bf2d79af6513",
+      "after_sha256": "2be11840f638f8a04d920ad578428c81b55a1223398f9f7d44f8e9a6c4df60d8",
+      "formal_v7_sha256": "a300af9e42f8c2c224b72105b66279e05002fbe9b2e22e90f894bf2d79af6513"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/manager_workbench/engines/test_us_date_priority.py",
+      "sha256": "275905cc0d653b2945c29e84ef07fe2a847f6e405abdbefe3ecedd206e8ebc02"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_us_seed_metadata.py",
+      "sha256": "7797cd29ceddda2f9eb86c19dcec728bf2a3088bd79e135688f15b66d5b7764c"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_futu_same_response.py",
+      "sha256": "82977cbbc1c5dff4362bb151339878fbee29a5879f2aa00055478342d18103b5"
+    }
+  ],
+  "helper": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/prepare_us_oversold_futu.py",
+    "sha256": "167eac0bb1cc71c41b76de96676578167d4eea1d39a95966ce76e43b13f3e1d6"
+  },
+  "environment": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "platform": "macOS",
+    "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
+  },
+  "verification": {
+    "result": "66 passed in 2.88s",
+    "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/us-futu-final-tests-r1.log",
+    "command": "python -m pytest -q tests/manager_workbench/runtime/test_futu_same_response.py tests/manager_workbench/engines/test_oversold_inputs.py tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/engines/test_us_date_priority.py tests/manager_workbench/runtime/test_us_seed_metadata.py tests/manager_workbench/runtime/test_integration.py tests/manager_workbench/runtime/test_native_owner_repairs.py tests/manager_workbench/runtime/test_native_pipeline.py --basetemp H/.tmp/us-futu-final-tests-r1"
+  },
+  "behavior": [
+    "US original reviewed seed/registry exact raw SHA and owner unsigned digests checked; four daily symbols plus current reviewed cards; no theme symbol inference",
+    "Priority originates at reviewed card; native quote priority ignored; actual positive change predicate; never SELECTED from US first-version rule",
+    "Original publication DATE retained; timezone-conservative upper-bound comparison is separate, never a fabricated published_at; only dated RELATION evidence can qualify; undated supplementary source retained",
+    "Per-bar source/history provenance preserved without fabricating units",
+    "Futu already captured exact response validated by raw/receipt/request/security/61-session/time identities; no request made",
+    "Full master692 preserved; optional bad Futu source isolated and gaps retained; same-source/security/request RAW relative comparisons can be evaluated while currency and absolute volume units stay null"
+  ],
+  "real_single_response": {
+    "raw_sha256": "84a7840ad17449047a8cb3b0afbdfde5a37db19a1da2b4264c78eeaa992cf377",
+    "receipt_sha256": "f9e2483aa642583610beb9d8a1d6ada8f7bb8c42a5da76156a7cf3fbadb909cf",
+    "test_result": "HK.00001 NOT_SELECTED / NEITHER_OVERSOLD_CONDITION; other691 UNASSESSED",
+    "close": "66.2",
+    "max_high60": "74.4",
+    "volume": "3434802",
+    "mean_volume5": "5365301.2",
+    "price_pass": false,
+    "volume_pass": false,
+    "absolute_units": "CANNOT_CONFIRM"
+  },
+  "prepared_run": {
+    "receipt": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/us-oversold-futu-prepared-r1/receipt.json",
+    "sha256": "31b6d55b552e1b0a928eb390085552e558cf0e7f3d8151e990fabc7acac0e86c",
+    "config_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/us-oversold-futu-prepared-r1/base-config.json",
+    "config_sha256": "cb1ad0402e6d362b5bba27970991d8861bb1641f45a95263f11f5ac1c24c14a4",
+    "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/run_us_oversold.py' --base-config '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/us-oversold-futu-prepared-r1/base-config.json' --output '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/us-oversold-futu-prepared-r1/run'"
+  },
+  "preserved_failures": [
+    "US test r1 38 cases passed but pytest global old-directory cleanup EPERM; independent basetemp r2 exit0",
+    "Futu test r1 used historical checkout calendar; exact mismatch rejected. Tests now pin accepted active calendar SHA; original response unchanged"
+  ],
+  "remaining_gaps": [
+    "Current ten audited cards do not declare PRIORITY/WATCH; no automatic priority assignment",
+    "Unmapped configured US symbols remain UNASSESSED; no fabricated relations",
+    "Other HK691 still need positively proven complete history/comparison units; parent owns data restoration"
+  ],
+  "not_run": [
+    "Independent review of this increment",
+    "Operator real dual-lane run/API/UI",
+    "Formal deployment of this source increment"
+  ],
+  "model_calls": 0,
+  "network_calls": 0,
+  "formal_writes": 0,
+  "announcement_models_paused": true
+}

@@ -1,0 +1,67 @@
+{
+  "state": "PREPARED_FOR_REVIEW",
+  "files": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/prepare_us_futu_v9.py",
+      "sha256": "5a7b6b5a1d465d107e1637921c5da5310553df134a709b898afa60e9930699dc"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/serve_isolated_candidate_v7.py",
+      "sha256": "17c98b1bcc1af056d4e7b4b4526945fb64cd9c426be6b7abd4418abd7420c62f"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/test_saved_candidate_helper.py",
+      "sha256": "d32f3ea28908ff6bb5f7ed5d0fa2e590d6ab12b6cbe3867223c32e28532ca0fa"
+    }
+  ],
+  "base": {
+    "api": {
+      "release_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-api",
+      "app_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-api/app",
+      "release_id": "manager-workbench-20261013-v8-api",
+      "release_manifest_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-api/release-manifest.json",
+      "release_manifest_sha256": "6fb0abb88a8220b16a72bc9708e5e8746414b7e487bbf1b4be847f8e5df01b62",
+      "application_inventory_sha256": "3d8180cd975c3794c4ddd894200ff40d14bc9d7c44117da76fc7b30022ad2036",
+      "application_inventory_entry_count": 1178
+    },
+    "api_plist_sha256": "a32460b3d3f4d5d40f71807f9d766adc7a0787124cb0ceb61e16e7930c5d4d7a",
+    "scheduler": {
+      "app_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-scheduler/app",
+      "plist_sha256": "5b585a218e8d3857f96ad306f5d16e7691b66003f991209fb2bf83044ccd2514",
+      "manifest_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-scheduler/release-manifest.json",
+      "manifest_sha256": "3234237f55ed6334781608e91a003934cce8703e8c1d0646660ab6410f9e0c7b",
+      "inventory_sha256": "f3ec9e95fb5ff47c126ad409963f4a177c8421d1c3a98290edd39aec017bd24f"
+    }
+  },
+  "plan_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v9-us-futu-r2/operator-plan.json",
+  "plan_sha256": "b5e1dfc133a4e55596b86d6e83ea46c8b46da171ad1104a29ec4c7b636cf01b1",
+  "candidate_manifests": {
+    "api": "52bc657607e5c28127061de4a25a5100be819aaf514993b8a2abeab2c53011a3",
+    "scheduler": "cfe5096bd0f6ebd2ab86008f3fe10d984e3503a887908daa27a103c5bc764151"
+  },
+  "entries_count": 7,
+  "source_delta_exactly_four": true,
+  "frontend_assets_preserved": true,
+  "capture_core_preserved": true,
+  "formal_config_only_futu_binding": true,
+  "run_id": "27a27743e22d414c92b7e8ddcff07260",
+  "product_sha256": "d44fe52d5a657c4949272f0db0cb4cd5ddc497f4fb7150e17be88e86db04cd60",
+  "tests": "...                                                                      [100%]\n3 passed in 0.31s",
+  "operator_dryrun": "{\"status\": \"DRY_RUN_PASS\", \"mode\": \"apply\", \"formal_writes\": false, \"capture_enabled\": false, \"lease_granted\": false, \"plan_sha256\": \"b5e1dfc133a4e55596b86d6e83ea46c8b46da171ad1104a29ec4c7b636cf01b1\"}",
+  "commands": {
+    "serve": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/serve_isolated_candidate_v7.py' --proof '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/us-oversold-futu-prepared-r1/run/proof.json' --candidate-app-root '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v9-us-futu-r2/manager-workbench-20261013-v9-api/app' --candidate-manifest-sha256 52bc657607e5c28127061de4a25a5100be819aaf514993b8a2abeab2c53011a3 --reviewed-source-receipt '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/us-oversold-adapter-futu-r1.json' --port 18873",
+    "dryrun": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/operate_scheduled_lanes_v8.py' --plan '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v9-us-futu-r2/operator-plan.json' --plan-sha256 b5e1dfc133a4e55596b86d6e83ea46c8b46da171ad1104a29ec4c7b636cf01b1",
+    "apply": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/operate_scheduled_lanes_v8.py' --plan '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v9-us-futu-r2/operator-plan.json' --plan-sha256 b5e1dfc133a4e55596b86d6e83ea46c8b46da171ad1104a29ec4c7b636cf01b1 --execute",
+    "rollback": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/operate_scheduled_lanes_v8.py' --plan '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v9-us-futu-r2/operator-plan.json' --plan-sha256 b5e1dfc133a4e55596b86d6e83ea46c8b46da171ad1104a29ec4c7b636cf01b1 --mode rollback --execute"
+  },
+  "preserved_failure": "V9 r1 unsorted delta rejected by unchanged generic; sorted r2 retained both roots",
+  "not_run": [
+    "Writer temporary service startup",
+    "V9 formal apply",
+    "V9 formal API/UI",
+    "Natural run"
+  ],
+  "formal_writes": 0,
+  "model_calls": 0,
+  "network_calls": 0
+}

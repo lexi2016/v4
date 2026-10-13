@@ -1,0 +1,81 @@
+{
+  "verdict": "SINGLE_WINDOW_NUMERIC_AND_COMPARABILITY_VERIFIED; FULL692_NOT_RUN",
+  "source_profile": {
+    "sdk": "tdxpy0.2.7",
+    "wheel_sha256": "5514d35608fac2c7b2acf693de6f41ba7ccda58207b65a3f374c89887560737c",
+    "parser_sha256": "263abf7d5c63e836bddb6ffb35f7d7150d4a33b7d4ac96eefd49d8a8d64a99ad",
+    "endpoints": [
+      "116.205.143.214:7727",
+      "103.221.142.82:7727"
+    ],
+    "market": 31,
+    "market_label": "香港主板",
+    "category": 4,
+    "code": "00001",
+    "wire_parameter1": 1,
+    "wire_parameter1_semantics": "CANNOT_CONFIRM; parser explicitly unsure adjustment",
+    "price_fields": [
+      "close",
+      "high"
+    ],
+    "volume_field": "trade",
+    "absolute_volume_unit": "CANNOT_CONFIRM; no SHARES conversion",
+    "currency": "CANNOT_CONFIRM; no monetary conversion required",
+    "adjustment_enum": "CANNOT_CONFIRM; same fixed request/profile only"
+  },
+  "evidence_sha256s": {
+    "matrix_receipt": "2e67c00f2144e79cd5ff58fcb4b1ebd373d44c36b3f2df868dbd56379815f0f8",
+    "market31_receipt": "9eda4b06dcd8ead3a6a46de97fb870ee424c558ec8552424bc13d71c155c808f",
+    "node1_raw": "563107aef759613c46411a1a17b93c2ff98543a1b3feeb22858a944a0964128c",
+    "node2_raw": "563107aef759613c46411a1a17b93c2ff98543a1b3feeb22858a944a0964128c",
+    "futu_none_raw": "84a7840ad17449047a8cb3b0afbdfde5a37db19a1da2b4264c78eeaa992cf377"
+  },
+  "expected_sessions": 61,
+  "missing": [],
+  "two_node_same_bytes": true,
+  "metrics": {
+    "close": "66.20000457763672",
+    "max_high60": "74.4000015258789",
+    "price_threshold": "59.52000122070312",
+    "price_pass": false,
+    "native_trade_D1": 34348,
+    "native_trade_mean5": "53653.2",
+    "native_trade_ratio": "0.6401854875384879187075514601",
+    "volume_pass": false,
+    "native_AND": false,
+    "futu_ratio": "0.6401881035122501603451452083",
+    "ratio_absolute_diff": "0.0000026159737622416375937482",
+    "all61_OHLC_max_abs_diff": "0.00000610351562",
+    "all61_trade_x100_minus_futu_volume_min": "-46.0",
+    "max": "50.0",
+    "max_abs": "50.0",
+    "trade_futu_ratio_range": [
+      "0.009999867673346477780916540429",
+      "0.01000013250912656609223960300"
+    ]
+  },
+  "single_window_conclusion": "NOT_SELECTED numeric AND false, robust same result as FutuNONE; ratios use native trade with no100 conversion",
+  "evidence_basis": [
+    "same security, same endpoint/market/category/wire parameters and parser within complete61 sessions",
+    "all61 OHLC crosschecked with independent FutuNONE response",
+    "trade field crosschecked for all61 days; x100 error[-46,50] empirically, not exactshares semantic claim"
+  ],
+  "minimal_full692_requirements": [
+    "retain original692 master and separate authoritative monthlyConnect identity; market31 universe does not replace membership",
+    "resolve each security via node declared HK31/48 instrument identity; no silent31/48/71 substitution",
+    "each accepted security has D1+60 exactcalendar sessions, no duplicates/mixed price/volume response profile, validfinite values and denominator",
+    "bind raw response bytes and receipt/request/wheel/parser SHA, fixedparameter1, endpoint+market+code/category/start/count, real available_at; preserve unaccepted/failed codes UNASSESSED",
+    "no scale100 transformation or absolute-unit fill; use provider-native comparison profile; adjusted enum remains unknown outside independently crosschecked effective window",
+    "threshold0.8/1.5 unchanged; cross-source disagreement near boundaries stays explicit, not guessed rounding/tolerance",
+    "extend existing owner only; no parallel producer or oldmanagerbusiness imports"
+  ],
+  "official_primary_source": "https://tdxpy.readthedocs.io/zh-cn/latest/api/exhq/",
+  "not_claimed": [
+    "TDX31=TDX71",
+    "param1=AuType.NONE",
+    "native trade=exactshares/100",
+    "whole692coverage or semantic acceptance",
+    "natural/PIT earlier than actual acquisition"
+  ],
+  "new_acquisition_environment_formal_mutations": 0
+}

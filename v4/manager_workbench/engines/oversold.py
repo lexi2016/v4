@@ -2,6 +2,10 @@
 from __future__ import annotations
 from decimal import Decimal
 from .common import decimal, hk_symbol, membership, current, valid_sha, result, row
+import hashlib,json
+
+def owner_digest(value):
+    return hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode()).hexdigest()
 
 PRICE_RATIO = Decimal("0.8")
 VOLUME_RATIO = Decimal("1.5")
@@ -37,6 +41,30 @@ def _bars(record, prev, calendar, history_key, session_key, field, expected_coun
     return values
 
 
+
+def comparison_proven(record, context):
+    try:
+        basis=record.get('comparison_basis')
+        if not isinstance(basis,dict):return False
+        request=basis.get('request',{});params=request.get('request',{}) if isinstance(request,dict) else {}
+        if (basis.get('source')!='FUTU' or record.get('owner')!='FUTU' or basis.get('security_symbol')!=record.get('symbol')
+                or basis.get('raw_sha256')!=record.get('source_sha256') or not valid_sha(basis.get('receipt_sha256'))
+                or basis.get('request_sha256')!=owner_digest(request) or request.get('code')!=record.get('symbol')
+                or request.get('source')!='FUTU' or params.get('ktype')!='K_DAY' or params.get('autype')!='NONE'
+                or basis.get('adjustment')!='RAW' or record.get('adjustment')!='RAW'
+                or basis.get('price_comparison')!='SAME_SOURCE_SECURITY_REQUEST' or basis.get('volume_comparison')!='SAME_SOURCE_SECURITY_REQUEST'
+                or basis.get('available_at')!=record.get('available_at') or not current(context,basis.get('available_at'))):return False
+        identity=owner_digest(basis)
+        bars=[record.get('previous_bar'),*record.get('high_history60',[]),*record.get('volume_history5',[])]
+        return all(isinstance(bar,dict) and bar.get('comparison_basis_sha256')==identity
+            and bar.get('source_metadata',{}).get('code')==record.get('symbol')
+            and bar.get('source_metadata',{}).get('raw_sha256')==basis['raw_sha256']
+            and bar.get('source_metadata',{}).get('source')=='FUTU'
+            and bar.get('source_metadata',{}).get('receipt_sha256')==basis['receipt_sha256']
+            and owner_digest(bar.get('source_metadata',{}).get('request'))==basis['request_sha256']
+            and bar.get('available_at')==basis['available_at'] for bar in bars)
+    except (ValueError,TypeError,KeyError,AttributeError):return False
+
 def screen_one(context, record):
     reasons = []
     measures = dict(close=None, max_high_60=None, price_threshold=None, price_pass=None,
@@ -65,8 +93,9 @@ def screen_one(context, record):
         return row(record, "UNASSESSED", "PREVIOUS_BAR_MISSING_OR_LATE", metrics=measures)
     if bar.get("suspended") is True:
         return row(record,"UNASSESSED","PREVIOUS_SESSION_SUSPENDED",metrics=measures)
-    if any(not record.get(field) or not bar.get(field) or record[field] != bar[field]
-           for field in ("price_unit", "volume_unit", "adjustment")):
+    absolute_units=not any(not record.get(field) or not bar.get(field) or record[field] != bar[field]
+           for field in ("price_unit", "volume_unit", "adjustment"))
+    if not absolute_units and not comparison_proven(record,context):
         return row(record, "UNASSESSED", "UNIT_ADJUSTMENT_OR_CURRENCY_UNKNOWN", metrics=measures)
     measures["source_price_unit"] = record["price_unit"]
     measures["source_volume_unit"] = record["volume_unit"]

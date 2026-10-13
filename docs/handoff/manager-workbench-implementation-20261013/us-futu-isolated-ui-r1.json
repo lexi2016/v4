@@ -1,0 +1,40 @@
+{
+  "status": "ISOLATED_UI_VERIFIED",
+  "run_id": "27a27743e22d414c92b7e8ddcff07260",
+  "port": 18873,
+  "date": "20261013",
+  "phase": "RETROSPECTIVE",
+  "response": "PARTIAL",
+  "refresh_same_saved_run": true,
+  "counts": {
+    "SELECTED": 0,
+    "WATCH": 0,
+    "UNASSESSED": 692,
+    "NOT_SELECTED": 1
+  },
+  "lanes": {
+    "US_MAPPING": {
+      "scope": 33,
+      "assessed": 4,
+      "unknown": 29
+    },
+    "OVERSOLD": {
+      "scope": 692,
+      "assessed": 1,
+      "unknown": 691
+    }
+  },
+  "HK.00001": {
+    "lane_decision": "NOT_SELECTED",
+    "aggregate_decision": "UNASSESSED",
+    "close": "66.2",
+    "max_high_60": "74.4",
+    "price_threshold": "59.52",
+    "volume_ratio": "0.6401881035122501603451452083",
+    "raw_sha": "84a7840ad17449047a8cb3b0afbdfde5a37db19a1da2b4264c78eeaa992cf377"
+  },
+  "ui_gap": "Numerical metrics visible in expanded audit JSON only; ordinary detail says readable reason not supplied. No frontend changes this batch.",
+  "formal_deployed": false,
+  "natural_verified": false,
+  "actions": "CUA load, stock detail, audit expand, reload, progress; no run submission"
+}

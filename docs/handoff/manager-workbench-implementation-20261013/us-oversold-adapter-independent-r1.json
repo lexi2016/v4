@@ -1,0 +1,116 @@
+{
+  "verdict": "PASS",
+  "REVIEWED": "PASS",
+  "TESTED": "66 passed in2.75s",
+  "BEHAVIOR_VERIFIED": "real owner bytes read through exact active calendar + new consumer/engines only; no save/API yet",
+  "input_receipt_sha256": "707d785b477ef311090bfffe4ae16796ff8824c6047b2360e44525bea018dcff",
+  "prepared_config_sha256": "cb1ad0402e6d362b5bba27970991d8861bb1641f45a95263f11f5ac1c24c14a4",
+  "actual_two_lanes": [
+    {
+      "lane": "US_MAPPING",
+      "state": "PARTIAL",
+      "coverage": {
+        "scope_count": 33,
+        "observed_count": 33,
+        "assessed_count": 4,
+        "unassessed_count": 29,
+        "gaps": [
+          "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,BOTZ,CLOU,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,MU,NLR,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+          "RECORDS_UNASSESSED"
+        ]
+      },
+      "decision_distribution": {
+        "UNASSESSED": 33,
+        "NOT_SELECTED": 4
+      },
+      "reason_distribution": {
+        "US_SESSION_RELATION_OR_CONNECT_UNVERIFIED": 10,
+        "US_REVIEWED_RELATION_ABSENT": 23,
+        "US_SOURCE_CHANGE_NOT_POSITIVE": 4
+      },
+      "row_count": 37,
+      "restored_rows": [
+        {
+          "us": "AVGO",
+          "hk": "HK.06088",
+          "decision": "NOT_SELECTED",
+          "source_refs_count": 2
+        },
+        {
+          "us": "CIEN",
+          "hk": "HK.00763",
+          "decision": "NOT_SELECTED",
+          "source_refs_count": 2
+        },
+        {
+          "us": "COHR",
+          "hk": "HK.06166",
+          "decision": "NOT_SELECTED",
+          "source_refs_count": 2
+        },
+        {
+          "us": "LITE",
+          "hk": "HK.06166",
+          "decision": "NOT_SELECTED",
+          "source_refs_count": 2
+        }
+      ]
+    },
+    {
+      "lane": "OVERSOLD",
+      "state": "PARTIAL",
+      "coverage": {
+        "scope_count": 692,
+        "observed_count": 692,
+        "assessed_count": 1,
+        "unassessed_count": 691,
+        "gaps": [
+          "RECORDS_UNASSESSED"
+        ]
+      },
+      "decision_distribution": {
+        "NOT_SELECTED": 1,
+        "UNASSESSED": 691
+      },
+      "reason_distribution": {
+        "NEITHER_OVERSOLD_CONDITION": 1,
+        "UNIT_ADJUSTMENT_OR_CURRENCY_UNKNOWN": 691
+      },
+      "row_count": 692,
+      "single_proven_record": {
+        "symbol": "HK.00001",
+        "decision": "NOT_SELECTED",
+        "reason": "NEITHER_OVERSOLD_CONDITION",
+        "metrics": {
+          "close": "66.2",
+          "max_high_60": "74.4",
+          "price_threshold": "59.52",
+          "price_pass": false,
+          "volume": "3434802.0",
+          "mean_volume_5": "5365301.2",
+          "volume_ratio": "0.6401881035122501603451452083",
+          "volume_pass": false,
+          "previous_session": "20261012",
+          "source_price_unit": null,
+          "source_volume_unit": null
+        }
+      }
+    }
+  ],
+  "source_sha256s": {
+    "v4/manager_workbench/inputs/native.py": "41a8292dff70547211cc4b8539d1b2fa7884955911e21f241ebc59b001a31b76",
+    "v4/manager_workbench/inputs/source_bindings.py": "2decd5df1360980df89313ff7c37ebd70e5679441d6097718083023917b7e4f8",
+    "v4/manager_workbench/engines/us_mapping.py": "c5a0130b78533daaee9bf2d4e7c34e6a7d42bf9eb8a6b164815e30de29616c39",
+    "v4/manager_workbench/engines/oversold.py": "2be11840f638f8a04d920ad578428c81b55a1223398f9f7d44f8e9a6c4df60d8"
+  },
+  "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+  "P0_P1_P2": [],
+  "formal_source_state_writes": 0,
+  "network_model_queries": 0,
+  "not_run": [
+    "saved new dual-lane plan/API/UI",
+    "source increment deployment",
+    "full692 proven history",
+    "natural slot"
+  ]
+}

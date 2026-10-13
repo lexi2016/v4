@@ -135,6 +135,9 @@ def hk_panel(config, context):
         if manifest.get('target_date')!=day:raise ValueError('SUPPLEMENT_DATE_MISMATCH')
         pin['supplement']=dict(manifest_relative=rel,manifest_sha256=sha)
     except FileNotFoundError:pass
+    # Explicit existing owner response only; no acquisition or alternative producer.
+    original=config.source_bindings.get('hk_panel',{}).get(day,{})
+    if original.get('futu_history'):pin['futu_history']=original['futu_history']
     return pin
 
 
@@ -148,6 +151,47 @@ def security_master(config, context):
         raise ValueError('MASTER_RUN_RECEIPT_INVALID')
     checked_time(manifest.get('captured_at'),context.cutoff)
     return dict(manifest_relative=rel,manifest_sha256=sha,checked_files=[dict(source_local_path=str(config.shared_root),relative=receipt_rel,sha256=rsha)])
+
+
+
+SEED_RELATIVE = 'v4/manager_research/us_mapping_reviewed_20260930.json'
+SEED_SHA = 'e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a'
+REGISTRY_RELATIVE = 'v4/manager_research/us_mapping_relation_registry.json'
+REGISTRY_SHA = 'ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe'
+
+
+def reviewed_seed(config, context):
+    # Existing reviewed data only; no legacy business module is imported.
+    root = config.relation_root
+    if root is None or not (Path(root)/SEED_RELATIVE).exists() and not (Path(root)/REGISTRY_RELATIVE).exists():
+        return [], []
+    seed, ssha = read(root, SEED_RELATIVE, SEED_SHA)
+    registry, rsha = read(root, REGISTRY_RELATIVE, REGISTRY_SHA)
+    if (seed.get('schema_version') != 'v4.manager_research.us_mapping_reviewed.v1'
+            or seed.get('status') != 'REVIEWED_RETROSPECTIVE_RESEARCH'
+            or registry.get('schema_version') != 'v4.manager_research.us_mapping_relation_registry.v1'
+            or owner_digest({k:v for k,v in seed.items() if k!='artifact_sha256'}) != seed.get('artifact_sha256')
+            or owner_digest({k:v for k,v in registry.items() if k!='artifact_sha256'}) != registry.get('artifact_sha256')
+            or registry.get('source_seed_sha256') != ssha
+            or registry.get('source_report_sha256') != seed.get('report',{}).get('sha256')
+            or registry.get('availability_basis') != 'V4_RELEASE_PUBLICATION'
+            or registry.get('availability_scope') != 'APPLICATION_SYSTEM_ONLY_NOT_HISTORICAL_PIT_OR_TARGET_DATE_ELIGIBILITY'
+            or seed.get('RESEARCH_ONLY') is not True or seed.get('production_allowed') is not False):
+        raise ValueError('US_REVIEWED_SEED_REGISTRY_INVALID')
+    checked_time(registry.get('available_at'), context.cutoff)
+    sources = [dict(source_local_path=str(root),relative=rel,sha256=sha,owner='V4_REVIEWED_US_MAPPING_SEED',available_at=registry['available_at'])
+        for rel,sha in [(SEED_RELATIVE,ssha),(REGISTRY_RELATIVE,rsha)]]
+    cards=[]
+    for original in seed['cards']:
+        for us in original.get('daily_match_symbols',[]):
+            if us not in US_SYMBOLS:raise ValueError('US_SEED_SYMBOL_OUTSIDE_FIXED_33')
+            cards.append({**original,'us_symbol':us,'evidence_review_status':'REVIEWED',
+                'reviewer_identity':'V4_REVIEWED_US_MAPPING_SEED', 'available_at':registry['available_at'],
+                'relation_identity_sha256':owner_digest(dict(card=original,us_symbol=us,seed_sha256=ssha,registry_sha256=rsha)),
+                'publication_evidence':[dict(role='RELATION',published_at=original.get('published_at'),precision='DATE',
+                    evidence_basis='REVIEWED_CARD_ORIGINAL_DATE',source_file_sha256=ssha)],
+                'relation_source_refs':sources})
+    return cards, sources
 
 
 def us_mapping(config, context):
@@ -176,13 +220,23 @@ def us_mapping(config, context):
         if tuple(card.get(k) for k in ('us_symbol','hk_symbol','relationship_type','direction')) not in pairs:
             raise ValueError('US_RELATION_PAIR_NOT_REVIEWED')
         checked_time(card.get('available_at'),review['reviewed_at'])
-        cards.append({**card,'evidence_review_status':'REVIEWED','reviewer_identity':review['reviewer_identity'],
+        cards.append({**card,'relation_source_refs':[dict(relative=config.relation_evidence_relative,sha256=esha,owner=review['reviewer_identity'],available_at=review['reviewed_at'])],'evidence_review_status':'REVIEWED','reviewer_identity':review['reviewer_identity'],
             'available_at':review['reviewed_at'],'review_receipt_sha256':vsha})
-    projection=dict(cards=cards,available_at=review['reviewed_at'],limitations=review.get('limitations',[]))
+    seed_cards, seed_sources = reviewed_seed(config,context)
+    joined={}
+    for card in [*cards,*seed_cards]:
+        key=tuple(card.get(k) for k in ('us_symbol','hk_symbol','relationship_type','direction'))
+        if key not in joined:joined[key]=card
+        else:
+            # Retain both independently bound sources without duplicate decisions.
+            original=joined[key]
+            original['relation_source_refs']=[*original.get('relation_source_refs',[]),*card.get('relation_source_refs',[])]
+            original['reviewed_variants']=[*original.get('reviewed_variants',[]),card]
+    projection=dict(cards=list(joined.values()),available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=seed_sources)
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
         relation_local_path=str(config.relation_root),relation_relative=config.relation_evidence_relative,relation_sha256=esha,
         relation_owner=review['reviewer_identity'],relation_projection=projection,configured_symbols=list(US_SYMBOLS),
-        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha)],
+        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources],
         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
 
 
