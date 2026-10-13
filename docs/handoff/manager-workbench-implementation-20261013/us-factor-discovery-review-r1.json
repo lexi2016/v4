@@ -1,0 +1,369 @@
+{
+  "reviewer": "/root/manager_reviewer_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "reviewed_at": "2026-10-13T13:47:08.325202+00:00",
+  "scope": "P0 exact listed inputs and header/metadata/count spot verification, no implementation or historical-global census",
+  "input_sha256": "915795e807eef81cd40fde500fa8d95a7750bc46d5e462983494c1f92284280e",
+  "verdict": "PASS_P0_FACTS_WITH_EXPLICIT_SCOPE",
+  "blocking_findings": [],
+  "verified_current": {
+    "us_symbols": [
+      "AMD",
+      "ARKX",
+      "AVGO",
+      "BOTZ",
+      "CIEN",
+      "CLOU",
+      "COHR",
+      "COPX",
+      "DLR",
+      "DRIV",
+      "EQIX",
+      "FCG",
+      "GLD",
+      "GRID",
+      "ICLN",
+      "ITA",
+      "KBE",
+      "LIT",
+      "LITE",
+      "MU",
+      "NLR",
+      "NVDA",
+      "REMX",
+      "SOXX",
+      "STX",
+      "TAN",
+      "UFO",
+      "VRT",
+      "WDC",
+      "XBI",
+      "XLE",
+      "XLP",
+      "XLY"
+    ],
+    "quote_count": 33,
+    "etf_symbols_from_existing_owner_proxy_definition": [
+      "ARKX",
+      "BOTZ",
+      "CLOU",
+      "COPX",
+      "DRIV",
+      "FCG",
+      "GLD",
+      "GRID",
+      "ICLN",
+      "ITA",
+      "KBE",
+      "LIT",
+      "NLR",
+      "REMX",
+      "SOXX",
+      "TAN",
+      "UFO",
+      "XBI",
+      "XLE",
+      "XLP",
+      "XLY"
+    ],
+    "etf_count": 21,
+    "theme_rows": 24,
+    "equity_remainder": 12,
+    "completed_session_files": 21,
+    "completed_session_range": [
+      "20260914",
+      "20261012"
+    ],
+    "snapshot_status_counts": {
+      "READY": 16,
+      "PARTIAL": 3,
+      "CANNOT_CONFIRM": 2
+    },
+    "historical_files": [
+      {
+        "date": "20260914",
+        "sha256": "b8b213e1e0f19dfd844ca2cc676734c2e40e4ac51e8d6b1d617137a960d31901",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20260915",
+        "sha256": "419e939223214255d12d8e019c806bde07c24cac0c9e5fb3630b2825c974bae1",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20260916",
+        "sha256": "823e0c9b403391cb7075baa838b7826b768c7341bf7ab4d3b040a4d4aba43e39",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20260917",
+        "sha256": "57ca6b817bb13edf37cbd00d9aed8cdbd71932ecb8ec0dbf214ddc14f78d51f3",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20260918",
+        "sha256": "9f7ec9079c0b5877d9469029849cd310f79e04c538e079a990b6a3fe32f954d3",
+        "market_snapshot_status": "PARTIAL",
+        "quote_count": 33,
+        "peripheral_status": "CANNOT_CONFIRM"
+      },
+      {
+        "date": "20260921",
+        "sha256": "9b92c78cb83bd6bf195c5d85a7e3c5df528a6290271b56ad56287aa4fe6a1138",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20260922",
+        "sha256": "8b662d4eab0e339b5f64e3882b7ac530df255853fa5aa7b167a4a853334ff45b",
+        "market_snapshot_status": "PARTIAL",
+        "quote_count": 33,
+        "peripheral_status": "CANNOT_CONFIRM"
+      },
+      {
+        "date": "20260923",
+        "sha256": "e87c76bd2b5edf3e2eacfb142ec3a6619290f78aac6708a9f3eb847c97f9b19d",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20260924",
+        "sha256": "759a36f05be2a4db408d4e2a1687d02d10245e7cc7c3c3172a5096d11e7b6361",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20260925",
+        "sha256": "acd58b0c78589a68e5f9d4894579ec68ea5177f6b68495139584e7f3bd035cd1",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20260928",
+        "sha256": "6d19cadb9b4e1e1842ffb0a8e92e413f6f500a7032842326b4c5cd9f55d6d579",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20260929",
+        "sha256": "7eb0094a0546f62f5346dddd795977e8bbda3520e34eed03f2556b2fdfd81566",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20260930",
+        "sha256": "efbf4e3cc09652fc73abf43fa9c4bc784c60931e1bb4f2724fab12c8b6c9967c",
+        "market_snapshot_status": "PARTIAL",
+        "quote_count": 33,
+        "peripheral_status": "CANNOT_CONFIRM"
+      },
+      {
+        "date": "20261001",
+        "sha256": "18706c194bcae56f991de3c0f9210fac701a381b4d763b61b74cfcbc421b9583",
+        "market_snapshot_status": "CANNOT_CONFIRM",
+        "quote_count": 33,
+        "peripheral_status": "CANNOT_CONFIRM"
+      },
+      {
+        "date": "20261002",
+        "sha256": "a3ec9262be622d7cf98faf03791a9b733267219644955ea86eea8c2122c9b7c9",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20261005",
+        "sha256": "8e94a8d624a5ade2e2438c886b1cc54bdee7fed991cfe56482e742d8ef32a278",
+        "market_snapshot_status": "CANNOT_CONFIRM",
+        "quote_count": 33,
+        "peripheral_status": "CANNOT_CONFIRM"
+      },
+      {
+        "date": "20261006",
+        "sha256": "9870ad8ee41d90472d84205b80887feb15b59a7bb1237d5467295e62e6954279",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20261007",
+        "sha256": "34c529faf0b356afcd47a48d583e18bb63de29beea36fa0fda7af8736c5a8056",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20261008",
+        "sha256": "6c96e5bb2681e8407670d5f79cafd014935d3e6592130102157d54759c64aa16",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20261009",
+        "sha256": "928cd4ae8089a792ea1a3cfab490c9217c4249d6c29c11aeaa9cee879f0fb4e3",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20261012",
+        "sha256": "26bf3480285f0cd6b94568d0c7ac9c01fd9e1c42c48634c2dd1f9cf5dbc50d37",
+        "market_snapshot_status": "READY",
+        "quote_count": 33,
+        "peripheral_status": "READY"
+      },
+      {
+        "date": "20261013",
+        "sha256": "bbad31ce65946b2a1f41e23c8e48dd759e6bd6bdad45ede7c3ef52660e971054",
+        "market_snapshot_status": "CANNOT_CONFIRM",
+        "quote_count": 0,
+        "peripheral_status": "READY"
+      }
+    ],
+    "hk_master_rows": 692,
+    "hk_master_columns": [
+      "code",
+      "name",
+      "outstanding_shares",
+      "circular_market_val",
+      "listing_date",
+      "lot_size",
+      "stock_owner",
+      "stock_child_type",
+      "sec_status",
+      "captured_at",
+      "source"
+    ],
+    "hk_panel_rows": 459407,
+    "hk_panel_columns": [
+      "trade_date",
+      "trade_date_compact",
+      "code_norm",
+      "ts_code",
+      "raw_code",
+      "market_type",
+      "exchange",
+      "open",
+      "high",
+      "low",
+      "close",
+      "amount",
+      "trade",
+      "position",
+      "source",
+      "source_path",
+      "continuity_break",
+      "pre_close",
+      "continuity_segment_id",
+      "pct_chg",
+      "amplitude_pct",
+      "intraday_high_pct",
+      "name",
+      "history_source",
+      "history_source_provider",
+      "history_source_row_sha256",
+      "history_source_raw_file_sha256",
+      "history_candidate_row_sha256",
+      "history_candidate_file_sha256",
+      "history_request_started_at",
+      "history_request_completed_at",
+      "volume_unit_status"
+    ],
+    "old_plan_observations": [
+      {
+        "date": "20261012",
+        "materials": 3816,
+        "accepted_discovery_cards": 0,
+        "accepted_subject_bound_cards": 0,
+        "pre_connect_candidates": 108,
+        "target_connect_rejections": 108,
+        "source_identity_role": "REFERENCE_SESSION_IDENTITY_NOT_TARGET_CONNECT_MEMBERSHIP",
+        "identity_source_date": "20261009",
+        "gaps": [
+          "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED"
+        ]
+      },
+      {
+        "date": "20261013",
+        "materials": 0,
+        "accepted_discovery_cards": 0,
+        "accepted_subject_bound_cards": 0,
+        "pre_connect_candidates": 0,
+        "target_connect_rejections": 0,
+        "source_identity_role": "REFERENCE_SESSION_IDENTITY_NOT_TARGET_CONNECT_MEMBERSHIP",
+        "identity_source_date": "20261009",
+        "gaps": []
+      }
+    ]
+  },
+  "checked_scope_nonfindings": {
+    "benchmark": "No broad US equity benchmark in the exact fixed33 quote inventory or its inspected snapshot fields; not proof that all project sources/archives lack one. ETF instrument types here are owner-declared proxies, not independent provider prospectus classification.",
+    "industry": "No industry/sector/main-business field in the exact32-column HK panel or11-column692 master; not a claim that no issuer documents exist.",
+    "exposure": "Both exact dated legacy workspace accepted-card outputs are empty. Oct12 has3816 materials and108 pre-connect relation candidates rejected by target membership binding, so zero admitted exposure does not mean zero usable underlying evidence. Existing reviewed company tuples are separate from industry ETF exposure.",
+    "history": "21 exact completed source files and their SHA/status checked; older/global archives and all per-row training eligibility not independently certified.21 files are not21 usable training observations."
+  },
+  "state": "P0 inventory accepted; P1 factor/formula not selected; DIRECTION_ONLY; beta NOT_RUN; efficacy CANNOT_CONFIRM",
+  "verified_source_refs": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/20261012/external_finance.json",
+      "sha256": "26bf3480285f0cd6b94568d0c7ac9c01fd9e1c42c48634c2dd1f9cf5dbc50d37"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/receipts/research/peripherals/20261012/external_finance.json",
+      "sha256": "ff89ff3a50a9e4cb17d23b4e6103f5b3dccab6f219b4cfb8996d6412a5001b60"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/manifest.json",
+      "sha256": "d4cee15eb3c522a391cac388631f6ab72b3e61198905c86ca671e56dbc9b1f37"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+      "sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+      "sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261013-5f278c2d4d10/manifest.json",
+      "sha256": "b4857921d9c9333c3ee4a2f774f79c2ec3b6ba2b0de2063b97f55ddb869d7bb7"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261013-5f278c2d4d10/hkconnect_vipdoc_daily_panel.parquet",
+      "sha256": "5f278c2d4d106f1c7085fc44cba89dab28f9ba91bc63de6fcf00ed86b3f45b51"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+      "sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261013/latest.json",
+      "sha256": "b885806c1150ab8cb754948df3809a79f32a4d94f3cc1767a1f367c2b6d3e3e1"
+    }
+  ],
+  "actions": {
+    "business_writes": false,
+    "network": false,
+    "model_calls": false,
+    "code_tests": false,
+    "deploy": false,
+    "subagents": false,
+    "only_private_receipt_written": true
+  }
+}

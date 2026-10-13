@@ -1,0 +1,430 @@
+{
+  "schema": "v4.manager_workbench.us_factor_discovery_summary.v1",
+  "source_receipt_sha256": "915795e807eef81cd40fde500fa8d95a7750bc46d5e462983494c1f92284280e",
+  "status": "DIRECTION_ONLY",
+  "scope": {
+    "goal": "Evidence inventory and phased execution proposal for existing US factors mapped to HK Connect; no implementation",
+    "writer": "/root/manager_writer_sol",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "high",
+    "reviewer": "independent parent-assigned Reviewer",
+    "allowed_write": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/us-factor-discovery-r1.json",
+    "canonical_read_only": "/Users/lexi/Desktop/学习/v4_app",
+    "worktree": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+    "local_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "previous_remote_delivery_commit": "8b037e6389d9599ccea4568b799b6b1807e4cc17",
+    "research_only": true,
+    "production_allowed": false,
+    "orders_sent": false,
+    "buy_gate_updated": false
+  },
+  "baseline": {
+    "saved_run": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/528ef6fd4f0b49e7a3ec2b6719fc9afe.json",
+      "raw_sha256": "673c159af0b2a40af61741e655245f80f01d61da459c998aa7c7660a72762c62",
+      "bytes": 2910230
+    },
+    "company_route": "US 0 SELECTED / 1 WATCH; ETF factors not implemented",
+    "oversold": "40% price discount unchanged, independent recommendation lane",
+    "deployment": "NOT_RUN; future package must re-read actual API/Scheduler roots/plists/manifests; current discovery does not freeze them"
+  },
+  "owners": {
+    "us_quotes": {
+      "owner": "research_peripheral.external_finance / ResearchPeripheralStore",
+      "payload": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/20261012/external_finance.json",
+        "raw_sha256": "26bf3480285f0cd6b94568d0c7ac9c01fd9e1c42c48634c2dd1f9cf5dbc50d37",
+        "bytes": 48793
+      },
+      "receipt": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/receipts/research/peripherals/20261012/external_finance.json",
+        "raw_sha256": "ff89ff3a50a9e4cb17d23b4e6103f5b3dccab6f219b4cfb8996d6412a5001b60",
+        "bytes": 6714
+      },
+      "manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/manifest.json",
+        "raw_sha256": "d4cee15eb3c522a391cac388631f6ab72b3e61198905c86ca671e56dbc9b1f37",
+        "bytes": 2663
+      },
+      "schema": "v3_5.us_market_snapshot.v1",
+      "session": "20261012",
+      "captured_at": "2026-10-12T20:15:00Z",
+      "phase": "POST_CLOSE",
+      "provider": "Tencent qt.gtimg.cn",
+      "source_response_sha256": "00e6f1981a4112a661a3078149fac52c9ed4a6389bf906dc77442d8bd6975390",
+      "snapshot_content_sha256": "79c27da4942985f228c46ae028d4772e5e0e9256fa7a4a1b2f2775229ef81481",
+      "fields": [
+        "symbol",
+        "last",
+        "previous_close",
+        "change_pct",
+        "provider",
+        "exchange",
+        "session_date",
+        "session_time"
+      ],
+      "quote_count": 33,
+      "etf_symbols": [
+        "SOXX",
+        "CLOU",
+        "ARKX",
+        "UFO",
+        "BOTZ",
+        "DRIV",
+        "NLR",
+        "GRID",
+        "ITA",
+        "ICLN",
+        "TAN",
+        "LIT",
+        "XLE",
+        "FCG",
+        "COPX",
+        "GLD",
+        "KBE",
+        "XBI",
+        "XLY",
+        "XLP",
+        "REMX"
+      ],
+      "equity_count": 12,
+      "quote_return_consistency": "33/33 within existing owner tolerance 0.001 percentage points",
+      "theme_row_count": 24,
+      "proxy_warning": "20 ETF theme labels / 21 ETF symbols plus 4 stock-basket labels; sector/thematic/commodity/basket proxies are not interchangeable industries. Current owner labels are evidence of the mapping definition, not proof of HK economic exposure or return causality."
+    },
+    "us_history": {
+      "inspected_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals",
+      "daily_files": [
+        {
+          "date": "20260914",
+          "raw_sha256": "b8b213e1e0f19dfd844ca2cc676734c2e40e4ac51e8d6b1d617137a960d31901",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20260914",
+          "captured_at": "2026-09-14T20:15:00Z"
+        },
+        {
+          "date": "20260915",
+          "raw_sha256": "419e939223214255d12d8e019c806bde07c24cac0c9e5fb3630b2825c974bae1",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20260915",
+          "captured_at": "2026-09-15T20:15:03Z"
+        },
+        {
+          "date": "20260916",
+          "raw_sha256": "823e0c9b403391cb7075baa838b7826b768c7341bf7ab4d3b040a4d4aba43e39",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20260916",
+          "captured_at": "2026-09-16T20:15:00Z"
+        },
+        {
+          "date": "20260917",
+          "raw_sha256": "57ca6b817bb13edf37cbd00d9aed8cdbd71932ecb8ec0dbf214ddc14f78d51f3",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20260917",
+          "captured_at": "2026-09-17T20:15:01Z"
+        },
+        {
+          "date": "20260918",
+          "raw_sha256": "9f7ec9079c0b5877d9469029849cd310f79e04c538e079a990b6a3fe32f954d3",
+          "status": "PARTIAL",
+          "quote_count": 33,
+          "capture_session_date": "20260918",
+          "captured_at": "2026-09-18T20:15:03Z"
+        },
+        {
+          "date": "20260921",
+          "raw_sha256": "9b92c78cb83bd6bf195c5d85a7e3c5df528a6290271b56ad56287aa4fe6a1138",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20260921",
+          "captured_at": "2026-09-21T20:15:05Z"
+        },
+        {
+          "date": "20260922",
+          "raw_sha256": "8b662d4eab0e339b5f64e3882b7ac530df255853fa5aa7b167a4a853334ff45b",
+          "status": "PARTIAL",
+          "quote_count": 33,
+          "capture_session_date": "20260922",
+          "captured_at": "2026-09-22T20:15:06Z"
+        },
+        {
+          "date": "20260923",
+          "raw_sha256": "e87c76bd2b5edf3e2eacfb142ec3a6619290f78aac6708a9f3eb847c97f9b19d",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20260923",
+          "captured_at": "2026-09-23T20:15:00Z"
+        },
+        {
+          "date": "20260924",
+          "raw_sha256": "759a36f05be2a4db408d4e2a1687d02d10245e7cc7c3c3172a5096d11e7b6361",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20260924",
+          "captured_at": "2026-09-24T20:15:04Z"
+        },
+        {
+          "date": "20260925",
+          "raw_sha256": "acd58b0c78589a68e5f9d4894579ec68ea5177f6b68495139584e7f3bd035cd1",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20260925",
+          "captured_at": "2026-09-25T20:15:06Z"
+        },
+        {
+          "date": "20260928",
+          "raw_sha256": "6d19cadb9b4e1e1842ffb0a8e92e413f6f500a7032842326b4c5cd9f55d6d579",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20260928",
+          "captured_at": "2026-09-28T20:15:05Z"
+        },
+        {
+          "date": "20260929",
+          "raw_sha256": "7eb0094a0546f62f5346dddd795977e8bbda3520e34eed03f2556b2fdfd81566",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20260929",
+          "captured_at": "2026-09-29T20:15:06Z"
+        },
+        {
+          "date": "20260930",
+          "raw_sha256": "efbf4e3cc09652fc73abf43fa9c4bc784c60931e1bb4f2724fab12c8b6c9967c",
+          "status": "PARTIAL",
+          "quote_count": 33,
+          "capture_session_date": "20260930",
+          "captured_at": "2026-09-30T20:15:00Z"
+        },
+        {
+          "date": "20261001",
+          "raw_sha256": "18706c194bcae56f991de3c0f9210fac701a381b4d763b61b74cfcbc421b9583",
+          "status": "CANNOT_CONFIRM",
+          "quote_count": 33,
+          "capture_session_date": "20261001",
+          "captured_at": "2026-10-01T20:15:01Z"
+        },
+        {
+          "date": "20261002",
+          "raw_sha256": "a3ec9262be622d7cf98faf03791a9b733267219644955ea86eea8c2122c9b7c9",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20261002",
+          "captured_at": "2026-10-02T20:15:05Z"
+        },
+        {
+          "date": "20261005",
+          "raw_sha256": "8e94a8d624a5ade2e2438c886b1cc54bdee7fed991cfe56482e742d8ef32a278",
+          "status": "CANNOT_CONFIRM",
+          "quote_count": 33,
+          "capture_session_date": "20261005",
+          "captured_at": "2026-10-05T20:15:03Z"
+        },
+        {
+          "date": "20261006",
+          "raw_sha256": "9870ad8ee41d90472d84205b80887feb15b59a7bb1237d5467295e62e6954279",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20261006",
+          "captured_at": "2026-10-06T20:15:03Z"
+        },
+        {
+          "date": "20261007",
+          "raw_sha256": "34c529faf0b356afcd47a48d583e18bb63de29beea36fa0fda7af8736c5a8056",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20261007",
+          "captured_at": "2026-10-07T20:15:00Z"
+        },
+        {
+          "date": "20261008",
+          "raw_sha256": "6c96e5bb2681e8407670d5f79cafd014935d3e6592130102157d54759c64aa16",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20261008",
+          "captured_at": "2026-10-08T20:15:01Z"
+        },
+        {
+          "date": "20261009",
+          "raw_sha256": "928cd4ae8089a792ea1a3cfab490c9217c4249d6c29c11aeaa9cee879f0fb4e3",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20261009",
+          "captured_at": "2026-10-09T20:15:04Z"
+        },
+        {
+          "date": "20261012",
+          "raw_sha256": "26bf3480285f0cd6b94568d0c7ac9c01fd9e1c42c48634c2dd1f9cf5dbc50d37",
+          "status": "READY",
+          "quote_count": 33,
+          "capture_session_date": "20261012",
+          "captured_at": "2026-10-12T20:15:00Z"
+        },
+        {
+          "date": "20261013",
+          "raw_sha256": "bbad31ce65946b2a1f41e23c8e48dd759e6bd6bdad45ede7c3ef52660e971054",
+          "status": "CANNOT_CONFIRM",
+          "quote_count": 0,
+          "capture_session_date": "20261013",
+          "captured_at": "2026-10-13T13:00:06Z"
+        }
+      ],
+      "completed_session_inventory_count": 21,
+      "signal_prior_inventory_count": 20,
+      "status_counts": {
+        "READY": 16,
+        "PARTIAL": 3,
+        "CANNOT_CONFIRM": 2
+      },
+      "history_versions_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/history",
+      "history_backfill_root_exists": false,
+      "limitations": [
+        "Only exact dated files and history directory date inventory inspected; not a claim that all archives globally lack older data.",
+        "PARTIAL/CANNOT_CONFIRM days require owner receipt and row-level eligibility validation; 21 files are not 21 fully verified training observations.",
+        "No broad US benchmark among the fixed 33 symbols; 60-session beta estimation unavailable from inspected source.",
+        "Adjustment / distribution-consistent historical return basis not attested by daily last/previous_close alone.",
+        "20261013 file has 0 quotes and CANNOT_CONFIRM; cannot serve target20261013 HK signal."
+      ]
+    },
+    "hk_panel": {
+      "owner": "existing v3_shared_data.hk_0_2 producer",
+      "manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261013-5f278c2d4d10/manifest.json",
+        "raw_sha256": "b4857921d9c9333c3ee4a2f774f79c2ec3b6ba2b0de2063b97f55ddb869d7bb7",
+        "bytes": 113579
+      },
+      "panel": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261013-5f278c2d4d10/hkconnect_vipdoc_daily_panel.parquet",
+        "raw_sha256": "5f278c2d4d106f1c7085fc44cba89dab28f9ba91bc63de6fcf00ed86b3f45b51",
+        "bytes": 21141675
+      },
+      "actual_max_date": "20261013",
+      "available_at": "2026-10-13T09:20:03.775506+00:00",
+      "rows": 459407,
+      "columns": 32,
+      "target": "20261013",
+      "price_d1": "20261012",
+      "projection": "RETROSPECTIVE only: preserve actual max date/SHA/availability; exclude all 13th price rows when projecting through D1=12",
+      "industry_or_main_business_fields": [],
+      "history_limit": "Original 61-session price windows lack Oct5/6/7 and historical units are not proved by NEW_INCREMENT_ONLY metadata; existing independently verified same-owner supplements support 662/692 current windows, 30 unknown. They do not supply industry classification."
+    },
+    "hk_master": {
+      "owner": "v3_shared_data.hk_security_master",
+      "manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/manifest.json",
+        "raw_sha256": "cfd82041bc841e9a036090664160479c3b25e6e9461ddcf867ff3bf41f399f8c",
+        "bytes": 661
+      },
+      "artifact": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv",
+        "raw_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe",
+        "bytes": 91540
+      },
+      "scope_count": 692,
+      "columns": [
+        "code",
+        "name",
+        "outstanding_shares",
+        "circular_market_val",
+        "listing_date",
+        "lot_size",
+        "stock_owner",
+        "stock_child_type",
+        "sec_status",
+        "captured_at",
+        "source"
+      ],
+      "industry_or_main_business_fields": [],
+      "warning": "stock_owner/stock_child_type are security metadata, not economic sector exposure"
+    },
+    "old_research": {
+      "workspace_artifacts": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261012/latest.json",
+          "raw_sha256": "ad4ca390a54847147d06d996b0b8e32653e27b3cbfdf6533c98a0fc55ec2026e",
+          "bytes": 45769023
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_plans/20261013/latest.json",
+          "raw_sha256": "b885806c1150ab8cb754948df3809a79f32a4d94f3cc1767a1f367c2b6d3e3e1",
+          "bytes": 17652548
+        }
+      ],
+      "observed_20261012": {
+        "materials": 3816,
+        "accepted_subject_bound_discovery_cards": 0,
+        "us_industry_hk_mappings": 0,
+        "identity_failure": "HK_IDENTITY_AND_CONNECT_NOT_VERIFIED",
+        "source_kind": "zsxq",
+        "themes": 4
+      },
+      "observed_20261013": {
+        "materials": 0,
+        "accepted_subject_bound_discovery_cards": 0,
+        "us_industry_hk_mappings": 0,
+        "generated_at": "2026-10-12T06:18:13.317754+00:00",
+        "scope_warning": "Old date-keyed plan is not a target13 issuer exposure census"
+      },
+      "reusable_pattern": "issuer_us_relations requires exact issuer/action subject, affirmed source proposition, original field/span substring, independently verified source SHA and acquisition/publication time. Its theme keyword regex is a candidate extraction hint, not an approved company-to-ETF mapping. Old business code read only; no import/call.",
+      "company_evidence_v3": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_workbench/research_data/us_mapping_relation_evidence_20261013_v3.json",
+        "raw_sha256": "2046fdafb69a8e4cb9d7de4f754ea69799b769c82351dd46499ba1b6a6ca567f",
+        "bytes": 64711
+      },
+      "company_route_warning": "10 reviewed company tuples are separate economic-link evidence; customer/partner facts do not automatically prove sector membership, revenue weight or ETF exposure. No quantified HK exposure registry found in inspected inputs."
+    }
+  },
+  "source_code_identities": [
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/infrastructure/research_peripheral_store.py",
+      "raw_sha256": "ec5ca1e32232946bacf04834d0ec0e0ed6e772ce1d3470fdb65b35522dc2faab",
+      "bytes": 15114
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/_research_lane_router_parts/industry_projection.py",
+      "raw_sha256": "99ee1e50ebd6179cde9392ab99a0945bf414eb58f1c81e2d0e372af54314fa9e",
+      "bytes": 12847
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/research_evidence.py",
+      "raw_sha256": "d2539b676d5779d9369fd8aba187c0565fcc38dbb0e89596d1248668fda4a7d5",
+      "bytes": 28636
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/issuer_us_relations.py",
+      "raw_sha256": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f",
+      "bytes": 15653
+    }
+  ],
+  "not_run": [
+    "new network fetch",
+    "model calls",
+    "business code edits",
+    "new producer or source",
+    "factor selection/alpha verification",
+    "deploy/service changes",
+    "GitHub sync"
+  ],
+  "final_checks": {
+    "receipt_before": "ABSENT; exclusive creation",
+    "US_payload_and_snapshot_receipt_SHA": "PASS",
+    "US33_return_formula": "PASS",
+    "HK_panel_and_master_SHA": "PASS",
+    "workspace_source_SHA_drift": "NONE",
+    "original_528ef_snapshot_SHA": "UNCHANGED",
+    "scope": "Only this compact receipt written; no raw materials uploaded"
+  },
+  "publication_scope": "Source references, hashes and coverage only; daily quote/return rows omitted. Full discovery receipt retained locally.",
+  "independent_clarification": {
+    "review_sha256": "61f6730267494f304686d6c94f8c7b41e0ca550fac63d0fb9f0be2be4404f060",
+    "source_scope": "Only inspected fixed33 and specified panel/master/workspace artifacts; not a claim that all project resources lack benchmarks or mappings",
+    "existing_unaccepted_candidates": 108,
+    "candidate_stock_count": 17,
+    "accepted_count": 0,
+    "reason": "20261009 reference identity did not establish target-date eligibility; materials and candidates remain reusable pending validation",
+    "phase_status": "P0 independently verified; P1 formula/mapping contract not yet frozen; no business changes"
+  }
+}

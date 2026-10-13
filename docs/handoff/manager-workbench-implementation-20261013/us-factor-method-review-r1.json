@@ -1,0 +1,160 @@
+{
+  "reviewer": "/root/manager_reviewer_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "reviewed_at": "2026-10-13T13:37:46.083443+00:00",
+  "scope": "Read-only methodology boundary and minimal acceptance framework; no data inventory, business implementation, empirical efficacy or release acceptance",
+  "source": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/US_FACTOR_RESEARCH_20261013.md",
+    "sha256": "08b2196fc47bf38c95d22dd59a2d5a8d61dc3a257245ce00fe4beed54de23cce"
+  },
+  "verdict": "PASS_MINIMAL_FRAMEWORK_WITH_REQUIRED_PLAN_FREEZES",
+  "research_status": "DIRECTION_ONLY",
+  "empirical_validity": "CANNOT_CONFIRM",
+  "implementation": "NOT_REVIEWED",
+  "tests": "NOT_RUN_THIS_DESIGN_STAGE",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "required_decisions": [
+    {
+      "id": "D1",
+      "decision": "One first primary factor and one primary outcome; recommend industry residual first and next eligible HK open-to-close as primary; preclose-to-open is separate informational diagnostic, not executable post-open profit. Company-link factor separately evaluated, no composite score.",
+      "freeze": [
+        "US return session and price adjustment basis",
+        "simple/log/total/price return choice",
+        "market benchmark",
+        "beta estimator/intercept/window/min observations and estimate end",
+        "HK exposure rule and missing policy",
+        "primary HK holding horizon and outcome benchmark",
+        "candidate rank/threshold/tie rules before test"
+      ],
+      "acceptance": "Each factor reconstructible from saved inputs with a causal beta fitted through prior US sessions; no fitting the current shock or choosing formula by held-out returns."
+    },
+    {
+      "id": "D2",
+      "decision": "Assign each of existing 33 US sources a declared signal role. ETF theme/industry exposure and issuer economic edges are separate types.",
+      "freeze": [
+        "source role/proxy rationale",
+        "coarse industry versus explicit fine theme",
+        "one designated proxy or fixed justified multi-exposure weights",
+        "overlap/dedup treatment",
+        "normalization fitted only on preceding data"
+      ],
+      "acceptance": "ETF need not have issuer collaboration, but HK exposure needs evidence. Duplicate/overlapping ETFs cannot silently give repeated votes; absent weight evidence use a declared categorical exposure rather than invented revenue percentages."
+    },
+    {
+      "id": "D3",
+      "decision": "Use actual eligible sessions and availability, not matching date strings.",
+      "freeze": [
+        "HK decision instant/timezone",
+        "US and HK calendar versions",
+        "US session-ended/received timestamps",
+        "price source raw/content SHA",
+        "mapping published/review/available timestamps",
+        "late-arrival and closed-market stale-signal policy"
+      ],
+      "acceptance": "Session ended, data received, and classification/relation usable all no later than cutoff. DST, US-only/HK-only holidays, late arrival and unknown publication precision fixtures must have predetermined outcomes. RETROSPECTIVE mode does not assert natural preopen/PIT readiness."
+    },
+    {
+      "id": "D4",
+      "decision": "Preserve historical membership and classification versions, or explicitly limit the experiment to a current fixed-universe retrospective question.",
+      "freeze": [
+        "HK Connect membership effective interval and known-at time",
+        "HK industry/business classification effective interval and known-at time",
+        "33-source current-universe selection limitation",
+        "delisting/suspension/missing outcome treatment"
+      ],
+      "acceptance": "Current industry labels, new 2026-10-13 reviews or current 692 membership cannot be retrospectively called contemporaneously known. No historical versions means PIT CANNOT_CONFIRM; prospective frozen mapping and forward observations are allowed, historical causal efficacy is not established."
+    },
+    {
+      "id": "D5",
+      "decision": "Company links require source-to-target direction and separate economic interpretation.",
+      "freeze": [
+        "customer/supplier/competitor/historical/indirect/future-plan edge type",
+        "direction and effective dates",
+        "materiality evidence when claiming revenue sensitivity",
+        "single-factor propagation hypothesis for each supported edge family"
+      ],
+      "acceptance": "Preserve factual approved tuples, quote/locator/raw SHA and contrary evidence. PRIORITY/WATCH are human research classifications, not automatically factor signs, weights or positive-return predicates. No proof of materiality/direction means only relation observation or explicitly untested hypothesis, not fabricated quantitative exposure."
+    },
+    {
+      "id": "D6",
+      "decision": "Freeze chronological evaluation and state labels before empirical iteration.",
+      "freeze": [
+        "training/validation/sealed sample dates and sample IDs",
+        "small declared parameter/variant list",
+        "same-date comparable baseline intersection plus full-universe coverage",
+        "primary metric/min effective observations/pass thresholds",
+        "fee/slippage assumptions only for claimed executable portfolio results",
+        "selection/ranking and missing-data policy"
+      ],
+      "acceptance": "No random time split; labels overlapping a boundary must not train against validation/holdout outcomes. Report dated IC/rank-IC, spread, uncertainty respecting time dependence, coverage and failed periods; for portfolio claims add turnover/net costs. Report all tried variants and do not repeatedly tune on sealed results. More picks/API200 is not efficacy."
+    }
+  ],
+  "stage_gates": [
+    {
+      "stage": "data_contract",
+      "pass": "Source/calendar/scope/classification references and SHA plus explicit missing fields; zero and missing distinguished, no new producer."
+    },
+    {
+      "stage": "mapping",
+      "pass": "Industry exposure and company directed relation records separately versioned and independently reviewed; known-at limitations retained."
+    },
+    {
+      "stage": "single_factor_research",
+      "pass": "Formula/window/labels/splits/acceptance frozen and reproducible; empirical result separately PASS/FAIL/CANNOT_CONFIRM, never inferred from engineering success."
+    },
+    {
+      "stage": "real_day_candidate",
+      "pass": "Saved fixed-cutoff inputs reproduce factor values, coverage and candidate ranks; label candidate-unvalidated when efficacy gate not satisfied, preserve unknown stocks."
+    },
+    {
+      "stage": "api_ui",
+      "pass": "Counts/filters/details use saved US-factor rows with formula/version/session/source/exposure and research status; independent from oversold40 results, no aggregate promotion."
+    },
+    {
+      "stage": "scheduler",
+      "pass": "Only after prior engineering acceptance, demonstrate timely source availability and natural-slot consumption separately; no natural claim from manual replay."
+    }
+  ],
+  "minimum_counterexamples": [
+    "future classification/review excluded at earlier cutoff",
+    "signal received after cutoff cannot preopen consume",
+    "DST and asymmetric holidays join by session not calendar string",
+    "missing sector exposure does not become zero",
+    "duplicate ETF proxy does not duplicate stock membership",
+    "company relation direction/unknown sign not auto-positive",
+    "current membership retrospective run never labeled historical PIT",
+    "same input SHA reproduces factor/rank and old oversold40 unchanged"
+  ],
+  "scope_preserved": [
+    "existing 33 US sources and approved HK Connect scope",
+    "existing authoritative owner inputs",
+    "no new producer/account/composite score",
+    "oversold40 independent and frozen",
+    "research only"
+  ],
+  "primary_sources_verified": [
+    {
+      "url": "https://pages.stern.nyu.edu/~afrazzin/pdf/Economic%20Links%20and%20Predictable%20Returns%20-%20Cohen%20and%20Frazzini.pdf",
+      "supports": "Original study uses prior public material customer-supplier links and monthly customer-momentum; does not prove all partnership edge or HK overnight efficacy."
+    },
+    {
+      "url": "https://www.ishares.com/us/products/239705/ishares-phlx-semiconductor-etf",
+      "supports": "SOXX ETF sector-proxy definition, not issuer partnership or HK propagation proof."
+    },
+    {
+      "url": "https://www.quantconnect.com/research/15308/sector-momentum/",
+      "supports": "ETF momentum implementation context; cannot substitute empirical HK cross-market validation."
+    }
+  ],
+  "actions": {
+    "business_writes": false,
+    "network_data_collection": false,
+    "model_calls": false,
+    "service_changes": false,
+    "subagents": false,
+    "only_receipt_write": true
+  }
+}
