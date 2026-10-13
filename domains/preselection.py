@@ -411,6 +411,7 @@ _POOL_SOURCE_CONTRACT = {
     "a_d1_premarket_pool": ("V192_SELECTOR", "（选）", "selector_lane"),
     "a_d1_fupan_watchlist_pool": ("D1_FUPAN", "（复）", "fupan_lane"),
     "a_d1_stage7_fenshi_review_pool": ("D1_STAGE7", "（分）", "stage7_lane"),
+    "a_share_research_recommendation_pool": ("RESEARCH_RECOMMENDATION", "（研）", "research_lane"),
 }
 
 
