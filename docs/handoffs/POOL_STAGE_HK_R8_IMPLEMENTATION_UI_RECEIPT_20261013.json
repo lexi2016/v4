@@ -1,0 +1,545 @@
+{
+  "schema": "r8.final_delivery.v1",
+  "goal": "预选池、阶段选股、港股复盘整理及8873实际页面验收",
+  "status": "IMPLEMENTED_REVIEWED_DEPLOYED_API_UI_TARGET_VERIFIED_NATURAL_UNVERIFIED",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "private_repository": "lexi2016/v4",
+  "branch": "codex/pool-stage-hk-review-implementation-20261012-r8",
+  "sync_parent_commit": "b0e476e45916d1e5232748f92fff3e64b955bcc6",
+  "source_files_to_sync": [
+    {
+      "path": "ops/stage_service_overlay_contract.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "680f774a7b57761de847401168451f4f32549ba4",
+      "after_sha256": "26b0420610d11c96805c3d6954c404d4f554a3bb8597ffc3d71c9acfe4b8c68a",
+      "size_bytes": 25465
+    },
+    {
+      "path": "ops/build_release_candidate_stage.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "5350198ba6c07bdccc3cbbdc94b0d96b5cfeb850",
+      "after_sha256": "932962f196be90d0d4a01884f2a311beded2ddaa2cd84dc6cace132434ec8720",
+      "size_bytes": 60389
+    },
+    {
+      "path": "ops/prepare_pool_stage_owner_candidates.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "c3dd0e849c8673beaf00e8c05bd702909490230c",
+      "after_sha256": "8666ae22b83673ebda25cd3fcf31d6469739a10e6eadabe1ca9fac6b01ffb1ab",
+      "size_bytes": 202929
+    },
+    {
+      "path": "tests/test_pool_stage_owner_candidates_r8.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "ed0bdf08cf6263fb9601d82c5369575afc3315ab",
+      "after_sha256": "c78f22a9d95fcd5eae5ef328ebd6b6c6d540d16b0e5e01cf4c71a670ea0d4edc",
+      "size_bytes": 38529
+    },
+    {
+      "path": "tests/test_stage_pool_gap_chain_r8.py",
+      "before_git_blob_sha": "c0cff8a9e64885e5205bd992883ef68fe74131a0",
+      "after_git_blob_sha": "91e9542c451b6af17000e01405f9367f00e1fd32",
+      "after_sha256": "f720f4a5c5f12ccaffb0d479afcd510816a26850b8561a388ba54a025c745247",
+      "size_bytes": 20394
+    },
+    {
+      "path": "apps/web/src/App.vue",
+      "before_git_blob_sha": "79c5487fe186e5ba1c9e07d1b74416f00cfb81e9",
+      "after_git_blob_sha": "a313067be4b8df60c407d9c94f795bdd37b30926",
+      "after_sha256": "4b383c755c1fc2015327083a3b7194150dd8f3c894eb47f752612ea8b1fa5926",
+      "size_bytes": 29179
+    },
+    {
+      "path": "apps/web/src/app_shell/types.ts",
+      "before_git_blob_sha": "4d27e4335413dc28a7289d589b736b7ced019857",
+      "after_git_blob_sha": "14e98a68d89b69ce0545da9bfa0935de66cab670",
+      "after_sha256": "dd58d5647376c8890e6d041cc7abc33167b8d4cdb6b77d703c278455552a97d0",
+      "size_bytes": 7490
+    },
+    {
+      "path": "apps/web/src/App.spec.ts",
+      "before_git_blob_sha": "7f44393553fa1a0945d11dc22379223b260d946c",
+      "after_git_blob_sha": "971debcf19ab16e415d2360028d18733d22d1afd",
+      "after_sha256": "a7a89213b134d8ed7fdefc71c2bb9b5a8a3814ebcd03315bdc2bc7ba941fa050",
+      "size_bytes": 98286
+    },
+    {
+      "path": "domains/preselection.py",
+      "before_git_blob_sha": "6df4d5f8a0352c58a4e1b84926a163bf67078f01",
+      "after_git_blob_sha": "83e02efe0bdeac562af53be21b89adb5de0e3c51",
+      "after_sha256": "85c75d206e5edb66c5dc3f34c8e9d0c1889e73c49950b627fb63c4f12ae9be18",
+      "size_bytes": 25190
+    },
+    {
+      "path": "tests/test_preselection_source_root_20261008.py",
+      "before_git_blob_sha": "fe427b91c6b33d771faa264411748ff1c2876fb8",
+      "after_git_blob_sha": "06ba801c8bf91aa90277054eef3cd4294e62e5f3",
+      "after_sha256": "d30a1bc15121f71c7178340f54db025db3578ca8c7aec8271c5159fff797a812",
+      "size_bytes": 19172
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_provenance.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "af90c1aebbe17c3a21ba3462003db1f9720101a2",
+      "after_sha256": "ddc0250817f92fb5b07998a1e8b82e772551d7e384647f2e5595cb78571bc8e7",
+      "size_bytes": 8911
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/strict_artifact.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "2f59c89a61972256f160a31e3b6d5817e2b53836",
+      "after_sha256": "c7f43ee2cf92bcfc5580c61d7395dd72bf54abc05a8a0e1dfba7fec274d8e439",
+      "size_bytes": 17801
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_publication.py",
+      "before_git_blob_sha": "e91b70a97a0082a374f4c72fbc8f552ed52c66ff",
+      "after_git_blob_sha": "52c32ffa2c019f63a2c7ca6f98d793e015570e32",
+      "after_sha256": "b863eed25f69e1c2e113968082a8e9e44eb018e398076da82373cb5dc71dba1d",
+      "size_bytes": 8575
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/artifact_validation.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "345f009dfb58880b2b3f4db218f2fda4801e5afb",
+      "after_sha256": "56a8bd7cb35658865ba92caf445ed3089d05c822f01bf6b86af021580a4e6982",
+      "size_bytes": 24069
+    },
+    {
+      "path": "domains/_preselection_parts/__init__.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "size_bytes": 70
+    },
+    {
+      "path": "domains/_preselection_parts/_namespace.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "size_bytes": 527
+    },
+    {
+      "path": "domains/_preselection_parts/independent_projection.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "441a3024fc2627dfbccf0830259d8fdf61218de7",
+      "after_sha256": "0d106ae33b25f7a44e846e7fc1250c0bdb442d08e752b6f8f495edac359d524c",
+      "size_bytes": 7246
+    },
+    {
+      "path": "domains/_preselection_parts/pagination_metadata.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "ff3057b0c771ea10fead2d021976b4f8b3135458",
+      "after_sha256": "b1ca5157aa6b6fc082c8a85e25d1132ced381264f3591458b41feb3d27ba3afc",
+      "size_bytes": 3653
+    },
+    {
+      "path": "domains/_preselection_parts/pool_assembly.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "3723230c4d737d77f79c91a08f97877156ed3de9",
+      "after_sha256": "408df356fc7d9806fbb2372fcfd3da6a7afffd05d3e140d9fddc09c347d5ff4e",
+      "size_bytes": 9181
+    },
+    {
+      "path": "domains/_preselection_parts/review_fupan.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "add1c9d33f14fa0ff6fcf235bad1e1235baa52fc",
+      "after_sha256": "33cd17df2293b94604915dc4e27b4d16fcb97904f403a641b354bc870e06381c",
+      "size_bytes": 5241
+    },
+    {
+      "path": "domains/_preselection_parts/review_stage7.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "3df76d4c013e46c5ed0608ba3ce736264e4c09c5",
+      "after_sha256": "86cd191a5212c4986bac45f880b5ef251590863da3802b6523170bc00c24169b",
+      "size_bytes": 5001
+    },
+    {
+      "path": "domains/_preselection_parts/source_validation.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "aff94c4620fcfbcb0ed3d11925af58b39bcc5d7a",
+      "after_sha256": "ba650bb72e78aec6c006faf45804ea670c8fa9c187a45e32b563d31be4605d1d",
+      "size_bytes": 4643
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/__init__.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "size_bytes": 70
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/_namespace.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "size_bytes": 527
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/__init__.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "size_bytes": 70
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/_namespace.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "size_bytes": 527
+    },
+    {
+      "path": "infrastructure/scope_gate.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "33539d4b64b5374f8b1b9839ae30c494e30fb5ae",
+      "after_sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+      "size_bytes": 16258
+    },
+    {
+      "path": "stage_center/_runner_parts/__init__.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "size_bytes": 70
+    },
+    {
+      "path": "stage_center/_runner_parts/_namespace.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "size_bytes": 527
+    },
+    {
+      "path": "infrastructure/preselection_pool_transactions.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "6b8ade94068811f6e46fe2d1233938eb9f4c0da5",
+      "after_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "size_bytes": 15569
+    },
+    {
+      "path": "infrastructure/interprocess_lock.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "a97e733725834235fbcc9129639ae198fa8770cd",
+      "after_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "size_bytes": 7514
+    },
+    {
+      "path": "infrastructure/owned_io.py",
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "1b6666551980c44ebb0b05f133c189909d79c7df",
+      "after_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "size_bytes": 9354
+    },
+    {
+      "path": "apps/web/src/api/pool_stage.ts",
+      "before_git_blob_sha": "04213ff2dc91fc95d4c7e4ea91483fd351f4eda6",
+      "after_git_blob_sha": "e765fb6a0262beae355ff77a6768808ca49c68b4",
+      "after_sha256": "42ca7fccb1e5fc83fff5d9c5dcfc82143edc26aae16691c8d2c65e679b8a878e",
+      "size_bytes": 19658
+    },
+    {
+      "path": "apps/web/src/api/pool_stage.spec.ts",
+      "before_git_blob_sha": "d226482aebb2e0bd6730f22ae6448063a3862358",
+      "after_git_blob_sha": "10cf415f0cf78ad50a739ea32bb9bc00bfe0d000",
+      "after_sha256": "98e218f6dfd2edb52a62f0439254e282fdd5e5e51656513929591c3599089d41",
+      "size_bytes": 14070
+    }
+  ],
+  "line_map": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/REVIEWED_CHANGE_LINE_MAP_R8.json",
+    "sha256": "7a3b104f6cd2bee4149ba16ca1969c59dbd5531d74fd34d0fd1a9caf5cdc3aaf",
+    "reviewed_hunks": 208
+  },
+  "independent_review_proofs": {
+    "batch1_review/BATCH1_REVIEW_REPORT.md": {
+      "sha256": "cdf58ac4f0fc97f7fda6bd57f56a22e7bfff5ce2a5f5000a9419f4f2e57537fd",
+      "bytes": 6438
+    },
+    "batch2_review/BATCH2_REVIEW_RECEIPT.json": {
+      "sha256": "f95ed1bbdff1bd9d3a9d848e8cec663c24e45f3ccb1fde480cf470a6028e95f9",
+      "bytes": 2901
+    },
+    "batch3_review/REVIEW_RECEIPT.json": {
+      "sha256": "c508eb10a3395fa0bf7f7e69bf6cb5b8e5721ad32894c1931d247c36d7a59f1d",
+      "bytes": 14236
+    },
+    "batch4_review/REVIEW_RECEIPT.json": {
+      "sha256": "f6735036700cb3b930442bade2e197c47251d2bd39d89e45f30a82f4d76a7825",
+      "bytes": 9660
+    },
+    "batch5_review/REVIEW.md": {
+      "sha256": "abc47205b937de8234bd7700b5e80221a63a14a52229fc5a5a38393d185744af",
+      "bytes": 6058
+    },
+    "batch6b_review_final/PHASE6B_FINAL_REVIEW_RECEIPT_R8.json": {
+      "sha256": "337861dfc000f2a6f09542e28f626ab1ff6abea34cb9b4fbfa935a3ca33ae8d2",
+      "bytes": 29576
+    },
+    "batch6b_review_final/scheduler_rebase_final/SCHEDULER_REBASE_FINAL_REVIEW_RECEIPT_R8.json": {
+      "sha256": "4745f70fba4a79836f2cea7888df43ca7a5b8a21109b391af3582176b92bb4fa",
+      "bytes": 71861
+    },
+    "batch6b_review_final/phaseA_final/PHASE_A_INDEPENDENT_REVIEW_RECEIPT_R8.json": {
+      "sha256": "4b59c50cf74ef665d0004b43340578da6f7ab00a50bf908eadf281af9fb1b428",
+      "bytes": 5729
+    },
+    "batch6b_review_final/phaseB_final/PHASE_B_INDEPENDENT_REVIEW_RECEIPT_R8.json": {
+      "sha256": "1f467baefb13338b10061531eb66e32f7ed49abd8ffceef46172985add9187c8",
+      "bytes": 9549
+    },
+    "batch6b_review_final/scheduler_placement/reviewer_scheduler_placement_result.json": {
+      "sha256": "164750d8087f0f05b2a75ab369d2b300843e326c81de41a42ff001e9ae8b94c0",
+      "bytes": 11523
+    },
+    "batch6a_review_repair/REVIEW_RECEIPT.json": {
+      "sha256": "2730b105549b5d2bb9dc8065303a4fede9a4cba741d5d465c9846d728b9a8fdb",
+      "bytes": 6191
+    },
+    "batch6b_review_final/live_ui_adjudication/PHASE_POSTDEPLOY_API_UI_REVIEW_R8.json": {
+      "sha256": "b2bdeb5a4fc3b3fbe0cf0b4fab2a0ecde74babcd2143ba61303519d22e25cc70",
+      "bytes": 24800
+    }
+  },
+  "runtime_services": {
+    "com.lexi.v35.api-only.plist": {
+      "plist_sha256": "95f7c2c3fec04548a8740460dcb3fbbeae19c0ed0bbfd9392faf4f755ecd6d6a",
+      "program_arguments": [
+        "/usr/bin/env",
+        "V35_PRESELECTION_SOURCE_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V4_WECHAT_ARCHIVE_ROOT=/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/articles",
+        "PYTHONDONTWRITEBYTECODE=1",
+        "PYTHONNOUSERSITE=1",
+        "HTTP_PROXY=",
+        "HTTPS_PROXY=",
+        "http_proxy=",
+        "https_proxy=",
+        "NO_PROXY=*",
+        "no_proxy=*",
+        "RESEARCH_ONLY=1",
+        "production_allowed=false",
+        "PRODUCTION_ALLOWED=false",
+        "buy_gate_updated=false",
+        "BUY_GATE_UPDATED=false",
+        "orders_sent=false",
+        "ORDERS_SENT=false",
+        "V35_APP_ROOT=/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-api-stage-client-repair-20261013-v1/api/research-workbench-simplification-api-20261013-stage-client-repair-r1/app",
+        "V35_RELEASE_ID=research-workbench-simplification-api-20261013-stage-client-repair-r1",
+        "V35_RUNTIME_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime",
+        "V35_DATA_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "V35_RESEARCH_DATA_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V35_SHARED_DATA_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/workspace/v3_shared_data/.runtime/data",
+        "V35_STAGE_CENTER_SELECTION_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+        "PYTHONPATH=/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-api-stage-client-repair-20261013-v1/api/research-workbench-simplification-api-20261013-stage-client-repair-r1/app/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-api-stage-client-repair-20261013-v1/api/research-workbench-simplification-api-20261013-stage-client-repair-r1/app",
+        "V35_RELEASE_MANIFEST_PATH=/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-api-stage-client-repair-20261013-v1/api/research-workbench-simplification-api-20261013-stage-client-repair-r1/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256=c06cf1294ed6739ca62052f76fd928a46b3dd0c0619d5ffdb13e3edb3e132655",
+        "V4_DAILY_REVIEW_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/vibe/reviews",
+        "V4_REVIEW_GENERATION_BINDINGS_PATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/config/vibe/manual-review-bindings.json",
+        "V4_REVIEW_GENERATION_BINDINGS_SHA256=cb241201f6e600926d7eaacff31ad707f191e634e497be163e742c4ae039416b",
+        "V4_INTRADAY_RESEARCH_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/vibe/intraday",
+        "V4_MANAGER_RESEARCH_STATE_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+        "V35_REVIEW_CORE_PACKAGE_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260923-manager-window-2sessions-units-announcements-r1/app/upstreams",
+        "V35_REVIEW_CORE_RUNTIME_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/review_core_runtime",
+        "V35_REVIEW_CORE_FUPAN_STORE_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/fupan_store",
+        "V35_REVIEW_CORE_STAGE7_STORE_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage7_store",
+        "REVIEW_CORE_PACKAGE_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260923-manager-window-2sessions-units-announcements-r1/app/upstreams",
+        "REVIEW_CORE_DATA_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/review_core_runtime",
+        "REVIEW_CORE_FUPAN_POOL_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/fupan_store",
+        "REVIEW_CORE_STAGE7_POOL_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage7_store",
+        "V4_MANAGER_NEWS_DATA_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V4_MANAGER_NEWS_OWNER_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260920-manager-r2-hourly-witness-repair-candidate/app",
+        "V4_MANAGER_SCREEN_AUTHORITY_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V4_MANAGER_SECURITY_MASTER_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V35_REVIEW_CORE_CLOSE_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V4_CLOSE_REBOUND_AUTHORITY_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V35_MORNING_NEWS_DATA_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V4_MANAGER_VIBE_BINDING=/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-vibe-binding-20260929-radar-r1.json",
+        "V4_MANAGER_UNIVERSE_OWNER_ROOT=/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+        "V4_MANAGER_UNIVERSE_OWNER_SHA256=9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+        "V4_MANAGER_UNIVERSE_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V4_MANAGER_PLAN_OWNER_BINDING_PATH=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE35_AUTOCONTINUE_MAC_20261011_R1/E/staged_config/phase6-saved-completion-atomic-r2/activation-r1-after-accepted-canary/manager-plan-binding.json",
+        "V35_API_ROLE=gateway",
+        "V35_API_PORT=8873",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "-m",
+        "apps.api.v35_api.run",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8873",
+        "--stage-selection-root",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection"
+      ],
+      "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-api-stage-client-repair-20261013-v1/api/research-workbench-simplification-api-20261013-stage-client-repair-r1/app",
+      "RunAtLoad": false,
+      "KeepAlive": true,
+      "StartCalendarInterval": null
+    },
+    "com.lexi.v35.scheduler.plist": {
+      "plist_sha256": "b7ed1e5b70009543e1c6ce26709abe72c9192de4c288e3154b3fe5db1bdda416",
+      "program_arguments": [
+        "/bin/bash",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/research-workbench-simplification-scheduler-20261013-r8-launchd-candidate/app/ops/launch_v35_macos_scheduler.sh"
+      ],
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/research-workbench-simplification-scheduler-20261013-r8-launchd-candidate/app",
+      "RunAtLoad": true,
+      "KeepAlive": true,
+      "StartCalendarInterval": null
+    },
+    "com.lexi.stage-center.scheduler.plist": {
+      "plist_sha256": "ecb655ad63c066e663047d64d4b1cde8df7bb5f30bbed0f1077794d6e6d1321d",
+      "program_arguments": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-pool-stage-20261013-v20/stage/futu-primary-afternoon-20261013-r8-candidate/app/ops/run_stage_center_nodes.py",
+        "--config",
+        "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-pool-stage-20261013-v20/stage/futu-primary-afternoon-20261013-r8-candidate/app/stage_center_tick_config.json"
+      ],
+      "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-pool-stage-20261013-v20/stage/futu-primary-afternoon-20261013-r8-candidate/app",
+      "RunAtLoad": false,
+      "KeepAlive": null,
+      "StartCalendarInterval": [
+        {
+          "Hour": 9,
+          "Minute": 15
+        },
+        {
+          "Hour": 9,
+          "Minute": 25
+        },
+        {
+          "Hour": 9,
+          "Minute": 35
+        },
+        {
+          "Hour": 9,
+          "Minute": 40
+        },
+        {
+          "Hour": 9,
+          "Minute": 45
+        },
+        {
+          "Hour": 10,
+          "Minute": 30
+        },
+        {
+          "Hour": 13,
+          "Minute": 15
+        },
+        {
+          "Hour": 15,
+          "Minute": 0
+        },
+        {
+          "Hour": 15,
+          "Minute": 50
+        },
+        {
+          "Hour": 15,
+          "Minute": 55
+        }
+      ]
+    },
+    "com.lexi.stage-center.hk-deadline.plist": {
+      "plist_sha256": "7fb4fcf5e37798fd1fd5f5445492573718a4858560192e6fbea1abfdcd188f31",
+      "program_arguments": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-pool-stage-20261013-v20/stage/futu-primary-afternoon-20261013-r8-candidate/app/ops/run_stage_center_nodes.py",
+        "--config",
+        "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-pool-stage-20261013-v20/stage/futu-primary-afternoon-20261013-r8-candidate/app/stage_center_tick_config.json",
+        "--deadline-only"
+      ],
+      "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/candidates/r8-pool-stage-20261013-v20/stage/futu-primary-afternoon-20261013-r8-candidate/app",
+      "RunAtLoad": false,
+      "KeepAlive": null,
+      "StartCalendarInterval": [
+        {
+          "Hour": 9,
+          "Minute": 27
+        },
+        {
+          "Hour": 9,
+          "Minute": 37
+        },
+        {
+          "Hour": 9,
+          "Minute": 41
+        },
+        {
+          "Hour": 9,
+          "Minute": 46
+        },
+        {
+          "Hour": 10,
+          "Minute": 31
+        },
+        {
+          "Hour": 13,
+          "Minute": 16
+        },
+        {
+          "Hour": 15,
+          "Minute": 1
+        },
+        {
+          "Hour": 15,
+          "Minute": 56
+        }
+      ]
+    }
+  },
+  "implementation": [
+    "A validtraceable pools fullcandidateinput; per-pool missing/empty/partial/corrupt gaps isolation; root/lock/securityfailclosed; A/HK separated",
+    "Stage duplicatebuilder removed; sourceevidence preserved; WATCH_ONLY partialnotREADY",
+    "UniqueHKclosecollector; providerverifiedtime; damaged/missing/stale/legacy distinctions",
+    "Centralpoolstageclient strictidentity/statussafety; pagers200display only,fullinput; actualAPIkeyedselectionmarketcompat",
+    "Confirmedunused127lines removed withcallerproof",
+    "Currentruntimeownercandidates preservebaselinebytes, freshcanonical128frontendgraph; noVibe8910changes"
+  ],
+  "tested": {
+    "batch1": "independent20passed",
+    "batch2": "independent5passed",
+    "batch3": "independent31passed",
+    "batch4": "independentclient7 andpaginationchecks passed; existingApp/Manager diagnostics recorded",
+    "batch5": "independent29passed1skipped andruntimecanary",
+    "batch6A": "independent55passed+5failclosed+9compile",
+    "batch6B": "independentfrozenfullscopePASS plusScheduler13+writecontext20; Stageclient10+8datedactualGET; APIpreparation16; placement14"
+  },
+  "API_VERIFIED": "PASS_SETTLED_20261012_TARGET_AND_EXACT_DATE13_MISSING_READBACK",
+  "UI_VERIFIED": "PASS_SETTLED_20261012_TARGET_ROOT_CUA_WITH_INDEPENDENT_API_VISUAL_ADJUDICATION",
+  "UI_evidence_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/ROOT_LIVE_UI_REACCEPTANCE_R8.json",
+  "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "limitations": [
+    "Future natural09:15–15:55 runs notverified; datedhistorical/recoveryrows donotprovenatural",
+    "HKrows remainPIT/formalunverified; truehistoricalorderbooks unavailable; displayed metrics notrealtradeorformaleligibility",
+    "4unrelatedManager spec typeerrors and1old0.2App assertion knownbaseline; fullsuite notgreen",
+    "4legacylock-suite fixtures AttributeError beforebehavior; unrelatedstorepathsCANNOT_CONFIRM;6otherpassed",
+    "Scheduler report stale missing_rebound_paths nonblockingP2; actualreviewedplistcorrect",
+    "Desktopv30schedulerexit126 recorded,exactR2restored thenApplicationSupportplacementindependentlyPASS+currentreleaseheartbeatverified",
+    "NoactualFutuquotacollection/historicalbackfill performed by this simplification task",
+    "Privatebranch necessarysource/dependencies sync only; repositoryfullrunnability notclaimed",
+    "Fullsuite retains4out-of-scope typeerrors and1App assertion; notalltestsPASS; UI P2/date-switch persistedrace remainsunverified"
+  ],
+  "created_at": "2026-10-12T23:45:50.613408+00:00",
+  "nonblocking_UI_P2": [
+    "Date13missingstage nestedmarketidentities omitted; strictclientgenericreadfailure instead ofpreciseAPIreason; nozeroresults",
+    "Rapiddateswitch/Stage8 click initiallystayedStage7 untilretry; settlednavigationPASS; delayed-networkpersistenceCANNOT_CONFIRM"
+  ],
+  "source_sync": {
+    "commit": "c9231d066e3b0080c806d599f19af8944012920b",
+    "tree": "50da522c91cce1ef7b591e5ae1a5d5026f5a60c5",
+    "remote_readback": "35blobs matched,3725parentnondeltas preserved,5keyUTF8filesexact",
+    "receipt": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_IMPLEMENTATION_20261012_R8/BATCH6B_SOURCE_SYNC_RECEIPT_R8.json"
+  },
+  "completed_current_acceptance_at": "2026-10-12T23:58:23.315619+00:00"
+}
