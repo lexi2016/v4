@@ -1,0 +1,42 @@
+{
+  "verdict": "PASS",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "receipt_sha256": "667b94f8426ce4b37a2f6fee0850b4ffab09c35d01c4c073e409f290839105a3",
+  "files": [
+    {
+      "path": "v4/manager_workbench/inputs/capture.py",
+      "before_sha256": "841abda69d1b9b0c567e4b5d9f6b18bb40d1f6c0437c6284913ebca538f4be32",
+      "after_sha256": "18ebbef7a0a56d7e61113b60b902d990ba09ed763c6084191f221dd135568578"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_capture_takeover.py",
+      "before_sha256": "b3eb81155b692ce8120b695a278f79a21efdab18b5d16d56832d6f6febd860e9",
+      "after_sha256": "2b53c07ddfdae6a7ff80d64ff8770809528275e2d8d5e8404e8ecaebbf402bb3"
+    }
+  ],
+  "other_61_original_sha_unchanged": true,
+  "real_failure_metadata_sha_preserved": true,
+  "valid5_formats_exact_microseconds_and_raw_preserved": true,
+  "invalid9_suffixes_rejected": true,
+  "cutoff_000_in_001_out_999_previous_second_in": true,
+  "consumer_records": 3,
+  "cache_replay_no_requests_raw_preserved": true,
+  "mirror_pit_unpromoted": true,
+  "model_calls": 0,
+  "real_network_requests": 0,
+  "REVIEWED": "two-file observed protocol increment",
+  "TESTED": "60 pytest + independent format/boundary/cache cases",
+  "BEHAVIOR_VERIFIED": "injected source parsing and isolated consumer projection",
+  "NOT_RUN": [
+    "new real capture",
+    "model",
+    "service",
+    "formal activation",
+    "deployment"
+  ],
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_capture_takeover.py --basetemp /private/tmp/mwb-capture-milliseconds-independent-20261013",
+  "test_result": "60 passed in 2.07s",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app"
+}

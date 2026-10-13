@@ -1,0 +1,68 @@
+{
+  "verdict": "PASS",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "fix_receipt_sha256": "da277504f20ea11022c0709a50dfe9c00bed17a01beca903a0884256de921625",
+  "changed_files": [
+    {
+      "path": "v4/manager_workbench/inputs/capture.py",
+      "before_sha256": "7683bc3f2d64f7b5f62dab80cbe842638bcda0476b0d7f53ce616ac7329aefbf",
+      "after_sha256": "841abda69d1b9b0c567e4b5d9f6b18bb40d1f6c0437c6284913ebca538f4be32"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_capture_takeover.py",
+      "before_sha256": "f4685fb11b365e565064d5165524fdf4b7cc36ce057771932b4735c0914ebd70",
+      "after_sha256": "b3eb81155b692ce8120b695a278f79a21efdab18b5d16d56832d6f6febd860e9"
+    }
+  ],
+  "remaining_61_sha_unchanged": true,
+  "original_five_row_failure_now_isolated": true,
+  "full_catalog_raw_and_count_retained": true,
+  "model_consumer_rows": 2,
+  "outside_body_requests": 0,
+  "daily_boundary_pass": true,
+  "mirror_pit_unpromoted": true,
+  "character_bound_cases": [
+    {
+      "case": "equal",
+      "captured_pages": 3,
+      "source_characters": 1000000,
+      "complete": true,
+      "cache_no_refetch": true,
+      "captured_raw_untruncated": true
+    },
+    {
+      "case": "over",
+      "captured_pages": 2,
+      "source_characters": 1000002,
+      "complete": false,
+      "cache_no_refetch": true,
+      "captured_raw_untruncated": true
+    },
+    {
+      "case": "over-first-page",
+      "captured_pages": 1,
+      "source_characters": 1000001,
+      "complete": false,
+      "cache_no_refetch": true,
+      "captured_raw_untruncated": true
+    }
+  ],
+  "tests": "53 passed in 2.02s",
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_capture_takeover.py --basetemp /private/tmp/mwb-capture-p2-independent-20261013",
+  "direct_command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python /private/tmp/mwb-capture-p2-independent-direct.py",
+  "previous_capture_behavior_pass_reused": true,
+  "REVIEWED": "two frozen changed files only",
+  "TESTED": "53 + direct boundary/three text-budget cases",
+  "BEHAVIOR_VERIFIED": "injected transport and isolated cache for two P2 fixes",
+  "model_calls": 0,
+  "real_network_requests": 0,
+  "NOT_RUN": [
+    "mutable wiring",
+    "real capture",
+    "formal owner activation",
+    "deployment",
+    "natural slot"
+  ]
+}

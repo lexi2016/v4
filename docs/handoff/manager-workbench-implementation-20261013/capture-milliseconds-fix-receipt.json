@@ -1,0 +1,29 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "scope": "Observed Eastmoney colon-millisecond display_time only",
+  "files": [
+    {
+      "path": "v4/manager_workbench/inputs/capture.py",
+      "before_sha256": "841abda69d1b9b0c567e4b5d9f6b18bb40d1f6c0437c6284913ebca538f4be32",
+      "after_sha256": "18ebbef7a0a56d7e61113b60b902d990ba09ed763c6084191f221dd135568578"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_capture_takeover.py",
+      "before_sha256": "b3eb81155b692ce8120b695a278f79a21efdab18b5d16d56832d6f6febd860e9",
+      "after_sha256": "2b53c07ddfdae6a7ff80d64ff8770809528275e2d8d5e8404e8ecaebbf402bb3"
+    }
+  ],
+  "actual_failure": {
+    "raw_sha256": "d5a95ae6eb2ebca246a153d195bcca53a1310f52bbb349aa1b38f31d3a2ce585",
+    "error": "unconverted data remains ':574'",
+    "examples": [
+      "2026-10-13 13:27:48:470",
+      "2026-10-13 12:12:21:499",
+      "2026-10-13 12:05:57:440"
+    ]
+  },
+  "behaviour": "Accept exact YYYY-MM-DD HH:MM:SS with optional colon+3 ASCII milliseconds; preserve raw string, retain millisecond cutoff comparison; unknown suffixes rejected; no PIT change",
+  "test_log": "............................................................             [100%]\n60 passed in 3.37s\n",
+  "test_log_sha256": "624ae8267a17050b002904beddd19201165445b85ffb59511bf6b01493332055",
+  "real_requests_by_writer": 0
+}

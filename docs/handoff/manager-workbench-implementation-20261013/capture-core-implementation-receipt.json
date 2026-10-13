@@ -1,0 +1,543 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "goal": "Approved exclusive announcement capture core; dormant, injected transport only",
+  "writer": "/root/manager_writer_sol",
+  "writer_model": "gpt-6.1-sol/high",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "canonical_read_only_root": "/Users/lexi/Desktop/学习/v4_app",
+  "branch": "codex/manager-workbench-rewrite-mac-20261013",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "files": [
+    {
+      "path": "v4/manager_workbench/inputs/capture.py",
+      "before_sha256": "0558780e180d71deef78ca6dcd9e53ba5f5292fdec851ac8b4c2cfde4e8bd042",
+      "after_sha256": "7683bc3f2d64f7b5f62dab80cbe842638bcda0476b0d7f53ce616ac7329aefbf",
+      "bytes": 24449
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture_store.py",
+      "before_sha256": null,
+      "after_sha256": "58b9badf2fa0ec1cc0cdef95fbd6bba3fcccefd5c3334dd6fa885891aaf3e94d",
+      "bytes": 9446
+    },
+    {
+      "path": "v4/manager_workbench/inputs/pdf_pages.py",
+      "before_sha256": null,
+      "after_sha256": "ec1d4990277868e42d6d3a7ff93972e80a89e44dcfaa7c9d9f656c32ae07a770",
+      "bytes": 4182
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_native_pipeline.py",
+      "before_sha256": "8b7cf439be3c523e2c749003c4750642d6d6e45694b7512caa55f71edb2c8d03",
+      "after_sha256": "8ead5f5b1898bc525d6f650cef3a9f9e291da18054dab6cb16ce1d2fccdcc937",
+      "bytes": 15903,
+      "before_receipt": "backend-implementation-receipt.json (frozen original; only capture protocol test updated)"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_capture_takeover.py",
+      "before_sha256": null,
+      "after_sha256": "f4685fb11b365e565064d5165524fdf4b7cc36ce057771932b4735c0914ebd70",
+      "bytes": 21656
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/DEPENDENCY_MANIFEST.json",
+      "before_sha256": null,
+      "after_sha256": "46aef4c2be8538f7a0d8d4d9417d2893a2e52cfd38f2d775e65db912dd5bc324",
+      "bytes": 9191
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/licenses/pypdf-6.10.0-LICENSE",
+      "before_sha256": null,
+      "after_sha256": "a97ac230e5f33ef10a5367a850eb01f91f1a0b064e34742c7794d2294557f524",
+      "bytes": 1605
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/__init__.py",
+      "before_sha256": null,
+      "after_sha256": "612ff566b4378c13c7b1180cb2da89ac0b6cde5500a63fe530e30ae6a88b1b9c",
+      "bytes": 1283
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_cmap.py",
+      "before_sha256": null,
+      "after_sha256": "0b8eea205808d522a7e4bad3e222b39c6964752b58a3a3b7259904292ee09241",
+      "bytes": 12572
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/__init__.py",
+      "before_sha256": null,
+      "after_sha256": "035d44440b70b56ae91953b34d296b0b56b74fd1c29562c1591c067b7fcf7eed",
+      "bytes": 1373
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/_codecs.py",
+      "before_sha256": null,
+      "after_sha256": "e3aa11649c92c06c42269d648c87abee3b3f4d84a38f81acda2d9471edeff9e1",
+      "bytes": 10555
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/adobe_glyphs.py",
+      "before_sha256": null,
+      "after_sha256": "b7770314f0eac08cf5c3d07481d5738dd73c7842bd02e4639397fb95a130fdf6",
+      "bytes": 447213
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/core_font_metrics.py",
+      "before_sha256": null,
+      "after_sha256": "14b3d66d3678871790597820d63a397b8a972821642846397bce54d9b2c533a9",
+      "bytes": 114968
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/pdfdoc.py",
+      "before_sha256": null,
+      "after_sha256": "c5f4af30562cbf1b9a490d14bbdbd90ca681d16bbce61d6e0a20758bdac07145",
+      "bytes": 4269
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/std.py",
+      "before_sha256": null,
+      "after_sha256": "0f240cb84a40184a52f6ecb58d67f87278fe92a4a13ce0228f9b08ed0d580fc1",
+      "bytes": 2630
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/symbol.py",
+      "before_sha256": null,
+      "after_sha256": "9c86864089615822623cc1ebc149661871fefdf397c842af82e466b8a5dc1809",
+      "bytes": 3734
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/zapfding.py",
+      "before_sha256": null,
+      "after_sha256": "3d0c63c510bad7a778d711777b15713f55bc9cce10ad97e33b7966b4bc6913fb",
+      "bytes": 3742
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_crypt_providers/__init__.py",
+      "before_sha256": null,
+      "after_sha256": "2b767a02e5e15d579780b7adf93ba4ab682df47eba3a076ea6cbf1212d429a42",
+      "bytes": 3054
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_crypt_providers/_base.py",
+      "before_sha256": null,
+      "after_sha256": "fdfe77323eaf8af84464c438bcdc4de46d083a0158fa7e7f95e91ed1cfea88d5",
+      "bytes": 1711
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_crypt_providers/_cryptography.py",
+      "before_sha256": null,
+      "after_sha256": "f733a4933312b17e1a974454934a8cd1d29f7dc1e47b8c1f9845caf64c28450f",
+      "bytes": 4460
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_crypt_providers/_fallback.py",
+      "before_sha256": null,
+      "after_sha256": "bec628a30475602015feaf87add21986451cac26fa1ef44134c626d3742d094f",
+      "bytes": 3334
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_crypt_providers/_pycryptodome.py",
+      "before_sha256": null,
+      "after_sha256": "bb8bed2e8ecdbfa02a6513671f5a0d3425af4d86a8c1f4957febe5916def4fab",
+      "bytes": 3280
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_doc_common.py",
+      "before_sha256": null,
+      "after_sha256": "54a5f4cd06ba5f658a9ed175b9c6224134b3dcf9f98ab11fc4da1f36e02a262e",
+      "bytes": 54398
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_encryption.py",
+      "before_sha256": null,
+      "after_sha256": "319f3e012455b473ceb9c51df87f4a45f94eab902f88f14f8e5769901540a1ce",
+      "bytes": 49546
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_font.py",
+      "before_sha256": null,
+      "after_sha256": "50ad53071d7979e53daa4661bf38a0e1823eb6365382007eca20b414b73767bb",
+      "bytes": 14256
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_page.py",
+      "before_sha256": null,
+      "after_sha256": "f93c459a77c433dbd2541e94d1fdfa599e486ca5fe3e3efe9348eaf94552639c",
+      "bytes": 90193
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_page_labels.py",
+      "before_sha256": null,
+      "after_sha256": "bfa0a9bba3495c2f5143f05e19d866d39695f19eb3c623d1367eaa129d41b951",
+      "bytes": 8626
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_protocols.py",
+      "before_sha256": null,
+      "after_sha256": "eeacfdd8b55d3eb6244a97543e9029f54e065b98f13414df55ca545b052110ea",
+      "bytes": 2123
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_reader.py",
+      "before_sha256": null,
+      "after_sha256": "9aaa6780e62c061509f0d3b658dbdac185404fecadac01f7f9d35ac009ce2024",
+      "bytes": 57708
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/__init__.py",
+      "before_sha256": null,
+      "after_sha256": "6b7677deb4154e230a1adc2deff6df5e53e8b1b493f2bcc42e8367b74e77fd0c",
+      "bytes": 8515
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/_layout_mode/__init__.py",
+      "before_sha256": null,
+      "after_sha256": "454408c22530ce778db5c9639d533a8e445a7a6ea980fee6383dbe3019ada6fc",
+      "bytes": 340
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/_layout_mode/_fixed_width_page.py",
+      "before_sha256": null,
+      "after_sha256": "789bde0dbc8ca281bdef4a893a13394706fd668cb2243ca7cd6a55f5aec84b6d",
+      "bytes": 15370
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/_layout_mode/_text_state_manager.py",
+      "before_sha256": null,
+      "after_sha256": "5d5ac88de4dde6349d31ec41431b34b4be48e5150e8ad4663759842ce70a626e",
+      "bytes": 8221
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/_layout_mode/_text_state_params.py",
+      "before_sha256": null,
+      "after_sha256": "872c3aa670bcba9064a055542772c7f21048207acdc22a9aa9c632cc8232afa6",
+      "bytes": 5481
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/_text_extractor.py",
+      "before_sha256": null,
+      "after_sha256": "b54a9bbc2ebd305706406501b7f63caeab1535ffbcb0c171003c8a9da8b4a232",
+      "bytes": 14388
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_utils.py",
+      "before_sha256": null,
+      "after_sha256": "2df8188c0ad153b97d19201bb681b3bbdbd507e7243e2d657b4eb543a7072656",
+      "bytes": 20814
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_version.py",
+      "before_sha256": null,
+      "after_sha256": "2416f2ebd53fb332339ad719e9569c95eedc0157bb9e1573ee0205d0d07716aa",
+      "bytes": 23
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_writer.py",
+      "before_sha256": null,
+      "after_sha256": "1819e02d0b0bcd9c1fa483dc5c22e2a7849be22c93474c33c235dd6dd076a4e3",
+      "bytes": 131834
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/annotations/__init__.py",
+      "before_sha256": null,
+      "after_sha256": "7f693ffa3027dfd082076ecac50fdef771a29e7ce40076d49e749e1899758f21",
+      "bytes": 990
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/annotations/_base.py",
+      "before_sha256": null,
+      "after_sha256": "79ea1cf6fdb0d798c05212978f8f25d5b07ae98801815fb6bf92085091febf0b",
+      "bytes": 961
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/annotations/_markup_annotations.py",
+      "before_sha256": null,
+      "after_sha256": "b162a1181086ed7f688c0bc4691304a093fe7d8e8572b94574e9ad79f219066d",
+      "bytes": 11862
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/annotations/_non_markup_annotations.py",
+      "before_sha256": null,
+      "after_sha256": "676214bdc08e713729261497adec7ff6b8983360fae17c4543fbda735d013515",
+      "bytes": 3649
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/constants.py",
+      "before_sha256": null,
+      "after_sha256": "9f672ef873a6a16e7feb14165442a8e36ad2249d0ff7484bd6cf33fa9174a1cb",
+      "bytes": 23634
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/errors.py",
+      "before_sha256": null,
+      "after_sha256": "070d56f61c4eb03830ab053a628436974f89894c93aba979423542afe5b81850",
+      "bytes": 1947
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/filters.py",
+      "before_sha256": null,
+      "after_sha256": "237c2d528bdaeccdd68233730b2a74ac634854a9899a34bcebc8d8af5c0b347f",
+      "bytes": 30420
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/__init__.py",
+      "before_sha256": null,
+      "after_sha256": "56ba9d61fb5010278f0d4dab5d532012a45a60547ccce57f7ef260a35f71feec",
+      "bytes": 3468
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_appearance_stream.py",
+      "before_sha256": null,
+      "after_sha256": "31c0cbd2070a34df4d5cd53a64fc60b7b398a25dbe168356615980c20030e0f3",
+      "bytes": 26834
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_base.py",
+      "before_sha256": null,
+      "after_sha256": "f488de45b70b1eb73f94b1947d564c8ee83ca3eb7af17ece35295f9c32a73e64",
+      "bytes": 32755
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_data_structures.py",
+      "before_sha256": null,
+      "after_sha256": "35f76eb49aa9f253fb1cd3e5eb9e3875b80f9bbc2616c755e376bde054e7b782",
+      "bytes": 65869
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_files.py",
+      "before_sha256": null,
+      "after_sha256": "36d4a4468e890608ac8b840ecab56778ef3dd5ba15b2e636e614708a3e97f510",
+      "bytes": 16238
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_fit.py",
+      "before_sha256": null,
+      "after_sha256": "5ff8800c98f5618e0f512b52eeb1560b6c51d8b5154af2ad500932d001402033",
+      "bytes": 5515
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_image_inline.py",
+      "before_sha256": null,
+      "after_sha256": "2a5000fd91a2446ce368f1b74af6eda8619e36a6d065517e515536302f2efd28",
+      "bytes": 12819
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_image_xobject.py",
+      "before_sha256": null,
+      "after_sha256": "7f560334bae2f927a5faaa72ca75c0ee7c7e662493a8061433ce9338414883af",
+      "bytes": 21965
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_link.py",
+      "before_sha256": null,
+      "after_sha256": "b4da99d86616c6a80566c948d032d97a85e59ed6b182c1c2f1791615f496c781",
+      "bytes": 5929
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_outline.py",
+      "before_sha256": null,
+      "after_sha256": "a8a6cc5f8d8e59faa7a2922213a054cba12f7532c67b766d8da89637ce49a5a6",
+      "bytes": 1094
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_rectangle.py",
+      "before_sha256": null,
+      "after_sha256": "94ea927c58af43180137d2d4f5aa87a313c7f1a08f4c350d81166c34451de9f7",
+      "bytes": 3785
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_utils.py",
+      "before_sha256": null,
+      "after_sha256": "bd30c07ac7c6f9c24d0ca8a5cff91b805a1d0084f37797a3a695871a3bc2a279",
+      "bytes": 7258
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_viewerpref.py",
+      "before_sha256": null,
+      "after_sha256": "b6a5445a6bddfc359316848ca51393b25d528a338d9ef71267e8d74e8fdc8cea",
+      "bytes": 6774
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/pagerange.py",
+      "before_sha256": null,
+      "after_sha256": "d9bb76d634199bef5aab66d57f74d7b87f3fc06571edbf53e94acc1570842614",
+      "bytes": 7108
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/papersizes.py",
+      "before_sha256": null,
+      "after_sha256": "e93cf9b1f34dff724e51aa58f3753e95a928867a57600d2148440d98e54b14bf",
+      "bytes": 1413
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/py.typed",
+      "before_sha256": null,
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/types.py",
+      "before_sha256": null,
+      "after_sha256": "b09ef01f393b111fc227b90ffacf2ef5ac459e40979c5a6bf27cdc8f50314dab",
+      "bytes": 1915
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/xmp.py",
+      "before_sha256": null,
+      "after_sha256": "00289e95b3fb680b03cb67e67b8a3d61de32ec7e0a7c46d4337494c4c97c8c8e",
+      "bytes": 30239
+    }
+  ],
+  "sources_read_only": [
+    {
+      "path": "v4/manager_research/announcement_catalog.py",
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68"
+    },
+    {
+      "path": "v4/manager_research/announcement_source.py",
+      "sha256": "adacf42be83a53c3472de65426d2269904e1ab33151887b921e8af11b0b1c4dc"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "sha256": "2bd3c2391be79d1331b40d50e5aaeedb2cfb280bcef4b70cabf2993dbe579c48"
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "sha256": "87e524a77d2a816d1ba9e5b17bfff7db79831a991c62934421cd46b728f137b5"
+    },
+    {
+      "path": "ops/manager_announcement_body_batch.py",
+      "sha256": "a09be844674e1302a99857e1265a78c225953673237a28cebf688ac2bd4ff8cb"
+    },
+    {
+      "path": "v4/manager_research/pdf_parser.py",
+      "sha256": "0ddf7fd5510333c70060af7de2a25dd4e6c9ac2880a0d8b97d95e84542a03383"
+    },
+    {
+      "path": "v4/manager_research/DEPENDENCY_MANIFEST.json",
+      "sha256": "72b5878005810e16bce713189ce43ca40b912e4a0484d64d0e4f433412aa0ec9"
+    }
+  ],
+  "frozen_previous_batch_unchanged": [
+    {
+      "path": "v4/manager_workbench/engines/announcement.py",
+      "sha256": "c786c837d4e3b8e06da017f3b7615e7561b5cd782c82b313e570b2bb00d09ee9"
+    },
+    {
+      "path": "v4/manager_workbench/config.py",
+      "sha256": "a4326c114c9c26cd63157cf6fe57b3047366690355d80329f4b40769cebbb458"
+    },
+    {
+      "path": "docs/examples/manager_workbench.example.json",
+      "sha256": "01dc07e7b56a604afe6a628798f324071e2a1f0020fb2b0385fef34bc808a075"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_live_profile.py",
+      "sha256": "3349e4bfb4b5cb5cf142da6c562fb62ad64b52f85c892fb8acd83b16f5546721"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "sha256": "c67f98713cff198ee5d57322a29ed5ccc6ab7c048ce440c6d72d880346b5b70a"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "sha256": "62c34dea73a458f8961b2d8eed3c1de23ccc2da0eb60987c847265f0c6e56b53"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_integration.py",
+      "sha256": "d21c91b980ee0064f1564381fb7d6a2ddd292df120141f895c137ee08aec225b"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_owner_fix_canary.py",
+      "sha256": "70f2b5bd8f12f8ce1b4b62f252f9894bbc3242a39aa4579f0bad6804c9a1a555"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_owner_identity_v3_canary.py",
+      "sha256": "54c38de019ffd9a9e64dedd1a72104fb11ad2aedf91344a41e51044a2dcdae91"
+    }
+  ],
+  "window_rule": {
+    "source": "workspace_plan.py:59-94; workspace_announcements.py:60-89",
+    "mode": "TWO_COMPLETED_HK_SESSIONS_POST_CLOSE_WINDOW",
+    "start": "older of two completed native full/half HK sessions before target and at/before cutoff; open left edge",
+    "end": "actual context cutoff inclusive",
+    "daily_mode": "explicit HK_CALENDAR_DAY_V1 publication_date separate from target; inclusive midnight, exclusive min(next midnight, cutoff+1us)",
+    "next_day": "target next effective HK session; source end is actual preceding-day cutoff, never target-day source",
+    "native_closes": "calendar 16:10 full / 12:10 half, no guessed clock"
+  },
+  "source_protocol": {
+    "fresh": "EASTMONEY_ONLY",
+    "directory": "H/full-date/20 rows, exact total/page identity, terminal empty page, <=1000 data pages",
+    "body": "article/title/publication/116 issuer identity; page_size total pages <=150; original text preserved",
+    "hkex": "explicit auxiliary only; cumulative rowRange100/200/...; recordCnt/loadedRecord/hasNextRow; br/newline codes; not implicit fresh dual source"
+  },
+  "persistence": {
+    "raw": "immutable SHA objects, sealed request/attempt receipts, successful pointers only",
+    "recovery": "successful attempt readback restores absent pointer without refetch; failed pages retried, successes reused",
+    "dates": "directory cache binds publication/target/window/cutoff/calendar SHA; bodies reuse same raw listing identity",
+    "lease": "no automatic grant; explicit token-bound source-wide grant/revoke/expiry on shared optional lease_root; kernel lock plus request/pre-save checks; revoked call zero requests/writes",
+    "cutoff": "actual captured/available time retained; after-cutoff gap; no historical PIT promotion",
+    "products": "immutable SHA products/readback; mirror qualification and semantic NOT_ASSESSED/NOT_REVIEWED"
+  },
+  "pdf_dependency": {
+    "name": "pypdf",
+    "version": "6.10.0",
+    "package_tree_sha256": "9d4f17bbe8a126246ae5bfbd23f72fe7c4fe8b18cb17450fba1783107d2020cd",
+    "file_count": 56,
+    "total_bytes": 1424455,
+    "license": "BSD-3-Clause",
+    "license_sha256": "a97ac230e5f33ef10a5367a850eb01f91f1a0b064e34742c7794d2294557f524",
+    "installed_global": false,
+    "source_bytes_copied_exact": true,
+    "parser": "original page_number/page_total including BLANK/FAILED; no whitespace normalization; blank not complete; bounded bytes/pages/text and cooperative deadline (not hard subprocess timeout)"
+  },
+  "tests": {
+    "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -m pytest -q tests/manager_workbench/runtime tests/manager_workbench/engines --basetemp=tests/manager_workbench/runtime/.tmp/capture-freeze",
+    "python": "3.14.6",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "exit_code": 0,
+    "result": "137 passed in 5.57s",
+    "log": "docs/handoff/manager-workbench-implementation-20261013/capture-core-pytest.log",
+    "log_sha256": "5deef72cefba2d0c7c3893b85f7c4931fbbcc4d2a09c15821ede535b164f278b",
+    "behaviours": [
+      "251 complete rows/no 200 truncation",
+      "150 body pages",
+      "full plan calendar/date separation",
+      "missing body/catalogue/terminal page only repair",
+      "new cutoff directory refresh/body reuse/new totals preserve prior product",
+      "empty-day distinct request evidence IDs",
+      "revocation before call/during network result save/expiry/stale token",
+      "same source grant conflict and same request concurrency",
+      "cached raw/metadata tamper rejected",
+      "success receipt crash recovery",
+      "PDF real pinned blank pages and injected real positions/failure/whitespace/cooperative budget"
+    ],
+    "earlier_failures": "First two window test expectations used guessed 16:00 and a holiday target; corrected tests to actual native 16:10/12:10. Initial pytest default temp cleanup hit existing unrelated permission-protected garbage; final all test data isolated under worktree .tmp."
+  },
+  "not_run": [
+    "REAL_EXTERNAL_CAPTURE",
+    "CURRENT_DAY_CAPTURE",
+    "FORMAL_OWNER_CUTOVER",
+    "API/SCHEDULER_CAPTURE_BINDING",
+    "REAL_MODEL_RESEARCH_ON_NEW_CAPTURE",
+    "DEPLOYMENT",
+    "NATURAL_SLOT"
+  ],
+  "next_wiring_required": [
+    "config/binding/supervisor/source_bindings exact source product binding and dynamic publication window",
+    "old API capture route removal/scheduler exclusion proof plus rollback before formal single-owner activation",
+    "bounded independent capture job must never postpone 09:25 snapshot",
+    "real isolated external capture canary only after parent explicit stage authorization"
+  ],
+  "safety": {
+    "real_network_requests": 0,
+    "formal_state_writes": 0,
+    "models_called": 0,
+    "services_started": 0,
+    "global_configuration_changes": 0,
+    "canonical_writes": 0,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

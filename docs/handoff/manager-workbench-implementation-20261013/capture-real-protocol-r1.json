@@ -1,0 +1,32 @@
+{
+  "status": "REAL_SOURCE_PROTOCOL_FAILURE",
+  "verified_at": "2026-10-13T13:44:40.672475+08:00",
+  "verifier": "/root",
+  "method": "Read-only requests.get date_scoped_url 20261013 page 1 and frozen _catalog_page",
+  "http_status": 200,
+  "response_bytes": 12986,
+  "observed_raw_sha256": "d5a95ae6eb2ebca246a153d195bcca53a1310f52bbb349aa1b38f31d3a2ce585",
+  "error": "unconverted data remains: :574",
+  "second_read_metadata": {
+    "page_index": 1,
+    "page_size": 20,
+    "total_hits": 23,
+    "display_times": [
+      "2026-10-13 13:27:48:470",
+      "2026-10-13 12:12:21:499",
+      "2026-10-13 12:05:57:440"
+    ],
+    "notice_date": "2026-10-13 00:00:00"
+  },
+  "requests": 2,
+  "business_state_writes": 0,
+  "model_calls": 0,
+  "services_changed": 0,
+  "raw_responses_uploaded": false,
+  "NOT_RUN": [
+    "full directory capture",
+    "body capture",
+    "source activation",
+    "deployment"
+  ]
+}

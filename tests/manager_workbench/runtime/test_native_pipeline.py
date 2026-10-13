@@ -180,21 +180,22 @@ def test_capture_owner_required_and_directory_never_cut_to_200(tmp_path):
     context=RunContext(target_date='20261013',phase='MANUAL',trigger='MANUAL',
         cutoff='2026-10-13T18:00:00+08:00',rules_version='POSITIVE_OPERATING_RESEARCH_V1')
     with pytest.raises(ValueError,match='EXCLUSIVE_OWNER'):capture_announcements(context,{},object())
-    class Cache:
-        def assert_exclusive_owner(self,owner):assert owner=='v4.manager_workbench.capture_announcements'
-        def read_response(self,url):return None
-        def save_response(self,url,raw,captured):pass
+    from v4.manager_workbench.inputs.capture_store import CaptureStore
+    from datetime import datetime,timedelta
+    clock=lambda:datetime.fromisoformat('2026-10-13T17:00:00+08:00')
+    cache=CaptureStore(tmp_path/'capture',source='HKEX_OFFICIAL',clock=clock)
+    cache.grant(expires_at=clock()+timedelta(hours=1))
     class Response:
         status_code=200
-        def __init__(self,start):
-            self.content=json.dumps(dict(recordCount=230,result=[dict(NEWS_ID=str(i),STOCK_CODE=f'{i:05d}',
-                FILE_LINK=f'/listedco/listconews/sehk/2026/1013/{i}.pdf') for i in range(start+1,min(start+101,231))])).encode()
+        def __init__(self,count):
+            rows=[dict(NEWS_ID=str(i),STOCK_CODE=f'{i:05d}',FILE_LINK=f'/listedco/listconews/sehk/2026/1013/{i}.pdf') for i in range(1,min(count,230)+1)]
+            self.content=json.dumps(dict(recordCnt=230,rowRange=count,loadedRecord=len(rows),hasNextRow=len(rows)<230,result=rows)).encode()
     class Transport:
         def get(self,url,**kwargs):
             from urllib.parse import parse_qs,urlsplit
             return Response(int(parse_qs(urlsplit(url).query)['rowRange'][0]))
-    result=capture_announcements(context,dict(from_date='20261013',to_date='20261013',max_bodies=0,
-        transport=Transport()),Cache())
+    result=capture_announcements(context,dict(source='HKEX_OFFICIAL',from_date='20261013',to_date='20261013',max_bodies=0,
+        transport=Transport()),cache)
     assert result.coverage.scope_count==230 and result.coverage.observed_count==230 and len(result.records)==230
     assert all(r['body_complete'] is False for r in result.records)
 

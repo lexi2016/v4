@@ -1,0 +1,40 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "scope": "Two independent P2 capture boundary fixes only",
+  "files": [
+    {
+      "path": "v4/manager_workbench/inputs/capture.py",
+      "before_sha256": "7683bc3f2d64f7b5f62dab80cbe842638bcda0476b0d7f53ce616ac7329aefbf",
+      "after_sha256": "841abda69d1b9b0c567e4b5d9f6b18bb40d1f6c0437c6284913ebca538f4be32"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_capture_takeover.py",
+      "before_sha256": "f4685fb11b365e565064d5165524fdf4b7cc36ce057771932b4735c0914ebd70",
+      "after_sha256": "b3eb81155b692ce8120b695a278f79a21efdab18b5d16d56832d6f6febd860e9"
+    }
+  ],
+  "remaining_61_files_unchanged": true,
+  "original_receipt_sha256": "538e760bad4d7061480e865aaba37bf586cc277fd70cad3c1fe92b9c9e65864d",
+  "fixes": [
+    "full-date raw directory/counts preserved; mirror source display timestamp classifies original open-left/inclusive-cutoff or daily inclusive-left/exclusive-right interval; excluded rows carry markers and no model-consumer records/body requests; no official HKEX PIT assertion",
+    "1000000 cumulative source text characters per article, excluding owner join separator as original; exact equal succeeds, exceeds fails with gap and no body_text; complete raw pages preserved, cache replay same failure"
+  ],
+  "tests": {
+    "command": "Python 3.14.6 -m pytest -q tests/manager_workbench/runtime/test_capture_takeover.py --basetemp=tests/manager_workbench/runtime/.tmp/capture-p2-fix",
+    "exit_code": 0,
+    "result": "53 passed in 3.33s",
+    "log_sha256": "369d7b1acc45806eed9856d498cd32dda76ef9c596db42889be18e27d03d4ab2"
+  },
+  "original_independent_review": {
+    "path": "/private/tmp/mwb-capture-independent-osj7ttvb/independent-review-receipt.json",
+    "sha256": "ab46fe8e63d92b5f8d6ca897909792e1d9b1304ecdcf86024310e53ae2b8bdc6",
+    "status": "FAIL_TWO_P2_OTHER_BEHAVIOURS_PASS_REUSED"
+  },
+  "not_run": [
+    "REAL_EXTERNAL_CAPTURE",
+    "MODEL",
+    "FORMAL_ACTIVATION",
+    "DEPLOYMENT"
+  ],
+  "wiring": "preimage recorded; no wiring business source changed yet"
+}
