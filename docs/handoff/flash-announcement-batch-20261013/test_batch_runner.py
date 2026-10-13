@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+import contextlib
+import copy
+import io
 import json
 import sys
 import tempfile
@@ -102,6 +105,61 @@ def sse_response(chunks: list[dict[str, Any]]) -> httpx.Response:
     )
 
 
+def synthetic_five_disposition_batch() -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    batch = synthetic_batch()
+    template = batch["articles"][0]
+    dispositions = [
+        ("NOT_ASSESSED", "NOT_ASSESSED", "UNKNOWN", "INSUFFICIENT_EXISTING_FACTS"),
+        ("NOT_SELECTED", "NOT_SELECTED", "NEUTRAL", "VERIFIED_EXISTING_FACTS"),
+        ("CONDITIONAL_WATCH", "CONDITIONAL_WATCH", "MIXED", "VERIFIED_EXISTING_FACTS"),
+        ("SELECTED_EVENT", "OPERATING_EVENT", "POSITIVE", "VERIFIED_EXISTING_FACTS"),
+        ("SELECTED_PERFORMANCE", "PERFORMANCE_RESEARCH", "POSITIVE", "VERIFIED_EXISTING_FACTS"),
+    ]
+    articles: list[dict[str, Any]] = []
+    outputs: list[dict[str, Any]] = []
+    for index, (disposition, basis, direction, sufficiency) in enumerate(dispositions):
+        article = copy.deepcopy(template)
+        symbol = f"HK.{2000 + index:05d}"
+        body = f"  Issuer {index} reports  10 units, estimate only.\nNo comparator disclosed.  "
+        article["article_id"] = f"EASTMONEY:SYNTH{index}:{symbol}"
+        article["source_sha256"] = sha(f"source-{index}")
+        article["body_sha256"] = sha(body)
+        article["article_body"] = body
+        metadata = article["article_metadata"]
+        metadata["title"] = f"Synthetic article {index}"
+        metadata["symbol"] = symbol
+        metadata["source_issuer_codes"] = [
+            {"code": symbol, "name": "Synthetic issuer", "market_code": "116"}
+        ]
+        metadata["source_origins"][0]["source_row_index"] = 100 + index
+        metadata["source_origins"][0]["row_fingerprint_sha256"] = sha(f"listing-{index}")
+        metadata["source_origins"][1]["source_row_index"] = 200 + index
+        metadata["source_origins"][1]["row_fingerprint_sha256"] = sha(f"body-{index}")
+        articles.append(article)
+
+        output = reader_output(article)
+        output.update(
+            disposition=disposition,
+            selection_basis=basis,
+            direction=direction,
+            evidence_sufficiency=sufficiency,
+            reason=f"Synthetic {disposition} fixture.",
+        )
+        quote = body[2 : body.index("\n") + 1]
+        evidence = {
+            "claim": "Synthetic exact source evidence.",
+            "quote": quote,
+            "locator": "article_body",
+        }
+        for field in ("facts", "changes", "impact", "confirmation_conditions", "counter_evidence"):
+            output[field] = [copy.deepcopy(evidence)]
+        outputs.append(output)
+    batch["batch_id"] = "synthetic-five-disposition-batch"
+    batch["expected_count"] = len(articles)
+    batch["articles"] = articles
+    return batch, outputs
+
+
 class BatchRunnerTests(unittest.TestCase):
     def test_batch_validation_preserves_exact_body_and_two_origins(self) -> None:
         batch = synthetic_batch("  公告\nSouthern Motion：预计增长，未经审计。\n ")
@@ -118,6 +176,135 @@ class BatchRunnerTests(unittest.TestCase):
         self.assertNotIn("row_fingerprint_sha256", content)
         self.assertEqual(embedded["articles"][0]["article_metadata"]["pit_status"], "CANNOT_CONFIRM")
         self.assertIn("Southern Motion", runner.build_system_prompt(runner.load_active_contract()))
+
+    def test_grounded_prompt_is_opt_in_and_preserves_legacy_prompt_schema_and_body(self) -> None:
+        batch = synthetic_batch("  Issuer states estimate,  unaudited.\n ")
+        contract = runner.load_active_contract()
+        legacy = runner.build_messages(batch, contract)
+        grounded = runner.build_messages(batch, contract, "grounded")
+        self.assertEqual(
+            sha(legacy[0]["content"]),
+            "8c4dd30de9df230cfb93278b60b7b99458490d1b06760a00b877fbbed9086638",
+        )
+        self.assertEqual(legacy[1], grounded[1])
+        self.assertEqual(
+            legacy[0]["content"].split("ACTIVE_READER_JSON_SCHEMA_BEGIN\n", 1)[1].split(
+                "\nACTIVE_READER_JSON_SCHEMA_END", 1
+            )[0],
+            grounded[0]["content"].split("ACTIVE_READER_JSON_SCHEMA_BEGIN\n", 1)[1].split(
+                "\nACTIVE_READER_JSON_SCHEMA_END", 1
+            )[0],
+        )
+        self.assertTrue(grounded[0]["content"].startswith(legacy[0]["content"] + "\n\n"))
+        self.assertIn("Read the complete supplied body before considering any tool.", grounded[0]["content"])
+        self.assertIn("Web tools are available only for a specifically named external fact", grounded[0]["content"])
+        self.assertIn("Every quote field must be a short, exact, continuous substring", grounded[0]["content"])
+        self.assertNotIn("AN202610131830380437", grounded[0]["content"])
+        self.assertEqual(
+            sha(legacy[0]["content"]),
+            sha(runner.build_system_prompt(contract, "legacy")),
+        )
+        limits = {
+            "context_limit_tokens": 262144,
+            "completion_max_tokens": 32768,
+            "completion_limit_resolution": "GLOBAL_MAX_TOKENS",
+        }
+        with mock.patch.object(runner, "count_prompt_tokens", return_value=1234):
+            legacy_prepare = runner.prepare_batch(batch, contract, runtime_limits=limits)
+            grounded_prepare = runner.prepare_batch(
+                batch, contract, prompt_profile="grounded", runtime_limits=limits
+            )
+        self.assertNotEqual(legacy_prepare["system_prompt_sha256"], grounded_prepare["system_prompt_sha256"])
+        self.assertEqual(legacy_prepare["reader_schema_sha256"], grounded_prepare["reader_schema_sha256"])
+        self.assertEqual(legacy_prepare["tool_schema_sha256"], grounded_prepare["tool_schema_sha256"])
+        self.assertEqual(legacy_prepare["input_sha256"], grounded_prepare["input_sha256"])
+        self.assertEqual(legacy_prepare["article_ids"], grounded_prepare["article_ids"])
+
+    def test_prepare_cli_records_grounded_profile_without_calling_inference(self) -> None:
+        batch = synthetic_batch("  Exact body text.\n ")
+        runtime_limits = {
+            "context_limit_tokens": 262144,
+            "completion_max_tokens": 32768,
+            "completion_limit_resolution": "GLOBAL_MAX_TOKENS",
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            input_path = root / "batch.json"
+            input_path.write_text(json.dumps(batch, ensure_ascii=False), encoding="utf-8")
+            evidence_dir = root / "evidence"
+            with (
+                mock.patch.object(runner, "EVIDENCE_DIR", evidence_dir),
+                mock.patch.object(runner, "load_runtime_limits", return_value=runtime_limits),
+                mock.patch.object(runner, "count_prompt_tokens", return_value=1234),
+                mock.patch.object(runner, "load_local_api_key", side_effect=AssertionError("API key read")) as key_reader,
+                mock.patch.object(runner, "OmlxTransport") as transport,
+                contextlib.redirect_stdout(io.StringIO()),
+            ):
+                result = runner.main([str(input_path), "--prompt-profile", "grounded"])
+            self.assertEqual(result, 0)
+            key_reader.assert_not_called()
+            transport.assert_not_called()
+            receipts = list(evidence_dir.glob("prepare_*.json"))
+            self.assertEqual(len(receipts), 1)
+            receipt = json.loads(receipts[0].read_text(encoding="utf-8"))
+            self.assertEqual(receipt["prompt_profile"], "grounded")
+            self.assertEqual(receipt["prompt_tokens_exact_initial_request"], 1234)
+            self.assertEqual(receipt["status"], "INPUT_FITS")
+
+    def test_active_validator_checks_all_five_dispositions_and_never_repairs_quotes(self) -> None:
+        batch, outputs = synthetic_five_disposition_batch()
+        contract = runner.load_active_contract()
+        payload = json.dumps(
+            {
+                "results": [
+                    {"article_id": article["article_id"], "reader_output": output}
+                    for article, output in zip(batch["articles"], outputs)
+                ]
+            },
+            ensure_ascii=False,
+        )
+        valid, errors = runner._validate_batch_output(payload, batch, contract)
+        self.assertEqual(errors, {})
+        self.assertEqual(set(valid), {article["article_id"] for article in batch["articles"]})
+        self.assertEqual(
+            {output["disposition"] for output in valid.values()},
+            {"NOT_ASSESSED", "NOT_SELECTED", "CONDITIONAL_WATCH", "SELECTED_EVENT", "SELECTED_PERFORMANCE"},
+        )
+
+        for index, article in enumerate(batch["articles"]):
+            invalid_payload = json.loads(payload)
+            invalid_output = invalid_payload["results"][index]["reader_output"]
+            original = invalid_output["facts"][0]["quote"]
+            invalid_output["facts"][0]["quote"] = original.replace("  ", " ", 1)
+            invalid_text = json.dumps(invalid_payload, ensure_ascii=False)
+            invalid_before = sha(invalid_text)
+            rejected, rejected_errors = runner._validate_batch_output(invalid_text, batch, contract)
+            self.assertNotIn(article["article_id"], rejected)
+            self.assertEqual(
+                rejected_errors[article["article_id"]],
+                "ANNOUNCEMENT_UNSUPPORTED_SOURCE_QUOTE",
+            )
+            self.assertEqual(sha(invalid_text), invalid_before)
+
+            wrong_hash_payload = json.loads(payload)
+            wrong_hash_payload["results"][index]["reader_output"]["source_sha256"] = "0" * 64
+            _, hash_errors = runner._validate_batch_output(
+                json.dumps(wrong_hash_payload, ensure_ascii=False), batch, contract
+            )
+            self.assertEqual(
+                hash_errors[article["article_id"]],
+                "ANNOUNCEMENT_READER_SOURCE_MISMATCH",
+            )
+
+            extra_field_payload = json.loads(payload)
+            extra_field_payload["results"][index]["reader_output"]["invented_field"] = "not allowed"
+            _, schema_errors = runner._validate_batch_output(
+                json.dumps(extra_field_payload, ensure_ascii=False), batch, contract
+            )
+            self.assertEqual(
+                schema_errors[article["article_id"]],
+                "$output:ADDITIONAL_PROPERTIES",
+            )
 
     def test_batch_validation_rejects_body_hash_mismatch(self) -> None:
         batch = synthetic_batch()
