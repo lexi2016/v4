@@ -981,6 +981,7 @@ def _register_handoff(args: argparse.Namespace) -> dict[str, Any]:
             or reviewer.get("semantic_catalog_sha256") != semantic_sha
             or reviewer.get("body_corpus_sha256") != body_sha):
         raise ValueError("ANNOUNCEMENT_HANDOFF_REVIEW_SOURCE_SHA_MISMATCH")
+    body = _load(body_path)
     files = {
         "catalog_read.json": _file_sha(catalog_path),
         "hkex_directory_read.json": _file_sha(evidence / "hkex_directory_read.json")
