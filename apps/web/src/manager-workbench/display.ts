@@ -30,12 +30,23 @@ export function laneResultLabel(stock: StockDecision, lane: Lane): string {
   return entries.map(x => decisionLabel(x.decision || x.status || null)).join("、");
 }
 export function firstReason(stock: StockDecision): string {
+  // Explain the recorded aggregate classification with its supporting lanes.
+  // A different lane's failed test cannot explain why this stock is a watch.
+  const supporting = Object.entries(stock.lane_decisions || {}).flatMap(([lane, raw]) =>
+    (Array.isArray(raw) ? raw : raw ? [raw] : []).filter(entry =>
+      (entry.decision || entry.status) === stock.decision)
+      .map(entry => `${labelForLane(lane)}：${readableReason(entry)}`));
+  if (supporting.length) return [...new Set(supporting)].join('；');
   const saved = Object.values(stock.lane_decisions || {}).flatMap(x => Array.isArray(x) ? x : x ? [x] : []);
   const metric = saved.find(x => Object.keys(record(x.metrics)).length);
   if (metric) return readableReason(metric);
   const readable = saved.find(x => text(record(x.semantic).reason) || text(x.reason).startsWith('US_'));
   if (readable) return readableReason(readable);
   return stock.reasons?.find(x => typeof x === "string" && x.trim().length > 0) || "暂无可核验理由";
+}
+export function conditionLabel(value: string): string {
+  return value === 'RELATION_NOT_A_STRICT_SELECTION_RULE'
+    ? '已有合作关系仅支持条件观察，尚不满足严格入选依据。' : value;
 }
 export function metricLabel(metric: ReviewMetric | null | undefined, completeTop20 = true): string {
   if (!metric) return completeTop20 ? "缺数据" : "不适用（缺完整Top20）";
@@ -105,20 +116,26 @@ export function readableReason(row: Record<string, unknown>): string {
     US_REVIEWED_RELATION_ABSENT: '已保存审核材料中没有可核验的港股关系，保留待核。',
     US_REVIEWED_RELATION_CONDITIONAL_ONLY: '已有审核关系，列为条件观察，不能据此严格入选。',
   };
-  if (reason in labels) return labels[reason];
+  if (reason in labels) {
+    const basis = text(row.research_priority_reason);
+    const quote = record(row.quote).change_pct;
+    const change = typeof quote === 'number' && Number.isFinite(quote) ? ` 来源 ${text(row.us_symbol)} 当日涨幅 ${quote}%。` : '';
+    return labels[reason] + (basis ? ` 本轮研究分类依据：${basis}` + change : '');
+  }
   return /^[A-Z][A-Z0-9_]+$/.test(reason) ? "未提供可读研究理由" : reason || "未提供可读研究理由";
 }
 export function researchSections(row: Record<string, unknown>) {
   const semantic = record(row.semantic);
   return ([['facts', '已核事实'], ['changes', '变化'], ['impact', '影响'],
     ['confirmation_conditions', '待确认条件'], ['counter_evidence', '反证']] as const).map(([key, label]) => {
-      const raw = semantic[key];
+      const raw = key === 'counter_evidence' && !semantic[key]
+        ? record(row.priority_assessment).counter_evidence : semantic[key];
       const items = Array.isArray(raw) ? raw.map(part => {
         const value = record(part);
         return { claim: text(value.claim) || text(part), quote: text(value.quote), locator: text(value.locator) };
       }).filter(part => part.claim || part.quote) : [];
       if (key === 'confirmation_conditions' && !items.length) {
-        items.push(...texts(row.conditions).map(claim => ({ claim, quote: '', locator: '' })));
+        items.push(...texts(row.conditions).map(claim => ({ claim: conditionLabel(claim), quote: '', locator: '' })));
       }
       return { key, label, items };
     });

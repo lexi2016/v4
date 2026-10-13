@@ -1,0 +1,227 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "goal": "Independent US_MAPPING and OVERSOLD saved recommendation lists",
+  "writer": "/root/manager_writer_sol",
+  "branch": "codex/manager-workbench-data-closure-20261013",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "scope": [
+    {
+      "path": "v4/manager_workbench/api.py",
+      "before_sha256": "b15247deafb523a7e680e38547d5a8d4548210154b4c7f38b31e535ceae618e9",
+      "after_sha256": "d74a68ac66be8298dbfaddb59601dfd754fa1a9554e0ad600eeedb319e1d4e40",
+      "diff_sha256": "36db48fde92dc2d70e59237426e183b5c3ed0d17aeabc35c291aa1dc059d8303",
+      "canonical_before_sha256": "b15247deafb523a7e680e38547d5a8d4548210154b4c7f38b31e535ceae618e9"
+    },
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "before_sha256": "ee838f5cdc0351cf44d2bbe1b61dc731c2923cb92ca9cb6f588f0f9b2b77220b",
+      "after_sha256": "c401e1445cc9ba9f9d2c96c74895f6a311885505b6e374a86be5e3199f6f53a7",
+      "diff_sha256": "1d4c0721a1a6ca68b2b6a6188aad44e78bffea52b80fe05399bf5d8c9a9025ed",
+      "canonical_before_sha256": "ee838f5cdc0351cf44d2bbe1b61dc731c2923cb92ca9cb6f588f0f9b2b77220b"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "before_sha256": "42d81fea6d85815b5fe801d07d1f6848811a53784498a865c11e1b6b54936812",
+      "after_sha256": "d172b6c936b1dc7f77b0c0a93d158254798f50ab8b181310427434dbfe171a99",
+      "diff_sha256": "5d9faa06ac28fb7162870b3630b8fe7daa89168083a73e1e2145a9cf3a6eb4fc",
+      "canonical_before_sha256": "42d81fea6d85815b5fe801d07d1f6848811a53784498a865c11e1b6b54936812"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before_sha256": "97e83ec1e2b5a362e26233a0ca01132a520cb4d3e6d5b016dbe94e8e79415160",
+      "after_sha256": "6268b9ef561794e53135f88bee63a78c4e3024e5a6f6cfc90fa3b8b1a20116ad",
+      "diff_sha256": "a748ab51fb1e3f139422cdee2931ab956dd418a8c8b7c69e21dbf713237f8ae4",
+      "canonical_before_sha256": "97e83ec1e2b5a362e26233a0ca01132a520cb4d3e6d5b016dbe94e8e79415160"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "before_sha256": "fca76d78aa7c0db43b33376504f988b46d22b62412daed54c57ac3b2c96e2561",
+      "after_sha256": "9360b853f68623228202914b9e89684a63f4757095d3c01999e4808e62a304a9",
+      "diff_sha256": "40e30970cdf1d1802aaffb2e2262c200c2dce1c869646c242972a2a7704ccacd",
+      "canonical_before_sha256": "fca76d78aa7c0db43b33376504f988b46d22b62412daed54c57ac3b2c96e2561"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_sha256": "d885b3002ba1a37f8097ec03be913531c5b501fcca5616b04aec8dfe01e96bdc",
+      "after_sha256": "133281d59521ea47873aef43cb8244f1f3e31e7c793f1754f6cfc0019ccb870e",
+      "diff_sha256": "2e27e2699bc4c149d5a79b4593fb11b3d6d01c2c54d0d3a8c9dd87eeb5df24ca",
+      "canonical_before_sha256": "d885b3002ba1a37f8097ec03be913531c5b501fcca5616b04aec8dfe01e96bdc"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/display.ts",
+      "before_sha256": "cc555dbdcbe509203d6a72f87e4ee0383ae0e0e653b59f8adab40b35682b6d11",
+      "after_sha256": "2a89e4fe60fc050327e4f6ccdcf15440f648428cadf44fbe0ae350903327026b",
+      "diff_sha256": "d35b67bb9581cfd143b68ab6b350748eea4240df4748237245304b13d61e0d11",
+      "canonical_before_sha256": "cc555dbdcbe509203d6a72f87e4ee0383ae0e0e653b59f8adab40b35682b6d11"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_independent_recommendations.py",
+      "before_sha256": null,
+      "after_sha256": "d3fc57614ecfe70d47ab51e219c98af668e5a6184bd3c8da130978cea4632d8f",
+      "diff_sha256": "07c8388e29eb7cd8651806a49b5dc307c5d240a2e5457d1bf154437e4f2f4cc7",
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/independent_recommendations.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "10a26fdb95dfe10041f4d68ea836cffad5b6a2b806a99a0aaa67362162e569fc",
+      "diff_sha256": "67f036c54e15e850f77737d5201a8bed20cb5a4e816fadac77287b283dbb7320",
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/Workbench.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "1c640db35d7348c1a6a2b54c5d079764cb60f8fae7df6d2e52892812d4155613",
+      "diff_sha256": "eeb46ac24ce8eb8343f130b465f1b1b2956db5073001f12f00d301ddd591c750",
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/b_http_regression.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "19dc4eff33a55401b78438e19e97bf3c2a4e02581496dab29ab93a046bd4af39",
+      "diff_sha256": "2ecb98069690fcf61ce9d642d04b4175bcb899860ed3b99147b10c535fb5d475",
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/backend_capture.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "d489a39f023938aa32a7ed5564b21f67e3eb487caf96c43bd35354cd7cfb7ec3",
+      "diff_sha256": "97b29776ae954e2f97fdbe3a51ef1d4baf2496dbf2f34d2b7f8f995974831679",
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/display_repair.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "cd0586e2a079f80205004db1d3995371dc28374a6e6ee3d3194df45fbae48b96",
+      "diff_sha256": "cc7e67e4892caf2ae22d2724611a0ebcc516c3f4518f8881fa0d01eccb9bfe77",
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/research_detail.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "2f8b351c2d9597a0b56e0a1cec37fcf875d08e8132544ad7f196006b52041922",
+      "diff_sha256": "887155681811a5f42a7485621546c293c6c1de84acbf22303cdce9d47d6c1651",
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/fixtures/sample.ts",
+      "before_sha256": null,
+      "after_sha256": "96754012419502557236bc0a27cdd6974a967becbe40b41dff5cbdf7c56aef83",
+      "diff_sha256": "201bb4ca30dae6afc416f15fdd075d2633e84f835d9ae87b4e4e42c71ff3a1a2",
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/fixtures/capture_backend.py",
+      "before_sha256": null,
+      "after_sha256": "b67d8225aca16d09a1fbb871078831392189238b65ef6e1032b1cab986a0a06b",
+      "diff_sha256": "02101dc57d6b4ec4ca57989dd2044727690658186a07b1547a1e79cb8e1417f6",
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/independent-recommendations-capture-r1.py",
+      "before_sha256": null,
+      "after_sha256": "06ce67f08f05d2eaccbf4eeb90fb41ae9876cae3fa368e791d7f325eb7eee9ea",
+      "diff_sha256": "f413e63d2f8f993027134482c02fafafa756661cee59545f9a9487d26dc2f49d",
+      "canonical_before_sha256": null
+    }
+  ],
+  "tests": {
+    "pytest": {
+      "path": "/private/tmp/mwb-recommendations-pytest-r2.log",
+      "sha256": "c0bb7edc122a2f852497ff28990e7e83659dd02337712c5e74fd90608cb7ad4a",
+      "tail": [
+        ".......                                                                  [100%]",
+        "7 passed in 0.50s"
+      ]
+    },
+    "vitest": {
+      "path": "/private/tmp/mwb-recommendations-vitest-all-r3.log",
+      "sha256": "2b78c80f6db879867c552ccaa38c8c0cdaf9b9706b796c383349707df605349c",
+      "tail": [
+        "",
+        " Test Files  10 passed (10)",
+        "      Tests  61 passed (61)",
+        "   Start at  21:11:43",
+        "   Duration  2.73s (transform 1.30s, setup 0ms, import 3.46s, tests 3.53s, environment 5.15s)",
+        ""
+      ]
+    },
+    "typecheck": {
+      "path": "/private/tmp/mwb-recommendations-typecheck-r3.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": []
+    },
+    "build": {
+      "path": "/private/tmp/mwb-recommendations-build-r1.log",
+      "sha256": "dde0b2791f70e4c83622225492608069b33e892839a796a52fe4cbf3291708d1",
+      "tail": [
+        "../../docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-web-build-r1/assets/main-CFCr8XzX.css                     26.05 kB │ gzip:  5.41 kB",
+        "../../docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-web-build-r1/assets/dailyResearchCommand-Dw4QA73s.js      26.61 kB │ gzip:  7.65 kB",
+        "../../docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-web-build-r1/assets/managerSelection-BMMH_Hh6.js          45.66 kB │ gzip: 15.97 kB",
+        "../../docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-web-build-r1/assets/runtime-dom.esm-bundler-BK3TRPiP.js   65.06 kB │ gzip: 25.84 kB",
+        "../../docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-web-build-r1/assets/main-rAeLIAq3.js                     100.33 kB │ gzip: 30.18 kB",
+        "✓ built in 542ms"
+      ]
+    }
+  },
+  "results": {
+    "pytest_passed": 7,
+    "vitest_passed": 61,
+    "typecheck_exit": 0,
+    "build_exit": 0
+  },
+  "actual_saved_run": "528ef6fd4f0b49e7a3ec2b6719fc9afe",
+  "behavior": {
+    "us_selected": 0,
+    "us_watch": 1,
+    "oversold_selected": 20,
+    "oversold_watch": 277,
+    "us_source_symbols": 33,
+    "us_rows": 37,
+    "us_hk_relation_rows": 14,
+    "us_distinct_hk": 10,
+    "oversold_positive_paging": [
+      200,
+      97
+    ],
+    "detail_source_and_row_identity": true,
+    "aggregate_not_used_for_lane_classification": true
+  },
+  "saved_snapshots": {
+    "528ef6fd4f0b49e7a3ec2b6719fc9afe": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/528ef6fd4f0b49e7a3ec2b6719fc9afe.json",
+      "raw_sha256": "673c159af0b2a40af61741e655245f80f01d61da459c998aa7c7660a72762c62",
+      "product_sha256": "94567ead8a0bd21e4076ad08a8152abe460b72cfad61d623a3602f71385cccf7"
+    },
+    "84eafbbb71ba4767a591d1a4286fe061": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/84eafbbb71ba4767a591d1a4286fe061.json",
+      "raw_sha256": "ea5f7217ecd37824b467ff38a82ea88686d82827e3b3e18935e426aab53e10cf",
+      "product_sha256": "f8e3fff21847118b010895fe288aa97e17e587ef937ed90c0ebac9c2df4dacbb"
+    }
+  },
+  "local_only_fixtures": [
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/fixtures/independent-recommendations-http.local.json",
+      "sha256": "286b64f2a0e7338afe29274139e969a3db42e7c634b56fb67b5831eb67c72d49",
+      "excluded_from_github": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/fixtures/backend-http.json",
+      "sha256": "b266ee70999eb38f0b018ef68200e4b58c091d3c84b3a75839fb9f0c6056ac7e",
+      "excluded_from_github": true
+    }
+  ],
+  "snapshot_writes": 0,
+  "network_calls": 0,
+  "model_calls": 0,
+  "deploy": "NOT_RUN",
+  "browser": "NOT_RUN",
+  "scheduler": "UNTOUCHED",
+  "config": "UNTOUCHED",
+  "engines": "UNTOUCHED",
+  "legacy_contract_notes": [
+    "GET /days retains aggregate wire; new readonly recommendations/{lane} counts saved lane rows before paging",
+    "Announcement is no longer a default recommendation entry; historical semantic display function tests remain",
+    "Synthetic backend fixture now reflects unchanged price40 rules (251 watch instead of historic price20 strict), missing lane inputs remain distinct from valid empty"
+  ]
+}

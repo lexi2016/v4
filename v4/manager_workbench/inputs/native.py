@@ -745,6 +745,8 @@ class NativeAdapters:
                              source_body_sha256=source.get("source_body_sha256"),url=source.get("url"))
                         for source in relation.get("sources",[])]),
                     research_priority=relation.get("research_priority"),research_basis=relation.get("reason"),
+                    research_priority_reason=relation.get("research_priority_reason"),
+                    priority_assessment=relation.get("priority_assessment"),
                     relation_limitations=relation.get("limitations",[]),
                     publication_time_gaps=["RELATION_SOURCE_PUBLICATION_TIME_UNKNOWN"] if any(
                         source.get("role")=="RELATION" and not source.get("published_at") for source in relation.get("sources",[])) else [],

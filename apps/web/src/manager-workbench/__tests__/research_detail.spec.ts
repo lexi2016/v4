@@ -19,43 +19,18 @@ describe("saved real announcement research display", () => {
   beforeEach(() => window.history.replaceState(null, "", "?date=20261012&phase=RETROSPECTIVE&run_id=" + detail.plan_run_id));
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
-  it("shows saved reason, facts, quote and both risks, keeping audit JSON folded once", async () => {
+  it("keeps historical announcement evidence readable without treating it as a default recommendation entry", () => {
+    // Announcement selection is paused; the independent US/oversold entry
+    // deliberately does not load this historical aggregate as a new lane row.
+    const before = JSON.stringify(detail);
     expect(detail.stock.name).toBeNull();
     expect(semantic.risk_notes).toHaveLength(2);
-    expect(semantic.reason.length).toBeGreaterThan(100);
-    vi.stubGlobal("fetch", vi.fn(async (url: RequestInfo | URL) => new Response(JSON.stringify(
-      String(url).includes("/stocks/") ? actual.detail : actual.day), { status: 200 })));
-    render(Workbench);
-    const button = await screen.findByRole("button", { name: "查看 HK.06655 详情" });
-    expect(button.getAttribute("aria-label")).not.toContain("null");
-    await fireEvent.click(button);
-    const panel = await screen.findByRole("region", { name: "个股研究详情" });
-    await screen.findByText(semantic.reason);
-    for (const risk of semantic.risk_notes) {
-      expect(within(panel).getByText(risk)).toBeTruthy();
-      expect(panel.querySelector(".mwb-detail-grid")!.textContent).toContain(risk);
-    }
-    expect(within(panel).getByText(semantic.facts[0].claim)).toBeTruthy();
-    expect(within(panel).getByText(semantic.facts[0].quote)).toBeTruthy();
-    for (const heading of ["已核事实", "变化", "影响", "待确认条件", "反证"]) {
-      expect(within(panel).getAllByRole("heading", { name: heading }).length).toBeGreaterThan(0);
-    }
-    const audit = panel.querySelector("details")!;
-    expect(audit.open).toBe(false);
-    expect(audit.querySelectorAll("pre")).toHaveLength(1);
-    const main = panel.cloneNode(true) as HTMLElement;
-    main.querySelectorAll("details").forEach(x => x.remove());
-    expect(main.textContent).not.toContain("ANNOUNCEMENT_NOT_SELECTED");
-    expect(main.textContent).not.toContain("reader_output_sha256");
-    expect(main.textContent).not.toContain("B 原始记录");
-    expect(main.textContent).not.toContain("{\"");
-    await fireEvent.click(within(panel).getByText("证据身份、原始引用与校验缺口"));
-    expect(audit.open).toBe(true);
-    expect(audit.textContent).toContain(detail.plan_run_id);
-    expect(audit.textContent).toContain("source_sha256");
-    expect(JSON.parse(audit.querySelector("pre")!.textContent!)).toEqual(detail);
-    expect(detail.stock.decision).toBe("UNASSESSED");
-    expect(row.decision).toBe("NOT_SELECTED");
+    expect(readableReason(row)).toBe(semantic.reason);
+    const sections = researchSections(row);
+    expect(sections.find(x => x.key === "facts")!.items[0].claim).toBe(semantic.facts[0].claim);
+    expect(sections.find(x => x.key === "facts")!.items[0].quote).toBe(semantic.facts[0].quote);
+    expect(detailRisks(detail)).toEqual(semantic.risk_notes.map(x => "公告：" + x));
+    expect(JSON.stringify(detail)).toBe(before);
   });
 
   it("reads exact fields without inventing claims or spilling unknown objects into prose", () => {

@@ -1,7 +1,7 @@
 import { SCHEMA_VERSION } from "./types";
 import type {
   DayData, Decision, Envelope, HistoryData, JobCreated, JobRecord, Lane,
-  Phase, ReviewSummary, StockDetails
+  Phase, ReviewSummary, StockDetails, RecommendationLane
 } from "./types";
 import { isValidDate } from "./route";
 
@@ -85,6 +85,19 @@ async function request<T>(
 }
 export function createWorkbenchApi(transport: FetchLike = fetch) {
   return {
+    async getRecommendations(query: DayQuery, signal?: AbortSignal) {
+      exactDate(query.date);
+      if (query.lane !== 'US_MAPPING' && query.lane !== 'OVERSOLD') throw new ApiError('推荐来源无效', 422);
+      const params = new URLSearchParams();
+      if (query.phase) params.set('phase', query.phase);
+      if (query.run_id) { assertRunId(query.run_id); params.set('run_id', query.run_id); }
+      const offset = query.offset ?? 0, limit = query.limit ?? 50;
+      if (!Number.isInteger(offset) || offset < 0 || !Number.isInteger(limit) || limit < 1 || limit > 200) throw new ApiError('分页参数无效', 422);
+      params.set('offset', String(offset)); params.set('limit', String(limit));
+      if (query.decision) params.set('decision', query.decision);
+      if (query.q?.trim()) params.set('q', query.q.trim());
+      return request<DayData>(transport, `/days/${query.date}/recommendations/${query.lane}?${params}`, { signal });
+    },
     async getDay(query: DayQuery, signal?: AbortSignal) {
       exactDate(query.date);
       const params = new URLSearchParams();
@@ -100,10 +113,12 @@ export function createWorkbenchApi(transport: FetchLike = fetch) {
       if (query.q?.trim()) params.set("q", query.q.trim());
       return request<DayData>(transport, "/days/" + query.date + "?" + params.toString(), { signal });
     },
-    async getStock(symbol: string, date: string, runId: string, signal?: AbortSignal) {
+    async getStock(symbol: string, date: string, runId: string, signal?: AbortSignal,
+      recommendation?: { lane: RecommendationLane; row_id: string }) {
       exactDate(date); assertRunId(runId);
       if (!/^HK\.[0-9]{5}$/.test(symbol)) throw new ApiError("非港股规范代码", 422);
       const params = new URLSearchParams({ date, run_id: runId });
+      if (recommendation) { params.set('lane', recommendation.lane); params.set('row_id', recommendation.row_id); }
       return request<StockDetails>(transport, "/stocks/" + encodeURIComponent(symbol) + "?" + params, { signal });
     },
     async getHistory(date: string, signal?: AbortSignal) {

@@ -213,6 +213,65 @@ def reviewed_seed(config, context):
     return cards, sources
 
 
+def priority_review(config, evidence, review):
+    """New classifications require their own exact review, never a quote rank."""
+    if evidence.get('schema_version') != 'v4.manager_workbench.us_mapping_relation_evidence.v3':
+        if any('priority_assessment' in c for c in evidence.get('relations', [])):
+            raise ValueError('US_PRIORITY_REVIEW_SCHEMA_INVALID')
+        return []
+    inherited=evidence.get('inherited_evidence',{})
+    if (evidence.get('classification_version')!='US_RESEARCH_PRIORITY_REVIEW_V1_20261013'
+            or inherited.get('relative')!='v4/manager_research/us_mapping_relation_evidence_20261011.json'
+            or inherited.get('review_relative')!='v4/manager_research/us_mapping_relation_evidence_review_20261011.json'):
+        raise ValueError('US_PRIORITY_ORIGINAL_IDENTITY_INVALID')
+    original,osha=read(config.relation_root,inherited['relative'],inherited.get('raw_sha256'))
+    old_review,rsha=read(config.relation_root,inherited['review_relative'],inherited.get('review_raw_sha256'))
+    if (old_review.get('status')!='PASS' or old_review.get('evidence_file_sha256')!=osha
+            or original.get('artifact_sha256')!=inherited.get('artifact_sha256')
+            or owner_digest({k:v for k,v in original.items() if k!='artifact_sha256'})!=original.get('artifact_sha256')
+            or old_review.get('recomputed_artifact_sha256')!=original.get('artifact_sha256')):
+        raise ValueError('US_PRIORITY_ORIGINAL_IDENTITY_INVALID')
+    keys=('us_symbol','hk_symbol','relationship_type','direction')
+    identity=lambda c:tuple(c.get(k) for k in keys)
+    originals={identity(c):c for c in original.get('relations',[])}
+    cards=evidence.get('relations',[])
+    audits=review.get('reviewed_priority_assessments',[])
+    reviewed={identity(a):a for a in audits}
+    old_pairs={identity(c) for c in old_review.get('reviewed_pairs',[])}
+    if (len(originals)!=len(original.get('relations',[])) or set(originals)!=old_pairs
+            or len(reviewed)!=len(audits) or len(cards)!=len(originals)
+            or {identity(c) for c in cards}!=set(originals) or set(reviewed)!=set(originals)
+            or {identity(c) for c in review.get('reviewed_pairs',[])}!=set(originals)):
+        raise ValueError('US_PRIORITY_TUPLE_REVIEW_INVALID')
+    for card in cards:
+        key=identity(card);old=originals[key];a=card.get('priority_assessment',{});audit=reviewed[key]
+        unchanged={k:v for k,v in card.items() if k not in {'research_priority','research_priority_reason',
+            'priority_assessment','original_available_at','new_capture_checks'}}
+        unchanged['available_at']=old.get('available_at')
+        if ('research_priority' in old):unchanged['research_priority']=old['research_priority']
+        if (unchanged!=old or a.get('original_relation_sha256')!=owner_digest(old)
+                or a.get('original_evidence_raw_sha256')!=osha or a.get('original_review_raw_sha256')!=rsha
+                or a.get('original_tuple')!={k:card.get(k) for k in keys}
+                or a.get('classification_version')!=evidence.get('classification_version')
+                or a.get('classification_kind')!='NEW_RESEARCH_CLASSIFICATION_NOT_RECOVERED_OLD_FIELD'
+                or not a.get('analyst_identity') or a['analyst_identity']==review.get('reviewer_identity')
+                or a.get('not_a_quote_based_rank') is not True or a.get('strict_selection_supported') is not False
+                or a.get('research_priority') not in ('PRIORITY','WATCH','NONE')
+                or a.get('research_priority')!=card.get('research_priority')
+                or not a.get('reason') or a['reason']!=card.get('research_priority_reason')
+                or owner_digest(a)!=audit.get('assessment_sha256')
+                or any(a.get(k)!=audit.get(k) for k in ('research_priority','reason','counter_evidence'))):
+            raise ValueError('US_PRIORITY_ASSESSMENT_REVIEW_INVALID')
+        checked_time(old.get('available_at'),a.get('classified_at'))
+        checked_time(old_review.get('reviewed_at'),a.get('classified_at'))
+        checked_time(a.get('classified_at'),review['reviewed_at'])
+        if card.get('available_at')!=a.get('classified_at') or evidence.get('classified_at')!=a.get('classified_at'):
+            raise ValueError('US_PRIORITY_AVAILABILITY_INVALID')
+    return [dict(source_local_path=str(config.relation_root),relative=rel,sha256=sha,
+                 owner=old_review.get('reviewer_identity'),available_at=old_review['reviewed_at'])
+            for rel,sha in [(inherited['relative'],osha),(inherited['review_relative'],rsha)]]
+
+
 def us_mapping(config, context):
     session=context.source_sessions['us']; root=config.us_root
     quote_rel=f'research/peripherals/{session}/external_finance.json'
@@ -234,6 +293,7 @@ def us_mapping(config, context):
         or review.get('safety',{}).get('production_allowed') is not False):
         raise ValueError('US_RELATION_INDEPENDENT_REVIEW_INVALID')
     pairs={tuple(r.get(k) for k in ('us_symbol','hk_symbol','relationship_type','direction')) for r in review['reviewed_pairs']}
+    inherited_sources=priority_review(config,evidence,review)
     assessments=[]
     reviewed_assessments={a['us_symbol']:a for a in review.get('reviewed_symbol_assessments',[])}
     if len(reviewed_assessments)!=len(review.get('reviewed_symbol_assessments',[])):
@@ -271,11 +331,11 @@ def us_mapping(config, context):
             original=joined[key]
             original['relation_source_refs']=[*original.get('relation_source_refs',[]),*card.get('relation_source_refs',[])]
             original['reviewed_variants']=[*original.get('reviewed_variants',[]),card]
-    projection=dict(cards=list(joined.values()),symbol_assessments=assessments,available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=seed_sources)
+    projection=dict(cards=list(joined.values()),symbol_assessments=assessments,available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=[*seed_sources,*inherited_sources])
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
         relation_local_path=str(config.relation_root),relation_relative=config.relation_evidence_relative,relation_sha256=esha,
         relation_owner=review['reviewer_identity'],relation_projection=projection,configured_symbols=list(US_SYMBOLS),
-        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources],
+        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources],
         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
 
 

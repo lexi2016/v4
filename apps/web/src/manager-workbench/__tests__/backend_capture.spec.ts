@@ -19,8 +19,9 @@ function install(scenario = "full") {
     const path = url.pathname;
     let key = scenario + "_page_" + (url.searchParams.get("offset") || "0");
     if (url.searchParams.get("decision")) key = scenario + "_filtered";
+    if (path.includes('/recommendations/')) key=scenario+'_recommendations_'+path.split('/').pop()+'_'+(url.searchParams.get('decision')?'filtered':url.searchParams.get('offset')||'0');
     if (path.endsWith("20261014")) key = scenario + "_not_run";
-    if (path.includes("/stocks/")) key = scenario + "_detail";
+    if (path.includes("/stocks/")) key = scenario + "_lane_detail";
     if (path.endsWith("/history")) key = scenario + "_history";
     if (path.includes("/reviews/")) key = scenario + "_review";
     if (path.endsWith("/runs") && init.method === "POST") key = scenario + "_created";
@@ -35,14 +36,14 @@ describe("actual frozen Mac backend wire compatibility", () => {
   beforeEach(() => window.history.replaceState(null, "", "?date=20261013"));
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
-  it("reads every one of 251 rows through real B paging, keeping full counts", async () => {
+  it("reads every one of 251 saved lane rows through real B paging, keeping full watch counts", async () => {
     const spy = install();
-    render(Workbench);
+    render(Workbench);await fireEvent.click(screen.getByRole("button",{name:/超跌推荐/}));
     await screen.findByText("HK.00001");
     const symbols = new Set<string>();
     for (let page = 0; page < 6; page++) {
       document.querySelectorAll(".mwb-symbol").forEach(node => symbols.add(node.textContent || ""));
-      expect(document.querySelector('.mwb-counts strong')?.textContent).toBe("251");
+      expect(document.querySelectorAll('.mwb-counts strong')[1]?.textContent).toBe("251");
       expect(screen.getByText(/服务端筛选后共 251 行/)).toBeTruthy();
       if (page < 5) {
         await fireEvent.click(screen.getByRole("button", { name: "下一页" }));
@@ -56,7 +57,7 @@ describe("actual frozen Mac backend wire compatibility", () => {
   });
 
   it("renders five views using native facts, actual evidence, history, Top20 and job wire", async () => {
-    const spy = install();render(Workbench);
+    const spy = install();render(Workbench);await fireEvent.click(screen.getByRole("button",{name:/超跌推荐/}));
     await screen.findByText("HK.00001");
     expect(screen.getAllByRole("tab")).toHaveLength(5);
     await fireEvent.click(screen.getByRole("button", { name: /查看 HK.00001/ }));
@@ -71,7 +72,8 @@ describe("actual frozen Mac backend wire compatibility", () => {
     await fireEvent.click(screen.getByRole("tab", { name: "收盘复盘" }));
     await screen.findByText("HK.00020");
     expect(screen.getAllByRole("row")).toHaveLength(21);
-    expect(screen.getAllByText("100%")).toHaveLength(2);
+    expect(screen.getAllByText("100%")).toHaveLength(1);
+    expect(screen.getByText("0%")).toBeTruthy();
     expect(screen.getByText(/synthetic-full-connect/)).toBeTruthy();
     await fireEvent.click(screen.getByRole("tab", { name: "研究进度" }));
     await fireEvent.click(screen.getByRole("button", { name: "生成研究计划" }));
@@ -81,33 +83,34 @@ describe("actual frozen Mac backend wire compatibility", () => {
     expect(JSON.parse(post![1]!.body as string)).toEqual({target_date:"20261013",phase:"MANUAL"});
   });
 
-  it("partial missing announcement keeps 251 independently selected oversold rows", async () => {
-    install("partial");render(Workbench);
+  it("partial missing announcement keeps 251 independent oversold watch rows", async () => {
+    install("partial");render(Workbench);await fireEvent.click(screen.getByRole("button",{name:/超跌推荐/}));
     await screen.findByText("HK.00001");
-    expect(document.querySelector('.mwb-counts strong')?.textContent).toBe("251");
-    expect(screen.getByText("PARTIAL")).toBeTruthy();
+    expect(document.querySelectorAll('.mwb-counts strong')[1]?.textContent).toBe("251");
+    expect(screen.getByText("READY")).toBeTruthy();
     await fireEvent.click(screen.getByRole("tab", { name: "研究进度" }));
     expect(screen.getByText("输入缺失")).toBeTruthy();
     expect(screen.getByText("完成")).toBeTruthy();
   });
 
-  it("actual unknown null counts remain unknown, actual evaluated empty is zero", async () => {
-    install("unknown");const mounted = render(Workbench);
-    await waitFor(() => expect(document.querySelector('.mwb-counts strong')?.textContent).toBe("未知"));
+  it("missing inputs are distinct from actual evaluated empty; saved row counts do not invent coverage", async () => {
+    install("unknown");const mounted = render(Workbench);await fireEvent.click(screen.getByRole("button",{name:/超跌推荐/}));
+    await waitFor(() => expect(document.querySelector('.mwb-counts strong')?.textContent).toBe("0"));
     expect(screen.queryByText("研究已完成且有效空集")).toBeNull();
+    expect(screen.getByText("INPUT_MISSING")).toBeTruthy();
     mounted.unmount();cleanup();
     vi.stubGlobal("fetch", vi.fn(async () => reply(wires.empty)));
-    render(Workbench);
+    render(Workbench);await fireEvent.click(screen.getByRole("button",{name:/超跌推荐/}));
     await screen.findByText("研究已完成且有效空集");
     expect(document.querySelector('.mwb-counts strong')?.textContent).toBe("0");
     expect(screen.getByText("0–0")).toBeTruthy();
   });
 
   it("filtered zero rows keep full counts and do not claim a global valid empty", async () => {
-    install("partial");render(Workbench);await screen.findByText("HK.00001");
+    install("partial");render(Workbench);await fireEvent.click(screen.getByRole("button",{name:/超跌推荐/}));await screen.findByText("HK.00001");
     await fireEvent.update(screen.getByLabelText("分类"), "NOT_SELECTED");
     await screen.findByText("此筛选或版本暂无名单行");
-    expect(document.querySelector('.mwb-counts strong')?.textContent).toBe("251");
+    expect(document.querySelectorAll('.mwb-counts strong')[1]?.textContent).toBe("251");
     expect(screen.queryByText("研究已完成且有效空集")).toBeNull();
   });
 

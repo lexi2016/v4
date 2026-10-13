@@ -9,7 +9,7 @@ export function wrapped<T>(data: T | null, state = "READY", statusFlags = true):
 }
 export function sampleStock(symbol = "HK.01234", name = "合成标的"): StockDecision {
   return {
-    market: "HK_CONNECT", symbol, name, decision: "CONDITIONAL_WATCH",
+    row_id: "US_MAPPING:0", market: "HK_CONNECT", symbol, name, decision: "CONDITIONAL_WATCH",
     lane_decisions: {
       ANNOUNCEMENT: { decision: "UNASSESSED", reason: "完整正文待核" },
       US_MAPPING: { decision: "CONDITIONAL_WATCH", reason: "已审核映射，仅观察" },

@@ -91,6 +91,9 @@ def run_us_mapping(context, batch):
             extra = dict(source_index=index, us_symbol=item.get("us_symbol"),
                          relation_type=relation.get("relation_type") if isinstance(relation, dict) else None,
                          source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], relation_limitations=relation.get("relation_limitations",[]) if isinstance(relation,dict) else [],quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None)
+            if isinstance(relation,dict) and relation.get('priority_assessment'):
+                extra.update(research_priority_reason=relation.get('research_priority_reason'),
+                             priority_assessment=relation['priority_assessment'])
             relation_ok=(source_ok and isinstance(relation, dict) and hk_symbol(relation.get("target_symbol")) and
                     relation.get("status") == "REVIEWED" and valid_sha(relation.get("sha256")) and
                     relation.get("review_owner") and current(context, relation.get("available_at")) and

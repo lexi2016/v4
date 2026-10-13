@@ -49,6 +49,13 @@ def scenario(folder, name, count, *, missing=False, corrupt=False):
         for offset in (0,50,100,150,200,250):
             capture(name+'_page_'+str(offset), client, 'get', '/days/20261013', params={'offset':offset,'limit':50})
         capture(name+'_filtered', client, 'get', '/days/20261013', params={'decision':'NOT_SELECTED','limit':50})
+        for selected_lane in ('US_MAPPING','OVERSOLD'):
+            for page_offset in (0,50,100,150,200,250):
+                capture(name+'_recommendations_'+selected_lane+'_'+str(page_offset),client,'get','/days/20261013/recommendations/'+selected_lane,params={'offset':page_offset,'limit':50})
+            capture(name+'_recommendations_'+selected_lane+'_filtered',client,'get','/days/20261013/recommendations/'+selected_lane,params={'decision':'NOT_SELECTED'})
+        projected=client.get(PREFIX+'/days/20261013/recommendations/OVERSOLD').json()['data']['stocks']
+        if projected:
+            capture(name+'_lane_detail',client,'get','/stocks/'+projected[0]['symbol'],params={'date':'20261013','run_id':job.run_id,'lane':'OVERSOLD','row_id':projected[0]['row_id']})
         capture(name+'_history', client, 'get', '/history', params={'date':'20261013'})
         capture(name+'_review_missing', client, 'get', '/reviews/20261013', params={'plan_run_id':job.run_id})
         if count and not corrupt:
@@ -86,7 +93,7 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
     service, engine, client = rt['make'](root/'empty', rt['Engine'](count=0))
     try:
         rt['done'](service,service.submit('20261013',Phase.MANUAL))
-        capture('empty',client,'get','/days/20261013')
+        capture('empty',client,'get','/days/20261013/recommendations/OVERSOLD')
     finally: service.jobs.stop();client.close()
 scratch.rmdir()
 destination = Path(__file__).with_name('backend-http.json')

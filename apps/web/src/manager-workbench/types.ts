@@ -2,6 +2,7 @@
 export const SCHEMA_VERSION = "v4.manager_workbench.v1" as const;
 export const LANES = ["ANNOUNCEMENT", "US_MAPPING", "OVERSOLD", "STAGE_REFERENCE", "CLOSE_REFERENCE"] as const;
 export type Lane = (typeof LANES)[number];
+export type RecommendationLane = 'US_MAPPING' | 'OVERSOLD';
 export type Phase = "PREOPEN" | "INTRADAY" | "NEXT_DAY" | "RETROSPECTIVE" | "MANUAL";
 export type Decision = "SELECTED" | "CONDITIONAL_WATCH" | "UNASSESSED" | "NOT_SELECTED" | "OBSERVATION_ONLY";
 export type LaneState = "NOT_RUN" | "RUNNING" | "READY" | "READY_EMPTY" | "PARTIAL" | "INPUT_MISSING" | "FAILED" | "NOT_APPLICABLE";
@@ -125,6 +126,12 @@ export interface PlanVersion {
   [key: string]: unknown;
 }
 export interface DayData {
+  recommendation_counts?: Partial<Record<RecommendationLane, DecisionCounts | null>>;
+  recommendation_projection?: {
+    display_only: true; lane: RecommendationLane; count_unit: 'SAVED_LANE_RESEARCH_ROWS';
+    row_count: number; hk_relation_row_count: number; distinct_hk_count: number;
+    source_only_row_count: number; coverage: Coverage;
+  };
   snapshot: PlanMetadata | null;
   stocks: StockDecision[];
   counts: DecisionCounts | null;
@@ -143,6 +150,7 @@ export interface StockLaneDetail {
   evidence_refs: EvidenceRef[];
 }
 export interface StockDetails {
+  recommendation_lane?: RecommendationLane | null;
   plan_run_id: string;
   stock: StockDecision;
   lane_details: StockLaneDetail[];

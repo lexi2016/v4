@@ -1,0 +1,119 @@
+{
+  "status": "PREPARED_DRY_RUN_PASS",
+  "plan": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/us29-closure-v14-r2/operator-plan.json",
+  "plan_sha256": "8b532b683a90e5dafdf142d0eb4ff3f5a5832fa6e9b66cd8e088d75ad9e77cba",
+  "candidate_manifests": {
+    "api": "92b42ed0c18a8f111953e195631a8005f6f9cf6b207557618ff99ce90c3d89f0",
+    "scheduler": "4e6975f18345c5ccc4f222c329021ac3afac590afe5e5834757af6ba61049e4b"
+  },
+  "delta_files": [
+    {
+      "path": "apps/web/src/manager-workbench/display.ts",
+      "before_sha256": "e8a96633462a7baf83ab778370228a0b22ed8eeab270128b51b5c2b47527a75e",
+      "after_sha256": "cc555dbdcbe509203d6a72f87e4ee0383ae0e0e653b59f8adab40b35682b6d11"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "before_sha256": "eab5f3e42aec9eedf860963324f3a1f8a0b1601ee94945f067bde2620a491ba0",
+      "after_sha256": "d0717f500594d13ba97fe7cc7473d19483a955dd5d1300c3bba7b2452fb7b332"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "e263b2e2d81e6b5af27a3b0afa52ddfbe4b22925c38de088bcdd623a77e392ff",
+      "after_sha256": "0a585635430d6acd8933cbdfa1d6d88aab4f37497cc9978f0b1041d7ec4c7ad4"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "02143c119f15eba2fd5c3f329d57b40568bc3799b559344e894b5473e15130b2",
+      "after_sha256": "41edb2a27a6fa7a5238e5216804ed091f4996e4d6d4d399e67ee6afa83efd73b"
+    },
+    {
+      "path": "v4/manager_workbench/research_data/us_mapping_relation_evidence_20261013_v3.json",
+      "before_sha256": null,
+      "after_sha256": "2046fdafb69a8e4cb9d7de4f754ea69799b769c82351dd46499ba1b6a6ca567f"
+    },
+    {
+      "path": "v4/manager_workbench/research_data/us_mapping_relation_evidence_review_20261013_v3.json",
+      "before_sha256": null,
+      "after_sha256": "33c4b45fae64f72a406e707d77cf5db93495ed3f1b15461d6d96da617696ed8b"
+    }
+  ],
+  "api_non_delta_preserved": true,
+  "scheduler_non_delta_preserved": true,
+  "formal_writes": 0,
+  "services_changed": false,
+  "api_delta_paths": [
+    "apps/web/dist/assets/managerSelection-D_pITkNq.js",
+    "apps/web/dist/manager-selection/index.html",
+    "apps/web/src/manager-workbench/display.ts",
+    "v4/manager_workbench/engines/us_mapping.py",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/inputs/source_bindings.py",
+    "v4/manager_workbench/research_data/us_mapping_relation_evidence_20261013_v3.json",
+    "v4/manager_workbench/research_data/us_mapping_relation_evidence_review_20261013_v3.json"
+  ],
+  "scheduler_delta_paths": [
+    "v4/manager_research/us_mapping_relation_evidence_20261011.json",
+    "v4/manager_research/us_mapping_relation_evidence_review_20261011.json",
+    "v4/manager_research/us_mapping_relation_registry.json",
+    "v4/manager_research/us_mapping_reviewed_20260930.json",
+    "v4/manager_workbench/engines/us_mapping.py",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/inputs/source_bindings.py",
+    "v4/manager_workbench/research_data/us_mapping_relation_evidence_20261013_v3.json",
+    "v4/manager_workbench/research_data/us_mapping_relation_evidence_review_20261013_v3.json"
+  ],
+  "canonical_sync_paths": [
+    "apps/web/src/manager-workbench/display.ts",
+    "v4/manager_workbench/engines/us_mapping.py",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/inputs/source_bindings.py",
+    "v4/manager_workbench/research_data/us_mapping_relation_evidence_20261013_v3.json",
+    "v4/manager_workbench/research_data/us_mapping_relation_evidence_review_20261013_v3.json"
+  ],
+  "approved_base_receipt": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/us29-closure-v14-base-r1.json",
+    "sha256": "52912e3cf866cec47cabb1221c71f1131ac518f08572d6d7c57ce34b87ee62bf"
+  },
+  "frontend_assets": [
+    "apps/web/dist/manager-selection/index.html",
+    "apps/web/dist/assets/managerSelection-D_pITkNq.js"
+  ],
+  "fixed_api_aggregate_compatibility": {
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-pool-labels-20261014-r1/app",
+    "plist_sha256": "216d2083f7eab672664f4e8c2adfee4b852980c707f36384dbae7380cf488756",
+    "manifest_sha256": "10caba13acb78d8d0f3be119ed477812fca41d2ad55fe2c5bc87f25d66dc424f",
+    "declared_aggregate": "41b2f56c7b97c6461bfc4c0e47e7af015b1091aeb9ceda47d862700725344972",
+    "actual_aggregate": "dc98f11aec8e258fc37909607347c936f0b02bb237baa9ea8bd89565801cb0cd",
+    "declared_entries_exactly_equal_actual": true
+  },
+  "formal_config_only_us_evidence_bindings_changed": true,
+  "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+  "inherited_scheduler_data_closure": [
+    {
+      "path": "v4/manager_research/us_mapping_relation_evidence_20261011.json",
+      "source": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/v4/manager_research/us_mapping_relation_evidence_20261011.json",
+      "sha256": "69e09810a8c5fcaa52cf1b16d339756b67a6ea6c8eb7837c440bea86fdaebfb0",
+      "purpose": "Read-only v3 original evidence/review and reviewed seed provenance; no legacy business import"
+    },
+    {
+      "path": "v4/manager_research/us_mapping_relation_evidence_review_20261011.json",
+      "source": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/v4/manager_research/us_mapping_relation_evidence_review_20261011.json",
+      "sha256": "5e24b82049ca848f7536b084166537415722375414cfc762da8b179919947350",
+      "purpose": "Read-only v3 original evidence/review and reviewed seed provenance; no legacy business import"
+    },
+    {
+      "path": "v4/manager_research/us_mapping_relation_registry.json",
+      "source": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/v4/manager_research/us_mapping_relation_registry.json",
+      "sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe",
+      "purpose": "Read-only v3 original evidence/review and reviewed seed provenance; no legacy business import"
+    },
+    {
+      "path": "v4/manager_research/us_mapping_reviewed_20260930.json",
+      "source": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/v4/manager_research/us_mapping_reviewed_20260930.json",
+      "sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a",
+      "purpose": "Read-only v3 original evidence/review and reviewed seed provenance; no legacy business import"
+    }
+  ],
+  "runtime_relation_root": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app"
+}

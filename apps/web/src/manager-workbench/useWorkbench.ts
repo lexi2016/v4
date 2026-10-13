@@ -3,7 +3,7 @@ import { ApiError, createWorkbenchApi } from "./api";
 import type { DayQuery, WorkbenchApi } from "./api";
 import type {
   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
-  ReviewSummary, StockDecision, StockDetails
+  ReviewSummary, StockDecision, StockDetails, RecommendationLane
 } from "./types";
 import { parseWorkbenchRoute, routeSearch } from "./route";
 import type { WorkbenchRoute } from "./route";
@@ -32,7 +32,8 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const panel = ref<Panel>("stocks");
   const dateInput = ref(route.value.date);
   const decisionFilter = ref<Decision | "">("");
-  const laneFilter = ref<Lane | "">("");
+  const laneFilter = ref<RecommendationLane>('US_MAPPING');
+  const laneViews: Partial<Record<RecommendationLane, { offset: number; decision: Decision | ''; search: string }>> = {};
   const searchDraft = ref("");
   const search = ref("");
   const offset = ref(0);
@@ -102,7 +103,8 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     review.value = null; reviewError.value = ""; reviewLoading.value = false;
     job.value = null; jobId.value = ""; jobError.value = "";
     panel.value = "stocks"; offset.value = 0; search.value = ""; searchDraft.value = "";
-    decisionFilter.value = ""; laneFilter.value = "";
+    decisionFilter.value = ""; laneFilter.value = 'US_MAPPING';
+    delete laneViews.US_MAPPING; delete laneViews.OVERSOLD;
   }
   function navigate(next: WorkbenchRoute, replace = false): void {
     resetPage();
@@ -140,13 +142,14 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     if (!old) day.value = null;
     stale.value = false; dayLoading.value = true; dayError.value = "";
     try {
-      const response = await api.getDay(query, ctrl.signal);
+      const response = await api.getRecommendations(query, ctrl.signal);
       if (seq !== daySeq || ctrl.signal.aborted) return;
       if (response.data?.snapshot) {
         const snap = response.data.snapshot;
         if (snap.context.target_date !== query.date ||
             (query.run_id && snap.run_id !== query.run_id) ||
-            (query.phase && snap.context.phase !== query.phase)) {
+            (query.phase && snap.context.phase !== query.phase) ||
+            (response.data?.recommendation_projection && response.data.recommendation_projection.lane !== query.lane)) {
           throw new ApiError("API 返回的日期、阶段或版本与本次请求不一致", 502);
         }
       }
@@ -172,6 +175,15 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     offset.value = 0; search.value = searchDraft.value.trim();
     void loadDay();
   }
+  function switchLane(lane: RecommendationLane): void {
+    if (lane === laneFilter.value) return;
+    laneViews[laneFilter.value] = { offset: offset.value, decision: decisionFilter.value, search: search.value };
+    laneFilter.value = lane;
+    const view = laneViews[lane]; offset.value = view?.offset || 0;
+    decisionFilter.value = view?.decision || ''; search.value = view?.search || ''; searchDraft.value = search.value;
+    detailSeq++; detailAbort?.abort(); detail.value = null; detailLoading.value = false;
+    panel.value = 'stocks'; void loadDay();
+  }
   function setOffset(next: number): void {
     const maxTotal = pagination.value?.total ?? 0;
     if (!Number.isInteger(next) || next < 0 || next >= maxTotal || next === offset.value) return;
@@ -192,10 +204,14 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     detailAbort?.abort(); const ctrl = new AbortController(); detailAbort = ctrl;
     detailLoading.value = true;
     try {
-      const result = await api.getStock(stock.symbol, route.value.date, runId, ctrl.signal);
+      const result = await api.getStock(stock.symbol, route.value.date, runId, ctrl.signal,
+        { lane: laneFilter.value, row_id: String(stock.row_id || '') });
       if (seq !== detailSeq || ctrl.signal.aborted) return;
       if (result.data?.plan_run_id !== runId || result.data.stock?.symbol !== stock.symbol) {
         throw new ApiError("个股详情与请求的计划 run_id 不一致", 502);
+      }
+      if (result.data.recommendation_lane !== laneFilter.value || result.data.stock.row_id !== stock.row_id) {
+        throw new ApiError('个股详情与请求的独立推荐来源或记录不一致', 502);
       }
       detail.value = result;
     } catch (error) {
@@ -324,7 +340,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     history, historyLoading, historyError, review, reviewLoading, reviewError,
     job, jobId, jobLoading, jobError, operationLoading, runPhase,
     stocks, snapshot, counts, pagination, versions, lanes, selectedRunId, selectedDate, readMode, valid,
-    changeDate, changeVersion, loadDay, applyFilters, setOffset, showPanel, openStock,
+    changeDate, changeVersion, loadDay, applyFilters, switchLane, setOffset, showPanel, openStock,
     loadHistory, loadReview, pollJob, createPlan, retryJob, viewJobVersion
   };
 }

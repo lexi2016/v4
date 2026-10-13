@@ -1,0 +1,286 @@
+{
+  "schema_version": "v4.manager_workbench.us_mapping_relation_evidence_review.v3",
+  "status": "PASS",
+  "reviewer_identity": "/root/manager_reviewer_sol",
+  "reviewed_at": "2026-10-13T12:36:18.755109+00:00",
+  "available_at": "2026-10-13T12:36:18.755109+00:00",
+  "model": "gpt-6.1-sol/high",
+  "evidence_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/v4/manager_workbench/research_data/us_mapping_relation_evidence_20261013_v3.json",
+  "evidence_file_sha256": "2046fdafb69a8e4cb9d7de4f754ea69799b769c82351dd46499ba1b6a6ca567f",
+  "declared_artifact_sha256": "0fd43e472bbaaf50b91957a6bf390a1c50c6ded9242d0d801dcbc6eec83ecd02",
+  "recomputed_artifact_sha256": "0fd43e472bbaaf50b91957a6bf390a1c50c6ded9242d0d801dcbc6eec83ecd02",
+  "reviewed_pairs": [
+    {
+      "us_symbol": "NVDA",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER"
+    },
+    {
+      "us_symbol": "AMD",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER"
+    },
+    {
+      "us_symbol": "NVDA",
+      "hk_symbol": "HK.09868",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER"
+    },
+    {
+      "us_symbol": "NVDA",
+      "hk_symbol": "HK.01810",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER"
+    },
+    {
+      "us_symbol": "NVDA",
+      "hk_symbol": "HK.01211",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER"
+    },
+    {
+      "us_symbol": "NVDA",
+      "hk_symbol": "HK.02015",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER"
+    },
+    {
+      "us_symbol": "DLR",
+      "hk_symbol": "HK.06823",
+      "relationship_type": "INDIRECT_STRATEGIC_PLATFORM_COLLABORATION",
+      "direction": "US_COLLABORATION_PARTNER_TO_HK_GROUP_PLATFORM"
+    },
+    {
+      "us_symbol": "EQIX",
+      "hk_symbol": "HK.09988",
+      "relationship_type": "NAMED_CLOUD_CONNECTIVITY_PARTNERSHIP",
+      "direction": "US_CONNECTIVITY_PROVIDER_TO_HK_LISTED_GROUP_CLOUD_ARM"
+    },
+    {
+      "us_symbol": "STX",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "NAMED_COMPONENT_OPTION",
+      "direction": "US_COMPONENT_VENDOR_TO_HK_LISTED_SYSTEM_CONFIGURATION"
+    },
+    {
+      "us_symbol": "VRT",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "CO_DESIGNED_PRODUCT_PARTNERSHIP",
+      "direction": "JOINT_US_AND_HK_LISTED_PRODUCT_DESIGN"
+    }
+  ],
+  "reviewed_priority_assessments": [
+    {
+      "us_symbol": "NVDA",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "research_priority": "PRIORITY",
+      "reason": "联想官方点名与NVIDIA合作，材料记载搭载NVIDIA GPU的联想系统，可优先核验已命名产品整合；不推断当期销量或收入。",
+      "counter_evidence": [
+        "2023年材料，当前配置覆盖和采购规模未核",
+        "不证明该美股单日涨幅导致港股上涨"
+      ],
+      "assessment_sha256": "24304ed149b256fb368bd893cee67833f200efc626ac642c5eeaf9583328bccd"
+    },
+    {
+      "us_symbol": "AMD",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "research_priority": "PRIORITY",
+      "reason": "联想官方点名ThinkCentre AI PC采用AMD Ryzen AI处理器，可优先核验具体产品整合；没有采购量或收入贡献证据。",
+      "counter_evidence": [
+        "2025年产品发布，当前出货结构未核",
+        "不推断排他性或涨幅因果"
+      ],
+      "assessment_sha256": "59b271a6dc2080892bd5b718268b47bc6b0fcbdf16419bcd3dbe72fd4bd0d021"
+    },
+    {
+      "us_symbol": "NVDA",
+      "hk_symbol": "HK.09868",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "research_priority": "WATCH",
+      "reason": "2024年NVIDIA材料披露小鹏下一代车队计划采用DRIVE Thor，仅作未来整合方案观察，不声称2026年已量产。",
+      "counter_evidence": [
+        "下一代方案是计划",
+        "当期车型配置和采购量未核"
+      ],
+      "assessment_sha256": "a4e8c994cbafc5bb86685e43dc9652d37cbc42205008a487165287078e89d4b5"
+    },
+    {
+      "us_symbol": "NVDA",
+      "hk_symbol": "HK.01810",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "research_priority": "WATCH",
+      "reason": "NVIDIA于2024年披露小米采用DRIVE Orin，保留历史平台采用观察；不据此证明2026年全系量产或营收贡献。",
+      "counter_evidence": [
+        "历史采用，不证明当前车型覆盖",
+        "无当期采购规模证据"
+      ],
+      "assessment_sha256": "10a4dabe46fe4f44b78233d438f0357bf3329fa8e6e83ac8198f8b02402fad9b"
+    },
+    {
+      "us_symbol": "NVDA",
+      "hk_symbol": "HK.01211",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "research_priority": "WATCH",
+      "reason": "2024年NVIDIA材料披露比亚迪下一代车队DRIVE Thor与AI平台使用计划，仅作计划层面观察，不声称已实现商业收入。",
+      "counter_evidence": [
+        "计划使用不等于实施完成",
+        "当前量产、型号和采购量未核"
+      ],
+      "assessment_sha256": "ea0f0431a8695ed0314a911d553d249da3cdcc64c9cbd374099d8b49739f819e"
+    },
+    {
+      "us_symbol": "NVDA",
+      "hk_symbol": "HK.02015",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "research_priority": "WATCH",
+      "reason": "2024年NVIDIA材料分别记载理想下一代DRIVE Thor选择与当时L系列Orin配置，保留条件观察；未来计划与已述配置分开。",
+      "counter_evidence": [
+        "不得把未来Thor选择当已量产",
+        "2026年车型与收入覆盖未知"
+      ],
+      "assessment_sha256": "a1814c62262957c5d90aff0c47271983c70a39dbf6af690454e52820ffaccfc5"
+    },
+    {
+      "us_symbol": "DLR",
+      "hk_symbol": "HK.06823",
+      "relationship_type": "INDIRECT_STRATEGIC_PLATFORM_COLLABORATION",
+      "direction": "US_COLLABORATION_PARTNER_TO_HK_GROUP_PLATFORM",
+      "research_priority": "WATCH",
+      "reason": "Digital Realty与Console Connect的合作通过HKT集团平台间接连接，保留间接合作观察；不能称为与HKT上市主体的直接合同。",
+      "counter_evidence": [
+        "间接平台关系，不证明上市主体直接签约",
+        "当前冻结港股通资格不包含HK.06823，daily不具备映射资格",
+        "原DLR提取仅标题/日期，全文细节仍未核"
+      ],
+      "assessment_sha256": "3929682ecc4bd3345128d3f14ebc541b13b6b409b7576f92541c19fb58d0e7ad"
+    },
+    {
+      "us_symbol": "EQIX",
+      "hk_symbol": "HK.09988",
+      "relationship_type": "NAMED_CLOUD_CONNECTIVITY_PARTNERSHIP",
+      "direction": "US_CONNECTIVITY_PROVIDER_TO_HK_LISTED_GROUP_CLOUD_ARM",
+      "research_priority": "WATCH",
+      "reason": "Equinix于2017年公布与阿里云合作及香港接入服务；可作为有明确历史出处的条件观察，不证明当前合同条款或收入。",
+      "counter_evidence": [
+        "2017年历史合作，不推断当前条款相同",
+        "补充服务文档缺发布日期，不能单独用于cutoff判断",
+        "无采购量、收入贡献或价格因果证据"
+      ],
+      "assessment_sha256": "8e3b467c410514c5dc4e4aa40028f12dd36e706959c48e29ba2ce442cb1a42f5"
+    },
+    {
+      "us_symbol": "STX",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "NAMED_COMPONENT_OPTION",
+      "direction": "US_COMPONENT_VENDOR_TO_HK_LISTED_SYSTEM_CONFIGURATION",
+      "research_priority": "WATCH",
+      "reason": "联想DSS-G指南仅将Seagate硬盘列为可选配置，保留部件选项观察；没有实际采购数量或已实现收入证据。",
+      "counter_evidence": [
+        "可选配置不等于采购",
+        "不能推断排他性或当前采购量"
+      ],
+      "assessment_sha256": "0b587f60cb704b2396291a3dbc8b54c56dd152ff190d18f6645d373abf225078"
+    },
+    {
+      "us_symbol": "VRT",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "CO_DESIGNED_PRODUCT_PARTNERSHIP",
+      "direction": "JOINT_US_AND_HK_LISTED_PRODUCT_DESIGN",
+      "research_priority": "PRIORITY",
+      "reason": "联想产品指南明确PDU由Vertiv与联想共同设计，可优先核验具体共同设计产品；不是当期订单或收入承诺。",
+      "counter_evidence": [
+        "共同设计不等于新增订单",
+        "2026年指南不能证明当日经济重要性"
+      ],
+      "assessment_sha256": "bc7db093a8f936d355a6e63eca09b65a741d25e4a56952b1ce50898c02f142f5"
+    }
+  ],
+  "reviewed_symbol_assessments": [
+    {
+      "us_symbol": "MU",
+      "candidate_hk_code": "00992",
+      "status": "ASSESSED_WITH_GAPS",
+      "conclusion": "CANNOT_CONFIRM",
+      "assessment_sha256": "ba274aac83a49da6a18083a5810be30e7484fe7aac3234fb5637b4cf3b244877"
+    },
+    {
+      "us_symbol": "WDC",
+      "candidate_hk_code": "00992",
+      "status": "ASSESSED_WITH_GAPS",
+      "conclusion": "CANNOT_CONFIRM",
+      "assessment_sha256": "047d76259dc25f71da9627ed209d10b96da25a05dddc16e779ae08b6842e244c"
+    }
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "reviewed_scope": "Exact ten inherited tuples and per-tuple NEW research priority classification; two original HK00992 candidate assessments remain CANNOT_CONFIRM. No new tuple, no strict selection. Evidence and classification review only, not implementation/deployment acceptance.",
+  "inherited_evidence_raw_sha256": "69e09810a8c5fcaa52cf1b16d339756b67a6ea6c8eb7837c440bea86fdaebfb0",
+  "inherited_review_raw_sha256": "5e24b82049ca848f7536b084166537415722375414cfc762da8b179919947350",
+  "proposal_sha256": "8cd968b6cae193355b66f7e3d2e054b7f8e9c21142c85c95cc7df23b441fb4c5",
+  "source_capture_manifest_sha256": "a3b1c129963fb41da79edee538b466cdf7bf95ca0a152d85d110c33cedecf86e",
+  "new_capture_byte_verification": [
+    {
+      "us_symbol": "MU",
+      "body_relative": "0-MU-body.html",
+      "source_body_sha256": "acc28e80f898a70484a8e712be2d1530d6e508528a2a3dd99d196062596ce9e1",
+      "text_sha256": "05f8bdf19ca64ec98ac31c13061fb810966197580390f0688c67e092c21b5a3f",
+      "http_status": 403,
+      "retrieved_at": "2026-10-13T12:24:46.187685+00:00"
+    },
+    {
+      "us_symbol": "WDC",
+      "body_relative": "1-WDC-body.html",
+      "source_body_sha256": "a5a5e65a1d080359619a637fb118026788fdd82421d0d84f4a070664f236a6f9",
+      "text_sha256": "eb15ea9951741035223f25d1c87ba053d95d5c2ca34461ffe8247159821d8668",
+      "http_status": 200,
+      "retrieved_at": "2026-10-13T12:24:50.122075+00:00"
+    },
+    {
+      "us_symbol": "WDC",
+      "body_relative": "2-WDC-body.html",
+      "source_body_sha256": "4607748411e75a9b4f4d61fb40bcc60ac4274599e3bbac2af3107fd8e453251f",
+      "text_sha256": "ebbe85a857e3a8e8950362b88275d6d2ee61914dcc1e5d5a0564d33d087056fc",
+      "http_status": 200,
+      "retrieved_at": "2026-10-13T12:24:51.391814+00:00"
+    },
+    {
+      "us_symbol": "EQIX",
+      "body_relative": "3-EQIX-body.html",
+      "source_body_sha256": "1619b56ca60abf65cb586296d30488bd9c2332d55931e1fb5f492abaffb69b67",
+      "text_sha256": "65e0b76b1f6002f762e0621f1cbc50542cc73473991ad13144979592cc917c1f",
+      "http_status": 200,
+      "retrieved_at": "2026-10-13T12:24:53.110558+00:00"
+    }
+  ],
+  "http_body_rehash_status": "PARTIAL_NEW_CAPTURES_VERIFIED; EQIX_ORIGINAL_BODY_SHA_MATCHED; OTHER_INHERITED_BODIES_NOT_REHASHED",
+  "semantic_basis": {
+    "PRIORITY": "NVDA/AMD named Lenovo product/system integration and VRT explicit product co-design merit priority for verification, not economic materiality or strict selection.",
+    "WATCH": "Four non-Lenovo NVDA historical/announced fleet-platform tuples, DLR indirect platform collaboration, EQIX historical named Hong Kong partnership, STX component option: seven distinct limited observations, each preserving its own rationale and counter-evidence.",
+    "MU": "403 body is an access challenge, not official release facts; no tuple published.",
+    "WDC": "LP1842 contains WDC abbreviation without expanded issuer; LP1031 confirms historical Western Digital SS530 but explicitly withdrawn; no current tuple published.",
+    "EQIX": "Captured exact original 2017 release body hash equals inherited hash; names Alibaba Group cloud arm and Hong Kong facilities, not current commercial terms.",
+    "ETF21": "No existing approved HK issuer edge added; source-level theme proxy is not a stock watch result."
+  },
+  "limitations": [
+    "Original inherited HTTP-body rehash CANNOT_CONFIRM remains for sources not captured here.",
+    "Independent classification availability is this actual review time, never the old publication/capture/classification time. Consumer must use max(source availability, classification, independent review).",
+    "DLR target HK06823 remains outside frozen Connect membership; relation WATCH is not daily eligibility.",
+    "No quote causality, shipments/orders/revenue/exclusivity or current fleet mix inferred.",
+    "No model/source network request, service action, business code/config/state write or implementation test performed in this review.",
+    "Current new artifact review does not change old run 3756008d713a4505be362d288ab9d504 or original materials."
+  ]
+}

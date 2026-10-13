@@ -1,0 +1,59 @@
+{
+  "status": "PREPARED_FOR_INDEPENDENT_PACKAGE_REVIEW",
+  "prepared_receipt": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-r3/prepared-receipt.json",
+    "sha256": "f30a57d9a81fd55a927b7d7fdeefd5a96a3aa005da7e56f5e80693574f505e6e"
+  },
+  "plan": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-r3/operator-plan.json",
+    "sha256": "7c9f964d2635d63519a8645c54b37f8e3667ea856356fa86d863e1e100581896"
+  },
+  "candidate_api": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-r3/manager-workbench-20261013-independent-recommendations-api/app",
+  "api_manifest_sha256": "a31abf3a90a760311862e5b3ceb30ad38683e8c269c1be5d035740b7a5110615",
+  "helpers": {
+    "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/independent-recommendations-prepare-r1.py": "12455f143dd5c9000c7fb8344cb2b6dd1ebe4ed61179a14f72c8c84d5a94f032",
+    "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/independent-recommendations-package-test-r1.py": "d4b72baeed56fedfad06e7d6127a4daf1a592341485b3d30bff3abd3f10449c4"
+  },
+  "tests": {
+    "passed": 6,
+    "log": "/private/tmp/mwb-recommendations-package-tests-r3.log",
+    "sha256": "0b0f944787b74eb2f646db3fee5e1b26b43ab1bdfd66a7442728b825a538f187"
+  },
+  "dry_run": {
+    "log": "/private/tmp/mwb-recommendations-package-dryrun-r3.log",
+    "sha256": "bbdb54af84ce5262ad4197b1e02b74e34b8d51c3c003c7ef2c8301ed3ec76736",
+    "exit_code": 0
+  },
+  "commands": {
+    "dry_run": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/independent-recommendations-prepare-r1.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-r3/operator-plan.json --plan-sha256 7c9f964d2635d63519a8645c54b37f8e3667ea856356fa86d863e1e100581896",
+    "apply": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/independent-recommendations-prepare-r1.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-r3/operator-plan.json --plan-sha256 7c9f964d2635d63519a8645c54b37f8e3667ea856356fa86d863e1e100581896 --execute",
+    "rollback": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/independent-recommendations-prepare-r1.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-r3/operator-plan.json --plan-sha256 7c9f964d2635d63519a8645c54b37f8e3667ea856356fa86d863e1e100581896 --mode rollback --execute"
+  },
+  "unchanged": {
+    "scheduler": true,
+    "config": true,
+    "engines": true,
+    "saved_snapshots": true
+  },
+  "formal_writes": 0,
+  "services_changed": false,
+  "preserved_attempts": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-r1",
+      "status": "COPY_COMPLETE_MANIFEST_STEP_MISSING_NO_FORMAL_WRITES"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-r2",
+      "status": "PREPARED_SUPERSEDED_OLD_WORKING_DIRECTORY_NO_FORMAL_WRITES"
+    }
+  ],
+  "fixes": [
+    "Build explicit existing release_candidate.v1 manifest from actual inventory and generic integration receipt",
+    "Require old WorkingDirectory exactly BASE_ROOT; set new cwd to candidate app and replace same-root PYTHONPATH references"
+  ],
+  "after_apply_gets": [
+    "http://127.0.0.1:8873/api/v4/manager-workbench/days/20261013/recommendations/US_MAPPING?run_id=528ef6fd4f0b49e7a3ec2b6719fc9afe",
+    "http://127.0.0.1:8873/api/v4/manager-workbench/days/20261013/recommendations/OVERSOLD?run_id=528ef6fd4f0b49e7a3ec2b6719fc9afe",
+    "http://127.0.0.1:8873/manager-selection/?date=20261013&phase=RETROSPECTIVE&run_id=528ef6fd4f0b49e7a3ec2b6719fc9afe"
+  ]
+}

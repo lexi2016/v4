@@ -89,23 +89,14 @@ describe("B mounted HTTP response shapes / Issue #41 Reviewer", () => {
         { lane: "OVERSOLD", rows: [{ symbol: "HK.00001", volume_ratio: 1.2 }], evidence_refs: [] }
       ]
     };
-    install(url => {
-      if (url.includes("/stocks/")) return response(envelope(bDetail));
-      return response(envelope({ ...sampleDay(), stocks: [bStock], counts: {
-        selected: 1, watch: 0, unassessed: 0, observation_only: 0, not_selected: 0
-      } }));
-    });
-    render(Workbench);
-    await screen.findByText("B 服务端股票");
-    expect(screen.getByText(/严格入选、待评估/)).toBeTruthy();
+    // The legacy multi-lane wire is still readable by the old API client,
+    // but no longer the default independent recommendation UI contract.
+    const api = createWorkbenchApi(vi.fn(async () => response(envelope(bDetail))) as unknown as typeof fetch);
+    const detail = await api.getStock("HK.00001", "20261013", "synthetic-run-1");
     expect(laneResultLabel(bStock as never, "ANNOUNCEMENT")).toBe("严格入选、待评估");
-    await fireEvent.click(screen.getByRole("button", { name: /查看 HK.00001/ }));
-    await screen.findByText("失效条件");
-    expect(screen.getAllByText(/原文A/).length).toBeGreaterThan(0);
-    await fireEvent.click(screen.getByText("证据身份、原始引用与校验缺口"));
-    expect(screen.getByText(/b-announcement-owner/)).toBeTruthy();
-    expect(screen.getAllByText(/evidence-B/).length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: "打开原文" }).getAttribute("href")).toBe("https://example.org/article/1");
+    expect(detail.data!.lane_details).toEqual(bDetail.lane_details);
+    expect(detail.data!.stock.decision).toBe("SELECTED");
+
   });
 
   it("uses B ratio, zero and null exactly, not rate or a locally recomputed numerator", () => {

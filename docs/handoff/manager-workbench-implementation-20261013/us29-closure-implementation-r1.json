@@ -1,0 +1,55 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "branch": "codex/manager-workbench-data-closure-20261013",
+  "before_sha256": {
+    "v4/manager_workbench/inputs/source_bindings.py": "02143c119f15eba2fd5c3f329d57b40568bc3799b559344e894b5473e15130b2",
+    "v4/manager_workbench/inputs/native.py": "e263b2e2d81e6b5af27a3b0afa52ddfbe4b22925c38de088bcdd623a77e392ff",
+    "v4/manager_workbench/engines/us_mapping.py": "eab5f3e42aec9eedf860963324f3a1f8a0b1601ee94945f067bde2620a491ba0",
+    "apps/web/src/manager-workbench/display.ts": "e8a96633462a7baf83ab778370228a0b22ed8eeab270128b51b5c2b47527a75e"
+  },
+  "after_sha256": {
+    "v4/manager_workbench/inputs/source_bindings.py": "41edb2a27a6fa7a5238e5216804ed091f4996e4d6d4d399e67ee6afa83efd73b",
+    "v4/manager_workbench/inputs/native.py": "0a585635430d6acd8933cbdfa1d6d88aab4f37497cc9978f0b1041d7ec4c7ad4",
+    "v4/manager_workbench/engines/us_mapping.py": "d0717f500594d13ba97fe7cc7473d19483a955dd5d1300c3bba7b2452fb7b332",
+    "apps/web/src/manager-workbench/display.ts": "cc555dbdcbe509203d6a72f87e4ee0383ae0e0e653b59f8adab40b35682b6d11",
+    "v4/manager_workbench/research_data/us_mapping_relation_evidence_20261013_v3.json": "2046fdafb69a8e4cb9d7de4f754ea69799b769c82351dd46499ba1b6a6ca567f",
+    "tests/manager_workbench/runtime/test_us_priority_closure.py": "a16a361c19acb237cfe26db2ad7b66d3a9ba9ff59f5d73cda95c746c45176f36",
+    "apps/web/src/manager-workbench/__tests__/us_priority_closure.spec.ts": "3c2a49fac397affe183ccc5d404e0c8b3309c2fd9dc01bbf34e588ef3ebdb3c5",
+    "v4/manager_workbench/research_data/us_mapping_relation_evidence_review_20261013_v3.json": "33c4b45fae64f72a406e707d77cf5db93495ed3f1b15461d6d96da617696ed8b"
+  },
+  "protected_oversold_sha256": "f5eab211d8a294283faf286969d9f4914e791182ca81ce3ce7ae49b2f3ad4325",
+  "writer": "/root/manager_writer_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "candidate_tuple_count": 10,
+  "new_tuple_count": 0,
+  "new_priority_counts": {
+    "PRIORITY": 3,
+    "WATCH": 7
+  },
+  "mu_wdc": "CANNOT_CONFIRM: original MU URL HTTP403; current WDC abbreviation cannot entityjoin withdrawn historical product",
+  "etf_count": 21,
+  "tests": {
+    "python_us_regressions": "50 passed in 0.74s",
+    "vitest": "8 passed; 4 files",
+    "typecheck": "exit0",
+    "commands": [
+      "python -m pytest -q --basetemp=H/.tmp/us29-pytest-r3 tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/engines/test_us_date_priority.py tests/manager_workbench/runtime/test_us_seed_metadata.py tests/manager_workbench/runtime/test_us_priority_closure.py tests/manager_workbench/runtime/test_us_gap_diagnostics.py",
+      "npx vitest run src/manager-workbench/__tests__/{us_priority_closure,display_repair,price40,research_detail}.spec.ts",
+      "npx vue-tsc --noEmit"
+    ]
+  },
+  "not_run": [
+    "real new evidence run",
+    "deployment",
+    "API/UI new version"
+  ],
+  "formal_writes": 0,
+  "network_requests_this_resume": 0,
+  "paired_evidence_review": {
+    "status": "PASS",
+    "sha256": "33c4b45fae64f72a406e707d77cf5db93495ed3f1b15461d6d96da617696ed8b",
+    "reviewed_at": "2026-10-13T12:36:18.755109+00:00"
+  }
+}

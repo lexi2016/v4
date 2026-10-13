@@ -1,0 +1,67 @@
+{
+  "status": "PASS",
+  "scope": "API-only r3 candidate/package/startup-root",
+  "reviewer": "/root/manager_reviewer_sol",
+  "plan_sha256": "7c9f964d2635d63519a8645c54b37f8e3667ea856356fa86d863e1e100581896",
+  "helper_sha256": "12455f143dd5c9000c7fb8344cb2b6dd1ebe4ed61179a14f72c8c84d5a94f032",
+  "manifest_sha256": "a31abf3a90a760311862e5b3ceb30ad38683e8c269c1be5d035740b7a5110615",
+  "tests": {
+    "guard_tests": "6 passed in 0.28s",
+    "actual_plan_dry_run": "DRY_RUN_PASS / services_changed=false"
+  },
+  "inventory": {
+    "base": 1185,
+    "candidate": 1186,
+    "delta_count": 9,
+    "non_delta_preserved": 1177
+  },
+  "formal_entry_counts": {
+    "canonical": 7,
+    "api_plist": 1,
+    "scheduler": 0,
+    "config": 0,
+    "saved_data": 0
+  },
+  "staged_api_plist_sha256": "15b5f58cccdcb27bd3c376e6672b371a1f6de05b7bc3142d84a301da6a658eab",
+  "startup_import_origin": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-r3/manager-workbench-20261013-independent-recommendations-api/app/v4/manager_workbench/api.py",
+  "manifest_actual_inventory_and_digest_verified": true,
+  "all_source_and_backup_preimages_verified": true,
+  "rollback_byte_backups_verified": true,
+  "manager_js_equals_independent_build": true,
+  "candidate_saved_run_smoke": {
+    "US_MAPPING": {
+      "selected": 0,
+      "watch": 1,
+      "unassessed": 24,
+      "not_selected": 12,
+      "observation_only": 0
+    },
+    "OVERSOLD": {
+      "selected": 20,
+      "watch": 277,
+      "unassessed": 30,
+      "not_selected": 365,
+      "observation_only": 0
+    }
+  },
+  "scheduler_plist_before_after_sha256": "2afe4f6f762438c79195c26d7334f60ae2895d03b8baad4bb4d0bf2c2df82ce7",
+  "config_before_after_sha256": "157b303557a6d8c8e51ff0a6aee0d128538431407e16ccbedb01c0e70f85ef64",
+  "snapshot_before_after_sha256": "673c159af0b2a40af61741e655245f80f01d61da459c998aa7c7660a72762c62",
+  "prior_failure_receipt": "/private/tmp/mwb-independent-recommendations-package-independent-r1/r1-failure.json",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "states": [
+    "REVIEWED",
+    "TESTED",
+    "BEHAVIOR_VERIFIED_PACKAGE"
+  ],
+  "not_run": [
+    "APPLY",
+    "LIVE_NEW_API",
+    "REAL_BROWSER",
+    "NATURAL_SLOT"
+  ],
+  "formal_writes": false,
+  "new_network_or_model_calls": false
+}

@@ -1,0 +1,114 @@
+{
+  "status": "PASS",
+  "scope": "Independent recommendations implementation and isolated saved-run read-only projection",
+  "reviewer": "/root/manager_reviewer_sol",
+  "implementation_receipt_sha256": "8eef2383cfb7ceb3181ee42dff9703b4ef78edef56ccee881ea3e44bcf47f195",
+  "source_after_sha256": {
+    "v4/manager_workbench/api.py": "d74a68ac66be8298dbfaddb59601dfd754fa1a9554e0ad600eeedb319e1d4e40",
+    "v4/manager_workbench/display_read.py": "c401e1445cc9ba9f9d2c96c74895f6a311885505b6e374a86be5e3199f6f53a7",
+    "apps/web/src/manager-workbench/api.ts": "d172b6c936b1dc7f77b0c0a93d158254798f50ab8b181310427434dbfe171a99",
+    "apps/web/src/manager-workbench/types.ts": "6268b9ef561794e53135f88bee63a78c4e3024e5a6f6cfc90fa3b8b1a20116ad",
+    "apps/web/src/manager-workbench/useWorkbench.ts": "9360b853f68623228202914b9e89684a63f4757095d3c01999e4808e62a304a9",
+    "apps/web/src/manager-workbench/Workbench.vue": "133281d59521ea47873aef43cb8244f1f3e31e7c793f1754f6cfc0019ccb870e",
+    "apps/web/src/manager-workbench/display.ts": "2a89e4fe60fc050327e4f6ccdcf15440f648428cadf44fbe0ae350903327026b"
+  },
+  "protected_sha256": {
+    "v4/manager_workbench/engines/oversold.py": "f5eab211d8a294283faf286969d9f4914e791182ca81ce3ce7ae49b2f3ad4325",
+    "v4/manager_workbench/engines/us_mapping.py": "d0717f500594d13ba97fe7cc7473d19483a955dd5d1300c3bba7b2452fb7b332",
+    "v4/manager_workbench/config.py": "ba10944950c8c68b51ccc88f0f5369c1627af7e3f265903ad69cb747451993c1",
+    "v4/manager_workbench/scheduler.py": "6d670e53da10894f1a8b63393d280cec159711d00b3c37b978fdcff3ee48682b"
+  },
+  "tests": {
+    "python": "4 independent-recommendations + 3 display tests passed",
+    "vitest": "61 tests / 10 files passed in 3.17s",
+    "typecheck": "exit0",
+    "build": "exit0; private outDir; 619ms"
+  },
+  "behavior": {
+    "run_id": "528ef6fd4f0b49e7a3ec2b6719fc9afe",
+    "US": {
+      "selected": 0,
+      "watch": 1,
+      "coverage_symbols": 33,
+      "saved_rows": 37,
+      "relations": 14,
+      "HK_securities": 10,
+      "source_only_rows": 23,
+      "watch_pair": [
+        "EQIX",
+        "HK.09988"
+      ]
+    },
+    "OVERSOLD": {
+      "selected": 20,
+      "watch": 277,
+      "not_selected": 365,
+      "unassessed": 30,
+      "positive_paging": [
+        200,
+        97
+      ],
+      "all_classifications_readback_rows": 692
+    },
+    "separate_same_stock_decisions": true,
+    "counts_before_filter_and_paging": true,
+    "lane_row_identity_rejections": true,
+    "legacy_days_wire_unchanged": true,
+    "old_price20_snapshot_preserved": true,
+    "HTTP_in_process_GET_checks": 21,
+    "formal_snapshot_before_after_sha256": {
+      "528ef6fd4f0b49e7a3ec2b6719fc9afe": "673c159af0b2a40af61741e655245f80f01d61da459c998aa7c7660a72762c62",
+      "84eafbbb71ba4767a591d1a4286fe061": "ea5f7217ecd37824b467ff38a82ea88686d82827e3b3e18935e426aab53e10cf",
+      "3756008d713a4505be362d288ab9d504": "1ae1986257518d9d9edfcd8420a30311f3029366f90dce0460bf71dcdf3b757d"
+    },
+    "models_unmutated": true,
+    "formal_config_sha256": "157b303557a6d8c8e51ff0a6aee0d128538431407e16ccbedb01c0e70f85ef64"
+  },
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "states": [
+    "REVIEWED",
+    "TESTED",
+    "BEHAVIOR_VERIFIED_READONLY_PROJECTION"
+  ],
+  "not_run": [
+    "FORMAL_DEPLOYMENT",
+    "LIVE_NEW_ENDPOINT",
+    "REAL_BROWSER",
+    "NATURAL_SLOT"
+  ],
+  "formal_writes": false,
+  "source_network_or_model_calls": false,
+  "raw_local_fixture_upload_allowed": false,
+  "actual_commands": [
+    {
+      "cwd": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+      "argv": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/mwb-independent-recs-pytest-r1 tests/manager_workbench/runtime/test_independent_recommendations.py",
+      "result": "4 passed in 0.50s"
+    },
+    {
+      "cwd": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+      "argv": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/mwb-independent-recs-display-pytest-r1 tests/manager_workbench/runtime/test_display_read.py",
+      "result": "3 passed in 0.04s"
+    },
+    {
+      "cwd": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/apps/web",
+      "argv": "./node_modules/.bin/vitest run src/manager-workbench/__tests__ --reporter=dot",
+      "result": "61 passed / 10 files / 3.17s"
+    },
+    {
+      "cwd": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/apps/web",
+      "argv": "./node_modules/.bin/vue-tsc --noEmit",
+      "result": "exit0"
+    },
+    {
+      "cwd": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/apps/web",
+      "argv": "./node_modules/.bin/vite build --outDir /private/tmp/mwb-independent-recommendations-build-r1 --emptyOutDir",
+      "result": "exit0 / 619ms"
+    }
+  ],
+  "build_manager_js_sha256": "0d964d4ea6a9f46c684e0d27546045afd2cff4b50219413eb2851f3941e5aa17",
+  "source_and_diff_scope_file_count": 18,
+  "browser_status": "NOT_RUN; Vitest/jsdom verifies render and asynchronous races only"
+}

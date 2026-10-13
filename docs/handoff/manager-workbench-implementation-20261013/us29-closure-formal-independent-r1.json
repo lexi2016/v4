@@ -1,0 +1,121 @@
+{
+  "status": "PASS_BACKEND_DEPLOYMENT",
+  "reviewer": "/root/manager_reviewer_sol",
+  "states": [
+    "REVIEWED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "BEHAVIOR_VERIFIED_SAVED_LANES"
+  ],
+  "plan_sha256": "8b532b683a90e5dafdf142d0eb4ff3f5a5832fa6e9b66cd8e088d75ad9e77cba",
+  "identity": {
+    "api": {
+      "pid": 48681,
+      "root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/us29-closure-v14-r2/manager-workbench-20261013-v14-api/app",
+      "manifest_sha256": "92b42ed0c18a8f111953e195631a8005f6f9cf6b207557618ff99ce90c3d89f0",
+      "plist_sha256": "ea0485de2f672ed6a126029ac486d52ba3fa50e4cbd6358cc5e3ac95e9eca481",
+      "state": "running"
+    },
+    "scheduler": {
+      "pid": 49386,
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/morning-pools-20261014-r1/app",
+      "manifest_sha256": "300c2456d3fbeaef0e8dc024f5d2e461fcdba2991be8670024be5bb63a204169",
+      "plist_sha256": "2afe4f6f762438c79195c26d7334f60ae2895d03b8baad4bb4d0bf2c2df82ce7",
+      "state": "running",
+      "manager_inventory_preserved_count": 99,
+      "superseded_v14_deployment_identity": {
+        "pid": 48685,
+        "manifest_sha256": "4e6975f18345c5ccc4f222c329021ac3afac590afe5e5834757af6ba61049e4b",
+        "root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/us29-closure-v14-r2/manager-workbench-20261013-v14-scheduler/app",
+        "capture": "Earlier launchctl read during this acceptance before parallel morning-pools update"
+      }
+    }
+  },
+  "source_after_sha256": {
+    "config:manager-workbench-v7.json": "157b303557a6d8c8e51ff0a6aee0d128538431407e16ccbedb01c0e70f85ef64",
+    "canonical:display.ts": "cc555dbdcbe509203d6a72f87e4ee0383ae0e0e653b59f8adab40b35682b6d11",
+    "canonical:us_mapping.py": "d0717f500594d13ba97fe7cc7473d19483a955dd5d1300c3bba7b2452fb7b332",
+    "canonical:native.py": "0a585635430d6acd8933cbdfa1d6d88aab4f37497cc9978f0b1041d7ec4c7ad4",
+    "canonical:source_bindings.py": "41edb2a27a6fa7a5238e5216804ed091f4996e4d6d4d399e67ee6afa83efd73b",
+    "canonical:us_mapping_relation_evidence_20261013_v3.json": "2046fdafb69a8e4cb9d7de4f754ea69799b769c82351dd46499ba1b6a6ca567f",
+    "canonical:us_mapping_relation_evidence_review_20261013_v3.json": "33c4b45fae64f72a406e707d77cf5db93495ed3f1b15461d6d96da617696ed8b",
+    "plist:com.lexi.v35.api-only.plist": "ea0485de2f672ed6a126029ac486d52ba3fa50e4cbd6358cc5e3ac95e9eca481",
+    "plist:com.lexi.v35.scheduler.plist": "2afe4f6f762438c79195c26d7334f60ae2895d03b8baad4bb4d0bf2c2df82ce7"
+  },
+  "run_id": "528ef6fd4f0b49e7a3ec2b6719fc9afe",
+  "target_date": "20261013",
+  "phase": "RETROSPECTIVE",
+  "trigger": "MANUAL",
+  "product_sha256": "94567ead8a0bd21e4076ad08a8152abe460b72cfad61d623a3602f71385cccf7",
+  "snapshot_raw_sha256": "673c159af0b2a40af61741e655245f80f01d61da459c998aa7c7660a72762c62",
+  "input_snapshot_sha256": "834fb36c0906cb7067dbd9fbf0a6daf029645090e43c69d628b23a716675690d",
+  "us": {
+    "scope": 33,
+    "assessed": 9,
+    "unknown": 24,
+    "rows": 37,
+    "relations": 14,
+    "strict": 0,
+    "watch": 1,
+    "watch_pair": [
+      "EQIX",
+      "HK.09988"
+    ],
+    "review_time": "2026-10-13T12:36:18.755109+00:00",
+    "evidence_sha256": "2046fdafb69a8e4cb9d7de4f754ea69799b769c82351dd46499ba1b6a6ca567f",
+    "review_sha256": "33c4b45fae64f72a406e707d77cf5db93495ed3f1b15461d6d96da617696ed8b",
+    "candidate_semantic_rows_equal": true,
+    "evidence_normalization_differences": [
+      "fresh_native_evidence_ids",
+      "per_card_relation_source_refs"
+    ]
+  },
+  "oversold": {
+    "scope": 692,
+    "assessed": 662,
+    "unknown": 30,
+    "selected": 20,
+    "watch": 277,
+    "not_selected": 365,
+    "input_records_and_result_rows_exactly_equal_old_run": true
+  },
+  "aggregate_counts": {
+    "not_selected": 1,
+    "observation_only": 0,
+    "selected": 20,
+    "unassessed": 394,
+    "watch": 278
+  },
+  "api_pages": [
+    200,
+    200,
+    200,
+    93
+  ],
+  "old_run": "3756008d713a4505be362d288ab9d504",
+  "old_snapshot_sha256": "1ae1986257518d9d9edfcd8420a30311f3029366f90dce0460bf71dcdf3b757d",
+  "old_snapshot_immutable": true,
+  "job_state": "PARTIAL",
+  "failed_steps": [],
+  "ui_status": "NOT_VERIFIED_BY_REVIEWER; known list reason lane mismatch under repair; independent recommendations pending",
+  "natural_status": "NATURAL_SLOT_UNVERIFIED",
+  "formal_writes": false,
+  "source_network_or_model_calls": false,
+  "http_GET_calls": 9,
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "scheduler_hook_readback": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/morning-pools-20261014-r1/app/ops/run_v35_macos_scheduler_daemon.py",
+    "sha256": "b076c635254caded9610e817572d7b039064654d8a91984fc9691d82171dcc77",
+    "lines": [
+      721,
+      724
+    ],
+    "configured_branch": "V4_MANAGER_WORKBENCH_CONFIG_PATH -> WorkbenchHook.from_environment",
+    "runtime_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json",
+    "natural_trigger_not_verified": true
+  },
+  "scheduler_parallel_scope": "Current morning-pools business/global manifest consistency not reviewed; 99 manager/evidence inventory entries identical to approved V14 plus configured manager hook readback",
+  "known_ui_limitation": "List reason lane mismatch and two-independent-recommendations UI/API projection pending separate batch; backend saved lane PASS does not claim UI_PASS"
+}

@@ -22,7 +22,7 @@ describe("C manager workbench screen", () => {
   beforeEach(() => { window.history.replaceState(null, "", "?date=20261013"); });
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
-  it("renders multi-lane stock as one server row, with unknown counts distinct from zero", async () => {
+  it("renders the selected lane row, with unknown counts distinct from zero", async () => {
     await loadSample();
     expect(screen.getByText("合成标的")).toBeTruthy();
     expect(screen.getAllByText("严格入选").length).toBeGreaterThan(0);
@@ -31,7 +31,7 @@ describe("C manager workbench screen", () => {
     expect(screen.getByText(/服务端筛选后共 1 行/)).toBeTruthy();
     const table = screen.getByRole("table");
     expect(within(table).getAllByRole("row")).toHaveLength(2);
-    expect(screen.getByText("阶段参考 · 观察")).toBeTruthy();
+    expect(screen.queryByText("阶段参考 · 观察")).toBeNull();
     expect(screen.getByText("资格：待核验")).toBeTruthy();
     expect(screen.getByText(/production_allowed=false/)).toBeTruthy();
     expect(screen.getByText(/orders_sent=false/)).toBeTruthy();
@@ -54,7 +54,7 @@ describe("C manager workbench screen", () => {
     const empty = sampleDay({ stocks: [], pagination: { total: 0, offset: 0, limit: 50 } });
     empty.snapshot!.lanes = empty.snapshot!.lanes!.map(lane => ({ ...lane, state: "READY_EMPTY" }));
     empty.counts = { selected: 0, watch: 0, unassessed: 0, observation_only: 0, not_selected: 0 };
-    install(async () => response(wrapped(empty)));
+    install(async () => response(wrapped(empty, "READY_EMPTY")));
     render(Workbench);
     await screen.findByText("研究已完成且有效空集");
   });
@@ -109,7 +109,7 @@ describe("C manager workbench screen", () => {
 
   it("stock detail uses run_id; the native button supports keyboard focus", async () => {
     const spy = install(async url => url.includes("/stocks/") ?
-      response(wrapped({ plan_run_id: "synthetic-run-1", stock: sampleStock(), lane_details: [{
+      response(wrapped({ recommendation_lane: "US_MAPPING", plan_run_id: "synthetic-run-1", stock: sampleStock(), lane_details: [{
         lane: "ANNOUNCEMENT", rows: [], evidence_refs: [{
         evidence_id: "synthetic-evidence", owner: "synthetic", sha256: "abc", verification: "VERIFIED",
         source_url: "javascript:alert(1)"

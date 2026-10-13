@@ -15,7 +15,7 @@ from .jobs import JobConflict
 from .legacy import LegacyHistory
 from .service import ManagerService
 from .store import StorageConflict, StorageUnavailable
-from .display_read import saved_names, display_stock, us_summary
+from .display_read import saved_names, display_stock, us_summary, lane_projection, lane_stock
 
 PREFIX = "/api/v4/manager-workbench"
 
@@ -141,8 +141,30 @@ def create_router(service: ManagerService) -> APIRouter:
                 "versions":versions,"pagination":{"total":len(stocks),"offset":offset,"limit":limit}},snap.gaps)
         return _safe_errors(read)
 
+    @router.get("/days/{date}/recommendations/{lane}")
+    def read_recommendations(date: str, lane: Literal['US_MAPPING','OVERSOLD'],
+                             phase: Phase | None = None, run_id: str | None = None,
+                             offset: int = Query(0,ge=0),limit: int = Query(50,ge=1,le=200),
+                             decision: Decision | None = None,q: str | None = Query(None,max_length=128)):
+        day=_date(date)
+        def read():
+            snap=service.store.get_plan(day,phase.value if phase else None,run_id)
+            versions=[_index(p) for p in service.store.list_plans(day)]
+            if snap is None:return envelope('NOT_RUN',dict(snapshot=None,stocks=[],counts=None,versions=versions,pagination=dict(total=0,offset=offset,limit=limit)),['NO_SAVED_PLAN'])
+            names=saved_names(snap,service.config.shared_root)
+            projection=lane_projection(snap,lane,names,decision.value if decision else None,q)
+            meta=snap.model_dump(mode='json');meta.pop('stocks',None)
+            meta['lanes']=[dict(lane=l.lane.value,state=l.state.value,coverage=l.coverage.model_dump(mode='json'),rows_count=len(l.rows),gaps=l.gaps) for l in snap.lanes]
+            if projection is None:return envelope('NOT_RUN',_public(dict(snapshot=meta,stocks=[],counts=None,versions=versions,pagination=dict(total=0,offset=offset,limit=limit))),['LANE_NOT_SAVED'])
+            total=len(projection['stocks']);projection['stocks']=projection['stocks'][offset:offset+limit]
+            projection['recommendation_counts']={name:(value['counts'] if (value:=lane_projection(snap,name,names)) is not None else None) for name in ['US_MAPPING','OVERSOLD']}
+            projection.update(snapshot=meta,versions=versions,pagination=dict(total=total,offset=offset,limit=limit),us_mapping_summary=us_summary(snap,names) if lane=='US_MAPPING' else None)
+            return envelope(projection['lane_state'],_public(projection),next(l.gaps for l in snap.lanes if l.lane.value==lane))
+        return _safe_errors(read)
+
     @router.get("/stocks/{symbol}")
-    def read_stock(symbol: str, date: str, run_id: str):
+    def read_stock(symbol: str, date: str, run_id: str,
+                   lane: Literal['US_MAPPING','OVERSOLD'] | None = None,row_id: str | None = None):
         day = _date(date)
         if re.fullmatch(r"HK\.[0-9]{5}",symbol) is None:raise HTTPException(422,"SYMBOL_INVALID")
 
@@ -151,12 +173,22 @@ def create_router(service: ManagerService) -> APIRouter:
             if not snap:
                 raise _not_found()
             item = next((s for s in snap.stocks if s.symbol == symbol),None)
-            if item is None:
+            if item is None and not lane:
                 raise _not_found()
+            selected=None
+            if lane:
+                chosen=next((l for l in snap.lanes if l.lane.value==lane),None)
+                if chosen is None or not row_id or re.fullmatch(re.escape(lane)+r':[0-9]+',row_id) is None:raise HTTPException(422,'LANE_ROW_IDENTITY_INVALID')
+                index=int(row_id.split(':')[1])
+                if index>=len(chosen.rows) or chosen.rows[index].get('symbol')!=symbol:raise HTTPException(422,'LANE_ROW_IDENTITY_INVALID')
+                selected=lane_stock(snap,chosen,index,saved_names(snap,service.config.shared_root))
             details=[{"lane":l.lane.value,"rows":[r for r in l.rows if r.get("symbol")==symbol],
-                      "evidence_refs":[e.model_dump(mode="json") for e in l.evidence_refs if e.evidence_id in item.evidence_ids]}
-                     for l in snap.lanes]
-            return envelope("READY", _public({"plan_run_id":snap.run_id,"stock":display_stock(item,saved_names(snap,service.config.shared_root)),
+                      "evidence_refs":[e.model_dump(mode="json") for e in l.evidence_refs if e.evidence_id in (selected['evidence_ids'] if selected else item.evidence_ids)]}
+                     for l in snap.lanes if not lane or l.lane.value==lane]
+            if selected:
+                details[0]['rows']=[chosen.rows[index]]
+            return envelope("READY", _public({"plan_run_id":snap.run_id,"stock":selected or display_stock(item,saved_names(snap,service.config.shared_root)),
+                                               "recommendation_lane":lane,
                                                "display_projection":{"display_only":True,"snapshot_hash_basis":"ORIGINAL_SAVED_SNAPSHOT"},
                                                "lane_details":details}))
         return _safe_errors(read)

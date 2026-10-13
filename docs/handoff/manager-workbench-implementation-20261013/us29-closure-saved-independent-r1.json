@@ -1,0 +1,63 @@
+{
+  "status": "PASS",
+  "reviewer": "/root/manager_reviewer_sol",
+  "model": "gpt-6.1-sol/high",
+  "scope": "Frozen real-source US-only saved input replay with new reviewed classifications; independent all-row deterministic comparison and copied-store in-process API GET. No new business submit.",
+  "run_id": "6184966ca108420f99844bce8e5b34a9",
+  "product_sha256": "611627fbb525943087d31a40808845e807e49c0f76a1238bf82bb06591003851",
+  "input_sha256": "9e56de911c9f5632fdfead3a6d448c367b1329ea8cb5a069fb47821e4c5c0419",
+  "input_snapshot_sha256": "272fa9526e85e0ef2a5d8faa4599a0c80e4761cced0fc2dd3b55c2ddbbdcd872",
+  "snapshot_raw_sha256": "0cd4f4cdab067682df84ef61114540c50b3f57959f6c92cdf8f8ab7a89d19727",
+  "proof_sha256": "97cc9b6c58805435a6cdb826f4fcc65620eff3913c24ebd4ef0ac3a3c37c2b4f",
+  "original_snapshot_sha256": "1ae1986257518d9d9edfcd8420a30311f3029366f90dce0460bf71dcdf3b757d",
+  "old_quote_membership_relation_facts_unchanged": true,
+  "new_tuple_count": 0,
+  "new_effective_review_time": "2026-10-13T12:36:18.755109+00:00",
+  "context_rules": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+  "all_37_engine_rows_and_coverage_equal_saved": true,
+  "coverage": {
+    "scope_count": 33,
+    "observed_count": 33,
+    "assessed_count": 9,
+    "unassessed_count": 24,
+    "gaps": [
+      "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,BOTZ,CLOU,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,MU,NLR,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+      "RECORDS_UNASSESSED"
+    ]
+  },
+  "row_counts": {
+    "NOT_SELECTED": 12,
+    "UNASSESSED": 24,
+    "CONDITIONAL_WATCH": 1
+  },
+  "only_watch": {
+    "us_symbol": "EQIX",
+    "hk_symbol": "HK.09988",
+    "change_pct": 0.63739
+  },
+  "unknown_breakdown": {
+    "DLR_CONNECT_FALSE": 1,
+    "MU_WDC_WITH_GAPS": 2,
+    "ETF_THEME_PROXY_NO_HK_EDGE": 21
+  },
+  "api": {
+    "day_status": 200,
+    "details_status": 200,
+    "stock_total": 10,
+    "saved_product_run_identity_equal": true,
+    "new_classification_and_counter_evidence_preserved_under_existing_public_redaction": true
+  },
+  "code_review_receipt": {
+    "path": "/private/tmp/mwb-us29-code-independent-kat7zqjn/receipt.json",
+    "sha256": "6f513cdfeb86ef7e6eecd58ef1935a5dd895e7e0a278c0591d40f5f7275abef9"
+  },
+  "not_verified": [
+    "No full Native combined-lane candidate/deployment or browser or natural schedule verification.",
+    "Oversold lane not rerun by this US-only scope; same 40% version is preserved."
+  ],
+  "checker_corrections": [
+    "Initial relation identity check used newline public digest; corrected to existing no-newline owner_digest.",
+    "Initial HTTP detail comparison used unredacted metadata; corrected to the API existing _public projection. Both original checker assertions and corrections involved no business-data modification."
+  ],
+  "writes": "Private copied isolated store and receipt only; original formal snapshot and writer source/state unchanged."
+}

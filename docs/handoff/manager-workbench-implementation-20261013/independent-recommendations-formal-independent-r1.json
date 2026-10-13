@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "scope": "API-only r3 formal deployment and independent lane GET readback",
+  "reviewer": "/root/manager_reviewer_sol",
+  "plan_sha256": "7c9f964d2635d63519a8645c54b37f8e3667ea856356fa86d863e1e100581896",
+  "api_pid": 54701,
+  "actual_process_cwd": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/independent-recommendations-r3/manager-workbench-20261013-independent-recommendations-api/app",
+  "manifest_sha256": "a31abf3a90a760311862e5b3ceb30ad38683e8c269c1be5d035740b7a5110615",
+  "api_plist_sha256": "15b5f58cccdcb27bd3c376e6672b371a1f6de05b7bc3142d84a301da6a658eab",
+  "source_after_sha256": {
+    "v4/manager_workbench/api.py": "d74a68ac66be8298dbfaddb59601dfd754fa1a9554e0ad600eeedb319e1d4e40",
+    "v4/manager_workbench/display_read.py": "c401e1445cc9ba9f9d2c96c74895f6a311885505b6e374a86be5e3199f6f53a7",
+    "apps/web/src/manager-workbench/api.ts": "d172b6c936b1dc7f77b0c0a93d158254798f50ab8b181310427434dbfe171a99",
+    "apps/web/src/manager-workbench/types.ts": "6268b9ef561794e53135f88bee63a78c4e3024e5a6f6cfc90fa3b8b1a20116ad",
+    "apps/web/src/manager-workbench/useWorkbench.ts": "9360b853f68623228202914b9e89684a63f4757095d3c01999e4808e62a304a9",
+    "apps/web/src/manager-workbench/Workbench.vue": "133281d59521ea47873aef43cb8244f1f3e31e7c793f1754f6cfc0019ccb870e",
+    "apps/web/src/manager-workbench/display.ts": "2a89e4fe60fc050327e4f6ccdcf15440f648428cadf44fbe0ae350903327026b"
+  },
+  "assets_served_sha256": {
+    "manager_html_sha256": "e1f78226db175bd6c0b85ecf0171cb99266920d8de2850c439ed198f33343c85",
+    "manager_js_sha256": "0d964d4ea6a9f46c684e0d27546045afd2cff4b50219413eb2851f3941e5aa17"
+  },
+  "run_id": "528ef6fd4f0b49e7a3ec2b6719fc9afe",
+  "product_sha256": "94567ead8a0bd21e4076ad08a8152abe460b72cfad61d623a3602f71385cccf7",
+  "US": {
+    "selected": 0,
+    "watch": 1,
+    "source_symbols": 33,
+    "saved_rows": 37,
+    "relations": 14,
+    "HK_securities": 10,
+    "source_only_unknown_rows": 23,
+    "watch_pair": [
+      "EQIX",
+      "HK.09988"
+    ]
+  },
+  "OVERSOLD": {
+    "selected": 20,
+    "watch": 277,
+    "not_selected": 365,
+    "unassessed": 30,
+    "positive_paging": [
+      200,
+      97
+    ]
+  },
+  "Alibaba_separate_details": {
+    "US_MAPPING": {
+      "row_id": "US_MAPPING:10",
+      "decision": "CONDITIONAL_WATCH",
+      "reason": "US_REVIEWED_RELATION_CONDITIONAL_ONLY"
+    },
+    "OVERSOLD": {
+      "row_id": "OVERSOLD:686",
+      "decision": "NOT_SELECTED",
+      "reason": "NEITHER_OVERSOLD_CONDITION"
+    }
+  },
+  "filter_and_paging_fullcounts_preserved": true,
+  "cross_lane_row_rejected": true,
+  "legacy_aggregate_wire_preserved": true,
+  "snapshot_before_after_sha256": {
+    "528ef6fd4f0b49e7a3ec2b6719fc9afe": "673c159af0b2a40af61741e655245f80f01d61da459c998aa7c7660a72762c62",
+    "84eafbbb71ba4767a591d1a4286fe061": "ea5f7217ecd37824b467ff38a82ea88686d82827e3b3e18935e426aab53e10cf",
+    "3756008d713a4505be362d288ab9d504": "1ae1986257518d9d9edfcd8420a30311f3029366f90dce0460bf71dcdf3b757d"
+  },
+  "config_before_after_sha256": "157b303557a6d8c8e51ff0a6aee0d128538431407e16ccbedb01c0e70f85ef64",
+  "scheduler_plist_before_after_sha256": "2afe4f6f762438c79195c26d7334f60ae2895d03b8baad4bb4d0bf2c2df82ce7",
+  "HTTP_GET_successes": 11,
+  "HTTP_expected_422": 1,
+  "states": [
+    "REVIEWED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "BEHAVIOR_VERIFIED_INDEPENDENT_RECOMMENDATIONS"
+  ],
+  "ui_status": "NOT_RUN_BY_REVIEWER; parent browser receipt awaited",
+  "natural_status": "NATURAL_SLOT_UNVERIFIED",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "formal_writes": false,
+  "new_run_or_source_collection_or_model_calls": false,
+  "ui_evidence_reference": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/independent-recommendations-ui-r1.json",
+    "sha256": "181f4c9e227186f4eacf3dce7db5ee09b259a179df1dfa2d7e1bd7268e298ed0",
+    "performed_by": "parent orchestrator using CUA",
+    "status": "UI_VERIFIED_BY_PARENT",
+    "reviewer_browser_test": "NOT_RUN"
+  }
+}

@@ -65,3 +65,41 @@ def us_summary(snapshot,names):
  return dict(display_only=True,plan_run_id=snapshot.run_id,coverage=lane.coverage.model_dump(mode='json'),
   source_symbol_count=len(groups),source_row_count=len(lane.rows),relation_row_count=len(relations),
   mapped_hk_count=len({r['symbol'] for r in relations}),source_decision_counts=counts,mixed_source_count=mixed,groups=out,gaps=lane.gaps)
+
+
+def lane_stock(snapshot,lane,index,names):
+ """Present one original lane row; never inherit the merged stock decision."""
+ row=lane.rows[index];symbol=row.get('symbol')
+ if not re.fullmatch(r'HK\.[0-9]{5}',str(symbol)):return None
+ value=display_stock(row,names)
+ old=next((s for s in snapshot.stocks if s.symbol==symbol),None)
+ if not value.get('name') and old is not None:value['name']=old.name
+ member=row.get('membership') or {}
+ value.update(market='HK_CONNECT',row_id=f'{lane.lane.value}:{index}',
+  lane_decisions={lane.lane.value:[dict(row)]},reasons=[row.get('reason') or ''],
+  conditions=list(row.get('conditions') or []),invalidation_conditions=list(row.get('invalidation_conditions') or []),
+  risks=list(row.get('risks') or []),evidence_ids=list(row.get('evidence_ids') or []),
+  membership_status='VERIFIED' if member.get('eligible') is True else 'CANNOT_CONFIRM',
+  recommendation_lane=lane.lane.value,display_only=True)
+ return value
+
+
+def lane_projection(snapshot,lane_name,names,decision=None,q=None):
+ lane=next((l for l in snapshot.lanes if l.lane.value==lane_name),None)
+ if lane is None:return None
+ counts={k:0 for k in ['selected','watch','unassessed','not_selected','observation_only']}
+ keys=dict(SELECTED='selected',CONDITIONAL_WATCH='watch',UNASSESSED='unassessed',NOT_SELECTED='not_selected',OBSERVATION_ONLY='observation_only')
+ for row in lane.rows:
+  if row.get('decision') in keys:counts[keys[row['decision']]]+=1
+ stocks=[value for i in range(len(lane.rows)) if (value:=lane_stock(snapshot,lane,i,names)) is not None]
+ hk_count=len({s['symbol'] for s in stocks});relation_count=len(stocks)
+ # Default recommendations contain only positive saved lane decisions. Negative
+ # and unknown classifications are explicit inspection views, never recommendations.
+ wanted={decision} if decision else {'SELECTED','CONDITIONAL_WATCH'}
+ stocks=[s for s in stocks if s['decision'] in wanted]
+ if q:
+  term=q.casefold();stocks=[s for s in stocks if any(term in str(s.get(k) or '').casefold() for k in ['symbol','name','us_symbol'])]
+ return dict(stocks=stocks,counts=counts,lane_state=lane.state.value,
+  recommendation_projection=dict(display_only=True,snapshot_hash_basis='ORIGINAL_SAVED_SNAPSHOT',lane=lane_name,
+   count_unit='SAVED_LANE_RESEARCH_ROWS',row_count=len(lane.rows),hk_relation_row_count=relation_count,
+   distinct_hk_count=hk_count,source_only_row_count=len(lane.rows)-relation_count,coverage=lane.coverage.model_dump(mode='json')))

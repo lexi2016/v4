@@ -1,0 +1,74 @@
+{
+  "schema_version": "mwb.us29-code-independent.v1",
+  "status": "PASS",
+  "reviewer": "/root/manager_reviewer_sol",
+  "model": "gpt-6.1-sol/high",
+  "reviewed_at": "2026-10-13T12:40:02.929275+00:00",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "scope": "Frozen 4 source files, 2 tests, paired evidence/review only. Previous oversold/source data and classification review reused.",
+  "implementation_receipt_sha256": "b4d3f3b5663d535d07839669a01578fd03778690725b768da83bf9e88c12b075",
+  "actual_diff_sha256": "de328afaeb8eb06be70949790c995faee951793615d8ed8d2b18afd265abb330",
+  "actual_source_sha256": {
+    "v4/manager_workbench/inputs/source_bindings.py": "41edb2a27a6fa7a5238e5216804ed091f4996e4d6d4d399e67ee6afa83efd73b",
+    "v4/manager_workbench/inputs/native.py": "0a585635430d6acd8933cbdfa1d6d88aab4f37497cc9978f0b1041d7ec4c7ad4",
+    "v4/manager_workbench/engines/us_mapping.py": "d0717f500594d13ba97fe7cc7473d19483a955dd5d1300c3bba7b2452fb7b332",
+    "apps/web/src/manager-workbench/display.ts": "cc555dbdcbe509203d6a72f87e4ee0383ae0e0e653b59f8adab40b35682b6d11",
+    "v4/manager_workbench/research_data/us_mapping_relation_evidence_20261013_v3.json": "2046fdafb69a8e4cb9d7de4f754ea69799b769c82351dd46499ba1b6a6ca567f",
+    "tests/manager_workbench/runtime/test_us_priority_closure.py": "a16a361c19acb237cfe26db2ad7b66d3a9ba9ff59f5d73cda95c746c45176f36",
+    "apps/web/src/manager-workbench/__tests__/us_priority_closure.spec.ts": "3c2a49fac397affe183ccc5d404e0c8b3309c2fd9dc01bbf34e588ef3ebdb3c5",
+    "v4/manager_workbench/research_data/us_mapping_relation_evidence_review_20261013_v3.json": "33c4b45fae64f72a406e707d77cf5db93495ed3f1b15461d6d96da617696ed8b"
+  },
+  "before_identity": "All four before SHA independently matched V13 API app; recomputed exact diff matches frozen diff.",
+  "protected_oversold_sha256": "f5eab211d8a294283faf286969d9f4914e791182ca81ce3ce7ae49b2f3ad4325",
+  "paired_review_sha256": "33c4b45fae64f72a406e707d77cf5db93495ed3f1b15461d6d96da617696ed8b",
+  "commands": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/mwb-us29-code-pytest-r1 tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/engines/test_us_date_priority.py tests/manager_workbench/runtime/test_us_seed_metadata.py tests/manager_workbench/runtime/test_us_priority_closure.py tests/manager_workbench/runtime/test_us_gap_diagnostics.py",
+      "cwd": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+      "exit_code": 0,
+      "result": "50 passed in 0.80s"
+    },
+    {
+      "command": "./node_modules/.bin/vitest run src/manager-workbench/__tests__/us_priority_closure.spec.ts src/manager-workbench/__tests__/display_repair.spec.ts src/manager-workbench/__tests__/price40.spec.ts src/manager-workbench/__tests__/research_detail.spec.ts",
+      "cwd": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/apps/web",
+      "exit_code": 0,
+      "result": "8 passed, 4 files, 1.17s"
+    },
+    {
+      "command": "./node_modules/.bin/vue-tsc --noEmit",
+      "cwd": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/apps/web",
+      "exit_code": 0,
+      "result": "PASS"
+    }
+  ],
+  "p0_p1_p2_blockers": [],
+  "statuses": [
+    "REVIEWED",
+    "TESTED",
+    "BEHAVIOR_VERIFIED_NARROW"
+  ],
+  "behavior_verified": [
+    "Exact original tuple/type/direction and all original fact fields must match SHA-bound inherited evidence/review.",
+    "New classification requires distinct analyst/reviewer, exact assessment digest and reviewed priority/reason/counter-evidence.",
+    "Classification cannot predate old fact/review; new review cannot predate classification; all effective new cards carry actual independent review time.",
+    "Altered identity, priority, reason, counter-evidence, missing/duplicate audits, new tuple, same writer/reviewer, invalid time, changed original facts, unknown classification version and legacy-schema downgrade with classification are rejected by independent regression tests.",
+    "Positive-change and current Connect membership remain independent; no US strict selection introduced.",
+    "Old v2/seed and MU/WDC diagnostic/ETF proxy behavior remains covered; no new relation published.",
+    "Saved display reason/classification basis/quote and counter evidence are exposed, old records have no fabricated new classification.",
+    "Actual frozen V3 source binding rejects review time minus 1 microsecond, accepts exact review time with 14 cards (10 new-classified+4 old seed), two candidate gap assessments and six checked source refs."
+  ],
+  "direct_boundary_evidence": {
+    "path": "/private/tmp/mwb-us29-actual-bindings-ldhhgej2/boundary-receipt.json",
+    "sha256": "db691f1faf12c046f9393bb6a7354ad38851bfd219a15ed5e62301a394e2ef0f"
+  },
+  "environment_notes": [
+    "First direct check using W as relation_root failed because W does not contain the inherited canonical old research files. Repeated in private root copying six exact relation/source files, matching deployed/prepared dependency shape; no source changes and no formal writes. Packaging must include or bind the inherited references."
+  ],
+  "not_verified": [
+    "New real same-input saved run and API/UI candidate consumption; next batch.",
+    "No deploy/live service changes or browser tests.",
+    "No network capture/model call or natural schedule verification.",
+    "Inherited original HTTP-body rehash gaps remain as paired review states."
+  ],
+  "writes": "Private diagnostic receipt/root and tool caches only; no business/formal state/config/source writes."
+}

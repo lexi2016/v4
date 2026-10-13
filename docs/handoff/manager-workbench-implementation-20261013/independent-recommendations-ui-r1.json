@@ -1,0 +1,38 @@
+{
+  "status": "UI_VERIFIED",
+  "reviewer": "/root",
+  "run_id": "528ef6fd4f0b49e7a3ec2b6719fc9afe",
+  "url": "http://127.0.0.1:8873/manager-selection/?date=20261013&phase=RETROSPECTIVE&run_id=528ef6fd4f0b49e7a3ec2b6719fc9afe",
+  "method": "CUA reload, switch independent recommendation buttons, filter stock and classification, open each lane detail",
+  "verified": {
+    "us_selected": 0,
+    "us_watch": 1,
+    "oversold_selected": 20,
+    "oversold_watch": 277,
+    "us_relation_records": 37,
+    "us_hk_relations": 14,
+    "us_hk_distinct": 10,
+    "us_source_symbols": 33,
+    "us_source_unassessed": 24,
+    "us_stock": "HK.09988 Alibaba Group Holding Limited",
+    "us_reason": "EQIX +0.63739%; documented 2017 Alibaba Cloud cooperation; historical relationship does not prove current commercial terms or revenue",
+    "oversold_same_stock": "HK.09988 阿里巴巴-W NOT_SELECTED; price and volume criteria both not met",
+    "detail_lane_isolation": true,
+    "condition_code_human_readable": true,
+    "recommendation_count_after_paging": 1
+  },
+  "screenshots": [
+    "manager-independent-us.jpg",
+    "manager-independent-oversold.jpg",
+    "manager-independent-us-detail.jpg"
+  ],
+  "screenshot_root": "/Users/lexi/.codex/visualizations/2026/10/13/01a132ee-de9e-7122-bc06-6cbf7417dbc6",
+  "not_verified": [
+    "NATURAL_SLOT_UNVERIFIED",
+    "research effectiveness"
+  ],
+  "preserved_ui_failures": [
+    "getByLabel did not match a native named combobox; corrected with observed getByRole combobox",
+    "AX pressed buttons exposed as checkbox but DOM role button; corrected from observed DOM"
+  ]
+}
