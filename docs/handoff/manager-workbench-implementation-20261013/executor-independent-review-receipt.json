@@ -1,0 +1,87 @@
+{
+  "status": "PASS",
+  "frozen_files": [
+    {
+      "path": "v4/manager_workbench/executors/codex.py",
+      "sha256": "d29b3a5d6f2e73620e4a813f1a98ea773f9879a669feced9290673c7140df0ee"
+    },
+    {
+      "path": "v4/manager_workbench/executors/local_cli.py",
+      "sha256": "6f80691433a34143c48a4c98cf1d6af92198806d3f923749d66d07f740618fb4"
+    },
+    {
+      "path": "v4/manager_workbench/engines/announcement.py",
+      "sha256": "8c13d3dad51f615852d7f50a969a1eb62700715668ea8fa9fccc50effca87398"
+    },
+    {
+      "path": "v4/manager_workbench/config.py",
+      "sha256": "c72805f97702f16ebf153d2b84c6e6461b48514f6d0439d938e7cf4b5bf30915"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_live_profile.py",
+      "sha256": "89e302d0fbae2f91dca2f3d6c6758777e0e8ad88381497e473ede070321aec5b"
+    },
+    {
+      "path": "docs/examples/manager_workbench.example.json",
+      "sha256": "f94a8d3a90f25c4067cc358e9771a3229ab86f667c34fa8db1ae9a6e5dd045bc"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_real_canary.py",
+      "sha256": "c4e0320bd8d636a653c852a9e32bcf760951e41b2378dbab8054d642ddc33f41"
+    }
+  ],
+  "r2_receipt_sha256": "21f60dcf217508a5474b338cf4414ec3bad430718c06e1eb25f5f7e9c5ba96fd",
+  "input_sha256": "cd8433b18cc5560955e95f45c0f82c8705f6ef482960327c138502dc790cdebb",
+  "source_sha256": "3642a3f0199d372185f569858516c56ca6f39e50fedfa6dacbf781a7df14bd78",
+  "body_sha256": "0980ac40d560280aac04eaaffbaaa91fb22c71f64bf5f246eb84474c3d51ab11",
+  "reader_pid": 73167,
+  "reviewer_pid": 73344,
+  "role_material_sha256": {
+    "READER": "0a06d9d4c015de6c58a9a56dc23f9f0d8a1f80fcdfd7aa93f3b75d32c03d4596",
+    "REVIEWER": "c0a2e8499c25a4292238dbabc53df20519e1a59f507184a760e4ec174ca3b7bb"
+  },
+  "outputs": {
+    "READER": {
+      "output_sha256": "7ab3f0c646be9cc4cf5378a8e706062d7507819586cfc9d4e8c8aadfb58fb054",
+      "output_bytes_sha256": "5209d2d5447d5fea3bb91dd77174dfae9d51178ad625fc9cfca7d135a6def764"
+    },
+    "REVIEWER": {
+      "output_sha256": "427840ac752ef4056aa773c1e07f7ceea21de43be22caaf268b45ccb7950158b",
+      "output_bytes_sha256": "3ca19f336ec6ef2d4e15081a40cc093d62ece03fa67a0d0195981e1717aa9c2a"
+    }
+  },
+  "product_sha256": "f1727ebe7ca374267dcc89a6d728ae030819a21a8d806c433c480d292ba603a6",
+  "http_sha256": "b7feff2a65d7094eeb1a818e7f3d9bde09cc24fbdeb7d44cf1f1e895fd6e1362",
+  "http_status": 200,
+  "store_unchanged": true,
+  "r1_checkpoint_preserved": true,
+  "counterexample_results": {
+    "wrong_basis": "ANNOUNCEMENT_READER_SEMANTIC_CONFLICT",
+    "selected_neutral": "ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT",
+    "review_wrong_body": "ANNOUNCEMENT_INDEPENDENT_REVIEW_CONFLICT",
+    "override": "CODEX_FIXED_PROFILE_CHANGED",
+    "model": "CODEX_MODEL_REVIEW_IDENTITY_CHANGED",
+    "sandbox": "CODEX_SANDBOX_POLICY_CHANGED",
+    "skills_missing": "CODEX_SKILLS_CONTEXT_NOT_DISABLED"
+  },
+  "proxy_parent_unchanged": true,
+  "announcement_disposition": "NOT_SELECTED",
+  "aggregate_decision": "UNASSESSED",
+  "raw_cli_results_removed": true,
+  "reviewer": {
+    "identity": "/root/manager_reviewer_sol",
+    "model": "gpt-6.1-sol",
+    "effort": "high"
+  },
+  "reviewer_original_receipt_sha256": "c26975904fafaec72005e16decd6c52e10ad902e13bbf0f03bba763b6a6b370e",
+  "tests": "6 passed; 7 additional counterexamples passed",
+  "scope": "REVIEWED/TESTED/BEHAVIOR_VERIFIED for fixed executor profile/private schema and single retrospective article only",
+  "not_verified": [
+    "launchd natural identity",
+    "full-day announcement coverage",
+    "original PIT",
+    "deployment",
+    "browser UI",
+    "four independent tools separately challenged"
+  ]
+}

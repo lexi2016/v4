@@ -1,6 +1,7 @@
 """A tool-free CLI process using existing host authentication.
 
-The model has no file, shell, browser, MCP, plugin, agent or network tool. Host
+The fixed model profile exposes only the independently checked Code Mode entry,
+whose host rejects tool access; ordinary host tools remain disabled. Host
 authentication belongs to the CLI process, never model-accessible materials.
 Capabilities are checked against the installed binary before any model call.
 """
@@ -14,6 +15,27 @@ from datetime import datetime
 from ..contracts import HK, canonical, digest
 from .codex import IsolatedProcessResult, IsolationNotVerified
 
+VERIFIED_BINARY_SHA256 = "0d5ac7aae20c4eda6242428d5e218c55ba96d8763fda2a271088ff37104b9d28"
+SKILL_LIMITS = ("skills.include_instructions=false", "skills.bundled.enabled=false", "cloud.skills.enabled=false")
+ISOLATION_REVIEW_SHA256 = "9e3d65a3fe54801289d6402f4644caa5810659e9032c09a15ca53c0692403a3a"
+
+
+def process_environment():
+    # Parent LaunchAgents deliberately use NO_PROXY=*. Only this model child
+    # inherits the user's verified local system proxy and local bypass list.
+    env={k:v for k,v in os.environ.items() if k in {
+        "PATH","HOME","CODEX_HOME","TMPDIR","LANG","LC_ALL","SSL_CERT_FILE"}}
+    env["CODEX_BUNDLED_MODE"]="1"
+    probe=subprocess.run(["/usr/sbin/scutil","--proxy"],capture_output=True,check=False,timeout=5)
+    text=probe.stdout.decode()
+    import re
+    settings=dict(re.findall(r"^\s*(HTTPSEnable|HTTPSProxy|HTTPSPort|HTTPEnable|HTTPProxy|HTTPPort)\s*:\s*(\S+)\s*$",text,re.M))
+    if all(settings.get(k)==v for k,v in {"HTTPEnable":"1","HTTPSEnable":"1","HTTPProxy":"127.0.0.1","HTTPSProxy":"127.0.0.1","HTTPPort":"7897","HTTPSPort":"7897"}.items()):
+        for key in ("HTTP_PROXY","HTTPS_PROXY","http_proxy","https_proxy"):env[key]="http://127.0.0.1:7897"
+        for key in ("NO_PROXY","no_proxy"):env[key]="localhost,127.0.0.1,::1"
+    return env
+
+
 DISABLED_FEATURES = (
     "shell_tool", "unified_exec", "apps", "browser_use", "browser_use_external",
     "browser_use_full_cdp_access", "computer_use", "hooks", "plugins", "remote_plugin",
@@ -24,10 +46,24 @@ DISABLED_FEATURES = (
 )
 
 
+def invocation_profile(binary,workspace,*,model="gpt-6-luna",reasoning_effort="max"):
+    argv=[str(binary),"exec","--ignore-user-config","--ephemeral","--json",
+        "--enable","skip_host_skill_discovery","-c","project_doc_max_bytes=0",
+        "--skip-git-repo-check","--model",model,"--sandbox","read-only","-c","mcp_servers={}",
+        "-c",'web_search="disabled"',"-c",f'model_reasoning_effort="{reasoning_effort}"',
+        "--output-schema",str(workspace/"result.schema.json"),
+        "--output-last-message",str(workspace/"result.json"),"-"]
+    for setting in SKILL_LIMITS:argv[2:2]=["-c",setting]
+    for feature in DISABLED_FEATURES:argv[2:2]=["--disable",feature]
+    return argv
+
+
 class LocalCliRunner:
     def __init__(self, binary: Path):
         if not binary or not binary.is_absolute() or not binary.is_file():
             raise IsolationNotVerified("CODEX_BINARY_UNAVAILABLE")
+        if hashlib.sha256(binary.read_bytes()).hexdigest()!=VERIFIED_BINARY_SHA256:
+            raise IsolationNotVerified("CODEX_BINARY_REVIEW_IDENTITY_CHANGED")
         self.binary = binary
         self.proof = self.verify_capabilities()
 
@@ -43,16 +79,27 @@ class LocalCliRunner:
             args.extend(["--disable", name])
         result = subprocess.run([*args,"features","list"],capture_output=True,check=False,timeout=10)
         lines = {s.split()[0]:s.split()[-1] for s in result.stdout.decode().splitlines() if len(s.split()) >= 3}
-        if result.returncode or any(lines.get(name) != "false" for name in DISABLED_FEATURES):
+        if result.returncode or any(lines.get(name) != "false" for name in DISABLED_FEATURES if name != "unified_exec") or lines.get("unified_exec") not in {"true","false"}:
             raise IsolationNotVerified("CODEX_TOOL_DISABLE_CAPABILITY_UNVERIFIED")
         version = subprocess.run([str(self.binary),"--version"],capture_output=True,check=False,timeout=10)
         return {"policy":"MODEL_NO_TOOLS_V1","binary_sha256":hashlib.sha256(self.binary.read_bytes()).hexdigest(),
                 "help_sha256":hashlib.sha256(help_result.stdout).hexdigest(),
                 "feature_probe_sha256":hashlib.sha256(result.stdout).hexdigest(),
                 "disabled_features":list(DISABLED_FEATURES),"web_search":"disabled",
-                "ignore_user_config":True,"version":version.stdout.decode().strip()}
+                "ignore_user_config":True,"version":version.stdout.decode().strip(),
+                "tool_registration_boundary":"INDEPENDENTLY_VERIFIED_CODE_MODE_ONLY_HOST_DENIAL",
+                "independent_review_sha256":ISOLATION_REVIEW_SHA256,"skills_limits":list(SKILL_LIMITS)}
 
     def run(self, *, argv, cwd, stdin, timeout_seconds, role):
+        if hashlib.sha256(self.binary.read_bytes()).hexdigest()!=VERIFIED_BINARY_SHA256:
+            raise IsolationNotVerified("CODEX_BINARY_REVIEW_IDENTITY_CHANGED")
+        if not set(SKILL_LIMITS).issubset(argv):raise IsolationNotVerified("CODEX_SKILLS_CONTEXT_NOT_DISABLED")
+        if '--model' not in argv or argv[argv.index('--model')+1]!='gpt-6-luna' or 'model_reasoning_effort="max"' not in argv:
+            raise IsolationNotVerified("CODEX_MODEL_REVIEW_IDENTITY_CHANGED")
+        if '--sandbox' not in argv or argv[argv.index('--sandbox')+1]!='read-only':
+            raise IsolationNotVerified("CODEX_SANDBOX_POLICY_CHANGED")
+        if argv != invocation_profile(self.binary,cwd):
+            raise IsolationNotVerified("CODEX_FIXED_PROFILE_CHANGED")
         if Path(argv[0]) != self.binary or argv[1] != "exec":
             raise IsolationNotVerified("CODEX_INVOCATION_IDENTITY_MISMATCH")
         if any(x.startswith("--dangerously") or x in {"--add-dir","--worktree"} for x in argv):
@@ -66,11 +113,7 @@ class LocalCliRunner:
             raise IsolationNotVerified("CODEX_TOOL_POLICY_MISMATCH")
         if sorted(p.name for p in cwd.iterdir()) != ["result.schema.json"]:
             raise IsolationNotVerified("CODEX_MATERIAL_DIRECTORY_NOT_MINIMAL")
-        # Retain only normal CLI runtime env and existing CODEX_HOME host identity.
-        env = {k:v for k,v in os.environ.items() if k in {
-            "PATH","HOME","CODEX_HOME","TMPDIR","LANG","LC_ALL","SSL_CERT_FILE",
-            "HTTP_PROXY","HTTPS_PROXY","ALL_PROXY","NO_PROXY","http_proxy","https_proxy","all_proxy","no_proxy"}}
-        env["CODEX_BUNDLED_MODE"] = "1"
+        env = process_environment()
         started = datetime.now(HK).isoformat()
         process = subprocess.Popen(argv,cwd=cwd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env)
         try:
@@ -94,4 +137,4 @@ class LocalCliRunner:
         return IsolatedProcessResult(returncode=process.returncode,pid=process.pid,started_at=started,
             finished_at=datetime.now(HK).isoformat(),event_sha256=hashlib.sha256(out).hexdigest(),
             isolation_proof=json.dumps({**self.proof,"event_stream_sha256":hashlib.sha256(out).hexdigest(),
-                                        "observed_tool_events":0},sort_keys=True))
+                                        "observed_tool_events":0, "argv_sha256":digest(argv), "network_route":"CURRENT_SYSTEM_LOOPBACK_PROXY" if "HTTPS_PROXY" in env else "DIRECT", "proxy_bypass":env.get("NO_PROXY") },sort_keys=True))

@@ -1,0 +1,92 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "scope": "fixed executor profile + private announcement schema V2",
+  "files": [
+    {
+      "path": "v4/manager_workbench/executors/codex.py",
+      "sha256": "d29b3a5d6f2e73620e4a813f1a98ea773f9879a669feced9290673c7140df0ee"
+    },
+    {
+      "path": "v4/manager_workbench/executors/local_cli.py",
+      "sha256": "6f80691433a34143c48a4c98cf1d6af92198806d3f923749d66d07f740618fb4"
+    },
+    {
+      "path": "v4/manager_workbench/engines/announcement.py",
+      "sha256": "8c13d3dad51f615852d7f50a969a1eb62700715668ea8fa9fccc50effca87398"
+    },
+    {
+      "path": "v4/manager_workbench/config.py",
+      "sha256": "c72805f97702f16ebf153d2b84c6e6461b48514f6d0439d938e7cf4b5bf30915"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_live_profile.py",
+      "sha256": "89e302d0fbae2f91dca2f3d6c6758777e0e8ad88381497e473ede070321aec5b"
+    },
+    {
+      "path": "docs/examples/manager_workbench.example.json",
+      "sha256": "f94a8d3a90f25c4067cc358e9771a3229ab86f667c34fa8db1ae9a6e5dd045bc"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_real_canary.py",
+      "sha256": "c4e0320bd8d636a653c852a9e32bcf760951e41b2378dbab8054d642ddc33f41"
+    }
+  ],
+  "writer": {
+    "identity": "/root/manager_writer_sol",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "high"
+  },
+  "independent_review": "PENDING",
+  "test": {
+    "command": "python -m pytest tests/manager_workbench/runtime/test_live_profile.py tests/manager_workbench/runtime/test_retry_chain.py tests/manager_workbench/runtime/test_runtime.py::test_fake_isolated_cli_canary_simulated_only -q -p no:cacheprovider --basetemp=tests/manager_workbench/runtime/.tmp/live-profile-final",
+    "result": "6 passed in 0.40s",
+    "log": "live-profile-pytest.log"
+  },
+  "model_canary": {
+    "status": "PASS",
+    "job_state": "SUCCEEDED",
+    "lane_decision": "NOT_SELECTED",
+    "aggregate_decision": "UNASSESSED",
+    "scope": "single ANNOUNCEMENT lane; other research lanes NOT_RUN",
+    "phase": "RETROSPECTIVE",
+    "original_pit": "CANNOT_CONFIRM",
+    "input_sha256": "cd8433b18cc5560955e95f45c0f82c8705f6ef482960327c138502dc790cdebb",
+    "reader_pid": 73167,
+    "reviewer_pid": 73344,
+    "receipt_sha256": "21f60dcf217508a5474b338cf4414ec3bad430718c06e1eb25f5f7e9c5ba96fd"
+  },
+  "first_attempt": {
+    "status": "PARTIAL",
+    "failure": "ANNOUNCEMENT_READER_SEMANTIC_CONFLICT",
+    "receipt_sha256": "59a8bd7840e261f9dda7c85ab55e0a07db8336719487e9819cb2188b3ecf593c",
+    "original_stored_checkpoints": [
+      {
+        "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/tests/manager_workbench/runtime/.tmp/real-single-article-dacascqk/derived/manager_workbench/checkpoints/a55c4ced6360441fb8e5a648532f2235/semantic_b605baffb482014f5f29bf67e749ea4cafd7ee19a1b171662022ecfc9bccc8cd.json",
+        "sha256": "34852329e4c53b5bd4ce67e9ceaa1725c778f4dbec87da0abf8cbe630ed7cd60",
+        "output_sha256": "ab598d6dd1b2e90b9df9226bcdd6a9513b23341692c85f2857918a684550b3d4",
+        "output_bytes_sha256": "98dfa200c69f212e90268fc50d25a0d73a926368049a3b151350b64ba7b48acc"
+      }
+    ],
+    "original_cli_result_file": "Ephemeral executor removed its temporary raw JSON result after parsing; original stored checkpoint bytes and CLI-output raw SHA remain preserved."
+  },
+  "isolation_scope": "Fixed binary + Luna Max code_mode_only host-denial profile; no claim that four independent tools were each challenged.",
+  "runtime_proxy": "Only child process verified current system HTTP(S) proxy 127.0.0.1:7897; replaces inherited NO_PROXY=* with localhost,127.0.0.1,::1; no arbitrary caller proxy or global changes.",
+  "final_profile_validation": "Exact argv matches actual successful canary; final change only tightens rejection of additional overrides; no repeat model call.",
+  "NOT_RUN": [
+    "deployment",
+    "service restart",
+    "browser acceptance",
+    "full announcement date",
+    "natural scheduled slot"
+  ],
+  "excluded_from_sync": [
+    "tests/manager_workbench/runtime/.tmp/**",
+    "raw source bodies",
+    "model full output/source quotes",
+    "credentials",
+    "generated large backend-http.json",
+    "deployment-deltas/isolated-*-candidate*/**",
+    "deployment-deltas/api-delta-source/**",
+    "deployment-deltas/.tmp/**"
+  ]
+}

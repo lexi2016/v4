@@ -120,17 +120,9 @@ class CodexExecutor:
         with tempfile.TemporaryDirectory(prefix="mwb-codex-") as temp:
             workspace = Path(temp)
             (workspace / "result.schema.json").write_bytes(canonical(task["output_schema"]))
-            from .local_cli import DISABLED_FEATURES
-            argv = [str(self.config.codex_binary), "exec", "--ignore-user-config", "--ephemeral", "--json",
-                    "--enable","skip_host_skill_discovery","-c","project_doc_max_bytes=0",
-                    "--skip-git-repo-check", "--model", self.config.model,
-                    "--sandbox", "read-only", "-c", "mcp_servers={}",
-                    "-c", 'web_search="disabled"',
-                    "-c", f'model_reasoning_effort="{task["reasoning_effort"]}"',
-                    "--output-schema", str(workspace / "result.schema.json"),
-                    "--output-last-message", str(workspace / "result.json"), "-"]
-            for feature in DISABLED_FEATURES:
-                argv[2:2] = ["--disable",feature]
+            from .local_cli import invocation_profile
+            argv = invocation_profile(self.config.codex_binary,workspace,model=self.config.model,
+                                      reasoning_effort=task["reasoning_effort"])
             result = self.runner.run(argv=argv, cwd=workspace, stdin=text.encode("utf-8"),
                                      timeout_seconds=self.config.model_timeout_seconds, role=role)
             if not result.isolation_proof or result.pid <= 0 or not _sha256(result.event_sha256):
