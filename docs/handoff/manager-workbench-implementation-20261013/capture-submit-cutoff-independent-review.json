@@ -1,0 +1,82 @@
+{
+  "schema": "mwb.independent.capture-cutoff-review.v1",
+  "verdict": "PASS_CAPTURE_WIRING",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "REVIEWED": "3-file cutoff fix actual source; other 20 delivery SHA unchanged; core and isolation reuse",
+  "TESTED": "17 narrow pytest passed in 1.94s; independent exact cutoff/plus1ms/same-minute counterexamples passed",
+  "BEHAVIOR_VERIFIED": {
+    "submitted_cutoff": "2026-10-13T10:00:30.123000+08:00",
+    "reused_same_minute": true,
+    "preserved_product_cutoff": "2026-10-13T10:00:30.123000+08:00",
+    "statuses": [
+      "ELIGIBLE_SOURCE_TIME",
+      "ELIGIBLE_SOURCE_TIME",
+      "EXCLUDED_OUTSIDE_WINDOW"
+    ],
+    "model_calls": 4,
+    "selected": 2
+  },
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "fix_receipt_sha256": "f025f798ad467de9a424ef97d33107b443b34dae793d2d4afe335081c170de83",
+  "fix_file_sha256s": {
+    "v4/manager_workbench/inputs/capture_jobs.py": {
+      "path": "v4/manager_workbench/inputs/capture_jobs.py",
+      "before_sha256": "44eb56fbb8367327ee4a9a47422c7f87617b2bf6e6643912f9cb8ee931bebc30",
+      "after_sha256": "26932b284605a6c815f59a1400445f6250c820d463dd0ca65001ab113cc5e7e1"
+    },
+    "tests/manager_workbench/runtime/test_capture_wiring.py": {
+      "path": "tests/manager_workbench/runtime/test_capture_wiring.py",
+      "before_sha256": "818df2bb309506b33fec316d281d44f03c89a9700818dd400ffc75b47b619bbb",
+      "after_sha256": "c5dcd3d6c25c8408a60f8e39d6e54644a5da45dc5414b29d71908fe495feaf9b"
+    },
+    "tests/manager_workbench/runtime/test_capture_cli_lifecycle.py": {
+      "path": "tests/manager_workbench/runtime/test_capture_cli_lifecycle.py",
+      "before_sha256": "ed23ca2e7eb947596965972d91fd0128d496a92d4cf0c8231f211fe9d6ab25fc",
+      "after_sha256": "23cac87014edb0563cd6fa73cfd8eedf4a22121b8fb414d95b844c49de1d0619"
+    }
+  },
+  "prior_62_test_receipt_sha256": "40bdfdf8714ff0ebf253c7978018a20881a088a22236fab3f969148cbf770d89",
+  "prior_reuse": "All prior passing checks reused; sole cutoff blocker closed",
+  "real_full_window": {
+    "receipt_sha256": "6fd624273f46711dd88fe9baacc208554cd9253d4135286f858fe1cc776fadfc",
+    "product_sha256": "55a3f2b5a1106dd79a2c0d649f4952926ce488a8cf2857206fcffd4c8643b3a2",
+    "observed": 802,
+    "complete": 779,
+    "outside_window": 15,
+    "failed_source_identity_or_page_count": 8,
+    "body_pages": 1801,
+    "referenced_files_unchanged": 2652,
+    "gap_counts": {
+      "BODY_116_H_ISSUER_IDENTITY_MISMATCH": 6,
+      "ANNOUNCEMENT_OUTSIDE_PUBLICATION_WINDOW": 15,
+      "BODY_PAGE_TOTAL_INVALID": 2
+    },
+    "gaps": [
+      "ANNOUNCEMENT_OUTSIDE_PUBLICATION_WINDOW",
+      "BODY_116_H_ISSUER_IDENTITY_MISMATCH",
+      "BODY_PAGE_TOTAL_INVALID",
+      "CAPTURE_AVAILABLE_AFTER_RESEARCH_CUTOFF"
+    ],
+    "cutoff": "2026-10-13T14:16:07.569398+08:00",
+    "finished_at": "2026-10-13T14:19:57.917796+08:00",
+    "lease_revoked": true,
+    "status": "CAPTURE_STORAGE_VERIFIED_PARTIAL; future research cutoff must be after availability",
+    "PIT": "CANNOT_CONFIRM",
+    "semantic_status": "NOT_REVIEWED"
+  },
+  "reviewer_network_calls": 0,
+  "reviewer_paid_model_calls": 0,
+  "formal_state_writes": 0,
+  "NOT_RUN": [
+    "real end-to-end semantic canary",
+    "production activation",
+    "deployment",
+    "API/UI/natural slot"
+  ],
+  "commands": [
+    "PYTHONDONTWRITEBYTECODE=1 <fixed-python> -m pytest -q -p no:cacheprovider --basetemp /private/tmp/mwb-wiring-cutoff-independent-pytest tests/manager_workbench/runtime/test_capture_wiring.py tests/manager_workbench/runtime/test_capture_cli_lifecycle.py",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python /private/tmp/mwb-cutoff-narrow-review.py"
+  ]
+}

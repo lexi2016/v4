@@ -86,6 +86,10 @@ def membership(config, context):
 
 
 def announcements(config, context):
+    if config.capture_root:
+        from .capture_binding import resolve
+        # New owner configured means no fallback to an old live capture owner.
+        return context.scope_refs.get('capture_binding_pin') or resolve(config,context)
     candidates=[]
     for rel in files(config.manager_root,'announcement_agent_runs/*/evidence/body_corpus_manifest.json'):
         manifest,msha=read(config.manager_root,rel)

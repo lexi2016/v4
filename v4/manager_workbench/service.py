@@ -52,13 +52,17 @@ def sort_stocks(rows: list[StockDecision], lanes: list[LaneResult]) -> list[Stoc
 
 
 class ManagerService:
-    def __init__(self, config: WorkbenchConfig, adapters: Any, engines: Any, executor: Any):
+    def __init__(self, config: WorkbenchConfig, adapters: Any, engines: Any, executor: Any, *, capture_transport=None,capture_clock=None):
         self.config = config
         self.adapters = adapters
         self.engines = engines
         self.executor = executor
         self.store = WorkbenchStore(config.state_root)
         self.jobs = JobCoordinator(self.store, workers=config.workers)
+        self.capture_jobs=None
+        if config.capture_enabled:
+            from .inputs.capture_jobs import CaptureJobs
+            self.capture_jobs=CaptureJobs(self,transport=capture_transport,clock=capture_clock)
 
     def context(self, target_date: str, phase: Phase, *, trigger: str,
                 cutoff: datetime | None = None, lanes: list[Lane] | None = None,
@@ -78,10 +82,38 @@ class ManagerService:
                lanes: list[Lane] | None = None, cutoff: datetime | None = None,
                scope_refs: dict[str, Any] | None = None) -> JobRecord:
         context = self.context(target_date, phase, trigger=trigger, lanes=lanes, cutoff=cutoff, scope_refs=scope_refs)
-        return self.jobs.submit(context, self._work)
+        job=self.jobs.submit(context, self._work)
+        if (self.capture_jobs and not context.scope_refs.get("capture_incremental")
+                and Lane.ANNOUNCEMENT.value in context.scope_refs["requested_lanes"]
+                and phase!=Phase.RETROSPECTIVE):
+            capture=self.request_capture(context)
+            if capture:
+                # The research job remains the initial response; callers can
+                # separately read the persisted acquisition progress.
+                job.execution_refs.append({"kind":"capture_job","job_id":capture.job_id,
+                    "status_url":"/api/v4/manager-workbench/runs/"+capture.job_id})
+                self.store.save_job(job)
+        return job
+
+    def request_capture(self,context):
+        if not self.capture_jobs:return None
+        try:return self.capture_jobs.submit(context)
+        except (OSError,ValueError) as exc:
+            # Source failure cannot hold up or cancel an already submitted plan.
+            self.capture_gap="CAPTURE_OWNER_UNAVAILABLE" if "EXCLUSIVE_OWNER" in str(exc) else "CAPTURE_BINDING_UNAVAILABLE"
+            return None
+
+    def stop(self):
+        if self.capture_jobs:self.capture_jobs.stop()
+        self.jobs.stop()
 
     def retry(self, job_id: str) -> JobRecord:
         previous = self.jobs.get(job_id)
+        if previous.context.scope_refs.get("capture_operation"):
+            if not self.capture_jobs:raise JobConflict("CAPTURE_DISABLED")
+            if previous.state in (JobState.QUEUED,JobState.RUNNING):return previous
+            if not previous.retryable:raise JobConflict("NOT_RETRYABLE")
+            return self.capture_jobs.retry(previous)
         if previous.state in (JobState.QUEUED, JobState.RUNNING):
             return previous
         if previous.state not in (JobState.FAILED, JobState.INTERRUPTED, JobState.PARTIAL) or not previous.retryable:
@@ -326,6 +358,6 @@ class ManagerService:
             raise
 
 
-def create_service(config: WorkbenchConfig, adapters: Any, engines: Any, executor: Any) -> ManagerService:
-    return ManagerService(config, adapters, engines, executor)
+def create_service(config: WorkbenchConfig, adapters: Any, engines: Any, executor: Any, **kwargs) -> ManagerService:
+    return ManagerService(config, adapters, engines, executor, **kwargs)
 

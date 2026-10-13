@@ -40,7 +40,11 @@ class JobCoordinator:
         lanes = ",".join(sorted(context.scope_refs.get("requested_lanes", [])))
         stage = str(context.scope_refs.get("stage_run_id", "")) + ":" + str(context.scope_refs.get("stage_input_sha256", ""))
         canary = str(context.scope_refs.get("canary_article_id", ""))
-        return f"{context.target_date}:{context.phase.value}:{lanes}:{stage}:{canary}"
+        capture = str(context.scope_refs.get("capture_operation", "")) + ":" + str(context.scope_refs.get("capture_input_sha256", "")) + ":" + str(context.scope_refs.get("capture_analysis_identity", ""))
+        base = f"{context.target_date}:{context.phase.value}:{lanes}:{stage}:{canary}"
+        if context.scope_refs.get("capture_operation"):
+            return f"{capture}:{context.cutoff}:{base}"
+        return f"{capture}:{base}" if context.scope_refs.get("capture_input_sha256") else base
 
     def submit(self, context: RunContext, worker: Callable[[JobRecord], tuple[str, JobState]], *,
                retry_job_id: str | None = None) -> JobRecord:

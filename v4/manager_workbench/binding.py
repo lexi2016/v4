@@ -58,7 +58,8 @@ def assemble_api(app, *, config, binding=None):
     from .service import create_service
     if not isinstance(config,WorkbenchConfig):config=WorkbenchConfig.model_validate(config)
     binding=binding or create_native_binding(config)
-    service=create_service(config,binding['adapters'],binding['engines'],binding['executor'])
+    service=create_service(config,binding['adapters'],binding['engines'],binding['executor'],
+        capture_transport=binding.get('capture_transport'),capture_clock=binding.get('capture_clock'))
     app.state.manager_workbench_service=service
     app.state.manager_workbench_binding=binding
     app.state.manager_workbench_old_owner_excluded=True
@@ -69,7 +70,7 @@ def assemble_api(app, *, config, binding=None):
         try:
             async with previous(instance):yield
         finally:
-            service.jobs.stop()
+            service.stop()
     app.router.lifespan_context=lifespan
     return service
 

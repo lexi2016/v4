@@ -1,0 +1,27 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "scope": "Single read_binding invocation unique complete product-ref validation; no global cache",
+  "before_sha256": "d9fb885e701df230dc60595858434f1ae0713f52362ca46dbc52842bccb9a6b2",
+  "files": [
+    {
+      "path": "v4/manager_workbench/inputs/capture_binding.py",
+      "sha256": "587291d20e6bc6880025ff76e2e7345b04751df2ec1f1a7b9b6cdc5c76a8f502"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_capture_binding_unique_refs.py",
+      "sha256": "d3cdc116b618dfc0d0f57fe3d5bd645889928e11b5206942de40cb5e70ca3121"
+    }
+  ],
+  "tests": ".................                                                        [100%]\n17 passed in 2.88s\n",
+  "environment": "3.14.6",
+  "retained_checks": [
+    "Every unique ref raw SHA/time/window",
+    "Every article exact identity and one complete match"
+  ],
+  "not_run": [
+    "network",
+    "model",
+    "formal_state",
+    "deployment"
+  ]
+}

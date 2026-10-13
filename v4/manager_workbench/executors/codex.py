@@ -170,12 +170,18 @@ class AuditedExecutor:
         if self.store is None: return None
         checkpoint = "semantic_"+digest(task_id)
         value = self.store.load_checkpoint(self.resume_job_id,checkpoint)
+        if value is None:
+            shared=self.store.load_checkpoint("semantic_cache",checkpoint)
+            if shared:
+                if shared.get("task_id")!=task_id or shared.get("result",{}).get("status")!="SUCCEEDED" or shared["result"].get("success") is not True:
+                    raise SemanticFailure("CACHED_TASK_IDENTITY_INVALID")
+                value=shared["result"]
         if value:
             # Carry the successful receipt forward without changing execution
             # identity. The next retry resumes this job, not its grandparent.
             # Without this durable transfer a second partial retry reruns the
             # Reader and breaks the one-independent-review pair audit.
-            if self.job_id != self.resume_job_id:
+            if self.store.load_checkpoint(self.job_id,checkpoint) is None:
                 self.store.save_checkpoint(self.job_id,checkpoint,value)
             self._record(value)
         return value
@@ -190,6 +196,23 @@ class AuditedExecutor:
             self.refs.append(ref)
 
     def execute(self, task: dict[str, Any]) -> dict[str, Any]:
+        if self.store is None:return self._execute_uncached(task)
+        # Exact task identity has one model execution across capture/research
+        # jobs and processes. Never replace a successful immutable checkpoint.
+        key="semantic_"+digest(task["task_id"])
+        with self.store.io.kernel_lock("semantic_claims/"+digest(task["task_id"])+".lock",timeout=3600):
+            shared=self.store.load_checkpoint("semantic_cache",key)
+            if shared:
+                if shared.get("task_id")!=task["task_id"] or shared.get("task_sha256")!=digest(task):
+                    raise SemanticFailure("CACHED_TASK_IDENTITY_INVALID")
+                value=self.read_cached(task["task_id"])
+                if value:return value
+            result=self._execute_uncached(task)
+            if result.get("status")=="SUCCEEDED":
+                self.store.save_checkpoint("semantic_cache",key,{"task_id":task["task_id"],"task_sha256":digest(task),"result":result})
+            return result
+
+    def _execute_uncached(self, task: dict[str, Any]) -> dict[str, Any]:
         role = _role(task.get("role"))
         result = self.delegate.execute(task)
         if not isinstance(result, dict):

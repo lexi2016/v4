@@ -1,0 +1,28 @@
+{
+  "status": "IMPLEMENTED_FOR_NARROW_REVIEW",
+  "scope": "Only first submitted cutoff preservation; minute remains claim key",
+  "files": [
+    {
+      "path": "v4/manager_workbench/inputs/capture_jobs.py",
+      "before_sha256": "44eb56fbb8367327ee4a9a47422c7f87617b2bf6e6643912f9cb8ee931bebc30",
+      "after_sha256": "26932b284605a6c815f59a1400445f6250c820d463dd0ca65001ab113cc5e7e1"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_capture_wiring.py",
+      "before_sha256": "818df2bb309506b33fec316d281d44f03c89a9700818dd400ffc75b47b619bbb",
+      "after_sha256": "c5dcd3d6c25c8408a60f8e39d6e54644a5da45dc5414b29d71908fe495feaf9b"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_capture_cli_lifecycle.py",
+      "before_sha256": "ed23ca2e7eb947596965972d91fd0128d496a92d4cf0c8231f211fe9d6ab25fc",
+      "after_sha256": "23cac87014edb0563cd6fa73cfd8eedf4a22121b8fb414d95b844c49de1d0619"
+    }
+  ],
+  "behaviour": "10:00:15.001 article is admissible at first actual 10:00:30 cutoff; 10:00:59 same slot reuses first persisted job and exact cutoff; no floor on product/context",
+  "test_fixture_clock_correction": "HTTP/CLI completion clock follows actual submission; constant earlier clock no longer relies on source truncation",
+  "test_command": "python -m pytest -q tests/manager_workbench/runtime/test_capture_wiring.py tests/manager_workbench/runtime/test_capture_cli_lifecycle.py --basetemp=tests/manager_workbench/runtime/.tmp/capture-submit-cutoff-fix-r2",
+  "test_result": "17 passed in 2.36s",
+  "test_log_sha256": "d22720ed828006726f0129de9acb527e338852d407953c08c6cce8aca1509bf7",
+  "candidate_v7_refresh": "WAITING_NARROW_REVIEW; not repeatedly rebuilt",
+  "network_model_formal_state_runs": false
+}

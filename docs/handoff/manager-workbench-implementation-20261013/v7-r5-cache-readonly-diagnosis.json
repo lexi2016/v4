@@ -1,0 +1,44 @@
+{
+  "status": "READ_ONLY_DIRECT_FAILURE_DIAGNOSIS",
+  "r4_sha256": "6fd624273f46711dd88fe9baacc208554cd9253d4135286f858fe1cc776fadfc",
+  "r5_sha256": "3e48ab15dedd1df3e301b3b5abec5c46d9510e29ee8c4cbf337be59f7d8a79d1",
+  "common_articles": 802,
+  "raw_listing_changes": [
+    {
+      "fields": [
+        "display_time"
+      ],
+      "count": 566
+    },
+    {
+      "fields": [],
+      "count": 236
+    }
+  ],
+  "prior_complete_now_failed": 543,
+  "examples": [
+    {
+      "article": "AN202610091830263154",
+      "changed_fields": [
+        "display_time"
+      ],
+      "display_time_old": "2026-10-09 16:24:09:616",
+      "display_time_new": "2026-10-09 16:24:09:541",
+      "issuer_identity_equal": true,
+      "old_body_sha256": "f82e0c828cbef3e2975fc7e95d1974930b3f18b866b15d5ee3fec73eb85791b2"
+    },
+    {
+      "article": "AN202610091830263476",
+      "changed_fields": [
+        "display_time"
+      ],
+      "display_time_old": "2026-10-09 16:32:12:388",
+      "display_time_new": "2026-10-09 16:32:12:491",
+      "issuer_identity_equal": true,
+      "old_body_sha256": "dd671b596ad852f3c0b2b37bf7c0a3c0cfc2172ed35a1a8c32226f557a0da68d"
+    }
+  ],
+  "cause": "capture.py body_scope.listing_sha256 hashes the entire raw_row, including volatile display_time; body request identity does not include cutoff/calendar. Changing only display_time forces a new body request despite cached successful body pages.",
+  "direct_defect": true,
+  "scope_response": "No core change authorized/executed. Preserve R4/R5 and use valid R5 material for current single canary; repair requires bounded core identity decision and fresh counterexample tests."
+}

@@ -70,6 +70,7 @@ def main(argv: list[str] | None = None) -> int:
     canary.add_argument("--article-id",required=True,help="One pinned canonical article ID; not URL/path")
     review=subs.add_parser("review");review.add_argument("target_date");review.add_argument("plan_run_id")
     args = parser.parse_args(argv)
+    service=None
     try:
         cfg = load_config(args.config)
         if args.command=="job":
@@ -87,7 +88,6 @@ def main(argv: list[str] | None = None) -> int:
             close=bind["adapters"].load(Lane.CLOSE_REFERENCE,plan.context)
             value=service.save_review(plan.run_id,close)
             print(json.dumps(value.model_dump(mode="json"),ensure_ascii=False))
-            service.jobs.stop()
             return 0 if not value.gaps else 5
         if args.command=="tick":
             from datetime import datetime
@@ -131,7 +131,6 @@ def main(argv: list[str] | None = None) -> int:
             return 6
         record=service.submit(args.target_date,Phase(args.phase))
         print(json.dumps({"job_id":record.job_id,"run_id":record.run_id,"state":record.state.value}))
-        service.jobs.stop()
         return 0
     except Exception as exc:
         # Return only a stable code, never credentials, prompt, source paths or traceback.
@@ -141,6 +140,10 @@ def main(argv: list[str] | None = None) -> int:
             code="WORKBENCH_CLI_FAILED"
         print(json.dumps({"state":"FAILED","failure_code":code}),file=sys.stderr)
         return 3
+
+    finally:
+        if service is not None:
+            service.stop()
 
 
 if __name__ == "__main__":

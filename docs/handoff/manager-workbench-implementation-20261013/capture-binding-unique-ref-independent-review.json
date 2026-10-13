@@ -1,0 +1,39 @@
+{
+  "schema": "mwb.independent.unique-ref-review.v1",
+  "verdict": "PASS",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "scope_receipt_sha256": "8ed0df7863ac46762f4e9f160b9a8c81b47150b8227180dad829fe4cfeaf7d1e",
+  "files": [
+    {
+      "path": "v4/manager_workbench/inputs/capture_binding.py",
+      "sha256": "587291d20e6bc6880025ff76e2e7345b04751df2ec1f1a7b9b6cdc5c76a8f502"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_capture_binding_unique_refs.py",
+      "sha256": "d3cdc116b618dfc0d0f57fe3d5bd645889928e11b5206942de40cb5e70ca3121"
+    }
+  ],
+  "prior_wiring_receipt_sha256": "506d270c8f73d0f97b2e0593c951788bc2e82625296369283d5e8bfd46d861c6",
+  "REVIEWED": "One business file invocation-local memo/index diff, no cross-read cache; frozen other 22 delivery files unchanged",
+  "TESTED": "17 relevant tests passed in 2.29s; direct second-read raw-tamper counterexample refused",
+  "BEHAVIOR_VERIFIED": {
+    "article_refs": 3,
+    "distinct_prior_product_refs": 2,
+    "validate_calls_first_read": 3,
+    "one_validation_per_complete_ref": true,
+    "second_read_revalidates_raw": true,
+    "bad_sha_and_wrong_correspondence": "pytest rejects"
+  },
+  "reused": "Prior capture-wiring PASS; actual V7-calendar input baseline change is separate",
+  "network_calls": 0,
+  "paid_model_calls": 0,
+  "formal_state_writes": 0,
+  "NOT_RUN": [
+    "new actual source acquisition",
+    "real semantic canary",
+    "service/deploy/natural"
+  ],
+  "command": "PYTHONDONTWRITEBYTECODE=1 <fixed-python> -m pytest -q -p no:cacheprovider --basetemp /private/tmp/mwb-unique-ref-independent-pytest tests/manager_workbench/runtime/test_capture_binding_unique_refs.py tests/manager_workbench/runtime/test_capture_wiring.py"
+}

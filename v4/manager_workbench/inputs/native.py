@@ -35,10 +35,18 @@ class NativeAdapters:
             pins, gaps = resolve_bindings(self.config, context)
             context.scope_refs["owner_bindings"] = pins
             context.scope_refs["owner_binding_gaps"] = gaps
+        if self.config.capture_root:
+            from .source_bindings import announcements
+            try:
+                context.scope_refs.setdefault("owner_bindings",{})["announcements"]=announcements(self.config,context)
+                context.scope_refs.setdefault("owner_binding_gaps",{}).pop("announcements",None)
+            except (OSError,ValueError,KeyError,TypeError) as exc:
+                context.scope_refs.setdefault("owner_bindings",{}).pop("announcements",None)
+                context.scope_refs.setdefault("owner_binding_gaps",{})["announcements"]=str(exc)
         for lane, name in (("ANNOUNCEMENT","announcements"),("US_MAPPING","us_mapping")):
             pin = context.scope_refs.get("owner_bindings",{}).get(name) or self.config.source_bindings.get(name, {}).get(context.target_date, {})
             if lane == "ANNOUNCEMENT":
-                context.scope_refs[lane] = dict(owner="ManagerResearchJobService.refresh_announcements",
+                context.scope_refs[lane] = dict(owner="v4.manager_workbench.capture_announcements" if self.config.capture_root else "ManagerResearchJobService.refresh_announcements",
                     scope_state="CANNOT_CONFIRM", sha256=owner_digest(pin), universe_ref="announcement-observed:"+context.target_date)
             else:
                 context.scope_refs[lane] = dict(configured_symbols=pin.get("configured_symbols"),
@@ -220,7 +228,7 @@ class NativeAdapters:
         if lane == Lane.ANNOUNCEMENT:
             universe_ref = "announcement-observed:" + context.target_date
             # The observed catalog is complete as a set even if full-market coverage is unknown.
-            context.scope_refs["ANNOUNCEMENT"] = dict(owner="ManagerResearchJobService.refresh_announcements",
+            context.scope_refs["ANNOUNCEMENT"] = dict(owner="v4.manager_workbench.capture_announcements" if self.config.capture_root else "ManagerResearchJobService.refresh_announcements",
                 scope_state="VERIFIED",sha256=value.input_sha256,universe_ref=universe_ref,
                 article_ids=[r["article_id"] for r in records],coverage_gaps=value.gaps)
             coverage = Coverage(scope_count=len(records),observed_count=len(records),gaps=value.gaps)
@@ -229,7 +237,10 @@ class NativeAdapters:
         return batch(context,lane,records,value.evidence_refs,value.scope_description,coverage,value.gaps,universe_ref)
 
     def announcements(self, context):
-        pin = self._binding("announcements", context.target_date, context)
+        pin = context.scope_refs.get("owner_bindings",{}).get("announcements") if self.config.capture_root else self._binding("announcements", context.target_date, context)
+        if not isinstance(pin,dict):raise ValueError("NEW_CAPTURE_OWNER_EXACT_DATE_BINDING_MISSING")
+        if "capture_binding_relative" in pin:
+            return self._announcement_capture(context,pin)
         if "corpus_relative" in pin:
             return self._announcement_corpus(context,pin)
         codes, member_ref, gaps = self.membership(context)
@@ -318,6 +329,38 @@ class NativeAdapters:
                      "Complete pinned observed announcement directories; official and mirror separated",
                      Coverage(scope_count=scope_count, observed_count=len(observed_ids), gaps=list(set(gaps))),
                      list(set(gaps)), universe_ref=member_ref.evidence_id if member_ref else None)
+
+    def _announcement_capture(self,context,pin):
+        from .capture_binding import read_binding
+        _,product=read_binding(self.config,pin,context)
+        codes,member_ref,gaps=self.membership(context)
+        refs=[member_ref] if member_ref else []
+        # After-submit material may be consumed at this honest later cutoff;
+        # original capture cutoff and gaps remain in the immutable owner record.
+        gaps += [g for g in product["gaps"] if g not in {
+            "CAPTURE_AVAILABLE_AFTER_RESEARCH_CUTOFF","ANNOUNCEMENT_OUTSIDE_PUBLICATION_WINDOW"}]
+        records=[]
+        for article in product["rows"]:
+            if article["window_consumption_status"]=="EXCLUDED_OUTSIDE_WINDOW":continue
+            body_gaps=list(article["gaps"])
+            evidence=self._ref("EASTMONEY_MIRROR","ANNOUNCEMENT_BODY",article["publication_date"].replace("-",""),
+                article["source_sha256"],article["body_artifact_ref"],article["available_at"],body_gaps,
+                manifest=pin["capture_binding_relative"],url=(article["pages"][0]["source_ref"]["source_url"] if article["pages"] else article["listing_source_ref"]["source_url"]))
+            refs.append(evidence)
+            for issuer in article["source_issuer_codes"]:
+                sym=symbol(issuer["code"])
+                if not sym:continue
+                records.append(self._member(dict(symbol=sym,name=issuer.get("name"),event_id="EASTMONEY:"+article["art_code"],
+                    source_kind="EASTMONEY_MIRROR",title=article["title"],body=article["body_text"] or "",
+                    body_sha256=article["body_text_sha256"],source_sha256=article["source_sha256"],
+                    available_at=article["available_at"],observed_at=article["available_at"],
+                    published_at=None,publication_date=article["publication_date"],publication_time_status="CANNOT_CONFIRM",
+                    original_point_in_time_availability="CANNOT_CONFIRM",source_url=evidence.source_url,
+                    body_complete=article["body_complete"],pages=[dict(page=p["page_number"],text=p["text"]) for p in article["pages"]],
+                    join_separator="\n\n",evidence_ids=[evidence.evidence_id],gaps=body_gaps),codes,member_ref))
+        context.scope_refs["capture_original_window"]=product["window"]
+        return batch(context,Lane.ANNOUNCEMENT,records,refs,"Exact-window new owner Eastmoney mirror source; full directory retained in capture audit",
+            Coverage(scope_count=product["scope_count"],observed_count=product["observed_count"],gaps=gaps),gaps)
 
     def _announcement_corpus(self, context, pin):
         """Existing captured official/mirror bodies, with independent source variants."""

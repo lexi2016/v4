@@ -81,6 +81,18 @@ def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
                                              "timing_status":"LATE_CATCHUP" if local>at1630 else "ON_SLOT"})
             service.store.set_cursor(key,{"job_id":job.job_id,"target_date":next_day,"cutoff":local.isoformat()})
             jobs.append({"phase":"NEXT_DAY","run_id":job.run_id,"job_id":job.job_id})
+    # Preserve the preopen latch above before any background capture enqueue.
+    if getattr(service,"capture_jobs",None):
+        capture_day=next_day if local>=at1630 else day
+        capture_phase=Phase.NEXT_DAY if local>=at1630 else Phase.INTRADAY
+        bucket=int(local.timestamp())//service.config.capture_poll_seconds
+        key='capture_poll_'+str(bucket)
+        if not service.store.cursor(key):
+            context=service.context(capture_day,capture_phase,trigger='SCHEDULED',cutoff=local,lanes=[Lane.ANNOUNCEMENT])
+            captured=service.request_capture(context)
+            if captured:
+                service.store.set_cursor(key,{'job_id':captured.job_id})
+                jobs.append({'phase':capture_phase.value,'operation':'CAPTURE_MATERIAL','job_id':captured.job_id,'run_id':captured.run_id})
     return {"state":"DUE_EVALUATED","date":day,"jobs":jobs,
             "session_state":calendar.session_state(day) if hasattr(calendar,"session_state") else None}
 

@@ -1,0 +1,96 @@
+{
+  "schema": "mwb.independent.capture-wiring-review.v1",
+  "reviewer": "/root/manager_reviewer_sol",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "scope_receipt_sha256": "fd09af8185596d180acea5c7811ad461865f4fac47ac1179efc0083d07d49340",
+  "verdict": "FAIL",
+  "blocking": [
+    {
+      "priority": "P2",
+      "file": "v4/manager_workbench/inputs/capture_jobs.py",
+      "lines": [
+        32,
+        33
+      ],
+      "code": "CAPTURE_SUBMITTED_CUTOFF_ROUNDED_DOWN",
+      "reproduction": {
+        "actual_submit": "2026-10-13T10:00:30+08:00",
+        "capture_cutoff": "2026-10-13T10:00:00+08:00",
+        "product_cutoff": "2026-10-13T10:00:00+08:00",
+        "display_time": "2026-10-13T10:00:15.001000+08:00",
+        "status": "EXCLUDED_OUTSIDE_WINDOW",
+        "body_complete": false,
+        "capture_state": "SUCCEEDED",
+        "research_state": "SUCCEEDED",
+        "model_calls": 0,
+        "plan_counts": {
+          "selected": 0,
+          "watch": 0,
+          "unassessed": 0,
+          "observation_only": 0,
+          "not_selected": 0
+        },
+        "gaps": [
+          "ANNOUNCEMENT_OUTSIDE_PUBLICATION_WINDOW",
+          "CAPTURE_AVAILABLE_AFTER_RESEARCH_CUTOFF"
+        ]
+      },
+      "minimum_fix": "Use minute bucket only for shared claim identity; preserve actual first submitted cutoff in job context and publication window.",
+      "acceptance": "At submit 10:00:30.123000, consume displayTime <= this cutoff exactly; isolate cutoff +1 ms; same-minute API/scheduler submissions reuse one collector without changing the first task context."
+    }
+  ],
+  "checks": {
+    "scope_files": 23,
+    "scope_sha_drift": [],
+    "core63_sha_reused": true,
+    "codex_executor_prefix_unchanged_sha256": "b05dab0ab0d1924cdcb77e61af75c92a0798138edde96aa46e53f9e7646513e0"
+  },
+  "tests": [
+    {
+      "files": [
+        "test_capture_wiring.py",
+        "test_capture_semantic_cache.py",
+        "test_capture_cli_lifecycle.py",
+        "test_capture_helper.py",
+        "test_retry_chain.py"
+      ],
+      "passed": 23,
+      "seconds": 1.91
+    },
+    {
+      "files": [
+        "test_integration.py",
+        "test_native_pipeline.py",
+        "test_runtime.py"
+      ],
+      "passed": 39,
+      "seconds": 1.93
+    }
+  ],
+  "test_command_common": "PYTHONDONTWRITEBYTECODE=1 <fixed-v3.5-mac-python> -m pytest -q -p no:cacheprovider --basetemp <independent-temp> tests/manager_workbench/runtime/<files>",
+  "direct_probe": "/private/tmp/mwb-wiring-independent-bwr949xp/cutoff_probe.py",
+  "reviewed": "23 frozen delivery files actual diff and SHA; existing core/isolation PASS reused",
+  "tested": "62 regression tests passed; direct boundary counterexample reproduced",
+  "behavior_verified": [
+    "injected capture->immutable binding->native->incremental simulated semantic->saved plan->TestClient GET",
+    "N+1 observed cutoff/catalogue SHA changes while old complete article evidence reused; only added article pair executes",
+    "owner/ref/prompt/membership changes invalidate identities",
+    "two OS processes single capture claim",
+    "09:25 preopen no blocking",
+    "partial capture cache recovery/restart/CLI capture-then-research shutdown/revoked fail closed"
+  ],
+  "not_run": [
+    "real source requests",
+    "paid model calls",
+    "formal owner activation",
+    "production state/plist/service mutations",
+    "real full-window end-to-end canary",
+    "candidate assembly/deployment/API/UI/natural slot"
+  ],
+  "financial_boundary": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
