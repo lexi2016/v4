@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 import re
 from typing import Any, Mapping
+from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 from .workspace_projection import digest
@@ -421,17 +422,39 @@ def _source_publication_time(record: Mapping[str, Any], source_family: str,
     listing = listing if isinstance(listing, Mapping) else {}
     if source_family == "HKEX_OFFICIAL":
         directory_ref = listing.get("directory_source_ref")
+        variant_id = listing.get("source_variant_id")
+        news_id = listing.get("news_id")
+        ref_url = directory_ref.get("url") if isinstance(directory_ref, Mapping) else None
+        parsed_ref = urlparse(ref_url) if isinstance(ref_url, str) else None
+        ref_retrieved_at = directory_ref.get("retrieved_at") if isinstance(directory_ref, Mapping) else None
+        try:
+            # The directory response may have been captured after the
+            # historical cutoff. Its retrieval time binds the source ref; it
+            # does not replace the directory's published_at value.
+            _window_datetime(ref_retrieved_at, "directory_source_ref.retrieved_at")
+            ref_retrieved_at_valid = True
+        except ValueError:
+            ref_retrieved_at_valid = False
         if (listing.get("source") != "HKEX_OFFICIAL"
+                or record.get("source") != "HKEX_OFFICIAL"
                 or listing.get("source_scope") != "HKEX_OFFICIAL_FULL_MARKET_DIRECTORY_V1"
-                or not isinstance(listing.get("source_variant_id"), str)
-                or not _HKEX_ID.fullmatch(listing.get("source_variant_id", ""))
-                or record.get("source_variant_id") != listing.get("source_variant_id")
+                or record.get("source_scope") != listing.get("source_scope")
+                or not isinstance(variant_id, str)
+                or not _HKEX_ID.fullmatch(variant_id)
+                or record.get("source_variant_id") != variant_id
+                or not isinstance(news_id, str) or news_id != variant_id[5:]
+                or record.get("news_id") != news_id
                 or _window_date(listing.get("publication_date")) != publication
                 or not isinstance(directory_ref, Mapping)
-                or not isinstance(directory_ref.get("url"), str)
-                or not directory_ref.get("url")
+                or parsed_ref is None or parsed_ref.scheme != "https"
+                or parsed_ref.hostname not in {"www1.hkexnews.hk", "www.hkexnews.hk", "sc.hkexnews.hk"}
+                or parsed_ref.username is not None or parsed_ref.password is not None
+                or not ref_retrieved_at_valid
+                or not isinstance(directory_ref.get("blob_sha256"), str)
+                or not _SHA256.fullmatch(directory_ref.get("blob_sha256", ""))
                 or not isinstance(directory_ref.get("body_sha256"), str)
-                or not _SHA256.fullmatch(directory_ref.get("body_sha256", ""))):
+                or not _SHA256.fullmatch(directory_ref.get("body_sha256", ""))
+                or listing.get("directory_raw_body_sha256") != directory_ref.get("body_sha256")):
             return None, "HKEX_PUBLICATION_SOURCE_REF_UNVERIFIED"
         raw = listing.get("published_at")
         if isinstance(raw, str) and raw.strip():
@@ -440,7 +463,7 @@ def _source_publication_time(record: Mapping[str, Any], source_family: str,
             try:
                 value = datetime.fromisoformat(raw.replace("Z", "+00:00"))
                 if value.tzinfo is None or value.utcoffset() is None:
-                    value = value.replace(tzinfo=_HK)
+                    return None, "HKEX_PUBLICATION_TIME_NOT_AWARE"
                 value = value.astimezone(_HK)
                 if value.date().isoformat() != publication:
                     return None, "HKEX_PUBLISHED_AT_DATE_MISMATCH"
