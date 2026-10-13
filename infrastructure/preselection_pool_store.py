@@ -109,10 +109,11 @@ POOL_ARTIFACT_OPTIONAL_FIELDS = frozenset(
 RECEIPT_EXTENSION_FIELDS = frozenset({"source_row_count", "source_run_id"})
 
 # Recovery is deliberately narrower than the historical V3.5 refresh surface.
-# Only optional source pools may replace their exact fail-closed placeholder,
+# Verified source pools may replace their exact fail-closed placeholder,
 # and only with the producer-specific verified role already accepted by the
-# artifact contract.  Formal A/HK pools remain immutable.
+# artifact contract. Published formal A/HK results remain immutable.
 _RECOVERABLE_EXPECTED_MISSING_ROLES = {
+    "a_d1_premarket_pool": "SHARED_VERIFIED_V192",
     "a_d1_fupan_watchlist_pool": "VERIFIED_D1_FUPAN_REVIEW",
     "a_d1_stage7_fenshi_review_pool": "VERIFIED_D1_STAGE7_REPLAY",
     "a_share_research_recommendation_pool": "VERIFIED_HOURLY_RESEARCH",
@@ -580,7 +581,41 @@ class PreselectionPoolStore:
         ):
             self._assert_write_allowed(trade_date, pool_id)
             self._reconcile_pending_commit_unlocked(trade_date, pool_id)
-            return self._materialize_unlocked(payload)
+            try:
+                return self._materialize_unlocked(payload)
+            except ValueError as error:
+                if str(error) != "conflicting preselection-pool materialization":
+                    raise
+                # Research accumulates new hourly materials within its existing
+                # window. Never use this refresh path for formal stock pools.
+                if (pool_id != "a_share_research_recommendation_pool"
+                    or payload.get("source_role") != "VERIFIED_HOURLY_RESEARCH"
+                    or payload.get("producer_id") != "v3_5_hourly_research_window_v1"):
+                    raise
+                snapshot = self._read_pool_snapshot_unlocked(trade_date, pool_id)
+                previous = snapshot["artifact"]
+                if (previous.get("source_role") != payload["source_role"]
+                    or previous.get("producer_id") != payload["producer_id"]):
+                    raise
+                old_paths = set(str(previous.get("source_path") or "").split("|"))
+                new_paths = set(str(payload.get("source_path") or "").split("|"))
+                if (not old_paths < new_paths or not all(
+                    re.fullmatch(r"research/hourly/live/\d{8}/\d{4}\.json", path)
+                    for path in new_paths
+                )):
+                    raise
+                digest = _sha256(payload)
+                receipt = self._receipt(trade_date=trade_date, pool_id=pool_id,
+                    artifact_path=snapshot["artifact_relative"], artifact_sha256=digest, payload=payload)
+                self._archive_recovery_revision(trade_date, pool_id, snapshot["artifact_sha256"],
+                    previous, snapshot["receipt"])
+                self._archive_recovery_revision(trade_date, pool_id, digest, payload, receipt)
+                manifest = dict(snapshot["manifest"])
+                manifest[pool_id] = digest
+                self._commit_main_snapshot(snapshot, payload=payload, receipt=receipt, manifest=manifest)
+                return {"artifact_path": snapshot["artifact_relative"],
+                    "receipt_path": snapshot["receipt_relative"], "sha256": digest,
+                    "previous_sha256": snapshot["artifact_sha256"]}
 
     def _materialize_unlocked(self, payload: Mapping[str, Any]) -> dict[str, str]:
         trade_date = validate_pool_artifact(payload)
