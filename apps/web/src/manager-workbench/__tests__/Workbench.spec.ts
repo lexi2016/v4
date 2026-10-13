@@ -28,7 +28,7 @@ describe("C manager workbench screen", () => {
     expect(screen.getAllByText("严格入选").length).toBeGreaterThan(0);
     expect(screen.getAllByText("条件观察").length).toBeGreaterThan(0);
     expect(screen.getAllByText("未知").length).toBeGreaterThan(0);
-    expect(screen.getByText(/服务端筛选后共 1 行/)).toBeTruthy();
+    expect(screen.getByText(/当前筛选共 1 行/)).toBeTruthy();
     const table = screen.getByRole("table");
     expect(within(table).getAllByRole("row")).toHaveLength(2);
     expect(screen.getByText("阶段参考 · 观察")).toBeTruthy();

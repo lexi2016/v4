@@ -65,7 +65,7 @@ input, select { border: 1px solid #b9c6d6; border-radius: 7px; background: #fff;
 .mwb-detail-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px; margin: 16px 0; }
 .mwb-detail-grid article { background: #f8fafc; border-radius: 8px; padding: 13px; min-width: 0; }
 .mwb-detail-grid h3 { margin-top: 0; }
-.mwb-lane-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.mwb-lane-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
 .mwb-lane-card { border: 1px solid #d8e2ee; border-radius: 8px; padding: 14px; min-width: 0; }
 .mwb-lane-card h3, .mwb-lane-card h4 { margin: 0 0 8px; }
 .mwb-lane-card p { overflow-wrap: anywhere; }
@@ -118,3 +118,28 @@ input, select { border: 1px solid #b9c6d6; border-radius: 7px; background: #fff;
   .mwb-filters label { flex: 1 1 130px; }
   .mwb-date, .mwb-selectors { align-items: flex-start; }
 }
+
+/* Announcement evidence is published prose, not a raw debugging table. */
+.mwb-reason-summary .mwb-reason-text,
+.mwb-risk-summary .mwb-risk-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.mwb-reason-summary small,
+.mwb-risk-summary small { color: #526981; margin-right: 4px; }
+.mwb-lane-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; border-bottom: 1px solid #e2eaf3; padding-bottom: 9px; }
+.mwb-lane-head h4 { font-size: 15px; margin: 0; }
+.mwb-lane-head > span { font-size: 12px; color: #334f6a; font-weight: 700; }
+.mwb-research-entry + .mwb-research-entry { border-top: 1px solid #dfe8f1; margin-top: 14px; padding-top: 14px; }
+.mwb-semantic-group { margin-top: 13px; }
+.mwb-semantic-group h5 { font-size: 13px; margin: 0 0 8px; color: #234664; }
+.mwb-citation-list { margin: 0; padding-left: 18px; }
+.mwb-citation { padding: 1px 0 8px; line-height: 1.6; overflow-wrap: anywhere; }
+.mwb-citation .mwb-claim { font-size: 13px; margin: 2px 0 5px; }
+.mwb-citation blockquote { margin: 6px 0; padding: 7px 11px; border-left: 3px solid #abc4d9; background: #f7fafc; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mwb-citation .mwb-locator { font-size: 11px; color: #687b90; margin: 5px 0; }
+.mwb-source-links { display: flex; gap: 5px 11px; flex-wrap: wrap; font-size: 12px; margin: 14px 0; }
+.mwb-source-links a { color: #165a87; text-decoration: underline; overflow-wrap: anywhere; }
+.mwb-lane-audit { margin-top: 15px; padding: 10px 12px; border: 1px dashed #b7c6d7; border-radius: 7px; background: #f8fafc; font-size: 12px; }
+.mwb-lane-audit summary, .mwb-footer summary { cursor: pointer; }
+.mwb-lane-audit details { margin: 10px 0; }
+.mwb-lane-audit pre { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; font-size: 11px; background: #edf2f8; border-radius: 6px; padding: 10px; }
+.mwb-footer > details { flex-basis: 100%; }
+.mwb-footer > details p { margin: 7px 0; }

@@ -101,7 +101,11 @@ describe("B mounted HTTP response shapes / Issue #41 Reviewer", () => {
     expect(laneResultLabel(bStock as never, "ANNOUNCEMENT")).toBe("严格入选、待评估");
     await fireEvent.click(screen.getByRole("button", { name: /查看 HK.00001/ }));
     await screen.findByText("失效条件");
-    expect(screen.getAllByText(/原文A/).length).toBeGreaterThan(0);
+    expect(screen.getByText("B 合格原文复核")).toBeTruthy();
+    const audit = screen.getAllByText("原始研究字段（审计）")[0].closest("details") as HTMLDetailsElement;
+    expect(audit.open).toBe(false);
+    await fireEvent.click(audit.querySelector("summary") as HTMLElement);
+    expect(audit.textContent).toContain("原文A");
     await fireEvent.click(screen.getByText("证据身份、原始引用与校验缺口"));
     expect(screen.getByText(/b-announcement-owner/)).toBeTruthy();
     expect(screen.getAllByText(/evidence-B/).length).toBeGreaterThan(0);

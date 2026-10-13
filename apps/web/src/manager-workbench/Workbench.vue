@@ -5,7 +5,8 @@ import type { Lane, Phase, PlanVersion, StockDecision } from "./types";
 import { LANES, LANE_LABELS, LANE_STATE_LABELS, JOB_STATE_LABELS, PHASE_LABELS,
   showCount, showText, gapText } from "./types";
 import { decisionLabel, evidenceLink, firstReason, humanTime, labelForLane,
-  laneEntries, laneResultLabel, metricLabel } from "./display";
+  laneEntries, laneResultLabel, metricLabel, researchReasons, researchRisks,
+  semanticSections, stockAccessibleName } from "./display";
 import "./workbench.css";
 
 const vm = reactive(useWorkbench());
@@ -48,7 +49,7 @@ function detailForLane(lane: Lane) {
   <main class="mwb-shell">
     <header class="mwb-hero">
       <div>
-        <p class="mwb-eyebrow">V4 · HK CONNECT / RESEARCH ONLY</p>
+        <p class="mwb-eyebrow">港股通 · 研究观察</p>
         <h1>经理研究工作台</h1>
         <p class="mwb-subtitle">先看股票、依据与变化，再看执行、历史和复盘。A股维持原独立入口。</p>
       </div>
@@ -115,7 +116,7 @@ function detailForLane(lane: Lane) {
 
     <section v-if="vm.panel === 'stocks'" class="mwb-panel" aria-label="今日研究名单">
       <div class="mwb-heading">
-        <div><h2>今日名单</h2><p>按服务端分类和证据时间排序；不在页面重新评分或合并策略。</p></div>
+        <div><h2>今日名单</h2><p>按已保存的分类与证据时间展示，不重新评价或调整研究结论。</p></div>
         <p v-if="vm.dayLoading" role="status">正在读取保存的研究版本…</p>
       </div>
 
@@ -168,7 +169,7 @@ function detailForLane(lane: Lane) {
           <tbody>
             <tr v-for="stock in vm.stocks" :key="stock.market + ':' + stock.symbol">
               <td><strong class="mwb-symbol">{{ stock.symbol }}</strong>
-                <span>{{ stock.name }}</span>
+                <span v-if="stock.name?.trim()">{{ stock.name }}</span>
                 <small>资格：{{ stock.membership_status || "待核验" }}</small>
               </td>
               <td><span class="mwb-decision" :data-decision="stock.decision">{{ decisionLabel(stock.decision) }}</span>
@@ -185,15 +186,15 @@ function detailForLane(lane: Lane) {
                 <small>{{ humanTime(stock.available_at) }}</small>
               </td>
               <td><button type="button" class="mwb-detail-link"
-                :aria-label="'查看 ' + stock.symbol + ' ' + stock.name + ' 详情'"
+                :aria-label="'查看 ' + stockAccessibleName(stock) + ' 详情'"
                 @click="vm.openStock(stock)">查看详情</button></td>
             </tr>
           </tbody>
         </table>
       </div>
       <div v-if="vm.pagination" class="mwb-pagination">
-        <span>服务端筛选后共 {{ vm.pagination.total }} 行；本页 {{ vm.stocks.length }} 行，
-          每页最多 {{ vm.limit }} 行。完整分类计数独立于此分页。</span>
+        <span>当前筛选共 {{ vm.pagination.total }} 行；本页 {{ vm.stocks.length }} 行，
+          每页最多 {{ vm.limit }} 行。分类总数不随翻页改变。</span>
         <div>
           <button type="button" :disabled="vm.offset === 0 || vm.dayLoading"
             @click="vm.setOffset(Math.max(0, vm.offset - vm.limit))">上一页</button>
@@ -207,52 +208,104 @@ function detailForLane(lane: Lane) {
     <section v-if="vm.panel === 'detail'" class="mwb-panel" aria-label="个股研究详情">
       <div class="mwb-heading"><h2>个股研究详情 · {{ vm.detailSymbol || "未选择" }}</h2>
         <button type="button" class="mwb-quiet" @click="vm.showPanel('stocks')">返回名单</button></div>
-      <p v-if="vm.detailLoading" role="status">正在读取同 run_id 详情…</p>
+      <p v-if="vm.detailLoading" role="status">正在读取所选计划版本的个股资料…</p>
       <p v-if="vm.detailError" class="mwb-alert" role="alert">{{ vm.detailError }}</p>
       <template v-if="vm.detail?.data?.stock">
         <div class="mwb-stock-top">
-          <h3>{{ vm.detail.data.stock.symbol }} {{ vm.detail.data.stock.name }}</h3>
+          <h3>{{ stockAccessibleName(vm.detail.data.stock) }}</h3>
           <span class="mwb-decision" :data-decision="vm.detail.data.stock.decision">
             {{ decisionLabel(vm.detail.data.stock.decision) }}
           </span>
           <span>资格：{{ vm.detail.data.stock.membership_status || "待核验" }}</span>
         </div>
-        <div class="mwb-detail-grid">
-          <article><h3>依据</h3><p v-for="reason in vm.detail.data.stock.reasons" :key="reason">{{ reason }}</p>
-            <p v-if="!vm.detail.data.stock.reasons?.length">暂无可核验依据</p></article>
-          <article><h3>待确认条件</h3><p v-for="v in vm.detail.data.stock.conditions" :key="v">{{ v }}</p>
-            <p v-if="!vm.detail.data.stock.conditions?.length">未提供</p></article>
-          <article><h3>失效条件</h3><p v-for="v in vm.detail.data.stock.invalidation_conditions" :key="v">{{ v }}</p>
-            <p v-if="!vm.detail.data.stock.invalidation_conditions?.length">未提供</p></article>
-          <article><h3>风险</h3><p v-for="v in vm.detail.data.stock.risks" :key="v">{{ v }}</p>
-            <p v-if="!vm.detail.data.stock.risks?.length">未提供</p></article>
-        </div>
-        <h3>各研究路径（不跨路径升级结论）</h3>
-        <div class="mwb-lane-grid">
-          <article v-for="lane in LANES" :key="lane" class="mwb-lane-card">
-            <h4>{{ LANE_LABELS[lane] }}</h4>
-            <p>{{ laneResultLabel(vm.detail.data.stock, lane) }}
-              <span v-if="lane === 'STAGE_REFERENCE' || lane === 'CLOSE_REFERENCE'"> · 仅观察参考</span></p>
-            <template v-if="stockLaneEntries(vm.detail.data.stock, lane).length">
-              <div v-for="(entry, idx) in stockLaneEntries(vm.detail.data.stock, lane)"
-                :key="idx" class="mwb-lane-decision-entry">
-                <small v-if="stockLaneEntries(vm.detail.data.stock, lane).length > 1">独立记录 {{ idx + 1 }}</small>
-                <dl v-for="[key, val] in Object.entries(entry)" :key="key" class="mwb-fact">
-                  <dt>{{ key }}</dt><dd>{{ showText(val) }}</dd>
-                </dl>
-              </div>
-            </template>
-            <p v-else class="mwb-muted">该路径尚未提供研究判定。</p>
-            <div v-if="detailForLane(lane)?.rows?.length" class="mwb-lane-rows">
-              <h5>已保存来源行（B 原始记录，不重新判定）</h5>
-              <div v-for="(row, idx) in detailForLane(lane)?.rows || []" :key="idx">
-                <dl v-for="[key, val] in Object.entries(row)" :key="key" class="mwb-fact">
-                  <dt>{{ key }}</dt><dd>{{ showText(val) }}</dd>
-                </dl>
-              </div>
-            </div>
+        <div class="mwb-detail-grid" aria-label="所选计划的研究摘要">
+          <article class="mwb-reason-summary">
+            <h3>研究理由</h3>
+            <p v-for="(reason, index) in researchReasons(vm.detail.data.stock)" :key="index">
+              <small v-if="reason.lane">{{ LANE_LABELS[reason.lane] }}：</small>
+              <span class="mwb-reason-text">{{ reason.text }}</span>
+            </p>
+            <p v-if="!researchReasons(vm.detail.data.stock).length" class="mwb-muted">
+              未提供具体研究理由；技术状态保留在下方审计记录中。
+            </p>
+          </article>
+          <article>
+            <h3>待确认条件</h3>
+            <p v-for="(condition, index) in vm.detail.data.stock.conditions || []" :key="index">{{ condition }}</p>
+            <p v-if="!vm.detail.data.stock.conditions?.length" class="mwb-muted">未提供</p>
+          </article>
+          <article>
+            <h3>失效条件</h3>
+            <p v-for="(condition, index) in vm.detail.data.stock.invalidation_conditions || []" :key="index">{{ condition }}</p>
+            <p v-if="!vm.detail.data.stock.invalidation_conditions?.length" class="mwb-muted">未提供</p>
+          </article>
+          <article class="mwb-risk-summary">
+            <h3>风险</h3>
+            <p v-for="(risk, index) in researchRisks(vm.detail.data.stock)" :key="index">
+              <small v-if="risk.lane">{{ LANE_LABELS[risk.lane] }}：</small>
+              <span class="mwb-risk-text">{{ risk.text }}</span>
+            </p>
+            <p v-if="!researchRisks(vm.detail.data.stock).length" class="mwb-muted">未提供</p>
           </article>
         </div>
+        <h3>各类研究依据</h3>
+        <p class="mwb-muted">每类研究保持原有独立结论，事实与原文均取自已保存的材料。</p>
+        <div class="mwb-lane-grid">
+          <article v-for="lane in LANES" :key="lane" class="mwb-lane-card">
+            <header class="mwb-lane-head">
+              <h4>{{ LANE_LABELS[lane] }}</h4>
+              <span>{{ laneResultLabel(vm.detail.data.stock, lane) }}
+                <span v-if="lane === 'STAGE_REFERENCE' || lane === 'CLOSE_REFERENCE'"> · 仅供观察</span>
+              </span>
+            </header>
+            <div v-for="(entry, index) in stockLaneEntries(vm.detail.data.stock, lane)"
+              :key="index" class="mwb-research-entry">
+              <small v-if="stockLaneEntries(vm.detail.data.stock, lane).length > 1">
+                第 {{ index + 1 }} 条独立研究记录
+              </small>
+              <p v-if="entry.available_at" class="mwb-muted">
+                资料可用时间：{{ humanTime(entry.available_at) }}
+              </p>
+              <section v-for="section in semanticSections(entry)" :key="section.field" class="mwb-semantic-group">
+                <h5>{{ section.title }}</h5>
+                <ul class="mwb-citation-list">
+                  <li v-for="(citation, citationIndex) in section.citations"
+                    :key="citationIndex" class="mwb-citation">
+                    <p class="mwb-claim">{{ citation.claim }}</p>
+                    <blockquote v-if="citation.quote">{{ citation.quote }}</blockquote>
+                    <p v-if="citation.locator" class="mwb-locator">
+                      原文位置：{{ citation.locator }}
+                    </p>
+                  </li>
+                </ul>
+              </section>
+            </div>
+            <p v-if="!stockLaneEntries(vm.detail.data.stock, lane).some(entry => semanticSections(entry).length)"
+              class="mwb-muted">此类研究没有另外保存可展示的事实引文。</p>
+            <div v-if="detailForLane(lane)?.evidence_refs?.some(ev => evidenceLink(ev.source_url))"
+              class="mwb-source-links">
+              <span>来源资料：</span>
+              <template v-for="evidence in detailForLane(lane)?.evidence_refs || []" :key="evidence.evidence_id">
+                <a v-if="evidenceLink(evidence.source_url)"
+                  :href="evidenceLink(evidence.source_url) || undefined"
+                  target="_blank" rel="noopener noreferrer">查看原始公告资料</a>
+              </template>
+            </div>
+            <details v-if="stockLaneEntries(vm.detail.data.stock, lane).length || detailForLane(lane)?.rows?.length"
+              class="mwb-lane-audit">
+              <summary>原始研究字段（审计）</summary>
+              <p class="mwb-muted">原始编码、完整字段和证据身份仅用于核查；不会重新计算结论。</p>
+              <pre v-for="(entry, index) in stockLaneEntries(vm.detail.data.stock, lane)"
+                :key="index">{{ showText(entry) }}</pre>
+              <details v-if="detailForLane(lane)?.rows?.length">
+                <summary>保存的原始来源行</summary>
+                <pre v-for="(row, index) in detailForLane(lane)?.rows || []"
+                  :key="index">{{ showText(row) }}</pre>
+              </details>
+            </details>
+          </article>
+        </div>
+        <p class="mwb-muted">仅供核对的原始字段、模型与来源记录均已收起。</p>
         <details class="mwb-evidence">
           <summary>证据身份、原始引用与校验缺口</summary>
           <p>本行 evidence_ids：{{ vm.detail.data.stock.evidence_ids?.join(", ") || "未提供" }}</p>
@@ -273,7 +326,7 @@ function detailForLane(lane: Lane) {
     </section>
 
     <section v-if="vm.panel === 'progress'" class="mwb-panel" aria-label="研究任务进度">
-      <div class="mwb-heading"><div><h2>研究进度</h2><p>查看已保存 lane 及后台任务；离开页面不会取消后台任务。</p></div></div>
+      <div class="mwb-heading"><div><h2>研究进度</h2><p>分别查看研究完成情况；离开此页不会终止正在进行的研究。</p></div></div>
       <div v-if="vm.lanes.length" class="mwb-progress-grid">
         <article v-for="lane in vm.lanes" :key="lane.lane" class="mwb-lane-card">
           <h3>{{ labelForLane(lane.lane) }}</h3>
@@ -287,7 +340,7 @@ function detailForLane(lane: Lane) {
       </div>
       <p v-else class="mwb-empty">尚无已保存的 lane 进度；未知不代表全部未运行。</p>
       <div class="mwb-task-form">
-        <h3>创建研究任务（POST；不会直接提交交易）</h3>
+        <h3>补充研究并生成计划（仅供研究，不会提交交易）</h3>
         <label for="mwb-run-phase">任务性质</label>
         <select id="mwb-run-phase" :value="vm.runPhase" @change="changeJobPhase">
           <option value="MANUAL">MANUAL · 当前手动研究</option>
@@ -344,7 +397,7 @@ function detailForLane(lane: Lane) {
 
     <section v-if="vm.panel === 'reviews'" class="mwb-panel" aria-label="收盘研究复盘">
       <div class="mwb-heading"><div><h2>收盘复盘 · 完整 Top20 对照</h2>
-        <p>统计由 A 引擎生成、B 保存。观察贡献不计入严格入选。</p></div>
+        <p>复盘数字按已保存结果原样展示，观察线索不计入严格入选。</p></div>
         <button type="button" class="mwb-quiet" @click="vm.loadReview">重新读取复盘</button></div>
       <p v-if="vm.reviewLoading" role="status">读取复盘中…</p>
       <p v-if="vm.reviewError" class="mwb-alert" role="alert">{{ vm.reviewError }}</p>
@@ -382,16 +435,19 @@ function detailForLane(lane: Lane) {
         <p v-for="gap in vm.review.data.gaps || []" :key="gapText(gap)" class="mwb-muted">缺口：{{ gapText(gap) }}</p>
       </template>
       <p v-else-if="!vm.reviewLoading && !vm.reviewError" class="mwb-empty">
-        尚无同目标日、同计划 run_id 的有效收盘复盘。
+        尚无与所选日期和计划版本对应的有效收盘复盘。
       </p>
     </section>
 
     <footer class="mwb-footer">
-      <span>合同 {{ vm.day?.schema_version || "v4.manager_workbench.v1" }}</span>
-      <span>RESEARCH_ONLY={{ showText(vm.day?.RESEARCH_ONLY) }} / production_allowed={{ showText(vm.day?.production_allowed) }}</span>
-      <span>buy_gate_updated={{ showText(vm.day?.buy_gate_updated) }} / orders_sent={{ showText(vm.day?.orders_sent) }}</span>
-      <span v-if="vm.day?.gaps?.length">外层缺口：{{ vm.day.gaps.map(gapText).join("；") }}</span>
-      <span>页面不生产选股判定，不触发交易。</span>
+      <span>仅供研究查看，不触发交易或修改买入门槛。</span>
+      <details>
+        <summary>查看版本及安全审计信息</summary>
+        <p>合同 {{ vm.day?.schema_version || "v4.manager_workbench.v1" }}</p>
+        <p>RESEARCH_ONLY={{ showText(vm.day?.RESEARCH_ONLY) }} / production_allowed={{ showText(vm.day?.production_allowed) }}</p>
+        <p>buy_gate_updated={{ showText(vm.day?.buy_gate_updated) }} / orders_sent={{ showText(vm.day?.orders_sent) }}</p>
+        <p v-if="vm.day?.gaps?.length">原始缺口：{{ vm.day.gaps.map(gapText).join("；") }}</p>
+      </details>
     </footer>
   </main>
 </template>

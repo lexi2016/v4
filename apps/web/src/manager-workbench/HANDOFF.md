@@ -60,3 +60,28 @@ Mac execution commands (cd apps/web):
 - npm run build
 
 Truthful status at this handoff: Vitest / vue-tsc / Vite build = NOT_RUN in the isolated GitHub requirement snapshot (full frontend package, toolchain and dependencies absent). Mac real B TestClient -> C, full counts pagination, refresh, 09:25/16:30 = NOT_RUN. Independent review of new repair commit = NOT_RUN. No deployment, no main merge.
+
+
+## C-only Mac real-browser announcement detail repair (2026-10-13)
+
+Scope: UI projection and synthetic B/A-shaped regression only. It does not change the A prompt/model, B HTTP contract/store, stock classification, source evidence, staged admission rules, or any Mac integration file. Stage/CLOSE stay observation-only. User/Mac reports that existing endpoints, 251-row pagination and unchanged full counts, filtered empty set, date/history reads passed; **real announcement detail failed** and the official service remains on the old path.
+
+Grounded data shape: A engines/announcement.py at 1c596d794b3af54d8a5a3bb61028cf1b7c36e4e2 produces row.reason machine identifier ANNOUNCEMENT_* and a separate row.semantic object. The latter has original `reason`, `risk_notes` (array), and five lists of `{claim,quote,locator}`: `facts`, `changes`, `impact`, `confirmation_conditions`, `counter_evidence`. A core.py appends the whole row to `StockDecision.lane_decisions[lane]`; it aggregates row.risks but not semantic.risk_notes. B api.py at 2d0682a631b4c038457716afece37425d3d6a14f returns the same StockDecision plus lane_details[].rows and lane-specific evidence refs. Thus C must read `semantic` directly without reclassifying research or reconstructing evidence.
+
+Changes in C-only UI:
+- Null/empty name: accessible detail button and header use symbol only when name is absent; never emit literal `null` or `undefined`.
+- Readable reason: the saved semantic.reason wins over technical row.reason in the summary; technical status is available in folded audit. No automatic translation of codes into fabricated research text; missing human reason explicitly says missing.
+- Risk: display both persisted semantic.risk_notes even if stock.risks is empty, with originating research category. Stored stock.risks remain visible without duplicating identical text.
+- Evidence: list exactly saved claims, source quotes and locators in the five groups; the original source URL is only linked if B evidence refs provide HTTP(S) URL. The browser does not infer truth, causal impact, admission, new score, liquidity or price thresholds.
+- Raw machine fields and raw B rows are hidden behind per-research collapsed audit, with a nested independent raw-row disclosure. Main headings and task wording use business terms; safety/scheme diagnostic flags remain in footer audit.
+
+Regression source: `apps/web/src/manager-workbench/__tests__/announcement_semantics.spec.ts` (synthetic text, **actual A/B structural nesting**), plus adjusted existing `b_http_regression.spec.ts` and `Workbench.spec.ts`. Include null-name a11y, nested semantic reason over machine tag, five quote/locator groups, both risk notes, folded raw rows, no decision promotion, and five-view navigation. No real announcement contents or Mac browser recordings committed.
+
+Mac verification in the complete canonical web workspace (from `apps/web`):
+- `npm test -- src/manager-workbench/__tests__/announcement_semantics.spec.ts`
+- `npm test -- src/manager-workbench/__tests__` (includes prior 251+ server pagination/full counts and date/version/late-response tests)
+- `npm run typecheck`
+- `npm run build`
+- Browser: inspect a real saved ANNOUNCEMENT stock with name=null and semantic.risk_notes length 2; verify quote/locator/original URL, raw fields folded, no accidental classification change; refresh same date+run and navigate. Do not replace deployed manager routing until Mac review passes.
+
+Delivery proof: GitHub HEAD/compare/blob readback is separate from any executable verification. This isolated GitHub branch still lacks the full apps/web dependency manifest/build harness. Until executed in Mac project, Vitest/vue-tsc/Vite **NOT_RUN**, real C browser **NOT_VERIFIED**, actual cutover **NOT_RUN**. The Mac user's prior independent successful test count is not attributed to this new revision.
