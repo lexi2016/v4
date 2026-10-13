@@ -95,6 +95,26 @@ const stubResearchFetch = (payload: unknown) => vi.stubGlobal("fetch", vi.fn(asy
   url.includes("/api/v3/research/wechat/materials") ? wechatListing() : payload,
 )));
 
+const highVolumeFilterLane = () => {
+  const stockRows = Array.from({ length: 46 }, (_, index) => ({
+    stock_code: `600${String(index + 1).padStart(3, "0")}`,
+    stock_name: `股票筛选样本${index + 1}`,
+  }));
+  const zsxqItems = Array.from({ length: 46 }, (_, index) => ({
+    article_id: `filter-zsxq-${index + 1}`,
+    title: `星球筛选样本${index + 1}`,
+  }));
+  return {
+    ...lane("20261012"),
+    morning_news: { status: "READY", articles: [] },
+    news_workbench: { schema_version: "x", status: "ok", action_rows: stockRows },
+    zsxq_hourly: { schema_version: "x", status: "ok", topic_count: zsxqItems.length, items: zsxqItems },
+    ai_news: { status: "READY_EMPTY", item_count: 0, items: [] },
+    external_finance: { raw_item_count: 0, overview: [] },
+    key_investment_messages: [],
+  };
+};
+
 describe("ResearchView (research lane)", () => {
   afterEach(() => {
     cleanup();
@@ -284,6 +304,135 @@ describe("ResearchView (research lane)", () => {
     expect(cards[4].textContent).not.toContain("not-a-timestamp");
     expect(cards[5].textContent).not.toContain("2026-08-04T09:00:00");
     expect(cards[6].textContent).not.toContain("2026-08-04T09:00:00");
+  });
+
+  it("keeps every source after 42 in the latest feed", async () => {
+    const zsxqItems = Array.from({ length: 46 }, (_, index) => ({
+      article_id: `zsxq-${String(index + 1).padStart(2, "0")}`,
+      title: `星球后段${index + 1}`,
+      fetched_at: "2026-10-12T23:00:00+08:00",
+    }));
+    const morningArticles = [
+      { article_id: "morning-1", title: "早盘后段1" },
+      { article_id: "morning-2", title: "早盘后段2" },
+      { article_id: "morning-3", title: "早盘后段3" },
+    ];
+    const financeItems = [{ article_id: "finance-1", title: "财经后段", fetched_at: "2026-10-12T22:00:00+08:00" }];
+    const manySourcesLane = {
+      ...lane("20261012"),
+      morning_news: { status: "READY", articles: morningArticles },
+      news_workbench: { schema_version: "x", status: "ok", action_rows: [] },
+      zsxq_hourly: { schema_version: "x", status: "ok", topic_count: zsxqItems.length, items: zsxqItems },
+      ai_news: { status: "READY_EMPTY", item_count: 0, items: [] },
+      external_finance: { raw_item_count: financeItems.length, overview: financeItems },
+      key_investment_messages: [],
+    };
+    stubResearchFetch(manySourcesLane);
+
+    const { container } = render(ResearchView, { props: { archiveDate: "20261012" } });
+    await screen.findAllByText("星球后段1");
+    const feedList = container.querySelector<HTMLElement>(".hourly-feed-list");
+
+    expect(feedList).toBeTruthy();
+    if (!feedList) throw new Error("missing main feed list");
+    const cards = Array.from(feedList.children).filter((node) => node.classList.contains("hourly-feed-card"));
+    expect(cards).toHaveLength(50);
+    expect(within(feedList).getByText("星球后段46")).toBeTruthy();
+    expect(within(feedList).getByText("早盘后段1")).toBeTruthy();
+    expect(within(feedList).getByText("早盘后段3")).toBeTruthy();
+    expect(within(feedList).getByText("财经后段")).toBeTruthy();
+    expect(container.querySelectorAll(".hourly-feed-list .hourly-feed-card")).toHaveLength(50);
+  });
+
+  it("shows all matching stock records after clicking 股票", async () => {
+    stubResearchFetch(highVolumeFilterLane());
+    const { container } = render(ResearchView, { props: { archiveDate: "20261012" } });
+    await screen.findAllByText("股票筛选样本1");
+
+    await fireEvent.click(screen.getByRole("button", { name: "股票" }));
+    const feedList = container.querySelector<HTMLElement>(".hourly-feed-list");
+    expect(feedList).toBeTruthy();
+    if (!feedList) throw new Error("missing main feed list");
+    await waitFor(() => expect(feedList.querySelectorAll(".hourly-feed-card")).toHaveLength(46));
+    expect(within(feedList).getByText("股票筛选样本46")).toBeTruthy();
+  });
+
+  it("shows all matching 星球 records after clicking 星球", async () => {
+    stubResearchFetch(highVolumeFilterLane());
+    const { container } = render(ResearchView, { props: { archiveDate: "20261012" } });
+    await screen.findAllByText("星球筛选样本1");
+
+    await fireEvent.click(screen.getByRole("button", { name: "星球" }));
+    const feedList = container.querySelector<HTMLElement>(".hourly-feed-list");
+    expect(feedList).toBeTruthy();
+    if (!feedList) throw new Error("missing main feed list");
+    await waitFor(() => expect(feedList.querySelectorAll(".hourly-feed-card")).toHaveLength(46));
+    expect(within(feedList).getByText("星球筛选样本46")).toBeTruthy();
+  });
+
+  it("keeps READY_EMPTY AI at zero and explains discovery-only and ungenerated key messages", async () => {
+    const notMaterializedReason = "LANE_PERIPHERAL_NOT_MATERIALIZED:key_investment_messages";
+    const { key_investment_messages: _keyMessages, ...laneWithoutKeyMessages } = lane();
+    const peripheralLane = {
+      ...laneWithoutKeyMessages,
+      ai_news: {
+        status: "READY_EMPTY",
+        item_count: 0,
+        items: [],
+        cannot_confirm: ["AIHOT_PUBLIC_PAGE_DISCOVERY_ONLY"],
+      },
+      cannot_confirm: [...lane().cannot_confirm, notMaterializedReason],
+    };
+    stubResearchFetch(peripheralLane);
+
+    const { container } = render(ResearchView, { props: { archiveDate: "20260804" } });
+    const statusStrip = await screen.findByRole("region", { name: "研报状态条" });
+    expect(statusCellValue(statusStrip, "AI新闻")).toBe("0");
+    expect(statusCellValue(statusStrip, "重点消息")).toBe("未生成");
+    const aiColumn = Array.from(container.querySelectorAll<HTMLElement>(".hourly-source-column"))
+      .find((column) => column.querySelector("h4")?.textContent?.trim() === "AI新闻");
+    expect(aiColumn?.textContent).toContain("AIHOT_PUBLIC_PAGE_DISCOVERY_ONLY");
+
+    await fireEvent.click(screen.getByRole("button", { name: "AI" }));
+    let feedList = container.querySelector<HTMLElement>(".hourly-feed-list");
+    expect(feedList?.querySelectorAll(".hourly-feed-card")).toHaveLength(0);
+    expect(feedList?.textContent).toContain("0 条");
+    expect(feedList?.textContent).toContain("AIHOT_PUBLIC_PAGE_DISCOVERY_ONLY");
+
+    await fireEvent.click(screen.getByRole("button", { name: "重点" }));
+    feedList = container.querySelector<HTMLElement>(".hourly-feed-list");
+    expect(feedList?.querySelectorAll(".hourly-feed-card")).toHaveLength(0);
+    expect(feedList?.textContent).toContain("未生成");
+    expect(feedList?.textContent).toContain(notMaterializedReason);
+  });
+
+  it("keeps missing morning capture time and naive original time unconfirmed with raw evidence", async () => {
+    const rawOriginalTime = "2026-10-12 07:08:41";
+    const morningLane = {
+      ...lane("20261012"),
+      morning_news: {
+        status: "READY",
+        articles: [{ article_id: "morning-raw-time", title: "早盘无时区时间", published_at: rawOriginalTime }],
+      },
+      news_workbench: { schema_version: "x", status: "ok", action_rows: [] },
+      zsxq_hourly: { schema_version: "x", status: "ok", topic_count: 0, items: [] },
+      ai_news: { status: "READY_EMPTY", item_count: 0, items: [] },
+      external_finance: { raw_item_count: 0, overview: [] },
+      key_investment_messages: [],
+    };
+    stubResearchFetch(morningLane);
+
+    const { container } = render(ResearchView, { props: { archiveDate: "20261012" } });
+    await screen.findAllByText("早盘无时区时间");
+    const card = Array.from(container.querySelectorAll<HTMLElement>(".hourly-feed-list .hourly-feed-card"))
+      .find((candidate) => candidate.querySelector(".hourly-feed-title")?.textContent?.trim() === "早盘无时区时间");
+
+    expect(card?.textContent).toContain("获取时间：CANNOT_CONFIRM");
+    expect(card?.textContent).toContain("来源未提供抓取/采集时间字段");
+    expect(card?.textContent).toContain("原文时间：CANNOT_CONFIRM");
+    expect(card?.textContent).toContain(`published_at=${rawOriginalTime}`);
+    expect(card?.textContent).not.toContain(`原文时间：${rawOriginalTime}`);
+    expect(container.querySelector(".hourly-time-label")?.textContent).toContain("CANNOT_CONFIRM");
   });
 
   it("shows exactly the three exact-date morning articles in the early tab", async () => {

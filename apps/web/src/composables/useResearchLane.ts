@@ -12,6 +12,7 @@ type FetchTimeField = (typeof FETCH_TIME_FIELDS)[number];
 
 /** Return a producer timestamp only when the browser can parse it deterministically. */
 const ISO_TIMESTAMP_WITH_EXPLICIT_OFFSET = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?\s*(?:Z|[+-]\d{2}:\d{2})$/;
+const ISO_TIMESTAMP_WITHOUT_OFFSET = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?$/;
 
 function validTimestamp(value: unknown): string {
   const raw = text(value);
@@ -72,7 +73,14 @@ const FETCH_TIME_LABELS: Record<FetchTimeField, string> = {
 export function feedFetchTimeLabel(row: Record<string, unknown>): string {
   const value = fetchedAt(row);
   const field = fetchedAtField(row);
-  if (!value || !field) return "获取时间：CANNOT_CONFIRM";
+  if (!value || !field) {
+    const captureFields = ["fetched_at", "collected_at", "first_seen_at"] as const;
+    const hasCaptureTimeEvidence = captureFields.some((captureField) => text(row[captureField]));
+    const reason = hasCaptureTimeEvidence
+      ? "来源提供的采集时间字段无法核验"
+      : "来源未提供抓取/采集时间字段";
+    return `获取时间：CANNOT_CONFIRM（${reason}）`;
+  }
   const rendered = formatFeedTimestamp(value) || value;
   if (field === "fetched_at") return `获取时间：${rendered}`;
   return `获取时间：${rendered}（回退自${FETCH_TIME_LABELS[field]}；实际抓取时间 CANNOT_CONFIRM）`;
@@ -80,7 +88,16 @@ export function feedFetchTimeLabel(row: Record<string, unknown>): string {
 
 export function feedPublishedTimeLabel(row: Record<string, unknown>): string {
   const value = publishedAt(row);
-  return value ? `原文时间：${formatFeedTimestamp(value) || value}` : "原文时间：CANNOT_CONFIRM";
+  if (value) return `原文时间：${formatFeedTimestamp(value) || value}`;
+  for (const field of ["published_at", "source_published_at", "publication_time"] as const) {
+    const raw = text(row[field]);
+    if (!raw) continue;
+    const reason = ISO_TIMESTAMP_WITHOUT_OFFSET.test(raw)
+      ? "原始时间字段未提供时区，无法核验"
+      : "原始时间字段格式无法核验";
+    return `原文时间：CANNOT_CONFIRM（${reason}）；原始字段 ${field}=${raw.slice(0, 120)}`;
+  }
+  return "原文时间：CANNOT_CONFIRM（来源未提供可核验的原文时间字段）";
 }
 
 export function feedCardKey(row: Record<string, unknown>, index = 0): string {
@@ -132,7 +149,7 @@ export function num(value: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
-export type ResearchCountPresentation = number | "未评估";
+export type ResearchCountPresentation = number | "未评估" | "未生成";
 
 /** One payload-bound view model for the status strip; source counts stay distinct. */
 export interface ResearchStatusPresentation {
@@ -152,6 +169,34 @@ function statusRecord(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+const AI_DISCOVERY_ONLY_REASON = "AIHOT_PUBLIC_PAGE_DISCOVERY_ONLY";
+const KEY_MESSAGES_NOT_MATERIALIZED_REASON = "LANE_PERIPHERAL_NOT_MATERIALIZED:key_investment_messages";
+
+function hasReasonCode(value: unknown, code: string): boolean {
+  if (!Array.isArray(value)) return false;
+  return value.some((item) => {
+    if (typeof item === "string") return item === code;
+    const itemRecord = statusRecord(item);
+    return [itemRecord.code, itemRecord.reason, itemRecord.description]
+      .some((candidate) => text(candidate) === code);
+  });
+}
+
+function keyMessagesNotMaterialized(payload: ResearchLane): boolean {
+  const messages = payload.key_investment_messages;
+  return (!Array.isArray(messages) || messages.length === 0)
+    && hasReasonCode(payload.cannot_confirm, KEY_MESSAGES_NOT_MATERIALIZED_REASON);
+}
+
+function aiReadyEmptyMessage(ai: Record<string, unknown>): string {
+  const items = Array.isArray(ai.items) ? ai.items : [];
+  if (text(ai.status).toUpperCase() !== "READY_EMPTY" || ai.item_count !== 0 || items.length !== 0) return "";
+  if (hasReasonCode(ai.cannot_confirm, AI_DISCOVERY_ONLY_REASON)) {
+    return `AI 新闻 0 条；当前无可展示文章。仅公开页面发现，内容完整性无法确认（${AI_DISCOVERY_ONLY_REASON}）。`;
+  }
+  return "AI 新闻 0 条；当前无可展示文章（READY_EMPTY）。";
 }
 
 function assessedCount(value: unknown): ResearchCountPresentation {
@@ -203,9 +248,11 @@ export function researchStatusPresentation(
     wechatArticleCount: counts.wechatArticleCount,
     stockMainlineLength: counts.stockMainlineLength,
     stockTimelineLength: counts.stockTimelineLength,
-    keyMessagesCount: Array.isArray(payload.key_investment_messages)
-      ? payload.key_investment_messages.length
-      : "未评估",
+    keyMessagesCount: keyMessagesNotMaterialized(payload)
+      ? "未生成"
+      : Array.isArray(payload.key_investment_messages)
+        ? payload.key_investment_messages.length
+        : "未评估",
     hourlySlotCount: num(hourly.slot_count),
   };
 }
@@ -301,7 +348,8 @@ export interface ResearchState {
   gaps: ComputedRef<Array<unknown>>;
   stockMainline: ComputedRef<Array<LaneRow>>;
   feedCards: ComputedRef<Array<Record<string, unknown>>>;
-  sourceColumns: ComputedRef<Array<{ name: string; rows: Array<Record<string, unknown>> }>>;
+  feedEmptyMessage: ComputedRef<string>;
+  sourceColumns: ComputedRef<Array<{ name: string; rows: Array<Record<string, unknown>>; emptyMessage?: string }>>;
   timelineRows: ComputedRef<Array<Record<string, unknown>>>;
   cannotItems: ComputedRef<Array<string>>;
 }
@@ -353,14 +401,27 @@ export function useResearchState(payload: Ref<ResearchLane | null>, feedFilter: 
       key: cards.filter((c) => c.source === "key"),
     };
     const selected = byFilter[feedFilter.value] ?? cards;
-    return (feedFilter.value === "latest" ? sortFeedCardsByFetchedAt(selected) : selected).slice(0, 42);
+    return feedFilter.value === "latest"
+      ? sortFeedCardsByFetchedAt(selected)
+      : selected;
+  });
+
+  const feedEmptyMessage = computed(() => {
+    if (feedCards.value.length === 0 && feedFilter.value === "ai") {
+      return aiReadyEmptyMessage(ai.value) || "当前情报日无 feed 条目。";
+    }
+    if (feedCards.value.length === 0 && feedFilter.value === "key" && payload.value && keyMessagesNotMaterialized(payload.value)) {
+      return `重点消息未生成（${KEY_MESSAGES_NOT_MATERIALIZED_REASON}）。`;
+    }
+    return "当前情报日无 feed 条目。";
   });
 
   const sourceColumns = computed(() => {
-    const columns: Array<{ name: string; rows: Array<Record<string, unknown>> }> = [
+    const aiItems = Array.isArray(ai.value.items) ? ai.value.items as Array<Record<string, unknown>> : [];
+    const columns: Array<{ name: string; rows: Array<Record<string, unknown>>; emptyMessage?: string }> = [
       { name: "知识星球", rows: (Array.isArray(zsxq.value.items) ? zsxq.value.items as Array<Record<string, unknown>> : []).slice(0, 8) },
       { name: "外部财经", rows: (Array.isArray(finance.value.overview) ? finance.value.overview as Array<Record<string, unknown>> : []).slice(0, 8) },
-      { name: "AI新闻", rows: (Array.isArray(ai.value.items) ? ai.value.items as Array<Record<string, unknown>> : []).slice(0, 8) },
+      { name: "AI新闻", rows: aiItems.slice(0, 8), emptyMessage: aiReadyEmptyMessage(ai.value) },
     ];
     const morningArticles = (morning.value.articles ?? []) as Array<Record<string, unknown>>;
     if (morningArticles.length) columns.push({ name: "早盘新闻", rows: morningArticles.slice(0, 8) });
@@ -382,6 +443,6 @@ export function useResearchState(payload: Ref<ResearchLane | null>, feedFilter: 
 
   return {
     payload, stockDaily, stockTimeline, quality, morning, workbench, zsxq, ai, finance, gaps,
-    stockMainline, feedCards, sourceColumns, timelineRows, cannotItems,
+    stockMainline, feedCards, feedEmptyMessage, sourceColumns, timelineRows, cannotItems,
   };
 }

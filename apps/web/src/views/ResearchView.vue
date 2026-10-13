@@ -25,6 +25,7 @@ const {
   stockMainline,
   stockTimeline,
   feedCards,
+  feedEmptyMessage,
   sourceColumns,
   timelineRows,
   cannotItems,
@@ -164,6 +165,7 @@ onMounted(() => {
             :feed-cards="feedCards"
             :feed-filter="feedFilter"
             :archive-date="archiveDate"
+            :empty-message="feedEmptyMessage"
             :on-filter="(f: string) => (feedFilter = f)"
             :columns="sourceColumns"
           />

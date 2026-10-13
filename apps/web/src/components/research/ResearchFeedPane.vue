@@ -9,6 +9,7 @@ defineProps<{
   feedFilter: string;
   archiveDate: string;
   onFilter: (filter: string) => void;
+  emptyMessage?: string;
   columns?: Array<{ name: string; rows: Array<Record<string, unknown>> }>;
 }>();
 
@@ -46,7 +47,7 @@ const TABS: Array<{ id: string; label: string }> = [
     <template v-else>
       <div class="hourly-feed-list">
         <ResearchFeedCard v-for="(card, index) in feedCards" :key="`${feedCardKey(card, index)}-${index}`" :card="card" />
-        <div v-if="!feedCards.length" class="empty">当前情报日无 feed 条目。</div>
+        <div v-if="!feedCards.length" class="empty">{{ emptyMessage || "当前情报日无 feed 条目。" }}</div>
       </div>
       <ResearchSourceColumns v-if="columns?.length" :columns="columns" />
     </template>
