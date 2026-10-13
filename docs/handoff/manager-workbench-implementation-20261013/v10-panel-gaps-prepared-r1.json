@@ -1,0 +1,99 @@
+{
+  "status": "PREPARED_FOR_INDEPENDENT_REVIEW",
+  "branch": "codex/manager-workbench-data-closure-20261013",
+  "writer": "manager_writer_sol",
+  "scope": "H packaging helper/test exact current API V8 and Close scheduler rebase only",
+  "files": {
+    "prepare_us_tdx_v10.py": {
+      "before_sha256": "a989d7024aa6a1c62875c39c39663dbb5c5ca4685a3afc5fc91d8d3db79a1667",
+      "after_sha256": "e4e83092d6fe899bc45071625a5cc6fe8722c03250efb1cd4d4f4d93b0267c8b"
+    },
+    "test_v10_preparation.py": {
+      "before_sha256": "c7b38db13537d080d3754aaa3bb1bdf1b823ce8007499e1efca014334bb02389",
+      "after_sha256": "a5767dbe88dd502dd23eab31c368ce9e1389ac05747b795d0bb0474138bc8495"
+    }
+  },
+  "prior_guard_fail": {
+    "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-panel-gaps-r1-prepare.log",
+    "failure": "EXACT_ACTIVE_V8_BASE_DRIFT",
+    "drift_receipt_sha256": "493ed9d3de07281021a51028653311f13581b867a4ee50a45a3c3b95b2b345cc"
+  },
+  "approved_exact_base": {
+    "api": {
+      "release_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-api",
+      "app_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-api/app",
+      "release_id": "manager-workbench-20261013-v8-api",
+      "release_manifest_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-api/release-manifest.json",
+      "release_manifest_sha256": "6fb0abb88a8220b16a72bc9708e5e8746414b7e487bbf1b4be847f8e5df01b62",
+      "application_inventory_sha256": "3d8180cd975c3794c4ddd894200ff40d14bc9d7c44117da76fc7b30022ad2036",
+      "application_inventory_entry_count": 1178
+    },
+    "api_plist_sha256": "a32460b3d3f4d5d40f71807f9d766adc7a0787124cb0ceb61e16e7930c5d4d7a",
+    "scheduler": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-time-20261013-r1/app",
+      "plist_sha256": "078e5378bec901a40e3916156b80a1876e175bdaeed915f0871ddb80fd44bcf9",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-time-20261013-r1/release-manifest.json",
+      "manifest_sha256": "03f7d1d6f0897b66c074cc30ecfd8d5920919b84d0cb5df97ee11bf8e18948cd",
+      "inventory_sha256": "5cc8ff3b16461a3dc9d8f65f42c5b3a3d16f4110226c95d1e0bafc5fca8fbf18"
+    }
+  },
+  "receipt_refs": {
+    "v10-active-close-base-r1.json": "70372fef3c2327a833783212fec0ee53f7afbfea4b5b94e868fa380d38c80767",
+    "v10-panel-gaps-readback-r1.json": "4fc938bbf5d5b21ab35e6a5f56b7f2f745931028027bc48b5632496d52cf72ed",
+    "panel-priority-implementation-r1.json": "acf271384d3b564f7ea67630755c19ed7a1ecdcc7288868a6f06bd5410fdf188",
+    "panel-priority-independent-r1.json": "9e09aa4abf4bc15bc0ada16478691ee0e24844e5ef8c7b44109cbb16e179b20a"
+  },
+  "tests": {
+    "target": "test_v10_preparation.py",
+    "result": "5 passed in 0.03s",
+    "exit_code": 0,
+    "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-close-rebase-tests-r2.log",
+    "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/test_v10_preparation.py -q --basetemp=/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-close-rebase-pytest-r2",
+    "initial_environment_failure": {
+      "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-close-rebase-tests-r1.log",
+      "reason": "Five assertions passed; unrelated global pytest historical-temp cleanup PermissionError. Retained; isolated basetemp run exit0."
+    }
+  },
+  "candidate_receipt": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-panel-gaps-r1/receipt.json",
+    "sha256": "d30dedab674272570f2d3e1eccd9108d336ee25b76575fa5a50a5faede9ea680"
+  },
+  "plan": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-panel-gaps-r1/operator-plan.json",
+    "sha256": "efa407035565ab14f7322e90e0738eab36557f64ed764f78646f1ce10bc70d8b",
+    "entry_count": 8
+  },
+  "candidate_manifests": {
+    "api": "a89cecfb5a80a1a2892c36e2e44a6357194d7a4432f59466ac85df097666b451",
+    "scheduler": "db24c095abd2a109210f40ee11e2a1da2d748ff7633640af4f33f7b813c9e524"
+  },
+  "candidate_config": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-panel-gaps-r1/manager-workbench-v10.json",
+    "sha256": "dd6cb0018b2605f955e8843d2738a7b921ff0c9524f6653f72735fa9c9f443d7"
+  },
+  "checks": [
+    "exact five canonical/source preimages",
+    "API six/Scheduler five delta only",
+    "both Close timestamp source files byte-preserved",
+    "all immutable Futu and TDX raw/receipt/manifest references readback",
+    "US current10 plus seed/registry yields14 relations and fixed33",
+    "formal state root unchanged; capture disabled; only US_MAPPING+OVERSOLD scheduled",
+    "API candidate inventory verify and operator apply dryrun PASS",
+    "frozen seven panel-priority files SHA unchanged"
+  ],
+  "commands": {
+    "apply": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/prepare_us_tdx_v10.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-panel-gaps-r1/operator-plan.json --plan-sha256 efa407035565ab14f7322e90e0738eab36557f64ed764f78646f1ce10bc70d8b --operation apply",
+    "rollback": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/prepare_us_tdx_v10.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-panel-gaps-r1/operator-plan.json --plan-sha256 efa407035565ab14f7322e90e0738eab36557f64ed764f78646f1ce10bc70d8b --operation rollback",
+    "apply_execute": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/prepare_us_tdx_v10.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-panel-gaps-r1/operator-plan.json --plan-sha256 efa407035565ab14f7322e90e0738eab36557f64ed764f78646f1ce10bc70d8b --operation apply --execute",
+    "rollback_execute": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/prepare_us_tdx_v10.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-panel-gaps-r1/operator-plan.json --plan-sha256 efa407035565ab14f7322e90e0738eab36557f64ed764f78646f1ce10bc70d8b --operation rollback --execute"
+  },
+  "rollback": "Same reviewed operator restores exact eight before-images and original API V8/Close scheduler plists; execute rollback only following apply. Full backups in candidate before/.",
+  "formal_writes": 0,
+  "services_changed": false,
+  "network": "NOT_RUN",
+  "models": "NOT_RUN",
+  "business_run": "NOT_RUN_BY_WRITER",
+  "deployment": "NOT_RUN",
+  "independent_review": "PENDING",
+  "unknown_source_count": 124
+}

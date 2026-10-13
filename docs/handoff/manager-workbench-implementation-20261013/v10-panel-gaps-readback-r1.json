@@ -1,0 +1,87 @@
+{
+  "status": "READONLY_READBACK_PASS",
+  "formal_writes": 0,
+  "state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench",
+  "capture_enabled": false,
+  "scheduled_lanes": [
+    "US_MAPPING",
+    "OVERSOLD"
+  ],
+  "us_relation_count": 14,
+  "us_seed_refs": [
+    {
+      "source_local_path": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app",
+      "relative": "v4/manager_research/us_mapping_reviewed_20260930.json",
+      "sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a",
+      "owner": "V4_REVIEWED_US_MAPPING_SEED",
+      "available_at": "2026-10-05T16:18:15.957785+00:00"
+    },
+    {
+      "source_local_path": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app",
+      "relative": "v4/manager_research/us_mapping_relation_registry.json",
+      "sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe",
+      "owner": "V4_REVIEWED_US_MAPPING_SEED",
+      "available_at": "2026-10-05T16:18:15.957785+00:00"
+    }
+  ],
+  "us_checked_files": [
+    {
+      "relative": "receipts/research/peripherals/20261012/external_finance.json",
+      "sha256": "ff89ff3a50a9e4cb17d23b4e6103f5b3dccab6f219b4cfb8996d6412a5001b60"
+    },
+    {
+      "relative": "v4/manager_research/us_mapping_relation_evidence_review_20261011.json",
+      "sha256": "5e24b82049ca848f7536b084166537415722375414cfc762da8b179919947350"
+    },
+    {
+      "relative": "v4/manager_research/us_mapping_reviewed_20260930.json",
+      "sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a"
+    },
+    {
+      "relative": "v4/manager_research/us_mapping_relation_registry.json",
+      "sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe"
+    }
+  ],
+  "immutable_raw_refs": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/runs/20261012/d4c85f8da7fd6e36cce325ae/raw_capture.json",
+      "sha256": "d4c85f8da7fd6e36cce325ae5d04222a7c8bb3e0bc05031c30db6efb713486e5"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/runs/20261012/d4c85f8da7fd6e36cce325ae/manifest.json",
+      "sha256": "5d111e392708a040d3e9b67b32301d966e8e80643bc1cf168e88963d5ffba294"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/futu-61-session-canary-r1/raw.json",
+      "sha256": "84a7840ad17449047a8cb3b0afbdfde5a37db19a1da2b4264c78eeaa992cf377"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/futu-61-session-canary-r1/receipt.json",
+      "sha256": "f9e2483aa642583610beb9d8a1d6ada8f7bb8c42a5da76156a7cf3fbadb909cf"
+    }
+  ],
+  "close_preserved": [
+    {
+      "path": "infrastructure/hkconnect_close_store.py",
+      "sha256": "2dd564b561381f97698aca535b44c8e51fea45d197e29200f1c1096adfb53667"
+    },
+    {
+      "path": "ops/collect_hkconnect_close_snapshot.py",
+      "sha256": "34651399051465d4e13364c7b8db16fdd6c46abe23135f1f87d79c4800b163a9"
+    }
+  ],
+  "candidate_inventories": {
+    "api": {
+      "entry_count": 1178,
+      "sha256": "a7631d36c78f795a0b348fa79e057eb15f028486e535bd7a8f672b715c6bb020"
+    },
+    "scheduler": {
+      "entry_count": 715,
+      "sha256": "15b2aeb8194d46b3409094b22985d61ffe14892727978fb5f3bb25e4473a56ca"
+    }
+  },
+  "api_candidate_verify": "PASS",
+  "syntax": "PASS",
+  "business_run": "NOT_RUN",
+  "services_changed": false
+}

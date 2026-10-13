@@ -8,6 +8,19 @@ def module():
  spec=importlib.util.spec_from_file_location('v10_candidate_preparation',HERE/'prepare_us_tdx_v10.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 
 
+def test_exact_close_scheduler_rebase_keeps_full_guard(tmp_path,monkeypatch):
+ m=module();raw=(HERE/m.ACTIVE_BASE_RECEIPT).read_bytes();base=json.loads(raw)['base']
+ m.require_exact_active_base(base)
+ changed=json.loads(json.dumps(base));changed['scheduler']['inventory_sha256']='0'*64
+ with pytest.raises(ValueError,match='EXACT_ACTIVE_V8_CLOSE_BASE_DRIFT'):m.require_exact_active_base(changed)
+ old=json.loads((HERE/'us-futu-v9-prepared-r1.json').read_bytes())['base']
+ assert old['api']==base['api'] and old['api_plist_sha256']==base['api_plist_sha256']
+ with pytest.raises(ValueError,match='EXACT_ACTIVE_V8_CLOSE_BASE_DRIFT'):m.require_exact_active_base(old)
+ monkeypatch.setattr(m,'HERE',tmp_path)
+ (tmp_path/m.ACTIVE_BASE_RECEIPT).write_bytes(raw+b' ')
+ with pytest.raises(ValueError,match='EXACT_ACTIVE_BASE_RECEIPT_DRIFT'):m.require_exact_active_base(base)
+
+
 def test_exact_owner_allowlist_rejects_other_upstreams_and_mirror(monkeypatch):
  m=module();import operate_v7_cutover as operator
  original=operator.allowed_source

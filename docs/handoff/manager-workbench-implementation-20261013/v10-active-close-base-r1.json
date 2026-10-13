@@ -1,0 +1,80 @@
+{
+  "status": "EXACT_ACTIVE_BASE_READONLY",
+  "base": {
+    "api": {
+      "release_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-api",
+      "app_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-api/app",
+      "release_id": "manager-workbench-20261013-v8-api",
+      "release_manifest_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v8-scheduled-pause-r1/manager-workbench-20261013-v8-api/release-manifest.json",
+      "release_manifest_sha256": "6fb0abb88a8220b16a72bc9708e5e8746414b7e487bbf1b4be847f8e5df01b62",
+      "application_inventory_sha256": "3d8180cd975c3794c4ddd894200ff40d14bc9d7c44117da76fc7b30022ad2036",
+      "application_inventory_entry_count": 1178
+    },
+    "api_plist_sha256": "a32460b3d3f4d5d40f71807f9d766adc7a0787124cb0ceb61e16e7930c5d4d7a",
+    "scheduler": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-time-20261013-r1/app",
+      "plist_sha256": "078e5378bec901a40e3916156b80a1876e175bdaeed915f0871ddb80fd44bcf9",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-time-20261013-r1/release-manifest.json",
+      "manifest_sha256": "03f7d1d6f0897b66c074cc30ecfd8d5920919b84d0cb5df97ee11bf8e18948cd",
+      "inventory_sha256": "5cc8ff3b16461a3dc9d8f65f42c5b3a3d16f4110226c95d1e0bafc5fca8fbf18"
+    }
+  },
+  "canonical_preimages": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "expected_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "actual_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "expected_sha256": "a300af9e42f8c2c224b72105b66279e05002fbe9b2e22e90f894bf2d79af6513",
+      "actual_sha256": "a300af9e42f8c2c224b72105b66279e05002fbe9b2e22e90f894bf2d79af6513",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "expected_sha256": "38ce99d89eccd14b54891c13024622240398fcd283cf71782a8f83ee2afd8ebc",
+      "actual_sha256": "38ce99d89eccd14b54891c13024622240398fcd283cf71782a8f83ee2afd8ebc",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "expected_sha256": "b875ad9f3e66c6efff94ede41f6f263ce92926c82c0863c9ef0cfc482beab4cd",
+      "actual_sha256": "b875ad9f3e66c6efff94ede41f6f263ce92926c82c0863c9ef0cfc482beab4cd",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "expected_sha256": "a03953d8e57a7c16397cdbc0a940b85bac489399bb0e52d29764a9baa35d8b9b",
+      "actual_sha256": "a03953d8e57a7c16397cdbc0a940b85bac489399bb0e52d29764a9baa35d8b9b",
+      "match": true
+    }
+  ],
+  "manager_behavior_unchanged": [
+    {
+      "path": "v4/manager_workbench/config.py",
+      "old_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4",
+      "current_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/scheduler.py",
+      "old_sha256": "6d670e53da10894f1a8b63393d280cec159711d00b3c37b978fdcff3ee48682b",
+      "current_sha256": "6d670e53da10894f1a8b63393d280cec159711d00b3c37b978fdcff3ee48682b",
+      "match": true
+    },
+    {
+      "path": "ops/run_v35_macos_scheduler_daemon.py",
+      "old_sha256": "b076c635254caded9610e817572d7b039064654d8a91984fc9691d82171dcc77",
+      "current_sha256": "b076c635254caded9610e817572d7b039064654d8a91984fc9691d82171dcc77",
+      "match": true
+    }
+  ],
+  "only_scheduler_inventory_changes": [
+    "infrastructure/hkconnect_close_store.py",
+    "ops/collect_hkconnect_close_snapshot.py"
+  ],
+  "prior_guard_failed": true,
+  "formal_writes": 0
+}

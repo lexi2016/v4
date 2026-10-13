@@ -1,0 +1,30 @@
+{
+  "status": "UI_VERIFIED_FORMAL_RETROSPECTIVE",
+  "run_id": "094bf5c30902477d8e18ea22c8ec7c5e",
+  "target_date": "20261013",
+  "page_url": "http://127.0.0.1:8873/manager-selection/?date=20261013&phase=RETROSPECTIVE&run_id=094bf5c30902477d8e18ea22c8ec7c5e",
+  "observed_counts": {
+    "selected": 95,
+    "watch": 276,
+    "unassessed": 321,
+    "observation_only": 0,
+    "not_selected": 1
+  },
+  "checks": [
+    "Full reload retained exact run and date",
+    "Strict selected server filter: 50 plus 45 rows, total95; full counts unchanged",
+    "Research progress: US33 observed/4 evaluated/29 unassessed; oversold692/568/124",
+    "HK.00119 detail: close1.2350000143051147 <= threshold1.2720000267028808; volume_ratio1.565873889716724571935462535; price_pass and volume_pass true",
+    "Evidence raw SHA d4c85f8da7fd6e36cce325ae5d04222a7c8bb3e0bc05031c30db6efb713486e5, price session20261012",
+    "RETROSPECTIVE visible; RESEARCH_ONLY=true production_allowed=false buy_gate_updated=false orders_sent=false"
+  ],
+  "screenshot": "/Users/lexi/.codex/visualizations/2026/10/13/01a132ee-de9e-7122-bc06-6cbf7417dbc6/manager-95-selected.jpg",
+  "natural_verified": false,
+  "deferred_display_limitations": [
+    "Some stock names absent",
+    "Readable oversold explanation absent in main detail; numerical metrics available in expanded evidence",
+    "Aggregate321 UNASSESSED differs from oversold124 source gaps; single-lane nonselection does not imply all paths rejected"
+  ],
+  "browser_tab": 11,
+  "frontend_changed": false
+}

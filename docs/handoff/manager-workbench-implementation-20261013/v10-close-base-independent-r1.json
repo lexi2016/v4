@@ -1,0 +1,128 @@
+{
+  "verdict": "PASS",
+  "scope": "TWO_REBASE_HELPER_FILES_AND_ACTUAL_V10_PREPARED_PLAN_ONLY",
+  "reviewer": "/root/manager_reviewer_sol",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "statuses": [
+    "REVIEWED",
+    "TESTED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "helper_sha": "e4e83092d6fe899bc45071625a5cc6fe8722c03250efb1cd4d4f4d93b0267c8b",
+  "test_sha": "a5767dbe88dd502dd23eab31c368ce9e1389ac05747b795d0bb0474138bc8495",
+  "active_base_receipt_sha": "70372fef3c2327a833783212fec0ee53f7afbfea4b5b94e868fa380d38c80767",
+  "prepared_receipt_sha": "a08b701dc3c89d475b4e3e9555be413cc360bb4a7a978fa3e33139098faea4ad",
+  "plan_sha": "efa407035565ab14f7322e90e0738eab36557f64ed764f78646f1ce10bc70d8b",
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 <python> -m pytest -q -p no:cacheprovider H/test_v10_preparation.py --basetemp /private/tmp/mwb-v10-close-base-tests-independent --tb=short",
+  "test_result": "5 passed in 0.04s",
+  "dry_run_command": "PYTHONDONTWRITEBYTECODE=1 <python> H/prepare_us_tdx_v10.py operate --plan H/.tmp/v10-panel-gaps-r1/operator-plan.json --plan-sha256 efa407035565ab14f7322e90e0738eab36557f64ed764f78646f1ce10bc70d8b --operation apply (NO --execute)",
+  "dry_run_result": "DRY_RUN_PASS exit0 formal_writesfalse lease_grantedfalse",
+  "five_business_sha": {
+    "v4/manager_workbench/inputs/native.py": "832045f6b53855ece3b4ad87f551bab03f21d38555a4ff9c1211401392d61117",
+    "v4/manager_workbench/inputs/source_bindings.py": "9b0c32b64055cd9fb7ad78dc02a1f35d7f81b5227a141662b3299f459443622a",
+    "v4/manager_workbench/engines/oversold.py": "1efccaf9233cf371ab798e27644c620c1ed800e41e3b966759ce64976437e0de",
+    "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": "d7b417374c4c674246beb0164b2246f26d82d8e9f79cd54a81ece785a7e27b65",
+    "v4/manager_workbench/engines/us_mapping.py": "c5a0130b78533daaee9bf2d4e7c34e6a7d42bf9eb8a6b164815e30de29616c39"
+  },
+  "candidates": {
+    "api": {
+      "before_inventory_count": 1178,
+      "after_inventory_count": 1178,
+      "changed_paths": [
+        "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+        "v3_shared_data/shared_data/hk_daily_supplement.py",
+        "v4/manager_workbench/engines/oversold.py",
+        "v4/manager_workbench/engines/us_mapping.py",
+        "v4/manager_workbench/inputs/native.py",
+        "v4/manager_workbench/inputs/source_bindings.py"
+      ],
+      "non_delta_preserved": 1172,
+      "candidate_manifest_sha": "a89cecfb5a80a1a2892c36e2e44a6357194d7a4432f59466ac85df097666b451",
+      "close_files": {
+        "infrastructure/hkconnect_close_store.py": "aea05a0ec8b4b42e6c140715fb1bf80ffcf49ded1f25f5bb59bc3c952bce4bf8",
+        "ops/collect_hkconnect_close_snapshot.py": "901905f77532fe61674d2f423b6fab1babc86b3b6f5e3aeb5a34abce91630c76"
+      }
+    },
+    "scheduler": {
+      "before_inventory_count": 714,
+      "after_inventory_count": 715,
+      "changed_paths": [
+        "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+        "v4/manager_workbench/engines/oversold.py",
+        "v4/manager_workbench/engines/us_mapping.py",
+        "v4/manager_workbench/inputs/native.py",
+        "v4/manager_workbench/inputs/source_bindings.py"
+      ],
+      "non_delta_preserved": 710,
+      "candidate_manifest_sha": "db24c095abd2a109210f40ee11e2a1da2d748ff7633640af4f33f7b813c9e524",
+      "close_files": {
+        "infrastructure/hkconnect_close_store.py": "2dd564b561381f97698aca535b44c8e51fea45d197e29200f1c1096adfb53667",
+        "ops/collect_hkconnect_close_snapshot.py": "34651399051465d4e13364c7b8db16fdd6c46abe23135f1f87d79c4800b163a9"
+      }
+    }
+  },
+  "entries": [
+    {
+      "kind": "config",
+      "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json",
+      "before_sha256": "0a76879d1f658d326c54af5289f09ee2a42e51e0f9976da29df6a208d49ecd20",
+      "after_sha256": "dd6cb0018b2605f955e8843d2738a7b921ff0c9524f6653f72735fa9c9f443d7"
+    },
+    {
+      "kind": "canonical",
+      "target": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "after_sha256": "d7b417374c4c674246beb0164b2246f26d82d8e9f79cd54a81ece785a7e27b65"
+    },
+    {
+      "kind": "canonical",
+      "target": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/v4/manager_workbench/engines/oversold.py",
+      "before_sha256": "a300af9e42f8c2c224b72105b66279e05002fbe9b2e22e90f894bf2d79af6513",
+      "after_sha256": "1efccaf9233cf371ab798e27644c620c1ed800e41e3b966759ce64976437e0de"
+    },
+    {
+      "kind": "canonical",
+      "target": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/v4/manager_workbench/engines/us_mapping.py",
+      "before_sha256": "38ce99d89eccd14b54891c13024622240398fcd283cf71782a8f83ee2afd8ebc",
+      "after_sha256": "c5a0130b78533daaee9bf2d4e7c34e6a7d42bf9eb8a6b164815e30de29616c39"
+    },
+    {
+      "kind": "canonical",
+      "target": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/v4/manager_workbench/inputs/native.py",
+      "before_sha256": "b875ad9f3e66c6efff94ede41f6f263ce92926c82c0863c9ef0cfc482beab4cd",
+      "after_sha256": "832045f6b53855ece3b4ad87f551bab03f21d38555a4ff9c1211401392d61117"
+    },
+    {
+      "kind": "canonical",
+      "target": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "a03953d8e57a7c16397cdbc0a940b85bac489399bb0e52d29764a9baa35d8b9b",
+      "after_sha256": "9b0c32b64055cd9fb7ad78dc02a1f35d7f81b5227a141662b3299f459443622a"
+    },
+    {
+      "kind": "plist",
+      "target": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "before_sha256": "a32460b3d3f4d5d40f71807f9d766adc7a0787124cb0ceb61e16e7930c5d4d7a",
+      "after_sha256": "c38491b7edb92812d459f727ca748b1ea827fa4d851713baa3e087671fe9fc8b"
+    },
+    {
+      "kind": "plist",
+      "target": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "before_sha256": "078e5378bec901a40e3916156b80a1876e175bdaeed915f0871ddb80fd44bcf9",
+      "after_sha256": "fb773979922c9c4afe1cdeb5ab3d5038e6b4a8353182e1edbd848c74993281df"
+    }
+  ],
+  "formal_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench",
+  "formal_read_before_after_unchanged": true,
+  "rollback_backups_all_match": true,
+  "unchanged_operator_rollback_reused": true,
+  "scope_limit": "Only candidate/preflight approval; actual cutover/readback required; prior 124 source gaps retained",
+  "not_run": [
+    "APPLY",
+    "BOOTOUT_BOOTSTRAP",
+    "FORMAL_STATE_WRITES",
+    "POST_DEPLOYMENT_API_UI",
+    "NATURAL_SLOT"
+  ]
+}

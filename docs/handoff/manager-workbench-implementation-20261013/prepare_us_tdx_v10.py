@@ -1,4 +1,4 @@
-"""Prepare the reviewed panel-first five-source delta on active V8; no activation."""
+"""Prepare the reviewed panel-first delta on exact V8 API/Close scheduler; no activation."""
 from pathlib import Path
 import argparse,copy,hashlib,json,plistlib,shutil,sys,stat
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[2]
@@ -12,6 +12,14 @@ def dump(path,value):path.write_text(json.dumps(value,indent=2)+'\n')
 OWNER='upstreams/v3_shared_data/shared_data/hk_daily_supplement.py'
 MIRROR='v3_shared_data/shared_data/hk_daily_supplement.py'
 BUSINESS={'v4/manager_workbench/inputs/native.py','v4/manager_workbench/inputs/source_bindings.py','v4/manager_workbench/engines/us_mapping.py','v4/manager_workbench/engines/oversold.py',OWNER}
+ACTIVE_BASE_RECEIPT='v10-active-close-base-r1.json'
+ACTIVE_BASE_RECEIPT_SHA256='70372fef3c2327a833783212fec0ee53f7afbfea4b5b94e868fa380d38c80767'
+
+def require_exact_active_base(base):
+ raw=(HERE/ACTIVE_BASE_RECEIPT).read_bytes()
+ if sha(raw)!=ACTIVE_BASE_RECEIPT_SHA256:raise ValueError('EXACT_ACTIVE_BASE_RECEIPT_DRIFT')
+ frozen=json.loads(raw)
+ if frozen.get('status')!='EXACT_ACTIVE_BASE_READONLY' or base!=frozen['base']:raise ValueError('EXACT_ACTIVE_V8_CLOSE_BASE_DRIFT')
 
 def install_exact_owner_guard():
  import operate_v7_cutover as operator
@@ -87,8 +95,7 @@ def prepare(out,*,pin_path,pin_sha256,cutoff,source_receipt,source_receipt_sha25
   sinv=inventory_tree(sroot)
   if sinv!=json.loads(smanifest.read_text())['application_inventory']['entries']:raise ValueError('SCHEDULER_INVENTORY_DRIFT')
   araw=API.read_bytes();base=dict(api=_base_binding(active),api_plist_sha256=sha(araw),scheduler=dict(app_root=str(sroot),plist_sha256=sha(sraw),manifest_path=str(smanifest),manifest_sha256=sha(smanifest.read_bytes()),inventory_sha256=inventory_digest(sinv)))
-  frozen_base=json.loads((HERE/'us-futu-v9-prepared-r1.json').read_bytes())['base']
-  if base!=frozen_base:raise ValueError('EXACT_ACTIVE_V8_BASE_DRIFT')
+  require_exact_active_base(base)
   payload={}
   for item in files:
    rel=item['path'];raw=(ROOT/rel).read_bytes()
@@ -149,7 +156,7 @@ def prepare(out,*,pin_path,pin_sha256,cutoff,source_receipt,source_receipt_sha25
   if API.read_bytes()!=araw or SCHED.read_bytes()!=sraw or inventory_tree(sroot)!=sinv or read_active_release(API)['application_inventory_sha256']!=active['application_inventory_sha256']:raise ValueError('ACTIVE_PARALLEL_DRIFT')
   plan=dict(status='PREPARED_NOT_EXECUTED',candidate_api=str(apps['api']),candidate_scheduler=str(apps['scheduler']),api_manifest_sha256=manifest_shas['api'],scheduler_manifest_sha256=manifest_shas['scheduler'],plists=pairs,entries=plan_entries,capture_enabled=False,scheduled_lanes=['US_MAPPING','OVERSOLD'],formal_state_changed=False,base=base,tdx_panel_gap_pin_sha256=pin_sha256,tdx_panel_gap_manifest=tdx_manifest,review_receipt=dict(path=str(review_receipt),sha256=review_receipt_sha256))
   validate(plan,'apply');pp=out/'operator-plan.json';dump(pp,plan)
-  receipt=dict(status='PREPARED_DRY_RUN_PASS',plan=str(pp),plan_sha256=sha(pp.read_bytes()),candidate_manifests=manifest_shas,delta_files=files,api_non_delta_preserved=True,scheduler_non_delta_preserved=True,formal_writes=0,services_changed=False,api_delta_paths=sorted(payload),scheduler_delta_paths=sorted(spayload),canonical_sync_paths=[x['path'] for x in files],tdx_pin_sha256=pin_sha256)
+  receipt=dict(status='PREPARED_DRY_RUN_PASS',plan=str(pp),plan_sha256=sha(pp.read_bytes()),candidate_manifests=manifest_shas,delta_files=files,api_non_delta_preserved=True,scheduler_non_delta_preserved=True,formal_writes=0,services_changed=False,api_delta_paths=sorted(payload),scheduler_delta_paths=sorted(spayload),canonical_sync_paths=[x['path'] for x in files],tdx_pin_sha256=pin_sha256,approved_base_receipt=dict(path=str(HERE/ACTIVE_BASE_RECEIPT),sha256=ACTIVE_BASE_RECEIPT_SHA256))
   dump(out/'receipt.json',receipt);print(json.dumps(receipt))
 def main():
  p=argparse.ArgumentParser(description=__doc__);sub=p.add_subparsers(dest='mode',required=True)
