@@ -1,0 +1,83 @@
+{
+  "status": "FORMAL_READBACK",
+  "capture_enabled": false,
+  "responses": {
+    "health": {
+      "status": 200,
+      "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+      "product_sha256": null,
+      "run_id": null,
+      "counts": null
+    },
+    "stages": {
+      "status": 200,
+      "sha256": "49488168349c5b68f2b80eb55a3e6797d9a308150fc8f348449a5c83d7e7dcda",
+      "product_sha256": null,
+      "run_id": null,
+      "counts": null
+    },
+    "single": {
+      "status": 200,
+      "sha256": "0ef3b05cc079f31f895ab2145ec5dca8842142b3e5c24dba26690f13eb17f9e4",
+      "product_sha256": "518f43800ff7829e3ef4895c113bda443ae61ab9e0edf362e6f296adb94266b0",
+      "run_id": "fb5b9a669d4242378b5c74877e78a319",
+      "counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 1,
+        "observation_only": 0,
+        "not_selected": 0
+      }
+    },
+    "partial": {
+      "status": 200,
+      "sha256": "e0edfa0a191854c892c4a6f92b4495f050857d628003e9a567145971fb9585aa",
+      "product_sha256": "2b083e95665f400b14e63aadd19611e532cc8d923fa1fa6dd52330d49f1d295c",
+      "run_id": "bbeb6f8462044bb6ad6b3bf811d50762",
+      "counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 6,
+        "observation_only": 0,
+        "not_selected": 1
+      }
+    },
+    "page": {
+      "status": 200,
+      "sha256": "750b7c694a72dc1ae162815a57ee9b99bbced712c64f76acdb59cca779600c2d",
+      "product_sha256": null,
+      "run_id": null,
+      "counts": null
+    }
+  },
+  "services": {
+    "com.lexi.v35.api-only": {
+      "plist_sha256": "522cf4c5c4cfc25a3ef5002de03eb3b74b214e0fa20beddee3901685f3d3dea2",
+      "working_directory": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/isolated-api-candidate-v7-final/app",
+      "manager_config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json",
+      "state": [
+        "state = running",
+        "program = /usr/bin/env",
+        "pid = 93541",
+        "last exit code = (never exited)",
+        "state = active",
+        "state = active"
+      ],
+      "inspection_exit_code": 0
+    },
+    "com.lexi.v35.scheduler": {
+      "plist_sha256": "daf7c329adf89d6ab1160fe16476cb641905f02238d4c745eed9f55f841aa298",
+      "working_directory": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/isolated-scheduler-candidate-v7-final/app",
+      "manager_config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json",
+      "state": [
+        "state = running",
+        "program = /bin/bash",
+        "pid = 93543",
+        "last exit code = (never exited)",
+        "state = active",
+        "state = active"
+      ],
+      "inspection_exit_code": 0
+    }
+  }
+}

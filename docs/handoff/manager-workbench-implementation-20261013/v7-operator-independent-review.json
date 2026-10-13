@@ -1,0 +1,29 @@
+{
+  "schema": "mwb.independent.v7-operator-review.v2",
+  "verdict": "PASS_PREPARED_FOR_EXPLICIT_EXECUTION",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "fix_receipt_sha256": "c9cbde364ad5c8b10bf42f21f21252666d15d4136c8ef90162eea7c2aeb89099",
+  "r1_failure_receipt_sha256": "a6e1ea5e068866b70d20cca2d97bd580fa814c8ee5a8153838a6c58b320498d6",
+  "actual_plan_sha256": "dfc02cda34fdf00cf2f526d0359266bd396ef4bebd0520a9888509d95a54255b",
+  "actual_entries": 8099,
+  "removed_only_revoked_lease": true,
+  "all_other_pre_post_sha_unchanged": true,
+  "canonical_paths_checked": 105,
+  "formal_targets_unchanged": true,
+  "REVIEWED": "Explicit canonical paths/pre-post SHA, two exact plist paths/preimages, three distinct formal roots, capture false/no token, RETROSPECTIVE-only saved records; r2 excludes lease and guard rejects former transfer",
+  "TESTED": "4 dedicated tests passed in0.04s; actual plan read-only validate; second-bootstrap failure direct simulation restores prior config/canonical/both plists; mutex held across every stop/write/start/restore",
+  "BEHAVIOR_VERIFIED": "Temporary fake-launch apply/whole rollback/parallel-drift refusal/second-start failure whole restoration and preservation of evidence",
+  "second_start_failure_bootstrap_count": 4,
+  "shared_kernel_lock_probe": "fcntl.flock nonblocking probe on actual persistent .mutex inode rejected within each mutation callback",
+  "allowed_next_action": "Explicit execution of exact r2 planSHA under existing authorization; live API/UI verification required after execution",
+  "real_formal_writes": 0,
+  "launchctl_calls": 0,
+  "network_model_calls": 0,
+  "NOT_RUN": [
+    "formal deployment",
+    "active API/UI after cutover",
+    "natural slot"
+  ]
+}

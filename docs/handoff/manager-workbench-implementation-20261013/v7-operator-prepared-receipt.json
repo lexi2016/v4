@@ -1,0 +1,45 @@
+{
+  "status": "PREPARED_FOR_REVIEW",
+  "goal": "Approved-root capture-disabled formal configuration; guarded exact-source/material transfer and shared-lock dual-service apply/whole rollback operator entry",
+  "files": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/prepare_v7_operator.py",
+      "sha256": "4390ecd9ca78caea11683f6c11c242ea079a6cef3ee6ec96c297e40d4a4d1b51"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/operate_v7_cutover.py",
+      "sha256": "9c8267d1163de448fb847a1a1c57d80f4cf9c4da03c054fdf3d4fa9958def41c"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/test_v7_operator.py",
+      "sha256": "a9a466b4c97c9071750d94a87d4c05e083dda798ba00eae3db270a3db6fdf76b"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/manager-workbench-v7-formal.prepared.json",
+      "sha256": "575bf4b399691638589af2536863046f74b21158ae52e64a94c1e87e4798d2ff"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/stage_v7_cutover.py",
+      "sha256": "6796c290a3b13d020ecf1309af0953ad4c4ad5a65faebbb8bda4f85344c68aa1"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/V7_EXECUTION_AND_ROLLBACK.md",
+      "sha256": "755d4fb18537517cfe4728d026493c2877753fd62318d3b71e4dd68fb11302d4"
+    }
+  ],
+  "python": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+  "tests": "...                                                                      [100%]\n3 passed in 0.04s\n",
+  "test_method": "Temp-root apply/rollback, fake launch control, actual shared kernel lock, raw SHA checks, parallel edit fail-before-write, forbidden path refusal, startup failure restoration",
+  "formal_actions_executed": false,
+  "model_network_executed": false,
+  "canary_proof_pending_for_plan_generation": true,
+  "material_policy": "Exact raw bytes/relative refs and sourceSHA; no natural/PIT promotion",
+  "frozen_business_changed": false,
+  "not_run": [
+    "formal writes",
+    "launchctl",
+    "lease grant",
+    "model/network",
+    "real activation API/UI"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "status": "IMPLEMENTED_FOR_NARROW_REVIEW",
+  "scope": "Exclude capture lease transfer and reject lease target; no business changes",
+  "files": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/prepare_v7_operator.py",
+      "before_sha256": "4390ecd9ca78caea11683f6c11c242ea079a6cef3ee6ec96c297e40d4a4d1b51",
+      "after_sha256": "12b611492bd07cae3cd485fd204a1664655fc3f895b882376b8609af135663dd"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/operate_v7_cutover.py",
+      "before_sha256": "9c8267d1163de448fb847a1a1c57d80f4cf9c4da03c054fdf3d4fa9958def41c",
+      "after_sha256": "8ab055c7163a952b6cf2501a0b82509ffcdab3631f8837e376804ff3f0c7fdf7"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/test_v7_operator.py",
+      "before_sha256": "a9a466b4c97c9071750d94a87d4c05e083dda798ba00eae3db270a3db6fdf76b",
+      "after_sha256": "569cd8b868fb79bae9d0a9492520cceb1b4383471f60c909a1153cad0b6d7cc7"
+    }
+  ],
+  "plan": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v7-operator-r2/operator-plan.json",
+  "plan_sha256": "dfc02cda34fdf00cf2f526d0359266bd396ef4bebd0520a9888509d95a54255b",
+  "old_plan_preserved_sha256": "ab9bdc15fdf03fcd56b30fd6e67dcb014f840b31359a722002658a77f26f53e9",
+  "removed_targets": [
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/leases/EASTMONEY_HK.json"
+  ],
+  "retained_other_entry_bytes": true,
+  "entry_counts": {
+    "config": 1,
+    "canonical": 105,
+    "saved_state": 21,
+    "capture_material": 7970,
+    "plist": 2
+  },
+  "tests": "....                                                                     [100%]\n4 passed in 0.04s\n",
+  "dry_run": "{\"status\": \"DRY_RUN_PASS\", \"mode\": \"apply\", \"formal_writes\": false, \"capture_enabled\": false, \"lease_granted\": false, \"plan_sha256\": \"dfc02cda34fdf00cf2f526d0359266bd396ef4bebd0520a9888509d95a54255b\"}\n",
+  "formal_actions": 0,
+  "capture_enabled": false,
+  "lease_granted": false
+}
