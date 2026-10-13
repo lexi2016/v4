@@ -1,0 +1,47 @@
+{
+  "state": "SUCCEEDED",
+  "candidate_app": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/isolated-api-candidate-v7-final/app",
+  "target_date": "20261013",
+  "phase": "RETROSPECTIVE",
+  "article_id": "EASTMONEY:AN202610131830378826:HK.01511",
+  "run_id": "fb5b9a669d4242378b5c74877e78a319",
+  "product_sha256": "518f43800ff7829e3ef4895c113bda443ae61ab9e0edf362e6f296adb94266b0",
+  "counts": {
+    "selected": 0,
+    "watch": 0,
+    "unassessed": 1,
+    "observation_only": 0,
+    "not_selected": 0
+  },
+  "http_status": 200,
+  "immutable_saved_readback": true,
+  "model_calls": 2,
+  "capture_enabled": false,
+  "status": "API_UI_VERIFIED_ISOLATED",
+  "source": "EASTMONEY_HK",
+  "proof_sha256": "98921df891ce6ec5dee267f8f022976b752d8b1362d530ca0125ea86845b039d",
+  "browser": "Codex IAB",
+  "views_verified": [
+    "list",
+    "stock_detail",
+    "progress",
+    "history",
+    "recap_missing_explicit"
+  ],
+  "reload_persisted": true,
+  "console_errors": [],
+  "observations": [
+    "HK.01511 and category/count agree with saved API",
+    "Original quotes and semantic reasons/risks visible",
+    "History product SHA agrees with API",
+    "Other unassessed lanes remain visible",
+    "No saved same-run close recap; UI reports missing",
+    "Single-article scope; not full-date research acceptance"
+  ],
+  "deployed": false,
+  "natural_verified": false,
+  "backlog": [
+    "source connection resets and volatile catalogue body-cache identity",
+    "Model narrative is English; localization deferred"
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "status": "PARTIAL",
+  "run_id": "bbeb6f8462044bb6ad6b3bf811d50762",
+  "failure_code": null,
+  "http_status": 200,
+  "model_calls": 0,
+  "phase": "RETROSPECTIVE",
+  "formal_deployed": false,
+  "lanes": [
+    {
+      "lane": "US_MAPPING",
+      "state": "PARTIAL",
+      "coverage": {
+        "scope_count": 33,
+        "observed_count": 33,
+        "assessed_count": 0,
+        "unassessed_count": 33,
+        "gaps": [
+          "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,AVGO,BOTZ,CIEN,CLOU,COHR,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,LITE,MU,NLR,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+          "RECORDS_UNASSESSED"
+        ]
+      },
+      "gaps": [
+        "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,AVGO,BOTZ,CIEN,CLOU,COHR,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,LITE,MU,NLR,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+        "RECORDS_UNASSESSED"
+      ]
+    },
+    {
+      "lane": "OVERSOLD",
+      "state": "INPUT_MISSING",
+      "coverage": {
+        "scope_count": null,
+        "observed_count": null,
+        "assessed_count": null,
+        "unassessed_count": null,
+        "gaps": [
+          "HK_MASTER_SCOPE_COUNT_MISMATCH"
+        ]
+      },
+      "gaps": [
+        "HK_MASTER_SCOPE_COUNT_MISMATCH"
+      ]
+    },
+    {
+      "lane": "STAGE_REFERENCE",
+      "state": "INPUT_MISSING",
+      "coverage": {
+        "scope_count": null,
+        "observed_count": null,
+        "assessed_count": null,
+        "unassessed_count": null,
+        "gaps": [
+          "SOURCE_BYTES_SHA_MISMATCH"
+        ]
+      },
+      "gaps": [
+        "SOURCE_BYTES_SHA_MISMATCH"
+      ]
+    },
+    {
+      "lane": "CLOSE_REFERENCE",
+      "state": "INPUT_MISSING",
+      "coverage": {
+        "scope_count": null,
+        "observed_count": null,
+        "assessed_count": null,
+        "unassessed_count": null,
+        "gaps": [
+          "CLOSE_EXACT_DATE_BINDING_MISSING"
+        ]
+      },
+      "gaps": [
+        "CLOSE_EXACT_DATE_BINDING_MISSING"
+      ]
+    }
+  ],
+  "product_sha256": "2b083e95665f400b14e63aadd19611e532cc8d923fa1fa6dd52330d49f1d295c",
+  "counts": {
+    "selected": 0,
+    "watch": 0,
+    "unassessed": 6,
+    "observation_only": 0,
+    "not_selected": 1
+  }
+}

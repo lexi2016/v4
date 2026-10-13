@@ -1,0 +1,84 @@
+{
+  "schema": "mwb.independent.v7-final-review.v1",
+  "verdict": "PASS_CAPTURE_DISABLED_CANDIDATE",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "reviewer": "/root/manager_reviewer_sol",
+  "freeze_receipt_sha256": "6283d7054364754a2c504d36a0676723e592cea5c5072a92c40325ca110fc5db",
+  "candidate": {
+    "api": {
+      "manifest_sha256": "355c38d2933e496c1bfbbb3108a95afb54d87d3bc9066549ca2aa4feaa9de6e1",
+      "inventory_sha256": "8ab23e147f659adad2eceb7710c66fa9813c13331f3f72b260522a24399551c2",
+      "delta_files": 106,
+      "retained_files": 1072,
+      "source_byte_match": true
+    },
+    "scheduler": {
+      "manifest_sha256": "5b405791981162e286800813ecf07b679cdeb8334157bd2ff5a5b4ea727175f9",
+      "inventory_sha256": "833b8c2296569da53e19a4b9975167a6ffba1081319b20abc4594291de968796",
+      "delta_files": 95,
+      "retained_files": 619,
+      "source_byte_match": true
+    }
+  },
+  "real_chain": {
+    "proof_sha256": "98921df891ce6ec5dee267f8f022976b752d8b1362d530ca0125ea86845b039d",
+    "run_id": "fb5b9a669d4242378b5c74877e78a319",
+    "product_sha256": "518f43800ff7829e3ef4895c113bda443ae61ab9e0edf362e6f296adb94266b0",
+    "raw_capture_product_sha256": "b3c3c11102a8ae3680c0dc1795d8b11748e2cd2f0864d93e1d12cb1ffc64293d",
+    "article_source_sha256": "fa42293bd8ab75354724466518f86b7ffbdab0a497af19b2b46f08d3c5c2f465",
+    "article_body_sha256": "e8d1f561a7e9d125e264117c0843eda1dea851f8ed927adb36576445630f6def",
+    "material_refs_checked": 2,
+    "input_snapshot_sha256": "4f024d88333f5c7a102b2a49257bb9806213f0391853a3986e3f416a251f9309",
+    "common_input_sha256": "4a63b4d8e1b2da1860432c5c3bb7cc37d2e83ea0218621ca9033f97f8212a7be",
+    "Reader": {
+      "pid": 90401,
+      "execution_id": "87cd1c68e1054fe89442b0c7e087a95c",
+      "output_sha256": "343bc0f226e55575f022a4b928025adac5189b346dba8817d8f82523265d7852"
+    },
+    "Reviewer": {
+      "pid": 90514,
+      "execution_id": "b984d21b22304318a3db761ac63fbeba",
+      "output_sha256": "3da3264e38f844f6a9b1b530b98ab516b955602ad232d3c6aa5e9661749cf40c"
+    },
+    "source_owner": "EASTMONEY_MIRROR",
+    "membership": "VERIFIED",
+    "quote_validation": "exact continuous substrings and nonempty locators",
+    "announcement_disposition": "NOT_SELECTED",
+    "review_confirmed": true,
+    "aggregate": "UNASSESSED",
+    "aggregate_reason": "Only announcement lane evaluated; US_MAPPING and OVERSOLD absent, so global NOT_SELECTED cannot be inferred",
+    "saved_readback": true,
+    "independent_http_status": 200,
+    "http_semantic_digest": "3341e22e1bb726e74b380deacdb7651eee8728481690239044cdd7dda5c9ae16",
+    "real_state_files_unchanged": 27,
+    "referenced_raw_bytes_unchanged": true
+  },
+  "source_gap": {
+    "r5_receipt_sha256": "3e48ab15dedd1df3e301b3b5abec5c46d9510e29ee8c4cbf337be59f7d8a79d1",
+    "full_observed": 802,
+    "complete": 236,
+    "outside": 15,
+    "source_gaps": 551,
+    "status": "DEFERRED_BY_USER; isolate failed rows, no global block",
+    "PIT": "CANNOT_CONFIRM",
+    "full_scope_semantics": "NOT_EVALUATED"
+  },
+  "REVIEWED": "Frozen V7 candidate byte/manifest/active-base identity and retained source; saved real single-article material/execution/output/plan chain",
+  "TESTED": "Read-only SHA/schema/exact quotes/task reconstruction/merge/readback; isolated-copy TestClient API200; prior code tests reused",
+  "BEHAVIOR_VERIFIED": "Single real Eastmoney article Reader/Reviewer completed independently and saved immutable product; saved API replay preserves classification",
+  "ui_receipt_sha256": "08ccf739f20fc2a9f219531748dc2be0886391f18b092dc3f2ecadffb3e2a17c",
+  "cutover_decision": "Permitted to proceed with capture disabled after operator helper review; actual deployment is not verified",
+  "network_calls_by_reviewer": 0,
+  "paid_model_calls_by_reviewer": 0,
+  "formal_state_writes": 0,
+  "NOT_RUN": [
+    "real full-scope semantics",
+    "operator helper review",
+    "formal config/plist/owner switch",
+    "deployment",
+    "natural slot"
+  ],
+  "scope_limit": "Checkpoint canonical output/schema/task identity verified; original ephemeral CLI result/event files are not replayed; prior fixed profile isolation receipt reused"
+}
