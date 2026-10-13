@@ -2,6 +2,7 @@
 from __future__ import annotations
 from datetime import date,datetime,timedelta,timezone
 from decimal import Decimal,InvalidOperation
+import hashlib,json
 from .common import current, hk_symbol, membership, result, row, valid_sha,timestamp
 
 
@@ -32,6 +33,17 @@ def positive_change(item):
     except (InvalidOperation,TypeError,AttributeError):return None
 
 
+def reviewed_diagnostic(context, item, assessment):
+    try:
+        original=assessment['original']
+        identity=hashlib.sha256(json.dumps(original,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
+        return (assessment.get('verification')=='REVIEWED' and identity==assessment.get('assessment_sha256')
+            and assessment.get('review_owner') and current(context,assessment.get('available_at'))
+            and current(context,original.get('available_at')) and original.get('us_symbol')==item.get('us_symbol')
+            and original.get('status')=='ASSESSED_WITH_GAPS' and original.get('conclusion')=='CANNOT_CONFIRM')
+    except (ValueError,TypeError,KeyError,AttributeError):return False
+
+
 def run_us_mapping(context, batch):
     u = context["scope_refs"].get("US_MAPPING") or {}
     configured = u.get("configured_symbols")
@@ -58,8 +70,16 @@ def run_us_mapping(context, batch):
         relations = item.get("relations")
         if not isinstance(relations, list) or not relations:
             # No relationship is never an implicit HK winner.
-            rows.append(dict(row(item, "UNASSESSED", "US_REVIEWED_RELATION_ABSENT", source_index=index,
-                                 us_symbol=item.get("us_symbol"), relation_type=None), symbol=None))
+            assessments=[a for a in item.get("reviewed_assessments",[]) if isinstance(a,dict)
+                and reviewed_diagnostic(context,item,a)] if source_ok else []
+            proxies=[p for p in item.get('proxy_metadata',[]) if isinstance(p,dict) and p.get('mapping_type') in ('etf_proxy','etf_basket_proxy')
+                and p.get('source_sha256')==item.get('source_sha256') and p.get('owner')==item.get('owner')
+                and current(context,p.get('available_at'))] if source_ok else []
+            reason='US_REVIEWED_ASSESSMENT_WITH_GAPS' if assessments else 'US_ETF_THEME_PROXY_ONLY' if proxies else 'US_REVIEWED_RELATION_ABSENT'
+            rows.append(dict(row(item, "UNASSESSED", reason, source_index=index,
+                                 us_symbol=item.get("us_symbol"), relation_type=None,quote=item.get('quote'),
+                                 reviewed_assessments=assessments,proxy_metadata=proxies,
+                                 absence_scope='CHECKED_FROZEN_REVIEWED_RELATIONS_AND_SEED_ONLY'), symbol=None))
             continue
         for relation in relations:
             priority=relation.get("research_priority",item.get("source_status")) if isinstance(relation,dict) else None
@@ -70,14 +90,18 @@ def run_us_mapping(context, batch):
                         evidence_ids=(item.get("evidence_ids") or []) + (relation.get("evidence_ids") or [] if isinstance(relation, dict) else []))
             extra = dict(source_index=index, us_symbol=item.get("us_symbol"),
                          relation_type=relation.get("relation_type") if isinstance(relation, dict) else None,
-                         source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None)
-            if not (source_ok and isinstance(relation, dict) and hk_symbol(relation.get("target_symbol")) and
+                         source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], relation_limitations=relation.get("relation_limitations",[]) if isinstance(relation,dict) else [],quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None)
+            relation_ok=(source_ok and isinstance(relation, dict) and hk_symbol(relation.get("target_symbol")) and
                     relation.get("status") == "REVIEWED" and valid_sha(relation.get("sha256")) and
                     relation.get("review_owner") and current(context, relation.get("available_at")) and
-                    publication_before_cutoff(context, relation) and relation.get("relation_type") and
-                    priority in ("PRIORITY","WATCH","NONE") and change is not None and
-                    membership(base, context) is True):
-                rows.append(row(base, "UNASSESSED", "US_SESSION_RELATION_OR_CONNECT_UNVERIFIED", **extra))
+                    publication_before_cutoff(context, relation) and relation.get("relation_type"))
+            eligible=membership(base,context)
+            if not (relation_ok and priority in ("PRIORITY","WATCH","NONE") and change is not None and eligible is True):
+                blockers=[]
+                if relation_ok and priority not in ('PRIORITY','WATCH','NONE'):blockers.append('AUDITED_RESEARCH_PRIORITY_UNAVAILABLE')
+                if eligible is False:blockers.append('TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP')
+                reason='US_RELATION_PRIORITY_NOT_REVIEWED' if relation_ok and priority not in ('PRIORITY','WATCH','NONE') else 'US_SESSION_RELATION_OR_CONNECT_UNVERIFIED'
+                rows.append(row(base, "UNASSESSED", reason,diagnostic_gaps=blockers, **extra))
             elif change is False:
                 rows.append(row(base,"NOT_SELECTED","US_SOURCE_CHANGE_NOT_POSITIVE",**extra))
             elif priority == "NONE":

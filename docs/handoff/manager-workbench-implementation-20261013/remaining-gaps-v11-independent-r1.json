@@ -1,0 +1,83 @@
+{
+  "BEHAVIOR_VERIFIED": "Actual candidate root/calendar service→save→inprocessAPI; exact45pyc identity compatibility and6entry plan guards",
+  "P0_P1_P2_blockers": [],
+  "REVIEWED": "PASS",
+  "TESTED": "7passed0.24s exit0 isolatedbasetemp; actualplan dryrunexit0",
+  "allowed_next": "Apply only fixed reviewed6entry plan; resulting formal readback separately required",
+  "api_pages": 4,
+  "complete_api_stocks693": true,
+  "config_sha256": "0d592397737fea2cdb9bc61a12777a68b099eaf5613e1922f34cc197e19a73a9",
+  "exact_pyc_count": 45,
+  "formal_state_root_unchanged": true,
+  "formal_writes": 0,
+  "futu94_actual_consumed": true,
+  "helper_sha256": "c23bb1477746a47729d883118dc122b514efd84d58ba8b2a656e9a6e21044182",
+  "isolated_integration_proof": {
+    "path": "/private/tmp/mwb-v11-independent-TAG9c8/isolated-proof.json",
+    "sha256": "3eaa0ae1fba3ad7b3d0ed87c345843aa00a4f083aeedcb35c692e28175f8fe86"
+  },
+  "isolated_product_sha256": "aeef697d201544b2eaab6e3d60d117dc59352b8b3c11a89fb83cd4db92f42648",
+  "isolated_run_id": "933b5a7fbffa4171ad10bd864ee955b3",
+  "model": "gpt-6.1-sol/high",
+  "model_calls": 0,
+  "network_capture_calls": 0,
+  "non_delta_inventory": {
+    "api": {
+      "delta": 3,
+      "inventory": 1179,
+      "non_delta_unchanged": 1176
+    },
+    "scheduler": {
+      "delta": 3,
+      "inventory": 715,
+      "non_delta_unchanged": 712
+    }
+  },
+  "original568_rows_exact_unchanged": true,
+  "oversold_decisions": {
+    "CONDITIONAL_WATCH": 326,
+    "NOT_SELECTED": 221,
+    "SELECTED": 115,
+    "UNASSESSED": 30
+  },
+  "oversold_scope_assessed_unknown": [
+    692,
+    662,
+    30
+  ],
+  "packaging_proof": {
+    "path": "/private/tmp/mwb-v11-independent-TAG9c8/packaging-proof.json",
+    "sha256": "85ea9f77e19374ff82c274a7a678f94431458d5698851abd366d7a45838226bd"
+  },
+  "plan_sha256": "50d7144be972e898f43c6397d109b2caec01b7213f23308296d26877899f6ca2",
+  "ports_opened": 0,
+  "prepared_receipt_sha256": "6e248440cf5b7c8cee968ca8c4586de525cf9bc281b0d59f1eb16bb301886d17",
+  "remaining": [
+    "Formal apply/readback/API/UI NOT_RUN",
+    "Natural slot UNVERIFIED",
+    "30 oversold uncollected and29 US original research limits remain explicit"
+  ],
+  "reused_independent_receipts": [
+    {
+      "path": "/private/tmp/mwb-us-delta-independent-4RI4EI/receipt.json",
+      "sha256": "4781d3ee67bb947409130d207db09cb29e9714e6e90fd8d0bb6d9a2ba809ea26"
+    },
+    {
+      "path": "/private/tmp/mwb-futu94-data-independent-uJT4HB/receipt.json",
+      "sha256": "e07d09b6c1b0f1964f374794351da18f53a8a66c40d2932916926b4f4c8e507d"
+    }
+  ],
+  "reviewer": "/root/manager_reviewer_sol",
+  "services_changed": false,
+  "status": "PASS",
+  "us_diagnosis_counts": [
+    6,
+    2,
+    21
+  ],
+  "us_scope_assessed_unknown": [
+    33,
+    4,
+    29
+  ]
+}

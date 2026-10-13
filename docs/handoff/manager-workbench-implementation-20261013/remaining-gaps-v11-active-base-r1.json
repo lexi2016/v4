@@ -1,0 +1,361 @@
+{
+  "status": "EXACT_ACTIVE_BASE_READONLY",
+  "base": {
+    "api": {
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-stage-evidence-20261013-api",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-stage-evidence-20261013-api/app",
+      "release_id": "hk-stage-evidence-20261013-api",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-stage-evidence-20261013-api/release-manifest.json",
+      "release_manifest_sha256": "758efa07955f2c061478c1b4d63fcb0db0972db86fc865996295b557061deb1e",
+      "application_inventory_sha256": "8126379f20be23a72aaa9e7df05f008eb99f99899dc5aa8f67dc208a1a1e5510",
+      "application_inventory_entry_count": 1224
+    },
+    "api_plist_sha256": "b3669aa2c154f908698280c687c11066640f92a30de4fff7e987aebb3ef00639",
+    "scheduler": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-stage-evidence-20261013-scheduler/app",
+      "plist_sha256": "7307becff0b5715015f0cece0fb8596d704642032f8fbf5a5af3ce6cba368c31",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-stage-evidence-20261013-scheduler/release-manifest.json",
+      "manifest_sha256": "680f0571f7032072411a6de9f769bb44f8eb3e5f50907ea3f0cf3eae526689fd",
+      "inventory_sha256": "68159ff8a37f25c08c427a6b084399d58a1af23f90069ed7c1719e46e94ef10a"
+    }
+  },
+  "source_preimages": {
+    "v4/manager_workbench/inputs/native.py": {
+      "api": "832045f6b53855ece3b4ad87f551bab03f21d38555a4ff9c1211401392d61117",
+      "scheduler": "832045f6b53855ece3b4ad87f551bab03f21d38555a4ff9c1211401392d61117",
+      "canonical": "832045f6b53855ece3b4ad87f551bab03f21d38555a4ff9c1211401392d61117"
+    },
+    "v4/manager_workbench/inputs/source_bindings.py": {
+      "api": "9b0c32b64055cd9fb7ad78dc02a1f35d7f81b5227a141662b3299f459443622a",
+      "scheduler": "9b0c32b64055cd9fb7ad78dc02a1f35d7f81b5227a141662b3299f459443622a",
+      "canonical": "9b0c32b64055cd9fb7ad78dc02a1f35d7f81b5227a141662b3299f459443622a"
+    },
+    "v4/manager_workbench/engines/us_mapping.py": {
+      "api": "c5a0130b78533daaee9bf2d4e7c34e6a7d42bf9eb8a6b164815e30de29616c39",
+      "scheduler": "c5a0130b78533daaee9bf2d4e7c34e6a7d42bf9eb8a6b164815e30de29616c39",
+      "canonical": "c5a0130b78533daaee9bf2d4e7c34e6a7d42bf9eb8a6b164815e30de29616c39"
+    }
+  },
+  "formal_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json",
+  "formal_config_sha256": "dd6cb0018b2605f955e8843d2738a7b921ff0c9524f6653f72735fa9c9f443d7",
+  "state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench",
+  "declared_only_cache_entries": [
+    {
+      "path": "contracts/__pycache__/__init__.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "1c327b6f3e7992fc127c0e4e8e64f788057061ac6d50e38363ae93085ea13b29",
+      "mode": "0644",
+      "size": 366
+    },
+    {
+      "path": "contracts/__pycache__/trading_calendar.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "f5b25688e18c2e1e5ac656161f5a96ea596284de21e8b72b0aa9a09b030c2bb6",
+      "mode": "0644",
+      "size": 15020
+    },
+    {
+      "path": "contracts/__pycache__/us_equity_calendar.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "f2cb9c64ba37f3e1519e6df5e4a34e1c33fdaa6a0151f4d33a7f91b9db6ae13d",
+      "mode": "0644",
+      "size": 6473
+    },
+    {
+      "path": "infrastructure/__pycache__/__init__.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "7f1b34392fd92b70290ef11dd724ff84c1e15491ef5afe8e5cba23020245a4e3",
+      "mode": "0644",
+      "size": 309
+    },
+    {
+      "path": "infrastructure/__pycache__/interprocess_lock.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "5ebd407e29a52c41c88d533cfda529ca011c5891429091b1dc5194d7d8a98e9b",
+      "mode": "0644",
+      "size": 13398
+    },
+    {
+      "path": "infrastructure/__pycache__/owned_io.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "3d4583a86af2377357ca939126f7ffbc4e2439c06e6bba5ce9e20428cd84a432",
+      "mode": "0644",
+      "size": 17317
+    },
+    {
+      "path": "infrastructure/__pycache__/trading_safety.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "6d66c785f0bab509deba6a0d9989d83feef7285aa724f74cba17db4e45235250",
+      "mode": "0644",
+      "size": 3635
+    },
+    {
+      "path": "ops/__pycache__/manager_announcement_body_batch.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "436c69765b689851d3f2c0f4666a18fd958cb45edd689ba1a3d4e42cd710d8c7",
+      "mode": "0644",
+      "size": 102350
+    },
+    {
+      "path": "ops/__pycache__/prepare_api_only_cutover.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "ca010f261f53db4bab2567b692527daac23e29d4f5d8ed9d84635b868cfa08e2",
+      "mode": "0644",
+      "size": 22329
+    },
+    {
+      "path": "ops/__pycache__/run_manager_daily_announcement.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "8daaf69cfd9c909a9700c294062aa6835e27d0f60c305140fe6d5c99c8fed9d7",
+      "mode": "0644",
+      "size": 82744
+    },
+    {
+      "path": "v4/manager_research/__pycache__/__init__.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "5d84c4d091739dd83117d386012105f419335c8eaaababa42d47994d37178329",
+      "mode": "0644",
+      "size": 1114
+    },
+    {
+      "path": "v4/manager_research/__pycache__/announcement_analysis.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "922798d2bb47969706da39fe59de1c6f58c2051e37f6a3d60f14c8c1baac9c8d",
+      "mode": "0644",
+      "size": 155294
+    },
+    {
+      "path": "v4/manager_research/__pycache__/announcement_catalog.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "d8a06761771813a7b7675511101214cc97aae336649d36c30e822a50b0b53d41",
+      "mode": "0644",
+      "size": 42546
+    },
+    {
+      "path": "v4/manager_research/__pycache__/announcement_processing.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "d5c16cf80007eb8f080e2d9f5abf3e2eec051b73b72442b6e5977ce6c5e4a8ec",
+      "mode": "0644",
+      "size": 80235
+    },
+    {
+      "path": "v4/manager_research/__pycache__/announcement_selection.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "8a7bb64cccee4e3ee7a0a3edfa9c1092b67dca47ae8fdc481ed31dd62c3fce69",
+      "mode": "0644",
+      "size": 27143
+    },
+    {
+      "path": "v4/manager_research/__pycache__/announcement_source.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "b13bc1944b1f59682db44e403f91d12bdabeacbf4d6ac51f62bbdbf5ed73047f",
+      "mode": "0644",
+      "size": 109820
+    },
+    {
+      "path": "v4/manager_research/__pycache__/cache_contract.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "452deaa5442dea74949b1a3d538eb6750e1dd889d80f6b5409b58d4390f5fbcc",
+      "mode": "0644",
+      "size": 3027
+    },
+    {
+      "path": "v4/manager_research/__pycache__/catalyst_projection.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "eb125960e4156cf5cf5a2d013ef8f8b51eef3048b8dd5a399aa713598918b366",
+      "mode": "0644",
+      "size": 23083
+    },
+    {
+      "path": "v4/manager_research/__pycache__/contracts.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "09eaaee6cc601d8690b04d1bd07217a9347d76503b7d1b37a441ee1295ca5bf2",
+      "mode": "0644",
+      "size": 18582
+    },
+    {
+      "path": "v4/manager_research/__pycache__/errors.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "5a0819e81b9fcf00fbbd9447dc07640135f7c88a96301789699adee96462ee31",
+      "mode": "0644",
+      "size": 883
+    },
+    {
+      "path": "v4/manager_research/__pycache__/event_source.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "301899026b238db578b02ad58555891d9b4c5f9900344950f2d73b6dac8e1a83",
+      "mode": "0644",
+      "size": 114037
+    },
+    {
+      "path": "v4/manager_research/__pycache__/financial_projection.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "3ab824cb6b5b21e7180a0d9d09095b98daf6ac7fa2591df56070a25512b425c7",
+      "mode": "0644",
+      "size": 49349
+    },
+    {
+      "path": "v4/manager_research/__pycache__/hkex_provider.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "4fcead0227315b4f1f38175d32f1166752a5c412b13a1d724f615d2a19599e4e",
+      "mode": "0644",
+      "size": 47008
+    },
+    {
+      "path": "v4/manager_research/__pycache__/material_transport.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "e5025cf30383d5b2b92692d9c040a27b389420954191b5479894bdc911bd0d0b",
+      "mode": "0644",
+      "size": 11627
+    },
+    {
+      "path": "v4/manager_research/__pycache__/materials.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "456184c30cd13911994836baf9ce1ab20f4bd207f440a805385902c063cd010f",
+      "mode": "0644",
+      "size": 13942
+    },
+    {
+      "path": "v4/manager_research/__pycache__/pdf_parser.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "53cfaacf2847cb9de7411759c08d90200d070e57129556e80bf758c6ae19df08",
+      "mode": "0644",
+      "size": 57250
+    },
+    {
+      "path": "v4/manager_research/__pycache__/ports.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "524afb5c57923924e95b8106a3d5cf6357c6d1cd154fd2dac90dd4631903fdcf",
+      "mode": "0644",
+      "size": 4132
+    },
+    {
+      "path": "v4/manager_research/__pycache__/reader_source.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "addbf12b42a503d006b3a0317b730eb26ae0fc4b5cec02400bacdf9712a8c279",
+      "mode": "0644",
+      "size": 38277
+    },
+    {
+      "path": "v4/manager_research/__pycache__/recommendation.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "0c79475a5792c1bdf82ac7fd787da861109765d86d81ecf7baa409118c910c12",
+      "mode": "0644",
+      "size": 73367
+    },
+    {
+      "path": "v4/manager_research/__pycache__/safety.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "1d2f4e2e8d2050299b8ca81a1183cf701cbdef10ca2596370c930323fea225c6",
+      "mode": "0644",
+      "size": 4803
+    },
+    {
+      "path": "v4/manager_research/__pycache__/service.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "dd1111c7e336b4245d982f83895f20a004fae3fcef8ac3f197aee95595d69c47",
+      "mode": "0644",
+      "size": 105553
+    },
+    {
+      "path": "v4/manager_research/__pycache__/store.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "cc12c7dcfe647224111ecc203cdf12f009e110793ba5059f4901de06894fb025",
+      "mode": "0644",
+      "size": 31093
+    },
+    {
+      "path": "v4/manager_research/__pycache__/workspace_announcements.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "1b1004523d16ae4042192300a48313dd8c0722c60c2062deb24d582b3595fa46",
+      "mode": "0644",
+      "size": 294591
+    },
+    {
+      "path": "v4/manager_research/__pycache__/workspace_identity.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "96b9d4bafeb905b654151644f5c6c02c5c1b15791ca09cbe6ac3ab439013d380",
+      "mode": "0644",
+      "size": 16911
+    },
+    {
+      "path": "v4/manager_research/__pycache__/workspace_plan.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "0b48b9f7909cb7167abe8950a3112175ceacf665270c26823cff390b89bb7274",
+      "mode": "0644",
+      "size": 134066
+    },
+    {
+      "path": "v4/manager_research/__pycache__/workspace_projection.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "7e5ac2d23f95bcb74d06364e9f9f93d3e56bd3604712e23418dc1ee1b7736e0b",
+      "mode": "0644",
+      "size": 45873
+    },
+    {
+      "path": "v4/manager_workbench/__pycache__/__init__.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "cf800fc74068d009e7ea95c0ef1ac56b07f16541fa115add7f53629c3343d32b",
+      "mode": "0644",
+      "size": 475
+    },
+    {
+      "path": "v4/manager_workbench/__pycache__/config.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "a58b76553ddbf9e1dec6a2fe782e7b1719e37504c19f7eac8ab0b1e416bd54fb",
+      "mode": "0644",
+      "size": 6327
+    },
+    {
+      "path": "v4/manager_workbench/__pycache__/contracts.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "e4c01cb135bcf756b627f8189d3c30ffdfe414b00106cb0bce104bc63c36dd67",
+      "mode": "0644",
+      "size": 20641
+    },
+    {
+      "path": "v4/manager_workbench/__pycache__/store.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "80f27fde047a19c348c25234e1af9e45a8c31bbdfe28361d67c117185582dde8",
+      "mode": "0644",
+      "size": 28859
+    },
+    {
+      "path": "v4/manager_workbench/inputs/__pycache__/__init__.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "1b205f57faab553d5eb87a551372c8bfc55841e7fcda8fc94fa7f7ae2df2a717",
+      "mode": "0644",
+      "size": 498
+    },
+    {
+      "path": "v4/manager_workbench/inputs/__pycache__/loader.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "460c920b7c0b051f1b238ec7c877a250b92bd587f26dbd935f38fa12f946ccaa",
+      "mode": "0644",
+      "size": 3956
+    },
+    {
+      "path": "v4/manager_workbench/inputs/__pycache__/native.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "7832f667fb38032d73885e5da78793690d2f9f54728dfd57bc210e97aec3c56a",
+      "mode": "0644",
+      "size": 85718
+    },
+    {
+      "path": "v4/manager_workbench/inputs/__pycache__/source_bindings.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "765635cdd3c73cc38eec9550c64b94a972f38428e415b44a05685acd17468a6a",
+      "mode": "0644",
+      "size": 27525
+    },
+    {
+      "path": "v4/manager_workbench/inputs/__pycache__/validation.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "8e20c5db6043c9a75b7e5188b7dcee042e3a1e3d5bd00133de94b4188aadb7de",
+      "mode": "0644",
+      "size": 4477
+    }
+  ],
+  "old_strict_guard": "API_RELEASE_ACTIVE_APPLICATION_INVENTORY_DRIFT",
+  "actual_non_cache_inventory_sha256": "d899fa50613b5aee1daafa5e49fc34f137d20aa9fac6ae3cd7000b61badf619e"
+}

@@ -1,0 +1,106 @@
+{
+  "BEHAVIOR_VERIFIED": "Actual original owner read-only load + current three-source delta matched frozen writerreadback rows/coverage exactly;6/2/21 independently classified and checked",
+  "DLR_connect_false_and_priority_unreviewed": true,
+  "REVIEWED": "PASS",
+  "TESTED": "31passed0.36s exit0 isolatedbasetemp",
+  "actual_diff_matches_frozen_receipt": true,
+  "all21_proxy_type_label_SHA_owner_time_exact": true,
+  "all_decisions_unchanged": true,
+  "basket_XLP_XLY_literal_preserved": true,
+  "categories": {
+    "ETF21": [
+      "ARKX",
+      "BOTZ",
+      "CLOU",
+      "COPX",
+      "DRIV",
+      "FCG",
+      "GLD",
+      "GRID",
+      "ICLN",
+      "ITA",
+      "KBE",
+      "LIT",
+      "NLR",
+      "REMX",
+      "SOXX",
+      "TAN",
+      "UFO",
+      "XBI",
+      "XLE",
+      "XLP",
+      "XLY"
+    ],
+    "assessment2": [
+      "MU",
+      "WDC"
+    ],
+    "priority6": [
+      "AMD",
+      "DLR",
+      "EQIX",
+      "NVDA",
+      "STX",
+      "VRT"
+    ]
+  },
+  "coverage": {
+    "assessed_count": 4,
+    "gaps": [
+      "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,BOTZ,CLOU,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,MU,NLR,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+      "RECORDS_UNASSESSED"
+    ],
+    "observed_count": 33,
+    "scope_count": 33,
+    "unassessed_count": 29
+  },
+  "formal_writes": 0,
+  "implementation_receipt_sha256": "d2aa3a31116c37e29514130eb138c4ef5719fd4982515d8a7dfdf43e03f16454",
+  "independent_original_diagnosis": {
+    "path": "/private/tmp/mwb-us29-independent-wudz2mj_/receipt.json",
+    "reused": true,
+    "sha256": "6e673c197552a78110fedb2520551e7cc00495d9f40713ebf81325c5d90f8949"
+  },
+  "model": "gpt-6.1-sol/high",
+  "model_calls": 0,
+  "network_calls": 0,
+  "not_run": [
+    "Candidate integration/deploy",
+    "Formal changed saved result/API/UI",
+    "Natural slot",
+    "New priority or relation research"
+  ],
+  "original_source_bytes_and_formal_snapshot_unchanged": true,
+  "readback_sha256": "47af3fbb03584c2c668205c509fb58f4cb97ca09a8345fd055585f5bbcbc3879",
+  "reviewer": "/root/manager_reviewer_sol",
+  "seed_four": [
+    "AVGO",
+    "CIEN",
+    "COHR",
+    "LITE"
+  ],
+  "source_files": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/v4/manager_workbench/inputs/native.py",
+      "sha256": "e263b2e2d81e6b5af27a3b0afa52ddfbe4b22925c38de088bcdd623a77e392ff"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/v4/manager_workbench/inputs/source_bindings.py",
+      "sha256": "02143c119f15eba2fd5c3f329d57b40568bc3799b559344e894b5473e15130b2"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/v4/manager_workbench/engines/us_mapping.py",
+      "sha256": "eab5f3e42aec9eedf860963324f3a1f8a0b1601ee94945f067bde2620a491ba0"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/tests/manager_workbench/engines/test_us_date_priority.py",
+      "sha256": "0cc994b812b0f24ef910970eac898c6eb6cc04dd19d77b481874dff9c093c758"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/tests/manager_workbench/runtime/test_us_gap_diagnostics.py",
+      "sha256": "ebf0424eb5bf32c88e1197a0143da8b64584519a74da5791887a743aa8fea4f9"
+    }
+  ],
+  "status": "PASS",
+  "two_assessments_original_exact_no_tuple": true
+}

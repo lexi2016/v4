@@ -1,0 +1,107 @@
+{
+  "status": "PREPARED_FOR_INDEPENDENT_REVIEW",
+  "helper_scope": {
+    "remaining-gaps-prepare-v11.py": "c23bb1477746a47729d883118dc122b514efd84d58ba8b2a656e9a6e21044182",
+    "remaining-gaps-v11-test.py": "1f4cc0e54a2db5d36c32e504f10005b28b7871ad23fa21a806a03941a0b431bb",
+    "remaining-gaps-v11-active-base-r1.json": "730e988b3995c264288636d0bd7adef75819688212153d91776b20dd387e6149"
+  },
+  "candidate_receipt": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/remaining-gaps-v11-r1/receipt.json",
+    "sha256": "b789b9eae00f97d282b4e322c37093c1e4def7c13bb16d92c939c7e097750c31"
+  },
+  "plan": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/remaining-gaps-v11-r1/operator-plan.json",
+    "sha256": "50d7144be972e898f43c6397d109b2caec01b7213f23308296d26877899f6ca2",
+    "entry_count": 6
+  },
+  "exact_stage_compat": {
+    "original_manifest_sha256": "758efa07955f2c061478c1b4d63fcb0db0972db86fc865996295b557061deb1e",
+    "original_plist_sha256": "b3669aa2c154f908698280c687c11066640f92a30de4fff7e987aebb3ef00639",
+    "declared_only_pyc_count": 45,
+    "all_actual_raw_sha_mode_size_match_declared": true,
+    "all_non_cache_entries_exact": true,
+    "new_candidate_strict_inventory": true,
+    "pyc_original_bytes_copied": true,
+    "formal_manifest_unchanged": true
+  },
+  "source_delta": [
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "before_sha256": "c5a0130b78533daaee9bf2d4e7c34e6a7d42bf9eb8a6b164815e30de29616c39",
+      "after_sha256": "eab5f3e42aec9eedf860963324f3a1f8a0b1601ee94945f067bde2620a491ba0"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "832045f6b53855ece3b4ad87f551bab03f21d38555a4ff9c1211401392d61117",
+      "after_sha256": "e263b2e2d81e6b5af27a3b0afa52ddfbe4b22925c38de088bcdd623a77e392ff"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "9b0c32b64055cd9fb7ad78dc02a1f35d7f81b5227a141662b3299f459443622a",
+      "after_sha256": "02143c119f15eba2fd5c3f329d57b40568bc3799b559344e894b5473e15130b2"
+    }
+  ],
+  "config": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/remaining-gaps-v11-r1/manager-workbench-v11.json",
+    "sha256": "0d592397737fea2cdb9bc61a12777a68b099eaf5613e1922f34cc197e19a73a9",
+    "state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench",
+    "futu_binding_count": 95,
+    "preserved_HK00001": true,
+    "preserved_tdx568": true,
+    "scheduled_lanes": [
+      "US_MAPPING",
+      "OVERSOLD"
+    ],
+    "capture_enabled": false,
+    "source_binding_only_delta": true,
+    "cutoff": "2026-10-13T11:10:31.062638+00:00"
+  },
+  "tests": {
+    "result": "7 passed in 0.17s",
+    "exit_code": 0,
+    "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/remaining-gaps-v11-tests-r3.log",
+    "sha256": "da014ef238d4637c703ce7b1378bcbd0347117b7fc276905d52949763178a435"
+  },
+  "independent_upstream": [
+    {
+      "path": "/private/tmp/mwb-us-delta-independent-4RI4EI/receipt.json",
+      "sha256": "4781d3ee67bb947409130d207db09cb29e9714e6e90fd8d0bb6d9a2ba809ea26"
+    },
+    {
+      "path": "/private/tmp/mwb-futu94-data-independent-uJT4HB/receipt.json",
+      "sha256": "e07d09b6c1b0f1964f374794351da18f53a8a66c40d2932916926b4f4c8e507d"
+    }
+  ],
+  "expected_not_formal_result": {
+    "oversold_scope": 692,
+    "oversold_assessed": 662,
+    "oversold_unknown": 30,
+    "selected": 115,
+    "watch": 326,
+    "not_selected": 221,
+    "USscope": 33,
+    "USassessed": 4,
+    "USunassessed": 29
+  },
+  "commands": {
+    "workdir": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+    "dry_run": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/remaining-gaps-prepare-v11.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/remaining-gaps-v11-r1/operator-plan.json --plan-sha256 50d7144be972e898f43c6397d109b2caec01b7213f23308296d26877899f6ca2",
+    "apply": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/remaining-gaps-prepare-v11.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/remaining-gaps-v11-r1/operator-plan.json --plan-sha256 50d7144be972e898f43c6397d109b2caec01b7213f23308296d26877899f6ca2 --execute",
+    "rollback": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/remaining-gaps-prepare-v11.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/remaining-gaps-v11-r1/operator-plan.json --plan-sha256 50d7144be972e898f43c6397d109b2caec01b7213f23308296d26877899f6ca2 --operation rollback --execute"
+  },
+  "dry_run": {
+    "status": "DRY_RUN_PASS",
+    "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/remaining-gaps-v11-dryrun-r1.log",
+    "sha256": "96afaba9238452928b5dfb1c125595c6f6653ad49b48a843c434cbaeeb468404"
+  },
+  "formal_writes": 0,
+  "services_changed": false,
+  "network_calls": 0,
+  "model_calls": 0,
+  "formal_run_api_ui": "NOT_RUN",
+  "backlog": [
+    "Remaining30 oversold inputs preserved unknown; no further quota call",
+    "US29 priority/relation/body gaps still UNASSESSED, now exact diagnosis",
+    "Full postcutover formal result/API/UI independent acceptance pending"
+  ]
+}

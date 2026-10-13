@@ -234,6 +234,26 @@ def us_mapping(config, context):
         or review.get('safety',{}).get('production_allowed') is not False):
         raise ValueError('US_RELATION_INDEPENDENT_REVIEW_INVALID')
     pairs={tuple(r.get(k) for k in ('us_symbol','hk_symbol','relationship_type','direction')) for r in review['reviewed_pairs']}
+    assessments=[]
+    reviewed_assessments={a['us_symbol']:a for a in review.get('reviewed_symbol_assessments',[])}
+    if len(reviewed_assessments)!=len(review.get('reviewed_symbol_assessments',[])):
+        raise ValueError('US_ASSESSMENT_REVIEW_IDENTITY_INVALID')
+    seen_assessments=set()
+    for assessment in evidence.get('symbol_assessments',[]):
+        us=assessment.get('us_symbol');audited=reviewed_assessments.get(us)
+        if (us not in US_SYMBOLS or us in seen_assessments or not audited
+                or owner_digest(assessment)!=audited.get('assessment_sha256')
+                or any(assessment.get(k)!=audited.get(k) for k in ('status','conclusion','candidate_hk_code'))
+                or assessment.get('status')!='ASSESSED_WITH_GAPS' or assessment.get('conclusion')!='CANNOT_CONFIRM'
+                or assessment.get('candidate_hk_symbol')!='HK.'+str(assessment.get('candidate_hk_code'))):
+            raise ValueError('US_ASSESSMENT_REVIEW_IDENTITY_INVALID')
+        checked_time(assessment.get('available_at'),review['reviewed_at'])
+        seen_assessments.add(us)
+        assessments.append(dict(original=assessment,assessment_sha256=audited['assessment_sha256'],
+            verification='REVIEWED',review_owner=review['reviewer_identity'],available_at=review['reviewed_at'],
+            source_refs=[dict(relative=rel,sha256=sha,owner=review['reviewer_identity'],available_at=review['reviewed_at'])
+                for rel,sha in [(config.relation_evidence_relative,esha),(config.relation_review_relative,vsha)]]))
+    if seen_assessments!=set(reviewed_assessments):raise ValueError('US_ASSESSMENT_REVIEW_IDENTITY_INVALID')
     cards=[]
     for card in evidence.get('relations',evidence.get('cards',[])):
         if tuple(card.get(k) for k in ('us_symbol','hk_symbol','relationship_type','direction')) not in pairs:
@@ -251,7 +271,7 @@ def us_mapping(config, context):
             original=joined[key]
             original['relation_source_refs']=[*original.get('relation_source_refs',[]),*card.get('relation_source_refs',[])]
             original['reviewed_variants']=[*original.get('reviewed_variants',[]),card]
-    projection=dict(cards=list(joined.values()),available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=seed_sources)
+    projection=dict(cards=list(joined.values()),symbol_assessments=assessments,available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=seed_sources)
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
         relation_local_path=str(config.relation_root),relation_relative=config.relation_evidence_relative,relation_sha256=esha,
         relation_owner=review['reviewer_identity'],relation_projection=projection,configured_symbols=list(US_SYMBOLS),

@@ -745,13 +745,19 @@ class NativeAdapters:
                              source_body_sha256=source.get("source_body_sha256"),url=source.get("url"))
                         for source in relation.get("sources",[])]),
                     research_priority=relation.get("research_priority"),research_basis=relation.get("reason"),
+                    relation_limitations=relation.get("limitations",[]),
                     publication_time_gaps=["RELATION_SOURCE_PUBLICATION_TIME_UNKNOWN"] if any(
                         source.get("role")=="RELATION" and not source.get("published_at") for source in relation.get("sources",[])) else [],
                     relation_source_refs=relation.get("relation_source_refs",[])))
             records.append(dict(us_symbol=us,source_session=expected,owner=pin["quote_owner"],source_sha256=qsha,
                 source_status="CANNOT_CONFIRM", positive_change_required=True,
                 available_at=snapshot.get("available_at",snapshot.get("captured_at")),relations=relations_for_us,
-                quote=q,evidence_ids=[r.evidence_id for r in refs]))
+                quote=q,evidence_ids=[r.evidence_id for r in refs],
+                reviewed_assessments=[a for a in registry.get("symbol_assessments",[]) if a.get("original",{}).get("us_symbol")==us],
+                proxy_metadata=[dict(label=proxy.get("label"),mapping_type=proxy["mapping_type"],
+                    source_sha256=qsha,owner=pin["quote_owner"],available_at=snapshot.get("available_at",snapshot.get("captured_at")))
+                    for proxy in snapshot.get("rows",[]) if isinstance(proxy,dict) and proxy.get("mapping_type") in ("etf_proxy","etf_basket_proxy")
+                    and us in proxy.get("proxy_symbols",[])]))
         return batch(context, Lane.US_MAPPING, records, refs, "Fixed 33 configured US symbols and audited relation scope",
                      Coverage(scope_count=33, observed_count=len(quote_map), gaps=gaps), gaps,
                      member_ref.evidence_id if member_ref else None)

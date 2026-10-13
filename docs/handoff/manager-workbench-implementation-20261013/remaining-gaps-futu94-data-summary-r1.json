@@ -1,0 +1,58 @@
+{
+  "BEHAVIOR_VERIFIED": "33 new actual raw windows independently computed and matched active Native/engine;61 cached results reused",
+  "REVIEWED": "DATA_ONLY_PASS",
+  "status": "PASS",
+  "model": "gpt-6.1-sol/high",
+  "reviewer": "/root/manager_reviewer_sol",
+  "active_calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+  "actual_quota_after_recovery": {
+    "remain": 4,
+    "ret": 0,
+    "used": 96
+  },
+  "actual_quota_before_recovery": {
+    "remain": 37,
+    "ret": 0,
+    "used": 63
+  },
+  "cached61_unchanged": 61,
+  "engine94_decisions": {
+    "CONDITIONAL_WATCH": 50,
+    "NOT_SELECTED": 24,
+    "SELECTED": 20
+  },
+  "fixed_plan_sha256": "e4d29a9e62f4a26741106c28b8762cf3d7c01b219a1e1c36b06652cb474de9f0",
+  "formal_writes": 0,
+  "model_calls": 0,
+  "network_calls": 0,
+  "numeric94_decisions": {
+    "CONDITIONAL_WATCH": 50,
+    "NOT_SELECTED": 24,
+    "SELECTED": 20
+  },
+  "numeric_new33_decisions": {
+    "CONDITIONAL_WATCH": 17,
+    "NOT_SELECTED": 9,
+    "SELECTED": 7
+  },
+  "old_failures33_unchanged": true,
+  "product_sha256": "a7521f1d5b7f1efc3a8b954910aa3b91e64e785482f6c26c3efe5fce1972dcae",
+  "ready94_full61_and_nonzero_volume_denominator": true,
+  "scope_codes94_exact": true,
+  "source_bytes_unchanged": true,
+  "source_gap_closure": {
+    "actual_complete_and_rule_assessable94": 94,
+    "formal_unknown_count_change": "NOT_RUN",
+    "prior124": 124,
+    "uncollected30": 30
+  },
+  "not_verified": [
+    "Combined formal saved-plan/API/UI/counts",
+    "Natural schedule",
+    "Remaining30 uncollected gaps"
+  ],
+  "full_local_receipt": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/remaining-gaps-futu94-data-independent-r1.json",
+    "sha256": "e07d09b6c1b0f1964f374794351da18f53a8a66c40d2932916926b4f4c8e507d"
+  }
+}

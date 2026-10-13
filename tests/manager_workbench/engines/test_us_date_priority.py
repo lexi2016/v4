@@ -14,7 +14,7 @@ def native_case(change=1,priority='PRIORITY'):
     return b
 
 
-@pytest.mark.parametrize('change,priority,decision,reason',[(1,'PRIORITY','CONDITIONAL_WATCH','US_REVIEWED_RELATION_CONDITIONAL_ONLY'),(-1,'PRIORITY','NOT_SELECTED','US_SOURCE_CHANGE_NOT_POSITIVE'),(0,'PRIORITY','NOT_SELECTED','US_SOURCE_CHANGE_NOT_POSITIVE'),(1,None,'UNASSESSED','US_SESSION_RELATION_OR_CONNECT_UNVERIFIED'),(None,'PRIORITY','UNASSESSED','US_SESSION_RELATION_OR_CONNECT_UNVERIFIED')])
+@pytest.mark.parametrize('change,priority,decision,reason',[(1,'PRIORITY','CONDITIONAL_WATCH','US_REVIEWED_RELATION_CONDITIONAL_ONLY'),(-1,'PRIORITY','NOT_SELECTED','US_SOURCE_CHANGE_NOT_POSITIVE'),(0,'PRIORITY','NOT_SELECTED','US_SOURCE_CHANGE_NOT_POSITIVE'),(1,None,'UNASSESSED','US_RELATION_PRIORITY_NOT_REVIEWED'),(None,'PRIORITY','UNASSESSED','US_SESSION_RELATION_OR_CONNECT_UNVERIFIED')])
 def test_card_priority_and_actual_positive_change(change,priority,decision,reason):
     b=native_case(change,priority);out=run_us_mapping(b['context'],b)
     assert out['rows'][0]['decision']==decision and out['rows'][0]['reason']==reason

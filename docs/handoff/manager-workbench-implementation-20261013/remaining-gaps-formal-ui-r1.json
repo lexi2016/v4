@@ -1,0 +1,53 @@
+{
+  "status": "UI_VERIFIED",
+  "checked_at": "2026-10-13T11:26:44.221724+00:00",
+  "run_id": "84eafbbb71ba4767a591d1a4286fe061",
+  "target_date": "20261013",
+  "phase": "RETROSPECTIVE",
+  "browser": "Codex in-app browser tab11",
+  "refresh_readback": true,
+  "counts": {
+    "selected": 115,
+    "watch": 326,
+    "unassessed": 251,
+    "not_selected": 1
+  },
+  "oversold": {
+    "scope": 692,
+    "assessed": 662,
+    "unassessed": 30
+  },
+  "us_mapping": {
+    "scope": 33,
+    "assessed": 4,
+    "unassessed": 29
+  },
+  "selected_filter": {
+    "total": 115,
+    "first_page": 50
+  },
+  "new_selected_detail": {
+    "symbol": "HK.09927",
+    "decision": "SELECTED",
+    "source": "FUTU",
+    "previous_session": "20261012",
+    "close": "38.92",
+    "max_high_60": "48.98",
+    "price_threshold": "39.184",
+    "volume_ratio": "6.530150426108586242126765781",
+    "price_pass": true,
+    "volume_pass": true,
+    "source_sha256": "fb044acc5642a7286bfa4d78107c0a17e283e6d37e1cdfdc2879676bc9108997"
+  },
+  "console_errors": 0,
+  "screenshot": "/Users/lexi/.codex/visualizations/2026/10/13/01a132ee-de9e-7122-bc06-6cbf7417dbc6/manager-115-selected.jpg",
+  "limits": [
+    "Source-level TDX124 exceptions remain visible; current unresolved oversold count is30.",
+    "Detailed metrics and new US diagnostics are available in saved audit details; readable frontend presentation unchanged.",
+    "NATURAL_SLOT_UNVERIFIED"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

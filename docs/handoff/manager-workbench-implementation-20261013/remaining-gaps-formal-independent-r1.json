@@ -1,0 +1,168 @@
+{
+  "BEHAVIOR_VERIFIED": "Actual V11 launchd identity + immutable saved MANUAL RETROSPECTIVE two-lane results + live GET complete693/selected115",
+  "NATURAL_VERIFIED": false,
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "REVIEWED": "PASS",
+  "UI_evidence": {
+    "author": "parent/root actual browser; not reviewer browser test",
+    "receipt": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/remaining-gaps-formal-ui-r1.json",
+    "sha256": "6d08b6dc60d406959c478404ff8e6625cc66c4bb862d463674a18006f3252d83"
+  },
+  "all693_stocks_and_all_lane_rows_equal_independently_passed_candidate": true,
+  "api_pages": [
+    {
+      "http_status": 200,
+      "offset": 0,
+      "response_sha256": "6847ac293a0284e57a23adf3f7e92585453c6484cc7c30ec3359f123448af0c0",
+      "rows": 200
+    },
+    {
+      "http_status": 200,
+      "offset": 200,
+      "response_sha256": "f10f38681c5c7714cf5654cf9a1508b2cc0bfd5a693fcd4228cd77dae2b95cc3",
+      "rows": 200
+    },
+    {
+      "http_status": 200,
+      "offset": 400,
+      "response_sha256": "f98e32fe043fcb1e92f98b707a3b26135e8d8c389334e20fea7be42122c4fd9f",
+      "rows": 200
+    },
+    {
+      "http_status": 200,
+      "offset": 600,
+      "response_sha256": "a60501951b86d14e17859db1547c6c56d299c6c3004e5f8204c454c6376e21b5",
+      "rows": 93
+    }
+  ],
+  "api_total_unique": 693,
+  "capture_enabled": false,
+  "counts": {
+    "not_selected": 1,
+    "observation_only": 0,
+    "selected": 115,
+    "unassessed": 251,
+    "watch": 326
+  },
+  "cutoff": "2026-10-13T19:24:43.894390+08:00",
+  "formal_targets": [
+    {
+      "kind": "config",
+      "sha256": "0d592397737fea2cdb9bc61a12777a68b099eaf5613e1922f34cc197e19a73a9",
+      "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json"
+    },
+    {
+      "kind": "canonical",
+      "sha256": "eab5f3e42aec9eedf860963324f3a1f8a0b1601ee94945f067bde2620a491ba0",
+      "target": "/Users/lexi/Desktop/学习/v4_app/v4/manager_workbench/engines/us_mapping.py"
+    },
+    {
+      "kind": "canonical",
+      "sha256": "e263b2e2d81e6b5af27a3b0afa52ddfbe4b22925c38de088bcdd623a77e392ff",
+      "target": "/Users/lexi/Desktop/学习/v4_app/v4/manager_workbench/inputs/native.py"
+    },
+    {
+      "kind": "canonical",
+      "sha256": "02143c119f15eba2fd5c3f329d57b40568bc3799b559344e894b5473e15130b2",
+      "target": "/Users/lexi/Desktop/学习/v4_app/v4/manager_workbench/inputs/source_bindings.py"
+    },
+    {
+      "kind": "plist",
+      "sha256": "d08729d7f36c09c8ed52da701de575e3feb1522a005dba5c5d040c8ab361bae6",
+      "target": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist"
+    },
+    {
+      "kind": "plist",
+      "sha256": "b5e45f14bfdd6526a12374a27d017d1989a5e917b27a7753fb0323fcca571a04",
+      "target": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist"
+    }
+  ],
+  "formal_writes": 0,
+  "identities": {
+    "api": {
+      "inventory_verified_file_count": 1179,
+      "label": "com.lexi.v35.api-only",
+      "launchctl_sha256": "6e1d0a95ddcf2dd550a98398fb9bde6068e2ae58e4f890d6fb5c17292438058c",
+      "manifest_sha256": "eeeac1db6f3d6f70e2818836c405d82f232b4ea242e0667f921eb6afdd9c3113",
+      "pid": 31111,
+      "root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/remaining-gaps-v11-r1/manager-workbench-20261013-v11-api/app"
+    },
+    "scheduler": {
+      "inventory_verified_file_count": 712,
+      "label": "com.lexi.v35.scheduler",
+      "launchctl_sha256": "7730474aeee3b82ba2c3cd71ecb71669cbfc7e49cff58df710f889617d900c39",
+      "manifest_sha256": "2b2d8b143361319e3694f76533a246f8f95196827e211abfbf98318ef33b64fd",
+      "pid": 31115,
+      "root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/remaining-gaps-v11-r1/manager-workbench-20261013-v11-scheduler/app"
+    }
+  },
+  "input_sha256": "2bf33ae7f0cd91e1c1b690144dff212712217b9eb96964e2ac6d2643deec1eef",
+  "job_host_pid": 31111,
+  "job_state": "PARTIAL",
+  "job_step": "DONE",
+  "lane_coverages": {
+    "OVERSOLD": {
+      "assessed_count": 662,
+      "scope_count": 692,
+      "unassessed_count": 30
+    },
+    "US_MAPPING": {
+      "assessed_count": 4,
+      "scope_count": 33,
+      "unassessed_count": 29
+    }
+  },
+  "local_GET_only": true,
+  "model": "gpt-6.1-sol/high",
+  "model_calls": 0,
+  "natural_status": "NATURAL_SLOT_UNVERIFIED; manual retrospective only",
+  "network_capture_calls": 0,
+  "old_run_immutable": {
+    "GET_http_status": 200,
+    "prior_independent_sha_match": true,
+    "product_sha256": "6b297a9a765f2b0817777a36ff45dbb67427ebea424b8f4286a3d5d0afe22dc3",
+    "run_id": "094bf5c30902477d8e18ea22c8ec7c5e",
+    "snapshot_raw_sha256": "6c5687a256742e1273d7d60e0bf382924830c149e658627128a2cb7790dd4cda"
+  },
+  "oversold_decisions": {
+    "CONDITIONAL_WATCH": 326,
+    "NOT_SELECTED": 221,
+    "SELECTED": 115,
+    "UNASSESSED": 30
+  },
+  "phase": "RETROSPECTIVE",
+  "plan_sha256": "50d7144be972e898f43c6397d109b2caec01b7213f23308296d26877899f6ca2",
+  "product_sha256": "f8e3fff21847118b010895fe288aa97e17e587ef937ed90c0ebac9c2df4dacbb",
+  "remaining": [
+    "30 OV uncollected gaps",
+    "29 US preserved original research limits:6 priority pending/2 reviewed gaps/21ETF proxies"
+  ],
+  "reused_candidate_receipt_sha256": "719867242341910463691745d7e61c5aea87fe0f0e9b8bf4c712b15f175ddec0",
+  "reviewer": "/root/manager_reviewer_sol",
+  "run_id": "84eafbbb71ba4767a591d1a4286fe061",
+  "scheduled_lanes": [
+    "US_MAPPING",
+    "OVERSOLD"
+  ],
+  "selected_filter_total": 115,
+  "snapshot_raw_sha256": "ea5f7217ecd37824b467ff38a82ea88686d82827e3b3e18935e426aab53e10cf",
+  "snapshot_read_before_after_unchanged": true,
+  "source_failure_count": 124,
+  "source_failure_semantics": "Retained TDX source failures;94 already resolved via Futu. Current OV unassessed30, not124. Aggregate unassessed251 differs from lane source coverage.",
+  "state_root_unchanged": true,
+  "statuses": [
+    "DEPLOYED",
+    "API_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "target_date": "20261013",
+  "trigger": "MANUAL",
+  "us_diagnostics_counts": [
+    6,
+    2,
+    21
+  ],
+  "verdict": "PASS"
+}
