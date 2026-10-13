@@ -50,4 +50,8 @@ def load_inputs(context, adapters):
         raise ValueError("MWB_INJECTED_ADAPTERS_REQUIRED")
     if set(adapters) - set(LANES):
         raise ValueError("MWB_UNREGISTERED_ADAPTER")
-    return {lane: _load_one(context, lane, adapters.get(lane)) for lane in LANES}
+    selected=context["scope_refs"].get("requested_lanes", list(LANES))
+    if (not isinstance(selected,list) or len(selected)!=len(set(selected)) or
+        any(lane not in LANES for lane in selected)):
+        raise ValueError("MWB_REQUESTED_LANES_INVALID")
+    return {lane: _load_one(context, lane, adapters.get(lane)) for lane in selected}

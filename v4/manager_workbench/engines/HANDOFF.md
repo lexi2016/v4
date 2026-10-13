@@ -37,3 +37,67 @@ Candidate engine suite: **39 passed** locally with Python 3.13, pytest, and a lo
 - B integration: merge or checkout `761df4b6e7d712a28794c440c9e77fa3cdb8d3cb` first in an **isolated integration workspace**. Overlay the A-allowed files only, run both B contract tests and A engine tests and compare actual serialized `InputBatch`, `LaneResult`, `StockDecision`, `ReviewSummary` with B's canonical fixture/schema. The A branch intentionally does **not** fork B paths.
 - Runtime security: real semantic execution must remain blocked until B's sandboxed executor can prove `tool_isolation=VERIFIED`; the `READER` and `REVIEWER` process/execution identities must differ. A never starts Codex, changes global permissions, reads credential roots or persists snapshots.
 - Governance: A candidate is `IMPLEMENTED` / `SYNTHETIC_TESTED`; `INDEPENDENT_REVIEWED`, `INTEGRATED`, `DEPLOYED`, `API_VERIFIED`, `UI_VERIFIED`, `BEHAVIOR_VERIFIED` and `NATURAL_VERIFIED` are all `NOT_RUN`. Keep unchanged V4/BUY/Vibe8910.
+
+## 2026-10-13 | Issue #40 A second candidate (B original-interface repair)
+
+Base A commit: `290592aa0c0934a69811eff9fb65284e39618a0e`.
+Reference B complete original commit: `5010f866a993bf8a764c283696b6e2ee9a8ca18b`;
+reviewed contract-only correction: `b132f9bc60938625011e50c10508ad0c8647dc4e`.
+The actual B original service/executor blobs are pinned in
+`tests/manager_workbench/engines/test_issue40_pinned_b_integration.py`.
+
+**Entrypoint**: inject `v4.manager_workbench.engines` directly as the `engines`
+argument to B `create_service`. It exposes `load_inputs`, `run_lanes`,
+`merge_decisions`, and `evaluate_review`. A core maintains an ordered mapping by
+lane; when B supplies its original `list[InputBatch]`, the public `run_lanes`
+returns a `list[LaneResult]`. A `mwb_run_id` is used as the exact B job run id;
+conflicting secondary ids reject. If B updates its service to consume a keyed
+mapping, passing keyed inputs to `run_lanes` returns keyed lane results without
+changing A's frozen rules. B's `requested_lanes` subset is honored and failed or
+missing lane outcomes retain the exact incoming InputBatch SHA.
+
+**Semantic executor**: B's `AuditedExecutor.delegate.config` supplies the one
+trusted model and prompt version. Configure B's `prompt_version` as
+`MWB_ANNOUNCEMENT_READER_REVIEWER_V1_20261013`; otherwise A fail-closes the
+article (UNASSESSED). A supplies `reasoning_effort=high` under the original B
+executor contract (no model fallback). Reader and Reviewer have the same
+article-material `input_sha256` and `source_sha256`, but different `task_id` and
+OS process/execution identities. The Reviewer receives Reader output as an
+additional untrusted material; that changes B's `material_sha256`, not the
+common article `input_sha256`. B's model `output_sha256` is the SHA of **raw JSON
+output file bytes**; A preserves it and independently exposes the canonical
+semantic JSON SHA as a different field rather than equating them. B owns raw
+bytes/schema/isolation validation; A checks the execution receipt, material
+SHA, source, identity/time ordering and evidence semantics. Prompt-injection
+materials remain data only.
+
+**Time**: article source/Connect as-of evidence must not be newer than the
+context cutoff. PREOPEN/INTRADAY/NEXT_DAY must also finish their semantic
+execution by cutoff. MANUAL/RETROSPECTIVE may complete afterward, with
+`analysis_started_at`, `analysis_finished_at` and `analysis_available_at`
+retained separately on each semantic row. No old PREOPEN snapshot is mutated
+by A. Stage and close references remain OBSERVATION_ONLY regardless of owner
+receipt/formal flags; Stage receipt/rule identity remains as provenance.
+
+**Commands** (isolated synthesized input, no real CLI/owner):
+
+```sh
+PYTHONPATH=. pytest -q tests/manager_workbench/engines/test_issue40_joint_regressions.py
+PYTHONPATH=. pytest -q tests/manager_workbench/engines/test_announcement.py
+PYTHONPATH=. pytest -q tests/manager_workbench/engines/test_issue40_pinned_b_integration.py -rs
+PYTHONPATH=. pytest -q tests/manager_workbench/engines -rs
+python -m compileall -q v4/manager_workbench/engines v4/manager_workbench/inputs tests/manager_workbench/engines
+```
+
+**Exact-B joint suite**: assemble an **isolated temporary** workspace with
+A's fixed commit plus B original `5010f866` (or its original runtime and Mac
+reviewed contract b132). Do not run against the old A synthetic B mirror. The
+pinned tests check Git blob IDs *before* exercising real B `create_service`
+and `AuditedExecutor`; absence/mismatch produces SKIP, never a false green.
+No B code is copied into A-owned paths or changed by this candidate.
+
+Status at A candidate isolation: 57 passed, 2 skipped for absent original B.
+Therefore original-B complete-service integration and real Codex canary are
+**NOT_RUN**, NOT PASS. Independent reviewer, Mac source binding, complete
+calendar/producer, API/UI, deployment, natural slots and business acceptance
+remain **NOT_RUN**. No BUY or orders, no legacy manager calls.

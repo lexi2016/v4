@@ -4,17 +4,21 @@ No implicit source reads, no 200-row cut, no cross-lane failure masking.
 """
 from __future__ import annotations
 from .common import (LANES, RESEARCH_LANES, DECISIONS, valid_sha, current, hk_symbol,
-                     membership, result, plain, timestamp, validate_context, digest)
+                     membership, result, plain, timestamp, validate_context, digest, run_identity)
 from .announcement import run_announcements
 from .us_mapping import run_us_mapping
 from .oversold import run_oversold
 
 
-def _missing(lane, context, code):
+def _missing(lane, context, code, batch=None):
+    # Preserve B's original InputBatch identity when a bound but unavailable
+    # authority snapshot has no usable universe. Never rekey its ledger input.
+    bound_sha=(batch or {}).get("input_sha256") if isinstance(batch,dict) else None
+    gaps=list(dict.fromkeys([*((batch or {}).get("gaps") or []),code]))
     return dict(lane=lane,state="INPUT_MISSING",rows=[],coverage=dict(scope_count=None,
-        observed_count=None,assessed_count=None,unassessed_count=None,gaps=[code]),
-        input_sha256=digest(dict(lane=lane,context=context,missing=code)),rules_version=context["rules_version"],
-        run_id=context.get("scope_refs",{}).get("run_id") or "A_RUN_ID_NOT_BOUND",evidence_refs=[],gaps=[code])
+        observed_count=None,assessed_count=None,unassessed_count=None,gaps=gaps),
+        input_sha256=bound_sha if valid_sha(bound_sha) else digest(dict(lane=lane,context=context,missing=code)),
+        rules_version=context["rules_version"],run_id=run_identity(context),evidence_refs=[],gaps=gaps)
 
 
 def _observation(lane, context, batch):
@@ -27,39 +31,62 @@ def _observation(lane, context, batch):
         from .common import row, valid_sha
         if not valid_sha(item["source_sha256"]):
             rows.append(row(item,"UNASSESSED","REFERENCE_SHA_NOT_VERIFIED"));continue
-        if (lane=="STAGE_REFERENCE" and item.get("original_formal_admission") is True and
-            item.get("original_rule_verified") is True and item.get("original_owner_receipt_sha256") and
-            valid_sha(item["original_owner_receipt_sha256"]) and membership(item,context) is True):
-            rows.append(row(item,"SELECTED","ORIGINAL_STAGE_FORMAL_ADMISSION_VERIFIED",
-                            original_stage=dict(rule=item.get("original_rule_version"),
-                                receipt_sha256=item["original_owner_receipt_sha256"])))
-        else:
-            rows.append(row(item,"OBSERVATION_ONLY","ORIGINAL_REFERENCE_NO_VERIFIED_STRICT_ADMISSION"))
+        # MWB_V1 freezes Stage/close reference rows as observations. Previous
+        # owner flags/receipt SHA are provenance, NOT a manager strict rule.
+        original = dict(rule=item.get("original_rule_version"),
+            owner_receipt_sha256=(item.get("original_owner_receipt_sha256")
+                if valid_sha(item.get("original_owner_receipt_sha256")) else None),
+            original_formal_admission=item.get("original_formal_admission"),
+            original_rule_verified=item.get("original_rule_verified")) if lane=="STAGE_REFERENCE" else None
+        rows.append(row(item,"OBSERVATION_ONLY","ORIGINAL_REFERENCE_NO_VERIFIED_STRICT_ADMISSION",
+            **({"original_stage":original} if original is not None else {})))
     return result(lane,batch,context,rows)
 
 
 def run_lanes(context, inputs, semantic_executor):
     context=plain(context)
     validate_context(context)
-    if not isinstance(inputs,dict):raise ValueError("MWB_INPUT_BATCHES_REQUIRED")
+    selected = None
+    if isinstance(inputs, (list, tuple)):
+        batches = [plain(batch) for batch in inputs]
+        if any(not isinstance(batch, dict) or batch.get("lane") not in LANES for batch in batches):
+            raise ValueError("MWB_INPUT_BATCHES_REQUIRED")
+        names = [batch["lane"] for batch in batches]
+        if len(names) != len(set(names)):
+            raise ValueError("MWB_DUPLICATE_INPUT_LANE")
+        inputs = dict(zip(names, batches))
+        selected = names
+    elif not isinstance(inputs, dict):
+        raise ValueError("MWB_INPUT_BATCHES_REQUIRED")
+    # B owns job identity; never silently substitute another run id.
+    run_identity(context)
     if set(inputs)-set(LANES):raise ValueError("MWB_UNKNOWN_LANE")
+    if selected is None:
+        selected = context["scope_refs"].get("requested_lanes",list(LANES))
+    else:
+        requested = context["scope_refs"].get("requested_lanes")
+        if requested is not None and set(selected)!=set(requested):
+            raise ValueError("MWB_REQUESTED_LANES_CONFLICT")
+    if (not isinstance(selected,list) or len(selected)!=len(set(selected)) or
+            any(lane not in LANES for lane in selected) or set(inputs)-set(selected)):
+        raise ValueError("MWB_REQUESTED_LANES_INVALID")
     results={}
-    for lane in LANES:
+    for lane in selected:
         batch=plain(inputs.get(lane))
         if not isinstance(batch,dict) or batch.get("lane")!=lane or batch.get("context")!=context:
-            results[lane]=_missing(lane,context,"AUTHORITY_BATCH_ABSENT_OR_CHANGED");continue
+            results[lane]=_missing(lane,context,"AUTHORITY_BATCH_ABSENT_OR_CHANGED",batch);continue
         if not isinstance(batch.get("records"),list) or not isinstance(batch.get("coverage"),dict):
-            results[lane]=_missing(lane,context,"AUTHORITY_BATCH_SHAPE");continue
+            results[lane]=_missing(lane,context,"AUTHORITY_BATCH_SHAPE",batch);continue
         if not valid_sha(batch.get("input_sha256")) or not isinstance(batch.get("universe_ref"),str):
-            results[lane]=_missing(lane,context,(batch.get("gaps") or ["AUTHORITY_INPUT_IDENTITY_MISSING"])[0]);continue
-        batch=dict(batch,run_id=context.get("scope_refs",{}).get("run_id") or "A_RUN_ID_NOT_BOUND")
+            results[lane]=_missing(lane,context,(batch.get("gaps") or ["AUTHORITY_INPUT_IDENTITY_MISSING"])[0],batch);continue
+        batch=dict(batch,run_id=run_identity(context))
         try:
             if lane=="ANNOUNCEMENT":r=run_announcements(context,batch,semantic_executor)
             elif lane=="US_MAPPING":r=run_us_mapping(context,batch)
             elif lane=="OVERSOLD":r=run_oversold(context,batch)
             else:r=_observation(lane,context,batch)
         except Exception:
-            results[lane]=dict(_missing(lane,context,"LANE_IMPLEMENTATION_FAILED"),state="FAILED")
+            results[lane]=dict(_missing(lane,context,"LANE_IMPLEMENTATION_FAILED",batch),state="FAILED")
         else:
             results[lane]=r
     return results
@@ -103,6 +130,12 @@ def merge_decisions(context, lane_results):
             if not isinstance(item,dict) or item.get("market")!="HK_CONNECT" or not hk_symbol(item.get("symbol")):
                 continue  # no fabricated HK security for unmapped US originals
             if item.get("decision") not in DECISIONS:raise ValueError("MWB_ROW_DECISION")
+            if lane in ("STAGE_REFERENCE", "CLOSE_REFERENCE") and item["decision"] != "OBSERVATION_ONLY":
+                # Defense in depth for a foreign/original owner row. Neither
+                # reference lane defines a strict manager selection predicate.
+                item=dict(item, original_owner_decision=item["decision"],
+                          decision="OBSERVATION_ONLY",
+                          reason="REFERENCE_NON_RESEARCH_VERDICT_IGNORED")
             symbol=item["symbol"]
             entry=stocks.setdefault(symbol,dict(market="HK_CONNECT",symbol=symbol,name=item.get("name"),
                 decision=None,lane_decisions={},reasons=[],conditions=[],invalidation_conditions=[],

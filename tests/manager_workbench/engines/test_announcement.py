@@ -1,7 +1,10 @@
 from copy import deepcopy
+from types import SimpleNamespace
 import pytest
+import hashlib
+import json
 from v4.manager_workbench.engines.common import digest, bytes_digest, RULE
-from v4.manager_workbench.engines.announcement import run_announcements as _run_announcements
+from v4.manager_workbench.engines.announcement import run_announcements as _run_announcements, PROMPT_VERSION
 
 def run_announcements(context, batch, executor):
     return _run_announcements(batch["context"], batch, executor)
@@ -34,8 +37,7 @@ def batch(items):
 
 
 class FakeExecutor:
-    models={"READER":"configured-luna-max", "REVIEWER":"configured-luna-max"}
-    reasoning_effort={"READER":"high","REVIEWER":"high"}
+    config=SimpleNamespace(model="configured-luna-max",prompt_version=PROMPT_VERSION)
     def __init__(self):self.tasks=[];self.override=None
     def execute(self, task):
         self.tasks.append(task)
@@ -56,17 +58,27 @@ class FakeExecutor:
                 direction=task["materials"]["reader_output"]["direction"],
                 evidence_sufficiency=task["materials"]["reader_output"]["evidence_sufficiency"])
         if self.override:output=self.override(task,output)
-        return dict(status="SUCCEEDED",role=task["role"],execution_id="execution-"+task["role"],
-            execution_identity="isolated-process-"+task["role"],input_sha256=task["input_sha256"],
-            output=output,output_sha256=digest(output),started_at="2026-10-13T08:01:00+08:00",
-            finished_at="2026-10-13T08:02:00+08:00",tool_isolation="VERIFIED")
+        # Exact B @5010f866 receipt field contract, with synthetic OS identities.
+        raw=json.dumps(output,ensure_ascii=True,indent=2).encode("utf-8")
+        pid=41001 if task["role"]=="READER" else 41002
+        return dict(success=True,role=task["role"],execution_id="execution-"+task["role"],
+            process_pid=pid,isolation_proof=f"fixture-isolated-{pid}",
+            input_sha256=task["input_sha256"],source_sha256=task["source_sha256"],
+            material_sha256=digest(dict(refs=task["input_refs"],data=task["materials"])),event_sha256="d"*64,
+            model=task["model"],prompt_version=task["prompt_version"],
+            output=output,output_sha256=hashlib.sha256(raw).hexdigest(),
+            started_at=("2026-10-13T08:01:00+08:00" if task["role"]=="READER"
+                        else "2026-10-13T08:03:00+08:00"),
+            finished_at=("2026-10-13T08:02:00+08:00" if task["role"]=="READER"
+                         else "2026-10-13T08:04:00+08:00"))
 
 
 def test_reader_reviewer_independent_positive_selection():
     ex=FakeExecutor();rs=run_announcements(context(),batch([article()]),ex)
     assert rs["rows"][0]["decision"]=="SELECTED"
     assert [t["role"] for t in ex.tasks]==["READER","REVIEWER"]
-    assert ex.tasks[0]["input_sha256"]!=ex.tasks[1]["input_sha256"]
+    assert ex.tasks[0]["input_sha256"]==ex.tasks[1]["input_sha256"]
+    assert ex.tasks[0]["task_id"]!=ex.tasks[1]["task_id"]
 
 
 def test_content_injection_remains_data():

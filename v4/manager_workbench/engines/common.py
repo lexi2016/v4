@@ -79,6 +79,18 @@ def validate_context(context):
     return context
 
 
+def run_identity(context):
+    """B attaches the immutable job id as mwb_run_id in RunContext.scope_refs."""
+    refs = context["scope_refs"]
+    primary, legacy = refs.get("mwb_run_id"), refs.get("run_id")
+    if primary and legacy and primary != legacy:
+        raise ValueError("MWB_RUN_ID_CONFLICT")
+    run = primary or legacy
+    if run is not None and (not isinstance(run, str) or not run):
+        raise ValueError("MWB_RUN_ID_INVALID")
+    return run or "A_RUN_ID_NOT_BOUND"
+
+
 def valid_sha(value):
     return isinstance(value, str) and SHA.fullmatch(value) is not None
 
@@ -159,7 +171,7 @@ def result(lane, batch, context, rows, *, state=None, gaps=None):
     return dict(lane=lane, state=state, rows=rows, coverage=dict(scope_count=scope,
         observed_count=observed, assessed_count=assessed_count, unassessed_count=unknown_count,
         gaps=gaps), input_sha256=batch.get("input_sha256"), rules_version=context["rules_version"],
-        run_id=batch.get("run_id") or context.get("scope_refs",{}).get("run_id") or "A_RUN_ID_NOT_BOUND", evidence_refs=batch.get("evidence_refs", []), gaps=gaps)
+        run_id=batch.get("run_id") or run_identity(context), evidence_refs=batch.get("evidence_refs", []), gaps=gaps)
 
 
 def row(record, decision, reason, *, conditions=None, metrics=None, evidence=None, **extra):

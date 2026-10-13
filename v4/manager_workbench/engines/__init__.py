@@ -7,6 +7,7 @@ production binding must install the exact frozen B contracts commit.
 from .common import plain
 from .core import run_lanes as _run_lanes, merge_decisions as _merge_decisions
 from .review import evaluate_review as _evaluate_review
+from ..inputs import load_inputs
 
 
 def _b_type(name):
@@ -23,7 +24,10 @@ def _b_type(name):
 def run_lanes(context, inputs, semantic_executor):
     values = _run_lanes(context, inputs, semantic_executor)
     model = _b_type("LaneResult")
-    return {lane: model.model_validate(value) if model else value for lane,value in values.items()}
+    typed = {lane: model.model_validate(value) if model else value for lane,value in values.items()}
+    # B @5010f866 service.py consumes an ordered list[LaneResult] when it
+    # supplies list[InputBatch]; other consumers keep the keyed mapping.
+    return list(typed.values()) if isinstance(inputs, (list, tuple)) else typed
 
 
 def merge_decisions(context, lane_results):
@@ -37,4 +41,4 @@ def evaluate_review(plan, close_inputs):
     model = _b_type("ReviewSummary")
     return model.model_validate(value) if model else value
 
-__all__=["run_lanes","merge_decisions","evaluate_review"]
+__all__=["load_inputs","run_lanes","merge_decisions","evaluate_review"]
