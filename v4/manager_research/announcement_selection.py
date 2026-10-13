@@ -251,6 +251,35 @@ def _stock_projection(records: list[Mapping[str, Any]],
                       decisions: list[Mapping[str, Any]]) -> list[dict[str, Any]]:
     decisions_by_article = {_record_identity(row): row for row in decisions}
     groups: dict[str, dict[str, Any]] = {}
+    name_aliases: dict[str, dict[tuple[str, str, str], dict[str, Any]]] = {}
+
+    def name_evidence(record: Mapping[str, Any], issuer: Mapping[str, Any]) -> dict[str, Any]:
+        key_field, key_value = _record_identity(record)
+        listing = record.get("listing_source")
+        listing = listing if isinstance(listing, Mapping) else {}
+        if key_field == "source_variant_id":
+            source_family = listing.get("source") or "HKEX_OFFICIAL"
+            source_scope = listing.get("source_scope") or "HKEX_OFFICIAL_FULL_MARKET_DIRECTORY_V1"
+            raw_ref = listing.get("directory_source_ref")
+        else:
+            source_family = "EASTMONEY"
+            source_scope = "EASTMONEY_HK_DATE_CATALOG"
+            raw_ref = listing.get("source_ref")
+        evidence: dict[str, Any] = {
+            "name": issuer.get("name") if isinstance(issuer.get("name"), str)
+                and issuer.get("name").strip() else None,
+            "source_family": source_family,
+            "source_scope": source_scope,
+            "source_identity": {key_field: key_value},
+            "source_record_sha256": record.get("semantic_record_sha256"),
+        }
+        if isinstance(raw_ref, Mapping):
+            source_ref = {key: raw_ref[key] for key in ("url", "blob_sha256", "body_sha256")
+                if isinstance(raw_ref.get(key), str)}
+            if source_ref:
+                evidence["source_ref"] = source_ref
+        return evidence
+
     for record in records:
         record_identity = _record_identity(record)
         key_field, key_value = record_identity
@@ -259,11 +288,46 @@ def _stock_projection(records: list[Mapping[str, Any]],
         for issuer in record["issuer_codes"]:
             code = issuer["code"]
             group = groups.setdefault(code, {
-                "stock_code": code, "stock_name": issuer.get("name"), "articles": [],
+                "stock_code": code, "stock_name": None, "stock_name_status": "CANNOT_CONFIRM",
+                "stock_name_source": None, "source_name_aliases": [],
+                "source_name_gaps": [], "articles": [],
                 "selection_reasons": [], "risk_notes": [], "not_selected_reasons": [],
             })
-            if group.get("stock_name") != issuer.get("name"):
-                raise ValueError("ANNOUNCEMENT_SELECTION_ISSUER_NAME_CONFLICT")
+            alias_index = name_aliases.setdefault(code, {})
+            evidence = name_evidence(record, issuer)
+            name = evidence["name"]
+            identity = evidence["source_identity"]
+            if name is None:
+                group["source_name_gaps"].append({
+                    **evidence, "reason_code": "SOURCE_NAME_NOT_PROVIDED",
+                })
+            else:
+                alias_key = (name, str(evidence["source_family"]), str(evidence["source_scope"]))
+                alias = alias_index.setdefault(alias_key, {
+                    "name": name,
+                    "source_family": evidence["source_family"],
+                    "source_scope": evidence["source_scope"],
+                    "observed_in": [],
+                })
+                observed = {"source_identity": identity,
+                    "source_record_sha256": evidence["source_record_sha256"]}
+                if "source_ref" in evidence:
+                    observed["source_ref"] = evidence["source_ref"]
+                alias["observed_in"].append(observed)
+                current_source = group.get("stock_name_source")
+                # Prefer the owner-bound Eastmoney catalogue's label when it
+                # exists; within one source, choose a stable source identity.
+                candidate_rank = (0 if evidence["source_family"] == "EASTMONEY" else 1,
+                    str(key_value), name)
+                current_rank = None
+                if isinstance(current_source, Mapping):
+                    current_identity = current_source.get("source_identity", {})
+                    current_key = next(iter(current_identity.items()), ("", ""))
+                    current_rank = (0 if current_source.get("source_family") == "EASTMONEY" else 1,
+                        str(current_key[1]), str(current_source.get("name", "")))
+                if current_rank is None or candidate_rank < current_rank:
+                    group["stock_name"] = name
+                    group["stock_name_source"] = deepcopy(evidence)
             article = {
                 key_field: key_value,
                 "title": record.get("title"),
@@ -302,6 +366,18 @@ def _stock_projection(records: list[Mapping[str, Any]],
         group["status"] = status
         group["article_count"] = len(group["articles"])
         group["risk_notes"] = list(dict.fromkeys(group["risk_notes"]))
+        code = group["stock_code"]
+        group["source_name_aliases"] = sorted(name_aliases.get(code, {}).values(),
+            key=lambda row: (row["name"], row["source_family"], row["source_scope"]))
+        for alias in group["source_name_aliases"]:
+            alias["observed_in"].sort(key=lambda row: tuple(sorted(
+                (key, value) for key, value in row["source_identity"].items())))
+        group["source_name_gaps"].sort(key=lambda row: tuple(sorted(
+            (key, value) for key, value in row["source_identity"].items())))
+        if group["stock_name"] is not None:
+            name_count = len({row["name"] for row in group["source_name_aliases"]})
+            group["stock_name_status"] = (
+                "SOURCE_NAME_ALIASES_PRESENT" if name_count > 1 else "SOURCE_NAME_VERIFIED")
         group["articles"].sort(key=lambda row: (row.get("source_variant_id", ""), row.get("art_code", "")))
     return sorted(groups.values(), key=lambda row: row["stock_code"])
 
