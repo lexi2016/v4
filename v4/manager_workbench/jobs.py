@@ -61,8 +61,14 @@ class JobCoordinator:
                 current = self.store.get_job(retry_job_id)
                 if current is None:
                     raise KeyError("JOB_NOT_FOUND")
-                if current.context != context or current.state not in (JobState.FAILED, JobState.INTERRUPTED) or not current.retryable:
+                if (current.context != context or
+                    current.state not in (JobState.FAILED, JobState.INTERRUPTED, JobState.PARTIAL) or
+                    not current.retryable or not current.failed_steps):
                     raise JobConflict("NOT_RETRYABLE")
+                if current.state == JobState.PARTIAL:
+                    # A new immutable product is required; never rewrite the
+                    # previous partial snapshot under its existing run ID.
+                    current.run_id = uuid4().hex
                 current.state = JobState.QUEUED
                 current.finished_at = None
                 current.failure_code = None
@@ -84,6 +90,10 @@ class JobCoordinator:
             self.update(job, state=JobState.RUNNING, step="LOAD_INPUTS")
             result_run_id, result_state = worker(job)
             job.run_id = result_run_id
+            if result_state == JobState.SUCCEEDED:
+                job.failed_steps = []
+                job.failure_code = None
+                job.retryable = False
             self.update(job, state=result_state, step="DONE", finished=True)
         except StepFailure as e:
             job.failed_steps = list(dict.fromkeys([*job.failed_steps, job.step]))

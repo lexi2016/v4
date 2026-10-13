@@ -1750,6 +1750,7 @@
               "type": "array"
             },
             "symbol": {
+              "pattern": "^HK\\.[0-9]{5}$",
               "title": "Symbol",
               "type": "string"
             }
@@ -2142,6 +2143,7 @@
           "type": "array"
         },
         "symbol": {
+          "pattern": "^HK\\.[0-9]{5}$",
           "title": "Symbol",
           "type": "string"
         }

@@ -68,16 +68,23 @@ class ManagerService:
 
     def retry(self, job_id: str) -> JobRecord:
         previous = self.jobs.get(job_id)
-        if previous.state not in (JobState.FAILED, JobState.INTERRUPTED) or not previous.retryable:
+        if previous.state not in (JobState.FAILED, JobState.INTERRUPTED, JobState.PARTIAL) or not previous.retryable:
             raise JobConflict("NOT_RETRYABLE")
         return self.jobs.submit(previous.context, self._work, retry_job_id=job_id)
 
     def _work(self, job: JobRecord) -> tuple[str, JobState]:
-        # A is the sole owner of business prompts, inclusion rules and inputs.
+        """A native keyed-lane boundary with per-lane/semantic checkpoints.
+
+        A supplies source/analysis semantics; B validates and persists their
+        identities. An explicit partial retry leaves the prior plan immutable.
+        """
         ctx = job.context.model_copy(deep=True)
-        ctx.scope_refs["mwb_run_id"] = job.run_id
-        previous = self.store.load_checkpoint(job.job_id, "PUBLISH")
-        if previous:
+        ctx.scope_refs["run_id"] = job.run_id  # required by A/inputs & A/engines
+        ctx.scope_refs["mwb_run_id"] = job.run_id  # old B mock compatibility only
+        wanted = set(ctx.scope_refs["requested_lanes"])
+        prior_failed = set(job.failed_steps)
+        previous = self.store.load_checkpoint(job.job_id, "PUBLISH_" + job.run_id)
+        if previous and "PUBLISH" in prior_failed:
             snap = PlanSnapshot.model_validate(previous)
             if snap.run_id != job.run_id:
                 raise StepFailure("CHECKPOINT_RUN_MISMATCH")
@@ -89,94 +96,172 @@ class ManagerService:
             return saved.run_id, JobState.PARTIAL if saved.gaps else JobState.SUCCEEDED
 
         try:
-            inputs_raw = self.engines.load_inputs(ctx, self.adapters)
-            inputs = [InputBatch.model_validate(b) for b in (inputs_raw.values() if isinstance(inputs_raw, dict) else inputs_raw)]
+            raw = self.engines.load_inputs(ctx, self.adapters)
+            if isinstance(raw, dict):
+                # A's actual native input interface, not a list of InputBatch.
+                input_map = {str(key.value if isinstance(key,Lane) else key):InputBatch.model_validate(value)
+                             for key,value in raw.items()}
+                mapping_mode = True
+            else:
+                batches = [InputBatch.model_validate(value) for value in raw]
+                input_map = {b.lane.value:b for b in batches}
+                if len(input_map) != len(batches):raise ValueError("DUPLICATE_INPUT_BATCH")
+                mapping_mode = False
         except Exception as exc:
             raise StepFailure("LOAD_INPUTS_FAILED", retryable=True) from exc
-        # Input owner SHA and provenance live in a derived, non-authoritative snapshot.
-        # A may resolve market sessions only by returning a consistent actual context.
-        if inputs:
-            sessions = inputs[0].context.source_sessions
-            for batch in inputs:
-                ic = batch.context
-                if (ic.target_date != ctx.target_date or ic.phase != ctx.phase or
-                    ic.market != ctx.market or ic.cutoff != ctx.cutoff or
-                    ic.rules_version != ctx.rules_version or ic.source_sessions != sessions):
-                    raise StepFailure("INPUT_CONTEXT_MISMATCH")
-            ctx.source_sessions = dict(sessions)
-        allowed = set(ctx.scope_refs["requested_lanes"])
-        if len({i.lane.value for i in inputs}) != len(inputs) or any(i.context.target_date != ctx.target_date or i.lane.value not in allowed for i in inputs):
+        # B's intended scope, not A's other available owner material.
+        if set(input_map)-set(Lane._value2member_map_) or not wanted.issubset(input_map):
             raise StepFailure("INPUT_CONTRACT_MISMATCH")
-        input_body = {"derivative": True, "authority": "ORIGINAL_OWNERS_ONLY", "context": ctx.model_dump(mode="json"),
-                      "batches": [b.model_dump(mode="json") for b in inputs]}
+        inputs = {name:input_map[name] for name in sorted(wanted)}
+        for name, batch in inputs.items():
+            ic = batch.context
+            if (batch.lane.value != name or ic.target_date != ctx.target_date or
+                ic.phase != ctx.phase or ic.market != ctx.market or
+                ic.cutoff != ctx.cutoff or ic.rules_version != ctx.rules_version or
+                ic.source_sessions != ctx.source_sessions or ic.scope_refs != ctx.scope_refs):
+                raise StepFailure("INPUT_CONTEXT_MISMATCH")
+        input_body = {"derivative":True,"authority":"ORIGINAL_OWNERS_ONLY",
+                      "context":ctx.model_dump(mode="json"),
+                      "batches": {name:batch.model_dump(mode="json") for name,batch in inputs.items()}}
         input_snapshot_sha = digest(input_body)
         self.store.save_input(input_snapshot_sha, input_body)
-        # Volatile job identifiers and server cutoff are not producer-input identity.
-        # A must reflect any actual as-of evidence changes in each InputBatch SHA.
-        input_sha = digest({"target_date": ctx.target_date, "phase": ctx.phase.value,
-                            "sources": sorted((i.lane.value, i.input_sha256) for i in inputs),
-                            "stage": ctx.scope_refs.get("stage_input_sha256")})
-        signature = digest({"target_date": ctx.target_date, "phase": ctx.phase.value,
-                            "input_sha": input_sha, "rules": ctx.rules_version,
-                            "prompt": self.config.prompt_version, "model": self.config.model,
-                            "stage": ctx.scope_refs.get("stage_run_id"),
-                            "canary_article_id": ctx.scope_refs.get("canary_article_id")})
-        reuse = self.store.find_reusable(ctx.target_date, ctx.phase.value, signature)
-        if reuse:
-            return reuse.run_id, JobState.PARTIAL if reuse.gaps else JobState.SUCCEEDED
-        self.jobs.update(job, step="RUN_LANES")
-        audit = AuditedExecutor(self.executor)
+        # Placeholder A input hashes may include volatile A run_id; treat a
+        # missing *unbound* authority as unchanged only if the shape/gaps agree.
+        def stable_input(name: str, batch: InputBatch) -> str:
+            if batch.universe_ref is None and not batch.records and not batch.evidence_refs:
+                return digest({"lane":name,"missing":batch.gaps,"scope":batch.scope_description,
+                               "coverage":batch.coverage.model_dump(mode="json")})
+            return batch.input_sha256
+        input_sha = digest({"target_date":ctx.target_date,"phase":ctx.phase.value,
+                            "sources": sorted((name,stable_input(name,b)) for name,b in inputs.items()),
+                            "stage":ctx.scope_refs.get("stage_input_sha256")})
+        signature = digest({"target_date":ctx.target_date,"phase":ctx.phase.value,
+                            "input_sha":input_sha,"rules":ctx.rules_version,
+                            "prompt":self.config.prompt_version,"model":self.config.model,
+                            "reasoning_effort":self.config.reasoning_effort,
+                            "stage":ctx.scope_refs.get("stage_run_id"),
+                            "canary_article_id":ctx.scope_refs.get("canary_article_id")})
+        if not prior_failed:
+            reusable = self.store.find_reusable(ctx.target_date,ctx.phase.value,signature)
+            if reusable and not reusable.gaps and all(l.state in
+                    (LaneState.READY, LaneState.READY_EMPTY, LaneState.NOT_APPLICABLE) for l in reusable.lanes):
+                return reusable.run_id, JobState.PARTIAL if reusable.gaps else JobState.SUCCEEDED
+        self.jobs.update(job,step="RUN_LANES")
+        # Retry only expressly failed lanes, against identical original owner SHA.
+        resume: dict[str,LaneResult] = {}
+        if prior_failed and all(f.startswith("LANE:") for f in prior_failed):
+            for name, batch in inputs.items():
+                if "LANE:" + name in prior_failed:continue
+                saved = self.store.load_checkpoint(job.job_id,"LANE_" + name)
+                if saved is None or saved.get("input_sha256") != batch.input_sha256 or saved.get("rules_version") != ctx.rules_version:
+                    raise StepFailure("RETRY_COMPLETED_LANE_IDENTITY_CHANGED")
+                resume[name]=LaneResult.model_validate(saved).model_copy(update={"run_id":job.run_id})
+        # On a publication failure, PUBLISH checkpoint always wins above;
+        # a brand-new attempt does not replay any previous success implicitly.
+        remaining = {name:batch for name,batch in inputs.items() if name not in resume}
+        audit = AuditedExecutor(self.executor,config=self.config,store=self.store,job_id=job.job_id)
         try:
-            lanes_raw = self.engines.run_lanes(ctx, inputs, audit)
-            lanes = [LaneResult.model_validate(l) for l in lanes_raw]
-            announcement_rows = any(l.lane == Lane.ANNOUNCEMENT and l.rows and
-                                    l.state in (LaneState.READY, LaneState.PARTIAL) for l in lanes)
-            audit.assert_independent_review(announcement_rows)
+            if remaining:
+                arg = remaining if mapping_mode else list(remaining.values())
+                raw_lanes = self.engines.run_lanes(ctx, arg, audit)
+                if isinstance(raw_lanes,dict):
+                    # A's core emits all lane keys including unrequested blanks.
+                    if set(raw_lanes)-set(Lane._value2member_map_):
+                        raise StepFailure("UNKNOWN_A_LANE")
+                    processed = {str(name):LaneResult.model_validate(value)
+                                 for name,value in raw_lanes.items() if str(name) in remaining}
+                    if set(processed) != set(remaining):
+                        raise StepFailure("MISSING_A_LANE")
+                else:
+                    values=[LaneResult.model_validate(value) for value in raw_lanes]
+                    processed={row.lane.value:row for row in values}
+                    if len(processed)!=len(values):raise StepFailure("DUPLICATE_LANE")
+            else:
+                processed={}
+            selected_ann = any(r.get("decision") in ("SELECTED","CONDITIONAL_WATCH")
+                               for lane in processed.values() if lane.lane == Lane.ANNOUNCEMENT for r in lane.rows)
+            audit.assert_independent_review(selected_ann)
+        except StepFailure:
+            raise
         except Exception as exc:
-            raise StepFailure("RUN_LANES_FAILED", retryable=False) from exc
+            raise StepFailure("RUN_LANES_FAILED",retryable=False) from exc
         finally:
-            job.execution_refs.extend(audit.refs)
+            seen={r.get("execution_id") for r in job.execution_refs if r.get("execution_id")}
+            for ref in audit.refs:
+                if ref.get("execution_id") not in seen:
+                    job.execution_refs.append(ref)
+                    seen.add(ref.get("execution_id"))
             self.store.save_job(job)
-        # Preserve failure lanes from A. Never synthesize a READY status from row presence.
-        by_input = {i.lane: i.input_sha256 for i in inputs}
-        if len({l.lane for l in lanes}) != len(lanes):
-            raise StepFailure("DUPLICATE_LANE")
-        for l in lanes:
-            if l.run_id != job.run_id or l.rules_version != ctx.rules_version:
+        # A intentionally maps one-off executor exceptions to UNASSESSED.
+        # Distinguish recoverable execution errors from genuine negative research.
+        if audit.failures:
+            ann=processed.get("ANNOUNCEMENT")
+            if ann:
+                ann=ann.model_copy(deep=True)
+                ann.state=LaneState.FAILED
+                # Any permanent failure in a multi-article lane prevents blind
+                # retry of that lane, even if another article timed out.
+                label=("SEMANTIC_EXECUTION_TRANSIENT_FAILURE" if all(f["retryable"] for f in audit.failures)
+                       else "SEMANTIC_EXECUTION_FAILED_PERMANENT")
+                ann.gaps=list(dict.fromkeys([*ann.gaps,label]))
+                ann.coverage.gaps=list(dict.fromkeys([*ann.coverage.gaps,label]))
+                processed["ANNOUNCEMENT"]=ann
+        merged_lanes = {**resume, **processed}
+        by_input = {name:i.input_sha256 for name,i in inputs.items()}
+        if set(merged_lanes)!=wanted:
+            raise StepFailure("LANE_RESULTS_INCOMPLETE")
+        for name, lane in merged_lanes.items():
+            if lane.lane.value != name or lane.run_id != job.run_id or lane.rules_version != ctx.rules_version:
                 raise StepFailure("LANE_RUN_MISMATCH")
-            if l.lane not in by_input or l.input_sha256 != by_input[l.lane]:
+            if lane.input_sha256 != by_input[name]:
                 raise StepFailure("LANE_INPUT_SHA_MISMATCH")
-            if l.lane.value not in allowed:
-                raise StepFailure("LANE_NOT_REQUESTED")
-        self.jobs.update(job, step="MERGE_DECISIONS")
+            if name in ("STAGE_REFERENCE","CLOSE_REFERENCE") and any(
+                    x.get("decision") in ("SELECTED","CONDITIONAL_WATCH") for x in lane.rows):
+                raise StepFailure("REFERENCE_LANE_PROMOTED_TO_RESEARCH")
+            if name in processed and lane.state in (LaneState.READY,LaneState.READY_EMPTY,LaneState.PARTIAL):
+                self.store.save_checkpoint(job.job_id,"LANE_" + name,lane.model_dump(mode="json"))
+        self.jobs.update(job,step="MERGE_DECISIONS")
         try:
-            stocks = [StockDecision.model_validate(s) for s in self.engines.merge_decisions(ctx, lanes)]
+            lane_argument=merged_lanes if mapping_mode else list(merged_lanes.values())
+            stocks=[StockDecision.model_validate(s) for s in self.engines.merge_decisions(ctx,lane_argument)]
         except Exception as exc:
             raise StepFailure("MERGE_FAILED") from exc
-        stocks = sort_stocks(stocks, lanes)
-        partial = any(l.state in (LaneState.NOT_RUN, LaneState.RUNNING, LaneState.PARTIAL, LaneState.INPUT_MISSING, LaneState.FAILED) for l in lanes) or len(lanes) < len(allowed)
-        gaps = [g for l in lanes for g in l.gaps]
-        if len(lanes) < len(allowed):
-            gaps.append("LANE_RESULTS_INCOMPLETE")
-        if partial and not gaps:
-            gaps.append("LANE_PARTIAL")
-        ts = now()
-        data = {"context": ctx.model_dump(mode="json"), "run_id": job.run_id,
-                "input_sha256": input_sha, "generated_at": ts, "available_at": ts,
-                "lanes": [l.model_dump(mode="json") for l in lanes],
-                "stocks": [s.model_dump(mode="json") for s in stocks],
-                "counts": count_rows(stocks).model_dump(mode="json"),
-                "changes": {"fingerprint": signature, "prompt_version": self.config.prompt_version,
-                            "model": self.config.model, "input_snapshot_sha256": input_snapshot_sha,
-                            "stage_run_id": ctx.scope_refs.get("stage_run_id")},
-                "review_refs": audit.refs, "gaps": gaps}
-        snap = seal_snapshot(data)
-        self.store.save_checkpoint(job.job_id, "PUBLISH", snap.model_dump(mode="json"))
-        self.jobs.update(job, step="PUBLISH")
+        lanes=[merged_lanes[name] for name in sorted(merged_lanes)]
+        stocks=sort_stocks(stocks,lanes)
+        partial=any(l.state in (LaneState.NOT_RUN,LaneState.RUNNING,LaneState.PARTIAL,
+                                LaneState.INPUT_MISSING,LaneState.FAILED) for l in lanes)
+        gaps=[g for l in lanes for g in l.gaps]
+        if partial and not gaps:gaps.append("LANE_PARTIAL")
+        failed_lanes=[lane for lane in lanes if lane.state == LaneState.FAILED]
+        if failed_lanes:
+            job.failed_steps=["LANE:" + lane.lane.value for lane in failed_lanes]
+            transient_codes={"TRANSIENT_PROVIDER_FAILURE","SOURCE_TEMPORARILY_UNAVAILABLE",
+                             "MODEL_TIMEOUT","SEMANTIC_EXECUTION_TRANSIENT_FAILURE","AUTHORITY_TEMPORARILY_UNAVAILABLE"}
+            job.retryable=all(bool(transient_codes.intersection(set(lane.gaps))) for lane in failed_lanes)
+            job.failure_code="RECOVERABLE_LANE_FAILURE" if job.retryable else "LANE_FAILURE_NOT_RETRYABLE"
+        else:
+            job.failed_steps=[]
+            job.retryable=False
+            job.failure_code=None
+        self.store.save_job(job)
+        ts=now()
+        refs=[r for r in job.execution_refs if r.get("role") in ("READER","REVIEWER")]
+        data={"context":ctx.model_dump(mode="json"),"run_id":job.run_id,
+              "input_sha256":input_sha,"generated_at":ts,"available_at":ts,
+              "lanes":[l.model_dump(mode="json") for l in lanes],
+              "stocks":[s.model_dump(mode="json") for s in stocks],
+              "counts":count_rows(stocks).model_dump(mode="json"),
+              "changes":{"fingerprint":signature,"prompt_version":self.config.prompt_version,
+                         "model":self.config.model,"input_snapshot_sha256":input_snapshot_sha,
+                         "stage_run_id":ctx.scope_refs.get("stage_run_id")},
+              "review_refs":refs,"gaps":gaps}
+        snap=seal_snapshot(data)
+        self.store.save_checkpoint(job.job_id,"PUBLISH_" + job.run_id,snap.model_dump(mode="json"))
+        self.jobs.update(job,step="PUBLISH")
         try:
-            saved = self.store.commit_plan(snap)
-        except (StorageUnavailable, OSError) as exc:
-            raise StepFailure("PUBLISH_UNAVAILABLE", retryable=True) from exc
+            saved=self.store.commit_plan(snap)
+        except (StorageUnavailable,OSError) as exc:
+            raise StepFailure("PUBLISH_UNAVAILABLE",retryable=True) from exc
         return saved.run_id, JobState.PARTIAL if partial else JobState.SUCCEEDED
 
     def save_review(self, plan_run_id: str, close_inputs: Any) -> ReviewSummary:

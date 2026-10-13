@@ -51,3 +51,19 @@ def test_dates_and_cutoffs_are_strict():
     obj["cutoff"] = "2026-10-13T09:25:00"
     with pytest.raises(ValidationError, match="TIME_TZ_REQUIRED"):
         RunContext.model_validate(obj)
+
+
+def test_seal_normalizes_optional_defaults_before_hash():
+    obj = json.loads((SAMPLES / "normal.json").read_text())
+    obj.pop("changes")
+    obj["stocks"][0].pop("risks")
+    sealed = seal_snapshot(obj)
+    assert sealed.changes == {} and sealed.stocks[0].risks == []
+    assert PlanSnapshot.model_validate(sealed.model_dump(mode="json")) == sealed
+
+
+def test_symbol_rejects_unicode_digits_and_schema_matches():
+    from v4.manager_workbench.contracts import StockDecision
+    with pytest.raises(ValidationError):
+        StockDecision(symbol="HK.００００１", decision="UNASSESSED")
+    assert StockDecision.model_json_schema()["properties"]["symbol"]["pattern"] == r"^HK\.[0-9]{5}$"

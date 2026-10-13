@@ -182,7 +182,7 @@ class LaneResult(StrictModel):
 
 class StockDecision(StrictModel):
     market: Literal["HK_CONNECT"] = "HK_CONNECT"
-    symbol: str
+    symbol: str = Field(pattern=r"^HK\.[0-9]{5}$")
     name: str | None = None
     decision: Decision
     lane_decisions: dict[str, Any] = Field(default_factory=dict)
@@ -197,7 +197,7 @@ class StockDecision(StrictModel):
     @classmethod
     def symbol_check(cls, v: str) -> str:
         import re
-        if re.fullmatch(r"HK\.\d{5}", v) is None:
+        if re.fullmatch(r"HK\.[0-9]{5}", v) is None:
             raise ValueError("SYMBOL_INVALID")
         return v
 
@@ -315,8 +315,15 @@ def product_digest(snapshot: dict[str, Any]) -> str:
 
 
 def seal_snapshot(data: dict[str, Any]) -> PlanSnapshot:
-    body = {"schema_version": SCHEMA_VERSION, **Safety().model_dump(),
-            "review_refs": [], "changes": {}, "gaps": [], **data}
+    body = {"schema_version": SCHEMA_VERSION, **Safety().model_dump(), **data}
+    # Bind SHA to the actual, normalized bytes persisted by Pydantic, including
+    # nested defaults. Preserve all semantic/time/safety guards in validation.
+    body["context"] = RunContext.model_validate(body["context"]).model_dump(mode="json")
+    body["lanes"] = [LaneResult.model_validate(row).model_dump(mode="json") for row in body["lanes"]]
+    body["stocks"] = [StockDecision.model_validate(row).model_dump(mode="json") for row in body["stocks"]]
+    body["counts"] = Counts.model_validate(body["counts"]).model_dump(mode="json")
+    for key, default in (("changes", {}), ("review_refs", []), ("gaps", [])):
+        body.setdefault(key, default)
     body["product_sha256"] = product_digest(body)
     return PlanSnapshot.model_validate(body)
 

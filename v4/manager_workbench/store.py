@@ -31,20 +31,27 @@ def _key(v: str) -> str:
 class WorkbenchStore:
     def __init__(self, state_root: str | Path):
         self.root = Path(state_root) / "manager_workbench"
-        self._dir(self.root)
+        # Constructing a read-only service MUST NOT mkdir STATE_ROOT.
+        # This also checks existing parent symlinks before any future lookup.
+        self._safe_directory(self.root, create=False)
 
-    def _dir(self, path: Path) -> Path:
-        # Existing components must not be symbolic links, including STATE_ROOT parents.
+    def _safe_directory(self, path: Path, *, create: bool) -> Path:
+        # Inspect every component, including StateRoot parents, even if the
+        # target does not yet exist; never follow a symlink on read or write.
         for parent in (path, *path.parents):
             if parent.is_symlink():
                 raise StorageUnavailable("UNSAFE_STATE_ROOT")
-        path.mkdir(parents=True, exist_ok=True, mode=0o700)
+        if create:
+            path.mkdir(parents=True, exist_ok=True, mode=0o700)
         return path
 
-    def _path(self, *parts: str) -> Path:
+    def _dir(self, path: Path) -> Path:
+        return self._safe_directory(path, create=True)
+
+    def _path(self, *parts: str, write: bool = False) -> Path:
         if not parts or any(not _key(p) for p in parts):
             raise ValueError("STORAGE_KEY_INVALID")
-        directory = self._dir(self.root.joinpath(*parts[:-1]))
+        directory = self._safe_directory(self.root.joinpath(*parts[:-1]), create=write)
         result = directory / f"{parts[-1]}.json"
         if result.is_symlink():
             raise StorageUnavailable("SYMLINK_DENIED")
@@ -84,6 +91,9 @@ class WorkbenchStore:
 
     def _write(self, path: Path, obj: dict[str, Any], *, immutable: bool) -> None:
         data = canonical(obj)
+        self._safe_directory(path.parent, create=True)
+        if path.is_symlink():
+            raise StorageUnavailable("SYMLINK_DENIED")
         fd, tmp = tempfile.mkstemp(prefix=".pending-", dir=path.parent)
         try:
             os.fchmod(fd, 0o600)
@@ -166,8 +176,7 @@ class WorkbenchStore:
             folder = self.root / "catalog" / date / name
             if not folder.exists():
                 continue
-            if folder.is_symlink():
-                raise StorageUnavailable("SYMLINK_DENIED")
+            self._safe_directory(folder, create=False)
             for path in folder.glob("*.json"):
                 if path.is_symlink():
                     raise StorageUnavailable("SYMLINK_DENIED")
@@ -220,6 +229,7 @@ class WorkbenchStore:
         root = self.root / "attempts"
         if not root.exists():
             return 0
+        self._safe_directory(root, create=False)
         count = 0
         for path in root.glob("*.json"):
             if path.is_symlink():

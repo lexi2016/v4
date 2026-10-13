@@ -87,6 +87,8 @@ def create_router(service: ManagerService) -> APIRouter:
                  decision: Decision | None = None, lane: Lane | None = None,
                  q: str | None = Query(None,max_length=128)):
         day = _date(date)
+        if run_id is not None and re.fullmatch(r"[A-Za-z0-9_-]{1,128}",run_id) is None:
+            raise HTTPException(422,"RUN_ID_INVALID")
 
         def read():
             snap = service.store.get_plan(day,phase.value if phase else None,run_id)
@@ -118,6 +120,10 @@ def create_router(service: ManagerService) -> APIRouter:
     @router.get("/stocks/{symbol}")
     def read_stock(symbol: str, date: str, run_id: str):
         day = _date(date)
+        if re.fullmatch(r"HK\.[0-9]{5}",symbol) is None:
+            raise HTTPException(422,"SYMBOL_INVALID")
+        if re.fullmatch(r"[A-Za-z0-9_-]{1,128}",run_id) is None:
+            raise HTTPException(422,"RUN_ID_INVALID")
 
         def read():
             snap = service.store.get_plan(day, run_id=run_id)
@@ -129,8 +135,10 @@ def create_router(service: ManagerService) -> APIRouter:
             details=[{"lane":l.lane.value,"rows":[r for r in l.rows if r.get("symbol")==symbol],
                       "evidence_refs":[e.model_dump(mode="json") for e in l.evidence_refs if e.evidence_id in item.evidence_ids]}
                      for l in snap.lanes]
+            evidences = {e.evidence_id:e.model_dump(mode="json") for lane in snap.lanes
+                         for e in lane.evidence_refs if e.evidence_id in item.evidence_ids}
             return envelope("READY", _public({"plan_run_id":snap.run_id,"stock":item.model_dump(mode="json"),
-                                               "lane_details":details}))
+                                               "lane_details":details,"evidence_refs":list(evidences.values())}))
         return _safe_errors(read)
 
     @router.get("/history")
@@ -140,7 +148,7 @@ def create_router(service: ManagerService) -> APIRouter:
         def read():
             old = LegacyHistory(service.config.legacy_root).read_index(day)
             entries = [_index(s) for s in service.store.list_plans(day)] + old
-            return envelope("READY" if entries else "NOT_RUN",{"date":day,"versions":entries})
+            return envelope("READY" if entries else "NOT_RUN",{"date":day,"versions":entries,"entries":entries})
         return _safe_errors(read)
 
     @router.get("/reviews/{date}")
