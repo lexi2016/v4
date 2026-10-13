@@ -25,9 +25,9 @@ export function firstReason(stock: StockDecision): string {
   return stock.reasons?.find(x => typeof x === "string" && x.trim().length > 0) || "暂无可核验理由";
 }
 export function metricLabel(metric: ReviewMetric | null | undefined, completeTop20 = true): string {
-  if (!completeTop20) return "不适用（缺完整Top20）";
-  if (!metric) return "缺数据";
+  if (!metric) return completeTop20 ? "缺数据" : "不适用（缺完整Top20）";
   if (metric.denominator === 0) return "不适用（分母为0）";
+  if (!completeTop20) return "不适用（缺完整Top20）";
   if (metric.display) return metric.display;
   if (metric.rate === null || metric.rate === undefined) return "未知（未提供覆盖率）";
   if (typeof metric.rate !== "number" || !Number.isFinite(metric.rate)) return "未知";

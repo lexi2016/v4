@@ -186,6 +186,6 @@ describe("C manager workbench screen", () => {
     await fireEvent.click(screen.getByRole("tab", { name: "收盘复盘" }));
     await screen.findByText(/榜单缺失或不足完整20行/);
     expect(screen.getByText(/不适用（分母为0）/)).toBeTruthy();
-    expect(screen.getAllByText("不适用（缺完整Top20）")).toHaveLength(2);
+    expect(screen.getAllByText("不适用（缺完整Top20）")).toHaveLength(1);
   });
 });
