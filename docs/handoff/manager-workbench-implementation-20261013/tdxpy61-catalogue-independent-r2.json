@@ -1,0 +1,82 @@
+{
+  "verdict": "PASS_CATALOGUE_R2_ONLY",
+  "REVIEWED": "PASS",
+  "TESTED": "26 owner tests passed in 2.94s; 4 independent targeted tests passed in 0.69s",
+  "BEHAVIOR_VERIFIED": [
+    "two original failed node directories restored with exact raw+manifest SHA and original available_at",
+    "zero repeated catalogue transport calls in injected recovery",
+    "PARTIAL propagated to native gaps without global veto",
+    "market31/48/49 observed identity retains original full scope and independently evaluates while absent identity remains UNASSESSED",
+    "conflicting identity refuses admission",
+    "mutated recovery raw bytes rejected"
+  ],
+  "source_receipt_sha256": "b1789e7880a184b319a699b05c5f2f8c885ab0ba071cab6da9bbe89c614c72a5",
+  "files": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "sha256": "7e63ec911a9bc802396095bebf7d079b3ed7e802536d2f8f4b1c4dd7aab32e5e",
+      "frozen_match": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "sha256": "4b2ce7b3d2a61a7d3572c2df5e80f3c3073e68dee27823a3de4a97ae8f744f2d",
+      "frozen_match": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "sha256": "bb305ef8cfe43c89c1d759b196b5ffba4279f19bc1382c8621103f64a80e6b88",
+      "frozen_match": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "sha256": "a2090a389362d9e77ca6b13f71b54f3ea4473efdb6b0214357aadd72211520cd",
+      "frozen_match": true
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_tdxpy_owner_window.py",
+      "sha256": "58bd7191429ade69294e98bfe6f0ce6e6e4238c802f97afc8dc4b7afbcd057c9",
+      "frozen_match": true
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py",
+      "sha256": "677d19a5f1b01d0e0f9b943853e455752ebfc9e7d87388340b174291c980575f",
+      "frozen_match": true
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_formal_us_oversold.py",
+      "sha256": "679897ca33680ba134886bf7e5b147fa456a93fd7d7c93b60130eb5e9e71b873",
+      "frozen_match": true
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py",
+      "sha256": "fbce3f5de5151c74e61a6cb98935881ea0ac88b69a6b583ef6904b4b51ef329f",
+      "frozen_match": true
+    }
+  ],
+  "reuse_receipt": "/private/tmp/mwb-tdx61-owner-independent-aggveq0l/receipt.json",
+  "closed_finding": "P2 unrelated global short-page veto",
+  "remaining_findings": [],
+  "original_failure": {
+    "raw_sha256": "db3feb890556e427001fbd0da1e72efcdfe33c19b95a1301254105ae8548eccc",
+    "read_unchanged": true,
+    "preserved": true
+  },
+  "new_input_boundary": "Parent reported normal panel_latest advanced to 20261013; historical20261012 binding repair r3 awaiting freeze. Not a directory r2 regression; real canary/full692 NOT_VERIFIED.",
+  "commands": [
+    "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_tdxpy_owner_window.py --basetemp=/private/tmp/mwb-tdx61-r2-independent-tests --tb=short",
+    "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<runtime tests>:<worktree> <v3.5-mac-python> -m pytest -q -p no:cacheprovider /private/tmp/mwb-tdx61-catalogue-independent-dg3czH/test_narrow.py --basetemp=/private/tmp/mwb-tdx61-catalogue-independent-dg3czH/test-data --tb=short"
+  ],
+  "not_run": [
+    "network capture",
+    "new model calls",
+    "formal writes/services/deploy",
+    "full692 real assessment",
+    "r3 historical binding"
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

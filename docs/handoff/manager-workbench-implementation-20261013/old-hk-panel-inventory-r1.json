@@ -1,0 +1,112 @@
+{
+  "status": "READ_ONLY_DIAGNOSED_NO_NEW_VERDICT",
+  "scope": "HK0.2 data/source/gaps only",
+  "entry": {
+    "application": "V4 8873",
+    "dated_pool_api": "/api/v3/preselection-pools?date=YYYYMMDD",
+    "job_api": "/api/v3/tasks/status?date=YYYYMMDD",
+    "manager_api": "/api/v4/manager-workbench/days/YYYYMMDD",
+    "note": "HK0.2 parquet is shared data, not a separately required UI. ResearchView article lane is separate."
+  },
+  "owner": {
+    "owner": "v35_dispatcher.research_panel_daily_hk",
+    "configured_slot": "1720",
+    "scheduler_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+    "owner_script": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+    "owner_module": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+    "owner_module_sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac",
+    "matches_actual_manifest_native_observation": true,
+    "tdx_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/hk_tdx",
+    "child_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+    "receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts"
+  },
+  "latest": {
+    "pointer": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panel_latest.json",
+    "manifest": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261013-5f278c2d4d10/manifest.json",
+    "manifest_sha256": "b4857921d9c9333c3ee4a2f774f79c2ec3b6ba2b0de2063b97f55ddb869d7bb7",
+    "panel_sha256": "5f278c2d4d106f1c7085fc44cba89dab28f9ba91bc63de6fcf00ed86b3f45b51",
+    "max_date": "20261013",
+    "parent_panel_sha256": "f556891592618f32c6aa57d3d439663d2bebcabc2aae7ba559c82d3a9586154d",
+    "new_dates": [
+      "20261013"
+    ],
+    "native_scope": "NEW_INCREMENT_ONLY",
+    "session_finality": "NOT_ATTESTED_BY_PROVIDER"
+  },
+  "rootcause": {
+    "owner_line_after_filter": 354,
+    "owner_line_already_current": 489,
+    "owner_line_currentmax": 510,
+    "detail": "Daily append reads dates > current_max; through<=currentmax returns existing readiness. Oct8 manifest parentOct2 and new_datesOct8 only. Later arrivals on Oct5-7 never revisited.",
+    "oct8_manifest_sha256": "a9c75b248d264e2ed78532cbfc1004f8de97b8e8f91c587a66b50f5afa020bee",
+    "oct8_parent": "da15e8fde7a66a743afbc6557652480fcbc4656c4a1d8755800b0a418e99ef62",
+    "oct8_new_dates": [
+      "20261008"
+    ],
+    "existing_one_code_day_file": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/hk_tdx/vipdoc/ds/lday/71#00001.day",
+    "sampleOctoberDates": [
+      "20261002",
+      "20261008",
+      "20261009",
+      "20261012",
+      "20261013"
+    ],
+    "all692_gap_counts": "Reused parent-confirmed evidence; not recounted"
+  },
+  "mixed_history": {
+    "manifest": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20260930-history-20260929-0dd41a352a05/manifest.json",
+    "sha256": "82ef9701f3a9fcd6096ef8db6c86bc171e39c96b7100b388858c87d167d6a3d0",
+    "source_counts": {
+      "FUTU_HISTORY_KLINE_NONE": 6,
+      "PYTDX_HQ_DAILY": 690
+    },
+    "volume_unit_status": "PYTDX_MULTIPLY_BY_100_IS_APPROXIMATE_NOT_LOSSLESS; FUTU_RAW_NUMERIC_VALUE_PRESERVED; SEMANTIC_UNITS_CANNOT_CONFIRM",
+    "note": "Latest native observation is increment-only; it cannot attest entire historical prefix."
+  },
+  "retained_versions": {
+    "manifest_count": 47,
+    "purpose": [
+      "immutable panel parents/date-bound hashes/rollback",
+      "Sep6Futuaddition repair rawSHA and original provenance",
+      "Sep30Sep29 mixed history gap recovery",
+      "model_latest separate frozen20260716 model with155features",
+      "name_latest separate names revision"
+    ],
+    "cleanup": "No deletion/flattening authorized or needed for gap repair"
+  },
+  "sidecar": {
+    "pointer": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/daily_supplements/pointers/20261009.json",
+    "target_date": "20261009",
+    "requested_sessions": [
+      "20261002",
+      "20261005",
+      "20261006",
+      "20261007",
+      "20261008",
+      "20261009"
+    ],
+    "scope_count": 693,
+    "status": "PARTIAL_WITH_PENDING",
+    "record_status_counts": {
+      "PENDING": 3,
+      "READY": 690
+    },
+    "not_mutating_panel": true,
+    "new_tdx61": "Existing same owner explicit source31/48/49 profile and full61 in isolated handoff, separate from current formal old6sidecar; prior review receipts reused"
+  },
+  "minimum_actions": [
+    "Use existing owner explicit code/session gap repair rather than rerunning forward append",
+    "Record each repair raw/request/source market/profile/available_at and retain unknown absolute units; never relabelTDX31 as71 orFutuNONE",
+    "For Oversold same source full61 window maintains relative comparison; insertion of3days into mixed olderpanel alone does not verify full60/5 basis",
+    "Keep latest append pointer and historical frozenref distinct; make existing parent chain/mixed-source/coverage gaps readable metadata without deleting47snapshots",
+    "Implementation must cover actual bound owner identity or explicitly pinned same-owner release; canonical-only edits are not formal updates"
+  ],
+  "not_run": [
+    "network/model/acquisition",
+    "data modifications/deletion/migration",
+    "service operations",
+    "tests repeat",
+    "new UI",
+    "PIT or oldmodel semantic acceptance"
+  ]
+}

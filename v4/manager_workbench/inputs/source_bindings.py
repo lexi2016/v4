@@ -123,8 +123,23 @@ def hk_panel(config, context):
         available=manifest.get('manifest_prepared_at',manifest.get('prepared_at'))
         if manifest.get('panel_max_date')!=day or not before(available,context.cutoff):continue
         candidates.append((available,dict(manifest_relative=rel,manifest_sha256=sha,available_at=available)))
-    if not candidates:raise ValueError('EXACT_DATE_HK_PANEL_UNAVAILABLE')
-    pin=max(candidates,key=lambda x:x[0])[1]
+    pin=max(candidates,key=lambda x:x[0])[1] if candidates else None
+    # A retrospective projection retains the actual latest panel identity and
+    # observation time; it never relabels a newer manifest as the D-1 day.
+    if context.phase.value == 'RETROSPECTIVE':
+        try:
+            pointer, psha = read(config.shared_root, 'assets/hk_0_2/panel_latest.json')
+            relative = 'assets/hk_0_2/' + pointer['manifest_relative']
+            manifest, sha = read(config.shared_root, relative)
+            maximum = manifest.get('panel_max_date')
+            available = manifest.get('manifest_prepared_at', manifest.get('prepared_at'))
+            if isinstance(maximum,str) and day <= maximum <= context.target_date and before(available,context.cutoff):
+                pin = dict(manifest_relative=relative,manifest_sha256=sha,available_at=available,
+                    actual_panel_max_date=maximum,projection_price_date=day,
+                    checked_files=[dict(source_local_path=str(config.shared_root),relative='assets/hk_0_2/panel_latest.json',sha256=psha)])
+        except FileNotFoundError:
+            pass
+    if pin is None:raise ValueError('EXACT_DATE_HK_PANEL_UNAVAILABLE')
     # Supplements are existing owner bytes only, and remain optional.
     relative=f'assets/hk_0_2/daily_supplements/pointers/{day}.json'
     try:
@@ -135,9 +150,13 @@ def hk_panel(config, context):
         if manifest.get('target_date')!=day:raise ValueError('SUPPLEMENT_DATE_MISMATCH')
         pin['supplement']=dict(manifest_relative=rel,manifest_sha256=sha)
     except FileNotFoundError:pass
+    except (OSError,ValueError,KeyError,TypeError) as error:
+        # An optional retired six-day sidecar cannot invalidate a complete panel.
+        pin['supplement_gap']=str(error) if isinstance(error,ValueError) else 'LEGACY_SUPPLEMENT_OWNER_UNAVAILABLE'
     # Explicit existing owner response only; no acquisition or alternative producer.
     original=config.source_bindings.get('hk_panel',{}).get(day,{})
     if original.get('futu_history'):pin['futu_history']=original['futu_history']
+    if original.get('tdxpy_history'):pin['tdxpy_history']=original['tdxpy_history']
     return pin
 
 

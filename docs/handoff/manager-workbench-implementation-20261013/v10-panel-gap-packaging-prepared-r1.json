@@ -1,0 +1,48 @@
+{
+  "status": "PACKAGING_HELPER_PREPARED_FOR_REVIEW",
+  "source_business_7_files_unchanged": true,
+  "scope": {
+    "docs/handoff/manager-workbench-implementation-20261013/prepare_us_tdx_v10.py": {
+      "before_sha256": "1e755f1e541e2df98f53781e49b529bc0000717e8b994911203fd5c1a1961054",
+      "after_sha256": "a989d7024aa6a1c62875c39c39663dbb5c5ca4685a3afc5fc91d8d3db79a1667"
+    },
+    "docs/handoff/manager-workbench-implementation-20261013/test_v10_preparation.py": {
+      "before_sha256": "12eb32b82610b2dd58ab352badf9203ecd4009b504d72c4aec72a4d7ee6f836a",
+      "after_sha256": "c7b38db13537d080d3754aaa3bb1bdf1b823ce8007499e1efca014334bb02389"
+    }
+  },
+  "source_receipt": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/panel-priority-implementation-r1.json",
+    "sha256": "acf271384d3b564f7ea67630755c19ed7a1ecdcc7288868a6f06bd5410fdf188"
+  },
+  "expected_delta": {
+    "api_business_paths": 6,
+    "scheduler_business_paths": 5,
+    "canonical_business_paths": 5,
+    "owner_canonical_exact": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "api_owner_mirror": "v3_shared_data/shared_data/hk_daily_supplement.py"
+  },
+  "constraints": [
+    "Only PANEL_GAPS final pin; canary and old FULL_MASTER rejected. Master remains692; observed window scope equals validated machine gap subset; valid_count+gap_count692.",
+    "Only Futu/TDX evidence bindings change in formal cfg. state_root,capture disabled/token empty,two scheduled lanes,dynamic_source_bindings remain exact originals.",
+    "No max13 manifest/date projection override is inserted into normal scheduler configuration. Phase-specific RETROSPECTIVE latest projection remains solely in reviewed native/source_bindings code.",
+    "API6/Scheduler5 exact inventory deltas retain US reviewed source plus panel-first native/bindings/oversold/owner; all other inventory bytes preserved and active-base/canonical preimages guarded.",
+    "Reviewed V8 bootout/bootstrap/rollback operator is delegated unchanged; exact owner allowlist only, no other upstreams."
+  ],
+  "tests": {
+    "result": "4 passed",
+    "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v10-panel-gap-helper-test-final.log",
+    "log_sha256": "988344a7589dd35ded61b8e784dcd5bc43cb64ba0f19a2bda1a7ec44b380abcb",
+    "command": "python -m pytest -q H/test_v10_preparation.py --basetemp H/.tmp/v10-panel-gap-helper-test-final --tb=short",
+    "syntax_and_help": "PASS"
+  },
+  "pending": [
+    "INDEPENDENT_PANEL_FIRST_PASS",
+    "FINAL_PANEL_GAPS_PIN",
+    "CANDIDATE_ASSEMBLY",
+    "CONFIG_PLAN_GENERATION",
+    "FORMAL_WRITES",
+    "DEPLOYMENT"
+  ],
+  "preparation_entry": "H/prepare_us_tdx_v10.py prepare --output NEW_H_TMP_ROOT --tdx-pin FINAL_PANEL_GAPS_PIN --tdx-pin-sha256 PIN_RAW_SHA --cutoff ACTUAL_COMPLETED_CUTOFF --source-receipt H/panel-priority-implementation-r1.json --source-receipt-sha256 acf271384d3b564f7ea67630755c19ed7a1ecdcc7288868a6f06bd5410fdf188 --review-receipt INDEPENDENT_PASS_RECEIPT --review-receipt-sha256 REVIEW_RAW_SHA"
+}

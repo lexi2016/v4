@@ -1,0 +1,115 @@
+{
+  "status": "IMPLEMENTED_FOR_NARROW_REVIEW",
+  "reason": "Actual global catalogue short pages must not reject individually observed692 identities",
+  "source_before_receipt_sha256": "c195128418a8b8c0f5f4847624ac43762192959e614782ead1d73b3de3170a99",
+  "changes": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "before_sha256": "024a04b472a9cb9f9655838b30e40416493c4268a7108d32afbc38312be99dc8",
+      "after_sha256": "7e63ec911a9bc802396095bebf7d079b3ed7e802536d2f8f4b1c4dd7aab32e5e"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "24bd0037c45a0da49e9b25f418bd099679eba6bae4af68005b27c552c83c2a96",
+      "after_sha256": "4b2ce7b3d2a61a7d3572c2df5e80f3c3073e68dee27823a3de4a97ae8f744f2d"
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "before_sha256": "561945c19fa5dae85cedc87598096c32d4485a755cfa33dd741bcc97a7438c4f",
+      "after_sha256": "a2090a389362d9e77ca6b13f71b54f3ea4473efdb6b0214357aadd72211520cd"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_tdxpy_owner_window.py",
+      "before_sha256": "d2a4a03382efa705c7cd4ebaed9c58ef665c41060c51dc5c03479bb12c85d24d",
+      "after_sha256": "58bd7191429ade69294e98bfe6f0ce6e6e4238c802f97afc8dc4b7afbcd057c9"
+    }
+  ],
+  "real_failure": {
+    "raw_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/runs/20261012/db3feb890556e427001fbd0d/raw_capture.json",
+    "raw_sha256": "db3feb890556e427001fbd0da1e72efcdfe33c19b95a1301254105ae8548eccc",
+    "first_node_short_page": [
+      108100,
+      56,
+      50
+    ],
+    "second_node_short_page": [
+      162900,
+      100,
+      69
+    ],
+    "old_ready": 0,
+    "old_bar_calls": 0,
+    "original_preserved": true
+  },
+  "behavior": {
+    "global_directory_partial_explicit": true,
+    "per_security_identity_required": true,
+    "markets": {
+      "31": "香港主板",
+      "48": "香港创业板",
+      "49": "香港基金"
+    },
+    "market49_from_same_original_node_metadata": true,
+    "existing692_scope_unchanged": true,
+    "original_failed_pages_recovered_by_raw_manifest_sha": true,
+    "no_repeat_global_requests_in_recovery_test": true,
+    "price_volume_window_and_rules_unchanged": true,
+    "partial_status_in_native_gaps": true
+  },
+  "tests": {
+    "result": ".........................................................                [100%]\n57 passed in 4.47s",
+    "log_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdx-tests-r9.log",
+    "log_sha256": "606de18de490cf7847bc59d0044f1045c922b3ec5390770c666a7b81d3739564",
+    "command": "python -m pytest -q tests/manager_workbench/runtime/test_tdxpy_owner_window.py tests/manager_workbench/runtime/test_futu_same_response.py tests/manager_workbench/engines/test_oversold_inputs.py tests/manager_workbench/runtime/test_native_pipeline.py docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py --basetemp H/.tmp/tdx-tests-r9 --tb=short"
+  },
+  "scope_files": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "after_sha256": "7e63ec911a9bc802396095bebf7d079b3ed7e802536d2f8f4b1c4dd7aab32e5e"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "41a8292dff70547211cc4b8539d1b2fa7884955911e21f241ebc59b001a31b76",
+      "after_sha256": "4b2ce7b3d2a61a7d3572c2df5e80f3c3073e68dee27823a3de4a97ae8f744f2d"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "2decd5df1360980df89313ff7c37ebd70e5679441d6097718083023917b7e4f8",
+      "after_sha256": "bb305ef8cfe43c89c1d759b196b5ffba4279f19bc1382c8621103f64a80e6b88"
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "before_sha256": "2be11840f638f8a04d920ad578428c81b55a1223398f9f7d44f8e9a6c4df60d8",
+      "after_sha256": "a2090a389362d9e77ca6b13f71b54f3ea4473efdb6b0214357aadd72211520cd"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_tdxpy_owner_window.py",
+      "before_sha256": null,
+      "after_sha256": "58bd7191429ade69294e98bfe6f0ce6e6e4238c802f97afc8dc4b7afbcd057c9"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py",
+      "before_sha256": null,
+      "after_sha256": "677d19a5f1b01d0e0f9b943853e455752ebfc9e7d87388340b174291c980575f"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_formal_us_oversold.py",
+      "before_sha256": null,
+      "after_sha256": "679897ca33680ba134886bf7e5b147fa456a93fd7d7c93b60130eb5e9e71b873"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py",
+      "before_sha256": null,
+      "after_sha256": "fbce3f5de5151c74e61a6cb98935881ea0ac88b69a6b583ef6904b4b51ef329f"
+    }
+  ],
+  "NOT_RUN": [
+    "Writer network",
+    "Formal writes",
+    "Actual692 full capture",
+    "V10 build/deploy",
+    "New UI"
+  ],
+  "canonical_and_V9_unchanged": true
+}

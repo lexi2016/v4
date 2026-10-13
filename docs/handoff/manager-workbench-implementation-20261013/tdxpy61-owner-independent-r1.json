@@ -1,0 +1,134 @@
+{
+  "verdict": "FAIL",
+  "reviewed": "FAIL_P2_REAL_CATALOGUE_SHORT_PAGE",
+  "tested": "52 passed in 2.73s",
+  "behavior_verified": "INJECTED_61_PROFILE_CACHE_SCOPE_FAILCLOSED_PASS_REAL_CANARY_BLOCKED",
+  "source_receipt_sha256": "c195128418a8b8c0f5f4847624ac43762192959e614782ead1d73b3de3170a99",
+  "patch_sha256": "7ebbd6c6833dedaf33478a12bc259cf40841a52ece453d3a00b67a5bf584bb0a",
+  "actual_delta_patch_matches": true,
+  "files": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "sha256": "024a04b472a9cb9f9655838b30e40416493c4268a7108d32afbc38312be99dc8",
+      "frozen_match": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "sha256": "24bd0037c45a0da49e9b25f418bd099679eba6bae4af68005b27c552c83c2a96",
+      "frozen_match": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "sha256": "bb305ef8cfe43c89c1d759b196b5ffba4279f19bc1382c8621103f64a80e6b88",
+      "frozen_match": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "sha256": "561945c19fa5dae85cedc87598096c32d4485a755cfa33dd741bcc97a7438c4f",
+      "frozen_match": true
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_tdxpy_owner_window.py",
+      "sha256": "d2a4a03382efa705c7cd4ebaed9c58ef665c41060c51dc5c03479bb12c85d24d",
+      "frozen_match": true
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py",
+      "sha256": "677d19a5f1b01d0e0f9b943853e455752ebfc9e7d87388340b174291c980575f",
+      "frozen_match": true
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_formal_us_oversold.py",
+      "sha256": "679897ca33680ba134886bf7e5b147fa456a93fd7d7c93b60130eb5e9e71b873",
+      "frozen_match": true
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py",
+      "sha256": "fbce3f5de5151c74e61a6cb98935881ea0ac88b69a6b583ef6904b4b51ef329f",
+      "frozen_match": true
+    }
+  ],
+  "tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_tdxpy_owner_window.py tests/manager_workbench/runtime/test_futu_same_response.py tests/manager_workbench/engines/test_oversold_inputs.py tests/manager_workbench/runtime/test_native_pipeline.py docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py --basetemp=/private/tmp/mwb-tdx61-independent-tests-r1 --tb=short",
+    "exit_code": 0,
+    "count": 52
+  },
+  "findings": [
+    {
+      "priority": "P2",
+      "file": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "line": 753,
+      "trigger": "Actual node catalogue short page after target HK.00001 already observed",
+      "result": "Both nodes discarded; network_bar_requests=0; HK.00001 UNASSESSED",
+      "minimum_repair": "Preserve raw pages and PARTIAL identity; resume from saved evidence; do not let unrelated global catalogue fullness reject already verified target identities. Missing/conflicting identities remain unknown; never label partial catalogue complete."
+    }
+  ],
+  "real_canary": {
+    "raw_sha256": "db3feb890556e427001fbd0da1e72efcdfe33c19b95a1301254105ae8548eccc",
+    "network_bar_requests": 0,
+    "records": [
+      {
+        "code": "HK.00001",
+        "status": "UNASSESSED",
+        "bars": 0
+      }
+    ],
+    "failures": [
+      {
+        "endpoint": "116.205.143.214:7727",
+        "error": "TDXPY_CATALOGUE_PAGE_INCOMPLETE",
+        "last_request": [
+          108100,
+          56
+        ],
+        "last_return_count": 50,
+        "target_matches": [
+          {
+            "page": [
+              38600,
+              100
+            ],
+            "market": 31,
+            "code": "00001",
+            "name": "长和"
+          }
+        ]
+      },
+      {
+        "endpoint": "103.221.142.82:7727",
+        "error": "TDXPY_CATALOGUE_PAGE_INCOMPLETE",
+        "last_request": [
+          162900,
+          100
+        ],
+        "last_return_count": 69,
+        "target_matches": [
+          {
+            "page": [
+              82000,
+              100
+            ],
+            "market": 31,
+            "code": "00001",
+            "name": "长和"
+          }
+        ]
+      }
+    ],
+    "read_bytes_unchanged": true
+  },
+  "not_run": [
+    "network acquisition",
+    "full692 acquisition",
+    "formal writes/services",
+    "model calls",
+    "deployment",
+    "new UI"
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

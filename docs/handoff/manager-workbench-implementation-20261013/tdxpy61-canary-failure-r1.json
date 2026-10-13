@@ -1,0 +1,56 @@
+{
+  "status": "CANARY_FAILED",
+  "scope": 1,
+  "ready": 0,
+  "bar_requests": 0,
+  "canary_id": "db3feb890556e427001fbd0d",
+  "errors": {
+    "HK.00001": [
+      {
+        "endpoint": "116.205.143.214:7727",
+        "error": "TDXPY_CATALOGUE_PAGE_INCOMPLETE",
+        "error_type": "ValueError"
+      },
+      {
+        "endpoint": "103.221.142.82:7727",
+        "error": "TDXPY_CATALOGUE_PAGE_INCOMPLETE",
+        "error_type": "ValueError"
+      }
+    ]
+  },
+  "diagnosis": "Global catalogue tail page validation blocked an already resolved target security; preserve partial coverage, isolate only unresolved identities.",
+  "nodes": [
+    {
+      "endpoint": "116.205.143.214:7727",
+      "target_matches": [
+        {
+          "offset": 38600,
+          "market": 31,
+          "code": "00001",
+          "name": "长和"
+        }
+      ],
+      "last_request": [
+        108100,
+        56
+      ],
+      "last_returned_count": 50
+    },
+    {
+      "endpoint": "103.221.142.82:7727",
+      "target_matches": [
+        {
+          "offset": 82000,
+          "market": 31,
+          "code": "00001",
+          "name": "长和"
+        }
+      ],
+      "last_request": [
+        162900,
+        100
+      ],
+      "last_returned_count": 69
+    }
+  ]
+}

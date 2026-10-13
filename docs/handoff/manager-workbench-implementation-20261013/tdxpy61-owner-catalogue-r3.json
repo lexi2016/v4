@@ -1,0 +1,102 @@
+{
+  "status": "IMPLEMENTED_FOR_NARROW_REVIEW",
+  "previous_receipt_sha256": "b1789e7880a184b319a699b05c5f2f8c885ab0ba071cab6da9bbe89c614c72a5",
+  "changes": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "before_sha256": "7e63ec911a9bc802396095bebf7d079b3ed7e802536d2f8f4b1c4dd7aab32e5e",
+      "after_sha256": "235e1b7af2239961bbcf8183e9971a170606c61374f8e20c3214eb5d0a515853"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_tdxpy_owner_window.py",
+      "before_sha256": "58bd7191429ade69294e98bfe6f0ce6e6e4238c802f97afc8dc4b7afbcd057c9",
+      "after_sha256": "222442e0507a9be50a42f4ca7bdcaad3f39eedb98ef9ad6b402886b18fb969ca"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py",
+      "before_sha256": "677d19a5f1b01d0e0f9b943853e455752ebfc9e7d87388340b174291c980575f",
+      "after_sha256": "e61ef0ab8a2048912023d0a6d9f11cca4f21a978ac0f41702fe16bfc45574c04"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py",
+      "before_sha256": "fbce3f5de5151c74e61a6cb98935881ea0ac88b69a6b583ef6904b4b51ef329f",
+      "after_sha256": "060b52027c591cbe07fad79917364444a8050bbbfb0e8c6e81e5d34b998410c1"
+    }
+  ],
+  "scope_files": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "after_sha256": "235e1b7af2239961bbcf8183e9971a170606c61374f8e20c3214eb5d0a515853"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "41a8292dff70547211cc4b8539d1b2fa7884955911e21f241ebc59b001a31b76",
+      "after_sha256": "4b2ce7b3d2a61a7d3572c2df5e80f3c3073e68dee27823a3de4a97ae8f744f2d"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "2decd5df1360980df89313ff7c37ebd70e5679441d6097718083023917b7e4f8",
+      "after_sha256": "bb305ef8cfe43c89c1d759b196b5ffba4279f19bc1382c8621103f64a80e6b88"
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "before_sha256": "2be11840f638f8a04d920ad578428c81b55a1223398f9f7d44f8e9a6c4df60d8",
+      "after_sha256": "a2090a389362d9e77ca6b13f71b54f3ea4473efdb6b0214357aadd72211520cd"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_tdxpy_owner_window.py",
+      "before_sha256": null,
+      "after_sha256": "222442e0507a9be50a42f4ca7bdcaad3f39eedb98ef9ad6b402886b18fb969ca"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py",
+      "before_sha256": null,
+      "after_sha256": "e61ef0ab8a2048912023d0a6d9f11cca4f21a978ac0f41702fe16bfc45574c04"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_formal_us_oversold.py",
+      "before_sha256": null,
+      "after_sha256": "679897ca33680ba134886bf7e5b147fa456a93fd7d7c93b60130eb5e9e71b873"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py",
+      "before_sha256": null,
+      "after_sha256": "060b52027c591cbe07fad79917364444a8050bbbfb0e8c6e81e5d34b998410c1"
+    }
+  ],
+  "fixes": [
+    "Global catalogue partial is explicit; original692 per-security verified identity admitted without claiming global completeness",
+    "Same saved raw/manifest pages recovered with exact source SHA and actual availability; no repeated global requests",
+    "Explicit proven market31/48/49 retained, native trade unchanged, parser wireparam1 fixed not NONE",
+    "TDX61 inherits unique saved12day panel manifest/rawSHA; explicit first-capture pin supported; shared latest never changed"
+  ],
+  "panel_pin": {
+    "panel_manifest_relative": "assets/hk_0_2/panels/20261012-f55689159261/manifest.json",
+    "panel_manifest_sha256": "9141cf2220f618e67ec8cfae31a11119108408344b3fba2db5bc4d97920d4c55",
+    "panel_sha256": "f556891592618f32c6aa57d3d439663d2bebcabc2aae7ba559c82d3a9586154d",
+    "target_date": "20261012",
+    "same_known_failed_capture_reference": true
+  },
+  "tests": {
+    "result": "...............................................................          [100%]\n63 passed in 4.74s",
+    "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdx-tests-r11.log",
+    "log_sha256": "4e3a18a53eccbc1473888811e6573011dc5d4033a00baf129204381887926b81",
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "command": "python -m pytest -q tests/manager_workbench/runtime/test_tdxpy_owner_window.py tests/manager_workbench/runtime/test_futu_same_response.py tests/manager_workbench/engines/test_oversold_inputs.py tests/manager_workbench/runtime/test_native_pipeline.py H/test_tdx_operator_helpers.py H/test_v10_preparation.py --basetemp H/.tmp/tdx-tests-r11 --tb=short"
+  },
+  "operational": {
+    "reuse_same_collect_canary_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py' collect --authority-root '/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data' --owner-root '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1' --price-date 20261012 --canary-code HK.00001",
+    "panel_pin_cli_optional": "--panel-manifest-relative assets/hk_0_2/panels/20261012-f55689159261/manifest.json --panel-manifest-sha256 9141cf2220f618e67ec8cfae31a11119108408344b3fba2db5bc4d97920d4c55",
+    "old6day_entry": "Default latest behavior preserved",
+    "actual_supplement_reading": "Native/context exactdate source binding; prepared config reads captured panel_identity"
+  },
+  "NOT_RUN": [
+    "Writer actual network",
+    "Full692 actual capture/run",
+    "V10 candidate build/deploy",
+    "Formal source/config/state changes"
+  ],
+  "original_failures_preserved": true,
+  "canonical_and_V9_unchanged": true
+}

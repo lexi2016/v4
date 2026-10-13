@@ -188,7 +188,7 @@ class NativeAdapters:
             primary = default_primary
             if lane == Lane.ANNOUNCEMENT or lane == Lane.OVERSOLD and item.get("comparison_basis"):
                 candidates = [by_id[eid] for eid in item.get("evidence_ids", []) if eid in by_id
-                    and by_id[eid].role in {"ANNOUNCEMENT_BODY", "ANNOUNCEMENT_CAPTURED_BODY", "FUTU_DAILY_HISTORY_RAW"}
+                    and by_id[eid].role in {"ANNOUNCEMENT_BODY", "ANNOUNCEMENT_CAPTURED_BODY", "FUTU_DAILY_HISTORY_RAW", "TDXPY_DAILY_HISTORY_RAW"}
                     and by_id[eid].sha256 == item.get("source_sha256")]
                 # Each article owns its evidence identity. Missing or ambiguous
                 # source matches stay unknown instead of borrowing a batch owner.
@@ -218,7 +218,8 @@ class NativeAdapters:
                 def bar(b):
                     def number(v):
                         import math
-                        return str(v) if v is not None and math.isfinite(float(v)) else None
+                        try:return str(v) if v is not None and math.isfinite(float(v)) else None
+                        except (ValueError,TypeError):return None
                     return dict(session=b.get("date"),close=number(b.get("close")),high=number(b.get("high")),
                                 volume=number(b.get("volume")),price_unit=b.get("currency"),volume_unit=b.get("volume_unit"),
                                 adjustment=b.get("price_basis"),available_at=b.get("source_available_at"),
@@ -481,13 +482,48 @@ class NativeAdapters:
                 raw_sha256=raw_sha(raw),receipt_sha256=rsha)) for d,v in zip(dates,values)]
         return sym,bars,basis,ref
 
-    def oversold(self, context):
+    def _tdxpy_history(self, context, pin, previous, panel_sha, master_sha, master_codes, panel_manifest_sha, master_manifest_sha):
+        from upstreams.v3_shared_data.shared_data.hk_daily_supplement import read_tdxpy_window_supplement
+        manifest,records=read_tdxpy_window_supplement(pin,target_date=previous,cutoff=context.cutoff,
+            expected_panel_sha=panel_sha,expected_master_sha=master_sha,expected_codes=master_codes,
+            expected_panel_manifest_sha=panel_manifest_sha,expected_master_manifest_sha=master_manifest_sha)
+        output={};refs=[];gaps=['TDXPY_GLOBAL_CATALOGUE_PARTIAL'] if manifest['catalogue_coverage_status']=='PARTIAL' else []
+        for value in records:
+            sym=value['code']
+            if value['status']!='READY':
+                gaps.append('TDXPY_EXACT_HISTORY_UNAVAILABLE:'+sym);continue
+            request=value['request']
+            original_request=dict(source='TDXPY_0_2_7',code=sym,request=request)
+            basis=dict(source='TDXPY_0_2_7',security_symbol=sym,request=original_request,
+                request_sha256=owner_digest(original_request),raw_sha256=pin['raw_sha256'],receipt_sha256=pin['manifest_sha256'],
+                response_sha256=value['response_sha256'],catalogue_sha256=value['catalogue_sha256'],
+                adjustment='TDX_PROTOCOL_PARAM1_FIXED',price_comparison='SAME_SOURCE_SECURITY_REQUEST',
+                volume_comparison='SAME_SOURCE_SECURITY_REQUEST',available_at=manifest['available_at'])
+            bsha=owner_digest(basis)
+            ref=self._ref('TDXPY_0_2_7','TDXPY_DAILY_HISTORY_RAW',previous,pin['raw_sha256'],pin['raw_relative'],
+                manifest['available_at'],manifest=pin['manifest_relative'])
+            bars=[dict(date=b['trade_date'],close=b['close'],high=b['high'],volume=b['trade'],currency=None,volume_unit=None,
+                price_basis='TDX_PROTOCOL_PARAM1_FIXED',source_available_at=manifest['available_at'],suspended=False,
+                comparison_basis_sha256=bsha,source_metadata=dict(source='TDXPY_0_2_7',code=sym,request=original_request,
+                    raw_sha256=pin['raw_sha256'],receipt_sha256=pin['manifest_sha256'],response_sha256=value['response_sha256'],
+                    catalogue_sha256=value['catalogue_sha256'],native_fields=b['native_fields'])) for b in value['bars']]
+            output[sym]=(bars,basis,ref);refs.append(ref)
+        return output,refs,gaps
+
+    def oversold(self, context, *, panel_only=False):
         date = context.source_sessions.get("hk_price") or previous_session(self.calendar, context.target_date, market="hk_securities")
         pin = self._binding("hk_panel", date, context)
         root = self.config.shared_root
         manifest, msha = self._json(root, pin["manifest_relative"], pin["manifest_sha256"])
-        if manifest.get("panel_max_date") != date or manifest.get("research_only") is not True or manifest.get("production_allowed") is not False:
+        actual_max = manifest.get("panel_max_date")
+        projected = (context.phase.value == "RETROSPECTIVE" and isinstance(actual_max,str)
+                     and date <= actual_max <= context.target_date)
+        available = manifest.get("manifest_prepared_at",manifest.get("prepared_at",pin.get("available_at")))
+        if (actual_max != date and not projected or manifest.get("research_only") is not True
+                or manifest.get("production_allowed") is not False):
             raise ValueError("HK_PANEL_DATE_OR_SAFETY_INVALID")
+        if not before(available,context.cutoff) or pin.get("available_at") != available:
+            raise ValueError("HK_PANEL_AVAILABLE_TIME_INVALID")
         artifact_relative = pin.get("panel_relative", "assets/hk_0_2/" + manifest["panel_relative"])
         raw = SafeRoot(root).read_bytes(artifact_relative, max_bytes=512*1024*1024)
         if raw_sha(raw) != manifest["panel_sha256"]:
@@ -498,8 +534,8 @@ class NativeAdapters:
         code_col = "code_norm" if "code_norm" in frame else "symbol"
         frame[date_col] = frame[date_col].astype(str).str.replace("-", "", regex=False).str[:8]
         frame = frame[frame[date_col] <= date]
-        refs = [self._ref("v3_shared_data", "HK_DAILY_PANEL", date, manifest["panel_sha256"],
-                          artifact_relative, pin.get("available_at"), manifest=pin["manifest_relative"])]
+        refs = [self._ref("v3_shared_data", "HK_DAILY_PANEL", actual_max, manifest["panel_sha256"],
+                          artifact_relative, available, manifest=pin["manifest_relative"])]
         # Security master pins full scope, independently from Connect membership.
         mpin, master, master_sha = self._manifest("security_master", date, root, context)
         mrelative = mpin.get("artifact_relative", "assets/hk_security_master/" + master["artifact_relative"])
@@ -518,41 +554,27 @@ class NativeAdapters:
             sym = symbol(code)
             if sym:
                 by_code[sym] = group.to_dict("records")
-        # Optional pinned existing supplement, no fetching and no second producer.
-        if "supplement" in pin:
-            sp = pin["supplement"]
-            sm, _ = self._json(root, sp["manifest_relative"], sp["manifest_sha256"])
-            supplement_relative = sp.get("raw_relative", "assets/hk_0_2/" + sm["raw_capture_relative"])
-            supplemental, ssha = self._json(root, supplement_relative, sm["raw_capture_sha256"])
-            if sm.get("target_date") != date:
-                raise ValueError("HK_SUPPLEMENT_DATE_MISMATCH")
-            refs.append(self._ref("v3_shared_data", "HK_DAILY_SUPPLEMENT", date, ssha,
-                                  supplement_relative, sm.get("prepared_at"), manifest=sp["manifest_relative"]))
-            for source in supplemental.get("records", []):
-                sym = symbol(source.get("code"))
-                if sym:
-                    existing = {str(r.get(date_col)):r for r in by_code.get(sym, [])}
-                    for bar in source.get("bars", []):
-                        if bar.get("trade_date") <= date and bar["trade_date"] not in existing:
-                            existing[bar["trade_date"]] = {**bar, date_col:bar["trade_date"]}
-                    by_code[sym] = list(existing.values())
-        futu={};futu_gaps=[]
-        for original in pin.get("futu_history",[]):
-            try:
-                sym,bars,basis,ref=self._futu_history(context,original,date)
-                if sym not in master_codes or sym in futu:raise ValueError("FUTU_HISTORY_SCOPE_OR_DUPLICATE_INVALID")
-                futu[sym]=(bars,basis,ref);refs.append(ref)
-            except (OSError,ValueError,KeyError,TypeError) as exc:
-                futu_gaps.append(str(exc) if isinstance(exc,ValueError) else "FUTU_HISTORY_OWNER_UNAVAILABLE")
         codes, member_ref, gaps = self.membership(context)
-        gaps+=futu_gaps
         if member_ref:
             refs.append(member_ref)
+        wanted = []; cursor = date
+        for _ in range(61):
+            wanted.append(cursor); cursor=previous_session(self.calendar,cursor,market="hk_securities")
+        wanted.reverse()
         records = []
         for code in sorted(master_codes):
             bars = []
             for raw_row in by_code.get(code, []):
-                native = raw_row.get("native_fields", {})
+                # Parquet nulls/nonfinite cells remain unknown, so one bad
+                # security cannot make the whole immutable batch non-JSON.
+                def clean(v):
+                    import math
+                    if isinstance(v,float) and not math.isfinite(v):return None
+                    if isinstance(v,dict):return {k:clean(x) for k,x in v.items()}
+                    if isinstance(v,list):return [clean(x) for x in v]
+                    return v
+                raw_row=clean(raw_row)
+                native = raw_row.get("native_fields") if isinstance(raw_row.get("native_fields"),dict) else {}
                 volume_unit = native.get("volume_unit") or raw_row.get("volume_unit") or pin.get("volume_unit")
                 price_basis = native.get("price_basis") or raw_row.get("price_basis") or pin.get("price_basis")
                 bars.append(dict(date=str(raw_row[date_col]), close=raw_row.get("close"), high=raw_row.get("high"),
@@ -564,14 +586,95 @@ class NativeAdapters:
             record = dict(symbol=code, price_session=date, bars=sorted(bars,key=lambda r:r["date"]),
                           expected_sessions=pin.get("expected_sessions"),
                           evidence_ids=[r.evidence_id for r in refs], name=None)
-            if code in futu:
-                bars,basis,ref=futu[code]
-                record.update(bars=bars,comparison_basis=basis,source_sha256=ref.sha256,available_at=ref.available_at,
-                    evidence_ids=[ref.evidence_id])
+            record["panel_origin"] = dict(actual_panel_max_date=actual_max,projection_price_date=date,
+                manifest_relative=pin["manifest_relative"],manifest_sha256=msha,panel_sha256=manifest["panel_sha256"],
+                available_at=available)
+            # Restrict the comparison to its exact 61-session window. Older panel
+            # history remains in the original artifact, not in window admission.
+            record["bars"] = [b for b in record["bars"] if b["date"] in wanted]
+            sources=set()
+            for b in record["bars"]:
+                meta=b["source_metadata"]
+                source=meta.get("history_source",meta.get("source"))
+                if source is not None: sources.add(str(source))
+            if len(sources)>1: record["window_gap"]="PANEL_MIXED_SOURCE_COMPARISON_UNVERIFIED"
             records.append(self._member(record, codes, member_ref))
+        from ..engines.oversold import window_metrics
+        base = batch(context,Lane.OVERSOLD,records,refs,"Shared HK panel window",Coverage(scope_count=len(master_codes),observed_count=len(records)),gaps)
+        shaped = self._engine_shape(base)
+        missing = {}
+        for record,row in zip(records,shaped.records):
+            reasons=[]
+            try: window_metrics(context.model_dump(mode="json"),row)
+            except (ValueError,KeyError,TypeError) as exc:
+                reasons.append(str(exc) if str(exc).isidentifier() else "OVERSOLD_EVIDENCE_UNASSESSED")
+            absent=[d for d in wanted if d not in {b["date"] for b in record["bars"]}]
+            if absent and "HISTORY_DATE_DUPLICATE_OR_GAP" not in reasons:reasons.append("HISTORY_DATE_DUPLICATE_OR_GAP")
+            record["panel_window_gaps"]=reasons
+            record["panel_missing_sessions"]=absent
+            record["window_origin"]="PANEL"
+            if reasons:missing[record["symbol"]]=reasons
+        if missing and not panel_only:
+            # The old six-day sidecar cannot prove a mixed-provider 61-day
+            # comparison. Keep it as an explicit gap; do not splice its bars.
+            if "supplement" in pin:gaps.append("LEGACY_SIX_DAY_SUPPLEMENT_COMPARISON_UNVERIFIED")
+            if pin.get("supplement_gap"):gaps.append(pin["supplement_gap"])
+            futu={};tdx={}
+            for original in pin.get("futu_history",[]):
+                if original.get("symbol") not in missing:continue
+                try:
+                    sym,bars,basis,ref=self._futu_history(context,original,date)
+                    if sym not in master_codes or sym in futu:raise ValueError("FUTU_HISTORY_SCOPE_OR_DUPLICATE_INVALID")
+                    futu[sym]=(bars,basis,ref);refs.append(ref)
+                except (OSError,ValueError,KeyError,TypeError) as exc:
+                    gaps.append(str(exc) if isinstance(exc,ValueError) else "FUTU_HISTORY_OWNER_UNAVAILABLE")
+            if pin.get("tdxpy_history"):
+                try:
+                    tdx,tdx_refs,tdx_gaps=self._tdxpy_history(context,pin["tdxpy_history"],date,
+                        manifest["panel_sha256"],master["artifact_sha256"],master_codes,msha,master_sha)
+                    refs.extend(tdx_refs);gaps.extend(tdx_gaps)
+                except (OSError,ValueError,KeyError,TypeError) as exc:
+                    gaps.append(str(exc) if isinstance(exc,ValueError) else "TDXPY_HISTORY_OWNER_UNAVAILABLE")
+            for record in records:
+                code=record["symbol"]
+                if code not in missing or code not in tdx and code not in futu:continue
+                bars,basis,ref=tdx[code] if code in tdx else futu[code]
+                record.pop("window_gap",None)
+                record.update(bars=bars,comparison_basis=basis,source_sha256=ref.sha256,available_at=ref.available_at,
+                    window_origin="PANEL_OWNER_SUPPLEMENT",evidence_ids=[ref.evidence_id]+([member_ref.evidence_id] if member_ref else []))
         return batch(context, Lane.OVERSOLD, records, refs, "Full exact-date security master and shared HK history",
                      Coverage(scope_count=len(master_codes), observed_count=len(records), gaps=gaps), gaps,
                      member_ref.evidence_id if member_ref else None)
+
+    def panel_gap_plan(self, context):
+        """Read-only machine scope for the existing shared supplement owner."""
+        from upstreams.v3_shared_data.shared_data.hk_daily_supplement import _read_panel_identity, _read_master_identity
+        value=self.oversold(context,panel_only=True)
+        date=context.source_sessions["hk_price"]
+        pin=self._binding("hk_panel",date,context)
+        panel=_read_panel_identity(self.config.shared_root,date,manifest_relative=pin["manifest_relative"],
+            manifest_sha256=pin["manifest_sha256"],allow_projection=context.phase.value=="RETROSPECTIVE")
+        master,codes=_read_master_identity(self.config.shared_root,date)
+        actual=sorted(r["symbol"] for r in value.records)
+        master_ref=next(ref for ref in value.evidence_refs if ref.role=="HK_SECURITY_MASTER")
+        if actual!=codes or master_ref.sha256!=master['artifact_sha256']:
+            raise ValueError("PANEL_GAP_MASTER_SCOPE_CHANGED")
+        # Recheck both immutable parent identities after window projection.
+        origin=value.records[0]["panel_origin"]
+        if panel["panel_sha256"]!=origin["panel_sha256"] or panel["panel_manifest_sha256"]!=origin["manifest_sha256"]:
+            raise ValueError("PANEL_GAP_PARENT_CHANGED")
+        wanted=[];cursor=date
+        for _ in range(61):
+            wanted.append(cursor);cursor=previous_session(self.calendar,cursor,market="hk_securities")
+        wanted.reverse()
+        rows=[dict(code=r["symbol"],reasons=r["panel_window_gaps"],missing_sessions=r["panel_missing_sessions"]) for r in value.records]
+        return dict(schema_version="v3_shared_data.hk_0_2_panel_window_gaps.v1",
+            window_validator="OVERSOLD_60_5_V1",target_date=context.target_date,price_date=date,
+            phase=context.phase.value,cutoff=context.cutoff,requested_sessions=wanted,calendar_sha256=raw_sha(CALENDAR_PATH.read_bytes()),
+            panel_identity=panel,master_identity=master,master_scope_count=len(codes),records=rows,
+            gap_codes=[r["code"] for r in rows if r["reasons"]],panel_valid_count=sum(not r["reasons"] for r in rows),
+            replacement_reason="COMPLETE_61_SAME_PROFILE_REQUIRED_NO_UNVERIFIED_SOURCE_MIX",
+            protocol_request_count=128,projected_session_count=61)
 
     def us_mapping(self, context):
         expected = context.source_sessions.get("us") or self._us_session(context.cutoff)

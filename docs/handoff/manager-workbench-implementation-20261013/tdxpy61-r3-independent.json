@@ -1,0 +1,126 @@
+{
+  "verdict": "PASS",
+  "REVIEWED": "PASS_R3_HISTORICAL_BINDING_AND_V10_HELPER",
+  "TESTED": "3 targeted panel/default tests passed in0.24s;7 helper tests passed in0.03s",
+  "BEHAVIOR_VERIFIED": [
+    "explicit historical panel manifest path+rawSHA survives current latest20261013",
+    "unique saved historical binding inherited;conflicting binding refuses",
+    "old6session/defaultlatest retains behavior",
+    "prepare binds captured historical panel and preserves formalstate_root",
+    "V10 helper exactAPI6/Scheduler5delta;only exactcanonicalupstream owner extra allowed",
+    "realHK00001 market31 exact61 projection,cutoff and originalpages recovery"
+  ],
+  "source_receipt_sha256": "9af9eb62384ff1e3d0023e3228a48532c0b5623a00df3913f388d1f056bc800a",
+  "helper_receipt_sha256": "6f476da98afb39765f76f50e03efe65892f25a8062ddd948486ba9ea69d62d89",
+  "files": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "sha256": "235e1b7af2239961bbcf8183e9971a170606c61374f8e20c3214eb5d0a515853",
+      "matches": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "sha256": "4b2ce7b3d2a61a7d3572c2df5e80f3c3073e68dee27823a3de4a97ae8f744f2d",
+      "matches": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "sha256": "bb305ef8cfe43c89c1d759b196b5ffba4279f19bc1382c8621103f64a80e6b88",
+      "matches": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "sha256": "a2090a389362d9e77ca6b13f71b54f3ea4473efdb6b0214357aadd72211520cd",
+      "matches": true
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_tdxpy_owner_window.py",
+      "sha256": "222442e0507a9be50a42f4ca7bdcaad3f39eedb98ef9ad6b402886b18fb969ca",
+      "matches": true
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py",
+      "sha256": "e61ef0ab8a2048912023d0a6d9f11cca4f21a978ac0f41702fe16bfc45574c04",
+      "matches": true
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_formal_us_oversold.py",
+      "sha256": "679897ca33680ba134886bf7e5b147fa456a93fd7d7c93b60130eb5e9e71b873",
+      "matches": true
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py",
+      "sha256": "060b52027c591cbe07fad79917364444a8050bbbfb0e8c6e81e5d34b998410c1",
+      "matches": true
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/prepare_us_tdx_v10.py",
+      "sha256": "1e755f1e541e2df98f53781e49b529bc0000717e8b994911203fd5c1a1961054",
+      "matches": true
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/test_v10_preparation.py",
+      "sha256": "12eb32b82610b2dd58ab352badf9203ecd4009b504d72c4aec72a4d7ee6f836a",
+      "matches": true
+    }
+  ],
+  "reused_r2_receipt": "/private/tmp/mwb-tdx61-catalogue-independent-dg3czH/receipt.json",
+  "real_canary": {
+    "pin_sha256": "ed45f81788341090ffc1b15c32223dcb196af1b5e31098ce97d9d85c917faac2",
+    "raw_sha256": "2ce1d27e830fde97c8127588e2e8f9bb3108b7aa5de10e8883ac8ec8fb20edfb",
+    "manifest_sha256": "108894b28c6dcab676db1eac09b4b1137b3838b0df05b76bf5a428f9b2a5a78c",
+    "source_calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+    "target_price_date": "20261012",
+    "latest_panel_date": "20261013",
+    "panel_identity": {
+      "panel_manifest_relative": "assets/hk_0_2/panels/20261012-f55689159261/manifest.json",
+      "panel_manifest_sha256": "9141cf2220f618e67ec8cfae31a11119108408344b3fba2db5bc4d97920d4c55",
+      "manifest_prepared_at": "2026-10-12T09:20:03.579704+00:00",
+      "panel_relative": "assets/hk_0_2/panels/20261012-f55689159261/hkconnect_vipdoc_daily_panel.parquet",
+      "panel_sha256": "f556891592618f32c6aa57d3d439663d2bebcabc2aae7ba559c82d3a9586154d",
+      "panel_max_date": "20261012"
+    },
+    "master_count": 692,
+    "observed_count": 1,
+    "ready_count": 1,
+    "complete_sessions": 61,
+    "original_count": 128,
+    "network_bar_requests": 1,
+    "catalogue_coverage": "PARTIAL",
+    "catalogue_recovered_exact_original": true,
+    "cutoff": "2026-10-13T09:39:08.599610+00:00",
+    "earlier_cutoff_rejected": true,
+    "outside_future_day": "20261013",
+    "projection_decision": "NOT_SELECTED",
+    "close": "66.20000457763672",
+    "max_high60": "74.4000015258789",
+    "price_pass": false,
+    "trade": "34348.0",
+    "mean_trade5": "53653.2",
+    "volume_ratio": "0.6401854875384879187075514601",
+    "volume_pass": false,
+    "absolute_currency": null,
+    "absolute_volume_unit": null,
+    "read_before_after": {
+      "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/canary-pin-2ce1d27e830fde97c8127588.json": "ed45f81788341090ffc1b15c32223dcb196af1b5e31098ce97d9d85c917faac2",
+      "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/runs/20261012/2ce1d27e830fde97c8127588/raw_capture.json": "2ce1d27e830fde97c8127588e2e8f9bb3108b7aa5de10e8883ac8ec8fb20edfb",
+      "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/runs/20261012/2ce1d27e830fde97c8127588/manifest.json": "108894b28c6dcab676db1eac09b4b1137b3838b0df05b76bf5a428f9b2a5a78c",
+      "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/runs/20261012/db3feb890556e427001fbd0d/raw_capture.json": "db3feb890556e427001fbd0da1e72efcdfe33c19b95a1301254105ae8548eccc",
+      "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/runs/20261012/db3feb890556e427001fbd0d/manifest.json": "f2c835e432a8171868dcd5fb6ea7873e1247f31ae29a1038c273886bc7ba9824",
+      "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panel_latest.json": "a4288aafc75aff862207db53f76ca0174613f780cfc044043ecac676516c0604"
+    },
+    "read_unchanged": true
+  },
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "allows": "Existing692 fullcapture under same reviewedowner/profile and originalmembership after acceptedcanary pin. Not full692 data/selection acceptance.",
+  "not_run": [
+    "network calls byreviewer",
+    "full692 realcapture",
+    "formalwrites/services",
+    "finalV10 plan/candidate build/deploy",
+    "model calls",
+    "newUI"
+  ]
+}

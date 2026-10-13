@@ -1,0 +1,114 @@
+{
+  "verdict": "PASS",
+  "reviewer": "/root/manager_reviewer_sol",
+  "scope": "PANEL_PRIORITY_7_FROZEN_FILES_AND_EXISTING_SAVED_GAP_CANARY_ONLY",
+  "status": [
+    "REVIEWED",
+    "TESTED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "source_receipt_sha256": "acf271384d3b564f7ea67630755c19ed7a1ecdcc7288868a6f06bd5410fdf188",
+  "command_receipt_sha256": "df069671620b540403674b6f985b317746846692d8f4584366ec1b192b444092",
+  "frozen_sources": {
+    "v4/manager_workbench/inputs/native.py": {
+      "before_sha256_reused_from_prior_review": "4b2ce7b3d2a61a7d3572c2df5e80f3c3073e68dee27823a3de4a97ae8f744f2d",
+      "actual_after_sha256": "832045f6b53855ece3b4ad87f551bab03f21d38555a4ff9c1211401392d61117"
+    },
+    "v4/manager_workbench/inputs/source_bindings.py": {
+      "before_sha256_reused_from_prior_review": "bb305ef8cfe43c89c1d759b196b5ffba4279f19bc1382c8621103f64a80e6b88",
+      "actual_after_sha256": "9b0c32b64055cd9fb7ad78dc02a1f35d7f81b5227a141662b3299f459443622a"
+    },
+    "v4/manager_workbench/engines/oversold.py": {
+      "before_sha256_reused_from_prior_review": "a2090a389362d9e77ca6b13f71b54f3ea4473efdb6b0214357aadd72211520cd",
+      "actual_after_sha256": "1efccaf9233cf371ab798e27644c620c1ed800e41e3b966759ce64976437e0de"
+    },
+    "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": {
+      "before_sha256_reused_from_prior_review": "235e1b7af2239961bbcf8183e9971a170606c61374f8e20c3214eb5d0a515853",
+      "actual_after_sha256": "d7b417374c4c674246beb0164b2246f26d82d8e9f79cd54a81ece785a7e27b65"
+    },
+    "docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py": {
+      "before_sha256_reused_from_prior_review": "e61ef0ab8a2048912023d0a6d9f11cca4f21a978ac0f41702fe16bfc45574c04",
+      "actual_after_sha256": "890a298bf953aa5430fb347b48401bfbf27d32467e309444d7a34e2fb67c9659"
+    },
+    "tests/manager_workbench/runtime/test_panel_priority.py": {
+      "before_sha256_reused_from_prior_review": null,
+      "actual_after_sha256": "5623df7f3dc7dd4cde3347d87e2c4df2e816931d4231361914a760d98ab97eda"
+    },
+    "docs/handoff/manager-workbench-implementation-20261013/prepare_panel_gaps.py": {
+      "before_sha256_reused_from_prior_review": null,
+      "actual_after_sha256": "37c04012341087a41a3812765aab9c4759a20a0905cfad9343f2ebd10a246517"
+    }
+  },
+  "tests": {
+    "environment": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "command": "PYTHONDONTWRITEBYTECODE=1 <python> -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_panel_priority.py tests/manager_workbench/runtime/test_native_pipeline.py tests/manager_workbench/runtime/test_futu_same_response.py tests/manager_workbench/engines/test_oversold_inputs.py tests/manager_workbench/runtime/test_tdxpy_owner_window.py tests/manager_workbench/runtime/test_integration.py docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py --basetemp /private/tmp/mwb-panel-priority-tests-independent --tb=short",
+    "exit_code": 0,
+    "result": "93 passed in 10.06s",
+    "writer_92_not_used_as_independent_result": true
+  },
+  "behavior": {
+    "synthetic": [
+      "Valid panel SELECTED/NOT_SELECTED retained, optional bad supplement cannot veto",
+      "Whole 61-session supplement used only for per-security genuine machine gaps; mother scope intact",
+      "Shared unchanged price<=0.8*max60 AND volume/mean5>=1.5 validator",
+      "RETROSPECTIVE actual parent13 projection<=12; PREOPEN/newer or earlier cutoff rejected",
+      "Legacy six-day bars not spliced; mixed/nonfinite gap isolated",
+      "Machine plan parent/calendar/scope/cutoff mutations rejected; zero gap has no connector/catalogue/SDK/output"
+    ],
+    "saved_real": {
+      "real_gap_raw_sha": "52583aaeb5e9f54a455f83ab40203f2697b4ace762cb9a551db84631beb80c0b",
+      "real_gap_content_sha": "18ebfbbd00594cb9cc9dad9422f38e2ab4fedbd2af1b0afee7cd5cfd0b948289",
+      "mother_scope": 692,
+      "panel_valid": 0,
+      "gaps": 692,
+      "parent_actual_max": "20261013",
+      "parent_actual_available": "2026-10-13T09:20:03.775506+00:00",
+      "projection_price_date": "20261012",
+      "canary_pin_sha": "3c52196a311fc429408bc9c16269874a46bebf8028a7d9c1b5dbb899413e328b",
+      "canary_raw_sha": "8d35237e3b4849086a4931385e858f79206c86c6e32ded7a825c300d171b8231",
+      "canary_manifest_sha": "3efe8944922816ad9a255d560077e68161e6b7fdb1f8123bd118461f0dc1ac98",
+      "canary_scope": 1,
+      "ready": 1,
+      "projected_sessions": 61,
+      "network_bar_requests": 0,
+      "cache_hits": 1,
+      "negative_cutoff_parent_checks": "PASS",
+      "rule": {
+        "close": "66.20000457763672",
+        "high60": "74.4000015258789",
+        "volume_ratio": "0.6401854875384879187075514601",
+        "price_pass": false,
+        "volume_pass": false
+      },
+      "read_only_sha_unchanged": {
+        "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/panel-gap-prepared-r1/panel-gaps.json": "52583aaeb5e9f54a455f83ab40203f2697b4ace762cb9a551db84631beb80c0b",
+        "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/canary-pin-8d35237e3b4849086a493138.json": "3c52196a311fc429408bc9c16269874a46bebf8028a7d9c1b5dbb899413e328b",
+        "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/runs/20261012/8d35237e3b4849086a493138/raw_capture.json": "8d35237e3b4849086a4931385e858f79206c86c6e32ded7a825c300d171b8231",
+        "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1/runs/20261012/8d35237e3b4849086a493138/manifest.json": "3efe8944922816ad9a255d560077e68161e6b7fdb1f8123bd118461f0dc1ac98",
+        "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261013-5f278c2d4d10/manifest.json": "b4857921d9c9333c3ee4a2f774f79c2ec3b6ba2b0de2063b97f55ddb869d7bb7",
+        "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261013-5f278c2d4d10/hkconnect_vipdoc_daily_panel.parquet": "5f278c2d4d106f1c7085fc44cba89dab28f9ba91bc63de6fcf00ed86b3f45b51",
+        "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20261012/a9add41f40649816d4e0a7d6/artifact.csv": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe"
+      }
+    }
+  },
+  "permission_conclusion": "FROZEN_MACHINE_GAP_SUBSET_MAY_RUN_WITH_THE_VERIFIED_CANARY_PIN; NOT_FULL_RESULT_OR_DEPLOYMENT_ACCEPTANCE",
+  "not_run": [
+    "NEW_NETWORK",
+    "MODEL",
+    "REAL_GAP_SUBSET_CAPTURE",
+    "SAVED_FULL_SELECTION",
+    "API_UI",
+    "CANDIDATE_ASSEMBLY",
+    "FORMAL_DEPLOYMENT",
+    "NATURAL_SLOT"
+  ],
+  "financial_boundary": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

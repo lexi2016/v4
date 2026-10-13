@@ -1,0 +1,57 @@
+{
+  "verdict": "PASS",
+  "scope": "TWO_FROZEN_V10_PANEL_GAP_PACKAGING_FILES_ONLY",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "reviewer": "/root/manager_reviewer_sol",
+  "status": [
+    "REVIEWED",
+    "TESTED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "input_receipt_sha256": "3b633673d2f283d5d9dec97030232a97662edb905ff13d229d8f321f893e183a",
+  "actual_before_after_sha": {
+    "docs/handoff/manager-workbench-implementation-20261013/prepare_us_tdx_v10.py": {
+      "before_sha256": "1e755f1e541e2df98f53781e49b529bc0000717e8b994911203fd5c1a1961054",
+      "after_sha256": "a989d7024aa6a1c62875c39c39663dbb5c5ca4685a3afc5fc91d8d3db79a1667"
+    },
+    "docs/handoff/manager-workbench-implementation-20261013/test_v10_preparation.py": {
+      "before_sha256": "12eb32b82610b2dd58ab352badf9203ecd4009b504d72c4aec72a4d7ee6f836a",
+      "after_sha256": "c7b38db13537d080d3754aaa3bb1bdf1b823ce8007499e1efca014334bb02389"
+    }
+  },
+  "tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 <python> -m pytest -q -p no:cacheprovider docs/handoff/manager-workbench-implementation-20261013/test_v10_preparation.py --basetemp /private/tmp/mwb-panel-gap-packaging-tests-independent --tb=short",
+    "result": "4 passed in 0.02s",
+    "exit_code": 0
+  },
+  "direct_real": {
+    "formal_config_sha": "0a76879d1f658d326c54af5289f09ee2a42e51e0f9976da29df6a208d49ecd20",
+    "canonical_before_sha": {
+      "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "v4/manager_workbench/engines/oversold.py": "a300af9e42f8c2c224b72105b66279e05002fbe9b2e22e90f894bf2d79af6513",
+      "v4/manager_workbench/engines/us_mapping.py": "38ce99d89eccd14b54891c13024622240398fcd283cf71782a8f83ee2afd8ebc",
+      "v4/manager_workbench/inputs/native.py": "b875ad9f3e66c6efff94ede41f6f263ce92926c82c0863c9ef0cfc482beab4cd",
+      "v4/manager_workbench/inputs/source_bindings.py": "a03953d8e57a7c16397cdbc0a940b85bac489399bb0e52d29764a9baa35d8b9b"
+    },
+    "actual_saved_canary_rejected": true,
+    "formal_unchanged": true
+  },
+  "behavior": [
+    "Only saved PANEL_GAPS full692 mother and exact gap code records accepted",
+    "Old FULL_MASTER and saved real PANEL_GAP_CANARY rejected",
+    "Fixed before identity and exactAPI6/Scheduler5; no other source delta",
+    "Formal config only Futu/TDX bindings; capturefalse/nolease/US+OVERSOLD/state/dynamic bindings unchanged",
+    "No max13 manifest or projection override inserted into ordinary scheduler",
+    "Exact canonical owner allowlist, unchanged reviewed V8 operator delegation"
+  ],
+  "not_run": [
+    "FINAL_FULL_GAP_PIN",
+    "CANDIDATE_ASSEMBLY",
+    "FINAL_OPERATOR_PLAN_DRY_RUN",
+    "DEPLOYMENT",
+    "NATURAL_SLOT"
+  ],
+  "conclusion": "HELPER_PREPARED_ONLY; FINAL_PIN/CANDIDATE/PLAN_REQUIRE_ACTUAL_READBACK"
+}

@@ -1,0 +1,142 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "goal": "Existing TDX owner explicit approved profile -> exact61 D1 history -> full692 Oversold frozen AND",
+  "writer": "manager_writer_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "branch": "codex/manager-workbench-data-closure-20261013",
+  "local_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "worktree": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "canonical_readonly": true,
+  "baseline_source": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v9-us-futu-r2/manager-workbench-20261013-v9-api/app",
+  "existing_owner_canonical_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+  "files": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "after_sha256": "024a04b472a9cb9f9655838b30e40416493c4268a7108d32afbc38312be99dc8",
+      "before_source": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v9-us-futu-r2/manager-workbench-20261013-v9-api/app/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "41a8292dff70547211cc4b8539d1b2fa7884955911e21f241ebc59b001a31b76",
+      "after_sha256": "24bd0037c45a0da49e9b25f418bd099679eba6bae4af68005b27c552c83c2a96",
+      "before_source": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v9-us-futu-r2/manager-workbench-20261013-v9-api/app/v4/manager_workbench/inputs/native.py"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "2decd5df1360980df89313ff7c37ebd70e5679441d6097718083023917b7e4f8",
+      "after_sha256": "bb305ef8cfe43c89c1d759b196b5ffba4279f19bc1382c8621103f64a80e6b88",
+      "before_source": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v9-us-futu-r2/manager-workbench-20261013-v9-api/app/v4/manager_workbench/inputs/source_bindings.py"
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "before_sha256": "2be11840f638f8a04d920ad578428c81b55a1223398f9f7d44f8e9a6c4df60d8",
+      "after_sha256": "561945c19fa5dae85cedc87598096c32d4485a755cfa33dd741bcc97a7438c4f",
+      "before_source": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/v9-us-futu-r2/manager-workbench-20261013-v9-api/app/v4/manager_workbench/engines/oversold.py"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_tdxpy_owner_window.py",
+      "before_sha256": null,
+      "after_sha256": "d2a4a03382efa705c7cd4ebaed9c58ef665c41060c51dc5c03479bb12c85d24d",
+      "before_source": "NEW"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py",
+      "before_sha256": null,
+      "after_sha256": "677d19a5f1b01d0e0f9b943853e455752ebfc9e7d87388340b174291c980575f",
+      "before_source": "NEW"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_formal_us_oversold.py",
+      "before_sha256": null,
+      "after_sha256": "679897ca33680ba134886bf7e5b147fa456a93fd7d7c93b60130eb5e9e71b873",
+      "before_source": "NEW"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py",
+      "before_sha256": null,
+      "after_sha256": "fbce3f5de5151c74e61a6cb98935881ea0ac88b69a6b583ef6904b4b51ef329f",
+      "before_source": "NEW"
+    }
+  ],
+  "delta_patch": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/tdxpy61-owner-r1.patch",
+  "delta_patch_sha256": "7ebbd6c6833dedaf33478a12bc259cf40841a52ece453d3a00b67a5bf584bb0a",
+  "tests": {
+    "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q tests/manager_workbench/runtime/test_tdxpy_owner_window.py tests/manager_workbench/runtime/test_futu_same_response.py tests/manager_workbench/engines/test_oversold_inputs.py tests/manager_workbench/runtime/test_native_pipeline.py docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py --basetemp docs/handoff/manager-workbench-implementation-20261013/.tmp/tdx-tests-r7 --tb=short",
+    "result": "52 passed in 2.82s",
+    "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdx-tests-r7.log",
+    "log_sha256": "bee032a76b8c4c750cccad49c50e6cb2a108c5eeeb95971f39d2e89c3897da69",
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python"
+  },
+  "protocol": {
+    "nodes": [
+      "116.205.143.214:7727",
+      "103.221.142.82:7727"
+    ],
+    "catalogue_complete_pagination": true,
+    "markets": [
+      31,
+      48
+    ],
+    "category": 4,
+    "param1": 1,
+    "param1_semantics": "TDX_PROTOCOL_PARAM1_FIXED_NOT_FUTU_NONE",
+    "bars_request_start": 0,
+    "bars_request_count": 128,
+    "window_count": 61,
+    "price_date": "20261012",
+    "research_target": "20261013",
+    "native_volume": "trade",
+    "scale_applied": 1,
+    "currency": null,
+    "absolute_volume_unit": null
+  },
+  "verified": {
+    "real_HK00001_original_rows_offline": true,
+    "full_scope692_preserved": true,
+    "real_original_HK00001_decision": "NOT_SELECTED",
+    "real_original_price_pass": false,
+    "real_original_volume_pass": false,
+    "cache_success_reuse": true,
+    "failed_only_retry": true,
+    "scope_identity_failclosed": true,
+    "raw_request_catalogue_manifest_shas": true,
+    "old_six_day_defaults_compatible": true,
+    "exclusive_owner_lease": true
+  },
+  "operational": {
+    "canary_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py' collect --authority-root '/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data' --owner-root '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1' --price-date 20261012 --canary-code HK.00001",
+    "full_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py' collect --authority-root '/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data' --owner-root '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-owner-r1' --price-date 20261012 --full-master --accepted-canary '<canary pin_path>' --accepted-canary-sha256 '<canary pin_sha256>'",
+    "prepare_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py' prepare --base-config '<approved config>' --pin '<full pin_path>' --pin-sha256 '<full pin_sha256>' --cutoff '<actual time >= owner available_at>' --price-date 20261012 --output '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-prepared-r1'",
+    "isolated_run_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/run_us_oversold.py' --base-config '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-prepared-r1/base-config.json' --output '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-isolated-run-r1'",
+    "formal_run_after_approved_deployment": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/run_formal_us_oversold.py' --output '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/tdxpy61-formal-run-r1' --target-date 20261013",
+    "formal_state_root_policy": "Existing service config/state_root unchanged; helper submits existing8873 API; isolated runner remains isolation only",
+    "progress": "During acquisition owner/cache/*.json successful immutable per-code checkpoints; full/raw manifest on completion. Formal run writes submitted.json/progress.json in receipt output; GET /api/v4/manager-workbench/runs/{job_id}"
+  },
+  "NOT_RUN": [
+    "Real TDX network capture by Writer",
+    "Full692 real capture",
+    "Full692 real selection",
+    "Independent review",
+    "V9/V10 deployment",
+    "Formal state writes",
+    "Model calls",
+    "New UI changes"
+  ],
+  "unchanged": [
+    "Announcement frozen inputs/capture files",
+    "US mapping engine and frozen reviewed relationship rules",
+    "Config/scheduler scheduled pause",
+    "UI",
+    "V9 candidate and manifests",
+    "Formal service/config/state",
+    "Shared canonical source bytes"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

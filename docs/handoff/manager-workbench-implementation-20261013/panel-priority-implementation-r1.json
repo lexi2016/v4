@@ -1,0 +1,101 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "goal": "SHARED_PANEL_FIRST_OVERSOLD_WITH_MACHINE_GAP_OWNER",
+  "writer": "/root/manager_writer_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "branch": "codex/manager-workbench-data-closure-20261013",
+  "worktree": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "files": {
+    "v4/manager_workbench/inputs/native.py": {
+      "before_sha256": "4b2ce7b3d2a61a7d3572c2df5e80f3c3073e68dee27823a3de4a97ae8f744f2d",
+      "after_sha256": "832045f6b53855ece3b4ad87f551bab03f21d38555a4ff9c1211401392d61117"
+    },
+    "v4/manager_workbench/inputs/source_bindings.py": {
+      "before_sha256": "bb305ef8cfe43c89c1d759b196b5ffba4279f19bc1382c8621103f64a80e6b88",
+      "after_sha256": "9b0c32b64055cd9fb7ad78dc02a1f35d7f81b5227a141662b3299f459443622a"
+    },
+    "v4/manager_workbench/engines/oversold.py": {
+      "before_sha256": "a2090a389362d9e77ca6b13f71b54f3ea4473efdb6b0214357aadd72211520cd",
+      "after_sha256": "1efccaf9233cf371ab798e27644c620c1ed800e41e3b966759ce64976437e0de"
+    },
+    "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": {
+      "before_sha256": "235e1b7af2239961bbcf8183e9971a170606c61374f8e20c3214eb5d0a515853",
+      "after_sha256": "d7b417374c4c674246beb0164b2246f26d82d8e9f79cd54a81ece785a7e27b65"
+    },
+    "docs/handoff/manager-workbench-implementation-20261013/collect_tdxpy_61.py": {
+      "before_sha256": "e61ef0ab8a2048912023d0a6d9f11cca4f21a978ac0f41702fe16bfc45574c04",
+      "after_sha256": "890a298bf953aa5430fb347b48401bfbf27d32467e309444d7a34e2fb67c9659"
+    },
+    "tests/manager_workbench/runtime/test_panel_priority.py": {
+      "before_sha256": null,
+      "after_sha256": "5623df7f3dc7dd4cde3347d87e2c4df2e816931d4231361914a760d98ab97eda"
+    },
+    "docs/handoff/manager-workbench-implementation-20261013/prepare_panel_gaps.py": {
+      "before_sha256": null,
+      "after_sha256": "37c04012341087a41a3812765aab9c4759a20a0905cfad9343f2ebd10a246517"
+    }
+  },
+  "contract": "Price<=0.8*high60 AND volume/mean5>=1.5 remains unchanged; membership/full master retained; no same-day price in D-1 comparison.",
+  "before_receipt_sha256": "effb6713a0af117ccb4b563055602402edb502f7e0e9ccf84adf5a1f40c5e2b4",
+  "command_receipt": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/panel-priority-commands-r1.json",
+    "sha256": "df069671620b540403674b6f985b317746846692d8f4584366ec1b192b444092"
+  },
+  "tests": {
+    "environment": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "python_version": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+    "broad": {
+      "result": "92 passed in 8.61s",
+      "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/panel-priority-tests-final.log",
+      "sha256": "47a1bf218fc615ede9c91465a2da8087ddda6c869b68df8487db8c56b680c92a",
+      "targets": [
+        "tests/manager_workbench/runtime/test_panel_priority.py",
+        "tests/manager_workbench/runtime/test_native_pipeline.py",
+        "tests/manager_workbench/runtime/test_futu_same_response.py",
+        "tests/manager_workbench/engines/test_oversold_inputs.py",
+        "tests/manager_workbench/runtime/test_tdxpy_owner_window.py",
+        "tests/manager_workbench/runtime/test_integration.py",
+        "docs/handoff/manager-workbench-implementation-20261013/test_tdx_operator_helpers.py"
+      ]
+    },
+    "final_target": {
+      "result": "20 passed in 2.83s",
+      "log": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/panel-priority-final-extra.log",
+      "sha256": "9ed1fb3e63a29f16eba1bd7676f5fff64e297667defceb931f6bf59d4e62cf45"
+    },
+    "syntax_and_help": "PASS",
+    "commands": "python -m pytest -q TARGETS --basetemp HANDOFF/.tmp/panel-priority-tests-final --tb=short; Python py_compile source/helpers; both helpers --help"
+  },
+  "evidence_reuse": {
+    "old_panel_inventory": {
+      "path": "/private/tmp/mwb-old-hk-panel-inventory-7aw977w7/receipt.json",
+      "sha256": "5fd1a25e432ceff5fd0711a86e51142fc915846152b1439f6301f576019b515c",
+      "verdict": "PARENT_INDEPENDENT_REVIEW_RECEIPT_REUSED",
+      "facts": [
+        "Original owner append does not close earlier holes. Actual max13 availability does not prove a complete D-1 window.",
+        "Historical PYTDX_MULTIPLY_BY_100_IS_APPROXIMATE_NOT_LOSSLESS and SEMANTIC_UNITS_CANNOT_CONFIRM remain gaps.",
+        "Latest native observation scope NEW_INCREMENT_ONLY does not prove the entire historical prefix. 47 versions and legacy 693/6-day sidecar remain unchanged."
+      ]
+    },
+    "formal_config_readonly_sha256": "0a76879d1f658d326c54af5289f09ee2a42e51e0f9976da29df6a208d49ecd20"
+  },
+  "not_run": [
+    "INDEPENDENT_REVIEW",
+    "REAL_PANEL_GAP_PREPARE",
+    "REAL_CANARY_CAPTURE",
+    "REAL_GAP_SUBSET_CAPTURE",
+    "MODEL",
+    "SAVED_REAL_RUN",
+    "API_UI",
+    "V10_ASSEMBLY",
+    "DEPLOYMENT",
+    "FORMAL_STATE_WRITES"
+  ],
+  "modifications": [
+    "RETROSPECTIVE latest max13 read with actual identity/time and <=D1 projection; ordinary phases do not use newer panels.",
+    "One shared window validator for selection and gap routing; valid positive or negative panel windows always win over supplements.",
+    "No unverified six-day bar splicing; mixed-source/unknown/nonfinite rows remain per-security gaps, valid peers survive.",
+    "Existing shared owner supports PANEL_GAP_CANARY/PANEL_GAPS with full mother scope, immutable actual parent and machine reasons; zero gaps zero owner requests/writes."
+  ]
+}
