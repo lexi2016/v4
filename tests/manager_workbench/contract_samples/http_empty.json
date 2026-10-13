@@ -1,0 +1,44 @@
+{
+  "GET /days/{date}": {
+    "body": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "data": {
+        "counts": null,
+        "pagination": {
+          "limit": 50,
+          "offset": 0,
+          "total": 0
+        },
+        "snapshot": null,
+        "stocks": [],
+        "versions": []
+      },
+      "gaps": [
+        "NO_SAVED_PLAN"
+      ],
+      "orders_sent": false,
+      "production_allowed": false,
+      "schema_version": "v4.manager_workbench.v1",
+      "state": "NOT_RUN"
+    },
+    "status": 200
+  },
+  "GET /history": {
+    "body": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "data": {
+        "date": "20261013",
+        "entries": [],
+        "versions": []
+      },
+      "gaps": [],
+      "orders_sent": false,
+      "production_allowed": false,
+      "schema_version": "v4.manager_workbench.v1",
+      "state": "NOT_RUN"
+    },
+    "status": 200
+  }
+}

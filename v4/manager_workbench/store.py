@@ -1,0 +1,291 @@
+"""Immutable plan/input storage, crash-safe publication and per-key OS locks."""
+from __future__ import annotations
+
+import contextlib
+import fcntl
+import hashlib
+import json
+import os
+import re
+import tempfile
+from pathlib import Path
+from typing import Any, Iterator
+
+from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, validate_date
+
+
+class StorageConflict(Exception):
+    pass
+
+
+class StorageUnavailable(Exception):
+    pass
+
+
+def _key(v: str) -> str:
+    if not isinstance(v, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", v):
+        raise ValueError("STORAGE_KEY_INVALID")
+    return v
+
+
+class WorkbenchStore:
+    def __init__(self, state_root: str | Path):
+        self.root = Path(state_root) / "manager_workbench"
+        # Constructing a read-only service MUST NOT mkdir STATE_ROOT.
+        # This also checks existing parent symlinks before any future lookup.
+        self._safe_directory(self.root, create=False)
+
+    def _safe_directory(self, path: Path, *, create: bool) -> Path:
+        # Inspect every component, including StateRoot parents, even if the
+        # target does not yet exist; never follow a symlink on read or write.
+        for parent in (path, *path.parents):
+            if parent.is_symlink():
+                raise StorageUnavailable("UNSAFE_STATE_ROOT")
+        if create:
+            path.mkdir(parents=True, exist_ok=True, mode=0o700)
+        return path
+
+    def _dir(self, path: Path) -> Path:
+        return self._safe_directory(path, create=True)
+
+    def _path(self, *parts: str, write: bool = False) -> Path:
+        if not parts or any(not _key(p) for p in parts):
+            raise ValueError("STORAGE_KEY_INVALID")
+        directory = self._safe_directory(self.root.joinpath(*parts[:-1]), create=write)
+        result = directory / f"{parts[-1]}.json"
+        if result.is_symlink():
+            raise StorageUnavailable("SYMLINK_DENIED")
+        return result
+
+    @contextlib.contextmanager
+    def lock(self, key: str) -> Iterator[None]:
+        lock_key = hashlib.sha256(key.encode()).hexdigest()
+        d = self._dir(self.root / "locks")
+        target = d / f"{lock_key}.lock"
+        fd = os.open(target, os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0), 0o600)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX)
+            yield
+        finally:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
+
+    def _read(self, path: Path) -> dict[str, Any] | None:
+        try:
+            fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+        except FileNotFoundError:
+            return None
+        with os.fdopen(fd, "rb") as file:
+            obj = json.loads(file.read())
+        if not isinstance(obj, dict):
+            raise StorageUnavailable("CORRUPT_RECORD")
+        return obj
+
+    @staticmethod
+    def _sync_dir(path: Path) -> None:
+        fd = os.open(path, os.O_RDONLY)
+        try:
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+
+    def _write(self, path: Path, obj: dict[str, Any], *, immutable: bool) -> None:
+        data = canonical(obj)
+        self._safe_directory(path.parent, create=True)
+        if path.is_symlink():
+            raise StorageUnavailable("SYMLINK_DENIED")
+        fd, tmp = tempfile.mkstemp(prefix=".pending-", dir=path.parent)
+        try:
+            os.fchmod(fd, 0o600)
+            with os.fdopen(fd, "wb") as out:
+                out.write(data)
+                out.flush()
+                os.fsync(out.fileno())
+            if immutable:
+                try:
+                    os.link(tmp, path, follow_symlinks=False)
+                except FileExistsError:
+                    existing = self._read(path)
+                    if existing != obj:
+                        raise StorageConflict("IMMUTABLE_COLLISION")
+            else:
+                if path.is_symlink():
+                    raise StorageUnavailable("SYMLINK_DENIED")
+                os.replace(tmp, path)
+            self._sync_dir(path.parent)
+        finally:
+            if os.path.lexists(tmp):
+                os.unlink(tmp)
+
+    def save_input(self, input_sha: str, data: dict[str, Any]) -> None:
+        if len(input_sha) != 64 or any(c not in "0123456789abcdef" for c in input_sha):
+            raise ValueError("INPUT_SHA_INVALID")
+        with self.lock("input:" + input_sha):
+            self._write(self._path("input_snapshots", input_sha), data, immutable=True)
+
+    def save_job(self, job: JobRecord) -> None:
+        # Attempts are mutable; successful plans are not.
+        with self.lock("job:" + job.job_id):
+            self._write(self._path("attempts", _key(job.job_id)), job.model_dump(mode="json"), immutable=False)
+
+    def get_job(self, job_id: str) -> JobRecord | None:
+        obj = self._read(self._path("attempts", _key(job_id)))
+        return JobRecord.model_validate(obj) if obj is not None else None
+
+    def _catalog(self, snap: PlanSnapshot) -> Path:
+        return self._path("catalog", snap.context.target_date, snap.context.phase.value, _key(snap.run_id))
+
+    def commit_plan(self, snap: PlanSnapshot, *, freeze: bool = False) -> PlanSnapshot:
+        """Publication is atomic only after immutable readback passes model+run+SHA checks."""
+        d = snap.model_dump(mode="json")
+        date, phase = snap.context.target_date, snap.context.phase.value
+        key = f"publish:{date}:{phase}"
+        with self.lock(key):
+            pointer_path = self._path("pointers", date, phase)
+            before = self._read(pointer_path)
+            if before and (freeze or phase == "PREOPEN"):
+                if before.get("run_id") == snap.run_id and before.get("product_sha256") == snap.product_sha256:
+                    return self.read_plan(snap.run_id)
+                raise StorageConflict("PREOPEN_FROZEN")
+            self._write(self._path("snapshots", _key(snap.run_id)), d, immutable=True)
+            saved = self.read_plan(snap.run_id)
+            if saved.context != snap.context or saved.product_sha256 != snap.product_sha256 or saved.input_sha256 != snap.input_sha256:
+                raise StorageConflict("READBACK_MISMATCH")
+            self._write(self._catalog(saved), {"run_id": saved.run_id, "product_sha256": saved.product_sha256,
+                                                "generated_at": saved.generated_at, "input_sha256": saved.input_sha256}, immutable=True)
+            self._write(pointer_path, {"run_id": saved.run_id, "product_sha256": saved.product_sha256,
+                                       "generated_at": saved.generated_at}, immutable=False)
+            return saved
+
+    def read_plan(self, run_id: str) -> PlanSnapshot:
+        obj = self._read(self._path("snapshots", _key(run_id)))
+        if obj is None:
+            raise KeyError("PLAN_NOT_FOUND")
+        saved = PlanSnapshot.model_validate(obj)
+        if saved.run_id != run_id:
+            raise StorageConflict("RUN_ID_MISMATCH")
+        return saved
+
+    def list_plans(self, date: str, phase: str | None = None) -> list[PlanSnapshot]:
+        validate_date(date)
+        phases = [phase] if phase else ["PREOPEN", "INTRADAY", "NEXT_DAY", "RETROSPECTIVE", "MANUAL"]
+        result: list[PlanSnapshot] = []
+        for name in phases:
+            if name not in ("PREOPEN", "INTRADAY", "NEXT_DAY", "RETROSPECTIVE", "MANUAL"):
+                raise ValueError("PHASE_INVALID")
+            folder = self.root / "catalog" / date / name
+            if not folder.exists():
+                continue
+            self._safe_directory(folder, create=False)
+            for path in folder.glob("*.json"):
+                if path.is_symlink():
+                    raise StorageUnavailable("SYMLINK_DENIED")
+                obj = self._read(path)
+                if obj:
+                    snap = self.read_plan(obj["run_id"])
+                    if snap.context.target_date != date or snap.context.phase.value != name or obj["product_sha256"] != snap.product_sha256:
+                        raise StorageConflict("CATALOG_MISMATCH")
+                    result.append(snap)
+        return sorted(result, key=lambda s: (s.generated_at, s.run_id), reverse=True)
+
+    def get_plan(self, date: str, phase: str | None = None, run_id: str | None = None) -> PlanSnapshot | None:
+        if run_id:
+            snap = self.read_plan(run_id)
+            if snap.context.target_date != date or (phase and snap.context.phase.value != phase):
+                raise KeyError("PLAN_NOT_FOUND")
+            return snap
+        plans = self.list_plans(date, phase)
+        return plans[0] if plans else None
+
+    def find_reusable(self, date: str, phase: str, signature: str) -> PlanSnapshot | None:
+        return next((p for p in self.list_plans(date, phase) if p.changes.get("fingerprint") == signature), None)
+
+    def save_review(self, review: ReviewSummary) -> None:
+        plan = self.read_plan(review.plan_run_id)
+        if plan.context.target_date != review.target_date:
+            raise StorageConflict("REVIEW_DATE_MISMATCH")
+        with self.lock("review:" + review.plan_run_id):
+            self._write(self._path("reviews", review.target_date, _key(review.plan_run_id)), review.model_dump(mode="json"), immutable=True)
+
+    def get_review(self, date: str, run_id: str) -> ReviewSummary | None:
+        validate_date(date)
+        obj = self._read(self._path("reviews", date, _key(run_id)))
+        return ReviewSummary.model_validate(obj) if obj else None
+
+    def cursor(self, key: str) -> dict[str, Any] | None:
+        return self._read(self._path("cursors", _key(key)))
+
+    def set_cursor(self, key: str, value: dict[str, Any]) -> None:
+        with self.lock("cursor:" + key):
+            self._write(self._path("cursors", _key(key)), value, immutable=False)
+
+    def recover_orphan_attempts(self, active_ids: set[str] | None = None) -> int:
+        """Only mark interrupted when no live owner PID is observable.
+
+        A reused PID is possible; the conservative response is to block duplicate
+        execution, not to assert a task finished or start another model call.
+        """
+        active_ids = active_ids or set()
+        root = self.root / "attempts"
+        if not root.exists():
+            return 0
+        self._safe_directory(root, create=False)
+        count = 0
+        for path in root.glob("*.json"):
+            if path.is_symlink():
+                raise StorageUnavailable("SYMLINK_DENIED")
+            item = self.get_job(path.stem)
+            if item and item.state in (JobState.QUEUED, JobState.RUNNING) and item.job_id not in active_ids:
+                owner = next((r.get("pid") for r in item.execution_refs if r.get("kind") == "host"), None)
+                if isinstance(owner,int) and self._pid_alive(owner):
+                    continue
+                item.state = JobState.INTERRUPTED
+                item.failure_code = "PROCESS_IDENTITY_UNVERIFIED"
+                item.retryable = True
+                item.failed_steps = list(dict.fromkeys([*item.failed_steps, item.step]))
+                self.save_job(item)
+                count += 1
+        return count
+
+    def save_checkpoint(self, job_id: str, step: str, payload: dict[str, Any]) -> None:
+        with self.lock(f"checkpoint:{job_id}:{step}"):
+            self._write(self._path("checkpoints", _key(job_id), _key(step)), payload, immutable=True)
+
+    def load_checkpoint(self, job_id: str, step: str) -> dict[str, Any] | None:
+        return self._read(self._path("checkpoints", _key(job_id), _key(step)))
+
+    def load_input(self, input_sha: str) -> dict[str, Any] | None:
+        return self._read(self._path("input_snapshots", input_sha))
+
+    @staticmethod
+    def _pid_alive(pid: int) -> bool:
+        if pid <= 0:
+            return False
+        try:
+            os.kill(pid, 0)
+            return True
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True  # unknown owner: do not assume it is safe to duplicate
+
+    def active_claim(self, scope: str) -> JobRecord | None:
+        """Caller holds submission lock; checks persisted active owner."""
+        key = hashlib.sha256(scope.encode()).hexdigest()
+        claim = self._read(self._path("claims", key))
+        if not claim or not claim.get("job_id"):
+            return None
+        current = self.get_job(claim["job_id"])
+        if current is None or current.state not in (JobState.QUEUED, JobState.RUNNING):
+            return None
+        if not self._pid_alive(claim.get("pid", -1)):
+            current.state = JobState.INTERRUPTED
+            current.failure_code = "PROCESS_IDENTITY_UNVERIFIED"
+            current.retryable = True
+            self.save_job(current)
+            return None
+        return current
+
+    def set_claim(self, scope: str, job_id: str | None) -> None:
+        key = hashlib.sha256(scope.encode()).hexdigest()
+        self._write(self._path("claims", key), {"job_id":job_id, "pid":os.getpid() if job_id else None},immutable=False)

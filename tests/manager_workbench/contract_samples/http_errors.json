@@ -1,0 +1,42 @@
+{
+  "GET channel unavailable (503)": {
+    "body": {
+      "detail": "STATE_CHANNEL_UNAVAILABLE"
+    },
+    "status": 503
+  },
+  "GET malformed date (422)": {
+    "body": {
+      "detail": "DATE_INVALID"
+    },
+    "status": 422
+  },
+  "GET malformed symbol (422)": {
+    "body": {
+      "detail": "SYMBOL_INVALID"
+    },
+    "status": 422
+  },
+  "GET unknown job (404)": {
+    "body": {
+      "detail": "ENTITY_NOT_FOUND"
+    },
+    "status": 404
+  },
+  "POST extra untrusted fields (422)": {
+    "body": {
+      "detail": [
+        {
+          "input": [],
+          "loc": [
+            "body",
+            "rows"
+          ],
+          "msg": "Extra inputs are not permitted",
+          "type": "extra_forbidden"
+        }
+      ]
+    },
+    "status": 422
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "GET /runs/{id}": {
+    "body": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "data": {
+        "completed_count": 0,
+        "context": {
+          "cutoff": "2026-10-13T14:00:00+08:00",
+          "market": "HK_CONNECT",
+          "phase": "INTRADAY",
+          "rules_version": "POSITIVE_OPERATING_RESEARCH_V1",
+          "scope_refs": {
+            "hk_connect_membership": "owner:test"
+          },
+          "source_sessions": {
+            "hk": "20261013",
+            "us": "20261012"
+          },
+          "target_date": "20261013",
+          "trigger": "SCHEDULED"
+        },
+        "execution_refs": [],
+        "failed_steps": [
+          "REVIEW"
+        ],
+        "failure_code": "MODEL_AUTH_UNAVAILABLE",
+        "finished_at": null,
+        "job_id": "fixture-job",
+        "last_progress_at": null,
+        "retryable": false,
+        "run_id": "fixture-run",
+        "started_at": null,
+        "state": "FAILED",
+        "step": "REVIEW",
+        "total_count": null
+      },
+      "gaps": [],
+      "orders_sent": false,
+      "production_allowed": false,
+      "schema_version": "v4.manager_workbench.v1",
+      "state": "FAILED"
+    },
+    "status": 200
+  },
+  "POST /runs/{id}/retry (409)": {
+    "body": {
+      "detail": "NOT_RETRYABLE"
+    },
+    "status": 409
+  }
+}

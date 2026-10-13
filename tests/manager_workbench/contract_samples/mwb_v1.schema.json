@@ -1,0 +1,2160 @@
+{
+  "models": {
+    "Counts": {
+      "additionalProperties": false,
+      "properties": {
+        "not_selected": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Not Selected"
+        },
+        "observation_only": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observation Only"
+        },
+        "selected": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected"
+        },
+        "unassessed": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unassessed"
+        },
+        "watch": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Watch"
+        }
+      },
+      "title": "Counts",
+      "type": "object"
+    },
+    "Coverage": {
+      "additionalProperties": false,
+      "properties": {
+        "assessed_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assessed Count"
+        },
+        "gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Gaps",
+          "type": "array"
+        },
+        "observed_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Count"
+        },
+        "scope_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scope Count"
+        },
+        "unassessed_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unassessed Count"
+        }
+      },
+      "title": "Coverage",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "$defs": {
+        "Verification": {
+          "enum": [
+            "VERIFIED",
+            "CANNOT_CONFIRM",
+            "INVALID"
+          ],
+          "title": "Verification",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "artifact_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Artifact Ref"
+        },
+        "available_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Available At"
+        },
+        "captured_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Captured At"
+        },
+        "evidence_id": {
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Gaps",
+          "type": "array"
+        },
+        "manifest_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manifest Ref"
+        },
+        "observed_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed At"
+        },
+        "owner": {
+          "title": "Owner",
+          "type": "string"
+        },
+        "receipt_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receipt Ref"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        },
+        "source_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Date"
+        },
+        "source_session": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Session"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        },
+        "verification": {
+          "$ref": "#/$defs/Verification"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "owner",
+        "role",
+        "verification"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "InputBatch": {
+      "$defs": {
+        "Coverage": {
+          "additionalProperties": false,
+          "properties": {
+            "assessed_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Assessed Count"
+            },
+            "gaps": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Gaps",
+              "type": "array"
+            },
+            "observed_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Observed Count"
+            },
+            "scope_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Scope Count"
+            },
+            "unassessed_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Unassessed Count"
+            }
+          },
+          "title": "Coverage",
+          "type": "object"
+        },
+        "EvidenceRef": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Artifact Ref"
+            },
+            "available_at": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Available At"
+            },
+            "captured_at": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Captured At"
+            },
+            "evidence_id": {
+              "title": "Evidence Id",
+              "type": "string"
+            },
+            "gaps": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Gaps",
+              "type": "array"
+            },
+            "manifest_ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Manifest Ref"
+            },
+            "observed_at": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Observed At"
+            },
+            "owner": {
+              "title": "Owner",
+              "type": "string"
+            },
+            "receipt_ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Receipt Ref"
+            },
+            "role": {
+              "title": "Role",
+              "type": "string"
+            },
+            "sha256": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sha256"
+            },
+            "source_date": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Date"
+            },
+            "source_session": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Session"
+            },
+            "source_url": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Url"
+            },
+            "verification": {
+              "$ref": "#/$defs/Verification"
+            }
+          },
+          "required": [
+            "evidence_id",
+            "owner",
+            "role",
+            "verification"
+          ],
+          "title": "EvidenceRef",
+          "type": "object"
+        },
+        "Lane": {
+          "enum": [
+            "ANNOUNCEMENT",
+            "US_MAPPING",
+            "OVERSOLD",
+            "STAGE_REFERENCE",
+            "CLOSE_REFERENCE"
+          ],
+          "title": "Lane",
+          "type": "string"
+        },
+        "Phase": {
+          "enum": [
+            "PREOPEN",
+            "INTRADAY",
+            "NEXT_DAY",
+            "RETROSPECTIVE",
+            "MANUAL"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "RunContext": {
+          "additionalProperties": false,
+          "properties": {
+            "cutoff": {
+              "title": "Cutoff",
+              "type": "string"
+            },
+            "market": {
+              "const": "HK_CONNECT",
+              "default": "HK_CONNECT",
+              "title": "Market",
+              "type": "string"
+            },
+            "phase": {
+              "$ref": "#/$defs/Phase"
+            },
+            "rules_version": {
+              "title": "Rules Version",
+              "type": "string"
+            },
+            "scope_refs": {
+              "additionalProperties": true,
+              "title": "Scope Refs",
+              "type": "object"
+            },
+            "source_sessions": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "title": "Source Sessions",
+              "type": "object"
+            },
+            "target_date": {
+              "title": "Target Date",
+              "type": "string"
+            },
+            "trigger": {
+              "enum": [
+                "SCHEDULED",
+                "MANUAL"
+              ],
+              "title": "Trigger",
+              "type": "string"
+            }
+          },
+          "required": [
+            "target_date",
+            "phase",
+            "cutoff",
+            "trigger",
+            "rules_version"
+          ],
+          "title": "RunContext",
+          "type": "object"
+        },
+        "Verification": {
+          "enum": [
+            "VERIFIED",
+            "CANNOT_CONFIRM",
+            "INVALID"
+          ],
+          "title": "Verification",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/RunContext"
+        },
+        "coverage": {
+          "$ref": "#/$defs/Coverage"
+        },
+        "evidence_refs": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Gaps",
+          "type": "array"
+        },
+        "input_sha256": {
+          "title": "Input Sha256",
+          "type": "string"
+        },
+        "lane": {
+          "$ref": "#/$defs/Lane"
+        },
+        "records": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Records",
+          "type": "array"
+        },
+        "scope_description": {
+          "title": "Scope Description",
+          "type": "string"
+        },
+        "universe_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Universe Ref"
+        }
+      },
+      "required": [
+        "context",
+        "lane",
+        "universe_ref",
+        "records",
+        "evidence_refs",
+        "input_sha256",
+        "scope_description",
+        "coverage"
+      ],
+      "title": "InputBatch",
+      "type": "object"
+    },
+    "JobRecord": {
+      "$defs": {
+        "JobState": {
+          "enum": [
+            "QUEUED",
+            "RUNNING",
+            "SUCCEEDED",
+            "PARTIAL",
+            "FAILED",
+            "CANCELLED",
+            "INTERRUPTED"
+          ],
+          "title": "JobState",
+          "type": "string"
+        },
+        "Phase": {
+          "enum": [
+            "PREOPEN",
+            "INTRADAY",
+            "NEXT_DAY",
+            "RETROSPECTIVE",
+            "MANUAL"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "RunContext": {
+          "additionalProperties": false,
+          "properties": {
+            "cutoff": {
+              "title": "Cutoff",
+              "type": "string"
+            },
+            "market": {
+              "const": "HK_CONNECT",
+              "default": "HK_CONNECT",
+              "title": "Market",
+              "type": "string"
+            },
+            "phase": {
+              "$ref": "#/$defs/Phase"
+            },
+            "rules_version": {
+              "title": "Rules Version",
+              "type": "string"
+            },
+            "scope_refs": {
+              "additionalProperties": true,
+              "title": "Scope Refs",
+              "type": "object"
+            },
+            "source_sessions": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "title": "Source Sessions",
+              "type": "object"
+            },
+            "target_date": {
+              "title": "Target Date",
+              "type": "string"
+            },
+            "trigger": {
+              "enum": [
+                "SCHEDULED",
+                "MANUAL"
+              ],
+              "title": "Trigger",
+              "type": "string"
+            }
+          },
+          "required": [
+            "target_date",
+            "phase",
+            "cutoff",
+            "trigger",
+            "rules_version"
+          ],
+          "title": "RunContext",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "completed_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Completed Count",
+          "type": "integer"
+        },
+        "context": {
+          "$ref": "#/$defs/RunContext"
+        },
+        "execution_refs": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Execution Refs",
+          "type": "array"
+        },
+        "failed_steps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Failed Steps",
+          "type": "array"
+        },
+        "failure_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Failure Code"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finished At"
+        },
+        "job_id": {
+          "title": "Job Id",
+          "type": "string"
+        },
+        "last_progress_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Progress At"
+        },
+        "retryable": {
+          "default": false,
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Started At"
+        },
+        "state": {
+          "$ref": "#/$defs/JobState"
+        },
+        "step": {
+          "title": "Step",
+          "type": "string"
+        },
+        "total_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Count"
+        }
+      },
+      "required": [
+        "job_id",
+        "run_id",
+        "context",
+        "state",
+        "step"
+      ],
+      "title": "JobRecord",
+      "type": "object"
+    },
+    "LaneResult": {
+      "$defs": {
+        "Coverage": {
+          "additionalProperties": false,
+          "properties": {
+            "assessed_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Assessed Count"
+            },
+            "gaps": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Gaps",
+              "type": "array"
+            },
+            "observed_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Observed Count"
+            },
+            "scope_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Scope Count"
+            },
+            "unassessed_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Unassessed Count"
+            }
+          },
+          "title": "Coverage",
+          "type": "object"
+        },
+        "EvidenceRef": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Artifact Ref"
+            },
+            "available_at": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Available At"
+            },
+            "captured_at": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Captured At"
+            },
+            "evidence_id": {
+              "title": "Evidence Id",
+              "type": "string"
+            },
+            "gaps": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Gaps",
+              "type": "array"
+            },
+            "manifest_ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Manifest Ref"
+            },
+            "observed_at": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Observed At"
+            },
+            "owner": {
+              "title": "Owner",
+              "type": "string"
+            },
+            "receipt_ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Receipt Ref"
+            },
+            "role": {
+              "title": "Role",
+              "type": "string"
+            },
+            "sha256": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sha256"
+            },
+            "source_date": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Date"
+            },
+            "source_session": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Session"
+            },
+            "source_url": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Url"
+            },
+            "verification": {
+              "$ref": "#/$defs/Verification"
+            }
+          },
+          "required": [
+            "evidence_id",
+            "owner",
+            "role",
+            "verification"
+          ],
+          "title": "EvidenceRef",
+          "type": "object"
+        },
+        "Lane": {
+          "enum": [
+            "ANNOUNCEMENT",
+            "US_MAPPING",
+            "OVERSOLD",
+            "STAGE_REFERENCE",
+            "CLOSE_REFERENCE"
+          ],
+          "title": "Lane",
+          "type": "string"
+        },
+        "LaneState": {
+          "enum": [
+            "NOT_RUN",
+            "RUNNING",
+            "READY",
+            "READY_EMPTY",
+            "PARTIAL",
+            "INPUT_MISSING",
+            "FAILED",
+            "NOT_APPLICABLE"
+          ],
+          "title": "LaneState",
+          "type": "string"
+        },
+        "Verification": {
+          "enum": [
+            "VERIFIED",
+            "CANNOT_CONFIRM",
+            "INVALID"
+          ],
+          "title": "Verification",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "coverage": {
+          "$ref": "#/$defs/Coverage"
+        },
+        "evidence_refs": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Gaps",
+          "type": "array"
+        },
+        "input_sha256": {
+          "title": "Input Sha256",
+          "type": "string"
+        },
+        "lane": {
+          "$ref": "#/$defs/Lane"
+        },
+        "rows": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Rows",
+          "type": "array"
+        },
+        "rules_version": {
+          "title": "Rules Version",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/LaneState"
+        }
+      },
+      "required": [
+        "lane",
+        "state",
+        "rows",
+        "coverage",
+        "input_sha256",
+        "rules_version",
+        "run_id"
+      ],
+      "title": "LaneResult",
+      "type": "object"
+    },
+    "PlanSnapshot": {
+      "$defs": {
+        "Counts": {
+          "additionalProperties": false,
+          "properties": {
+            "not_selected": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Not Selected"
+            },
+            "observation_only": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Observation Only"
+            },
+            "selected": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Selected"
+            },
+            "unassessed": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Unassessed"
+            },
+            "watch": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Watch"
+            }
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "Coverage": {
+          "additionalProperties": false,
+          "properties": {
+            "assessed_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Assessed Count"
+            },
+            "gaps": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Gaps",
+              "type": "array"
+            },
+            "observed_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Observed Count"
+            },
+            "scope_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Scope Count"
+            },
+            "unassessed_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Unassessed Count"
+            }
+          },
+          "title": "Coverage",
+          "type": "object"
+        },
+        "Decision": {
+          "enum": [
+            "SELECTED",
+            "CONDITIONAL_WATCH",
+            "UNASSESSED",
+            "NOT_SELECTED",
+            "OBSERVATION_ONLY"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "EvidenceRef": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Artifact Ref"
+            },
+            "available_at": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Available At"
+            },
+            "captured_at": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Captured At"
+            },
+            "evidence_id": {
+              "title": "Evidence Id",
+              "type": "string"
+            },
+            "gaps": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Gaps",
+              "type": "array"
+            },
+            "manifest_ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Manifest Ref"
+            },
+            "observed_at": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Observed At"
+            },
+            "owner": {
+              "title": "Owner",
+              "type": "string"
+            },
+            "receipt_ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Receipt Ref"
+            },
+            "role": {
+              "title": "Role",
+              "type": "string"
+            },
+            "sha256": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sha256"
+            },
+            "source_date": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Date"
+            },
+            "source_session": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Session"
+            },
+            "source_url": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Url"
+            },
+            "verification": {
+              "$ref": "#/$defs/Verification"
+            }
+          },
+          "required": [
+            "evidence_id",
+            "owner",
+            "role",
+            "verification"
+          ],
+          "title": "EvidenceRef",
+          "type": "object"
+        },
+        "Lane": {
+          "enum": [
+            "ANNOUNCEMENT",
+            "US_MAPPING",
+            "OVERSOLD",
+            "STAGE_REFERENCE",
+            "CLOSE_REFERENCE"
+          ],
+          "title": "Lane",
+          "type": "string"
+        },
+        "LaneResult": {
+          "additionalProperties": false,
+          "properties": {
+            "coverage": {
+              "$ref": "#/$defs/Coverage"
+            },
+            "evidence_refs": {
+              "items": {
+                "$ref": "#/$defs/EvidenceRef"
+              },
+              "title": "Evidence Refs",
+              "type": "array"
+            },
+            "gaps": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Gaps",
+              "type": "array"
+            },
+            "input_sha256": {
+              "title": "Input Sha256",
+              "type": "string"
+            },
+            "lane": {
+              "$ref": "#/$defs/Lane"
+            },
+            "rows": {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "title": "Rows",
+              "type": "array"
+            },
+            "rules_version": {
+              "title": "Rules Version",
+              "type": "string"
+            },
+            "run_id": {
+              "title": "Run Id",
+              "type": "string"
+            },
+            "state": {
+              "$ref": "#/$defs/LaneState"
+            }
+          },
+          "required": [
+            "lane",
+            "state",
+            "rows",
+            "coverage",
+            "input_sha256",
+            "rules_version",
+            "run_id"
+          ],
+          "title": "LaneResult",
+          "type": "object"
+        },
+        "LaneState": {
+          "enum": [
+            "NOT_RUN",
+            "RUNNING",
+            "READY",
+            "READY_EMPTY",
+            "PARTIAL",
+            "INPUT_MISSING",
+            "FAILED",
+            "NOT_APPLICABLE"
+          ],
+          "title": "LaneState",
+          "type": "string"
+        },
+        "Phase": {
+          "enum": [
+            "PREOPEN",
+            "INTRADAY",
+            "NEXT_DAY",
+            "RETROSPECTIVE",
+            "MANUAL"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "RunContext": {
+          "additionalProperties": false,
+          "properties": {
+            "cutoff": {
+              "title": "Cutoff",
+              "type": "string"
+            },
+            "market": {
+              "const": "HK_CONNECT",
+              "default": "HK_CONNECT",
+              "title": "Market",
+              "type": "string"
+            },
+            "phase": {
+              "$ref": "#/$defs/Phase"
+            },
+            "rules_version": {
+              "title": "Rules Version",
+              "type": "string"
+            },
+            "scope_refs": {
+              "additionalProperties": true,
+              "title": "Scope Refs",
+              "type": "object"
+            },
+            "source_sessions": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "title": "Source Sessions",
+              "type": "object"
+            },
+            "target_date": {
+              "title": "Target Date",
+              "type": "string"
+            },
+            "trigger": {
+              "enum": [
+                "SCHEDULED",
+                "MANUAL"
+              ],
+              "title": "Trigger",
+              "type": "string"
+            }
+          },
+          "required": [
+            "target_date",
+            "phase",
+            "cutoff",
+            "trigger",
+            "rules_version"
+          ],
+          "title": "RunContext",
+          "type": "object"
+        },
+        "StockDecision": {
+          "additionalProperties": false,
+          "properties": {
+            "conditions": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Conditions",
+              "type": "array"
+            },
+            "decision": {
+              "$ref": "#/$defs/Decision"
+            },
+            "evidence_ids": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Evidence Ids",
+              "type": "array"
+            },
+            "invalidation_conditions": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Invalidation Conditions",
+              "type": "array"
+            },
+            "lane_decisions": {
+              "additionalProperties": true,
+              "title": "Lane Decisions",
+              "type": "object"
+            },
+            "market": {
+              "const": "HK_CONNECT",
+              "default": "HK_CONNECT",
+              "title": "Market",
+              "type": "string"
+            },
+            "membership_status": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Membership Status"
+            },
+            "name": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Name"
+            },
+            "reasons": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Reasons",
+              "type": "array"
+            },
+            "risks": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Risks",
+              "type": "array"
+            },
+            "symbol": {
+              "pattern": "^HK\\.[0-9]{5}$",
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          "required": [
+            "symbol",
+            "decision"
+          ],
+          "title": "StockDecision",
+          "type": "object"
+        },
+        "Verification": {
+          "enum": [
+            "VERIFIED",
+            "CANNOT_CONFIRM",
+            "INVALID"
+          ],
+          "title": "Verification",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "RESEARCH_ONLY": {
+          "const": true,
+          "default": true,
+          "title": "Research Only",
+          "type": "boolean"
+        },
+        "available_at": {
+          "title": "Available At",
+          "type": "string"
+        },
+        "buy_gate_updated": {
+          "const": false,
+          "default": false,
+          "title": "Buy Gate Updated",
+          "type": "boolean"
+        },
+        "changes": {
+          "additionalProperties": true,
+          "title": "Changes",
+          "type": "object"
+        },
+        "context": {
+          "$ref": "#/$defs/RunContext"
+        },
+        "counts": {
+          "$ref": "#/$defs/Counts"
+        },
+        "gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Gaps",
+          "type": "array"
+        },
+        "generated_at": {
+          "title": "Generated At",
+          "type": "string"
+        },
+        "input_sha256": {
+          "title": "Input Sha256",
+          "type": "string"
+        },
+        "lanes": {
+          "items": {
+            "$ref": "#/$defs/LaneResult"
+          },
+          "title": "Lanes",
+          "type": "array"
+        },
+        "orders_sent": {
+          "const": false,
+          "default": false,
+          "title": "Orders Sent",
+          "type": "boolean"
+        },
+        "product_sha256": {
+          "title": "Product Sha256",
+          "type": "string"
+        },
+        "production_allowed": {
+          "const": false,
+          "default": false,
+          "title": "Production Allowed",
+          "type": "boolean"
+        },
+        "review_refs": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Review Refs",
+          "type": "array"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "v4.manager_workbench.v1",
+          "default": "v4.manager_workbench.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stocks": {
+          "items": {
+            "$ref": "#/$defs/StockDecision"
+          },
+          "title": "Stocks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "context",
+        "run_id",
+        "input_sha256",
+        "product_sha256",
+        "generated_at",
+        "available_at",
+        "lanes",
+        "stocks",
+        "counts"
+      ],
+      "title": "PlanSnapshot",
+      "type": "object"
+    },
+    "ReviewSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluation_scope_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evaluation Scope Ref"
+        },
+        "extended_coverage": {
+          "additionalProperties": true,
+          "title": "Extended Coverage",
+          "type": "object"
+        },
+        "gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Gaps",
+          "type": "array"
+        },
+        "lane_incremental_coverage": {
+          "additionalProperties": true,
+          "title": "Lane Incremental Coverage",
+          "type": "object"
+        },
+        "mode": {
+          "title": "Mode",
+          "type": "string"
+        },
+        "plan_run_id": {
+          "title": "Plan Run Id",
+          "type": "string"
+        },
+        "ranking_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ranking Date"
+        },
+        "selected_denominator": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected Denominator"
+        },
+        "strict_coverage": {
+          "additionalProperties": true,
+          "title": "Strict Coverage",
+          "type": "object"
+        },
+        "target_date": {
+          "title": "Target Date",
+          "type": "string"
+        },
+        "top20_rows": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "maxItems": 20,
+          "title": "Top20 Rows",
+          "type": "array"
+        },
+        "uncovered_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Uncovered Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "target_date",
+        "plan_run_id",
+        "mode"
+      ],
+      "title": "ReviewSummary",
+      "type": "object"
+    },
+    "RunContext": {
+      "$defs": {
+        "Phase": {
+          "enum": [
+            "PREOPEN",
+            "INTRADAY",
+            "NEXT_DAY",
+            "RETROSPECTIVE",
+            "MANUAL"
+          ],
+          "title": "Phase",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "cutoff": {
+          "title": "Cutoff",
+          "type": "string"
+        },
+        "market": {
+          "const": "HK_CONNECT",
+          "default": "HK_CONNECT",
+          "title": "Market",
+          "type": "string"
+        },
+        "phase": {
+          "$ref": "#/$defs/Phase"
+        },
+        "rules_version": {
+          "title": "Rules Version",
+          "type": "string"
+        },
+        "scope_refs": {
+          "additionalProperties": true,
+          "title": "Scope Refs",
+          "type": "object"
+        },
+        "source_sessions": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Source Sessions",
+          "type": "object"
+        },
+        "target_date": {
+          "title": "Target Date",
+          "type": "string"
+        },
+        "trigger": {
+          "enum": [
+            "SCHEDULED",
+            "MANUAL"
+          ],
+          "title": "Trigger",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_date",
+        "phase",
+        "cutoff",
+        "trigger",
+        "rules_version"
+      ],
+      "title": "RunContext",
+      "type": "object"
+    },
+    "StockDecision": {
+      "$defs": {
+        "Decision": {
+          "enum": [
+            "SELECTED",
+            "CONDITIONAL_WATCH",
+            "UNASSESSED",
+            "NOT_SELECTED",
+            "OBSERVATION_ONLY"
+          ],
+          "title": "Decision",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "conditions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Conditions",
+          "type": "array"
+        },
+        "decision": {
+          "$ref": "#/$defs/Decision"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "invalidation_conditions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Invalidation Conditions",
+          "type": "array"
+        },
+        "lane_decisions": {
+          "additionalProperties": true,
+          "title": "Lane Decisions",
+          "type": "object"
+        },
+        "market": {
+          "const": "HK_CONNECT",
+          "default": "HK_CONNECT",
+          "title": "Market",
+          "type": "string"
+        },
+        "membership_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Membership Status"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "risks": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Risks",
+          "type": "array"
+        },
+        "symbol": {
+          "pattern": "^HK\\.[0-9]{5}$",
+          "title": "Symbol",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol",
+        "decision"
+      ],
+      "title": "StockDecision",
+      "type": "object"
+    }
+  },
+  "schema_version": "v4.manager_workbench.v1"
+}

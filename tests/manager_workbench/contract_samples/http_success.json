@@ -1,0 +1,443 @@
+{
+  "GET /days/{date}": {
+    "body": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "data": {
+        "counts": {
+          "not_selected": 0,
+          "observation_only": 0,
+          "selected": 1,
+          "unassessed": 0,
+          "watch": 0
+        },
+        "pagination": {
+          "limit": 50,
+          "offset": 0,
+          "total": 1
+        },
+        "snapshot": {
+          "RESEARCH_ONLY": true,
+          "available_at": "2026-10-13T14:01:00+08:00",
+          "buy_gate_updated": false,
+          "changes": {
+            "stage_run_id": "fixture-stage"
+          },
+          "context": {
+            "cutoff": "2026-10-13T14:00:00+08:00",
+            "market": "HK_CONNECT",
+            "phase": "INTRADAY",
+            "rules_version": "POSITIVE_OPERATING_RESEARCH_V1",
+            "scope_refs": {
+              "hk_connect_membership": "owner:test"
+            },
+            "source_sessions": {
+              "hk": "20261013",
+              "us": "20261012"
+            },
+            "target_date": "20261013",
+            "trigger": "SCHEDULED"
+          },
+          "counts": {
+            "not_selected": 0,
+            "observation_only": 0,
+            "selected": 1,
+            "unassessed": 0,
+            "watch": 0
+          },
+          "gaps": [],
+          "generated_at": "2026-10-13T14:01:00+08:00",
+          "input_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "lanes": [
+            {
+              "coverage": {
+                "assessed_count": 1,
+                "gaps": [],
+                "observed_count": 1,
+                "scope_count": 1,
+                "unassessed_count": 0
+              },
+              "gaps": [],
+              "input_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "lane": "ANNOUNCEMENT",
+              "rows_count": 1,
+              "state": "READY"
+            }
+          ],
+          "orders_sent": false,
+          "product_sha256": "f329d34cb376325e2d46d1d09830ce0acb6f3b8419bf292ef6999710750e2896",
+          "production_allowed": false,
+          "review_refs": [],
+          "run_id": "sample-run",
+          "schema_version": "v4.manager_workbench.v1"
+        },
+        "stocks": [
+          {
+            "conditions": [],
+            "decision": "SELECTED",
+            "evidence_ids": [
+              "ev-1"
+            ],
+            "invalidation_conditions": [],
+            "lane_decisions": {
+              "ANNOUNCEMENT": [
+                {
+                  "decision": "SELECTED",
+                  "evidence_ids": [
+                    "ev-1"
+                  ],
+                  "reason": "SYNTHETIC_ONLY"
+                }
+              ],
+              "STAGE_REFERENCE": [
+                {
+                  "decision": "OBSERVATION_ONLY",
+                  "reason": "NO_FORMAL_ADMISSION"
+                }
+              ]
+            },
+            "market": "HK_CONNECT",
+            "membership_status": "VERIFIED",
+            "name": "合成样例",
+            "reasons": [
+              "仅用于合同测试"
+            ],
+            "risks": [],
+            "symbol": "HK.00001"
+          }
+        ],
+        "versions": [
+          {
+            "generated_at": "2026-10-13T14:01:00+08:00",
+            "input_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "origin": "NEW",
+            "phase": "INTRADAY",
+            "product_sha256": "f329d34cb376325e2d46d1d09830ce0acb6f3b8419bf292ef6999710750e2896",
+            "run_id": "sample-run",
+            "state": "READY"
+          }
+        ]
+      },
+      "gaps": [],
+      "orders_sent": false,
+      "production_allowed": false,
+      "schema_version": "v4.manager_workbench.v1",
+      "state": "READY"
+    },
+    "status": 200
+  },
+  "GET /history": {
+    "body": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "data": {
+        "date": "20261013",
+        "entries": [
+          {
+            "generated_at": "2026-10-13T14:01:00+08:00",
+            "input_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "origin": "NEW",
+            "phase": "INTRADAY",
+            "product_sha256": "f329d34cb376325e2d46d1d09830ce0acb6f3b8419bf292ef6999710750e2896",
+            "run_id": "sample-run",
+            "state": "READY"
+          },
+          {
+            "gaps": [
+              "LEGACY_PROVENANCE_UNVERIFIED"
+            ],
+            "origin": "LEGACY",
+            "original_run_id": "old-id",
+            "original_schema": "unknown.v0",
+            "original_sha256": "cb5d2eb937409df64f095116a602127cc2e3e010dcc504d9fbaae908509ac0b8",
+            "verification": "CANNOT_CONFIRM"
+          }
+        ],
+        "versions": [
+          {
+            "generated_at": "2026-10-13T14:01:00+08:00",
+            "input_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "origin": "NEW",
+            "phase": "INTRADAY",
+            "product_sha256": "f329d34cb376325e2d46d1d09830ce0acb6f3b8419bf292ef6999710750e2896",
+            "run_id": "sample-run",
+            "state": "READY"
+          },
+          {
+            "gaps": [
+              "LEGACY_PROVENANCE_UNVERIFIED"
+            ],
+            "origin": "LEGACY",
+            "original_run_id": "old-id",
+            "original_schema": "unknown.v0",
+            "original_sha256": "cb5d2eb937409df64f095116a602127cc2e3e010dcc504d9fbaae908509ac0b8",
+            "verification": "CANNOT_CONFIRM"
+          }
+        ]
+      },
+      "gaps": [],
+      "orders_sent": false,
+      "production_allowed": false,
+      "schema_version": "v4.manager_workbench.v1",
+      "state": "READY"
+    },
+    "status": 200
+  },
+  "GET /reviews/{date}": {
+    "body": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "data": {
+        "evaluation_scope_ref": "synthetic:close:full",
+        "extended_coverage": {
+          "covered": 1,
+          "denominator": 20,
+          "intersection": [
+            "HK.00001"
+          ],
+          "ratio": 0.05
+        },
+        "gaps": [],
+        "lane_incremental_coverage": {},
+        "mode": "SYNTHETIC_COMPLETE_CLOSE",
+        "plan_run_id": "sample-run",
+        "ranking_date": "20261013",
+        "selected_denominator": 1,
+        "strict_coverage": {
+          "covered": 1,
+          "denominator": 20,
+          "intersection": [
+            "HK.00001"
+          ],
+          "ratio": 0.05
+        },
+        "target_date": "20261013",
+        "top20_rows": [
+          {
+            "extended_hit": true,
+            "rank": 1,
+            "strict_hit": true,
+            "symbol": "HK.00001"
+          },
+          {
+            "extended_hit": false,
+            "rank": 2,
+            "strict_hit": false,
+            "symbol": "HK.00002"
+          },
+          {
+            "extended_hit": false,
+            "rank": 3,
+            "strict_hit": false,
+            "symbol": "HK.00003"
+          },
+          {
+            "extended_hit": false,
+            "rank": 4,
+            "strict_hit": false,
+            "symbol": "HK.00004"
+          },
+          {
+            "extended_hit": false,
+            "rank": 5,
+            "strict_hit": false,
+            "symbol": "HK.00005"
+          },
+          {
+            "extended_hit": false,
+            "rank": 6,
+            "strict_hit": false,
+            "symbol": "HK.00006"
+          },
+          {
+            "extended_hit": false,
+            "rank": 7,
+            "strict_hit": false,
+            "symbol": "HK.00007"
+          },
+          {
+            "extended_hit": false,
+            "rank": 8,
+            "strict_hit": false,
+            "symbol": "HK.00008"
+          },
+          {
+            "extended_hit": false,
+            "rank": 9,
+            "strict_hit": false,
+            "symbol": "HK.00009"
+          },
+          {
+            "extended_hit": false,
+            "rank": 10,
+            "strict_hit": false,
+            "symbol": "HK.00010"
+          },
+          {
+            "extended_hit": false,
+            "rank": 11,
+            "strict_hit": false,
+            "symbol": "HK.00011"
+          },
+          {
+            "extended_hit": false,
+            "rank": 12,
+            "strict_hit": false,
+            "symbol": "HK.00012"
+          },
+          {
+            "extended_hit": false,
+            "rank": 13,
+            "strict_hit": false,
+            "symbol": "HK.00013"
+          },
+          {
+            "extended_hit": false,
+            "rank": 14,
+            "strict_hit": false,
+            "symbol": "HK.00014"
+          },
+          {
+            "extended_hit": false,
+            "rank": 15,
+            "strict_hit": false,
+            "symbol": "HK.00015"
+          },
+          {
+            "extended_hit": false,
+            "rank": 16,
+            "strict_hit": false,
+            "symbol": "HK.00016"
+          },
+          {
+            "extended_hit": false,
+            "rank": 17,
+            "strict_hit": false,
+            "symbol": "HK.00017"
+          },
+          {
+            "extended_hit": false,
+            "rank": 18,
+            "strict_hit": false,
+            "symbol": "HK.00018"
+          },
+          {
+            "extended_hit": false,
+            "rank": 19,
+            "strict_hit": false,
+            "symbol": "HK.00019"
+          },
+          {
+            "extended_hit": false,
+            "rank": 20,
+            "strict_hit": false,
+            "symbol": "HK.00020"
+          }
+        ],
+        "uncovered_reasons": []
+      },
+      "gaps": [],
+      "orders_sent": false,
+      "production_allowed": false,
+      "schema_version": "v4.manager_workbench.v1",
+      "state": "READY"
+    },
+    "status": 200
+  },
+  "GET /stocks/{symbol}": {
+    "body": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "data": {
+        "evidence_refs": [
+          {
+            "artifact_ref": "owner:fixture:1",
+            "available_at": "2026-10-13T08:35:00+08:00",
+            "captured_at": "2026-10-13T08:31:00+08:00",
+            "evidence_id": "ev-1",
+            "gaps": [],
+            "manifest_ref": null,
+            "observed_at": "2026-10-13T08:30:00+08:00",
+            "owner": "fixture_owner",
+            "receipt_ref": null,
+            "role": "announcement_body",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_date": "20261013",
+            "source_session": null,
+            "source_url": null,
+            "verification": "VERIFIED"
+          }
+        ],
+        "lane_details": [
+          {
+            "evidence_refs": [
+              {
+                "artifact_ref": "owner:fixture:1",
+                "available_at": "2026-10-13T08:35:00+08:00",
+                "captured_at": "2026-10-13T08:31:00+08:00",
+                "evidence_id": "ev-1",
+                "gaps": [],
+                "manifest_ref": null,
+                "observed_at": "2026-10-13T08:30:00+08:00",
+                "owner": "fixture_owner",
+                "receipt_ref": null,
+                "role": "announcement_body",
+                "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "source_date": "20261013",
+                "source_session": null,
+                "source_url": null,
+                "verification": "VERIFIED"
+              }
+            ],
+            "lane": "ANNOUNCEMENT",
+            "rows": [
+              {
+                "symbol": "HK.00001"
+              }
+            ]
+          }
+        ],
+        "plan_run_id": "sample-run",
+        "stock": {
+          "conditions": [],
+          "decision": "SELECTED",
+          "evidence_ids": [
+            "ev-1"
+          ],
+          "invalidation_conditions": [],
+          "lane_decisions": {
+            "ANNOUNCEMENT": [
+              {
+                "decision": "SELECTED",
+                "evidence_ids": [
+                  "ev-1"
+                ],
+                "reason": "SYNTHETIC_ONLY"
+              }
+            ],
+            "STAGE_REFERENCE": [
+              {
+                "decision": "OBSERVATION_ONLY",
+                "reason": "NO_FORMAL_ADMISSION"
+              }
+            ]
+          },
+          "market": "HK_CONNECT",
+          "membership_status": "VERIFIED",
+          "name": "合成样例",
+          "reasons": [
+            "仅用于合同测试"
+          ],
+          "risks": [],
+          "symbol": "HK.00001"
+        }
+      },
+      "gaps": [],
+      "orders_sent": false,
+      "production_allowed": false,
+      "schema_version": "v4.manager_workbench.v1",
+      "state": "READY"
+    },
+    "status": 200
+  }
+}
