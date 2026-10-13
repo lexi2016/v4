@@ -1,0 +1,38 @@
+{
+  "status": "UI_VERIFIED",
+  "browser": "Codex in-app tab11",
+  "page": "http://127.0.0.1:8873/manager-selection/?date=20261013&phase=RETROSPECTIVE&run_id=84eafbbb71ba4767a591d1a4286fe061",
+  "reload": true,
+  "list_name": "HK.09927 赛力斯",
+  "detail_name": "HK.09927 赛力斯",
+  "detail_human_reason": "行情日20261012：收盘38.92，60日前高48.98，80%门槛39.184满足；量比6.530150426108586242126765781，1.5倍门槛满足；两项同时满足。",
+  "us_summary": {
+    "US_symbols": 33,
+    "saved_rows": 37,
+    "relations": 14,
+    "HK_symbols": 10,
+    "selected_US_symbols": 0,
+    "watch_US_symbols": 0,
+    "not_selected_US_symbols": 4,
+    "unassessed_US_symbols": 29
+  },
+  "us_expanded_reasons_verified": {
+    "AVGO_to_HK06088": "当日涨幅不为正",
+    "CIEN_to_HK00763": "当日涨幅不为正",
+    "COHR_LITE_to_HK06166": "当日涨幅不为正",
+    "NVDA": "研究优先级尚未审核",
+    "ETF_proxy": "未提供审核港股关系",
+    "MU_WDC": "来源或关系证据缺口",
+    "DLR": "研究优先级待核，目标港股不在资格范围"
+  },
+  "combined_selected_count": 115,
+  "console_errors": 0,
+  "screenshots": [
+    "/Users/lexi/.codex/visualizations/2026/10/13/01a132ee-de9e-7122-bc06-6cbf7417dbc6/manager-name-reason-fixed.jpg",
+    "/Users/lexi/.codex/visualizations/2026/10/13/01a132ee-de9e-7122-bc06-6cbf7417dbc6/manager-us-summary-fixed.jpg"
+  ],
+  "new_research_run": false,
+  "scope": "Display-only existing immutable run",
+  "natural": "NOT_APPLICABLE_TO_DISPLAY_FIX; prior natural task acceptance remains unverified",
+  "observed_at": "2026-10-13T11:58:26.642223+00:00"
+}

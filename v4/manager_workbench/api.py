@@ -15,6 +15,7 @@ from .jobs import JobConflict
 from .legacy import LegacyHistory
 from .service import ManagerService
 from .store import StorageConflict, StorageUnavailable
+from .display_read import saved_names, display_stock, us_summary
 
 PREFIX = "/api/v4/manager-workbench"
 
@@ -117,14 +118,15 @@ def create_router(service: ManagerService) -> APIRouter:
                 return envelope("NOT_RUN", {"snapshot":None,"stocks":[],
                            "counts":None,"versions":versions,
                            "pagination":{"total":0,"offset":offset,"limit":limit}},["NO_SAVED_PLAN"])
-            stocks = list(snap.stocks)
+            names = saved_names(snap,service.config.shared_root)
+            stocks = [display_stock(stock,names) for stock in snap.stocks]
             if decision:
-                stocks = [s for s in stocks if s.decision == decision]
+                stocks = [s for s in stocks if s['decision'] == decision.value]
             if lane:
-                stocks = [s for s in stocks if lane.value in s.lane_decisions]
+                stocks = [s for s in stocks if lane.value in s['lane_decisions']]
             if q:
                 term = q.casefold()
-                stocks = [s for s in stocks if term in s.symbol.casefold() or term in (s.name or "").casefold()]
+                stocks = [s for s in stocks if term in s['symbol'].casefold() or term in (s.get('name') or "").casefold()]
             meta=snap.model_dump(mode="json")
             meta.pop("stocks",None)
             meta["lanes"]=[{"lane":l.lane.value,"state":l.state.value,
@@ -132,7 +134,9 @@ def create_router(service: ManagerService) -> APIRouter:
                             "input_sha256":l.input_sha256,"gaps":l.gaps} for l in snap.lanes]
             return envelope("PARTIAL" if snap.gaps else "READY", {
                 "snapshot": _public(meta),
-                "stocks": _public([x.model_dump(mode="json") for x in stocks[offset:offset+limit]]),
+                "stocks": _public(stocks[offset:offset+limit]),
+                "display_projection":{"display_only":True,"snapshot_hash_basis":"ORIGINAL_SAVED_SNAPSHOT"},
+                "us_mapping_summary":_public(us_summary(snap,names)),
                 "counts": snap.counts.model_dump(mode="json"),
                 "versions":versions,"pagination":{"total":len(stocks),"offset":offset,"limit":limit}},snap.gaps)
         return _safe_errors(read)
@@ -152,7 +156,8 @@ def create_router(service: ManagerService) -> APIRouter:
             details=[{"lane":l.lane.value,"rows":[r for r in l.rows if r.get("symbol")==symbol],
                       "evidence_refs":[e.model_dump(mode="json") for e in l.evidence_refs if e.evidence_id in item.evidence_ids]}
                      for l in snap.lanes]
-            return envelope("READY", _public({"plan_run_id":snap.run_id,"stock":item.model_dump(mode="json"),
+            return envelope("READY", _public({"plan_run_id":snap.run_id,"stock":display_stock(item,saved_names(snap,service.config.shared_root)),
+                                               "display_projection":{"display_only":True,"snapshot_hash_basis":"ORIGINAL_SAVED_SNAPSHOT"},
                                                "lane_details":details}))
         return _safe_errors(read)
 

@@ -1,0 +1,31 @@
+import actual from './fixtures/display-repair-http.local.json';
+import { afterEach, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/vue';
+import Workbench from '../Workbench.vue';
+import { firstReason, readableReason } from '../display';
+import type { StockDecision } from '../types';
+afterEach(() => { cleanup();vi.unstubAllGlobals(); });
+it('renders real saved name, saved AND metrics and distinct US counts after refresh', async () => {
+ window.history.replaceState(null,'','?date=20261013&run_id=84eafbbb71ba4767a591d1a4286fe061');
+ const old=JSON.stringify(actual);
+ vi.stubGlobal('fetch',vi.fn(async (url: unknown) => new Response(JSON.stringify(String(url).includes('/stocks/') ? actual.detail : actual.day),{status:200})));
+ render(Workbench);
+ const button=await screen.findByRole('button',{name:'查看 HK.09927 赛力斯 详情'});
+ const us=screen.getByRole('region',{name:'本版本美股映射'});
+ expect(us.textContent).toContain('美股来源标的 33 个');expect(us.textContent).toContain('保存来源记录 37 条');
+ expect(us.textContent).toContain('港股关系 14 条');expect(us.textContent).toContain('10 只港股');
+ expect(us.textContent).toContain('严格入选 0');expect(us.textContent).toContain('未入选 4');expect(us.textContent).toContain('待核 29');
+ expect(us.textContent).toContain('涨幅不为正');expect(us.textContent).toContain('研究优先级尚未审核');
+ await fireEvent.click(button);await screen.findByRole('heading',{name:'HK.09927 赛力斯'});const detail=screen.getByRole('region',{name:'个股研究详情'});
+ expect(detail.textContent).toContain('赛力斯');expect(detail.textContent).toContain('38.92');expect(detail.textContent).toContain('48.98');expect(detail.textContent).toContain('39.184');expect(detail.textContent).toContain('6.530150426');expect(detail.textContent).toContain('1.5倍门槛');expect(detail.textContent).toContain('20261012');expect(detail.textContent).toContain('两项须同时满足');
+ const main=detail.cloneNode(true) as HTMLElement;main.querySelectorAll('details').forEach(x=>x.remove());expect(main.textContent).not.toContain('OVERSOLD_AND_VERIFIED');
+ await fireEvent.click(screen.getByRole('button',{name:'刷新读取'}));await fireEvent.click(screen.getByRole('button',{name:'返回名单'}));expect(await screen.findByRole('button',{name:'查看 HK.09927 赛力斯 详情'})).toBeTruthy();
+ expect(JSON.stringify(actual)).toBe(old);
+});
+it('keeps missing metrics unknown and never calculates or promotes a decision', () => {
+ expect(readableReason({metrics:{previous_session:'20261012',close:'bad',max_high_60:null,volume_ratio:'NaN'},decision:'UNASSESSED'})).toContain('收盘 未知');
+ expect(readableReason({metrics:{close:'38.92',max_high_60:'48.98',price_threshold:null,price_pass:false,volume_pass:null}})).toContain('80%门槛 未知（未满足）');
+ const stock=actual.detail.data.stock as unknown as StockDecision;
+ expect(firstReason(stock)).toContain('39.184');expect(stock.decision).toBe('SELECTED');
+ expect(firstReason({...stock,lane_decisions:{US_MAPPING:[{reason:'US_SOURCE_CHANGE_NOT_POSITIVE'}]}})).toContain('涨幅不为正');
+});

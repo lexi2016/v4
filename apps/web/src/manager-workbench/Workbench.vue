@@ -129,6 +129,31 @@ function detailForLane(lane: Lane) {
       </div>
       <p v-else class="mwb-muted">完整分类计数未知（无已保存计数，不能当作 0）。</p>
 
+      <section v-if="vm.day?.data?.us_mapping_summary" class="mwb-panel" aria-label="本版本美股映射">
+        <h3>本版本美股映射 · 独立保存结论</h3>
+        <p>美股来源标的 {{ vm.day.data.us_mapping_summary.source_symbol_count }} 个，保存来源记录 {{ vm.day.data.us_mapping_summary.source_row_count }} 条；
+          港股关系 {{ vm.day.data.us_mapping_summary.relation_row_count }} 条，涉及 {{ vm.day.data.us_mapping_summary.mapped_hk_count }} 只港股。</p>
+        <p>按美股来源标的计：严格入选 {{ vm.day.data.us_mapping_summary.source_decision_counts.SELECTED ?? '未知' }}，
+          条件观察 {{ vm.day.data.us_mapping_summary.source_decision_counts.CONDITIONAL_WATCH ?? '未知' }}，
+          未入选 {{ vm.day.data.us_mapping_summary.source_decision_counts.NOT_SELECTED ?? '未知' }}，
+          待核 {{ vm.day.data.us_mapping_summary.source_decision_counts.UNASSESSED ?? '未知' }}。
+          上方总名单计数包含其他研究路径，不能当作美股入选数。</p>
+        <p v-if="vm.day.data.us_mapping_summary.mixed_source_count">另有 {{ vm.day.data.us_mapping_summary.mixed_source_count }} 个标的包含不同关系结论，逐条保留如下。</p>
+        <details><summary>查看全部美股来源、港股关系与未入选／待核原因</summary>
+          <article v-for="group in vm.day.data.us_mapping_summary.groups" :key="group.us_symbol">
+            <h4>{{ group.us_symbol }} · {{ group.decisions.map(decisionLabel).join('、') }}</h4>
+            <div v-for="(row, idx) in group.rows" :key="idx">
+              <p v-if="row.symbol">目标港股：{{ row.symbol }} {{ row.name || '名称未知' }}</p>
+              <p>{{ readableReason(row) }}</p>
+              <p v-if="row.research_basis">已保存关系依据：{{ row.research_basis }}</p>
+              <p v-if="Array.isArray(row.reviewed_assessments)" v-for="(assessment, i) in row.reviewed_assessments" :key="i">{{ assessment.original?.reason }}</p>
+              <p v-if="Array.isArray(row.diagnostic_gaps) && row.diagnostic_gaps.includes('TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP')">该目标港股不在本版本港股通资格范围。</p>
+            </div>
+          </article>
+        </details>
+      </section>
+      <p v-else class="mwb-muted">本版本未提供美股分路汇总；不能从总名单推断美股入选。</p>
+
       <form class="mwb-filters" @submit.prevent="vm.applyFilters" aria-label="服务端查询筛选">
         <label>分类
           <select :value="vm.decisionFilter" @change="changeDecisionBySelect">
@@ -169,7 +194,8 @@ function detailForLane(lane: Lane) {
           <tbody>
             <tr v-for="stock in vm.stocks" :key="stock.market + ':' + stock.symbol">
               <td><strong class="mwb-symbol">{{ stock.symbol }}</strong>
-                <span>{{ stock.name }}</span>
+                <span>{{ stock.name || '名称未知' }}</span>
+                <small v-if="stock.name_source">名称来自本研究版本已校验的证券主表（仅展示补齐）</small>
                 <small>资格：{{ stock.membership_status || "待核验" }}</small>
               </td>
               <td><span class="mwb-decision" :data-decision="stock.decision">{{ decisionLabel(stock.decision) }}</span>
@@ -213,6 +239,7 @@ function detailForLane(lane: Lane) {
       <template v-if="vm.detail?.data?.stock">
         <div class="mwb-stock-top">
           <h3>{{ stockTitle(vm.detail.data.stock) }}</h3>
+          <small v-if="vm.detail.data.stock.name_source">名称来自本研究版本已校验的证券主表（仅展示补齐）</small>
           <span class="mwb-decision" :data-decision="vm.detail.data.stock.decision">
             {{ decisionLabel(vm.detail.data.stock.decision) }}
           </span>

@@ -1,0 +1,70 @@
+{
+  "status": "PREPARED_FOR_INDEPENDENT_REVIEW",
+  "implementation": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/display-repair-implementation-r1.json",
+    "sha256": "3b120e8ae89ba9a6c478e708d792946d374508d85a163e5baba3807283780501"
+  },
+  "package": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/receipt.json",
+    "sha256": "f5a0467c564605982a24a1f88642aba9644b1a3be5789f35525b42e4748751c6",
+    "plan": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/operator-plan.json",
+    "plan_sha256": "41d15931830c7ba039849f62637cb4dc0050da3cd9f2848efb5a188e787e72d7",
+    "manifests": {
+      "api": "51b20b379884dba463a505b69951627e10833b7e974277444c1341b1108af589",
+      "scheduler": "2634e91ecc197ddc8de7e589408c993aa82303353df1bfbcefed16675ee52345"
+    },
+    "api_delta_paths": [
+      "apps/web/dist/assets/managerSelection-OpYXimRY.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/display.ts",
+      "apps/web/src/manager-workbench/types.ts",
+      "v4/manager_workbench/api.py",
+      "v4/manager_workbench/display_read.py"
+    ],
+    "scheduler_delta_paths": [
+      "v4/manager_workbench/api.py",
+      "v4/manager_workbench/display_read.py"
+    ],
+    "preserved_non_delta": true,
+    "formal_config_preserved": true
+  },
+  "helper_scope": {
+    "display-repair-prepare-v12.py": "16d4bcba2ce61b139b028c706fbda2e6e2c2a120310b6f8d98480465ca90a2e4",
+    "display-repair-v12-test.py": "8fb29898edb3f3a502208a3c8582271d9db95043244f87e19e693fc6be8ed7f7",
+    "display-repair-v12-base-r1.json": "af6cc23f23da8bc6f6fe3613f3b8b942b1b66bc8b0204b4bbff185adf11ed010",
+    "display-repair-capture-r1.py": "6570436ad841661e410a1e3f388cfa873876f65abb431620bf670f20a33e736e"
+  },
+  "verification": {
+    "vitest": "54 passed",
+    "backend": "5 passed 15 deselected",
+    "typecheck": "exit0",
+    "build": "exit0",
+    "package_tests": "2 passed",
+    "dry_run": "exit0",
+    "isolated_proof_check": "exit0",
+    "old_snapshot_sha256": "ea5f7217ecd37824b467ff38a82ea88686d82827e3b3e18935e426aab53e10cf",
+    "original_snapshot_unchanged": true
+  },
+  "commands": {
+    "workdir": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+    "prepare": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/display-repair-prepare-v12.py prepare --output NEW_HANDOFF_PATH",
+    "dry_run": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/display-repair-prepare-v12.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/operator-plan.json --plan-sha256 41d15931830c7ba039849f62637cb4dc0050da3cd9f2848efb5a188e787e72d7",
+    "apply": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/display-repair-prepare-v12.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/operator-plan.json --plan-sha256 41d15931830c7ba039849f62637cb4dc0050da3cd9f2848efb5a188e787e72d7 --execute",
+    "rollback": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/display-repair-prepare-v12.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/operator-plan.json --plan-sha256 41d15931830c7ba039849f62637cb4dc0050da3cd9f2848efb5a188e787e72d7 --operation rollback --execute",
+    "preview": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/serve_isolated_candidate_v7.py --proof /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/saved-readback/proof.json --candidate-app-root /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/manager-workbench-20261013-v12-api/app --candidate-manifest-sha256 51b20b379884dba463a505b69951627e10833b7e974277444c1341b1108af589",
+    "preview_check": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/serve_isolated_candidate_v7.py --proof /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/saved-readback/proof.json --candidate-app-root /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/manager-workbench-20261013-v12-api/app --candidate-manifest-sha256 51b20b379884dba463a505b69951627e10833b7e974277444c1341b1108af589 --check-only",
+    "preview_URL": "http://127.0.0.1:18873/manager-selection/?date=20261013&phase=RETROSPECTIVE&run_id=84eafbbb71ba4767a591d1a4286fe061"
+  },
+  "model_calls": 0,
+  "network_calls": 0,
+  "formal_writes": 0,
+  "services_changed": false,
+  "formal_api_ui_browser": "NOT_RUN",
+  "source_fixture_upload": "NOT_ALLOWED; generate display-repair-http.local.json using capture helper locally",
+  "remaining_unknowns": [
+    "Names absent or invalid in same-run security master remain unknown",
+    "Displayed US29 are still UNASSESSED; no new relation or priority",
+    "Original historical PIT and natural scheduler acceptance unchanged"
+  ]
+}

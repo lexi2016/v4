@@ -1,0 +1,96 @@
+{
+  "BEHAVIOR_VERIFIED": "Frozen display-only API projection of real saved84eaf run; saved SHA remains original; fixed master names + separate US source summary + saved OV readable metrics",
+  "OV_HK09927_saved_metrics": {
+    "both_pass": true,
+    "close": "38.92",
+    "price_threshold": "39.184",
+    "source_date": "20261012",
+    "volume_ratio": "6.530150426108586242126765781",
+    "volume_threshold": "1.5"
+  },
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "REVIEWED": "PASS",
+  "US_counts": {
+    "conditional_watch": 0,
+    "not_selected": 4,
+    "strict": 0,
+    "unassessed": 29
+  },
+  "US_units": {
+    "relation_rows": 14,
+    "source_rows": 37,
+    "source_symbols": 33,
+    "unique_hk": 10
+  },
+  "actual_diff_matches_fixed_V11_base": true,
+  "browser_UI": "NOT_RUN; component refresh/detail test only",
+  "deployment": "NOT_RUN; V12 packaging separate",
+  "diagnostic_correction": "Initial private whole-stock comparison used unsanitized original; corrected to established public sanitizer; no source change or business failure.",
+  "display_projection_only": true,
+  "formal_writes": 0,
+  "implementation_receipt_sha256": "3b120e8ae89ba9a6c478e708d792946d374508d85a163e5baba3807283780501",
+  "master_artifact_sha256": "c5e1e7a1f5a335ddcfca48140715bda385e97326a41ce0d6ed5eeaf7660fdafe",
+  "model": "gpt-6.1-sol/high",
+  "model_calls": 0,
+  "network_capture_calls": 0,
+  "ports_opened": 0,
+  "product_sha256": "f8e3fff21847118b010895fe288aa97e17e587ef937ed90c0ebac9c2df4dacbb",
+  "proof": {
+    "path": "/private/tmp/mwb-display-independent-0UBWOW/http-proof.json",
+    "sha256": "ca4b9f3777aaab89afc4ef10ee13734dd03f5ff954155f9ac3ad6e8193fd52c3"
+  },
+  "reviewer": "/root/manager_reviewer_sol",
+  "run_id": "84eafbbb71ba4767a591d1a4286fe061",
+  "snapshot_raw_sha256": "ea5f7217ecd37824b467ff38a82ea88686d82827e3b3e18935e426aab53e10cf",
+  "snapshot_unchanged": true,
+  "source_latest_read": false,
+  "source_scope": [
+    {
+      "after_sha256": "b15247deafb523a7e680e38547d5a8d4548210154b4c7f38b31e535ceae618e9",
+      "before_sha256": "1475e2df9a750243a929db48d43a1eb1b0d38fba405732491f87322148f12722",
+      "path": "v4/manager_workbench/api.py"
+    },
+    {
+      "after_sha256": "ee838f5cdc0351cf44d2bbe1b61dc731c2923cb92ca9cb6f588f0f9b2b77220b",
+      "before_sha256": null,
+      "path": "v4/manager_workbench/display_read.py"
+    },
+    {
+      "after_sha256": "5cd1fceb2cbf4425c939612c4cf8f71c2cf0a061fcd8a6941b5f3abbe826fc75",
+      "before_sha256": "b9d0ae2308b5368fdad2190b1acd42227a94d1162d802f878c0bd9933c5c1a3b",
+      "path": "apps/web/src/manager-workbench/display.ts"
+    },
+    {
+      "after_sha256": "d885b3002ba1a37f8097ec03be913531c5b501fcca5616b04aec8dfe01e96bdc",
+      "before_sha256": "3ab70ee7942fe4ed14e455b919caecc663ed5a57b7e0b35d6cafb3caf2914264",
+      "path": "apps/web/src/manager-workbench/Workbench.vue"
+    },
+    {
+      "after_sha256": "97e83ec1e2b5a362e26233a0ca01132a520cb4d3e6d5b016dbe94e8e79415160",
+      "before_sha256": "33e38e3ebff3a1a578e9844ad8f8df8b31bd04cf26b1f0824300d4ffffb051bf",
+      "path": "apps/web/src/manager-workbench/types.ts"
+    },
+    {
+      "after_sha256": "b7f331696bd5e938cb2f6c2b12d6b27ee0bb9658c726fdf763e5c017c4026680",
+      "before_sha256": null,
+      "path": "tests/manager_workbench/runtime/test_display_read.py"
+    },
+    {
+      "after_sha256": "7040c19338f625c573ffaae2b8e26e39f97e4de3a5015b35dc3e6a35915053df",
+      "before_sha256": null,
+      "path": "apps/web/src/manager-workbench/__tests__/display_repair.spec.ts"
+    }
+  ],
+  "tests": {
+    "TestClient": "Actual frozenWrouter + real snapshot in-memory read-only store; name search/detail/full693pages/selected115; exact fixed source paths; badSHA/latecutoff rejected",
+    "pytest_command": "PYTHONDONTWRITEBYTECODE=1 <runtime python> -m pytest -q -p no:cacheprovider --basetemp <private>/pytest tests/manager_workbench/runtime/test_display_read.py",
+    "pytest_result": "3passed0.05s exit0",
+    "typecheck_command": "npm run typecheck",
+    "typecheck_result": "exit0",
+    "vitest_command": "npm test -- src/manager-workbench/__tests__/display_repair.spec.ts",
+    "vitest_result": "2passed1file exit0"
+  },
+  "verdict": "PASS"
+}

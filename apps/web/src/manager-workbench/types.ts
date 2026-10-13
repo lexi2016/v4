@@ -131,6 +131,11 @@ export interface DayData {
   pagination: { total: number; offset: number; limit: number };
   versions?: PlanVersion[];
   gaps?: Gap[] | null;
+  us_mapping_summary?: {
+    display_only: true; plan_run_id: string; source_symbol_count: number; source_row_count: number;
+    relation_row_count: number; mapped_hk_count: number; source_decision_counts: Record<string, number>;
+    mixed_source_count: number; coverage: Coverage; groups: { us_symbol: string; decisions: string[]; rows: Record<string, unknown>[] }[];
+  } | null;
 }
 export interface StockLaneDetail {
   lane: Lane;

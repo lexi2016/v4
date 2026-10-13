@@ -30,6 +30,11 @@ export function laneResultLabel(stock: StockDecision, lane: Lane): string {
   return entries.map(x => decisionLabel(x.decision || x.status || null)).join("、");
 }
 export function firstReason(stock: StockDecision): string {
+  const saved = Object.values(stock.lane_decisions || {}).flatMap(x => Array.isArray(x) ? x : x ? [x] : []);
+  const metric = saved.find(x => Object.keys(record(x.metrics)).length);
+  if (metric) return readableReason(metric);
+  const readable = saved.find(x => text(record(x.semantic).reason) || text(x.reason).startsWith('US_'));
+  if (readable) return readableReason(readable);
   return stock.reasons?.find(x => typeof x === "string" && x.trim().length > 0) || "暂无可核验理由";
 }
 export function metricLabel(metric: ReviewMetric | null | undefined, completeTop20 = true): string {
@@ -74,7 +79,25 @@ export function researchRows(stock: StockDecision, lane: Lane, detail?: StockLan
   return detail?.rows?.length ? detail.rows : laneEntries(stock, lane);
 }
 export function readableReason(row: Record<string, unknown>): string {
+  const metrics = record(row.metrics);
+  if (Object.keys(metrics).length) {
+    const value = (key: string) => {
+      const raw = metrics[key];
+      return (typeof raw === 'string' && raw.trim() && Number.isFinite(Number(raw))) || (typeof raw === 'number' && Number.isFinite(raw)) ? String(raw) : '未知';
+    };
+    const state = (key: string) => metrics[key] === true ? '满足' : metrics[key] === false ? '未满足' : '待核';
+    return `行情日 ${text(metrics.previous_session) || '未知'}：收盘 ${value('close')}，60日前高 ${value('max_high_60')}，80%门槛 ${value('price_threshold')}（${state('price_pass')}）；量比 ${value('volume_ratio')}，1.5倍门槛（${state('volume_pass')}）。两项须同时满足。`;
+  }
   const reason = text(record(row.semantic).reason) || text(row.reason);
+  const labels: Record<string, string> = {
+    US_SOURCE_CHANGE_NOT_POSITIVE: '美股来源当日涨幅不为正，未入选。',
+    US_RELATION_PRIORITY_NOT_REVIEWED: '关系依据已有审核，研究优先级尚未审核，保留待核。',
+    US_REVIEWED_ASSESSMENT_WITH_GAPS: '已审核材料仍有来源或关系证据缺口，保留待核。',
+    US_ETF_THEME_PROXY_ONLY: '仅有ETF主题代理，已保存材料未提供审核港股关系，保留待核。',
+    US_REVIEWED_RELATION_ABSENT: '已保存审核材料中没有可核验的港股关系，保留待核。',
+    US_REVIEWED_RELATION_CONDITIONAL_ONLY: '已有审核关系，列为条件观察，不能据此严格入选。',
+  };
+  if (reason in labels) return labels[reason];
   return /^[A-Z][A-Z0-9_]+$/.test(reason) ? "未提供可读研究理由" : reason || "未提供可读研究理由";
 }
 export function researchSections(row: Record<string, unknown>) {
@@ -97,7 +120,7 @@ export function researchRisks(row: Record<string, unknown>): string[] {
 }
 export function detailReasons(detail: StockDetails): string[] {
   const recorded = detail.lane_details.flatMap(source => researchRows(detail.stock, source.lane, source)
-    .filter(row => text(record(row.semantic).reason))
+    .filter(row => text(record(row.semantic).reason) || Object.keys(record(row.metrics)).length || text(row.reason).startsWith('US_'))
     .map(row => `${LANE_LABELS[source.lane]}：${readableReason(row)}`));
   return recorded.length ? [...new Set(recorded)] : texts(detail.stock.reasons);
 }

@@ -1,0 +1,68 @@
+{
+  "BEHAVIOR_VERIFIED": "Fixed V12 packaging/currentV11preimages + actualcandidate read-only savedrun TestClient; no activation",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "REVIEWED": "PASS",
+  "TESTED": {
+    "actualdryrun": "DRY_RUN_PASS exit0 formalwritesfalse",
+    "candidateTestClient": "PASS oldrun copied immutable/private WorkbenchStore; actualcandidate imports;693rows/115selected,US33/37/14/10;name赛力斯",
+    "package_tests": "2passed0.13s exit0 privatebasetemp"
+  },
+  "allowed_next": "Parent may apply only exact reviewedplan41d15931830c7ba039849f62637cb4dc0050da3cd9f2848efb5a188e787e72d7 with unchanged preimage guards; formal API/UI readback required",
+  "asset_closure": [
+    "assets/managerSelection-CICId7Gx.css",
+    "assets/managerSelection-OpYXimRY.js",
+    "assets/runtime-dom.esm-bundler-BK3TRPiP.js"
+  ],
+  "browser_UI": "NOT_RUN",
+  "candidate_manifest_sha256": {
+    "api": "51b20b379884dba463a505b69951627e10833b7e974277444c1341b1108af589",
+    "scheduler": "2634e91ecc197ddc8de7e589408c993aa82303353df1bfbcefed16675ee52345"
+  },
+  "candidate_readback_proof": {
+    "path": "/private/tmp/mwb-v12-package-independent-vQFfvt/candidate-readback-proof.json",
+    "sha256": "a42a250473aaa413d0e95587bbb9818ec5b7fa58b9f77f98e2e65a0bed9e02f8"
+  },
+  "deployment": "NOT_RUN",
+  "entry_count": 8,
+  "exact_current_formal_preimages_and_all_backups": true,
+  "formal_config_raw_unchanged": true,
+  "formal_writes": 0,
+  "helper_sha256": "16d4bcba2ce61b139b028c706fbda2e6e2c2a120310b6f8d98480465ca90a2e4",
+  "model": "gpt-6.1-sol/high",
+  "model_calls": 0,
+  "natural": "NATURAL_SLOT_UNVERIFIED",
+  "network_capture_calls": 0,
+  "non_delta_preserved": {
+    "api": 1174,
+    "scheduler": 714
+  },
+  "package_proof": {
+    "path": "/private/tmp/mwb-v12-package-independent-vQFfvt/package-proof.json",
+    "sha256": "a33aa63612d8011a72820e84f6fd3dd50680b52162bb39b971090edac07aafe9"
+  },
+  "plan_sha256": "41d15931830c7ba039849f62637cb4dc0050da3cd9f2848efb5a188e787e72d7",
+  "ports_opened": 0,
+  "prepared_receipt_sha256": "215f6e9e3f866aa0e97d3ad2b7384158fa5abaabb0693051737bbe12db3ddb80",
+  "reviewer": "/root/manager_reviewer_sol",
+  "rollback": "Existing reviewed exact8entries backups;new display_read file removal guardedbyafterSHA;sharedlock wholecutover;originalV11plists retained;operator boundedbootstrap/bootout protections unchanged",
+  "services_changed": false,
+  "source_delta": {
+    "api": [
+      "apps/web/dist/assets/managerSelection-OpYXimRY.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/display.ts",
+      "apps/web/src/manager-workbench/types.ts",
+      "v4/manager_workbench/api.py",
+      "v4/manager_workbench/display_read.py"
+    ],
+    "scheduler": [
+      "v4/manager_workbench/api.py",
+      "v4/manager_workbench/display_read.py"
+    ]
+  },
+  "source_repair_reused_receipt_sha256": "477fd54f8eff269301c51bec61cccba72b3a9793ab20a0cf79dcbcf952a740c3",
+  "verdict": "PASS"
+}
