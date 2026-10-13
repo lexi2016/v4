@@ -1,0 +1,46 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "scope": "independent backend review P1 consecutive PARTIAL semantic checkpoint transfer",
+  "writer": "/root/manager_writer_sol",
+  "prior_backend_receipt_sha256": "712fea320252a3ea782b99018cb4ca69bda5c6c9d0275f1425f3c019e214ebe2",
+  "prior_review": "REVIEWED_FAIL_P1",
+  "reproduced_before": "final retry FAILED RUN_LANES_FAILED; successful Reader checkpoint absent from immediate parent",
+  "fix": "read_cached persists original immutable successful execution receipt into current job before audit, preserving Reader identity across arbitrary retry chain",
+  "command": "Python 3.14.6 -m pytest -q tests/manager_workbench/runtime/test_retry_chain.py tests/manager_workbench/runtime/test_native_pipeline.py::test_partial_retry_only_failed_reviewer_and_preserves_original_plan --basetemp=tests/manager_workbench/runtime/.tmp/retry-chain-green -p no:cacheprovider",
+  "result": "2 passed in 0.33s",
+  "exit_code": 0,
+  "verified_behavior": [
+    "Reviewer failures attempts1/2, success attempt3",
+    "Reader calls1 Reviewer calls3",
+    "OVERSOLD calls1",
+    "same original Reader execution_id and pid in final audit",
+    "first and second immutable product SHA unchanged",
+    "final SUCCEEDED/selected1/failed_steps empty/retryable false"
+  ],
+  "unchanged_original_backend_files": 46,
+  "independent_narrow_review": "PENDING",
+  "frontend_frozen_receipt_sha256": "f52f858ce8e314a2db354f32d19e9529519ab39a76f520ee6c4dd0297f425852",
+  "files": [
+    {
+      "path": "v4/manager_workbench/executors/codex.py",
+      "before_sha256": "d2485f315f75d866452430e4fb7351580109d64d5830e580872dc2ee36465e8e",
+      "after_sha256": "51eb893368a57083937d20270ba41d460f948b53ba42a2055140333e780436f8"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_retry_chain.py",
+      "before_sha256": null,
+      "after_sha256": "4be71650243ebb6d40355e684b2520935caf1df18d8ee91d4d6d6ab3ec35d662"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/retry-chain-red.log",
+      "before_sha256": null,
+      "after_sha256": "3d72793eff34674b7a64bf3b2fb2e958531130be5a67677a552f7b7ec3ad7af3"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/retry-chain-green.log",
+      "before_sha256": null,
+      "after_sha256": "7a20eee6295224dc03c515c61effeca0082f5cf97cc770f7af5dcd2d4e9fd718"
+    }
+  ],
+  "no_commit_push_deploy": true
+}

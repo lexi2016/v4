@@ -1,0 +1,28 @@
+{
+  "schema_version": "v4.us_equity_calendar.v1",
+  "year": 2026,
+  "timezone": "America/New_York",
+  "regular_close": "1600",
+  "early_close": "1300",
+  "holidays": [
+    "20260101",
+    "20260119",
+    "20260216",
+    "20260403",
+    "20260525",
+    "20260619",
+    "20260703",
+    "20260907",
+    "20261126",
+    "20261225"
+  ],
+  "early_closes": [
+    "20261127",
+    "20261224"
+  ],
+  "official_source": {
+    "name": "NYSE Holidays & Trading Hours",
+    "url": "https://www.nyse.com/trade/hours-calendars",
+    "scope": "NYSE equity core-session holidays and 2026 1:00 p.m. ET early closes"
+  }
+}

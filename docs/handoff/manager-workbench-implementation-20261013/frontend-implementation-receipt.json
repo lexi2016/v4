@@ -1,0 +1,192 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "writer_identity": "/root/manager_writer_sol",
+  "writer_model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "canonical_read_only": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "branch": "codex/manager-workbench-rewrite-mac-20261013",
+  "upstream_C": {
+    "original": "e1ca8d1866851531c13746f58c92872db118e613",
+    "repair": "dcf668dcd7fa60f95dea9cd0f159b47bd18e88e6",
+    "pr": 42,
+    "blob_readback_verified": true
+  },
+  "backend_receipt_sha256": "712fea320252a3ea782b99018cb4ca69bda5c6c9d0275f1425f3c019e214ebe2",
+  "environment": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "dependencies": "canonical node_modules read-only temporary symlink",
+    "vitest": "4.1.10",
+    "vite": "7.3.6"
+  },
+  "validation": [
+    {
+      "command": "npm test -- src/manager-workbench/__tests__",
+      "result": "49 passed, 5 files",
+      "exit_code": 0,
+      "log": "frontend-vitest.log"
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "PASS whole existing application vue-tsc",
+      "exit_code": 0,
+      "log": "frontend-typecheck.log"
+    },
+    {
+      "command": "npm run build -- --outDir src/manager-workbench/__tests__/.tmp/application-build",
+      "result": "PASS existing application; central mount still old",
+      "exit_code": 0,
+      "log": "frontend-build.log"
+    },
+    {
+      "command": "vite build API configFile:false plugin-vue lib.entry=src/manager-workbench/Workbench.vue external=vue",
+      "result": "PASS actual candidate component separately built",
+      "exit_code": 0,
+      "log": "frontend-component-build.log"
+    }
+  ],
+  "actual_backend_fixtures": {
+    "capture_script": "apps/web/src/manager-workbench/__tests__/fixtures/capture_backend.py",
+    "capture_file": "apps/web/src/manager-workbench/__tests__/fixtures/backend-http.json",
+    "captures": 54,
+    "source": "actual native synthetic parquet/security master/monthly eligibility -> real A engines/B service/store/FastAPI TestClient",
+    "native_stock_count": 251,
+    "raw_business_material": false,
+    "models_called": 0,
+    "formal_root_writes": 0,
+    "server_port": null
+  },
+  "repairs": [
+    "C upstream history versions/lane_details/array lane_decisions/ratio/FastAPI detail/pending navigation retry identities",
+    "Promise API validation consistency; exact client safety envelope checks",
+    "current B envelope error gap codes preserving status",
+    "actual symbol/history date/review date-run/job identity checks",
+    "invalidate dependent detail/review on saved run replacement",
+    "global valid-empty only all lanes empty or not applicable; filtered zero does not imply global empty",
+    "single polling timer; unknown counts preserved; empty pagination 0-0",
+    "source 2 test failures and 4 type errors corrected before PASS"
+  ],
+  "remaining_gaps": [
+    "B changes payload lacks per-stock change/time; display explicit unknown without constructing strategy values",
+    "backend consecutive PARTIAL retry P1 being handled separately after frontend freeze"
+  ],
+  "not_run": [
+    "independent frontend review",
+    "central mount wiring",
+    "deployment",
+    "browser/API production acceptance",
+    "UI reload acceptance",
+    "natural slots"
+  ],
+  "no_commit_push_deploy": true,
+  "file_sha256": [
+    {
+      "path": "apps/web/src/manager-workbench/HANDOFF.md",
+      "sha256": "4cf54af5bf462f6677d7424414f85a73a98deb476b73ef2c31a9dc15a487d253",
+      "bytes": 5891
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "sha256": "978ea36bcf34d366ce3aaf164383a60ecd2e3950c540c93bf8206e912d46aae4",
+      "bytes": 25304
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/Workbench.spec.ts",
+      "sha256": "3d551315235a2c9d08b512a50ddc5018ad1399fec92bd69e147ded1768e239e3",
+      "bytes": 10712
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/api.spec.ts",
+      "sha256": "8752b07b1ab4cb680e6383816083ace6ff7cc412708b8c77508956132dd5acb1",
+      "bytes": 4035
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/b_http_regression.spec.ts",
+      "sha256": "661ca9cf96d4de674aead3df63a31d45964571e787d74964fe13a808dd5c96f7",
+      "bytes": 17508
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/backend_capture.spec.ts",
+      "sha256": "5b4652e289099fbeb6d5cad7b0d220a408dcf80f066e27605a58925c99e361c6",
+      "bytes": 7192
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/fixtures/backend-http.json",
+      "sha256": "a956e228fba31a04e75fe8a9abb75df93b70759968c59b830f6b21331d47c033",
+      "bytes": 1611310
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/fixtures/capture_backend.py",
+      "sha256": "bbe773f64ae8826b82250ff77d479a671a860961b7218e22da998754523181aa",
+      "bytes": 5411
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/fixtures/sample.ts",
+      "sha256": "ba06d7b0649cda3a2221f596333af06ff0b221fcf3d6e3a12146c8efa848c912",
+      "bytes": 4507
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/route.spec.ts",
+      "sha256": "20404e483fce35be54f8eba9ea1c9a650e3e499c7921c901c406673dc45c6616",
+      "bytes": 1393
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "sha256": "42d81fea6d85815b5fe801d07d1f6848811a53784498a865c11e1b6b54936812",
+      "bytes": 6509
+    },
+    {
+      "path": "apps/web/src/manager-workbench/display.ts",
+      "sha256": "cb44aafd45cee20d9ea9fb92dd2291075a0e85ed82789813e5d4ecc92d20499f",
+      "bytes": 2836
+    },
+    {
+      "path": "apps/web/src/manager-workbench/route.ts",
+      "sha256": "7b2784fb72113e1a5da12817ada45b1361a31748834249a69b261c19f75fc0a8",
+      "bytes": 2303
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "sha256": "33e38e3ebff3a1a578e9844ad8f8df8b31bd04cf26b1f0824300d4ffffb051bf",
+      "bytes": 8281
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "sha256": "fca76d78aa7c0db43b33376504f988b46d22b62412daed54c57ac3b2c96e2561",
+      "bytes": 15211
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "sha256": "9e2782fe082845670fc75b10f95b43f2f6e3079788c2f347fb2153323097e2ff",
+      "bytes": 9340
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/frontend-build.log",
+      "sha256": "d109d62cb4b61dcb14970a1727363f30f004a385ecfd3287482b83e490d5c6c6",
+      "bytes": 1674
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/frontend-component-build.log",
+      "sha256": "e9a81877723fb4bbb46226b20215a0286d7c5e53d2e9812194c7541c63916607",
+      "bytes": 371
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/frontend-source-manifest.json",
+      "sha256": "8f0ae183928ebc90e920a60ec62c679c649e899c2bf0f16596ddfa982418e298",
+      "bytes": 5304
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/frontend-typecheck.log",
+      "sha256": "16b4018cae57fe1052ea85fd680aa74ae29b25bcd0cded804c7a52cb0c66ec91",
+      "bytes": 48
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/frontend-vitest.log",
+      "sha256": "476e0ff195305914ea61b6741630e53a22e52e334b9611c5c3a6662dcbdaec61",
+      "bytes": 332
+    }
+  ]
+}

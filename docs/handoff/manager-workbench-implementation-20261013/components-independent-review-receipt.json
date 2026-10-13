@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "status": "REVIEWED_TESTED_COMPONENTS_ONLY",
+  "reviewer": {
+    "identity": "/root/manager_reviewer_sol",
+    "model": "gpt-6.1-sol",
+    "effort": "high"
+  },
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "source_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_branch": "codex/manager-workbench-rewrite-mac-20261013",
+  "remote_parent": "946c864e83aaafac2b9e1f18ca383e968a4f8ee0",
+  "scope": [
+    "Backend initial 69 tests independently passed; only reviewed retry-cache fix changed executor",
+    "Two retry regressions independently passed; Reader=1 Reviewer=3 OVERSOLD=1 and old snapshots unchanged",
+    "Frontend 49 tests, typecheck, main build and component build independently passed",
+    "Four additional late-response checks independently passed",
+    "54 actual isolated FastAPI responses regenerated; 251 rows across 6 pages"
+  ],
+  "receipts": {
+    "backend": "backend-implementation-receipt.json",
+    "retry": "backend-retry-chain-fix-receipt.json",
+    "frontend": "frontend-implementation-receipt.json"
+  },
+  "publication": {
+    "files": 71,
+    "all_source_sha_checked": true,
+    "generated_response_excluded": "apps/web/src/manager-workbench/__tests__/fixtures/backend-http.json",
+    "generated_response_sha256": "a956e228fba31a04e75fe8a9abb75df93b70759968c59b830f6b21331d47c033",
+    "regenerate_before_frontend_tests": "PYTHONPATH=. <Mac runtime python> apps/web/src/manager-workbench/__tests__/fixtures/capture_backend.py",
+    "raw_business_materials_uploaded": false,
+    "routine_logs_kept_local": true
+  },
+  "external_repair_revisions": {
+    "A": {
+      "commit": "1c596d794b3af54d8a5a3bb61028cf1b7c36e4e2",
+      "comment": 6137743983,
+      "reported_tests": "57 passed, 2 skipped; original B integration not run"
+    },
+    "B": {
+      "commit": "2d0682a631b4c038457716afece37425d3d6a14f",
+      "comment": 6137741730,
+      "reported_tests": "30 passed, 3 skipped; original A integration not run"
+    },
+    "C": {
+      "commit": "dcf668dcd7fa60f95dea9cd0f159b47bd18e88e6",
+      "comment": 6137740632,
+      "reported_tests": "static only; Mac frontend verification running"
+    }
+  },
+  "remaining": {
+    "central_assembly": "NOT_RUN",
+    "deployment": "NOT_RUN",
+    "browser_ui": "NOT_RUN",
+    "natural_slots": "NOT_RUN",
+    "real_announcement_semantics": "NOT_RUN",
+    "code_mode_challenge": "HOST_ROUTER_REJECTION_OBSERVED; whole material isolation remains unconfirmed"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

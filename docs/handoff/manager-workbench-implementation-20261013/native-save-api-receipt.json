@@ -1,0 +1,46 @@
+{
+  "status": "ISOLATED_NATIVE_INPUT_SAVE_API_READBACK",
+  "semantic_status": "CANNOT_CONFIRM",
+  "semantic_execution": "NOT_RUN",
+  "job_state": "PARTIAL",
+  "failure_code": "LANE_STEPS_INCOMPLETE",
+  "run_id": "91484d499b224a24873e415fbf951dfe",
+  "input_sha256": "4c4b7a86a3f126ce54b7ed948b87abdac95212287267716b6369b7770a2f8b9c",
+  "product_sha256": "7ecf2ddd5bdb1d473a3b4b73c2680ce8eb12603148770294d726fd667f8790fe",
+  "source_cutoff": "2026-10-13T11:40:10.019576+08:00",
+  "published_cutoff": "2026-10-13T11:40:10+08:00",
+  "source_article_rows": 357,
+  "complete_input_count": 357,
+  "stock_count": 133,
+  "counts": {
+    "selected": 0,
+    "watch": 0,
+    "unassessed": 133,
+    "observation_only": 0,
+    "not_selected": 0
+  },
+  "api_status": 200,
+  "detail_status": 200,
+  "same_run_sha_readback": true,
+  "source_variant_counts": {
+    "EASTMONEY_MIRROR": 171,
+    "HKEX_OFFICIAL": 186
+  },
+  "source_file_sha256": "269eb6442010557cd3ae8f6a538f7e43e741a9e74d88d3d5cd14c0e61c405f98",
+  "failed_step_counts": {
+    "ANNOUNCEMENT": 331
+  },
+  "gaps": [
+    "ANNOUNCEMENT_FULL_MARKET_BODY_COVERAGE_PARTIAL",
+    "CROSS_SOURCE_EVENT_DEDUP_UNASSESSED",
+    "MONTHLY_CONNECT_MEMBERSHIP_UNVERIFIED",
+    "RECORDS_UNASSESSED"
+  ],
+  "formal_source_writes": 0,
+  "model_calls": 0,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "raw_materials_uploaded": false
+}
