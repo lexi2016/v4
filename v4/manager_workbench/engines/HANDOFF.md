@@ -14,7 +14,7 @@ stocks = merge_decisions(context, results)      # all HK stocks, not UI-paginate
 summary = evaluate_review(frozen_snapshot, complete_close_input)
 ```
 
-InputBatch, LaneResult, StockDecision and ReviewSummary field names follow `COMMON_CONTRACT.md` (`MWB_V1_20261013`). These are plain JSON-compatible mappings for the isolated A tests. **B is the sole owner of public typed classes and JSON samples**: when B's fixed commit is available, bind its types/semantic executor and verify serialization/contract tests before any Mac integration. This A branch does not create competing B types.
+InputBatch, LaneResult, StockDecision and ReviewSummary follow `MWB_V1_20261013`. **B is the sole owner of public typed classes, canonical SHA serialization and schema samples**: its separately authored, fixed contract commit is `lexi2016/v4@761df4b6e7d712a28794c440c9e77fa3cdb8d3cb` (Issue #39). The A public facades return B Pydantic types when B is present; their fallback JSON mappings exist only for isolated testing and do not create competing B classes. The two independent branches must be combined by Mac in the sequence B fixed contract → A candidate → B runtime, without an A-owned edit to any B path.
 
 The authoritative adapters are injected by B/Mac and must return exact market, date, owner, signed/hash-pinned scope and availability-time metadata. `load_inputs` never fetches from the network or browser; unbound/mismatched adapters result in `INPUT_MISSING`, not `READY_EMPTY`. The US batch `universe_ref` must carry the actual configured 33 symbols, verified US session and calendar. Oversold requires verified prior HK trading session, 60 distinct earlier verified high sessions, five earlier verified volume sessions, comparable units and monthly Connect membership; `Decimal` implements the fixed 0.8 AND 1.5 rules. No additional threshold or source is invented.
 
@@ -28,4 +28,12 @@ Stage is a reference unless the original owner provides independently verifiable
 PYTHONPATH=. python -m pytest -q tests/manager_workbench/engines
 ```
 
-Candidate unit tests use synthetic data and a **fake** semantic executor only. B fixed contract commit: **NOT_AVAILABLE at coding time**. Actual model canary, market owner/date binding, independent reviewer of this code, Mac end-to-end/API/UI and natural 09:25/intraday/16:30 behavior: **NOT_RUN**. No runtime service or UI switched. RESEARCH_ONLY=true; production_allowed=false; buy_gate_updated=false; orders_sent=false.
+Candidate engine suite: **39 passed** locally with Python 3.13, pytest, and a locally reconstructed B Pydantic type subset (not a byte-identical copy of the B commit); also `python -m compileall -q v4/manager_workbench` passed. Synthetic market data and a **fake** semantic executor only. Independent Reviewer (different Luna Max identity): **NOT_RUN** (not available in this execution environment). Tests against the exact B source bytes, full repository suite, actual model canary, market owner/date binding, Mac end-to-end/API/UI and natural 09:25/intraday/16:30 behavior: **NOT_RUN**. No runtime service or UI switched. RESEARCH_ONLY=true; production_allowed=false; buy_gate_updated=false; orders_sent=false.
+
+
+## Evidence & integration guardrails
+
+- Source authority: all five B `Lane` identifiers come through `load_inputs(context, injected_adapters)`; no auto-collector and no manufactured missing-source counts. Exact scopes, captures, monthly membership identities and historical market calendars remain Mac-owned adapter inputs.
+- B integration: merge or checkout `761df4b6e7d712a28794c440c9e77fa3cdb8d3cb` first in an **isolated integration workspace**. Overlay the A-allowed files only, run both B contract tests and A engine tests and compare actual serialized `InputBatch`, `LaneResult`, `StockDecision`, `ReviewSummary` with B's canonical fixture/schema. The A branch intentionally does **not** fork B paths.
+- Runtime security: real semantic execution must remain blocked until B's sandboxed executor can prove `tool_isolation=VERIFIED`; the `READER` and `REVIEWER` process/execution identities must differ. A never starts Codex, changes global permissions, reads credential roots or persists snapshots.
+- Governance: A candidate is `IMPLEMENTED` / `SYNTHETIC_TESTED`; `INDEPENDENT_REVIEWED`, `INTEGRATED`, `DEPLOYED`, `API_VERIFIED`, `UI_VERIFIED`, `BEHAVIOR_VERIFIED` and `NATURAL_VERIFIED` are all `NOT_RUN`. Keep unchanged V4/BUY/Vibe8910.

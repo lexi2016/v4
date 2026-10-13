@@ -1,7 +1,10 @@
 from copy import deepcopy
 import pytest
 from v4.manager_workbench.engines.common import digest, bytes_digest, RULE
-from v4.manager_workbench.engines.announcement import run_announcements
+from v4.manager_workbench.engines.announcement import run_announcements as _run_announcements
+
+def run_announcements(context, batch, executor):
+    return _run_announcements(batch["context"], batch, executor)
 
 
 def context():
@@ -22,10 +25,11 @@ def article(body="业绩增加，订单确认。", id="HKEX:12345"):
 
 
 def batch(items):
-    return dict(lane="ANNOUNCEMENT",context=context(),universe_ref=dict(
+    c=context();c["scope_refs"]["ANNOUNCEMENT"]=dict(
         scope_state="VERIFIED",article_ids=[x["article_id"] for x in items],
-        sha256="c"*64,owner="catalog"),scope_description="authoritative exact observed catalog",
-        records=items,evidence_refs=[dict(owner="catalog",role="manifest",sha256="c"*64)],
+        sha256="c"*64,owner="catalog",universe_ref="catalog:verified")
+    return dict(lane="ANNOUNCEMENT",context=c,universe_ref="catalog:verified",scope_description="authoritative exact observed catalog",
+        records=items,evidence_refs=[dict(evidence_id="catalog-1",verification="VERIFIED",owner="catalog",role="manifest",sha256="c"*64)],
         input_sha256="d"*64,coverage=dict(scope_count=len(items),observed_count=len(items)),gaps=[])
 
 

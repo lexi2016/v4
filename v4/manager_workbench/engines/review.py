@@ -1,6 +1,6 @@
 """Ex-post comparison of a frozen plan to an injected COMPLETE matching close list."""
 from __future__ import annotations
-from .common import VERSION, hk_symbol, valid_sha, validate_context
+from .common import VERSION, hk_symbol, plain, valid_sha, validate_context
 
 
 STRATEGIES=("ANNOUNCEMENT","US_MAPPING","OVERSOLD","STAGE_REFERENCE","CLOSE_REFERENCE")
@@ -10,10 +10,34 @@ def _blank(plan, reason):
     context=plan["context"]
     return dict(target_date=context["target_date"],plan_run_id=plan["run_id"],
         evaluation_scope_ref=context["scope_refs"].get("review_universe"),
-        mode="NOT_EVALUATED",ranking_date=None,top20=[],
+        mode="NOT_EVALUATED",ranking_date=None,top20_rows=[],
         strict_coverage=dict(covered=None,denominator=None,ratio=None,intersection=[]),
         extended_coverage=dict(covered=None,denominator=None,ratio=None,intersection=[]),
-        selected_denominator=None, strategy_contributions=None,missing_reasons=[],gaps=[reason])
+        selected_denominator=None, lane_incremental_coverage={},uncovered_reasons=[],gaps=[reason])
+
+
+def _normalize_close_input(context, close):
+    """Accept B's InputBatch without inventing a second complete-close type."""
+    if not isinstance(close,dict) or close.get("lane")!="CLOSE_REFERENCE":
+        return close
+    bctx=plain(close.get("context"))
+    coverage=plain(close.get("coverage"))
+    if (bctx != context or not isinstance(coverage,dict) or close.get("gaps") or
+        coverage.get("gaps") or close.get("universe_ref") != context["scope_refs"].get("review_universe") or
+        coverage.get("scope_count") is None or
+        coverage.get("scope_count") != coverage.get("observed_count") or
+        coverage.get("scope_count") != len(close.get("records", []))):
+        return None
+    verified=[plain(e) for e in close.get("evidence_refs",[]) if isinstance(plain(e),dict)]
+    official=[e for e in verified if e.get("role")=="FULL_CLOSE_RANKING" and
+        e.get("verification")=="VERIFIED" and e.get("source_date")==context["target_date"] and
+        valid_sha(e.get("sha256")) and e.get("owner") and e.get("manifest_ref") and e.get("receipt_ref")]
+    if len(official)!=1:
+        return None
+    return dict(market="HK_CONNECT", target_date=context["target_date"],
+        ranking_date=context["target_date"], full_scope_verified=True,
+        scope_ref=close["universe_ref"],source_sha256=official[0]["sha256"],owner=official[0]["owner"],
+        scope_count=coverage["scope_count"],rows=close["records"])
 
 
 def _close_valid(context, close):
@@ -41,9 +65,12 @@ def evaluate_review(plan, close_inputs):
     per-strategy incremental contribution uses the deterministic listed order,
     not a retrospectively optimized allocation.
     """
+    plan=plain(plan)
+    close_inputs=plain(close_inputs)
     if not isinstance(plan,dict) or plan.get("schema_version")!=VERSION or not isinstance(plan.get("stocks"),list) or not plan.get("run_id"):
         raise ValueError("MWB_FROZEN_PLAN_REQUIRED")
-    context=validate_context(plan["context"])
+    context=validate_context(plain(plan["context"]))
+    close_inputs=_normalize_close_input(context,close_inputs)
     if not _close_valid(context,close_inputs):
         return _blank(plan,"COMPLETE_SAME_SCOPE_CLOSE_RANKING_NOT_VERIFIED")
     close=close_inputs
@@ -59,10 +86,10 @@ def evaluate_review(plan, close_inputs):
     contributions={};strict_so_far=set();ext_so_far=set()
     for strategy in STRATEGIES:
         strict_lane={x["symbol"] for x in plan["stocks"] if hk_symbol(x.get("symbol")) and
-            any(r.get("lane")==strategy and r.get("decision")=="SELECTED" for r in x.get("lane_decisions",[]))}
+            any(r.get("decision")=="SELECTED" for r in x.get("lane_decisions",{}).get(strategy,[]))}
         ext_lane={x["symbol"] for x in plan["stocks"] if hk_symbol(x.get("symbol")) and
-            any(r.get("lane")==strategy and r.get("decision") in ("SELECTED","CONDITIONAL_WATCH")
-                for r in x.get("lane_decisions",[]))}
+            any(r.get("decision") in ("SELECTED","CONDITIONAL_WATCH")
+                for r in x.get("lane_decisions",{}).get(strategy,[]))}
         new_strict=(strict_lane & strict_hits)-strict_so_far
         new_ext=(ext_lane & extended_hits)-ext_so_far
         contributions[strategy]=dict(strict_total=len(strict_lane&strict_hits),extended_total=len(ext_lane&extended_hits),
@@ -83,10 +110,10 @@ def evaluate_review(plan, close_inputs):
         entry=dict(x,stock_decision=decision or "NOT_IN_PLAN",strict_hit=symbol in strict_hits,
                    extended_hit=symbol in extended_hits,missed_reason=why)
         out.append(entry)
-        if why:missing.append(dict(symbol=symbol,reason=why))
+        if why:missing.append(symbol+":"+why)
     gaps=["ZERO_CLOSE_DENOMINATOR"] if not denom else []
     return dict(target_date=context["target_date"],plan_run_id=plan["run_id"],
         evaluation_scope_ref=context["scope_refs"]["review_universe"],mode="FROZEN_PLAN_VS_COMPLETE_CLOSE",
-        ranking_date=close["ranking_date"],top20=out,strict_coverage=metric(strict_hits),
+        ranking_date=close["ranking_date"],top20_rows=out,strict_coverage=metric(strict_hits),
         extended_coverage=metric(extended_hits),selected_denominator=len(selected),
-        strategy_contributions=contributions,missing_reasons=missing,gaps=gaps)
+        lane_incremental_coverage=contributions,uncovered_reasons=missing,gaps=gaps)

@@ -4,14 +4,14 @@ from .common import current, hk_symbol, membership, result, row, valid_sha
 
 
 def run_us_mapping(context, batch):
-    u = batch.get("universe_ref") or {}
+    u = context["scope_refs"].get("US_MAPPING") or {}
     configured = u.get("configured_symbols")
     session = u.get("source_session")
-    source_session = context["source_sessions"].get("US")
+    source_session = context["source_sessions"].get("US") or context["source_sessions"].get("us")
     gaps = []
     good_universe = (isinstance(configured, list) and len(configured) == len(set(configured)) == 33 and
         all(isinstance(x, str) and x for x in configured) and u.get("verification") == "VERIFIED" and
-        valid_sha(u.get("sha256")) and session == source_session and
+        valid_sha(u.get("sha256")) and u.get("universe_ref")==batch.get("universe_ref") and session == source_session and
         isinstance(session, str) and u.get("calendar_verified") is True)
     if not good_universe:
         gaps.append("US_FIXED_33_OR_SESSION_NOT_VERIFIED")

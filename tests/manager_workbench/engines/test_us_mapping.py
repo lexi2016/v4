@@ -1,6 +1,9 @@
 from copy import deepcopy
 from v4.manager_workbench.engines.common import RULE
-from v4.manager_workbench.engines.us_mapping import run_us_mapping
+from v4.manager_workbench.engines.us_mapping import run_us_mapping as _run_us_mapping
+
+def run_us_mapping(context, batch):
+    return _run_us_mapping(batch["context"],batch)
 
 
 def ctx():
@@ -24,9 +27,10 @@ def make_batch():
                 target_symbol="HK.00001",target_name="company",relation_type="OBSERVED_SUPPLY_RELATION",
                 available_at="2026-10-13T09:00:00+08:00",published_at="2026-10-12T17:00:00+08:00",
                 membership=eligible())]))
-    return dict(lane="US_MAPPING",context=ctx(),records=records,evidence_refs=[],
-        universe_ref=dict(configured_symbols=symbols,source_session="20261012",verification="VERIFIED",
-            calendar_verified=True,sha256="c"*64),input_sha256="d"*64,scope_description="fixed 33 US origins",
+    c=ctx();c["scope_refs"]["US_MAPPING"]=dict(universe_ref="M03:fixed-us-33",configured_symbols=symbols,source_session="20261012",verification="VERIFIED",
+            calendar_verified=True,sha256="c"*64)
+    return dict(lane="US_MAPPING",context=c,records=records,evidence_refs=[],
+        universe_ref="M03:fixed-us-33",input_sha256="d"*64,scope_description="fixed 33 US origins",
         coverage=dict(scope_count=33,observed_count=33),gaps=[])
 
 
@@ -53,7 +57,7 @@ def test_34th_or_lost_origin_causes_coverage_gap():
 
 
 def test_calendar_unknown_blocks_priority():
-    a=make_batch();a["universe_ref"]["calendar_verified"]=False
+    a=make_batch();a["context"]["scope_refs"]["US_MAPPING"]["calendar_verified"]=False
     assert run_us_mapping(ctx(),a)["rows"][0]["decision"]=="UNASSESSED"
 
 

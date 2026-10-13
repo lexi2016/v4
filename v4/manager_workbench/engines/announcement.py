@@ -217,12 +217,12 @@ def _analyze_one(context, article, executor, seen):
 
 
 def run_announcements(context,batch,semantic_executor):
-    universe=batch.get("universe_ref") or {}
+    universe=context["scope_refs"].get("ANNOUNCEMENT") or {}
     source_ids=universe.get("article_ids")
     observed_ids=[item.get("article_id") for item in batch["records"] if isinstance(item,dict)]
     gaps=[]
     if (universe.get("scope_state")!="VERIFIED" or not valid_sha(universe.get("sha256")) or
-        not universe.get("owner") or not isinstance(source_ids,list) or
+        not universe.get("owner") or universe.get("universe_ref")!=batch.get("universe_ref") or not isinstance(source_ids,list) or
         len(set(source_ids))!=len(source_ids) or set(source_ids)!=set(observed_ids) or
         len(observed_ids)!=len(source_ids)):
         gaps.append("ANNOUNCEMENT_COMPLETE_CATALOG_NOT_VERIFIED")

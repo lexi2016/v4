@@ -26,7 +26,14 @@ DATE = re.compile(r"^[0-9]{8}$")
 
 
 def digest(value):
-    return sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+    return sha256((json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)+"\n").encode()).hexdigest()
+
+
+def plain(value):
+    """Accept the B-owned Pydantic contract types without creating duplicates."""
+    if hasattr(value, "model_dump"):
+        return value.model_dump(mode="json")
+    return value
 
 
 def bytes_digest(value):
@@ -128,8 +135,10 @@ def result(lane, batch, context, rows, *, state=None, gaps=None):
         gaps.append("SCOPE_COUNT_MISMATCH")
     source_indices = {x.get("source_index") for x in rows if type(x.get("source_index")) is int}
     if source_indices:
-        assessed = len({x["source_index"] for x in rows if x.get("decision") not in (None, "UNASSESSED")})
-        unknown = len({x["source_index"] for x in rows if x.get("decision") == "UNASSESSED"})
+        unknown_sources={x["source_index"] for x in rows if x.get("decision") in (None, "UNASSESSED")}
+        assessed_sources={x["source_index"] for x in rows if x.get("decision") not in (None, "UNASSESSED")}
+        assessed = len(assessed_sources - unknown_sources)
+        unknown = len(unknown_sources)
     else:
         assessed = sum(x.get("decision") not in (None, "UNASSESSED") for x in rows)
         unknown = sum(x.get("decision") == "UNASSESSED" for x in rows)
@@ -150,7 +159,7 @@ def result(lane, batch, context, rows, *, state=None, gaps=None):
     return dict(lane=lane, state=state, rows=rows, coverage=dict(scope_count=scope,
         observed_count=observed, assessed_count=assessed_count, unassessed_count=unknown_count,
         gaps=gaps), input_sha256=batch.get("input_sha256"), rules_version=context["rules_version"],
-        run_id=batch.get("run_id"), evidence_refs=batch.get("evidence_refs", []), gaps=gaps)
+        run_id=batch.get("run_id") or context.get("scope_refs",{}).get("run_id") or "A_RUN_ID_NOT_BOUND", evidence_refs=batch.get("evidence_refs", []), gaps=gaps)
 
 
 def row(record, decision, reason, *, conditions=None, metrics=None, evidence=None, **extra):

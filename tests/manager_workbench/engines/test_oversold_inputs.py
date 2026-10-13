@@ -2,7 +2,10 @@ from copy import deepcopy
 from datetime import date,timedelta
 from v4.manager_workbench.engines.common import RULE
 from v4.manager_workbench.engines.oversold import run_oversold
-from v4.manager_workbench.inputs import load_inputs
+from v4.manager_workbench.inputs import load_inputs as _load_inputs
+from v4.manager_workbench.engines.common import plain
+
+def load_inputs(*args):return {k:plain(v) for k,v in _load_inputs(*args).items()}
 
 
 def ctx():
@@ -36,7 +39,7 @@ def rec():
 
 
 def batch(items):
-    return dict(lane="OVERSOLD",context=ctx(),universe_ref=dict(owner="M02",sha256="d"*64),
+    return dict(lane="OVERSOLD",context=ctx(),universe_ref="M02:exact-date",
         scope_description="exact-date all eligible HKConnect",records=items,
         evidence_refs=[dict(evidence_id="over-1",owner="M02",role="panel",sha256="d"*64,
              verification="VERIFIED",available_at="2026-10-13T09:00:00+08:00")],

@@ -4,7 +4,7 @@ No implicit source reads, no 200-row cut, no cross-lane failure masking.
 """
 from __future__ import annotations
 from .common import (LANES, RESEARCH_LANES, DECISIONS, valid_sha, current, hk_symbol,
-                     membership, result, timestamp, validate_context)
+                     membership, result, plain, timestamp, validate_context, digest)
 from .announcement import run_announcements
 from .us_mapping import run_us_mapping
 from .oversold import run_oversold
@@ -13,13 +13,14 @@ from .oversold import run_oversold
 def _missing(lane, context, code):
     return dict(lane=lane,state="INPUT_MISSING",rows=[],coverage=dict(scope_count=None,
         observed_count=None,assessed_count=None,unassessed_count=None,gaps=[code]),
-        input_sha256=None,rules_version=context["rules_version"],run_id=None,evidence_refs=[],gaps=[code])
+        input_sha256=digest(dict(lane=lane,context=context,missing=code)),rules_version=context["rules_version"],
+        run_id=context.get("scope_refs",{}).get("run_id") or "A_RUN_ID_NOT_BOUND",evidence_refs=[],gaps=[code])
 
 
 def _observation(lane, context, batch):
     rows=[]
     for item in batch["records"]:
-        if not isinstance(item,dict) or not hk_symbol(item.get("symbol")) or item.get("market")!="HK_CONNECT" or not item.get("owner") or not item.get("source_sha256") or not current(context,item.get("available_at")):
+        if not isinstance(item,dict) or not hk_symbol(item.get("symbol")) or item.get("market")!="HK_CONNECT" or item.get("target_date")!=context["target_date"] or not item.get("owner") or not item.get("source_sha256") or not current(context,item.get("available_at")):
             rows.append(dict(symbol=item.get("symbol") if isinstance(item,dict) else None,
                 market="HK_CONNECT",decision="UNASSESSED",reason="REFERENCE_OWNER_OR_DATE_NOT_VERIFIED"))
             continue
@@ -38,18 +39,20 @@ def _observation(lane, context, batch):
 
 
 def run_lanes(context, inputs, semantic_executor):
+    context=plain(context)
     validate_context(context)
     if not isinstance(inputs,dict):raise ValueError("MWB_INPUT_BATCHES_REQUIRED")
     if set(inputs)-set(LANES):raise ValueError("MWB_UNKNOWN_LANE")
     results={}
     for lane in LANES:
-        batch=inputs.get(lane)
+        batch=plain(inputs.get(lane))
         if not isinstance(batch,dict) or batch.get("lane")!=lane or batch.get("context")!=context:
             results[lane]=_missing(lane,context,"AUTHORITY_BATCH_ABSENT_OR_CHANGED");continue
         if not isinstance(batch.get("records"),list) or not isinstance(batch.get("coverage"),dict):
             results[lane]=_missing(lane,context,"AUTHORITY_BATCH_SHAPE");continue
-        if not valid_sha(batch.get("input_sha256")) or not isinstance(batch.get("universe_ref"),dict):
-            results[lane]=_missing(lane,context,"AUTHORITY_INPUT_IDENTITY_MISSING");continue
+        if not valid_sha(batch.get("input_sha256")) or not isinstance(batch.get("universe_ref"),str):
+            results[lane]=_missing(lane,context,(batch.get("gaps") or ["AUTHORITY_INPUT_IDENTITY_MISSING"])[0]);continue
+        batch=dict(batch,run_id=context.get("scope_refs",{}).get("run_id") or "A_RUN_ID_NOT_BOUND")
         try:
             if lane=="ANNOUNCEMENT":r=run_announcements(context,batch,semantic_executor)
             elif lane=="US_MAPPING":r=run_us_mapping(context,batch)
@@ -73,11 +76,12 @@ def merge_decisions(context, lane_results):
     stock. Global NOT_SELECTED requires explicit same-stock negative verdicts
     from all applicable, completed research lanes.
     """
+    context=plain(context)
     validate_context(context)
     if isinstance(lane_results,dict):
-        values=list(lane_results.values())
+        values=[plain(x) for x in lane_results.values()]
     elif isinstance(lane_results,list):
-        values=lane_results
+        values=[plain(x) for x in lane_results]
     else:
         raise ValueError("MWB_LANE_RESULTS_REQUIRED")
     seen=set();stocks={};states={};evidence_times={}
@@ -86,6 +90,8 @@ def merge_decisions(context, lane_results):
             raise ValueError("MWB_LANE_DUPLICATE_OR_UNKNOWN")
         lane=lr["lane"];seen.add(lane);states[lane]=lr.get("state")
         if not isinstance(lr.get("rows"),list):raise ValueError("MWB_LANE_ROWS")
+        if lr["state"] in ("NOT_RUN", "RUNNING", "FAILED", "INPUT_MISSING", "NOT_APPLICABLE"):
+            continue  # a failed/not-executed lane cannot carry trusted stock verdicts
         for evidence in lr.get("evidence_refs") or []:
             if not isinstance(evidence,dict):continue
             eid=evidence.get("evidence_id")
@@ -99,21 +105,21 @@ def merge_decisions(context, lane_results):
             if item.get("decision") not in DECISIONS:raise ValueError("MWB_ROW_DECISION")
             symbol=item["symbol"]
             entry=stocks.setdefault(symbol,dict(market="HK_CONNECT",symbol=symbol,name=item.get("name"),
-                decision=None,lane_decisions=[],reasons=[],conditions=[],invalidation_conditions=[],
-                risks=[],evidence_ids=[],eligibility_status="UNKNOWN"))
+                decision=None,lane_decisions={},reasons=[],conditions=[],invalidation_conditions=[],
+                risks=[],evidence_ids=[],membership_status="UNKNOWN"))
             if not entry["name"] and item.get("name"):entry["name"]=item["name"]
             eligible=_eligibility(item,context)
-            if eligible is True:entry["eligibility_status"]="VERIFIED_ELIGIBLE" if entry["eligibility_status"]!="VERIFIED_INELIGIBLE" else "CONFLICT"
-            elif eligible is False:entry["eligibility_status"]="VERIFIED_INELIGIBLE" if entry["eligibility_status"]!="VERIFIED_ELIGIBLE" else "CONFLICT"
-            entry["lane_decisions"].append(dict(item, lane=lane))
+            if eligible is True:entry["membership_status"]="VERIFIED_ELIGIBLE" if entry["membership_status"]!="VERIFIED_INELIGIBLE" else "CONFLICT"
+            elif eligible is False:entry["membership_status"]="VERIFIED_INELIGIBLE" if entry["membership_status"]!="VERIFIED_ELIGIBLE" else "CONFLICT"
+            entry["lane_decisions"].setdefault(lane,[]).append(dict(item))
             entry["reasons"].append(item.get("reason") or "UNKNOWN")
             for key in ("conditions","invalidation_conditions","risks","evidence_ids"):
                 entry[key].extend(item.get(key) or [])
     for symbol,entry in stocks.items():
-        rec=entry["lane_decisions"]
+        rec=[dict(row, lane=ln) for ln,rows in entry["lane_decisions"].items() for row in rows]
         research=[x for x in rec if x["lane"] in RESEARCH_LANES]
         statuses={x["decision"] for x in rec}
-        eligible=entry["eligibility_status"]
+        eligible=entry["membership_status"]
         if eligible in ("CONFLICT","VERIFIED_INELIGIBLE"):
             decision="UNASSESSED" if eligible=="CONFLICT" else "NOT_SELECTED"
         elif "SELECTED" in statuses:
