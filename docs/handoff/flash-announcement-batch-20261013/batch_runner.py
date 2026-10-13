@@ -119,7 +119,12 @@ Web tools are available only for a specifically named external fact that is abse
 
 Return only the unchanged 13-field Reader object and its existing enum values. Keep every article ID and source/body hash exact. Every quote field must be a short, exact, continuous substring of that article's supplied body, including every internal space and line break; never normalize, remove, or rearrange whitespace. Put interpretation in claim/reason, not in the quote. Do not fabricate facts or citations. Do not add fields, impose an arbitrary word/token limit, or drop a valid article when its disposition is uncertain; use the existing NOT_ASSESSED/UNKNOWN contract instead."""
 
-PROMPT_PROFILES = ("legacy", "grounded")
+DECISION_FIRST_ADDENDUM = """DECISION-FIRST READER PROCESS (opt-in; the existing 13 fields, enums, and validator remain unchanged):
+Before filling the fields, decide whether the announcement itself establishes a qualifying operating or performance change. A SELECTED_EVENT or SELECTED_PERFORMANCE disposition requires a directly supported positive operating/performance fact, its matching existing selection_basis, direction=POSITIVE, and evidence_sufficiency=VERIFIED_EXISTING_FACTS together. These conditions are conjunctive. Importance, suspension/resumption, or another status notice alone is not an operating catalyst.
+Keep CONDITIONAL_WATCH under its current contract semantics when the source states a concrete unresolved condition; preserve that condition in the existing fields. Do not use it as a generic uncertainty bucket or force every uncertain case to NOT_SELECTED.
+Each decision-relevant claim must be directly supported by its paired exact body quote. Incomplete disclosure means “not disclosed,” not that the underlying fact does not exist. Do not promote future plans, preclinical findings, or completed enrollment into completed clinical evidence or outcomes. Carry each input pit_status value exactly into risk_notes; do not infer a usable point-in-time or tradable time."""
+
+PROMPT_PROFILES = ("legacy", "grounded", "decision_first")
 
 
 class BatchError(ValueError):
@@ -273,6 +278,8 @@ def build_system_prompt(contract: ActiveContract, prompt_profile: str = "legacy"
     )
     if prompt_profile == "grounded":
         prompt += "\n\n" + GROUNDED_PROCESS_ADDENDUM
+    elif prompt_profile == "decision_first":
+        prompt += "\n\n" + DECISION_FIRST_ADDENDUM
     return prompt
 
 
