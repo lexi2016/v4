@@ -1,0 +1,186 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "goal": "close<=0.60*60high AND volume>=1.5*mean5; preserve legacy saved 0.80 records",
+  "branch": "codex/manager-workbench-data-closure-20261013",
+  "remote_baseline_commit": "924e90dcc2110a66a71f829192919c1933a07872",
+  "writer": "/root/manager_writer_sol",
+  "reviewer": "/root/manager_reviewer_sol",
+  "model": "gpt-6.1-sol high",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "scope": [
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "before_sha256": "1efccaf9233cf371ab798e27644c620c1ed800e41e3b966759ce64976437e0de",
+      "canonical_sha256": "1efccaf9233cf371ab798e27644c620c1ed800e41e3b966759ce64976437e0de",
+      "active_api_sha256": "1efccaf9233cf371ab798e27644c620c1ed800e41e3b966759ce64976437e0de",
+      "active_scheduler_sha256": "1efccaf9233cf371ab798e27644c620c1ed800e41e3b966759ce64976437e0de",
+      "after_sha256": "f5eab211d8a294283faf286969d9f4914e791182ca81ce3ce7ae49b2f3ad4325",
+      "actual_diff": "--- before/v4/manager_workbench/engines/oversold.py\n+++ after/v4/manager_workbench/engines/oversold.py\n@@ -7,7 +7,9 @@\n def owner_digest(value):\n     return hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(\",\",\":\"),allow_nan=False).encode()).hexdigest()\n \n-PRICE_RATIO = Decimal(\"0.8\")\n+PRICE40_RULES_VERSION = \"POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2\"\n+PRICE_RATIO = Decimal(\"0.6\")\n+LEGACY_PRICE_RATIO = Decimal(\"0.8\")\n VOLUME_RATIO = Decimal(\"1.5\")\n \n \n@@ -123,10 +125,13 @@\n     except (ValueError, KeyError, TypeError) as exc:\n         reason = str(exc) if str(exc).isidentifier() else \"OVERSOLD_EVIDENCE_UNASSESSED\"\n         raise ValueError(reason) from exc\n-    price_pass = close <= PRICE_RATIO * max_high\n+    # Version the changed price gate; a legacy context retains its original rule.\n+    price_ratio = PRICE_RATIO if context.get(\"rules_version\") == PRICE40_RULES_VERSION else LEGACY_PRICE_RATIO\n+    price_pass = close <= price_ratio * max_high\n     ratio = volume / mean_volume\n     volume_pass = ratio >= VOLUME_RATIO\n-    measures.update(close=str(close), max_high_60=str(max_high), price_threshold=str(PRICE_RATIO * max_high),\n+    measures.update(close=str(close), max_high_60=str(max_high), price_threshold=str(price_ratio * max_high),\n+        price_ratio=str(price_ratio), oversold_rules_version=context.get(\"rules_version\"),\n         price_pass=price_pass, volume=str(volume), mean_volume_5=str(mean_volume),\n         volume_ratio=str(ratio), volume_pass=volume_pass)\n     return measures\n"
+    },
+    {
+      "path": "v4/manager_workbench/config.py",
+      "before_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4",
+      "canonical_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4",
+      "active_api_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4",
+      "active_scheduler_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4",
+      "after_sha256": "ba10944950c8c68b51ccc88f0f5369c1627af7e3f265903ad69cb747451993c1",
+      "actual_diff": "--- before/v4/manager_workbench/config.py\n+++ after/v4/manager_workbench/config.py\n@@ -28,7 +28,7 @@\n     legacy_root: Path | None = None\n     # Exact-date bindings are resolved by the operator, never accepted over HTTP.\n     source_bindings: dict[str, dict] = Field(default_factory=dict)\n-    rules_version: str = \"POSITIVE_OPERATING_RESEARCH_V1\"\n+    rules_version: str = \"POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2\"\n     model: str = \"gpt-6-luna\"\n     announcement_reasoning_effort: str = \"max\"\n     prompt_version: str = \"MWB_ANNOUNCEMENT_READER_REVIEWER_V3_20261013\"\n"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/display.ts",
+      "before_sha256": "5cd1fceb2cbf4425c939612c4cf8f71c2cf0a061fcd8a6941b5f3abbe826fc75",
+      "canonical_sha256": "5cd1fceb2cbf4425c939612c4cf8f71c2cf0a061fcd8a6941b5f3abbe826fc75",
+      "active_api_sha256": "5cd1fceb2cbf4425c939612c4cf8f71c2cf0a061fcd8a6941b5f3abbe826fc75",
+      "active_scheduler_sha256": null,
+      "after_sha256": "e8a96633462a7baf83ab778370228a0b22ed8eeab270128b51b5c2b47527a75e",
+      "actual_diff": "--- before/apps/web/src/manager-workbench/display.ts\n+++ after/apps/web/src/manager-workbench/display.ts\n@@ -86,7 +86,15 @@\n       return (typeof raw === 'string' && raw.trim() && Number.isFinite(Number(raw))) || (typeof raw === 'number' && Number.isFinite(raw)) ? String(raw) : '未知';\n     };\n     const state = (key: string) => metrics[key] === true ? '满足' : metrics[key] === false ? '未满足' : '待核';\n-    return `行情日 ${text(metrics.previous_session) || '未知'}：收盘 ${value('close')}，60日前高 ${value('max_high_60')}，80%门槛 ${value('price_threshold')}（${state('price_pass')}）；量比 ${value('volume_ratio')}，1.5倍门槛（${state('volume_pass')}）。两项须同时满足。`;\n+    // The label belongs to this saved record, never the currently active rule.\n+    const savedRatio = metrics.price_ratio;\n+    const high = Number(value('max_high_60')), threshold = Number(value('price_threshold'));\n+    const ratio = savedRatio !== undefined && savedRatio !== null ? Number(savedRatio)\n+      : high > 0 && Number.isFinite(threshold) ? threshold / high : NaN;\n+    const gate = Number.isFinite(ratio) && ratio > 0 && ratio <= 1\n+      ? `${Number((ratio * 100).toFixed(6))}%门槛（较60日前高至少低${Number(((1 - ratio) * 100).toFixed(6))}%）`\n+      : '价格门槛（比例未知）';\n+    return `行情日 ${text(metrics.previous_session) || '未知'}：收盘 ${value('close')}，60日前高 ${value('max_high_60')}，${gate} ${value('price_threshold')}（${state('price_pass')}）；量比 ${value('volume_ratio')}，1.5倍门槛（${state('volume_pass')}）。两项须同时满足。`;\n   }\n   const reason = text(record(row.semantic).reason) || text(row.reason);\n   const labels: Record<string, string> = {\n"
+    },
+    {
+      "path": "v4/manager_workbench/engines/common.py",
+      "before_sha256": "7095741d66ed6187668544b85882f77af0660eb9cc170fadbebd8eef6dd00587",
+      "canonical_sha256": "7095741d66ed6187668544b85882f77af0660eb9cc170fadbebd8eef6dd00587",
+      "active_api_sha256": "7095741d66ed6187668544b85882f77af0660eb9cc170fadbebd8eef6dd00587",
+      "active_scheduler_sha256": "7095741d66ed6187668544b85882f77af0660eb9cc170fadbebd8eef6dd00587",
+      "after_sha256": "b54792c8ecde5418d4ee2de86a0ac33e9125cd20709574147b7ce9db58152793",
+      "actual_diff": "--- before/v4/manager_workbench/engines/common.py\n+++ after/v4/manager_workbench/engines/common.py\n@@ -74,7 +74,7 @@\n     timestamp(context.get(\"cutoff\"))\n     if not isinstance(context.get(\"source_sessions\"), dict) or not isinstance(context.get(\"scope_refs\"), dict):\n         raise ValueError(\"MWB_SOURCE_CONTEXT_REQUIRED\")\n-    if context.get(\"rules_version\") != RULE:\n+    if context.get(\"rules_version\") not in (RULE, \"POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2\"):\n         raise ValueError(\"MWB_RULE_VERSION\")\n     return context\n \n"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_price40.py",
+      "after_sha256": "3232a3bbba7b25f0ff3e2efa36596ff71fc9ebf3cd9608fee9a1d6330eb88846"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/price40.spec.ts",
+      "after_sha256": "e8edca4bf0f760fc4605d1e1226b80df82f4ce1f03371a2b6bd5f2e1d59c1b70"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/display_repair.spec.ts",
+      "after_sha256": "68cd96ae96c7e99315e2ba7b34e4d107ab825b6844231f8f6d740358fb7eef8c"
+    }
+  ],
+  "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+  "tests": {
+    "backend": "13 passed; explicit old/new/unknown versions; .6 and 1.5 boundaries, AND, missing, D1 exclusion",
+    "frontend": "55 passed",
+    "typecheck": "exit0",
+    "build": "exit0"
+  },
+  "logs": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-backend-tests-r3.log",
+      "sha256": "2a90d6320f5e5f95c7802671d4db2609c26fc7e489c78e76f20f334d9b4ee1c6"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-vitest-r1.log",
+      "sha256": "78da88029bbfad0def88bbc6094c43198003f3fde0fe7296d720c8e0788548ea"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-typecheck-r1.log",
+      "sha256": "16b4018cae57fe1052ea85fd680aa74ae29b25bcd0cded804c7a52cb0c66ec91"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-build-r1.log",
+      "sha256": "dde724879585dec9fe04b6086359cfd3208f5d4cabdbce7ffb742c928bcb7e8a"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-real-r1.log",
+      "sha256": "ae393d0fe57115cdd96398fc387415abbdcdaf65e616f0243ae82c4753f4c00d"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-real-readback-r2.log",
+      "sha256": "ff316241df72d7e45b3692d20011177d26d6c55375ce1bd31f174c04f269ccd7"
+    }
+  ],
+  "real_readback": {
+    "status": "SAVED_ISOLATED_API_VERIFIED",
+    "run_id": "3b00526641ee472791d3f273e98ee8bd",
+    "job_id": "3b00526641ee472791d3f273e98ee8bd",
+    "job_state": "PARTIAL",
+    "config_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-real-r1/config.json",
+    "target_date": "20261013",
+    "phase": "RETROSPECTIVE",
+    "actual_cutoff": "2026-10-13T20:04:38.858223+08:00",
+    "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+    "product_sha256": "4ef13c8b94f8fd88c067a038696025a6314cd2000c8db19a27730efabc683426",
+    "input_sha256": "b596b8bd9d327b01603be28cef842007c1e36fbbeae95a6d0577fb66b6cb1d69",
+    "scope": 692,
+    "assessed": 662,
+    "unknown": 30,
+    "old_counts": {
+      "NOT_SELECTED": 221,
+      "CONDITIONAL_WATCH": 326,
+      "SELECTED": 115,
+      "UNASSESSED": 30
+    },
+    "new_counts": {
+      "NOT_SELECTED": 365,
+      "CONDITIONAL_WATCH": 277,
+      "UNASSESSED": 30,
+      "SELECTED": 20
+    },
+    "selected_symbols": [
+      "HK.00371",
+      "HK.01333",
+      "HK.01384",
+      "HK.02553",
+      "HK.02565",
+      "HK.02583",
+      "HK.02589",
+      "HK.02591",
+      "HK.02656",
+      "HK.02665",
+      "HK.02685",
+      "HK.02697",
+      "HK.02706",
+      "HK.02729",
+      "HK.02865",
+      "HK.03858",
+      "HK.06106",
+      "HK.06110",
+      "HK.06651",
+      "HK.06681"
+    ],
+    "original_run_id": "84eafbbb71ba4767a591d1a4286fe061",
+    "old_snapshot_raw_sha256": "ea5f7217ecd37824b467ff38a82ea88686d82827e3b3e18935e426aab53e10cf",
+    "old_product_sha256": "f8e3fff21847118b010895fe288aa97e17e587ef937ed90c0ebac9c2df4dacbb",
+    "frozen_input_snapshot_sha256": "7f710910e697d7e11b8bf03a6690524d93b6ffa0dfbeed11b29ad27921a2f8c3",
+    "records_sha256": {
+      "US_MAPPING": "9e0be7880b39f40b96201eeb5912977b89edb82395d95a766cf116a2f8116220",
+      "OVERSOLD": "d54f33a9d6b4ce49938d4b791970f6136c8425afd28dc54a91c8d7d7d632e335"
+    },
+    "us_saved_rows_unchanged": true,
+    "network_calls": 0,
+    "model_calls": 0,
+    "quota_calls": 0,
+    "formal_state_writes": 0
+  },
+  "canary": {
+    "symbol": "HK.09927",
+    "decision": "CONDITIONAL_WATCH",
+    "metrics": {
+      "close": "38.92",
+      "max_high_60": "48.98",
+      "mean_volume_5": "1657863.8",
+      "oversold_rules_version": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+      "previous_session": "20261012",
+      "price_pass": false,
+      "price_ratio": "0.6",
+      "price_threshold": "29.388",
+      "source_price_unit": null,
+      "source_volume_unit": null,
+      "volume": "10826100.0",
+      "volume_pass": true,
+      "volume_ratio": "6.530150426108586242126765781"
+    }
+  },
+  "failures_preserved": [
+    "initial pytest cleanup encountered unrelated historical temp permission; r2/r3 use own basetemp",
+    "first replay saved successfully then generic load_input rejected oversized saved raw; helper readback-only verified exact input digest and saved API without another task"
+  ],
+  "helper": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-rerun-r1.py",
+    "sha256": "f2b579b11d5117b2a563b3bca3b5bc530f6fb6b9faf69ecb21e64e0034a36551"
+  },
+  "formal_writes": 0,
+  "deployment": "NOT_RUN",
+  "browser": "NOT_RUN"
+}

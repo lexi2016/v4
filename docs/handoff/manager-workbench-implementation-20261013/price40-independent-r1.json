@@ -1,0 +1,90 @@
+{
+  "BEHAVIOR_VERIFIED": "New60%pricegate AND saved1.5volume; old80%explicit version retained; same frozen real records+references and saved API old/new verified",
+  "OV_counts": {
+    "CONDITIONAL_WATCH": 277,
+    "NOT_SELECTED": 365,
+    "SELECTED": 20,
+    "UNASSESSED": 30
+  },
+  "OV_coverage": [
+    692,
+    662,
+    30
+  ],
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "REVIEWED": "PASS",
+  "TESTED": {
+    "direct_real_saved_validation": "same recordsSHA/evidence refs; all662 current saved results match old measures with soleprice0.6 switch; immutableold/new snapshots; actualSavedStore inprocessAPI20selected and old/newSeres;unknown30/USunchanged",
+    "pytest": "test_price40.py + test_oversold_inputs.py:13passed0.05s exit0 privatebasetemp",
+    "typecheck": "exit0",
+    "vitest": "price40.spec.ts + display_repair.spec.ts:3passed2files exit0"
+  },
+  "US_saved_rows_unchanged": true,
+  "actual_diff_matches_fixed_V12": true,
+  "browser_UI": "NOT_RUN; component and API checks only",
+  "deployment": "NOT_RUN;V13packaging separate",
+  "first_readback_failure_preserved": "Stored task succeeded;87MB rawinput read exceeded existingOwnedIO64MB. Readback-only inspected exactsavedraw/digest;no change toOwnedIOor second businessrun",
+  "formal_writes": 0,
+  "implementation_receipt_sha256": "4b329e94b6f99f7e35262e4992174bfcb63c3bca98225faa028f141c16c8c0cb",
+  "legacy_rule": "POSITIVE_OPERATING_RESEARCH_V1 retains0.8; old84eaf saved39.184/80% display unchanged",
+  "model": "gpt-6.1-sol/high",
+  "model_calls": 0,
+  "natural": "NATURAL_SLOT_UNVERIFIED",
+  "network_capture_calls": 0,
+  "new_business_runs": 0,
+  "new_product_sha256": "4ef13c8b94f8fd88c067a038696025a6314cd2000c8db19a27730efabc683426",
+  "new_rule": "close<=0.6*max_high60 AND volume/mean_volume5>=1.5; excludeD1 frombothhistoricalwindows",
+  "new_run_id": "3b00526641ee472791d3f273e98ee8bd",
+  "ports_opened": 0,
+  "quota_calls": 0,
+  "reviewer": "/root/manager_reviewer_sol",
+  "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+  "same_input_records": true,
+  "same_one_attempt": true,
+  "saved_proof": {
+    "path": "/private/tmp/mwb-price40-independent-ksKIz1/saved-proof.json",
+    "sha256": "2f4e51ab800f8ae1b4fb2d248ff388aba5c086ff5f85cde97624b5b32dfd2429"
+  },
+  "seres_new": "CONDITIONAL_WATCH;38.92>29.388,volume_ratio6.53015>=1.5",
+  "seres_old": "SELECTED;38.92<=39.184,original80%shown",
+  "source_scope": [
+    {
+      "after_sha256": "f5eab211d8a294283faf286969d9f4914e791182ca81ce3ce7ae49b2f3ad4325",
+      "before_sha256": "1efccaf9233cf371ab798e27644c620c1ed800e41e3b966759ce64976437e0de",
+      "path": "v4/manager_workbench/engines/oversold.py"
+    },
+    {
+      "after_sha256": "ba10944950c8c68b51ccc88f0f5369c1627af7e3f265903ad69cb747451993c1",
+      "before_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4",
+      "path": "v4/manager_workbench/config.py"
+    },
+    {
+      "after_sha256": "e8a96633462a7baf83ab778370228a0b22ed8eeab270128b51b5c2b47527a75e",
+      "before_sha256": "5cd1fceb2cbf4425c939612c4cf8f71c2cf0a061fcd8a6941b5f3abbe826fc75",
+      "path": "apps/web/src/manager-workbench/display.ts"
+    },
+    {
+      "after_sha256": "b54792c8ecde5418d4ee2de86a0ac33e9125cd20709574147b7ce9db58152793",
+      "before_sha256": "7095741d66ed6187668544b85882f77af0660eb9cc170fadbebd8eef6dd00587",
+      "path": "v4/manager_workbench/engines/common.py"
+    },
+    {
+      "after_sha256": "3232a3bbba7b25f0ff3e2efa36596ff71fc9ebf3cd9608fee9a1d6330eb88846",
+      "before_sha256": null,
+      "path": "tests/manager_workbench/engines/test_price40.py"
+    },
+    {
+      "after_sha256": "e8edca4bf0f760fc4605d1e1226b80df82f4ce1f03371a2b6bd5f2e1d59c1b70",
+      "before_sha256": null,
+      "path": "apps/web/src/manager-workbench/__tests__/price40.spec.ts"
+    },
+    {
+      "after_sha256": "68cd96ae96c7e99315e2ba7b34e4d107ab825b6844231f8f6d740358fb7eef8c",
+      "before_sha256": null,
+      "path": "apps/web/src/manager-workbench/__tests__/display_repair.spec.ts"
+    }
+  ],
+  "verdict": "PASS"
+}

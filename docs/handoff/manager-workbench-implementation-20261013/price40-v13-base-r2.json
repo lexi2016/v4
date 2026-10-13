@@ -1,0 +1,967 @@
+{
+  "status": "EXACT_ACTIVE_BASE_READONLY_WITH_FIXED_THREE_DIRECTORY_MANIFEST_COMPATIBILITY",
+  "base": {
+    "api": {
+      "release_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/manager-workbench-20261013-v12-api",
+      "app_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/manager-workbench-20261013-v12-api/app",
+      "release_id": "manager-workbench-20261013-v12-api",
+      "release_manifest_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/display-repair-v12-r1/manager-workbench-20261013-v12-api/release-manifest.json",
+      "release_manifest_sha256": "51b20b379884dba463a505b69951627e10833b7e974277444c1341b1108af589",
+      "application_inventory_sha256": "43dba38fab4ccbd30d445dde9e8b28ced0354771d20dec94e669290379dac71f",
+      "application_inventory_entry_count": 1181
+    },
+    "api_plist_sha256": "6e446d964f2f82f493ed88c108cc48ee593acb31047a2597e370c4269b21d430",
+    "scheduler": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-next-pool-20261014-r2/app",
+      "plist_sha256": "e587f455e1bcf55ec094125c11bd787d032db5c2689396f009b81d366191b4f2",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-next-pool-20261014-r2/release-manifest.json",
+      "manifest_sha256": "0d5d84c79a17c1f56b2a028f4cc6485abc8758dd52128f3852867df631ebd718",
+      "inventory_sha256": "413eb7cee1ad1d77f7318574997a67fe425194b8b9d2d921742ad2895d1102f8"
+    }
+  },
+  "formal_config_sha256": "0d592397737fea2cdb9bc61a12777a68b099eaf5613e1922f34cc197e19a73a9",
+  "scheduler_manifest_compatibility": {
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-next-pool-20261014-r2/app",
+    "plist_sha256": "e587f455e1bcf55ec094125c11bd787d032db5c2689396f009b81d366191b4f2",
+    "manifest_sha256": "0d5d84c79a17c1f56b2a028f4cc6485abc8758dd52128f3852867df631ebd718",
+    "prefixes": [
+      "upstreams/review_core",
+      "upstreams/v3.5",
+      "v3_shared_data"
+    ],
+    "declared_entries": [
+      {
+        "path": "upstreams/review_core",
+        "kind": "symlink",
+        "target": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260818T140000Z-v35-stage-input-owner/app/upstreams/review_core",
+        "target_exists": true
+      },
+      {
+        "path": "upstreams/v3.5",
+        "kind": "symlink",
+        "target": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260818T140000Z-v35-stage-input-owner/app/upstreams/v3.5",
+        "target_exists": true
+      },
+      {
+        "path": "v3_shared_data",
+        "kind": "symlink",
+        "target": "upstreams/v3_shared_data",
+        "target_exists": true
+      }
+    ],
+    "actual_entries": [
+      {
+        "path": "upstreams/review_core/.DS_Store",
+        "kind": "file",
+        "sha256": "de3be1dd5f9e047bcbc508cd0570567669de847b5cc82b69cc85c1b03bb2c099",
+        "mode": "0644",
+        "size": 6148
+      },
+      {
+        "path": "upstreams/review_core/__init__.py",
+        "kind": "file",
+        "sha256": "8261659887ffa4cae3cc53dfa6e4e072659aa2e36abe2cc14cadefad0b8231f6",
+        "mode": "0644",
+        "size": 984
+      },
+      {
+        "path": "upstreams/review_core/__main__.py",
+        "kind": "file",
+        "sha256": "3d2438ae92f4746e9ffaa1f837b1fe803f6281091d1f31f8c95643716f257d9a",
+        "mode": "0644",
+        "size": 80
+      },
+      {
+        "path": "upstreams/review_core/cli.py",
+        "kind": "file",
+        "sha256": "ff256905db41d4d909fb104e7bb7acb2dfcf59c825099fb58301261336e66358",
+        "mode": "0644",
+        "size": 7371
+      },
+      {
+        "path": "upstreams/review_core/config.py",
+        "kind": "file",
+        "sha256": "da9a7acd3381e9c87b7f5442eeb381b78fba352d4cd073ae373c50e4cc12751e",
+        "mode": "0644",
+        "size": 3145
+      },
+      {
+        "path": "upstreams/review_core/consumer.py",
+        "kind": "file",
+        "sha256": "7e3b278bc05c2fa1b6f2e227d8e292676cfce5817aee565de71f1a405dfd4e6a",
+        "mode": "0644",
+        "size": 18071
+      },
+      {
+        "path": "upstreams/review_core/core.py",
+        "kind": "file",
+        "sha256": "edc10ea4bc837b6f307d897a6bbfde5d555fc289b537cf7f8831edf56428854b",
+        "mode": "0644",
+        "size": 59792
+      },
+      {
+        "path": "upstreams/review_core/daily_replay_producer.py",
+        "kind": "file",
+        "sha256": "059659454ab0a0ad0f2efcbc508e502c63aa13b56ce9bebdc7042a09719a20a2",
+        "mode": "0644",
+        "size": 32877
+      },
+      {
+        "path": "upstreams/review_core/fupan_page_producer.py",
+        "kind": "file",
+        "sha256": "f5eb08007e236c7b23b8ce40e1d00a52240a60536619f7bc5eb9e39fc83b642a",
+        "mode": "0644",
+        "size": 35389
+      },
+      {
+        "path": "upstreams/review_core/fupan_pool.py",
+        "kind": "file",
+        "sha256": "6a3a01e46fa832e8d10d84bbfdd5ac0a873e0eed14fddf50380dcd4da59cf7c3",
+        "mode": "0644",
+        "size": 12200
+      },
+      {
+        "path": "upstreams/review_core/fupan_sources.py",
+        "kind": "file",
+        "sha256": "1d6744f13e5c254ce397b82d001000b030bd77191242ca1545126eced80ee091",
+        "mode": "0644",
+        "size": 22904
+      },
+      {
+        "path": "upstreams/review_core/hk_consumer.py",
+        "kind": "file",
+        "sha256": "c93d5cc9a5ad622257483d3ac439bed0ed04281034467529895dd723a4f38f44",
+        "mode": "0644",
+        "size": 6154
+      },
+      {
+        "path": "upstreams/review_core/hk_review.py",
+        "kind": "file",
+        "sha256": "2da147824393add8ba55244d96da7ec4ef2b811e354f5f4bdacf400e6c2f3294",
+        "mode": "0644",
+        "size": 12382
+      },
+      {
+        "path": "upstreams/review_core/hk_sources.py",
+        "kind": "file",
+        "sha256": "73500aa92a9751acbee96934fc6f426d6cf66e00eec17e5ac0156ad1a15f427c",
+        "mode": "0644",
+        "size": 14112
+      },
+      {
+        "path": "upstreams/review_core/macos_daily.py",
+        "kind": "file",
+        "sha256": "340ecf89dd5b4ffb272404bf721227b9137f9b7a5631c1b3b8f57dbdf9ad4ca6",
+        "mode": "0644",
+        "size": 14718
+      },
+      {
+        "path": "upstreams/review_core/ops/ReviewCore_Pools_2115.xml",
+        "kind": "file",
+        "sha256": "5c7e3936eeaaca8b840e31b48d23eabb0f74a5132c74edc115efb84264245ce7",
+        "mode": "0644",
+        "size": 1852
+      },
+      {
+        "path": "upstreams/review_core/ops/ReviewCore_Video_Daily.xml",
+        "kind": "file",
+        "sha256": "76c5e1e5ab693fdef7d3f81a478b6ab84b050b4f53cb8ae5b62581c447791e19",
+        "mode": "0644",
+        "size": 1958
+      },
+      {
+        "path": "upstreams/review_core/ops/register_review_core_pools_2115.ps1",
+        "kind": "file",
+        "sha256": "1eb156604940494d95d7df43664c4f8f0ed6f0c616f4b199876f048e825a1c65",
+        "mode": "0644",
+        "size": 3113
+      },
+      {
+        "path": "upstreams/review_core/ops/register_review_core_video_daily.ps1",
+        "kind": "file",
+        "sha256": "446f5f73bfe36dc210b92fd1fa9fd7963079303d04e1ccb7e738d4a91f9e3641",
+        "mode": "0644",
+        "size": 4659
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2025_Nightly.xml",
+        "kind": "file",
+        "sha256": "9263d0b15e37d3893b67e41e028bbc8b6a37e3a1d9cd3c562e9383a96432b549",
+        "mode": "0644",
+        "size": 3656
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2025_Nightly.xml.sha256",
+        "kind": "file",
+        "sha256": "87d4112ab4078fb1f87f646a7dda4cf4352a03d57dc160800b7aa917ddee1df7",
+        "mode": "0644",
+        "size": 106
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2030_VideoCheck.xml",
+        "kind": "file",
+        "sha256": "17caa722044b77e0330ded5db4bae5d578efb31d6cf4fb20aa91362ae57e0662",
+        "mode": "0644",
+        "size": 3876
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2030_VideoCheck.xml.sha256",
+        "kind": "file",
+        "sha256": "919bd4c90c24cefa077da04fcfad8ed3dad699791ae6a9df66e7e28c9e9467ce",
+        "mode": "0644",
+        "size": 109
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2040_DownloadASR.xml",
+        "kind": "file",
+        "sha256": "efba718fb262217497995a1d2ac78b84505165789a88e803e3efdd94b2b32183",
+        "mode": "0644",
+        "size": 3892
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2040_DownloadASR.xml.sha256",
+        "kind": "file",
+        "sha256": "e2e832d0b6fc30c6f3def7e502122b93a1464a9c0a9fc7b954a0012f76f4279a",
+        "mode": "0644",
+        "size": 110
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2050_Stockdict.xml",
+        "kind": "file",
+        "sha256": "a09f9d150a0b5ab80223275754ac8f99e27e941e9d903d9c424f81ba22ef1068",
+        "mode": "0644",
+        "size": 3870
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2050_Stockdict.xml.sha256",
+        "kind": "file",
+        "sha256": "8d8931eff69ba3d4b45b561dce7649474720b0eae8561909852442bed036537a",
+        "mode": "0644",
+        "size": 108
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2105_OCRAlign.xml",
+        "kind": "file",
+        "sha256": "915a22bae1c06f9446cbbefe079ddeb331fe8177d86f04fafe88d4fee241864e",
+        "mode": "0644",
+        "size": 3892
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2105_OCRAlign.xml.sha256",
+        "kind": "file",
+        "sha256": "a58ec32e5fdcbe7fe15b49d0c504b5f5b1cd35bd19aa5e1a8bcd88dbbcb5c005",
+        "mode": "0644",
+        "size": 107
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2108_VideoGap.xml",
+        "kind": "file",
+        "sha256": "694889d73ac647a0e58b4257bd12a9a69e65fa38f82c6ecdc59f9c8fa3e65b18",
+        "mode": "0644",
+        "size": 3866
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/V3.5__V35_CloseReview_2108_VideoGap.xml.sha256",
+        "kind": "file",
+        "sha256": "83e30eab001a682eee3fb464c2f0eeca4648cff769a2c3fe152df97fd349ae25",
+        "mode": "0644",
+        "size": 107
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/legacy_tasks_state_receipt.json",
+        "kind": "file",
+        "sha256": "3e0e32f3bd4452f9a7706c622014f3eff6b8f180a90d9ba24d050f587c421f1e",
+        "mode": "0644",
+        "size": 6894
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2025_BilibiliFupan.xml",
+        "kind": "file",
+        "sha256": "5bdd308845fc4e7c3555b6824cde9f2468c21ae40899b197e954e12bf86bcc2f",
+        "mode": "0644",
+        "size": 2952
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2025_BilibiliFupan.xml.sha256",
+        "kind": "file",
+        "sha256": "ad747c86655b88ec89affa9992e03272804db242c35a654d9c99ec5ca75e5355",
+        "mode": "0644",
+        "size": 113
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2030_FupanVideoCheck.xml",
+        "kind": "file",
+        "sha256": "0d9346fff35ffe575a371b4a526b4bc8e9e1aa7591bf40ced3c5eef0d205aed0",
+        "mode": "0644",
+        "size": 2954
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2030_FupanVideoCheck.xml.sha256",
+        "kind": "file",
+        "sha256": "9ef3dffd463b5564527a501ede77e7bba9bb38c74a138689580c8a1e6d00511f",
+        "mode": "0644",
+        "size": 115
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2040_FupanVideoASR.xml",
+        "kind": "file",
+        "sha256": "1390ccc9a638822afd743f5ece198fd639b2726714396930f6373fc95702e7cb",
+        "mode": "0644",
+        "size": 2942
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2040_FupanVideoASR.xml.sha256",
+        "kind": "file",
+        "sha256": "bb5b5856efe6c8be82f534de174239e10e6fe02960c6e3d444201bed35df7c1e",
+        "mode": "0644",
+        "size": 113
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2050_FupanStockdict.xml",
+        "kind": "file",
+        "sha256": "ab77259253201724e38ac4bd96427097c9f176335ed9e7b02c377f8dc68e9845",
+        "mode": "0644",
+        "size": 2960
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2050_FupanStockdict.xml.sha256",
+        "kind": "file",
+        "sha256": "90ac73d796d7aad6d963126717fddcab3c182c2f21c3190eb4c95b490ae2c6eb",
+        "mode": "0644",
+        "size": 114
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2105_FupanVideoOcrAlign.xml",
+        "kind": "file",
+        "sha256": "e9bd32b83b4161ff8feee007fd2b0d5918d626ebb1daacc0cf3ddab1fadcf48d",
+        "mode": "0644",
+        "size": 3038
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2105_FupanVideoOcrAlign.xml.sha256",
+        "kind": "file",
+        "sha256": "0456877c5f0f66a5072fe664732f9051e65fb4bdf2cc7a3831a83a9700ec1a5a",
+        "mode": "0644",
+        "size": 118
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2108_FupanGapAndGuard.xml",
+        "kind": "file",
+        "sha256": "209e500648259a1f6cc914153b61efa7ca22896e40088db5c1020f83a46e3eb6",
+        "mode": "0644",
+        "size": 2972
+      },
+      {
+        "path": "upstreams/review_core/ops/task_backups/20260812/root__OpeningAdvisorV3_2108_FupanGapAndGuard.xml.sha256",
+        "kind": "file",
+        "sha256": "62c8162b5da0eb74fc4cfe93fc5497d60fb4ef6ff1cbed22bc16e6756818af12",
+        "mode": "0644",
+        "size": 116
+      },
+      {
+        "path": "upstreams/review_core/pool_pipeline.py",
+        "kind": "file",
+        "sha256": "a36efa1ca99222740bab34934013ffa7e8a43ceddf0dda3c6602c9fdfdea0c77",
+        "mode": "0644",
+        "size": 21453
+      },
+      {
+        "path": "upstreams/review_core/pool_store.py",
+        "kind": "file",
+        "sha256": "d449e051effbbd61eaf2f78a3344e5d71474564962a2072f1320681cff4ae21d",
+        "mode": "0644",
+        "size": 14382
+      },
+      {
+        "path": "upstreams/review_core/producer.py",
+        "kind": "file",
+        "sha256": "b98b7905302bdad5f3e601b09f566672bfbf1508794085bac10ef6668e7c92c7",
+        "mode": "0644",
+        "size": 87088
+      },
+      {
+        "path": "upstreams/review_core/producer_inputs.py",
+        "kind": "file",
+        "sha256": "9db808bdff74cb0c3020bb541e2b31b1502d671ee651329de56e322df28f8f22",
+        "mode": "0644",
+        "size": 19150
+      },
+      {
+        "path": "upstreams/review_core/review.py",
+        "kind": "file",
+        "sha256": "08d6c5e24e7c673be4c9dfa3a5882c4f1f5b0e03c6184c5d64b8d2a4ece37a38",
+        "mode": "0644",
+        "size": 58050
+      },
+      {
+        "path": "upstreams/review_core/review_pipeline.py",
+        "kind": "file",
+        "sha256": "bdf0d98fc92ee8c39e184c4ce7178b1e730f03d8465eb702266c0ac8188eab88",
+        "mode": "0644",
+        "size": 37397
+      },
+      {
+        "path": "upstreams/review_core/scheduler.py",
+        "kind": "file",
+        "sha256": "8e848508559d83fe35f997ef465f84ed7113dcff92d0b16e7889fda55adebbb7",
+        "mode": "0644",
+        "size": 16049
+      },
+      {
+        "path": "upstreams/review_core/scheduler_entry.py",
+        "kind": "file",
+        "sha256": "ec78e2138d88e371f36aa915ea1799c3e63f7bd6ce85d939bae55517f2dafc59",
+        "mode": "0644",
+        "size": 247
+      },
+      {
+        "path": "upstreams/review_core/stage7_pool.py",
+        "kind": "file",
+        "sha256": "1a07eb58863e92ae09d99d0500d373740dad4df4806db1976be762dc1e442aeb",
+        "mode": "0644",
+        "size": 14485
+      },
+      {
+        "path": "upstreams/review_core/stage7_sources.py",
+        "kind": "file",
+        "sha256": "aa76fa64815048cfcdcde645e62938a85d0ca3bdba4485f3a61a540cca4d56b5",
+        "mode": "0644",
+        "size": 13255
+      },
+      {
+        "path": "v3_shared_data/scripts/acquire_a_share_security_master.py",
+        "kind": "file",
+        "sha256": "a3e2d34b40c634d074e55882e5ce755bc47a2596dfa9e09593d9181f5e8d23d9",
+        "mode": "0644",
+        "size": 1283
+      },
+      {
+        "path": "v3_shared_data/scripts/acquire_hk_security_master.py",
+        "kind": "file",
+        "sha256": "9d65e7016df3529f10c34a9532da3b2ac9236c4446a3bf7adea1531281e6c6ad",
+        "mode": "0644",
+        "size": 8873
+      },
+      {
+        "path": "v3_shared_data/scripts/acquire_stage_bundle.py",
+        "kind": "file",
+        "sha256": "3eb9a201241ef77b2aeda43371c308f9d41a25f0896b811b2342cc8f4e173b38",
+        "mode": "0644",
+        "size": 23044
+      },
+      {
+        "path": "v3_shared_data/scripts/acquire_stage_raw.py",
+        "kind": "file",
+        "sha256": "2661cbf0c42e7692e62cc8fef5ca548e3e8084f547d711b4882ac1bb54f55fd4",
+        "mode": "0644",
+        "size": 9076
+      },
+      {
+        "path": "v3_shared_data/scripts/canary_registry.py",
+        "kind": "file",
+        "sha256": "cd707d72b241f86427ae4917d26572653b0e2b3fbeb34bb824cc8b4351530455",
+        "mode": "0644",
+        "size": 1821
+      },
+      {
+        "path": "v3_shared_data/scripts/capture_public_fupan.py",
+        "kind": "file",
+        "sha256": "98c7d1c9dc9a7ac86a94875edc89cca2372b7940e48fc9b95d07428b92e61c54",
+        "mode": "0644",
+        "size": 1192
+      },
+      {
+        "path": "v3_shared_data/scripts/compose_hk_0_2_seed.py",
+        "kind": "file",
+        "sha256": "8f187230d7b983b5f71068bce11bc7c77ee7b20d5f2924e540ab737a62de2c68",
+        "mode": "0644",
+        "size": 1041
+      },
+      {
+        "path": "v3_shared_data/scripts/compute_canary_oracle.py",
+        "kind": "file",
+        "sha256": "ed5be7822c510fea14344c9e881508336d7deb060da50063baaecae3d911a044",
+        "mode": "0644",
+        "size": 1513
+      },
+      {
+        "path": "v3_shared_data/scripts/forbidden_scan.py",
+        "kind": "file",
+        "sha256": "029ee9eef3b414142c576f85c1c44e0b03a51767cb35c3ee430daf69aff321dd",
+        "mode": "0644",
+        "size": 4962
+      },
+      {
+        "path": "v3_shared_data/scripts/import_frozen_hk_auction_0920.py",
+        "kind": "file",
+        "sha256": "2615b9a2c49c393efe91d7880ed741a1691f1a4cfe9d83db168e33512074c1f2",
+        "mode": "0644",
+        "size": 4212
+      },
+      {
+        "path": "v3_shared_data/scripts/import_hk_0_2_assets.py",
+        "kind": "file",
+        "sha256": "58ee72357d32224d730c2c17c551a9d73e1941266cef53658a2d2b9ad7058067",
+        "mode": "0644",
+        "size": 1581
+      },
+      {
+        "path": "v3_shared_data/scripts/import_morning_news_manifest.py",
+        "kind": "file",
+        "sha256": "0cadd75c02403de28bfb2f930e5865cc6d6c4fdc376fffafadecf7ab41906d49",
+        "mode": "0644",
+        "size": 1583
+      },
+      {
+        "path": "v3_shared_data/scripts/import_v3_hk_v11_reference.py",
+        "kind": "file",
+        "sha256": "f2cfbcbad8a33eaf8cad8c9a6b3ecb57d006c763bac37e9bbb1dd7f6af959e16",
+        "mode": "0644",
+        "size": 1237
+      },
+      {
+        "path": "v3_shared_data/scripts/live_acquisition/__init__.py",
+        "kind": "file",
+        "sha256": "551b27c10339c29c256d24f87890ebb4371158d5ceca4dffe1fc507c58624977",
+        "mode": "0644",
+        "size": 250
+      },
+      {
+        "path": "v3_shared_data/scripts/live_acquisition/contracts.py",
+        "kind": "file",
+        "sha256": "776569b71a9db060186362fe04cce3e8b0f707d8b4a77f80288f8031a2f14fcc",
+        "mode": "0644",
+        "size": 3252
+      },
+      {
+        "path": "v3_shared_data/scripts/live_acquisition/futu_bridge.py",
+        "kind": "file",
+        "sha256": "bbb7fab8879ae3ea8acee2199da7afa69e276df9b1053856f90d64bdd83d1795",
+        "mode": "0644",
+        "size": 12777
+      },
+      {
+        "path": "v3_shared_data/scripts/live_acquisition/futu_minute.py",
+        "kind": "file",
+        "sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+        "mode": "0644",
+        "size": 4507
+      },
+      {
+        "path": "v3_shared_data/scripts/live_acquisition/orchestrator.py",
+        "kind": "file",
+        "sha256": "258fc46a0ed6c17aaafb3b1715e43ff643eb31b1f123e674360761f58dd19044",
+        "mode": "0644",
+        "size": 8852
+      },
+      {
+        "path": "v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+        "kind": "file",
+        "sha256": "19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd",
+        "mode": "0644",
+        "size": 8534
+      },
+      {
+        "path": "v3_shared_data/scripts/live_acquisition/pytdx_exhq_probe.py",
+        "kind": "file",
+        "sha256": "9ce612fb06f022601841828bb25d11d1850cd4e3ab09de775babd56f7b8d0399",
+        "mode": "0644",
+        "size": 5981
+      },
+      {
+        "path": "v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+        "kind": "file",
+        "sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+        "mode": "0644",
+        "size": 19952
+      },
+      {
+        "path": "v3_shared_data/scripts/live_acquisition/universe.py",
+        "kind": "file",
+        "sha256": "b586f0bd93c6d3457a174c3851e2ea7860f223ee95cd4127b0c7728b11a3040b",
+        "mode": "0644",
+        "size": 42582
+      },
+      {
+        "path": "v3_shared_data/scripts/materialize_hk_0_2.py",
+        "kind": "file",
+        "sha256": "da2b7ded436badd1406700ba0674324382cc3fa6d5a802178e1ef31fe5e2cdf6",
+        "mode": "0644",
+        "size": 1512
+      },
+      {
+        "path": "v3_shared_data/scripts/materialize_stage_universes.py",
+        "kind": "file",
+        "sha256": "58164f79a7eae44fe0879e26d8d67705679d76c81e754ef54adcb5f03eb0c709",
+        "mode": "0644",
+        "size": 18095
+      },
+      {
+        "path": "v3_shared_data/scripts/materialize_v192_selector.py",
+        "kind": "file",
+        "sha256": "315fe0fc3c142bdd7ab4c2674f5d9d575d3dac964b36395d0ac5b5fca790104c",
+        "mode": "0644",
+        "size": 2559
+      },
+      {
+        "path": "v3_shared_data/scripts/quarantine_hk_0_2_run.py",
+        "kind": "file",
+        "sha256": "7b07baa4ca112b89c02c727996f0e0fd5f66931e7011dc400b8fa23949b9bd76",
+        "mode": "0644",
+        "size": 1081
+      },
+      {
+        "path": "v3_shared_data/scripts/run_acceptance.py",
+        "kind": "file",
+        "sha256": "2cf4b4a07ad792b1ccf32d08da9d7e8118d42e299ebb2c8d75af359b9c81704b",
+        "mode": "0644",
+        "size": 10066
+      },
+      {
+        "path": "v3_shared_data/scripts/run_scheduled_hk_auction_0920.py",
+        "kind": "file",
+        "sha256": "aa6bd99041d43a98c0840ff70c07b7456ea84141c38bdd7d21f49ff9b3e259f3",
+        "mode": "0644",
+        "size": 4180
+      },
+      {
+        "path": "v3_shared_data/scripts/run_scheduled_morning_news.py",
+        "kind": "file",
+        "sha256": "0811439cf7bfd2ec674aa9f53e950d5f517c5a531b9c903d4c9abeb60882250b",
+        "mode": "0644",
+        "size": 4240
+      },
+      {
+        "path": "v3_shared_data/scripts/run_scheduled_public_fupan.py",
+        "kind": "file",
+        "sha256": "1e3ac6117e2ecebb2bfad9f8ba0aa82e12817a01408af56dcce3a7a7f88235f5",
+        "mode": "0644",
+        "size": 3292
+      },
+      {
+        "path": "v3_shared_data/scripts/run_scheduled_stage_bundle.py",
+        "kind": "file",
+        "sha256": "f66aba51223511e2d9596aea95f7ad22f806dc1aaa962db58c7642903d7bcfb7",
+        "mode": "0644",
+        "size": 17119
+      },
+      {
+        "path": "v3_shared_data/scripts/update_hk_0_2_panel.py",
+        "kind": "file",
+        "sha256": "45d31c1e6608d1a9af163ffd56ea111d5caeb40000c58cd140534cf81859634e",
+        "mode": "0644",
+        "size": 1345
+      },
+      {
+        "path": "v3_shared_data/shared_data/__init__.py",
+        "kind": "file",
+        "sha256": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4",
+        "mode": "0644",
+        "size": 446
+      },
+      {
+        "path": "v3_shared_data/shared_data/__main__.py",
+        "kind": "file",
+        "sha256": "e0930aeba5a3e2e2d94ca6c5fac4f72c0c4eb2be9bba283becf98e909091471c",
+        "mode": "0644",
+        "size": 83
+      },
+      {
+        "path": "v3_shared_data/shared_data/a_d1_evidence.py",
+        "kind": "file",
+        "sha256": "ab01ba9a95f1484d0d6e7da7a57ccc933b9dea13ffed804f989f912f30618e9e",
+        "mode": "0644",
+        "size": 14691
+      },
+      {
+        "path": "v3_shared_data/shared_data/a_share_security_master.py",
+        "kind": "file",
+        "sha256": "4c2a3eee41d201a42ca32fcfdef5e6dde8c520c8693146b7bdd6a7ecc7ba0e32",
+        "mode": "0644",
+        "size": 15238
+      },
+      {
+        "path": "v3_shared_data/shared_data/allowlist.py",
+        "kind": "file",
+        "sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+        "mode": "0644",
+        "size": 3011
+      },
+      {
+        "path": "v3_shared_data/shared_data/baimao_observations.py",
+        "kind": "file",
+        "sha256": "a73c96ff1afb3a2306367a3509723b0a01831bba49568e8a0681eb7557669c96",
+        "mode": "0644",
+        "size": 18318
+      },
+      {
+        "path": "v3_shared_data/shared_data/bundles.py",
+        "kind": "file",
+        "sha256": "7e52b50fc11a9fa9d24a8e4c9cdfbfae81a817034615912546b9e826d440f6b9",
+        "mode": "0644",
+        "size": 9194
+      },
+      {
+        "path": "v3_shared_data/shared_data/cli.py",
+        "kind": "file",
+        "sha256": "1334bea982a39fc6b19bd09eac6c218736d2ef6adf978a2116e8a40eeecee6c7",
+        "mode": "0644",
+        "size": 3803
+      },
+      {
+        "path": "v3_shared_data/shared_data/collectors.py",
+        "kind": "file",
+        "sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+        "mode": "0644",
+        "size": 8200
+      },
+      {
+        "path": "v3_shared_data/shared_data/constants.py",
+        "kind": "file",
+        "sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+        "mode": "0644",
+        "size": 2604
+      },
+      {
+        "path": "v3_shared_data/shared_data/consumer.py",
+        "kind": "file",
+        "sha256": "bd3b19a188907a2273d09a51ee06c448f41ea94277c30a56658350ed6f3843ba",
+        "mode": "0644",
+        "size": 2788
+      },
+      {
+        "path": "v3_shared_data/shared_data/hashing.py",
+        "kind": "file",
+        "sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+        "mode": "0644",
+        "size": 1027
+      },
+      {
+        "path": "v3_shared_data/shared_data/hk_0_2.py",
+        "kind": "file",
+        "sha256": "c18049aea1fc78c11b8aa8e34712627ad823239a0c4c0644921918ba4c3a2c58",
+        "mode": "0644",
+        "size": 53644
+      },
+      {
+        "path": "v3_shared_data/shared_data/hk_auction_0920.py",
+        "kind": "file",
+        "sha256": "c1d2df6e1712b4ce16c673ef4313b23936925f50a1ea2aa9932f6b01bd08685e",
+        "mode": "0644",
+        "size": 22303
+      },
+      {
+        "path": "v3_shared_data/shared_data/hk_d1_evidence.py",
+        "kind": "file",
+        "sha256": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850",
+        "mode": "0644",
+        "size": 4335
+      },
+      {
+        "path": "v3_shared_data/shared_data/hk_daily_supplement.py",
+        "kind": "file",
+        "sha256": "d7b417374c4c674246beb0164b2246f26d82d8e9f79cd54a81ece785a7e27b65",
+        "mode": "0644",
+        "size": 66752
+      },
+      {
+        "path": "v3_shared_data/shared_data/hk_security_master.py",
+        "kind": "file",
+        "sha256": "2703a97e6ac18c03b06184a482857d303d77d49adaf1561a2c82423dea084847",
+        "mode": "0644",
+        "size": 18794
+      },
+      {
+        "path": "v3_shared_data/shared_data/hk_v11_reference.py",
+        "kind": "file",
+        "sha256": "5a9504a8e3eb722a1fe3c387b974d533bbd83031a2afe942bd1a057f93a74489",
+        "mode": "0644",
+        "size": 5446
+      },
+      {
+        "path": "v3_shared_data/shared_data/market_calendar.py",
+        "kind": "file",
+        "sha256": "8e48a5aabe6aa15636fe4aef35e9eb8012cb4516810cfd0a25e1524f59b1218f",
+        "mode": "0644",
+        "size": 1919
+      },
+      {
+        "path": "v3_shared_data/shared_data/morning_news.py",
+        "kind": "file",
+        "sha256": "73f163d8924d6edbc2e444c24d7ef9eb62f9172606d5726a355e2e9edd059dd9",
+        "mode": "0644",
+        "size": 17917
+      },
+      {
+        "path": "v3_shared_data/shared_data/names.py",
+        "kind": "file",
+        "sha256": "b774979e1f16111647f7fcbe27861458a73a10804423f03f70289f13d0fe27f7",
+        "mode": "0644",
+        "size": 1531
+      },
+      {
+        "path": "v3_shared_data/shared_data/paths.py",
+        "kind": "file",
+        "sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+        "mode": "0644",
+        "size": 3986
+      },
+      {
+        "path": "v3_shared_data/shared_data/public_fupan.py",
+        "kind": "file",
+        "sha256": "5f9f64116a6b7b65eb0f5ecaa7481cee4bb042594f817efa3f3cbaa362207319",
+        "mode": "0644",
+        "size": 11027
+      },
+      {
+        "path": "v3_shared_data/shared_data/public_morning_news.py",
+        "kind": "file",
+        "sha256": "bc7fc391b76ea41b236036ce36251563ba6333eef8797cdb5f4ad07df17b6931",
+        "mode": "0644",
+        "size": 15587
+      },
+      {
+        "path": "v3_shared_data/shared_data/store.py",
+        "kind": "file",
+        "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+        "mode": "0644",
+        "size": 27895
+      },
+      {
+        "path": "v3_shared_data/shared_data/v192_selector.py",
+        "kind": "file",
+        "sha256": "3654d9dd77887714fefb9a938a00277e0ab8215fbebf367436a0a6710205e008",
+        "mode": "0644",
+        "size": 36583
+      },
+      {
+        "path": "v3_shared_data/tests/fixtures/exact-search-morning-news-20260824/article-01-\u5f00\u76d8\u5fc5\u8bfb-2gry6ckj55a.html",
+        "kind": "file",
+        "sha256": "82bb52236e85be8316c8b164f9049ef124d5bae7f5a15cdcbbf22c1d31961da7",
+        "mode": "0644",
+        "size": 219957
+      },
+      {
+        "path": "v3_shared_data/tests/fixtures/exact-search-morning-news-20260824/article-02-\u76d8\u524d\u7eaa\u8981-2z7x9l0gmnp.html",
+        "kind": "file",
+        "sha256": "de7c955f4de16a49d91d84f3236d2c4552c19d5e7e2996569cb5309dc196cc3f",
+        "mode": "0644",
+        "size": 137105
+      },
+      {
+        "path": "v3_shared_data/tests/fixtures/exact-search-morning-news-20260824/article-03-\u76d8\u524d\u89e3\u8bfb-2gry4gqjb90.html",
+        "kind": "file",
+        "sha256": "bbaaa6d614a27e244d19bc086b8c638deb5a8e00bf63e7e66b9703ed9ad6d31c",
+        "mode": "0644",
+        "size": 166334
+      },
+      {
+        "path": "v3_shared_data/tests/fixtures/exact-search-morning-news-20260824/capture-manifest.json",
+        "kind": "file",
+        "sha256": "f120b3fa3f19ee3415421f7bfe89a672b769b49c0ae52e0e938b02132e38aa05",
+        "mode": "0644",
+        "size": 8508
+      },
+      {
+        "path": "v3_shared_data/tests/fixtures/exact-search-morning-news-20260824/homepage.html",
+        "kind": "file",
+        "sha256": "24fe085af3278e0009738d5819c1799d56d76fd94cb1ef7153eb54ab3c28c840",
+        "mode": "0644",
+        "size": 247704
+      },
+      {
+        "path": "v3_shared_data/tests/fixtures/exact-search-morning-news-20260824/search-01-\u5f00\u76d8\u5fc5\u8bfb.html",
+        "kind": "file",
+        "sha256": "a1d4914801f18254ad6ef29121063d4df26498c436fee9ac7498562dc69d658a",
+        "mode": "0644",
+        "size": 23982
+      },
+      {
+        "path": "v3_shared_data/tests/fixtures/exact-search-morning-news-20260824/search-02-\u76d8\u524d\u7eaa\u8981.html",
+        "kind": "file",
+        "sha256": "f78b661e26d200d538348e40f77d94e993bc5250912b61bd571e6e8deb69c63e",
+        "mode": "0644",
+        "size": 22662
+      },
+      {
+        "path": "v3_shared_data/tests/fixtures/exact-search-morning-news-20260824/search-03-\u76d8\u524d\u89e3\u8bfb.html",
+        "kind": "file",
+        "sha256": "f564aade625cb4bff2e7db7135c7fa877c265c663c0da19bc5a559c88f42e789",
+        "mode": "0644",
+        "size": 24252
+      },
+      {
+        "path": "v3_shared_data/tests/test_acquire_hk_security_master_panel_fallback.py",
+        "kind": "file",
+        "sha256": "64a7912c0c572ff56d9fee7b5831aca533797e2c81b829e9d03e78023611458c",
+        "mode": "0644",
+        "size": 2086
+      },
+      {
+        "path": "v3_shared_data/tests/test_hk_0_2.py",
+        "kind": "file",
+        "sha256": "7478f3a0e2cf3cc009fd7eec10c502884d62e3eb265b161eb5f66225c939c880",
+        "mode": "0644",
+        "size": 4170
+      },
+      {
+        "path": "v3_shared_data/tests/test_live_pytdx_batched_probes.py",
+        "kind": "file",
+        "sha256": "6e729bc3e45802eb9f7e4f8a5741e89aadb9914b0286739d33f360dc80b166bf",
+        "mode": "0644",
+        "size": 5623
+      },
+      {
+        "path": "v3_shared_data/tests/test_live_pytdx_hq.py",
+        "kind": "file",
+        "sha256": "5680191994c20cff5b6fb5634ffd0bef650120e6465088ad8f1de1263decf7f9",
+        "mode": "0644",
+        "size": 13034
+      },
+      {
+        "path": "v3_shared_data/tests/test_public_morning_news_exact_search.py",
+        "kind": "file",
+        "sha256": "a12faa20119daea68d3bebd2ee0533e41c3296352ec26673e678be3f9740f823",
+        "mode": "0644",
+        "size": 9313
+      },
+      {
+        "path": "v3_shared_data/tests/test_scheduled_stage_bundle.py",
+        "kind": "file",
+        "sha256": "2c83bd4896ff66c39c63276ddda502c0a2e289ae9fa642adf41d3a459e786260",
+        "mode": "0644",
+        "size": 22370
+      },
+      {
+        "path": "v3_shared_data/tests/test_scheduled_stage_bundle_manager_pytdx_mode.py",
+        "kind": "file",
+        "sha256": "e01ab2bae6b4b7f9c881da1d6efc1f68deaf4212ae471155a380a04fc6dae377",
+        "mode": "0644",
+        "size": 3909
+      },
+      {
+        "path": "v3_shared_data/tests/test_stage_bundle.py",
+        "kind": "file",
+        "sha256": "32aaf267def71be21f45c15e1b1dacb4431187d4c081e3fffbc1343f64535db8",
+        "mode": "0644",
+        "size": 31632
+      },
+      {
+        "path": "v3_shared_data/tests/test_stage_bundle_manager_pytdx_mode.py",
+        "kind": "file",
+        "sha256": "abdb65646d90fc31b6a2c7e7bf9b8b42782d0fb70bbd6d0d0cec8c3983c2393e",
+        "mode": "0644",
+        "size": 5362
+      },
+      {
+        "path": "v3_shared_data/tests/test_v192_selector.py",
+        "kind": "file",
+        "sha256": "ee6a0ab90a1e59acfb776fca33b970b60a735363e82074611b50409ab1338f41",
+        "mode": "0644",
+        "size": 28733
+      }
+    ],
+    "actual_subtree_digest": "550f7ae2e8a43185c483e754232caa5f5e9e625d1ff613c34c3cc08716eca5c9",
+    "actual_full_inventory_digest": "413eb7cee1ad1d77f7318574997a67fe425194b8b9d2d921742ad2895d1102f8"
+  }
+}

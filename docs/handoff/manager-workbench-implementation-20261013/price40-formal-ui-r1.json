@@ -1,0 +1,39 @@
+{
+  "status": "UI_VERIFIED",
+  "observed_at": "2026-10-13T12:16:37.546309+00:00",
+  "browser": "Codex in-app tab11",
+  "page": "http://127.0.0.1:8873/manager-selection/?date=20261013&phase=RETROSPECTIVE&run_id=3756008d713a4505be362d288ab9d504",
+  "run_id": "3756008d713a4505be362d288ab9d504",
+  "target_date": "20261013",
+  "phase": "RETROSPECTIVE",
+  "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+  "counts": {
+    "selected": 20,
+    "watch": 277,
+    "unassessed": 395,
+    "not_selected": 1
+  },
+  "strict_selected_filter": {
+    "total": 20,
+    "page_rows": 20
+  },
+  "price_label": "60% threshold / at least40% below prior60 high",
+  "example_selected": {
+    "symbol": "HK.06681",
+    "close": "0.845",
+    "high60": "1.95",
+    "threshold": "1.170",
+    "volume_ratio": "4.288833415879764624799680885",
+    "price_pass": true,
+    "volume_pass": true
+  },
+  "US_source_counts": {
+    "selected": 0,
+    "watch": 0,
+    "not_selected": 4,
+    "unassessed": 29
+  },
+  "console_errors": 0,
+  "screenshot": "/Users/lexi/.codex/visualizations/2026/10/13/01a132ee-de9e-7122-bc06-6cbf7417dbc6/manager-price40-selected20.jpg",
+  "natural": "NATURAL_SLOT_UNVERIFIED"
+}

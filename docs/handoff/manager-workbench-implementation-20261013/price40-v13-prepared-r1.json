@@ -1,0 +1,123 @@
+{
+  "status": "PREPARED_FOR_INDEPENDENT_REVIEW_NOT_DEPLOYED",
+  "goal": "price <= 60% of prior 60-session high AND volume >=1.5 of prior5, both histories excludeD1; old snapshots preserve old gate",
+  "remote_baseline_commit": "924e90dcc2110a66a71f829192919c1933a07872",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "implementation_receipt": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-implementation-r1.json",
+    "sha256": "4b329e94b6f99f7e35262e4992174bfcb63c3bca98225faa028f141c16c8c0cb"
+  },
+  "package": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-v13-r1/receipt.json",
+    "sha256": "3ee1ac496947d7c6c3814e8277648b813aee51a5d576ff1f401c211c2ad9364f",
+    "plan": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-v13-r1/operator-plan.json",
+    "plan_sha256": "df76503b951a23f8a4040d9365b4c1b859a69f1c9da0bce723f889cb22a42f51",
+    "manifests": {
+      "api": "3d4be1256c900ec94a25cbab0772b92d0fdf6976679a9217cdfb4e8d30a87ca8",
+      "scheduler": "a79dfeca494854319d9f5b18e37dd05207583bfab233e8ffe386e33d578b38b7"
+    },
+    "api_delta_paths": [
+      "apps/web/dist/assets/managerSelection-DaVMM2i4.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/manager-workbench/display.ts",
+      "v4/manager_workbench/config.py",
+      "v4/manager_workbench/engines/common.py",
+      "v4/manager_workbench/engines/oversold.py"
+    ],
+    "scheduler_delta_paths": [
+      "v4/manager_workbench/config.py",
+      "v4/manager_workbench/engines/common.py",
+      "v4/manager_workbench/engines/oversold.py"
+    ],
+    "canonical_sync_paths": [
+      "apps/web/src/manager-workbench/display.ts",
+      "v4/manager_workbench/config.py",
+      "v4/manager_workbench/engines/common.py",
+      "v4/manager_workbench/engines/oversold.py"
+    ],
+    "non_delta_preserved": true,
+    "formal_config_only_rules_version_changed": true
+  },
+  "helper_scope": {
+    "price40-prepare-v13.py": "734052b5164acca81c2ba7b4f1ac243656be62d6fec407499b7cef12557601e0",
+    "price40-v13-test.py": "f3d9925471b29ea5e9a9c55f004fd42f6a123abde6bc9222088162f8e1466102",
+    "price40-v13-base-r1.json": "c146daa70e532059362c953a30eac1f560dae45c50a9500ed65afe6c36cf6f4a",
+    "price40-v13-base-r2.json": "e819d4195acf72eec6545175422db851348ab917bc6ee3c217e035eda096cd8b",
+    "price40-v13-base-drift-r1.json": "550b8a4bcc12096513aeac36687ad725cd38cb78665ed38e3dd360d765278d98",
+    "price40-rerun-r1.py": "f2b579b11d5117b2a563b3bca3b5bc530f6fb6b9faf69ecb21e64e0034a36551"
+  },
+  "verification": {
+    "backend": "13 passed",
+    "frontend": "55 passed",
+    "typecheck": "exit0",
+    "build": "exit0",
+    "package_tests": "2 passed",
+    "dry_run": "exit0",
+    "preview_check": "exit0",
+    "old_snapshot_raw_sha256": "ea5f7217ecd37824b467ff38a82ea88686d82827e3b3e18935e426aab53e10cf",
+    "old_snapshot_unchanged": true
+  },
+  "real_same_material": {
+    "run_id": "3b00526641ee472791d3f273e98ee8bd",
+    "product_sha256": "4ef13c8b94f8fd88c067a038696025a6314cd2000c8db19a27730efabc683426",
+    "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+    "scope": 692,
+    "assessed": 662,
+    "unknown": 30,
+    "old_counts": {
+      "NOT_SELECTED": 221,
+      "CONDITIONAL_WATCH": 326,
+      "SELECTED": 115,
+      "UNASSESSED": 30
+    },
+    "new_counts": {
+      "NOT_SELECTED": 365,
+      "CONDITIONAL_WATCH": 277,
+      "UNASSESSED": 30,
+      "SELECTED": 20
+    },
+    "us_saved_rows_unchanged": true,
+    "canary": {
+      "symbol": "HK.09927",
+      "decision": "CONDITIONAL_WATCH",
+      "close": "38.92",
+      "max_high_60": "48.98",
+      "price_threshold": "29.388",
+      "volume_pass": true
+    }
+  },
+  "commands": {
+    "workdir": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+    "dry_run": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-prepare-v13.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-v13-r1/operator-plan.json --plan-sha256 df76503b951a23f8a4040d9365b4c1b859a69f1c9da0bce723f889cb22a42f51",
+    "apply": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-prepare-v13.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-v13-r1/operator-plan.json --plan-sha256 df76503b951a23f8a4040d9365b4c1b859a69f1c9da0bce723f889cb22a42f51 --execute",
+    "rollback": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-prepare-v13.py operate --plan /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-v13-r1/operator-plan.json --plan-sha256 df76503b951a23f8a4040d9365b4c1b859a69f1c9da0bce723f889cb22a42f51 --operation rollback --execute",
+    "preview": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/serve_isolated_candidate_v7.py --proof /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-real-r1/proof.json --candidate-app-root /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-v13-r1/manager-workbench-20261013-v13-api/app --candidate-manifest-sha256 3d4be1256c900ec94a25cbab0772b92d0fdf6976679a9217cdfb4e8d30a87ca8",
+    "preview_check": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/serve_isolated_candidate_v7.py --proof /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-real-r1/proof.json --candidate-app-root /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-v13-r1/manager-workbench-20261013-v13-api/app --candidate-manifest-sha256 3d4be1256c900ec94a25cbab0772b92d0fdf6976679a9217cdfb4e8d30a87ca8 --check-only",
+    "new_url": "http://127.0.0.1:18873/manager-selection/?date=20261013&phase=RETROSPECTIVE&run_id=3b00526641ee472791d3f273e98ee8bd",
+    "old_url": "http://127.0.0.1:18873/manager-selection/?date=20261013&phase=RETROSPECTIVE&run_id=84eafbbb71ba4767a591d1a4286fe061"
+  },
+  "actual_parallel_scheduler_compatibility": {
+    "fixed_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-next-pool-20261014-r2/app",
+    "fixed_plist_sha256": "e587f455e1bcf55ec094125c11bd787d032db5c2689396f009b81d366191b4f2",
+    "fixed_manifest_sha256": "0d5d84c79a17c1f56b2a028f4cc6485abc8758dd52128f3852867df631ebd718",
+    "actual_subtree_digest": "550f7ae2e8a43185c483e754232caa5f5e9e625d1ff613c34c3cc08716eca5c9",
+    "actual_entry_count": 130,
+    "exact_three_prefixes": [
+      "upstreams/review_core",
+      "upstreams/v3.5",
+      "v3_shared_data"
+    ],
+    "old_manifest_modified": false,
+    "generic_verifier_modified": false
+  },
+  "preserved_failures": [
+    "price40-v13-prepare-r1.log: parallel scheduler source/manifest drift stop before candidate",
+    "price40-v13-tests-r1.log: helper test newline syntax corrected, no source change"
+  ],
+  "network_calls": 0,
+  "model_calls": 0,
+  "quota_calls": 0,
+  "formal_writes": 0,
+  "services_changed": false,
+  "formal_api_ui": "NOT_RUN"
+}

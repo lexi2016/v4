@@ -1,0 +1,146 @@
+{
+  "BEHAVIOR_VERIFIED": "ActualV13launchd/config7afterSHA/newmanualrun saved+liveGET matchesacceptedcandidate;old84eafimmutable0.8;no reviewer submit",
+  "HTML_sha256": "c0c3cf474f6df9f85fc48a2be2aee60302182667ebd3a6d4c9cc3769693008cd",
+  "OV_counts": {
+    "CONDITIONAL_WATCH": 277,
+    "NOT_SELECTED": 365,
+    "SELECTED": 20,
+    "UNASSESSED": 30
+  },
+  "OV_coverage": [
+    692,
+    662,
+    30
+  ],
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "REVIEWED": "PASS",
+  "UI_evidence": {
+    "author": "parent/root actualbrowser;notreviewer browser test",
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/price40-formal-ui-r1.json",
+    "sha256": "b646afbc0a9822bd5bbf3e83da15a59a373cd08c47fc4204567917220c8889c8"
+  },
+  "US_coverage": [
+    33,
+    4,
+    29
+  ],
+  "US_old_new_saved_rows_exact": true,
+  "all693_stocks_and_all_lane_rows_equal_candidate": true,
+  "all7_afterSHA_match": true,
+  "browser_UI": "Parent responsibility; reviewer HTTP only",
+  "capture_enabled": false,
+  "config_sha256": "586d129d9225aed4f613e362c9f75d228450ff1a3cda9a386d7f49372787ac64",
+  "cutoff": "2026-10-13T20:15:13.676756+08:00",
+  "formal_writes": 0,
+  "identities": {
+    "api": {
+      "app_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-v13-r1/manager-workbench-20261013-v13-api/app",
+      "launchctl_sha256": "c17b31bd74bd7400fc72b2266fd451049bd41881ea8ddb2593e60fa3c681427b",
+      "manifest_sha256": "3d4be1256c900ec94a25cbab0772b92d0fdf6976679a9217cdfb4e8d30a87ca8",
+      "pid": 40755,
+      "plist_sha256": "429a3533043b80772c6a42d8320bbbfb1329ed62ec56394935c85ed546061aec"
+    },
+    "scheduler": {
+      "app_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/price40-v13-r1/manager-workbench-20261013-v13-scheduler/app",
+      "launchctl_sha256": "b64c6206794705504d412e4d43e7a0a6213c346dbff011b1a80f35bc798c5a83",
+      "manifest_sha256": "a79dfeca494854319d9f5b18e37dd05207583bfab233e8ffe386e33d578b38b7",
+      "pid": 40759,
+      "plist_sha256": "175a7d10f64561912ab018b581a7c7c05216a7a89bf75b22e81ab3f25b010a31"
+    }
+  },
+  "input_sha256": "2bf33ae7f0cd91e1c1b690144dff212712217b9eb96964e2ac6d2643deec1eef",
+  "job": "PARTIAL/DONE nofailedsteps",
+  "lanes": [
+    "US_MAPPING",
+    "OVERSOLD"
+  ],
+  "live_pages": [
+    {
+      "HTTP": 200,
+      "offset": 0,
+      "rows": 200,
+      "sha256": "b34cb7a4eb91ff5bdfd41ceea34ba077c5be467b7b41fa2f70001222c771b154"
+    },
+    {
+      "HTTP": 200,
+      "offset": 200,
+      "rows": 200,
+      "sha256": "1ab212f0cd7156e411b51a1a1d3e3fb20f8da5bcb17b40a0c829ae6b4035f1bd"
+    },
+    {
+      "HTTP": 200,
+      "offset": 400,
+      "rows": 200,
+      "sha256": "b29cb94786ec08af6ba7f327ca26df099dab9e87eb0e34a3079b9c21217e244d"
+    },
+    {
+      "HTTP": 200,
+      "offset": 600,
+      "rows": 93,
+      "sha256": "936fb70a3b73c04d3ca9a0cbad247acb2a41531828210f4810e2f84816661d14"
+    }
+  ],
+  "model": "gpt-6.1-sol/high",
+  "models": 0,
+  "natural": "NATURAL_SLOT_UNVERIFIED; MANUAL RETROSPECTIVE run only",
+  "network_captures": 0,
+  "new_run": "3756008d713a4505be362d288ab9d504",
+  "old_new_GET": [
+    {
+      "product_sha256": "f8e3fff21847118b010895fe288aa97e17e587ef937ed90c0ebac9c2df4dacbb",
+      "rules_version": "POSITIVE_OPERATING_RESEARCH_V1",
+      "run_id": "84eafbbb71ba4767a591d1a4286fe061",
+      "seres_decision": "SELECTED",
+      "seres_threshold": "39.184",
+      "strict_selected": 115
+    },
+    {
+      "product_sha256": "ea861110156f5a2c3dc8249d145e09ebc94b310f165d4cac81c4e015b10b00aa",
+      "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+      "run_id": "3756008d713a4505be362d288ab9d504",
+      "seres_decision": "CONDITIONAL_WATCH",
+      "seres_threshold": "29.388",
+      "strict_selected": 20
+    }
+  ],
+  "old_product_sha256": "f8e3fff21847118b010895fe288aa97e17e587ef937ed90c0ebac9c2df4dacbb",
+  "old_snapshot_raw_sha256": "ea5f7217ecd37824b467ff38a82ea88686d82827e3b3e18935e426aab53e10cf",
+  "package_pass_reused": "a6ea2aaa0907ea0c021e9261e01e86b35f27feaff83d45a0f536cd62d711befe",
+  "parallel_A_next_pool_preservation": "Fullcandidate scheduler manifest files verified;840non-delta acceptedcopy reused;no parallel rule changes",
+  "plan_sha256": "df76503b951a23f8a4040d9365b4c1b859a69f1c9da0bce723f889cb22a42f51",
+  "product_sha256": "ea861110156f5a2c3dc8249d145e09ebc94b310f165d4cac81c4e015b10b00aa",
+  "remaining": [
+    "Original30OV/29US limits remain",
+    "Source124TDXfailures retained independently ofcurrent30unknown"
+  ],
+  "reviewer": "/root/manager_reviewer_sol",
+  "reviewer_new_runs": 0,
+  "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+  "served_assets": [
+    {
+      "HTTP": 200,
+      "sha256": "a92a138b0fd47790855a07a93d93792f24d523519a112c7dc4fcc0bb4bf4eef9",
+      "url": "/assets/managerSelection-DaVMM2i4.js"
+    },
+    {
+      "HTTP": 200,
+      "sha256": "3cd41c390fdb9043b9be81cedea38b22d04f8021e18ab0e464947f18e1de2cd6",
+      "url": "/assets/runtime-dom.esm-bundler-BK3TRPiP.js"
+    },
+    {
+      "HTTP": 200,
+      "sha256": "d466e4e7c37beed6c917a92e614a963588d1209040555b7030afea3ca1039786",
+      "url": "/assets/managerSelection-CICId7Gx.css"
+    }
+  ],
+  "snapshot_raw_sha256": "1ae1986257518d9d9edfcd8420a30311f3029366f90dce0460bf71dcdf3b757d",
+  "source_code_and662_numeric_pass_reused": "adacd35dcc207e3229e8f9db085e13478624aff6a32ed81602887344e422ff98",
+  "statuses": [
+    "DEPLOYED",
+    "API_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "verdict": "PASS"
+}

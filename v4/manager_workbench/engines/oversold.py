@@ -7,7 +7,9 @@ import hashlib,json
 def owner_digest(value):
     return hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode()).hexdigest()
 
-PRICE_RATIO = Decimal("0.8")
+PRICE40_RULES_VERSION = "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2"
+PRICE_RATIO = Decimal("0.6")
+LEGACY_PRICE_RATIO = Decimal("0.8")
 VOLUME_RATIO = Decimal("1.5")
 
 
@@ -123,10 +125,13 @@ def window_metrics(context, record, measures=None):
     except (ValueError, KeyError, TypeError) as exc:
         reason = str(exc) if str(exc).isidentifier() else "OVERSOLD_EVIDENCE_UNASSESSED"
         raise ValueError(reason) from exc
-    price_pass = close <= PRICE_RATIO * max_high
+    # Version the changed price gate; a legacy context retains its original rule.
+    price_ratio = PRICE_RATIO if context.get("rules_version") == PRICE40_RULES_VERSION else LEGACY_PRICE_RATIO
+    price_pass = close <= price_ratio * max_high
     ratio = volume / mean_volume
     volume_pass = ratio >= VOLUME_RATIO
-    measures.update(close=str(close), max_high_60=str(max_high), price_threshold=str(PRICE_RATIO * max_high),
+    measures.update(close=str(close), max_high_60=str(max_high), price_threshold=str(price_ratio * max_high),
+        price_ratio=str(price_ratio), oversold_rules_version=context.get("rules_version"),
         price_pass=price_pass, volume=str(volume), mean_volume_5=str(mean_volume),
         volume_ratio=str(ratio), volume_pass=volume_pass)
     return measures

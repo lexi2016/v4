@@ -1,0 +1,89 @@
+{
+  "BEHAVIOR_VERIFIED": "V13 exactcurrentV12API+parallelScheduler preimage/copy/config ruleonly/asset closure/rollback; actualcandidate old/new savedrun TestClient",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "REVIEWED": "PASS",
+  "TESTED": {
+    "actualcandidateTestClient": "Copied old84eaf/new3b005 snapshots actualprivateSavedStore;115/20selected and39.184/29.388Seres;USunchanged,sourcebytesunchanged",
+    "actualdryrun": "DRY_RUN_PASS exit0",
+    "additional_compat_counterexamples": "root/plist/manifest/rawSHA/mode/size mutations rejected",
+    "package": "2passed0.26s exit0 privatebasetemp"
+  },
+  "allowed_next": "Apply only exactplan df76503b951a23f8a4040d9365b4c1b859a69f1c9da0bce723f889cb22a42f51 under same preimages;formalAPI/UIreadback required",
+  "api_delta": [
+    "apps/web/dist/assets/managerSelection-DaVMM2i4.js",
+    "apps/web/dist/manager-selection/index.html",
+    "apps/web/src/manager-workbench/display.ts",
+    "v4/manager_workbench/config.py",
+    "v4/manager_workbench/engines/common.py",
+    "v4/manager_workbench/engines/oversold.py"
+  ],
+  "browser_UI": "NOT_RUN",
+  "capture_calls": 0,
+  "config_after_sha256": "586d129d9225aed4f613e362c9f75d228450ff1a3cda9a386d7f49372787ac64",
+  "config_only_rules_version_changed": true,
+  "deployment": "NOT_RUN",
+  "entry_count": 7,
+  "exact_parallel_compatibility": {
+    "actual_digest": "550f7ae2e8a43185c483e754232caa5f5e9e625d1ff613c34c3cc08716eca5c9",
+    "actual_entry_count": 130,
+    "declared_symlinks": 3,
+    "manifest_sha256": "0d5d84c79a17c1f56b2a028f4cc6485abc8758dd52128f3852867df631ebd718",
+    "old_manifest_generic_unchanged": true,
+    "outside_strict": true,
+    "plist_sha256": "e587f455e1bcf55ec094125c11bd787d032db5c2689396f009b81d366191b4f2",
+    "prefixes": [
+      "upstreams/review_core",
+      "upstreams/v3.5",
+      "v3_shared_data"
+    ],
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-next-pool-20261014-r2/app"
+  },
+  "formal_writes": 0,
+  "helper_sha256": "734052b5164acca81c2ba7b4f1ac243656be62d6fec407499b7cef12557601e0",
+  "implementation_reused_sha256": "adacd35dcc207e3229e8f9db085e13478624aff6a32ed81602887344e422ff98",
+  "manifest_sha256": {
+    "api": "3d4be1256c900ec94a25cbab0772b92d0fdf6976679a9217cdfb4e8d30a87ca8",
+    "scheduler": "a79dfeca494854319d9f5b18e37dd05207583bfab233e8ffe386e33d578b38b7"
+  },
+  "model": "gpt-6.1-sol/high",
+  "model_calls": 0,
+  "natural": "NATURAL_SLOT_UNVERIFIED",
+  "new_runs": 0,
+  "non_delta_preserved": {
+    "api": 1176,
+    "scheduler": 840
+  },
+  "plan_sha256": "df76503b951a23f8a4040d9365b4c1b859a69f1c9da0bce723f889cb22a42f51",
+  "ports_opened": 0,
+  "prepared_receipt_sha256": "36d1b39c29ea89400918c6c183cfc34e19fa90e6b83370fc1ff8d3a16aa39976",
+  "proofs": [
+    {
+      "path": "/private/tmp/mwb-v13-package-independent-77orwL/package-proof.json",
+      "sha256": "d1ea5f2598bd2c219a444c193077a462b0ae4aa81de8563df8e89c99bba421ab"
+    },
+    {
+      "path": "/private/tmp/mwb-v13-package-independent-77orwL/compat-proof.json",
+      "sha256": "c00546ab57e9b0f089f17951549c90c310aae5b54ff0459d115ea6d37b917073"
+    },
+    {
+      "path": "/private/tmp/mwb-v13-package-independent-77orwL/current-identity-proof.json",
+      "sha256": "36e9885c2d2e2c88fd8df68f6a49d19c453033082ac0828b8e3b236cf98dbb92"
+    },
+    {
+      "path": "/private/tmp/mwb-v13-package-independent-77orwL/candidate-readback-proof.json",
+      "sha256": "3c59d021c9a25bad43ee9638efb9084413dc39e8a65010d7d1c0d8f293d87c9f"
+    }
+  ],
+  "reviewer": "/root/manager_reviewer_sol",
+  "rollback": "Exact7entry previousbytes backups;fixedplists;existingoperator sharedlock,identity andboundedlaunch guards reused",
+  "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2",
+  "scheduler_delta": [
+    "v4/manager_workbench/config.py",
+    "v4/manager_workbench/engines/common.py",
+    "v4/manager_workbench/engines/oversold.py"
+  ],
+  "services_changed": false,
+  "verdict": "PASS"
+}

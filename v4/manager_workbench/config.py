@@ -28,7 +28,7 @@ class WorkbenchConfig(StrictModel):
     legacy_root: Path | None = None
     # Exact-date bindings are resolved by the operator, never accepted over HTTP.
     source_bindings: dict[str, dict] = Field(default_factory=dict)
-    rules_version: str = "POSITIVE_OPERATING_RESEARCH_V1"
+    rules_version: str = "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2"
     model: str = "gpt-6-luna"
     announcement_reasoning_effort: str = "max"
     prompt_version: str = "MWB_ANNOUNCEMENT_READER_REVIEWER_V3_20261013"

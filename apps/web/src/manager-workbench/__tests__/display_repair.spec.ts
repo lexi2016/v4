@@ -24,7 +24,7 @@ it('renders real saved name, saved AND metrics and distinct US counts after refr
 });
 it('keeps missing metrics unknown and never calculates or promotes a decision', () => {
  expect(readableReason({metrics:{previous_session:'20261012',close:'bad',max_high_60:null,volume_ratio:'NaN'},decision:'UNASSESSED'})).toContain('收盘 未知');
- expect(readableReason({metrics:{close:'38.92',max_high_60:'48.98',price_threshold:null,price_pass:false,volume_pass:null}})).toContain('80%门槛 未知（未满足）');
+ expect(readableReason({metrics:{close:'38.92',max_high_60:'48.98',price_threshold:null,price_pass:false,volume_pass:null}})).toContain('价格门槛（比例未知） 未知（未满足）');
  const stock=actual.detail.data.stock as unknown as StockDecision;
  expect(firstReason(stock)).toContain('39.184');expect(stock.decision).toBe('SELECTED');
  expect(firstReason({...stock,lane_decisions:{US_MAPPING:[{reason:'US_SOURCE_CHANGE_NOT_POSITIVE'}]}})).toContain('涨幅不为正');

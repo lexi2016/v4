@@ -86,7 +86,15 @@ export function readableReason(row: Record<string, unknown>): string {
       return (typeof raw === 'string' && raw.trim() && Number.isFinite(Number(raw))) || (typeof raw === 'number' && Number.isFinite(raw)) ? String(raw) : '未知';
     };
     const state = (key: string) => metrics[key] === true ? '满足' : metrics[key] === false ? '未满足' : '待核';
-    return `行情日 ${text(metrics.previous_session) || '未知'}：收盘 ${value('close')}，60日前高 ${value('max_high_60')}，80%门槛 ${value('price_threshold')}（${state('price_pass')}）；量比 ${value('volume_ratio')}，1.5倍门槛（${state('volume_pass')}）。两项须同时满足。`;
+    // The label belongs to this saved record, never the currently active rule.
+    const savedRatio = metrics.price_ratio;
+    const high = Number(value('max_high_60')), threshold = Number(value('price_threshold'));
+    const ratio = savedRatio !== undefined && savedRatio !== null ? Number(savedRatio)
+      : high > 0 && Number.isFinite(threshold) ? threshold / high : NaN;
+    const gate = Number.isFinite(ratio) && ratio > 0 && ratio <= 1
+      ? `${Number((ratio * 100).toFixed(6))}%门槛（较60日前高至少低${Number(((1 - ratio) * 100).toFixed(6))}%）`
+      : '价格门槛（比例未知）';
+    return `行情日 ${text(metrics.previous_session) || '未知'}：收盘 ${value('close')}，60日前高 ${value('max_high_60')}，${gate} ${value('price_threshold')}（${state('price_pass')}）；量比 ${value('volume_ratio')}，1.5倍门槛（${state('volume_pass')}）。两项须同时满足。`;
   }
   const reason = text(record(row.semantic).reason) || text(row.reason);
   const labels: Record<string, string> = {

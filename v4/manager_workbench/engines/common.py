@@ -74,7 +74,7 @@ def validate_context(context):
     timestamp(context.get("cutoff"))
     if not isinstance(context.get("source_sessions"), dict) or not isinstance(context.get("scope_refs"), dict):
         raise ValueError("MWB_SOURCE_CONTEXT_REQUIRED")
-    if context.get("rules_version") != RULE:
+    if context.get("rules_version") not in (RULE, "POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2"):
         raise ValueError("MWB_RULE_VERSION")
     return context
 
