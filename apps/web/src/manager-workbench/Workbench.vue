@@ -327,10 +327,14 @@ function detailForLane(lane: Lane) {
             <span v-if="entry.phase === 'RETROSPECTIVE'" class="mwb-retro">RETROSPECTIVE · 事后回看</span></div>
           <p>{{ entry.target_date || vm.history.data.date }} · {{ entry.phase ? PHASE_LABELS[entry.phase] : "旧阶段未知" }}
             · 记录于 {{ humanTime(entry.recorded_at || entry.generated_at) }}</p>
-          <p>原 run：{{ entry.original_run_id || entry.run_id || "未知" }}
-            · 原 schema：{{ entry.original_schema || "未知" }}</p>
-          <p v-if="entry.origin === 'NEW'">保存状态：{{ entry.state || "未知" }} · 产品 SHA：{{ entry.product_sha256 || "未知" }}</p>
-          <p>原 SHA：{{ entry.original_sha256 || "未知" }} · 校验：{{ entry.verification || "CANNOT_CONFIRM" }}</p>
+          <template v-if="entry.origin === 'LEGACY'">
+            <p>原 run：{{ entry.original_run_id || "未知" }} · 原 schema：{{ entry.original_schema || "未知" }}</p>
+            <p>原 SHA：{{ entry.original_sha256 || "未知" }} · 校验：{{ entry.verification || "CANNOT_CONFIRM" }}</p>
+          </template>
+          <template v-else>
+            <p>计划 run：{{ entry.run_id || "未知" }} · 保存状态：{{ entry.state || "未知" }}</p>
+            <p>产品 SHA：{{ entry.product_sha256 || "未知" }} · 输入 SHA：{{ entry.input_sha256 || "未知" }}</p>
+          </template>
           <p v-for="gap in entry.gaps || []" :key="gapText(gap)" class="mwb-muted">缺口：{{ gapText(gap) }}</p>
         </article>
       </div>

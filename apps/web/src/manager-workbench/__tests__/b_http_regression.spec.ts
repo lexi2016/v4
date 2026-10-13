@@ -55,7 +55,10 @@ describe("B mounted HTTP response shapes / Issue #41 Reviewer", () => {
     await screen.findByText("合成标的");
     await fireEvent.click(screen.getByRole("tab", { name: "计划历史" }));
     expect(await screen.findByText("LEGACY · 原样历史")).toBeTruthy();
-    expect(screen.getByText("NEW · 新计划")).toBeTruthy();
+    const newEntry = screen.getByText("NEW · 新计划").closest("article");
+    expect(newEntry?.textContent).toContain("real-b-run");
+    expect(newEntry?.textContent).toContain("产品 SHA");
+    expect(newEntry?.textContent).not.toContain("CANNOT_CONFIRM");
     expect(screen.getByText(/legacy-real/)).toBeTruthy();
     expect(screen.getAllByText(/20261013/).length).toBeGreaterThan(0);
     expect(screen.getByText(/LEGACY_PROVENANCE_UNVERIFIED/)).toBeTruthy();
