@@ -135,6 +135,13 @@ class EvidenceRef(StrictModel):
     verification: Verification
     gaps: list[str] = Field(default_factory=list)
 
+    @field_validator("artifact_ref", "manifest_ref", "receipt_ref")
+    @classmethod
+    def reference_check(cls, v: str | None) -> str | None:
+        if v is not None and (v.startswith(("/", "file:", "~", "\\")) or "../" in v or "..\\" in v):
+            raise ValueError("LOCAL_PATH_REFERENCE_DENIED")
+        return v
+
     @field_validator("observed_at", "captured_at", "available_at")
     @classmethod
     def time_check(cls, v: str | None) -> str | None:
@@ -297,7 +304,8 @@ def product_digest(snapshot: dict[str, Any]) -> str:
 
 
 def seal_snapshot(data: dict[str, Any]) -> PlanSnapshot:
-    body = {"schema_version": SCHEMA_VERSION, **Safety().model_dump(), **data}
+    body = {"schema_version": SCHEMA_VERSION, **Safety().model_dump(),
+            "review_refs": [], "changes": {}, "gaps": [], **data}
     body["product_sha256"] = product_digest(body)
     return PlanSnapshot.model_validate(body)
 
