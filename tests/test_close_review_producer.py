@@ -652,7 +652,8 @@ def test_cached_close_snapshot_requires_verified_capture_time(tmp_path) -> None:
         producer.build_close_review(data_root, "20260731")
 
 
-def test_futu_collector_materializes_same_day_full_universe_in_v35_store(tmp_path) -> None:
+@pytest.mark.parametrize("price_time", ["16:00:00", "16:09:59", "16:11:00"])
+def test_futu_collector_materializes_same_day_full_universe_in_v35_store(tmp_path, price_time) -> None:
     collector = importlib.import_module("ops.collect_hkconnect_close_snapshot")
 
     class Frame:
@@ -683,7 +684,7 @@ def test_futu_collector_materializes_same_day_full_universe_in_v35_store(tmp_pat
                     {
                         "code": code,
                         "name": f"Stock {int(code[-5:])}",
-                        "update_time": "2026-07-31 16:11:00",
+                        "update_time": f"2026-07-31 {price_time}",
                         "last_price": 100 + int(code[-5:]),
                         "prev_close_price": 100,
                         "turnover": int(code[-5:]) * 1_000,
@@ -707,8 +708,8 @@ def test_futu_collector_materializes_same_day_full_universe_in_v35_store(tmp_pat
     assert loaded["universe_count"] == 600
     assert loaded["same_date_row_count"] == 600
     assert loaded["source_mode"] == "FUTU_FULL_HKCONNECT_CLOSE_SNAPSHOT"
-    assert loaded["rows"][0]["update_time"] == "2026-07-31 16:11:00"
-    assert loaded["rows"][0]["source_update_time"] == "2026-07-31T16:11:00+08:00"
+    assert loaded["rows"][0]["update_time"] == f"2026-07-31 {price_time}"
+    assert loaded["rows"][0]["source_update_time"] == f"2026-07-31T{price_time}+08:00"
     assert loaded["rows"][0]["source_timezone"] == "Asia/Shanghai"
     assert loaded["source_capture"]["timestamp_field"] == "update_time"
     assert loaded["source_capture"]["timezone"] == "Asia/Shanghai"
@@ -726,12 +727,23 @@ def test_futu_collector_materializes_same_day_full_universe_in_v35_store(tmp_pat
     assert review["close_source_evidence"]["source_input_sha256"] == loaded["source_input_sha256"]
     assert review["close_source_evidence"]["source_capture"] == loaded["source_capture"]
 
+    # Cached evidence must prove that the query itself was after final close.
+    from copy import deepcopy
+    from infrastructure.hkconnect_close_store import futu_close_capture_time_gap
+    for query_time, expected in (
+        ("2026-07-31T16:09:59+08:00", "HK_CLOSE_QUERY_TIME_BEFORE_FINAL_CLOSE_CUTOFF"),
+        ("2026-08-01T16:12:00+08:00", "HK_CLOSE_QUERY_TIME_DATE_MISMATCH"),
+    ):
+        invalid = deepcopy(loaded)
+        invalid["source_capture"]["queried_at"] = query_time
+        assert futu_close_capture_time_gap(invalid, "20260731") == expected
+
 
 @pytest.mark.parametrize(
     "update_time",
-    ["2026-07-31 16:09:59", "not-a-time", None],
+    ["2026-07-30 16:11:00", "not-a-time", None],
 )
-def test_futu_collector_rejects_unverified_or_early_source_time(tmp_path, update_time) -> None:
+def test_futu_collector_rejects_unverified_or_wrong_date_source_time(tmp_path, update_time) -> None:
     collector = importlib.import_module("ops.collect_hkconnect_close_snapshot")
 
     class Frame:

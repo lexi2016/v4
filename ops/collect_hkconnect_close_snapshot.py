@@ -6,7 +6,7 @@ import hashlib
 import json
 import logging
 import math
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable
 from zoneinfo import ZoneInfo
@@ -22,7 +22,6 @@ HKCONNECT_PLATE_CODES = ("HK.GangGuTong", "HK.LIST1922")
 FINAL_CLOSE_CUTOFF = "16:10:00"
 _TIMEZONE_NAME = "Asia/Shanghai"
 _TIMEZONE = ZoneInfo(_TIMEZONE_NAME)
-_FINAL_CLOSE_CUTOFF_TIME = time.fromisoformat(FINAL_CLOSE_CUTOFF)
 
 
 def _number(value: Any) -> float | None:
@@ -182,8 +181,8 @@ def collect_close_snapshot(
             raise ValueError(f"HK_CLOSE_SOURCE_TIME_MISSING_OR_INVALID:{code}")
         if source_update_time.strftime("%Y%m%d") != target:
             raise ValueError(f"HK_CLOSE_SOURCE_TIME_DATE_MISMATCH:{code}")
-        if source_update_time.time() < _FINAL_CLOSE_CUTOFF_TIME:
-            raise ValueError(f"HK_CLOSE_SOURCE_TIME_BEFORE_FINAL_CLOSE_CUTOFF:{code}")
+        # update_time is the current price's update time, not the query time.
+        # The same-day query is already required to be after final close.
         close = _number(source.get("last_price"))
         pre_close = _number(source.get("prev_close_price"))
         if close is None or pre_close is None or close <= 0 or pre_close <= 0:

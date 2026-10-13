@@ -64,6 +64,11 @@ def futu_close_capture_time_gap(
     ):
         return "HK_CLOSE_QUERY_TIME_UNVERIFIED"
 
+    if queried_at.strftime("%Y%m%d") != trade_date:
+        return "HK_CLOSE_QUERY_TIME_DATE_MISMATCH"
+    if queried_at.time() < _FINAL_CLOSE_CUTOFF:
+        return "HK_CLOSE_QUERY_TIME_BEFORE_FINAL_CLOSE_CUTOFF"
+
     rows = payload.get("rows")
     if not isinstance(rows, list) or not rows:
         return "HK_CLOSE_SOURCE_CAPTURE_TIME_UNVERIFIED"
@@ -76,8 +81,8 @@ def futu_close_capture_time_gap(
             return "HK_CLOSE_SOURCE_TIME_MISSING_OR_INVALID"
         if parsed.strftime("%Y%m%d") != trade_date:
             return "HK_CLOSE_SOURCE_TIME_DATE_MISMATCH"
-        if parsed.time() < _FINAL_CLOSE_CUTOFF:
-            return "HK_CLOSE_SOURCE_TIME_BEFORE_FINAL_CLOSE_CUTOFF"
+        # A price can stop updating before 16:10. Final-close eligibility is
+        # established by queried_at, while row timestamps retain their date.
         parsed_raw = row.get("source_update_time")
         try:
             declared = datetime.fromisoformat(parsed_raw)
