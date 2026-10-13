@@ -1,0 +1,85 @@
+{
+  "schema_version": "manager_workbench.contract_review.v1",
+  "date": "2026-10-13",
+  "source_commit": "761df4b6e7d712a28794c440c9e77fa3cdb8d3cb",
+  "local_baseline": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "candidate_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "writer": "/root/manager_writer_sol",
+  "reviewer": "/root/manager_reviewer_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "scope": "public contract only",
+  "result": "REVIEWED_TESTED_PASS",
+  "initial_findings": [
+    "Default fields were inserted after hashing",
+    "Unicode digits were accepted as HK security codes"
+  ],
+  "corrections": [
+    "Normalize complete nested defaults before hash",
+    "ASCII-only symbol pattern in Python and JSON schema"
+  ],
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 \"/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python\" -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_contract.py",
+  "test_result": "5 passed in 0.02s",
+  "additional_independent_checks": [
+    "Omitted changes, stock risks, context/coverage/evidence defaults round trip with correct hash",
+    "Reject HK.００００１ and accept HK.00001"
+  ],
+  "files": [
+    {
+      "path": "v4/manager_workbench/__init__.py",
+      "sha256": "879baeecaa5270f9053193c39ecfb7e92aa40a01b5b53bbc10ffa5d29c789490",
+      "git_blob_sha1": "029ceaa595c1f2059fceddcce255478ba8406eb1"
+    },
+    {
+      "path": "v4/manager_workbench/contracts.py",
+      "sha256": "ffcbbd6462cacd449e8d11831de9e4312901467faccecc40f6d50aaa31996df0",
+      "git_blob_sha1": "2974275d64416c4a7f528944a4b3be36e1743c58"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_contract.py",
+      "sha256": "c29c0f1a80f885a3cea1c1f6a14b65a881dbe7766744a32af81142df77d9d376",
+      "git_blob_sha1": "7f2d85fcca1b292c90090ef1af6e79cfa0ae32b4"
+    },
+    {
+      "path": "tests/manager_workbench/contract_samples/empty.json",
+      "sha256": "4a39893b480c3d8e4b30205838a65ec0a2879e036de4fef65887ed41a6949bbb",
+      "git_blob_sha1": "0a734032fda1b21dda353cabcdeaf5ca727a4ed8"
+    },
+    {
+      "path": "tests/manager_workbench/contract_samples/failed_job.json",
+      "sha256": "ca0b804a7592c38151b22e92b40ca9cb5d80f3b28413678ba53c6ddf00be8986",
+      "git_blob_sha1": "d8d50e6e4e70e491dcf42ce62e9497cec240d72b"
+    },
+    {
+      "path": "tests/manager_workbench/contract_samples/legacy.json",
+      "sha256": "5653102021b3752842dafe8855f8a22f11f608f464d9585a771f071cec5c12e5",
+      "git_blob_sha1": "bb5c9044747d7c033cdf53dea2bac75cc8176a4f"
+    },
+    {
+      "path": "tests/manager_workbench/contract_samples/mwb_v1.schema.json",
+      "sha256": "e7e74ad674e567c812b667a612a80e06164eb38e5065ab4b0f421dd4e2087928",
+      "git_blob_sha1": "998e846729fd81d2304635290b66a7304109ee79"
+    },
+    {
+      "path": "tests/manager_workbench/contract_samples/normal.json",
+      "sha256": "f640f8ccc3d551bff1bd3d50238d0c58e732ba3ebcc2298a938664f84623517e",
+      "git_blob_sha1": "3ed4d276a8ec50a7ab0fd5f16d753ac943ed9575"
+    },
+    {
+      "path": "tests/manager_workbench/contract_samples/partial.json",
+      "sha256": "1baea9a406c9c3b8afa2fd865ad343b0c0c07db2c7eaa7fb3e56ad2181425a7a",
+      "git_blob_sha1": "fd15951cab9540433ff7c9fef89a791a8ed14f90"
+    },
+    {
+      "path": "tests/manager_workbench/contract_samples/unknown_counts.json",
+      "sha256": "080723f95e154610738d219fb2515156d2d47c139d9a0d7922f485203c5a918c",
+      "git_blob_sha1": "fcecfec3ed02a31d9da683b39d26e0adc577405a"
+    }
+  ],
+  "runtime": "NOT_RUN",
+  "model_canary": "NOT_RUN",
+  "api_ui": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "natural": "NATURAL_SLOT_UNVERIFIED"
+}
