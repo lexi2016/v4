@@ -361,3 +361,59 @@ def test_file_lock_blocks_a_second_process(tmp_path):
         release.set();p.join(4)
         if p.is_alive():p.terminate();p.join(4)
     assert p.exitcode==0
+
+
+def test_canary_only_independently_audited_single_article_can_pass():
+    from v4.manager_workbench.cli import _canary_verified
+    from v4.manager_workbench.contracts import JobRecord
+
+    sample=Path(__file__).resolve().parents[1]/"contract_samples"/"normal.json"
+    obj=json.loads(sample.read_text())
+    obj["context"]["scope_refs"].update({"canary_mode":"SINGLE_ARTICLE","canary_article_id":"HKEX:00001"})
+    reader={"role":"READER", "execution_id":"reader-1", "process_pid":901,
+            "input_sha256":"a"*64,"source_sha256":"a"*64,"material_sha256":"b"*64,
+            "output_sha256":"c"*64,"event_sha256":"d"*64,
+            "started_at":"2026-10-13T13:58:00+08:00","finished_at":"2026-10-13T13:59:00+08:00",
+            "model":"Luna Max","prompt_version":"R1","success":True,
+            "isolation_proof":"OS_SANDBOX_ATTESTATION_1","simulated":False}
+    reviewer={**reader,"role":"REVIEWER","execution_id":"reviewer-1","process_pid":902,
+              "material_sha256":"e"*64}
+    obj["review_refs"]=[reader,reviewer]
+    plan=seal_snapshot(obj)
+    job=JobRecord(job_id="canary-job",run_id=plan.run_id,context=plan.context,
+                  state=JobState.SUCCEEDED,step="DONE",execution_refs=[reader,reviewer])
+    assert _canary_verified(job,plan,"HKEX:00001")
+    assert not _canary_verified(job,plan,"HKEX:00002")
+    assert not _canary_verified(job,None,"HKEX:00001")
+    assert not _canary_verified(job.model_copy(update={"state":JobState.FAILED}),plan,"HKEX:00001")
+    no_reviewer=job.model_copy(update={"execution_refs":[reader]})
+    assert not _canary_verified(no_reviewer,plan,"HKEX:00001")
+    fake_reader={**reader,"simulated":True}
+    assert not _canary_verified(job.model_copy(update={"execution_refs":[fake_reader,reviewer]}),plan,"HKEX:00001")
+    fake_host={**reader,"isolation_proof":"FAKE_TEST_ONLY"}
+    assert not _canary_verified(job.model_copy(update={"execution_refs":[fake_host,reviewer]}),plan,"HKEX:00001")
+    same_process={**reviewer,"process_pid":reader["process_pid"]}
+    assert not _canary_verified(job.model_copy(update={"execution_refs":[reader,same_process]}),plan,"HKEX:00001")
+    different_sha={**reviewer,"source_sha256":"f"*64}
+    assert not _canary_verified(job.model_copy(update={"execution_refs":[reader,different_sha]}),plan,"HKEX:00001")
+    not_one_article=obj.copy()
+    not_one_article["lanes"]=[{**obj["lanes"][0],"rows":[{"symbol":"HK.00001"},{"symbol":"HK.00002"}]}]
+    big=seal_snapshot(not_one_article)
+    assert not _canary_verified(job,big,"HKEX:00001")
+    # All above evidence is deliberately synthesized. No real model canary executed.
+
+
+def test_canary_scope_separates_normal_job(tmp_path):
+    wait=threading.Event()
+    s,e,_=make(tmp_path,Engine(delay=wait))
+    try:
+        ordinary=s.submit("20261013",Phase.MANUAL,lanes=[Lane.ANNOUNCEMENT])
+        canary=s.submit("20261013",Phase.MANUAL,lanes=[Lane.ANNOUNCEMENT],
+                        scope_refs={"canary_mode":"SINGLE_ARTICLE","canary_article_id":"HKEX:00001"})
+        assert ordinary.job_id != canary.job_id
+        wait.set()
+        assert done(s,ordinary).state==JobState.SUCCEEDED
+        assert done(s,canary).state==JobState.SUCCEEDED
+        assert ordinary.run_id != canary.run_id
+    finally:
+        wait.set(); s.jobs.stop()

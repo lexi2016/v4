@@ -119,7 +119,8 @@ class ManagerService:
         signature = digest({"target_date": ctx.target_date, "phase": ctx.phase.value,
                             "input_sha": input_sha, "rules": ctx.rules_version,
                             "prompt": self.config.prompt_version, "model": self.config.model,
-                            "stage": ctx.scope_refs.get("stage_run_id")})
+                            "stage": ctx.scope_refs.get("stage_run_id"),
+                            "canary_article_id": ctx.scope_refs.get("canary_article_id")})
         reuse = self.store.find_reusable(ctx.target_date, ctx.phase.value, signature)
         if reuse:
             return reuse.run_id, JobState.PARTIAL if reuse.gaps else JobState.SUCCEEDED
