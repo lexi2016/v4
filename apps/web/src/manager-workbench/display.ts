@@ -1,4 +1,4 @@
-import type { Decision, Lane, LaneDecision, ReviewMetric, StockDecision } from "./types";
+import type { Decision, Lane, LaneDecision, ReviewMetric, StockDecision, StockDetails, StockLaneDetail } from "./types";
 import { DECISION_LABELS, LANE_LABELS, showText } from "./types";
 
 export function humanTime(value: string | null | undefined): string {
@@ -53,4 +53,56 @@ export function evidenceLink(url: string | null | undefined): string | null {
     const parsed = new URL(url);
     return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : null;
   } catch { return null; }
+}
+
+
+function record(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown> : {};
+}
+function text(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+function texts(value: unknown): string[] {
+  return Array.isArray(value) ? value.map(text).filter(Boolean) : [];
+}
+export function stockTitle(stock: StockDecision): string {
+  return [stock.symbol, text(stock.name)].filter(Boolean).join(" ");
+}
+/** Prefer the actual saved source rows; do not display their mirrored decisions twice. */
+export function researchRows(stock: StockDecision, lane: Lane, detail?: StockLaneDetail): Record<string, unknown>[] {
+  return detail?.rows?.length ? detail.rows : laneEntries(stock, lane);
+}
+export function readableReason(row: Record<string, unknown>): string {
+  const reason = text(record(row.semantic).reason) || text(row.reason);
+  return /^[A-Z][A-Z0-9_]+$/.test(reason) ? "未提供可读研究理由" : reason || "未提供可读研究理由";
+}
+export function researchSections(row: Record<string, unknown>) {
+  const semantic = record(row.semantic);
+  return ([['facts', '已核事实'], ['changes', '变化'], ['impact', '影响'],
+    ['confirmation_conditions', '待确认条件'], ['counter_evidence', '反证']] as const).map(([key, label]) => {
+      const raw = semantic[key];
+      const items = Array.isArray(raw) ? raw.map(part => {
+        const value = record(part);
+        return { claim: text(value.claim) || text(part), quote: text(value.quote), locator: text(value.locator) };
+      }).filter(part => part.claim || part.quote) : [];
+      if (key === 'confirmation_conditions' && !items.length) {
+        items.push(...texts(row.conditions).map(claim => ({ claim, quote: '', locator: '' })));
+      }
+      return { key, label, items };
+    });
+}
+export function researchRisks(row: Record<string, unknown>): string[] {
+  return [...new Set([...texts(record(row.semantic).risk_notes), ...texts(row.risks)])];
+}
+export function detailReasons(detail: StockDetails): string[] {
+  const recorded = detail.lane_details.flatMap(source => researchRows(detail.stock, source.lane, source)
+    .filter(row => text(record(row.semantic).reason))
+    .map(row => `${LANE_LABELS[source.lane]}：${readableReason(row)}`));
+  return recorded.length ? [...new Set(recorded)] : texts(detail.stock.reasons);
+}
+export function detailRisks(detail: StockDetails): string[] {
+  return [...new Set([...texts(detail.stock.risks), ...detail.lane_details.flatMap(source =>
+    researchRows(detail.stock, source.lane, source).flatMap(row => researchRisks(row)
+      .map(risk => `${LANE_LABELS[source.lane]}：${risk}`)))])];
 }

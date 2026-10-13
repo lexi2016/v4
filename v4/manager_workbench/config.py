@@ -23,7 +23,7 @@ class WorkbenchConfig(StrictModel):
     rules_version: str = "POSITIVE_OPERATING_RESEARCH_V1"
     model: str = "gpt-6-luna"
     announcement_reasoning_effort: str = "max"
-    prompt_version: str = "MWB_ANNOUNCEMENT_READER_REVIEWER_V2_20261013"
+    prompt_version: str = "MWB_ANNOUNCEMENT_READER_REVIEWER_V3_20261013"
     codex_binary: Path | None = None
     cli_isolation_attested: bool = False
     model_timeout_seconds: int = Field(default=900, ge=1, le=3600)

@@ -62,7 +62,7 @@ describe("actual frozen Mac backend wire compatibility", () => {
     await fireEvent.click(screen.getByRole("button", { name: /查看 HK.00001/ }));
     await screen.findByText("失效条件");
     expect(screen.getAllByText(/volume_ratio/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/本行 evidence_ids/).textContent).not.toContain("未提供");
+    expect(screen.getByText(/审计原件：/).closest("details")?.textContent).toContain("evidence_ids");
     expect(screen.getAllByText(/VERIFIED/).length).toBeGreaterThan(0);
     await fireEvent.click(screen.getByRole("tab", { name: "计划历史" }));
     await screen.findByText("LEGACY · 原样历史");

@@ -30,8 +30,13 @@ class NativeAdapters:
         if "us" not in context.source_sessions:
             try: context.source_sessions["us"] = self._us_session(context.cutoff)
             except (ValueError,OSError): context.source_sessions["us"] = None
+        if self.config.dynamic_source_bindings and "owner_bindings" not in context.scope_refs:
+            from .source_bindings import resolve_bindings
+            pins, gaps = resolve_bindings(self.config, context)
+            context.scope_refs["owner_bindings"] = pins
+            context.scope_refs["owner_binding_gaps"] = gaps
         for lane, name in (("ANNOUNCEMENT","announcements"),("US_MAPPING","us_mapping")):
-            pin = self.config.source_bindings.get(name, {}).get(context.target_date, {})
+            pin = context.scope_refs.get("owner_bindings",{}).get(name) or self.config.source_bindings.get(name, {}).get(context.target_date, {})
             if lane == "ANNOUNCEMENT":
                 context.scope_refs[lane] = dict(owner="ManagerResearchJobService.refresh_announcements",
                     scope_state="CANNOT_CONFIRM", sha256=owner_digest(pin), universe_ref="announcement-observed:"+context.target_date)
@@ -39,7 +44,7 @@ class NativeAdapters:
                 context.scope_refs[lane] = dict(configured_symbols=pin.get("configured_symbols"),
                     source_session=context.source_sessions["us"], verification="VERIFIED" if pin else "CANNOT_CONFIRM",
                     calendar_verified=True, sha256=owner_digest(pin), universe_ref="us-fixed33:"+context.target_date)
-        close_pin = self.config.source_bindings.get("close", {}).get(context.target_date,{})
+        close_pin = context.scope_refs.get("owner_bindings",{}).get("close") or self.config.source_bindings.get("close", {}).get(context.target_date,{})
         context.scope_refs["review_universe"] = close_pin.get("evaluation_scope_ref")
         return context
 
@@ -60,9 +65,14 @@ class NativeAdapters:
             latest_completed_session = module.latest_completed_session
         return latest_completed_session(time_value(cutoff)).session_date
 
-    def _binding(self, name, date):
+    def _binding(self, name, date, context=None):
         bindings = self.config.source_bindings.get(name, {})
-        value = bindings.get(date)
+        value = context.scope_refs.get("owner_bindings",{}).get(name) if context else None
+        value = value or bindings.get(date)
+        if value:
+            for source in value.get("checked_files",[]):
+                if raw_sha(SafeRoot(Path(source.get("source_local_path") or source["root"])).read_bytes(source["relative"])) != source["sha256"]:
+                    raise ValueError("OWNER_BOUND_BYTES_CHANGED")
         if not isinstance(value, dict):
             raise ValueError(name.upper() + "_EXACT_DATE_BINDING_MISSING")
         return value
@@ -77,8 +87,8 @@ class NativeAdapters:
             raise ValueError("SOURCE_OBJECT_REQUIRED")
         return value, raw_sha(raw)
 
-    def _manifest(self, name, date, root):
-        pin = self._binding(name, date)
+    def _manifest(self, name, date, root, context=None):
+        pin = self._binding(name, date, context)
         manifest, sha = self._json(root, pin["manifest_relative"], pin["manifest_sha256"])
         if (manifest.get("trade_date", manifest.get("target_date", manifest.get("source_date"))) != date
                 or manifest.get("production_allowed") is not False or manifest.get("orders_sent", False) is not False):
@@ -99,8 +109,9 @@ class NativeAdapters:
     def membership(self, context):
         """Monthly Connect membership is separate from security-master membership."""
         try:
-            pin = self._binding("membership", context.target_date)
-            value, sha = self._json(Path(pin.get("root") or self.config.shared_root), pin["artifact_relative"], pin["artifact_sha256"])
+            pin = self._binding("membership", context.target_date, context)
+            value, sha = self._json(Path(pin.get("source_local_path") or pin.get("root") or self.config.shared_root), pin["artifact_relative"], pin["artifact_sha256"])
+            value = pin.get("projection",value)
             if value.get("schema_version") == "v4.manager_research.hk_connect_monthly_eligibility.v1":
                 source = value.get("source",{})
                 authority_root = pin.get("authority_root")
@@ -151,8 +162,19 @@ class NativeAdapters:
         """Map native facts into A's explicit evidence contract, preserving unknowns."""
         context, lane = value.context, value.lane
         records = []
-        primary = next((r for r in value.evidence_refs if r.role not in {"MONTHLY_CONNECT_MEMBERSHIP", "HK_SECURITY_MASTER"}), None)
+        by_id = {ref.evidence_id: ref for ref in value.evidence_refs}
+        default_primary = next((ref for ref in value.evidence_refs if ref.role not in
+            {"MONTHLY_CONNECT_MEMBERSHIP", "HK_SECURITY_MASTER"}), None)
         for item in value.records:
+            primary = default_primary
+            if lane == Lane.ANNOUNCEMENT:
+                candidates = [by_id[eid] for eid in item.get("evidence_ids", []) if eid in by_id
+                    and by_id[eid].role in {"ANNOUNCEMENT_BODY", "ANNOUNCEMENT_CAPTURED_BODY"}
+                    and by_id[eid].sha256 == item.get("source_sha256")]
+                # Each article owns its evidence identity. Missing or ambiguous
+                # source matches stay unknown instead of borrowing a batch owner.
+                identities = {(ref.owner, ref.sha256) for ref in candidates}
+                primary = candidates[0] if len(identities) == 1 else None
             row = dict(item, market="HK_CONNECT", target_date=context.target_date,
                        owner=primary.owner if primary else None,
                        source_sha256=item.get("source_sha256") or (primary.sha256 if primary else None),
@@ -207,7 +229,7 @@ class NativeAdapters:
         return batch(context,lane,records,value.evidence_refs,value.scope_description,coverage,value.gaps,universe_ref)
 
     def announcements(self, context):
-        pin = self._binding("announcements", context.target_date)
+        pin = self._binding("announcements", context.target_date, context)
         if "corpus_relative" in pin:
             return self._announcement_corpus(context,pin)
         codes, member_ref, gaps = self.membership(context)
@@ -364,7 +386,7 @@ class NativeAdapters:
 
     def oversold(self, context):
         date = context.source_sessions.get("hk_price") or previous_session(self.calendar, context.target_date, market="hk_securities")
-        pin = self._binding("hk_panel", date)
+        pin = self._binding("hk_panel", date, context)
         root = self.config.shared_root
         manifest, msha = self._json(root, pin["manifest_relative"], pin["manifest_sha256"])
         if manifest.get("panel_max_date") != date or manifest.get("research_only") is not True or manifest.get("production_allowed") is not False:
@@ -382,7 +404,7 @@ class NativeAdapters:
         refs = [self._ref("v3_shared_data", "HK_DAILY_PANEL", date, manifest["panel_sha256"],
                           artifact_relative, pin.get("available_at"), manifest=pin["manifest_relative"])]
         # Security master pins full scope, independently from Connect membership.
-        mpin, master, master_sha = self._manifest("security_master", date, root)
+        mpin, master, master_sha = self._manifest("security_master", date, root, context)
         mrelative = mpin.get("artifact_relative", "assets/hk_security_master/" + master["artifact_relative"])
         master_raw = SafeRoot(root).read_bytes(mrelative)
         if raw_sha(master_raw) != master["artifact_sha256"]:
@@ -442,13 +464,14 @@ class NativeAdapters:
 
     def us_mapping(self, context):
         expected = context.source_sessions.get("us") or self._us_session(context.cutoff)
-        pin = self._binding("us_mapping", context.target_date)
+        pin = self._binding("us_mapping", context.target_date, context)
         # Pinned native US owner payload + reviewed registry, never old computed matches.
-        quote_root = Path(pin["quote_root"])
+        quote_root = Path(pin.get("quote_local_path") or pin["quote_root"])
         quotes, qsha = self._json(quote_root, pin["quote_relative"], pin["quote_sha256"])
         snapshot=quotes.get("market_snapshot",quotes)
         if not isinstance(snapshot,dict):raise ValueError("US_NATIVE_SNAPSHOT_SHAPE_INVALID")
-        registry, rsha = self._json(Path(pin["relation_root"]), pin["relation_relative"], pin["relation_sha256"])
+        registry, rsha = self._json(Path(pin.get("relation_local_path") or pin["relation_root"]), pin["relation_relative"], pin["relation_sha256"])
+        registry = pin.get("relation_projection",registry)
         if snapshot.get("session_date", snapshot.get("us_session_date",snapshot.get("capture_session_date"))) != expected:
             raise ValueError("US_SESSION_MISMATCH")
         configured = pin.get("configured_symbols", [])
@@ -510,7 +533,11 @@ class NativeAdapters:
 
     def stage(self, context):
         root = self.config.stage_root
-        pointer, _ = self._json(root, "selection_latest.json")
+        pin = context.scope_refs.get("owner_bindings",{}).get("stage")
+        if pin is None:
+            pointer, _ = self._json(root, "selection_latest.json")
+        else:
+            pointer = {"entries":pin["entries"]}
         records, refs, gaps = [], [], []
         for key, entry in pointer.get("entries", {}).items():
             if entry.get("trade_date") != context.target_date or entry.get("market") != "HK_CONNECT":
@@ -546,7 +573,7 @@ class NativeAdapters:
                      Coverage(observed_count=len(records), gaps=gaps), gaps)
 
     def close(self, context):
-        pin, manifest, msha = self._manifest("close", context.target_date, self.config.shared_root)
+        pin, manifest, msha = self._manifest("close", context.target_date, self.config.shared_root, context)
         rel = pin.get("artifact_relative", "assets/hk_0_2/" + manifest["artifact_relative"])
         data, sha = self._json(self.config.shared_root, rel, manifest["artifact_sha256"])
         receipt_relative=pin.get("receipt_relative")

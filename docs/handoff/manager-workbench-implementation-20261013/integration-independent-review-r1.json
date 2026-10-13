@@ -1,0 +1,116 @@
+{
+  "verdict": "FAIL",
+  "reviewer": "/root/manager_reviewer_sol",
+  "scope": "frozen 16 integration files; prior seven executor PASS reused",
+  "freeze_receipt_sha256": "533101328f7d492de1a895aa981fa6e2254319d777b9553515b9de55dc99d46b",
+  "frozen_files": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "after_sha256": "b21a06958262f32715dafc8282e8ae292992c954c8ff0a7351f24d37bcb51a2b"
+    },
+    {
+      "path": "apps/web/src/manager-selection/main.ts",
+      "after_sha256": "343e6a6a0a941b901f2727df3ae6b77241b75f729fca453a6aaf7a7b5b0e9771"
+    },
+    {
+      "path": "apps/web/manager-selection/index.html",
+      "after_sha256": "1cfb59aebbc8747ca6f4696a9b13832fb16d75dadbe198cc85344c8965341274"
+    },
+    {
+      "path": "ops/run_v35_macos_scheduler_daemon.py",
+      "after_sha256": "4498afed94affda084603c9b07016eaa292840745d5a8a76be205dd2245c942f"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "after_sha256": "e290d093b1d3eddd6b178d65d8efdf4fb08cfcc59af5b4e7a6eb4fb359fdde98"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "after_sha256": "5a7f7cccad02626f36166db84c42ab48905382f1a8ae99c1bb3761288f887493"
+    },
+    {
+      "path": "v4/manager_workbench/binding.py",
+      "after_sha256": "7bb6c0bc369e4ef1838b12b3b1dcca316d3f85e910c5e145e473c25c2852c341"
+    },
+    {
+      "path": "v4/manager_workbench/supervisor.py",
+      "after_sha256": "3654f1b07e7792aee37cd568f23ca21b9c87b5dde239b2eebedb55c273b04873"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_integration.py",
+      "after_sha256": "1b0a651b7fc71d83114a81f01e2af974cf99f92c2b04c5d07e62023df6de3660"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/serve_isolated_candidate.py",
+      "after_sha256": "434ff80b94afda9fc687daf2385c8f5e83e9365055171ac2d038b961dbb2268b"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/verify_active_api_candidate.py",
+      "after_sha256": "83bfc63d0dda4a549d00916ba22bcdbcdd14c6861cfeb84ccb6ee2750ab13a5a"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/verify_saved_canary_candidate.py",
+      "after_sha256": "a8a70dbcda4c335b309539df502117669966ecc19c20902d410b8e70ae75ab31"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/probe_existing_owner_bindings.py",
+      "after_sha256": "a3e3dd29021962ccf77a8f3a548d67d216687cf10bfa60d5b9ab3d31309c91ee"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/build_isolated_candidate.py",
+      "after_sha256": "e3e437ab9b7bee66729b786ed873899cc83810e7923bad3d90d1330b7fe72494"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/prepare_manager_deltas.py",
+      "after_sha256": "18ef4bea773a6309b8df64a820b6ca03359eda4a5313c6dfd3f02032181dd4b8"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/INTEGRATION_CANDIDATE.md",
+      "after_sha256": "33e4bd10bda4cdbb8aa848e6a6811c706abbce1ca5c950509d425d2545f22e63"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 <specified python> -m pytest tests/manager_workbench -q -p no:cacheprovider --basetemp=/private/tmp/mwb-integration-review-pytest-20261013",
+    "result": "84 passed in 2.20s"
+  },
+  "actual_preimage_checks": [
+    "canonical",
+    "canonical",
+    "canonical",
+    "canonical",
+    "api",
+    "scheduler"
+  ],
+  "exact_patches_matched": 4,
+  "candidate_delta_count": 44,
+  "active_non_delta_bytes_matched": 1072,
+  "mechanical_receipt_sha256": "656b82c6ae8aae0a9c400109a23126aeaca7a0a9f53f30174a837cfe315e32b4",
+  "direct_receipt_sha256": "f74be6820e2079aa05a5067a91820716d6a56639d6c7c0e51922d233c68ad13c",
+  "issues": [
+    {
+      "priority": "P2",
+      "file": "v4/manager_workbench/inputs/native.py",
+      "line": 165,
+      "code": "PER_RECORD_OWNER_REPLACED_BY_BATCH_FIRST_OWNER"
+    },
+    {
+      "priority": "P2",
+      "file": "v4/manager_workbench/inputs/source_bindings.py",
+      "line": 62,
+      "code": "HISTORICAL_CURRENT_SHA_FAILURE_ABORTS_VALID_NEW_MONTHLY_AUTHORITY"
+    }
+  ],
+  "NOT_RUN": [
+    "paid model rerun",
+    "service deployment/restart",
+    "formal state/plist changes",
+    "natural launchd slot",
+    "full-day announcement acquisition"
+  ],
+  "overall_functional_gaps": [
+    "new exclusive acquisition not activated; actual 20261013/14 exact-day announcement owner unavailable",
+    "HK units/US priority metadata remain CANNOT_CONFIRM",
+    "full close ranking original owner unconfirmed",
+    "UI readability repair separately required"
+  ]
+}

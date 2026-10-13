@@ -1,0 +1,152 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW_CANDIDATE_V6",
+  "created_at": "2026-10-13T13:14:07.933206+08:00",
+  "candidate_app": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/isolated-api-candidate-v6/app",
+  "base": {
+    "release_root": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_PAGE_REPAIR_20261013_R9/runtime_repair_R10/page_r10/api/research-workbench-stage-partial-display-20261013-r10",
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_PAGE_REPAIR_20261013_R9/runtime_repair_R10/page_r10/api/research-workbench-stage-partial-display-20261013-r10/app",
+    "release_id": "research-workbench-stage-partial-display-20261013-r10",
+    "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_POOL_STAGE_HK_PAGE_REPAIR_20261013_R9/runtime_repair_R10/page_r10/api/research-workbench-stage-partial-display-20261013-r10/release-manifest.json",
+    "release_manifest_sha256": "9a0f25deb059d4f855934ff7d45693dcc6bbe35d1ebc0d513b96dcff4d063368",
+    "application_inventory_sha256": "4ef9d28896c1d24bd64217649644540c136e9863dccf160a0ef84d8c965e4a69",
+    "application_inventory_entry_count": 1076
+  },
+  "manager_delta_count": 44,
+  "preserved_active_original_files": 1072,
+  "manager_asset_dependency_closure_only": true,
+  "candidate_v5_delta_bytes_preserved": true,
+  "receipt_refs": [
+    {
+      "path": "deployment-deltas/build_isolated_candidate_v6.py",
+      "sha256": "a81df9bb51bc09138e9fd4b648d5e6cf56856c55b334b5f80e7aed434301a579"
+    },
+    {
+      "path": "deployment-deltas/api-integration-delta-v6-receipt.json",
+      "sha256": "6fae122fec5b454846564b9411dd03997a728f583596dd6830c9403a9618bcdb"
+    },
+    {
+      "path": "deployment-deltas/isolated-candidate-build-v6-receipt.json",
+      "sha256": "3f760203e195758b23d29b1d530e2deccfc0dd94663775d65f11ff18c1584304"
+    },
+    {
+      "path": "verify_active_api_candidate_v6.py",
+      "sha256": "c1256e5b6294a18c6893de27fd86b42afe700868b89b5ff936bebece1174b10c"
+    },
+    {
+      "path": "verify_saved_canary_candidate_v6.py",
+      "sha256": "a3c640df845670058e64af4872df76ba82f8e0871b65e3b081d71210ce80226f"
+    },
+    {
+      "path": "serve_isolated_candidate_v6.py",
+      "sha256": "289d547c22c4dcd2a8502d50e0ef59dd5f471b91319114971431215761e79b22"
+    },
+    {
+      "path": "integration-active-api-v6-http-receipt.json",
+      "sha256": "a1ecf93c07db18024fede4d79ebe9487c2667a7393b7fb5855c08a39e872dfe8"
+    },
+    {
+      "path": "integration-real-v6-saved-readback-receipt.json",
+      "sha256": "180033ef9c8c09c0a6eae8c7b8cd998eaca68d9322bcd6663d4be63380bbad6b"
+    },
+    {
+      "path": "integration-v6-build.log",
+      "sha256": "f4d5d5cda0a021c652bfae3a530f7cec50922d630262a5212f443d15b6db6892"
+    }
+  ],
+  "source_freeze_receipt": {
+    "path": "input-owner-identity-v3-receipt.json",
+    "sha256": "fda76d7175697492045c116df38bf83575f29ee997cf83889fb98536ef7bfb51"
+  },
+  "UI_independent_PASS": {
+    "receipt": "/private/tmp/mwb-ui-independent-ct_ery9y/independent-ui-review-receipt.json",
+    "sha256": "ad5a23ff6a80bec2e9b8326ccf058b8650f9fe881dd2a378f401589236f5eb27",
+    "reused": true
+  },
+  "tests": {
+    "frontend_build": "Vite exit0 417ms; complete build output filtered to manager dependency closure",
+    "real_saved_HTTP": {
+      "http_status": 200,
+      "run_id": "7eacc6a084354f0c86af3c9e3c56cfa6",
+      "product_sha256": "933a60f117a5e81f5498d9158ab26c561bc8bb186d3cf5ad781d7e2ad7444fd0",
+      "counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 1,
+        "observation_only": 0,
+        "not_selected": 0
+      },
+      "stocks": 1,
+      "immutable_saved_product_matches": true,
+      "model_calls": 0,
+      "manager_page_status": 200,
+      "empty_date_status": 200,
+      "candidate_app": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/isolated-api-candidate-v6/app",
+      "state_directory": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/tests/manager_workbench/runtime/.tmp/real-single-article-z50x41vq",
+      "environment": "RETROSPECTIVE saved real single article, read only through TestClient; no model or port"
+    },
+    "synthetic_actual_native_engine_store_HTTP": {
+      "initial_status": 200,
+      "post_status": 202,
+      "job_state": "SUCCEEDED",
+      "read_status": 200,
+      "counts": {
+        "selected": 251,
+        "watch": 0,
+        "unassessed": 0,
+        "observation_only": 0,
+        "not_selected": 0
+      },
+      "last_page_rows": 51,
+      "run_id": "bf8476a42641401ab9dfb9238da5c0d2",
+      "product_sha256": "12a2ba5f6543a527c403888de6991094a3c41b31cc67518e687b96acd3c2c2d3",
+      "schema": "v4.manager_workbench.v1",
+      "manager_page_status": 200,
+      "compiled_page_has_vue_bundle": true,
+      "old_modules_loaded": [],
+      "old_owner_excluded": true,
+      "state_directory": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/tests/manager_workbench/runtime/.tmp/active-api-http-8chxmipi",
+      "candidate_app": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/isolated-api-candidate-v6/app",
+      "config_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/tests/manager_workbench/runtime/.tmp/active-api-http-8chxmipi/config.json",
+      "environment": "actual R10 active-base factory/closure; synthetic inputs; TestClient only; no port or service started"
+    },
+    "backend": "88 tests passed; reused frozen receipt",
+    "frontend": "52 tests + typecheck independently PASS; reused"
+  },
+  "browser": [
+    {
+      "case": "real",
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/serve_isolated_candidate_v6.py' --case real --port 18873",
+      "url": "http://127.0.0.1:18873/manager-selection/?date=20261012&phase=RETROSPECTIVE&run_id=7eacc6a084354f0c86af3c9e3c56cfa6",
+      "state_directory": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/tests/manager_workbench/runtime/.tmp/real-single-article-z50x41vq",
+      "product_sha256": "933a60f117a5e81f5498d9158ab26c561bc8bb186d3cf5ad781d7e2ad7444fd0",
+      "model_calls": 0,
+      "post_blocked": true
+    },
+    {
+      "case": "synthetic",
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/serve_isolated_candidate_v6.py' --case synthetic --port 18873",
+      "url": "http://127.0.0.1:18873/manager-selection/?date=20261013&phase=MANUAL&run_id=bf8476a42641401ab9dfb9238da5c0d2",
+      "state_directory": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/tests/manager_workbench/runtime/.tmp/active-api-http-8chxmipi",
+      "product_sha256": "12a2ba5f6543a527c403888de6991094a3c41b31cc67518e687b96acd3c2c2d3",
+      "model_calls": 0,
+      "post_blocked": true
+    }
+  ],
+  "empty_date_url": "http://127.0.0.1:18873/manager-selection/?date=20261014&phase=MANUAL",
+  "NOT_RUN": [
+    "Browser validation of V6 compiled page",
+    "Source identity/V3 independent review",
+    "Deployment or service/state changes",
+    "Current-day exclusive announcement collection takeover",
+    "Natural execution"
+  ],
+  "sync_exclusions": [
+    "isolated-api-candidate*",
+    "api-delta-source*",
+    "dist/all .tmp",
+    "real-announcement-http.local.json",
+    "raw source/model material files"
+  ],
+  "production_allowed": false,
+  "orders_sent": false
+}

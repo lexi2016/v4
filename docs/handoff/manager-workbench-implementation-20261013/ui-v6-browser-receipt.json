@@ -1,0 +1,51 @@
+{
+  "status": "UI_VERIFIED_ISOLATED_V6_ONLY",
+  "verifier": "/root",
+  "verified_at": "2026-10-13T13:22:33.309412+08:00",
+  "candidate_receipt_sha256": "558fc1f00173aa6bcf8c45c8a251502a84704f139739884c1c3e288b4f9039b9",
+  "method": "CUA in-app browser against temporary isolated R10-base candidate; GET-only saved retrospective run",
+  "run_id": "7eacc6a084354f0c86af3c9e3c56cfa6",
+  "target_date": "20261012",
+  "phase": "RETROSPECTIVE",
+  "symbol": "HK.06655",
+  "product_sha256": "933a60f117a5e81f5498d9158ab26c561bc8bb186d3cf5ad781d7e2ad7444fd0",
+  "checks": {
+    "full_reason_visible": true,
+    "both_saved_risk_notes_visible": true,
+    "facts_changes_conditions_counterevidence_quotes_locators_visible": true,
+    "null_accessible_label_absent": true,
+    "one_collapsed_audit_section": true,
+    "raw_json_not_default_display": true,
+    "history_product_sha_matches": true,
+    "reload_preserves_run_and_semantic_detail": true,
+    "console_warning_error_count": 0
+  },
+  "prior_unchanged_pagination_evidence": {
+    "candidate": "V5",
+    "total": 251,
+    "page_rows": [
+      50,
+      50,
+      50,
+      50,
+      50,
+      1
+    ],
+    "empty_filter_preserves_full_total": true,
+    "missing_date_does_not_reuse_old_rows": true
+  },
+  "temporary_server": {
+    "port": 18873,
+    "session": 18327,
+    "stopped_exit_code": 0,
+    "tab_closed": true
+  },
+  "NOT_RUN": [
+    "Formal 8873 deployment/page acceptance",
+    "Current-day exclusive capture takeover",
+    "Natural scheduled slots"
+  ],
+  "model_calls": 0,
+  "production_allowed": false,
+  "orders_sent": false
+}

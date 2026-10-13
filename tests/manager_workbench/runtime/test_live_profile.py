@@ -52,7 +52,7 @@ def test_proxy_form_actual_enum_failure_regression_and_independent_review():
         reader_output_sha256=digest(output),disposition='NOT_SELECTED',direction='NEUTRAL',evidence_sufficiency='VERIFIED_EXISTING_FACTS',**article)
     validate_output(reviewed,REVIEWER_SCHEMA)
     _validate_review(article,reader,dict(output=reviewed,execution_identity='reviewer:2',execution_id='reviewer'))
-    assert PROMPT_VERSION=='MWB_ANNOUNCEMENT_READER_REVIEWER_V2_20261013'
+    assert PROMPT_VERSION=='MWB_ANNOUNCEMENT_READER_REVIEWER_V3_20261013'
     executor=SimpleNamespace(models={'READER':'gpt-6-luna'},reasoning_effort={'READER':'max'})
     current=_task(executor,'READER',article={**article,'article_id':'official:1','symbol':'HK.00001','owner':'HKEX','observed_at':'2026-10-12T18:00:00+08:00','available_at':'2026-10-12T18:00:00+08:00'},body=body)
     assert current['prompt_version']==PROMPT_VERSION

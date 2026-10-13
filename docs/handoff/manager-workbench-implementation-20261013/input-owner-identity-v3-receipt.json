@@ -1,0 +1,156 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "created_at": "2026-10-13T13:11:56.853043+08:00",
+  "writer": "/root/manager_writer_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "files": [
+    {
+      "path": "v4/manager_workbench/engines/announcement.py",
+      "before_sha256": "8c13d3dad51f615852d7f50a969a1eb62700715668ea8fa9fccc50effca87398",
+      "after_sha256": "c786c837d4e3b8e06da017f3b7615e7561b5cd782c82b313e570b2bb00d09ee9"
+    },
+    {
+      "path": "v4/manager_workbench/config.py",
+      "before_sha256": "c72805f97702f16ebf153d2b84c6e6461b48514f6d0439d938e7cf4b5bf30915",
+      "after_sha256": "a4326c114c9c26cd63157cf6fe57b3047366690355d80329f4b40769cebbb458"
+    },
+    {
+      "path": "docs/examples/manager_workbench.example.json",
+      "before_sha256": "f94a8d3a90f25c4067cc358e9771a3229ab86f667c34fa8db1ae9a6e5dd045bc",
+      "after_sha256": "01dc07e7b56a604afe6a628798f324071e2a1f0020fb2b0385fef34bc808a075"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_live_profile.py",
+      "before_sha256": "89e302d0fbae2f91dca2f3d6c6758777e0e8ad88381497e473ede070321aec5b",
+      "after_sha256": "3349e4bfb4b5cb5cf142da6c562fb62ad64b52f85c892fb8acd83b16f5546721"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "5a7f7cccad02626f36166db84c42ab48905382f1a8ae99c1bb3761288f887493",
+      "after_sha256": "c67f98713cff198ee5d57322a29ed5ccc6ab7c048ce440c6d72d880346b5b70a"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "e290d093b1d3eddd6b178d65d8efdf4fb08cfcc59af5b4e7a6eb4fb359fdde98",
+      "after_sha256": "62c34dea73a458f8961b2d8eed3c1de23ccc2da0eb60987c847265f0c6e56b53"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_integration.py",
+      "before_sha256": "1b0a651b7fc71d83114a81f01e2af974cf99f92c2b04c5d07e62023df6de3660",
+      "after_sha256": "d21c91b980ee0064f1564381fb7d6a2ddd292df120141f895c137ee08aec225b"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_owner_fix_canary.py",
+      "before_sha256": null,
+      "after_sha256": "70f2b5bd8f12f8ce1b4b62f252f9894bbc3242a39aa4579f0bad6804c9a1a555"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_owner_identity_v3_canary.py",
+      "before_sha256": null,
+      "after_sha256": "54c38de019ffd9a9e64dedd1a72104fb11ad2aedf91344a41e51044a2dcdae91"
+    }
+  ],
+  "fixes": [
+    "Each captured announcement resolves its own body evidence by IDs and exact source SHA; batch order never assigns owner",
+    "Invalid monthly publication candidates are isolated while all retained raw/content identity checks remain strict",
+    "Private common input hash and cache seed bind owner/source refs and evidence IDs; Reader output belongs only to Reviewer role materials/cache",
+    "V3 trusted prompts require continuous source substrings with spaces/newlines preserved; validators and schemas unchanged"
+  ],
+  "tests": [
+    {
+      "command": "pytest tests/manager_workbench -q -p no:cacheprovider --basetemp tests/manager_workbench/runtime/.tmp/owner-identity-v3",
+      "environment": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "result": "88 passed in 2.17s",
+      "log_sha256": "1a3e9b923881e305d880dcbaca181e2ee6c1ae1bce576592e96fa2dcebc51809"
+    }
+  ],
+  "private_schema_semantics_unchanged": true,
+  "private_schema_sha256": "99beb06003e108bae1f87c8f5a4a556882d209fbb51dd11a3a79185ba0ef3d16",
+  "failed_r3_preserved": {
+    "receipt": "real-single-article-owner-fix-canary-receipt.json",
+    "sha256": "e47172ad3272beaced099051e09227ffdf8d46531fdd280c697ff79e8ddfb34b",
+    "run_id": "403d106464d8423693fbb252af4f71a9",
+    "failure": "ANNOUNCEMENT_UNSUPPORTED_SOURCE_QUOTE",
+    "local_diff_path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/tests/manager_workbench/runtime/.tmp/real-single-article-3hdz12ag/unsupported_quote_diff.local.json",
+    "local_diff_sha256": "7b5151f2ba192e81ac707f458f4eaee1db1224130a1ce17ad400f72eeb6970d9",
+    "classification": "one counter_evidence quote changed whitespace only; rejected; no validator relaxation",
+    "raw_diff_excluded_from_sync": true
+  },
+  "successful_v3": {
+    "receipt": "real-single-article-owner-identity-v3-canary-receipt.json",
+    "sha256": "337901e28ae265a08722a924e1dac746c87e54fc331fc2befe952bfd2730df6b",
+    "run_id": "7eacc6a084354f0c86af3c9e3c56cfa6",
+    "state_directory": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/tests/manager_workbench/runtime/.tmp/real-single-article-z50x41vq",
+    "job_state": "SUCCEEDED",
+    "source_owner": "HKEX_OFFICIAL",
+    "body_sha256": "0980ac40d560280aac04eaaffbaaa91fb22c71f64bf5f246eb84474c3d51ab11",
+    "source_sha256": "3642a3f0199d372185f569858516c56ca6f39e50fedfa6dacbf781a7df14bd78",
+    "product_sha256": "933a60f117a5e81f5498d9158ab26c561bc8bb186d3cf5ad781d7e2ad7444fd0",
+    "http_status": 200,
+    "immutable_saved_readback_sha_matches": true,
+    "executions": [
+      {
+        "role": "READER",
+        "execution_id": "aeede718bc9f4d758fbf97aec789de83",
+        "execution_identity": "aeede718bc9f4d758fbf97aec789de83:77732",
+        "input_sha256": "6996eb70ae2985574422909e7b46b12b80fb987e0236866afc057fb410017968",
+        "material_sha256": "6996eb70ae2985574422909e7b46b12b80fb987e0236866afc057fb410017968",
+        "output_sha256": "5850adbfa1de583d248603e4bcb4316d9362943bdaed2ebc603c725462c19039",
+        "raw_checkpoint_sha256": "db844865e89ff30870d6e3e720c1ae1fde45369f54fb43216530ca5f95b95993",
+        "prompt_version": "MWB_ANNOUNCEMENT_READER_REVIEWER_V3_20261013",
+        "model": "gpt-6-luna",
+        "process_pid": 77732,
+        "started_at": "2026-10-13T13:09:26.854066+08:00",
+        "finished_at": "2026-10-13T13:09:52.464186+08:00"
+      },
+      {
+        "role": "REVIEWER",
+        "execution_id": "5dc9cbdc842f4600b2f91d4623624195",
+        "execution_identity": "5dc9cbdc842f4600b2f91d4623624195:77802",
+        "input_sha256": "6996eb70ae2985574422909e7b46b12b80fb987e0236866afc057fb410017968",
+        "material_sha256": "c7dc5c0d742c2d86ae2e80fb3e67d20d68331cf245794c3cbcfdaf3863335698",
+        "output_sha256": "1167cfaf69e71558a1891aacb035b51d29f0d02dca1367dedbf75c61c95c7439",
+        "raw_checkpoint_sha256": "f03ec18e38ae16027b4a2a7339aa599adac86fea606d053038e51922494646b8",
+        "prompt_version": "MWB_ANNOUNCEMENT_READER_REVIEWER_V3_20261013",
+        "model": "gpt-6-luna",
+        "process_pid": 77802,
+        "started_at": "2026-10-13T13:09:52.599129+08:00",
+        "finished_at": "2026-10-13T13:10:09.486867+08:00"
+      }
+    ],
+    "reader_reviewer_same_input_sha": true,
+    "execution_identity_distinct": true,
+    "role_material_sha_distinct": true,
+    "old_body_only_input_sha_changed": true,
+    "announcement_lane_decision": "NOT_SELECTED",
+    "aggregate_stock_decision": "UNASSESSED",
+    "original_pit": "CANNOT_CONFIRM"
+  },
+  "old_attempt_receipts_unchanged": [
+    {
+      "path": "real-single-article-canary-r1-receipt.json",
+      "sha256": "59a8bd7840e261f9dda7c85ab55e0a07db8336719487e9819cb2188b3ecf593c"
+    },
+    {
+      "path": "real-single-article-canary-receipt.json",
+      "sha256": "21f60dcf217508a5474b338cf4414ec3bad430718c06e1eb25f5f7e9c5ba96fd"
+    }
+  ],
+  "preserved": [
+    "independently passed UI files",
+    "codex.py/local_cli.py isolation runner and fixed profile",
+    "public contract/schema",
+    "candidate-v5",
+    "canonical and active service/state"
+  ],
+  "NOT_RUN": [
+    "Independent review of this combined source/task/prompt increment",
+    "Candidate V6 compilation and browser acceptance",
+    "Current-day exclusive acquisition takeover",
+    "Natural execution and deployment"
+  ],
+  "production_allowed": false,
+  "orders_sent": false
+}

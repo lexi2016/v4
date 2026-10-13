@@ -1,0 +1,46 @@
+{
+  "verdict": "PASS",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "source_receipt_sha256": "558fc1f00173aa6bcf8c45c8a251502a84704f139739884c1c3e288b4f9039b9",
+  "candidate_app": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/deployment-deltas/isolated-api-candidate-v6/app",
+  "delta_count": 44,
+  "preserved_original_count": 1072,
+  "base_inventory_sha256": "4ef9d28896c1d24bd64217649644540c136e9863dccf160a0ef84d8c965e4a69",
+  "preserved_inventory_sha256": "aa8136514fe4d2e2e54d10edff94d8776f211714b6c191d8d095d83863a630a6",
+  "candidate_inventory_sha256": "166508ab80d18e78fa7ac128a5de968adcbaa80765c0737f2d7c43316fa7662a",
+  "v5_inventory_sha256": "a0653f6427e8ea27adb78761e86920a6301de415bb4b3047d8326491b6af0d29",
+  "v5_frozen_delta_sha_and_base_preservation_verified": true,
+  "v5_byte_inventory_unchanged_during_review": true,
+  "reviewed_v3_ui_runtime_file_sha_matches": 7,
+  "unchanged_runtime_modules_match_v5": true,
+  "saved_r4_readback": {
+    "http_status": 200,
+    "run_id": "7eacc6a084354f0c86af3c9e3c56cfa6",
+    "product_sha256": "933a60f117a5e81f5498d9158ab26c561bc8bb186d3cf5ad781d7e2ad7444fd0",
+    "counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 1,
+      "observation_only": 0,
+      "not_selected": 0
+    },
+    "stocks": 1,
+    "immutable_saved_product_matches": true,
+    "model_calls": 0,
+    "manager_page_status": 200,
+    "empty_date_status": 200,
+    "old_modules_loaded": []
+  },
+  "saved_r4_files_before_after_identical": 20,
+  "source_and_tests_previous_pass_reused": true,
+  "browser": "parent CUA evidence reused; not repeated by reviewer",
+  "model_calls": 0,
+  "NOT_RUN": [
+    "deployment",
+    "natural execution",
+    "exclusive capture takeover"
+  ],
+  "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python /private/tmp/mwb-v6-review-prepare.py"
+}

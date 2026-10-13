@@ -1,0 +1,99 @@
+{
+  "status": "PASS",
+  "real_run_id": "7eacc6a084354f0c86af3c9e3c56cfa6",
+  "product_sha256": "933a60f117a5e81f5498d9158ab26c561bc8bb186d3cf5ad781d7e2ad7444fd0",
+  "http_response_sha256": "9cd15f5033ca4c1ce55ce13212717fe52c1c3e17ad4aefd9430d18c94d15ec6b",
+  "readback_status": 200,
+  "source_owner": "HKEX_OFFICIAL",
+  "input_sha256": "6996eb70ae2985574422909e7b46b12b80fb987e0236866afc057fb410017968",
+  "schema_unchanged": true,
+  "validators_unchanged": true,
+  "old_r1_r2_r3_and_r4_store_byte_hash_unchanged": true,
+  "counts_of_files_verified": [
+    20,
+    16,
+    20,
+    16
+  ],
+  "r3_original_quote_rejection_reproduced": true,
+  "source_refs_and_role_cache_recomputed": true,
+  "synthetic_malformed_late_reverse_order_and_ambiguous_owner_pass": true,
+  "model_calls": 0,
+  "commands": [
+    "88 pytest passed in 2.10s",
+    "direct_review.py"
+  ],
+  "scope": "source/task/prompt increment only",
+  "NOT_RUN": [
+    "natural execution",
+    "deployment",
+    "exclusive acquisition takeover",
+    "V6 browser"
+  ],
+  "verdict": "PASS",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "handoff_receipt_sha256": "fda76d7175697492045c116df38bf83575f29ee997cf83889fb98536ef7bfb51",
+  "scope_file_sha256s": [
+    {
+      "path": "v4/manager_workbench/engines/announcement.py",
+      "before_sha256": "8c13d3dad51f615852d7f50a969a1eb62700715668ea8fa9fccc50effca87398",
+      "after_sha256": "c786c837d4e3b8e06da017f3b7615e7561b5cd782c82b313e570b2bb00d09ee9"
+    },
+    {
+      "path": "v4/manager_workbench/config.py",
+      "before_sha256": "c72805f97702f16ebf153d2b84c6e6461b48514f6d0439d938e7cf4b5bf30915",
+      "after_sha256": "a4326c114c9c26cd63157cf6fe57b3047366690355d80329f4b40769cebbb458"
+    },
+    {
+      "path": "docs/examples/manager_workbench.example.json",
+      "before_sha256": "f94a8d3a90f25c4067cc358e9771a3229ab86f667c34fa8db1ae9a6e5dd045bc",
+      "after_sha256": "01dc07e7b56a604afe6a628798f324071e2a1f0020fb2b0385fef34bc808a075"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_live_profile.py",
+      "before_sha256": "89e302d0fbae2f91dca2f3d6c6758777e0e8ad88381497e473ede070321aec5b",
+      "after_sha256": "3349e4bfb4b5cb5cf142da6c562fb62ad64b52f85c892fb8acd83b16f5546721"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "5a7f7cccad02626f36166db84c42ab48905382f1a8ae99c1bb3761288f887493",
+      "after_sha256": "c67f98713cff198ee5d57322a29ed5ccc6ab7c048ce440c6d72d880346b5b70a"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "e290d093b1d3eddd6b178d65d8efdf4fb08cfcc59af5b4e7a6eb4fb359fdde98",
+      "after_sha256": "62c34dea73a458f8961b2d8eed3c1de23ccc2da0eb60987c847265f0c6e56b53"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_integration.py",
+      "before_sha256": "1b0a651b7fc71d83114a81f01e2af974cf99f92c2b04c5d07e62023df6de3660",
+      "after_sha256": "d21c91b980ee0064f1564381fb7d6a2ddd292df120141f895c137ee08aec225b"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_owner_fix_canary.py",
+      "before_sha256": null,
+      "after_sha256": "70f2b5bd8f12f8ce1b4b62f252f9894bbc3242a39aa4579f0bad6804c9a1a555"
+    },
+    {
+      "path": "docs/handoff/manager-workbench-implementation-20261013/run_owner_identity_v3_canary.py",
+      "before_sha256": null,
+      "after_sha256": "54c38de019ffd9a9e64dedd1a72104fb11ad2aedf91344a41e51044a2dcdae91"
+    }
+  ],
+  "ui_prior_pass_sha_reused": true,
+  "original_corpus_manifest_receipt_raw_sha_verified": true,
+  "original_source_sha_declared_by_original_corpus_verified": true,
+  "raw_pdf_bytes_reopened": false,
+  "old_r1_raw_checkpoint_sha_witness_matches": true,
+  "old_r2_output_sha_witness_matches": true,
+  "old_r3_original_receipt_and_diff_sha_witness_match": true,
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest tests/manager_workbench -q -p no:cacheprovider --basetemp /private/tmp/mwb-owner-v3-independent-lop93nha/pytest",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "status_scope": [
+    "REVIEWED narrow 9-file increment",
+    "TESTED 88 tests + direct cases",
+    "BEHAVIOR_VERIFIED frozen r4 source/checkpoint/store/API readback; no new model"
+  ]
+}

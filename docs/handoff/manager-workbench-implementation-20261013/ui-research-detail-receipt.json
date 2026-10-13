@@ -1,0 +1,112 @@
+{
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "created_at": "2026-10-13T13:01:34.505009+08:00",
+  "scope": "actual announcement detail readability only",
+  "writer": "/root/manager_writer_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "files": [
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_sha256": "978ea36bcf34d366ce3aaf164383a60ecd2e3950c540c93bf8206e912d46aae4",
+      "after_sha256": "3ab70ee7942fe4ed14e455b919caecc663ed5a57b7e0b35d6cafb3caf2914264"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/display.ts",
+      "before_sha256": "cb44aafd45cee20d9ea9fb92dd2291075a0e85ed82789813e5d4ecc92d20499f",
+      "after_sha256": "b9d0ae2308b5368fdad2190b1acd42227a94d1162d802f878c0bd9933c5c1a3b"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "before_sha256": "9e2782fe082845670fc75b10f95b43f2f6e3079788c2f347fb2153323097e2ff",
+      "after_sha256": "9a9a7036327fac5843bc6cadcb4dd64b810a99cb54fbfdf71201de3eab52a147"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/backend_capture.spec.ts",
+      "after_sha256": "58f8090e8b553ad2a80301d485617791de3e7239db4cd5ca2c41c4f4ae6e3d51"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/research_detail.spec.ts",
+      "after_sha256": "3f6f434f8f5f1deb814cefde6793eab4e078097694d4943c37128b01e0e8db27"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/fixtures/capture_real_detail.py",
+      "after_sha256": "2a25d1a03806f634d5db840f975476668a20935936e1fa876157bba677b617c2"
+    }
+  ],
+  "behavior": [
+    "semantic.reason displayed ahead of machine reason codes",
+    "semantic.risk_notes shown in top risks and own lane without changing decisions",
+    "facts/changes/impact/conditions/counter-evidence shown from recorded fields with original quote and locator",
+    "source rows displayed once instead of duplicated lane objects and raw source dumps",
+    "complete machine response retained once in closed audit details",
+    "null stock name omitted from title and accessible button name",
+    "specified lane/POST/A-engine/B-store developer wording replaced with ordinary business Chinese"
+  ],
+  "actual_http_fixture": {
+    "generator": "apps/web/src/manager-workbench/__tests__/fixtures/capture_real_detail.py",
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/apps/web/src/manager-workbench/__tests__/fixtures/real-announcement-http.local.json",
+    "sha256": "e7fe7c17b7145235989a13d8879d0c71dcca6053d6c12a0eff37b84741e4fcf3",
+    "source": "frozen R10 candidate TestClient against immutable real r2 saved snapshot",
+    "run_id": "6edb1843f8a648cb8fdb25416b842f11",
+    "product_sha256": "f1727ebe7ca374267dcc89a6d728ae030819a21a8d806c433c480d292ba603a6",
+    "stock": "HK.06655",
+    "semantic_field_keys": [
+      "body_sha256",
+      "changes",
+      "counter_evidence",
+      "direction",
+      "disposition",
+      "evidence_sufficiency",
+      "facts",
+      "impact",
+      "reader_execution_id",
+      "reader_output_sha256",
+      "reason",
+      "reviewed_at",
+      "reviewer_execution_id",
+      "risk_notes",
+      "selection_basis",
+      "source_sha256"
+    ],
+    "reason_characters": 362,
+    "risk_notes_count": 2,
+    "model_calls": 0,
+    "excluded_from_sync": true
+  },
+  "validation": [
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' apps/web/src/manager-workbench/__tests__/fixtures/capture_real_detail.py",
+      "result": "actual saved day/detail HTTP200 captured; no model call"
+    },
+    {
+      "cwd": "apps/web",
+      "command": "node_modules/.bin/vitest run src/manager-workbench/__tests__",
+      "result": "52 passed / 6 files, including 3 new detail regressions and existing five-view/pagination/stale-response behavior",
+      "log": "ui-detail-vitest.log",
+      "log_sha256": "8ff40b1481e36a98b24048daeb199bd0564b337aac5243e0247a0bbfbe6af82b"
+    },
+    {
+      "cwd": "apps/web",
+      "command": "node_modules/.bin/vue-tsc --noEmit",
+      "result": "exit0",
+      "log": "ui-detail-typecheck.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "frozen_integration_16_and_executor_7_sha_unchanged": true,
+  "candidate_v5_not_modified": true,
+  "NOT_RUN": [
+    "Independent review",
+    "Browser validation of changed UI",
+    "V6 build/integration",
+    "Deployment"
+  ],
+  "sync_exclusions": [
+    "real-announcement-http.local.json",
+    "all real raw material/quoted fixture JSON",
+    "candidate V5/full generated artifacts"
+  ],
+  "next": "freeze this UI scope for independent review; new candidate V6 assembled separately after acceptance"
+}

@@ -1,0 +1,86 @@
+{
+  "verdict": "PASS",
+  "reviewer": "/root/manager_reviewer_sol",
+  "scope": "frozen 6 files, actual r2 fixed HTTP fixture UI detail mapping only",
+  "freeze_receipt_sha256": "c907db79cc88cca9386b266da3970533764cc129036b39bc384c7ee923806e61",
+  "frozen_files": [
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_sha256": "978ea36bcf34d366ce3aaf164383a60ecd2e3950c540c93bf8206e912d46aae4",
+      "after_sha256": "3ab70ee7942fe4ed14e455b919caecc663ed5a57b7e0b35d6cafb3caf2914264"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/display.ts",
+      "before_sha256": "cb44aafd45cee20d9ea9fb92dd2291075a0e85ed82789813e5d4ecc92d20499f",
+      "after_sha256": "b9d0ae2308b5368fdad2190b1acd42227a94d1162d802f878c0bd9933c5c1a3b"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "before_sha256": "9e2782fe082845670fc75b10f95b43f2f6e3079788c2f347fb2153323097e2ff",
+      "after_sha256": "9a9a7036327fac5843bc6cadcb4dd64b810a99cb54fbfdf71201de3eab52a147"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/backend_capture.spec.ts",
+      "after_sha256": "58f8090e8b553ad2a80301d485617791de3e7239db4cd5ca2c41c4f4ae6e3d51"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/research_detail.spec.ts",
+      "after_sha256": "3f6f434f8f5f1deb814cefde6793eab4e078097694d4943c37128b01e0e8db27"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/fixtures/capture_real_detail.py",
+      "after_sha256": "2a25d1a03806f634d5db840f975476668a20935936e1fa876157bba677b617c2"
+    }
+  ],
+  "fixture_sha256": "e7fe7c17b7145235989a13d8879d0c71dcca6053d6c12a0eff37b84741e4fcf3",
+  "run_id": "6edb1843f8a648cb8fdb25416b842f11",
+  "product_sha256": "f1727ebe7ca374267dcc89a6d728ae030819a21a8d806c433c480d292ba603a6",
+  "tests": [
+    {
+      "command": "node_modules/.bin/vitest run src/manager-workbench/__tests__",
+      "cwd": "/private/tmp/mwb-ui-independent-ct_ery9y/apps/web",
+      "result": "52 passed / 6 files; 1.87s"
+    },
+    {
+      "command": "node_modules/.bin/vue-tsc --noEmit",
+      "cwd": "/private/tmp/mwb-ui-independent-ct_ery9y/apps/web",
+      "result": "exit0"
+    },
+    {
+      "command": "node_modules/.bin/vitest run src/manager-workbench/__tests__/independent_real_detail.spec.ts",
+      "cwd": "/private/tmp/mwb-ui-independent-ct_ery9y/apps/web",
+      "result": "1 passed; 489ms",
+      "test_sha256": "f4d58b76776d5b28df9bb30f61200f15bcf71c0b8cb6289c88e965099d705ac9"
+    }
+  ],
+  "behavior": {
+    "reason_characters": 362,
+    "risks": 2,
+    "readable_record_instances": 1,
+    "section_item_counts": [
+      2,
+      1,
+      1,
+      1,
+      1
+    ],
+    "confirmation_source": "row.conditions (HTTP schema carries strings; quote/locator not fabricated)",
+    "verbatim_quote_and_locator_pairs": 5,
+    "full_audit_blocks": 1,
+    "audit_default_closed": true,
+    "null_name_aria_omitted": true,
+    "stored_object_unchanged_after_render": true,
+    "aggregate_decision": "UNASSESSED",
+    "announcement_decision": "NOT_SELECTED",
+    "old_developer_wording_removed": true
+  },
+  "P0_P1_P2": [],
+  "model_calls": 0,
+  "fixture_regenerated": false,
+  "NOT_RUN": [
+    "browser verification of changed bundle",
+    "candidate V6 integration/build",
+    "deployment",
+    "backend mutable source tests"
+  ]
+}

@@ -118,3 +118,12 @@ input, select { border: 1px solid #b9c6d6; border-radius: 7px; background: #fff;
   .mwb-filters label { flex: 1 1 130px; }
   .mwb-date, .mwb-selectors { align-items: flex-start; }
 }
+
+.mwb-research-record + .mwb-research-record { border-top: 1px solid #d8e2ee; margin-top: 16px; padding-top: 12px; }
+.mwb-research-reason { line-height: 1.7; }
+.mwb-research-section h5 { font-size: 13px; margin: 16px 0 6px; color: #284760; }
+.mwb-research-section p, .mwb-original-text { font-size: 13px; line-height: 1.7; margin: 6px 0; }
+.mwb-research-section blockquote { margin: 8px 0; padding: 8px 12px; background: #f4f7fa; border-left: 3px solid #a7bfce; }
+.mwb-research-section cite { font-size: 11px; color: #64748b; font-style: normal; overflow-wrap: anywhere; }
+.mwb-audit-json { max-height: 480px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
+.mwb-evidence a { display: inline-block; margin: 6px 14px 0 0; }
