@@ -196,6 +196,10 @@ class BatchRunnerTests(unittest.TestCase):
             )[0],
         )
         self.assertTrue(grounded[0]["content"].startswith(legacy[0]["content"] + "\n\n"))
+        self.assertEqual(
+            sha(grounded[0]["content"]),
+            "9ca4648a15b33e8dd15eebf5447d1530c98edf6b949f1f20d27fbe18b5a18627",
+        )
         self.assertIn("Read the complete supplied body before considering any tool.", grounded[0]["content"])
         self.assertIn("Web tools are available only for a specifically named external fact", grounded[0]["content"])
         self.assertIn("Every quote field must be a short, exact, continuous substring", grounded[0]["content"])
@@ -219,6 +223,114 @@ class BatchRunnerTests(unittest.TestCase):
         self.assertEqual(legacy_prepare["tool_schema_sha256"], grounded_prepare["tool_schema_sha256"])
         self.assertEqual(legacy_prepare["input_sha256"], grounded_prepare["input_sha256"])
         self.assertEqual(legacy_prepare["article_ids"], grounded_prepare["article_ids"])
+
+    def test_decision_first_profile_is_opt_in_and_preserves_the_existing_contract(self) -> None:
+        batch = synthetic_batch("  Issuer reports planned enrollment, no outcome disclosed.\n ")
+        contract = runner.load_active_contract()
+        legacy_default = runner.build_messages(batch, contract)
+        legacy = runner.build_messages(batch, contract, "legacy")
+        grounded = runner.build_messages(batch, contract, "grounded")
+        decision_first = runner.build_messages(batch, contract, "decision_first")
+
+        self.assertEqual(runner.PROMPT_PROFILES, ("legacy", "grounded", "decision_first"))
+        self.assertEqual(legacy_default, legacy)
+        self.assertEqual(
+            sha(legacy[0]["content"]),
+            "8c4dd30de9df230cfb93278b60b7b99458490d1b06760a00b877fbbed9086638",
+        )
+        self.assertEqual(
+            sha(grounded[0]["content"]),
+            "9ca4648a15b33e8dd15eebf5447d1530c98edf6b949f1f20d27fbe18b5a18627",
+        )
+        self.assertEqual(
+            contract.source_sha256,
+            "c786c837d4e3b8e06da017f3b7615e7561b5cd782c82b313e570b2bb00d09ee9",
+        )
+        self.assertEqual(
+            runner.sha256_bytes(runner.canonical_json_bytes(contract.reader_schema)),
+            "883da16a4935a3aa3cab37706d18012f280740a5a4fb5470f068d240255e57ae",
+        )
+        self.assertEqual(decision_first[1], legacy[1])
+        self.assertTrue(decision_first[0]["content"].startswith(legacy[0]["content"] + "\n\n"))
+        self.assertIn("A SELECTED_EVENT or SELECTED_PERFORMANCE disposition requires", decision_first[0]["content"])
+        self.assertIn("direction=POSITIVE", decision_first[0]["content"])
+        self.assertIn("evidence_sufficiency=VERIFIED_EXISTING_FACTS", decision_first[0]["content"])
+        self.assertIn("Importance, suspension/resumption", decision_first[0]["content"])
+        self.assertIn("Keep CONDITIONAL_WATCH under its current contract semantics", decision_first[0]["content"])
+        self.assertIn("not disclosed", decision_first[0]["content"])
+        self.assertIn("preclinical findings, or completed enrollment", decision_first[0]["content"])
+        self.assertIn("Carry each input pit_status value exactly into risk_notes", decision_first[0]["content"])
+        self.assertNotIn(runner.GROUNDED_PROCESS_ADDENDUM, decision_first[0]["content"])
+        addendum = runner.DECISION_FIRST_ADDENDUM
+        for stock_fragment in ("HK.02105", "HK.03696", "HK.02555", "HK.01389", "Southern Motion"):
+            self.assertNotIn(stock_fragment, addendum)
+
+        schema_marker = "ACTIVE_READER_JSON_SCHEMA_BEGIN\n"
+        schema_end = "\nACTIVE_READER_JSON_SCHEMA_END"
+        schemas = [
+            message[0]["content"].split(schema_marker, 1)[1].split(schema_end, 1)[0]
+            for message in (legacy, grounded, decision_first)
+        ]
+        self.assertEqual(schemas[0], schemas[1])
+        self.assertEqual(schemas[0], schemas[2])
+        limits = {
+            "context_limit_tokens": 262144,
+            "completion_max_tokens": 32768,
+            "completion_limit_resolution": "GLOBAL_MAX_TOKENS",
+        }
+        with mock.patch.object(runner, "count_prompt_tokens", return_value=2345):
+            legacy_prepare = runner.prepare_batch(batch, contract, runtime_limits=limits)
+            grounded_prepare = runner.prepare_batch(
+                batch, contract, prompt_profile="grounded", runtime_limits=limits
+            )
+            decision_prepare = runner.prepare_batch(
+                batch, contract, prompt_profile="decision_first", runtime_limits=limits
+            )
+        self.assertEqual(legacy_prepare["prompt_profile"], "legacy")
+        self.assertEqual(grounded_prepare["prompt_profile"], "grounded")
+        self.assertEqual(decision_prepare["prompt_profile"], "decision_first")
+        self.assertEqual(
+            len({legacy_prepare["reader_schema_sha256"], grounded_prepare["reader_schema_sha256"], decision_prepare["reader_schema_sha256"]}),
+            1,
+        )
+        self.assertEqual(
+            len({legacy_prepare["active_contract_source_sha256"], grounded_prepare["active_contract_source_sha256"], decision_prepare["active_contract_source_sha256"]}),
+            1,
+        )
+        self.assertEqual(legacy_prepare["tool_schema_sha256"], decision_prepare["tool_schema_sha256"])
+        self.assertEqual(legacy_prepare["input_sha256"], decision_prepare["input_sha256"])
+        self.assertEqual(legacy_prepare["article_ids"], decision_prepare["article_ids"])
+
+    def test_prepare_cli_records_decision_first_without_calling_inference(self) -> None:
+        batch = synthetic_batch("  Exact body remains unchanged.\n ")
+        runtime_limits = {
+            "context_limit_tokens": 262144,
+            "completion_max_tokens": 32768,
+            "completion_limit_resolution": "GLOBAL_MAX_TOKENS",
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            input_path = root / "batch.json"
+            input_path.write_text(json.dumps(batch, ensure_ascii=False), encoding="utf-8")
+            evidence_dir = root / "evidence"
+            with (
+                mock.patch.object(runner, "EVIDENCE_DIR", evidence_dir),
+                mock.patch.object(runner, "load_runtime_limits", return_value=runtime_limits),
+                mock.patch.object(runner, "count_prompt_tokens", return_value=2345),
+                mock.patch.object(runner, "load_local_api_key", side_effect=AssertionError("API key read")) as key_reader,
+                mock.patch.object(runner, "OmlxTransport") as transport,
+                contextlib.redirect_stdout(io.StringIO()),
+            ):
+                result = runner.main([str(input_path), "--prompt-profile", "decision_first"])
+            self.assertEqual(result, 0)
+            key_reader.assert_not_called()
+            transport.assert_not_called()
+            receipts = list(evidence_dir.glob("prepare_*.json"))
+            self.assertEqual(len(receipts), 1)
+            receipt = json.loads(receipts[0].read_text(encoding="utf-8"))
+            self.assertEqual(receipt["prompt_profile"], "decision_first")
+            self.assertEqual(receipt["prompt_tokens_exact_initial_request"], 2345)
+            self.assertEqual(receipt["status"], "INPUT_FITS")
 
     def test_prepare_cli_records_grounded_profile_without_calling_inference(self) -> None:
         batch = synthetic_batch("  Exact body text.\n ")
