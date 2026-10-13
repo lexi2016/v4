@@ -319,10 +319,19 @@ function validateSelectionMarkets(value: unknown, requestedDate: string, stageId
     }
     if (!isRecord(summaryValue)) invalid(label, "市场结果必须是对象");
     if (summaryValue.market !== market) invalid(label, "market 与对象键不一致");
-    if (summaryValue.trade_date !== requestedDate && !(allowMissingIdentity && summaryValue.trade_date === undefined)) {
+    const missingMarketResult = summaryValue.status === "CANNOT_CONFIRM"
+      && summaryValue.selection_status === "CANNOT_CONFIRM"
+      && summaryValue.source_status === "CANNOT_CONFIRM"
+      && ["requested_rows", "source_rows", "selected_rows", "artifact_id", "run_id"].every((key) => summaryValue[key] === null)
+      && Array.isArray(summaryValue.rows) && summaryValue.rows.length === 0
+      && Array.isArray(summaryValue.cannot_confirm)
+      && summaryValue.cannot_confirm.includes("SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID")
+      && summaryValue.selection_manifest_receipt_verified !== true;
+    const allowAbsentIdentity = allowMissingIdentity || missingMarketResult;
+    if (summaryValue.trade_date !== requestedDate && !(allowAbsentIdentity && summaryValue.trade_date === undefined)) {
       invalid(label, "trade_date 与请求日期不一致");
     }
-    if (summaryValue.stage_id !== stageId && !(allowMissingIdentity && summaryValue.stage_id === undefined)) {
+    if (summaryValue.stage_id !== stageId && !(allowAbsentIdentity && summaryValue.stage_id === undefined)) {
       invalid(label, "stage_id 与请求不一致");
     }
 

@@ -112,6 +112,16 @@ function selectionMarket(market: "A_SHARE" | "HK_CONNECT", date = "20261012", st
 afterEach(() => vi.unstubAllGlobals());
 
 describe("pool and stage API boundary", () => {
+  it("keeps dated A rows visible when HK has no selection artifact", async () => {
+    const unavailableHK = {market: "HK_CONNECT", status: "CANNOT_CONFIRM", selection_status: "CANNOT_CONFIRM", source_status: "CANNOT_CONFIRM", requested_rows: null, source_rows: null, selected_rows: null, artifact_id: null, run_id: null, rows: [], cannot_confirm: ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"]};
+    const payload = {...stagePayload("20261013", "STAGE_0930_0935"), selection_markets: {A_SHARE: selectionMarket("A_SHARE", "20261013", "STAGE_0930_0935"), HK_CONNECT: unavailableHK}};
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(payload)));
+    await expect(loadStageSnapshot("20261013", "STAGE_0930_0935")).resolves.toEqual(payload);
+    payload.selection_markets.HK_CONNECT = {...unavailableHK, trade_date: "20261012"} as any;
+    await expect(loadStageSnapshot("20261013", "STAGE_0930_0935")).rejects.toThrow("trade_date 与请求日期不一致");
+    payload.selection_markets.HK_CONNECT = {...unavailableHK, rows: [{code: "HK.01888"}]} as any;
+    await expect(loadStageSnapshot("20261013", "STAGE_0930_0935")).rejects.toThrow("trade_date 与请求日期不一致");
+  });
   it("requests the fixed A-pool page and validates the real 200 of 371 page", async () => {
     const fetchMock = vi.fn(async () => jsonResponse(poolPayload()));
     vi.stubGlobal("fetch", fetchMock);

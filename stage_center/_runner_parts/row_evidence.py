@@ -223,12 +223,16 @@ def __project_raw_rows_body(
             raise _v4_global(_v4_scope, 'RunnerError')(
                 "unknown temporal-false research projection contract"
             )
+    validation_kwargs = (
+        {"allow_temporal_false_observation": True}
+        if research_observation_contract is not None else {}
+    )
     _validated, issues = _v4_global(_v4_scope, 'validate_rows')(
         projected,
         trade_date=trade_date,
         stage_id=stage_id,
         market=market,
-        allow_temporal_false_observation=(research_observation_contract is not None),
+        **validation_kwargs,
     )
     if issues:
         raise _v4_global(_v4_scope, 'RunnerError')(f"raw projection validation failed for {market}: {'; '.join(issues[:3])}")
