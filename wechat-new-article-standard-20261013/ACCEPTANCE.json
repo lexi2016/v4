@@ -1,0 +1,54 @@
+{
+  "receipt_version": "wechat-new-article-standard-v4-delivery-v1",
+  "scope": "Future new articles -> V4 Stage A only; preserve old articles and live index. Shared importer remains at its existing location.",
+  "reviewer_independent_of_writer": true,
+  "REVIEWED": "PASS",
+  "TESTED": true,
+  "BEHAVIOR_VERIFIED": true,
+  "tests": {
+    "shared_handoff_regressions_including_canary": 95,
+    "v4_stage_a": 65,
+    "focused_canary": 17,
+    "canary_overlaps_regression_count": true
+  },
+  "api_ui": {
+    "isolated": true,
+    "exact_article_date": true,
+    "text_only_case": "PASS",
+    "image_case": "PASS",
+    "temporary_services_stopped": true
+  },
+  "protected_history": {
+    "checked": 11528,
+    "missing": 0,
+    "sha_mismatch": 0,
+    "coverage": "saved protected baseline; no historical supplementation"
+  },
+  "P0": 0,
+  "P1": 0,
+  "P2": {
+    "documentation_flag": "RESOLVED",
+    "near_limit_extraction_memory": "NONBLOCKING_CANNOT_CONFIRM"
+  },
+  "evidence_sha256": {
+    "WRITER_RECEIPT.json": "2841850988e7f8c041cd5889ffb623d795569123b848866d9a168149d1b4295b",
+    "REVIEW_RECEIPT.json": "6c88833441f7d1a685fcdd17ec6bd8818d44073bbb031812c8d1e81ceb4b7a56",
+    "REVIEW_RECEIPT.initial.json": "debab50769e4aed147ae7bc7bb3820bf0b241188a577c45ed7e3b9d3c1d5ee41",
+    "REVIEW_TEST_RECEIPT.json": "0200e77a5e1a6d6925d6df2f49a23ce7fab29890306de94be9c1dc405999ced9",
+    "review_ui_harness/REVIEW_API_UI_RECEIPT.json": "5104e144921deefac51f52d75fec5912385b63b76efecc540f7d52083f9b0a77",
+    "DIFF.patch": "1134d8e483eeed1652de270b09c0a7e2495eed155ac070e6499f6573ec32164a"
+  },
+  "not_claimed": [
+    "DEPLOYED",
+    "NATURAL_VERIFIED",
+    "DRIVE_PROVIDER_HASH_VERIFIED",
+    "CHAT_READ_SEMANTICS_VERIFIED",
+    "RESEARCH_VERIFIED"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

@@ -1,0 +1,1071 @@
+--- /Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/scripts/wechat_chat_handoff.py.before
++++ /Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/scripts/wechat_chat_handoff.py
+@@ -23,6 +23,7 @@
+ import json
+ import os
+ import re
++import stat
+ import tempfile
+ import zipfile
+ from pathlib import Path, PurePosixPath
+@@ -1215,6 +1216,157 @@
+         "package_sha256_declared": declared_sha, "package_sha256_observed": observed_sha,
+         "package_sha256_status": "VERIFIED" if declared_sha and observed_sha else "UNVERIFIED",
+         **validated,
++    }
++
++
++def _untrusted_binding_identity(
++    source_run: Path, package_id_value: object, package_zip_value: object,
++    package_sha_value: object,
++) -> tuple[dict[str, Any], str]:
++    """Build a raw-return-only binding after frozen ZIP verification fails."""
++    blockers = []
++    try:
++        identity = _identity_from_intake(source_run)
++    except HandoffError as exc:
++        identity = {}
++        blockers.append(f"SOURCE_RUN_IDENTITY_INVALID: {exc}")
++    package_id = str(package_id_value or "").strip()
++    declared_sha = str(package_sha_value or "").strip().lower()
++    observed_sha = ""
++    package_zip = ""
++    blocker = "FROZEN_PACKAGE_UNVERIFIED"
++    try:
++        resolved_zip = _external_file(package_zip_value, label="package zip", required=False)
++        if resolved_zip is not None:
++            package_zip = str(resolved_zip)
++            observed_sha = _sha256_file(resolved_zip)
++    except HandoffError as exc:
++        blocker = str(exc)
++    if blockers:
++        blocker = "; ".join([*blockers, blocker])
++    return ({
++        "source_run_id": source_run.name, "source_run": str(source_run),
++        "package_id": package_id, "package_zip": package_zip,
++        "package_sha256_declared": declared_sha,
++        "package_sha256_observed": observed_sha,
++        "package_sha256_status": "UNVERIFIED",
++        "article_url": identity.get("url", ""), "article_title": identity.get("title", ""),
++        "article_date": identity.get("article_date", ""), "image_count": identity.get("image_count"),
++        "content_hash": identity.get("content_hash", ""), "input_digest": "",
++        "review_contract_version": "", "frozen_identity_metadata_status": "UNTRUSTED",
++        "package_identity_status": "UNVERIFIED_INVALID_FROZEN_PACKAGE",
++        "package_id_embedded": "", "package_id_binding_status": "UNVERIFIED_INVALID_FROZEN_PACKAGE",
++        "package_manifest_sha256_observed": "", "package_manifest_sha256_declared": "",
++        "reading_mode": "OCR_RISK_REVIEW",
++    }, blocker)
++
++
++def _safe_frozen_member(name: str) -> PurePosixPath:
++    if not name or "\x00" in name or "\\" in name or re.search(r"[\x00-\x1f\x7f]", name):
++        raise HandoffError(f"unsafe package ZIP member: {name!r}")
++    path = PurePosixPath(name)
++    if (path.is_absolute() or str(path) != name or any(part in ("", ".", "..") for part in name.split("/"))
++            or ":" in name):
++        raise HandoffError(f"unsafe package ZIP member: {name!r}")
++    return path
++
++
++def _extract_frozen_input(out_dir: Path, binding: dict[str, Any]) -> dict[str, Any]:
++    """Copy a trusted package's original members under this return, create-only."""
++    package_zip = Path(binding["package_zip"])
++    frozen_root = out_dir / "frozen_input"
++    zip_sha = str(binding.get("package_sha256_observed") or "")
++    declared_sha = str(binding.get("package_sha256_declared") or "")
++    if (binding.get("package_identity_status") != "VERIFIED"
++            or binding.get("package_sha256_status") != "VERIFIED"
++            or not zip_sha or zip_sha != declared_sha):
++        raise HandoffError("TRUSTED_FROZEN_PACKAGE_ZIP_SHA_REQUIRED")
++    if _sha256_file(package_zip) != zip_sha:
++        raise HandoffError("FROZEN_PACKAGE_ZIP_CHANGED_BEFORE_EXTRACTION")
++
++    members: list[dict[str, Any]] = []
++    member_bytes: dict[str, bytes] = {}
++    with zipfile.ZipFile(package_zip) as archive:
++        infos = archive.infolist()
++        names = _zip_member_names(archive)
++        for info in infos:
++            name = info.filename
++            path = _safe_frozen_member(name)
++            mode = (info.external_attr >> 16) & 0o170000
++            if info.is_dir() or (mode and mode != stat.S_IFREG):
++                raise HandoffError(f"unsupported non-file package ZIP member: {name!r}")
++            if name not in names:
++                raise HandoffError(f"invalid package ZIP member: {name!r}")
++            data = archive.read(info)
++            destination = frozen_root.joinpath(*path.parts)
++            _write_if_same(destination, data, label=f"frozen_input/{name}")
++            member_bytes[name] = data
++            members.append({"name": name, "bytes": len(data), "sha256": _sha256_bytes(data)})
++        if _sha256_file(package_zip) != zip_sha:
++            raise HandoffError("FROZEN_PACKAGE_ZIP_CHANGED_DURING_EXTRACTION")
++
++    manifest_bytes = member_bytes.get("manifest.json")
++    if manifest_bytes is None:
++        raise HandoffError("FROZEN_MANIFEST_MISSING")
++    manifest = _json_no_duplicate_keys(manifest_bytes, label="frozen manifest")
++    if not isinstance(manifest, dict):
++        raise HandoffError("frozen manifest must be a JSON object")
++    descriptor = manifest.get("input_descriptor")
++    sources = descriptor.get("sources") if isinstance(descriptor, dict) else None
++    if not isinstance(sources, list):
++        raise HandoffError("FROZEN_DESCRIPTOR_SOURCES_MISSING")
++    descriptor_sources: list[dict[str, Any]] = []
++    for source in sources:
++        if not isinstance(source, dict):
++            raise HandoffError("FROZEN_DESCRIPTOR_SOURCE_INVALID")
++        sid, name = str(source.get("source_id") or ""), str(source.get("path") or "")
++        _safe_frozen_member(name)
++        data = member_bytes.get(name)
++        if data is None or source.get("bytes") != len(data) or source.get("sha256") != _sha256_bytes(data):
++            raise HandoffError(f"FROZEN_DESCRIPTOR_SOURCE_MISMATCH:{sid or name}")
++        descriptor_sources.append({"source_id": sid, "path": name, "bytes": len(data),
++                                   "sha256": _sha256_bytes(data), "status": "VERIFIED"})
++    images = manifest.get("images")
++    image_count = manifest.get("total_images")
++    if not isinstance(images, list) or type(image_count) is not int or len(images) != image_count:
++        raise HandoffError("FROZEN_ORDERED_IMAGES_INVALID")
++    ordered_images: list[dict[str, Any]] = []
++    for index, image in enumerate(images, 1):
++        if not isinstance(image, dict) or image.get("idx") != index:
++            raise HandoffError("FROZEN_ORDERED_IMAGES_INVALID")
++        name = str(image.get("path") or "")
++        _safe_frozen_member(name)
++        data = member_bytes.get(name)
++        if data is None or image.get("bytes") != len(data) or image.get("sha256") != _sha256_bytes(data):
++            raise HandoffError(f"FROZEN_ORDERED_IMAGE_MISMATCH:IMAGE{index:03d}")
++        ordered_images.append({"idx": index, "path": name, "bytes": len(data),
++                              "sha256": _sha256_bytes(data), "status": "VERIFIED"})
++    inventory_sha = _sha256_bytes(json.dumps(members, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
++    extraction = {
++        "receipt_version": "wechat-frozen-input-extraction-v1", "status": "VERIFIED",
++        "package_id": binding["package_id"], "input_digest": binding["input_digest"],
++        "package_zip_path": str(package_zip), "package_zip_sha256_trusted": declared_sha,
++        "package_zip_sha256_observed": zip_sha, "frozen_manifest_member": "manifest.json",
++        "frozen_manifest_sha256_observed": _sha256_bytes(manifest_bytes),
++        "review_contract_version": binding["review_contract_version"],
++        "extraction_root": str(frozen_root.resolve()), "zip_member_count": len(members),
++        "zip_members_all_extracted_and_verified": True,
++        "zip_member_inventory_sha256": inventory_sha,
++        "descriptor_source_count": len(descriptor_sources),
++        "descriptor_sources_verified": len(descriptor_sources), "complete_source_paths": True,
++        "image_count": image_count, "ordered_original_images_verified": True,
++        "descriptor_sources": descriptor_sources, "ordered_original_images": ordered_images,
++        "members": members,
++    }
++    receipt_bytes = (json.dumps(extraction, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
++    receipt_path = out_dir / "FROZEN_INPUT_RECEIPT.json"
++    _write_if_same(receipt_path, receipt_bytes, label="FROZEN_INPUT_RECEIPT.json")
++    manifest_path = frozen_root / "manifest.json"
++    return {
++        "status": "VERIFIED", "manifest_path": str(manifest_path.relative_to(out_dir)),
++        "manifest_sha256": _sha256_bytes(manifest_bytes),
++        "receipt_path": str(receipt_path.relative_to(out_dir)),
++        "receipt_sha256": _sha256_bytes(receipt_bytes),
+     }
+ 
+ 
+@@ -1469,10 +1621,20 @@
+     unmapped_value: object,
+     summary_value: object,
+     out_dir_value: object,
++    archive_frozen_input: bool = False,
+ ) -> dict[str, Any]:
+     source_run = validate_run_dir(source_run_value)
+     out_dir = _ensure_output_dir(out_dir_value, label="Chat return archive directory")
+-    binding = _binding_identity(source_run, package_id_value, package_zip_value, package_sha_value)
++    binding_blockers: list[str] = []
++    try:
++        binding = _binding_identity(source_run, package_id_value, package_zip_value, package_sha_value)
++    except HandoffError as exc:
++        if not archive_frozen_input:
++            raise
++        binding, blocker = _untrusted_binding_identity(
++            source_run, package_id_value, package_zip_value, package_sha_value
++        )
++        binding_blockers.append(blocker if blocker != "FROZEN_PACKAGE_UNVERIFIED" else str(exc))
+     inputs = {
+         "report": report_value,
+         "coverage": coverage_value,
+@@ -1497,7 +1659,7 @@
+             missing.append(base_names[key])
+             continue
+         data = _read_bytes(path, f"{key} result")
+-        if not data:
++        if not data and not archive_frozen_input:
+             raise HandoffError(f"{key} result is empty")
+         if key == "report":
+             report_data = data
+@@ -1516,13 +1678,28 @@
+         }
+     if "report" not in archived:
+         raise HandoffError("report result is required")
+-    structured_results, invalid_keys = _validate_structured_returns(structured_data, binding=binding, report_data=report_data)
++    try:
++        if type(binding.get("image_count")) is not int or binding["image_count"] < 0:
++            raise HandoffError("frozen package identity has no usable image_count")
++        structured_results, invalid_keys = _validate_structured_returns(
++            structured_data, binding=binding, report_data=report_data
++        )
++    except (HandoffError, KeyError, TypeError, ValueError) as exc:
++        if not archive_frozen_input:
++            raise
++        structured_results = {
++            key: {"valid": False, "validation_status": "INVALID", "error": str(exc)}
++            for key in structured_data
++        }
++        invalid_keys = list(structured_data)
+     for key, result in structured_results.items():
+         if key in archived:
+             archived[key]["validation_status"] = result.get("validation_status", "INVALID")
+             if result.get("error"):
+                 archived[key]["validation_error"] = result["error"]
+     invalid_artifacts = [base_names[key] for key in invalid_keys]
++    if not report_data:
++        invalid_artifacts.append(base_names["report"])
+     required_outputs = ["coverage.csv", "mentions.csv", "unmapped.csv", "summary.json"]
+     if missing and invalid_artifacts:
+         status = "REPORT_WITH_STRUCTURED_PARTIAL"
+@@ -1539,6 +1716,18 @@
+     else:
+         status = "REPORT_AND_STRUCTURED_ARCHIVED"
+         structured_validation_status = "COMPLETE"
++    frozen_input: dict[str, Any] | None = None
++    if archive_frozen_input:
++        try:
++            frozen_input = _extract_frozen_input(out_dir, binding)
++        except (HandoffError, OSError, zipfile.BadZipFile) as exc:
++            binding_blockers.append(str(exc) or "FROZEN_INPUT_EXTRACTION_FAILED")
++            frozen_input = {
++                "status": "BLOCKED", "manifest_path": "", "manifest_sha256": "",
++                "receipt_path": "", "receipt_sha256": "", "blockers": list(dict.fromkeys(binding_blockers)),
++            }
++        if frozen_input.get("status") != "VERIFIED" and status == "REPORT_AND_STRUCTURED_ARCHIVED":
++            status = "REPORT_WITH_FROZEN_INPUT_BLOCKED"
+     summary_validation = structured_results.get("summary", {})
+     if binding.get("package_identity_status") != "VERIFIED":
+         event_dispositions_receipt_status = "NOT_RUN_UNTRUSTED_FROZEN_PACKAGE"
+@@ -1569,7 +1758,9 @@
+         "local_acceptance": {
+             "report_bytes_archived": True,
+             "bytes_archived": True,
+-            "input_binding_valid": binding.get("package_identity_status") == "VERIFIED" and structured_results.get("summary", {}).get("valid", False),
++            "input_binding_valid": (binding.get("package_identity_status") == "VERIFIED"
++                                     and structured_results.get("summary", {}).get("valid", False)
++                                     and (frozen_input is None or frozen_input.get("status") == "VERIFIED")),
+             "structure_valid": not missing and not invalid_artifacts,
+             "chat_claimed_complete": structured_results.get("summary", {}).get("chat_claimed_complete", False),
+             "independent_review_scope": [],
+@@ -1581,6 +1772,8 @@
+             "research_boundary": "RESEARCH_ONLY / WATCH_ONLY / NO_BUY_GATE",
+         },
+     }
++    if frozen_input is not None:
++        manifest["frozen_input"] = frozen_input
+     manifest_path = out_dir / "IMPORT_RECEIPT.json"
+     receipt_candidates: list[Path] = []
+     if manifest_path.exists() and not manifest_path.is_symlink():
+@@ -1603,6 +1796,7 @@
+             and existing_obj.get("invalid_artifacts", []) == invalid_artifacts
+             and existing_obj.get("status") == status
+             and existing_obj.get("structured_validation_status") == structured_validation_status
++            and existing_obj.get("frozen_input") == frozen_input
+         ):
+             previous_files = existing_obj.get("archived_files")
+             if isinstance(previous_files, dict) and set(previous_files) == set(archived) and all(
+@@ -1651,6 +1845,8 @@
+     archive.add_argument("--unmapped", default="")
+     archive.add_argument("--summary", default="")
+     archive.add_argument("--out-dir", required=True)
++    archive.add_argument("--archive-frozen-input", action="store_true",
++                         help="Safely archive every verified original frozen ZIP member beside this return")
+     return parser
+ 
+ 
+@@ -1671,6 +1867,7 @@
+                 unmapped_value=args.unmapped,
+                 summary_value=args.summary,
+                 out_dir_value=args.out_dir,
++                archive_frozen_input=args.archive_frozen_input,
+             )
+         print(json.dumps(receipt, ensure_ascii=False, indent=2))
+         return 0
+--- /Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/tests/test_wechat_new_article_standard.py.before
++++ /Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/tests/test_wechat_new_article_standard.py
+@@ -0,0 +1,322 @@
++"""Future-new-article frozen-input and strict Stage A canaries.
++
++The fixtures are synthetic and exercise the existing package/import and V4
++index paths. They do not call Chat, Drive, OCR, a live API, or a production
++service.
++"""
++from __future__ import annotations
++
++import csv
++import hashlib
++import importlib
++import json
++import os
++from pathlib import Path
++import sys
++import zipfile
++
++import pytest
++from fastapi import FastAPI
++from fastapi.testclient import TestClient
++
++HERE = Path(__file__).resolve()
++V3_ROOT = HERE.parents[1]
++V4_ROOT = Path(os.environ.get("WECHAT_REVIEW_V4_ROOT", str(HERE.parents[4] / "v4_app"))).expanduser()
++sys.path.insert(0, str(V3_ROOT / "scripts"))
++sys.path.insert(0, str(V4_ROOT))
++
++import wechat_chat_handoff as handoff
++from test_wechat_chat_handoff import _make_run
++from infrastructure.wechat_research_archive import ArchiveError, WechatResearchArchive
++from ops.index_wechat_research import register_return
++from apps.api.v35_api.wechat_research_router import create_wechat_research_router
++
++
++def sha(data: bytes) -> str:
++    return hashlib.sha256(data).hexdigest()
++
++
++def write_json(path: Path, obj: object) -> None:
++    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
++
++
++def write_csv(path: Path, columns: list[str], rows: list[dict[str, str]]) -> None:
++    with path.open("w", encoding="utf-8", newline="") as out:
++        writer = csv.DictWriter(out, fieldnames=columns, lineterminator="\n")
++        writer.writeheader()
++        writer.writerows(rows)
++
++
++def package(tmp_path: Path, *, count: int, package_id: str = "standard_fixture_v1"):
++    run = _make_run(tmp_path, count=count)
++    out = tmp_path / "package"
++    receipt = handoff.package_run(run, out, package_id)
++    return run, out / receipt["zip"]["path"], receipt
++
++
++def make_return(tmp_path: Path, package_receipt: dict, *, image_count: int,
++                return_id: str = "standard_return_01", status: str = "PARTIAL") -> dict[str, Path]:
++    returned = tmp_path / "returned"
++    returned.mkdir(exist_ok=True)
++    paths = {key: returned / name for key, name in {
++        "report": "report.md", "coverage": "coverage.csv", "mentions": "mentions.csv",
++        "unmapped": "unmapped.csv", "summary": "summary.json",
++    }.items()}
++    sources = ["BODY", *(f"IMAGE{n:03d}" for n in range(1, image_count + 1))]
++    coverage_columns = "source_index,event,subject,claim,date,number,unit,source_grade,uncertainty,original_checked,original_scope,text_read".split(",")
++    coverage_rows = []
++    for source in sources:
++        coverage_rows.append({
++            "source_index": source,
++            "event": "EVENT" if source == "BODY" else "NO_EVENT",
++            "subject": "fixture", "claim": "synthetic source reviewed", "date": "",
++            "number": "", "unit": "", "source_grade": "UNKNOWN", "uncertainty": "",
++            "original_checked": "false", "original_scope": "NOT_APPLICABLE" if source == "BODY" else "NONE",
++            "text_read": "true",
++        })
++    write_csv(paths["coverage"], coverage_columns, coverage_rows)
++    mention_columns = "market,code,name,source_index,mapping_status,source_named_or_derived,claim_context,entity_id,source_name,listing_origin".split(",")
++    mention_rows = [dict(market="A", code="000001.SZ", name="Fixture Co", source_index="BODY",
++                         mapping_status="NAME_RESOLVED", source_named_or_derived="SOURCE_NAMED",
++                         claim_context="synthetic test only", entity_id="fixture_issuer",
++                         source_name="Fixture Co", listing_origin="NAME_RESOLVED")]
++    write_csv(paths["mentions"], mention_columns, mention_rows)
++    paths["unmapped"].write_text("name,reason,source_index\n", encoding="utf-8")
++    header = {"package_id": package_receipt["package_id"], "input_digest": package_receipt["input_digest"],
++              "return_id": return_id}
++    paths["report"].write_text("<!-- wechat-return: " + json.dumps(header) + " -->\n# Synthetic report\nPartial research fixture.\n", encoding="utf-8")
++    summary = {
++        "schema_version": 2,
++        "review_contract_version": package_receipt["review_contract_version"],
++        "event_dispositions": {"BODY": "HOLD"},
++        "url": package_receipt["original_url"], "package_id": package_receipt["package_id"],
++        "input_digest": package_receipt["input_digest"],
++        "manifest_sha256": package_receipt["manifest_sha256"], "return_id": return_id,
++        "reading_mode": "OCR_RISK_REVIEW", "article_date": package_receipt["article_date"],
++        "image_count": image_count,
++        "coverage_counts": {"total": len(sources), "EVENT": 1, "NO_EVENT": len(sources) - 1, "UNREADABLE": 0},
++        "mentions_counts": {"total": 1, "A": 1, "BJ": 0, "HK": 0, "entities": 1,
++                             "source_named_entities": 1, "supplemental_listing_rows": 0},
++        "status": status, "missing_inputs": [],
++        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
++        "artifact_sha256": {paths[key].name: sha(paths[key].read_bytes())
++                             for key in ("report", "coverage", "mentions", "unmapped")},
++    }
++    write_json(paths["summary"], summary)
++    return paths
++
++
++def import_standard(tmp_path: Path, run: Path, zip_path: Path, package_receipt: dict,
++                    returned: dict[str, Path], *, omit: str | None = None):
++    args = {
++        "source_run_value": run, "package_id_value": package_receipt["package_id"],
++        "package_zip_value": zip_path, "package_sha_value": package_receipt["zip"]["sha256"],
++        "report_value": returned["report"], "coverage_value": returned["coverage"],
++        "mentions_value": returned["mentions"], "unmapped_value": returned["unmapped"],
++        "summary_value": returned["summary"], "out_dir_value": tmp_path / "archive",
++        "archive_frozen_input": True,
++    }
++    if omit:
++        args[f"{omit}_value"] = ""
++    return handoff.import_chat_return(**args)
++
++
++def v4_reader(tmp_path: Path, archive: Path):
++    return WechatResearchArchive(archive, tmp_path / "v4-data" / "research" / "wechat_materials")
++
++
++def strict_register(tmp_path: Path, archive: Path, receipt: dict):
++    path = archive / receipt.get("receipt_filename", "IMPORT_RECEIPT.json")
++    return register_return(v4_reader(tmp_path, archive), receipt=path.name,
++                           receipt_sha256=sha(path.read_bytes()), require_frozen_input=True)
++
++
++@pytest.mark.parametrize("image_count", [0, 3], ids=["text-only", "image-package"])
++def test_new_standard_archives_exact_frozen_members_and_indexes_partial_report(tmp_path, image_count):
++    run, zip_path, package_receipt = package(tmp_path, count=image_count,
++                                             package_id=f"standard_fixture_{image_count}_v1")
++    returned = make_return(tmp_path, package_receipt, image_count=image_count,
++                           return_id=f"standard_return_{image_count}", status="PARTIAL")
++    imported = import_standard(tmp_path, run, zip_path, package_receipt, returned)
++    assert imported["status"] == "REPORT_AND_STRUCTURED_ARCHIVED"
++    assert imported["local_acceptance"]["semantic_research_accepted"] is False
++    frozen = imported["frozen_input"]
++    assert set(("manifest_path", "manifest_sha256", "receipt_path", "receipt_sha256")).issubset(frozen)
++    assert frozen["status"] == "VERIFIED"
++    archive = tmp_path / "archive"
++    base = archive / Path(frozen["manifest_path"]).parent
++    with zipfile.ZipFile(zip_path) as zf:
++        names = zf.namelist()
++        extraction = json.loads((archive / frozen["receipt_path"]).read_text(encoding="utf-8"))
++        assert [row["name"] for row in extraction["members"]] == names
++        for name in names:
++            assert (base / name).read_bytes() == zf.read(name)
++    frozen_receipt_bytes = (archive / frozen["receipt_path"]).read_bytes()
++    again = import_standard(tmp_path, run, zip_path, package_receipt, returned)
++    assert again == imported
++    assert (archive / frozen["receipt_path"]).read_bytes() == frozen_receipt_bytes
++
++    registered = strict_register(tmp_path, archive, imported)
++    assert registered["status"] == "INDEXED"
++    record = v4_reader(tmp_path, archive).detail(registered["record_id"])
++    assert record["material"]["states"]["research_review"] == "NOT_EVALUATED_STAGE_A"
++    assert record["material"]["available_at"] is None
++    assert record["material"]["receipt_claims"]["semantic_research_accepted"] is False
++    claims = record["material"]["receipt_claims"]
++    assert claims["bytes_archived"] is True
++    assert claims["input_binding_valid"] is True
++    assert claims["structure_valid"] is True
++    assert claims["chat_claimed_complete"] is False
++    assert record["report"]["content"].encode("utf-8") == returned["report"].read_bytes()
++    assert strict_register(tmp_path, archive, imported)["idempotent"] is True
++
++    app = FastAPI()
++    app.include_router(create_wechat_research_router(v4_reader(tmp_path, archive)), prefix="/api/v3/research")
++    client = TestClient(app)
++    article_date = imported["binding"]["article_date"]
++    listed = client.get("/api/v3/research/wechat/materials",
++                        params={"date": article_date, "date_basis": "article"})
++    assert listed.status_code == 200
++    assert [row["record_id"] for row in listed.json()["items"]] == [registered["record_id"]]
++    assert listed.json()["items"][0]["article"]["article_date"] == article_date
++    report = client.get(f"/api/v3/research/wechat/materials/{registered['record_id']}")
++    assert report.status_code == 200
++    assert report.json()["report"]["content"].encode("utf-8") == returned["report"].read_bytes()
++    report_bytes = client.get(f"/api/v3/research/wechat/materials/{registered['record_id']}/artifacts/report")
++    assert report_bytes.status_code == 200
++    assert report_bytes.content == returned["report"].read_bytes()
++    with zipfile.ZipFile(zip_path) as zf:
++        for source in json.loads((archive / frozen["receipt_path"]).read_text(encoding="utf-8"))["descriptor_sources"]:
++            assert v4_reader(tmp_path, archive).artifact(
++                registered["record_id"], "source_" + source["source_id"]
++            )[0] == zf.read(source["path"])
++
++
++def test_standard_archive_with_missing_return_file_is_not_strictly_indexable(tmp_path):
++    run, zip_path, package_receipt = package(tmp_path, count=0, package_id="missing_return_fixture_v1")
++    returned = make_return(tmp_path, package_receipt, image_count=0)
++    imported = import_standard(tmp_path, run, zip_path, package_receipt, returned, omit="mentions")
++    assert imported["status"] == "REPORT_WITH_STRUCTURED_PARTIAL"
++    assert "mentions.csv" in imported["missing_artifacts"]
++    archive = tmp_path / "archive"
++    with pytest.raises(ArchiveError, match="FROZEN_INPUT_RETURN_INCOMPLETE"):
++        strict_register(tmp_path, archive, imported)
++    assert not (tmp_path / "v4-data" / "research" / "wechat_materials" / "records").exists()
++
++
++def test_empty_invalid_return_is_preserved_as_exact_raw_bytes(tmp_path):
++    run, zip_path, package_receipt = package(tmp_path, count=0, package_id="empty_return_fixture_v1")
++    returned = make_return(tmp_path, package_receipt, image_count=0)
++    returned["mentions"].write_bytes(b"")
++    imported = import_standard(tmp_path, run, zip_path, package_receipt, returned)
++    archived = tmp_path / "archive" / imported["archived_files"]["mentions"]["archived_filename"]
++    assert archived.read_bytes() == b""
++    assert "mentions.csv" in imported["invalid_artifacts"]
++    with pytest.raises(ArchiveError, match="INVALID_ARTIFACT_SIZE"):
++        strict_register(tmp_path, tmp_path / "archive", imported)
++
++
++def test_bad_frozen_zip_is_retained_as_raw_return_with_blocker(tmp_path):
++    run, zip_path, package_receipt = package(tmp_path, count=0, package_id="bad_zip_fixture_v1")
++    returned = make_return(tmp_path, package_receipt, image_count=0)
++    original = zip_path.read_bytes()
++    zip_path.write_bytes(original + b"tamper")
++    imported = import_standard(tmp_path, run, zip_path, package_receipt, returned)
++    assert imported["status"] != "REPORT_AND_STRUCTURED_ARCHIVED"
++    assert imported["archived_files"]["report"]["sha256"] == sha(returned["report"].read_bytes())
++    assert imported["frozen_input"]["status"] == "BLOCKED"
++    assert "SHA-256" in imported["frozen_input"]["blockers"][0]
++
++
++def test_v4_strict_rejects_mutated_source_path_and_timezone_precision_is_preserved(tmp_path):
++    run, zip_path, package_receipt = package(tmp_path, count=0, package_id="strict_tamper_fixture_v1")
++    returned = make_return(tmp_path, package_receipt, image_count=0)
++    imported = import_standard(tmp_path, run, zip_path, package_receipt, returned)
++    archive = tmp_path / "archive"
++    source = archive / Path(imported["frozen_input"]["manifest_path"]).parent / "BODY.md"
++    source.write_bytes(source.read_bytes() + b"changed")
++    with pytest.raises(ArchiveError, match="FROZEN_INPUT_MEMBER_HASH_MISMATCH"):
++        strict_register(tmp_path, archive, imported)
++    assert not (tmp_path / "v4-data" / "research" / "wechat_materials" / "records").exists()
++
++
++@pytest.mark.parametrize("value,expected", [
++    ("2026-09-17T22:53+08:00", "2026-09-17T22:53+08:00"),
++    ("2026-09-17T22:53:30+08:00", "2026-09-17T22:53:30+08:00"),
++    ("2026-09-17T22:53", None),
++    ("2026-13-17T22:53+08:00", None),
++])
++def test_aware_time_accepts_zoned_minute_or_second_precision_without_reformatting(value, expected):
++    from infrastructure.wechat_research_archive import aware_time
++    assert aware_time(value) == expected
++
++
++def test_article_day_conflict_remains_a_hard_stage_a_blocker():
++    from infrastructure.wechat_research_archive import make_snapshot
++    receipt = {
++        "binding": {"article_url": "https://mp.weixin.qq.com/s/example", "article_date": "20260917",
++                    "package_identity_status": "VERIFIED", "input_digest": "a" * 64,
++                    "package_id": "fixture", "source_run_id": "fixture", "package_sha256_declared": "b" * 64,
++                    "package_sha256_observed": "b" * 64, "package_sha256_status": "VERIFIED"},
++        "received_at": "2026-09-18T00:00+08:00", "archived_files": {"report": {}},
++        "missing_artifacts": ["coverage.csv", "mentions.csv", "unmapped.csv", "summary.json"],
++        "local_acceptance": {}, "structured_validation_status": "MISSING",
++    }
++    with pytest.raises(ArchiveError, match="IDENTITY_CONFLICT_PUBLISHED_DATE"):
++        make_snapshot(receipt, {"report": {}}, receipt_sha="c" * 64,
++                      indexed_at="2026-09-18T00:00+00:00",
++                      manifest_identity={"published_at": "2026-09-17T22:53+08:00",
++                                         "article_date": "20260918"}, return_id=None)
++
++
++def test_event_disposition_omission_keeps_raw_return_but_blocks_strict_registration(tmp_path):
++    run, zip_path, package_receipt = package(tmp_path, count=0, package_id="omitted_disposition_v1")
++    returned = make_return(tmp_path, package_receipt, image_count=0)
++    summary = json.loads(returned["summary"].read_text(encoding="utf-8"))
++    summary["event_dispositions"] = {}
++    write_json(returned["summary"], summary)
++    imported = import_standard(tmp_path, run, zip_path, package_receipt, returned)
++    assert imported["status"] == "REPORT_AND_STRUCTURED_INVALID"
++    assert imported["frozen_input"]["status"] == "VERIFIED"
++    with pytest.raises(ArchiveError, match="FROZEN_INPUT_RETURN_INCOMPLETE"):
++        strict_register(tmp_path, tmp_path / "archive", imported)
++    assert not (tmp_path / "v4-data" / "research" / "wechat_materials" / "records").exists()
++
++
++@pytest.mark.parametrize("case,error", [
++    ("unsafe_path", "UNSAFE_PATH"),
++    ("missing_source", "FROZEN_INPUT_MEMBER_MISSING"),
++    ("symlink_source", "UNSAFE_PATH"),
++    ("wrong_package", "IDENTITY_CONFLICT_RETURN"),
++    ("wrong_manifest_hash", "FROZEN_INPUT_RECEIPT_OR_MANIFEST_HASH_MISMATCH"),
++])
++def test_strict_frozen_receipt_rejects_tampered_or_missing_sources(tmp_path, case, error):
++    run, zip_path, package_receipt = package(tmp_path, count=0, package_id=f"tamper_{case}_v1")
++    returned = make_return(tmp_path, package_receipt, image_count=0)
++    imported = import_standard(tmp_path, run, zip_path, package_receipt, returned)
++    archive = tmp_path / "archive"
++    receipt_path = archive / "IMPORT_RECEIPT.json"
++    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
++    frozen_base = archive / Path(receipt["frozen_input"]["manifest_path"]).parent
++    if case == "unsafe_path":
++        receipt["frozen_input"]["manifest_path"] = "../escape/manifest.json"
++        write_json(receipt_path, receipt)
++    elif case == "missing_source":
++        (frozen_base / "BODY.md").unlink()
++    elif case == "symlink_source":
++        original = (frozen_base / "BODY.md").read_bytes()
++        target = tmp_path / "outside.md"
++        target.write_bytes(original)
++        (frozen_base / "BODY.md").unlink()
++        (frozen_base / "BODY.md").symlink_to(target)
++    elif case == "wrong_package":
++        receipt["binding"]["package_id"] = "different-package"
++        write_json(receipt_path, receipt)
++    elif case == "wrong_manifest_hash":
++        receipt["frozen_input"]["manifest_sha256"] = "0" * 64
++        write_json(receipt_path, receipt)
++    with pytest.raises(ArchiveError, match=error):
++        register_return(v4_reader(tmp_path, archive), receipt=receipt_path.name,
++                        receipt_sha256=sha(receipt_path.read_bytes()), require_frozen_input=True)
++    assert not (tmp_path / "v4-data" / "research" / "wechat_materials" / "records").exists()
++
+--- /Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/WORKFLOW_公众号链接固定执行方案.md.before
++++ /Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/WORKFLOW_公众号链接固定执行方案.md
+@@ -21,6 +21,7 @@
+ 完整input_digest覆盖BODY、OCR_FULL、图片清单和所有原图的有序摘要，原文HTML摘要也保留；manifest.json不摘要自身。
+ 新冻结包另写`review_contract_version=wechat-event-dispositions-v1`，同时纳入manifest.json及input_descriptor/input_digest；不得由Chat回传摘要自行选择或降级版本。summary.json的`event_dispositions`需按coverage.csv的EVENT来源编号各给一个PROMOTE/HOLD/REJECT/CANNOT_CONFIRM。旧`chat-materials-ocr-v2`包若无该版本字段仍按旧合同导入，并在IMPORT_RECEIPT明确`NOT_RUN_LEGACY_PACKAGE`。
+ ZIP SHA在包外PACKAGE_RECEIPT.json，Drive文件/目录ID在上传后的外部交接记录中；Drive文章目录本身不替代package_id、input_digest或可信ZIP SHA。
++三个SHA字段各自绑定不同对象：`manifest_sha256`是有序图片清单`manifest.csv`的SHA；冻结包内`manifest.json`的原始字节SHA由`frozen_manifest_sha256_observed`记录；包外`PACKAGE_RECEIPT.zip.sha256`是整个ZIP的可信SHA。`summary.json.manifest_sha256`继续表示`manifest.csv`，不得改作JSON或ZIP摘要。
+ package_id应在每个内容版本使用新值；跨目录没有全局ID注册器，验证必须核对(package_id,input_digest,可信ZIP SHA)，不可只认ID。
+ 导入旧报告对照旧冻结ZIP，不对照当前run OCR。发布时间缺失/日期非法、原图不完整、不可解码或OCR切片失败不能PACKAGE_READY。
+ 已有旧OCR无配置指纹可保守复用并标未知，不为新增元数据重跑89图。错误/超时只补缺；空文本终态需原图核查，默认不无穷重试。
+@@ -30,11 +31,15 @@
+ ### 0.2 运行命令
+ ```bash
+ python3 scripts/wechat_chat_handoff.py package --run-dir "$RUN" --out-dir "$HANDOFF" --package-id "$PACKAGE_ID" --reading-mode OCR_RISK_REVIEW
+-python3 scripts/wechat_chat_handoff.py import --source-run "$RUN" --package-id "$PACKAGE_ID" --package-zip "$ZIP" --package-sha256 "$TRUSTED_SHA256" --report "$RETURN/report.md" --coverage "$RETURN/coverage.csv" --mentions "$RETURN/mentions.csv" --unmapped "$RETURN/unmapped.csv" --summary "$RETURN/summary.json" --out-dir "$ARCHIVE"
+-```
++python3 scripts/wechat_chat_handoff.py import --source-run "$RUN" --package-id "$PACKAGE_ID" --package-zip "$ZIP" --package-sha256 "$TRUSTED_SHA256" --report "$RETURN/report.md" --coverage "$RETURN/coverage.csv" --mentions "$RETURN/mentions.csv" --unmapped "$RETURN/unmapped.csv" --summary "$RETURN/summary.json" --out-dir "$ARCHIVE" --archive-frozen-input
++```
++默认未来新文章标准直接使用上面的`import`命令，其中已包含`--archive-frozen-input`。通过可信ZIP SHA及包身份校验后，它把ZIP内所有原成员按原字节和顺序写到本次return目录的`frozen_input/`；只读当前OCR或新生成文件不能替代冻结原件。`IMPORT_RECEIPT.frozen_input`的路径/摘要引用字段为`manifest_path`、`manifest_sha256`、`receipt_path`、`receipt_sha256`；另有`status`，失败时附准确`blockers`。发生ZIP身份、输入文件或安全路径错误时，五个可用回传原件仍照常留存并标出缺口，不能登记为完整标准。
++
++`FROZEN_INPUT_RECEIPT.json`采用`receipt_version=wechat-frozen-input-extraction-v1`：记录package/input身份、ZIP路径及trusted/observed SHA、`manifest.json`成员SHA、review版本、提取目录、成员总数/全量通过标记/成员清单SHA、描述符来源数量/逐源校验列表、原图数量/有序图片校验列表，以及按ZIP原顺序的`members=[{name,bytes,sha256}]`。描述符来源和图片列表中的path相对`frozen_input/`；成员path必须安全且无符号链接。各receipt SHA覆盖完整JSON原字节。
++
+ 可信ZIP SHA取自本地冻结回执，不从待验ZIP现算一个值再称可信；空缺时只留存未绑定结果。
+ 回收前先读summary.json与report.md绑定头，按`package_id/input_digest/return_id/URL/article_date`定位对应冻结包；不得按最近Chat会话或同目录最新文件配对。90与58等来源数量差异先查文章/包身份，再核数量差异。必须取回五个原始文件；缺项如实登记。不同return_id或不同字节保存成新版本，不能覆盖此前文件；同批`artifact_sha256`必须一致。
+-若仅有报告，省略结构参数，REPORT_ONLY_ARCHIVED并列明缺失；不伪造空附件。
++若仅有报告，省略结构参数，REPORT_ONLY_ARCHIVED并列明缺失；不伪造空附件。`PARTIAL`研究状态可以在五份原件、包绑定和结构检查均有效时归档及展示，`semantic_research_accepted`仍为false，V4 `available_at`保持null。
+ 输入旧v1包可作历史原字节留存，不能无声升级为v2。
+ 
+ ### 0.3 阅读与报告
+@@ -75,8 +80,8 @@
+ data_root=/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data
+ ```
+ 
+-回传导入receipt的binding是可信冻结身份字段的归档入口，包含`account`、`biz`、`published_at`和`frozen_manifest_sha256_observed`。V4可从binding使用这些字段；不要求仅为补字段把manifest单独抽出。
+-若显式传`--manifest`，该路径必须是归档内原始冻结manifest，且其`input_descriptor`引用的所有BODY/OCR/图片文件均须在相同归档路径下存在。只复制manifest会造成源引用缺失。源引用不完整时保留`FROZEN_INPUT_NOT_REGISTERED`；它与receipt身份metadata是否齐全是两项独立状态。
++回传导入receipt的binding是可信冻结身份字段的入口，包含`account`、`biz`、`published_at`和`frozen_manifest_sha256_observed`。默认新文章的V4命令通过`IMPORT_RECEIPT.frozen_input`中的显式引用读取同一冻结manifest及完整提取receipt；不要求为补身份metadata单独抽出manifest。
++`--manifest`是兼容旧receipt的可选路径；严格模式若同时给出它，路径和SHA必须与导入receipt引用完全一致。只复制manifest会造成源引用缺失。旧兼容登记的源引用缺失仍保留`FROZEN_INPUT_NOT_REGISTERED`；它与receipt身份metadata是否齐全是两项独立状态。
+ 
+ 在V4根目录执行现有登记器；`receipt`和可选`manifest`必须是相对`archive_root`的路径，SHA必须来自已选择的可信本地receipt/冻结manifest，不从新版OCR或待验文件补算旧身份：
+ 
+@@ -87,9 +92,14 @@
+   --data-root "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data" \
+   --receipt "<ARTICLE_RELATIVE_RECEIPT>" \
+   --receipt-sha256 "<TRUSTED_RECEIPT_SHA256>" \
++  --require-frozen-input \
+   [--manifest "<ARTICLE_RELATIVE_FROZEN_MANIFEST>" \
+    --manifest-sha256 "<TRUSTED_MANIFEST_SHA256>"]
+ ```
++
++未来新文章默认命令总是带`--require-frozen-input`。严格模式只解析所选`IMPORT_RECEIPT.frozen_input`内的两个显式引用；校验receipt/manifest SHA和身份、五份回传原字节、全部ZIP成员、所有descriptor来源及顺序原图，然后才写Stage A reference。缺少任一回传原件、冻结成员、事件处置、冻结review版本或校验失败时明确拒绝，且不写新index记录。可选`--manifest`仅作兼容参数；严格模式下它必须与receipt绑定的manifest路径和SHA完全相同，不能绕过冻结输入检查。旧receipt仍可不带此旗标走兼容登记路径。V4只登记引用，不修改源ZIP/回传文件或既有index记录。
++
++时间戳接受保留原精度的时区化ISO分钟或秒形式（如`2026-09-17T22:53+08:00`或带秒值）；无时区/非法值继续显示未知，时间戳所示文章日与冻结`article_date`冲突则拒绝登记。
+ 
+ `status=INDEXED`或同输入幂等结果只证明V4已登记Stage A受控引用；index不是股票池。登记成功后，使用同一`article_date`核验：
+ 
+--- /Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/templates/chat_research_prompt.md.before
++++ /Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/templates/chat_research_prompt.md
+@@ -8,10 +8,12 @@
+ 文章日：{{ARTICLE_DATE}}；期望原图数：{{IMAGE_COUNT}}；图片清单摘要：{{MANIFEST_SHA256}}。
+ 真实发布时间读取 `manifest.json.published_at`，不能从文章日或文件时间补猜。
+ ZIP SHA 与 Drive IDs 仅在包外 external handoff receipt 记录，不能臆造。
++摘要中的`manifest_sha256`固定表示`manifest.csv`有序图片清单SHA；冻结成员`manifest.json`的原字节SHA、包外整ZIP可信SHA是另外两种摘要，不能混用或重写既有字段。
+ 默认使用包外交接消息/receipt里提供的已核实Drive `START_HERE`链接进入文章目录；冻结包内不预填上传后的链接。资料在`01_资料包`，回传放入`02_Chat回传`，本地复核镜像放入`03_本地复核`；不要默认要求用户再次上传整包。
+ 给用户的短prompt（可直接粘贴）：请使用包外交接消息/receipt里提供的已核实Drive `START_HERE`链接进入本篇文章目录，读取`01_资料包`的冻结资料并按本提示词完成研究；若交接附有带前篇与本篇 package/input_digest、SHA及行情receipt绑定的“前篇公众号提及表现附录”，也读取并放在第一章结论后作为非编号观察小节；研究后回传`report.md`、`coverage.csv`、`mentions.csv`、`unmapped.csv`、`summary.json`五个原始文件。冻结包内不包含上传后的真实链接；没有Drive写工具时仍回传原文件给Codex，不要要求重新上传`01_资料包`。
+ 
+ 回收时先读summary.json和report.md首行的package_id、input_digest、return_id、URL、文章日，再据这些身份定位唯一冻结包；不得默认选择最近一次Chat会话或同目录最近文件。遇到90与58等来源数量不一致，先核对package_id、input_digest、文章URL/日期和回传件绑定，再讨论数量差异。每次回传都取得五个原始文件；缺文件按缺失记录。新return_id或不同字节归新不可变版本，不覆盖旧回传；同一批次文件必须保持摘要SHA一致。
++Chat返回本次研究的五个原文件，不从OCR或冻结包重建、替换回传内容。Codex在本地归档时以包外可信ZIP SHA校验旧冻结包，并按默认新文章标准保存所有冻结ZIP原成员；输入不可信、五文件缺失或结构无效时保留已取得原字节和具体缺口，不声称完整归档或语义通过。PARTIAL是允许的研究状态，不可改成RESEARCH_VERIFIED/API_VERIFIED/UI_VERIFIED。
+ 
+ 先确认 BODY.md、OCR_FULL.md、manifest.json/csv 和清单内原图能否访问；保留图片的真实扩展名。image_count=0 时，manifest.csv 应只有表头且包内没有原图文件；OCR_FULL.md 应明确写 OCR_NOT_APPLICABLE。
+ 回显期望图片数、实际文件可访问数、实际打开原图数，不能把三者混为一谈；image_count=0 时后两项均为0，不表示读过任何图片。
+@@ -95,6 +97,7 @@
+ mentions_counts必须完整包含total/A/BJ/HK/entities/source_named_entities/supplemental_listing_rows；entities按entity_id去重，不按证券行去重。
+ artifact_sha256恰好绑定report.md、coverage.csv、mentions.csv、unmapped.csv的原字节SHA-256；使用程序实际计算，不手填、猜测或摘要重建；摘要自身不参与避免自引用。
+ `summary.json.status`仅为Chat自报：COMPLETE_WITH_ALL_SOURCES/PARTIAL_WITH_UNREADABLE/PARTIAL/CANNOT_CONFIRM；不能使用RESEARCH_VERIFIED/API_VERIFIED/UI_VERIFIED/NATURAL_VERIFIED或本地导入状态。
++PARTIAL状态不降低五文件返回要求；文件完整且结构/输入绑定通过时，Codex仍可将其归档并在V4 Stage A显示，同时保留`semantic_research_accepted=false`及未知`available_at`。结构、语义、文章日API和重新加载后的UI分别验收。
+ 完整声明不能同时存在缺失／不可读；FULL模式每图必须FULL，OCR模式每来源text_read=true。程序只能查自洽性，不证明阅读真实性。
+ 
+ ## 回传与安全
+--- /Users/lexi/Desktop/学习/v4_app/infrastructure/wechat_research_archive.py.before
++++ /Users/lexi/Desktop/学习/v4_app/infrastructure/wechat_research_archive.py
+@@ -35,6 +35,7 @@
+ MAX_JSON = 2 * 1024 * 1024
+ MAX_ARTIFACT = 32 * 1024 * 1024
+ MAX_REPORT = 4 * 1024 * 1024
++MAX_FROZEN_MEMBER = 1024 * 1024 * 1024
+ MAX_RECORDS = 10000
+ MAX_MENTION_ROWS = 10000
+ MAX_MENTION_FIELD = 2000
+@@ -112,7 +113,8 @@
+ 
+ 
+ def aware_time(value: Any) -> str | None:
+-    if not isinstance(value, str) or not re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)', value):
++    if not isinstance(value, str) or not re.fullmatch(
++            r'\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d+)?)?(?:Z|[+-]\d\d:\d\d)', value):
+         return None
+     try:
+         dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
+@@ -461,6 +463,181 @@
+         and declared_sha == observed_sha
+         and binding.get('package_sha256_status') == 'VERIFIED'
+     )
++
++
++def _strict_frozen_input(reader, receipt_path: str, receipt: dict, refs: dict,
++                         returned: dict[str, bytes]) -> tuple[dict, dict, dict]:
++    """Verify only the explicit extractor references in a new-standard receipt."""
++    binding = receipt.get('binding')
++    if (not isinstance(binding, dict) or binding.get('package_identity_status') != 'VERIFIED'
++            or not _trusted_input_binding(binding, binding.get('input_digest'))):
++        raise ArchiveError('FROZEN_INPUT_BINDING_UNTRUSTED')
++    if (receipt.get('receipt_version') != 'wechat-chat-return-v2'
++            or receipt.get('status') != 'REPORT_AND_STRUCTURED_ARCHIVED'
++            or receipt.get('structured_validation_status') != 'COMPLETE'
++            or receipt.get('missing_artifacts') != []
++            or receipt.get('invalid_artifacts') != []
++            or set(refs) != set(FILES)):
++        raise ArchiveError('FROZEN_INPUT_RETURN_INCOMPLETE')
++    local = receipt.get('local_acceptance')
++    if (not isinstance(local, dict) or local.get('input_binding_valid') is not True
++            or local.get('structure_valid') is not True
++            or local.get('semantic_research_accepted') is not False):
++        raise ArchiveError('FROZEN_INPUT_RETURN_INCOMPLETE')
++    if (receipt.get('review_contract_version') != 'wechat-event-dispositions-v1'
++            or receipt.get('event_dispositions_contract_status') != 'PASS'):
++        raise ArchiveError('FROZEN_INPUT_REVIEW_CONTRACT_REQUIRED')
++    frozen = receipt.get('frozen_input')
++    if not isinstance(frozen, dict) or frozen.get('status') != 'VERIFIED':
++        raise ArchiveError('FROZEN_INPUT_RECEIPT_MISSING_OR_BLOCKED')
++    parent = PurePosixPath(receipt_path).parent
++    try:
++        manifest_member = relative_path(frozen.get('manifest_path'))
++        extraction_receipt_member = relative_path(frozen.get('receipt_path'))
++        manifest_path = str(parent / manifest_member)
++        extraction_receipt_path = str(parent / extraction_receipt_member)
++        manifest_sha = _sha(frozen.get('manifest_sha256'))
++        extraction_receipt_sha = _sha(frozen.get('receipt_sha256'))
++        extraction_data = read_bytes(reader.archive_root, extraction_receipt_path,
++                                     extraction_receipt_sha, limit=MAX_JSON)
++        manifest_data = read_bytes(reader.archive_root, manifest_path, manifest_sha,
++                                   limit=MAX_JSON)
++    except ArchiveError as exc:
++        if exc.code == 'SOURCE_MISSING':
++            raise ArchiveError('FROZEN_INPUT_RECEIPT_OR_MANIFEST_MISSING') from exc
++        if exc.code == 'HASH_MISMATCH':
++            raise ArchiveError('FROZEN_INPUT_RECEIPT_OR_MANIFEST_HASH_MISMATCH') from exc
++        raise
++    extraction = parse_json(extraction_data, 'INVALID_FROZEN_INPUT_RECEIPT')
++    manifest = parse_json(manifest_data, 'INVALID_MANIFEST')
++    if (extraction.get('receipt_version') != 'wechat-frozen-input-extraction-v1'
++            or extraction.get('status') != 'VERIFIED'
++            or extraction.get('package_id') != binding.get('package_id')
++            or extraction.get('input_digest') != binding.get('input_digest')
++            or extraction.get('package_zip_sha256_trusted') != binding.get('package_sha256_declared')
++            or extraction.get('package_zip_sha256_observed') != binding.get('package_sha256_observed')
++            or extraction.get('frozen_manifest_member') != 'manifest.json'
++            or extraction.get('frozen_manifest_sha256_observed') != digest(manifest_data)
++            or extraction.get('review_contract_version') != 'wechat-event-dispositions-v1'
++            or manifest.get('manifest_version') != 'chat-materials-ocr-v2'
++            or manifest_path.rsplit('/', 1)[-1] != extraction.get('frozen_manifest_member')):
++        raise ArchiveError('FROZEN_INPUT_RECEIPT_IDENTITY_MISMATCH')
++    ident, source_refs = _bind_manifest(binding, manifest, manifest_path)
++    frozen_root = str(PurePosixPath(manifest_path).parent)
++
++    members = extraction.get('members')
++    if (not isinstance(members, list) or type(extraction.get('zip_member_count')) is not int
++            or len(members) != extraction.get('zip_member_count')
++            or len(members) > 10000 or extraction.get('zip_members_all_extracted_and_verified') is not True):
++        raise ArchiveError('FROZEN_INPUT_MEMBER_INVENTORY_INVALID')
++    seen = set()
++    inventory = []
++    member_identity = {}
++    for member in members:
++        if (not isinstance(member, dict) or set(member) != {'name', 'bytes', 'sha256'}
++                or type(member.get('bytes')) is not int or member['bytes'] < 0):
++            raise ArchiveError('FROZEN_INPUT_MEMBER_INVENTORY_INVALID')
++        name = relative_path(member.get('name'))
++        if name in seen:
++            raise ArchiveError('FROZEN_INPUT_MEMBER_INVENTORY_INVALID')
++        seen.add(name)
++        member_sha = _sha(member.get('sha256'))
++        try:
++            read_bytes(reader.archive_root, str(PurePosixPath(frozen_root) / name),
++                       member_sha, member['bytes'], limit=MAX_FROZEN_MEMBER)
++        except ArchiveError as exc:
++            if exc.code == 'SOURCE_MISSING':
++                raise ArchiveError('FROZEN_INPUT_MEMBER_MISSING') from exc
++            if exc.code in ('HASH_MISMATCH', 'SIZE_MISMATCH'):
++                raise ArchiveError('FROZEN_INPUT_MEMBER_HASH_MISMATCH') from exc
++            raise
++        member_identity[name] = (member['bytes'], member_sha)
++        inventory.append({'name': name, 'bytes': member['bytes'], 'sha256': member_sha})
++    inventory_sha = digest(json.dumps(inventory, ensure_ascii=False, separators=(',', ':')).encode('utf-8'))
++    if extraction.get('zip_member_inventory_sha256') != inventory_sha:
++        raise ArchiveError('FROZEN_INPUT_MEMBER_INVENTORY_HASH_MISMATCH')
++    if ('manifest.json' not in seen
++            or member_identity.get('manifest.json') != (len(manifest_data), digest(manifest_data))):
++        raise ArchiveError('FROZEN_INPUT_MANIFEST_MEMBER_MISMATCH')
++
++    descriptor = manifest.get('input_descriptor')
++    descriptor_entries = descriptor.get('sources') if isinstance(descriptor, dict) else None
++    declared_sources = extraction.get('descriptor_sources')
++    if (not isinstance(descriptor_entries, list) or not isinstance(declared_sources, list)
++            or len(declared_sources) != len(descriptor_entries)
++            or type(extraction.get('descriptor_source_count')) is not int
++            or type(extraction.get('descriptor_sources_verified')) is not int
++            or extraction.get('descriptor_source_count') != len(descriptor_entries)
++            or extraction.get('descriptor_sources_verified') != len(descriptor_entries)
++            or extraction.get('complete_source_paths') is not True):
++        raise ArchiveError('FROZEN_INPUT_DESCRIPTOR_SOURCES_INVALID')
++    for expected, archived in zip(descriptor_entries, declared_sources):
++        if (not isinstance(archived, dict) or archived.get('status') != 'VERIFIED'
++                or archived.get('source_id') != expected.get('source_id')
++                or archived.get('path') != expected.get('path')
++                or archived.get('bytes') != expected.get('bytes')
++                or archived.get('sha256') != expected.get('sha256')):
++            raise ArchiveError('FROZEN_INPUT_DESCRIPTOR_SOURCES_INVALID')
++        if archived['path'] not in member_identity:
++            raise ArchiveError('FROZEN_INPUT_DESCRIPTOR_SOURCE_MISSING')
++        if member_identity[archived['path']] != (archived['bytes'], archived['sha256']):
++            raise ArchiveError('FROZEN_INPUT_DESCRIPTOR_SOURCE_HASH_MISMATCH')
++        source_ref = source_refs['source_' + archived['source_id']]
++        source_ref['path'] = str(PurePosixPath(frozen_root) / archived['path'])
++
++    manifest_csv = next((source for source in descriptor_entries
++                         if isinstance(source, dict) and source.get('source_id') == 'IMAGE_MANIFEST'), None)
++    if not isinstance(manifest_csv, dict) or manifest_csv.get('path') not in member_identity:
++        raise ArchiveError('FROZEN_INPUT_IMAGE_MANIFEST_MISSING')
++    image_manifest_sha = member_identity[manifest_csv['path']][1]
++    if manifest.get('manifest_sha256') != image_manifest_sha:
++        raise ArchiveError('FROZEN_INPUT_IMAGE_MANIFEST_HASH_MISMATCH')
++
++    images = manifest.get('images')
++    declared_images = extraction.get('ordered_original_images')
++    image_count = manifest.get('total_images')
++    if (not isinstance(images, list) or not isinstance(declared_images, list)
++            or type(image_count) is not int or len(images) != image_count
++            or len(declared_images) != image_count or type(extraction.get('image_count')) is not int
++            or extraction.get('image_count') != image_count
++            or extraction.get('ordered_original_images_verified') is not True):
++        raise ArchiveError('FROZEN_INPUT_ORDERED_IMAGES_INVALID')
++    for index, (image, archived) in enumerate(zip(images, declared_images), 1):
++        if (not isinstance(image, dict) or not isinstance(archived, dict)
++                or image.get('idx') != index or archived.get('idx') != index
++                or image.get('path') != archived.get('path')
++                or image.get('bytes') != archived.get('bytes')
++                or image.get('sha256') != archived.get('sha256')
++                or archived.get('status') != 'VERIFIED'
++                or archived['path'] not in member_identity):
++            raise ArchiveError('FROZEN_INPUT_ORDERED_IMAGES_INVALID')
++        if member_identity[archived['path']] != (archived['bytes'], archived['sha256']):
++            raise ArchiveError('FROZEN_INPUT_ORDERED_IMAGE_HASH_MISMATCH')
++
++    summary = parse_json(returned['summary'], 'INVALID_SUMMARY')
++    return_id = _report_identity(returned['report'], summary, binding)
++    if (summary.get('schema_version') != 2
++            or summary.get('review_contract_version') != 'wechat-event-dispositions-v1'
++            or summary.get('package_id') != binding.get('package_id')
++            or summary.get('input_digest') != binding.get('input_digest')
++            or summary.get('manifest_sha256') != image_manifest_sha
++            or not return_id or summary.get('return_id') != return_id):
++        raise ArchiveError('FROZEN_INPUT_SUMMARY_IDENTITY_MISMATCH')
++    try:
++        coverage = list(csv.DictReader(io.StringIO(returned['coverage'].decode('utf-8-sig'), newline='')))
++    except (UnicodeError, csv.Error) as exc:
++        raise ArchiveError('FROZEN_INPUT_EVENT_DISPOSITIONS_INVALID') from exc
++    event_sources = {str(row.get('source_index') or '') for row in coverage if row.get('event') == 'EVENT'}
++    dispositions = summary.get('event_dispositions')
++    allowed = {'PROMOTE', 'HOLD', 'REJECT', 'CANNOT_CONFIRM'}
++    if (not isinstance(dispositions, dict) or set(dispositions) != event_sources
++            or any(not isinstance(value, str) or value not in allowed
++                   for value in dispositions.values())):
++        raise ArchiveError('FROZEN_INPUT_EVENT_DISPOSITIONS_INVALID')
++
++    # Optional legacy manifest arguments may corroborate the strict reference,
++    # but never replace it.
++    return ({'path': manifest_path, 'sha256': manifest_sha}, ident, source_refs)
+ 
+ 
+ def make_snapshot(receipt: dict, refs: dict, *, receipt_sha: str, indexed_at: str,
+@@ -532,7 +709,10 @@
+                   'structure':'MISSING' if missing else declared_structure,
+                   'research_review':'NOT_EVALUATED_STAGE_A'},
+         'receipt_claims':{'archive':receipt.get('status','UNKNOWN'), 'structure':declared_structure,
++                          'bytes_archived':local.get('bytes_archived') is True,
+                           'input_binding_valid':local.get('input_binding_valid') is True,
++                          'structure_valid':local.get('structure_valid') is True,
++                          'chat_claimed_complete':local.get('chat_claimed_complete') is True,
+                           'semantic_research_accepted':local.get('semantic_research_accepted') is True,
+                           'independent_review_scope':[str(v)[:500] for v in scope]},
+         'missing_artifacts':missing,'cannot_confirm':issues,
+@@ -555,7 +735,8 @@
+             raise ArchiveError('INDEX_MUST_NOT_OVERLAP_ARCHIVE')
+ 
+     def prepare(self, receipt: str, receipt_sha256: str, *, manifest: str | None = None,
+-                manifest_sha256: str | None = None) -> dict:
++                manifest_sha256: str | None = None,
++                require_frozen_input: bool = False) -> dict:
+         self.require_roots()
+         relative_path(receipt)
+         raw = read_bytes(self.archive_root, receipt, receipt_sha256)
+@@ -574,7 +755,22 @@
+         rid = _report_identity(returned['report'], summary, binding)
+         ident, source_refs = None, {}
+         manifest_ref = None
+-        if manifest or manifest_sha256:
++        if require_frozen_input:
++            strict_ref, ident, source_refs = _strict_frozen_input(self, receipt, rec, refs, returned)
++            if manifest or manifest_sha256:
++                if not manifest or not manifest_sha256:
++                    raise ArchiveError('MANIFEST_REF_INCOMPLETE')
++                supplied_path = relative_path(manifest)
++                supplied_sha = _sha(manifest_sha256)
++                if supplied_path != strict_ref['path'] or supplied_sha != strict_ref['sha256']:
++                    raise ArchiveError('FROZEN_INPUT_MANIFEST_REF_CONFLICT')
++            manifest_ref = strict_ref
++            manifest_data = read_bytes(self.archive_root, manifest_ref['path'], manifest_ref['sha256'],
++                                       limit=MAX_JSON)
++            source_refs['source_INPUT_MANIFEST'] = {'path':manifest_ref['path'],
++                'sha256':manifest_ref['sha256'],'bytes':len(manifest_data),
++                'filename':PurePosixPath(manifest_ref['path']).name,'kind':'FROZEN_INPUT'}
++        elif manifest or manifest_sha256:
+             if not manifest or not manifest_sha256: raise ArchiveError('MANIFEST_REF_INCOMPLETE')
+             manifest_data = read_bytes(self.archive_root,manifest,manifest_sha256)
+             mf=parse_json(manifest_data,'INVALID_MANIFEST')
+--- /Users/lexi/Desktop/学习/v4_app/ops/index_wechat_research.py.before
++++ /Users/lexi/Desktop/学习/v4_app/ops/index_wechat_research.py
+@@ -20,8 +20,10 @@
+ 
+ 
+ def register_return(reader: WechatResearchArchive, *, receipt: str, receipt_sha256: str,
+-                    manifest: str | None = None, manifest_sha256: str | None = None) -> dict:
+-    record=reader.prepare(receipt,receipt_sha256,manifest=manifest,manifest_sha256=manifest_sha256)
++                    manifest: str | None = None, manifest_sha256: str | None = None,
++                    require_frozen_input: bool = False) -> dict:
++    record=reader.prepare(receipt,receipt_sha256,manifest=manifest,manifest_sha256=manifest_sha256,
++                          require_frozen_input=require_frozen_input)
+     # Bootstrap the index under a stable parent lock. Creating the index root and
+     # opening a lock inside it at the same time raced for first registration.
+     # The sidecar is a local registration lock, not a service or source write.
+@@ -112,11 +114,14 @@
+     parser.add_argument('--receipt-sha256',required=True,help='Expected SHA from the explicitly selected local receipt')
+     parser.add_argument('--manifest',help='Optional extracted frozen manifest path below archive root; must bind same v2 input')
+     parser.add_argument('--manifest-sha256')
++    parser.add_argument('--require-frozen-input', action='store_true',
++                        help='Require and verify the selected IMPORT_RECEIPT frozen-input extraction binding')
+     args=parser.parse_args(argv)
+     try:
+         reader=WechatResearchArchive(args.archive_root,Path(args.data_root)/'research/wechat_materials')
+         result=register_return(reader,receipt=args.receipt,receipt_sha256=args.receipt_sha256,
+-                               manifest=args.manifest,manifest_sha256=args.manifest_sha256)
++                               manifest=args.manifest,manifest_sha256=args.manifest_sha256,
++                               require_frozen_input=args.require_frozen_input)
+         print(json.dumps(result,ensure_ascii=False)); return 0
+     except (ArchiveError,OSError) as exc:
+         print(json.dumps({'status':'REJECTED','reason':exc.code if isinstance(exc,ArchiveError) else 'INDEX_IO_ERROR'}))
+--- /Users/lexi/.codex/skills/baimao-feed/SKILL.md.before
++++ /Users/lexi/.codex/skills/baimao-feed/SKILL.md
+@@ -24,6 +24,10 @@
+   duplicate, missing, or unknown indices fail this structural check. The receipt reports the check
+   separately from semantic review. Older v2 packages without the field remain importable and report
+   `NOT_RUN_LEGACY_PACKAGE`.
++- The maintained commands and precise frozen/return receipt schema live in
++  `WORKFLOW_公众号链接固定执行方案.md` sections 0.1, 0.2, 0.5 and 0.6 and in
++  `templates/chat_research_prompt.md`. Keep this skill and its references at the responsibility and
++  state level; do not add a second command, receipt schema or producer.
+ 
+ ## Default WeChat route: local package → Drive-first handoff → user Chat → Codex archive + Drive mirror
+ 
+@@ -170,12 +174,17 @@
+ as original bytes and passed bounded syntax/identity checks. It is a structure-archive state, not a
+ research pass or proof of complete visual coverage.
+ 
+-For a trusted frozen ZIP, `IMPORT_RECEIPT.binding` carries `account`, `biz`, `published_at`, and the
+-observed SHA-256 of the original `manifest.json` member for downstream V4 identity metadata. Do not
+-extract only that manifest to force source registration: the input descriptor also references BODY,
+-OCR, and image sources. An optional manifest registration is valid only when all referenced source
+-paths exist in the same archive. Keep `FROZEN_INPUT_NOT_REGISTERED` separate when those source
+-references are unavailable.
++For future new articles, run the existing importer with `--archive-frozen-input`; after trusted ZIP
++identity verification it preserves every original ZIP member byte-for-byte, in original order, under
++that return's `frozen_input/` directory and emits an extraction receipt plus explicit import-receipt
++references. A failed trust, source, or structure check keeps the returned raw bytes and a blocker and
++cannot claim the complete standard. `IMPORT_RECEIPT.binding` also carries `account`, `biz`,
++`published_at`, and the observed SHA-256 of the original `manifest.json` member. Register those new
++receipts with V4 `--require-frozen-input`; V4 verifies the explicit receipt references and every
++descriptor source before writing an index record. The optional `--manifest` path remains a legacy
++compatibility input and cannot bypass strict receipt binding. `PARTIAL` research may be archived and
++displayed when its files and bindings pass, but it stays semantically unaccepted and `available_at`
++remains unknown. Exact commands and receipt fields remain in the workflow and prompt template above.
+ 
+ ## Explicit `LEGACY_FULL_RESEARCH` route only
+ 
+--- /Users/lexi/.codex/skills/baimao-method/SKILL.md.before
++++ /Users/lexi/.codex/skills/baimao-method/SKILL.md
+@@ -21,6 +21,12 @@
+ - Treat narrative heat, broker coverage, market cap, and recent price action as context, not proof of quality.
+ - For a full WeChat article, retain the complete report contract: every coverage `EVENT` `source_index` receives exactly one of `PROMOTE`, `HOLD`, `REJECT`, or `CANNOT_CONFIRM` in summary `event_dispositions`; every `NO_EVENT` remains `NO_EVENT`; every unreadable source remains `UNREADABLE` with its exact ID/range. The trusted frozen package's `review_contract_version` controls whether this check applies. Time, token, context, or scheduler pressure never authorizes shrinking the report. If a required analysis is unfinished, label it `INCOMPLETE`/`CANNOT_CONFIRM` rather than inventing a conclusion. Structural mapping validity does not prove correct event classification or research semantics.
+ - New frozen packages declare `review_contract_version=wechat-event-dispositions-v1`; an older v2 package without that field remains under its original return contract and must show the event check as `NOT_RUN_LEGACY_PACKAGE`.
++- The local return archive and V4 registration are owned by the feed/archive workflow, not by the
++  research method. For the default future-article path, use the commands and precise receipt schema
++  in `WORKFLOW_公众号链接固定执行方案.md` and `templates/chat_research_prompt.md`: trusted frozen
++  input is retained beside the return and V4 checks explicit receipt references before indexing.
++  `PARTIAL` research can be displayed after file, binding, and structure checks pass; it does not
++  become semantic approval, and Stage A `available_at` remains unknown.
+ - Keep A/BJ observations and Hong Kong observations (Connect eligibility separately evidenced) in separate tables, and keep the all-mentions pool, Baimao research pool, and any formal pool semantically separate.
+ 
+ ## Workflow
+--- /Users/lexi/.codex/skills/baimao-chokepoint/SKILL.md.before
++++ /Users/lexi/.codex/skills/baimao-chokepoint/SKILL.md
+@@ -14,6 +14,10 @@
+ - The cross-model skill's implicit discovery is not external activation: without current explicit audit/comparison intent it returns `ROUTE_NOT_APPLICABLE` and does not inspect tabs, request confirmation, or send.
+ - For a raw WeChat link in the default route, finish the `baimao-feed` package gate; use the grounded Drive article folder and `START_HERE` handoff first. Direct files are only a bounded fallback. Never use the Baimao shortlist as the public-account all-mentions pool.
+ - A raw WeChat URL plus an analysis request follows `feed package → Drive-first article handoff → user Chat research → Codex local return/archive and Drive mirror → authorized V4 Stage A exact-date API/UI display`; Chat owns research coverage and unreadable sources remain explicit. If Chat has no Drive write tool, it returns exact files to Codex and must not claim Drive write. V3.5/page delivery is a separate date-matched handoff available only under explicit `LEGACY_FULL_RESEARCH`.
++- For future new articles, follow the single command and receipt authority in
++  `WORKFLOW_公众号链接固定执行方案.md` and `templates/chat_research_prompt.md`. The feed importer
++  preserves the trusted frozen ZIP members with the return; the V4 strict registration validates its
++  explicit receipt references. A `PARTIAL` report can be archived without semantic promotion.
+ - Treat verified facts, evidence-based inferences, and unverified hypotheses as different states.
+ - Prefer a useful `RESEARCH_MAP` over a forced stock list or a forced `ZERO_PASS`.
+ - Never claim a formal pool, BUY gate, or trading state was updated unless a separate authorized workflow performed and verified it.
+--- /Users/lexi/.codex/skills/baimao-feed/references/drive-chat-handoff.md.before
++++ /Users/lexi/.codex/skills/baimao-feed/references/drive-chat-handoff.md
+@@ -35,7 +35,14 @@
+ 回传附件、文件引用或文本readback不能作为Drive原字节往返验证。本地结构通过不能自动RESEARCH_VERIFIED，也不能直接发布池、改BUY gate或交易；归档和镜像通过后，用户已授权的V4 Stage A研究归档展示必须另行登记并按exact文章日验证API/UI，不触发legacy、候选或评分。不后台轮询、不自动发送Chat、不改共享权限。
+ 
+ 新冻结包的`review_contract_version=wechat-event-dispositions-v1`由manifest和input_digest绑定。导入要求summary的`event_dispositions`对coverage中每个EVENT source_index各填一个PROMOTE/HOLD/REJECT/CANNOT_CONFIRM；NO_EVENT、UNREADABLE、遗漏、重复和未知编号均结构无效。旧v2包缺版本时明确记录`NOT_RUN_LEGACY_PACKAGE`。结构检查不是研究语义验收。
+-可信冻结ZIP的导入receipt会保留manifest中的account、biz、published_at和member SHA供V4身份字段使用。不要只把manifest单独抽进归档：descriptor引用的BODY、OCR、图片源也必须处于可解析路径中才可登记完整输入；缺源路径就保留`FROZEN_INPUT_NOT_REGISTERED`。
++可信冻结ZIP的导入receipt会保留manifest中的account、biz、published_at和`manifest.json`成员SHA供V4身份字段使用。不要只把manifest单独抽进归档：descriptor引用的BODY、OCR、图片源也必须处于可解析路径中才可登记完整输入；缺源路径就保留`FROZEN_INPUT_NOT_REGISTERED`。
++
++未来新文章的唯一CLI命令和receipt字段以`WORKFLOW_公众号链接固定执行方案.md`第0节及
++`templates/chat_research_prompt.md`为准。本地导入要在可信ZIP身份通过后保留完整冻结成员；V4
++新标准只使用所选IMPORT_RECEIPT显式绑定的提取receipt和manifest引用，并在写入index之前复核
++五个回传原字节及冻结来源。旧的显式`--manifest`兼容路径不能覆盖或绕过新receipt绑定。字段
++结构通过、研究语义、Drive往返和Stage A展示各自保留状态；`PARTIAL`可被归档展示但不升级为
++研究通过。
+ 
+ ## 官方资料（2026-09-20核查；仅产品文档，不是本链路实测）
+ - 文件字段、版本、checksum：https://developers.google.com/workspace/drive/api/reference/rest/v3/files
+--- /Users/lexi/.codex/skills/baimao-method/references/wechat-report-chain.md.before
++++ /Users/lexi/.codex/skills/baimao-method/references/wechat-report-chain.md
+@@ -4,6 +4,11 @@
+ Codex只负责采集、OCR、冻结输入、原字节归档与有界结构校验；Chat负责研究。默认归档后不重做研究。
+ 权威输入为冻结ZIP中manifest.json的input_descriptor/input_digest，不用后来变化的run OCR验证旧报告。
+ 字段的执行模板在workspace/templates/chat_research_prompt.md，程序校验在wechat_chat_handoff.py；二者必须一起测试，不复制第三份schema。
++未来新文章本地导入/V4严格登记的唯一命令和精确receipt字段由
++`WORKFLOW_公众号链接固定执行方案.md`第0节与`templates/chat_research_prompt.md`维护；本文件只定义
++研究与回传内容合同。默认导入保存可信ZIP的原始成员，V4按所选IMPORT_RECEIPT的显式冻结输入引用
++复核后登记。五个原始回传字节、冻结来源、结构、语义与展示保持独立状态；PARTIAL可归档展示，
++但不代表语义接受或已知available_at。
+ 新包在manifest与input_descriptor中冻结`review_contract_version=wechat-event-dispositions-v1`。
+ summary.json的`event_dispositions`逐个以coverage的EVENT `source_index`映射`PROMOTE/HOLD/REJECT/CANNOT_CONFIRM`；
+ NO_EVENT、UNREADABLE、缺项、重复和未知来源均不通过结构检查。检查状态要在IMPORT_RECEIPT
