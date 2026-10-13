@@ -2,7 +2,7 @@
 from __future__ import annotations
 from pathlib import Path
 from pydantic import Field, field_validator, model_validator
-from .contracts import StrictModel
+from .contracts import StrictModel, Lane
 
 
 class WorkbenchConfig(StrictModel):
@@ -11,6 +11,8 @@ class WorkbenchConfig(StrictModel):
     shared_root: Path | None = None
     stage_root: Path | None = None
     dynamic_source_bindings: bool = False
+    # Scheduled research only. Manual/API explicit lanes remain authoritative.
+    scheduled_lanes: list[Lane] | None = Field(default=None, min_length=1, max_length=5)
     # New exclusive capture is opt-in; roots/token are operator-only, never HTTP.
     capture_enabled: bool = False
     capture_root: Path | None = None
@@ -34,6 +36,13 @@ class WorkbenchConfig(StrictModel):
     cli_isolation_attested: bool = False
     model_timeout_seconds: int = Field(default=900, ge=1, le=3600)
     workers: int = Field(default=3, ge=1, le=5)
+
+    @field_validator("scheduled_lanes")
+    @classmethod
+    def unique_scheduled_lanes(cls, value):
+        if value and len(value) != len(set(value)):
+            raise ValueError("DUPLICATE_SCHEDULED_LANES")
+        return value
 
     @field_validator("state_root", "manager_root", "shared_root", "stage_root", "legacy_root", "codex_binary", "us_calendar_path", "us_root", "relation_root", "capture_root", "capture_lease_root")
     @classmethod

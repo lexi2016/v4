@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, time
 from typing import Any
 
-from .contracts import HK, Lane, Phase, validate_date
+from .contracts import HK, Lane, Phase, validate_date, digest
 from .service import ManagerService
 
 
@@ -36,6 +36,10 @@ def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
     if not _require_calendar(calendar,day):
         return {"state":"NOT_APPLICABLE", "date":day,"reason":"HK_NON_TRADING_SESSION","jobs":[]}
     jobs: list[dict[str, str]] = []
+    scheduled = getattr(getattr(service, "config", None), "scheduled_lanes", None)
+    # A new configured scope cannot retry an older all-lane claim and thereby
+    # restore paused research. Default keys/behavior remain compatible.
+    suffix = "_"+digest(sorted(l.value for l in scheduled))[:16] if scheduled is not None else ""
     at925 = datetime.combine(local.date(), time(9,25), HK)
     at1630 = datetime.combine(local.date(), time(16,30), HK)
     if local >= at925:
@@ -51,7 +55,7 @@ def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
     for item in stage_runs:
         if not isinstance(item,dict) or not item.get("run_id") or not item.get("input_sha256"):
             raise CalendarUnavailable("STAGE_RECEIPT_INVALID")
-        key = "stage_"+item["run_id"]
+        key = "stage_"+item["run_id"]+suffix
         # Clock/rules scope is stored on the generated job. The producer is never modified.
         signature = item["input_sha256"]
         current = service.store.cursor(key)
@@ -62,7 +66,7 @@ def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
                 service.store.set_cursor(key,{"sha256":signature,"job_id":retry.job_id})
                 jobs.append({"phase":"INTRADAY","run_id":retry.run_id,"job_id":retry.job_id})
             continue
-        job = service.submit(day, Phase.INTRADAY, trigger="SCHEDULED",cutoff=local,
+        job = service.submit(day, Phase.INTRADAY, trigger="SCHEDULED",cutoff=local,lanes=scheduled,
                              scope_refs={"stage_run_id":item["run_id"],"stage_input_sha256":signature,
                                          "timing_status":"ON_SLOT"})
         service.store.set_cursor(key,{"sha256":signature,"job_id":job.job_id})
@@ -74,15 +78,15 @@ def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
         validate_date(next_day)
         if not _require_calendar(calendar,next_day) or next_day <= day:
             raise CalendarUnavailable("HK_NEXT_SESSION_INVALID")
-        key = "nextday_"+day
+        key = "nextday_"+day+suffix
         if not service.store.cursor(key):
-            job = service.submit(next_day,Phase.NEXT_DAY,trigger="SCHEDULED",cutoff=local,
+            job = service.submit(next_day,Phase.NEXT_DAY,trigger="SCHEDULED",cutoff=local,lanes=scheduled,
                                  scope_refs={"source_hk_session":day,
                                              "timing_status":"LATE_CATCHUP" if local>at1630 else "ON_SLOT"})
             service.store.set_cursor(key,{"job_id":job.job_id,"target_date":next_day,"cutoff":local.isoformat()})
             jobs.append({"phase":"NEXT_DAY","run_id":job.run_id,"job_id":job.job_id})
     # Preserve the preopen latch above before any background capture enqueue.
-    if getattr(service,"capture_jobs",None):
+    if getattr(service,"capture_jobs",None) and (scheduled is None or Lane.ANNOUNCEMENT in scheduled):
         capture_day=next_day if local>=at1630 else day
         capture_phase=Phase.NEXT_DAY if local>=at1630 else Phase.INTRADAY
         bucket=int(local.timestamp())//service.config.capture_poll_seconds

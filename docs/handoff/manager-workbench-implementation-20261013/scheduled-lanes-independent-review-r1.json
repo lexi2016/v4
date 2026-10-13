@@ -1,0 +1,55 @@
+{
+  "verdict": "PASS",
+  "REVIEWED": "PASS",
+  "BEHAVIOR_VERIFIED": [
+    "scope change does not retry existing FAILED ALL cursor",
+    "scheduled INTRADAY and NEXT_DAY only US_MAPPING/OVERSOLD",
+    "excluded ANNOUNCEMENT prevents capture even capture-enabled host",
+    "09:25 PREOPEN freeze with empty stage feed does not load/run engine"
+  ],
+  "old_failed_scope": {
+    "state": "FAILED",
+    "retryable": true,
+    "new_scopes": [
+      [
+        "US_MAPPING",
+        "OVERSOLD"
+      ],
+      [
+        "US_MAPPING",
+        "OVERSOLD"
+      ]
+    ],
+    "old_cursor_unchanged": true,
+    "capture_calls": 0
+  },
+  "preopen": {
+    "phases": [
+      "PREOPEN"
+    ],
+    "engine_loads": 0,
+    "lane_runs": 0,
+    "repeat_jobs": 0
+  },
+  "source_or_formal_writes": 0,
+  "network_or_model_calls": 0,
+  "not_run": [
+    "formal integration/restart",
+    "natural 16:30 slot"
+  ],
+  "TESTED": "PASS",
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 <configured-python> -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_scheduled_lanes.py tests/manager_workbench/runtime/test_runtime.py --basetemp=/private/tmp/mwb-scheduled-pause-review-pytest-20261013",
+  "test_result": "22 passed in 1.09s",
+  "identity": {
+    "input_receipt_sha256": "e55e35ce009ea08c5c0adca2c7167b10f5186b99283f48ed287c652d7976fd3a",
+    "config_after_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4",
+    "scheduler_after_sha256": "6d670e53da10894f1a8b63393d280cec159711d00b3c37b978fdcff3ee48682b",
+    "test_sha256": "b6dc3fedbc7de2745a76334c4db1ef45f91c2e11232232a076e70ad801ea8739",
+    "api_scheduler_preimages_match": true,
+    "formal_before_sha256": "575bf4b399691638589af2536863046f74b21158ae52e64a94c1e87e4798d2ff",
+    "proposal_sha256": "0a76879d1f658d326c54af5289f09ee2a42e51e0f9976da29df6a208d49ecd20",
+    "only_config_change": "scheduled_lanes=[US_MAPPING,OVERSOLD]"
+  },
+  "manual_semantics": "unchanged: explicit ANNOUNCEMENT accepted; omitted lanes retains ALL (tested)",
+  "P0_P1_P2": []
+}

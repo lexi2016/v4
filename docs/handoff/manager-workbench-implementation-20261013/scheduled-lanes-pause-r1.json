@@ -1,0 +1,86 @@
+{
+  "state": "IMPLEMENTED_FOR_REVIEW",
+  "goal": "Pause scheduled announcement research without stopping US/oversold",
+  "files": [
+    {
+      "path": "v4/manager_workbench/config.py",
+      "before_sha256": "567572aea324bdf009834cb508f5e9065283c16d1b6302effe186cbe1ea006b9",
+      "after_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4"
+    },
+    {
+      "path": "v4/manager_workbench/scheduler.py",
+      "before_sha256": "5e45eb6263fa2f4e5ce0be63e4f73dcee6020438ddd8ba805c592db72baf7f83",
+      "after_sha256": "6d670e53da10894f1a8b63393d280cec159711d00b3c37b978fdcff3ee48682b"
+    }
+  ],
+  "test": {
+    "path": "tests/manager_workbench/runtime/test_scheduled_lanes.py",
+    "sha256": "b6dc3fedbc7de2745a76334c4db1ef45f91c2e11232232a076e70ad801ea8739",
+    "results": [
+      "5 passed in targeted r2",
+      "36 passed in r1 (runtime + capture baseline + four scoped cases); failed test-only fixture corrected"
+    ],
+    "logs": [
+      "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/scheduled-lanes-r1.log",
+      "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/scheduled-lanes-r2.log"
+    ]
+  },
+  "config_proposal": {
+    "path": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/scheduled-lanes-formal-config-r1.json",
+    "sha256": "0a76879d1f658d326c54af5289f09ee2a42e51e0f9976da29df6a208d49ecd20",
+    "formal_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json",
+    "formal_before_sha256": "575bf4b399691638589af2536863046f74b21158ae52e64a94c1e87e4798d2ff",
+    "only_business_change": {
+      "scheduled_lanes": [
+        "US_MAPPING",
+        "OVERSOLD"
+      ]
+    }
+  },
+  "active_base_deltas": [
+    {
+      "role": "api",
+      "target_relative": "v4/manager_workbench/config.py",
+      "active_base_sha256": "567572aea324bdf009834cb508f5e9065283c16d1b6302effe186cbe1ea006b9",
+      "replacement_source": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/v4/manager_workbench/config.py",
+      "replacement_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4"
+    },
+    {
+      "role": "api",
+      "target_relative": "v4/manager_workbench/scheduler.py",
+      "active_base_sha256": "5e45eb6263fa2f4e5ce0be63e4f73dcee6020438ddd8ba805c592db72baf7f83",
+      "replacement_source": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/v4/manager_workbench/scheduler.py",
+      "replacement_sha256": "6d670e53da10894f1a8b63393d280cec159711d00b3c37b978fdcff3ee48682b"
+    },
+    {
+      "role": "scheduler",
+      "target_relative": "v4/manager_workbench/config.py",
+      "active_base_sha256": "567572aea324bdf009834cb508f5e9065283c16d1b6302effe186cbe1ea006b9",
+      "replacement_source": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/v4/manager_workbench/config.py",
+      "replacement_sha256": "c63075290b2824470ea3c459a273547d1b0ce1faf64ce0a346b94600773d89c4"
+    },
+    {
+      "role": "scheduler",
+      "target_relative": "v4/manager_workbench/scheduler.py",
+      "active_base_sha256": "5e45eb6263fa2f4e5ce0be63e4f73dcee6020438ddd8ba805c592db72baf7f83",
+      "replacement_source": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/v4/manager_workbench/scheduler.py",
+      "replacement_sha256": "6d670e53da10894f1a8b63393d280cec159711d00b3c37b978fdcff3ee48682b"
+    }
+  ],
+  "behavior": [
+    "Default None retains all-lane schedule",
+    "Configured lanes apply Stage-triggered intraday and 16:30 NEXT_DAY submits",
+    "Scope-specific cursor prevents retrying older all-lane job",
+    "Excluded announcement also blocks scheduled capture enqueue",
+    "09:25 saved-plan freeze is unchanged; no model call",
+    "Manual explicit/default lanes are unaffected"
+  ],
+  "not_run": [
+    "Independent Reviewer acceptance",
+    "Formal configuration/source replacement",
+    "Service restart",
+    "Natural 16:30 slot"
+  ],
+  "formal_state_writes": 0,
+  "model_calls": 0
+}
