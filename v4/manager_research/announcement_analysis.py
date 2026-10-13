@@ -302,6 +302,20 @@ def _source_identity_metrics(catalog: Mapping[str, Any]) -> tuple[int, list[str]
     return associations, distinct_codes
 
 
+def _valid_eastmoney_hk_source_identity(identity: Mapping[str, Any]) -> bool:
+    """Validate canonical HK tickers and the source's documented applicant keys."""
+    code = identity.get("code")
+    if (identity.get("market_code") != "116" or identity.get("ann_type") != "H"
+            or not isinstance(code, str)):
+        return False
+    if re.fullmatch(r"HK\.\d{5}", code) is not None:
+        return True
+    # Eastmoney 116/H pages can identify an IPO applicant with an H#### key.
+    # Keep that source key verbatim; it is not a canonical ticker or Connect code.
+    return (re.fullmatch(r"H\d{4}", code) is not None
+            and identity.get("source_stock_code") == code)
+
+
 def _assert_catalog_readback(catalog_read: Mapping[str, Any], target: str,
                              publication: str) -> Mapping[str, Any]:
     catalog = catalog_read.get("catalog")
@@ -531,9 +545,11 @@ def validate_product(product: Mapping[str, Any], *, target_trade_date: str,
         for code, row in record_by_code.items():
             if code in failure_bindings:
                 expected_failure = {"status": "BODY_CAPTURE_FAILED", **failure_bindings[code]}
+                failure_projection_matches = _body_capture_failure_projection_matches(
+                    row.get("body_capture_failure"), expected_failure)
                 if (row.get("analysis_kind") != "TEXT_INSUFFICIENT_UNASSESSED"
                         or row.get("selection_status") != "NOT_ASSESSED"
-                        or row.get("body_capture_failure") != expected_failure
+                        or not failure_projection_matches
                         or row.get("body_page_citations") != []
                         or row.get("body_page_count") is not None
                         or row.get("body_text_sha256") is not None
@@ -984,9 +1000,22 @@ def _analysis_hkex_record(record: Mapping[str, Any], variant: Mapping[str, Any])
     return out
 
 
+def _body_capture_failure_projection_matches(value: Any, expected: Mapping[str, Any]) -> bool:
+    if not isinstance(value, Mapping):
+        return False
+    base_fields = {"status", "error_code", "receipt_sha256"}
+    counted_fields = base_fields | {"content_api_page_total", "content_api_pages_captured"}
+    if frozenset(value) not in {frozenset(base_fields), frozenset(counted_fields)}:
+        return False
+    for field in ("content_api_page_total", "content_api_pages_captured"):
+        if field in value and (type(value[field]) is not int or value[field] < 0):
+            return False
+    return all(value.get(field) == expected.get(field) for field in value)
+
+
 def _validated_terminal_body_capture(value: Mapping[str, Any] | None,
                                      body_by_code: Mapping[str, Mapping[str, Any]],
-                                     expected_codes: set[str]) -> tuple[dict[str, Any] | None, dict[str, dict[str, str]]]:
+                                     expected_codes: set[str]) -> tuple[dict[str, Any] | None, dict[str, dict[str, Any]]]:
     failed_rows = {code for code, row in body_by_code.items()
                    if row.get("body_status") == "BODY_CAPTURE_FAILED"}
     if value is None:
@@ -998,19 +1027,34 @@ def _validated_terminal_body_capture(value: Mapping[str, Any] | None,
     failures_raw = value.get("failed_articles")
     if not isinstance(failures_raw, list):
         raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_INVALID")
-    failures: dict[str, dict[str, str]] = {}
+    failures: dict[str, dict[str, Any]] = {}
     for item in failures_raw:
         if not isinstance(item, Mapping):
             raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_INVALID")
         code = item.get("art_code")
         error_code = item.get("error_code")
         receipt_sha = item.get("receipt_sha256")
+        page_total_present = "content_api_page_total" in item
+        pages_captured_present = "content_api_pages_captured" in item
+        page_total = item.get("content_api_page_total")
+        pages_captured = item.get("content_api_pages_captured")
         if (not isinstance(code, str) or code in failures or code not in expected_codes
                 or not isinstance(error_code, str) or not error_code.strip()
                 or not isinstance(receipt_sha, str)
-                or re.fullmatch(r"[0-9a-f]{64}", receipt_sha) is None):
+                or re.fullmatch(r"[0-9a-f]{64}", receipt_sha) is None
+                or set(item) - {"art_code", "error_code", "receipt_sha256",
+                    "content_api_page_total", "content_api_pages_captured"}
+                or page_total_present != pages_captured_present
+                or (page_total_present and (
+                    type(page_total) is not int or page_total < 0
+                    or type(pages_captured) is not int or pages_captured < 0))):
             raise ValueError("ANNOUNCEMENT_ANALYSIS_BODY_CAPTURE_TERMINAL_INVALID")
-        failures[code] = {"error_code": error_code.strip(), "receipt_sha256": receipt_sha}
+        failure_binding: dict[str, Any] = {
+            "error_code": error_code.strip(), "receipt_sha256": receipt_sha}
+        if page_total_present:
+            failure_binding["content_api_page_total"] = page_total
+            failure_binding["content_api_pages_captured"] = pages_captured
+        failures[code] = failure_binding
     counts = value.get("body_status_counts")
     status = value.get("status")
     hkex_unresolved_count = value.get("hkex_unresolved_document_count", 0)
@@ -1204,8 +1248,8 @@ def _build_multi_source_product(semantic_catalog: Mapping[str, Any], body_corpus
             raise ValueError("ANNOUNCEMENT_ANALYSIS_SOURCE_IDENTITIES_MISSING")
         row_codes = [item.get("code") for item in identities if isinstance(item, Mapping)]
         if (len(row_codes) != len(identities)
-                or any(not isinstance(value, str) or re.fullmatch(r"HK\.\d{5}", value) is None
-                       for value in row_codes)):
+                or any(not _valid_eastmoney_hk_source_identity(item)
+                       for item in identities if isinstance(item, Mapping))):
             raise ValueError("ANNOUNCEMENT_ANALYSIS_SOURCE_IDENTITY_INVALID")
         if set(row_codes) & eligibility_codes:
             eligible_codes.add(code)
@@ -1297,8 +1341,8 @@ def _build_multi_source_product(semantic_catalog: Mapping[str, Any], body_corpus
         if (evidence.get("body_record_sha256") != digest(variant)
                 or evidence.get("body_file_sha256") != variant.get("body_artifact_sha256")
                 or evidence.get("body_status") != variant.get("body_status")
-                or evidence.get("directory_source_ref") != _source_ref(variant.get("directory_source_ref"))
-                or evidence.get("body_source_ref") != _source_ref(variant.get("body_source_ref"))):
+                or evidence.get("directory_source_ref") != variant.get("directory_source_ref")
+                or evidence.get("body_source_ref") != variant.get("body_source_ref")):
             raise ValueError("ANNOUNCEMENT_ANALYSIS_HKEX_BODY_ARTIFACT_BINDING_MISMATCH")
 
     canonical_objects = {"semantic_catalog": semantic_catalog, "body_corpus": body_corpus}
@@ -1465,8 +1509,7 @@ def _validate_multi_source_product(product: Mapping[str, Any], target: str,
             raise ValueError("ANNOUNCEMENT_ANALYSIS_SOURCE_IDENTITIES_MISSING")
         issuer_codes = [item.get("code") for item in identities if isinstance(item, Mapping)]
         if (len(issuer_codes) != len(identities)
-                or any(not isinstance(value, str) or re.fullmatch(r"HK\.\d{5}", value) is None
-                       for value in issuer_codes)):
+                or any(not _valid_eastmoney_hk_source_identity(item) for item in identities)):
             raise ValueError("ANNOUNCEMENT_ANALYSIS_SOURCE_IDENTITY_INVALID")
         if set(issuer_codes) & eligibility_codes:
             eligible_codes.add(code)
@@ -1586,8 +1629,10 @@ def _validate_multi_source_product(product: Mapping[str, Any], target: str,
                 or row.get("body_record_sha256") != evidence.get("body_record_sha256")
                 or not isinstance(listing_source, Mapping)
                 or listing_source.get("source_variant_id") != variant_id
-                or listing_source.get("directory_source_ref") != evidence.get("directory_source_ref")
-                or listing_source.get("body_source_ref") != evidence.get("body_source_ref")
+                or listing_source.get("directory_source_ref") != _source_ref(
+                    evidence.get("directory_source_ref"))
+                or listing_source.get("body_source_ref") != _source_ref(
+                    evidence.get("body_source_ref"))
                 or row.get("title") != evidence.get("title")
                 or row.get("issuer_codes") != [{"code": evidence.get("symbol"), "name": evidence.get("name")}]
                 or row.get("selection_status") != (None if evidence.get("body_status") == _HKEX_COMPLETE_BODY
