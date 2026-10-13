@@ -268,7 +268,8 @@ def __node_candidates_body(_v4_scope, /, trade_date, evaluated_at, *, explicit_n
             _v4_scope, trade_date, current, node, receipt, config=config
         ):
             unsettled.append(node)
-    due = unsettled
+    # Capture the live window before retrying older stages or pool preparation.
+    due = sorted(unsettled, key=lambda node: node.node_id not in _v4_global(_v4_scope, 'PRECAPTURE_NODE_IDS'))
     return _v4_global(_v4_scope, 'tuple')(due[: _v4_global(_v4_scope, '_config_int')(config, "node_max_nodes_per_run", _v4_global(_v4_scope, 'DEFAULT_MAX_NODES_PER_RUN'))])
 
 

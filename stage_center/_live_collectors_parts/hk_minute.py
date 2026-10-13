@@ -237,6 +237,7 @@ def _collect_hk_minute_body(_v4_scope, /, plan, *, codes, python_path, shared_ro
         result = module.collect_futu_minute(
             python_path, plan.trade_date, plan.stage_id, list(codes), market="HK_CONNECT",
             process_runner=_v4_global(_v4_scope, '_scoped_process_runner')(root, process_runner),
+            capture_root=snapshot_root,
         )
         source = _v4_global(_v4_scope, '_to_source')(
             result, source_id="futu", route="shared_futu_hkconnect_minute", requested=len(codes),
@@ -245,7 +246,7 @@ def _collect_hk_minute_body(_v4_scope, /, plan, *, codes, python_path, shared_ro
             return source
         provenance = tuple(dict.fromkeys(
             f"{key}={row[key]}" for row in source.rows
-            for key in ("futu_captured_at", "futu_provider_rows_sha256") if row.get(key)
+            for key in ("futu_captured_at", "futu_provider_rows_sha256", "futu_capture_path", "futu_capture_sha256") if row.get(key)
         ))
         source = _v4_global(_v4_scope, 'replace')(
             source, source_evidence=(*source.source_evidence, *provenance, "futu_adjustment=NONE"),
@@ -350,6 +351,7 @@ def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, s
         for code in codes if _v4_global(_v4_scope, '_canonical_hk_code')(code)
     ))
     active: dict[str, Mapping[str, Any]] = {}
+    active_snapshot_rows: dict[str, Mapping[str, Any]] = {}
     probe_errors: tuple[str, ...] = ()
     if snapshot_root is None or not trade_date or not stage_id or not cutoff_at:
         probe_errors = ("HK_ACTIVE_SNAPSHOT_UNAVAILABLE",)
@@ -413,6 +415,24 @@ def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, s
                 )
                 if not active:
                     probe_errors = ("HK_ACTIVE_GAINER_NO_MATCH",)
+                if stage_id != "STAGE_1545_1555":
+                    from stage_center.hk_stage8.snapshot import _stage8_market_timestamp
+                    book_gaps = []
+                    for code, snapshot in active_snapshot_rows.items():
+                        book = snapshot.get("order_book")
+                        requested_at = _stage8_market_timestamp(snapshot.get("order_book_requested_at"), trade_date)
+                        received_at = _stage8_market_timestamp(snapshot.get("order_book_received_at"), trade_date)
+                        cutoff = _stage8_market_timestamp(cutoff_at, trade_date)
+                        if (not isinstance(book, dict) or not isinstance(book.get("Bid"), list)
+                                or not isinstance(book.get("Ask"), list) or snapshot.get("order_book_error")
+                                or requested_at is None or received_at is None
+                                or requested_at.strftime("%Y%m%d") != trade_date
+                                or not requested_at <= received_at < cutoff):
+                            book_gaps.append(code)
+                    evidence += (f"futu_order_book_rows={len(requested) - len(book_gaps)}",)
+                    if book_gaps:
+                        probe_errors += ("HK_STAGE_ORDERBOOK_INCOMPLETE",)
+                        evidence += ("futu_order_book_missing_codes=" + ",".join(book_gaps),)
     if (
         same_day_late_observation_recovery
         and trade_date == "20261012"
@@ -446,6 +466,11 @@ def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, s
         for field in ("source_universe", "data_confidence", "active_gainer_pass", "active_snapshot_status"):
             merged.pop(field, None)
         merged.pop("volume_ratio", None)
+        book = active_snapshot_rows.get(code, {}).get("order_book") or {}
+        for side, price_field, volume_field in (("Bid", "bid_price", "bid_vol"), ("Ask", "ask_price", "ask_vol")):
+            levels = book.get(side) or []
+            if levels and len(levels[0]) >= 2:
+                merged[price_field], merged[volume_field] = levels[0][:2]
         snapshot = active.get(code)
         if snapshot is not None:
             merged["candidate_lanes"] = ["LIVE_HKCONNECT_GAINER"]
