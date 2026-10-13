@@ -71,7 +71,7 @@ export interface StockDecision {
   symbol: string;
   name: string | null;
   decision: Decision;
-  lane_decisions: Partial<Record<Lane, LaneDecision | null>>;
+  lane_decisions: Partial<Record<Lane, LaneDecision[] | LaneDecision | null>>;
   reasons: string[];
   conditions: string[];
   invalidation_conditions: string[];
@@ -84,6 +84,7 @@ export interface StockDecision {
 }
 export interface LaneResult {
   lane: Lane;
+  rows_count?: number | null;
   state: LaneState;
   rows?: unknown[] | null;
   coverage?: Coverage | null;
@@ -124,23 +125,31 @@ export interface PlanVersion {
   [key: string]: unknown;
 }
 export interface DayData {
-  snapshot: PlanMetadata;
+  snapshot: PlanMetadata | null;
   stocks: StockDecision[];
-  counts: DecisionCounts;
+  counts: DecisionCounts | null;
   pagination: { total: number; offset: number; limit: number };
   versions?: PlanVersion[];
   gaps?: Gap[] | null;
 }
+export interface StockLaneDetail {
+  lane: Lane;
+  rows: Record<string, unknown>[];
+  evidence_refs: EvidenceRef[];
+}
 export interface StockDetails {
+  plan_run_id: string;
   stock: StockDecision;
-  evidence_refs?: EvidenceRef[];
-  gaps?: Gap[] | null;
+  lane_details: StockLaneDetail[];
 }
 export interface HistoryEntry {
   origin: "NEW" | "LEGACY";
-  target_date: string;
+  target_date?: string;
   phase?: Phase | null;
   run_id?: string | null;
+  state?: string | null;
+  product_sha256?: string | null;
+  input_sha256?: string | null;
   original_run_id?: string | null;
   original_schema?: string | null;
   original_sha256?: string | null;
@@ -150,8 +159,8 @@ export interface HistoryEntry {
   gaps?: Gap[] | null;
 }
 export interface HistoryData {
-  entries: HistoryEntry[];
-  gaps?: Gap[] | null;
+  date: string;
+  versions: HistoryEntry[];
 }
 export interface JobRecord {
   job_id: string;
@@ -179,6 +188,7 @@ export interface ReviewRow {
   symbol: string;
   name?: string | null;
   actual_change?: number | null;
+  stock_decision?: Decision | "NOT_IN_PLAN" | null;
   strict_hit?: boolean | null;
   extended_hit?: boolean | null;
   matched_lanes?: Lane[];
@@ -186,10 +196,9 @@ export interface ReviewRow {
   [key: string]: unknown;
 }
 export interface ReviewMetric {
-  numerator?: number | null;
+  covered?: number | null;
   denominator?: number | null;
-  rate?: number | null;
-  display?: string | null;
+  ratio?: number | null;
 }
 export interface ReviewSummary {
   target_date: string;

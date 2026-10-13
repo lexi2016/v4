@@ -5,7 +5,7 @@ import type { Lane, Phase, PlanVersion, StockDecision } from "./types";
 import { LANES, LANE_LABELS, LANE_STATE_LABELS, JOB_STATE_LABELS, PHASE_LABELS,
   showCount, showText, gapText } from "./types";
 import { decisionLabel, evidenceLink, firstReason, humanTime, labelForLane,
-  laneDecision, laneResultLabel, metricLabel } from "./display";
+  laneEntries, laneResultLabel, metricLabel } from "./display";
 import "./workbench.css";
 
 const vm = reactive(useWorkbench());
@@ -36,8 +36,11 @@ function changeLaneBySelect(event: Event): void {
 function changeJobPhase(event: Event): void {
   vm.runPhase = (event.target as HTMLSelectElement).value as "MANUAL" | "RETROSPECTIVE";
 }
-function stockLane(stock: StockDecision, lane: Lane) {
-  return laneDecision(stock, lane);
+function stockLaneEntries(stock: StockDecision, lane: Lane) {
+  return laneEntries(stock, lane);
+}
+function detailForLane(lane: Lane) {
+  return vm.detail?.data?.lane_details?.find(item => item.lane === lane);
 }
 </script>
 
@@ -148,7 +151,7 @@ function stockLane(stock: StockDecision, lane: Lane) {
         <button type="submit">查询</button>
       </form>
 
-      <div v-if="vm.day && !vm.day.data" class="mwb-empty">
+      <div v-if="vm.day && (vm.day.state === 'NOT_RUN' || !vm.day.data?.snapshot)" class="mwb-empty">
         {{ vm.day.state === "NOT_RUN" ? "当日有效，但尚未运行／保存研究版本" : "未提供可展示计划" }}
       </div>
       <div v-else-if="vm.stocks.length === 0 && !vm.dayLoading" class="mwb-empty">
@@ -169,8 +172,8 @@ function stockLane(stock: StockDecision, lane: Lane) {
                 <small>资格：{{ stock.membership_status || "待核验" }}</small>
               </td>
               <td><span class="mwb-decision" :data-decision="stock.decision">{{ decisionLabel(stock.decision) }}</span>
-                <small v-if="stockLane(stock, 'STAGE_REFERENCE')">阶段参考 · 观察</small>
-                <small v-if="stockLane(stock, 'CLOSE_REFERENCE')">尾盘参考 · 观察</small>
+                <small v-if="stockLaneEntries(stock, 'STAGE_REFERENCE').length">阶段参考 · 观察</small>
+                <small v-if="stockLaneEntries(stock, 'CLOSE_REFERENCE').length">尾盘参考 · 观察</small>
               </td>
               <td class="mwb-wide">{{ laneResultLabel(stock, "ANNOUNCEMENT") }}</td>
               <td class="mwb-wide">{{ laneResultLabel(stock, "US_MAPPING") }}</td>
@@ -230,26 +233,40 @@ function stockLane(stock: StockDecision, lane: Lane) {
             <h4>{{ LANE_LABELS[lane] }}</h4>
             <p>{{ laneResultLabel(vm.detail.data.stock, lane) }}
               <span v-if="lane === 'STAGE_REFERENCE' || lane === 'CLOSE_REFERENCE'"> · 仅观察参考</span></p>
-            <template v-if="stockLane(vm.detail.data.stock, lane)">
-              <dl v-for="[key, val] in Object.entries(stockLane(vm.detail.data.stock, lane) || {})"
-                :key="key" class="mwb-fact">
-                <dt>{{ key }}</dt><dd>{{ showText(val) }}</dd>
-              </dl>
+            <template v-if="stockLaneEntries(vm.detail.data.stock, lane).length">
+              <div v-for="(entry, idx) in stockLaneEntries(vm.detail.data.stock, lane)"
+                :key="idx" class="mwb-lane-decision-entry">
+                <small v-if="stockLaneEntries(vm.detail.data.stock, lane).length > 1">独立记录 {{ idx + 1 }}</small>
+                <dl v-for="[key, val] in Object.entries(entry)" :key="key" class="mwb-fact">
+                  <dt>{{ key }}</dt><dd>{{ showText(val) }}</dd>
+                </dl>
+              </div>
             </template>
             <p v-else class="mwb-muted">该路径尚未提供研究判定。</p>
+            <div v-if="detailForLane(lane)?.rows?.length" class="mwb-lane-rows">
+              <h5>已保存来源行（B 原始记录，不重新判定）</h5>
+              <div v-for="(row, idx) in detailForLane(lane)?.rows || []" :key="idx">
+                <dl v-for="[key, val] in Object.entries(row)" :key="key" class="mwb-fact">
+                  <dt>{{ key }}</dt><dd>{{ showText(val) }}</dd>
+                </dl>
+              </div>
+            </div>
           </article>
         </div>
         <details class="mwb-evidence">
           <summary>证据身份、原始引用与校验缺口</summary>
           <p>本行 evidence_ids：{{ vm.detail.data.stock.evidence_ids?.join(", ") || "未提供" }}</p>
-          <article v-for="ev in vm.detail.data.evidence_refs || []" :key="ev.evidence_id">
-            <strong>{{ ev.evidence_id }} · {{ ev.owner }}</strong>
-            <p>来源 {{ ev.source_date || ev.source_session || "未知" }} · 可用 {{ humanTime(ev.available_at) }} · {{ ev.verification || "CANNOT_CONFIRM" }}</p>
-            <p>SHA256 {{ ev.sha256 || "未知" }} · manifest {{ ev.manifest_ref || "未知" }}</p>
-            <a v-if="evidenceLink(ev.source_url)" :href="evidenceLink(ev.source_url) || undefined"
-              target="_blank" rel="noopener noreferrer">打开原文</a>
-          </article>
-          <p v-for="gap in vm.detail.data.gaps || []" :key="gapText(gap)">{{ gapText(gap) }}</p>
+          <template v-for="source in vm.detail.data.lane_details || []" :key="source.lane">
+            <article v-for="ev in source.evidence_refs || []" :key="source.lane + ':' + ev.evidence_id">
+              <strong>{{ ev.evidence_id }} · {{ ev.owner }}</strong>
+              <p>路径 {{ LANE_LABELS[source.lane] }} · 来源 {{ ev.source_date || ev.source_session || "未知" }} · 可用 {{ humanTime(ev.available_at) }} · {{ ev.verification || "CANNOT_CONFIRM" }}</p>
+              <p>SHA256 {{ ev.sha256 || "未知" }} · manifest {{ ev.manifest_ref || "未知" }}</p>
+              <a v-if="evidenceLink(ev.source_url)" :href="evidenceLink(ev.source_url) || undefined"
+                target="_blank" rel="noopener noreferrer">打开原文</a>
+              <p v-for="gap in ev.gaps || []" :key="gapText(gap)" class="mwb-muted">缺口：{{ gapText(gap) }}</p>
+            </article>
+          </template>
+          <p v-if="!(vm.detail.data.lane_details || []).some(x => x.evidence_refs?.length)" class="mwb-muted">各路径均未提供证据引用，不能视为已核证据。</p>
         </details>
       </template>
       <p v-else-if="!vm.detailLoading && !vm.detailError" class="mwb-muted">从今日名单选择股票；详情只读指定目标日和版本。</p>
@@ -304,20 +321,21 @@ function stockLane(stock: StockDecision, lane: Lane) {
         <button type="button" class="mwb-quiet" @click="vm.loadHistory">重新读取历史</button></div>
       <p v-if="vm.historyLoading" role="status">读取历史中…</p>
       <p v-if="vm.historyError" class="mwb-alert" role="alert">{{ vm.historyError }}</p>
-      <div v-if="vm.history?.data?.entries?.length" class="mwb-history">
-        <article v-for="(entry,i) in vm.history.data.entries" :key="(entry.run_id || entry.original_run_id || i) + ':' + i">
+      <div v-if="vm.history?.data?.versions?.length" class="mwb-history">
+        <article v-for="(entry,i) in vm.history.data.versions" :key="(entry.run_id || entry.original_run_id || i) + ':' + i">
           <div><strong>{{ entry.origin === 'LEGACY' ? "LEGACY · 原样历史" : "NEW · 新计划" }}</strong>
             <span v-if="entry.phase === 'RETROSPECTIVE'" class="mwb-retro">RETROSPECTIVE · 事后回看</span></div>
-          <p>{{ entry.target_date }} · {{ entry.phase ? PHASE_LABELS[entry.phase] : "旧阶段未知" }}
+          <p>{{ entry.target_date || vm.history.data.date }} · {{ entry.phase ? PHASE_LABELS[entry.phase] : "旧阶段未知" }}
             · 记录于 {{ humanTime(entry.recorded_at || entry.generated_at) }}</p>
           <p>原 run：{{ entry.original_run_id || entry.run_id || "未知" }}
             · 原 schema：{{ entry.original_schema || "未知" }}</p>
+          <p v-if="entry.origin === 'NEW'">保存状态：{{ entry.state || "未知" }} · 产品 SHA：{{ entry.product_sha256 || "未知" }}</p>
           <p>原 SHA：{{ entry.original_sha256 || "未知" }} · 校验：{{ entry.verification || "CANNOT_CONFIRM" }}</p>
           <p v-for="gap in entry.gaps || []" :key="gapText(gap)" class="mwb-muted">缺口：{{ gapText(gap) }}</p>
         </article>
       </div>
       <p v-else-if="!vm.historyLoading && !vm.historyError" class="mwb-empty">当日尚无可读取历史或来源未知。</p>
-      <p v-for="gap in vm.history?.data?.gaps || []" :key="gapText(gap)" class="mwb-muted">{{ gapText(gap) }}</p>
+      <p v-for="gap in vm.history?.gaps || []" :key="gapText(gap)" class="mwb-muted">{{ gapText(gap) }}</p>
     </section>
 
     <section v-if="vm.panel === 'reviews'" class="mwb-panel" aria-label="收盘研究复盘">
@@ -340,13 +358,13 @@ function stockLane(stock: StockDecision, lane: Lane) {
           <table class="mwb-table">
             <thead><tr><th scope="col">名次</th><th scope="col">股票</th><th scope="col">实际变化</th>
               <th scope="col">严格命中</th><th scope="col">扩展命中</th>
-              <th scope="col">贡献路径</th><th scope="col">漏选原因</th></tr></thead>
+              <th scope="col">计划冻结分类</th><th scope="col">漏选原因</th></tr></thead>
             <tbody><tr v-for="(item,i) in vm.review.data.top20_rows" :key="item.symbol + ':' + i">
               <td>{{ item.rank }}</td><td>{{ item.symbol }} {{ item.name || "" }}</td>
               <td>{{ showText(item.actual_change) }}</td>
               <td>{{ item.strict_hit === null || item.strict_hit === undefined ? "未知" : (item.strict_hit ? "是" : "否") }}</td>
               <td>{{ item.extended_hit === null || item.extended_hit === undefined ? "未知" : (item.extended_hit ? "是" : "否") }}</td>
-              <td>{{ item.matched_lanes?.map(labelForLane).join("、") || "未提供" }}</td>
+              <td>{{ item.stock_decision ? decisionLabel(item.stock_decision) : "未知" }}</td>
               <td>{{ item.missed_reason || "未提供" }}</td>
             </tr></tbody>
           </table>

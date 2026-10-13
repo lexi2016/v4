@@ -12,7 +12,7 @@ describe("only the B manager-workbench API is used", () => {
     const api = createWorkbenchApi(transport);
     const result = await api.getDay({ date: "20261013", phase: "PREOPEN", offset: 200, limit: 50,
       decision: "UNASSESSED", q: "HK.01234" });
-    expect(result.data?.counts.unassessed).toBeNull();
+    expect(result.data?.counts?.unassessed).toBeNull();
     const args = (transport as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(args[0]).toContain("/api/v4/manager-workbench/days/20261013?");
     expect(args[0]).toContain("offset=200");
@@ -27,11 +27,14 @@ describe("only the B manager-workbench API is used", () => {
     await expect(api.getDay({ date: "20260231" })).rejects.toMatchObject({ status: 422 });
     expect(transport).not.toHaveBeenCalled();
   });
-  it("returns NOT_RUN 200 with null data instead of synthesizing empty results", async () => {
-    const api = createWorkbenchApi(vi.fn(async () => reply(wrapped(null, "NOT_RUN"))) as unknown as typeof fetch);
+  it("returns B HTTP NOT_RUN data.snapshot=null instead of synthesizing empty results", async () => {
+    const data = { snapshot: null, stocks: [], counts: null, versions: [],
+      pagination: { total: 0, offset: 0, limit: 50 } };
+    const api = createWorkbenchApi(vi.fn(async () => reply(wrapped(data, "NOT_RUN"))) as unknown as typeof fetch);
     const result = await api.getDay({ date: "20261013" });
     expect(result.state).toBe("NOT_RUN");
-    expect(result.data).toBeNull();
+    expect(result.data?.snapshot).toBeNull();
+    expect(result.data?.counts).toBeNull();
   });
   it("distinguishes 409 retry conflict, 503 unavailability and bad JSON", async () => {
     const api = createWorkbenchApi(vi.fn(async () => reply({ schema_version: SCHEMA_VERSION,

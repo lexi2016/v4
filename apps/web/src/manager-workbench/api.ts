@@ -25,6 +25,26 @@ export class ApiError extends Error {
 function exactDate(date: string): void {
   if (!isValidDate(date)) throw new ApiError("无效目标日", 422);
 }
+function httpErrorDetail(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  const body = payload as Record<string, unknown>;
+  if (typeof body.detail === "string" && body.detail.trim()) return body.detail.trim().slice(0, 250);
+  // FastAPI / Pydantic 422: a list of {type, loc, msg}. Do not render raw
+  // JSON, tracebacks, input bodies or local paths in user-facing errors.
+  if (Array.isArray(body.detail)) {
+    const descriptions = body.detail.flatMap(item => {
+      if (!item || typeof item !== "object") return [];
+      const fields = item as Record<string, unknown>;
+      const loc = Array.isArray(fields.loc) ? fields.loc.filter(x => typeof x === "string" || typeof x === "number")
+        .slice(0, 3).join(".") : "";
+      const type = typeof fields.type === "string" ? fields.type : "";
+      const msg = typeof fields.msg === "string" ? fields.msg : "";
+      return [([loc, type, msg].filter(Boolean).join(": ")).slice(0, 250)];
+    });
+    return descriptions.filter(Boolean).slice(0, 4).join("；") || null;
+  }
+  return null;
+}
 function assertRunId(id: string): void {
   if (!id || id.length > 180 || !/^[A-Za-z0-9_.:-]+$/.test(id)) throw new ApiError("版本或任务标识无效", 422);
 }
@@ -47,7 +67,10 @@ async function request<T>(
   try { payload = await response.json(); } catch { throw new ApiError("API 响应不是有效 JSON", response.status); }
   const envelope = payload as Partial<Envelope<T>> | null;
   if (!response.ok) {
-    const message = envelope && typeof envelope.state === "string" ? envelope.state : "HTTP_" + response.status;
+    // B raises FastAPI HTTPException: actual error wire body is {detail},
+    // not a successful manager-workbench envelope.
+    const message = httpErrorDetail(payload) ??
+      (envelope && typeof envelope.state === "string" ? envelope.state : "HTTP_" + response.status);
     throw new ApiError(message, response.status, envelope?.gaps);
   }
   if (!envelope || envelope.schema_version !== SCHEMA_VERSION ||
@@ -101,7 +124,7 @@ export function createWorkbenchApi(transport: FetchLike = fetch) {
     },
     retryJob(jobId: string) {
       assertRunId(jobId);
-      return request<JobRecord>(transport, "/runs/" + encodeURIComponent(jobId) + "/retry", {
+      return request<JobCreated>(transport, "/runs/" + encodeURIComponent(jobId) + "/retry", {
         method: "POST", body: "{}"
       });
     }

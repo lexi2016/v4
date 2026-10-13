@@ -58,11 +58,11 @@ export function sampleDay(overrides: Partial<DayData> = {}): DayData {
 }
 export function sampleHistory(): HistoryData {
   return {
-    entries: [
-      { origin: "LEGACY", target_date: "20261013", original_run_id: "old-run",
+    date: "20261013", versions: [
+      { origin: "LEGACY", original_run_id: "old-run",
         original_schema: "legacy.v1", original_sha256: "abc", verification: "CANNOT_CONFIRM",
         gaps: ["原来源缺失"] },
-      { origin: "NEW", target_date: "20261013", phase: "RETROSPECTIVE",
+      { origin: "NEW", phase: "RETROSPECTIVE",
         run_id: "retro-1", generated_at: "2026-10-13T18:00:00+08:00", verification: "VERIFIED" }
     ]
   };
@@ -75,8 +75,8 @@ export function sampleReview(top20: ReviewSummary["top20_rows"] = Array.from({ l
   return {
     target_date: "20261013", plan_run_id: "synthetic-run-1", ranking_date: "20261013",
     evaluation_scope_ref: "synthetic-top20", top20_rows: top20,
-    strict_coverage: { numerator: 1, denominator: 20, rate: 0.05 },
-    extended_coverage: { numerator: 3, denominator: 20, rate: 0.15 },
+    strict_coverage: { covered: 1, denominator: 20, ratio: 0.05 },
+    extended_coverage: { covered: 3, denominator: 20, ratio: 0.15 },
     selected_denominator: 1, lane_incremental_coverage: { ANNOUNCEMENT: 1 },
     uncovered_reasons: ["no_evidence:17"]
   };

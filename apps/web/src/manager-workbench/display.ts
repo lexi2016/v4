@@ -11,15 +11,23 @@ export function humanTime(value: string | null | undefined): string {
   }).format(date) + " 香港时间";
 }
 export function decisionLabel(value: Decision | string | null | undefined): string {
+  if (value === "NOT_IN_PLAN") return "计划未覆盖";
   return value && value in DECISION_LABELS ? DECISION_LABELS[value as Decision] : (value || "未知");
 }
-export function laneDecision(stock: StockDecision, lane: Lane): LaneDecision | null {
-  return stock.lane_decisions?.[lane] || null;
+/** B's lane_decisions is a per-lane array; preserve its recorded order and
+ * each decision independently. Do not rank, collapse or derive a stock decision. */
+export function laneEntries(stock: StockDecision, lane: Lane): LaneDecision[] {
+  const raw = stock.lane_decisions?.[lane];
+  if (Array.isArray(raw)) {
+    return raw.filter((entry): entry is LaneDecision =>
+      entry !== null && typeof entry === "object" && !Array.isArray(entry));
+  }
+  return raw !== null && typeof raw === "object" && !Array.isArray(raw) ? [raw] : [];
 }
 export function laneResultLabel(stock: StockDecision, lane: Lane): string {
-  const raw = laneDecision(stock, lane);
-  if (!raw) return "待核 / 未提供";
-  return decisionLabel(raw.decision || raw.status || "");
+  const entries = laneEntries(stock, lane);
+  if (!entries.length) return "待核 / 未提供";
+  return entries.map(x => decisionLabel(x.decision || x.status || null)).join("、");
 }
 export function firstReason(stock: StockDecision): string {
   return stock.reasons?.find(x => typeof x === "string" && x.trim().length > 0) || "暂无可核验理由";
@@ -28,11 +36,13 @@ export function metricLabel(metric: ReviewMetric | null | undefined, completeTop
   if (!metric) return completeTop20 ? "缺数据" : "不适用（缺完整Top20）";
   if (metric.denominator === 0) return "不适用（分母为0）";
   if (!completeTop20) return "不适用（缺完整Top20）";
-  if (metric.display) return metric.display;
-  if (metric.rate === null || metric.rate === undefined) return "未知（未提供覆盖率）";
-  if (typeof metric.rate !== "number" || !Number.isFinite(metric.rate)) return "未知";
-  // B owns the rate. Display its value as sent; never recompute numerator/denominator.
-  return showText(metric.rate);
+  const ratio = metric.ratio;
+  if (typeof ratio !== "number" || !Number.isFinite(ratio) || ratio < 0 || ratio > 1) {
+    return "未知（未提供有效覆盖率）";
+  }
+  // Render B's recorded ratio only; never infer it from covered / denominator.
+  const percent = (ratio * 100).toFixed(2).replace(/\.?0+$/, "");
+  return percent + "%";
 }
 export function labelForLane(value: string): string {
   return value in LANE_LABELS ? LANE_LABELS[value as Lane] : value;

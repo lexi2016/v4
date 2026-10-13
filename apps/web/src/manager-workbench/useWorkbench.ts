@@ -93,6 +93,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   }
   function resetPage(): void {
     operationSeq++;
+    operationLoading.value = false;
     abortAll();
     day.value = null; dayLoading.value = false; dayError.value = ""; stale.value = false;
     lastSuccessfulKey.value = "";
@@ -149,7 +150,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
         }
       }
       day.value = response;
-      if (response.data) lastSuccessfulKey.value = key;
+      if (response.data?.snapshot) lastSuccessfulKey.value = key;
       else lastSuccessfulKey.value = "";
     } catch (error) {
       if (seq !== daySeq || isAbort(error)) return;
@@ -185,7 +186,11 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     detailLoading.value = true;
     try {
       const result = await api.getStock(stock.symbol, route.value.date, runId, ctrl.signal);
-      if (seq === detailSeq && !ctrl.signal.aborted) detail.value = result;
+      if (seq !== detailSeq || ctrl.signal.aborted) return;
+      if (result.data?.plan_run_id !== runId) {
+        throw new ApiError("个股详情与请求的计划 run_id 不一致", 502);
+      }
+      detail.value = result;
     } catch (error) {
       if (seq === detailSeq && !isAbort(error)) detailError.value = errorMessage(error);
     } finally {
@@ -260,11 +265,19 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   async function retryJob(): Promise<void> {
     if (!jobId.value || !job.value?.data?.retryable || operationLoading.value) return;
     const ticket = ++operationSeq;
+    const previousJobId = jobId.value;
     operationLoading.value = true; jobError.value = "";
     try {
-      const result = await api.retryJob(jobId.value);
+      const result = await api.retryJob(previousJobId);
       if (ticket !== operationSeq) return;
-      if (result.data) job.value = result;
+      // B POST /retry returns JobCreated, not JobRecord; get the authoritative
+      // new job state with a separate read. Do not cancel a running server job.
+      if (!result.data?.job_id || !result.data?.run_id) {
+        throw new ApiError("恢复任务缺 job_id/run_id", 502);
+      }
+      stopJobReads();
+      jobId.value = result.data.job_id;
+      job.value = null;
       void pollJob();
     } catch (error) { if (ticket === operationSeq) jobError.value = errorMessage(error); }
     finally { if (ticket === operationSeq) operationLoading.value = false; }
@@ -283,7 +296,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
         routeSearch(route.value, window.location.search) + window.location.hash);
     }
   });
-  onBeforeUnmount(() => { window.removeEventListener("popstate", onPopState); abortAll(); });
+  onBeforeUnmount(() => { operationSeq++; window.removeEventListener("popstate", onPopState); abortAll(); });
 
   return {
     route, panel, dateInput, decisionFilter, laneFilter, searchDraft, search, offset, limit,

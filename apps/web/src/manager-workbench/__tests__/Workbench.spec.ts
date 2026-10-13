@@ -76,8 +76,8 @@ describe("C manager workbench screen", () => {
 
   it("invalid date blocks GET and date changes reject late response even if transport ignores abort", async () => {
     const oldDay = sampleDay();
-    const newDay = sampleDay({ snapshot: { ...oldDay.snapshot,
-      context: { ...oldDay.snapshot.context, target_date: "20261014" },
+    const newDay = sampleDay({ snapshot: { ...oldDay.snapshot!,
+      context: { ...oldDay.snapshot!.context, target_date: "20261014" },
       run_id: "new-run" }, stocks: [sampleStock("HK.00099", "新日标的")] });
     let releaseOld: ((result: Response) => void) | undefined;
     const first = new Promise<Response>(resolve => { releaseOld = resolve; });
@@ -106,10 +106,11 @@ describe("C manager workbench screen", () => {
 
   it("stock detail uses run_id; the native button supports keyboard focus", async () => {
     const spy = install(async url => url.includes("/stocks/") ?
-      response(wrapped({ stock: sampleStock(), evidence_refs: [{
+      response(wrapped({ plan_run_id: "synthetic-run-1", stock: sampleStock(), lane_details: [{
+        lane: "ANNOUNCEMENT", rows: [], evidence_refs: [{
         evidence_id: "synthetic-evidence", owner: "synthetic", sha256: "abc", verification: "VERIFIED",
         source_url: "javascript:alert(1)"
-      }] })) : response(wrapped(sampleDay())));
+      }] }] })) : response(wrapped(sampleDay())));
     render(Workbench);
     await screen.findByText("合成标的");
     const button = screen.getByRole("button", { name: /查看 HK.01234/ });
@@ -179,7 +180,7 @@ describe("C manager workbench screen", () => {
     unmount(); cleanup();
     install(async url => url.includes("/reviews/") ?
       response(wrapped({ ...sampleReview(null),
-        strict_coverage: { numerator: 0, denominator: 0, rate: null },
+        strict_coverage: { covered: 0, denominator: 0, ratio: null },
         extended_coverage: null })) : response(wrapped(sampleDay())));
     render(Workbench);
     await screen.findByText("合成标的");
