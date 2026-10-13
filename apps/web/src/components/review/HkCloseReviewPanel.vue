@@ -105,6 +105,39 @@ const observedStageUnion = computed(() => {
   };
 });
 
+const stageEvidenceRows = computed(() => {
+  const payload = props.review.model_selection_review;
+  const labels: Record<string, string> = {
+    STAGE_0925: "09:20 竞价二筛", STAGE_0930_0935: "09:30–09:35",
+    STAGE_0935_0940: "09:35–09:40", STAGE_0940_0945: "09:40–09:45",
+    STAGE_0945_1030: "09:45–10:30", STAGE_1300_1315: "13:00–13:15",
+    STAGE_1445_1500: "14:45–15:00",
+  };
+  const reasons: Record<string, string> = {
+    FUTU_AFTERFACT_CAPTURE_NOT_PIT_SAFE: "分钟数据为事后补采，不能证明当时已获得",
+    HK_HISTORICAL_ORDERBOOK_UNAVAILABLE: "没有留存该时段盘口",
+    HK_ACTIVE_SNAPSHOT_UNAVAILABLE: "没有可用的该时段活跃股快照",
+    FUTU_CAPTURE_TIME_NOT_PERSISTED: "原始采集时间未留存",
+    HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE: "快照含阶段截止之后的行情，不能用于当时选股",
+  };
+  return Object.entries(payload?.stage_input_evidence ?? {}).map(([id, evidence]) => {
+    const markers = Array.isArray(evidence.source_evidence) ? evidence.source_evidence.filter((v): v is string => typeof v === "string") : [];
+    const gaps = Array.isArray(evidence.cannot_confirm) ? evidence.cannot_confirm.filter((v): v is string => typeof v === "string") : [];
+    const corrected = evidence.input_count_correction === "SECOND_FILTER_TOP20_NOT_D1_TOP100";
+    const ready = payload?.stages?.[id]?.evidence_status === "READY";
+    const captured = markers.find((v) => v.startsWith("futu_captured_at="))?.split("=")[1];
+    const count = (value: unknown) => typeof value === "number" ? value : "未记录";
+    return {
+      id, label: labels[id] ?? id, ready, rows: count(evidence.row_count),
+      input: `${count(corrected ? evidence.review_source_rows : evidence.source_rows)}/${count(corrected ? evidence.review_expected_rows : evidence.requested_rows)}`,
+      reason: corrected ? "已核对完整二筛20行，原先误用Top100作分母；原阶段记录保留"
+        : gaps.length ? gaps.map((gap) => reasons[gap] ?? gap).join("；")
+        : ready ? "已有阶段依据完整" : "输入覆盖或阶段状态未确认",
+      captured,
+    };
+  });
+});
+
 const historicalStatus = computed(() => props.historical?.status ?? "CANNOT_CONFIRM");
 const historicalReasons = computed(() => props.historical?.cannot_confirm ?? ["HK_PREFIX_RESEARCH_NOT_IN_RESPONSE"]);
 const historicalStateRows = computed(() => {
@@ -172,7 +205,20 @@ function shortHash(value?: string) {
     <p v-if="observedStageUnion" class="review-pending" data-testid="hk-observed-stage-boundary">
       观察并集的数字来自已有同日阶段行；阶段覆盖或PIT缺证不升格为正式七阶段并集。
     </p>
-    <p v-for="item in review.model_selection_review?.cannot_confirm ?? []" :key="item">{{ item }}</p>
+    <section v-if="stageEvidenceRows.length" aria-label="七阶段证据明细" data-testid="hk-stage-evidence">
+      <h3>七阶段证据明细</h3>
+      <p>复盘依据已核对 {{ stageEvidenceRows.filter((row) => row.ready).length }}/{{ stageEvidenceRows.length }} 个阶段；有观察股票不代表当时的证据齐全。</p>
+      <div class="review-table-wrap"><table>
+        <thead><tr><th>阶段</th><th>输入行</th><th>展示行</th><th>依据与缺口</th></tr></thead>
+        <tbody><tr v-for="row in stageEvidenceRows" :key="row.id">
+          <td>{{ row.label }}</td><td>{{ row.input }}</td><td>{{ row.rows }}</td>
+          <td>{{ row.reason }}<small v-if="row.captured"> · 采集于 {{ row.captured }}</small></td>
+        </tr></tbody>
+      </table></div>
+    </section>
+    <details v-if="review.model_selection_review?.cannot_confirm?.length"><summary>原始缺口代码</summary>
+      <p v-for="item in review.model_selection_review?.cannot_confirm ?? []" :key="item">{{ item }}</p>
+    </details>
     <div v-if="hasReviewEvidence" class="review-table-wrap">
       <table>
         <thead><tr><th>排名</th><th>代码</th><th>名称</th><th>收盘涨幅</th><th>0.2</th><th>阶段并集</th><th>归因</th></tr></thead>

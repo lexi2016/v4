@@ -48,6 +48,29 @@ const historical = {
 describe("HkCloseReviewPanel historical prefix surface", () => {
   afterEach(cleanup);
 
+  it("explains stage-specific gaps without promoting the formal union", () => {
+    render(HkCloseReviewPanel, { props: { review: { model_selection_review: {
+      row_counts: { stage_rows: 20 }, stage_union: { hit_count: null },
+      stages: { STAGE_0925: { evidence_status: "READY" } },
+      stage_input_evidence: {
+        STAGE_0925: { row_count: 10, source_rows: 20, requested_rows: 100,
+          review_source_rows: 20, review_expected_rows: 20,
+          input_count_correction: "SECOND_FILTER_TOP20_NOT_D1_TOP100" },
+        STAGE_0930_0935: { row_count: 10, source_rows: 100, requested_rows: 100,
+          cannot_confirm: ["FUTU_AFTERFACT_CAPTURE_NOT_PIT_SAFE", "HK_HISTORICAL_ORDERBOOK_UNAVAILABLE"],
+          source_evidence: ["futu_captured_at=2026-10-13T12:09:12+08:00"] },
+      },
+    } } } });
+    const panel = screen.getByTestId("hk-stage-evidence");
+    expect(panel.textContent).toContain("1/2");
+    expect(panel.textContent).toContain("20/20");
+    expect(panel.textContent).toContain("原先误用Top100作分母");
+    expect(panel.textContent).toContain("事后补采");
+    expect(panel.textContent).toContain("没有留存该时段盘口");
+    expect(panel.textContent).toContain("2026-10-13T12:09:12+08:00");
+    expect(screen.getByText("七阶段并集").parentElement?.textContent).toContain("不可用");
+  });
+
   it("distinguishes an HK securities calendar skip from missing close evidence", () => {
     render(HkCloseReviewPanel, {
       props: {

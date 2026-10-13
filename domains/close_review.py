@@ -208,7 +208,7 @@ def build_native_close_review(
             reasons = evidence.get("cannot_confirm") if isinstance(evidence, dict) else None
             formally_ready = (
                 isinstance(evidence, dict)
-                and evidence.get("status") in {"READY", "READY_EMPTY"}
+                and evidence.get("review_evidence_status", evidence.get("status")) in {"READY", "READY_EMPTY"}
                 and evidence.get("selection_mode") != "BACKFILL"
                 and not evidence.get("backfill_run_id")
                 and not evidence.get("backfill_run_ids")

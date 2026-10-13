@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,50 @@ from stage_center.consumer import StageSelectionConsumer
 _HK_MODEL_SOURCE_ROLES = frozenset(
     {"SHARED_VERIFIED_HK_0_2", "VERIFIED_HK_0_2_STANDARD"}
 )
+
+
+def _auction_review_input(evidence: dict[str, Any], rows: list[dict[str, Any]], trade_date: str) -> None:
+    """Resolve the legacy Top100 denominator against its existing Top20 receipt."""
+    if (evidence.get("status") != "PARTIAL_WITH_ROWS"
+            or evidence.get("source_status") != "READY"
+            or evidence.get("cannot_confirm")
+            or evidence.get("selection_mode") == "BACKFILL"):
+        return
+    markers = dict(item.split("=", 1) for item in evidence.get("source_evidence", []) if "=" in item)
+    if markers.get("selection_mode") == "BACKFILL" or markers.get("due_status") == "HISTORICAL_BACKFILL":
+        return
+    if markers.get("route") != "hk_connect_0915_0920_auction_second_filter":
+        return
+    path = markers.get("second_filter_csv")
+    if not path:
+        return
+    from stage_center.runner import _validate_hk_second_filter
+    try:
+        csv_path, acceptance_path, digest = _validate_hk_second_filter(Path(path), trade_date)
+        acceptance = json.loads(acceptance_path.read_text(encoding="utf-8-sig"))
+        with csv_path.open(encoding="utf-8-sig", newline="") as stream:
+            source = list(csv.DictReader(stream))
+        codes = [str(row.get("code") or row.get("ts_code") or "") for row in source]
+        if not (
+            digest == markers.get("second_filter_csv_sha256")
+            and acceptance.get("required_row_count") == 20
+            and acceptance.get("temporal_cutoff_safe") is True
+            and len(source) == len(set(codes)) == 20
+            and evidence.get("source_rows") == 20
+            and evidence.get("requested_rows") == 100
+            and len(rows) == 10
+            and [row.get("code") for row in rows] == codes[:10]
+        ):
+            return
+    except (OSError, ValueError, TypeError):
+        return
+    # Only the review's input assessment is corrected; stage history is immutable.
+    evidence.update(
+        review_evidence_status="READY", input_scope="HK_0920_SECOND_FILTER_TOP20",
+        review_expected_rows=20, review_source_rows=20,
+        input_count_correction="SECOND_FILTER_TOP20_NOT_D1_TOP100",
+        second_filter_csv_sha256=digest,
+    )
 
 
 def _model_rows(preselection: dict[str, Any], trade_date: str) -> list[dict[str, Any]]:
@@ -81,6 +126,13 @@ def _stage_rows_with_evidence(
             )
             market = response.get("markets", {}).get("HK_CONNECT")
             market_details = market if isinstance(market, dict) else {}
+            # Older deployed consumers omit provenance that is present in the
+            # verified selection envelope. Reuse that envelope, not a new source.
+            if "source_evidence" not in market_details and market_details.get("run_id"):
+                envelope = consumer.store.read_verified(trade_date, stage_id, "HK_CONNECT")
+                if envelope.get("run_id") != market_details["run_id"]:
+                    raise ValueError("stage changed while reading review evidence")
+                market_details = {**market_details, "source_evidence": list(envelope.get("source_evidence") or ())}
             status = str(
                 market.get("status") or market.get("selection_status") or ""
             ) if isinstance(market, dict) else ""
@@ -95,6 +147,10 @@ def _stage_rows_with_evidence(
                 "backfill_run_id": market_details.get("backfill_run_id"),
                 "backfill_run_ids": list(market_details.get("backfill_run_ids") or ()),
                 "source_evidence": list(market_details.get("source_evidence") or ()),
+                "source_status": market_details.get("source_status"),
+                "source_rows": market_details.get("source_rows"),
+                "requested_rows": market_details.get("requested_rows"),
+                "missing_symbols": list(market_details.get("missing_symbols") or ()),
                 "cannot_confirm": reasons,
             }
             response_safe = all(
@@ -142,6 +198,8 @@ def _stage_rows_with_evidence(
             projected_rows.append(projected)
         result[stage_id] = projected_rows
         evidence[stage_id]["row_count"] = len(projected_rows)
+        if stage_id == "STAGE_0925":
+            _auction_review_input(evidence[stage_id], projected_rows, trade_date)
     return result, evidence
 
 
