@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "task": "manager-workbench external candidates review R1",
+  "reviewer": {
+    "identity": "/root/manager_reviewer_sol",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "high",
+    "mode": "read_only"
+  },
+  "review_scope": "Frozen external candidates only; excludes current Mac integration source",
+  "candidates": [
+    {
+      "module": "A",
+      "commit": "290592aa0c0934a69811eff9fb65284e39618a0e",
+      "issue": 40,
+      "thread_id": "6acd9833-1538-83ee-b5d1-1cf7b28d7f0e",
+      "verdict": "REWORK_REQUIRED",
+      "reusable": "Input checks, oversold calculation, merge and review structure",
+      "findings": [
+        "P1 A/B batch, lane result and run identity interface mismatch",
+        "P1 announcement execution identity, input hash and receipt interface mismatch",
+        "P1 all-phase finish cutoff rejects normal asynchronous analysis",
+        "P1 Stage flags can promote observation to SELECTED without research admission basis"
+      ],
+      "repair_comment": "https://github.com/lexi2016/v4/issues/40#issuecomment-6137547705"
+    },
+    {
+      "module": "B",
+      "commit": "5010f866a993bf8a764c283696b6e2ee9a8ca18b",
+      "issue": 39,
+      "thread_id": "6acd9853-1e3c-83e8-96ab-a2162c90d075",
+      "verdict": "REWORK_REQUIRED",
+      "reusable": "Immutable storage, publication readback, job and route structure",
+      "findings": [
+        "P1 A/B joint execution interface mismatch",
+        "P2 PARTIAL with failed lane loses failed_steps and cannot retry",
+        "P2 missing-job GET creates attempts directory"
+      ],
+      "repair_comment": "https://github.com/lexi2016/v4/issues/39#issuecomment-6137548628"
+    },
+    {
+      "module": "C",
+      "commit": "e1ca8d1866851531c13746f58c92872db118e613",
+      "issue": 41,
+      "thread_id": "6acd9863-f0a8-83ec-9307-d1616cb1579c",
+      "verdict": "REWORK_REQUIRED",
+      "reusable": "Vue view structure, read sequence isolation, pagination parameters",
+      "findings": [
+        "P1 mismatched history versions, nested lane evidence, lane decisions array, coverage ratio and error detail",
+        "P2 changing date during create/retry leaves operationLoading stuck"
+      ],
+      "repair_comment": "https://github.com/lexi2016/v4/issues/41#issuecomment-6137549812"
+    }
+  ],
+  "evidence": {
+    "frozen_file_blob_identities_verified": 30,
+    "review_source_directory": "/tmp/mwb-candidate-review.AwB4nq",
+    "methods": [
+      "Python joint interface and rule counterexamples",
+      "FastAPI TestClient actual B HTTP responses",
+      "C original TypeScript transpilation and state logic checks"
+    ],
+    "not_run": [
+      "Full C browser integration",
+      "Real announcement model success",
+      "Deployment",
+      "Natural slots"
+    ]
+  },
+  "repair_delivery": {
+    "three_chat_prompts": "SENT_AND_EXACT_READBACK_VERIFIED",
+    "github_comments": "SENT_AND_EXACT_READBACK_VERIFIED",
+    "new_revision_received": false
+  },
+  "constraints": {
+    "current_mac_changes_preserved": true,
+    "merge_performed": false,
+    "deployment_performed": false,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
