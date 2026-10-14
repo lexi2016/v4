@@ -1,65 +1,100 @@
 {
-  "schema_version": "us-internet-coverage-progress-v1",
+  "schema_version": "us-internet-coverage-progress-v2",
   "target_date": "20261014",
-  "user_scope": "Replan first; US_MAPPING only; preserve completed OVERSOLD",
-  "execution_state": "STOPPED_FOR_USER_REPLAN",
-  "runtime_release": "us-internet-coverage-api-20261014-r5",
-  "runtime_manifest_sha256": "a2e69ff457c6447e0d94daee550d808759ce8cdd7075076c76086b4655c84d34",
-  "source_sync_baseline": "fa7e643b1d4265fc1103d3deb392a7bd13ed65bb",
-  "default_us_universe_count": 48,
-  "business_relation_rows": 22,
-  "business_relation_status": "PROPOSED/PIT_UNCONFIRMED",
-  "saved_capture": {
-    "artifact_date": "20261014",
-    "us_session_date": "20261013",
-    "requested": 48,
-    "available": 48,
-    "session_dates": [
-      "20261013"
-    ],
-    "update_times": [
-      "16:00:01",
-      "16:08:30"
-    ],
-    "status": "CANNOT_CONFIRM",
-    "reasons": [
-      "MARKET_SNAPSHOT_INCOMPLETE",
-      "QUOTE_SESSION_TIME_MIXED"
-    ],
-    "interpretation": "Mixed update times within one session; field semantics remain unconfirmed"
+  "user_scope": "US_MAPPING only; OVERSOLD preserved",
+  "execution_state": "ACTUAL_48_MANUAL_RUN_AND_UI_COMPLETED_RESEARCH_PARTIAL",
+  "runtime_release": {
+    "release_id": "us-internet-coverage-api-20261014-r7",
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-internet-coverage-api-20261014-r7",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-internet-coverage-api-20261014-r7/app",
+    "manifest_sha256": "66fa6732fe695e69406abcfd1bf717d123db12166925a89558aef54c3c7af555",
+    "application_inventory_sha256": "978216f6097c51db468406fabac2cadb00a5e6495359fbdec9bf5190f6dfc55d",
+    "application_inventory_entry_count": 1174
   },
-  "latest_actual_run": {
-    "run_id": "3b46e0f994974772844a4e63381eadc7",
-    "cutoff": "2026-10-14T20:11:13.184380+08:00",
+  "actual_run": {
+    "run_id": "9aee66706db14facaad855b1ed98a683",
+    "cutoff": "2026-10-14T21:05:44.876505+08:00",
     "status": "PARTIAL",
-    "actual_us_scope": 33,
-    "expanded_48_input_consumed": false,
-    "input_sha256": "486efed136b5f10d1a8b55019bba9c2331a82ad8421a5ebd0015000792def4ac",
-    "product_sha256": "90e75d77f46382a5bfa060b23db99e7c112ea46ebe87110d0c31c95fab270440",
-    "local_receipt_sha256": "56f87a8e866cf449621408be52937bbabf8b220aa044710aadebec5705808a05"
-  },
-  "R6_candidate": {
-    "purpose": "Prefer exact target-date owner artifact over legacy source-session artifact; preserve present CANNOT_CONFIRM instead of silently falling back",
-    "changed_paths": [
-      "v4/manager_workbench/inputs/source_bindings.py",
-      "tests/test_manager_us_mapping_bindings_r3.py"
+    "lanes": [
+      "US_MAPPING"
     ],
-    "reviewed": "PASS",
-    "independent_tests": 2,
-    "review_sha256": "3dbfcdcbb368b3d5e8480779792759c883f3c0768c597b8f41a712150a1a2285",
-    "deployed": false,
-    "actual_run": "NOT_RUN"
+    "source_count": 48,
+    "source_row_count": 60,
+    "relation_row_count": 36,
+    "mapped_hk_count": 19,
+    "source_decision_counts": {
+      "SELECTED": 0,
+      "CONDITIONAL_WATCH": 4,
+      "NOT_SELECTED": 5,
+      "UNASSESSED": 39,
+      "OBSERVATION_ONLY": 0
+    },
+    "record_decision_counts": {
+      "selected": 0,
+      "watch": 8,
+      "unassessed": 47,
+      "not_selected": 5,
+      "observation_only": 0
+    },
+    "unique_watch_hk_symbols": [
+      "HK.00992",
+      "HK.01211",
+      "HK.01810",
+      "HK.02015",
+      "HK.06088",
+      "HK.06166",
+      "HK.09868"
+    ],
+    "quote_relative": "research/peripherals/20261014/external_finance.json",
+    "quote_sha256": "060c4f846fb195892b7fd6882c35ee2981c30824142c1bb3d315d1a00d973336",
+    "proposal_relation_count": 22,
+    "proposal_status": "PROPOSED/PIT_UNCONFIRMED",
+    "execution_release": "us-internet-coverage-api-20261014-r6"
   },
+  "source_sync_baseline": "995b1bf63ae7989430105fe09a39b545cd8f6309",
   "integration": {
-    "canonical_conflicted_implementation_files": 5,
-    "worktree_conflicted_implementation_files": 3,
-    "conflicted_user_changes_preserved": true,
-    "complete": false
+    "worktree_11_paths": "MATCH_REVIEWED_R6",
+    "canonical_parallel_changes": "PRESERVED",
+    "display_source": "C_APPLIED_W_PARALLEL_CHANGES_PRESERVED"
   },
-  "next_plan": "docs/handoffs/PLAN_US_MAPPING_FOCUSED_20261014.md",
-  "NATURAL_VERIFIED": false,
+  "known_failures_preserved": {
+    "old_runtime_cwd_run": "a21aee15940847ee822185e0512e81d4",
+    "workingdirectory_repair": "CORRECTED",
+    "run_receipt_verifier_false_negative": "CORRECTED_BY_SEPARATE_ASSESSMENT_NO_RERUN"
+  },
+  "evidence_sha256": {
+    "integration-phase-a-r7.json": "6fd743dc31cd0d7ed22b5ec67f5e739f6e369d5402d2c7980358495d541a0367",
+    "independent-review-r7.json": "50cd2cad87103b3360a0f1a2e23c6d43f6ca7d92737775a821000631b789450d",
+    "deployment-r6.json": "dc3ee8eabf03fc7fc5baced153c75ca509158e78f9900b4377b856fca8a5b8b1",
+    "api-workingdirectory-repair-r7.json": "1f6d511e384f046d570b589b01da568c6a83e1748d176aee8ffc68dea970f046",
+    "api-manual-run-r7.json": "6cd13f6e553fe8b3e192e0beae67cc725671ba0f6557245315727509d5407a62",
+    "api-manual-run-r7-assessment.json": "8254e6259e9050f654935034f0c8f6bff264109e11e45ce9f855b152ef451dd7",
+    "ui-readback-r7.txt": "864e2a39aa0792a0e7fe52c0c7d19d3dac35acda7e0f0beac0b1137f01763687",
+    "independent-live-review-r7.json": "45556416a837362924154dbc945b62ce5cc942f937521a9eefedf2996ee49af5",
+    "independent-ui-label-review-r7.json": "efc1882f8546706e15342f0b1da382a3aca3ca883d5d68b0fcdd18a9dff90869",
+    "deployment-ui-label-r7.json": "1f8c8d58e11a74ae0c2a96def4be4508bbb4fef281cb9f49ab13d69101f78ba1",
+    "ui-final-readback-r7.txt": "55f0e0e24b843e2dc6b0f301f6dd819db4d33b2e96a7a2c9a7d632fcafabdb72",
+    "ui-final-mapping-r7.png": "f21d6a55a44f799359dea7a5fc74070c63987ce4a4c9a7240d9736a8da6e82ab",
+    "independent-ui-final-r7.json": "37efd0152a92d79e075db0175273f1d5055d5ae0c188ffc3dcb93b4d401fe7d0"
+  },
   "RESEARCH_ONLY": true,
   "production_allowed": false,
   "buy_gate_updated": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "NATURAL_VERIFIED": false,
+  "UI_VERIFIED": "PASS_BOUNDED_48_SOURCE_MAPPING_19_HK_TARGETS_7_UNIQUE_WATCH_TWO_LABELS",
+  "typecheck": {
+    "status": "FAIL",
+    "baseline": "NOT_RUN",
+    "target_file_errors_reported": false,
+    "expanded_repairs": false
+  },
+  "remaining_gaps": {
+    "research": "PARTIAL; quote time semantics and proposal PIT remain unconfirmed; existing factor/industry gaps retained",
+    "generic_ui_count": "701 broad-universe generic summary vs 19 US-mapping HK targets; scope label unclear, P2 backlog outside bounded labels fix",
+    "typecheck": "FAIL other files; baseline not run",
+    "natural_slot": "NOT_RUN"
+  },
+  "REVIEWED": "PASS_FROZEN_SCOPE",
+  "BEHAVIOR_VERIFIED": "PASS_FIXED_MANUAL_RUN"
 }

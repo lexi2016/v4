@@ -115,6 +115,8 @@ export function readableReason(row: Record<string, unknown>): string {
     US_ETF_THEME_PROXY_ONLY: '仅有ETF主题代理，已保存材料未提供审核港股关系，保留待核。',
     US_REVIEWED_RELATION_ABSENT: '已保存审核材料中没有可核验的港股关系，保留待核。',
     US_REVIEWED_RELATION_CONDITIONAL_ONLY: '已有审核关系，列为条件观察，不能据此严格入选。',
+    US_RELATION_PROPOSED_PIT_UNCONFIRMED: '业务关系仍为提案，历史时点可得性未核实，保留待核；不能据此严格入选。',
+    US_RELATION_UNMAPPED_CANNOT_CONFIRM: '尚无可核实的港股映射关系，保留待核。',
   };
   if (reason in labels) {
     const basis = text(row.research_priority_reason);
