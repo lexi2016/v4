@@ -778,7 +778,11 @@ class BatchRunnerTests(unittest.TestCase):
         self.assertEqual(unit_map["units"][-1]["end_cp"], len(body))
 
     def test_simple_workflow_projects_source_units_and_passes_business_fields_through(self) -> None:
-        body = "Opening statement.\n\n| Field | Value |\n|---|---|\n| Status | proposed |\n\nEnding statement."
+        body = (
+            "Company name: Synthetic Issuer Limited\nStock code: 01234\n\n"
+            "Opening statement.\n\n| Field | Value |\n|---|---|\n| Status | proposed |\n\n"
+            "Opening balance 100\nIncrease / decrease 0\nEnding statement."
+        )
         batch = synthetic_batch(body)
         article = batch["articles"][0]
         contract = runner.load_active_contract()
@@ -788,9 +792,11 @@ class BatchRunnerTests(unittest.TestCase):
         reader["body_sha256"] = "model-body-placeholder"
         reader["reason"] = "pass through exactly"
         reader["risk_notes"] = ["risk unchanged"]
-        reader["facts"] = [{"claim": "Source states a proposal.", "source_unit_id": unit_map["units"][1]["source_unit_id"]}]
+        reader["facts"] = [{"claim": "model-authored fixed fact that will be replaced", "source_unit_id": unit_map["units"][1]["source_unit_id"]}]
+        reader["changes"] = [{"claim": "model-authored change that will be replaced", "source_unit_id": unit_map["units"][1]["source_unit_id"]}]
         reader["impact"] = []
         reader["confirmation_conditions"] = []
+        model_risk_notes = copy.deepcopy(reader["risk_notes"])
         envelope = {"action": "complete", "lookup_request": None, "reader_output": reader}
 
         projected, receipt = runner.project_simple_workflow_output(
@@ -808,21 +814,97 @@ class BatchRunnerTests(unittest.TestCase):
         self.assertEqual(reader["source_sha256"], "model-source-placeholder")
         self.assertEqual(reader["body_sha256"], "model-body-placeholder")
         citation_fields = set(runner.SOURCE_SPAN_CITATION_FIELDS)
-        for field_name in set(reader) - citation_fields - {"source_sha256", "body_sha256"}:
+        for field_name in set(reader) - citation_fields - {"source_sha256", "body_sha256", "risk_notes"}:
             self.assertEqual(result["reader_output"][field_name], reader[field_name], field_name)
-        for field_name in citation_fields:
+        pit_provenance = runner._simple_workflow_pit_provenance(article)
+        self.assertEqual(reader["risk_notes"], model_risk_notes)
+        self.assertEqual(
+            result["reader_output"]["risk_notes"],
+            [*model_risk_notes, pit_provenance["annotation"]],
+        )
+        self.assertEqual(receipt["model_risk_notes_before_projection"], {
+            "count": len(model_risk_notes),
+            "sha256": runner.sha256_bytes(runner.canonical_json_bytes(model_risk_notes)),
+        })
+        self.assertEqual(receipt["program_input_pit_provenance"], pit_provenance)
+        for field_name in citation_fields - {"facts", "changes"}:
             self.assertEqual(
                 [item["claim"] for item in result["reader_output"][field_name]],
                 [item["claim"] for item in reader[field_name]],
                 field_name,
             )
-        unit = unit_map["units"][1]
-        self.assertEqual(result["reader_output"]["facts"][0]["quote"], unit["text"])
+        ledger = runner._simple_fixed_fact_ledger(article, unit_map)
         self.assertEqual(
-            result["reader_output"]["facts"][0]["locator"],
-            f"article_body[codepoint:{unit['start_cp']}:{unit['end_cp']}]",
+            [item["claim"] for item in result["reader_output"]["facts"]],
+            [item["claim"] for item in ledger["reader_facts"]],
         )
+        self.assertEqual(
+            [item["claim"] for item in result["reader_output"]["changes"]],
+            [item["claim"] for item in ledger["reader_changes"]],
+        )
+        self.assertNotIn("model-authored fixed fact that will be replaced", [item["claim"] for item in result["reader_output"]["facts"]])
+        self.assertTrue(result["reader_output"]["facts"])
+        self.assertTrue(result["reader_output"]["changes"])
+        unit_by_id = {unit["source_unit_id"]: unit for unit in unit_map["units"]}
+        for field_name, ledger_field in (("facts", "reader_facts"), ("changes", "reader_changes")):
+            projected_items = result["reader_output"][field_name]
+            expected_items = ledger[ledger_field]
+            self.assertEqual([item["claim"] for item in projected_items], [item["claim"] for item in expected_items])
+            for item, source_item in zip(projected_items, expected_items, strict=True):
+                unit = unit_by_id[source_item["source_unit_id"]]
+                self.assertEqual(set(item), {"claim", "quote", "locator"})
+                self.assertEqual(item["quote"], unit["text"])
+                self.assertEqual(item["locator"], f"article_body[codepoint:{unit['start_cp']}:{unit['end_cp']}]")
         self.assertEqual(receipt["source_unit_map_sha256"], unit_map["source_unit_map_sha256"])
+        self.assertEqual(receipt["fixed_fact_ledger_sha256"], ledger["ledger_sha256"])
+        self.assertEqual(receipt["model_fixed_fields_replaced"]["counts"], {"facts": 1, "changes": 1})
+
+    def test_simple_workflow_projection_preserves_explicit_pit_reason_verbatim(self) -> None:
+        batch = synthetic_batch()
+        article = batch["articles"][0]
+        reason = "Queue metadata reason: body capture occurred after publication."
+        article["article_metadata"]["pit_reason"] = reason
+        reader = reader_output(article)
+        reader["risk_notes"] = ["Model-authored risk remains byte-for-byte in its JSON string."]
+        original = copy.deepcopy(reader)
+        projected, receipt = runner.project_simple_workflow_output(
+            {"action": "complete", "lookup_request": None, "reader_output": reader},
+            batch,
+            runner.load_active_contract(),
+        )
+        projected_reader = projected["results"][0]["reader_output"]
+        pit = receipt["program_input_pit_provenance"]
+        self.assertEqual(reader, original)
+        self.assertEqual(pit["pit_reason_status"], "PROVIDED")
+        self.assertEqual(pit["pit_reason"], reason)
+        self.assertIn(reason, pit["annotation"])
+        self.assertEqual(projected_reader["risk_notes"][:-1], original["risk_notes"])
+        self.assertEqual(projected_reader["risk_notes"][-1], pit["annotation"])
+
+    def test_simple_workflow_message_carries_complete_body_and_verified_script_ledger(self) -> None:
+        body = "Company name: Synthetic Issuer Limited\nStock code: 01234\n\nA complete source paragraph."
+        batch = synthetic_batch(body)
+        contract = runner.load_active_contract()
+        messages = runner.build_messages(batch, contract, runner.SIMPLE_WORKFLOW_PROFILE)
+        payload_text = messages[1]["content"].split("ARTICLE_DATA_BEGIN\n", 1)[1].split("\nARTICLE_DATA_END", 1)[0]
+        payload = json.loads(payload_text)
+        article = payload["article"]
+        source_units = article["source_units"]
+
+        self.assertEqual("".join(unit["text"] for unit in source_units), body)
+        self.assertEqual([unit["source_unit_id"] for unit in source_units], article["fixed_fact_ledger"]["source_unit_ids"])
+        self.assertEqual(article["fixed_fact_ledger"]["protocol"], runner.simple_fixed_facts.PROTOCOL)
+        self.assertTrue(any(record["kind"] == "issuer_name" for record in article["fixed_fact_ledger"]["records"]))
+        self.assertTrue(any(record["kind"] == "security_code" for record in article["fixed_fact_ledger"]["records"]))
+        self.assertNotIn("body_sha256", article["fixed_fact_ledger"])
+        self.assertNotIn("source_unit_map_sha256", article["fixed_fact_ledger"])
+        self.assertNotIn("ledger_sha256", article["fixed_fact_ledger"])
+        for record in article["fixed_fact_ledger"]["records"]:
+            for ref in record["source_refs"]:
+                self.assertEqual(set(ref), {"source_unit_id"})
+                self.assertIn(ref["source_unit_id"], article["fixed_fact_ledger"]["source_unit_ids"])
+        self.assertNotIn("start_cp", payload_text)
+        self.assertNotIn("_sha256", payload_text)
 
     def test_simple_workflow_prompt_has_one_envelope_schema_and_lookup_shapes_fail_closed(self) -> None:
         contract = runner.load_active_contract()
@@ -854,18 +936,29 @@ class BatchRunnerTests(unittest.TestCase):
         prompt = runner.build_system_prompt(contract, runner.SIMPLE_WORKFLOW_PROFILE)
 
         required_instructions = (
-            "先提取，再判断。",
-            "先通读所有 source_units",
-            "保留完整判断所需的事实和限定",
-            "分母及其基准日期",
-            "不能合并来自不同单元的事实",
-            "公司、发行人、地点、产品和其他专名使用正文出现的原文形式",
-            "标题、页眉或对另一份公告的引用只能证明本文提及了它",
-            "可以将公告归类为例行行政披露并据此说明 NOT_SELECTED",
+            "按 source_units 顺序阅读全文",
+            "fixed_fact_ledger 是程序在模型请求前从冻结正文和原 source-unit map 确定性生成",
+            "CANNOT_CONFIRM 表示来源不能支持确定值，绝不是 0、否或事件未发生",
+            "分母与基准日",
+            "跨单元事实分开引证",
+            "wire JSON 中 facts 和 changes 必须都输出空数组",
+            "模型负责经营/业绩判断，不重新生成固定事实字段",
+            "股份、授权、注销、库存等资本事项及其比例本身不是经营影响",
+            "不同单元支持的事实分开陈述和引用",
+            "沉默或缺少记录不证明风险、异常、盈利质量变化或其他事件不存在",
+            "不得仅凭固定账本、资本事项或行政形式预定 disposition",
+            "确认中文表达完整、清楚且可解释",
+            "公司、发行人、地点、产品和其他专名保留正文原文形式",
+            "标题、页眉或对另一份公告的引用只证明本文提及了它",
+            "完整且可核验、但没有符合既有标准经营/业绩催化的例行行政披露",
             "不能把“本文未披露”写成“公司没有发生”",
-            "reason 是允许且需要的研究判断说明",
-            "risk_notes 记录正文明确披露的风险/限定",
-            "查找仅走程序控制的 lookup 分支，不调用原生模型工具",
+            "reason 必须解释经营/业绩判断如何由已确认事实得出",
+            "模型原始 risk_notes 只写正文明确的风险和限定",
+            "程序输入元数据（非公告内容）",
+            "正文若披露交易对价，不得据此称现金流影响完全未披露",
+            "授权对象与授权机关",
+            "构成财务保证",
+            "查找只走程序控制的 lookup 分支，不调用原生模型工具",
             "source_sha256 和 body_sha256 是必填字符串",
         )
         for rule in required_instructions:

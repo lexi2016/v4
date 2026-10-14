@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -29,7 +30,7 @@ import build_length_canary as length_canary
 
 
 PIPELINE_DIR = Path(__file__).resolve().parent
-EVIDENCE_ROOT = PIPELINE_DIR / "evidence" / "simple-workflow-20261014" / "compact-v2-thinking-off"
+EVIDENCE_ROOT = PIPELINE_DIR / "evidence" / "simple-workflow-20261014" / "compact-v9-greedy-judgment" / "final-candidate"
 SOURCE_DIR = PIPELINE_DIR / "evidence" / "decision-first-20261014" / "stress"
 LENGTH_DIR = PIPELINE_DIR / "evidence" / "length-single-20261014"
 LENGTH_MANIFEST = LENGTH_DIR / "length-canary-manifest.json"
@@ -41,7 +42,21 @@ NATIVE_PRESSURE_BATCH_03_IMPORT = SOURCE_DIR / "native-import-pressure-batch-03-
 EXPECTED_NATIVE_PRESSURE_BATCH_03_IMPORT_SHA256 = "c1807c43904ddbf9d3fee5f77a4bd57eddf6252d53dbd0c363cd3c28d4aaee65"
 MODEL_ID = "qwen3_8_flash_next"
 PROFILE = runner.SIMPLE_WORKFLOW_PROFILE
-EXPECTED_SYSTEM_PROMPT_SHA256 = "89ef6779d46181f570a7c30a5f785524f9111cdc2e28bfc0e7faedc7aff46180"
+SIMPLE_WORKFLOW_REQUEST_TEMPERATURE = 0.0
+SIMPLE_WORKFLOW_SAMPLING_POLICY = {
+    "scope_profile": runner.SIMPLE_WORKFLOW_PROFILE,
+    "request_temperature": SIMPLE_WORKFLOW_REQUEST_TEMPERATURE,
+    "global_config_temperature": 1.0,
+    "global_force_sampling": None,
+    "model_temperature_override": None,
+    "model_force_sampling": False,
+    "parameter_precedence": "request temperature overrides model/global sampling unless force_sampling is enabled; global and model force_sampling are not enabled",
+    "temperature_zero_sampler": "installed oMLX sampler selects argmax when temperature == 0",
+}
+EXPECTED_SIMPLE_WORKFLOW_SAMPLING_POLICY_SHA256 = "a5b559cdcf30399b0c8b405dc75655b15541915e6d5633368c7bcd7afddf444d"
+EXPECTED_SYSTEM_PROMPT_SHA256 = "491e8d29fef704541346bdb236242fdb7b5743d3f556eb400997f77f1f2c475d"
+EXPECTED_FIXED_FACT_PARSER_PROTOCOL = "simple_fixed_facts_v1"
+EXPECTED_FIXED_FACT_PARSER_SHA256 = "33424d9688878b805c9ada3e44f48b19b2e9c380821d4509e85300e252f0c903"
 EXPECTED_STRUCTURED_OUTPUT_SCHEMA_SHA256 = "30816be27a055151df27a26a683b093e502c937573feee7ae2a7e6150511bc07"
 EXPECTED_STRUCTURED_OUTPUT_SCHEMA_ORDERED_SHA256 = "bfea12651d488e91499e76de12c4f8997d591bf87514d1df9eb8b9f2eae125da"
 EXPECTED_SETTINGS_SHA256 = "836ee204bc85ffb772e4badbebaaf48e3d595d9efbf8479155a1dd48465f08ea"
@@ -52,6 +67,7 @@ SOURCE_SPAN_BASELINE_PROFILE = "decision_source_span"
 SOURCE_SPAN_BASELINE_SYSTEM_PROMPT_SHA256 = "ebd2eb46eae08e48bcf1f137c52b8e795c133a9b70d25b57544f89f7622b9356"
 MAX_COMPLETION_TOKENS = 32768
 OUTPUT_RESERVE_TOKENS = 2048  # Admission estimate only; never sent as a cap.
+CANARY_WALL_SPEED_LIMIT_SECONDS = 184.731
 MAX_ATTEMPTS = 2
 NO_PROGRESS_TIMEOUT_SECONDS = 90.0
 WEB_TIMEOUT_SECONDS = 120.0
@@ -90,6 +106,81 @@ def canonical_json(value: Any) -> bytes:
     return runner.canonical_json_bytes(value)
 
 
+def _verified_simple_workflow_sampling_policy() -> dict[str, Any]:
+    try:
+        settings = json.loads(runner.OMLX_SETTINGS_PATH.read_bytes())
+        model_settings = json.loads(runner.OMLX_MODEL_SETTINGS_PATH.read_bytes())
+        global_sampling = settings["sampling"]
+        model_sampling = model_settings["models"][MODEL_ID]
+        observed = {
+            "global_config_temperature": global_sampling.get("temperature"),
+            "global_force_sampling": global_sampling.get("force_sampling"),
+            "model_temperature_override": model_sampling.get("temperature"),
+            "model_force_sampling": model_sampling.get("force_sampling"),
+        }
+    except Exception as exc:
+        raise PlanError("SAMPLING_CONFIGURATION_UNAVAILABLE") from exc
+    expected = {
+        "global_config_temperature": 1.0,
+        "global_force_sampling": None,
+        "model_temperature_override": None,
+        "model_force_sampling": False,
+    }
+    if observed != expected:
+        raise PlanError("SAMPLING_CONFIGURATION_NOT_FROZEN_FOR_REQUEST_OVERRIDE")
+    if sha256(canonical_json(SIMPLE_WORKFLOW_SAMPLING_POLICY)) != EXPECTED_SIMPLE_WORKFLOW_SAMPLING_POLICY_SHA256:
+        raise PlanError("SIMPLE_WORKFLOW_SAMPLING_POLICY_SHA_MISMATCH")
+    return dict(SIMPLE_WORKFLOW_SAMPLING_POLICY)
+
+
+def _simple_workflow_gold_diff_receipt(
+    expected: dict[str, Any],
+    reader_output: dict[str, Any],
+    projection: dict[str, Any],
+    *,
+    references_validated: bool,
+) -> dict[str, Any]:
+    """Compare fixed gold fields without changing or rejecting model output."""
+    class_fields = ("disposition", "selection_basis", "direction", "evidence_sufficiency")
+    identity_fields = ("source_sha256", "body_sha256", "source_unit_map_sha256", "fixed_fact_ledger_sha256")
+    expected_class = expected.get("classification")
+    expected_identity = expected.get("identities")
+    expected_pit = expected.get("pit_provenance")
+    expected_class = expected_class if isinstance(expected_class, dict) else {}
+    expected_identity = expected_identity if isinstance(expected_identity, dict) else {}
+    expected_pit = expected_pit if isinstance(expected_pit, dict) else {}
+    actual_class = {name: reader_output.get(name) for name in class_fields}
+    actual_identity = {name: projection.get(name) for name in identity_fields}
+    actual_pit = projection.get("program_input_pit_provenance")
+    actual_pit = actual_pit if isinstance(actual_pit, dict) else {}
+    actual_pit = {name: actual_pit.get(name) for name in ("pit_status", "pit_reason_status", "pit_reason")}
+
+    model_notes = projection.get("model_risk_notes_before_projection")
+    notes = reader_output.get("risk_notes")
+    count = model_notes.get("count") if isinstance(model_notes, dict) else None
+    annotation = projection.get("program_input_pit_provenance", {}).get("annotation") if isinstance(projection.get("program_input_pit_provenance"), dict) else None
+    notes_preserved = (
+        isinstance(count, int) and count >= 0 and isinstance(model_notes, dict)
+        and isinstance(notes, list) and len(notes) == count + 1 and notes[-1] == annotation
+        and sha256(canonical_json(notes[:count])) == model_notes.get("sha256")
+    )
+    citations = projection.get("citation_projections")
+    checks = {
+        "classification": {"status": "PASS" if actual_class == expected_class else "FAIL", "expected": expected_class, "actual": actual_class},
+        "pit_provenance": {"status": "PASS" if actual_pit == expected_pit and notes_preserved else "FAIL", "expected": expected_pit, "actual": actual_pit, "model_notes_preserved": notes_preserved},
+        "fixed_ledger_identity": {"status": "PASS" if actual_identity == expected_identity else "FAIL", "expected": expected_identity, "actual": actual_identity},
+        "references": {"status": "PASS" if references_validated and isinstance(citations, list) and actual_identity.get("source_unit_map_sha256") == expected_identity.get("source_unit_map_sha256") else "FAIL", "citation_count": len(citations) if isinstance(citations, list) else None, "validated_against_frozen_body": references_validated},
+    }
+    return {
+        "schema": "qwen_flash_next.simple_workflow_fixed_gold_diff.v1",
+        "evaluation_kind": "DETERMINISTIC_FIXED_GOLD_REGRESSION_ONLY",
+        "status": "PASS" if all(row["status"] == "PASS" for row in checks.values()) else "FAIL",
+        "semantic_quality": "NOT_ASSESSED_BY_AUTOMATION",
+        "reader_output_modified": False,
+        "checks": checks,
+    }
+
+
 def _private_dir(path: Path) -> None:
     existed = path.exists()
     path.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -115,6 +206,16 @@ def _write_private(path: Path, raw: bytes) -> None:
             tmp.unlink()
         except FileNotFoundError:
             pass
+
+
+def _write_private_immutable(path: Path, raw: bytes) -> None:
+    if path.exists():
+        if path.read_bytes() != raw:
+            raise ValueError("IMMUTABLE_EVIDENCE_CONFLICT")
+        return
+    _write_private(path, raw)
+    if path.read_bytes() != raw:
+        raise ValueError("IMMUTABLE_EVIDENCE_WRITE_MISMATCH")
 
 
 @dataclass(frozen=True)
@@ -224,6 +325,13 @@ def build_frozen_plan(
     prompt_sha = sha256(prompt.encode("utf-8"))
     if prompt_sha != EXPECTED_SYSTEM_PROMPT_SHA256:
         raise PlanError("FROZEN_SYSTEM_PROMPT_SHA_MISMATCH")
+    parser_path = Path(runner.simple_fixed_facts.__file__).resolve()
+    parser_sha = sha256(parser_path.read_bytes())
+    if (
+        runner.simple_fixed_facts.PROTOCOL != EXPECTED_FIXED_FACT_PARSER_PROTOCOL
+        or parser_sha != EXPECTED_FIXED_FACT_PARSER_SHA256
+    ):
+        raise PlanError("FROZEN_FIXED_FACT_PARSER_IDENTITY_MISMATCH")
     structured_output_schema = runner.build_simple_workflow_schema(contract)
     structured_output_schema_sha = sha256(canonical_json(structured_output_schema))
     structured_output_schema_ordered_sha = sha256(
@@ -246,6 +354,8 @@ def build_frozen_plan(
         raise PlanError("RUNTIME_SETTINGS_IDENTITY_MISMATCH")
     if model_settings_sha != EXPECTED_MODEL_SETTINGS_SHA256:
         raise PlanError("MODEL_SETTINGS_IDENTITY_MISMATCH")
+    sampling_policy = _verified_simple_workflow_sampling_policy()
+    sampling_policy_sha = EXPECTED_SIMPLE_WORKFLOW_SAMPLING_POLICY_SHA256
     config_sha = config.get("configuration_sha256")
     if not runner._is_sha(config_sha):
         raise PlanError("FROZEN_CONFIGURATION_SHA_INVALID")
@@ -304,6 +414,7 @@ def build_frozen_plan(
         name: {"article_ids": list(ids), "unique_count": len(ids)}
         for name, ids in cohort_map.items()
     }
+    fixed_fact_extraction_elapsed_by_article: dict[str, float] = {}
     prior = None
     prior_raw = None
     prior_rows: dict[str, dict[str, Any]] = {}
@@ -319,6 +430,8 @@ def build_frozen_plan(
             "model_id": MODEL_ID,
             "prompt_profile": PROFILE,
             "system_prompt_sha256": prompt_sha,
+            "fixed_fact_parser_protocol": EXPECTED_FIXED_FACT_PARSER_PROTOCOL,
+            "fixed_fact_parser_sha256": parser_sha,
             "source_span_protocol": runner.SOURCE_SPAN_PROTOCOL,
             "source_span_max_codepoints": runner.SOURCE_SPAN_MAX_CODEPOINTS,
             "source_range_protocol": runner.SOURCE_RANGE_PROTOCOL,
@@ -357,10 +470,21 @@ def build_frozen_plan(
         prior_rows = prior_rows_all
     plan_rows = []
     prepared_rejections = []
+    fixed_fact_ledgers: dict[str, dict[str, Any]] = {}
     for article_id in unique_ids:
         article = source_by_id[article_id]
+        fixed_fact_started = time.perf_counter()
+        fixed_ledger = runner.simple_fixed_facts.extract_fixed_facts(
+            article["article_body"],
+            source_unit_maps[article_id],
+            article.get("article_metadata"),
+        )
+        fixed_fact_extraction_elapsed_by_article[article_id] = round(
+            max(0.0, time.perf_counter() - fixed_fact_started), 6
+        )
+        fixed_fact_ledgers[article_id] = fixed_ledger
         batch_id = "AUTO_" + sha256(article_id.encode("utf-8"))[:20]
-        batch = length_canary.make_batch([article], batch_id)
+        batch = length_canary.make_batch([{**article, "fixed_fact_ledger": fixed_ledger}], batch_id)
         try:
             runner.validate_batch(batch)
             input_sha = runner._input_batch_sha(batch)
@@ -372,6 +496,8 @@ def build_frozen_plan(
                     or old_row.get("body_sha256") != article["body_sha256"]
                     or old_row.get("source_span_map_sha256") != source_span_maps[article_id]["span_map_sha256"]
                     or old_row.get("source_unit_map_sha256") != source_unit_maps[article_id]["source_unit_map_sha256"]
+                    or old_row.get("fixed_fact_ledger_sha256") != fixed_ledger["ledger_sha256"]
+                    or old_row.get("fixed_fact_parser_sha256") != parser_sha
                     or old_row.get("body_length_bytes") != len(article["article_body"].encode("utf-8"))
                     or old_row.get("input_sha256") != input_sha
                     or old_row.get("context_limit_tokens") != limits.get("context_limit_tokens")
@@ -401,6 +527,13 @@ def build_frozen_plan(
             "body_sha256": article["body_sha256"],
             "source_span_map_sha256": source_span_maps[article_id]["span_map_sha256"],
             "source_unit_map_sha256": source_unit_maps[article_id]["source_unit_map_sha256"],
+            "fixed_fact_parser_protocol": EXPECTED_FIXED_FACT_PARSER_PROTOCOL,
+            "fixed_fact_parser_sha256": parser_sha,
+            "fixed_fact_ledger_sha256": fixed_ledger["ledger_sha256"],
+            "request_sampling_policy_sha256": sampling_policy_sha,
+            "fixed_fact_record_count": len(fixed_ledger["records"]),
+            "script_fact_count": len(fixed_ledger["reader_facts"]) + len(fixed_ledger["reader_changes"]),
+            "script_fact_unknown_count": len(fixed_ledger["unknowns"]),
             "body_length_bytes": len(article["article_body"].encode("utf-8")),
             "input_sha256": input_sha,
             "prompt_tokens_exact": exact_prompt_tokens,
@@ -422,7 +555,9 @@ def build_frozen_plan(
         article_rules = (
             f"{ARTICLE_RULES}+source-span-map:{article['source_span_map_sha256']}"
             f"+source-unit-map:{article['source_unit_map_sha256']}"
-            f"+runtime-settings:{settings_sha}+model-settings:{model_settings_sha}+thinking:off"
+            f"+fixed-fact-parser:{parser_sha}+fixed-fact-ledger:{article['fixed_fact_ledger_sha256']}"
+            f"+runtime-settings:{settings_sha}+model-settings:{model_settings_sha}"
+            f"+request-sampling-policy:{sampling_policy_sha}+thinking:off"
         )
         identity = {
             "date": metadata.get("publication_date") or "CANNOT_CONFIRM",
@@ -448,6 +583,8 @@ def build_frozen_plan(
         "model_id": MODEL_ID,
         "prompt_profile": PROFILE,
         "system_prompt_sha256": prompt_sha,
+        "fixed_fact_parser_protocol": EXPECTED_FIXED_FACT_PARSER_PROTOCOL,
+        "fixed_fact_parser_sha256": parser_sha,
         "source_span_protocol": runner.SOURCE_SPAN_PROTOCOL,
         "source_span_max_codepoints": runner.SOURCE_SPAN_MAX_CODEPOINTS,
         "source_range_protocol": runner.SOURCE_RANGE_PROTOCOL,
@@ -467,11 +604,16 @@ def build_frozen_plan(
             "full_body_only": True,
             "body_truncation_allowed": False,
             "source_unit_input": "complete exact body partitioned into ordered paragraph/table units; offsets and per-unit hashes remain local",
-            "simple_workflow_output": "one constrained JSON envelope; complete one Reader result or request a typed missing-fact lookup",
-            "citation_projection": "source_unit_id is projected to exact quote and locator; all other Reader fields pass through unchanged",
+            "simple_workflow_output": "model judgment fields from one constrained JSON envelope; script injects frozen fixed facts and changes after the original model response is saved",
+            "fixed_fact_ledger": "deterministic parser output bound to each exact body and complete source-unit map; all unresolved relations remain CANNOT_CONFIRM and do not become zero",
+            "citation_projection": "source_unit_id is projected to exact quote and locator; script fixed facts/changes come from the frozen ledger while model judgment fields pass through unchanged",
             "structured_output_transport": "oMLX structured_outputs json only; no response_format fallback or native model tools",
             "max_completion_tokens": MAX_COMPLETION_TOKENS,
+            "sampling_policy": sampling_policy,
+            "sampling_policy_sha256": sampling_policy_sha,
             "thinking": "disabled explicitly in each request with enable_thinking=false; thinking_budget omitted; settings hashes identify loaded configuration",
+            "pressure_gate_timing": "pressure batch requires the measured canary wall strictly below the frozen v5 reference of 184.731 seconds; canary wall is visible phase execution plus one-time fixed-fact extraction for its six articles, and still requires a separate human semantic review",
+            "script_model_timing": "script time includes fixed-fact extraction preflight once per canary article plus per-attempt ledger verification and request assembly; model time is completion time; visible phase wall includes queue execution, validation, idle checks, cold load, failures, and retries",
             "first_article_timing_context": "cold start expected after oMLX restart; no warm-up request; include load/failure/retry time; prior warm references are not directly comparable",
             "web_tools": "existing oMLX routes only; search requires a typed missing fact/field/query and fetch follows that search",
             "ttfc": "first non-empty content delta; first SSE event is excluded",
@@ -558,11 +700,17 @@ def build_frozen_plan(
             "rules": (
                 f"{ARTICLE_RULES}+source-span-map:{article['source_span_map_sha256']}"
                 f"+source-unit-map:{article['source_unit_map_sha256']}"
-                f"+runtime-settings:{EXPECTED_SETTINGS_SHA256}+model-settings:{EXPECTED_MODEL_SETTINGS_SHA256}+thinking:off"
+                f"+fixed-fact-parser:{EXPECTED_FIXED_FACT_PARSER_SHA256}+fixed-fact-ledger:{article['fixed_fact_ledger_sha256']}"
+                f"+runtime-settings:{EXPECTED_SETTINGS_SHA256}+model-settings:{EXPECTED_MODEL_SETTINGS_SHA256}"
+                f"+request-sampling-policy:{sampling_policy_sha}+thinking:off"
             ),
+            "request_sampling_policy_sha256": sampling_policy_sha,
             "role": ARTICLE_ROLE,
             "stage": ARTICLE_STAGE,
             "article_metadata": metadata,
+            "fixed_fact_parser_protocol": EXPECTED_FIXED_FACT_PARSER_PROTOCOL,
+            "fixed_fact_parser_sha256": EXPECTED_FIXED_FACT_PARSER_SHA256,
+            "fixed_fact_ledger": fixed_fact_ledgers[article["article_id"]],
         }
         item = queue.enqueue(payload)
         if item["idempotency_key"] != article["idempotency_key"]:
@@ -571,6 +719,11 @@ def build_frozen_plan(
     metadata["input_manifest_sha256"] = sha256(final_raw)
     metadata["population_failures"] = 26
     metadata["queue_id"] = queue_id
+    metadata["fixed_fact_extraction_elapsed_by_article"] = fixed_fact_extraction_elapsed_by_article
+    metadata["canary_script_preflight_elapsed_seconds"] = round(
+        sum(fixed_fact_extraction_elapsed_by_article[article_id] for article_id in cohort_map["canary_A_and_B_union"]),
+        6,
+    )
     return FrozenPlan(tuple(source_by_id[article["article_id"]] for article in manifest["articles"]), cohort_map, metadata, plan_path)
 
 
@@ -772,12 +925,21 @@ class GatedStreamingTransport(runner.OmlxTransport):
                 raise runner.TransportError("SIMPLE_WORKFLOW_STRUCTURED_OUTPUT_REQUIRED")
             request_body["structured_outputs"] = structured_outputs
             request_body["enable_thinking"] = False
+            request_body["temperature"] = SIMPLE_WORKFLOW_REQUEST_TEMPERATURE
         else:
             request_body["tools"] = runner.make_tool_schema()
             request_body["response_format"] = {"type": "json_object"}
             request_body["enable_thinking"] = False
         turn = runner._StreamTurn()
         trace_path = self._attempt_dir / f"round-{self._round:02d}.raw.sse"
+        request_input_path = self._attempt_dir / f"round-{self._round:02d}.request-input.json"
+        request_input_raw = canonical_json(request_body) + b"\n"
+        _write_private_immutable(request_input_path, request_input_raw)
+        request_input_meta = {
+            "request_input_path": str(request_input_path.relative_to(self.evidence_root)),
+            "request_input_sha256": sha256(request_input_raw),
+            "request_input_length_bytes": len(request_input_raw),
+        }
         started = time.monotonic()
         warning_headers: list[str] = []
         try:
@@ -825,6 +987,7 @@ class GatedStreamingTransport(runner.OmlxTransport):
                 "structured_output_schema_sha256": (
                     sha256(canonical_json(structured_outputs)) if structured_outputs is not None else None
                 ),
+                **request_input_meta,
                 "status": "FAILED",
             })
             raise
@@ -844,6 +1007,7 @@ class GatedStreamingTransport(runner.OmlxTransport):
                 "structured_output_schema_sha256": (
                     sha256(canonical_json(structured_outputs)) if structured_outputs is not None else None
                 ),
+                **request_input_meta,
                 "status": "FAILED",
                 "failure_code": code,
             })
@@ -862,6 +1026,7 @@ class GatedStreamingTransport(runner.OmlxTransport):
             "structured_output_schema_sha256": (
                 sha256(canonical_json(structured_outputs)) if structured_outputs is not None else None
             ),
+            **request_input_meta,
         })
         on_event({"type": "turn_complete", "finish_reason": turn.finish_reason, "usage": turn.usage, "round": self._round})
         return turn
@@ -1168,6 +1333,27 @@ class AutomaticCanaryController:
         self._worker: threading.Thread | None = None
         self._phase = "CANARY_NOT_STARTED"
         self._phase_states = {name: "NOT_STARTED" for name in plan.cohorts}
+        self._phase_wall_seconds = {name: 0.0 for name in plan.cohorts}
+        canary_ids = set(plan.cohorts.get("canary_A_and_B_union", ()))
+        prepared_fixed_fact_times = plan.metadata.get("fixed_fact_extraction_elapsed_by_article", {})
+        if not isinstance(prepared_fixed_fact_times, dict):
+            prepared_fixed_fact_times = {}
+        self._fixed_fact_preflight_elapsed_by_article = {
+            article_id: float(prepared_fixed_fact_times[article_id])
+            for article_id in canary_ids
+            if article_id in prepared_fixed_fact_times
+            and type(prepared_fixed_fact_times[article_id]) in (int, float)
+            and math.isfinite(float(prepared_fixed_fact_times[article_id]))
+            and prepared_fixed_fact_times[article_id] >= 0
+        }
+        self._fixed_fact_preflight_timing_complete = (
+            len(self._fixed_fact_preflight_elapsed_by_article) == len(canary_ids)
+        )
+        self._canary_fixed_fact_preflight_seconds = round(
+            sum(self._fixed_fact_preflight_elapsed_by_article.values()), 6
+        )
+        self._active_phase_started_monotonic: float | None = None
+        self._launch_request_started_monotonic: float | None = None
         self._active_phase: str | None = None
         self._pressure_gate: dict[str, Any] | None = None
         self._state_path = Path(queue.state_root).resolve() / "controller-state.json"
@@ -1185,6 +1371,8 @@ class AutomaticCanaryController:
             "input_manifest_sha256": self.plan.metadata["input_manifest_sha256"],
             "state": self._phase,
             "phases": dict(self._phase_states),
+            "phase_wall_seconds": dict(self._phase_wall_seconds),
+            "fixed_fact_preflight_elapsed_by_article": dict(self._fixed_fact_preflight_elapsed_by_article),
             "active_phase": self._active_phase,
             "pressure_gate": self._pressure_gate,
             "stop_code": self._stop_code,
@@ -1223,10 +1411,42 @@ class AutomaticCanaryController:
         ):
             raise PlanError("PRESSURE_GATE_STATE_INVALID")
         active_phase = state.get("active_phase")
+        phase_wall = state.get("phase_wall_seconds", {})
         if active_phase not in {None, *expected_phases}:
             raise PlanError("CONTROLLER_ACTIVE_PHASE_INVALID")
+        if (
+            not isinstance(phase_wall, dict)
+            or set(phase_wall) - expected_phases
+            or any(type(value) not in (int, float) or value < 0 for value in phase_wall.values())
+        ):
+            raise PlanError("CONTROLLER_PHASE_TIMING_INVALID")
+        fixed_fact_preflight_times = state.get("fixed_fact_preflight_elapsed_by_article")
+        canary_ids = set(self.plan.cohorts.get("canary_A_and_B_union", ()))
+        canary_has_started = phases.get("canary_A_and_B_union") != "NOT_STARTED"
+        if fixed_fact_preflight_times is not None:
+            if (
+                not isinstance(fixed_fact_preflight_times, dict)
+                or set(fixed_fact_preflight_times) != canary_ids
+                or any(
+                    type(value) not in (int, float)
+                    or not math.isfinite(float(value))
+                    or value < 0
+                    for value in fixed_fact_preflight_times.values()
+                )
+            ):
+                raise PlanError("CONTROLLER_FIXED_FACT_TIMING_INVALID")
         with self._lock:
             self._phase_states = dict(phases)
+            self._phase_wall_seconds = {name: float(phase_wall.get(name, 0.0)) for name in expected_phases}
+            if canary_has_started and fixed_fact_preflight_times is not None:
+                self._fixed_fact_preflight_elapsed_by_article = {
+                    article_id: float(value)
+                    for article_id, value in fixed_fact_preflight_times.items()
+                }
+                self._fixed_fact_preflight_timing_complete = True
+                self._canary_fixed_fact_preflight_seconds = round(
+                    sum(self._fixed_fact_preflight_elapsed_by_article.values()), 6
+                )
             self._active_phase = active_phase
             self._pressure_gate = gate
             self._phase = state.get("state", "CANARY_NOT_STARTED")
@@ -1283,6 +1503,16 @@ class AutomaticCanaryController:
             and progress["remaining"] == 0
         )
 
+    def _canary_speed_ready(self) -> bool:
+        elapsed = self._phase_wall_seconds.get("canary_A_and_B_union")
+        total = float(elapsed) + self._canary_fixed_fact_preflight_seconds if isinstance(elapsed, (int, float)) else None
+        return (
+            self._fixed_fact_preflight_timing_complete
+            and total is not None
+            and elapsed > 0
+            and total < CANARY_WALL_SPEED_LIMIT_SECONDS
+        )
+
     def _preflight(self) -> bool:
         if not self._wait_idle(timeout=0.0):
             return False
@@ -1303,6 +1533,8 @@ class AutomaticCanaryController:
         self._active_phase = phase_name
         self._phase = "CANARY_RUNNING" if phase_name == "canary_A_and_B_union" else "PRESSURE_RUNNING"
         self._phase_states[phase_name] = "RUNNING"
+        self._active_phase_started_monotonic = self._launch_request_started_monotonic or time.monotonic()
+        self._launch_request_started_monotonic = None
         self._started_at = self._started_at or datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
         self._persist_state_locked()
         _write_jsonl(self.evidence_root / "ui-phase-trigger-events.jsonl", {
@@ -1357,14 +1589,17 @@ class AutomaticCanaryController:
                 self._persist_state_locked()
                 return False
             self._launching = True
+            self._launch_request_started_monotonic = time.monotonic()
         if not self._preflight():
             with self._lock:
                 self._launching = False
+                self._launch_request_started_monotonic = None
                 self._persist_state_locked()
             return False
         with self._lock:
             if self._started or self._phase not in allowed_states:
                 self._launching = False
+                self._launch_request_started_monotonic = None
                 self._stop_code = "PHASE_STATE_CHANGED_DURING_START"
                 self._persist_state_locked()
                 return False
@@ -1382,16 +1617,23 @@ class AutomaticCanaryController:
                 self._stop_code = "CANARY_NOT_COMPLETE_OR_FAILED"
                 self._persist_state_locked()
                 return False
+            if not self._canary_speed_ready():
+                self._stop_code = "CANARY_WALL_TIME_NOT_BELOW_V5_REFERENCE"
+                self._persist_state_locked()
+                return False
             self._launching = True
+            self._launch_request_started_monotonic = time.monotonic()
         if not self._preflight():
             with self._lock:
                 self._launching = False
+                self._launch_request_started_monotonic = None
                 self._persist_state_locked()
             return False
         with self._lock:
-            if self._started or self._pressure_gate is not None or not self._canary_gate_ready():
+            if self._started or self._pressure_gate is not None or not self._canary_gate_ready() or not self._canary_speed_ready():
                 self._launching = False
-                self._stop_code = "PRESSURE_GATE_STATE_CHANGED"
+                self._launch_request_started_monotonic = None
+                self._stop_code = "PRESSURE_GATE_STATE_CHANGED_OR_SPEED_LIMIT_FAILED"
                 self._persist_state_locked()
                 return False
             accepted_at = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
@@ -1431,9 +1673,11 @@ class AutomaticCanaryController:
             else:
                 phase_name = "canary_A_and_B_union"
             self._launching = True
+            self._launch_request_started_monotonic = time.monotonic()
         if not self._preflight():
             with self._lock:
                 self._launching = False
+                self._launch_request_started_monotonic = None
                 self._persist_state_locked()
             return False
         phase_ids = set(self.plan.cohorts[phase_name])
@@ -1451,6 +1695,7 @@ class AutomaticCanaryController:
         if not retry_keys:
             with self._lock:
                 self._launching = False
+                self._launch_request_started_monotonic = None
             return False
         with self._lock:
             _write_jsonl(self.evidence_root / "ui-retry-events.jsonl", {
@@ -1483,6 +1728,7 @@ class AutomaticCanaryController:
                 metrics["rounds"].append({"finish_reason": event.get("finish_reason"), "usage": event.get("usage")})
 
     def _execute(self, transport: GatedStreamingTransport, job: queue_module.QueueJob) -> str:
+        script_started = time.monotonic()
         transport.begin_job(job)
         article = {
             "article_id": job.payload["article_id"],
@@ -1490,12 +1736,21 @@ class AutomaticCanaryController:
             "body_sha256": job.payload["body_sha256"],
             "article_body": job.payload["article_body"],
             "article_metadata": job.payload["article_metadata"],
+            "fixed_fact_ledger": job.payload.get("fixed_fact_ledger"),
         }
         batch_id = "AUTO_" + sha256(article["article_id"].encode("utf-8"))[:20]
         batch = length_canary.make_batch([article], batch_id)
         frozen_row = next((row for row in self.plan.metadata["articles"] if row["article_id"] == article["article_id"]), None)
+        parser_sha = sha256(Path(runner.simple_fixed_facts.__file__).read_bytes())
+        fixed_ledger = article["fixed_fact_ledger"]
         if (
             frozen_row is None
+            or parser_sha != EXPECTED_FIXED_FACT_PARSER_SHA256
+            or parser_sha != frozen_row.get("fixed_fact_parser_sha256")
+            or job.payload.get("fixed_fact_parser_sha256") != frozen_row.get("fixed_fact_parser_sha256")
+            or not isinstance(fixed_ledger, dict)
+            or fixed_ledger.get("protocol") != EXPECTED_FIXED_FACT_PARSER_PROTOCOL
+            or fixed_ledger.get("ledger_sha256") != frozen_row.get("fixed_fact_ledger_sha256")
             or runner._input_batch_sha(batch) != frozen_row["input_sha256"]
             or runner.build_source_span_map(article["article_body"], article["body_sha256"])["span_map_sha256"]
             != frozen_row.get("source_span_map_sha256")
@@ -1505,9 +1760,30 @@ class AutomaticCanaryController:
             raise queue_module.ExecutorFailure("INPUT_MANIFEST_DIVERGED", code="INPUT_MANIFEST_DIVERGED", raw_response=b"")
         contract = runner.load_active_contract()
         messages = runner.build_messages(batch, contract, PROFILE)
+        script_elapsed = round(time.monotonic() - script_started, 6)
         started = time.monotonic()
+        metrics = self._metrics.setdefault(job.idempotency_key, {"partial_text": "", "tool_receipts": [], "rounds": []})
+        metrics.update({
+            "script_elapsed_seconds": script_elapsed,
+            "model_elapsed_seconds": None,
+            "fixed_fact_parser_protocol": fixed_ledger["protocol"],
+            "fixed_fact_parser_sha256": parser_sha,
+            "fixed_fact_ledger_sha256": fixed_ledger["ledger_sha256"],
+            "script_fact_count": frozen_row["script_fact_count"],
+            "script_fact_unknown_count": frozen_row["script_fact_unknown_count"],
+            "script_fact_source_unit_map_sha256": frozen_row["source_unit_map_sha256"],
+        })
+        metrics.setdefault("script_elapsed_by_attempt_seconds", []).append(script_elapsed)
         with self._lock:
-            self._current = {"article_id": article["article_id"], "title": article["article_metadata"].get("title"), "status": "RUNNING", "started_monotonic": started}
+            self._current = {
+                "article_id": article["article_id"],
+                "title": article["article_metadata"].get("title"),
+                "status": "RUNNING",
+                "started_monotonic": script_started,
+                "script_elapsed_seconds": script_elapsed,
+                "model_started_monotonic": started,
+                "fixed_fact_ledger_sha256": fixed_ledger["ledger_sha256"],
+            }
         try:
             completion = transport.complete_batch(
                 messages,
@@ -1521,19 +1797,24 @@ class AutomaticCanaryController:
             stream_paths = sorted((transport._attempt_dir or Path()).glob("round-*.raw.sse")) if transport._attempt_dir else []
             partial = stream_paths[-1].read_bytes() if stream_paths and stream_paths[-1].exists() else None
             transport.finish_job(status="FAILED", code=code)
+            rounds = transport._trace_meta.get("rounds", [])
+            metrics["model_elapsed_seconds"] = round(sum(float(row.get("stream_seconds", 0)) for row in rounds), 6) if rounds else None
+            if metrics["model_elapsed_seconds"] is not None:
+                metrics.setdefault("model_elapsed_by_attempt_seconds", []).append(metrics["model_elapsed_seconds"])
             raise queue_module.ExecutorFailure(code, code=code, raw_response=partial) from None
         transport.finish_job(status="RESPONSE_RECEIVED", completion=completion)
-        metrics = self._metrics.setdefault(job.idempotency_key, {})
         metrics.update({
             "first_event_seconds": completion.first_event_seconds,
             "ttft_seconds": completion.ttft_seconds,
             "ttfc_seconds": completion.ttfc_seconds,
             "wall_seconds": completion.wall_seconds,
+            "model_elapsed_seconds": completion.wall_seconds,
             "usage": completion.usage,
             "response_model": completion.response_model,
             "finish_reason": transport._trace_meta.get("rounds", [{}])[-1].get("finish_reason"),
             "completion_tps_estimate": None,
         })
+        metrics.setdefault("model_elapsed_by_attempt_seconds", []).append(completion.wall_seconds)
         usage = completion.usage or {}
         token_count = usage.get("completion_tokens")
         generation_seconds = sum(float(row.get("stream_seconds", 0)) for row in transport._trace_meta.get("rounds", []))
@@ -1545,7 +1826,10 @@ class AutomaticCanaryController:
 
     def _validate(self, job: queue_module.QueueJob, parsed: Any) -> Any:
         batch = length_canary.make_batch([
-            {name: job.payload[name] for name in ("article_id", "source_sha256", "body_sha256", "article_body", "article_metadata")}
+            {
+                **{name: job.payload[name] for name in ("article_id", "source_sha256", "body_sha256", "article_body", "article_metadata")},
+                "fixed_fact_ledger": job.payload.get("fixed_fact_ledger"),
+            }
         ], "AUTO_" + sha256(job.payload["article_id"].encode("utf-8"))[:20])
         article_id = job.payload["article_id"]
         contract = runner.load_active_contract()
@@ -1604,6 +1888,12 @@ class AutomaticCanaryController:
             )
             if frozen_row is None:
                 raise queue_module.ValidationRejected("INPUT_MANIFEST_DIVERGED", code="INPUT_MANIFEST_DIVERGED")
+            if (
+                job.payload.get("fixed_fact_parser_sha256") != frozen_row.get("fixed_fact_parser_sha256")
+                or not isinstance(job.payload.get("fixed_fact_ledger"), dict)
+                or job.payload["fixed_fact_ledger"].get("ledger_sha256") != frozen_row.get("fixed_fact_ledger_sha256")
+            ):
+                raise queue_module.ValidationRejected("FIXED_FACT_LEDGER_MANIFEST_DIVERGED", code="FIXED_FACT_LEDGER_MANIFEST_DIVERGED")
             try:
                 projected, projection_map = runner.project_simple_workflow_output(
                     parsed,
@@ -1689,6 +1979,41 @@ class AutomaticCanaryController:
                 ),
                 "semantic_quality": "NOT_ASSESSED_BY_AUTOMATION",
             }
+            if simple_projection:
+                gold_path = self.evidence_root / "fixed-gold-regression.json"
+                if gold_path.is_file():
+                    try:
+                        gold_raw = gold_path.read_bytes()
+                        gold = json.loads(gold_raw)
+                        articles = gold.get("articles") if isinstance(gold, dict) else None
+                        expected_gold = articles.get(article_id) if isinstance(articles, dict) else None
+                        if (
+                            not isinstance(gold, dict)
+                            or gold.get("schema") != "qwen_flash_next.simple_workflow_fixed_gold.v1"
+                            or gold.get("provided_to_model") is not False
+                            or not isinstance(expected_gold, dict)
+                        ):
+                            raise ValueError("GOLD_ORACLE_INVALID")
+                        gold_diff = _simple_workflow_gold_diff_receipt(
+                            expected_gold,
+                            valid[article_id],
+                            projection_receipt,
+                            references_validated=True,
+                        )
+                        gold_diff.update({
+                            "gold_sha256": sha256(gold_raw),
+                            "gold_article_id": article_id,
+                            "gold_provided_to_model": False,
+                        })
+                        receipt["gold_regression"] = gold_diff
+                    except (OSError, TypeError, ValueError):
+                        receipt["gold_regression"] = {
+                            "schema": "qwen_flash_next.simple_workflow_fixed_gold_diff.v1",
+                            "evaluation_kind": "DETERMINISTIC_FIXED_GOLD_REGRESSION_ONLY",
+                            "status": "CANNOT_RUN",
+                            "semantic_quality": "NOT_ASSESSED_BY_AUTOMATION",
+                            "reader_output_modified": False,
+                        }
             receipt_path = (
                 self.evidence_root
                 / "projection-receipts"
@@ -1749,6 +2074,10 @@ class AutomaticCanaryController:
                 ]
                 metric["attempt_wall_seconds"] = attempt_durations
                 metric["wall_seconds"] = round(sum(attempt_durations), 3) if attempt_durations else None
+                script_attempts = metric.get("script_elapsed_by_attempt_seconds", [])
+                model_attempts = metric.get("model_elapsed_by_attempt_seconds", [])
+                metric["script_elapsed_total_seconds"] = round(sum(script_attempts), 3) if script_attempts else None
+                metric["model_elapsed_total_seconds"] = round(sum(model_attempts), 3) if model_attempts else None
                 self._metrics[key] = metric
                 self._current = None
             # The request has ended from the client's view. Verify oMLX is idle
@@ -1801,9 +2130,22 @@ class AutomaticCanaryController:
             if transport is not None:
                 transport.close()
             with self._lock:
+                if self._active_phase_started_monotonic is not None:
+                    self._phase_wall_seconds[phase_name] = round(
+                        self._phase_wall_seconds.get(phase_name, 0.0)
+                        + max(0.0, time.monotonic() - self._active_phase_started_monotonic),
+                        6,
+                    )
+                    self._active_phase_started_monotonic = None
                 self._finished = True
                 self._started = False
                 queue_snapshot = self.queue.snapshot()
+                canary_ids = set(self.plan.cohorts["canary_A_and_B_union"])
+                canary_keys = {
+                    row["idempotency_key"]
+                    for row in self.plan.metadata["articles"]
+                    if row["article_id"] in canary_ids
+                }
                 attempt_wall_seconds = []
                 for item in queue_snapshot["items"]:
                     metric = self._metrics.get(item.get("idempotency_key"), {})
@@ -1835,7 +2177,33 @@ class AutomaticCanaryController:
                 "queue_ready_count": sum(1 for row in self.plan.metadata["articles"] if row["context_admission"] == "READY"),
                     "queue_status_counts": queue_snapshot["status_counts"],
                     "wall_seconds_all_attempts": round(sum(attempt_wall_seconds), 3),
-                    "timing_note": "Includes observed cold load, failed attempts, and retries; prior warm references are not directly comparable.",
+                    "script_seconds_all_attempts": round(sum(
+                        value for metric in self._metrics.values()
+                        for value in metric.get("script_elapsed_by_attempt_seconds", [])
+                    ), 3),
+                    "fixed_fact_preflight_seconds_canary": self._canary_fixed_fact_preflight_seconds,
+                    "script_seconds_canary_attempts": round(sum(
+                        value for key, metric in self._metrics.items()
+                        if key in canary_keys
+                        for value in metric.get("script_elapsed_by_attempt_seconds", [])
+                    ), 3),
+                    "model_seconds_all_attempts": round(sum(
+                        value for metric in self._metrics.values()
+                        for value in metric.get("model_elapsed_by_attempt_seconds", [])
+                    ), 3),
+                    "model_seconds_canary_attempts": round(sum(
+                        value for key, metric in self._metrics.items()
+                        if key in canary_keys
+                        for value in metric.get("model_elapsed_by_attempt_seconds", [])
+                    ), 3),
+                    "phase_wall_seconds": dict(self._phase_wall_seconds),
+                    "canary_execution_wall_seconds": self._phase_wall_seconds.get("canary_A_and_B_union"),
+                    "canary_total_wall_seconds": round(
+                        self._phase_wall_seconds.get("canary_A_and_B_union", 0.0)
+                        + self._canary_fixed_fact_preflight_seconds,
+                        6,
+                    ),
+                    "timing_note": "Canary script time is one-time fixed-fact extraction for the six canary articles plus all per-attempt ledger verification and request assembly. Model time covers completion. Total canary wall is fixed-fact extraction plus visible phase wall, which includes queue execution, validation, idle checks, cold load, failures, and retries; these components are not added twice. Prior warm references are not directly comparable.",
                     "phases": dict(self._phase_states),
                     "pressure_gate": self._pressure_gate,
                     "pressure_gate_accepted": self._pressure_gate is not None,
@@ -1856,6 +2224,9 @@ class AutomaticCanaryController:
         for key, frozen in article_meta.items():
             queued = queue_items.get(key, {})
             metric = self._metrics.get(key, {})
+            fixed_fact_preflight_seconds = self._fixed_fact_preflight_elapsed_by_article.get(frozen["article_id"], 0.0)
+            request_script_seconds = metric.get("script_elapsed_total_seconds", metric.get("script_elapsed_seconds"))
+            script_seconds = fixed_fact_preflight_seconds + (float(request_script_seconds) if isinstance(request_script_seconds, (int, float)) else 0.0)
             items.append({
                 "idempotency_key": key,
                 "article_id": frozen["article_id"],
@@ -1868,6 +2239,17 @@ class AutomaticCanaryController:
                 "max_attempts": queued.get("max_attempts", MAX_ATTEMPTS),
                 "error_code": ((queued.get("last_error") or {}).get("code") or metric.get("error_code")),
                 "wall_seconds": metric.get("wall_seconds"),
+                "attempt_wall_seconds": metric.get("wall_seconds"),
+                "script_elapsed_seconds": round(script_seconds, 6),
+                "fixed_fact_preflight_elapsed_seconds": fixed_fact_preflight_seconds,
+                "request_script_elapsed_seconds": request_script_seconds,
+                "model_elapsed_seconds": metric.get("model_elapsed_total_seconds", metric.get("model_elapsed_seconds")),
+                "fixed_fact_parser_protocol": frozen.get("fixed_fact_parser_protocol"),
+                "fixed_fact_parser_sha256": frozen.get("fixed_fact_parser_sha256"),
+                "fixed_fact_ledger_sha256": frozen.get("fixed_fact_ledger_sha256"),
+                "script_fact_count": frozen.get("script_fact_count"),
+                "script_fact_unknown_count": frozen.get("script_fact_unknown_count"),
+                "script_fact_source_unit_map_sha256": frozen.get("source_unit_map_sha256"),
                 "first_event_seconds": metric.get("first_event_seconds"),
                 "first_event_status": "MEASURED" if metric.get("first_event_seconds") is not None else "CANNOT_CONFIRM",
                 "ttft_seconds": metric.get("ttft_seconds"),
@@ -1889,6 +2271,32 @@ class AutomaticCanaryController:
                 name: self._phase_progress(name, queue_snapshot["items"])
                 for name in self.plan.cohorts
             }
+            phase_wall_seconds = dict(self._phase_wall_seconds)
+            if self._active_phase and self._active_phase_started_monotonic is not None:
+                phase_wall_seconds[self._active_phase] = round(
+                    phase_wall_seconds.get(self._active_phase, 0.0)
+                    + max(0.0, time.monotonic() - self._active_phase_started_monotonic),
+                    3,
+                )
+            canary_ids = set(self.plan.cohorts["canary_A_and_B_union"])
+            canary_keys = {
+                key for key, row in article_meta.items()
+                if row["article_id"] in canary_ids
+            }
+            canary_script_request_seconds = sum(
+                float(self._metrics.get(key, {}).get("script_elapsed_total_seconds", 0.0) or 0.0)
+                for key in canary_keys
+            )
+            canary_model_seconds = sum(
+                float(self._metrics.get(key, {}).get("model_elapsed_total_seconds", 0.0) or 0.0)
+                for key in canary_keys
+            )
+            canary_execution_wall_seconds = phase_wall_seconds.get("canary_A_and_B_union", 0.0)
+            canary_has_started = self._phase_states.get("canary_A_and_B_union") != "NOT_STARTED"
+            canary_total_wall_seconds = (
+                round(canary_execution_wall_seconds + self._canary_fixed_fact_preflight_seconds, 6)
+                if canary_has_started else None
+            )
             canary_ready = self._canary_gate_ready()
             state = {
                 "schema": "qwen_flash_next.automatic_canary_status.v1",
@@ -1905,8 +2313,19 @@ class AutomaticCanaryController:
                 "queue_status_counts": counts,
                 "phases": dict(self._phase_states),
                 "phase_progress": phase_progress,
+                "phase_wall_seconds": phase_wall_seconds,
+                "canary_execution_wall_seconds": canary_execution_wall_seconds if canary_has_started else None,
+                "canary_script_preflight_elapsed_seconds": self._canary_fixed_fact_preflight_seconds,
+                "canary_script_elapsed_seconds": round(
+                    self._canary_fixed_fact_preflight_seconds + canary_script_request_seconds,
+                    6,
+                ),
+                "canary_model_elapsed_seconds": round(canary_model_seconds, 6),
+                "canary_elapsed_seconds": canary_total_wall_seconds,
                 "pressure_gate_accepted": self._pressure_gate is not None,
-                "pressure_gate_available": canary_ready and not self._started and self._pressure_gate is None,
+                "pressure_gate_speed_ready": self._canary_speed_ready(),
+                "pressure_gate_speed_limit_seconds": CANARY_WALL_SPEED_LIMIT_SECONDS,
+                "pressure_gate_available": canary_ready and self._canary_speed_ready() and not self._started and self._pressure_gate is None,
                 "pressure_gate": self._pressure_gate,
                 "input_manifest_sha256": self.plan.metadata["input_manifest_sha256"],
                 "items": items,
@@ -1916,6 +2335,15 @@ class AutomaticCanaryController:
                     "title": self._current.get("title"),
                     "status": self._current.get("status"),
                     "elapsed_seconds": round(time.monotonic() - self._current["started_monotonic"], 3),
+                    "attempt_elapsed_seconds": round(time.monotonic() - self._current["started_monotonic"], 3),
+                    "script_elapsed_seconds": round(
+                        self._fixed_fact_preflight_elapsed_by_article.get(self._current.get("article_id"), 0.0)
+                        + float(self._current.get("script_elapsed_seconds") or 0.0),
+                        6,
+                    ),
+                    "fixed_fact_preflight_elapsed_seconds": self._fixed_fact_preflight_elapsed_by_article.get(self._current.get("article_id"), 0.0),
+                    "model_elapsed_seconds": round(time.monotonic() - self._current["model_started_monotonic"], 3),
+                    "fixed_fact_ledger_sha256": self._current.get("fixed_fact_ledger_sha256"),
                     "first_event_seconds": self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("first_event_seconds"),
                     "first_event_status": "MEASURED" if self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("first_event_seconds") is not None else "CANNOT_CONFIRM",
                     "ttft_seconds": self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("ttft_seconds"),
@@ -1942,7 +2370,7 @@ class AutomaticCanaryController:
         return path.read_bytes()
 
 
-HTML = r"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-__NONCE__'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'"><title>Flash Next 临时自动化测试</title><style>body{font:15px system-ui,sans-serif;max-width:1200px;margin:2rem auto;padding:0 1rem;color:#15202b}button{margin:0 .5rem .8rem 0;padding:.55rem 1rem}button:disabled{opacity:.45}.phase{border:1px solid #ccd5de;padding:.7rem;margin:.5rem 0}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #d9e0e7;padding:.4rem;text-align:left;vertical-align:top}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:28rem;overflow:auto;background:#f2f5f7;padding:.75rem}</style></head><body><h1>Flash Next 临时自动化测试</h1><p><b>研究测试 / 未正式接入。</b>先运行6篇 canary。全部成功后停在独立质量复核门；只有明确点击“已独立核验，运行压力29”才会启动压力 batch 03。两阶段重叠1篇按文章身份复用成功结果，最多新增28篇请求。此按钮记录人的确认，不代表自动语义审核。完整277篇只作来源覆盖统计，另有26篇正文采集失败。</p><p>进度按阶段展示已成功、失败和剩余数。进程重启后保留当前阶段和门状态；需要可见点击继续，启动时不会自动推理。本轮首篇属于冷启动条件，不安排额外暖机；实际用时保留模型加载、失败与重试开销，旧 warm 参考仅供背景，不能直接等同比较。本进程只串行化自己的本地队列，运行期间请勿从其他客户端提交模型请求。</p><div id="status">正在读取队列状态…</div><div id="progress"></div><div id="current"></div><p><button id="start">Start：运行 / 继续当前阶段</button><button id="gate">已独立核验，运行压力29</button><button id="stop">停止后续排队（当前请求结束后生效）</button><button id="retry">有界重试失败项</button></p><h2>队列进度</h2><table><thead><tr><th>文章 / 阶段</th><th>状态</th><th>总用时 / TTFC（首个非空内容） / tok/s估计</th><th>失败码 / 原始结果</th></tr></thead><tbody id="items"></tbody></table><div id="raw"></div><script nonce="__NONCE__">const csrf="__CSRF__";const phrase="已独立核验，运行压力29";async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{...(opts.headers||{}),...(opts.method?{"X-Canary-CSRF":csrf,"Content-Type":"application/json"}:{})}});const j=await r.json();if(!r.ok)throw new Error(j.code||"request_failed");return j}function fmt(v){return v==null?"—":String(v)}function render(s){document.getElementById('status').textContent=`${s.state} · ${s.scheduled_unique_count}篇唯一文章 / 可运行${s.queue_ready_count}篇 / 不适配${s.context_unfit_count}篇 · 全量来源277完整、26失败 · 队列 ${JSON.stringify(s.queue_status_counts)} · 停止码 ${s.stop_code||'—'}`;const progress=document.getElementById('progress');progress.replaceChildren();for(const [name,x] of Object.entries(s.phase_progress||{})){const p=document.createElement('p');p.textContent=`${name}: ${s.phases[name]} · 完成 ${x.succeeded}/${x.total} · 失败 ${x.failed} · 运行 ${x.running} · 剩余 ${x.remaining}${x.reused_successes?` · 复用重叠成功 ${x.reused_successes}`:''}`;progress.appendChild(p)}document.getElementById('gate').disabled=!s.pressure_gate_available;document.getElementById('start').disabled=s.started||['WAITING_QUALITY_REVIEW','CANARY_FAILED_WAITING_REVIEW','PRESSURE_FINISHED','PRESSURE_FAILED'].includes(s.state);const cur=document.getElementById('current');cur.replaceChildren();if(s.current){const h=document.createElement('p');h.textContent=`当前：${s.current.title||s.current.article_id} · ${s.current.article_id} · ${s.current.status} · ${fmt(s.current.elapsed_seconds)}s / TTFC ${fmt(s.current.ttfc_seconds)}s (${s.current.ttfc_status}) / tok/s ${fmt(s.current.completion_tps_estimate)}`;const pre=document.createElement('pre');pre.textContent=s.current.partial_text||'';cur.append(h,pre)}const body=document.getElementById('items');body.replaceChildren();for(const x of s.items){const tr=document.createElement('tr');const first=document.createElement('td');first.textContent=`${x.title||x.article_id} · ${x.article_id} · ${(x.cohorts||[]).join(', ')}`;const second=document.createElement('td');second.textContent=`${x.status} · ${x.attempt_count}/${x.max_attempts} · ${x.prompt_tokens_exact||0} prompt tokens`;const third=document.createElement('td');third.textContent=`${fmt(x.wall_seconds)}s / ${fmt(x.ttfc_seconds)}s (${x.ttfc_status}) / ${fmt(x.completion_tps_estimate)}`;const fourth=document.createElement('td');fourth.textContent=x.error_code||'';if(x.raw_available){const b=document.createElement('button');b.textContent='查看原始结果';b.onclick=async()=>{const r=await fetch('/api/raw?key='+encodeURIComponent(x.idempotency_key));const t=await r.text();const box=document.createElement('pre');box.textContent=t;document.getElementById('raw').replaceChildren(box)};fourth.appendChild(b)}tr.append(first,second,third,fourth);body.appendChild(tr)}}async function refresh(){try{render(await api('/api/status'))}catch(e){document.getElementById('status').textContent='状态读取失败：'+String(e.message)}}document.getElementById('start').onclick=async()=>{try{await api('/api/start',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('gate').onclick=async()=>{try{await api('/api/approve-pressure',{method:'POST',body:JSON.stringify({confirmation:phrase})});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('stop').onclick=async()=>{try{await api('/api/stop',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('retry').onclick=async()=>{try{await api('/api/retry',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};refresh();setInterval(refresh,1500);</script></body></html>"""
+HTML = r"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-__NONCE__'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'"><title>Flash Next 临时自动化测试</title><style>body{font:15px system-ui,sans-serif;max-width:1200px;margin:2rem auto;padding:0 1rem;color:#15202b}button{margin:0 .5rem .8rem 0;padding:.55rem 1rem}button:disabled{opacity:.45}.phase{border:1px solid #ccd5de;padding:.7rem;margin:.5rem 0}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #d9e0e7;padding:.4rem;text-align:left;vertical-align:top}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:28rem;overflow:auto;background:#f2f5f7;padding:.75rem}</style></head><body><h1>Flash Next 临时自动化测试</h1><p><b>研究测试 / 未正式接入。</b>先运行6篇 canary。全部成功后停在独立质量复核门；只有明确点击“已独立核验，运行压力29”才会启动压力 batch 03。两阶段重叠1篇按文章身份复用成功结果，最多新增28篇请求。此按钮记录人的确认，不代表自动语义审核。完整277篇只作来源覆盖统计，另有26篇正文采集失败。</p><p>进度按阶段展示已成功、失败和剩余数。进程重启后保留当前阶段和门状态；需要可见点击继续，启动时不会自动推理。本轮首篇属于冷启动条件，不安排额外暖机；实际用时保留模型加载、失败与重试开销，旧 warm 参考仅供背景，不能直接等同比较。本进程只串行化自己的本地队列，运行期间请勿从其他客户端提交模型请求。</p><div id="status">正在读取队列状态…</div><p id="timing"></p><div id="progress"></div><div id="current"></div><p><button id="start">Start：运行 / 继续当前阶段</button><button id="gate">已独立核验，运行压力29</button><button id="stop">停止后续排队（当前请求结束后生效）</button><button id="retry">有界重试失败项</button></p><h2>队列进度</h2><table><thead><tr><th>文章 / 阶段</th><th>状态</th><th>脚本时间（含固定事实预处理） / 模型时间 / 单篇尝试总时间 / TTFC（首个非空内容） / 事实账本</th><th>失败码 / 原始结果</th></tr></thead><tbody id="items"></tbody></table><div id="raw"></div><script nonce="__NONCE__">const csrf="__CSRF__";const phrase="已独立核验，运行压力29";async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{...(opts.headers||{}),...(opts.method?{"X-Canary-CSRF":csrf,"Content-Type":"application/json"}:{})}});const j=await r.json();if(!r.ok)throw new Error(j.code||"request_failed");return j}function fmt(v){return v==null?"—":String(v)}function render(s){document.getElementById('status').textContent=`${s.state} · ${s.scheduled_unique_count}篇唯一文章 / 可运行${s.queue_ready_count}篇 / 不适配${s.context_unfit_count}篇 · 全量来源277完整、26失败 · 队列 ${JSON.stringify(s.queue_status_counts)} · 停止码 ${s.stop_code||'—'}`;const scriptTotal=s.canary_script_elapsed_seconds;const modelTotal=s.canary_model_elapsed_seconds;document.getElementById('timing').textContent=`6篇canary总wall ${fmt(s.canary_elapsed_seconds)}s（固定事实预处理 ${fmt(s.canary_script_preflight_elapsed_seconds)}s + 可见阶段 ${fmt(s.canary_execution_wall_seconds)}s）· 脚本合计 ${fmt(scriptTotal)}s / 模型合计 ${fmt(modelTotal)}s · v5实测参照184.731s；总wall低于该值且独立语义复核全PASS才可考虑29篇`;const progress=document.getElementById('progress');progress.replaceChildren();for(const [name,x] of Object.entries(s.phase_progress||{})){const p=document.createElement('p');p.textContent=`${name}: ${s.phases[name]} · 完成 ${x.succeeded}/${x.total} · 失败 ${x.failed} · 运行 ${x.running} · 剩余 ${x.remaining}${x.reused_successes?` · 复用重叠成功 ${x.reused_successes}`:''}`;progress.appendChild(p)}document.getElementById('gate').disabled=!s.pressure_gate_available;document.getElementById('start').disabled=s.started||['WAITING_QUALITY_REVIEW','CANARY_FAILED_WAITING_REVIEW','PRESSURE_FINISHED','PRESSURE_FAILED'].includes(s.state);const cur=document.getElementById('current');cur.replaceChildren();if(s.current){const h=document.createElement('p');h.textContent=`当前：${s.current.title||s.current.article_id} · ${s.current.article_id} · ${s.current.status} · 脚本 ${fmt(s.current.script_elapsed_seconds)}s（固定事实预处理 ${fmt(s.current.fixed_fact_preflight_elapsed_seconds)}s）/ 模型 ${fmt(s.current.model_elapsed_seconds)}s / 单篇总用时 ${fmt(s.current.attempt_elapsed_seconds)}s / TTFC ${fmt(s.current.ttfc_seconds)}s (${s.current.ttfc_status}) / tok/s ${fmt(s.current.completion_tps_estimate)}`;const pre=document.createElement('pre');pre.textContent=s.current.partial_text||'';cur.append(h,pre)}const body=document.getElementById('items');body.replaceChildren();for(const x of s.items){const tr=document.createElement('tr');const first=document.createElement('td');first.textContent=`${x.title||x.article_id} · ${x.article_id} · ${(x.cohorts||[]).join(', ')}`;const second=document.createElement('td');second.textContent=`${x.status} · ${x.attempt_count}/${x.max_attempts} · ${x.prompt_tokens_exact||0} prompt tokens`;const third=document.createElement('td');third.textContent=`脚本 ${fmt(x.script_elapsed_seconds)}s（固定事实预处理 ${fmt(x.fixed_fact_preflight_elapsed_seconds)}s）/ 模型 ${fmt(x.model_elapsed_seconds)}s / 单篇尝试总时间 ${fmt(x.attempt_wall_seconds)}s / TTFC ${fmt(x.ttfc_seconds)}s (${x.ttfc_status}) / facts ${fmt(x.script_fact_count)} / CANNOT_CONFIRM ${fmt(x.script_fact_unknown_count)} / ledger ${fmt(x.fixed_fact_ledger_sha256)?.slice(0,12)} / unit-map ${fmt(x.script_fact_source_unit_map_sha256)?.slice(0,12)} / tok/s ${fmt(x.completion_tps_estimate)}`;const fourth=document.createElement('td');fourth.textContent=x.error_code||'';if(x.raw_available){const b=document.createElement('button');b.textContent='查看原始结果';b.onclick=async()=>{const r=await fetch('/api/raw?key='+encodeURIComponent(x.idempotency_key));const t=await r.text();const box=document.createElement('pre');box.textContent=t;document.getElementById('raw').replaceChildren(box)};fourth.appendChild(b)}tr.append(first,second,third,fourth);body.appendChild(tr)}}async function refresh(){try{render(await api('/api/status'))}catch(e){document.getElementById('status').textContent='状态读取失败：'+String(e.message)}}document.getElementById('start').onclick=async()=>{try{await api('/api/start',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('gate').onclick=async()=>{try{await api('/api/approve-pressure',{method:'POST',body:JSON.stringify({confirmation:phrase})});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('stop').onclick=async()=>{try{await api('/api/stop',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('retry').onclick=async()=>{try{await api('/api/retry',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};refresh();setInterval(refresh,1500);</script></body></html>"""
 
 
 def make_handler(controller: AutomaticCanaryController, csrf_token: str):

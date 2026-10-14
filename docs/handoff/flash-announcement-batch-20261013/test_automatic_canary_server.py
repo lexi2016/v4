@@ -73,7 +73,11 @@ def fake_plan(root: Path, *, article_count: int = 1) -> app.FrozenPlan:
     return app.FrozenPlan(
         records=tuple(records),
         cohorts={"canary_A_and_B_union": tuple(canary_ids), "pressure_batch_03": ()},
-        metadata={"articles": article_rows, "input_manifest_sha256": sha(b"manifest")},
+        metadata={
+            "articles": article_rows,
+            "input_manifest_sha256": sha(b"manifest"),
+            "fixed_fact_extraction_elapsed_by_article": {article_id: 0.0 for article_id in canary_ids},
+        },
         manifest_path=root / "automatic-input-manifest.json",
     )
 
@@ -160,6 +164,17 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertIn("s.current.ttfc_seconds", app.HTML)
         self.assertNotIn("ttft_seconds", app.HTML)
 
+    def test_ui_exposes_script_model_attempt_and_whole_canary_wall_times(self) -> None:
+        self.assertIn("脚本时间", app.HTML)
+        self.assertIn("固定事实预处理", app.HTML)
+        self.assertIn("模型时间", app.HTML)
+        self.assertIn("单篇尝试总时间", app.HTML)
+        self.assertIn("canary_elapsed_seconds", app.HTML)
+        self.assertIn("canary_script_preflight_elapsed_seconds", app.HTML)
+        self.assertIn("canary_execution_wall_seconds", app.HTML)
+        self.assertIn("fixed_fact_ledger_sha256", app.HTML)
+        self.assertIn("184.731", app.HTML)
+
     def test_only_stable_error_codes_reach_ui(self) -> None:
         self.assertEqual(app._stable_failure_code(RuntimeError("secret-bearing error text"), "MODEL_REQUEST_FAILED"), "MODEL_REQUEST_FAILED")
         self.assertEqual(app._stable_failure_code(runner.TransportError("CHAT_NO_PROGRESS_TIMEOUT:ReadTimeout"), "MODEL_REQUEST_FAILED"), "CHAT_NO_PROGRESS_TIMEOUT")
@@ -191,6 +206,26 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(len(manifest["articles"]), 34)
         self.assertEqual(manifest["runtime_limits"]["context_limit_tokens"], 262144)
         self.assertEqual(manifest["request_policy"]["max_completion_tokens"], 32768)
+        self.assertEqual(manifest["request_policy"]["sampling_policy"], app.SIMPLE_WORKFLOW_SAMPLING_POLICY)
+        self.assertEqual(
+            manifest["request_policy"]["sampling_policy_sha256"],
+            app.EXPECTED_SIMPLE_WORKFLOW_SAMPLING_POLICY_SHA256,
+        )
+        self.assertEqual(
+            sha(app.canonical_json(manifest["request_policy"]["sampling_policy"])),
+            app.EXPECTED_SIMPLE_WORKFLOW_SAMPLING_POLICY_SHA256,
+        )
+        self.assertEqual(manifest["request_policy"]["sampling_policy"]["request_temperature"], 0.0)
+        self.assertEqual(manifest["request_policy"]["sampling_policy"]["global_config_temperature"], 1.0)
+        self.assertTrue(all(
+            row["request_sampling_policy_sha256"] == app.EXPECTED_SIMPLE_WORKFLOW_SAMPLING_POLICY_SHA256
+            for row in manifest["articles"]
+        ))
+        self.assertTrue(all(
+            f"+request-sampling-policy:{app.EXPECTED_SIMPLE_WORKFLOW_SAMPLING_POLICY_SHA256}"
+            in item["identity"]["rules"]
+            for item in queue_snapshot["items"]
+        ))
         self.assertEqual(manifest["prompt_profile"], runner.SIMPLE_WORKFLOW_PROFILE)
         self.assertEqual(manifest["system_prompt_sha256"], app.EXPECTED_SYSTEM_PROMPT_SHA256)
         self.assertEqual(manifest["source_span_protocol"], runner.SOURCE_SPAN_PROTOCOL)
@@ -202,6 +237,9 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(manifest["runtime_settings_sha256"], app.EXPECTED_SETTINGS_SHA256)
         self.assertEqual(manifest["model_settings_sha256"], app.EXPECTED_MODEL_SETTINGS_SHA256)
         self.assertIn("first non-empty content delta", manifest["request_policy"]["ttfc"])
+        self.assertIn("184.731", manifest["request_policy"]["pressure_gate_timing"])
+        self.assertIn("fixed-fact extraction for its six articles", manifest["request_policy"]["pressure_gate_timing"])
+        self.assertIn("per-attempt ledger verification", manifest["request_policy"]["script_model_timing"])
         baseline = json.loads(app.BASELINE_MANIFEST.read_text())
         self.assertEqual(
             manifest["cohorts"],
@@ -225,6 +263,19 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(len({row["idempotency_key"] for row in manifest["articles"]}), 34)
         self.assertTrue(all(row["source_span_map_sha256"] for row in manifest["articles"]))
         self.assertTrue(all(row["source_unit_map_sha256"] for row in manifest["articles"]))
+        self.assertEqual(manifest["fixed_fact_parser_protocol"], app.EXPECTED_FIXED_FACT_PARSER_PROTOCOL)
+        self.assertEqual(manifest["fixed_fact_parser_sha256"], app.EXPECTED_FIXED_FACT_PARSER_SHA256)
+        self.assertTrue(all(row["fixed_fact_ledger_sha256"] for row in manifest["articles"]))
+        self.assertTrue(all(row["fixed_fact_parser_sha256"] == app.EXPECTED_FIXED_FACT_PARSER_SHA256 for row in manifest["articles"]))
+        baseline_rows = {row["article_id"]: row for row in baseline["articles"]}
+        v5_manifest = json.loads((app.PIPELINE_DIR / "evidence" / "simple-workflow-20261014" / "compact-v5-evidence-first" / "automatic-input-manifest.json").read_text())
+        v5_rows = {row["article_id"]: row for row in v5_manifest["articles"]}
+        self.assertEqual(manifest["cohorts"], v5_manifest["cohorts"])
+        for row in manifest["articles"]:
+            self.assertEqual(row["source_sha256"], baseline_rows[row["article_id"]]["source_sha256"])
+            self.assertEqual(row["body_sha256"], baseline_rows[row["article_id"]]["body_sha256"])
+            for identity_field in ("source_sha256", "body_sha256", "source_span_map_sha256", "source_unit_map_sha256"):
+                self.assertEqual(row[identity_field], v5_rows[row["article_id"]][identity_field], identity_field)
         self.assertIn("disabled explicitly", manifest["request_policy"]["thinking"])
         self.assertIn("thinking_budget omitted", manifest["request_policy"]["thinking"])
         old_manifest = json.loads((app.PIPELINE_DIR / "evidence" / "simple-workflow-20261014" / "compact-v1" / "automatic-input-manifest.json").read_text())
@@ -252,9 +303,10 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(sha(prior_range_single.encode("utf-8")), app.PREVIOUS_SYSTEM_PROMPT_SHA256)
         self.assertEqual(sha(prompt.encode("utf-8")), app.EXPECTED_SYSTEM_PROMPT_SHA256)
         self.assertEqual(app.PROFILE, runner.SIMPLE_WORKFLOW_PROFILE)
-        self.assertEqual(app.EVIDENCE_ROOT.name, "compact-v2-thinking-off")
-        self.assertEqual(app.EVIDENCE_ROOT.parent.name, "simple-workflow-20261014")
-        self.assertEqual(app.EVIDENCE_ROOT.parent.parent.name, "evidence")
+        self.assertEqual(app.EVIDENCE_ROOT.name, "final-candidate")
+        self.assertEqual(app.EVIDENCE_ROOT.parent.name, "compact-v9-greedy-judgment")
+        self.assertEqual(app.EVIDENCE_ROOT.parent.parent.name, "simple-workflow-20261014")
+        self.assertEqual(app.EVIDENCE_ROOT.parent.parent.parent.name, "evidence")
         self.assertEqual(app.PREVIOUS_PROFILE, "decision_source_range_single")
         self.assertNotEqual(app.PREVIOUS_SYSTEM_PROMPT_SHA256, app.EXPECTED_SYSTEM_PROMPT_SHA256)
         self.assertEqual(app.SOURCE_SPAN_BASELINE_PROFILE, "decision_source_span")
@@ -429,6 +481,125 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(state["phase_progress"]["canary_A_and_B_union"]["failed"], 1)
         self.assertEqual(state["phases"]["pressure_batch_03"], "NOT_STARTED")
 
+    def test_pressure_gate_requires_measured_canary_wall_below_v5_reference(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            plan = phase_plan(root)
+            queue = PhaseTrackingQueue(root / "queue-state", plan)
+            canary_ids = set(plan.cohorts["canary_A_and_B_union"])
+            for row in plan.metadata["articles"]:
+                if row["article_id"] in canary_ids:
+                    queue.by_key[row["idempotency_key"]]["status"] = "SUCCEEDED"
+            controller = app.AutomaticCanaryController(
+                plan,
+                queue=queue,
+                activity_probe=lambda: (0, 0),
+                model_ready_probe=lambda: True,
+                api_key="unit-secret",
+                transport_factory=lambda *_args: self.fail("pressure must remain blocked"),
+            )
+            with controller._lock:
+                controller._phase = "WAITING_QUALITY_REVIEW"
+                controller._phase_states["canary_A_and_B_union"] = "WAITING_QUALITY_REVIEW"
+                controller._phase_wall_seconds["canary_A_and_B_union"] = 184.730
+                controller._persist_state_locked()
+            self.assertTrue(controller.snapshot()["pressure_gate_available"])
+
+            with controller._lock:
+                controller._phase_wall_seconds["canary_A_and_B_union"] = app.CANARY_WALL_SPEED_LIMIT_SECONDS
+                controller._persist_state_locked()
+            state = controller.snapshot()
+            self.assertFalse(state["pressure_gate_speed_ready"])
+            self.assertFalse(state["pressure_gate_available"])
+            self.assertFalse(controller.authorize_pressure(app.PRESSURE_CONFIRMATION_PHRASE))
+            self.assertEqual(controller.snapshot()["stop_code"], "CANARY_WALL_TIME_NOT_BELOW_V5_REFERENCE")
+
+    def test_canary_speed_total_adds_parser_preflight_once_to_execution_wall(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            plan = phase_plan(root)
+            queue = PhaseTrackingQueue(root / "queue-state", plan)
+            canary_ids = set(plan.cohorts["canary_A_and_B_union"])
+            for row in plan.metadata["articles"]:
+                if row["article_id"] in canary_ids:
+                    queue.by_key[row["idempotency_key"]]["status"] = "SUCCEEDED"
+            controller = app.AutomaticCanaryController(
+                plan,
+                queue=queue,
+                activity_probe=lambda: (0, 0),
+                model_ready_probe=lambda: True,
+                api_key="unit-secret",
+                transport_factory=lambda *_args: self.fail("pressure must remain blocked"),
+            )
+            with controller._lock:
+                controller._phase = "WAITING_QUALITY_REVIEW"
+                controller._phase_states["canary_A_and_B_union"] = "WAITING_QUALITY_REVIEW"
+                controller._phase_wall_seconds["canary_A_and_B_union"] = 184.730
+                first_id = next(iter(plan.cohorts["canary_A_and_B_union"]))
+                controller._fixed_fact_preflight_elapsed_by_article[first_id] = 0.002
+                controller._canary_fixed_fact_preflight_seconds = 0.002
+                controller._persist_state_locked()
+            state = controller.snapshot()
+        self.assertEqual(state["canary_execution_wall_seconds"], 184.730)
+        self.assertEqual(state["canary_script_preflight_elapsed_seconds"], 0.002)
+        self.assertEqual(state["canary_elapsed_seconds"], 184.732)
+        self.assertFalse(state["pressure_gate_speed_ready"])
+        self.assertFalse(state["pressure_gate_available"])
+
+    def test_controller_uses_fresh_preflight_before_canary_and_restores_history_after_start(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+
+            def make_plan(preflight_seconds: float) -> app.FrozenPlan:
+                plan = phase_plan(root)
+                canary_ids = set(plan.cohorts["canary_A_and_B_union"])
+                plan.metadata["fixed_fact_extraction_elapsed_by_article"] = {
+                    article_id: preflight_seconds for article_id in canary_ids
+                }
+                return plan
+
+            def make_controller(plan: app.FrozenPlan) -> app.AutomaticCanaryController:
+                return app.AutomaticCanaryController(
+                    plan,
+                    queue=PhaseTrackingQueue(root / "queue-state", plan),
+                    activity_probe=lambda: (0, 0),
+                    model_ready_probe=lambda: True,
+                    api_key="unit-secret",
+                    transport_factory=lambda *_args: self.fail("timing restore must not create a transport"),
+                )
+
+            stale_plan = make_plan(0.011)
+            make_controller(stale_plan)  # Persist an older NOT_STARTED state for the same manifest.
+
+            fresh_plan = make_plan(0.021)
+            fresh_controller = make_controller(fresh_plan)
+            self.assertEqual(fresh_controller._canary_fixed_fact_preflight_seconds, 0.126)
+            self.assertEqual(
+                fresh_controller._fixed_fact_preflight_elapsed_by_article,
+                {article_id: 0.021 for article_id in fresh_plan.cohorts["canary_A_and_B_union"]},
+            )
+
+            with fresh_controller._lock:
+                fresh_controller._phase = "WAITING_QUALITY_REVIEW"
+                fresh_controller._phase_states["canary_A_and_B_union"] = "WAITING_QUALITY_REVIEW"
+                fresh_controller._phase_wall_seconds["canary_A_and_B_union"] = 10.0
+                fresh_controller._persist_state_locked()
+
+            for restored_phase in ("WAITING_QUALITY_REVIEW", "CANARY_RUNNING"):
+                with self.subTest(restored_phase=restored_phase):
+                    if restored_phase == "CANARY_RUNNING":
+                        with fresh_controller._lock:
+                            fresh_controller._phase = "CANARY_RUNNING"
+                            fresh_controller._phase_states["canary_A_and_B_union"] = "RUNNING"
+                            fresh_controller._active_phase = "canary_A_and_B_union"
+                            fresh_controller._persist_state_locked()
+                    resumed = make_controller(make_plan(0.050))
+                    resumed_state = resumed.snapshot()
+                    self.assertEqual(resumed._canary_fixed_fact_preflight_seconds, 0.126)
+                    self.assertEqual(resumed_state["canary_script_preflight_elapsed_seconds"], 0.126)
+                    self.assertEqual(resumed_state["canary_execution_wall_seconds"], 10.0)
+                    self.assertEqual(resumed_state["canary_elapsed_seconds"], 10.126)
+
     def test_mock_sse_is_streamed_with_finite_timeout_and_recorded_byte_for_byte(self) -> None:
         answer = sse([
             {"choices": [{"delta": {"role": "assistant"}, "finish_reason": None}], "model": app.MODEL_ID},
@@ -437,9 +608,11 @@ class AutomaticCanaryServerTests(unittest.TestCase):
             {"choices": [], "usage": {"prompt_tokens": 9, "completion_tokens": 2, "total_tokens": 11}, "model": app.MODEL_ID},
         ], crlf=True)
         request_timeouts = []
+        request_bodies = []
 
         def handler(request: httpx.Request) -> httpx.Response:
             request_timeouts.append(request.extensions["timeout"])
+            request_bodies.append(json.loads(request.content))
             return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=answer)
 
         with tempfile.TemporaryDirectory() as temp:
@@ -456,12 +629,20 @@ class AutomaticCanaryServerTests(unittest.TestCase):
             transport.finish_job(status="RESPONSE_RECEIVED", completion=result)
             trace = next((root / "streams").rglob("round-01.raw.sse"))
             receipt = json.loads(next((root / "streams").rglob("stream-receipt.json")).read_text())
+            request_path = root / receipt["rounds"][0]["request_input_path"]
+            request_raw = request_path.read_bytes()
             trace_bytes = trace.read_bytes()
+            with self.assertRaisesRegex(ValueError, "IMMUTABLE_EVIDENCE_CONFLICT"):
+                app._write_private_immutable(request_path, b"different request bytes")
             transport.close()
         self.assertEqual(result.final_text, "{\"ok\":true}")
         self.assertEqual(result.usage["completion_tokens"], 2)
         self.assertEqual(trace_bytes, answer)
         self.assertEqual(receipt["rounds"][0]["raw_sse_sha256"], sha(answer))
+        self.assertEqual(json.loads(request_raw), request_bodies[0])
+        self.assertEqual(receipt["rounds"][0]["request_input_sha256"], sha(request_raw))
+        self.assertEqual(receipt["rounds"][0]["request_input_length_bytes"], len(request_raw))
+        self.assertNotIn(b"unit-secret", request_raw)
         self.assertEqual(receipt["first_event_seconds"], 0.5)
         self.assertEqual(receipt["ttft_seconds"], receipt["first_event_seconds"])
         self.assertEqual(receipt["first_content_at"], "+0.750s")
@@ -559,13 +740,20 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         batch = fixtures.synthetic_batch(body)
         article = batch["articles"][0]
         batch_id = "AUTO_" + sha(article["article_id"].encode("utf-8"))[:20]
-        frozen_batch = length_canary.make_batch([article], batch_id)
         contract = runner.load_active_contract()
+        unit_map_for_ledger = runner.build_source_unit_map(article["article_body"], article["body_sha256"])
+        ledger = runner.simple_fixed_facts.extract_fixed_facts(article["article_body"], unit_map_for_ledger, article["article_metadata"])
+        article_with_ledger = {**article, "fixed_fact_ledger": ledger}
+        frozen_batch = length_canary.make_batch([article_with_ledger], batch_id)
         expected_messages = runner.build_messages(frozen_batch, contract, runner.SIMPLE_WORKFLOW_PROFILE)
         expected_input_sha = runner._input_batch_sha(frozen_batch)
         expected_span_map = runner.build_source_span_map(article["article_body"], article["body_sha256"])
         expected_unit_map = runner.build_source_unit_map(article["article_body"], article["body_sha256"])
-        answer = sse([{"choices": [{"delta": {"content": "{\"results\":[]}"}, "finish_reason": "stop"}], "model": app.MODEL_ID}])
+        wire_reader = fixtures.reader_output(article)
+        wire_reader.update({"facts": [], "changes": [], "source_sha256": "", "body_sha256": ""})
+        envelope = {"action": "complete", "lookup_request": None, "reader_output": wire_reader}
+        answer_text = json.dumps(envelope, ensure_ascii=False, separators=(",", ":"))
+        answer = sse([{"choices": [{"delta": {"content": answer_text}, "finish_reason": "stop"}], "model": app.MODEL_ID}])
         sent = []
 
         def handler(request: httpx.Request) -> httpx.Response:
@@ -585,6 +773,11 @@ class AutomaticCanaryServerTests(unittest.TestCase):
                         "input_sha256": expected_input_sha,
                         "source_span_map_sha256": expected_span_map["span_map_sha256"],
                         "source_unit_map_sha256": expected_unit_map["source_unit_map_sha256"],
+                        "fixed_fact_parser_protocol": app.EXPECTED_FIXED_FACT_PARSER_PROTOCOL,
+                        "fixed_fact_parser_sha256": app.EXPECTED_FIXED_FACT_PARSER_SHA256,
+                        "fixed_fact_ledger_sha256": ledger["ledger_sha256"],
+                        "script_fact_count": len(ledger["reader_facts"]) + len(ledger["reader_changes"]),
+                        "script_fact_unknown_count": len(ledger["unknowns"]),
                     }],
                     "input_manifest_sha256": sha(b"manifest"),
                 },
@@ -593,6 +786,9 @@ class AutomaticCanaryServerTests(unittest.TestCase):
             payload = {
                 **{name: article[name] for name in ("article_id", "source_sha256", "body_sha256", "article_body")},
                 "article_metadata": article["article_metadata"],
+                "fixed_fact_parser_protocol": app.EXPECTED_FIXED_FACT_PARSER_PROTOCOL,
+                "fixed_fact_parser_sha256": app.EXPECTED_FIXED_FACT_PARSER_SHA256,
+                "fixed_fact_ledger": ledger,
             }
             job = queue_module.QueueJob(key, "test-q", app.MODEL_ID, {}, payload, 1)
             controller = app.AutomaticCanaryController(
@@ -608,10 +804,16 @@ class AutomaticCanaryServerTests(unittest.TestCase):
             raw = controller._execute(transport, job)
             receipt_path = next((root / "streams").rglob("stream-receipt.json"))
             receipt_raw = receipt_path.read_bytes()
+            stream_receipt = json.loads(receipt_raw)
+            request_input_path = root / stream_receipt["rounds"][0]["request_input_path"]
+            request_input_raw = request_input_path.read_bytes()
             transport.close()
-        self.assertEqual(raw, "{\"results\":[]}")
+        self.assertEqual(raw, answer_text)
         self.assertEqual(len(sent), 1)
         self.assertEqual(sent[0]["messages"], expected_messages)
+        self.assertEqual(json.loads(request_input_raw), sent[0])
+        self.assertEqual(stream_receipt["rounds"][0]["request_input_sha256"], sha(request_input_raw))
+        self.assertEqual(stream_receipt["rounds"][0]["request_input_length_bytes"], len(request_input_raw))
         self.assertEqual(sha(sent[0]["messages"][0]["content"].encode("utf-8")), app.EXPECTED_SYSTEM_PROMPT_SHA256)
         system_prompt = sent[0]["messages"][0]["content"]
         self.assertEqual(system_prompt.count("JSON_SCHEMA_BEGIN"), 1)
@@ -633,9 +835,50 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertNotIn("response_format", sent[0])
         self.assertEqual(sent[0]["structured_outputs"], {"json": runner.build_simple_workflow_schema(contract)})
         self.assertEqual(sent[0]["max_tokens"], app.MAX_COMPLETION_TOKENS)
+        self.assertEqual(sent[0]["temperature"], 0.0)
         self.assertIs(sent[0]["enable_thinking"], False)
         self.assertNotIn("thinking_budget", sent[0])
         self.assertNotIn(b"unit-secret", receipt_raw)
+
+    def test_temperature_override_is_simple_profile_scoped_and_legacy_request_is_unchanged(self) -> None:
+        answer = sse([{
+            "choices": [{"delta": {"content": "{\"ok\":true}"}, "finish_reason": "stop"}],
+            "model": app.MODEL_ID,
+        }])
+        sent = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            sent.append(json.loads(request.content))
+            return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=answer)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            transport = app.GatedStreamingTransport(
+                "unit-secret", root, http_transport=httpx.MockTransport(handler)
+            )
+            for attempt, profile in enumerate(
+                (runner.SIMPLE_WORKFLOW_PROFILE, app.PREVIOUS_PROFILE), start=1
+            ):
+                job = queue_module.QueueJob(
+                    chr(ord("a") + attempt) * 64, "test-q", app.MODEL_ID, {}, {}, attempt
+                )
+                transport.begin_job(job)
+                structured_outputs = {"json": {"type": "object"}} if profile == runner.SIMPLE_WORKFLOW_PROFILE else None
+                transport._stream_completion(
+                    [{"role": "user", "content": "frozen fixture"}],
+                    lambda _event: None,
+                    tools=[],
+                    structured_outputs=structured_outputs,
+                    workflow_profile=profile,
+                )
+                transport.finish_job(status="RESPONSE_RECEIVED")
+            transport.close()
+
+        self.assertEqual(len(sent), 2)
+        self.assertEqual(sent[0]["temperature"], 0.0)
+        self.assertNotIn("temperature", sent[1])
+        self.assertEqual(sent[0]["enable_thinking"], False)
+        self.assertEqual(sent[1]["enable_thinking"], False)
 
     def test_raw_wire_is_persisted_before_unit_projection_and_final_reader_validation(self) -> None:
         body = "  公司披露：回购价格为 10.00 元；正文没有市场比较。\r\n"
@@ -645,10 +888,12 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         frozen_batch = length_canary.make_batch([article], batch_id)
         span_map = runner.build_source_span_map(body, article["body_sha256"])
         unit_map = runner.build_source_unit_map(body, article["body_sha256"])
+        ledger = runner._simple_fixed_fact_ledger(article, unit_map)
         selected_unit = unit_map["units"][0]
         reader = fixtures.reader_output(article)
         reader["reason"] = "Keep this conclusion byte-for-byte."
         reader["risk_notes"] = ["PIT status remains as supplied."]
+        original_model_risk_notes = list(reader["risk_notes"])
         # This intentionally overclaims what the authentic quote supports. The
         # projection proves exact quote provenance; the independent quality gate
         # remains required to assess claim support.
@@ -671,6 +916,8 @@ class AutomaticCanaryServerTests(unittest.TestCase):
             payload.update({
                 **{name: article[name] for name in ("article_id", "source_sha256", "body_sha256", "article_body")},
                 "article_metadata": article["article_metadata"],
+                "fixed_fact_parser_sha256": app.EXPECTED_FIXED_FACT_PARSER_SHA256,
+                "fixed_fact_ledger": ledger,
             })
             payload["rules"] = (
                 f"{app.ARTICLE_RULES}+source-span-map:{span_map['span_map_sha256']}"
@@ -685,6 +932,8 @@ class AutomaticCanaryServerTests(unittest.TestCase):
                 "input_sha256": runner._input_batch_sha(frozen_batch),
                 "source_span_map_sha256": span_map["span_map_sha256"],
                 "source_unit_map_sha256": unit_map["source_unit_map_sha256"],
+                "fixed_fact_parser_sha256": app.EXPECTED_FIXED_FACT_PARSER_SHA256,
+                "fixed_fact_ledger_sha256": ledger["ledger_sha256"],
                 "context_admission": "READY",
             }
             plan = app.FrozenPlan(
@@ -693,6 +942,33 @@ class AutomaticCanaryServerTests(unittest.TestCase):
                 metadata={"articles": [row], "input_manifest_sha256": sha(b"manifest"), "queue_id": queue_id},
                 manifest_path=root / "automatic-input-manifest.json",
             )
+            gold = {
+                "schema": "qwen_flash_next.simple_workflow_fixed_gold.v1",
+                "provided_to_model": False,
+                "articles": {
+                    article["article_id"]: {
+                        "identities": {
+                            "source_sha256": article["source_sha256"],
+                            "body_sha256": article["body_sha256"],
+                            "source_unit_map_sha256": unit_map["source_unit_map_sha256"],
+                            "fixed_fact_ledger_sha256": ledger["ledger_sha256"],
+                        },
+                        "classification": {
+                            "disposition": "NOT_SELECTED",
+                            "selection_basis": "NOT_SELECTED",
+                            "direction": "NEUTRAL",
+                            "evidence_sufficiency": "VERIFIED_EXISTING_FACTS",
+                        },
+                        "pit_provenance": {
+                            "pit_status": "CANNOT_CONFIRM",
+                            "pit_reason_status": "NOT_PROVIDED",
+                            "pit_reason": None,
+                        },
+                    }
+                },
+            }
+            gold_raw = json.dumps(gold, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8") + b"\n"
+            (root / "fixed-gold-regression.json").write_bytes(gold_raw)
             controller = app.AutomaticCanaryController(
                 plan,
                 queue=queue,
@@ -701,6 +977,7 @@ class AutomaticCanaryServerTests(unittest.TestCase):
                 api_key="unit-secret",
             )
             result = queue.run_next(lambda _job: raw_wire, controller._validate, wait_for_model_slot=False)
+            self.assertEqual(result["status"], "SUCCEEDED", result)
             item = next(value for value in queue.snapshot()["items"] if value["idempotency_key"] == queued["idempotency_key"])
             raw_path = Path(item["raw_path"])
             validated_path = Path(item["validated_path"])
@@ -715,6 +992,15 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(receipt["raw_wire_sha256"], sha(raw_saved))
         self.assertEqual(receipt["raw_wire_artifact"], str(raw_path.relative_to(queue.state_root)))
         self.assertEqual(receipt["semantic_quality"], "NOT_ASSESSED_BY_AUTOMATION")
+        self.assertEqual(receipt["gold_regression"]["status"], "FAIL")
+        self.assertEqual(receipt["gold_regression"]["evaluation_kind"], "DETERMINISTIC_FIXED_GOLD_REGRESSION_ONLY")
+        self.assertEqual(receipt["gold_regression"]["semantic_quality"], "NOT_ASSESSED_BY_AUTOMATION")
+        self.assertFalse(receipt["gold_regression"]["reader_output_modified"])
+        self.assertEqual(receipt["gold_regression"]["gold_sha256"], sha(gold_raw))
+        self.assertEqual(receipt["gold_regression"]["checks"]["classification"]["status"], "FAIL")
+        self.assertEqual(receipt["gold_regression"]["checks"]["pit_provenance"]["status"], "PASS")
+        self.assertEqual(receipt["gold_regression"]["checks"]["fixed_ledger_identity"]["status"], "PASS")
+        self.assertEqual(receipt["gold_regression"]["checks"]["references"]["status"], "PASS")
         self.assertEqual(receipt["schema"], "qwen_flash_next.simple_workflow_projection_receipt.v1")
         self.assertEqual(receipt["protocol"], runner.SIMPLE_WORKFLOW_PROTOCOL)
         self.assertEqual(receipt["final_projection_sha256"], sha(runner.canonical_json_bytes(validated)))
@@ -722,14 +1008,83 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertNotIn("article_body", json.dumps(receipt, ensure_ascii=False))
         projected = validated["reader_output"]
         self.assertEqual(set(projected), set(runner.load_active_contract().reader_schema["properties"]))
+        for field_name in ("disposition", "selection_basis", "direction", "evidence_sufficiency"):
+            self.assertEqual(projected[field_name], reader[field_name], field_name)
         self.assertEqual(projected["reason"], reader["reason"])
-        self.assertEqual(projected["risk_notes"], reader["risk_notes"])
-        for field_name in runner.SOURCE_SPAN_CITATION_FIELDS:
+        pit_provenance = receipt["simple_workflow_projection"]["program_input_pit_provenance"]
+        self.assertEqual(reader["risk_notes"], original_model_risk_notes)
+        self.assertEqual(projected["risk_notes"][:-1], original_model_risk_notes)
+        self.assertEqual(projected["risk_notes"][-1], pit_provenance["annotation"])
+        self.assertEqual(
+            receipt["simple_workflow_projection"]["model_risk_notes_before_projection"]["count"],
+            len(original_model_risk_notes),
+        )
+        for field_name in set(runner.SOURCE_SPAN_CITATION_FIELDS) - {"facts", "changes"}:
             citation = projected[field_name][0]
             self.assertEqual(citation["claim"], overclaim)
             self.assertEqual(citation["quote"], body[selected_unit["start_cp"]:selected_unit["end_cp"]])
+        units_by_id = {unit["source_unit_id"]: unit for unit in unit_map["units"]}
+        for field_name, ledger_field in (("facts", "reader_facts"), ("changes", "reader_changes")):
+            self.assertEqual(
+                [item["claim"] for item in projected[field_name]],
+                [item["claim"] for item in ledger[ledger_field]],
+            )
+            for item, source in zip(projected[field_name], ledger[ledger_field], strict=True):
+                unit = units_by_id[source["source_unit_id"]]
+                self.assertEqual(item["quote"], unit["text"])
+                self.assertEqual(item["locator"], f"article_body[codepoint:{unit['start_cp']}:{unit['end_cp']}]")
         self.assertEqual(projected["reason"], reader["reason"])
-        self.assertEqual(projected["risk_notes"], reader["risk_notes"])
+        self.assertEqual(projected["risk_notes"][:-1], original_model_risk_notes)
+
+    def test_simple_workflow_gold_diff_never_rewrites_a_mismatching_classification(self) -> None:
+        reader = {
+            "disposition": "NOT_ASSESSED",
+            "selection_basis": "NOT_ASSESSED",
+            "direction": "UNKNOWN",
+            "evidence_sufficiency": "INSUFFICIENT_EXISTING_FACTS",
+            "risk_notes": ["model note", "program PIT annotation"],
+        }
+        before = json.loads(json.dumps(reader))
+        expected = {
+            "classification": {
+                "disposition": "NOT_SELECTED",
+                "selection_basis": "NOT_SELECTED",
+                "direction": "NEUTRAL",
+                "evidence_sufficiency": "VERIFIED_EXISTING_FACTS",
+            },
+            "identities": {
+                "source_sha256": "a" * 64,
+                "body_sha256": "b" * 64,
+                "source_unit_map_sha256": "c" * 64,
+                "fixed_fact_ledger_sha256": "d" * 64,
+            },
+            "pit_provenance": {
+                "pit_status": "CANNOT_CONFIRM",
+                "pit_reason_status": "NOT_PROVIDED",
+                "pit_reason": None,
+            },
+        }
+        projection = {
+            **expected["identities"],
+            "model_risk_notes_before_projection": {
+                "count": 1,
+                "sha256": sha(runner.canonical_json_bytes(["model note"])),
+            },
+            "program_input_pit_provenance": {
+                **expected["pit_provenance"],
+                "annotation": "program PIT annotation",
+            },
+            "citation_projections": [],
+        }
+        receipt = app._simple_workflow_gold_diff_receipt(
+            expected, reader, projection, references_validated=True
+        )
+        self.assertEqual(receipt["status"], "FAIL")
+        self.assertEqual(receipt["checks"]["classification"]["status"], "FAIL")
+        self.assertEqual(receipt["checks"]["pit_provenance"]["status"], "PASS")
+        self.assertEqual(receipt["checks"]["fixed_ledger_identity"]["status"], "PASS")
+        self.assertEqual(receipt["checks"]["references"]["status"], "PASS")
+        self.assertEqual(reader, before)
 
     def test_timeout_retains_partial_sse_and_failure_receipt(self) -> None:
         partial = b'data: {"choices":[{"delta":{"content":"partial"'
