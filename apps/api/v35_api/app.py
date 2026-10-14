@@ -4351,6 +4351,12 @@ def create_app(
         for canonical_market, market_payload in canonical_markets.items():
             alias = aliases.get(canonical_market, canonical_market)
             rows = list(market_payload.get("rows") or [])[:limit]
+            if canonical_market == "A_SHARE":
+                from stage_center.news_link_projection import project_news_links
+                rows = project_news_links(
+                    rows, market_payload, trade_date=str(payload.get("trade_date") or ""),
+                    morning_root=configured_morning_news_root,
+                )
             projected_rows = rows
             frontend_markets[alias] = {
                 key: market_payload.get(key)

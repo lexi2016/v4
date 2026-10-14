@@ -320,13 +320,14 @@ const {
             <dl>
               <div><dt>涨幅</dt><dd>{{ formatPercent(aShareChangePct(row)) }}</dd></div>
               <div><dt>阶段分</dt><dd>{{ rowScore(row) }}</dd></div>
-              <div><dt>新闻分</dt><dd>{{ qualityScore(row.news_quality_score) }}</dd></div>
-              <div><dt>研报分</dt><dd>{{ qualityScore(row.research_quality_score) }}</dd></div>
+              <div><dt>新闻分</dt><dd>{{ typeof row.news_quality_score === 'number' ? qualityScore(row.news_quality_score) : row.news_link ? `${qualityScore(row.news_link.score)} · 补关联（${row.news_link.article_count}篇）` : row.news_missing_reason || '新闻评分来源未确认' }}</dd></div>
+              <div><dt>研报分</dt><dd>{{ typeof row.research_quality_score === 'number' ? qualityScore(row.research_quality_score) : row.research_missing_reason || '该时段未提供可核验的研报质量分' }}</dd></div>
               <div><dt>支撑位</dt><dd>{{ evidenceValue(rowSupport(row)) }}</dd></div>
               <div><dt>压力位</dt><dd>{{ evidenceValue(rowPressure(row)) }}</dd></div>
               <div><dt>失效位</dt><dd>{{ evidenceValue(rowInvalidation(row)) }}</dd></div>
               <div><dt>{{ row.next_validation_time ? "下次" : "数据截止" }}</dt><dd>{{ rowNextEvidence(row) || "当前阶段未提供验证时间" }}</dd></div>
             </dl>
+            <p v-if="row.news_link" class="evidence-note">{{ row.news_missing_reason }}</p>
           </article>
         </section>
         <section class="market-column" :aria-label="stageWorkbench?.markets?.HK?.display_mode === 'OBSERVATION_UNVERIFIED' ? '港股通观察行' : '港股通候选'">

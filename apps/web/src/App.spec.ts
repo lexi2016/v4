@@ -521,6 +521,36 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     expect(container.textContent).not.toContain("缺证");
   });
 
+  it("shows supplemental news links and exact missing reasons without changing stage scores", async () => {
+    window.history.replaceState({}, "", "/?date=20260730&stage=STAGE_0945_1030");
+    const linked = structuredClone(referenceStage) as any;
+    linked.stage = { stage_id: "STAGE_0945_1030", label: "09:45-10:30", status: "PARTIAL_WITH_ROWS", display_status: "PARTIAL_WITH_ROWS" };
+    linked.unified_rows = [{ market: "A", code: "SH.603386", name: "骏亚科技", rank: 1, score: 80,
+      news_quality_score: null, research_quality_score: null,
+      news_link: { score: 48, article_count: 2, mode: "READ_ONLY_SUPPLEMENT_NOT_IN_ORIGINAL_STAGE_SCORE" },
+      news_missing_reason: "原阶段未生成新闻分；补关联分未计入原阶段分",
+      research_missing_reason: "10:00 研报归档无该股记录" },
+      { market: "A", code: "SH.600391", name: "航发科技", rank: 2, score: 79,
+        news_missing_reason: "截至该阶段的新闻正文未匹配到该股票",
+        research_missing_reason: "10:00 研报归档无该股记录" }];
+    linked.markets.A.candidate_count = 2;
+    linked.markets.A.source_rows = 2;
+    linked.markets.HK.candidate_count = 0;
+    linked.selected_a_rows = 2;
+    linked.selected_hk_rows = 0;
+    linked.selected_total_rows = 2;
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
+      return jsonResponse(url.startsWith("/api/v3/workbench/stage") ? linked : blockedPool);
+    }));
+    render(App);
+    await screen.findByText("骏亚科技");
+    expect(screen.getByText("48 · 补关联（2篇）")).toBeTruthy();
+    expect(screen.getByText("原阶段未生成新闻分；补关联分未计入原阶段分")).toBeTruthy();
+    expect(screen.getAllByText("10:00 研报归档无该股记录")).toHaveLength(2);
+    expect(screen.getByText("截至该阶段的新闻正文未匹配到该股票")).toBeTruthy();
+  });
+
   it("loads every stage snapshot into the timeline and explains an empty HK stage", async () => {
     const stageById: Record<string, any> = {};
     const stageIds = [
