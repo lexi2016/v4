@@ -19,6 +19,10 @@ from zoneinfo import ZoneInfo
 
 from infrastructure.data_store import NativeDataStore, _date, _sha256
 from infrastructure.owned_path import resolve_owned_path
+from v4.manager_workbench.inputs.us_universe import (
+    build_legacy_us_universe_contract,
+    validate_us_universe_contract,
+)
 
 
 HK_INDUSTRY_SOURCE = "hk_industry_classification"
@@ -72,11 +76,23 @@ _CANONICAL_SYMBOLS = frozenset(
     for mapping in CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP
     for symbol in mapping["proxy_symbols"]
 )
+_LEGACY_US_SYMBOLS = (
+    "AMD", "ARKX", "AVGO", "BOTZ", "CIEN", "CLOU", "COHR", "COPX",
+    "DLR", "DRIV", "EQIX", "FCG", "GLD", "GRID", "ICLN", "ITA",
+    "KBE", "LIT", "LITE", "MU", "NLR", "NVDA", "REMX", "SOXX",
+    "STX", "TAN", "UFO", "VRT", "WDC", "XBI", "XLE", "XLP", "XLY",
+)
+_ADDITIONAL_INTERNET_SYMBOLS = (
+    "META", "GOOG", "GOOGL", "AMZN", "BABA", "JD", "PDD", "DASH",
+    "UBER", "BKNG", "EXPE", "TCOM", "BIDU", "BILI", "NTES",
+)
+_V3_US_SYMBOLS = tuple(dict.fromkeys((*_LEGACY_US_SYMBOLS, *_ADDITIONAL_INTERNET_SYMBOLS)))
+_V3_US_SYMBOL_SET = frozenset(_V3_US_SYMBOLS)
 _QUOTE_CHANGE_TOLERANCE = 1e-3
 _US_SESSION_TIME = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$")
 _LATE_CAPTURE_MODE = "CONTROLLED_LATE_POST_CLOSE"
 _LATE_CAPTURE_REASON = "NATURAL_SLOT_MISSED_CONTROLLED_RECOVERY"
-_LATE_RECOVERY_END_TIME = time(20, 0)
+_LATE_RECOVERY_MAX_AGE = timedelta(hours=24)
 
 
 def _is_late_capture_identity(value: Any) -> bool:
@@ -403,11 +419,7 @@ def _validate_us_session_captures(value: Any) -> list[dict[str, Any]]:
                 )
                 if natural_start != expected_start or natural_end != expected_end:
                     raise ValueError("late capture natural window mismatch")
-                expected_recovery_end = datetime.combine(
-                    session_day,
-                    _LATE_RECOVERY_END_TIME,
-                    tzinfo=_US_SESSION_TZ,
-                )
+                expected_recovery_end = expected_start + _LATE_RECOVERY_MAX_AGE
                 if (
                     allowed_start != expected_start
                     or allowed_end != expected_recovery_end
@@ -480,6 +492,26 @@ def _validate_market_snapshot(value: Any) -> dict[str, Any]:
         raise ValueError("invalid research peripheral market_snapshot schema")
     if value.get("mapping_version") != _MARKET_MAPPING_VERSION:
         raise ValueError("invalid research peripheral market_snapshot mapping version")
+    universe_contract = value.get("universe_contract")
+    if universe_contract is None:
+        # Earlier snapshots had only the 33-symbol theme-proxy quote set.
+        legacy_contract = build_legacy_us_universe_contract()
+        universe_version = legacy_contract["version"]
+        universe_symbols = set(legacy_contract["symbols"])
+    else:
+        if not isinstance(universe_contract, Mapping):
+            raise ValueError("invalid market_snapshot universe contract")
+        try:
+            universe_contract = validate_us_universe_contract(universe_contract)
+        except ValueError as error:
+            raise ValueError("invalid market_snapshot universe contract identity") from error
+        if universe_contract.get("version") not in {
+            "US_MAPPING_UNIVERSE_CONTRACT_V2",
+            "US_MAPPING_UNIVERSE_CONTRACT_V3",
+        }:
+            raise ValueError("invalid market_snapshot universe contract identity")
+        universe_version = universe_contract["version"]
+        universe_symbols = set(universe_contract["symbols"])
     if value.get("status") not in _MARKET_SNAPSHOT_STATUSES:
         raise ValueError("invalid research peripheral market_snapshot status")
     for field in ("source", "provider", "mapping_version"):
@@ -542,7 +574,7 @@ def _validate_market_snapshot(value: Any) -> dict[str, Any]:
         if (
             not isinstance(symbol, str)
             or not symbol.strip()
-            or symbol not in _CANONICAL_SYMBOLS
+            or symbol not in universe_symbols
             or symbol in quote_symbols
         ):
             raise ValueError("invalid or duplicate research peripheral market_snapshot quote symbol")
@@ -706,12 +738,15 @@ def _validate_market_snapshot(value: Any) -> dict[str, Any]:
                 raise ValueError("market_snapshot READY row session time missing")
         available_symbols.update(symbol_lists["available_symbols"])
         requested_symbols.update(symbol_lists["proxy_symbols"])
-    if value.get("requested_symbol_count") != len(requested_symbols):
+    if value.get("requested_symbol_count") != len(universe_symbols):
         raise ValueError("invalid aggregate market_snapshot requested symbol count")
-    if value.get("available_symbol_count") != len(available_symbols):
+    if value.get("available_symbol_count") != len(quote_symbols):
         raise ValueError("invalid aggregate market_snapshot available symbol count")
-    if quote_symbols != available_symbols:
-        raise ValueError("market_snapshot quotes do not match available symbols")
+    if (not available_symbols.issubset(quote_symbols)
+            or quote_symbols != set(universe_symbols).intersection(quote_symbols)):
+        raise ValueError("market_snapshot quotes do not match configured universe")
+    if value.get("status") == "READY" and quote_symbols != set(universe_symbols):
+        raise ValueError("market_snapshot READY universe quote coverage incomplete")
     quote_dates = sorted({quote["session_date"] for quote in quotes})
     provider_dates = value.get("provider_session_dates")
     if value.get("status") == "READY":

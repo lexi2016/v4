@@ -11,7 +11,21 @@ from ..engines.common import US_FACTOR_RULES_VERSION, valid_sha
 from .validation import raw_sha, before, owner_digest
 
 OWNER = 'v35_dispatcher.research_panel_daily_hk'
-US_SYMBOLS = ('AMD','ARKX','AVGO','BOTZ','CIEN','CLOU','COHR','COPX','DLR','DRIV','EQIX','FCG','GLD','GRID','ICLN','ITA','KBE','LIT','LITE','MU','NLR','NVDA','REMX','SOXX','STX','TAN','UFO','VRT','WDC','XBI','XLE','XLP','XLY')
+from .us_universe import (
+    LEGACY_US_SYMBOLS,
+    UNIVERSE_VERSION,
+    build_legacy_us_universe_contract,
+    build_us_universe_contract,
+    load_us_universe_contract as _load_us_universe_contract,
+    normalize_relation_registry,
+    validate_us_universe_contract,
+)
+
+
+US_SYMBOLS = LEGACY_US_SYMBOLS
+US_UNIVERSE_VERSION = UNIVERSE_VERSION
+US_RELATION_REGISTRY_VERSION = "US_HK_RELATION_REGISTRY_V3"
+
 
 
 def read(root, relative, expected=None):
@@ -476,26 +490,101 @@ def priority_review(config, evidence, review):
 
 
 def us_mapping(config, context):
-    session=context.source_sessions['us']; root=config.us_root
-    quote_rel=f'research/peripherals/{session}/external_finance.json'
-    manifest,msha=read(root,'research/peripherals/manifest.json')
-    payload,qsha=read(root,quote_rel,manifest[quote_rel])
-    receipt_rel=f'receipts/research/peripherals/{session}/external_finance.json'
-    receipt,rsha=read(root,receipt_rel)
-    snapshot=payload.get('market_snapshot',{})
-    checked_time(snapshot.get('captured_at'),context.cutoff)
-    if snapshot.get('capture_session_date')!=session or receipt.get('artifact_sha256',receipt.get('payload_sha256'))!=qsha:
+    session = context.source_sessions['us']
+    root = config.us_root
+
+    quote_rel = f'research/peripherals/{session}/external_finance.json'
+    manifest, msha = read(root, 'research/peripherals/manifest.json')
+    payload, qsha = read(root, quote_rel, manifest[quote_rel])
+
+    receipt_rel = f'receipts/research/peripherals/{session}/external_finance.json'
+    receipt, rsha = read(root, receipt_rel)
+
+    snapshot = payload.get('market_snapshot', {})
+    checked_time(snapshot.get('captured_at'), context.cutoff)
+
+    if (
+        snapshot.get('capture_session_date') != session
+        or receipt.get('artifact_sha256', receipt.get('payload_sha256')) != qsha
+    ):
         raise ValueError('US_OWNER_RECEIPT_SESSION_INVALID')
-    evidence,esha=read(config.relation_root,config.relation_evidence_relative)
-    review,vsha=read(config.relation_root,config.relation_review_relative)
-    checked_time(review.get('reviewed_at'),context.cutoff)
+
+    snapshot_contract = snapshot.get("universe_contract")
+    if isinstance(snapshot_contract, dict):
+        universe_contract = validate_us_universe_contract(snapshot_contract)
+    elif len(snapshot.get("quotes", [])) == len(LEGACY_US_SYMBOLS):
+        universe_contract = build_legacy_us_universe_contract()
+    else:
+        raise ValueError("US_UNIVERSE_CONTRACT_MISSING")
+
+    source_gaps_by_symbol = {symbol: [] for symbol in universe_contract["symbols"]}
+    raw_quote_gaps = snapshot.get("cannot_confirm", [])
+    if isinstance(raw_quote_gaps, list):
+        for gap in raw_quote_gaps:
+            if not isinstance(gap, str) or not gap.startswith("QUOTE_SYMBOL_MISSING:"):
+                continue
+            symbol = gap.split(":", 1)[1]
+            if symbol in source_gaps_by_symbol:
+                source_gaps_by_symbol[symbol].append(gap)
+
+    # Keep the frozen reviewed evidence and its independent receipt intact.
+    evidence, esha = read(config.relation_root, config.relation_evidence_relative)
+    review, vsha = read(config.relation_root, config.relation_review_relative)
+    # Candidate business links are a separate, versioned proposal registry.
+    # Their source dates and PIT availability remain explicitly unknown.
+    registry_root = Path(__file__).resolve().parents[1] / "data"
+    registry_relative = "us_mapping_business_relations_20261014_v3.json"
+    registry_source, registry_sha = read(registry_root, registry_relative)
+    if (registry_source.get("status") != "PROPOSED"
+            or registry_source.get("pit_status") != "PIT_UNCONFIRMED"
+            or registry_source.get("strict_selection_eligible") is not False
+            or registry_source.get("decision_use") != "OBSERVATION_ONLY"):
+        raise ValueError("US_RELATION_PROPOSAL_SAFETY_INVALID")
+    registry = normalize_relation_registry(registry_source)
+
+    registry_contract_version = registry.get("contract_version")
+    if (registry_contract_version not in {universe_contract["version"], UNIVERSE_VERSION}
+            or (universe_contract["version"] == UNIVERSE_VERSION
+                and registry_contract_version != UNIVERSE_VERSION)):
+        raise ValueError("US_RELATION_UNIVERSE_CONTRACT_MISMATCH")
+
+    if not isinstance(
+        registry.get("relations"),
+        list,
+    ):
+        raise ValueError(
+            "US_RELATION_REGISTRY_INVALID"
+        )
+
+    registry_relations = registry["relations"]
+
+    review_sha = vsha
+    checked_time(review.get("reviewed_at"), context.cutoff)
     if (review.get('status')!='PASS' or review.get('evidence_file_sha256')!=esha
         or review.get('declared_artifact_sha256')!=evidence.get('artifact_sha256')
         or owner_digest({k:v for k,v in evidence.items() if k!='artifact_sha256'})!=evidence.get('artifact_sha256')
         or review.get('recomputed_artifact_sha256')!=evidence.get('artifact_sha256') or not review.get('reviewer_identity')
         or review.get('safety',{}).get('production_allowed') is not False):
         raise ValueError('US_RELATION_INDEPENDENT_REVIEW_INVALID')
-    pairs={tuple(r.get(k) for k in ('us_symbol','hk_symbol','relationship_type','direction')) for r in review['reviewed_pairs']}
+    reviewed_pairs = (
+        review.get("reviewed_pairs", [])
+        if isinstance(review, dict)
+        else []
+    )
+
+    pairs = {
+        tuple(
+            r.get(k)
+            for k in (
+                "us_symbol",
+                "hk_symbol",
+                "relationship_type",
+                "direction",
+            )
+        )
+        for r in reviewed_pairs
+        if isinstance(r, dict)
+    }
     inherited_sources=priority_review(config,evidence,review)
     assessments=[]
     reviewed_assessments={a['us_symbol']:a for a in review.get('reviewed_symbol_assessments',[])}
@@ -534,14 +623,72 @@ def us_mapping(config, context):
             original=joined[key]
             original['relation_source_refs']=[*original.get('relation_source_refs',[]),*card.get('relation_source_refs',[])]
             original['reviewed_variants']=[*original.get('reviewed_variants',[]),card]
-    projection=dict(cards=list(joined.values()),symbol_assessments=assessments,available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=[*seed_sources,*inherited_sources])
+    proposal_cards = []
+    registry_universe_symbols = set(build_us_universe_contract()["symbols"])
+    for relation in registry_relations:
+        us = relation.get("us_symbol")
+        hk = relation.get("hk_symbol")
+        if (us not in registry_universe_symbols or not isinstance(hk, str) or not hk.startswith("HK.")
+                or relation.get("status") != "PROPOSED"
+                or relation.get("pit_status") != "PIT_UNCONFIRMED"):
+            raise ValueError("US_RELATION_PROPOSAL_IDENTITY_INVALID")
+        sources = relation.get("sources") or []
+        if not sources or any(
+            not str(source.get("url", "")).startswith("https://")
+            or not str(source.get("supports", "")).strip()
+            for source in sources
+        ):
+            raise ValueError("US_RELATION_PROPOSAL_SOURCE_INVALID")
+        if us not in universe_contract["symbols"]:
+            continue
+        proposal_cards.append({
+            **relation,
+            "relation_source_refs": [dict(
+                title=source.get("title"), url=source.get("url"),
+                reporting_period=source.get("reporting_period"), supports=source.get("supports"),
+            ) for source in sources],
+            "evidence_review_status": "PROPOSED",
+            "strict_selection_supported": False,
+        })
+    unmapped_symbols = list(registry_source.get("unmapped_symbols", []))
+    unmapped_by_symbol = {
+        item.get("us_symbol"): item
+        for item in unmapped_symbols
+        if isinstance(item, dict) and item.get("us_symbol")
+    }
+    relation_symbols = {
+        card.get("us_symbol")
+        for card in [*joined.values(), *proposal_cards]
+        if isinstance(card, dict)
+    }
+    for symbol in universe_contract.get("additional_symbols", []):
+        if symbol not in relation_symbols and symbol not in unmapped_by_symbol:
+            unmapped_symbols.append({
+                "us_symbol": symbol,
+                "status": "CANNOT_CONFIRM",
+                "reason": "No HK target relationship is established for this configured US symbol.",
+            })
+    projection=dict(cards=[*joined.values(),*proposal_cards],symbol_assessments=assessments,
+        available_at=registry.get('available_at'),limitations=review.get('limitations',[]),
+        status=registry.get("status"),pit_status=registry.get("pit_status"),
+        decision_use=registry_source.get("decision_use"),
+        strict_selection_eligible=registry_source.get("strict_selection_eligible") is True,
+        unmapped_symbols=unmapped_symbols,
+        additional_relation_sources=[*seed_sources,*inherited_sources])
     factor, factor_files, factor_gap = us_factor_exposure(config, context)
     industry = hk_industry_classification(config, context)
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
-        relation_local_path=str(config.relation_root),relation_relative=config.relation_evidence_relative,relation_sha256=esha,
-        relation_owner=review['reviewer_identity'],relation_projection=projection,configured_symbols=list(US_SYMBOLS),
+        relation_local_path=str(registry_root),relation_relative=registry_relative,relation_sha256=registry_sha,
+        relation_owner='US_MAPPING_BUSINESS_RELATION_PROPOSAL_REGISTRY',relation_projection=projection,
+        configured_symbols=list(universe_contract["symbols"]),universe_contract=universe_contract,
+        universe_version=universe_contract["version"],source_gaps_by_symbol=source_gaps_by_symbol,
+        relation_registry_version=US_RELATION_REGISTRY_VERSION,
         factor_exposure=factor,factor_exposure_gap=factor_gap,hk_industry_classification=industry,
-        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources,*factor_files,*industry.get('checked_files',[])],
+        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),
+            dict(source_local_path=str(config.relation_root),relative=config.relation_evidence_relative,sha256=esha),
+            dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),
+            dict(source_local_path=str(registry_root),relative=registry_relative,sha256=registry_sha),
+            *seed_sources,*inherited_sources,*factor_files,*industry.get('checked_files',[])],
         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
 
 
@@ -559,3 +706,10 @@ def resolve_bindings(config,context):
     # No alternative close producer is configured. Exact-date explicit pins are
     # allowed for an original complete ranking owner, otherwise the lane is unknown.
     return result,gaps
+
+def read_us_universe_contract(config):
+    return _load_us_universe_contract(config)
+
+
+def load_us_universe_contract(config, extra_symbols=None):
+    return _load_us_universe_contract(config, extra_symbols)

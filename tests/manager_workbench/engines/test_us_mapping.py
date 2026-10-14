@@ -1,6 +1,10 @@
 from copy import deepcopy
 from v4.manager_workbench.engines.common import RULE
 from v4.manager_workbench.engines.us_mapping import run_us_mapping as _run_us_mapping
+from v4.manager_workbench.inputs.us_universe import (
+    LEGACY_US_SYMBOLS,
+    build_us_universe_contract,
+)
 
 def run_us_mapping(context, batch):
     return _run_us_mapping(batch["context"],batch)
@@ -18,7 +22,7 @@ def eligible():
 
 
 def make_batch():
-    symbols=[f"US{i:02}" for i in range(33)]
+    symbols=list(LEGACY_US_SYMBOLS)
     records=[]
     for sym in symbols:
         records.append(dict(us_symbol=sym,source_session="20261012",source_status="PRIORITY",owner="US-owner",
@@ -27,10 +31,11 @@ def make_batch():
                 target_symbol="HK.00001",target_name="company",relation_type="OBSERVED_SUPPLY_RELATION",
                 available_at="2026-10-13T09:00:00+08:00",published_at="2026-10-12T17:00:00+08:00",
                 membership=eligible())]))
-    c=ctx();c["scope_refs"]["US_MAPPING"]=dict(universe_ref="M03:fixed-us-33",configured_symbols=symbols,source_session="20261012",verification="VERIFIED",
+    universe_ref="us:LEGACY_US_UNIVERSE_V1:20261013"
+    c=ctx();c["scope_refs"]["US_MAPPING"]=dict(universe_ref=universe_ref,configured_symbols=symbols,source_session="20261012",verification="VERIFIED",
             calendar_verified=True,sha256="c"*64)
     return dict(lane="US_MAPPING",context=c,records=records,evidence_refs=[],
-        universe_ref="M03:fixed-us-33",input_sha256="d"*64,scope_description="fixed 33 US origins",
+        universe_ref=universe_ref,input_sha256="d"*64,scope_description="fixed 33 US origins",
         coverage=dict(scope_count=33,observed_count=33),gaps=[])
 
 
@@ -74,4 +79,71 @@ def test_single_us_origin_can_have_two_distinct_hk_relations_without_inflating_3
     r=run_us_mapping(ctx(),a)
     assert len(r["rows"])==34
     assert r["coverage"]["assessed_count"]==33
+
+
+def test_v3_48_symbol_scope_and_proposed_relations_remain_observation_only():
+    contract = build_us_universe_contract()
+    c = ctx()
+    universe_ref = "us:" + contract["version"] + ":" + c["target_date"]
+    c["scope_refs"]["US_MAPPING"] = dict(
+        universe_ref=universe_ref,
+        configured_symbols=contract["symbols"],
+        universe_version=contract["version"],
+        universe_contract=contract,
+        universe_contract_sha256=contract["contract_sha256"],
+        source_session="20261012",
+        verification="VERIFIED",
+        calendar_verified=True,
+        sha256="c" * 64,
+    )
+    records = [
+        dict(
+            us_symbol=symbol,
+            source_session="20261012",
+            source_status="CANNOT_CONFIRM",
+            owner="US-owner",
+            source_sha256="a" * 64,
+            available_at="2026-10-13T09:00:00+08:00",
+            positive_change_required=True,
+            quote={"change_pct": 1.0},
+            relations=[dict(
+                status="PROPOSED",
+                pit_status="PIT_UNCONFIRMED",
+                target_symbol="HK.00700",
+                target_name="Tencent Holdings",
+                relation_type="BUSINESS_SEGMENT_PEER",
+                relation_source_refs=[{"url": "https://example.invalid/filing"}],
+            )],
+        )
+        for symbol in contract["symbols"]
+    ]
+    data = dict(context=c, records=records, lane="US_MAPPING", evidence_refs=[],
+        universe_ref=universe_ref, input_sha256="d" * 64,
+        scope_description="48 configured US observations",
+        coverage=dict(scope_count=48, observed_count=48), gaps=[])
+    result = run_us_mapping(ctx(), data)
+    assert result["coverage"]["scope_count"] == 48
+    assert len(result["rows"]) == 48
+    assert {row["decision"] for row in result["rows"]} == {"UNASSESSED"}
+    assert {row["reason"] for row in result["rows"]} == {"US_RELATION_PROPOSED_PIT_UNCONFIRMED"}
+    assert not any(row["decision"] == "SELECTED" for row in result["rows"])
+
+    data["records"].pop()
+    incomplete = run_us_mapping(ctx(), data)
+    assert "US_SOURCE_UNIVERSE_COVERAGE_INCOMPLETE" in incomplete["gaps"]
+
+
+def test_unknown_universe_version_is_rejected_as_unassessed():
+    data = make_batch()
+    context = data["context"]
+    scope = context["scope_refs"]["US_MAPPING"]
+    scope["universe_version"] = "US_MAPPING_UNIVERSE_CONTRACT_V9"
+    scope["universe_ref"] = "us:US_MAPPING_UNIVERSE_CONTRACT_V9:20261013"
+    data["universe_ref"] = scope["universe_ref"]
+
+    result = run_us_mapping(context, data)
+
+    assert "US_UNIVERSE_CONTRACT_VERSION_UNSUPPORTED" in result["gaps"]
+    assert {row["decision"] for row in result["rows"]} == {"UNASSESSED"}
+    assert not any(row["decision"] == "CONDITIONAL_WATCH" for row in result["rows"])
 

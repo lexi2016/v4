@@ -1,0 +1,32 @@
+{
+  "schema_version": "us-internet-coverage-source-review-v1",
+  "target_date": "20261014",
+  "baseline_commit": "f1cef789f8c164f03d38202280c5e41200df435d",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "candidate_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/chat-internet-coverage-20261014-r1/merged-candidate-r3/app",
+  "default_us_symbols": 48,
+  "legacy_symbols": 33,
+  "proxy_symbols_unchanged": 24,
+  "relations": 22,
+  "relation_status": "PROPOSED/PIT_UNCONFIRMED",
+  "strict_selection_eligible": false,
+  "R4_independent_review": {
+    "status": "PASS",
+    "focused_tests": 14,
+    "receipt_sha256": "f37147c18bdb322993f7bea04d155821795416fcc4981c3d8064358a3a306152"
+  },
+  "R5_incremental_review": {
+    "status": "PASS",
+    "focused_tests": 4,
+    "receipt_sha256": "d408e05c64702b3d2d952e219607c4f4bfbb200ee4af66ff3c3df19d430ab3f0",
+    "scope": "Align store late POST_CLOSE recovery window to existing producer 24h policy; full publish/readback regression"
+  },
+  "actual_run_status": "PENDING",
+  "R4_capture_failure": "late capture recovery window mismatch before publication; no artifact or receipt; repaired in reviewed R5 candidate",
+  "known_baseline_compatibility_failures": 2,
+  "NATURAL_VERIFIED": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

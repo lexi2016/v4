@@ -50,9 +50,39 @@ class NativeAdapters:
                 context.scope_refs[lane] = dict(owner="v4.manager_workbench.capture_announcements" if self.config.capture_root else "ManagerResearchJobService.refresh_announcements",
                     scope_state="CANNOT_CONFIRM", sha256=owner_digest(pin), universe_ref="announcement-observed:"+context.target_date)
             else:
-                context.scope_refs[lane] = dict(configured_symbols=pin.get("configured_symbols"),
-                    source_session=context.source_sessions["us"], verification="VERIFIED" if pin else "CANNOT_CONFIRM",
-                    calendar_verified=True, sha256=owner_digest(pin), universe_ref="us-fixed33:"+context.target_date)
+                configured_symbols = pin.get("configured_symbols")
+                universe_version = pin.get("universe_version")
+                contract = pin.get("universe_contract")
+                verification = "CANNOT_CONFIRM"
+                try:
+                    from .us_universe import (
+                        LEGACY_UNIVERSE_VERSION,
+                        build_legacy_us_universe_contract,
+                        validate_us_universe_contract,
+                    )
+                    if isinstance(contract, dict):
+                        contract = validate_us_universe_contract(contract)
+                        if (configured_symbols != contract["symbols"]
+                                or universe_version not in (None, contract["version"])):
+                            raise ValueError("US_UNIVERSE_CONTRACT_IDENTITY_MISMATCH")
+                    elif (isinstance(configured_symbols, list)
+                          and configured_symbols == list(build_legacy_us_universe_contract()["symbols"])
+                          and universe_version in (None, LEGACY_UNIVERSE_VERSION)):
+                        contract = build_legacy_us_universe_contract()
+                        universe_version = LEGACY_UNIVERSE_VERSION
+                    else:
+                        contract = None
+                    if contract is not None:
+                        universe_version = contract["version"]
+                        verification = "VERIFIED"
+                except (TypeError, ValueError):
+                    contract = None
+                context.scope_refs[lane] = dict(configured_symbols=configured_symbols,
+                    source_session=context.source_sessions["us"], verification=verification,
+                    universe_version=universe_version, universe_contract=contract,
+                    universe_contract_sha256=(contract or {}).get("contract_sha256"),
+                    calendar_verified=True, sha256=owner_digest(pin),
+                    universe_ref="us:"+str(universe_version or "UNKNOWN")+":"+context.target_date)
         close_pin = context.scope_refs.get("owner_bindings",{}).get("close") or self.config.source_bindings.get("close", {}).get(context.target_date,{})
         context.scope_refs["review_universe"] = close_pin.get("evaluation_scope_ref")
         return context
@@ -247,7 +277,8 @@ class NativeAdapters:
                 article_ids=[r["article_id"] for r in records],coverage_gaps=value.gaps)
             coverage = Coverage(scope_count=len(records),observed_count=len(records),gaps=value.gaps)
         elif lane == Lane.US_MAPPING:
-            universe_ref = "us-fixed33:"+context.target_date
+            version = context.scope_refs.get("US_MAPPING", {}).get("universe_version", "US_MAPPING_UNIVERSE_CONTRACT_V2")
+            universe_ref = f"us:{version}:{context.target_date}"
         return batch(context,lane,records,value.evidence_refs,value.scope_description,coverage,value.gaps,universe_ref)
 
     def announcements(self, context):
@@ -714,6 +745,11 @@ class NativeAdapters:
             return dict(status="UNAVAILABLE", gap="HK_SECURITY_MASTER_IDENTITY_UNAVAILABLE"), []
 
     def us_mapping(self, context):
+        from .us_universe import (
+            LEGACY_UNIVERSE_VERSION,
+            build_legacy_us_universe_contract,
+            validate_us_universe_contract,
+        )
         expected = context.source_sessions.get("us") or self._us_session(context.cutoff)
         pin = self._binding("us_mapping", context.target_date, context)
         # Pinned native US owner payload + reviewed registry, never old computed matches.
@@ -726,12 +762,34 @@ class NativeAdapters:
         if snapshot.get("session_date", snapshot.get("us_session_date",snapshot.get("capture_session_date"))) != expected:
             raise ValueError("US_SESSION_MISMATCH")
         configured = pin.get("configured_symbols", [])
-        if len(configured) != 33 or len(set(configured)) != 33:
-            raise ValueError("US_FIXED_33_SCOPE_INVALID")
+        contract_value = pin.get("universe_contract") or snapshot.get("universe_contract")
+        if not isinstance(contract_value, dict) and len(configured) == 33:
+            contract_value = build_legacy_us_universe_contract()
+        universe_contract = validate_us_universe_contract(contract_value or {})
+        universe_version = universe_contract["version"]
+        expected_symbols = universe_contract["symbols"]
+        pin_universe_version = pin.get("universe_version")
+        if (pin_universe_version is None and universe_version == LEGACY_UNIVERSE_VERSION
+                and snapshot.get("universe_contract") is None):
+            pin_universe_version = LEGACY_UNIVERSE_VERSION
+        if (pin_universe_version != universe_version or configured != expected_symbols
+                or snapshot.get("universe_contract") not in (None, universe_contract)):
+            raise ValueError("US_UNIVERSE_CONTRACT_IDENTITY_MISMATCH")
+        expected_count = len(expected_symbols)
+        if (not isinstance(configured, list) or not configured
+                or len(set(configured)) != len(configured)):
+            raise ValueError("US_UNIVERSE_CONTRACT_INVALID")
+        if universe_version == LEGACY_UNIVERSE_VERSION and expected_count != 33:
+            raise ValueError("US_LEGACY_FIXED_33_SCOPE_INVALID")
         codes, member_ref, gaps = self.membership(context)
-        refs = [self._ref(pin["quote_owner"], "US_FIXED_33_QUOTES", expected, qsha,
+        relation_role = ("US_HK_RELATION_PROPOSAL_REGISTRY"
+            if registry.get("status") == "PROPOSED" or registry.get("pit_status") == "PIT_UNCONFIRMED"
+            else "REVIEWED_US_HK_RELATIONS")
+        quote_role = ("US_FIXED_33_QUOTES" if universe_version == LEGACY_UNIVERSE_VERSION
+            else "US_UNIVERSE_CONTRACT_QUOTES")
+        refs = [self._ref(pin["quote_owner"], quote_role, expected, qsha,
                           pin["quote_relative"], snapshot.get("available_at", snapshot.get("captured_at"))),
-                self._ref(pin["relation_owner"], "REVIEWED_US_HK_RELATIONS", expected, rsha,
+                self._ref(pin["relation_owner"], relation_role, expected, rsha,
                           pin["relation_relative"], registry.get("available_at"))]
         factor_payload = None
         if context.rules_version == US_FACTOR_RULES_VERSION:
@@ -790,7 +848,7 @@ class NativeAdapters:
                     candidate_relative=factor_pin.get("candidate_relative"),
                     review_relative=factor_pin.get("review_relative"),
                     evidence_ids=[ref.evidence_id for ref in refs if ref.role in {
-                        "US_FIXED_33_QUOTES", "MONTHLY_CONNECT_MEMBERSHIP",
+                        "US_UNIVERSE_CONTRACT_QUOTES", "US_FIXED_33_QUOTES", "MONTHLY_CONNECT_MEMBERSHIP",
                         "US_FACTOR_EXPOSURE_CANDIDATE", "US_FACTOR_EXPOSURE_INDEPENDENT_REVIEW"}])
                 refs.append(self._ref("V4_REVIEWED_US_FACTOR_EXPOSURE", "US_FACTOR_EXPOSURE_CANDIDATE",
                     context.target_date, factor_pin["candidate_sha256"], factor_pin["candidate_relative"],
@@ -811,7 +869,7 @@ class NativeAdapters:
             refs.append(member_ref)
         if isinstance(factor_payload, dict):
             factor_payload["evidence_ids"] = [ref.evidence_id for ref in refs if ref.role in {
-                "US_FIXED_33_QUOTES", "MONTHLY_CONNECT_MEMBERSHIP",
+                "US_UNIVERSE_CONTRACT_QUOTES", "US_FIXED_33_QUOTES", "MONTHLY_CONNECT_MEMBERSHIP",
                 "US_FACTOR_EXPOSURE_CANDIDATE", "US_FACTOR_EXPOSURE_INDEPENDENT_REVIEW",
                 "HK_ISSUER_INDUSTRY_CLASSIFICATION", "HK_SECURITY_MASTER"}]
         quote_rows = snapshot.get("quotes",snapshot.get("symbols",snapshot.get("rows", [])))
@@ -819,6 +877,14 @@ class NativeAdapters:
             quote_rows = [{"symbol":s, **v} for s,v in quote_rows.items()]
         quote_map = {q.get("symbol"):q for q in quote_rows if q.get("symbol") in configured}
         relations = registry.get("cards", registry.get("relations", []))
+        source_gaps_by_symbol = pin.get("source_gaps_by_symbol", {})
+        if not isinstance(source_gaps_by_symbol, dict):
+            source_gaps_by_symbol = {}
+        unmapped_by_symbol = {
+            item.get("us_symbol"): item
+            for item in registry.get("unmapped_symbols", [])
+            if isinstance(item, dict) and isinstance(item.get("us_symbol"), str)
+        }
         mapped = []
         for relation in relations:
             us = relation.get("us_symbol")
@@ -834,8 +900,8 @@ class NativeAdapters:
                           available_at=relation.get("available_at", registry.get("available_at")),
                           evidence_ids=[r.evidence_id for r in refs])
             mapped.append(self._member(record, codes, member_ref))
-        if len(quote_map) != 33:
-            gaps.append("US_FIXED_33_QUOTES_PARTIAL")
+        if len(quote_map) != expected_count:
+            gaps.append("US_UNIVERSE_CONTRACT_QUOTES_PARTIAL")
         # Absent relations remain an explicit scope gap, never a fabricated HK row.
         linked = {r["us_symbol"] for r in mapped}
         if set(configured) - linked:
@@ -849,7 +915,9 @@ class NativeAdapters:
                 relation = row["relation"]
                 relations_for_us.append(dict(target_symbol=row["symbol"],target_name=row["name"],
                     membership=row.get("membership"),evidence_ids=row["evidence_ids"],
-                    status="REVIEWED" if row["relation_reviewed"] else "CANNOT_CONFIRM",
+                    status="REVIEWED" if row["relation_reviewed"] else (
+                        relation.get("status") if relation.get("status") in {"PROPOSED", "PIT_UNCONFIRMED", "CANNOT_CONFIRM"}
+                        else "CANNOT_CONFIRM"),
                     sha256=relation.get("relation_identity_sha256", owner_digest(relation)),
                     review_owner=relation.get("reviewer_identity"), available_at=row["available_at"],
                     published_at=relation.get("published_at"),relation_type=relation.get("relationship_type"),
@@ -861,12 +929,15 @@ class NativeAdapters:
                     research_priority=relation.get("research_priority"),research_basis=relation.get("reason"),
                     research_priority_reason=relation.get("research_priority_reason"),
                     priority_assessment=relation.get("priority_assessment"),
-                    relation_limitations=relation.get("limitations",[]),
+                    relation_limitations=relation.get("limitations",[]),pit_status=relation.get("pit_status"),
                     publication_time_gaps=["RELATION_SOURCE_PUBLICATION_TIME_UNKNOWN"] if any(
                         source.get("role")=="RELATION" and not source.get("published_at") for source in relation.get("sources",[])) else [],
                     relation_source_refs=relation.get("relation_source_refs",[])))
+            source_gaps = list(source_gaps_by_symbol.get(us, []))
             records.append(dict(us_symbol=us,source_session=expected,owner=pin["quote_owner"],source_sha256=qsha,
                 source_status="CANNOT_CONFIRM", positive_change_required=True,
+                quote_missing_reason=(source_gaps[0] if source_gaps else None),source_gaps=source_gaps,
+                unmapped_disposition=unmapped_by_symbol.get(us),
                 available_at=snapshot.get("available_at",snapshot.get("captured_at")),relations=relations_for_us,
                 quote=q,evidence_ids=[r.evidence_id for r in refs],
                 reviewed_assessments=[a for a in registry.get("symbol_assessments",[]) if a.get("original",{}).get("us_symbol")==us],
@@ -879,9 +950,9 @@ class NativeAdapters:
                     and us in proxy.get("proxy_symbols",[])]))
         if factor_payload is not None and records:
             records[0]["us_factor_payload"] = factor_payload
-        return batch(context, Lane.US_MAPPING, records, refs, "Fixed 33 configured US symbols and audited relation scope",
-                     Coverage(scope_count=33, observed_count=len(quote_map), gaps=gaps), gaps,
-                     member_ref.evidence_id if member_ref else None)
+        return batch(context, Lane.US_MAPPING, records, refs, f"Fixed {expected_count} configured US symbols and relation scope",
+                     Coverage(scope_count=expected_count, observed_count=len(quote_map), gaps=gaps), gaps,
+                     context.scope_refs.get("US_MAPPING", {}).get("universe_ref"))
 
     def stage(self, context):
         root = self.config.stage_root
