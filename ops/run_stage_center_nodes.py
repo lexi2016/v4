@@ -254,7 +254,9 @@ def _node_mode(node: Node, trade_date: str, evaluated_at: datetime) -> str:
     current = _as_shanghai(evaluated_at)
     if current.date() == scheduled.date() and current >= scheduled:
         lag = (current - scheduled).total_seconds()
-        if 0 <= lag <= MAX_CALENDAR_WAIT_SECONDS:
+        # launchd is minute-based, matching evaluate_due; the five-second
+        # pre-cutoff wait budget is separate from dispatch classification.
+        if 0 <= lag < 60:
             return "NATURAL"
     return "RECOVERY"
 
