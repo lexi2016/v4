@@ -29,7 +29,7 @@ import build_length_canary as length_canary
 
 
 PIPELINE_DIR = Path(__file__).resolve().parent
-EVIDENCE_ROOT = PIPELINE_DIR / "evidence" / "source-range-single-20261014" / "untrusted-r2"
+EVIDENCE_ROOT = PIPELINE_DIR / "evidence" / "simple-workflow-20261014" / "compact-v2-thinking-off"
 SOURCE_DIR = PIPELINE_DIR / "evidence" / "decision-first-20261014" / "stress"
 LENGTH_DIR = PIPELINE_DIR / "evidence" / "length-single-20261014"
 LENGTH_MANIFEST = LENGTH_DIR / "length-canary-manifest.json"
@@ -40,10 +40,14 @@ EXPECTED_SOURCE_SPAN_BASELINE_MANIFEST_SHA256 = "40c4c1f472653af168e7cf98126e2d3
 NATIVE_PRESSURE_BATCH_03_IMPORT = SOURCE_DIR / "native-import-pressure-batch-03-FROZEN.json"
 EXPECTED_NATIVE_PRESSURE_BATCH_03_IMPORT_SHA256 = "c1807c43904ddbf9d3fee5f77a4bd57eddf6252d53dbd0c363cd3c28d4aaee65"
 MODEL_ID = "qwen3_8_flash_next"
-PROFILE = "decision_source_range_single"
-EXPECTED_SYSTEM_PROMPT_SHA256 = "25974f566ed38f85d55186d9ab0d1d87b15e39e7aac2557b2c5611d9c0489716"
+PROFILE = runner.SIMPLE_WORKFLOW_PROFILE
+EXPECTED_SYSTEM_PROMPT_SHA256 = "89ef6779d46181f570a7c30a5f785524f9111cdc2e28bfc0e7faedc7aff46180"
+EXPECTED_STRUCTURED_OUTPUT_SCHEMA_SHA256 = "30816be27a055151df27a26a683b093e502c937573feee7ae2a7e6150511bc07"
+EXPECTED_STRUCTURED_OUTPUT_SCHEMA_ORDERED_SHA256 = "bfea12651d488e91499e76de12c4f8997d591bf87514d1df9eb8b9f2eae125da"
+EXPECTED_SETTINGS_SHA256 = "836ee204bc85ffb772e4badbebaaf48e3d595d9efbf8479155a1dd48465f08ea"
+EXPECTED_MODEL_SETTINGS_SHA256 = "7a98bb5d2b6687b808d72b8c7bb385a23c714e9753a067fab81407c4e9245b99"
 PREVIOUS_PROFILE = "decision_source_range_single"
-PREVIOUS_SYSTEM_PROMPT_SHA256 = EXPECTED_SYSTEM_PROMPT_SHA256
+PREVIOUS_SYSTEM_PROMPT_SHA256 = "25974f566ed38f85d55186d9ab0d1d87b15e39e7aac2557b2c5611d9c0489716"
 SOURCE_SPAN_BASELINE_PROFILE = "decision_source_span"
 SOURCE_SPAN_BASELINE_SYSTEM_PROMPT_SHA256 = "ebd2eb46eae08e48bcf1f137c52b8e795c133a9b70d25b57544f89f7622b9356"
 MAX_COMPLETION_TOKENS = 32768
@@ -52,7 +56,7 @@ MAX_ATTEMPTS = 2
 NO_PROGRESS_TIMEOUT_SECONDS = 90.0
 WEB_TIMEOUT_SECONDS = 120.0
 IDLE_WAIT_SECONDS = 20.0
-ARTICLE_RULES = "active_reader_v3+decision_source_range_single+single_article"
+ARTICLE_RULES = "active_reader_v3+decision_simple_facts+single_article"
 ARTICLE_ROLE = "announcement_reader"
 ARTICLE_STAGE = "decision_grounded"
 WEB_CONTRACT = re.compile(
@@ -220,6 +224,28 @@ def build_frozen_plan(
     prompt_sha = sha256(prompt.encode("utf-8"))
     if prompt_sha != EXPECTED_SYSTEM_PROMPT_SHA256:
         raise PlanError("FROZEN_SYSTEM_PROMPT_SHA_MISMATCH")
+    structured_output_schema = runner.build_simple_workflow_schema(contract)
+    structured_output_schema_sha = sha256(canonical_json(structured_output_schema))
+    structured_output_schema_ordered_sha = sha256(
+        json.dumps(
+            structured_output_schema,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    )
+    if structured_output_schema_sha != EXPECTED_STRUCTURED_OUTPUT_SCHEMA_SHA256:
+        raise PlanError("FROZEN_STRUCTURED_OUTPUT_SCHEMA_SHA_MISMATCH")
+    if structured_output_schema_ordered_sha != EXPECTED_STRUCTURED_OUTPUT_SCHEMA_ORDERED_SHA256:
+        raise PlanError("FROZEN_STRUCTURED_OUTPUT_SCHEMA_ORDER_MISMATCH")
+    try:
+        settings_sha = sha256(runner.OMLX_SETTINGS_PATH.read_bytes())
+        model_settings_sha = sha256(runner.OMLX_MODEL_SETTINGS_PATH.read_bytes())
+    except Exception as exc:
+        raise PlanError("RUNTIME_SETTINGS_IDENTITY_UNAVAILABLE") from exc
+    if settings_sha != EXPECTED_SETTINGS_SHA256:
+        raise PlanError("RUNTIME_SETTINGS_IDENTITY_MISMATCH")
+    if model_settings_sha != EXPECTED_MODEL_SETTINGS_SHA256:
+        raise PlanError("MODEL_SETTINGS_IDENTITY_MISMATCH")
     config_sha = config.get("configuration_sha256")
     if not runner._is_sha(config_sha):
         raise PlanError("FROZEN_CONFIGURATION_SHA_INVALID")
@@ -228,6 +254,13 @@ def build_frozen_plan(
     unique_ids.sort(key=lambda article_id: (len(source_by_id[article_id]["article_body"].encode("utf-8")), corpus_order[article_id], article_id))
     source_span_maps = {
         article_id: runner.build_source_span_map(
+            source_by_id[article_id]["article_body"],
+            source_by_id[article_id]["body_sha256"],
+        )
+        for article_id in unique_ids
+    }
+    source_unit_maps = {
+        article_id: runner.build_source_unit_map(
             source_by_id[article_id]["article_body"],
             source_by_id[article_id]["body_sha256"],
         )
@@ -275,7 +308,6 @@ def build_frozen_plan(
     prior_raw = None
     prior_rows: dict[str, dict[str, Any]] = {}
     prior_static_matches = False
-    prior_profile_migration = False
     if plan_path.exists():
         try:
             prior_raw = plan_path.read_bytes()
@@ -291,10 +323,15 @@ def build_frozen_plan(
             "source_span_max_codepoints": runner.SOURCE_SPAN_MAX_CODEPOINTS,
             "source_range_protocol": runner.SOURCE_RANGE_PROTOCOL,
             "source_range_single_protocol": runner.SOURCE_RANGE_SINGLE_PROTOCOL,
+            "source_unit_protocol": runner.SOURCE_UNIT_PROTOCOL,
+            "structured_output_schema_sha256": structured_output_schema_sha,
+            "structured_output_schema_ordered_sha256": structured_output_schema_ordered_sha,
             "active_contract_source_sha256": contract.source_sha256,
             "reader_schema_sha256": sha256(canonical_json(contract.reader_schema)),
-            "tool_schema_sha256": sha256(canonical_json(runner.make_tool_schema())),
+            "tool_schema_sha256": sha256(canonical_json(runner.make_tool_schema(PROFILE))),
             "configuration_sha256": config_sha,
+            "runtime_settings_sha256": settings_sha,
+            "model_settings_sha256": model_settings_sha,
             "runtime_limits": limits,
             "cohorts": cohort_manifest,
             "deduped_union_count": len(unique_ids),
@@ -315,27 +352,9 @@ def build_frozen_plan(
         if len(prior_rows_all) != len(prior["articles"]) or set(prior_rows_all) != set(unique_ids):
             raise PlanError("EXISTING_PLAN_ARTICLES_INVALID")
         prior_static_matches = all(prior.get(key) == value for key, value in prior_static.items())
-        if prior_static_matches:
-            prior_rows = prior_rows_all
-        else:
-            migration_static = {
-                "source_population": source_population,
-                "model_id": MODEL_ID,
-                "active_contract_source_sha256": contract.source_sha256,
-                "reader_schema_sha256": sha256(canonical_json(contract.reader_schema)),
-                "configuration_sha256": config_sha,
-                "runtime_limits": limits,
-                "cohorts": cohort_manifest,
-                "deduped_union_count": len(unique_ids),
-            }
-            if (
-                prior.get("prompt_profile") != PREVIOUS_PROFILE
-                or prior.get("system_prompt_sha256") != PREVIOUS_SYSTEM_PROMPT_SHA256
-                or any(prior.get(key) != value for key, value in migration_static.items())
-                or not runner._is_sha(prior.get("tool_schema_sha256"))
-            ):
-                raise PlanError("EXISTING_PLAN_MANIFEST_CONFLICT")
-            prior_profile_migration = True
+        if not prior_static_matches:
+            raise PlanError("EXISTING_PLAN_MANIFEST_CONFLICT")
+        prior_rows = prior_rows_all
     plan_rows = []
     prepared_rejections = []
     for article_id in unique_ids:
@@ -352,6 +371,7 @@ def build_frozen_plan(
                     or old_row.get("source_sha256") != article["source_sha256"]
                     or old_row.get("body_sha256") != article["body_sha256"]
                     or old_row.get("source_span_map_sha256") != source_span_maps[article_id]["span_map_sha256"]
+                    or old_row.get("source_unit_map_sha256") != source_unit_maps[article_id]["source_unit_map_sha256"]
                     or old_row.get("body_length_bytes") != len(article["article_body"].encode("utf-8"))
                     or old_row.get("input_sha256") != input_sha
                     or old_row.get("context_limit_tokens") != limits.get("context_limit_tokens")
@@ -380,6 +400,7 @@ def build_frozen_plan(
             "source_sha256": article["source_sha256"],
             "body_sha256": article["body_sha256"],
             "source_span_map_sha256": source_span_maps[article_id]["span_map_sha256"],
+            "source_unit_map_sha256": source_unit_maps[article_id]["source_unit_map_sha256"],
             "body_length_bytes": len(article["article_body"].encode("utf-8")),
             "input_sha256": input_sha,
             "prompt_tokens_exact": exact_prompt_tokens,
@@ -398,7 +419,11 @@ def build_frozen_plan(
     for article in plan_rows:
         source_article = source_by_id[article["article_id"]]
         metadata = source_article["article_metadata"]
-        article_rules = f"{ARTICLE_RULES}+map:{article['source_span_map_sha256']}"
+        article_rules = (
+            f"{ARTICLE_RULES}+source-span-map:{article['source_span_map_sha256']}"
+            f"+source-unit-map:{article['source_unit_map_sha256']}"
+            f"+runtime-settings:{settings_sha}+model-settings:{model_settings_sha}+thinking:off"
+        )
         identity = {
             "date": metadata.get("publication_date") or "CANNOT_CONFIRM",
             "market": "HK" if str(metadata.get("symbol", "")).startswith("HK.") else "A_SHARE",
@@ -427,20 +452,29 @@ def build_frozen_plan(
         "source_span_max_codepoints": runner.SOURCE_SPAN_MAX_CODEPOINTS,
         "source_range_protocol": runner.SOURCE_RANGE_PROTOCOL,
         "source_range_single_protocol": runner.SOURCE_RANGE_SINGLE_PROTOCOL,
+        "source_unit_protocol": runner.SOURCE_UNIT_PROTOCOL,
         "active_contract_source_sha256": contract.source_sha256,
         "reader_schema_sha256": sha256(canonical_json(contract.reader_schema)),
-        "tool_schema_sha256": sha256(canonical_json(runner.make_tool_schema())),
+        "tool_schema_sha256": sha256(canonical_json(runner.make_tool_schema(PROFILE))),
+        "structured_output_schema_sha256": structured_output_schema_sha,
+        "structured_output_schema_ordered_sha256": structured_output_schema_ordered_sha,
         "configuration_sha256": config_sha,
+        "runtime_settings_sha256": settings_sha,
+        "model_settings_sha256": model_settings_sha,
         "runtime_limits": limits,
         "request_policy": {
             "one_article_per_request": True,
             "full_body_only": True,
             "body_truncation_allowed": False,
-            "source_span_input": "complete exact body partitioned into article-bound ID/text pairs; offsets and per-span hashes remain local",
-            "source_range_single_wire_contract": "one endpoint-only schema; program projects each range to one continuous exact body slice; no concatenation or truncation",
+            "source_unit_input": "complete exact body partitioned into ordered paragraph/table units; offsets and per-unit hashes remain local",
+            "simple_workflow_output": "one constrained JSON envelope; complete one Reader result or request a typed missing-fact lookup",
+            "citation_projection": "source_unit_id is projected to exact quote and locator; all other Reader fields pass through unchanged",
+            "structured_output_transport": "oMLX structured_outputs json only; no response_format fallback or native model tools",
             "max_completion_tokens": MAX_COMPLETION_TOKENS,
-            "thinking": "OFF per request",
-            "web_tools": "existing oMLX routes only; gated by explicit fact/field/query contract",
+            "thinking": "disabled explicitly in each request with enable_thinking=false; thinking_budget omitted; settings hashes identify loaded configuration",
+            "first_article_timing_context": "cold start expected after oMLX restart; no warm-up request; include load/failure/retry time; prior warm references are not directly comparable",
+            "web_tools": "existing oMLX routes only; search requires a typed missing fact/field/query and fetch follows that search",
+            "ttfc": "first non-empty content delta; first SSE event is excluded",
             "context_admission_basis": "exact_input_tokens_plus_actual_max_completion_must_fit_effective_context",
             "context_output_reserve_estimate_tokens": OUTPUT_RESERVE_TOKENS,
         },
@@ -458,13 +492,9 @@ def build_frozen_plan(
     if prior is not None and prior_raw is not None:
         manifest["created_at_utc"] = prior.get("created_at_utc", manifest["created_at_utc"])
         manifest["supersedes_manifest_sha256"] = prior.get("supersedes_manifest_sha256")
-        if prior.get("articles") != manifest["articles"] or prior.get("request_policy") != manifest["request_policy"] or prior_profile_migration:
+        if prior.get("articles") != manifest["articles"] or prior.get("request_policy") != manifest["request_policy"]:
             old_sha = sha256(prior_raw)
-            superseded_name = (
-                "automatic-input-manifest-decision-source-span-superseded.json"
-                if prior_profile_migration
-                else "automatic-input-manifest-estimate-gate-superseded.json"
-            )
+            superseded_name = "automatic-input-manifest-prior-revision.json"
             superseded_path = output_root / superseded_name
             if superseded_path.exists():
                 if sha256(superseded_path.read_bytes()) != old_sha:
@@ -489,7 +519,7 @@ def build_frozen_plan(
     final_raw = plan_path.read_bytes()
 
     expected_ready_keys = {row["idempotency_key"] for row in manifest["articles"] if row["context_admission"] == "READY"}
-    queue_id = "source-range-single-20261014-" + sha256(final_raw)[:16]
+    queue_id = "simple-workflow-thinking-off-20261014-" + sha256(final_raw)[:16]
     queue_state_root = output_root / "queue-state" / queue_id
     queue_state_path = queue_state_root / "queue-state.json"
     if queue_state_path.exists():
@@ -519,12 +549,17 @@ def build_frozen_plan(
         payload = {
             **{name: frozen[name] for name in ("article_id", "source_sha256", "body_sha256", "article_body")},
             "source_span_map_sha256": article["source_span_map_sha256"],
+            "source_unit_map_sha256": article["source_unit_map_sha256"],
             "date": metadata.get("publication_date") or "CANNOT_CONFIRM",
             "market": "HK" if str(metadata.get("symbol", "")).startswith("HK.") else "A_SHARE",
             "prompt_sha256": prompt_sha,
             "model_id": MODEL_ID,
             "configuration_sha256": config_sha,
-            "rules": f"{ARTICLE_RULES}+map:{article['source_span_map_sha256']}",
+            "rules": (
+                f"{ARTICLE_RULES}+source-span-map:{article['source_span_map_sha256']}"
+                f"+source-unit-map:{article['source_unit_map_sha256']}"
+                f"+runtime-settings:{EXPECTED_SETTINGS_SHA256}+model-settings:{EXPECTED_MODEL_SETTINGS_SHA256}+thinking:off"
+            ),
             "role": ARTICLE_ROLE,
             "stage": ARTICLE_STAGE,
             "article_metadata": metadata,
@@ -601,6 +636,8 @@ class GatedStreamingTransport(runner.OmlxTransport):
         self._web_cache: dict[tuple[str, str], tuple[dict[str, Any], dict[str, Any]]] = {}
         self._tool_number = 0
         self._trace_meta: dict[str, Any] = {}
+        self._resource_stop: threading.Event | None = None
+        self._resource_thread: threading.Thread | None = None
 
     def begin_job(self, job: queue_module.QueueJob) -> None:
         self._job = job
@@ -613,11 +650,77 @@ class GatedStreamingTransport(runner.OmlxTransport):
         self._search_urls = set()
         self._web_cache = {}
         self._tool_number = 0
-        self._trace_meta = {"idempotency_key": job.idempotency_key, "attempt": job.attempt, "rounds": [], "tool_receipts": []}
+        self._trace_meta = {
+            "idempotency_key": job.idempotency_key,
+            "attempt": job.attempt,
+            "model_id": MODEL_ID,
+            "runtime_settings_sha256": EXPECTED_SETTINGS_SHA256,
+            "model_settings_sha256": EXPECTED_MODEL_SETTINGS_SHA256,
+            "rounds": [],
+            "tool_receipts": [],
+            "first_event_at": None,
+            "first_event_seconds": None,
+            "first_event_status": "CANNOT_CONFIRM",
+            "ttft_seconds": None,
+            "ttft_status": "CANNOT_CONFIRM",
+            "first_content_at": None,
+            "ttfc_seconds": None,
+            "ttfc_status": "CANNOT_CONFIRM",
+        }
+        self._resource_stop = threading.Event()
+        self._sample_resources()
+        self._resource_thread = threading.Thread(
+            target=self._sample_resources_until_stopped,
+            name=f"flash-next-memory-{job.attempt}",
+            daemon=True,
+        )
+        self._resource_thread.start()
+
+    def _sample_resources(self) -> None:
+        if self._attempt_dir is None:
+            return
+        sample: dict[str, Any] = {
+            "schema": "qwen_flash_next.simple_workflow_resource_sample.v1",
+            "at_utc": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "interval_seconds": 10,
+        }
+        try:
+            import psutil
+
+            process = psutil.Process(os.getpid())
+            memory = psutil.virtual_memory()
+            swap = psutil.swap_memory()
+            sample.update({
+                "status": "SAMPLED",
+                "process_rss_bytes": process.memory_info().rss,
+                "system_total_bytes": memory.total,
+                "system_available_bytes": memory.available,
+                "system_memory_percent": memory.percent,
+                "swap_total_bytes": swap.total,
+                "swap_used_bytes": swap.used,
+            })
+        except Exception as exc:
+            sample.update({"status": "CANNOT_CONFIRM", "error_kind": type(exc).__name__})
+        _write_jsonl(self._attempt_dir / "resource-samples.jsonl", sample)
+
+    def _sample_resources_until_stopped(self) -> None:
+        stop = self._resource_stop
+        while stop is not None and not stop.wait(10.0):
+            self._sample_resources()
+
+    def _stop_resource_sampling(self) -> None:
+        if self._resource_stop is not None:
+            self._resource_stop.set()
+        if self._resource_thread is not None and self._resource_thread.is_alive():
+            self._resource_thread.join(timeout=2.0)
+        self._resource_thread = None
+        self._resource_stop = None
+        self._sample_resources()
 
     def finish_job(self, *, status: str, code: str | None = None, completion: Any = None) -> None:
         if self._attempt_dir is None:
             return
+        self._stop_resource_sampling()
         if completion is not None:
             self._trace_meta.update({
                 "usage": completion.usage,
@@ -626,14 +729,30 @@ class GatedStreamingTransport(runner.OmlxTransport):
                 "started_at": completion.started_at,
                 "finished_at": completion.finished_at,
                 "wall_seconds": completion.wall_seconds,
+                "first_event_at": completion.first_event_at,
+                "first_event_seconds": completion.first_event_seconds,
+                "first_event_status": "MEASURED" if completion.first_event_seconds is not None else "CANNOT_CONFIRM",
+                # Retain the v1 TTFT field as the first SSE event measurement.
                 "ttft_seconds": completion.ttft_seconds,
+                "ttft_status": "MEASURED" if completion.ttft_seconds is not None else "CANNOT_CONFIRM",
+                "first_content_at": completion.first_content_at,
+                "ttfc_seconds": completion.ttfc_seconds,
+                "ttfc_status": "MEASURED" if completion.ttfc_seconds is not None else "CANNOT_CONFIRM",
                 "response_model": completion.response_model,
                 "final_text_sha256": completion.final_text_sha256,
             })
         self._trace_meta.update({"status": status, "failure_code": code})
         _write_private(self._attempt_dir / "stream-receipt.json", json.dumps(self._trace_meta, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8") + b"\n")
 
-    def _stream_completion(self, messages, on_event):
+    def _stream_completion(
+        self,
+        messages,
+        on_event,
+        *,
+        tools=None,
+        structured_outputs=None,
+        workflow_profile=None,
+    ):
         if self._job is None or self._attempt_dir is None:
             raise runner.TransportError("JOB_CONTEXT_MISSING")
         self._round += 1
@@ -642,14 +761,25 @@ class GatedStreamingTransport(runner.OmlxTransport):
             "messages": messages,
             "stream": True,
             "stream_options": {"include_usage": True},
-            "tools": runner.make_tool_schema(),
-            "response_format": {"type": "json_object"},
             "max_tokens": MAX_COMPLETION_TOKENS,
-            "enable_thinking": False,
         }
+        if workflow_profile == runner.SIMPLE_WORKFLOW_PROFILE:
+            if (
+                tools != []
+                or not isinstance(structured_outputs, dict)
+                or set(structured_outputs) != {"json"}
+            ):
+                raise runner.TransportError("SIMPLE_WORKFLOW_STRUCTURED_OUTPUT_REQUIRED")
+            request_body["structured_outputs"] = structured_outputs
+            request_body["enable_thinking"] = False
+        else:
+            request_body["tools"] = runner.make_tool_schema()
+            request_body["response_format"] = {"type": "json_object"}
+            request_body["enable_thinking"] = False
         turn = runner._StreamTurn()
         trace_path = self._attempt_dir / f"round-{self._round:02d}.raw.sse"
         started = time.monotonic()
+        warning_headers: list[str] = []
         try:
             timeout = self._httpx.Timeout(
                 connect=10.0,
@@ -664,6 +794,12 @@ class GatedStreamingTransport(runner.OmlxTransport):
                 json=request_body,
                 timeout=timeout,
             ) as response:
+                warning = response.headers.get("warning")
+                if warning:
+                    warning_headers = [warning[:512]]
+                self._trace_meta["last_structured_output_warning_headers"] = warning_headers
+                if workflow_profile == runner.SIMPLE_WORKFLOW_PROFILE and warning_headers:
+                    raise runner.TransportError("STRUCTURED_OUTPUT_HTTP_WARNING")
                 recording = RecordingResponse(response, trace_path)
                 try:
                     if response.status_code < 200 or response.status_code >= 300:
@@ -685,6 +821,10 @@ class GatedStreamingTransport(runner.OmlxTransport):
                 "usage": turn.usage,
                 "response_model": turn.response_model,
                 "stream_seconds": round(time.monotonic() - started, 6),
+                "structured_output_warning_headers": warning_headers,
+                "structured_output_schema_sha256": (
+                    sha256(canonical_json(structured_outputs)) if structured_outputs is not None else None
+                ),
                 "status": "FAILED",
             })
             raise
@@ -700,6 +840,10 @@ class GatedStreamingTransport(runner.OmlxTransport):
                 "usage": turn.usage,
                 "response_model": turn.response_model,
                 "stream_seconds": round(time.monotonic() - started, 6),
+                "structured_output_warning_headers": warning_headers,
+                "structured_output_schema_sha256": (
+                    sha256(canonical_json(structured_outputs)) if structured_outputs is not None else None
+                ),
                 "status": "FAILED",
                 "failure_code": code,
             })
@@ -714,9 +858,73 @@ class GatedStreamingTransport(runner.OmlxTransport):
             "usage": turn.usage,
             "response_model": turn.response_model,
             "stream_seconds": round(elapsed, 6),
+            "structured_output_warning_headers": warning_headers,
+            "structured_output_schema_sha256": (
+                sha256(canonical_json(structured_outputs)) if structured_outputs is not None else None
+            ),
         })
         on_event({"type": "turn_complete", "finish_reason": turn.finish_reason, "usage": turn.usage, "round": self._round})
         return turn
+
+    def _call_simple_workflow_lookup(self, request: dict[str, Any], on_event):
+        """Execute only an explicit typed lookup through the existing web gate."""
+        if self._job is None or self._attempt_dir is None:
+            return self._failed_tool("structured_web_lookup", "job_context_missing")
+        allowed_fields = set(runner.load_active_contract().reader_schema.get("properties", {}))
+        required = {"operation", "missing_fact", "reader_field", "query", "url"}
+        if (
+            not isinstance(request, dict)
+            or set(request) != required
+            or request.get("operation") not in {"search", "fetch"}
+            or request.get("reader_field") not in allowed_fields
+            or not isinstance(request.get("missing_fact"), str)
+            or not request["missing_fact"].strip()
+            or len(request["missing_fact"]) > 500
+            or not isinstance(request.get("query"), str)
+            or not isinstance(request.get("url"), str)
+        ):
+            payload, receipt = self._failed_tool("structured_web_lookup", "web_lookup_contract_missing")
+            self._web_denied = True
+            on_event({"type": "tool_result", "receipt": receipt})
+            return payload, receipt
+
+        operation = request["operation"]
+        missing_fact = request["missing_fact"].strip()
+        reader_field = request["reader_field"]
+        if operation == "search":
+            query = request["query"].strip()
+            if not query or len(query) > 300 or request["url"]:
+                payload, receipt = self._failed_tool("structured_web_lookup", "web_lookup_contract_missing")
+                self._web_denied = True
+                on_event({"type": "tool_result", "receipt": receipt})
+                return payload, receipt
+            self._web_contract = (missing_fact, reader_field)
+            self._search_urls = set()
+            payload, receipt = self._call_web_tool(
+                "web_search",
+                {"query": f"MISSING_FACT: {missing_fact}\nREADER_FIELD: {reader_field}\nQUERY: {query}"},
+                on_event,
+            )
+            if payload.get("ok") is True:
+                self._search_urls = _extract_urls(payload)
+        else:
+            url = request["url"].strip()
+            if request["query"] or not url or self._web_contract != (missing_fact, reader_field):
+                payload, receipt = self._failed_tool("structured_web_lookup", "web_fetch_without_qualified_search")
+                self._web_denied = True
+                on_event({"type": "tool_result", "receipt": receipt})
+                return payload, receipt
+            payload, receipt = self._call_web_tool("fetch_url", {"url": url}, on_event)
+        receipt = dict(receipt)
+        receipt.update({
+            "workflow_operation": operation,
+            "missing_fact_sha256": sha256(missing_fact.encode("utf-8")),
+            "reader_field": reader_field,
+            "query_sha256": sha256(request["query"].encode("utf-8")) if request["query"] else None,
+            "url_sha256": sha256(request["url"].encode("utf-8")) if request["url"] else None,
+        })
+        self._trace_meta.setdefault("simple_lookup_receipts", []).append(receipt)
+        return payload, receipt
 
     @staticmethod
     def _failed_tool(name: str, code: str, *, input_sha: str | None = None, status: int | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -759,6 +967,9 @@ class GatedStreamingTransport(runner.OmlxTransport):
             field = match.group("field").strip()
             query = match.group("query").strip()
             self._web_contract = (fact, field)
+            # A new qualified search replaces the previous URL grant, including
+            # when this query is later served from the normalized-result cache.
+            self._search_urls = set()
             clean_args = {"query": query}
             normalized, input_sha = runner._safe_tool_key(name, clean_args)
         elif name == "fetch_url":
@@ -793,6 +1004,9 @@ class GatedStreamingTransport(runner.OmlxTransport):
             receipt = dict(old)
             receipt["reused_cached_result"] = True
             receipt["suppressed_repeat_count"] = receipt.get("suppressed_repeat_count", 0) + 1
+            if name == "web_search" and payload.get("ok") is True:
+                # Rebuild the grant from this search's own cached payload only.
+                self._search_urls = _extract_urls(payload)
             on_event({"type": "tool_result", "receipt": receipt})
             return payload, receipt
 
@@ -819,7 +1033,7 @@ class GatedStreamingTransport(runner.OmlxTransport):
             if response.status_code == 200 and isinstance(parsed, dict) and parsed.get("ok") is True:
                 payload = parsed
                 if name == "web_search":
-                    self._search_urls.update(_extract_urls(payload))
+                    self._search_urls = _extract_urls(payload)
             else:
                 payload = {"ok": False, "error": {"code": "web_http_or_payload_error"}}
             http_status = response.status_code
@@ -1253,8 +1467,12 @@ class AutomaticCanaryController:
     def _on_event(self, key: str, started: float, event: Mapping[str, Any]) -> None:
         with self._lock:
             metrics = self._metrics.setdefault(key, {"partial_text": "", "tool_receipts": [], "rounds": []})
-            if event.get("type") == "first_event" and metrics.get("ttft_seconds") is None:
-                metrics["ttft_seconds"] = round(time.monotonic() - started, 3)
+            if event.get("type") == "first_event" and metrics.get("first_event_seconds") is None:
+                elapsed = round(time.monotonic() - started, 3)
+                metrics["first_event_seconds"] = elapsed
+                metrics["ttft_seconds"] = elapsed
+            elif event.get("type") == "first_content" and metrics.get("ttfc_seconds") is None:
+                metrics["ttfc_seconds"] = round(time.monotonic() - started, 3)
             elif event.get("type") == "answer_chunk":
                 text = event.get("text")
                 if isinstance(text, str):
@@ -1281,14 +1499,23 @@ class AutomaticCanaryController:
             or runner._input_batch_sha(batch) != frozen_row["input_sha256"]
             or runner.build_source_span_map(article["article_body"], article["body_sha256"])["span_map_sha256"]
             != frozen_row.get("source_span_map_sha256")
+            or runner.build_source_unit_map(article["article_body"], article["body_sha256"])["source_unit_map_sha256"]
+            != frozen_row.get("source_unit_map_sha256")
         ):
             raise queue_module.ExecutorFailure("INPUT_MANIFEST_DIVERGED", code="INPUT_MANIFEST_DIVERGED", raw_response=b"")
-        messages = runner.build_messages(batch, runner.load_active_contract(), PROFILE)
+        contract = runner.load_active_contract()
+        messages = runner.build_messages(batch, contract, PROFILE)
         started = time.monotonic()
         with self._lock:
             self._current = {"article_id": article["article_id"], "title": article["article_metadata"].get("title"), "status": "RUNNING", "started_monotonic": started}
         try:
-            completion = transport.complete_batch(messages, on_event=lambda event: self._on_event(job.idempotency_key, started, event))
+            completion = transport.complete_batch(
+                messages,
+                on_event=lambda event: self._on_event(job.idempotency_key, started, event),
+                tools=[],
+                structured_outputs={"json": runner.build_simple_workflow_schema(contract)},
+                workflow_profile=PROFILE,
+            )
         except Exception as exc:
             code = _stable_failure_code(exc, "MODEL_REQUEST_FAILED")
             stream_paths = sorted((transport._attempt_dir or Path()).glob("round-*.raw.sse")) if transport._attempt_dir else []
@@ -1298,7 +1525,9 @@ class AutomaticCanaryController:
         transport.finish_job(status="RESPONSE_RECEIVED", completion=completion)
         metrics = self._metrics.setdefault(job.idempotency_key, {})
         metrics.update({
+            "first_event_seconds": completion.first_event_seconds,
             "ttft_seconds": completion.ttft_seconds,
+            "ttfc_seconds": completion.ttfc_seconds,
             "wall_seconds": completion.wall_seconds,
             "usage": completion.usage,
             "response_model": completion.response_model,
@@ -1322,6 +1551,7 @@ class AutomaticCanaryController:
         contract = runner.load_active_contract()
         projection_receipt = None
         projection_code_prefix = None
+        simple_projection = PROFILE == runner.SIMPLE_WORKFLOW_PROFILE
         if PROFILE == "decision_source_span":
             projection_code_prefix = "SOURCE_SPAN"
             frozen_row = next(
@@ -1366,6 +1596,28 @@ class AutomaticCanaryController:
                 raise queue_module.ValidationRejected(code, code=code) from None
             raw_text = json.dumps(projected, ensure_ascii=False, separators=(",", ":"))
             projection_receipt = projection_map["articles"][article_id]
+        elif simple_projection:
+            projection_code_prefix = "SIMPLE_WORKFLOW"
+            frozen_row = next(
+                (row for row in self.plan.metadata["articles"] if row["article_id"] == article_id),
+                None,
+            )
+            if frozen_row is None:
+                raise queue_module.ValidationRejected("INPUT_MANIFEST_DIVERGED", code="INPUT_MANIFEST_DIVERGED")
+            try:
+                projected, projection_map = runner.project_simple_workflow_output(
+                    parsed,
+                    batch,
+                    contract,
+                    expected_source_unit_map_sha256_by_article={
+                        article_id: frozen_row.get("source_unit_map_sha256", "")
+                    },
+                )
+            except Exception as exc:
+                code = str(exc) if isinstance(exc, runner.BatchError) else "SIMPLE_WORKFLOW_PROJECTION_FAILED"
+                raise queue_module.ValidationRejected(code, code=code) from None
+            raw_text = json.dumps(projected, ensure_ascii=False, separators=(",", ":"))
+            projection_receipt = projection_map
         else:
             raw_text = json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
         valid, errors = runner._validate_batch_output(raw_text, batch, contract)
@@ -1402,12 +1654,16 @@ class AutomaticCanaryController:
             is_single_range_projection = PROFILE == "decision_source_range_single"
             receipt = {
                 "schema": (
-                    "qwen_flash_next.source_range_projection_receipt.v1"
+                    "qwen_flash_next.simple_workflow_projection_receipt.v1"
+                    if simple_projection
+                    else "qwen_flash_next.source_range_projection_receipt.v1"
                     if is_range_projection
                     else "qwen_flash_next.source_span_projection_receipt.v1"
                 ),
                 "protocol": (
-                    runner.SOURCE_RANGE_SINGLE_PROTOCOL
+                    runner.SIMPLE_WORKFLOW_PROTOCOL
+                    if simple_projection
+                    else runner.SOURCE_RANGE_SINGLE_PROTOCOL
                     if is_single_range_projection
                     else runner.SOURCE_RANGE_PROTOCOL
                     if is_range_projection
@@ -1420,7 +1676,13 @@ class AutomaticCanaryController:
                 "raw_wire_artifact": str(raw_relative),
                 "raw_wire_sha256": queue_item["raw_sha256"],
                 "wire_canonical_sha256": sha256(canonical_json(parsed)),
-                ("source_range_projection" if is_range_projection else "source_span_projection"): projection_receipt,
+                (
+                    "simple_workflow_projection"
+                    if simple_projection
+                    else "source_range_projection"
+                    if is_range_projection
+                    else "source_span_projection"
+                ): projection_receipt,
                 "final_projection_sha256": sha256(canonical_json(final_projection)),
                 "final_projection_artifact": (
                     f"jobs/{job.idempotency_key}/attempt-{job.attempt:04d}.validated.json"
@@ -1436,8 +1698,8 @@ class AutomaticCanaryController:
             if receipt_path.exists():
                 if receipt_path.read_bytes() != receipt_raw:
                     raise queue_module.ValidationRejected(
-                        "SOURCE_SPAN_PROJECTION_RECEIPT_CONFLICT",
-                        code="SOURCE_SPAN_PROJECTION_RECEIPT_CONFLICT",
+                        f"{projection_code_prefix}_PROJECTION_RECEIPT_CONFLICT",
+                        code=f"{projection_code_prefix}_PROJECTION_RECEIPT_CONFLICT",
                     )
             else:
                 _write_private(receipt_path, receipt_raw)
@@ -1479,7 +1741,14 @@ class AutomaticCanaryController:
                 metric["error_code"] = (result.get("last_error") or {}).get("code")
                 metric["raw_sha256"] = result.get("raw_sha256")
                 metric["validated_sha256"] = result.get("validated_sha256")
-                metric["wall_seconds"] = metric.get("wall_seconds") or (result.get("attempts") or [{}])[-1].get("duration_seconds")
+                attempt_durations = [
+                    float(attempt["duration_seconds"])
+                    for attempt in result.get("attempts", [])
+                    if isinstance(attempt, dict)
+                    and isinstance(attempt.get("duration_seconds"), (int, float))
+                ]
+                metric["attempt_wall_seconds"] = attempt_durations
+                metric["wall_seconds"] = round(sum(attempt_durations), 3) if attempt_durations else None
                 self._metrics[key] = metric
                 self._current = None
             # The request has ended from the client's view. Verify oMLX is idle
@@ -1535,6 +1804,22 @@ class AutomaticCanaryController:
                 self._finished = True
                 self._started = False
                 queue_snapshot = self.queue.snapshot()
+                attempt_wall_seconds = []
+                for item in queue_snapshot["items"]:
+                    metric = self._metrics.get(item.get("idempotency_key"), {})
+                    metric_durations = metric.get("attempt_wall_seconds")
+                    if isinstance(metric_durations, list):
+                        attempt_wall_seconds.extend(
+                            float(value) for value in metric_durations
+                            if isinstance(value, (int, float))
+                        )
+                    else:
+                        attempt_wall_seconds.extend(
+                            float(attempt["duration_seconds"])
+                            for attempt in item.get("attempts", [])
+                            if isinstance(attempt, dict)
+                            and isinstance(attempt.get("duration_seconds"), (int, float))
+                        )
                 receipt = {
                     "schema": "qwen_flash_next.automatic_canary_run_receipt.v1",
                     "status": self._phase,
@@ -1549,6 +1834,8 @@ class AutomaticCanaryController:
                     "scheduled_unique_count": len(self.plan.records),
                 "queue_ready_count": sum(1 for row in self.plan.metadata["articles"] if row["context_admission"] == "READY"),
                     "queue_status_counts": queue_snapshot["status_counts"],
+                    "wall_seconds_all_attempts": round(sum(attempt_wall_seconds), 3),
+                    "timing_note": "Includes observed cold load, failed attempts, and retries; prior warm references are not directly comparable.",
                     "phases": dict(self._phase_states),
                     "pressure_gate": self._pressure_gate,
                     "pressure_gate_accepted": self._pressure_gate is not None,
@@ -1581,7 +1868,12 @@ class AutomaticCanaryController:
                 "max_attempts": queued.get("max_attempts", MAX_ATTEMPTS),
                 "error_code": ((queued.get("last_error") or {}).get("code") or metric.get("error_code")),
                 "wall_seconds": metric.get("wall_seconds"),
+                "first_event_seconds": metric.get("first_event_seconds"),
+                "first_event_status": "MEASURED" if metric.get("first_event_seconds") is not None else "CANNOT_CONFIRM",
                 "ttft_seconds": metric.get("ttft_seconds"),
+                "ttft_status": "MEASURED" if metric.get("ttft_seconds") is not None else "CANNOT_CONFIRM",
+                "ttfc_seconds": metric.get("ttfc_seconds"),
+                "ttfc_status": "MEASURED" if metric.get("ttfc_seconds") is not None else "CANNOT_CONFIRM",
                 "completion_tps_estimate": metric.get("completion_tps_estimate"),
                 "usage": metric.get("usage"),
                 "raw_sha256": queued.get("raw_sha256"),
@@ -1624,7 +1916,12 @@ class AutomaticCanaryController:
                     "title": self._current.get("title"),
                     "status": self._current.get("status"),
                     "elapsed_seconds": round(time.monotonic() - self._current["started_monotonic"], 3),
+                    "first_event_seconds": self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("first_event_seconds"),
+                    "first_event_status": "MEASURED" if self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("first_event_seconds") is not None else "CANNOT_CONFIRM",
                     "ttft_seconds": self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("ttft_seconds"),
+                    "ttft_status": "MEASURED" if self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("ttft_seconds") is not None else "CANNOT_CONFIRM",
+                    "ttfc_seconds": self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("ttfc_seconds"),
+                    "ttfc_status": "MEASURED" if self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("ttfc_seconds") is not None else "CANNOT_CONFIRM",
                     "partial_text": self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("partial_text", ""),
                     "completion_tps_estimate": self._metrics.get(next((k for k, row in article_meta.items() if row["article_id"] == self._current.get("article_id")), ""), {}).get("completion_tps_estimate"),
                 } if self._current else None),
@@ -1645,7 +1942,7 @@ class AutomaticCanaryController:
         return path.read_bytes()
 
 
-HTML = r"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-__NONCE__'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'"><title>Flash Next 临时自动化测试</title><style>body{font:15px system-ui,sans-serif;max-width:1200px;margin:2rem auto;padding:0 1rem;color:#15202b}button{margin:0 .5rem .8rem 0;padding:.55rem 1rem}button:disabled{opacity:.45}.phase{border:1px solid #ccd5de;padding:.7rem;margin:.5rem 0}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #d9e0e7;padding:.4rem;text-align:left;vertical-align:top}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:28rem;overflow:auto;background:#f2f5f7;padding:.75rem}</style></head><body><h1>Flash Next 临时自动化测试</h1><p><b>研究测试 / 未正式接入。</b>先运行6篇 canary。全部成功后停在独立质量复核门；只有明确点击“已独立核验，运行压力29”才会启动压力 batch 03。两阶段重叠1篇按文章身份复用成功结果，最多新增28篇请求。此按钮记录人的确认，不代表自动语义审核。完整277篇只作来源覆盖统计，另有26篇正文采集失败。</p><p>进度按阶段展示已成功、失败和剩余数。进程重启后保留当前阶段和门状态；需要可见点击继续，启动时不会自动推理。本进程只串行化自己的本地队列，运行期间请勿从其他客户端提交模型请求。</p><div id="status">正在读取队列状态…</div><div id="progress"></div><div id="current"></div><p><button id="start">Start：运行 / 继续当前阶段</button><button id="gate">已独立核验，运行压力29</button><button id="stop">停止后续排队（当前请求结束后生效）</button><button id="retry">有界重试失败项</button></p><h2>队列进度</h2><table><thead><tr><th>文章 / 阶段</th><th>状态</th><th>用时 / 首流事件（非首字） / tok/s估计</th><th>失败码 / 原始结果</th></tr></thead><tbody id="items"></tbody></table><div id="raw"></div><script nonce="__NONCE__">const csrf="__CSRF__";const phrase="已独立核验，运行压力29";async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{...(opts.headers||{}),...(opts.method?{"X-Canary-CSRF":csrf,"Content-Type":"application/json"}:{})}});const j=await r.json();if(!r.ok)throw new Error(j.code||"request_failed");return j}function fmt(v){return v==null?"—":String(v)}function render(s){document.getElementById('status').textContent=`${s.state} · ${s.scheduled_unique_count}篇唯一文章 / 可运行${s.queue_ready_count}篇 / 不适配${s.context_unfit_count}篇 · 全量来源277完整、26失败 · 队列 ${JSON.stringify(s.queue_status_counts)} · 停止码 ${s.stop_code||'—'}`;const progress=document.getElementById('progress');progress.replaceChildren();for(const [name,x] of Object.entries(s.phase_progress||{})){const p=document.createElement('p');p.textContent=`${name}: ${s.phases[name]} · 完成 ${x.succeeded}/${x.total} · 失败 ${x.failed} · 运行 ${x.running} · 剩余 ${x.remaining}${x.reused_successes?` · 复用重叠成功 ${x.reused_successes}`:''}`;progress.appendChild(p)}document.getElementById('gate').disabled=!s.pressure_gate_available;document.getElementById('start').disabled=s.started||['WAITING_QUALITY_REVIEW','CANARY_FAILED_WAITING_REVIEW','PRESSURE_FINISHED','PRESSURE_FAILED'].includes(s.state);const cur=document.getElementById('current');cur.replaceChildren();if(s.current){const h=document.createElement('p');h.textContent=`当前：${s.current.title||s.current.article_id} · ${s.current.article_id} · ${s.current.status} · ${fmt(s.current.elapsed_seconds)}s / 首流事件（非首字） ${fmt(s.current.ttft_seconds)}s / tok/s ${fmt(s.current.completion_tps_estimate)}`;const pre=document.createElement('pre');pre.textContent=s.current.partial_text||'';cur.append(h,pre)}const body=document.getElementById('items');body.replaceChildren();for(const x of s.items){const tr=document.createElement('tr');const first=document.createElement('td');first.textContent=`${x.title||x.article_id} · ${x.article_id} · ${(x.cohorts||[]).join(', ')}`;const second=document.createElement('td');second.textContent=`${x.status} · ${x.attempt_count}/${x.max_attempts} · ${x.prompt_tokens_exact||0} prompt tokens`;const third=document.createElement('td');third.textContent=`${fmt(x.wall_seconds)}s / ${fmt(x.ttft_seconds)}s / ${fmt(x.completion_tps_estimate)}`;const fourth=document.createElement('td');fourth.textContent=x.error_code||'';if(x.raw_available){const b=document.createElement('button');b.textContent='查看原始结果';b.onclick=async()=>{const r=await fetch('/api/raw?key='+encodeURIComponent(x.idempotency_key));const t=await r.text();const box=document.createElement('pre');box.textContent=t;document.getElementById('raw').replaceChildren(box)};fourth.appendChild(b)}tr.append(first,second,third,fourth);body.appendChild(tr)}}async function refresh(){try{render(await api('/api/status'))}catch(e){document.getElementById('status').textContent='状态读取失败：'+String(e.message)}}document.getElementById('start').onclick=async()=>{try{await api('/api/start',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('gate').onclick=async()=>{try{await api('/api/approve-pressure',{method:'POST',body:JSON.stringify({confirmation:phrase})});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('stop').onclick=async()=>{try{await api('/api/stop',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('retry').onclick=async()=>{try{await api('/api/retry',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};refresh();setInterval(refresh,1500);</script></body></html>"""
+HTML = r"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-__NONCE__'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'"><title>Flash Next 临时自动化测试</title><style>body{font:15px system-ui,sans-serif;max-width:1200px;margin:2rem auto;padding:0 1rem;color:#15202b}button{margin:0 .5rem .8rem 0;padding:.55rem 1rem}button:disabled{opacity:.45}.phase{border:1px solid #ccd5de;padding:.7rem;margin:.5rem 0}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #d9e0e7;padding:.4rem;text-align:left;vertical-align:top}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:28rem;overflow:auto;background:#f2f5f7;padding:.75rem}</style></head><body><h1>Flash Next 临时自动化测试</h1><p><b>研究测试 / 未正式接入。</b>先运行6篇 canary。全部成功后停在独立质量复核门；只有明确点击“已独立核验，运行压力29”才会启动压力 batch 03。两阶段重叠1篇按文章身份复用成功结果，最多新增28篇请求。此按钮记录人的确认，不代表自动语义审核。完整277篇只作来源覆盖统计，另有26篇正文采集失败。</p><p>进度按阶段展示已成功、失败和剩余数。进程重启后保留当前阶段和门状态；需要可见点击继续，启动时不会自动推理。本轮首篇属于冷启动条件，不安排额外暖机；实际用时保留模型加载、失败与重试开销，旧 warm 参考仅供背景，不能直接等同比较。本进程只串行化自己的本地队列，运行期间请勿从其他客户端提交模型请求。</p><div id="status">正在读取队列状态…</div><div id="progress"></div><div id="current"></div><p><button id="start">Start：运行 / 继续当前阶段</button><button id="gate">已独立核验，运行压力29</button><button id="stop">停止后续排队（当前请求结束后生效）</button><button id="retry">有界重试失败项</button></p><h2>队列进度</h2><table><thead><tr><th>文章 / 阶段</th><th>状态</th><th>总用时 / TTFC（首个非空内容） / tok/s估计</th><th>失败码 / 原始结果</th></tr></thead><tbody id="items"></tbody></table><div id="raw"></div><script nonce="__NONCE__">const csrf="__CSRF__";const phrase="已独立核验，运行压力29";async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{...(opts.headers||{}),...(opts.method?{"X-Canary-CSRF":csrf,"Content-Type":"application/json"}:{})}});const j=await r.json();if(!r.ok)throw new Error(j.code||"request_failed");return j}function fmt(v){return v==null?"—":String(v)}function render(s){document.getElementById('status').textContent=`${s.state} · ${s.scheduled_unique_count}篇唯一文章 / 可运行${s.queue_ready_count}篇 / 不适配${s.context_unfit_count}篇 · 全量来源277完整、26失败 · 队列 ${JSON.stringify(s.queue_status_counts)} · 停止码 ${s.stop_code||'—'}`;const progress=document.getElementById('progress');progress.replaceChildren();for(const [name,x] of Object.entries(s.phase_progress||{})){const p=document.createElement('p');p.textContent=`${name}: ${s.phases[name]} · 完成 ${x.succeeded}/${x.total} · 失败 ${x.failed} · 运行 ${x.running} · 剩余 ${x.remaining}${x.reused_successes?` · 复用重叠成功 ${x.reused_successes}`:''}`;progress.appendChild(p)}document.getElementById('gate').disabled=!s.pressure_gate_available;document.getElementById('start').disabled=s.started||['WAITING_QUALITY_REVIEW','CANARY_FAILED_WAITING_REVIEW','PRESSURE_FINISHED','PRESSURE_FAILED'].includes(s.state);const cur=document.getElementById('current');cur.replaceChildren();if(s.current){const h=document.createElement('p');h.textContent=`当前：${s.current.title||s.current.article_id} · ${s.current.article_id} · ${s.current.status} · ${fmt(s.current.elapsed_seconds)}s / TTFC ${fmt(s.current.ttfc_seconds)}s (${s.current.ttfc_status}) / tok/s ${fmt(s.current.completion_tps_estimate)}`;const pre=document.createElement('pre');pre.textContent=s.current.partial_text||'';cur.append(h,pre)}const body=document.getElementById('items');body.replaceChildren();for(const x of s.items){const tr=document.createElement('tr');const first=document.createElement('td');first.textContent=`${x.title||x.article_id} · ${x.article_id} · ${(x.cohorts||[]).join(', ')}`;const second=document.createElement('td');second.textContent=`${x.status} · ${x.attempt_count}/${x.max_attempts} · ${x.prompt_tokens_exact||0} prompt tokens`;const third=document.createElement('td');third.textContent=`${fmt(x.wall_seconds)}s / ${fmt(x.ttfc_seconds)}s (${x.ttfc_status}) / ${fmt(x.completion_tps_estimate)}`;const fourth=document.createElement('td');fourth.textContent=x.error_code||'';if(x.raw_available){const b=document.createElement('button');b.textContent='查看原始结果';b.onclick=async()=>{const r=await fetch('/api/raw?key='+encodeURIComponent(x.idempotency_key));const t=await r.text();const box=document.createElement('pre');box.textContent=t;document.getElementById('raw').replaceChildren(box)};fourth.appendChild(b)}tr.append(first,second,third,fourth);body.appendChild(tr)}}async function refresh(){try{render(await api('/api/status'))}catch(e){document.getElementById('status').textContent='状态读取失败：'+String(e.message)}}document.getElementById('start').onclick=async()=>{try{await api('/api/start',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('gate').onclick=async()=>{try{await api('/api/approve-pressure',{method:'POST',body:JSON.stringify({confirmation:phrase})});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('stop').onclick=async()=>{try{await api('/api/stop',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};document.getElementById('retry').onclick=async()=>{try{await api('/api/retry',{method:'POST',body:'{}'});await refresh()}catch(e){alert(String(e.message))}};refresh();setInterval(refresh,1500);</script></body></html>"""
 
 
 def make_handler(controller: AutomaticCanaryController, csrf_token: str):

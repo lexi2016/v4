@@ -155,16 +155,16 @@ class PhaseTrackingQueue:
 
 
 class AutomaticCanaryServerTests(unittest.TestCase):
-    def test_ui_metric_label_names_first_sse_event_not_first_character(self) -> None:
-        self.assertEqual(app.HTML.count("首流事件（非首字）"), 2)
-        self.assertNotIn("TTFT", app.HTML)
-        self.assertIn("s.current.ttft_seconds", app.HTML)
+    def test_ui_metric_label_uses_first_nonempty_content_delta(self) -> None:
+        self.assertIn("TTFC（首个非空内容）", app.HTML)
+        self.assertIn("s.current.ttfc_seconds", app.HTML)
+        self.assertNotIn("ttft_seconds", app.HTML)
 
     def test_only_stable_error_codes_reach_ui(self) -> None:
         self.assertEqual(app._stable_failure_code(RuntimeError("secret-bearing error text"), "MODEL_REQUEST_FAILED"), "MODEL_REQUEST_FAILED")
         self.assertEqual(app._stable_failure_code(runner.TransportError("CHAT_NO_PROGRESS_TIMEOUT:ReadTimeout"), "MODEL_REQUEST_FAILED"), "CHAT_NO_PROGRESS_TIMEOUT")
 
-    def test_new_source_range_plan_counts_all_34_and_starts_a_fresh_pending_queue(self) -> None:
+    def test_new_simple_workflow_plan_counts_all_34_and_starts_a_fresh_pending_queue(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             output_root = Path(temp) / "evidence"
             limits = runner.load_runtime_limits()
@@ -191,13 +191,17 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(len(manifest["articles"]), 34)
         self.assertEqual(manifest["runtime_limits"]["context_limit_tokens"], 262144)
         self.assertEqual(manifest["request_policy"]["max_completion_tokens"], 32768)
-        self.assertEqual(manifest["prompt_profile"], "decision_source_range_single")
+        self.assertEqual(manifest["prompt_profile"], runner.SIMPLE_WORKFLOW_PROFILE)
         self.assertEqual(manifest["system_prompt_sha256"], app.EXPECTED_SYSTEM_PROMPT_SHA256)
         self.assertEqual(manifest["source_span_protocol"], runner.SOURCE_SPAN_PROTOCOL)
         self.assertEqual(manifest["source_span_max_codepoints"], runner.SOURCE_SPAN_MAX_CODEPOINTS)
         self.assertEqual(manifest["source_range_protocol"], runner.SOURCE_RANGE_PROTOCOL)
         self.assertEqual(manifest["source_range_single_protocol"], runner.SOURCE_RANGE_SINGLE_PROTOCOL)
-        self.assertEqual(manifest["tool_schema_sha256"], sha(runner.canonical_json_bytes(runner.make_tool_schema())))
+        self.assertEqual(manifest["tool_schema_sha256"], sha(runner.canonical_json_bytes(runner.make_tool_schema(app.PROFILE))))
+        self.assertEqual(manifest["structured_output_schema_sha256"], sha(runner.canonical_json_bytes(runner.build_simple_workflow_schema(runner.load_active_contract()))))
+        self.assertEqual(manifest["runtime_settings_sha256"], app.EXPECTED_SETTINGS_SHA256)
+        self.assertEqual(manifest["model_settings_sha256"], app.EXPECTED_MODEL_SETTINGS_SHA256)
+        self.assertIn("first non-empty content delta", manifest["request_policy"]["ttfc"])
         baseline = json.loads(app.BASELINE_MANIFEST.read_text())
         self.assertEqual(
             manifest["cohorts"],
@@ -214,12 +218,20 @@ class AutomaticCanaryServerTests(unittest.TestCase):
             manifest["source_population"]["native_pressure_batch_03_import_sha256"],
             app.EXPECTED_NATIVE_PRESSURE_BATCH_03_IMPORT_SHA256,
         )
-        self.assertTrue(plan.metadata["queue_id"].startswith("source-range-single-20261014-"))
+        self.assertTrue(plan.metadata["queue_id"].startswith("simple-workflow-thinking-off-20261014-"))
         self.assertEqual(len(queue_snapshot["items"]), 34)
         self.assertEqual(queue_snapshot["status_counts"]["PENDING"], 34)
         self.assertEqual(sum(item["attempt_count"] for item in queue_snapshot["items"]), 0)
         self.assertEqual(len({row["idempotency_key"] for row in manifest["articles"]}), 34)
         self.assertTrue(all(row["source_span_map_sha256"] for row in manifest["articles"]))
+        self.assertTrue(all(row["source_unit_map_sha256"] for row in manifest["articles"]))
+        self.assertIn("disabled explicitly", manifest["request_policy"]["thinking"])
+        self.assertIn("thinking_budget omitted", manifest["request_policy"]["thinking"])
+        old_manifest = json.loads((app.PIPELINE_DIR / "evidence" / "simple-workflow-20261014" / "compact-v1" / "automatic-input-manifest.json").read_text())
+        self.assertTrue({row["idempotency_key"] for row in old_manifest["articles"]}.isdisjoint(
+            {row["idempotency_key"] for row in manifest["articles"]}
+        ))
+        self.assertNotEqual(plan.metadata["queue_id"], "simple-workflow-20261014-693a423c96ca3ed0")
         for row in manifest["articles"]:
             self.assertEqual(row["max_completion_tokens"], 32768)
             self.assertGreater(row["prompt_tokens_exact"], 0)
@@ -229,26 +241,24 @@ class AutomaticCanaryServerTests(unittest.TestCase):
             )
         self.assertEqual(manifest["context_rejections"], [])
 
-    def test_source_range_single_profile_has_a_fresh_root_and_preserves_old_range_profile(self) -> None:
+    def test_simple_workflow_profile_has_a_fresh_root_and_preserves_old_profile_hashes(self) -> None:
         contract = runner.load_active_contract()
         prior_span = runner.build_system_prompt(contract, "decision_source_span")
         prior_range = runner.build_system_prompt(contract, "decision_source_range")
-        prompt = runner.build_system_prompt(contract, "decision_source_range_single")
+        prior_range_single = runner.build_system_prompt(contract, "decision_source_range_single")
+        prompt = runner.build_system_prompt(contract, runner.SIMPLE_WORKFLOW_PROFILE)
         self.assertEqual(sha(prior_span.encode("utf-8")), "ebd2eb46eae08e48bcf1f137c52b8e795c133a9b70d25b57544f89f7622b9356")
         self.assertEqual(sha(prior_range.encode("utf-8")), "329f49a38f703bfb65162406aa1f662bb18058bec8d9a74f5e4b0e4b4bd0b850")
+        self.assertEqual(sha(prior_range_single.encode("utf-8")), app.PREVIOUS_SYSTEM_PROMPT_SHA256)
         self.assertEqual(sha(prompt.encode("utf-8")), app.EXPECTED_SYSTEM_PROMPT_SHA256)
-        self.assertEqual(app.PROFILE, "decision_source_range_single")
-        self.assertEqual(app.EVIDENCE_ROOT.name, "untrusted-r2")
-        self.assertEqual(app.EVIDENCE_ROOT.parent.name, "source-range-single-20261014")
+        self.assertEqual(app.PROFILE, runner.SIMPLE_WORKFLOW_PROFILE)
+        self.assertEqual(app.EVIDENCE_ROOT.name, "compact-v2-thinking-off")
+        self.assertEqual(app.EVIDENCE_ROOT.parent.name, "simple-workflow-20261014")
         self.assertEqual(app.EVIDENCE_ROOT.parent.parent.name, "evidence")
         self.assertEqual(app.PREVIOUS_PROFILE, "decision_source_range_single")
-        self.assertEqual(app.PREVIOUS_SYSTEM_PROMPT_SHA256, app.EXPECTED_SYSTEM_PROMPT_SHA256)
+        self.assertNotEqual(app.PREVIOUS_SYSTEM_PROMPT_SHA256, app.EXPECTED_SYSTEM_PROMPT_SHA256)
         self.assertEqual(app.SOURCE_SPAN_BASELINE_PROFILE, "decision_source_span")
         self.assertEqual(app.SOURCE_SPAN_BASELINE_SYSTEM_PROMPT_SHA256, "ebd2eb46eae08e48bcf1f137c52b8e795c133a9b70d25b57544f89f7622b9356")
-        self.assertNotEqual(
-            app.EVIDENCE_ROOT,
-            app.PIPELINE_DIR / "evidence" / "source-range-20261014",
-        )
         superseded_unrun_root = app.PIPELINE_DIR / "evidence" / "source-range-single-20261014"
         self.assertTrue((superseded_unrun_root / "automatic-input-manifest.json").is_file())
         self.assertNotEqual(app.EVIDENCE_ROOT, superseded_unrun_root)
@@ -421,6 +431,7 @@ class AutomaticCanaryServerTests(unittest.TestCase):
 
     def test_mock_sse_is_streamed_with_finite_timeout_and_recorded_byte_for_byte(self) -> None:
         answer = sse([
+            {"choices": [{"delta": {"role": "assistant"}, "finish_reason": None}], "model": app.MODEL_ID},
             {"choices": [{"delta": {"content": "{\"ok\":"}, "finish_reason": None}], "model": app.MODEL_ID},
             {"choices": [{"delta": {"content": "true}"}, "finish_reason": "stop"}], "model": app.MODEL_ID},
             {"choices": [], "usage": {"prompt_tokens": 9, "completion_tokens": 2, "total_tokens": 11}, "model": app.MODEL_ID},
@@ -438,7 +449,10 @@ class AutomaticCanaryServerTests(unittest.TestCase):
                 "unit-secret", root, http_transport=httpx.MockTransport(handler)
             )
             transport.begin_job(job)
-            result = transport.complete_batch([{"role": "user", "content": "fixture body"}])
+            clock = mock.Mock()
+            clock.monotonic.side_effect = [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
+            with mock.patch.object(app, "time", clock), mock.patch.object(runner, "time", clock):
+                result = transport.complete_batch([{"role": "user", "content": "fixture body"}])
             transport.finish_job(status="RESPONSE_RECEIVED", completion=result)
             trace = next((root / "streams").rglob("round-01.raw.sse"))
             receipt = json.loads(next((root / "streams").rglob("stream-receipt.json")).read_text())
@@ -448,17 +462,109 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(result.usage["completion_tokens"], 2)
         self.assertEqual(trace_bytes, answer)
         self.assertEqual(receipt["rounds"][0]["raw_sse_sha256"], sha(answer))
+        self.assertEqual(receipt["first_event_seconds"], 0.5)
+        self.assertEqual(receipt["ttft_seconds"], receipt["first_event_seconds"])
+        self.assertEqual(receipt["first_content_at"], "+0.750s")
+        self.assertEqual(receipt["ttfc_seconds"], 0.75)
+        self.assertGreater(receipt["ttfc_seconds"], receipt["ttft_seconds"])
+        self.assertEqual(receipt["ttft_status"], "MEASURED")
+        self.assertEqual(receipt["ttfc_status"], "MEASURED")
         self.assertEqual(request_timeouts[0]["read"], app.NO_PROGRESS_TIMEOUT_SECONDS)
 
-    def test_executor_request_matches_single_wire_range_profile_and_sends_each_full_body_span_once(self) -> None:
-        batch = fixtures.synthetic_batch("  frozen full body\nwith exact spacing.  ")
+    def test_structured_output_warning_fails_closed_before_consuming_sse(self) -> None:
+        answer = sse([{"choices": [{"delta": {"content": "{}"}, "finish_reason": "stop"}], "model": app.MODEL_ID}])
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            job = queue_module.QueueJob("b" * 64, "test-q", app.MODEL_ID, {}, {}, 1)
+            transport = app.GatedStreamingTransport(
+                "unit-secret",
+                root,
+                http_transport=httpx.MockTransport(
+                    lambda _request: httpx.Response(
+                        200,
+                        headers={"content-type": "text/event-stream", "warning": '299 omlx "structured output unavailable"'},
+                        content=answer,
+                    )
+                ),
+            )
+            transport.begin_job(job)
+            contract = runner.load_active_contract()
+            with self.assertRaisesRegex(runner.TransportError, "STRUCTURED_OUTPUT_HTTP_WARNING"):
+                transport.complete_batch(
+                    [{"role": "user", "content": "fixture body"}],
+                    tools=[],
+                    structured_outputs={"json": runner.build_simple_workflow_schema(contract)},
+                    workflow_profile=runner.SIMPLE_WORKFLOW_PROFILE,
+                )
+            transport.finish_job(status="FAILED", code="STRUCTURED_OUTPUT_HTTP_WARNING")
+            receipt = json.loads(next((root / "streams").rglob("stream-receipt.json")).read_text())
+            transport.close()
+        self.assertEqual(receipt["rounds"][0]["status"], "FAILED")
+        self.assertEqual(receipt["rounds"][0]["raw_sse_length_bytes"], 0)
+        self.assertEqual(receipt["rounds"][0]["structured_output_warning_headers"], ['299 omlx "structured output unavailable"'])
+
+    def test_simple_workflow_fetch_requires_same_lookup_and_url_from_qualified_search(self) -> None:
+        route_calls = []
+        selected_url = "https://example.org/qualified"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            route_calls.append(request.url.path)
+            if request.url.path == "/v1/web/search":
+                return httpx.Response(200, json={"ok": True, "results": [{"title": "fixture", "url": selected_url}]})
+            if request.url.path == "/v1/web/fetch":
+                return httpx.Response(200, json={"ok": True, "content": "untrusted fixture"})
+            return httpx.Response(404)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            job = queue_module.QueueJob("f" * 64, "test-q", app.MODEL_ID, {}, {}, 1)
+            transport = app.GatedStreamingTransport("unit-secret", root, http_transport=httpx.MockTransport(handler))
+            transport.begin_job(job)
+            search, search_receipt = transport._call_simple_workflow_lookup({
+                "operation": "search", "missing_fact": "filing date", "reader_field": "reason",
+                "query": "issuer filing date", "url": "",
+            }, lambda _event: None)
+            fetched, fetch_receipt = transport._call_simple_workflow_lookup({
+                "operation": "fetch", "missing_fact": "filing date", "reader_field": "reason",
+                "query": "", "url": selected_url,
+            }, lambda _event: None)
+            self.assertTrue(search["ok"])
+            self.assertTrue(fetched["ok"])
+            self.assertEqual(search_receipt["workflow_operation"], "search")
+            self.assertEqual(fetch_receipt["workflow_operation"], "fetch")
+            transport.close()
+
+        route_calls.clear()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            job = queue_module.QueueJob("a" * 64, "test-q", app.MODEL_ID, {}, {}, 1)
+            transport = app.GatedStreamingTransport("unit-secret", root, http_transport=httpx.MockTransport(handler))
+            transport.begin_job(job)
+            transport._call_simple_workflow_lookup({
+                "operation": "search", "missing_fact": "filing date", "reader_field": "reason",
+                "query": "issuer filing date", "url": "",
+            }, lambda _event: None)
+            denied, denied_receipt = transport._call_simple_workflow_lookup({
+                "operation": "fetch", "missing_fact": "filing date", "reader_field": "reason",
+                "query": "", "url": "https://example.org/not-returned",
+            }, lambda _event: None)
+            transport.close()
+        self.assertFalse(denied["ok"])
+        self.assertEqual(denied["error"]["code"], "web_fetch_url_not_from_qualified_search")
+        self.assertEqual(denied_receipt["workflow_operation"], "fetch")
+        self.assertEqual(route_calls, ["/v1/web/search"])
+
+    def test_executor_request_uses_one_structured_simple_reader_and_sends_the_full_body_once(self) -> None:
+        body = "  frozen opening paragraph.\n\n| Field | Value |\n|---|---|\n| State | pending |\n\nExact ending.  "
+        batch = fixtures.synthetic_batch(body)
         article = batch["articles"][0]
         batch_id = "AUTO_" + sha(article["article_id"].encode("utf-8"))[:20]
         frozen_batch = length_canary.make_batch([article], batch_id)
         contract = runner.load_active_contract()
-        expected_messages = runner.build_messages(frozen_batch, contract, "decision_source_range_single")
+        expected_messages = runner.build_messages(frozen_batch, contract, runner.SIMPLE_WORKFLOW_PROFILE)
         expected_input_sha = runner._input_batch_sha(frozen_batch)
         expected_span_map = runner.build_source_span_map(article["article_body"], article["body_sha256"])
+        expected_unit_map = runner.build_source_unit_map(article["article_body"], article["body_sha256"])
         answer = sse([{"choices": [{"delta": {"content": "{\"results\":[]}"}, "finish_reason": "stop"}], "model": app.MODEL_ID}])
         sent = []
 
@@ -478,6 +584,7 @@ class AutomaticCanaryServerTests(unittest.TestCase):
                         "idempotency_key": key,
                         "input_sha256": expected_input_sha,
                         "source_span_map_sha256": expected_span_map["span_map_sha256"],
+                        "source_unit_map_sha256": expected_unit_map["source_unit_map_sha256"],
                     }],
                     "input_manifest_sha256": sha(b"manifest"),
                 },
@@ -508,34 +615,37 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(sha(sent[0]["messages"][0]["content"].encode("utf-8")), app.EXPECTED_SYSTEM_PROMPT_SHA256)
         system_prompt = sent[0]["messages"][0]["content"]
         self.assertEqual(system_prompt.count("JSON_SCHEMA_BEGIN"), 1)
+        self.assertIn("SIMPLE_WORKFLOW_JSON_SCHEMA_BEGIN", system_prompt)
         self.assertNotIn("ACTIVE_READER_JSON_SCHEMA_BEGIN", system_prompt)
-        self.assertNotIn("SOURCE_RANGE_WIRE_JSON_SCHEMA_BEGIN", system_prompt)
-        self.assertIn("SOURCE_RANGE_SINGLE_WIRE_JSON_SCHEMA_BEGIN", system_prompt)
+        self.assertNotIn("SOURCE_RANGE_SINGLE_WIRE_JSON_SCHEMA_BEGIN", system_prompt)
         embedded = json.loads(sent[0]["messages"][1]["content"].removeprefix("ARTICLE_DATA_BEGIN\n").removesuffix("\nARTICLE_DATA_END"))
-        model_article = embedded["articles"][0]
+        model_article = embedded["article"]
         self.assertNotIn("article_body", model_article)
-        self.assertEqual("".join(span["text"] for span in model_article["source_spans"]), article["article_body"])
-        self.assertEqual(set(model_article["source_spans"][0]), {"source_span_id", "text"})
-        self.assertTrue(
-            all(
-                span["source_span_id"].startswith(article["article_id"] + "::")
-                for span in model_article["source_spans"]
-            )
-        )
-        self.assertNotIn("source_span_map_sha256", sent[0]["messages"][1]["content"])
+        self.assertEqual("".join(unit["text"] for unit in model_article["source_units"]), article["article_body"])
+        self.assertTrue(any("| Field | Value |" in unit["text"] for unit in model_article["source_units"]))
+        self.assertTrue(all(set(unit) == {"source_unit_id", "text"} for unit in model_article["source_units"]))
+        self.assertEqual(set(model_article["article_metadata"]), {"publication_date", "observed_at", "available_at", "pit_status"})
+        self.assertNotIn(article["article_id"], sent[0]["messages"][1]["content"])
+        self.assertNotIn("source_unit_map_sha256", sent[0]["messages"][1]["content"])
         self.assertNotIn("start_cp", sent[0]["messages"][1]["content"])
+        self.assertEqual(sent[0]["model"], "qwen3_8_flash_next")
+        self.assertNotIn("tools", sent[0])
+        self.assertNotIn("response_format", sent[0])
+        self.assertEqual(sent[0]["structured_outputs"], {"json": runner.build_simple_workflow_schema(contract)})
         self.assertEqual(sent[0]["max_tokens"], app.MAX_COMPLETION_TOKENS)
         self.assertIs(sent[0]["enable_thinking"], False)
+        self.assertNotIn("thinking_budget", sent[0])
         self.assertNotIn(b"unit-secret", receipt_raw)
 
-    def test_raw_wire_is_persisted_before_exact_range_projection_and_final_reader_validation(self) -> None:
+    def test_raw_wire_is_persisted_before_unit_projection_and_final_reader_validation(self) -> None:
         body = "  公司披露：回购价格为 10.00 元；正文没有市场比较。\r\n"
         batch = fixtures.synthetic_batch(body)
         article = batch["articles"][0]
         batch_id = "AUTO_" + sha(article["article_id"].encode("utf-8"))[:20]
         frozen_batch = length_canary.make_batch([article], batch_id)
         span_map = runner.build_source_span_map(body, article["body_sha256"])
-        selected_span = span_map["spans"][0]
+        unit_map = runner.build_source_unit_map(body, article["body_sha256"])
+        selected_unit = unit_map["units"][0]
         reader = fixtures.reader_output(article)
         reader["reason"] = "Keep this conclusion byte-for-byte."
         reader["risk_notes"] = ["PIT status remains as supplied."]
@@ -544,14 +654,13 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         # remains required to assess claim support.
         overclaim = "Revenue rose and the price is historically low."
         for field_name in runner.SOURCE_SPAN_CITATION_FIELDS:
-            bound_id = runner._source_range_wire_span_id(article["article_id"], selected_span["source_span_id"])
-            reader[field_name] = [{"claim": overclaim, "start_span_id": bound_id, "end_span_id": bound_id}]
-        wire = {"results": [{"article_id": article["article_id"], "reader_output": reader}]}
+            reader[field_name] = [{"claim": overclaim, "source_unit_id": selected_unit["source_unit_id"]}]
+        wire = {"action": "complete", "lookup_request": None, "reader_output": reader}
         raw_wire = json.dumps(wire, ensure_ascii=False, separators=(",", ":"))
 
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            queue_id = "source-range-unit-test"
+            queue_id = "simple-workflow-unit-test"
             queue = queue_module.SerialAnnouncementQueue(
                 root / "queue-state" / queue_id,
                 queue_id,
@@ -563,14 +672,19 @@ class AutomaticCanaryServerTests(unittest.TestCase):
                 **{name: article[name] for name in ("article_id", "source_sha256", "body_sha256", "article_body")},
                 "article_metadata": article["article_metadata"],
             })
-            payload["rules"] = f"{app.ARTICLE_RULES}+map:{span_map['span_map_sha256']}"
+            payload["rules"] = (
+                f"{app.ARTICLE_RULES}+source-span-map:{span_map['span_map_sha256']}"
+                f"+source-unit-map:{unit_map['source_unit_map_sha256']}"
+            )
             payload["source_span_map_sha256"] = span_map["span_map_sha256"]
+            payload["source_unit_map_sha256"] = unit_map["source_unit_map_sha256"]
             queued = queue.enqueue(payload)
             row = {
                 "article_id": article["article_id"],
                 "idempotency_key": queued["idempotency_key"],
                 "input_sha256": runner._input_batch_sha(frozen_batch),
                 "source_span_map_sha256": span_map["span_map_sha256"],
+                "source_unit_map_sha256": unit_map["source_unit_map_sha256"],
                 "context_admission": "READY",
             }
             plan = app.FrozenPlan(
@@ -601,8 +715,8 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(receipt["raw_wire_sha256"], sha(raw_saved))
         self.assertEqual(receipt["raw_wire_artifact"], str(raw_path.relative_to(queue.state_root)))
         self.assertEqual(receipt["semantic_quality"], "NOT_ASSESSED_BY_AUTOMATION")
-        self.assertEqual(receipt["schema"], "qwen_flash_next.source_range_projection_receipt.v1")
-        self.assertEqual(receipt["protocol"], runner.SOURCE_RANGE_SINGLE_PROTOCOL)
+        self.assertEqual(receipt["schema"], "qwen_flash_next.simple_workflow_projection_receipt.v1")
+        self.assertEqual(receipt["protocol"], runner.SIMPLE_WORKFLOW_PROTOCOL)
         self.assertEqual(receipt["final_projection_sha256"], sha(runner.canonical_json_bytes(validated)))
         self.assertEqual(receipt["final_projection_artifact"], str(validated_path.relative_to(queue.state_root)))
         self.assertNotIn("article_body", json.dumps(receipt, ensure_ascii=False))
@@ -613,7 +727,9 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         for field_name in runner.SOURCE_SPAN_CITATION_FIELDS:
             citation = projected[field_name][0]
             self.assertEqual(citation["claim"], overclaim)
-            self.assertEqual(citation["quote"], body[selected_span["start_cp"]:selected_span["end_cp"]])
+            self.assertEqual(citation["quote"], body[selected_unit["start_cp"]:selected_unit["end_cp"]])
+        self.assertEqual(projected["reason"], reader["reason"])
+        self.assertEqual(projected["risk_notes"], reader["risk_notes"])
 
     def test_timeout_retains_partial_sse_and_failure_receipt(self) -> None:
         partial = b'data: {"choices":[{"delta":{"content":"partial"'
@@ -714,6 +830,68 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(second_receipt["input_sha256"], None)
         self.assertEqual(raw, b"upstream fixture failure")
         self.assertEqual(first_receipt["raw_source_sha256"], sha(raw))
+
+    def test_simple_lookup_cached_search_restores_only_its_own_fetch_urls(self) -> None:
+        route_calls = []
+        first_url = "https://example.org/first"
+        second_url = "https://example.org/second"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            route_calls.append((request.url.path, json.loads(request.content)))
+            if request.url.path == "/v1/web/search":
+                query = json.loads(request.content)["query"]
+                result_url = first_url if query == "focused first query" else second_url
+                return httpx.Response(200, json={"ok": True, "results": [{"url": result_url}]})
+            if request.url.path == "/v1/web/fetch":
+                return httpx.Response(200, json={"ok": True, "content": "fetched fixture"})
+            self.fail(f"unexpected local web route {request.url.path}")
+
+        def search(query: str) -> dict[str, Any]:
+            return {
+                "operation": "search",
+                "missing_fact": "a specific absent fact",
+                "reader_field": "reason",
+                "query": query,
+                "url": "",
+            }
+
+        def fetch(url: str) -> dict[str, Any]:
+            return {
+                "operation": "fetch",
+                "missing_fact": "a specific absent fact",
+                "reader_field": "reason",
+                "query": "",
+                "url": url,
+            }
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            job = queue_module.QueueJob("e" * 64, "test-q", app.MODEL_ID, {}, {}, 1)
+            transport = app.GatedStreamingTransport(
+                "unit-secret", root, http_transport=httpx.MockTransport(handler)
+            )
+            transport.begin_job(job)
+            first, first_receipt = transport._call_simple_workflow_lookup(search("focused first query"), lambda _e: None)
+            cached, cached_receipt = transport._call_simple_workflow_lookup(search("focused first query"), lambda _e: None)
+            fetched, fetch_receipt = transport._call_simple_workflow_lookup(fetch(first_url), lambda _e: None)
+            other_search, _ = transport._call_simple_workflow_lookup(search("focused second query"), lambda _e: None)
+            rejected, rejected_receipt = transport._call_simple_workflow_lookup(fetch(first_url), lambda _e: None)
+            transport.finish_job(status="TEST_COMPLETE")
+            transport.close()
+
+        self.assertTrue(first["ok"])
+        self.assertFalse(first_receipt["reused_cached_result"])
+        self.assertTrue(cached["ok"])
+        self.assertTrue(cached_receipt["reused_cached_result"])
+        self.assertTrue(fetched["ok"])
+        self.assertEqual(fetch_receipt["status"], "ok")
+        self.assertTrue(other_search["ok"])
+        self.assertFalse(rejected["ok"])
+        self.assertEqual(rejected_receipt["status"], "failed")
+        self.assertEqual(rejected["error"]["code"], "web_fetch_url_not_from_qualified_search")
+        self.assertEqual([path for path, _ in route_calls], [
+            "/v1/web/search", "/v1/web/fetch", "/v1/web/search",
+        ])
 
     def test_empty_or_context_failure_raw_is_saved_by_existing_queue(self) -> None:
         for executor_result, expected_code in ((b"", None), (queue_module.ExecutorFailure("CONTEXT_ITEM_UNFIT", code="CONTEXT_ITEM_UNFIT", raw_response=b""), "CONTEXT_ITEM_UNFIT")):
@@ -824,7 +1002,7 @@ class AutomaticCanaryServerTests(unittest.TestCase):
                 "last_error": {"code": "CHAT_NO_PROGRESS_TIMEOUT"},
                 "raw_sha256": sha(b"partial stream"),
                 "validated_sha256": None,
-                "attempts": [{"duration_seconds": 1.0}],
+                "attempts": [{"duration_seconds": 0.75}, {"duration_seconds": 1.25}],
             }])
             activity_values = iter([(0, 0), (0, 0), (1, 0)])
 
@@ -852,6 +1030,7 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(state["queue_status_counts"]["PENDING"], 1)
         self.assertEqual(receipt["scheduled_unique_count"], 2)
         self.assertEqual(receipt["semantic_quality"], "NOT_ASSESSED_BY_AUTOMATION")
+        self.assertEqual(receipt["wall_seconds_all_attempts"], 2.0)
 
 
 if __name__ == "__main__":

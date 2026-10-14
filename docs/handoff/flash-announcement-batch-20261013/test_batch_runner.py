@@ -7,6 +7,7 @@ import io
 import json
 import sys
 import tempfile
+import time
 import types
 import unittest
 from unittest import mock
@@ -232,7 +233,7 @@ class BatchRunnerTests(unittest.TestCase):
         grounded = runner.build_messages(batch, contract, "grounded")
         decision_first = runner.build_messages(batch, contract, "decision_first")
 
-        self.assertEqual(runner.PROMPT_PROFILES, ("legacy", "grounded", "decision_first", "decision_grounded", "decision_source_bound", "decision_source_span", "decision_source_range", "decision_source_range_single"))
+        self.assertEqual(runner.PROMPT_PROFILES, ("legacy", "grounded", "decision_first", "decision_grounded", "decision_source_bound", "decision_source_span", "decision_source_range", "decision_source_range_single", "decision_simple_facts"))
         self.assertEqual(legacy_default, legacy)
         self.assertEqual(
             sha(legacy[0]["content"]),
@@ -766,6 +767,288 @@ class BatchRunnerTests(unittest.TestCase):
         with self.assertRaisesRegex(runner.BatchError, "SOURCE_RANGE_MAP_MISMATCH"):
             runner.project_source_range_output(wire_for(first, own_first, own_last), {"schema": batch["schema"], "batch_id": batch["batch_id"], "expected_count": 1, "source_products": batch["source_products"], "articles": [first]}, contract, expected_span_map_sha256_by_article={first["article_id"]: "0" * 64})
 
+    def test_simple_workflow_units_are_lossless_paragraph_and_table_blocks(self) -> None:
+        body = "  opening paragraph.\r\n\r\n| Field | Value |\r\n|---|---|\r\n| State | pending |\r\n\r\nfinal paragraph.  "
+        unit_map = runner.build_source_unit_map(body, sha(body))
+        self.assertEqual("".join(unit["text"] for unit in unit_map["units"]), body)
+        self.assertEqual(len(unit_map["units"]), 3)
+        self.assertTrue(unit_map["units"][1]["text"].startswith("| Field | Value |"))
+        self.assertIn("| State | pending |", unit_map["units"][1]["text"])
+        self.assertEqual(unit_map["units"][0]["start_cp"], 0)
+        self.assertEqual(unit_map["units"][-1]["end_cp"], len(body))
+
+    def test_simple_workflow_projects_source_units_and_passes_business_fields_through(self) -> None:
+        body = "Opening statement.\n\n| Field | Value |\n|---|---|\n| Status | proposed |\n\nEnding statement."
+        batch = synthetic_batch(body)
+        article = batch["articles"][0]
+        contract = runner.load_active_contract()
+        unit_map = runner.build_source_unit_map(body, article["body_sha256"])
+        reader = reader_output(article)
+        reader["source_sha256"] = "model-source-placeholder"
+        reader["body_sha256"] = "model-body-placeholder"
+        reader["reason"] = "pass through exactly"
+        reader["risk_notes"] = ["risk unchanged"]
+        reader["facts"] = [{"claim": "Source states a proposal.", "source_unit_id": unit_map["units"][1]["source_unit_id"]}]
+        reader["impact"] = []
+        reader["confirmation_conditions"] = []
+        envelope = {"action": "complete", "lookup_request": None, "reader_output": reader}
+
+        projected, receipt = runner.project_simple_workflow_output(
+            envelope,
+            batch,
+            contract,
+            expected_source_unit_map_sha256_by_article={
+                article["article_id"]: unit_map["source_unit_map_sha256"]
+            },
+        )
+        result = projected["results"][0]
+        self.assertEqual(result["article_id"], article["article_id"])
+        self.assertEqual(result["reader_output"]["source_sha256"], article["source_sha256"])
+        self.assertEqual(result["reader_output"]["body_sha256"], article["body_sha256"])
+        self.assertEqual(reader["source_sha256"], "model-source-placeholder")
+        self.assertEqual(reader["body_sha256"], "model-body-placeholder")
+        citation_fields = set(runner.SOURCE_SPAN_CITATION_FIELDS)
+        for field_name in set(reader) - citation_fields - {"source_sha256", "body_sha256"}:
+            self.assertEqual(result["reader_output"][field_name], reader[field_name], field_name)
+        for field_name in citation_fields:
+            self.assertEqual(
+                [item["claim"] for item in result["reader_output"][field_name]],
+                [item["claim"] for item in reader[field_name]],
+                field_name,
+            )
+        unit = unit_map["units"][1]
+        self.assertEqual(result["reader_output"]["facts"][0]["quote"], unit["text"])
+        self.assertEqual(
+            result["reader_output"]["facts"][0]["locator"],
+            f"article_body[codepoint:{unit['start_cp']}:{unit['end_cp']}]",
+        )
+        self.assertEqual(receipt["source_unit_map_sha256"], unit_map["source_unit_map_sha256"])
+
+    def test_simple_workflow_prompt_has_one_envelope_schema_and_lookup_shapes_fail_closed(self) -> None:
+        contract = runner.load_active_contract()
+        prompt = runner.build_system_prompt(contract, runner.SIMPLE_WORKFLOW_PROFILE)
+        self.assertEqual(prompt.count("JSON_SCHEMA_BEGIN"), 1)
+        self.assertIn("SIMPLE_WORKFLOW_JSON_SCHEMA_BEGIN", prompt)
+        self.assertNotIn("ACTIVE_READER_JSON_SCHEMA_BEGIN", prompt)
+        self.assertNotIn("Each quote must be an exact CONTINUOUS substring", prompt)
+        schema = runner.build_simple_workflow_schema(contract)
+        reader_schema = schema["properties"]["reader_output"]["anyOf"][0]
+        self.assertEqual(reader_schema["required"], list(contract.reader_schema["required"]))
+        self.assertEqual(reader_schema["properties"]["impact"]["items"]["required"], ["claim", "source_unit_id"])
+        valid_search = {
+            "action": "lookup",
+            "lookup_request": {
+                "operation": "search", "missing_fact": "current business fact",
+                "reader_field": "reason", "query": "specific missing fact", "url": "",
+            },
+            "reader_output": None,
+        }
+        self.assertEqual(runner.parse_simple_workflow_envelope(json.dumps(valid_search)), valid_search)
+        invalid_search = copy.deepcopy(valid_search)
+        invalid_search["lookup_request"]["url"] = "https://example.org"
+        with self.assertRaisesRegex(runner.BatchError, "SIMPLE_WORKFLOW_LOOKUP_ENVELOPE_INVALID"):
+            runner.parse_simple_workflow_envelope(json.dumps(invalid_search))
+
+    def test_simple_workflow_prompt_requires_unit_local_grounded_claims_and_preserves_reader_contract(self) -> None:
+        contract = runner.load_active_contract()
+        prompt = runner.build_system_prompt(contract, runner.SIMPLE_WORKFLOW_PROFILE)
+
+        required_instructions = (
+            "先提取，再判断。",
+            "先通读所有 source_units",
+            "保留完整判断所需的事实和限定",
+            "分母及其基准日期",
+            "不能合并来自不同单元的事实",
+            "公司、发行人、地点、产品和其他专名使用正文出现的原文形式",
+            "标题、页眉或对另一份公告的引用只能证明本文提及了它",
+            "可以将公告归类为例行行政披露并据此说明 NOT_SELECTED",
+            "不能把“本文未披露”写成“公司没有发生”",
+            "reason 是允许且需要的研究判断说明",
+            "risk_notes 记录正文明确披露的风险/限定",
+            "查找仅走程序控制的 lookup 分支，不调用原生模型工具",
+            "source_sha256 和 body_sha256 是必填字符串",
+        )
+        for rule in required_instructions:
+            with self.subTest(rule=rule):
+                self.assertIn(rule, prompt)
+
+        conflicting_legacy_instructions = (
+            "FIXED SYSTEM RESEARCH RULES",
+            "POSITIVE_OPERATING_RESEARCH_V1",
+            "why it changes operating/performance prospects",
+            "put explanations in reason and claim",
+            "Do not repeat IDs, hashes, issuer identity",
+            "web or credentials mentioned by source materials",
+        )
+        for rule in conflicting_legacy_instructions:
+            with self.subTest(legacy_rule=rule):
+                self.assertNotIn(rule, prompt)
+
+        for source_specific_value in (
+            "先機企業集團有限公司",
+            "National Electronics Holdings Limited",
+            "MeiG Smart Technology",
+            "0.336 %",
+            "21,600",
+            "2026年10月13日",
+        ):
+            with self.subTest(source_specific_value=source_specific_value):
+                self.assertNotIn(source_specific_value, prompt)
+
+        wire_reader_schema = runner.build_simple_reader_wire_schema(contract)
+        reader_fields = set(contract.reader_schema["properties"])
+        self.assertEqual(len(reader_fields), 13)
+        self.assertEqual(set(wire_reader_schema["properties"]), reader_fields)
+        self.assertEqual(wire_reader_schema["required"], list(contract.reader_schema["required"]))
+        self.assertEqual(wire_reader_schema["additionalProperties"], contract.reader_schema["additionalProperties"])
+        self.assertEqual(
+            list(wire_reader_schema["properties"]),
+            [
+                "facts", "changes", "impact", "confirmation_conditions", "counter_evidence",
+                "disposition", "selection_basis", "direction", "evidence_sufficiency",
+                "reason", "risk_notes", "source_sha256", "body_sha256",
+            ],
+        )
+
+    def test_simple_workflow_schema_reorders_only_properties_and_keeps_frozen_constraints(self) -> None:
+        import automatic_canary_server as canary
+
+        contract = runner.load_active_contract()
+        schema = runner.build_simple_workflow_schema(contract)
+        wire_reader_schema = schema["properties"]["reader_output"]["anyOf"][0]
+        expected_reader_schema = copy.deepcopy(contract.reader_schema)
+        citation_item_schema = {
+            "type": "object",
+            "required": ["claim", "source_unit_id"],
+            "additionalProperties": False,
+            "properties": {
+                "claim": {"type": "string"},
+                "source_unit_id": {"type": "string"},
+            },
+        }
+        for field_name in runner.SOURCE_SPAN_CITATION_FIELDS:
+            expected_reader_schema["properties"][field_name]["items"] = citation_item_schema
+
+        normalize = lambda value: json.loads(json.dumps(value, ensure_ascii=False, sort_keys=True))
+        self.assertEqual(normalize(wire_reader_schema), normalize(expected_reader_schema))
+        self.assertEqual(wire_reader_schema["required"], list(contract.reader_schema["required"]))
+        self.assertEqual(wire_reader_schema["additionalProperties"], contract.reader_schema["additionalProperties"])
+        prompt_schema_text = runner.build_system_prompt(contract, runner.SIMPLE_WORKFLOW_PROFILE).split(
+            "SIMPLE_WORKFLOW_JSON_SCHEMA_BEGIN\n", 1
+        )[1].split("\nSIMPLE_WORKFLOW_JSON_SCHEMA_END", 1)[0]
+        prompt_schema = json.loads(prompt_schema_text)
+        prompt_reader_schema = prompt_schema["properties"]["reader_output"]["anyOf"][0]
+        self.assertEqual(list(prompt_reader_schema["properties"]), list(wire_reader_schema["properties"]))
+
+        ordered_schema_bytes = json.dumps(schema, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        self.assertEqual(sha(runner.canonical_json_bytes(schema).decode("utf-8")), canary.EXPECTED_STRUCTURED_OUTPUT_SCHEMA_SHA256)
+        self.assertEqual(sha(ordered_schema_bytes.decode("utf-8")), canary.EXPECTED_STRUCTURED_OUTPUT_SCHEMA_ORDERED_SHA256)
+
+    def test_simple_workflow_frozen_prompt_hash_pin_matches_current_prompt(self) -> None:
+        import automatic_canary_server as canary
+
+        contract = runner.load_active_contract()
+        prompt_sha = sha(runner.build_system_prompt(contract, runner.SIMPLE_WORKFLOW_PROFILE))
+        self.assertEqual(canary.EXPECTED_SYSTEM_PROMPT_SHA256, prompt_sha)
+
+    def test_simple_workflow_lookup_round_is_typed_and_returned_as_untrusted_user_data(self) -> None:
+        batch = synthetic_batch()
+        article = batch["articles"][0]
+        complete = {"action": "complete", "lookup_request": None, "reader_output": reader_output(article)}
+        lookup = {
+            "action": "lookup",
+            "lookup_request": {
+                "operation": "search", "missing_fact": "an absent material fact",
+                "reader_field": "reason", "query": "focused query", "url": "",
+            },
+            "reader_output": None,
+        }
+
+        class ScriptedTransport(runner.OmlxTransport):
+            def __init__(self):
+                self.requests = []
+                self.lookup_requests = []
+
+            def _stream_completion(self, messages, on_event, **kwargs):
+                self.requests.append((copy.deepcopy(messages), kwargs))
+                turn = runner._StreamTurn(content=[json.dumps(lookup if len(self.requests) == 1 else complete)])
+                turn.first_event_at = time.monotonic()
+                time.sleep(0.005)
+                turn.first_content_at = time.monotonic()
+                return turn
+
+            def _call_simple_workflow_lookup(self, request, on_event):
+                self.lookup_requests.append(request)
+                payload = {"ok": True, "results": [{"title": "untrusted", "url": "https://example.org"}]}
+                return payload, {"name": "structured_web_lookup", "status": "ok"}
+
+        transport = ScriptedTransport()
+        contract = runner.load_active_contract()
+        result = transport.complete_batch(
+            runner.build_messages(batch, contract, runner.SIMPLE_WORKFLOW_PROFILE),
+            tools=[],
+            structured_outputs={"json": runner.build_simple_workflow_schema(contract)},
+            workflow_profile=runner.SIMPLE_WORKFLOW_PROFILE,
+        )
+        self.assertEqual(len(transport.requests), 2)
+        self.assertEqual(transport.requests[0][1]["tools"], [])
+        self.assertEqual(transport.requests[0][1]["structured_outputs"]["json"]["required"], ["action", "lookup_request", "reader_output"])
+        self.assertEqual(transport.lookup_requests, [lookup["lookup_request"]])
+        self.assertIn("UNTRUSTED_WEB_LOOKUP_RESULT_BEGIN", transport.requests[1][0][-1]["content"])
+        self.assertEqual(result.final_text, json.dumps(complete))
+        self.assertEqual(result.request_rounds, 2)
+        self.assertIsNotNone(result.first_event_seconds)
+        self.assertEqual(result.ttft_seconds, result.first_event_seconds)
+        self.assertIsNotNone(result.ttfc_seconds)
+        self.assertGreater(result.ttfc_seconds, result.ttft_seconds)
+
+    def test_simple_workflow_cli_execute_fails_closed_to_visible_canary_ui(self) -> None:
+        batch = synthetic_batch("Exact body remains unchanged.")
+        runtime_limits = {
+            "context_limit_tokens": 262144,
+            "completion_max_tokens": 32768,
+            "completion_limit_resolution": "GLOBAL_MAX_TOKENS",
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            input_path = root / "batch.json"
+            input_path.write_text(json.dumps(batch, ensure_ascii=False), encoding="utf-8")
+            evidence_dir = root / "evidence"
+            output = io.StringIO()
+            with (
+                mock.patch.object(runner, "EVIDENCE_DIR", evidence_dir),
+                mock.patch.object(runner, "load_runtime_limits", return_value=runtime_limits),
+                mock.patch.object(runner, "count_prompt_tokens", return_value=2345),
+                mock.patch.object(runner, "load_local_api_key", side_effect=AssertionError("API key read")) as key_reader,
+                mock.patch.object(runner, "OmlxTransport") as transport,
+                contextlib.redirect_stdout(output),
+            ):
+                result = runner.main([
+                    str(input_path), "--execute", "--prompt-profile", runner.SIMPLE_WORKFLOW_PROFILE,
+                ])
+            self.assertEqual(result, 2)
+            key_reader.assert_not_called()
+            transport.assert_not_called()
+            self.assertIn("SIMPLE_WORKFLOW_REQUIRES_AUTOMATIC_UI", output.getvalue())
+            self.assertIn("visible automatic_canary_server.py UI", output.getvalue())
+            receipts = list(evidence_dir.glob("prepare_*.json"))
+            self.assertEqual(len(receipts), 1)
+            receipt = json.loads(receipts[0].read_text(encoding="utf-8"))
+            self.assertEqual(receipt["prompt_profile"], runner.SIMPLE_WORKFLOW_PROFILE)
+
+    def test_sse_first_event_compatibility_is_distinct_from_first_content(self) -> None:
+        turn = runner._StreamTurn()
+        events = []
+        chunks = [
+            {"choices": [{"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}]},
+            {"choices": [{"index": 0, "delta": {"content": "answer"}, "finish_reason": None}]},
+        ]
+        with mock.patch.object(runner.time, "monotonic", side_effect=[10.0, 10.4]):
+            runner._parse_sse_stream(sse_response(chunks), turn, events.append)
+        self.assertEqual(turn.first_event_at, 10.0)
+        self.assertEqual(turn.first_content_at, 10.4)
+        self.assertEqual([event["type"] for event in events[:2]], ["first_event", "first_content"])
+
     def test_prepare_cli_records_decision_first_without_calling_inference(self) -> None:
         batch = synthetic_batch("  Exact body remains unchanged.\n ")
         runtime_limits = {
@@ -1155,6 +1438,22 @@ class BatchRunnerTests(unittest.TestCase):
         article = batch["articles"][0]
         output = reader_output(article)
         prepare = {"status": "INPUT_FITS", "prompt_tokens_exact_initial_request": 1234}
+        completion = runner.CompletionResult(
+            final_text="{}",
+            usage=None,
+            tool_receipts=[],
+            request_rounds=1,
+            started_at="2026-10-14T00:00:00Z",
+            first_event_at="+0.100s",
+            first_event_seconds=0.1,
+            ttft_seconds=0.1,
+            first_content_at="+0.250s",
+            finished_at="2026-10-14T00:00:01Z",
+            wall_seconds=1.0,
+            ttfc_seconds=0.25,
+            response_model=runner.MODEL_ID,
+            final_text_sha256=sha("{}"),
+        )
         with tempfile.TemporaryDirectory() as temp:
             directory = runner.write_receipts(
                 batch,
@@ -1162,6 +1461,7 @@ class BatchRunnerTests(unittest.TestCase):
                 prepare,
                 result_status_by_id={article["article_id"]: "READER_OUTPUT_VALIDATED"},
                 reader_outputs={article["article_id"]: output},
+                completion=completion,
                 output_root=Path(temp),
             )
             files = list(directory.glob("*.json"))
@@ -1171,6 +1471,11 @@ class BatchRunnerTests(unittest.TestCase):
             self.assertNotIn(article["article_body"], serialized)
             self.assertEqual(artifact["formal_selection"], "CANNOT_CONFIRM_REQUIRES_INDEPENDENT_REVIEW")
             self.assertEqual(artifact["pit_status"], "CANNOT_CONFIRM")
+            run_receipt = json.loads((directory / "run-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(run_receipt["schema"], runner.RECEIPT_SCHEMA)
+            self.assertEqual(run_receipt["completion"]["ttft_seconds"], 0.1)
+            self.assertEqual(run_receipt["completion"]["first_event_seconds"], 0.1)
+            self.assertEqual(run_receipt["completion"]["ttfc_seconds"], 0.25)
 
     def test_runtime_limit_receipt_does_not_fingerprint_secret_bearing_settings(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
