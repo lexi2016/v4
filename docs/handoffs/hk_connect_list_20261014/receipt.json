@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-14",
+  "scope": "one-off official list export; no business code/data-layer/service changes",
+  "stock_count": 667,
+  "etf_count": 31,
+  "union_count": 698,
+  "sse_count": 698,
+  "szse_count": 698,
+  "overlap": 698,
+  "sse_only": 0,
+  "szse_only": 0,
+  "sell_only_list": "NOT_VERIFIED; not included",
+  "sources": [
+    "https://www.sse.com.cn/services/hkexsc/disclo/eligible/",
+    "https://www.szse.cn/szhk/hkbussiness/underlylist/index.html"
+  ],
+  "checks": [
+    "official metadata dates and totals matched",
+    "unique 5-digit codes and identical channel code sets",
+    "xlsx reopened; stock/ETF/union counts matched; leading zeros retained"
+  ],
+  "sha256": {
+    "official_szse_metadata.json": "22bc296dfb694c337a0414eeef7bfb6836d2f1d18439cc6abae13a886bf441ad",
+    "official_sse_response.json": "e0e3ec79f2bd57424f7f12c30b488206373a5628525e17e9aca9353929679fd3",
+    "official_szse_export.xlsx": "77f661e6ae320cccbefe460ad793385485643489bbc76fe69308f646471063da",
+    "港股通完整名单_20261014.xlsx": "a73451bc5b841b13f62add2dfb1cad4217805f202deb99dda2734e244cc934c0",
+    "港股通股票名单_667只_20261014.csv": "9b799c0b74ac5047f4e44a1b3dfd1dfa5ca9ce978fa3b8e7877913c423424c9c",
+    "港股通全部证券_698只_20261014.csv": "0fb35bf0a9554d022811a51dd21176bc234a1f45af5ae402933cad2c36fab569"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
