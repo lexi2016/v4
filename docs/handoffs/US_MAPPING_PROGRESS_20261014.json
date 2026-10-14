@@ -1,0 +1,65 @@
+{
+  "schema_version": "us-internet-coverage-progress-v1",
+  "target_date": "20261014",
+  "user_scope": "Replan first; US_MAPPING only; preserve completed OVERSOLD",
+  "execution_state": "STOPPED_FOR_USER_REPLAN",
+  "runtime_release": "us-internet-coverage-api-20261014-r5",
+  "runtime_manifest_sha256": "a2e69ff457c6447e0d94daee550d808759ce8cdd7075076c76086b4655c84d34",
+  "source_sync_baseline": "fa7e643b1d4265fc1103d3deb392a7bd13ed65bb",
+  "default_us_universe_count": 48,
+  "business_relation_rows": 22,
+  "business_relation_status": "PROPOSED/PIT_UNCONFIRMED",
+  "saved_capture": {
+    "artifact_date": "20261014",
+    "us_session_date": "20261013",
+    "requested": 48,
+    "available": 48,
+    "session_dates": [
+      "20261013"
+    ],
+    "update_times": [
+      "16:00:01",
+      "16:08:30"
+    ],
+    "status": "CANNOT_CONFIRM",
+    "reasons": [
+      "MARKET_SNAPSHOT_INCOMPLETE",
+      "QUOTE_SESSION_TIME_MIXED"
+    ],
+    "interpretation": "Mixed update times within one session; field semantics remain unconfirmed"
+  },
+  "latest_actual_run": {
+    "run_id": "3b46e0f994974772844a4e63381eadc7",
+    "cutoff": "2026-10-14T20:11:13.184380+08:00",
+    "status": "PARTIAL",
+    "actual_us_scope": 33,
+    "expanded_48_input_consumed": false,
+    "input_sha256": "486efed136b5f10d1a8b55019bba9c2331a82ad8421a5ebd0015000792def4ac",
+    "product_sha256": "90e75d77f46382a5bfa060b23db99e7c112ea46ebe87110d0c31c95fab270440",
+    "local_receipt_sha256": "56f87a8e866cf449621408be52937bbabf8b220aa044710aadebec5705808a05"
+  },
+  "R6_candidate": {
+    "purpose": "Prefer exact target-date owner artifact over legacy source-session artifact; preserve present CANNOT_CONFIRM instead of silently falling back",
+    "changed_paths": [
+      "v4/manager_workbench/inputs/source_bindings.py",
+      "tests/test_manager_us_mapping_bindings_r3.py"
+    ],
+    "reviewed": "PASS",
+    "independent_tests": 2,
+    "review_sha256": "3dbfcdcbb368b3d5e8480779792759c883f3c0768c597b8f41a712150a1a2285",
+    "deployed": false,
+    "actual_run": "NOT_RUN"
+  },
+  "integration": {
+    "canonical_conflicted_implementation_files": 5,
+    "worktree_conflicted_implementation_files": 3,
+    "conflicted_user_changes_preserved": true,
+    "complete": false
+  },
+  "next_plan": "docs/handoffs/PLAN_US_MAPPING_FOCUSED_20261014.md",
+  "NATURAL_VERIFIED": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

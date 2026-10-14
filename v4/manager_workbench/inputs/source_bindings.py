@@ -493,21 +493,39 @@ def us_mapping(config, context):
     session = context.source_sessions['us']
     root = config.us_root
 
-    quote_rel = f'research/peripherals/{session}/external_finance.json'
     manifest, msha = read(root, 'research/peripherals/manifest.json')
-    payload, qsha = read(root, quote_rel, manifest[quote_rel])
+    # The owner artifact is keyed by research trade date, while its quote rows
+    # identify the preceding US session. Prefer the exact target-date artifact;
+    # retain the old session-date layout only when the target artifact is absent.
+    artifact_date = context.target_date
+    quote_rel = f'research/peripherals/{artifact_date}/external_finance.json'
+    try:
+        SafeRoot(root).read_bytes(quote_rel)
+    except FileNotFoundError:
+        artifact_date = session
+        quote_rel = f'research/peripherals/{artifact_date}/external_finance.json'
+    expected_quote_sha = manifest.get(quote_rel)
+    if not valid_sha(expected_quote_sha):
+        raise ValueError('US_OWNER_ARTIFACT_MANIFEST_BINDING_INVALID')
+    payload, qsha = read(root, quote_rel, expected_quote_sha)
 
-    receipt_rel = f'receipts/research/peripherals/{session}/external_finance.json'
+    receipt_rel = f'receipts/research/peripherals/{artifact_date}/external_finance.json'
     receipt, rsha = read(root, receipt_rel)
 
     snapshot = payload.get('market_snapshot', {})
     checked_time(snapshot.get('captured_at'), context.cutoff)
 
+    receipt_payload_sha = receipt.get('artifact_sha256') or receipt.get('payload_sha256')
     if (
         snapshot.get('capture_session_date') != session
-        or receipt.get('artifact_sha256', receipt.get('payload_sha256')) != qsha
+        or receipt.get('trade_date') != artifact_date
+        or receipt.get('source') != 'external_finance'
+        or receipt.get('payload_path') != quote_rel
+        or receipt_payload_sha != qsha
+        or (artifact_date == context.target_date
+            and receipt.get('us_session_date') != session)
     ):
-        raise ValueError('US_OWNER_RECEIPT_SESSION_INVALID')
+        raise ValueError('US_OWNER_RECEIPT_ARTIFACT_SESSION_INVALID')
 
     snapshot_contract = snapshot.get("universe_contract")
     if isinstance(snapshot_contract, dict):
@@ -677,7 +695,9 @@ def us_mapping(config, context):
         additional_relation_sources=[*seed_sources,*inherited_sources])
     factor, factor_files, factor_gap = us_factor_exposure(config, context)
     industry = hk_industry_classification(config, context)
-    return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
+    return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,
+        quote_artifact_date=artifact_date,quote_source_session=session,
+        quote_owner='research_peripheral.external_finance',
         relation_local_path=str(registry_root),relation_relative=registry_relative,relation_sha256=registry_sha,
         relation_owner='US_MAPPING_BUSINESS_RELATION_PROPOSAL_REGISTRY',relation_projection=projection,
         configured_symbols=list(universe_contract["symbols"]),universe_contract=universe_contract,
