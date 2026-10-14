@@ -311,6 +311,7 @@ def main() -> int:
     seen_rows: dict[str, dict] = {}
     duplicate_rows = 0
     boundary_reached = page_log[0]['has_at_or_before_start']
+    end_reached = len(page1['data']) == 0
     fetch_error = None
     for row in page1['data']:
         key = str(row.get('content_id') or row.get('id') or row.get('url') or '')
@@ -319,28 +320,28 @@ def main() -> int:
         else:
             seen_rows[key] = row
 
-    if not boundary_reached:
-        for page in range(2, MAX_PAGES + 1):
-            time.sleep(PAGE_PAUSE_SECONDS)
-            try:
-                payload, raw, status = fetch_json(API_URL.format(page=page))
-            except Exception as exc:
-                fetch_error = f'page {page}: {type(exc).__name__}: {exc}'
-                break
-            page_log.append(page_summary(page, 'live_api', payload, raw, status))
-            stamps = [as_epoch(row.get('publish_time')) for row in payload['data']]
-            stamps = [x for x in stamps if x is not None]
-            for row in payload['data']:
-                key = str(row.get('content_id') or row.get('id') or row.get('url') or '')
-                if key in seen_rows:
-                    duplicate_rows += 1
-                else:
-                    seen_rows[key] = row
-            if any(x <= int(WINDOW_START.timestamp()) for x in stamps):
-                boundary_reached = True
-                break
-            if len(payload['data']) == 0:
-                break
+    for page in range(2, MAX_PAGES + 1):
+        if end_reached:
+            break
+        time.sleep(PAGE_PAUSE_SECONDS)
+        try:
+            payload, raw, status = fetch_json(API_URL.format(page=page))
+        except Exception as exc:
+            fetch_error = f'page {page}: {type(exc).__name__}: {exc}'
+            break
+        page_log.append(page_summary(page, 'live_api', payload, raw, status))
+        stamps = [as_epoch(row.get('publish_time')) for row in payload['data']]
+        stamps = [x for x in stamps if x is not None]
+        for row in payload['data']:
+            key = str(row.get('content_id') or row.get('id') or row.get('url') or '')
+            if key in seen_rows:
+                duplicate_rows += 1
+            else:
+                seen_rows[key] = row
+        if any(x <= int(WINDOW_START.timestamp()) for x in stamps):
+            boundary_reached = True
+        if len(payload['data']) == 0:
+            end_reached = True
 
     start_epoch = int(WINDOW_START.timestamp())
     end_epoch = int(WINDOW_END.timestamp())
@@ -480,7 +481,7 @@ def main() -> int:
         'body_request_concurrency': BODY_WORKERS,
     }
     extracted_body_rows = counts['body_extracted_rows']
-    final_state = 'PASS' if boundary_reached and not fetch_error and body_count <= MAX_BODY_ARTICLES and extracted_body_rows > 0 else 'CANNOT_CONFIRM'
+    final_state = 'PASS' if end_reached and not fetch_error and body_count <= MAX_BODY_ARTICLES and extracted_body_rows > 0 else 'CANNOT_CONFIRM'
     receipt = {
         'status': final_state,
         'goal': 'bounded research-only trial of the Zhitong 港股公告 column for one frozen 24-hour window',
@@ -517,8 +518,10 @@ def main() -> int:
         },
         'pagination': {
             'boundary_reached': boundary_reached,
+            'full_window_set_complete': end_reached,
+            'page_cap_reached_without_end_proof': bool(len(page_log) == MAX_PAGES and not end_reached and not fetch_error),
             'fetch_error': fetch_error,
-            'stop_reason': 'first page containing publish_time <= window start' if boundary_reached else ('fetch error' if fetch_error else 'page cap, empty response, or no older timestamp'),
+            'stop_reason': ('empty page 1' if end_reached and len(page_log) == 1 else f'empty page {page_log[-1]["page"]}' if end_reached else 'fetch error' if fetch_error else f'page cap {MAX_PAGES} reached with nonempty response'),
             'pages_scanned': len(page_log),
             'page_scan_path': str(page_log_path),
         },
