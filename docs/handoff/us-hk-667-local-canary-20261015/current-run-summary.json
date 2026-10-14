@@ -1,0 +1,109 @@
+{
+  "created_at_utc": "2026-10-14T17:44:22+00:00",
+  "input": {
+    "unique_stock_rows": 667,
+    "zip_contents_included": false,
+    "zip_sha256": "0c824c6a6fbcdc2386982cb40ab88c66459e1b1b7665df5ffcd68b339e4117d1"
+  },
+  "next_status": "STOPPED_AT_SEARCH_PROVIDER_BLOCKER; no more probes, code edits, UI starts, or model requests in this handoff.",
+  "offline_verification": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python -m unittest discover -s evidence/us-hk-667-20261015/tests -p 'test_*.py' -v",
+    "result": "13/13 PASS; offline protocol/identity/recovery tests only, not semantic quality acceptance.",
+    "runner_sha256": "267edfc82ba1d108cdc63027430f5903744f1f4185b35381fece0f2dc9cfcade",
+    "test_sha256": "5620085f2dbe864e09dbdbc4ed6e756095eff628f53968fa084653da62c2a4d8"
+  },
+  "review": {
+    "00005": {
+      "citation_audit": {
+        "exact_contiguous": 6,
+        "stitched_non_contiguous": 2,
+        "total": 8
+      },
+      "identity_and_source_supported_facts": "Reviewer found identity, USD 34.1B revenue, USD 15.8B pre-tax profit, and ADS ratio consistent with cited sources.",
+      "prediction_validation": {
+        "sections": [
+          "F",
+          "H"
+        ],
+        "status": "NOT_VALIDATED"
+      },
+      "validator_issue": "The existing validator requires evidence for every non-GAP claim, so reasonable inferences can be rejected when direct quote evidence is absent. Do not weaken the gate or alter the answer to force acceptance."
+    },
+    "independent_semantic_status": "NOT_PASSED",
+    "overall_quality": "NOT_PASSED"
+  },
+  "runs": {
+    "v3_protocol_failure": {
+      "bulk_unlocked": false,
+      "candidate_id": "candidate-667-0c824c6a6fbc-6c57e1a304",
+      "finding": "v3 mixed native tools with response_format=json_object; all three canary responses were incompatible with the expected protocol (numeric-array or ordinary tool-array output), so no report was accepted. The explicit JSON action envelope was introduced in v4.",
+      "model_requests_started": 3,
+      "queue_state_sha256": "988923da844bf0f6f2650bdaa9b20aa61aa6852e04b3a995677150b4889c9c70",
+      "status_counts": {
+        "IN_PROGRESS": 3,
+        "NOT_REVIEWED": 664
+      }
+    },
+    "v4_search_failure": {
+      "bulk_unlocked": false,
+      "candidate_id": "candidate-667-0c824c6a6fbc-c9b7abad12",
+      "finding": "00005 attempt-01 and attempt-02 both failed at web search tool 03 with provider_unavailable; installed DDGS auto surfaced Mojeek TLS handshake EOF. Bulk stayed locked.",
+      "model_requests_started": 6,
+      "queue_state_sha256": "daff5b516d28fb0abe65fab89838733ed0f8d51796619fd2c7762c928e88e503",
+      "status_counts": {
+        "FAILED_SYSTEM": 1,
+        "NOT_REVIEWED": 666
+      }
+    },
+    "v5_model_run": {
+      "bulk_unlocked": false,
+      "candidate_id": "candidate-667-0c824c6a6fbc-267edfc82b",
+      "finding": "13 model requests total; 00005 has a draft but remains IN_PROGRESS and did not pass quality review; 00883 is FAILED_SYSTEM after provider_unavailable during the recovery search; 00002 is NOT_REVIEWED; 665 remain NOT_REVIEWED; bulk was not enabled.",
+      "model_requests_started": 13,
+      "queue_state_sha256": "2718a3502e71b5438bf7deb4445bcaffaf87dd1ce7e1232fd43367c993c172e6",
+      "status_counts": {
+        "FAILED_SYSTEM": 1,
+        "IN_PROGRESS": 1,
+        "NOT_REVIEWED": 665
+      }
+    }
+  },
+  "safety": {
+    "canonical_repository_modified": false,
+    "contains_credentials": false,
+    "contains_full_web_pages": false,
+    "contains_original_model_answers": false,
+    "contains_zip_or_stock_list": false,
+    "model_or_service_settings_modified": false,
+    "research_only": true
+  },
+  "schema": "us_hk_667_sanitized_handoff.v1",
+  "search_probe": {
+    "explicit_backends": {
+      "brave": "NO_RESULTS",
+      "google": "NO_RESULTS"
+    },
+    "overall_network_status": "CANNOT_CONFIRM",
+    "summary_receipt_path": "diagnostics/explicit-ddgs-backend-probes-v1/summary-receipt-v1.json",
+    "summary_receipt_sha256": "34bf9781560085570dbfc997bd23781116bbad505f1f5aef3e698135a943bfc5",
+    "underlying_search_failure_cause": "CANNOT_CONFIRM"
+  },
+  "source_snapshot": {
+    "files": {
+      "source/test_us_hk_667_runner.py": {
+        "bytes": 19713,
+        "sha256": "5620085f2dbe864e09dbdbc4ed6e756095eff628f53968fa084653da62c2a4d8"
+      },
+      "source/us_hk_667_runner.py": {
+        "bytes": 97189,
+        "sha256": "267edfc82ba1d108cdc63027430f5903744f1f4185b35381fece0f2dc9cfcade"
+      }
+    },
+    "not_self_contained": true,
+    "reused_dependencies": [
+      "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary/batch_runner.py",
+      "/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/lib/python3.12/site-packages/omlx",
+      "Original task ZIP at its frozen package path (not included)."
+    ]
+  }
+}
