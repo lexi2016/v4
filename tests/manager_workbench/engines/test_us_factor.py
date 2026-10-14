@@ -1,7 +1,11 @@
 from copy import deepcopy
 from hashlib import sha256
+import json
+from types import SimpleNamespace
 
 from v4.manager_workbench.engines.us_factor import run_us_factor
+from v4.manager_workbench.inputs.validation import owner_digest
+from v4.manager_workbench.inputs.source_bindings import hk_industry_classification
 
 
 def context():
@@ -183,3 +187,159 @@ def test_paired_review_id_mismatch_fails_closed():
     assert rows == []
     assert summary["paired_review_available"] is False
     assert summary["paired_review_gap"] == "US_FACTOR_PAIRED_ROW_COVERAGE_INVALID"
+
+
+def _industry_codes(count=698):
+    return ["HK.00300", *[f"HK.{90000 + i:05d}" for i in range(1, count)]]
+
+
+def _industry_record(symbol, industry, *, response_sha="5" * 64, response_ref="fixture://row"):
+    row_material = dict(symbol=symbol, issuer_name=f"Fixture {symbol}", source_industry=industry)
+    row_sha = sha256(json.dumps(row_material, ensure_ascii=False, sort_keys=True,
+        separators=(",", ":")).encode("utf-8")).hexdigest()
+    return {**row_material, "source_row_sha256": row_sha,
+        "source_response_sha256": response_sha, "source_response_ref": response_ref,
+        "mapping_type": "EXACT_PROVIDER_INDUSTRY"}
+
+
+def _industry_input(target_date, captured_at, codes, *, include_full_scope=True):
+    codes_sha = owner_digest(dict(market="HK_CONNECT", codes=sorted(codes)))
+    member_sha = "a" * 64
+    rows = [_industry_record("HK.00300", "家庭电器及用品")]
+    if include_full_scope:
+        rows.append(_industry_record(codes[1], "SYNTHETIC_UNMAPPED_CATEGORY"))
+        rows.extend(_industry_record(code, None) for code in codes[2:])
+    artifact = dict(schema_version="v4.manager_workbench.hk_industry_classification.v1",
+        source_id="EASTMONEY_F10_RPT_HKF10_INFO_ORGPROFILE", source_owner="eastmoney-f10-canary",
+        source_url="https://datacenter.eastmoney.com/securities/api/data/v1/get",
+        target_date=target_date, market="HK_CONNECT", scope_type="HK_CONNECT_FULL_MARKET",
+        scope_count=len(codes), membership_codes_sha256=codes_sha,
+        membership_artifact_sha256=member_sha, source_asof=None, source_asof_status="UNKNOWN",
+        captured_at=captured_at, batch_response_sha256="6" * 64, rows=rows)
+    binding = dict(status="READY", owner="eastmoney-f10-canary", artifact=artifact,
+        artifact_relative="fixture://hk-industry.json", artifact_sha256="7" * 64,
+        evidence_ids=["industry-fixture"], hk_scope_codes=sorted(codes), hk_scope_count=len(codes),
+        membership_codes_sha256=codes_sha, membership_artifact_sha256=member_sha,
+        membership_owner="monthly-connect", membership_available_at="2026-10-13T08:00:00+08:00",
+        membership_effective_from=target_date[:6] + "01", membership_effective_through=target_date[:6] + "31",
+        membership_version="fixture-membership-v1")
+    return binding, codes_sha
+
+
+def _industry_identity(codes, source_date, *, master_codes=None):
+    """Synthetic exact D-1 security-master identity pin for unit coverage only."""
+    master_codes = sorted(master_codes if master_codes is not None else codes)
+    return dict(status="READY", master_codes=master_codes, master_scope_count=len(master_codes),
+        owner="v3_shared_data", source_date=source_date, available_at="2026-10-13T08:00:00+08:00",
+        artifact_sha256="8" * 64, manifest_sha256="9" * 64,
+        identity_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=master_codes)),
+        evidence_ids=["synthetic-security-master"])
+
+
+def _industry_payload(binding, codes, source_date, *, master_codes=None):
+    return dict(hk_scope_count=len(codes), hk_scope_codes=sorted(codes),
+        membership_codes_sha256=binding["membership_codes_sha256"],
+        membership_artifact_sha256=binding["membership_artifact_sha256"],
+        hk_industry_identity=_industry_identity(codes, source_date, master_codes=master_codes),
+        hk_industry_classification=binding)
+
+
+def _industry_proxy_batch(session):
+    symbols = ["XLY", "XLP"]
+    owner_row = dict(label="消费", mapping_type="etf_basket_proxy", proxy_symbols=symbols,
+        available_symbols=symbols, requested_symbols=symbols, coverage=dict(available=2, requested=2),
+        status="READY", quote_session_dates=[session], change_pct=1.5)
+    records = []
+    for symbol, change in zip(symbols, [1.0, 2.0]):
+        records.append(dict(us_symbol=symbol, owner="quote-owner", source_sha256="1" * 64,
+            available_at="2026-10-14T08:00:00+08:00",
+            quote=dict(session_date=session, last=100 + change, previous_close=100, change_pct=change),
+            proxy_metadata=[dict(owner="quote-owner", source_sha256="1" * 64,
+                available_at="2026-10-14T08:00:00+08:00", owner_row=owner_row)]))
+    return dict(records=records)
+
+
+def test_hk_industry_single_same_day_canary_uses_positive_proxy_only_as_watch():
+    codes = ["HK.00300"]
+    binding, _ = _industry_input("20261014", "2026-10-14T09:30:00+08:00", codes, include_full_scope=False)
+    context_today = dict(target_date="20261014", phase="INTRADAY", cutoff="2026-10-14T13:00:00+08:00",
+        source_sessions={"us": "20261013", "hk_price": "20261013"})
+    payload_today = _industry_payload(binding, codes, "20261013")
+    rows, summary = run_us_factor(context_today, _industry_proxy_batch("20261013"), payload_today)
+    candidate = next(row for row in rows if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE")
+    assert candidate["symbol"] == "HK.00300"
+    assert candidate["theme"] == "消费" and candidate["return_pct"] == "1.50"
+    assert candidate["decision"] == "CONDITIONAL_WATCH"
+    assert candidate["temporal_status"] == "OBSERVED_BY_TARGET_CUTOFF"
+    assert candidate["historical_pit_verified"] is False
+    assert candidate["identity_status"] == "VERIFIED"
+    assert summary["industry_summary"]["triggered_unique_stock_count"] == 1
+    assert summary["industry_summary"]["identity_resolved_count"] == 1
+    assert summary["industry_summary"]["identity_gap_count"] == 0
+    assert not any(row["decision"] == "SELECTED" for row in rows)
+
+
+def test_hk_industry_full_698_fixture_keeps_missing_unmapped_and_retrospective_unknown_separate():
+    # Synthetic fixture only: 698 rows exercise scope accounting; this is not a real full-date capture.
+    codes = _industry_codes()
+    binding, codes_sha = _industry_input("20261013", "2026-10-14T09:30:00+08:00", codes)
+    context_retro = dict(target_date="20261013", phase="RETROSPECTIVE", cutoff="2026-10-14T13:00:00+08:00",
+        source_sessions={"us": "20261012", "hk_price": "20261012"})
+    rows, summary = run_us_factor(context_retro, _industry_proxy_batch("20261012"),
+        _industry_payload(binding, codes, "20261012", master_codes=codes[:-1]))
+    industry_rows = [row for row in rows if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE"]
+    by_symbol = {row["symbol"]: row for row in industry_rows}
+    funnel = summary["industry_summary"]
+    assert len(industry_rows) == 698 and len(by_symbol) == 698
+    assert funnel["scope_count"] == 698 and funnel["membership_codes_sha256"] == codes_sha
+    assert funnel["classified_count"] == 2 and funnel["mapping_covered_count"] == 1
+    assert funnel["industry_unmapped_count"] == 1 and funnel["classification_missing_count"] == 696
+    assert funnel["unknown_unique_stock_count"] == 698
+    assert funnel["decision_counts"]["UNASSESSED"] == 698
+    assert funnel["identity_resolved_count"] == 697 and funnel["identity_gap_count"] == 1
+    assert funnel["identity_gap_symbols"] == [codes[-1]]
+    assert by_symbol[codes[-1]]["identity_status"] == "UNASSESSED_IDENTITY"
+    assert by_symbol[codes[-1]]["reason"] == "UNASSESSED_IDENTITY"
+    assert funnel["triggered_unique_stock_count"] == 0
+    assert by_symbol["HK.00300"]["theme"] == "消费"
+    assert by_symbol["HK.00300"]["return_pct"] == "1.50"
+    assert by_symbol["HK.00300"]["decision"] == "UNASSESSED"
+    assert "RETROSPECTIVE_PIT_UNKNOWN" in by_symbol["HK.00300"]["conditions"]
+    assert by_symbol[codes[1]]["reason"] == "HK_INDUSTRY_PROXY_MAPPING_UNAVAILABLE"
+    assert by_symbol[codes[2]]["reason"] == "HK_INDUSTRY_CLASSIFICATION_MISSING"
+    assert funnel["temporal_status"] == "RETROSPECTIVE_PIT_UNKNOWN"
+
+
+def test_hk_industry_out_of_scope_and_nonobject_rows_are_isolated_from_valid_member_canary():
+    codes = ["HK.00300"]
+    binding, _ = _industry_input("20261014", "2026-10-14T09:30:00+08:00", codes, include_full_scope=False)
+    binding["artifact"]["rows"].append(_industry_record("HK.09999", "SYNTHETIC_EXTRA_CATEGORY"))
+    binding["artifact"]["rows"].append(None)
+    context_today = dict(target_date="20261014", phase="INTRADAY", cutoff="2026-10-14T13:00:00+08:00",
+        source_sessions={"us": "20261013", "hk_price": "20261013"})
+    rows, summary = run_us_factor(context_today, _industry_proxy_batch("20261013"),
+        _industry_payload(binding, codes, "20261013"))
+    candidate = next(row for row in rows if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE")
+    funnel = summary["industry_summary"]
+    assert candidate["symbol"] == "HK.00300" and candidate["decision"] == "CONDITIONAL_WATCH"
+    assert candidate["conditions"] == []
+    assert funnel["out_of_scope_row_count"] == 1 and funnel["bad_row_count"] == 1
+    assert funnel["unknown_unique_stock_count"] == 0
+    assert funnel["source_status"] == "PARTIAL"
+
+
+def test_hk_industry_reader_requires_exact_date_pinned_local_bytes(tmp_path):
+    codes = ["HK.00300"]
+    binding, _ = _industry_input("20261013", "2026-10-13T09:00:00+08:00", codes, include_full_scope=False)
+    artifact = binding["artifact"]
+    raw = (json.dumps(artifact, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode()
+    (tmp_path / "industry.json").write_bytes(raw)
+    pin = dict(root=str(tmp_path), relative="industry.json", sha256=sha256(raw).hexdigest(), owner="eastmoney-f10")
+    cfg = SimpleNamespace(shared_root=tmp_path, source_bindings={"hk_industry_classification": {"20261013": pin}})
+    ctx = SimpleNamespace(target_date="20261013", scope_refs={})
+    loaded = hk_industry_classification(cfg, ctx)
+    assert loaded["status"] == "READY" and loaded["artifact_sha256"] == pin["sha256"]
+    ctx.target_date = "20261014"
+    unavailable = hk_industry_classification(cfg, ctx)
+    assert unavailable["status"] == "UNAVAILABLE"
+    assert unavailable["gap"] == "HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING"

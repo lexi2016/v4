@@ -84,4 +84,77 @@ describe("US daily-return factor fixture", () => {
     expect(screen.getByText("原文片段：原文位置可追溯")).toBeTruthy();
     expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
   });
+
+  it("puts the unique-stock industry funnel before legacy row counts and exposes row mapping", async () => {
+    const candidate: StockDecision = {
+      ...sampleStock("HK.00300", "合成美的样本"), row_id: "US_MAPPING:1",
+      subtype: "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE", source_industry: "家庭电器及用品",
+      theme: "消费", return_pct: "1.50", mapping_type: "EXACT_PROVIDER_INDUSTRY",
+      identity_status: "VERIFIED", decision: "CONDITIONAL_WATCH"
+    };
+    const factorSummary = {
+      display_only: true as const, rules_version: "POSITIVE_OPERATING_RESEARCH_V1_US_DAILY_RETURN_FACTOR_V1",
+      target_date: "20261013", phase: "RETROSPECTIVE" as const,
+      us_source_symbol_count: 33, proxy_source_count: 24, expected_proxy_source_count: 24,
+      verified_proxy_source_count: 24, unknown_proxy_source_count: 0, eligible_hk_scope_count: 698,
+      unique_factor_stock_count: 0, factor_path_count: 0, unknown_factor_stock_count: null,
+      registry_fact_count: 0, paired_review_available: true, source_session: "20261012",
+      historical_pit_verified: false as const, combined_source_and_stock_count: null as null,
+      RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false,
+      industry_summary: {
+        display_only: true as const, mapping_version: "HK_ISSUER_INDUSTRY_TO_US_PROXY_THEME_V1",
+        source_status: "RETROSPECTIVE_PIT_UNKNOWN", target_date: "20261013",
+        scope_count: 698, identity_resolved_count: 697, identity_gap_count: 1,
+        identity_gap_symbols: ["HK.90697"], identity_gap: "HK_SECURITY_MASTER_IDENTITY_SCOPE_GAP",
+        security_master_scope_count: 697, security_master_owner: "v3_shared_data",
+        security_master_source_date: "20261012", security_master_available_at: "2026-10-12T17:30:15+08:00",
+        security_master_artifact_sha256: "c".repeat(64), security_master_manifest_sha256: "d".repeat(64),
+        bad_row_count: 0, classified_count: 2, mapping_covered_count: 1,
+        industry_unmapped_count: 1, classification_missing_count: 696,
+        triggered_unique_stock_count: 1, unknown_unique_stock_count: 697,
+        candidate_row_count: 1,
+        decision_counts: { CONDITIONAL_WATCH: 1, NOT_SELECTED: 0, UNASSESSED: 697 },
+        source_asof: null, source_asof_status: "UNKNOWN", captured_at: "2026-10-14T09:30:00+08:00",
+        temporal_status: "RETROSPECTIVE_PIT_UNKNOWN", historical_pit_verified: false as const
+      }
+    };
+    const day = sampleDay({
+      stocks: [candidate],
+      counts: { selected: 0, watch: 3, unassessed: 28, observation_only: 0, not_selected: 17 },
+      recommendation_projection: {
+        display_only: true, lane: "US_MAPPING", row_count: 48, hk_relation_row_count: 1,
+        distinct_hk_count: 1, source_only_row_count: 0, count_unit: "SAVED_LANE_RESEARCH_ROWS",
+        industry_candidate_row_count: 698, industry_candidate_stock_count: 1, industry_scope_count: 698,
+        coverage: { scope_count: 33, observed_count: 33, assessed_count: 33, unassessed_count: 0 }
+      },
+      us_mapping_summary: {
+        display_only: true, plan_run_id: "synthetic-run-1", source_symbol_count: 33,
+        source_row_count: 48, relation_row_count: 1, mapped_hk_count: 1, mixed_source_count: 0,
+        source_decision_counts: { CONDITIONAL_WATCH: 1 },
+        coverage: { scope_count: 33, observed_count: 33, assessed_count: 33, unassessed_count: 0 },
+        groups: [], factor_summary: factorSummary
+      }
+    });
+    const spy = vi.fn(async (input: RequestInfo | URL, _init: RequestInit = {}) => {
+      if (String(input).includes("/stocks/")) {
+        return response(wrapped({ recommendation_lane: "US_MAPPING", plan_run_id: "synthetic-run-1",
+          stock: candidate, lane_details: [{ lane: "US_MAPPING", rows: [candidate], evidence_refs: [] }] }));
+      }
+      return response(wrapped(day));
+    });
+    vi.stubGlobal("fetch", spy);
+
+    render(Workbench);
+    await screen.findByRole("region", { name: "港股行业宽召回股票漏斗" });
+    expect(screen.getByText(/范围 698 只；身份核验 697 只，身份缺口 1 只；有行业分类 2 只，已映射到冻结美股主题 1 只/)).toBeTruthy();
+    expect(screen.getByText(/待核（UNASSESSED）697 只；.*去重候选 1 只/)).toBeTruthy();
+    const funnel = screen.getByRole("region", { name: "港股行业宽召回股票漏斗" });
+    const recordCounts = screen.getByLabelText("本路径完整研究记录分类计数");
+    expect(Boolean(funnel.compareDocumentPosition(recordCounts) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    expect(screen.getByText(/保存 48 条研究记录（计数单位：研究记录）/)).toBeTruthy();
+    expect(screen.getByText(/行业 家庭电器及用品 → 主题 消费；代理日收益 1\.50% · EXACT_PROVIDER_INDUSTRY/)).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: /查看 HK\.00300/ }));
+    await screen.findByText("来源行业 家庭电器及用品；映射主题 消费；代理日收益 1.50%。");
+    expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
+  });
 });

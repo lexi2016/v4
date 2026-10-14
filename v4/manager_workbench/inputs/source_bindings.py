@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from infrastructure.owned_io import SafeRoot
-from ..engines.common import US_FACTOR_RULES_VERSION
+from ..engines.common import US_FACTOR_RULES_VERSION, valid_sha
 from .validation import raw_sha, before, owner_digest
 
 OWNER = 'v35_dispatcher.research_panel_daily_hk'
@@ -171,6 +171,49 @@ def security_master(config, context):
         raise ValueError('MASTER_RUN_RECEIPT_INVALID')
     checked_time(manifest.get('captured_at'),context.cutoff)
     return dict(manifest_relative=rel,manifest_sha256=sha,checked_files=[dict(source_local_path=str(config.shared_root),relative=receipt_rel,sha256=rsha)])
+
+
+def hk_industry_classification(config, context):
+    """Read an explicitly dated, operator-pinned issuer-classification artifact.
+
+    This is an optional read-only input. There is deliberately no latest-pointer,
+    network, or provider fallback here; absence leaves the cross-market branch
+    unavailable without changing the existing US mapping inputs.
+    """
+    day = context.target_date
+    owner_pins = context.scope_refs.get('owner_bindings', {}) if hasattr(context, 'scope_refs') else {}
+    pin = owner_pins.get('hk_industry_classification') if isinstance(owner_pins, dict) else None
+    if pin is None:
+        date_pins = config.source_bindings.get('hk_industry_classification', {})
+        pin = date_pins.get(day) if isinstance(date_pins, dict) else None
+    if pin is None:
+        date_pins = config.source_bindings.get('us_mapping', {})
+        us_pin = date_pins.get(day) if isinstance(date_pins, dict) else None
+        pin = us_pin.get('hk_industry_classification') if isinstance(us_pin, dict) else None
+    if not isinstance(pin, dict):
+        return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING')
+    try:
+        root = Path(pin.get('source_local_path') or pin.get('root') or config.shared_root)
+        relative = pin.get('artifact_relative') or pin.get('relative')
+        expected = pin.get('artifact_sha256') or pin.get('sha256')
+        if not relative or not valid_sha(expected):
+            raise ValueError('HK_INDUSTRY_CLASSIFICATION_PIN_INVALID')
+        artifact, sha = read(root, relative, expected)
+        if (artifact.get('schema_version') != 'v4.manager_workbench.hk_industry_classification.v1'
+                or artifact.get('market') != 'HK_CONNECT'
+                or artifact.get('target_date') != day
+                or not isinstance(artifact.get('rows'), list)):
+            raise ValueError('HK_INDUSTRY_CLASSIFICATION_ARTIFACT_IDENTITY_INVALID')
+        owner = pin.get('owner') or artifact.get('source_owner')
+        if not isinstance(owner, str) or not owner:
+            raise ValueError('HK_INDUSTRY_CLASSIFICATION_OWNER_UNKNOWN')
+        return dict(status='READY', owner=owner, artifact=artifact,
+            artifact_relative=relative, artifact_sha256=sha,
+            source_local_path=str(root), source_url=artifact.get('source_url'),
+            checked_files=[dict(source_local_path=str(root), relative=relative, sha256=sha)])
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        gap = str(error) if isinstance(error, ValueError) else 'HK_INDUSTRY_CLASSIFICATION_ARTIFACT_UNAVAILABLE'
+        return dict(status='UNAVAILABLE', gap=gap)
 
 
 
@@ -383,11 +426,12 @@ def us_mapping(config, context):
             original['reviewed_variants']=[*original.get('reviewed_variants',[]),card]
     projection=dict(cards=list(joined.values()),symbol_assessments=assessments,available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=[*seed_sources,*inherited_sources])
     factor, factor_files, factor_gap = us_factor_exposure(config, context)
+    industry = hk_industry_classification(config, context)
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
         relation_local_path=str(config.relation_root),relation_relative=config.relation_evidence_relative,relation_sha256=esha,
         relation_owner=review['reviewer_identity'],relation_projection=projection,configured_symbols=list(US_SYMBOLS),
-        factor_exposure=factor,factor_exposure_gap=factor_gap,
-        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources,*factor_files],
+        factor_exposure=factor,factor_exposure_gap=factor_gap,hk_industry_classification=industry,
+        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources,*factor_files,*industry.get('checked_files',[])],
         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
 
 

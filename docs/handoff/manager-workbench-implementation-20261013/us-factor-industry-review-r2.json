@@ -1,0 +1,201 @@
+{
+  "schema_version": "v4.manager_workbench.us_factor_industry_reviewer_receipt.v2",
+  "status": "REVIEWED_PASS",
+  "reviewer": "independent read-only reviewer",
+  "scope": {
+    "goal": "Incremental review of exactly the three r1 findings repaired in r2, then PASS-stop.",
+    "worktree": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+    "frozen_base_commit": "2f63c03c55c971c35bca53a9ead18231733a57e5",
+    "frozen_base_copy": "/private/tmp/us-factor-wide-recall-frozen-base-2f63c03",
+    "writer_receipt": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/us-factor-industry-implementation-r2.json",
+    "writer_receipt_sha256": "fd2724053b38a28575ae19016aa20ee49811ea35d5a2c4f6dfefeead2ad7198f",
+    "reviewed_file_count": 10,
+    "files": [
+      {
+        "path": "v4/manager_workbench/inputs/source_bindings.py",
+        "frozen_base_sha256": "79b01020997d2652f106e7c73af2fdebc32232c08540c957c99113842e4863c8",
+        "candidate_sha256": "15e16fcb61e5fcf1de96f0694eaf2d89bcaca1dac3b0ab25de932479ea5ff564",
+        "matches_r2_receipt": true
+      },
+      {
+        "path": "v4/manager_workbench/inputs/native.py",
+        "frozen_base_sha256": "66d5b78614b48116fa2645c16ab6c3803579ccb56e03ce0bf74574128e825b11",
+        "candidate_sha256": "cc3b8b3523e9568a9f96cfb01605e41bfc24359295ec12f0ad0593d7e4307ad4",
+        "matches_r2_receipt": true
+      },
+      {
+        "path": "v4/manager_workbench/engines/us_factor.py",
+        "frozen_base_sha256": "56c455ae47d8fbe25fec5333b85a9614ccfde79f35cabb379f93dac578055dcb",
+        "candidate_sha256": "7c15b939aae7f86c648356462ef3910e57cc93678d3f30d11f8b2906db67f933",
+        "matches_r2_receipt": true
+      },
+      {
+        "path": "v4/manager_workbench/engines/us_mapping.py",
+        "frozen_base_sha256": "ca58bbf80d9384ec79944e4d5198a2738a12ae127ff22efadf692ba14d5a9369",
+        "candidate_sha256": "4806b2fd1cb0c505b394a7680b6e8ae002450e76667f341ecffc1592881af650",
+        "matches_r2_receipt": true
+      },
+      {
+        "path": "v4/manager_workbench/display_read.py",
+        "frozen_base_sha256": "7f7cf46ccbf8f38ee1518a31365592bad8950efa2ce747f495a63198da1fa74e",
+        "candidate_sha256": "d3b156ab029423f8974e9c74411d343703bd89a0882fb812a2682751e0c43de2",
+        "matches_r2_receipt": true
+      },
+      {
+        "path": "apps/web/src/manager-workbench/types.ts",
+        "frozen_base_sha256": "e50b35e625cd8b3db2ca5513c2e3bf7ee8d7d85f60ee1e19c54c2bdea1542fec",
+        "candidate_sha256": "4db3a5eeffbfd3058e5d5dd3157ab50952aa1579bd8ff6b07fff5091f3669c96",
+        "matches_r2_receipt": true
+      },
+      {
+        "path": "apps/web/src/manager-workbench/Workbench.vue",
+        "frozen_base_sha256": "136ac87a9f119fcaf78ce01637650452928470c3388a31d2b2def4325bfa3691",
+        "candidate_sha256": "95b9b144659dc0058268297c9109be7a546c5d1f62b35de8916d1ebe3041a02f",
+        "matches_r2_receipt": true
+      },
+      {
+        "path": "tests/manager_workbench/engines/test_us_factor.py",
+        "frozen_base_sha256": "fbf968e350e4bd2a5fe299428a1896a04d993854ad26f535aa705f49b1bebba7",
+        "candidate_sha256": "b3c08ef967be8828684a69d34d44135d722ceee104c982d9fd590a56116758aa",
+        "matches_r2_receipt": true
+      },
+      {
+        "path": "tests/manager_workbench/runtime/test_us_factor_display.py",
+        "frozen_base_sha256": "24c94dbda9e29addd445c9d477a3da0c2121b9c276d81ad8bf4fd62559cd9810",
+        "candidate_sha256": "ce36620d0ae4ad9d7dedbc0ef9dce5434c3e15a2a19a8a1acf63cc8f41a20443",
+        "matches_r2_receipt": true
+      },
+      {
+        "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+        "frozen_base_sha256": "e18be56d4cec73e6f21e35b72efefdf20970761cde93bba5cf4093b7fab2d247",
+        "candidate_sha256": "083a445dc20f427ca1d742ab70fe8791ae8c900f15f91abbba9ccf9df9d1787d",
+        "matches_r2_receipt": true
+      }
+    ],
+    "scope_limit": "Only the receipt-listed 10 files and the three r1 findings were reviewed. No formal count API/UI or Opening Stage rerun."
+  },
+  "r1_findings": [
+    {
+      "id": "P1-INDUSTRY-ROWS-INFLATE-LEGACY-COUNTS",
+      "result": "CLOSED_PASS",
+      "evidence": [
+        {
+          "path": "v4/manager_workbench/display_read.py",
+          "lines": "98-103, 133-142",
+          "detail": "US_MAPPING counts and row_count are calculated from legacy_rows excluding the industry subtype; separate industry row, stock and scope counts remain."
+        },
+        {
+          "path": "tests/manager_workbench/runtime/test_us_factor_display.py",
+          "lines": "60-104",
+          "detail": "Regression fixture composes 48 legacy rows with 698 industry rows; row_count and decision counts remain 48, industry_candidate_row_count remains 698, and the 698-stock inspection view retains 697 UNASSESSED industry rows."
+        },
+        {
+          "path": "v4/manager_workbench/engines/us_factor.py",
+          "lines": "346-348, 411-416",
+          "detail": "Full industry scope still emits rows, with identity gaps retained as UNASSESSED rather than removed."
+        }
+      ]
+    },
+    {
+      "id": "P2-SECURITY-MASTER-IDENTITY-GAPS-NOT-REPRESENTED",
+      "result": "CLOSED_PASS",
+      "evidence": [
+        {
+          "path": "v4/manager_workbench/inputs/native.py",
+          "lines": "680-714",
+          "detail": "Reads exact context hk_price session manifest and artifact; validates manifest date/safety, availability, raw artifact SHA, row identity uniqueness/count; supplies source and manifest SHAs."
+        },
+        {
+          "path": "v4/manager_workbench/inputs/native.py",
+          "lines": "737-789",
+          "detail": "Passes identity evidence alongside full Connect membership scope."
+        },
+        {
+          "path": "v4/manager_workbench/engines/us_factor.py",
+          "lines": "216-242, 346-348, 411-469",
+          "detail": "Validates security-master date/availability/hash/count and derives scope-minus-master set dynamically; missing identities receive UNASSESSED_IDENTITY and appear in the summary."
+        },
+        {
+          "path": "tests/manager_workbench/engines/test_us_factor.py",
+          "lines": "261-310",
+          "detail": "Full synthetic fixture tests a dynamic identity gap without reducing membership scope."
+        }
+      ],
+      "independent_six_code_canary": {
+        "status": "PASS_SYNTHETIC_ONLY",
+        "membership_scope_count": 698,
+        "master_scope_count": 692,
+        "resolved_count": 692,
+        "gap_count": 6,
+        "gap_symbols": [
+          "HK.00853",
+          "HK.02172",
+          "HK.02252",
+          "HK.02825",
+          "HK.03403",
+          "HK.03469"
+        ],
+        "each_gap_row_reason": "UNASSESSED_IDENTITY",
+        "note": "Read-only synthetic membership/master set exercise; not a claim about a new full-date industry capture."
+      }
+    },
+    {
+      "id": "P2-NONOBJECT-ROWS-SILENTLY-DROPPED",
+      "result": "CLOSED_PASS",
+      "evidence": [
+        {
+          "path": "v4/manager_workbench/engines/us_factor.py",
+          "lines": "319-335, 446-469",
+          "detail": "Non-object/invalid-symbol/duplicate rows are counted as bad rows and source_status becomes PARTIAL when temporally assessable."
+        },
+        {
+          "path": "tests/manager_workbench/engines/test_us_factor.py",
+          "lines": "313-328",
+          "detail": "Adds out-of-scope row plus None; confirms PARTIAL while preserving the valid candidate."
+        }
+      ],
+      "independent_canary": {
+        "status": "PASS",
+        "source_status": "PARTIAL",
+        "out_of_scope_row_count": 1,
+        "bad_row_count": 1,
+        "valid_member_decision": "CONDITIONAL_WATCH",
+        "valid_member_conditions": [],
+        "triggered_unique_stock_count": 1
+      }
+    }
+  ],
+  "tests": {
+    "python": {
+      "status": "PASS",
+      "passed": 20,
+      "warning": "Existing Starlette/httpx TestClient deprecation warning",
+      "command": "PYTHONPATH=. UV_PROJECT_ENVIRONMENT=/private/tmp/mwb-us-factor-tests-20261014 /private/tmp/mwb-us-factor-tests-20261014/bin/python -m pytest --basetemp=/private/tmp/mwb-us-factor-pytest-20261014 tests/manager_workbench/engines/test_us_factor.py tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/runtime/test_us_factor_display.py -q"
+    },
+    "ui": {
+      "status": "PASS",
+      "passed": 2,
+      "command": "npm test -- --run src/manager-workbench/__tests__/us_factor.spec.ts"
+    },
+    "typecheck": {
+      "status": "PASS",
+      "command": "npm run typecheck"
+    },
+    "execution": "Reviewer independently re-ran each exact writer command from the candidate worktree; exit code 0 for all."
+  },
+  "source_evidence": {
+    "single_symbol_canary_path": "/private/tmp/us-factor-eastmoney-industry-canary-00300-20261014.json",
+    "single_symbol_canary_sha256": "cc382e4e5a809ef968222733678ec1e9d715a19cc356a1743daa78c94fd0f096",
+    "use": "Reference-only source row; source_asof UNKNOWN, not used as 20261013 PIT evidence.",
+    "real_full_20261013_capture": "CANNOT_CONFIRM; full-scope fixture is synthetic and captured after target cutoff.",
+    "opening_stage": "NOT_RUN"
+  },
+  "acceptance": {
+    "reviewed": "PASS",
+    "behavior_verified": "PASS_WITHIN_SYNTHETIC_FIXTURES",
+    "p0_count": 0,
+    "p1_open": 0,
+    "p2_open": 0,
+    "stop_rule": "PASS-stop; no broader audit or extra tests performed."
+  }
+}

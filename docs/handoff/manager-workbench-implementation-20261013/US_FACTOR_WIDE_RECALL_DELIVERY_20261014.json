@@ -1,0 +1,142 @@
+{
+  "schema_version": "v4.manager_workbench.us_factor_wide_recall_delivery.v1",
+  "baseline_commit": "2f63c03c55c971c35bca53a9ead18231733a57e5",
+  "branch": "codex/us-factor-wide-recall-20261014",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "implementation_receipt": "docs/handoff/manager-workbench-implementation-20261013/us-factor-industry-implementation-r2.json",
+  "implementation_receipt_sha256": "fd2724053b38a28575ae19016aa20ee49811ea35d5a2c4f6dfefeead2ad7198f",
+  "candidate_scope": "Optional date-bound issuer-industry consumer, unique-stock recall funnel and display; only confirmed provider industry household appliances currently mapped.",
+  "candidate_runtime": "NOT_DEPLOYED",
+  "formal_api_runtime": "Prior count-fix API candidate remains active; this wide-recall candidate is not integrated into it.",
+  "full_date_real_industry_validation": "NOT_RUN_PENDING_SOURCE_AUTHORIZATION",
+  "opening_second_screen": "NOT_IMPLEMENTED_IN_THIS_BATCH; existing 20261013 opening artifacts cover the original D-1 Top100 only.",
+  "ui_verification": "SYNTHETIC_COMPONENT_TEST_ONLY; formal full-date UI NOT_RUN",
+  "natural_verification": "NATURAL_SLOT_UNVERIFIED",
+  "source_authorization_pending": "New Eastmoney HK issuer-industry acquisition and shared-data producer changes require resolution of prior explicit no-new-collector boundary; question submitted to user.",
+  "files": [
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_git_blob_sha": "e1e89149135e0fc283fb5b35de2b7fe7483c3542",
+      "after_git_blob_sha": "e1f68725269666a3fa75e700c440b66763742302",
+      "after_sha256": "15e16fcb61e5fcf1de96f0694eaf2d89bcaca1dac3b0ab25de932479ea5ff564",
+      "before_sha256": "79b01020997d2652f106e7c73af2fdebc32232c08540c957c99113842e4863c8"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_git_blob_sha": "380772a944cc1b6482418ff26eb7e4bad363f9ff",
+      "after_git_blob_sha": "839f152002ac6044eb1b1c75c5daa30328c9ee68",
+      "after_sha256": "cc3b8b3523e9568a9f96cfb01605e41bfc24359295ec12f0ad0593d7e4307ad4",
+      "before_sha256": "66d5b78614b48116fa2645c16ab6c3803579ccb56e03ce0bf74574128e825b11"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "before_git_blob_sha": "8a3783e8fd4ab1347ab6f3cea0e713b66799e64d",
+      "after_git_blob_sha": "49376d805e035d8f1e2884c7656e9f088f8a4429",
+      "after_sha256": "7c15b939aae7f86c648356462ef3910e57cc93678d3f30d11f8b2906db67f933",
+      "before_sha256": "56c455ae47d8fbe25fec5333b85a9614ccfde79f35cabb379f93dac578055dcb"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "before_git_blob_sha": "59e42bac797bfbfdb692588170c709ebe238a231",
+      "after_git_blob_sha": "1ebccdd6ab97a189de8de2b7edb4c3c0a89ed349",
+      "after_sha256": "4806b2fd1cb0c505b394a7680b6e8ae002450e76667f341ecffc1592881af650",
+      "before_sha256": "ca58bbf80d9384ec79944e4d5198a2738a12ae127ff22efadf692ba14d5a9369"
+    },
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "before_git_blob_sha": "5b12c928e712c3869723f7a1df236a782781f894",
+      "after_git_blob_sha": "710dbfbde502ef78fd73fde1fac6521553ac2de4",
+      "after_sha256": "d3b156ab029423f8974e9c74411d343703bd89a0882fb812a2682751e0c43de2",
+      "before_sha256": "7f7cf46ccbf8f38ee1518a31365592bad8950efa2ce747f495a63198da1fa74e"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before_git_blob_sha": "7a854309b1c6d92cd7b4c3a7ba51a3a9df45c353",
+      "after_git_blob_sha": "d7720d40f960533db3ae6b9958712dc13416f129",
+      "after_sha256": "4db3a5eeffbfd3058e5d5dd3157ab50952aa1579bd8ff6b07fff5091f3669c96",
+      "before_sha256": "e50b35e625cd8b3db2ca5513c2e3bf7ee8d7d85f60ee1e19c54c2bdea1542fec"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_git_blob_sha": "6209329999cf18ab82a1155cf583b7cc4e83ff63",
+      "after_git_blob_sha": "295b5291bba1de35c30e36443ffe8bf968b5fc81",
+      "after_sha256": "95b9b144659dc0058268297c9109be7a546c5d1f62b35de8916d1ebe3041a02f",
+      "before_sha256": "136ac87a9f119fcaf78ce01637650452928470c3388a31d2b2def4325bfa3691"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_factor.py",
+      "before_git_blob_sha": "aca351cd57ed5f169fc75351aa74a59fd3e63953",
+      "after_git_blob_sha": "ddad08b49aede5230ff77a64750e89c63034b359",
+      "after_sha256": "b3c08ef967be8828684a69d34d44135d722ceee104c982d9fd590a56116758aa",
+      "before_sha256": "fbf968e350e4bd2a5fe299428a1896a04d993854ad26f535aa705f49b1bebba7"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_us_factor_display.py",
+      "before_git_blob_sha": "1cb20d5db9727da2b902fa94c71210969f5b7a9a",
+      "after_git_blob_sha": "7bb8309747d56b82caf955f051edb4570ff3c1ef",
+      "after_sha256": "ce36620d0ae4ad9d7dedbc0ef9dce5434c3e15a2a19a8a1acf63cc8f41a20443",
+      "before_sha256": "24c94dbda9e29addd445c9d477a3da0c2121b9c276d81ad8bf4fd62559cd9810"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "before_git_blob_sha": "3d8a103ee7d0f5dd1bea78da301c8acd937b18c2",
+      "after_git_blob_sha": "61f4cd27992345a41989eead2746d004087331b6",
+      "after_sha256": "083a445dc20f427ca1d742ab70fe8791ae8c900f15f91abbba9ccf9df9d1787d",
+      "before_sha256": "e18be56d4cec73e6f21e35b72efefdf20970761cde93bba5cf4093b7fab2d247"
+    }
+  ],
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "previous_review": {
+    "status": "REVIEWED_FAIL",
+    "receipt_sha256": "7278a37dba47548254a5105f509e099f403c7e7704d12dba7e57fdb380996fb8",
+    "findings": [
+      "48+698 rows inflated legacy counts to 746",
+      "security-master identity gaps not exposed",
+      "non-object source rows skipped without PARTIAL status"
+    ]
+  },
+  "source_boundary_plan": "docs/handoff/manager-workbench-implementation-20261013/US_FACTOR_EXECUTION_PLAN_20261013.md:22,25",
+  "canary": {
+    "raw_sha256": "cc382e4e5a809ef968222733678ec1e9d715a19cc356a1743daa78c94fd0f096",
+    "captured_at": "2026-10-14T01:33:13.850926+00:00",
+    "reference_only": true,
+    "source_asof": "UNKNOWN",
+    "raw_uploaded": false
+  },
+  "status": "REVIEWED_PASS_CANDIDATE_ONLY",
+  "review": {
+    "receipt": "docs/handoff/manager-workbench-implementation-20261013/us-factor-industry-review-r2.json",
+    "receipt_sha256": "7bcafef63e8c65d6b2ef5d9f96e8f755f5d8dc6a143116ea7021427cf80a7708",
+    "status": "REVIEWED_PASS",
+    "acceptance": {
+      "reviewed": "PASS",
+      "behavior_verified": "PASS_WITHIN_SYNTHETIC_FIXTURES",
+      "p0_count": 0,
+      "p1_open": 0,
+      "p2_open": 0,
+      "stop_rule": "PASS-stop; no broader audit or extra tests performed."
+    },
+    "tests": {
+      "python": {
+        "status": "PASS",
+        "passed": 20,
+        "warning": "Existing Starlette/httpx TestClient deprecation warning",
+        "command": "PYTHONPATH=. UV_PROJECT_ENVIRONMENT=/private/tmp/mwb-us-factor-tests-20261014 /private/tmp/mwb-us-factor-tests-20261014/bin/python -m pytest --basetemp=/private/tmp/mwb-us-factor-pytest-20261014 tests/manager_workbench/engines/test_us_factor.py tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/runtime/test_us_factor_display.py -q"
+      },
+      "ui": {
+        "status": "PASS",
+        "passed": 2,
+        "command": "npm test -- --run src/manager-workbench/__tests__/us_factor.spec.ts"
+      },
+      "typecheck": {
+        "status": "PASS",
+        "command": "npm run typecheck"
+      },
+      "execution": "Reviewer independently re-ran each exact writer command from the candidate worktree; exit code 0 for all."
+    }
+  }
+}

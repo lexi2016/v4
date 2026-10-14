@@ -677,6 +677,42 @@ class NativeAdapters:
             replacement_reason="COMPLETE_61_SAME_PROFILE_REQUIRED_NO_UNVERIFIED_SOURCE_MIX",
             protocol_request_count=128,projected_session_count=61)
 
+    def _security_master_identity(self, context):
+        """Read the exact, already-pinned D-1 security master for identity coverage."""
+        day = context.source_sessions.get("hk_price")
+        if not isinstance(day, str):
+            return dict(status="UNAVAILABLE", gap="HK_SECURITY_MASTER_SOURCE_DATE_UNKNOWN"), []
+        root = self.config.shared_root
+        try:
+            pin, manifest, _ = self._manifest("security_master", day, root, context)
+            if manifest.get("schema_version") != "v3_shared_data.hk_security_master_manifest.v1":
+                raise ValueError("HK_SECURITY_MASTER_SCHEMA_INVALID")
+            available = manifest.get("captured_at")
+            if not before(available, context.cutoff):
+                raise ValueError("HK_SECURITY_MASTER_AFTER_CUTOFF_OR_UNKNOWN")
+            relative = pin.get("artifact_relative", "assets/hk_security_master/" + manifest["artifact_relative"])
+            raw = SafeRoot(root).read_bytes(relative)
+            artifact_sha = manifest.get("artifact_sha256")
+            if raw_sha(raw) != artifact_sha:
+                raise ValueError("HK_SECURITY_MASTER_SHA_MISMATCH")
+            master_rows = list(csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))))
+            master_codes = [symbol(row.get("code")) for row in master_rows]
+            if (not master_codes or None in master_codes or len(master_codes) != len(set(master_codes))
+                    or len(master_codes) != manifest.get("row_count")):
+                raise ValueError("HK_SECURITY_MASTER_IDENTITY_ROWS_INVALID")
+            owner = pin.get("owner") or "v3_shared_data"
+            ref = self._ref(owner, "HK_SECURITY_MASTER", day, artifact_sha, relative, available,
+                manifest=pin.get("manifest_relative"))
+            codes = sorted(master_codes)
+            return dict(status="READY", master_codes=codes, master_scope_count=len(codes),
+                owner=owner, source_date=day, available_at=available,
+                artifact_sha256=artifact_sha, manifest_sha256=pin.get("manifest_sha256"),
+                manifest_relative=pin.get("manifest_relative"), artifact_relative=relative,
+                identity_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=codes)),
+                evidence_ids=[ref.evidence_id]), [ref]
+        except (OSError, ValueError, KeyError, TypeError, UnicodeError):
+            return dict(status="UNAVAILABLE", gap="HK_SECURITY_MASTER_IDENTITY_UNAVAILABLE"), []
+
     def us_mapping(self, context):
         expected = context.source_sessions.get("us") or self._us_session(context.cutoff)
         pin = self._binding("us_mapping", context.target_date, context)
@@ -700,6 +736,42 @@ class NativeAdapters:
         factor_payload = None
         if context.rules_version == US_FACTOR_RULES_VERSION:
             factor_pin = pin.get("factor_exposure")
+            industry_pin = pin.get("hk_industry_classification")
+            identity, identity_refs = self._security_master_identity(context)
+            refs.extend(identity_refs)
+            if not isinstance(industry_pin, dict):
+                from .source_bindings import hk_industry_classification
+                industry_pin = hk_industry_classification(self.config, context)
+            industry_payload = dict(status="UNAVAILABLE",
+                gap=(industry_pin or {}).get("gap", "HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING"),
+                hk_scope_codes=sorted(codes) if member_ref else [],
+                hk_scope_count=len(codes) if member_ref else None,
+                membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
+                membership_artifact_sha256=member_ref.sha256 if member_ref else None,
+                membership_owner=member_ref.owner if member_ref else None,
+                membership_available_at=member_ref.available_at if member_ref else None,
+                hk_industry_identity=identity)
+            if isinstance(industry_pin, dict) and industry_pin.get("status") == "READY":
+                artifact = industry_pin.get("artifact")
+                industry_ref = self._ref(industry_pin["owner"], "HK_ISSUER_INDUSTRY_CLASSIFICATION",
+                    context.target_date, industry_pin["artifact_sha256"], industry_pin["artifact_relative"],
+                    artifact.get("captured_at") if isinstance(artifact, dict) else None,
+                    url=industry_pin.get("source_url"))
+                refs.append(industry_ref)
+                member_pin = context.scope_refs.get("owner_bindings", {}).get("membership", {})
+                member_projection = member_pin.get("projection", {}) if isinstance(member_pin, dict) else {}
+                industry_payload = dict(status="READY", artifact=artifact,
+                    artifact_sha256=industry_pin["artifact_sha256"], owner=industry_pin["owner"],
+                    artifact_relative=industry_pin["artifact_relative"], source_url=industry_pin.get("source_url"),
+                    hk_scope_codes=sorted(codes), hk_scope_count=len(codes) if member_ref else None,
+                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
+                    membership_artifact_sha256=member_ref.sha256 if member_ref else None,
+                    membership_version=member_projection.get("version"), membership_owner=member_ref.owner if member_ref else None,
+                    membership_available_at=member_ref.available_at if member_ref else None,
+                    membership_effective_from=member_projection.get("effective_from"),
+                    membership_effective_through=member_projection.get("effective_to"),
+                    hk_industry_identity=identity,
+                    evidence_ids=[industry_ref.evidence_id])
             if isinstance(factor_pin, dict) and factor_pin.get("status") == "READY":
                 candidate, review = factor_pin.get("candidate"), factor_pin.get("review")
                 target_memberships = {}
@@ -711,6 +783,10 @@ class NativeAdapters:
                     candidate_sha256=factor_pin.get("candidate_sha256"),
                     review_sha256=factor_pin.get("review_sha256"), target_memberships=target_memberships,
                     hk_scope_count=len(codes) if member_ref else None,
+                    hk_scope_codes=sorted(codes) if member_ref else [],
+                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
+                    membership_artifact_sha256=member_ref.sha256 if member_ref else None,
+                    hk_industry_classification=industry_payload,
                     candidate_relative=factor_pin.get("candidate_relative"),
                     review_relative=factor_pin.get("review_relative"),
                     evidence_ids=[ref.evidence_id for ref in refs if ref.role in {
@@ -724,7 +800,11 @@ class NativeAdapters:
                     review.get("reviewed_at")))
             else:
                 factor_payload = dict(gap=(factor_pin or {}).get("gap", pin.get("factor_exposure_gap")
-                    or "US_FACTOR_PAIRED_REVIEW_UNAVAILABLE"), hk_scope_count=len(codes) if member_ref else None)
+                    or "US_FACTOR_PAIRED_REVIEW_UNAVAILABLE"), hk_scope_count=len(codes) if member_ref else None,
+                    hk_scope_codes=sorted(codes) if member_ref else [],
+                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
+                    membership_artifact_sha256=member_ref.sha256 if member_ref else None,
+                    hk_industry_classification=industry_payload)
         for source in registry.get("additional_relation_sources",[]):
             refs.append(self._ref(source["owner"],"REVIEWED_US_HK_RELATIONS",expected,source["sha256"],source["relative"],source["available_at"]))
         if member_ref:
@@ -732,7 +812,8 @@ class NativeAdapters:
         if isinstance(factor_payload, dict):
             factor_payload["evidence_ids"] = [ref.evidence_id for ref in refs if ref.role in {
                 "US_FIXED_33_QUOTES", "MONTHLY_CONNECT_MEMBERSHIP",
-                "US_FACTOR_EXPOSURE_CANDIDATE", "US_FACTOR_EXPOSURE_INDEPENDENT_REVIEW"}]
+                "US_FACTOR_EXPOSURE_CANDIDATE", "US_FACTOR_EXPOSURE_INDEPENDENT_REVIEW",
+                "HK_ISSUER_INDUSTRY_CLASSIFICATION", "HK_SECURITY_MASTER"}]
         quote_rows = snapshot.get("quotes",snapshot.get("symbols",snapshot.get("rows", [])))
         if isinstance(quote_rows, dict):
             quote_rows = [{"symbol":s, **v} for s,v in quote_rows.items()]

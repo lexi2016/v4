@@ -1,0 +1,55 @@
+{
+  "schema_version": "v4.manager_workbench.us_factor_industry_implementation_receipt.v2",
+  "status": "IMPLEMENTED_TESTED_BY_WRITER_REVIEW_PENDING",
+  "scope": "Optional exact-date HK issuer-industry classification projected as an independent US-proxy research funnel; no formal source binding or acquisition enabled.",
+  "review_r1": {
+    "receipt_sha256": "7278a37dba47548254a5105f509e099f403c7e7704d12dba7e57fdb380996fb8",
+    "outcome": "REVIEWED_FAIL",
+    "addressed_findings": {
+      "P1_saved_row_count": "Legacy US_MAPPING research-row counts remain 48; the 698 industry candidate rows and unique-stock funnel are reported separately. Synthetic composition regression covers both, including UNASSESSED inspection rows.",
+      "P2_security_master_identity": "Candidate rows carry explicit identity status. Exact D-1 pinned security-master codes are SHA/count/date/availability checked; absent members remain UNASSESSED_IDENTITY and appear in the identity-gap summary.",
+      "P2_malformed_source_rows": "Non-object/invalid-symbol rows increment bad_row_count and downgrade source_status to PARTIAL; out-of-scope rows remain separately counted."
+    }
+  },
+  "source_canary_evidence": {
+    "path": "/private/tmp/us-factor-eastmoney-industry-canary-00300-20261014.json",
+    "sha256": "cc382e4e5a809ef968222733678ec1e9d715a19cc356a1743daa78c94fd0f096",
+    "locally_available_and_hash_verified": true,
+    "captured_at": "2026-10-14T01:33:13.850926+00:00",
+    "row": {"SECUCODE": "00300.HK", "SECURITY_CODE": "00300", "ORG_NAME": "美的集团股份有限公司", "BELONG_INDUSTRY": "家庭电器及用品"},
+    "use": "Reference-only single-symbol canary; source_asof UNKNOWN; not a formal classification snapshot and not used as 20261013 PIT input. Raw file excluded from repository/upload."
+  },
+  "synthetic_full_scope_fixture": {
+    "label": "SYNTHETIC_FIXTURE",
+    "scope_count": 698,
+    "identity_resolved_count": 697,
+    "identity_gap_count": 1,
+    "classified_count": 2,
+    "mapping_covered_count": 1,
+    "industry_unmapped_count": 1,
+    "classification_missing_count": 696,
+    "triggered_unique_stock_count": 0,
+    "unknown_unique_stock_count": 698,
+    "temporal_status": "RETROSPECTIVE_PIT_UNKNOWN",
+    "limitation": "Capture is after the target cutoff; no historical PIT result or real full-date HK classification coverage is claimed."
+  },
+  "writer_validation": {
+    "python": {"command": "PYTHONPATH=. UV_PROJECT_ENVIRONMENT=/private/tmp/mwb-us-factor-tests-20261014 /private/tmp/mwb-us-factor-tests-20261014/bin/python -m pytest --basetemp=/private/tmp/mwb-us-factor-pytest-20261014 tests/manager_workbench/engines/test_us_factor.py tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/runtime/test_us_factor_display.py -q", "result": "PASS", "passed": 20},
+    "ui": {"command": "npm test -- --run src/manager-workbench/__tests__/us_factor.spec.ts", "result": "PASS", "passed": 2},
+    "typecheck": {"command": "npm run typecheck", "result": "PASS"},
+    "independent_review": "R2_REVIEW_PENDING"
+  },
+  "safety": {"formal_source_binding_changed": false, "network_or_quota_acquisition": false, "formal_data_or_snapshot_written": false, "service_or_stage_changed": false, "deployment": false, "production_allowed": false, "buy_gate_updated": false, "orders_sent": false},
+  "files": [
+    {"path": "v4/manager_workbench/inputs/source_bindings.py", "sha256": "15e16fcb61e5fcf1de96f0694eaf2d89bcaca1dac3b0ab25de932479ea5ff564"},
+    {"path": "v4/manager_workbench/inputs/native.py", "sha256": "cc3b8b3523e9568a9f96cfb01605e41bfc24359295ec12f0ad0593d7e4307ad4"},
+    {"path": "v4/manager_workbench/engines/us_factor.py", "sha256": "7c15b939aae7f86c648356462ef3910e57cc93678d3f30d11f8b2906db67f933"},
+    {"path": "v4/manager_workbench/engines/us_mapping.py", "sha256": "4806b2fd1cb0c505b394a7680b6e8ae002450e76667f341ecffc1592881af650"},
+    {"path": "v4/manager_workbench/display_read.py", "sha256": "d3b156ab029423f8974e9c74411d343703bd89a0882fb812a2682751e0c43de2"},
+    {"path": "apps/web/src/manager-workbench/types.ts", "sha256": "4db3a5eeffbfd3058e5d5dd3157ab50952aa1579bd8ff6b07fff5091f3669c96"},
+    {"path": "apps/web/src/manager-workbench/Workbench.vue", "sha256": "95b9b144659dc0058268297c9109be7a546c5d1f62b35de8916d1ebe3041a02f"},
+    {"path": "tests/manager_workbench/engines/test_us_factor.py", "sha256": "b3c08ef967be8828684a69d34d44135d722ceee104c982d9fd590a56116758aa"},
+    {"path": "tests/manager_workbench/runtime/test_us_factor_display.py", "sha256": "ce36620d0ae4ad9d7dedbc0ef9dce5434c3e15a2a19a8a1acf63cc8f41a20443"},
+    {"path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts", "sha256": "083a445dc20f427ca1d742ab70fe8791ae8c900f15f91abbba9ccf9df9d1787d"}
+  ]
+}

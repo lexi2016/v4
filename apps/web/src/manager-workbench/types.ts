@@ -124,6 +124,44 @@ export interface USFactorSummary extends SafetyFlags {
   source_session?: string | null;
   historical_pit_verified: false;
   combined_source_and_stock_count: null;
+  industry_summary?: HKIndustrySummary | null;
+}
+export interface HKIndustrySummary {
+  display_only: true;
+  mapping_version: string;
+  source_status: string;
+  source_gap?: string | null;
+  target_date: string;
+  scope_count: NullableCount;
+  classified_count: NullableCount;
+  mapping_covered_count: NullableCount;
+  industry_unmapped_count: NullableCount;
+  classification_missing_count: NullableCount;
+  triggered_unique_stock_count: NullableCount;
+  candidate_row_count: NullableCount;
+  decision_counts: Record<string, NullableCount>;
+  unknown_unique_stock_count: NullableCount;
+  identity_resolved_count: NullableCount;
+  identity_gap_count: NullableCount;
+  identity_gap_symbols?: string[];
+  identity_gap?: string | null;
+  security_master_scope_count: NullableCount;
+  security_master_owner?: string | null;
+  security_master_source_date?: string | null;
+  security_master_available_at?: string | null;
+  security_master_artifact_sha256?: string | null;
+  security_master_manifest_sha256?: string | null;
+  bad_row_count: NullableCount;
+  source_asof?: string | null;
+  source_asof_status?: string | null;
+  captured_at?: string | null;
+  temporal_status?: string | null;
+  historical_pit_verified: false;
+  membership_codes_sha256?: string | null;
+  membership_artifact_sha256?: string | null;
+  source_artifact_sha256?: string | null;
+  source_response_count?: NullableCount;
+  out_of_scope_row_count?: NullableCount;
 }
 export interface PlanMetadata extends SafetyFlags {
   schema_version?: typeof SCHEMA_VERSION;
@@ -154,6 +192,8 @@ export interface DayData {
     row_count: number; hk_relation_row_count: number; distinct_hk_count: number;
     source_only_row_count: number; coverage: Coverage; count_unit?: 'SAVED_LANE_RESEARCH_ROWS';
     factor_stock_count?: number | null; factor_path_count?: number | null;
+    industry_candidate_row_count?: number | null; industry_candidate_stock_count?: number | null;
+    industry_scope_count?: number | null;
   };
   snapshot: PlanMetadata | null;
   stocks: StockDecision[];

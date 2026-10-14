@@ -136,6 +136,11 @@ def run_us_mapping(context, batch):
         holder = next(iter(factor_rows), None) or next(iter(out["rows"]), None)
         if holder is not None:
             holder["us_factor_summary"] = factor_summary
+        industry_summary = factor_summary.get("industry_summary") or {}
+        if industry_summary.get("source_status") not in (None, "READY", "UNAVAILABLE"):
+            out["gaps"].append("HK_INDUSTRY_CLASSIFICATION_COVERAGE_PARTIAL")
+            out["coverage"]["gaps"].append("HK_INDUSTRY_CLASSIFICATION_COVERAGE_PARTIAL")
+            out["state"] = "PARTIAL"
         if factor_summary.get("paired_review_gap"):
             out["gaps"].append(factor_summary["paired_review_gap"])
             out["coverage"]["gaps"].append(factor_summary["paired_review_gap"])

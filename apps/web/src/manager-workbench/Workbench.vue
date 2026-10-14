@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import { useWorkbench } from "./useWorkbench";
-import type { Lane, Phase, PlanVersion, StockDecision, USFactorSummary } from "./types";
+import type { HKIndustrySummary, Lane, Phase, PlanVersion, StockDecision, USFactorSummary } from "./types";
 import { LANES, LANE_LABELS, LANE_STATE_LABELS, JOB_STATE_LABELS, PHASE_LABELS,
   showCount, showText, gapText } from "./types";
 import { conditionLabel, decisionLabel, evidenceLink, firstReason, humanTime, labelForLane,
@@ -56,6 +56,9 @@ function factorPeriod(path: Record<string, unknown>): string {
 function factorSummaryText(summary: USFactorSummary): string {
   const decisions = summary.factor_decision_counts || {};
   return `固定美股来源 ${showCount(summary.us_source_symbol_count)} 个；已配置代理主题 ${showCount(summary.proxy_source_count)} / ${showCount(summary.expected_proxy_source_count)} 个（核验通过 ${showCount(summary.verified_proxy_source_count)}，未知 ${showCount(summary.unknown_proxy_source_count)}）；目标日港股通范围 ${showCount(summary.eligible_hk_scope_count)} 只；因子唯一港股 ${showCount(summary.unique_factor_stock_count)} 只，路径 ${showCount(summary.factor_path_count)} 条，未知港股 ${showCount(summary.unknown_factor_stock_count)} 只。结果：条件观察 ${showCount(decisions.CONDITIONAL_WATCH)}，未入选 ${showCount(decisions.NOT_SELECTED)}，待核 ${showCount(decisions.UNASSESSED)}。这些数量属于不同范围，不能相加。`;
+}
+function industrySummaryText(summary: HKIndustrySummary): string {
+  return `港股通范围 ${showCount(summary.scope_count)} 只；身份核验 ${showCount(summary.identity_resolved_count)} 只，身份缺口 ${showCount(summary.identity_gap_count)} 只；有行业分类 ${showCount(summary.classified_count)} 只，已映射到冻结美股主题 ${showCount(summary.mapping_covered_count)} 只，行业已知但未映射 ${showCount(summary.industry_unmapped_count)} 只，分类缺失 ${showCount(summary.classification_missing_count)} 只；待核（UNASSESSED）${showCount(summary.unknown_unique_stock_count)} 只；坏来源行 ${showCount(summary.bad_row_count)} 条；代理收益为正且通过时间门槛的去重候选 ${showCount(summary.triggered_unique_stock_count)} 只。`;
 }
 </script>
 
@@ -140,6 +143,16 @@ function factorSummaryText(summary: USFactorSummary): string {
         </button>
       </nav>
 
+      <section v-if="vm.laneFilter === 'US_MAPPING' && vm.day?.data?.us_mapping_summary?.factor_summary?.industry_summary"
+        class="mwb-research-section" aria-label="港股行业宽召回股票漏斗">
+        <h3>港股发行人行业 × 美股主题 · 独立宽召回漏斗</h3>
+        <p>{{ industrySummaryText(vm.day.data.us_mapping_summary.factor_summary.industry_summary) }}</p>
+        <p>分类来源状态 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_status }}；source_asof {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_asof || 'UNKNOWN' }}（{{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_asof_status || 'UNKNOWN' }}）；实际采集 {{ humanTime(vm.day.data.us_mapping_summary.factor_summary.industry_summary.captured_at) }}；时间状态 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.temporal_status || 'CANNOT_CONFIRM' }}。历史 PIT 未验证。</p>
+        <p>安全主表 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_owner || '未知' }} · 会话 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_source_date || '未知' }} · 可得 {{ humanTime(vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_available_at) }} · SHA {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_artifact_sha256 || '未知' }}；身份缺口 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.identity_gap || '无' }}。</p>
+        <p v-if="vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_gap">分类输入缺口：{{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_gap }}</p>
+        <p>这是按股票去重的候选覆盖；待核数按 UNASSESSED 行级结论统计。完整研究记录计数仍按行记录统计。</p>
+      </section>
+
       <div v-if="vm.counts" class="mwb-counts" aria-label="本路径完整研究记录分类计数">
         <div><strong>{{ showCount(vm.counts.selected) }}</strong><span>严格入选</span></div>
         <div><strong>{{ showCount(vm.counts.watch) }}</strong><span>条件观察</span></div>
@@ -148,8 +161,8 @@ function factorSummaryText(summary: USFactorSummary): string {
         <div><strong>{{ showCount(vm.counts.not_selected) }}</strong><span>未入选</span></div>
       </div>
       <p v-else class="mwb-muted">完整分类计数未知（无已保存计数，不能当作 0）。</p>
-      <p v-if="vm.day?.data?.recommendation_projection" class="mwb-muted">本路径保存 {{ vm.day.data.recommendation_projection.row_count }} 条研究记录（计数单位：研究记录）；
-        {{ vm.day.data.recommendation_projection.hk_relation_row_count }} 条含港股，涉及 {{ vm.day.data.recommendation_projection.distinct_hk_count }} 只。
+      <p v-if="vm.day?.data?.recommendation_projection" class="mwb-muted">本路径保存 {{ vm.day.data.recommendation_projection.row_count }} 条研究记录（计数单位：研究记录）。
+        这些记录包含 {{ vm.day.data.recommendation_projection.hk_relation_row_count }} 条港股关系记录，去重涉及 {{ vm.day.data.recommendation_projection.distinct_hk_count }} 只港股。
         分类数量按完整研究记录计，不受分页影响；默认推荐仅含严格入选和条件观察。无港股关系的来源缺口在下方单独查看。</p>
 
       <section v-if="vm.day?.data?.us_mapping_summary" class="mwb-panel" aria-label="本版本美股映射">
@@ -222,7 +235,9 @@ function factorSummaryText(summary: USFactorSummary): string {
               </td>
               <td><span class="mwb-decision" :data-decision="stock.decision">{{ decisionLabel(stock.decision) }}</span>
               </td>
-              <td>{{ LANE_LABELS[vm.laneFilter] }}<small v-if="stock.us_symbol">美股来源 {{ stock.us_symbol }}</small></td>
+              <td>{{ LANE_LABELS[vm.laneFilter] }}<small v-if="stock.us_symbol">美股来源 {{ stock.us_symbol }}</small>
+                <small v-if="stock.subtype === 'HK_INDUSTRY_PROXY_FACTOR_CANDIDATE'">身份 {{ stock.identity_status || 'UNASSESSED_IDENTITY' }}；行业 {{ stock.source_industry || '分类未知' }} → 主题 {{ stock.theme || '未映射' }}；代理日收益 {{ stock.return_pct ?? '未知' }}% · {{ stock.mapping_type || '映射类型未知' }}</small>
+              </td>
               <td><div class="mwb-main-reason">{{ firstReason(stock) }}</div>
                 <small>待确认：{{ stock.conditions?.length ? conditionLabel(stock.conditions[0]) : "无已记录条件" }}</small>
               </td>
@@ -311,6 +326,14 @@ function factorSummaryText(summary: USFactorSummary): string {
                   </details>
                   <p v-for="condition in (Array.isArray(path.conditions) ? path.conditions : [])" :key="String(condition)">待核条件：{{ showText(condition) }}</p>
                 </article>
+              </section>
+              <section v-if="row.subtype === 'HK_INDUSTRY_PROXY_FACTOR_CANDIDATE'" class="mwb-research-section">
+                <h5>发行人行业与美股代理主题 · 独立候选</h5>
+                <p>身份状态 {{ showText(row.identity_status || 'UNASSESSED_IDENTITY') }}；安全主表 {{ showText(row.security_master_owner) }} · 会话 {{ showText(row.security_master_source_date) }} · artifact SHA {{ showText(row.security_master_artifact_sha256) }}。</p>
+                <p>来源行业 {{ showText(row.source_industry) }}；映射主题 {{ showText(row.theme) }}；代理日收益 {{ row.return_pct === null || row.return_pct === undefined ? '未知' : `${showText(row.return_pct)}%` }}。</p>
+                <p>映射类型 {{ showText(row.mapping_type) }}；分类来源 {{ showText(row.source_id) }} · {{ showText(row.source_owner) }}；来源原始响应 SHA {{ showText(row.source_response_sha256) }}，行 SHA {{ showText(row.source_row_sha256) }}。</p>
+                <p>source_asof {{ showText(row.source_asof || 'UNKNOWN') }}；采集时间 {{ humanTime(typeof row.captured_at === 'string' ? row.captured_at : null) }}；时间状态 {{ showText(row.temporal_status) }}；历史 PIT 未验证，研究效果未验证。</p>
+                <p v-for="condition in (Array.isArray(row.conditions) ? row.conditions : [])" :key="String(condition)">待核条件：{{ showText(condition) }}</p>
               </section>
               <section class="mwb-research-section"><h5>风险</h5>
                 <p v-for="risk in researchRisks(row)" :key="risk">{{ risk }}</p>

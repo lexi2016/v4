@@ -57,6 +57,53 @@ def test_factor_projection_keeps_one_stock_and_preserves_relation_path():
     assert summarized["factor_summary"]["unique_factor_stock_count"] == 2
 
 
+def test_industry_candidate_projection_keeps_48_legacy_counts_and_all_698_candidates_separate():
+    legacy_rows = []
+    for index in range(48):
+        decision = "CONDITIONAL_WATCH" if index < 3 else "UNASSESSED" if index < 31 else "NOT_SELECTED"
+        legacy_rows.append(dict(symbol=f"HK.{index + 1:05d}", name=f"旧来源 {index + 1}", decision=decision,
+            reason="SYNTHETIC_LEGACY_ROW", membership={"eligible": True}, evidence_ids=[f"legacy-{index}"]))
+    industry_codes = ["HK.00300", *[f"HK.{90000 + index:05d}" for index in range(1, 698)]]
+    industry_rows = []
+    for index, symbol in enumerate(industry_codes):
+        industry_rows.append(dict(symbol=symbol, name=f"合成发行人 {index}",
+            subtype="HK_INDUSTRY_PROXY_FACTOR_CANDIDATE",
+            decision="CONDITIONAL_WATCH" if index == 0 else "UNASSESSED",
+            reason="SYNTHETIC_INDUSTRY_ROW", source_industry="家庭电器及用品" if index == 0 else None,
+            theme="消费" if index == 0 else None, return_pct="1.50" if index == 0 else None,
+            mapping_type="EXACT_PROVIDER_INDUSTRY" if index == 0 else None,
+            identity_status="VERIFIED" if index < 697 else "UNASSESSED_IDENTITY",
+            membership={"eligible": True}, evidence_ids=[f"industry-{index}"]))
+    industry_summary = dict(scope_count=698, identity_resolved_count=697, identity_gap_count=1,
+        identity_gap_symbols=[industry_codes[-1]], identity_gap="HK_SECURITY_MASTER_IDENTITY_SCOPE_GAP",
+        security_master_scope_count=697, bad_row_count=0, classified_count=2, mapping_covered_count=1,
+        industry_unmapped_count=1, classification_missing_count=696, triggered_unique_stock_count=1,
+        unknown_unique_stock_count=697, candidate_row_count=1,
+        decision_counts={"CONDITIONAL_WATCH": 1, "NOT_SELECTED": 0, "UNASSESSED": 697})
+    factor_summary = dict(display_only=True, rules_version=US_FACTOR_RULES_VERSION,
+        unique_factor_stock_count=0, factor_path_count=0, industry_summary=industry_summary)
+    legacy_rows[0]["us_factor_summary"] = factor_summary
+    lane = NS(lane=NS(value="US_MAPPING"), rows=[*legacy_rows, *industry_rows], gaps=[], state=NS(value="PARTIAL"),
+        coverage=NS(model_dump=lambda **kwargs: {"scope_count": 33}))
+    snapshot = NS(context=NS(rules_version=US_FACTOR_RULES_VERSION), lanes=[lane], stocks=[], run_id="industry-run")
+
+    result = lane_projection(snapshot, "US_MAPPING", {})
+    projection = result["recommendation_projection"]
+    assert projection["row_count"] == 48
+    assert projection["count_unit"] == "SAVED_LANE_RESEARCH_ROWS"
+    assert projection["industry_candidate_row_count"] == 698
+    assert projection["industry_candidate_stock_count"] == 1
+    assert projection["industry_scope_count"] == 698
+    assert result["counts"]["watch"] == 3 and result["counts"]["unassessed"] == 28
+    assert result["counts"]["not_selected"] == 17 and sum(result["counts"].values()) == 48
+    assert sum(result["counts"].values()) == projection["row_count"]
+    assert len(result["stocks"]) == 4
+    assert sum(row.get("subtype") == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE" for row in result["stocks"]) == 1
+    inspection = lane_projection(snapshot, "US_MAPPING", {}, "UNASSESSED")
+    assert len(inspection["stocks"]) == 725
+    assert sum(row.get("subtype") == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE" for row in inspection["stocks"]) == 697
+
+
 def test_deployed_snapshot_counts_all_lane_research_rows():
     if not DEPLOYED.exists():
         pytest.skip("The deployed formal snapshot is local-only; raw data is not uploaded")
