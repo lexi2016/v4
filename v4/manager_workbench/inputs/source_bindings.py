@@ -174,11 +174,12 @@ def security_master(config, context):
 
 
 def hk_industry_classification(config, context):
-    """Read an explicitly dated, operator-pinned issuer-classification artifact.
+    """Read one exact-date issuer classification through its existing owner.
 
-    This is an optional read-only input. There is deliberately no latest-pointer,
-    network, or provider fallback here; absence leaves the cross-market branch
-    unavailable without changing the existing US mapping inputs.
+    ResearchPeripheralStore validates its payload, receipt, and manifest before
+    projection. The existing explicit V4 pin remains a compatibility path for
+    already materialized candidate artifacts; no latest or network fallback is
+    introduced.
     """
     day = context.target_date
     owner_pins = context.scope_refs.get('owner_bindings', {}) if hasattr(context, 'scope_refs') else {}
@@ -191,7 +192,116 @@ def hk_industry_classification(config, context):
         us_pin = date_pins.get(day) if isinstance(date_pins, dict) else None
         pin = us_pin.get('hk_industry_classification') if isinstance(us_pin, dict) else None
     if not isinstance(pin, dict):
-        return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING')
+        root = Path(config.shared_root) if getattr(config, 'shared_root', None) else None
+        if root is None:
+            return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_CLASSIFICATION_SHARED_ROOT_MISSING')
+        try:
+            from infrastructure.research_peripheral_store import (
+                HK_INDUSTRY_SOURCE,
+                ResearchPeripheralStore,
+            )
+
+            source_store = ResearchPeripheralStore(root)
+            payload = source_store.read_exact(day, HK_INDUSTRY_SOURCE)
+            if payload is None:
+                return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING')
+            relative = source_store._relative(day, HK_INDUSTRY_SOURCE)
+            receipt_relative = source_store._receipt_relative(day, HK_INDUSTRY_SOURCE)
+            manifest_relative = 'research/peripherals/manifest.json'
+            manifest, manifest_sha = read(root, manifest_relative)
+            expected_payload_sha = manifest.get(relative)
+            owner_payload, artifact_sha = read(root, relative, expected_payload_sha)
+            receipt, receipt_sha = read(root, receipt_relative)
+            if (owner_payload != payload
+                    or receipt.get('schema_version') != 'v3_5.research_peripheral_receipt.v1'
+                    or receipt.get('trade_date') != day
+                    or receipt.get('source') != HK_INDUSTRY_SOURCE
+                    or receipt.get('payload_path') != relative
+                    or receipt.get('payload_sha256') != artifact_sha
+                    or manifest.get(relative) != artifact_sha):
+                raise ValueError('HK_INDUSTRY_PERIPHERAL_OWNER_RECEIPT_MANIFEST_INVALID')
+            owner_bindings = context.scope_refs.get('owner_bindings', {}) if hasattr(context, 'scope_refs') else {}
+            member_pin = owner_bindings.get('membership') if isinstance(owner_bindings, dict) else None
+            if not isinstance(member_pin, dict):
+                member_pin = membership(config, context)
+            projection = member_pin.get('projection')
+            codes = sorted(projection.get('codes') or []) if isinstance(projection, dict) else []
+            stored_refs = sorted(
+                (ref.get('source_local_path'), ref.get('relative'), ref.get('sha256'))
+                for ref in payload.get('membership_source_refs', [])
+                if isinstance(ref, dict)
+            )
+            current_refs = sorted(
+                (ref.get('source_local_path'), ref.get('relative'), ref.get('sha256'))
+                for ref in member_pin.get('checked_files', [])
+                if isinstance(ref, dict)
+            )
+            if (not codes or codes != payload.get('scope_codes')
+                    or member_pin.get('artifact_sha256') != payload.get('membership_artifact_sha256')
+                    or member_pin.get('artifact_relative') != payload.get('membership_relative')
+                    or member_pin.get('owner') != payload.get('membership_owner')
+                    or projection.get('available_at') != payload.get('membership_available_at')
+                    or projection.get('effective_from') != payload.get('membership_effective_from')
+                    or projection.get('effective_to') != payload.get('membership_effective_through')
+                    or owner_digest(dict(market='HK_CONNECT', codes=codes)) != payload.get('membership_codes_sha256')
+                    or not current_refs or stored_refs != current_refs):
+                raise ValueError('HK_INDUSTRY_PERIPHERAL_MEMBERSHIP_BINDING_MISMATCH')
+            checked_files = [
+                dict(source_local_path=str(root), relative=relative, sha256=artifact_sha),
+                dict(source_local_path=str(root), relative=receipt_relative, sha256=receipt_sha),
+                dict(source_local_path=str(root), relative=manifest_relative, sha256=manifest_sha),
+                *member_pin.get('checked_files', []),
+            ]
+            try:
+                from ..engines.us_factor import HK_INDUSTRY_TO_PROXY
+            except ImportError:
+                HK_INDUSTRY_TO_PROXY = {}
+            rows = []
+            for item in payload.get('items', []):
+                if not isinstance(item, dict):
+                    continue
+                row = dict(
+                    symbol=item.get('symbol'),
+                    issuer_name=item.get('issuer_name'),
+                    source_industry=item.get('source_industry'),
+                    source_row_sha256=item.get('source_row_sha256'),
+                    source_response_sha256=item.get('source_response_sha256'),
+                    source_response_ref=item.get('source_response_ref'),
+                )
+                mapped = HK_INDUSTRY_TO_PROXY.get(row.get('source_industry'))
+                if isinstance(mapped, dict):
+                    row['mapping_type'] = mapped.get('mapping_type')
+                rows.append(row)
+            artifact = dict(
+                schema_version='v4.manager_workbench.hk_industry_classification.v1',
+                source_id=payload.get('source_id'),
+                source_owner='research_peripheral.hk_industry_classification',
+                market='HK_CONNECT',
+                scope_type='HK_CONNECT_FULL_MARKET',
+                target_date=day,
+                status=payload.get('status'),
+                scope_count=payload.get('scope_count'),
+                membership_codes_sha256=payload.get('membership_codes_sha256'),
+                membership_artifact_sha256=payload.get('membership_artifact_sha256'),
+                batch_response_sha256=payload.get('batch_response_sha256'),
+                source_url=payload.get('source_url'),
+                source_asof=payload.get('source_asof'),
+                source_asof_status=payload.get('source_asof_status'),
+                captured_at=payload.get('captured_at'),
+                source_date_semantics=payload.get('source_date_semantics'),
+                requested_codes=payload.get('requested_codes'),
+                failures=payload.get('failures'),
+                rows=rows,
+            )
+            return dict(status='READY', owner='research_peripheral.hk_industry_classification',
+                artifact=artifact, artifact_relative=relative, artifact_sha256=artifact_sha,
+                source_local_path=str(root), source_url=payload.get('source_url'),
+                manifest_relative=manifest_relative, manifest_sha256=manifest_sha,
+                receipt_relative=receipt_relative, receipt_sha256=receipt_sha,
+                checked_files=checked_files)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            gap = str(error) if isinstance(error, ValueError) else 'HK_INDUSTRY_CLASSIFICATION_OWNER_UNAVAILABLE'
+            return dict(status='UNAVAILABLE', gap=gap)
     try:
         root = Path(pin.get('source_local_path') or pin.get('root') or config.shared_root)
         relative = pin.get('artifact_relative') or pin.get('relative')

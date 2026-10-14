@@ -1,0 +1,149 @@
+{
+  "canonical_source_read_only": true,
+  "consumer_verification": {
+    "consumer": "v4.manager_workbench.inputs.source_bindings.hk_industry_classification",
+    "real_owner_to_consumer_canary": "Previously returned READY with 3 projected rows, receipt/manifest verification and Midea EXACT_PROVIDER_INDUSTRY mapping; binding source SHA is recorded above and unchanged in this batch.",
+    "regression": "The current 23-test suite includes owner publish/read, exact-date consumer receipt/manifest validation, membership mismatch, missing owner, and source-industry mapping checks."
+  },
+  "full_membership_run": {
+    "command": "PYTHONPATH=. UV_PROJECT_ENVIRONMENT=/private/tmp/mwb-us-factor-tests-20261014 /private/tmp/mwb-us-factor-tests-20261014/bin/python -m ops.materialize_research_peripherals --source hk_industry_classification --trade-date 20261013 --data-root /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/industry-capture-r1/full-20261013/owner-root --membership-root '/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data' --cache-root /Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app/docs/handoff/manager-workbench-implementation-20261013/.tmp/industry-capture-r1/r2/response-cache --allow-full-membership",
+    "reason": "Parent authorized preparation only pending independent review; 698-code network acquisition is intentionally not executed in this batch.",
+    "required_operator_gate": "Run only after independent Reviewer and parent authorization.",
+    "status": "NOT_RUN",
+    "writes_to": "isolated handoff .tmp path only; reads the existing exact-date membership source root; uses only the existing response cache before provider calls."
+  },
+  "goal": "Add HK issuer-code/name/industry capture as a third exact-date cache-first research peripheral owner and expose the verified owner payload through the optional V4 consumer.",
+  "independent_review": "PENDING",
+  "real_canary": {
+    "batch_response_sha256": "4e5e86d675a6805bbf7907f793bfb311ffcb67c42f584ba7e28d535cbd8ede6b",
+    "capture_date": "20261014",
+    "captured_at": "2026-10-14T09:59:23.704599+08:00",
+    "failure_count": 0,
+    "item_count": 3,
+    "manifest": {
+      "relative": "research/peripherals/manifest.json",
+      "sha256": "6ab4ee2d08f3fc4c795a3bf59e1c0fe516b94e1b12af50f2d4521cac696650de"
+    },
+    "membership_artifact_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+    "membership_owner": "v35_dispatcher.research_panel_daily_hk",
+    "membership_source_ref_count": 6,
+    "network_observation": "Two Eastmoney requests (00700 and 00941) returned HTTP 200, fallback_used=false, proxy_used=false. 00300 was reused from its pre-existing raw response cache. Final CLI replay returned reused=true.",
+    "owner_root_relative": "docs/handoff/manager-workbench-implementation-20261013/.tmp/industry-capture-r1/r2/owner-root",
+    "payload": {
+      "relative": "research/peripherals/20261013/hk_industry_classification.json",
+      "sha256": "ecfc8e99c2eae49552751ccd57b0dc9ac9963e22c394e2399bae29d9759c7735"
+    },
+    "pit_limit": "All three captures are after 20261013; source_asof is unknown. They are observational canary data and cannot establish 20261013 PIT classification or full-universe coverage.",
+    "receipt": {
+      "relative": "receipts/research/peripherals/20261013/hk_industry_classification.json",
+      "sha256": "510ccbf2659c3ca4b4eeb6cd5208741e187b3f5dd60907b65d101e3aef1db3b9"
+    },
+    "requested_count": 3,
+    "response_cache": [
+      {
+        "cache_file_sha256": "f8094308ed6f22c7feb1c7b807626a9903439dba88390d12b0d2d7d07c6c1e18",
+        "captured_at": "2026-10-14T09:33:13.850926+08:00",
+        "http_status": 200,
+        "symbol": "HK.00300",
+        "transport_receipt": {}
+      },
+      {
+        "cache_file_sha256": "957f9a4801482acaba9c4679e51ad6dcc31426a51c664012fc291a06d8e0ccb7",
+        "captured_at": "2026-10-14T09:59:23.614484+08:00",
+        "http_status": 200,
+        "symbol": "HK.00700",
+        "transport_receipt": {
+          "elapsed_ms": 100,
+          "error": null,
+          "fallback_used": false,
+          "http_status": 200,
+          "proxy_used": false
+        }
+      },
+      {
+        "cache_file_sha256": "fbf3ba3c6d025adbabb4d53b0a2371c83001779f63fead78989e423083e16c1a",
+        "captured_at": "2026-10-14T09:59:23.704599+08:00",
+        "http_status": 200,
+        "symbol": "HK.00941",
+        "transport_receipt": {
+          "elapsed_ms": 89,
+          "error": null,
+          "fallback_used": false,
+          "http_status": 200,
+          "proxy_used": false
+        }
+      }
+    ],
+    "rows": [
+      {
+        "captured_at": "2026-10-14T09:33:13.850926+08:00",
+        "issuer_name": "美的集团股份有限公司",
+        "source_industry": "家庭电器及用品",
+        "source_response_sha256": "cc382e4e5a809ef968222733678ec1e9d715a19cc356a1743daa78c94fd0f096",
+        "symbol": "HK.00300"
+      },
+      {
+        "captured_at": "2026-10-14T09:59:23.614484+08:00",
+        "issuer_name": "腾讯控股有限公司",
+        "source_industry": "软件服务",
+        "source_response_sha256": "6a77b5a6ca9cdd46b7c1ef49bb5829402482d35390ab1d2a840f8d6e7a55c506",
+        "symbol": "HK.00700"
+      },
+      {
+        "captured_at": "2026-10-14T09:59:23.704599+08:00",
+        "issuer_name": "中国移动有限公司",
+        "source_industry": "电讯",
+        "source_response_sha256": "914cd4a616af4d1e24b31e68d95070e792d45cc27c2ff1033589dab0efbc05c3",
+        "symbol": "HK.00941"
+      }
+    ],
+    "scope_count": 698,
+    "scope_type": "HK_CONNECT_FULL_MARKET",
+    "source": "hk_industry_classification",
+    "source_asof": null,
+    "source_asof_status": "UNKNOWN",
+    "source_date_semantics": "CAPTURED_AFTER_TARGET_DATE_SOURCE_ASOF_UNKNOWN",
+    "status": "READY",
+    "trade_date": "20261013"
+  },
+  "safety": {
+    "capture_provenance_pit_safe": false,
+    "formal_config_changed": false,
+    "formal_data_root_written": false,
+    "orders_sent": false,
+    "oversold_changed": false,
+    "production_allowed": false,
+    "proxy_map_changed": false,
+    "security_master_changed": false,
+    "services_changed": false,
+    "stage_or_top100_changed": false
+  },
+  "schema_version": "us_factor_hk_industry_implementation_receipt.v1",
+  "source_files": [
+    {
+      "path": "infrastructure/research_peripheral_store.py",
+      "sha256": "cc72388a22752bbc555021d6ccf54e7c2feb57294bec0953a4e4b379d7e1f57a"
+    },
+    {
+      "path": "ops/materialize_research_peripherals.py",
+      "sha256": "4c48bef091e843892e94cda4763172b74f8136ee5187df9488a767bd34f4cfd4"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "sha256": "36945092943c395c034a5fdad170a1005b0ca53541852636ca205bffc147bc7b"
+    },
+    {
+      "path": "tests/test_hk_industry_peripheral.py",
+      "sha256": "5653e3511005a371947bc2fe398852eecd767ebd134c983f5c81ee43847c71e1"
+    }
+  ],
+  "status": "IMPLEMENTED_LOCAL_CANARY_PASS_FULL_MEMBERSHIP_NOT_RUN_REVIEW_PENDING",
+  "validation": {
+    "command": "PYTHONPATH=. UV_PROJECT_ENVIRONMENT=/private/tmp/mwb-us-factor-tests-20261014 /private/tmp/mwb-us-factor-tests-20261014/bin/python -m pytest --basetemp=/private/tmp/mwb-us-factor-pytest-20261014 tests/test_hk_industry_peripheral.py tests/manager_workbench/engines/test_us_factor.py tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/runtime/test_us_factor_display.py -q",
+    "git_diff_check": "PASS for all four changed/new paths",
+    "py_compile": "PASS for all four changed/new Python files",
+    "real_owner_canary_idempotent_replay": "PASS; current producer returned reused=true and made no request after immutable exact-date owner record existed",
+    "result": "23 passed; one existing Starlette/httpx deprecation warning"
+  },
+  "workspace_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app"
+}

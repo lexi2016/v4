@@ -1,0 +1,106 @@
+{
+  "schema_version": "v4.independent-review.v1",
+  "review_scope": "HK industry peripheral owner R1 only",
+  "reviewer_identity": "/root/us_factor_review_luna",
+  "review_status": "REVIEWED_PASS",
+  "behavior_status": "BEHAVIOR_VERIFIED_CANARY_ONLY",
+  "source_files": [
+    {
+      "path": "infrastructure/research_peripheral_store.py",
+      "baseline_sha256": "17f590fedf8d404f047d888bc1af7dcfeaa0f078c05dab2aec75f8f33dcb89a6",
+      "reviewed_sha256": "cc72388a22752bbc555021d6ccf54e7c2feb57294bec0953a4e4b379d7e1f57a",
+      "baseline_basis": "frozen local problem-package source copy"
+    },
+    {
+      "path": "ops/materialize_research_peripherals.py",
+      "baseline_sha256": "e71d1db359f1153b179e86e09331a03d6263f00c9a23147f57d286a21cd12180",
+      "reviewed_sha256": "4c48bef091e843892e94cda4763172b74f8136ee5187df9488a767bd34f4cfd4",
+      "baseline_basis": "frozen local problem-package source copy"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "baseline_sha256": "15e16fcb61e5fcf1de96f0694eaf2d89bcaca1dac3b0ab25de932479ea5ff564",
+      "reviewed_sha256": "36945092943c395c034a5fdad170a1005b0ca53541852636ca205bffc147bc7b",
+      "baseline_basis": "fixed 37200b9e86af3e66642ed50f26fb35f697d2e832 source"
+    },
+    {
+      "path": "tests/test_hk_industry_peripheral.py",
+      "baseline_sha256": null,
+      "reviewed_sha256": "5653e3511005a371947bc2fe398852eecd767ebd134c983f5c81ee43847c71e1",
+      "baseline_basis": "new test file"
+    }
+  ],
+  "baseline_limit": "The fixed GitHub commit does not contain the pre-existing store and ops files; their exact prior bytes were reviewed from the frozen local problem-package copy. No remote baseline claim is made for those two files.",
+  "writer_receipt": {
+    "path": "docs/handoff/manager-workbench-implementation-20261013/us-factor-hk-industry-r1-receipt.json",
+    "sha256": "4aec263570264a7183988f659b81f80a56c535b9b51e521c2ea9f0258653b399",
+    "all_four_source_hashes_match": true
+  },
+  "review_evidence": {
+    "store_and_producer": [
+      "The new source is registered in the existing ResearchPeripheralStore and exact-date manifest/receipt path.",
+      "Producer resolves the existing V4 HK_CONNECT_FULL_MARKET membership owner and records its artifact SHA, code-set SHA, source references, effective range, and available_at.",
+      "Each request is limited to an in-scope HK symbol and uses the fixed Eastmoney F10 endpoint; response bytes are cached by trade date and symbol before parsing, with SHA verification and immutable conflict handling.",
+      "Parser requires one matching SECUCODE and matching SECURITY_CODE; source_asof remains UNKNOWN.",
+      "A verified cache hit returns before transport; an existing READY or PARTIAL owner artifact is returned before transport, and an existing CANNOT_CONFIRM artifact fails closed without automatic retry.",
+      "403, 429, server failures, and transport errors stop later requests in the current batch and are retained as per-symbol failures."
+    ],
+    "consumer": {
+      "status": "READY",
+      "artifact_status": "READY",
+      "target_date": "20261013",
+      "scope_count": 698,
+      "requested_count": 3,
+      "row_count": 3,
+      "source_asof": null,
+      "source_asof_status": "UNKNOWN",
+      "membership_artifact_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+      "payload_sha256": "ecfc8e99c2eae49552751ccd57b0dc9ac9963e22c394e2399bae29d9759c7735",
+      "receipt_sha256": "510ccbf2659c3ca4b4eeb6cd5208741e187b3f5dd60907b65d101e3aef1db3b9",
+      "manifest_sha256": "6ab4ee2d08f3fc4c795a3bf59e1c0fe516b94e1b12af50f2d4521cac696650de"
+    },
+    "idempotent_replay": {
+      "status": "PASS",
+      "output_reused": true,
+      "reviewer_network_request": false,
+      "reason": "Exact-date immutable owner is validated and returned at materialize_research_peripherals.py:2571-2579 before HTTP transport is initialized at line 2580.",
+      "payload_receipt_manifest_and_three_cache_hashes_unchanged_after_replay": true
+    },
+    "full_membership_command": {
+      "status": "NOT_RUN",
+      "review_action": "inspected only",
+      "writes_to": "isolated handoff .tmp/industry-capture-r1/full-20261013/owner-root",
+      "reads_membership_from": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+      "uses_existing_response_cache": "docs/handoff/manager-workbench-implementation-20261013/.tmp/industry-capture-r1/r2/response-cache",
+      "has_explicit_allow_full_membership": true,
+      "remaining_cache_misses_may_request_network": true,
+      "required_gate": "independent review and parent authorization"
+    }
+  },
+  "tests": [
+    {
+      "command": "PYTHONPATH=. UV_PROJECT_ENVIRONMENT=/private/tmp/mwb-us-factor-tests-20261014 /private/tmp/mwb-us-factor-tests-20261014/bin/python -m pytest --basetemp=/private/tmp/mwb-us-factor-pytest-20261014 tests/test_hk_industry_peripheral.py tests/manager_workbench/engines/test_us_factor.py tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/runtime/test_us_factor_display.py -q",
+      "result": "23 passed, 1 existing Starlette/httpx deprecation warning"
+    },
+    {
+      "command": "PYTHONPATH=. UV_PROJECT_ENVIRONMENT=/private/tmp/mwb-us-factor-tests-20261014 /private/tmp/mwb-us-factor-tests-20261014/bin/python -m pytest --basetemp=/private/tmp/mwb-us-factor-pytest-regressions-20261014 tests/test_research_peripheral_regressions.py -q",
+      "result": "6 passed"
+    }
+  ],
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "acceptance_limits": [
+    "The 20261013 owner contains three requested observations over a 698-code membership scope; it does not establish 698 classifications.",
+    "All three observed rows were captured on 20261014 and source_asof is UNKNOWN, so historical 20261013 PIT classification is CANNOT_CONFIRM.",
+    "Full-membership acquisition was intentionally not run; full-universe coverage is CANNOT_CONFIRM."
+  ],
+  "integrity": {
+    "writer_receipt_sha256": "4aec263570264a7183988f659b81f80a56c535b9b51e521c2ea9f0258653b399",
+    "owner_payload_sha256_after_replay": "ecfc8e99c2eae49552751ccd57b0dc9ac9963e22c394e2399bae29d9759c7735",
+    "owner_receipt_sha256_after_replay": "510ccbf2659c3ca4b4eeb6cd5208741e187b3f5dd60907b65d101e3aef1db3b9",
+    "owner_manifest_sha256_after_replay": "6ab4ee2d08f3fc4c795a3bf59e1c0fe516b94e1b12af50f2d4521cac696650de"
+  }
+}
