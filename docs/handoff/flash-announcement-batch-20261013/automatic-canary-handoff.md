@@ -1,6 +1,6 @@
 # Flash Next temporary automatic canary
 
-Status: `READY_FOR_INDEPENDENT_REVIEW`; the writer has not started a model request or temporary foreground service. This is a local research test harness, not a Workbench integration.
+Status: `CANARY_FAILED_WAITING_REVIEW`; mechanism review passed and overall semantic quality failed. The writer did not start the model request or temporary foreground service; this is a local research test harness, not a Workbench integration.
 
 ## Frozen input and admission
 
@@ -32,6 +32,12 @@ When the selected phase reaches a terminal state, stop the foreground temporary 
 ## Verification
 
 - `PYTHONDONTWRITEBYTECODE=1 "/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python" -m unittest pipeline_canary.test_automatic_canary_server pipeline_canary.test_announcement_queue pipeline_canary.test_batch_runner -v`: 37 tests pass. Coverage includes the locked grounded prompt SHA and actual executor request body; six canary successes stop with zero pressure executions; explicit second-stage UI confirmation; failure blocking; overlap de-duplication; persisted/recovered phase state; and queue idempotency. Tests use fixtures, mock transports, and synthetic phase tracking; they send no model request.
-- No model request, web lookup, UI import, local admin write, runtime setting change, model switch, foreground service start, or production action was performed by the writer. Visible inference and independent semantic review remain pending.
+- No model request, web lookup, UI import, local admin write, runtime setting change, model switch, foreground service start, or production action was performed by the writer. The user-triggered run and independent review outcome are recorded in the addendum below; no formal integration or natural-period validation was performed.
 
 The evidence root and generated queue inputs/receipts use private permissions. The page uses same-origin and per-process CSRF checks and inserts model text only with `textContent`.
+
+## 2026-10-14 run addendum
+
+The user-triggered six-article canary finished with `CANARY_FAILED_WAITING_REVIEW`; the independent mechanism review passed, while overall semantic quality failed. The 29-item pressure phase did not start. See [automatic-canary-results.md](automatic-canary-results.md) for the redacted result summary and frozen receipt identities.
+
+The UI metric formerly labeled TTFT is now labeled **首流事件（非首字）**. The receipt's `ttft_seconds` records the first SSE event, which can contain role metadata with empty content; first-content latency is `CANNOT_CONFIRM`. Historical receipt values were not changed, and the label edit did not rerun inference.

@@ -156,6 +156,11 @@ class PhaseTrackingQueue:
 
 
 class AutomaticCanaryServerTests(unittest.TestCase):
+    def test_ui_metric_label_names_first_sse_event_not_first_character(self) -> None:
+        self.assertEqual(app.HTML.count("首流事件（非首字）"), 2)
+        self.assertNotIn("TTFT", app.HTML)
+        self.assertIn("s.current.ttft_seconds", app.HTML)
+
     def test_only_stable_error_codes_reach_ui(self) -> None:
         self.assertEqual(app._stable_failure_code(RuntimeError("secret-bearing error text"), "MODEL_REQUEST_FAILED"), "MODEL_REQUEST_FAILED")
         self.assertEqual(app._stable_failure_code(runner.TransportError("CHAT_NO_PROGRESS_TIMEOUT:ReadTimeout"), "MODEL_REQUEST_FAILED"), "CHAT_NO_PROGRESS_TIMEOUT")
