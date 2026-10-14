@@ -68,7 +68,39 @@ describe("HkCloseReviewPanel historical prefix surface", () => {
     expect(panel.textContent).toContain("事后补采");
     expect(panel.textContent).toContain("没有留存该时段盘口");
     expect(panel.textContent).toContain("2026-10-13T12:09:12+08:00");
-    expect(screen.getByText("七阶段并集").parentElement?.textContent).toContain("不可用");
+    expect(screen.getByTestId("hk-stage-union-summary").textContent).toContain("09:30–09:35证据待验证");
+    expect(screen.getByTestId("hk-stage-union-summary").textContent).toContain("尚无可验证的并集统计");
+    expect(screen.getByTestId("hk-stage-union-summary").textContent).not.toContain("0/20");
+  });
+
+  it("keeps all 27 observed codes and seven hits visible with the exact pending stage", () => {
+    const codes = Array.from({ length: 27 }, (_, i) => `HK.${String(i + 1).padStart(5, "0")}`);
+    const payload = {
+      row_counts: { stage_rows: 70 },
+      stage_union: { hit_count: null, selected_count: null },
+      observed_stage_union: { evidence_status: "PARTIAL_RESEARCH_ONLY", selected_codes: codes,
+        selected_count: 27, hit_codes: codes.slice(0, 7), hit_count: 7 },
+      stage_input_evidence: { STAGE_0940_0945: { row_count: 10,
+        cannot_confirm: ["FUTU_AFTERFACT_CAPTURE_NOT_PIT_SAFE", "HK_HISTORICAL_ORDERBOOK_UNAVAILABLE"] } },
+    };
+    render(HkCloseReviewPanel, { props: { review: { model_selection_review: payload } } });
+    const card = screen.getByTestId("hk-stage-union-summary");
+    expect(card.textContent).toContain("7/20");
+    expect(card.textContent).toContain("已有观察结果 27 只");
+    expect(card.textContent).toContain("09:40–09:45证据待验证");
+    expect(card.textContent).toContain("没有留存该时段盘口");
+    expect(card.textContent).not.toContain("不可用");
+    expect(payload.stage_union.hit_count).toBeNull();
+  });
+
+  it("preserves a verified formal union including genuine zero hits", () => {
+    render(HkCloseReviewPanel, { props: { review: { model_selection_review: {
+      stage_union: { hit_count: 0, selected_count: 17 },
+    } } } });
+    const card = screen.getByTestId("hk-stage-union-summary");
+    expect(card.textContent).toContain("0/20");
+    expect(card.textContent).toContain("入选 17 只");
+    expect(card.textContent).not.toContain("待验证");
   });
 
   it("distinguishes an HK securities calendar skip from missing close evidence", () => {

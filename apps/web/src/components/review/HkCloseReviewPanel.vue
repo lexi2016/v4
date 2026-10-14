@@ -138,6 +138,19 @@ const stageEvidenceRows = computed(() => {
   });
 });
 
+const stageUnionSummary = computed(() => {
+  const formal = props.review.model_selection_review?.stage_union;
+  if (typeof formal?.hit_count === "number" && typeof formal.selected_count === "number") {
+    return { hits: formal.hit_count, count: formal.selected_count, observation: false, reason: "" };
+  }
+  const pending = stageEvidenceRows.value.filter((row) => !row.ready);
+  const reason = pending.length
+    ? pending.map((row) => `${row.label}证据待验证：${row.reason}`).join("；")
+    : "阶段覆盖或当时可获得的数据证据尚未验证";
+  return { hits: observedStageUnion.value?.hitCount, count: observedStageUnion.value?.selectedCount,
+    observation: true, reason };
+});
+
 const historicalStatus = computed(() => props.historical?.status ?? "CANNOT_CONFIRM");
 const historicalReasons = computed(() => props.historical?.cannot_confirm ?? ["HK_PREFIX_RESEARCH_NOT_IN_RESPONSE"]);
 const historicalStateRows = computed(() => {
@@ -194,7 +207,13 @@ function shortHash(value?: string) {
       <article v-else data-testid="hk-observed-model-unavailable">
         <span>研究观察 0.2</span><strong>不可用</strong><small>没有可验证的正式候选指标或研究观察行</small>
       </article>
-      <article><span>七阶段并集</span><strong>{{ hitTop20(review.model_selection_review?.stage_union?.hit_count) }}</strong><small>入选 {{ review.model_selection_review?.stage_union?.selected_count ?? "不可用" }}</small></article>
+      <article data-testid="hk-stage-union-summary">
+        <span>七阶段并集</span>
+        <strong>{{ typeof stageUnionSummary.hits === "number" ? hitTop20(stageUnionSummary.hits) : "统计待验证" }}</strong>
+        <small v-if="typeof stageUnionSummary.count === 'number'">{{ stageUnionSummary.observation ? "已有观察结果" : "入选" }} {{ stageUnionSummary.count }} 只</small>
+        <small v-else>尚无可验证的并集统计</small>
+        <small v-if="stageUnionSummary.observation">{{ stageUnionSummary.reason }}</small>
+      </article>
       <article v-if="observedStageUnion" data-testid="hk-observed-stage-union">
         <span>研究阶段并集（部分观察）</span><strong>{{ hitTop20(observedStageUnion.hitCount) }}</strong>
         <small>{{ observedStageUnion.stageRows ?? "缺证" }} 行 / {{ observedStageUnion.selectedCount }} 个去重代码 · {{ observedStageUnion.stageCoverage }} · PIT未验证 · NO_BUY</small>
