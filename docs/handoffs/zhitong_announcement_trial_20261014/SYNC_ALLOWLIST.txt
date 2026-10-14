@@ -1,0 +1,24 @@
+Authorized local trial artifacts; no Git operation was performed by this worker.
+
+Include if the parent later performs the separately authorized repository sync:
+- zt_trial_collector.py
+- zt_trial_reclassify.py
+- upstream_receipt.json
+- trial_receipt.json
+- semantic_review_report.md
+- semantic_review_dispositions.csv
+- SYNC_ALLOWLIST.txt
+
+Keep local only; do not sync raw upstream/article data or full text:
+- upstream_zhitong_route.tsx
+- articles_window.json
+- articles_window.csv
+- titles_for_semantic_review.csv
+- page_scan.json
+- page_scan_initial_10.json
+- trial_receipt_initial.json
+- extension_receipt.json
+- extension_discovery.json
+- new_titles_for_semantic_review.csv
+- /tmp/zt_announcement_page1.json
+- /tmp/zt_trial_page1_preview.csv
