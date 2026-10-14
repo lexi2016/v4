@@ -1,0 +1,60 @@
+{
+  "schema_version": "today-selection-result-v1",
+  "target_date": "20261014",
+  "run_id": "48dffe31053f45a7bd16d3ea6bb5a646",
+  "phase": "MANUAL",
+  "cutoff": "2026-10-14T15:00:21.774319+08:00",
+  "status": "PARTIAL",
+  "source_baseline_commit": "1714ab120779c03aaba567d0d0ddfa99f6a566e8",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "runtime_release": "mwb-wide-industry-r7-20261014-r1",
+  "root_cause": "Legacy V3.5 dispatcher had no eligible market and did not submit the MWB lanes.",
+  "config_change": {
+    "old_sha256": "207ce564b828a964d68f7d1118c81d547d207e826fe313341742bef737971838",
+    "new_sha256": "65684e5eb7657390747c089db74047d6a2c67d7f5de1bd3fe757a62f120965ca",
+    "delta_scope": "source_bindings.hk_panel.20261013.tdxpy_history only; other dates preserved"
+  },
+  "source_code_changed": false,
+  "scheduler_changed": false,
+  "oversold": {
+    "scope_count": 690,
+    "assessed_count": 568,
+    "unassessed_count": 122,
+    "selected_count": 18,
+    "conditional_watch_count": 196,
+    "not_selected_count": 354,
+    "price_session": "20261013"
+  },
+  "us_mapping": {
+    "source_scope_count": 33,
+    "assessed_count": 9,
+    "unassessed_count": 24,
+    "lane_watch_rows": 8,
+    "unique_watch_symbols_count": 7,
+    "paired_review_gap": "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID"
+  },
+  "industry_owner": {
+    "target_date": "20261014",
+    "original_cache_trade_date": "20261013",
+    "owner_payload_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+    "owner_receipt_sha256": "c3b580bb8c55a52b5a473a9b8291afef657b6e5baf9dbf92602becaa579d6366",
+    "owner_manifest_sha256": "4a12b615749b49bab12c65955429a56fde07dd1d0cc833993821c16d54f4c1a5",
+    "issuer_rows_with_industry": 664,
+    "issuer_rows_missing_industry": 31,
+    "http_502_failures": 3,
+    "pit_status": "PIT_UNCONFIRMED"
+  },
+  "snapshot_file_sha256": "e7452ec10458db9fb2556e173d546617b5174f7c0d965fbeaef0bfa5f6f131a2",
+  "local_full_receipt_sha256": "ad0629023191ff9f582ac118993d3ad90fc3d3fc47c055140a0c9abce02d56db",
+  "independent_lane_review": "PASS",
+  "independent_final_review_sha256": "32ce5f130f2d7946a37432f7ee67a216bdf8bcdcdf0ff88b4ae65326c8f56cbc",
+  "known_aggregate_issue": "P2: 349 valid oversold NOT_SELECTED rows appear as top-level UNASSESSED; report uses independent lane counts. Not changed.",
+  "API_VERIFIED": true,
+  "UI_VERIFIED": true,
+  "NATURAL_VERIFIED": false,
+  "tests": "NOT_RUN: no source code changes; reused prior reviewed implementation; single incremental independent result/provenance review.",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
