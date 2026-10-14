@@ -52,6 +52,7 @@ export type StageRow = {
   score?: number; stage_score?: number; stage_rtdata_score?: number;
   d1_change_pct?: number; stage_display_decision?: string; next_validation_time?: string;
   status?: string; source_mode?: string; stage_id?: string; trade_date?: string;
+  trade_status?: string; candidate_lanes?: string[];
   latest_research_slot?: string; news_quality_score?: number; research_quality_score?: number;
   news_research_reason?: string; source_health?: string;
   cannot_confirm?: string[]; data_level?: string; recommendation_status?: string;

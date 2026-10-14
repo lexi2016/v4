@@ -413,8 +413,6 @@ def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, s
                     "active_snapshot_temporal_cutoff_safe=true",
                     f"active_snapshot_active_rows={len(active)}",
                 )
-                if not active:
-                    probe_errors = ("HK_ACTIVE_GAINER_NO_MATCH",)
                 if stage_id != "STAGE_1545_1555":
                     from stage_center.hk_stage8.snapshot import _stage8_market_timestamp
                     book_gaps = []
@@ -471,12 +469,14 @@ def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, s
             levels = book.get(side) or []
             if levels and len(levels[0]) >= 2:
                 merged[price_field], merged[volume_field] = levels[0][:2]
-        snapshot = active.get(code)
-        if snapshot is not None:
-            merged["candidate_lanes"] = ["LIVE_HKCONNECT_GAINER"]
+        snapshot = active_snapshot_rows.get(code)
+        if snapshot is not None and set(active_snapshot_rows) == set(requested):
+            # Full D-1 membership enters ranking. The strong predicate only
+            # supplies its truthful lane bonus; retain every captured ratio.
+            merged["candidate_lanes"] = ["LIVE_HKCONNECT_GAINER"] if code in active else []
             merged["source_universe"] = "HK_CONNECT_D1_TOP100"
             merged["data_confidence"] = "STAGE_RTDATA_CONFIRMED"
-            merged["active_gainer_pass"] = True
+            merged["active_gainer_pass"] = code in active
             merged["volume_ratio"] = snapshot.get("volume_ratio")
             merged["active_snapshot_status"] = "FUTU_HKCONNECT_FULL_SCAN"
         enriched.append(merged)

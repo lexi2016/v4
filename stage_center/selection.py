@@ -99,6 +99,23 @@ ALGORITHM_MANIFEST = TOP10_ALGORITHM_MANIFEST
 ALGORITHM_SOURCE_BYTES = TOP10_ALGORITHM_SOURCE_BYTES
 ALGORITHM_SHA256 = hashlib.sha256(TOP10_ALGORITHM_SOURCE_BYTES).hexdigest()
 
+# Separate identity for the user-approved full-pool HK admission rule. Keep
+# prior formula/artifact hashes readable and leave A/auction identities alone.
+HK_FULL_POOL_ALGORITHM_MANIFEST = {
+    "base_algorithm_sha256": ALGORITHM_SHA256,
+    "policy": "FULL_D1_TOP100_STRONG_TAG_ONLY_V1",
+    "membership": "all_valid_exact_D1_Top100_rows",
+    "strong_predicate": "existing_live_gainer_tag_and_score_bonus_only",
+    "quote_fields": "retain_captured_volume_ratio_for_all_rows",
+    "score_and_sort": "unchanged_four_lane_score_and_sort",
+    "output": "Top10_preserve_real_trade_status_NO_BUY",
+}
+HK_FULL_POOL_ALGORITHM_SHA256 = hashlib.sha256(json.dumps(
+    HK_FULL_POOL_ALGORITHM_MANIFEST, ensure_ascii=False, sort_keys=True,
+    separators=(",", ":"),
+).encode("utf-8")).hexdigest()
+
+
 LEGACY_A_SHARE_LIVE_ALGORITHM_MANIFEST: dict[str, Any] = _v4_definitions._value_LEGACY_A_SHARE_LIVE_ALGORITHM_MANIFEST(globals())
 LEGACY_A_SHARE_LIVE_ALGORITHM_SOURCE_BYTES = json.dumps(
     LEGACY_A_SHARE_LIVE_ALGORITHM_MANIFEST, ensure_ascii=False, sort_keys=True, separators=(",", ":")

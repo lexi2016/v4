@@ -314,8 +314,8 @@ def _stage8_aggregate_rtdata_rows(
         "stage_cumulative_pct_chg": pct,
         "stage_replay_latest_time": last_time_text,
         "stage_replay_bar_count": len(ordered),
-        "candidate_lanes": ["LIVE_HKCONNECT_GAINER"],
-        "source_universe": "LIVE_HKCONNECT_GAINER",
+        "candidate_lanes": ["LIVE_HKCONNECT_GAINER"] if _stage8_active_snapshot_codes((active_snapshot_row,)) else [],
+        "source_universe": "HK_CONNECT_D1_TOP100",
         "active_gainer_pass": True,
         "stage_id": "STAGE_1545_1555",
         "trade_date": trade_date,
@@ -368,6 +368,7 @@ def _collect_hk_stage8_natural(
         payload = {}
     if loaded["status"] != "READY" or payload.get("source_role") != "FUTU_HKCONNECT_FULL_SCAN":
         return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(requested), cannot_confirm=tuple(dict.fromkeys((*loaded.get("cannot_confirm", ()), "HK_STAGE8_ACTIVE_SNAPSHOT_UNAVAILABLE"))), source_evidence=tuple(dict.fromkeys((*evidence, *loaded.get("source_evidence", ())))))
+    all_snapshot_rows = {_canonical_hk_code(row.get("code")): row for row in loaded.get("rows", ())}
     active_snapshot_rows = _stage8_active_snapshot_codes(loaded.get("rows", ()))
     active_codes = tuple(sorted(active_snapshot_rows))
     active_codes_sha = _snapshot_codes_sha(active_codes)
@@ -377,13 +378,11 @@ def _collect_hk_stage8_natural(
         f"stage8_active_codes_sha256={active_codes_sha}",
         f"stage8_active_code_count={len(active_codes)}",
     )
-    if not active_codes:
-        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=0, cannot_confirm=("HK_STAGE8_ACTIVE_CODES_EMPTY",), source_evidence=tuple(dict.fromkeys((*evidence, *active_evidence))))
     provider = rtdata_provider or _fetch_hk_stage8_rtdata
     try:
-        fetched = dict(provider(active_codes, batch_size=_STAGE8_RT_DATA_BATCH_SIZE))
+        fetched = dict(provider(requested, batch_size=_STAGE8_RT_DATA_BATCH_SIZE))
     except Exception as error:
-        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(active_codes), cannot_confirm=(f"HK_STAGE8_RTDATA_PROVIDER_ERROR:{type(error).__name__}",), source_evidence=tuple(dict.fromkeys((*evidence, *active_evidence))))
+        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(requested), cannot_confirm=(f"HK_STAGE8_RTDATA_PROVIDER_ERROR:{type(error).__name__}",), source_evidence=tuple(dict.fromkeys((*evidence, *active_evidence))))
     stage_start = _exact_market_timestamp(f"{plan.trade_date[:4]}-{plan.trade_date[4:6]}-{plan.trade_date[6:]}T{_STAGE8_START_AT}", plan.trade_date)
     raw_by_code: dict[str, list[tuple[datetime, Mapping[str, Any]]]] = {}
     temporal_error = False
@@ -396,7 +395,7 @@ def _collect_hk_stage8_natural(
         if not isinstance(raw, Mapping):
             continue
         code = _canonical_hk_code(raw.get("code") or raw.get("symbol") or raw.get("stock_code"))
-        if code not in active_snapshot_rows:
+        if code not in all_snapshot_rows:
             continue
         when = _stage8_market_timestamp(raw.get("time") or raw.get("update_time"), plan.trade_date)
         if when is None:
@@ -424,7 +423,7 @@ def _collect_hk_stage8_natural(
             invalid_timestamp_count += 1
             continue
         raw_by_code.setdefault(code, []).append((when, dict(raw)))
-    missing = tuple(sorted(set(active_codes) - set(raw_by_code)))
+    missing = tuple(sorted(set(requested) - set(raw_by_code)))
     cleanup_warnings = tuple(str(item) for item in (fetched.get("cleanup_warnings") or ()) if str(item))
     provider_errors = tuple(
         str(item)
@@ -445,7 +444,7 @@ def _collect_hk_stage8_natural(
             (
                 *evidence,
                 *active_evidence,
-                f"stage8_rtdata_requested_code_count={len(active_codes)}",
+                f"stage8_rtdata_requested_code_count={len(requested)}",
                 f"stage8_rtdata_completed_code_count={len(raw_by_code)}",
                 f"stage8_rtdata_missing_code_count={len(missing)}",
                 f"stage8_rtdata_outside_window_count={outside_window_count}",
@@ -461,10 +460,10 @@ def _collect_hk_stage8_natural(
         )
     )
     if temporal_error:
-        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(active_codes), missing_symbols=missing, cannot_confirm=tuple(dict.fromkeys(cannot)), source_evidence=source_evidence)
+        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(requested), missing_symbols=missing, cannot_confirm=tuple(dict.fromkeys(cannot)), source_evidence=source_evidence)
     rows = tuple(
-        _stage8_aggregate_rtdata_rows(raw_by_code[code], code=code, active_snapshot_row=active_snapshot_rows[code], trade_date=plan.trade_date, batch_index=index)
+        _stage8_aggregate_rtdata_rows(raw_by_code[code], code=code, active_snapshot_row=all_snapshot_rows[code], trade_date=plan.trade_date, batch_index=index)
         for index, code in enumerate(sorted(raw_by_code), start=1)
     )
     status = "READY" if not missing and not provider_errors else ("PARTIAL_WITH_ROWS" if rows else "CANNOT_CONFIRM")
-    return SourceResult("futu_hkconnect_stage8_natural_rtdata", status, rows=rows, requested_rows=len(active_codes), missing_symbols=missing, cannot_confirm=tuple(dict.fromkeys(cannot)), source_evidence=source_evidence)
+    return SourceResult("futu_hkconnect_stage8_natural_rtdata", status, rows=rows, requested_rows=len(requested), missing_symbols=missing, cannot_confirm=tuple(dict.fromkeys(cannot)), source_evidence=source_evidence)

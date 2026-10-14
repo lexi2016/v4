@@ -320,6 +320,8 @@ const {
             <dl>
               <div><dt>{{ hkChangeLabel(row) }}</dt><dd>{{ hkChangeValue(row) }}</dd></div>
               <div><dt>{{ hkScoreLabel(row) }}</dt><dd>{{ rowScore(row) }}</dd></div>
+              <div v-if="!isPreopenStage"><dt>选股状态</dt><dd>{{ row.trade_status || row.status || "CANNOT_CONFIRM" }}</dd></div>
+              <div v-if="!isPreopenStage"><dt>强势标签</dt><dd>{{ row.candidate_lanes?.includes("LIVE_HKCONNECT_GAINER") ? "实时强势" : "未命中强势条件" }}</dd></div>
               <div v-if="isPreopenStage && typeof row.current_change_pct === 'number'"><dt>快照涨幅</dt><dd>{{ formatPercent(row.current_change_pct) }}</dd></div>
               <div v-if="!isPreopenStage"><dt>支撑位</dt><dd>{{ evidenceValue(row.support_primary_price) }}</dd></div>
               <div v-if="!isPreopenStage"><dt>压力位</dt><dd>{{ evidenceValue(row.pressure_price) }}</dd></div>

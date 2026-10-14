@@ -1,0 +1,25 @@
+# HK fixed D-1 full-pool ranking — 2026-10-14
+
+User decision: all 100 exact D-1 members participate in minute-stage scoring. The existing positive-change / HKD20m / volume-ratio predicate supplies truthful strong labels and existing score bonuses only. Publish Top10 with actual WAIT_FOR_TRIGGER, WATCH_ONLY or NO_TRADE status. Main assistant executes directly; no subagents or independent Reviewer per explicit user instruction.
+
+Canonical source: `/Users/lexi/Desktop/学习/v4_app`. Baseline remote commit: `457e349791f25261ac88fa7ad04cfbe5055cd3d5`. Preserve remote-only `replace_failed_run_id` parameter when synchronizing selection.py; this task does not introduce or remove that unrelated recovery path.
+
+Changes: ordinary HK builder scores all acquired fixed-pool rows, preserves real missing/source errors, and no longer treats inactive membership as missing. Persisted snapshots retain real volume ratios for inactive rows. Stage8 natural RT_DATA requests all 100 instead of filtering collection to strong members. Existing scoring, ordering, auction Top20, formal eligibility and BUY safety remain. New algorithm SHA: `f2991c472b17742acfd3adb81458ff13826f99dfb7b8a223ad8d6a5dfbbd1a1e`. Old algorithm hashes remain readable. Page adds actual selection status and strong label.
+
+Runtime: stage release `hk-full-pool-stage-20261014-r1`, API/UI release `hk-full-pool-api-20261014-r1`, both under `/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/`. Each is a clone of its actual current parent with narrow deltas; monolithic API reader receives only the new algorithm identity/allowlist. API source package lacked `app_shell/timeline.ts`; the existing canonical dependency was restored for build, with caller `useAppShell.ts` SHA equal to the parent package. API manifest SHA `0afc0854e83318d5ff1bc935ceade214b9dc59a5f71ca522306e0836f2fd6e78`; `/api/v1/runs/date-list` reports MANIFEST_EXECUTION_FILES_VERIFIED. Stage was idle at reload. First API bootstrap returned exit 5 after bootout; one retry succeeded, process 46759. Vibe 8910 untouched.
+
+Rebuild: read and SHA-verify existing 20261014 raw trios and exact stage snapshots; use the existing authority overlay and production selector. No provider calls/raw rewrites. Stage in an isolated SelectionStore, verify through actual API reader, then preserve old immutable trios/receipts and CAS-replace only HK latest entries under slot/store locks. Existing scoped receipt merge retains A_SHARE byte-equivalent objects and candidate identity. Recovery origin is MANUAL_FULL_POOL_POLICY_REBUILD, due status MANUAL_REPLAY, natural_verified=false.
+
+| Stage | Input | Strong tags | Output | Source/selection status |
+|---|---:|---:|---:|---|
+|09:30–09:35|100|4|10|READY|
+|09:35–09:40|100|5|10|READY|
+|09:40–09:45|100|5|10|PARTIAL_WITH_ROWS|
+
+09:45 retains FUTU_AFTERFACT_CAPTURE_NOT_PIT_SAFE and HK_HISTORICAL_ORDERBOOK_UNAVAILABLE from its original source. All stages retain formal_eligible=false and OBSERVATION_UNVERIFIED display. Ten rows do not establish ten actionable trades. 09:35 Top10 includes 1 WAIT_FOR_TRIGGER, 6 WATCH_ONLY and 3 NO_TRADE. API exposes manual recovery origin; execution provenance remains partially bound/unverified. Existing page runtime-lineage section still says CANNOT_CONFIRM; this task does not claim natural execution verification.
+
+Validation: runtime Python `/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python`; canonical pytest targeted full-pool, natural capture, stage8 and daily-stage tests: 38 passed. Actual stage package imported directly: 5 full-pool tests passed. Meaningful scenarios: 0/4/100 strong tags still cause exactly 100 score calls, inactive real ratios preserved, source gaps preserved, Top10 and NO_BUY, immutable store roundtrip, Stage8 zero-strong requests all 100. First pytest run assertions passed but shared tmp cleanup failed on pre-existing permissions; isolated basetemp rerun passed. Web Vite build passed. Actual API reader verifies all three new staged outputs. Live API confirms 100/100 input and 10 output for all three stages. Reloaded 20261014 09:45 page verifies 10 rows plus status/strong labels and honest source limitations; 09:35 page additionally verifies NO_TRADE rows.
+
+State: IMPLEMENTED, INTEGRATED, DEPLOYED, API_VERIFIED, UI_VERIFIED. Main-agent regression PASS. Independent REVIEWED/TESTED/BEHAVIOR_VERIFIED: NOT_RUN (user requested no subagents). New-policy natural slot: NATURAL_SLOT_UNVERIFIED at handoff. RESEARCH_ONLY=true; production_allowed=false; buy_gate_updated=false; orders_sent=false.
+
+Local evidence: `/Users/lexi/Desktop/学习/agents调试/V4_HK_FULL_POOL_RANKING_20261014/` contains scope, source-before bytes, pytest log, actual runtime tests, release preparation/activation, staged rebuild, preserved receipt hashes, API JSONs and UI text/screenshots. Raw quotes, large runtime responses and account data are excluded from GitHub sync. Reuse fixed receipts after PASS; do not broaden this repair.

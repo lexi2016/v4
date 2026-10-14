@@ -875,121 +875,22 @@ def _production_selection_builders_body(_v4_scope, /, stage_id, *, research_root
             envelope["artifact_id"] = artifact_id
             envelope["run_id"] = run_id
             return envelope
-        # Full-market ExHQ rows alone do not prove a V3 lane.  Inactive rows
-        # remain in raw acquisition for coverage, but are excluded from the
-        # selection-only copy.  This preserves the old V3 behavior where the
-        # live trigger defines the minute candidate set rather than allowing a
-        # single inactive member to erase otherwise verified active rows.
         if stage_id == "STAGE_0925":
-            active_rows = [item for item in rows if item["candidate_lanes"]]
-        else:
-            active_rows = [
-                item
-                for item in rows
-                if "LIVE_HKCONNECT_GAINER" in item["candidate_lanes"]
-            ]
-        if not active_rows:
-            if _is_futu_rtd_afterfact_observation(source, plan, raw, rows):
-                # This exact Futu RT_DATA profile is an after-fact observation
-                # only. Keep it on the established four-lane selector with no
-                # asserted live lane; the selector preserves NO_BUY semantics.
-                return select_hk_four_lane(
-                    rows,
-                    plan.trade_date,
-                    plan.stage_id,
-                    _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]),
-                    source_status="PARTIAL_WITH_ROWS",
-                    requested_rows=100,
-                    missing_symbols=source.missing_symbols,
-                    cannot_confirm=source.cannot_confirm,
-                    source_evidence=_v4_global(_v4_scope, 'tuple')(
-                        _v4_global(_v4_scope, 'dict').fromkeys(
-                            (
-                                *raw.get("source_evidence", ()),
-                                *source.source_evidence,
-                                *d1_evidence,
-                                top10_contract_evidence,
-                                "hk_lane_authority_missing",
-                                "hk_selection_mode=FUTU_RT_DATA_AFTERFACT_OBSERVATION",
-                            )
-                        )
-                    ),
-                )
-            if (
-                rows
-                and source.status == "PARTIAL_WITH_ROWS"
-                and ("active_snapshot_degraded_to_pytdx_observation=true" in source.source_evidence
-                     or (source.source_id == "futu" and "active_snapshot_degraded_to_futu_observation=true" in source.source_evidence))
-            ):
-                # This is the established historical observation contract: the
-                # exact raw rows are useful for a Top-10 watch list even when
-                # the live snapshot cutoff is unsafe.  Do not manufacture a
-                # LIVE_HKCONNECT_GAINER lane or refresh the snapshot here.
-                return select_hk_four_lane(
-                    rows,
-                    plan.trade_date,
-                    plan.stage_id,
-                    _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]),
-                    source_status="PARTIAL_WITH_ROWS",
-                    requested_rows=raw.get("requested_rows", source.requested_rows),
-                    missing_symbols=_v4_global(_v4_scope, 'tuple')(
-                        _v4_global(_v4_scope, 'dict').fromkeys(
-                            (
-                                *source.missing_symbols,
-                                *raw.get("missing_symbols", ()),
-                            )
-                        )
-                    ),
-                    cannot_confirm=_v4_global(_v4_scope, 'tuple')(
-                        _v4_global(_v4_scope, 'dict').fromkeys(
-                            (
-                                *source.cannot_confirm,
-                                *raw.get("cannot_confirm", ()),
-                            )
-                        )
-                    ),
-                    source_evidence=_v4_global(_v4_scope, 'tuple')(
-                        _v4_global(_v4_scope, 'dict').fromkeys(
-                            (
-                                *raw.get("source_evidence", ()),
-                                *source.source_evidence,
-                                *d1_evidence,
-                                top10_contract_evidence,
-                                "hk_lane_authority_missing",
-                                ("hk_selection_mode=FUTU_D1_TOP100_OBSERVATION" if source.source_id == "futu"
-                                 else "hk_selection_mode=TDXPY_EXHQ_D1_TOP100_OBSERVATION"),
-                            )
-                        )
-                    ),
-                )
-            return select_hk_four_lane(
-                [],
-                plan.trade_date,
-                plan.stage_id,
-                _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]),
-                source_status="CANNOT_CONFIRM",
-                requested_rows=raw.get("requested_rows"),
-                missing_symbols=raw.get("missing_symbols", ()),
-                cannot_confirm=(*raw.get("cannot_confirm", ()), "HK_LANE_EVIDENCE_MISSING"),
-                source_evidence=(*raw.get("source_evidence", ()), *d1_evidence, top10_contract_evidence, "hk_lane_authority_missing"),
-            )
-        if _v4_global(_v4_scope, 'len')(active_rows) < _v4_global(_v4_scope, 'len')(rows):
-            missing = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*raw.get("missing_symbols", ()), *(_v4_global(_v4_scope, 'str')(item.get("code")) for item in rows if not item["candidate_lanes"]))))
-            return select_hk_four_lane(
-                active_rows,
-                plan.trade_date,
-                plan.stage_id,
-                _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]),
-                source_status="PARTIAL_WITH_ROWS",
-                requested_rows=raw.get("requested_rows"),
-                missing_symbols=missing,
-                cannot_confirm=raw.get("cannot_confirm", ()),
-                source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*raw.get("source_evidence", ()), *d1_evidence, top10_contract_evidence))),
-            )
-        if stage_id == "STAGE_0925":
-            return select_hk_0925_second_filter(rows, plan.trade_date, _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]), source_status=raw["status"], requested_rows=raw["requested_rows"], missing_symbols=raw["missing_symbols"], cannot_confirm=raw["cannot_confirm"], source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*raw["source_evidence"], *d1_evidence, top10_contract_evidence))))
-        final_rows = active_rows if stage_id == "STAGE_1545_1555" else rows
-        return select_hk_four_lane(final_rows, plan.trade_date, plan.stage_id, _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]), source_status=raw["status"], requested_rows=raw["requested_rows"], missing_symbols=raw["missing_symbols"], cannot_confirm=raw["cannot_confirm"], source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*raw["source_evidence"], *d1_evidence, top10_contract_evidence))))
+            return select_hk_0925_second_filter(rows, plan.trade_date, str(raw["artifact_sha256"]), source_status=raw["status"], requested_rows=raw["requested_rows"], missing_symbols=raw["missing_symbols"], cannot_confirm=raw["cannot_confirm"], source_evidence=tuple(dict.fromkeys((*raw["source_evidence"], *d1_evidence, top10_contract_evidence))))
+        # User decision 2026-10-14: score every acquired fixed-D1 row.
+        # Inactive is a strategy label, never missing market data. Preserve
+        # real source gaps and do not invent a strong lane for an inactive row.
+        return select_hk_four_lane(
+            rows, plan.trade_date, plan.stage_id, str(raw["artifact_sha256"]),
+            source_status=source.status if source.status != "READY" else raw["status"],
+            requested_rows=raw.get("requested_rows", source.requested_rows),
+            missing_symbols=tuple(dict.fromkeys((*source.missing_symbols, *raw.get("missing_symbols", ())))),
+            cannot_confirm=tuple(dict.fromkeys((*source.cannot_confirm, *raw.get("cannot_confirm", ())))),
+            source_evidence=tuple(dict.fromkeys((
+                *raw.get("source_evidence", ()), *d1_evidence, top10_contract_evidence,
+                "hk_ranking_policy=FULL_D1_TOP100_STRONG_TAG_ONLY_V1",
+            ))),
+        )
 
     if stage_id == "STAGE_1545_1555":
         return {"HK_CONNECT": hk_builder}
