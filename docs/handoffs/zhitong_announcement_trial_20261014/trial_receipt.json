@@ -1,0 +1,260 @@
+{
+  "status": "CANNOT_CONFIRM",
+  "goal": "bounded research-only trial of the Zhitong 港股公告 column for one frozen 24-hour window",
+  "window": {
+    "timezone": "Asia/Shanghai",
+    "start_exclusive": "2026-10-13T22:55:58+08:00",
+    "end_inclusive": "2026-10-14T22:55:58+08:00",
+    "date_field_for_filter": "publish_time (raw Unix seconds)",
+    "create_time_and_update_time_preserved": true
+  },
+  "scope": {
+    "source_channel": "智通财经 announcement route; rows restricted to category_name == 港股公告",
+    "market_claim": "Zhitong 港股公告栏目 coverage only; not all market announcements",
+    "stockconnect_match_source": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_connect_list_20261014/港股通股票名单_667只_20261014.csv",
+    "stockconnect_membership_recomputed": false
+  },
+  "upstream": {
+    "repository": "https://github.com/DIYgod/RSSHub",
+    "route_path": "lib/routes/zhitongcaijing/index.tsx",
+    "pinned_commit_sha": "897559b134a4edfcae1178fb61b588ffbdc5f937",
+    "pinned_commit_date": "2026-10-14T07:09:14Z",
+    "pinned_commit_message": "fix(zhitongcaijing): report browser verification pages clearly",
+    "contents_api_blob_sha": "fa70ee528650b14cf4d8d96e8cf8d45701da3670",
+    "source_sha256": "fa76ea562dd95e4e301c2145c5b3f72031d524b00e3b455a2c8e1b134d1aedc9",
+    "source_bytes": 4938,
+    "license_spdx": "AGPL-3.0",
+    "license_path": "LICENSE",
+    "license_blob_sha": "0ad25db4bd1d86c452db3f9602ccdbe172438f52",
+    "license_url": "https://github.com/DIYgod/RSSHub/blob/master/LICENSE",
+    "raw_route_url": "https://raw.githubusercontent.com/DIYgod/RSSHub/897559b134a4edfcae1178fb61b588ffbdc5f937/lib/routes/zhitongcaijing/index.tsx",
+    "contents_api_url": "https://github.com/DIYgod/RSSHub/blob/897559b134a4edfcae1178fb61b588ffbdc5f937/lib/routes/zhitongcaijing/index.tsx",
+    "github_commit_api_url": "https://api.github.com/repos/DIYgod/RSSHub/commits/897559b134a4edfcae1178fb61b588ffbdc5f937"
+  },
+  "adaptation": {
+    "type": "faithful minimal local adaptation; RSSHub handler not executed/deployed",
+    "same_source_endpoint": "https://www.zhitongcaijing.com/announcement.html?data_type=1&page={page}",
+    "same_upstream_selectors": [
+      ".digetst-box",
+      ".telegram-origin-contentn (fallback)",
+      ".news-body-content"
+    ],
+    "differences_required_for_trial": [
+      "paginate page=1..N until publish_time crosses frozen start",
+      "filter on publish_time; upstream route maps create_time to pubDate",
+      "retain all raw API metadata and extracted body text",
+      "HK Connect match against provided CSV"
+    ],
+    "page_cap": 25,
+    "body_article_cap": 200,
+    "body_concurrency": 2,
+    "retry_policy": "single attempt per page/body; no blind retries"
+  },
+  "inputs": {
+    "page1_path": "/tmp/zt_announcement_page1.json",
+    "page1_sha256": "babec570410e42dcd9c4067e2753ef34e217938a402188d7209fca2018179abf",
+    "page1_mtime_epoch": 1791989758.997134,
+    "hkconnect_csv_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_connect_list_20261014/港股通股票名单_667只_20261014.csv",
+    "hkconnect_csv_sha256": "9b799c0b74ac5047f4e44a1b3dfd1dfa5ca9ce978fa3b8e7877913c423424c9c"
+  },
+  "pagination": {
+    "boundary_reached": true,
+    "fetch_error": null,
+    "stop_reason": "page cap 25 reached with nonempty response",
+    "pages_scanned": 25,
+    "page_scan_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/page_scan.json",
+    "full_window_set_complete": false,
+    "extension_page_range": "11..25",
+    "extension_pages_scanned": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25
+    ],
+    "extension_fetch_error": null,
+    "page_cap_reached_without_end_proof": true,
+    "extension_discovery_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/extension_discovery.json"
+  },
+  "counts": {
+    "hk_announcement_window_rows": 181,
+    "unique_content_ids": 181,
+    "duplicate_rows_across_scanned_pages": 1,
+    "stockconnect_matched_rows": 79,
+    "core_candidate_flag_rows": 23,
+    "quantified_order_contract_candidate_rows": 12,
+    "earnings_improvement_candidate_rows": 4,
+    "approved_commercialization_candidate_rows": 1,
+    "material_transaction_candidate_rows": 19,
+    "expanded_buyback_plan_candidate_rows": 2,
+    "routine_daily_buyback_rows": 98,
+    "body_extracted_rows": 180,
+    "body_failed_or_skipped_rows": 1,
+    "missing_publish_time_scanned_hk_category_rows": 0,
+    "out_of_window_hk_category_rows_scanned": 318,
+    "pages_scanned": 25,
+    "unique_scanned_source_rows": 499,
+    "max_page_bound": 25,
+    "body_request_concurrency": 2,
+    "review_candidate_flag_rows": 25,
+    "extension_new_window_rows": 0,
+    "extension_bodies_attempted": 0
+  },
+  "body_errors": [
+    {
+      "content_id": "1506767",
+      "title": "瘦西湖文旅(06157)于10月14日至10月20日招股，拟全球发售4476万股H股",
+      "status": "http_400"
+    }
+  ],
+  "body_coverage_complete": false,
+  "artifacts": {
+    "articles_json": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/articles_window.json",
+    "articles_csv": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/articles_window.csv",
+    "semantic_review_titles_csv": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/titles_for_semantic_review.csv",
+    "page_scan_json": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/page_scan.json",
+    "semantic_review_report": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/semantic_review_report.md",
+    "semantic_review_dispositions_csv": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/semantic_review_dispositions.csv",
+    "sync_allowlist": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/SYNC_ALLOWLIST.txt",
+    "extension_discovery_json": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/extension_discovery.json",
+    "new_titles_for_semantic_review_csv": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/new_titles_for_semantic_review.csv",
+    "initial_page_scan_json": "docs/handoffs/zhitong_announcement_trial_20261014/page_scan_initial_10.json",
+    "initial_trial_receipt_json": "docs/handoffs/zhitong_announcement_trial_20261014/trial_receipt_initial.json",
+    "extension_receipt_json": "docs/handoffs/zhitong_announcement_trial_20261014/extension_receipt.json"
+  },
+  "candidate_semantics": "Final flags use title and digest only, with amount-plus-event screens for contracts and transactions. Core candidate excludes financing, personnel, and full-float notices. Expanded buyback plans are separate review candidates; routine daily buybacks are separate. Flags are not a final financial ranking. Original filings were not all cross-checked.",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "classification_reconciliation": {
+    "pass_type": "offline post-process of the saved capture; no network requests",
+    "input_sha256_before_reclassification": "857cf49d4dffe2350cbfd6ca5cc88c83ca811591a4adf0fd0a82d5b0ac476367",
+    "classifier": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/zt_trial_reclassify.py",
+    "classifier_sha256": "3a7bc2e49d19e71721345a46d119c231e7ed8015b06df2c036f3ef4d980cc382",
+    "candidate_fields_used": [
+      "title",
+      "digest"
+    ],
+    "body_text_used_for_flags": false,
+    "old_body_keyword_flag_counts": {
+      "quantified_order_contract_candidate": 13,
+      "earnings_improvement_candidate": 6,
+      "approved_commercialization_candidate": 1,
+      "material_transaction_candidate": 24,
+      "expanded_buyback_plan_candidate": 2,
+      "routine_daily_buyback": 98,
+      "core_candidate_flag": 36,
+      "review_candidate_flag": 0
+    },
+    "final_title_digest_flag_counts": {
+      "core_candidate_flag_rows": 23,
+      "review_candidate_flag_rows": 25,
+      "quantified_order_contract_candidate_rows": 12,
+      "earnings_improvement_candidate_rows": 4,
+      "approved_commercialization_candidate_rows": 1,
+      "material_transaction_candidate_rows": 19,
+      "expanded_buyback_plan_candidate_rows": 2,
+      "routine_daily_buyback_rows": 98
+    },
+    "rules": [
+      "quantified contract/order requires a contract/order term and a numeric monetary amount",
+      "earnings flag requires explicit improvement language",
+      "approved-commercialization flag requires approval/registration language and a relevant product/medical term",
+      "material-transaction flag requires a transaction term and numeric monetary amount",
+      "financing, personnel, and full-float notices are excluded from core candidates",
+      "expanded buyback plans are separate review candidates; routine daily repurchases are not core candidates"
+    ]
+  },
+  "collection_execution": {
+    "command": "python3 docs/handoffs/zhitong_announcement_trial_20261014/zt_trial_collector.py",
+    "collector_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/zt_trial_collector.py",
+    "collector_sha256_at_collection": "aab11f0ed460a45426563b30c9b9477e8570ecd810e4b3a9391fb9bfff357a0b",
+    "process_outcome": "collector completed and wrote status PASS; output stream did not preserve an exit code",
+    "collection_artifact_mtime_shanghai": "2026-10-14T23:05:19.344548+08:00",
+    "postprocess_command": "python3 docs/handoffs/zhitong_announcement_trial_20261014/zt_trial_reclassify.py",
+    "postprocess_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/zhitong_announcement_trial_20261014/zt_trial_reclassify.py",
+    "postprocess_sha256": "3a7bc2e49d19e71721345a46d119c231e7ed8015b06df2c036f3ef4d980cc382",
+    "postprocess_scope": "saved local article JSON only; no network requests",
+    "extension_command": "python3 docs/handoffs/zhitong_announcement_trial_20261014/zt_trial_collector.py --extend-pages-11-25",
+    "extension_collector_sha256": "d00c236d6cf9ed7b1911af0068f91007956c52446cbb235be1f700f648cc3278",
+    "extension_outcome": "page cap 25 reached with nonempty response",
+    "extension_new_rows": 0,
+    "extension_body_requests": 0
+  },
+  "semantic_review": {
+    "review_status": "controller manual semantic review completed for the 181 observed initial-scan titles and key full texts; extension pages 11-25 found no new in-window records; full window remains CANNOT_CONFIRM",
+    "scope": "79 records matching the supplied HK Connect list; additional non-Connect research leads listed separately",
+    "research_worthy_hkconnect_count": 4,
+    "priority_split": {
+      "primary": 3,
+      "secondary": 1
+    },
+    "machine_candidate_flags_used_as_final_count": false,
+    "machine_candidate_flags_role": "review hints only",
+    "not_a_buy_or_return_signal": true,
+    "item_ids": {
+      "primary_positive_research": [
+        "1507360",
+        "1507281",
+        "1507287"
+      ],
+      "secondary_positive_research": [
+        "1507044"
+      ],
+      "non_core_observations": [
+        "1506788",
+        "1507189",
+        "1507080"
+      ],
+      "risk_or_exclusion_examples": [
+        "1507026",
+        "1507118",
+        "1507202",
+        "1507073"
+      ],
+      "outside_connect_research_leads": [
+        "1506766",
+        "1506772",
+        "1507047",
+        "1507333",
+        "1507170"
+      ]
+    },
+    "filing_crosscheck": "Original HKEX filings were not fully cross-checked; a prior HKEX web search did not locate the same-day 02533 filing.",
+    "record_scope": "initial pages 1-10 observed set of 181 in-window records; extension pages 11-25 yielded zero additional in-window 港股公告 IDs"
+  },
+  "cannot_confirm": [
+    "Article body for 1506767 returned HTTP 400; 180 of 181 bodies were extracted.",
+    "HKEX original filings were not all independently cross-checked; the 02533 same-day original was not located in a prior HKEX web search.",
+    "This result counts only the Zhitong 港股公告 column and does not represent all market announcements.",
+    "Extension reached nonempty page 25 without an end signal; the full 24-hour set cannot be confirmed from pages 1-25."
+  ],
+  "artifact_sha256": {
+    "SYNC_ALLOWLIST.txt": "f12092490dfb90c85e6b9436a310a5ffc36a76361764510a5d5fb3236fbc58f9",
+    "articles_window.csv": "85d439f3f2483c31463dcc8bcb3074d1e010befbbe3aed6da139a9038931446d",
+    "articles_window.json": "8ddfa602641d0a95ce4a9e2461044e4a8ea13610058eb3761d38ee558a4ed7b8",
+    "extension_discovery.json": "5447dde6de8d5b80fdca3266b6be2f07935852f2d3d01b2f903c38061f32d0dc",
+    "extension_receipt.json": "6b6a1898946c87a0aa2f9c1abe8f73ef16d86f905e41a5a3b668a9e3925e290a",
+    "new_titles_for_semantic_review.csv": "e996e15be5748731ed8af359a661ed3d63f737ef8577c3a1befdafd1001cb4b2",
+    "page_scan.json": "89da2512177af161468a2e6bb2c126ba52c08b1d55036c6d51b2a84a6bb06b5f",
+    "page_scan_initial_10.json": "6dabfda13ae981c5a49d32d4e7136a0e5dbfaaa7d56f954178db0613a2a2072b",
+    "semantic_review_dispositions.csv": "cf232aa431b7f85e5d689dcaf966d41cfda8850d57dfe3a075d2c6d177a8da21",
+    "semantic_review_report.md": "20733c2a48e5fad97eb999438c747a1af963f3b174552d31672744a691f01408",
+    "titles_for_semantic_review.csv": "712948e6e0eefd7614005977dfa6177f00761a56cc6cd6f6f0fd9b2a0dc8c09c",
+    "trial_receipt_initial.json": "3b6bb1e2e2e4adde62d97a069136d9afdcf6f5c089a498d329b46b06e0a11eec",
+    "upstream_receipt.json": "d690a87745bd364089fc9974c8982f7f36264ec8ea3fbba384a5ac06cf9987d1",
+    "zt_trial_collector.py": "d00c236d6cf9ed7b1911af0068f91007956c52446cbb235be1f700f648cc3278",
+    "zt_trial_reclassify.py": "3a7bc2e49d19e71721345a46d119c231e7ed8015b06df2c036f3ef4d980cc382"
+  }
+}
