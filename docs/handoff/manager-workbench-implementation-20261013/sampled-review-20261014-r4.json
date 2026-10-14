@@ -1,0 +1,63 @@
+{
+  "schema_version": "v4.sampled_acceptance_receipt.v1",
+  "date": "2026-10-14",
+  "timezone": "Asia/Shanghai",
+  "scope": "User requested sample checks only; no full audit or capture rerun.",
+  "baseline_commit": "063f1df20130cde603740afccd641dca7e7b1021",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "candidate_source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "runtime_identity": "NOT_RUN: no deployment, API, UI, Stage, or natural-run acceptance in this batch",
+  "source_changes_applied": false,
+  "source_sha256_before_after_unchanged": {
+    "v4/manager_workbench/engines/us_factor.py": "7c15b939aae7f86c648356462ef3910e57cc93678d3f30d11f8b2906db67f933",
+    "tests/manager_workbench/engines/test_us_factor.py": "b3c08ef967be8828684a69d34d44135d722ceee104c982d9fd590a56116758aa"
+  },
+  "collection": {
+    "result": "SAMPLED_DATA_ACCEPTED",
+    "zip_sha256": "b168d5cafa33d7c1087f14a8d2d11c5da385c58f5a34c2cc9cf6e7b92517b92c",
+    "counts": {
+      "scope": 698,
+      "unique": 698,
+      "success": 664,
+      "industry_missing": 31,
+      "http_502": 3,
+      "unattempted": 0
+    },
+    "membership_symbol_set_equal": true,
+    "sampled_symbols": [
+      "HK.00001",
+      "HK.00002",
+      "HK.02800",
+      "HK.09973"
+    ],
+    "sample_checks": "Raw/cache hashes, decoded raw body, status and capture time agree; HTTP failure raw remains null.",
+    "reviewer": "/root/industry_sample_review_luna",
+    "review_receipt_sha256": "65faf59a7e28b02f7e6a45268536351552c945a1c2b7f24e548c0a8274ce9d81",
+    "pit_status": "PIT_UNCONFIRMED",
+    "source_asof": null,
+    "owner_generated": false,
+    "owner_blocker": "Python 3.12.14 below >=3.14; missing inputs.native. Raw/cache accepted only."
+  },
+  "code": {
+    "result": "REVIEWED_FAIL",
+    "candidate_type": "TEXT_ONLY_NOT_APPLIED",
+    "engine_reply_sha256": "c6b340f2a208ff000d1e40b77af95b9d2e7cca343dee624dcd2e77d7efde6127",
+    "test_reply_sha256": "d634563c3d03930d21241cead13aae6c570a47bee50a4cfb05152dd3f03f9dd1",
+    "reviewer": "/root/us_factor_review_luna",
+    "review_receipt_sha256": "8cf2b029de03215e63605a267b560e2f01ead5d8a7f1cf97397351aa4c369681",
+    "findings": [
+      "Tests reference summary keys not supplied by this candidate or frozen baseline.",
+      "Diagnostic candidate predicate omits identity, industry mapping and positive proxy trigger gates.",
+      "time_ok emits PIT_VERIFIED while historical_pit_verified remains false."
+    ],
+    "tests": "NOT_RUN: static contract failed; fail-stop before applying or pytest.",
+    "repair": "SENT_UI_VERIFIED: consolidated findings sent to original code chat; acknowledgment observed."
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "upload_scope": "This compact receipt only; no raw data, account data, responses, or candidate source uploaded."
+}
