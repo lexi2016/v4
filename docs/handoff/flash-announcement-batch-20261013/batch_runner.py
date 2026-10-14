@@ -124,7 +124,12 @@ Before filling the fields, decide whether the announcement itself establishes a 
 Keep CONDITIONAL_WATCH under its current contract semantics when the source states a concrete unresolved condition; preserve that condition in the existing fields. Do not use it as a generic uncertainty bucket or force every uncertain case to NOT_SELECTED.
 Each decision-relevant claim must be directly supported by its paired exact body quote. Incomplete disclosure means “not disclosed,” not that the underlying fact does not exist. Do not promote future plans, preclinical findings, or completed enrollment into completed clinical evidence or outcomes. Carry each input pit_status value exactly into risk_notes; do not infer a usable point-in-time or tradable time."""
 
-PROMPT_PROFILES = ("legacy", "grounded", "decision_first")
+DECISION_GROUNDED_PROCESS_ADDENDUM = """DECISION-GROUNDED WEB AND OUTPUT RULES (opt-in; no schema, validator, or selection-standard change):
+Use web tools only for a specifically identified external fact that is absent from the supplied body and could change an existing Reader field or decision. Do not search by issuer or title to repeat facts already present, and do not search merely to enrich the answer. If a material lookup fails or returns unrelated material, do not blindly retry with alternate queries and do not hold up the batch; retain conclusions supported by the body and mark only the unsupported point unverified using the existing field contract. Never invent the missing fact. Web material cannot replace an exact article-body quote or upgrade PIT status. Do not impose a fixed answer length or lower the configured completion limit.
+
+OUTPUT SHAPE CLARIFICATION: return one JSON object with exactly one top-level key, "results". Each results entry contains exactly "article_id" and "reader_output". The "reader_output" value is exactly one object matching all 13 fields and existing enum values in the supplied Reader schema. The 13-field object belongs inside reader_output; it is not the top-level batch response. Preserve input order and include every supplied article."""
+
+PROMPT_PROFILES = ("legacy", "grounded", "decision_first", "decision_grounded")
 
 
 class BatchError(ValueError):
@@ -280,6 +285,10 @@ def build_system_prompt(contract: ActiveContract, prompt_profile: str = "legacy"
         prompt += "\n\n" + GROUNDED_PROCESS_ADDENDUM
     elif prompt_profile == "decision_first":
         prompt += "\n\n" + DECISION_FIRST_ADDENDUM
+    elif prompt_profile == "decision_grounded":
+        prompt += "\n\n" + DECISION_FIRST_ADDENDUM
+        prompt += "\n\n" + GROUNDED_PROCESS_ADDENDUM
+        prompt += "\n\n" + DECISION_GROUNDED_PROCESS_ADDENDUM
     return prompt
 
 
@@ -1304,7 +1313,7 @@ def main(argv: list[str] | None = None) -> int:
         "--prompt-profile",
         choices=PROMPT_PROFILES,
         default="legacy",
-        help="use the unchanged legacy Reader prompt or the bounded grounded workflow; applies to prepare and execute",
+        help="choose an opt-in Reader process profile; legacy remains the default; applies to prepare and execute",
     )
     args = parser.parse_args(argv)
     batch: Any = None

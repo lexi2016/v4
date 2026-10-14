@@ -232,7 +232,7 @@ class BatchRunnerTests(unittest.TestCase):
         grounded = runner.build_messages(batch, contract, "grounded")
         decision_first = runner.build_messages(batch, contract, "decision_first")
 
-        self.assertEqual(runner.PROMPT_PROFILES, ("legacy", "grounded", "decision_first"))
+        self.assertEqual(runner.PROMPT_PROFILES, ("legacy", "grounded", "decision_first", "decision_grounded"))
         self.assertEqual(legacy_default, legacy)
         self.assertEqual(
             sha(legacy[0]["content"]),
@@ -301,6 +301,68 @@ class BatchRunnerTests(unittest.TestCase):
         self.assertEqual(legacy_prepare["input_sha256"], decision_prepare["input_sha256"])
         self.assertEqual(legacy_prepare["article_ids"], decision_prepare["article_ids"])
 
+    def test_decision_grounded_is_opt_in_and_preserves_all_older_profiles(self) -> None:
+        batch = synthetic_batch("Exact body\nwith spaces  and disclosed facts.")
+        contract = runner.load_active_contract()
+        older = {
+            profile: runner.build_messages(batch, contract, profile)
+            for profile in ("legacy", "grounded", "decision_first")
+        }
+        candidate = runner.build_messages(batch, contract, "decision_grounded")
+
+        self.assertEqual(runner.build_messages(batch, contract), older["legacy"])
+        self.assertEqual(
+            {profile: sha(messages[0]["content"]) for profile, messages in older.items()},
+            {
+                "legacy": "8c4dd30de9df230cfb93278b60b7b99458490d1b06760a00b877fbbed9086638",
+                "grounded": "9ca4648a15b33e8dd15eebf5447d1530c98edf6b949f1f20d27fbe18b5a18627",
+                "decision_first": "9b32e0b4d7d93384ab14b54a5b2f1a7a504c80baa8e13c319dbe4537f414f395",
+            },
+        )
+        self.assertEqual(candidate[1], older["legacy"][1])
+        self.assertTrue(
+            candidate[0]["content"].startswith(older["decision_first"][0]["content"] + "\n\n")
+        )
+        self.assertEqual(
+            sha(candidate[0]["content"]),
+            "107fb203c20440ed904763d12f90bee4ca6984c43292527dfc61ba6f8384f772",
+        )
+        self.assertEqual(len(contract.reader_schema["properties"]), 13)
+        for phrase in (
+            "could change an existing Reader field or decision",
+            "do not hold up the batch",
+            "do not blindly retry with alternate queries",
+            "mark only the unsupported point unverified",
+            "Never invent the missing fact",
+            "OUTPUT SHAPE CLARIFICATION",
+            'exactly one top-level key, "results"',
+            'exactly "article_id" and "reader_output"',
+            "all 13 fields",
+        ):
+            self.assertIn(phrase, candidate[0]["content"])
+        self.assertNotIn("AN202610131830380437", candidate[0]["content"])
+
+        schema_marker = "ACTIVE_READER_JSON_SCHEMA_BEGIN\n"
+        schema_end = "\nACTIVE_READER_JSON_SCHEMA_END"
+        candidate_schema = candidate[0]["content"].split(schema_marker, 1)[1].split(schema_end, 1)[0]
+        legacy_schema = older["legacy"][0]["content"].split(schema_marker, 1)[1].split(schema_end, 1)[0]
+        self.assertEqual(candidate_schema, legacy_schema)
+        limits = {
+            "context_limit_tokens": 262144,
+            "completion_max_tokens": 32768,
+            "completion_limit_resolution": "GLOBAL_MAX_TOKENS",
+        }
+        with mock.patch.object(runner, "count_prompt_tokens", return_value=2345):
+            prepared = runner.prepare_batch(
+                batch, contract, prompt_profile="decision_grounded", runtime_limits=limits
+            )
+        self.assertEqual(prepared["prompt_profile"], "decision_grounded")
+        self.assertEqual(prepared["prompt_tokens_exact_initial_request"], 2345)
+        self.assertEqual(
+            prepared["reader_schema_sha256"],
+            "883da16a4935a3aa3cab37706d18012f280740a5a4fb5470f068d240255e57ae",
+        )
+
     def test_prepare_cli_records_decision_first_without_calling_inference(self) -> None:
         batch = synthetic_batch("  Exact body remains unchanged.\n ")
         runtime_limits = {
@@ -361,6 +423,38 @@ class BatchRunnerTests(unittest.TestCase):
             receipt = json.loads(receipts[0].read_text(encoding="utf-8"))
             self.assertEqual(receipt["prompt_profile"], "grounded")
             self.assertEqual(receipt["prompt_tokens_exact_initial_request"], 1234)
+            self.assertEqual(receipt["status"], "INPUT_FITS")
+
+    def test_prepare_cli_records_decision_grounded_without_calling_inference(self) -> None:
+        batch = synthetic_batch("  Exact body remains untouched by the candidate profile.\n ")
+        runtime_limits = {
+            "context_limit_tokens": 262144,
+            "completion_max_tokens": 32768,
+            "completion_limit_resolution": "GLOBAL_MAX_TOKENS",
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            input_path = root / "batch.json"
+            input_path.write_text(json.dumps(batch, ensure_ascii=False), encoding="utf-8")
+            evidence_dir = root / "evidence"
+            with (
+                mock.patch.object(runner, "EVIDENCE_DIR", evidence_dir),
+                mock.patch.object(runner, "load_runtime_limits", return_value=runtime_limits),
+                mock.patch.object(runner, "count_prompt_tokens", return_value=3456),
+                mock.patch.object(runner, "load_local_api_key", side_effect=AssertionError("API key read")) as key_reader,
+                mock.patch.object(runner, "OmlxTransport") as transport,
+                contextlib.redirect_stdout(io.StringIO()),
+            ):
+                result = runner.main([str(input_path), "--prompt-profile", "decision_grounded"])
+            self.assertEqual(result, 0)
+            key_reader.assert_not_called()
+            transport.assert_not_called()
+            receipts = list(evidence_dir.glob("prepare_*.json"))
+            self.assertEqual(len(receipts), 1)
+            receipt = json.loads(receipts[0].read_text(encoding="utf-8"))
+            self.assertEqual(receipt["prompt_profile"], "decision_grounded")
+            self.assertEqual(receipt["prompt_tokens_exact_initial_request"], 3456)
+            self.assertEqual(receipt["system_prompt_sha256"], "107fb203c20440ed904763d12f90bee4ca6984c43292527dfc61ba6f8384f772")
             self.assertEqual(receipt["status"], "INPUT_FITS")
 
     def test_active_validator_checks_all_five_dispositions_and_never_repairs_quotes(self) -> None:
