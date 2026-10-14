@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import shutil
 import sys
 import tempfile
 import threading
@@ -165,23 +164,24 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(app._stable_failure_code(RuntimeError("secret-bearing error text"), "MODEL_REQUEST_FAILED"), "MODEL_REQUEST_FAILED")
         self.assertEqual(app._stable_failure_code(runner.TransportError("CHAT_NO_PROGRESS_TIMEOUT:ReadTimeout"), "MODEL_REQUEST_FAILED"), "CHAT_NO_PROGRESS_TIMEOUT")
 
-    def test_existing_exact_token_counts_are_reused_with_actual_completion_limit(self) -> None:
-        source_manifest = app.EVIDENCE_ROOT / "automatic-input-manifest.json"
-        frozen = json.loads(source_manifest.read_text())
+    def test_new_source_range_plan_counts_all_34_and_starts_a_fresh_pending_queue(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             output_root = Path(temp) / "evidence"
-            output_root.mkdir(mode=0o700)
-            target_manifest = output_root / "automatic-input-manifest.json"
-            shutil.copyfile(source_manifest, target_manifest)
-            target_manifest.chmod(0o600)
-            with mock.patch.object(app.runner, "prepare_batch", side_effect=AssertionError("tokenization repeated")):
-                plan = app.build_frozen_plan(
-                    source_dir=app.SOURCE_DIR,
-                    length_manifest_path=app.LENGTH_MANIFEST,
-                    output_root=output_root,
-                    runtime_limits=frozen["runtime_limits"],
-                )
+            limits = runner.load_runtime_limits()
+            plan = app.build_frozen_plan(
+                source_dir=app.SOURCE_DIR,
+                length_manifest_path=app.LENGTH_MANIFEST,
+                output_root=output_root,
+                runtime_limits=limits,
+            )
             manifest = json.loads(plan.manifest_path.read_text())
+            queue = queue_module.SerialAnnouncementQueue(
+                output_root / "queue-state" / plan.metadata["queue_id"],
+                plan.metadata["queue_id"],
+                app.MODEL_ID,
+                max_attempts=app.MAX_ATTEMPTS,
+            )
+            queue_snapshot = queue.snapshot()
         self.assertEqual(manifest["deduped_union_count"], 34)
         canary = set(manifest["cohorts"]["canary_A_and_B_union"]["article_ids"])
         pressure = set(manifest["cohorts"]["pressure_batch_03"]["article_ids"])
@@ -191,21 +191,81 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(len(manifest["articles"]), 34)
         self.assertEqual(manifest["runtime_limits"]["context_limit_tokens"], 262144)
         self.assertEqual(manifest["request_policy"]["max_completion_tokens"], 32768)
-        self.assertEqual(manifest["prompt_profile"], "decision_grounded")
-        self.assertEqual(manifest["system_prompt_sha256"], "107fb203c20440ed904763d12f90bee4ca6984c43292527dfc61ba6f8384f772")
+        self.assertEqual(manifest["prompt_profile"], "decision_source_range_single")
+        self.assertEqual(manifest["system_prompt_sha256"], app.EXPECTED_SYSTEM_PROMPT_SHA256)
+        self.assertEqual(manifest["source_span_protocol"], runner.SOURCE_SPAN_PROTOCOL)
+        self.assertEqual(manifest["source_span_max_codepoints"], runner.SOURCE_SPAN_MAX_CODEPOINTS)
+        self.assertEqual(manifest["source_range_protocol"], runner.SOURCE_RANGE_PROTOCOL)
+        self.assertEqual(manifest["source_range_single_protocol"], runner.SOURCE_RANGE_SINGLE_PROTOCOL)
         self.assertEqual(manifest["tool_schema_sha256"], sha(runner.canonical_json_bytes(runner.make_tool_schema())))
+        baseline = json.loads(app.BASELINE_MANIFEST.read_text())
+        self.assertEqual(
+            manifest["cohorts"],
+            {
+                key: {"article_ids": value["article_ids"], "unique_count": value["unique_count"]}
+                for key, value in baseline["cohorts"].items()
+            },
+        )
+        self.assertEqual(
+            manifest["source_population"]["cohort_authority_manifest_sha256"],
+            app.EXPECTED_BASELINE_MANIFEST_SHA256,
+        )
+        self.assertEqual(
+            manifest["source_population"]["native_pressure_batch_03_import_sha256"],
+            app.EXPECTED_NATIVE_PRESSURE_BATCH_03_IMPORT_SHA256,
+        )
+        self.assertTrue(plan.metadata["queue_id"].startswith("source-range-single-20261014-"))
+        self.assertEqual(len(queue_snapshot["items"]), 34)
+        self.assertEqual(queue_snapshot["status_counts"]["PENDING"], 34)
+        self.assertEqual(sum(item["attempt_count"] for item in queue_snapshot["items"]), 0)
+        self.assertEqual(len({row["idempotency_key"] for row in manifest["articles"]}), 34)
+        self.assertTrue(all(row["source_span_map_sha256"] for row in manifest["articles"]))
         for row in manifest["articles"]:
             self.assertEqual(row["max_completion_tokens"], 32768)
+            self.assertGreater(row["prompt_tokens_exact"], 0)
             self.assertEqual(
                 row["context_admission"],
                 "READY" if row["prompt_tokens_exact"] + 32768 <= row["context_limit_tokens"] else "CONTEXT_ITEM_UNFIT",
             )
+        self.assertEqual(manifest["context_rejections"], [])
 
-    def test_authorized_grounded_profile_uses_locked_system_prompt(self) -> None:
+    def test_source_range_single_profile_has_a_fresh_root_and_preserves_old_range_profile(self) -> None:
         contract = runner.load_active_contract()
-        prompt = runner.build_system_prompt(contract, "decision_grounded")
-        self.assertEqual(sha(prompt.encode("utf-8")), "107fb203c20440ed904763d12f90bee4ca6984c43292527dfc61ba6f8384f772")
-        self.assertEqual(app.PROFILE, "decision_grounded")
+        prior_span = runner.build_system_prompt(contract, "decision_source_span")
+        prior_range = runner.build_system_prompt(contract, "decision_source_range")
+        prompt = runner.build_system_prompt(contract, "decision_source_range_single")
+        self.assertEqual(sha(prior_span.encode("utf-8")), "ebd2eb46eae08e48bcf1f137c52b8e795c133a9b70d25b57544f89f7622b9356")
+        self.assertEqual(sha(prior_range.encode("utf-8")), "329f49a38f703bfb65162406aa1f662bb18058bec8d9a74f5e4b0e4b4bd0b850")
+        self.assertEqual(sha(prompt.encode("utf-8")), app.EXPECTED_SYSTEM_PROMPT_SHA256)
+        self.assertEqual(app.PROFILE, "decision_source_range_single")
+        self.assertEqual(app.EVIDENCE_ROOT.name, "untrusted-r2")
+        self.assertEqual(app.EVIDENCE_ROOT.parent.name, "source-range-single-20261014")
+        self.assertEqual(app.EVIDENCE_ROOT.parent.parent.name, "evidence")
+        self.assertEqual(app.PREVIOUS_PROFILE, "decision_source_range_single")
+        self.assertEqual(app.PREVIOUS_SYSTEM_PROMPT_SHA256, app.EXPECTED_SYSTEM_PROMPT_SHA256)
+        self.assertEqual(app.SOURCE_SPAN_BASELINE_PROFILE, "decision_source_span")
+        self.assertEqual(app.SOURCE_SPAN_BASELINE_SYSTEM_PROMPT_SHA256, "ebd2eb46eae08e48bcf1f137c52b8e795c133a9b70d25b57544f89f7622b9356")
+        self.assertNotEqual(
+            app.EVIDENCE_ROOT,
+            app.PIPELINE_DIR / "evidence" / "source-range-20261014",
+        )
+        superseded_unrun_root = app.PIPELINE_DIR / "evidence" / "source-range-single-20261014"
+        self.assertTrue((superseded_unrun_root / "automatic-input-manifest.json").is_file())
+        self.assertNotEqual(app.EVIDENCE_ROOT, superseded_unrun_root)
+
+    def test_native_pressure_import_identity_is_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            wrong_import = Path(temp) / "native-import.json"
+            wrong_import.write_bytes(b"different frozen import")
+            with (
+                mock.patch.object(app, "NATIVE_PRESSURE_BATCH_03_IMPORT", wrong_import),
+                mock.patch.object(length_canary, "load_source_population", side_effect=AssertionError("must fail before population load")),
+            ):
+                with self.assertRaisesRegex(app.PlanError, "NATIVE_PRESSURE_BATCH_03_IMPORT_SHA_MISMATCH"):
+                    app.build_frozen_plan(runtime_limits={
+                        "context_limit_tokens": 262144,
+                        "completion_max_tokens": 32768,
+                    })
 
     def test_canary_pauses_for_explicit_pressure_gate_and_persists_across_restart(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -390,14 +450,15 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(receipt["rounds"][0]["raw_sse_sha256"], sha(answer))
         self.assertEqual(request_timeouts[0]["read"], app.NO_PROGRESS_TIMEOUT_SECONDS)
 
-    def test_executor_request_matches_the_frozen_input_sha_and_keeps_the_full_body(self) -> None:
+    def test_executor_request_matches_single_wire_range_profile_and_sends_each_full_body_span_once(self) -> None:
         batch = fixtures.synthetic_batch("  frozen full body\nwith exact spacing.  ")
         article = batch["articles"][0]
         batch_id = "AUTO_" + sha(article["article_id"].encode("utf-8"))[:20]
         frozen_batch = length_canary.make_batch([article], batch_id)
         contract = runner.load_active_contract()
-        expected_messages = runner.build_messages(frozen_batch, contract, "decision_grounded")
+        expected_messages = runner.build_messages(frozen_batch, contract, "decision_source_range_single")
         expected_input_sha = runner._input_batch_sha(frozen_batch)
+        expected_span_map = runner.build_source_span_map(article["article_body"], article["body_sha256"])
         answer = sse([{"choices": [{"delta": {"content": "{\"results\":[]}"}, "finish_reason": "stop"}], "model": app.MODEL_ID}])
         sent = []
 
@@ -412,7 +473,12 @@ class AutomaticCanaryServerTests(unittest.TestCase):
                 records=(article,),
                 cohorts={"canary_A_and_B_union": (article["article_id"],), "pressure_batch_03": ()},
                 metadata={
-                    "articles": [{"article_id": article["article_id"], "idempotency_key": key, "input_sha256": expected_input_sha}],
+                    "articles": [{
+                        "article_id": article["article_id"],
+                        "idempotency_key": key,
+                        "input_sha256": expected_input_sha,
+                        "source_span_map_sha256": expected_span_map["span_map_sha256"],
+                    }],
                     "input_manifest_sha256": sha(b"manifest"),
                 },
                 manifest_path=root / "automatic-input-manifest.json",
@@ -439,12 +505,115 @@ class AutomaticCanaryServerTests(unittest.TestCase):
         self.assertEqual(raw, "{\"results\":[]}")
         self.assertEqual(len(sent), 1)
         self.assertEqual(sent[0]["messages"], expected_messages)
-        self.assertEqual(sha(sent[0]["messages"][0]["content"].encode("utf-8")), "107fb203c20440ed904763d12f90bee4ca6984c43292527dfc61ba6f8384f772")
+        self.assertEqual(sha(sent[0]["messages"][0]["content"].encode("utf-8")), app.EXPECTED_SYSTEM_PROMPT_SHA256)
+        system_prompt = sent[0]["messages"][0]["content"]
+        self.assertEqual(system_prompt.count("JSON_SCHEMA_BEGIN"), 1)
+        self.assertNotIn("ACTIVE_READER_JSON_SCHEMA_BEGIN", system_prompt)
+        self.assertNotIn("SOURCE_RANGE_WIRE_JSON_SCHEMA_BEGIN", system_prompt)
+        self.assertIn("SOURCE_RANGE_SINGLE_WIRE_JSON_SCHEMA_BEGIN", system_prompt)
         embedded = json.loads(sent[0]["messages"][1]["content"].removeprefix("ARTICLE_DATA_BEGIN\n").removesuffix("\nARTICLE_DATA_END"))
-        self.assertEqual(embedded["articles"][0]["article_body"], article["article_body"])
+        model_article = embedded["articles"][0]
+        self.assertNotIn("article_body", model_article)
+        self.assertEqual("".join(span["text"] for span in model_article["source_spans"]), article["article_body"])
+        self.assertEqual(set(model_article["source_spans"][0]), {"source_span_id", "text"})
+        self.assertTrue(
+            all(
+                span["source_span_id"].startswith(article["article_id"] + "::")
+                for span in model_article["source_spans"]
+            )
+        )
+        self.assertNotIn("source_span_map_sha256", sent[0]["messages"][1]["content"])
+        self.assertNotIn("start_cp", sent[0]["messages"][1]["content"])
         self.assertEqual(sent[0]["max_tokens"], app.MAX_COMPLETION_TOKENS)
         self.assertIs(sent[0]["enable_thinking"], False)
         self.assertNotIn(b"unit-secret", receipt_raw)
+
+    def test_raw_wire_is_persisted_before_exact_range_projection_and_final_reader_validation(self) -> None:
+        body = "  公司披露：回购价格为 10.00 元；正文没有市场比较。\r\n"
+        batch = fixtures.synthetic_batch(body)
+        article = batch["articles"][0]
+        batch_id = "AUTO_" + sha(article["article_id"].encode("utf-8"))[:20]
+        frozen_batch = length_canary.make_batch([article], batch_id)
+        span_map = runner.build_source_span_map(body, article["body_sha256"])
+        selected_span = span_map["spans"][0]
+        reader = fixtures.reader_output(article)
+        reader["reason"] = "Keep this conclusion byte-for-byte."
+        reader["risk_notes"] = ["PIT status remains as supplied."]
+        # This intentionally overclaims what the authentic quote supports. The
+        # projection proves exact quote provenance; the independent quality gate
+        # remains required to assess claim support.
+        overclaim = "Revenue rose and the price is historically low."
+        for field_name in runner.SOURCE_SPAN_CITATION_FIELDS:
+            bound_id = runner._source_range_wire_span_id(article["article_id"], selected_span["source_span_id"])
+            reader[field_name] = [{"claim": overclaim, "start_span_id": bound_id, "end_span_id": bound_id}]
+        wire = {"results": [{"article_id": article["article_id"], "reader_output": reader}]}
+        raw_wire = json.dumps(wire, ensure_ascii=False, separators=(",", ":"))
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            queue_id = "source-range-unit-test"
+            queue = queue_module.SerialAnnouncementQueue(
+                root / "queue-state" / queue_id,
+                queue_id,
+                app.MODEL_ID,
+                max_attempts=1,
+            )
+            payload = queue_payload()
+            payload.update({
+                **{name: article[name] for name in ("article_id", "source_sha256", "body_sha256", "article_body")},
+                "article_metadata": article["article_metadata"],
+            })
+            payload["rules"] = f"{app.ARTICLE_RULES}+map:{span_map['span_map_sha256']}"
+            payload["source_span_map_sha256"] = span_map["span_map_sha256"]
+            queued = queue.enqueue(payload)
+            row = {
+                "article_id": article["article_id"],
+                "idempotency_key": queued["idempotency_key"],
+                "input_sha256": runner._input_batch_sha(frozen_batch),
+                "source_span_map_sha256": span_map["span_map_sha256"],
+                "context_admission": "READY",
+            }
+            plan = app.FrozenPlan(
+                records=(article,),
+                cohorts={"canary_A_and_B_union": (article["article_id"],), "pressure_batch_03": ()},
+                metadata={"articles": [row], "input_manifest_sha256": sha(b"manifest"), "queue_id": queue_id},
+                manifest_path=root / "automatic-input-manifest.json",
+            )
+            controller = app.AutomaticCanaryController(
+                plan,
+                queue=queue,
+                activity_probe=lambda: (0, 0),
+                model_ready_probe=lambda: True,
+                api_key="unit-secret",
+            )
+            result = queue.run_next(lambda _job: raw_wire, controller._validate, wait_for_model_slot=False)
+            item = next(value for value in queue.snapshot()["items"] if value["idempotency_key"] == queued["idempotency_key"])
+            raw_path = Path(item["raw_path"])
+            validated_path = Path(item["validated_path"])
+            receipt_path = root / "projection-receipts" / f"{queued['idempotency_key']}-attempt-0001.json"
+            raw_saved = raw_path.read_bytes()
+            validated = json.loads(validated_path.read_bytes())
+            receipt = json.loads(receipt_path.read_bytes())
+
+        self.assertEqual(result["status"], "SUCCEEDED")
+        self.assertEqual(raw_saved, raw_wire.encode("utf-8"))
+        self.assertEqual(item["raw_sha256"], sha(raw_saved))
+        self.assertEqual(receipt["raw_wire_sha256"], sha(raw_saved))
+        self.assertEqual(receipt["raw_wire_artifact"], str(raw_path.relative_to(queue.state_root)))
+        self.assertEqual(receipt["semantic_quality"], "NOT_ASSESSED_BY_AUTOMATION")
+        self.assertEqual(receipt["schema"], "qwen_flash_next.source_range_projection_receipt.v1")
+        self.assertEqual(receipt["protocol"], runner.SOURCE_RANGE_SINGLE_PROTOCOL)
+        self.assertEqual(receipt["final_projection_sha256"], sha(runner.canonical_json_bytes(validated)))
+        self.assertEqual(receipt["final_projection_artifact"], str(validated_path.relative_to(queue.state_root)))
+        self.assertNotIn("article_body", json.dumps(receipt, ensure_ascii=False))
+        projected = validated["reader_output"]
+        self.assertEqual(set(projected), set(runner.load_active_contract().reader_schema["properties"]))
+        self.assertEqual(projected["reason"], reader["reason"])
+        self.assertEqual(projected["risk_notes"], reader["risk_notes"])
+        for field_name in runner.SOURCE_SPAN_CITATION_FIELDS:
+            citation = projected[field_name][0]
+            self.assertEqual(citation["claim"], overclaim)
+            self.assertEqual(citation["quote"], body[selected_span["start_cp"]:selected_span["end_cp"]])
 
     def test_timeout_retains_partial_sse_and_failure_receipt(self) -> None:
         partial = b'data: {"choices":[{"delta":{"content":"partial"'

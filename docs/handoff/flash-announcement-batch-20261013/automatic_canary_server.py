@@ -29,22 +29,30 @@ import build_length_canary as length_canary
 
 
 PIPELINE_DIR = Path(__file__).resolve().parent
-EVIDENCE_ROOT = PIPELINE_DIR / "evidence" / "automatic-20261014"
+EVIDENCE_ROOT = PIPELINE_DIR / "evidence" / "source-range-single-20261014" / "untrusted-r2"
 SOURCE_DIR = PIPELINE_DIR / "evidence" / "decision-first-20261014" / "stress"
 LENGTH_DIR = PIPELINE_DIR / "evidence" / "length-single-20261014"
 LENGTH_MANIFEST = LENGTH_DIR / "length-canary-manifest.json"
+BASELINE_MANIFEST = PIPELINE_DIR / "evidence" / "automatic-20261014" / "automatic-input-manifest.json"
+EXPECTED_BASELINE_MANIFEST_SHA256 = "b5a0d67695d639d4e3d945439e57437588bf6fd886aeb4690d098bb4ba8f1578"
+SOURCE_SPAN_BASELINE_MANIFEST = PIPELINE_DIR / "evidence" / "source-span-20261014" / "strict160-r2" / "automatic-input-manifest.json"
+EXPECTED_SOURCE_SPAN_BASELINE_MANIFEST_SHA256 = "40c4c1f472653af168e7cf98126e2d3274fba9b4bc2045c4e1f225d7cda3f691"
+NATIVE_PRESSURE_BATCH_03_IMPORT = SOURCE_DIR / "native-import-pressure-batch-03-FROZEN.json"
+EXPECTED_NATIVE_PRESSURE_BATCH_03_IMPORT_SHA256 = "c1807c43904ddbf9d3fee5f77a4bd57eddf6252d53dbd0c363cd3c28d4aaee65"
 MODEL_ID = "qwen3_8_flash_next"
-PROFILE = "decision_grounded"
-EXPECTED_SYSTEM_PROMPT_SHA256 = "107fb203c20440ed904763d12f90bee4ca6984c43292527dfc61ba6f8384f772"
-PREVIOUS_PROFILE = "decision_first"
-PREVIOUS_SYSTEM_PROMPT_SHA256 = "9b32e0b4d7d93384ab14b54a5b2f1a7a504c80baa8e13c319dbe4537f414f395"
+PROFILE = "decision_source_range_single"
+EXPECTED_SYSTEM_PROMPT_SHA256 = "25974f566ed38f85d55186d9ab0d1d87b15e39e7aac2557b2c5611d9c0489716"
+PREVIOUS_PROFILE = "decision_source_range_single"
+PREVIOUS_SYSTEM_PROMPT_SHA256 = EXPECTED_SYSTEM_PROMPT_SHA256
+SOURCE_SPAN_BASELINE_PROFILE = "decision_source_span"
+SOURCE_SPAN_BASELINE_SYSTEM_PROMPT_SHA256 = "ebd2eb46eae08e48bcf1f137c52b8e795c133a9b70d25b57544f89f7622b9356"
 MAX_COMPLETION_TOKENS = 32768
 OUTPUT_RESERVE_TOKENS = 2048  # Admission estimate only; never sent as a cap.
 MAX_ATTEMPTS = 2
 NO_PROGRESS_TIMEOUT_SECONDS = 90.0
 WEB_TIMEOUT_SECONDS = 120.0
 IDLE_WAIT_SECONDS = 20.0
-ARTICLE_RULES = "active_reader_v3+decision_grounded+single_article"
+ARTICLE_RULES = "active_reader_v3+decision_source_range_single+single_article"
 ARTICLE_ROLE = "announcement_reader"
 ARTICLE_STAGE = "decision_grounded"
 WEB_CONTRACT = re.compile(
@@ -124,11 +132,36 @@ def build_frozen_plan(
     try:
         length_raw = length_manifest_path.read_bytes()
         length_manifest = json.loads(length_raw)
+        baseline_raw = BASELINE_MANIFEST.read_bytes()
+        baseline_manifest = json.loads(baseline_raw)
+        source_span_baseline_raw = SOURCE_SPAN_BASELINE_MANIFEST.read_bytes()
+        source_span_baseline = json.loads(source_span_baseline_raw)
+        native_import_raw = NATIVE_PRESSURE_BATCH_03_IMPORT.read_bytes()
         contract = runner.load_active_contract()
     except Exception as exc:
         raise PlanError("FROZEN_PLAN_SOURCE_UNAVAILABLE") from exc
     if not isinstance(length_manifest, dict) or length_manifest.get("status") != "PREPARED_PENDING_INDEPENDENT_REVIEW":
         raise PlanError("LENGTH_MANIFEST_STATUS_INVALID")
+    if sha256(baseline_raw) != EXPECTED_BASELINE_MANIFEST_SHA256:
+        raise PlanError("BASELINE_COHORT_MANIFEST_SHA_MISMATCH")
+    if sha256(source_span_baseline_raw) != EXPECTED_SOURCE_SPAN_BASELINE_MANIFEST_SHA256:
+        raise PlanError("SOURCE_SPAN_BASELINE_MANIFEST_SHA_MISMATCH")
+    if sha256(native_import_raw) != EXPECTED_NATIVE_PRESSURE_BATCH_03_IMPORT_SHA256:
+        raise PlanError("NATIVE_PRESSURE_BATCH_03_IMPORT_SHA_MISMATCH")
+    if (
+        not isinstance(baseline_manifest, dict)
+        or baseline_manifest.get("schema") != "qwen_flash_next.automatic_canary_input_manifest.v1"
+        or baseline_manifest.get("status") != "FROZEN_INPUTS_VERIFIED; INFERENCE_NOT_STARTED"
+    ):
+        raise PlanError("BASELINE_COHORT_MANIFEST_INVALID")
+    if (
+        not isinstance(source_span_baseline, dict)
+        or source_span_baseline.get("schema") != "qwen_flash_next.automatic_canary_input_manifest.v1"
+        or source_span_baseline.get("status") != "FROZEN_INPUTS_VERIFIED; INFERENCE_NOT_STARTED"
+        or source_span_baseline.get("prompt_profile") != SOURCE_SPAN_BASELINE_PROFILE
+        or source_span_baseline.get("system_prompt_sha256") != SOURCE_SPAN_BASELINE_SYSTEM_PROMPT_SHA256
+    ):
+        raise PlanError("SOURCE_SPAN_BASELINE_MANIFEST_INVALID")
     config = length_manifest.get("configuration", {})
     if config.get("model_id") != MODEL_ID or config.get("active_contract_source_sha256") != contract.source_sha256:
         raise PlanError("FROZEN_CONFIGURATION_MISMATCH")
@@ -144,21 +177,44 @@ def build_frozen_plan(
         raise PlanError("FROZEN_SOURCE_INTEGRITY_FAILED") from exc
     source_by_id = {record.article["article_id"]: record.article for record in records}
     sample_cfg = length_manifest["canary_samples"]
-    canary_ids = list(sample_cfg["A_paired"]["selected_article_ids"])
-    canary_ids += list(sample_cfg["B_sealed_unmeasured"]["selected_article_ids"])
+    length_canary_ids = list(sample_cfg["A_paired"]["selected_article_ids"])
+    length_canary_ids += list(sample_cfg["B_sealed_unmeasured"]["selected_article_ids"])
+    # Cohort identity comes only from the hash-pinned prior automatic manifest;
+    # the nearby stress-population batch grouping is not a cohort selector.
+    baseline_cohorts = baseline_manifest.get("cohorts", {})
+    try:
+        canary_ids = list(baseline_cohorts["canary_A_and_B_union"]["article_ids"])
+        pressure_ids = list(baseline_cohorts["pressure_batch_03"]["article_ids"])
+    except (KeyError, TypeError) as exc:
+        raise PlanError("BASELINE_COHORTS_INVALID") from exc
     if len(canary_ids) != 6 or len(set(canary_ids)) != 6:
         raise PlanError("CANARY_SAMPLE_SELECTION_INVALID")
-    pressure_group = next(
-        (group for group in source_receipt["groups"] if group.get("batch_number") == 3), None
-    )
-    if not isinstance(pressure_group, dict) or pressure_group.get("article_count") != 29:
-        raise PlanError("PRESSURE_BATCH_03_INVALID")
-    pressure_ids = list(pressure_group.get("article_ids", []))
     if len(pressure_ids) != 29 or len(set(pressure_ids)) != 29:
-        raise PlanError("PRESSURE_BATCH_03_IDENTITY_INVALID")
+        raise PlanError("BASELINE_PRESSURE_COHORT_INVALID")
+    if length_canary_ids != canary_ids:
+        raise PlanError("CANARY_COHORT_DRIFT_FROM_BASELINE")
+    if not any(":HK.02656" in article_id for article_id in pressure_ids):
+        raise PlanError("BASELINE_PRESSURE_COHORT_ANCHOR_MISSING")
     all_ids = canary_ids + pressure_ids
+    if len(set(all_ids)) != 34 or len(canary_ids) + len(pressure_ids) - len(set(all_ids)) != 1:
+        raise PlanError("BASELINE_COHORT_OVERLAP_INVALID")
+    baseline_rows = {
+        row.get("article_id"): row
+        for row in baseline_manifest.get("articles", [])
+        if isinstance(row, dict) and isinstance(row.get("article_id"), str)
+    }
+    if len(baseline_rows) != 34 or set(baseline_rows) != set(all_ids):
+        raise PlanError("BASELINE_COHORT_ARTICLE_SET_DRIFT")
     if any(article_id not in source_by_id for article_id in all_ids):
         raise PlanError("FROZEN_ARTICLE_NOT_FOUND")
+    for article_id in all_ids:
+        baseline_row = baseline_rows[article_id]
+        article = source_by_id[article_id]
+        if (
+            baseline_row.get("source_sha256") != article.get("source_sha256")
+            or baseline_row.get("body_sha256") != article.get("body_sha256")
+        ):
+            raise PlanError("BASELINE_COHORT_SOURCE_BODY_SHA_DRIFT")
 
     prompt = runner.build_system_prompt(contract, PROFILE)
     prompt_sha = sha256(prompt.encode("utf-8"))
@@ -170,6 +226,29 @@ def build_frozen_plan(
     unique_ids = list(dict.fromkeys(all_ids))
     corpus_order = {record.article["article_id"]: index for index, record in enumerate(records)}
     unique_ids.sort(key=lambda article_id: (len(source_by_id[article_id]["article_body"].encode("utf-8")), corpus_order[article_id], article_id))
+    source_span_maps = {
+        article_id: runner.build_source_span_map(
+            source_by_id[article_id]["article_body"],
+            source_by_id[article_id]["body_sha256"],
+        )
+        for article_id in unique_ids
+    }
+    source_span_baseline_rows = {
+        row.get("article_id"): row
+        for row in source_span_baseline.get("articles", [])
+        if isinstance(row, dict) and isinstance(row.get("article_id"), str)
+    }
+    if len(source_span_baseline_rows) != 34 or set(source_span_baseline_rows) != set(unique_ids):
+        raise PlanError("SOURCE_SPAN_BASELINE_ARTICLE_SET_DRIFT")
+    for article_id in unique_ids:
+        prior_span_row = source_span_baseline_rows[article_id]
+        current_article = source_by_id[article_id]
+        if (
+            prior_span_row.get("source_sha256") != current_article.get("source_sha256")
+            or prior_span_row.get("body_sha256") != current_article.get("body_sha256")
+            or prior_span_row.get("source_span_map_sha256") != source_span_maps[article_id]["span_map_sha256"]
+        ):
+            raise PlanError("SOURCE_SPAN_BASELINE_IDENTITY_DRIFT")
     cohort_map = {
         "canary_A_and_B_union": tuple(dict.fromkeys(canary_ids)),
         "pressure_batch_03": tuple(pressure_ids),
@@ -183,6 +262,9 @@ def build_frozen_plan(
         "stress_manifest_sha256": source_receipt["manifest_sha256"],
         "length_manifest_sha256": sha256(length_raw),
         "source_import_files": source_receipt["source_import_files"],
+        "cohort_authority_manifest_sha256": sha256(baseline_raw),
+        "source_span_predecessor_manifest_sha256": sha256(source_span_baseline_raw),
+        "native_pressure_batch_03_import_sha256": sha256(native_import_raw),
         "incomplete_capture_rows_imported": 0,
     }
     cohort_manifest = {
@@ -205,6 +287,10 @@ def build_frozen_plan(
             "model_id": MODEL_ID,
             "prompt_profile": PROFILE,
             "system_prompt_sha256": prompt_sha,
+            "source_span_protocol": runner.SOURCE_SPAN_PROTOCOL,
+            "source_span_max_codepoints": runner.SOURCE_SPAN_MAX_CODEPOINTS,
+            "source_range_protocol": runner.SOURCE_RANGE_PROTOCOL,
+            "source_range_single_protocol": runner.SOURCE_RANGE_SINGLE_PROTOCOL,
             "active_contract_source_sha256": contract.source_sha256,
             "reader_schema_sha256": sha256(canonical_json(contract.reader_schema)),
             "tool_schema_sha256": sha256(canonical_json(runner.make_tool_schema())),
@@ -265,6 +351,7 @@ def build_frozen_plan(
                     old_row.get("batch_id") != batch_id
                     or old_row.get("source_sha256") != article["source_sha256"]
                     or old_row.get("body_sha256") != article["body_sha256"]
+                    or old_row.get("source_span_map_sha256") != source_span_maps[article_id]["span_map_sha256"]
                     or old_row.get("body_length_bytes") != len(article["article_body"].encode("utf-8"))
                     or old_row.get("input_sha256") != input_sha
                     or old_row.get("context_limit_tokens") != limits.get("context_limit_tokens")
@@ -292,6 +379,7 @@ def build_frozen_plan(
             "batch_id": batch_id,
             "source_sha256": article["source_sha256"],
             "body_sha256": article["body_sha256"],
+            "source_span_map_sha256": source_span_maps[article_id]["span_map_sha256"],
             "body_length_bytes": len(article["article_body"].encode("utf-8")),
             "input_sha256": input_sha,
             "prompt_tokens_exact": exact_prompt_tokens,
@@ -310,6 +398,7 @@ def build_frozen_plan(
     for article in plan_rows:
         source_article = source_by_id[article["article_id"]]
         metadata = source_article["article_metadata"]
+        article_rules = f"{ARTICLE_RULES}+map:{article['source_span_map_sha256']}"
         identity = {
             "date": metadata.get("publication_date") or "CANNOT_CONFIRM",
             "market": "HK" if str(metadata.get("symbol", "")).startswith("HK.") else "A_SHARE",
@@ -319,7 +408,7 @@ def build_frozen_plan(
             "prompt_sha256": prompt_sha,
             "model_id": MODEL_ID,
             "configuration_sha256": config_sha,
-            "rules": ARTICLE_RULES,
+            "rules": article_rules,
             "role": ARTICLE_ROLE,
             "stage": ARTICLE_STAGE,
         }
@@ -334,6 +423,10 @@ def build_frozen_plan(
         "model_id": MODEL_ID,
         "prompt_profile": PROFILE,
         "system_prompt_sha256": prompt_sha,
+        "source_span_protocol": runner.SOURCE_SPAN_PROTOCOL,
+        "source_span_max_codepoints": runner.SOURCE_SPAN_MAX_CODEPOINTS,
+        "source_range_protocol": runner.SOURCE_RANGE_PROTOCOL,
+        "source_range_single_protocol": runner.SOURCE_RANGE_SINGLE_PROTOCOL,
         "active_contract_source_sha256": contract.source_sha256,
         "reader_schema_sha256": sha256(canonical_json(contract.reader_schema)),
         "tool_schema_sha256": sha256(canonical_json(runner.make_tool_schema())),
@@ -343,6 +436,8 @@ def build_frozen_plan(
             "one_article_per_request": True,
             "full_body_only": True,
             "body_truncation_allowed": False,
+            "source_span_input": "complete exact body partitioned into article-bound ID/text pairs; offsets and per-span hashes remain local",
+            "source_range_single_wire_contract": "one endpoint-only schema; program projects each range to one continuous exact body slice; no concatenation or truncation",
             "max_completion_tokens": MAX_COMPLETION_TOKENS,
             "thinking": "OFF per request",
             "web_tools": "existing oMLX routes only; gated by explicit fact/field/query contract",
@@ -366,7 +461,7 @@ def build_frozen_plan(
         if prior.get("articles") != manifest["articles"] or prior.get("request_policy") != manifest["request_policy"] or prior_profile_migration:
             old_sha = sha256(prior_raw)
             superseded_name = (
-                "automatic-input-manifest-decision-first-superseded.json"
+                "automatic-input-manifest-decision-source-span-superseded.json"
                 if prior_profile_migration
                 else "automatic-input-manifest-estimate-gate-superseded.json"
             )
@@ -394,7 +489,7 @@ def build_frozen_plan(
     final_raw = plan_path.read_bytes()
 
     expected_ready_keys = {row["idempotency_key"] for row in manifest["articles"] if row["context_admission"] == "READY"}
-    queue_id = "automatic-20261014-" + sha256(final_raw)[:16]
+    queue_id = "source-range-single-20261014-" + sha256(final_raw)[:16]
     queue_state_root = output_root / "queue-state" / queue_id
     queue_state_path = queue_state_root / "queue-state.json"
     if queue_state_path.exists():
@@ -423,12 +518,13 @@ def build_frozen_plan(
         metadata = frozen["article_metadata"]
         payload = {
             **{name: frozen[name] for name in ("article_id", "source_sha256", "body_sha256", "article_body")},
+            "source_span_map_sha256": article["source_span_map_sha256"],
             "date": metadata.get("publication_date") or "CANNOT_CONFIRM",
             "market": "HK" if str(metadata.get("symbol", "")).startswith("HK.") else "A_SHARE",
             "prompt_sha256": prompt_sha,
             "model_id": MODEL_ID,
             "configuration_sha256": config_sha,
-            "rules": ARTICLE_RULES,
+            "rules": f"{ARTICLE_RULES}+map:{article['source_span_map_sha256']}",
             "role": ARTICLE_ROLE,
             "stage": ARTICLE_STAGE,
             "article_metadata": metadata,
@@ -1180,7 +1276,12 @@ class AutomaticCanaryController:
         batch_id = "AUTO_" + sha256(article["article_id"].encode("utf-8"))[:20]
         batch = length_canary.make_batch([article], batch_id)
         frozen_row = next((row for row in self.plan.metadata["articles"] if row["article_id"] == article["article_id"]), None)
-        if frozen_row is None or runner._input_batch_sha(batch) != frozen_row["input_sha256"]:
+        if (
+            frozen_row is None
+            or runner._input_batch_sha(batch) != frozen_row["input_sha256"]
+            or runner.build_source_span_map(article["article_body"], article["body_sha256"])["span_map_sha256"]
+            != frozen_row.get("source_span_map_sha256")
+        ):
             raise queue_module.ExecutorFailure("INPUT_MANIFEST_DIVERGED", code="INPUT_MANIFEST_DIVERGED", raw_response=b"")
         messages = runner.build_messages(batch, runner.load_active_contract(), PROFILE)
         started = time.monotonic()
@@ -1217,12 +1318,129 @@ class AutomaticCanaryController:
         batch = length_canary.make_batch([
             {name: job.payload[name] for name in ("article_id", "source_sha256", "body_sha256", "article_body", "article_metadata")}
         ], "AUTO_" + sha256(job.payload["article_id"].encode("utf-8"))[:20])
-        raw_text = json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
-        valid, errors = runner._validate_batch_output(raw_text, batch, runner.load_active_contract())
         article_id = job.payload["article_id"]
+        contract = runner.load_active_contract()
+        projection_receipt = None
+        projection_code_prefix = None
+        if PROFILE == "decision_source_span":
+            projection_code_prefix = "SOURCE_SPAN"
+            frozen_row = next(
+                (row for row in self.plan.metadata["articles"] if row["article_id"] == article_id),
+                None,
+            )
+            if frozen_row is None:
+                raise queue_module.ValidationRejected("INPUT_MANIFEST_DIVERGED", code="INPUT_MANIFEST_DIVERGED")
+            try:
+                projected, projection_map = runner.project_source_span_output(
+                    parsed,
+                    batch,
+                    contract,
+                    expected_span_map_sha256_by_article={
+                        article_id: frozen_row.get("source_span_map_sha256", "")
+                    },
+                )
+            except Exception as exc:
+                code = str(exc) if isinstance(exc, runner.BatchError) else "SOURCE_SPAN_PROJECTION_FAILED"
+                raise queue_module.ValidationRejected(code, code=code) from None
+            raw_text = json.dumps(projected, ensure_ascii=False, separators=(",", ":"))
+            projection_receipt = projection_map["articles"][article_id]
+        elif PROFILE in {"decision_source_range", "decision_source_range_single"}:
+            projection_code_prefix = "SOURCE_RANGE"
+            frozen_row = next(
+                (row for row in self.plan.metadata["articles"] if row["article_id"] == article_id),
+                None,
+            )
+            if frozen_row is None:
+                raise queue_module.ValidationRejected("INPUT_MANIFEST_DIVERGED", code="INPUT_MANIFEST_DIVERGED")
+            try:
+                projected, projection_map = runner.project_source_range_output(
+                    parsed,
+                    batch,
+                    contract,
+                    expected_span_map_sha256_by_article={
+                        article_id: frozen_row.get("source_span_map_sha256", "")
+                    },
+                )
+            except Exception as exc:
+                code = str(exc) if isinstance(exc, runner.BatchError) else "SOURCE_RANGE_PROJECTION_FAILED"
+                raise queue_module.ValidationRejected(code, code=code) from None
+            raw_text = json.dumps(projected, ensure_ascii=False, separators=(",", ":"))
+            projection_receipt = projection_map["articles"][article_id]
+        else:
+            raw_text = json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
+        valid, errors = runner._validate_batch_output(raw_text, batch, contract)
         if errors or set(valid) != {article_id}:
             code = errors.get(article_id, "MODEL_OUTPUT_VALIDATION_REJECTED")
             raise queue_module.ValidationRejected(code, code=code)
+        if projection_receipt is not None:
+            queue_item = next(
+                (item for item in self.queue.snapshot()["items"] if item["idempotency_key"] == job.idempotency_key),
+                None,
+            )
+            if (
+                queue_item is None
+                or not runner._is_sha(queue_item.get("raw_sha256"))
+                or not isinstance(queue_item.get("raw_path"), str)
+            ):
+                error_code = f"{projection_code_prefix}_RAW_WIRE_NOT_PERSISTED"
+                raise queue_module.ValidationRejected(
+                    error_code,
+                    code=error_code,
+                )
+            try:
+                raw_relative = Path(queue_item["raw_path"]).resolve().relative_to(
+                    Path(self.queue.state_root).resolve()
+                )
+            except Exception:
+                error_code = f"{projection_code_prefix}_RAW_WIRE_PATH_INVALID"
+                raise queue_module.ValidationRejected(
+                    error_code,
+                    code=error_code,
+                ) from None
+            final_projection = {"article_id": article_id, "reader_output": valid[article_id]}
+            is_range_projection = PROFILE in {"decision_source_range", "decision_source_range_single"}
+            is_single_range_projection = PROFILE == "decision_source_range_single"
+            receipt = {
+                "schema": (
+                    "qwen_flash_next.source_range_projection_receipt.v1"
+                    if is_range_projection
+                    else "qwen_flash_next.source_span_projection_receipt.v1"
+                ),
+                "protocol": (
+                    runner.SOURCE_RANGE_SINGLE_PROTOCOL
+                    if is_single_range_projection
+                    else runner.SOURCE_RANGE_PROTOCOL
+                    if is_range_projection
+                    else runner.SOURCE_SPAN_PROTOCOL
+                ),
+                "queue_id": getattr(self.queue, "queue_id", self.plan.metadata.get("queue_id")),
+                "idempotency_key": job.idempotency_key,
+                "attempt": job.attempt,
+                "input_manifest_sha256": self.plan.metadata["input_manifest_sha256"],
+                "raw_wire_artifact": str(raw_relative),
+                "raw_wire_sha256": queue_item["raw_sha256"],
+                "wire_canonical_sha256": sha256(canonical_json(parsed)),
+                ("source_range_projection" if is_range_projection else "source_span_projection"): projection_receipt,
+                "final_projection_sha256": sha256(canonical_json(final_projection)),
+                "final_projection_artifact": (
+                    f"jobs/{job.idempotency_key}/attempt-{job.attempt:04d}.validated.json"
+                ),
+                "semantic_quality": "NOT_ASSESSED_BY_AUTOMATION",
+            }
+            receipt_path = (
+                self.evidence_root
+                / "projection-receipts"
+                / f"{job.idempotency_key}-attempt-{job.attempt:04d}.json"
+            )
+            receipt_raw = json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8") + b"\n"
+            if receipt_path.exists():
+                if receipt_path.read_bytes() != receipt_raw:
+                    raise queue_module.ValidationRejected(
+                        "SOURCE_SPAN_PROJECTION_RECEIPT_CONFLICT",
+                        code="SOURCE_SPAN_PROJECTION_RECEIPT_CONFLICT",
+                    )
+            else:
+                _write_private(receipt_path, receipt_raw)
         return {"article_id": article_id, "reader_output": valid[article_id]}
 
     def _run_phase(self, transport: GatedStreamingTransport, phase_name: str, article_ids: tuple[str, ...], restrict: set[str] | None) -> bool:
