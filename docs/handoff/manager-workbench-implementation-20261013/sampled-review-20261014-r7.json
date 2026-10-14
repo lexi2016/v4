@@ -1,0 +1,47 @@
+{
+  "status": "REVIEWED_PASS_CANDIDATE_INTEGRATED",
+  "source_root": "/Users/lexi/.codex/worktrees/manager-workbench-rewrite-mac/v4_app",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "base_commit": "063f1df20130cde603740afccd641dca7e7b1021",
+  "writer": "Original Chat conversation 6acd9853-1e3c-83e8-96ab-a2162c90d075",
+  "reviewer": "/root/us_factor_review_luna",
+  "reviewer_receipt_sha256": "1ed9a0e8187de4c274079382a2361168b6fcf0cbbe6de4b34adf41dd56f1fbb4",
+  "files": [
+    {
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "before_sha256": "7c15b939aae7f86c648356462ef3910e57cc93678d3f30d11f8b2906db67f933",
+      "after_sha256": "0856e770822854ea7272819c7e643070acded1f3ffb1a91a0012ab72f992aa2a"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_factor.py",
+      "before_sha256": "b3c08ef967be8828684a69d34d44135d722ceee104c982d9fd590a56116758aa",
+      "after_sha256": "e8676f034fc3e37e3f0f16f97af62d3e33d009a683e780137871c2da69cd5720"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Desktop/学习/v4_app/.venv/bin/python /private/tmp/us-factor-r6-review-20261014-codeonly/run_r6_tests.py",
+    "selection": [
+      "test_late_capture_valid_proxy_retrospective_creates_diagnostic_candidate_without_changing_decision",
+      "test_late_capture_same_input_preopen_has_no_retrospective_diagnostic",
+      "test_late_capture_unmapped_has_no_diagnostic_candidate",
+      "test_hk_industry_single_same_day_canary_uses_positive_proxy_only_as_watch"
+    ],
+    "result": "4 passed in 0.02s"
+  },
+  "prior_results": {
+    "R5": "FAIL diagnostic decision gate",
+    "R6": "FAIL fixture proxy availability after cutoff",
+    "R7": "PASS 4 of 4"
+  },
+  "integration": "Exact reviewed two-file bytes copied into candidate source worktree; canonical source and formal runtime untouched",
+  "deployment": "NOT_RUN",
+  "api_verification": "NOT_RUN",
+  "ui_verification": "NOT_RUN",
+  "natural_verification": "NOT_RUN",
+  "historical_pit": "UNCONFIRMED",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "scope_stop": "No further historical-date polish or expanded testing; user prioritized timely progress on October 14"
+}

@@ -35,6 +35,58 @@ def _reason_tokens(reasons):
         return set()
     return {value.partition(":")[0].strip() for value in reasons if isinstance(value, str)}
 
+def _industry_diagnostic_projection(
+        context,
+        *,
+        time_ok,
+        symbol_identity_ok,
+        mapped,
+        proxy,
+        exposure,
+        non_time_conditions,
+    ):
+    """
+    Retrospective diagnostic projection.
+
+    Only the historical availability gate is relaxed.
+    Identity, mapping, proxy verification and positive trigger remain required.
+
+    This projection never changes decision and never creates PIT validity.
+    """
+    if context.get("phase") != "RETROSPECTIVE":
+        return dict(
+            diagnostic_candidate=False,
+            diagnostic_status=None,
+            diagnostic_pit_status="PIT_UNCONFIRMED",
+        )
+
+    if time_ok:
+        return dict(
+            diagnostic_candidate=False,
+            diagnostic_status=None,
+            diagnostic_pit_status="PIT_UNCONFIRMED",
+        )
+
+    valid_non_time_state = (
+        symbol_identity_ok
+        and mapped
+        and isinstance(proxy, dict)
+        and proxy.get("status") == "VERIFIED"
+        and exposure is not None
+        and exposure > 0
+        and not non_time_conditions
+    )
+
+    return dict(
+        diagnostic_candidate=valid_non_time_state,
+        diagnostic_status=(
+            "CURRENT_CLASSIFICATION_DIAGNOSTIC"
+            if valid_non_time_state
+            else None
+        ),
+        diagnostic_pit_status="PIT_UNCONFIRMED",
+    )
+
 
 def _number(value):
     if isinstance(value, bool) or value is None:
@@ -413,6 +465,22 @@ def _hk_industry_candidates(context, payload, proxy_returns):
                 triggered -= 1
             decision, reason = "UNASSESSED", "UNASSESSED_IDENTITY"
             conditions.append("UNASSESSED_IDENTITY")
+        non_time_conditions = [
+            condition
+            for condition in conditions
+            if condition != temporal_status
+        ]
+
+        diagnostic_projection = _industry_diagnostic_projection(
+            context,
+            time_ok=time_ok,
+            symbol_identity_ok=symbol_identity_ok,
+            mapped=bool(theme_info),
+            proxy=proxy,
+            exposure=exposure,
+            non_time_conditions=non_time_conditions,
+        )
+
         counts[decision] += 1
         theme = theme_info.get("theme") if theme_info else None
         results.append(dict(market="HK_CONNECT", symbol=symbol, name=source_name,
@@ -441,7 +509,11 @@ def _hk_industry_candidates(context, payload, proxy_returns):
             security_master_manifest_sha256=identity.get("manifest_sha256") if master_identity_ok else None,
             source_asof_status=artifact.get("source_asof_status"), captured_at=artifact.get("captured_at"),
             temporal_status=(temporal_status if time_ok else "RETROSPECTIVE_PIT_UNKNOWN"),
-            historical_pit_verified=False, available_at=captured_at,
+            historical_pit_verified=False,
+            diagnostic_candidate=diagnostic_projection["diagnostic_candidate"],
+            diagnostic_status=diagnostic_projection["diagnostic_status"],
+            diagnostic_pit_status=diagnostic_projection["diagnostic_pit_status"],
+            available_at=captured_at,
             research_effectiveness="UNVALIDATED"))
     summary = dict(display_only=True, mapping_version=HK_INDUSTRY_MAPPING_VERSION,
         source_status="READY" if time_ok and not (missing or out_of_scope or bad_row_count

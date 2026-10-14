@@ -279,6 +279,146 @@ def test_hk_industry_single_same_day_canary_uses_positive_proxy_only_as_watch():
     assert not any(row["decision"] == "SELECTED" for row in rows)
 
 
+def test_late_capture_valid_proxy_retrospective_creates_diagnostic_candidate_without_changing_decision():
+    codes = ["HK.00300"]
+
+    binding, _ = _industry_input(
+        "20261013",
+        "2026-10-14T09:30:00+08:00",
+        codes,
+        include_full_scope=False,
+    )
+
+    context_retro = dict(
+        target_date="20261013",
+        phase="RETROSPECTIVE",
+        cutoff="2026-10-13T09:25:00+08:00",
+        source_sessions={
+            "us": "20261012",
+            "hk_price": "20261012",
+        },
+    )
+
+    proxy_batch = _industry_proxy_batch("20261012")
+
+    for record in proxy_batch["records"]:
+        record["available_at"] = "2026-10-13T08:00:00+08:00"
+        for metadata in record["proxy_metadata"]:
+            metadata["available_at"] = "2026-10-13T08:00:00+08:00"
+
+    rows, _ = run_us_factor(
+        context_retro,
+        proxy_batch,
+        _industry_payload(binding, codes, "20261012"),
+    )
+
+    candidate = next(
+        row for row in rows
+        if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE"
+    )
+
+    assert candidate["diagnostic_candidate"] is True
+    assert candidate["diagnostic_status"] == (
+        "CURRENT_CLASSIFICATION_DIAGNOSTIC"
+    )
+    assert candidate["diagnostic_pit_status"] == "PIT_UNCONFIRMED"
+
+    assert candidate["historical_pit_verified"] is False
+    assert candidate["decision"] == "UNASSESSED"
+
+
+def test_late_capture_same_input_preopen_has_no_retrospective_diagnostic():
+    codes = ["HK.00300"]
+
+    binding, _ = _industry_input(
+        "20261013",
+        "2026-10-14T09:30:00+08:00",
+        codes,
+        include_full_scope=False,
+    )
+
+    context_preopen = dict(
+        target_date="20261013",
+        phase="PREOPEN",
+        cutoff="2026-10-13T09:25:00+08:00",
+        source_sessions={
+            "us": "20261012",
+            "hk_price": "20261012",
+        },
+    )
+
+    proxy_batch = _industry_proxy_batch("20261012")
+
+    for record in proxy_batch["records"]:
+        record["available_at"] = "2026-10-13T08:00:00+08:00"
+        for metadata in record["proxy_metadata"]:
+            metadata["available_at"] = "2026-10-13T08:00:00+08:00"
+
+    rows, _ = run_us_factor(
+        context_preopen,
+        proxy_batch,
+        _industry_payload(binding, codes, "20261012"),
+    )
+
+    candidate = next(
+        row for row in rows
+        if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE"
+    )
+
+    assert candidate["diagnostic_candidate"] is False
+    assert candidate["diagnostic_status"] is None
+    assert candidate["diagnostic_pit_status"] == "PIT_UNCONFIRMED"
+
+    assert candidate["historical_pit_verified"] is False
+    assert candidate["decision"] == "UNASSESSED"
+
+
+def test_late_capture_unmapped_has_no_diagnostic_candidate():
+    codes = ["HK.00300"]
+
+    binding, _ = _industry_input(
+        "20261013",
+        "2026-10-14T09:30:00+08:00",
+        codes,
+        include_full_scope=False,
+    )
+
+    binding["artifact"]["rows"][0]["source_industry"] = (
+        "SYNTHETIC_UNMAPPED_CATEGORY"
+    )
+
+    context_retro = dict(
+        target_date="20261013",
+        phase="RETROSPECTIVE",
+        cutoff="2026-10-13T09:25:00+08:00",
+        source_sessions={
+            "us": "20261012",
+            "hk_price": "20261012",
+        },
+    )
+
+    proxy_batch = _industry_proxy_batch("20261012")
+
+    for record in proxy_batch["records"]:
+        record["available_at"] = "2026-10-13T08:00:00+08:00"
+        for metadata in record["proxy_metadata"]:
+            metadata["available_at"] = "2026-10-13T08:00:00+08:00"
+
+    rows, _ = run_us_factor(
+        context_retro,
+        proxy_batch,
+        _industry_payload(binding, codes, "20261012"),
+    )
+
+    candidate = next(
+        row for row in rows
+        if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE"
+    )
+
+    assert candidate["diagnostic_candidate"] is False
+    assert candidate["diagnostic_status"] is None
+    assert candidate["decision"] == "UNASSESSED"
+
 def test_hk_industry_full_698_fixture_keeps_missing_unmapped_and_retrospective_unknown_separate():
     # Synthetic fixture only: 698 rows exercise scope accounting; this is not a real full-date capture.
     codes = _industry_codes()
