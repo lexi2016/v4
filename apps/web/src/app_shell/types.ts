@@ -109,6 +109,15 @@ export type StageSelectionMarket = Readonly<Record<string, unknown>> & {
 export type StageSelectionMarkets = readonly ("A" | "HK")[]
   | Readonly<Partial<Record<StageSelectionMarketId, StageSelectionMarket>>>;
 export type StageExecutionEvidence = {
+  declared_attempt_mode?: string;
+  due_status?: string;
+  receipt_history_binding?: string;
+  record_time_status?: string;
+  observed_sha256?: string;
+  schedule_observation?: { status?: string; evaluated_at?: string; observed_start_at?: string; delay_seconds?: number; legacy_exact_second_misclassification?: boolean };
+  markets?: Record<string, { selection_binding?: string }>;
+  selection_artifact_bindings?: Record<string, { status?: string }>;
+
   trade_date?: string;
   stage_id?: string;
   status?: string;

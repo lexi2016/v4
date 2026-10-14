@@ -245,6 +245,31 @@ const {
             <span>write={{ stageWorkbench.stage_lineage.recovery.write_performed === true ? "true" : "false" }}</span>
           </article>
         </div>
+        <div v-else-if="stageWorkbench?.execution_evidence" class="stage-lineage-grid">
+          <article class="stage-lineage-card">
+            <b>本次运行记录</b>
+            <span>运行声明：{{ stageWorkbench.execution_evidence.declared_attempt_mode || "未记录" }}</span>
+            <span>原始调度标记：{{ stageWorkbench.execution_evidence.due_status || "未记录" }}</span>
+            <template v-if="stageWorkbench.execution_evidence.schedule_observation?.evaluated_at">
+              <span>调度时间：{{ stageWorkbench.execution_evidence.schedule_observation.evaluated_at }}</span>
+              <span>实际启动：{{ stageWorkbench.execution_evidence.schedule_observation.observed_start_at }}</span>
+              <span>距截止秒：{{ stageWorkbench.execution_evidence.schedule_observation.delay_seconds }} 秒</span>
+              <span v-if="stageWorkbench.execution_evidence.schedule_observation.legacy_exact_second_misclassification">启动在计划分钟内；旧版精确到秒的判定误标迟到，原始记录保留。</span>
+              <span v-else>时间核对：{{ stageWorkbench.execution_evidence.schedule_observation.status }}</span>
+            </template>
+            <span>回执留档：{{ stageWorkbench.execution_evidence.receipt_history_binding || "未记录" }}</span>
+            <span>写入时钟：{{ stageWorkbench.execution_evidence.record_time_status || "未记录" }}</span>
+          </article>
+          <article class="stage-lineage-card">
+            <b>证据绑定</b>
+            <span v-for="(lane, market) in stageWorkbench.execution_evidence.markets" :key="market">{{ market }} 选股引用：{{ lane.selection_binding }}</span>
+            <span v-for="(binding, market) in stageWorkbench.execution_evidence.selection_artifact_bindings" :key="market">{{ market }} 产物绑定：{{ binding.status }}</span>
+            <span>执行验收：{{ stageWorkbench.execution_evidence.execution_verified === true ? "VERIFIED" : "CANNOT_CONFIRM" }}</span>
+            <span>自然时段验收：{{ stageWorkbench.execution_evidence.natural_verified === true ? "VERIFIED" : "CANNOT_CONFIRM" }}</span>
+            <span>当前回执 SHA256（读取观察值）</span><code>{{ stageWorkbench.execution_evidence.observed_sha256 || "未记录" }}</code>
+          </article>
+          <p class="evidence-gap">{{ stageWorkbench.execution_evidence.cannot_confirm?.join("、") }}</p>
+        </div>
         <p v-else class="evidence-gap">CANNOT_CONFIRM：当前响应未提供可验证的 natural/recovery receipt 血缘。</p>
         <p v-if="stageWorkbench?.stage_lineage?.cannot_confirm?.length" class="evidence-gap">
           {{ stageWorkbench.stage_lineage.cannot_confirm.join("、") }}
@@ -466,3 +491,12 @@ const {
     </template>
   </main>
 </template>
+
+<style scoped>
+.stage-lineage-panel { margin: 16px; padding: 16px; border: 1px solid #d9e1e8; border-radius: 8px; background: #f8fafc; }
+.stage-lineage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; margin-top: 12px; }
+.stage-lineage-card { display: flex; flex-direction: column; gap: 6px; min-width: 0; line-height: 1.6; font-size: 13px; }
+.stage-lineage-card b { font-size: 14px; }
+.stage-lineage-card span, .stage-lineage-card code, .stage-lineage-grid .evidence-gap { overflow-wrap: anywhere; }
+.stage-lineage-grid .evidence-gap { grid-column: 1 / -1; margin: 0; }
+</style>

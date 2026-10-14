@@ -190,7 +190,7 @@ def _owner_history_binding(root: Path, receipt: Mapping[str, Any], trade_date: s
         relative = f"{trade_date}/{stage_id}/attempt_evidence/recorded-{sha}/RECEIPT.json"
         if history.get("relative_path") != relative:
             raise ValueError("history must belong to this exact slot")
-        raw = SafeRoot(root).read_bytes(relative, max_bytes=_MAX_BYTES)
+        raw = SafeRoot(root).read_bytes(relative)
         if hashlib.sha256(raw).hexdigest() != sha:
             raise ValueError("history bytes differ")
         archived = json.loads(raw)
@@ -272,6 +272,50 @@ def _selection_trio_binding(
     except (OSError, ValueError, TypeError, KeyError, AttributeError, UnicodeError, RecursionError):
         return {"status": "SELECTION_TRIO_CONFLICT"}
 
+def _schedule_observation(root, receipt, trade_date, stage_id):
+    """Explain legacy timing from exact-slot diagnostics; do not upgrade evidence."""
+    unavailable = {"status": "ATTEMPT_CLOCK_NOT_RECORDED"}
+    journal = receipt.get("attempt_diagnostic")
+    if not isinstance(journal, dict):
+        return unavailable
+    try:
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        from .scheduler import evaluate_due
+        attempt_id = journal.get("attempt_id")
+        if not isinstance(attempt_id, str) or not re.fullmatch(r"[0-9a-f]{32}", attempt_id):
+            raise ValueError("invalid attempt identity")
+        relative = f"attempt_evidence/{attempt_id}/001_START.json"
+        if relative not in journal.get("relative_paths", []):
+            raise ValueError("start not declared")
+        raw = SafeRoot(root).read_bytes(f"{trade_date}/{stage_id}/{relative}", max_bytes=_MAX_BYTES)
+        start = json.loads(raw)
+        if any(start.get(k) != v for k, v in {
+            "schema": "stage.attempt_diagnostic.v1", "event": "START", "attempt_id": attempt_id,
+            "trade_date": trade_date, "stage_id": stage_id, "attempt_number": receipt.get("node_attempt_count"),
+        }.items()):
+            raise ValueError("attempt scope differs")
+        at = datetime.fromisoformat(start["evaluated_at"])
+        observed = datetime.fromisoformat(start["observed_at"])
+        if at.utcoffset() is None or observed.utcoffset() is None:
+            raise ValueError("clock zone missing")
+        at, observed = (v.astimezone(ZoneInfo("Asia/Shanghai")) for v in (at, observed))
+        if at.strftime("%Y%m%d") != trade_date or observed.strftime("%Y%m%d") != trade_date or observed < at:
+            raise ValueError("attempt clocks conflict")
+        decision = evaluate_due(stage_id, trade_date, at)
+        # Observed wall start must also fit the slot before describing it as on-time.
+        observed_decision = evaluate_due(stage_id, trade_date, observed)
+        status = "ON_SCHEDULE_MINUTE_OBSERVED" if decision.status == observed_decision.status == "DUE" else "OUTSIDE_SCHEDULE_MINUTE_OBSERVED"
+        return {"status": status, "evaluated_at": at.isoformat(), "observed_start_at": observed.isoformat(),
+                "delay_seconds": (at - decision.scheduled_at).total_seconds() if decision.scheduled_at else None,
+                "original_due_status": receipt.get("due_status"),
+                "legacy_exact_second_misclassification": status == "ON_SCHEDULE_MINUTE_OBSERVED" and receipt.get("due_status") == "LATE_CATCHUP_REPLAY",
+                "evidence_scope": "OWNER_ATTEMPT_DIAGNOSTIC_NOT_INDEPENDENT_ATTESTATION",
+                "observed_start_sha256": hashlib.sha256(raw).hexdigest()}
+    except (OSError, ValueError, TypeError, KeyError, AttributeError, UnicodeError):
+        return {"status": "ATTEMPT_CLOCK_CONFLICT"}
+
+
 def read_stage_execution(
     root: Path | None, trade_date: str, stage_id: str,
     verified_markets: Mapping[str, Mapping[str, Any]],
@@ -330,6 +374,7 @@ def read_stage_execution(
                   candidate_current_sha256=receipt.get("candidate_current_sha256"),
                   candidate_binding="REFERENCE_ONLY_CURRENT_TRIO_NOT_BOUND", 
                   cannot_confirm=["NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING", "NO_IMMUTABLE_NATURAL_RECOVERY_HISTORY"])
+    result["schedule_observation"] = _schedule_observation(root, receipt, trade_date, stage_id)
     result.update(declared_attempt_mode=receipt.get("dispatch_mode"),
                   execution_origin=receipt.get("execution_origin"),
                   same_day_late_observation_recovery=receipt.get("same_day_late_observation_recovery"),
@@ -404,11 +449,18 @@ def read_stage_execution(
         )
     if bound_count:
         result["status"] = "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED"
+    bindings = result["selection_artifact_bindings"]
+    if (bound_count and history == "OWNER_HISTORY_SHA_BOUND"
+            and all(bindings.get(market, {}).get("status") == "BOUND_TO_VERIFIED_SELECTION_TRIO"
+                    for market, lane in result["selection_results"].items()
+                    if lane.get("status") in {"RESULT_AVAILABLE", "VERIFIED_EMPTY_RESULT"})):
+        result["status"] = "OWNER_RECEIPT_SELECTION_TRIOS_BOUND_EXECUTION_UNVERIFIED"
     try:
         unchanged = _exact_bytes(root, trade_date, stage_id) == raw
     except (OSError, ValueError):
         unchanged = False
     if not unchanged:
+        result["status"] = "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED" if bound_count else "DECLARED_ONLY"
         result["receipt_history_binding"] = "OWNER_HISTORY_CONFLICT"
         result["cannot_confirm"].append("RECEIPT_CHANGED_DURING_READ")
         for binding in result["selection_artifact_bindings"].values():
