@@ -1,0 +1,92 @@
+{
+  "task": "hk-announcement-research skill creation",
+  "date": "2026-10-14",
+  "status": "REVIEWED_BEHAVIOR_VERIFIED_PASS",
+  "scope": "new user skill plus byte-identical handoff mirror and concise receipt only",
+  "upstream": {
+    "repository": "https://github.com/DIYgod/RSSHub",
+    "route": "lib/routes/zhitongcaijing/index.tsx",
+    "pinned_commit": "897559b134a4edfcae1178fb61b588ffbdc5f937",
+    "license": "AGPL-3.0",
+    "source_url": "https://github.com/DIYgod/RSSHub/blob/897559b134a4edfcae1178fb61b588ffbdc5f937/lib/routes/zhitongcaijing/index.tsx",
+    "rsshub_handler_executed_or_deployed": false,
+    "trial_script_presented_as_generic": false
+  },
+  "files": [
+    {
+      "canonical_path": "/Users/lexi/.codex/skills/hk-announcement-research/SKILL.md",
+      "mirror_path": "docs/handoffs/hk_announcement_skill_20261014/skill/SKILL.md",
+      "sha256": "f5efc1989cfce5fab556fb009167d02327967dcc172ae1de2b0dbf1daa89bb04",
+      "bytes": 3096
+    },
+    {
+      "canonical_path": "/Users/lexi/.codex/skills/hk-announcement-research/agents/openai.yaml",
+      "mirror_path": "docs/handoffs/hk_announcement_skill_20261014/skill/agents/openai.yaml",
+      "sha256": "3ab1f0aa0037130ecaf63b01ab1fdbd83061457358149464d257f3fee20daab3",
+      "bytes": 289
+    },
+    {
+      "canonical_path": "/Users/lexi/.codex/skills/hk-announcement-research/references/source-coverage.md",
+      "mirror_path": "docs/handoffs/hk_announcement_skill_20261014/skill/references/source-coverage.md",
+      "sha256": "477f7832439e2772ce8883e507ef69fd84141a8d8dbfaf10509782a16077640d",
+      "bytes": 2340
+    },
+    {
+      "canonical_path": "/Users/lexi/.codex/skills/hk-announcement-research/references/semantic-cases.md",
+      "mirror_path": "docs/handoffs/hk_announcement_skill_20261014/skill/references/semantic-cases.md",
+      "sha256": "b164b983e3bb868753e12338303b37a3f3d00b27cee025883170c839eee6a5e6",
+      "bytes": 2116
+    }
+  ],
+  "validation": {
+    "initializer": "created scaffold; initial interface generation rejected short_description length 16; completed in the same new directory with valid metadata",
+    "ui_yaml_generator": "PASS: agents/openai.yaml generated with valid display_name, 25-64 character short_description, and $hk-announcement-research default prompt",
+    "quick_validate": {
+      "command": "PYTHONPATH=.validation-deps /usr/bin/python3 /Users/lexi/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/lexi/.codex/skills/hk-announcement-research",
+      "result": "PASS: Skill is valid!"
+    },
+    "yaml_load": "PASS: PyYAML safe_load parsed agents/openai.yaml and loaded all interface fields",
+    "mirror": "PASS: diff -qr reported byte-identical canonical and handoff skill trees",
+    "temporary_validator_dependency": "PyYAML 6.0.3 installed under the skill directory for validation, then removed; no dependency files remain"
+  },
+  "forward_test": {
+    "status": "COMPLETE",
+    "verdict": "PASS",
+    "sample_ids": [
+      "1507189",
+      "1507026",
+      "1507281",
+      "1507233",
+      "1506988"
+    ],
+    "sample_sources": [
+      "docs/handoffs/zhitong_announcement_trial_20261014/articles_window.json",
+      "/tmp/zt_hkstock_ms_review_20261014.json"
+    ],
+    "live_scrape_or_new_full_capture": false,
+    "raw_article_data_copied_to_handoff": false,
+    "reviewer": "/root/announcement_skill_review",
+    "result": "5 independent input cases: 3 attention candidates, 2 pending verification. Clinical forward catalyst retained; mixed operating news preserved; earnings forecast distinct from realized earnings; institution disclosure distinct from trade date and research rating. Coverage remains CANNOT_CONFIRM."
+  },
+  "safety_state": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "unresolved": [
+    "This task did not establish live completeness for all three source routes or all Hong Kong market announcements."
+  ],
+  "independent_validation": {
+    "quick_validate": "PASS: Skill is valid! (PyYAML 6.0.3 in temporary /tmp dependency directory)",
+    "yaml_load": "PASS",
+    "canonical_mirror_bytes": "PASS",
+    "blocking_findings": [],
+    "evidence_sha256": {
+      "articles_window.json": "8ddfa602641d0a95ce4a9e2461044e4a8ea13610058eb3761d38ee558a4ed7b8",
+      "hkstock_metadata": "28239fb27308d3627ead51db725c6687ae4616e25ee6c11fdd75c1e0310e0d2b",
+      "trial_receipt.json": "90d5a1b44ecf01d26efab715e1630412211b606d856471dd16b8e9b7d78eed66"
+    }
+  },
+  "sync_scope": "Only this receipt and the four skill package files; no source article cache or business data."
+}
