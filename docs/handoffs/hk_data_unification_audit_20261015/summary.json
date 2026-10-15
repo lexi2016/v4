@@ -1,0 +1,288 @@
+{
+  "A_intersect_B_intersect_C": 597,
+  "all_A_codes_in_C": true,
+  "all_B_codes_in_C": true,
+  "audit_kind": "read_only_hk_three_dataset_comparison",
+  "code_difference_rows": 250,
+  "code_membership_rows": 717,
+  "data_values_exported": false,
+  "dataset_code_counts": {
+    "A": 613,
+    "B": 691,
+    "C": 717
+  },
+  "date_coverage": {
+    "A_asof_date": {
+      "first": "20250408",
+      "last": "20260721",
+      "latest_date_rows": 613,
+      "rows_per_day_min_median_max": {
+        "max": 613,
+        "median": 560.0,
+        "min": 511
+      },
+      "unique_days": 311
+    },
+    "A_trade_date": {
+      "first": "20250409",
+      "last": "20260722",
+      "latest_date_rows": 613,
+      "rows_per_day_min_median_max": {
+        "max": 613,
+        "median": 560.0,
+        "min": 511
+      },
+      "unique_days": 311
+    },
+    "B_date": {
+      "first": "20180102",
+      "last": "20260911",
+      "latest_date_rows": 691,
+      "rows_per_day_min_median_max": {
+        "max": 691,
+        "median": 466.0,
+        "min": 186
+      },
+      "unique_days": 2139
+    },
+    "C_trade_date": {
+      "first": "20110208",
+      "last": "20261014",
+      "latest_date_rows": 690,
+      "rows_per_day_min_median_max": {
+        "max": 706,
+        "median": 511.0,
+        "min": 1
+      },
+      "unique_days": 1303
+    }
+  },
+  "duplicate_code_date_keys": {
+    "A": {
+      "code_asof_date": 0,
+      "code_trade_date": 0
+    },
+    "B": {
+      "code_date": 0
+    },
+    "C": {
+      "code_date": 0
+    }
+  },
+  "interpretation_limits": [
+    "code-set containment does not establish historical row/date/field coverage",
+    "numeric differences do not adjudicate source correctness or unit equivalence",
+    "A asof_date and trade_date are retained as separate date roles",
+    "PIT, source, currency, price adjustment, volume units, and zero-trade semantics require separate confirmation"
+  ],
+  "numeric_tolerance": {
+    "atol": 1e-06,
+    "rtol": 1e-06
+  },
+  "overlap_metric_rows": [
+    {
+      "atol": 1e-06,
+      "comparable_rows": 437024,
+      "comparison": "open",
+      "exact_equal_rows": 422616,
+      "joined_rows": 437024,
+      "not_within_tolerance_rows": 507,
+      "pair": "B_vs_C_same_code_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "values_exported": false,
+      "within_tolerance_but_not_exact_rows": 13901
+    },
+    {
+      "atol": 1e-06,
+      "comparable_rows": 437024,
+      "comparison": "high",
+      "exact_equal_rows": 422015,
+      "joined_rows": 437024,
+      "not_within_tolerance_rows": 1014,
+      "pair": "B_vs_C_same_code_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "values_exported": false,
+      "within_tolerance_but_not_exact_rows": 13995
+    },
+    {
+      "atol": 1e-06,
+      "comparable_rows": 437024,
+      "comparison": "low",
+      "exact_equal_rows": 422057,
+      "joined_rows": 437024,
+      "not_within_tolerance_rows": 997,
+      "pair": "B_vs_C_same_code_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "values_exported": false,
+      "within_tolerance_but_not_exact_rows": 13970
+    },
+    {
+      "atol": 1e-06,
+      "comparable_rows": 437024,
+      "comparison": "close",
+      "exact_equal_rows": 421713,
+      "joined_rows": 437024,
+      "not_within_tolerance_rows": 1178,
+      "pair": "B_vs_C_same_code_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "values_exported": false,
+      "within_tolerance_but_not_exact_rows": 14133
+    },
+    {
+      "atol": 1e-06,
+      "comparable_rows": 437024,
+      "comparison": "amount",
+      "exact_equal_rows": 422018,
+      "joined_rows": 437024,
+      "not_within_tolerance_rows": 1355,
+      "pair": "B_vs_C_same_code_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "values_exported": false,
+      "within_tolerance_but_not_exact_rows": 13651
+    },
+    {
+      "atol": 1e-06,
+      "comparable_rows": 437024,
+      "comparison": "trade",
+      "exact_equal_rows": 406687,
+      "joined_rows": 437024,
+      "not_within_tolerance_rows": 30337,
+      "pair": "B_vs_C_same_code_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "values_exported": false,
+      "within_tolerance_but_not_exact_rows": 0
+    },
+    {
+      "atol": 1e-06,
+      "comparable_rows": 174755,
+      "comparison": "amount",
+      "exact_equal_rows": 174754,
+      "joined_rows": 174755,
+      "not_within_tolerance_rows": 0,
+      "pair": "A_asof_vs_C_trade_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "values_exported": false,
+      "within_tolerance_but_not_exact_rows": 1
+    },
+    {
+      "atol": 1e-06,
+      "comparable_rows": 170145,
+      "comparison": "amount",
+      "exact_equal_rows": 169554,
+      "joined_rows": 170145,
+      "not_within_tolerance_rows": 590,
+      "pair": "A_asof_vs_B_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "values_exported": false,
+      "within_tolerance_but_not_exact_rows": 1
+    },
+    {
+      "atol": 1e-06,
+      "comparable_rows": 174755,
+      "comparison": "volume",
+      "exact_equal_rows": 174755,
+      "joined_rows": 174755,
+      "not_within_tolerance_rows": 0,
+      "pair": "A_asof_vs_C_trade_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "values_exported": false,
+      "within_tolerance_but_not_exact_rows": 0
+    },
+    {
+      "atol": 1e-06,
+      "comparable_rows": 170145,
+      "comparison": "volume",
+      "exact_equal_rows": 169555,
+      "joined_rows": 170145,
+      "not_within_tolerance_rows": 590,
+      "pair": "A_asof_vs_B_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "values_exported": false,
+      "within_tolerance_but_not_exact_rows": 0
+    },
+    {
+      "B_nonzero_C_zero_rows": 629,
+      "B_zero_C_nonzero_rows": 11,
+      "atol": 1e-06,
+      "both_zero_rows": 1298,
+      "comparable_rows": 437024,
+      "comparison": "trade_volume_relation_counts",
+      "exact_equal_rows": 405389,
+      "joined_rows": 437024,
+      "not_within_tolerance_rows": 10744,
+      "pair": "B_vs_C_same_code_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "within_tolerance_but_not_exact_rows": 18953
+    },
+    {
+      "B_both_amount_and_trade_positive_C_both_zero_rows": 629,
+      "atol": 1e-06,
+      "comparable_rows": 630,
+      "comparison": "B_positive_amount_and_trade_while_C_both_zero",
+      "date_row_counts": "{\"20260706\": 8, \"20260722\": 622}",
+      "exact_equal_rows": 0,
+      "joined_rows": 437024,
+      "not_within_tolerance_rows": 630,
+      "pair": "B_vs_C_same_code_date",
+      "rows_missing_numeric_value": 0,
+      "rtol": 1e-06,
+      "semantic_or_unit_equivalence_claimed": false,
+      "within_tolerance_but_not_exact_rows": 0
+    }
+  ],
+  "pairwise_code_set_counts": {
+    "A_intersect_B": 597,
+    "A_minus_B": 16,
+    "A_minus_C": 0,
+    "B_minus_A": 94,
+    "B_minus_C": 0,
+    "C_minus_A": 104,
+    "C_minus_A_union_B": 10,
+    "C_minus_B": 26,
+    "union": 717
+  },
+  "row_key_difference_counts": {
+    "A_asof_B_date": {
+      "A_asof_rows_only": 4613,
+      "B_rows_only": 844690,
+      "union_rows": 1019448
+    },
+    "A_asof_C_trade_date": {
+      "A_asof_rows_only": 3,
+      "C_rows_only": 285342,
+      "union_rows": 460100
+    },
+    "B_C_same_code_date": {
+      "B_rows_only": 577811,
+      "C_rows_only": 23073,
+      "union_rows": 1037908
+    }
+  },
+  "row_key_join_counts": {
+    "A_asof_B_date": 170145,
+    "A_asof_C_trade_date": 174755,
+    "B_C_same_code_date": 437024
+  }
+}

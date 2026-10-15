@@ -1,0 +1,13 @@
+pair,comparison,joined_rows,comparable_rows,rows_missing_numeric_value,exact_equal_rows,within_tolerance_but_not_exact_rows,not_within_tolerance_rows,rtol,atol,values_exported,semantic_or_unit_equivalence_claimed,both_zero_rows,B_zero_C_nonzero_rows,B_nonzero_C_zero_rows,date_row_counts,B_both_amount_and_trade_positive_C_both_zero_rows
+B_vs_C_same_code_date,open,437024,437024,0,422616,13901,507,1e-06,1e-06,False,False,,,,,
+B_vs_C_same_code_date,high,437024,437024,0,422015,13995,1014,1e-06,1e-06,False,False,,,,,
+B_vs_C_same_code_date,low,437024,437024,0,422057,13970,997,1e-06,1e-06,False,False,,,,,
+B_vs_C_same_code_date,close,437024,437024,0,421713,14133,1178,1e-06,1e-06,False,False,,,,,
+B_vs_C_same_code_date,amount,437024,437024,0,422018,13651,1355,1e-06,1e-06,False,False,,,,,
+B_vs_C_same_code_date,trade,437024,437024,0,406687,0,30337,1e-06,1e-06,False,False,,,,,
+A_asof_vs_C_trade_date,amount,174755,174755,0,174754,1,0,1e-06,1e-06,False,False,,,,,
+A_asof_vs_B_date,amount,170145,170145,0,169554,1,590,1e-06,1e-06,False,False,,,,,
+A_asof_vs_C_trade_date,volume,174755,174755,0,174755,0,0,1e-06,1e-06,False,False,,,,,
+A_asof_vs_B_date,volume,170145,170145,0,169555,0,590,1e-06,1e-06,False,False,,,,,
+B_vs_C_same_code_date,trade_volume_relation_counts,437024,437024,0,405389,18953,10744,1e-06,1e-06,,False,1298,11,629,,
+B_vs_C_same_code_date,B_positive_amount_and_trade_while_C_both_zero,437024,630,0,0,0,630,1e-06,1e-06,,False,,,,"{""20260706"": 8, ""20260722"": 622}",629

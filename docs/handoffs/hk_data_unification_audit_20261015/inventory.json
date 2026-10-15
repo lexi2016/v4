@@ -1,0 +1,1455 @@
+{
+  "audit_kind": "read_only_hk_three_dataset_inventory",
+  "code_normalization": "trim/uppercase; remove .HK or HK. wrapper; zero-fill numeric code strings to width 5",
+  "data_values_exported": false,
+  "datasets": {
+    "A": {
+      "columns": 208,
+      "daily_row_count_min_median_max": {
+        "asof_date": {
+          "max": 613,
+          "median": 560.0,
+          "min": 511
+        },
+        "trade_date": {
+          "max": 613,
+          "median": 560.0,
+          "min": 511
+        }
+      },
+      "date_ranges": {
+        "asof_date": {
+          "first": "20250408",
+          "last": "20260721",
+          "missing_rows": 0,
+          "unique_days": 311
+        },
+        "trade_date": {
+          "first": "20250409",
+          "last": "20260722",
+          "missing_rows": 0,
+          "unique_days": 311
+        }
+      },
+      "distinct_code_count": 613,
+      "duplicate_keys": {
+        "code_asof_date": 0,
+        "code_trade_date": 0
+      },
+      "expected_sha256": "1437f5198e6d7a537bc2a11ad17e86042bb9ca2c894ad341126c0a7c05d0052e",
+      "fields": [
+        {
+          "name": "asof_date",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "trade_date",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "available_at",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "ret_1d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ret_1d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ret_3d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ret_3d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ret_5d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ret_5d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ret_10d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ret_10d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ret_20d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ret_20d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "intraday_return_1d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "intraday_return_1d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gap_return_1d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gap_return_1d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "high_low_range_pct_1d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "high_low_range_pct_1d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "close_position_1d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "close_position_1d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "upper_shadow_pct_1d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "upper_shadow_pct_1d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "lower_shadow_pct_1d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "lower_shadow_pct_1d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "volatility_5d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "volatility_5d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "volatility_20d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "volatility_20d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_1d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_1d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_ma5",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_ma5_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_ma20",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_ma20_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_ratio_5d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_ratio_5d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_ratio_20d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_ratio_20d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "volume_1d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "volume_1d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "volume_ratio_5d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "volume_ratio_5d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "volume_ratio_20d",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "volume_ratio_20d_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "illiquidity_proxy",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "illiquidity_proxy_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_rank_pct_daily",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount_rank_pct_daily_missing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "required_float_ccass_covered_by_local_or_existing",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "required_float_ccass_new_web_fetch_feature_available",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "required_float_ccass_preexisting_local_or_sql_available",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "required_float_ccass_final_ccass_coverage_available",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "required_float_ccass_shadow_only",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_ccass_participant_count",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_ccass_top5_concentration",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_ccass_top10_concentration",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_ccass_total_holding",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_china_clearing_holding",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_fulbright_holding",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_cicc_channel_holding",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_ccass_abs_delta_sum",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_ccass_total_holding_change",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_china_clearing_holding_change",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_china_clearing_holding_change_pct",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_fulbright_holding_change",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_fulbright_holding_change_pct",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_shadow_cicc_channel_holding_change",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f083",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f099",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f062",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f032",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f090",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f016",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f176_inv",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f074_inv",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f070_inv",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f150_inv",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f179_inv",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "gtja_f036_inv",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_abs_delta_sum_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_holder_churn_rate_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_large_holder_inflow_count_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_large_holder_outflow_count_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_large_holder_net_inflow_sum_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_large_holder_net_outflow_sum_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_top3_inflow_sum_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_top3_outflow_sum_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_top5_inflow_sum_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_top5_outflow_sum_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_new_large_holder_count_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_disappeared_large_holder_count_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_migration_intensity_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_abnormal_inflow_flag_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_abnormal_outflow_flag_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "fulbright_holding_change_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "fulbright_holding_change_pct_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "china_clearing_holding_change_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "china_clearing_holding_change_pct_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "cicc_channel_holding_change_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "cicc_channel_holding_change_pct_archive_complete",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "ccass_archive_complete_source_status",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "ccass_archive_complete_holding_date",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "ccass_archive_complete_prev_holding_date",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "ccass_archive_complete_stale_days",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_001",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_002",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_003",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_004",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_005",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_006",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_007",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_008",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_009",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_010",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_011",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_012",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_013",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_014",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_015",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_016",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_017",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_018",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_019",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_020",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_021",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_022",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_023",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_024",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_025",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_026",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_027",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_028",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_029",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_030",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_031",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_032",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_033",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_034",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_035",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_036",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_037",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_038",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_039",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_040",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_041",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_042",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_043",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_044",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_045",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_046",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_047",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_048",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_049",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_050",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_051",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_052",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_053",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_054",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_055",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_056",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_057",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_058",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_059",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_060",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_061",
+          "nullable": true,
+          "type": "bool"
+        },
+        {
+          "name": "wq101_alpha_062",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_063",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_064",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_065",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_066",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_067",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_068",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_069",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_070",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_071",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_072",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_073",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_074",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_075",
+          "nullable": true,
+          "type": "bool"
+        },
+        {
+          "name": "wq101_alpha_076",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_077",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_078",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_079",
+          "nullable": true,
+          "type": "bool"
+        },
+        {
+          "name": "wq101_alpha_080",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_081",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_082",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_083",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_084",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_085",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_086",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_087",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_088",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_089",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_090",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_091",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_092",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_093",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_094",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_095",
+          "nullable": true,
+          "type": "bool"
+        },
+        {
+          "name": "wq101_alpha_096",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_097",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_098",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_099",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_100",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "wq101_alpha_101",
+          "nullable": true,
+          "type": "double"
+        }
+      ],
+      "label": "old_feature_613",
+      "missing_code_rows": 0,
+      "mtime_ns": 1784717605000000000,
+      "non_five_digit_numeric_code_count": 0,
+      "observed_sha256": "1437f5198e6d7a537bc2a11ad17e86042bb9ca2c894ad341126c0a7c05d0052e",
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/feature.parquet",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/feature.parquet",
+      "rows": 174758,
+      "size_bytes": 139225381
+    },
+    "B": {
+      "columns": 8,
+      "daily_row_count_min_median_max": {
+        "date": {
+          "max": 691,
+          "median": 466.0,
+          "min": 186
+        }
+      },
+      "date_ranges": {
+        "date": {
+          "first": "20180102",
+          "last": "20260911",
+          "missing_rows": 0,
+          "unique_days": 2139
+        }
+      },
+      "distinct_code_count": 691,
+      "duplicate_keys": {
+        "code_date": 0
+      },
+      "expected_sha256": "17f5b62b6ec0264d48b6ee66ce0cd31aa8c1deb661e3e765b90b780add2eb230",
+      "fields": [
+        {
+          "name": "code",
+          "nullable": true,
+          "type": "large_string"
+        },
+        {
+          "name": "date",
+          "nullable": true,
+          "type": "large_string"
+        },
+        {
+          "name": "open",
+          "nullable": true,
+          "type": "float"
+        },
+        {
+          "name": "high",
+          "nullable": true,
+          "type": "float"
+        },
+        {
+          "name": "low",
+          "nullable": true,
+          "type": "float"
+        },
+        {
+          "name": "close",
+          "nullable": true,
+          "type": "float"
+        },
+        {
+          "name": "trade",
+          "nullable": true,
+          "type": "int64"
+        },
+        {
+          "name": "amount",
+          "nullable": true,
+          "type": "float"
+        }
+      ],
+      "label": "overnight_daily_bars_691",
+      "missing_code_rows": 0,
+      "mtime_ns": 1789184568501108381,
+      "non_five_digit_numeric_code_count": 0,
+      "observed_sha256": "17f5b62b6ec0264d48b6ee66ce0cd31aa8c1deb661e3e765b90b780add2eb230",
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/daily_bars.parquet",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/daily_bars.parquet",
+      "rows": 1014835,
+      "size_bytes": 17142047
+    },
+    "C": {
+      "columns": 32,
+      "daily_row_count_min_median_max": {
+        "trade_date": {
+          "max": 706,
+          "median": 511.0,
+          "min": 1
+        }
+      },
+      "date_ranges": {
+        "trade_date": {
+          "first": "20110208",
+          "last": "20261014",
+          "missing_rows": 0,
+          "unique_days": 1303
+        }
+      },
+      "distinct_code_count": 717,
+      "duplicate_keys": {
+        "code_date": 0
+      },
+      "expected_sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+      "fields": [
+        {
+          "name": "trade_date",
+          "nullable": true,
+          "type": "int64"
+        },
+        {
+          "name": "trade_date_compact",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "code_norm",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "ts_code",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "raw_code",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "market_type",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "exchange",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "open",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "high",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "low",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "close",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amount",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "trade",
+          "nullable": true,
+          "type": "int64"
+        },
+        {
+          "name": "position",
+          "nullable": true,
+          "type": "int64"
+        },
+        {
+          "name": "source",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "source_path",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "continuity_break",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "pre_close",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "continuity_segment_id",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "pct_chg",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "amplitude_pct",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "intraday_high_pct",
+          "nullable": true,
+          "type": "double"
+        },
+        {
+          "name": "name",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "history_source",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "history_source_provider",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "history_source_row_sha256",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "history_source_raw_file_sha256",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "history_candidate_row_sha256",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "history_candidate_file_sha256",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "history_request_started_at",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "history_request_completed_at",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "volume_unit_status",
+          "nullable": true,
+          "type": "string"
+        }
+      ],
+      "label": "runtime_panel_717",
+      "missing_code_rows": 0,
+      "mtime_ns": 1791969603497135246,
+      "non_five_digit_numeric_code_count": 0,
+      "observed_sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/hkconnect_vipdoc_daily_panel.parquet",
+      "resolved_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/hkconnect_vipdoc_daily_panel.parquet",
+      "rows": 460097,
+      "size_bytes": 21117431
+    }
+  },
+  "date_normalization": "YYYYMMDD; timezone-aware timestamps converted to Asia/Hong_Kong before date truncation",
+  "preservation_companions": [
+    {
+      "backup_created": false,
+      "dataset": "A",
+      "filename": "label.parquet",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/label.parquet",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/label.parquet",
+      "sha256": "f3340e6ea79268f4a1edf9fd701f702411254b8ce09dfd26b7882b29eb9d4018",
+      "size_bytes": 1687590
+    },
+    {
+      "backup_created": false,
+      "dataset": "A",
+      "filename": "acceptance.json",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/acceptance.json",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/acceptance.json",
+      "sha256": "5082a1a14789f8c45084f84ed0d0386b529eaab735f984c6a6fed3653f42c03a",
+      "size_bytes": 8687
+    },
+    {
+      "backup_created": false,
+      "dataset": "A",
+      "filename": "manifest.json",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/manifest.json",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/manifest.json",
+      "sha256": "9c5ac66dbf870d37f0217bfd3cc7586553605853fb34fff5ce2a7e245c967b66",
+      "size_bytes": 6503
+    },
+    {
+      "backup_created": false,
+      "dataset": "A",
+      "filename": "summary.json",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/summary.json",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/summary.json",
+      "sha256": "85c092314e56dae264f9f7dadc55baa98b0c5db3c1b7cfa2987fbb751e75e1a3",
+      "size_bytes": 105193
+    },
+    {
+      "backup_created": false,
+      "dataset": "B",
+      "filename": "operator_feature.parquet",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_feature.parquet",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_feature.parquet",
+      "sha256": "47f926813b8085e8a66e9bdf9c8d1edfb595cdc04ed3d3eaf2525c104dad1a94",
+      "size_bytes": 157352913
+    },
+    {
+      "backup_created": false,
+      "dataset": "B",
+      "filename": "operator_label.parquet",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_label.parquet",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_label.parquet",
+      "sha256": "bfce3ce5f4000491eb01403ea08fecd341b92fcf9d2ab1b1e50eea47e69f077e",
+      "size_bytes": 17440217
+    },
+    {
+      "backup_created": false,
+      "dataset": "B",
+      "filename": "acceptance.json",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/acceptance.json",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/acceptance.json",
+      "sha256": "22b6844595a6cd198bc8b5ea9297552878e799851107f6a5988be7dc322eed1a",
+      "size_bytes": 905
+    },
+    {
+      "backup_created": false,
+      "dataset": "B",
+      "filename": "manifest.json",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/manifest.json",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/manifest.json",
+      "sha256": "6e4eaddb7de0622e0849fab90aea236473c30440dbb7706eae984afc12d6f338",
+      "size_bytes": 2274
+    },
+    {
+      "backup_created": false,
+      "dataset": "C",
+      "filename": "manifest.json",
+      "parsed": false,
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/manifest.json",
+      "resolved_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/manifest.json",
+      "sha256": "4c9a6c325a17e5341d6f1a9d82bdb89a688df6b36759222cac8c8c920657a76d",
+      "size_bytes": 113580
+    }
+  ],
+  "preservation_note": "metadata only; companion contents not parsed; no backup copy created"
+}

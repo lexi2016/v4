@@ -1,0 +1,144 @@
+{
+  "audit_kind": "read_only_hk_three_dataset_audit",
+  "inputs": {
+    "A": {
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/feature.parquet",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/feature.parquet",
+      "sha256": "1437f5198e6d7a537bc2a11ad17e86042bb9ca2c894ad341126c0a7c05d0052e",
+      "size_bytes": 139225381
+    },
+    "B": {
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/daily_bars.parquet",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/daily_bars.parquet",
+      "sha256": "17f5b62b6ec0264d48b6ee66ce0cd31aa8c1deb661e3e765b90b780add2eb230",
+      "size_bytes": 17142047
+    },
+    "C": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/hkconnect_vipdoc_daily_panel.parquet",
+      "resolved_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/hkconnect_vipdoc_daily_panel.parquet",
+      "sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+      "size_bytes": 21117431
+    }
+  },
+  "migration_or_pointer_change": false,
+  "numpy": "2.5.2",
+  "outputs": {
+    "code_membership.csv": {
+      "sha256": "bef9a87fb69b70dcdaaf87af9681f1296de25632ff7fae3e08f66108f809282a",
+      "size_bytes": 9342
+    },
+    "code_set_differences.csv": {
+      "sha256": "018e647d194f1bdfba9bd5578a54f52ff266735443a1e6f9ecd27b160c52017a",
+      "size_bytes": 6182
+    },
+    "inventory.json": {
+      "sha256": "8751d041ef0d30067c9d19470f912b3f0301d22fb23e0ff147eaf20e395408da",
+      "size_bytes": 38508
+    },
+    "overlap_conflicts.csv": {
+      "sha256": "05ee512764e514863267fc80a9395038295c8f451a88a55309d99e8d97aa60be",
+      "size_bytes": 1498
+    },
+    "per_code_coverage.csv": {
+      "sha256": "eb0385ad77594b939a32e96e48c781b906dbaf82e34b23faab043ff4196bd5dc",
+      "size_bytes": 77469
+    },
+    "preservation_inventory.csv": {
+      "sha256": "cb37d87df1988e2f8d10aa4f7851ee73c12e2b3f1bfb413468f5488aeaf2f1b3",
+      "size_bytes": 3470
+    },
+    "summary.json": {
+      "sha256": "bed8b40aeca2602a34a98d5409b2c758fc016c3756df81ff0c8524d898c2ff42",
+      "size_bytes": 8169
+    }
+  },
+  "pandas": "2.3.3",
+  "preservation_companions": [
+    {
+      "backup_created": false,
+      "dataset": "A",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/label.parquet",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/label.parquet",
+      "sha256": "f3340e6ea79268f4a1edf9fd701f702411254b8ce09dfd26b7882b29eb9d4018",
+      "size_bytes": 1687590
+    },
+    {
+      "backup_created": false,
+      "dataset": "A",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/acceptance.json",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/acceptance.json",
+      "sha256": "5082a1a14789f8c45084f84ed0d0386b529eaab735f984c6a6fed3653f42c03a",
+      "size_bytes": 8687
+    },
+    {
+      "backup_created": false,
+      "dataset": "A",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/manifest.json",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/manifest.json",
+      "sha256": "9c5ac66dbf870d37f0217bfd3cc7586553605853fb34fff5ce2a7e245c967b66",
+      "size_bytes": 6503
+    },
+    {
+      "backup_created": false,
+      "dataset": "A",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/summary.json",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/summary.json",
+      "sha256": "85c092314e56dae264f9f7dadc55baa98b0c5db3c1b7cfa2987fbb751e75e1a3",
+      "size_bytes": 105193
+    },
+    {
+      "backup_created": false,
+      "dataset": "B",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_feature.parquet",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_feature.parquet",
+      "sha256": "47f926813b8085e8a66e9bdf9c8d1edfb595cdc04ed3d3eaf2525c104dad1a94",
+      "size_bytes": 157352913
+    },
+    {
+      "backup_created": false,
+      "dataset": "B",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_label.parquet",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_label.parquet",
+      "sha256": "bfce3ce5f4000491eb01403ea08fecd341b92fcf9d2ab1b1e50eea47e69f077e",
+      "size_bytes": 17440217
+    },
+    {
+      "backup_created": false,
+      "dataset": "B",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/acceptance.json",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/acceptance.json",
+      "sha256": "22b6844595a6cd198bc8b5ea9297552878e799851107f6a5988be7dc322eed1a",
+      "size_bytes": 905
+    },
+    {
+      "backup_created": false,
+      "dataset": "B",
+      "parsed": false,
+      "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/manifest.json",
+      "resolved_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/manifest.json",
+      "sha256": "6e4eaddb7de0622e0849fab90aea236473c30440dbb7706eae984afc12d6f338",
+      "size_bytes": 2274
+    },
+    {
+      "backup_created": false,
+      "dataset": "C",
+      "parsed": false,
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/manifest.json",
+      "resolved_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/manifest.json",
+      "sha256": "4c9a6c325a17e5341d6f1a9d82bdb89a688df6b36759222cac8c8c920657a76d",
+      "size_bytes": 113580
+    }
+  ],
+  "pyarrow": "23.0.1",
+  "python": "3.13.12",
+  "raw_market_rows_exported": false,
+  "script_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_data_unification_audit_20261015/recompute_hk_pool_audit.py",
+  "script_sha256": "b338c936117b9a48142dc649a30eeb71348c85c4c7fcb1a2bbd8bffdcdf6fbad"
+}
