@@ -1,0 +1,17 @@
+# 独立验收记录
+
+Reviewer: /root/mapping_catalog_review；独立于Writer，gpt-6-luna/max，read-only。
+
+REVIEWED PASS；BEHAVIOR_VERIFIED PASS，范围仅限本批只读研究目录的重建、API查询、组件显示和损坏资料处理。不表示全量关系事实有效、收益有效或运行服务验收。
+
+Reviewer对照五份精确preimage与当前文件，核对了实现receipt记录的SHA；独立重建得到相同catalog对象：667股票、1003关系，顺序/名称/原始字段和来源状态保留。内部完整性SHA fd362d817032f4f0a8f6f033c44df64435232382ea514dc31beee7b285deb0c5；文件SHA 3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671。独立复跑Python 5 passed、Vue组件1 passed、scoped vue-tsc exit 0；精确命令见IMPLEMENTATION_RECEIPT.md。Reviewer的pytest临时目录为 /tmp/us_hk_catalog_review_20261015。
+
+无P0/P1。非阻断P2：468/1003关系行的url字段为JSON数组，Workbench.vue sourceUrls只按空白拆分，数组形式不能生成可点击链接；原始URL全文仍显示，证据未丢失。已列backlog，按冻结PASS边界不继续扩大修复。组件测试只覆盖单URL。
+
+CANNOT_CONFIRM：8873现役API、真实渲染页面和自然时段未验收。全667股票/1003边独立事实核验pending；所有预测UNTESTED，PIT NOT_VALIDATED，旧997边逐边比较NOT_RUN。一级来源10边抽查仅8日期事实支持、2当前适用性未闭环，不能据此升级整个目录。
+
+完整项目vue-tsc的5条范围外诊断由Writer记录；Reviewer未重复全项目检查，未把其记作全项目PASS。
+
+转写勘误：Reviewer原回复把source_audit.json的SHA多写了一个f，单项复核已纠正为7f0af6267d9b511bf3e343e90d7000d698c0f16608f05df2fceebf79d056939f，其余验收范围未重跑。
+
+RESEARCH_ONLY=true；production_allowed=false；buy_gate_updated=false；orders_sent=false。
