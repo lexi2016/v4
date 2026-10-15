@@ -150,6 +150,9 @@ def test_recovery_cli_plan_flag_matches_default_and_never_runs_formal_recovery()
         assert payload["network_or_formal_run"] is False
         assert payload["source_day"] == "20261015"
         assert payload["target_date"] == "20261016"
+        assert payload["active_scheduler_identity_gate"] == "REQUIRED_ON_RUN"
+        assert payload["bound_release_id"] == "zsxq-pdf-ocr-scheduler-20261016-r4"
+        assert payload["bound_scheduler_pid"] == 32762
     assert outputs[0] == outputs[1]
 
     conflicting_modes = subprocess.run([sys.executable, str(script), "--plan", "--run"],
