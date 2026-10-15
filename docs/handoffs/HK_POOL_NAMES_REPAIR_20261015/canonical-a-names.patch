@@ -1,0 +1,592 @@
+--- a/stage_center/consumer.py
++++ b/stage_center/consumer.py
+@@ -14,7 +14,12 @@
+ import re
+ from typing import Any, Iterable, Mapping, Sequence
+ 
+-from infrastructure.preselection_pool_store import PreselectionPoolStore
++from infrastructure.preselection_pool_store import (
++    POOL_ORDER,
++    PreselectionPoolArtifactMissing,
++    PreselectionPoolIntegrityError,
++    PreselectionPoolStore,
++)
+ 
+ from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+ from .selection import SelectionError, SelectionStore, _validate_date, _validate_market, _validate_stage
+@@ -36,6 +41,7 @@
+ _NAME_AUTHORITY_NOT_NEEDED = "NOT_NEEDED"
+ _NAME_AUTHORITY_CANNOT_CONFIRM = "CANNOT_CONFIRM"
+ _NAME_AUTHORITY_CODE_NOT_FOUND = "NAME_AUTHORITY_CODE_NOT_FOUND"
++_NAME_AUTHORITY_NAME_CONFLICT = "NAME_AUTHORITY_NAME_CONFLICT"
+ _NAME_AUTHORITY_SOURCE = "A_CANONICAL_PRESELECTION_POOLS"
+ _A_CODE_ALIAS_FIELDS = ("symbol", "stock_code", "ts_code", "code")
+ _A_CODE_RE = re.compile(r"(?:(?:A|SH|SZ|BJ)\.(\d{6})|(\d{6})(?:\.(?:SH|SZ))?)\Z")
+@@ -582,86 +588,247 @@
+             "selector_sha256": None,
+             "source_sha256": None,
+             "source": _NAME_AUTHORITY_SOURCE,
+-            "pool_ids": list(_A_NAME_POOL_IDS),
++            "verification_status": "CANNOT_CONFIRM",
++            "pool_ids": [],
++            "expected_pool_ids": list(_A_NAME_POOL_IDS),
++            "verified_pool_ids": [],
++            "unverified_pool_ids": list(_A_NAME_POOL_IDS),
++            "pool_status": "CANNOT_CONFIRM",
++            "pool_audit": {},
++            "conflicted_codes": [],
+             "selector_sha_source": None,
+-            "error": "A canonical preselection pool root is not configured",
++            "error": None,
+         }
++        if self.a_name_pool_root is None:
++            result["error"] = "A canonical preselection pool root is not configured"
++            return result
++
++        # The manifest and its owning root are shared evidence. Validate them
++        # once outside the per-pool isolation boundary so a missing or unsafe
++        # shared root can never be mistaken for an ordinary missing pool.
+         try:
+-            if self.a_name_pool_root is None:
+-                raise ValueError(result["error"])
+-            pool_root = self.a_name_pool_root.expanduser().resolve()
+-            pool_store = PreselectionPoolStore(pool_root)
+-            mapping: dict[str, str] = {}
+-            artifact_shas: dict[str, str] = {}
+-            source_shas: dict[str, str] = {}
+-            receipt_shas: dict[str, str] = {}
++            pool_store = PreselectionPoolStore(self.a_name_pool_root.expanduser())
++            pool_root = pool_store.root
++            manifest_relative = f"preselection_pools/{trade_date}/manifest.json"
++            manifest_bytes = pool_store._io.read_bytes(manifest_relative)
++            manifest = json.loads(manifest_bytes.decode("utf-8"))
++            if not isinstance(manifest, Mapping):
++                raise ValueError("shared preselection manifest must contain an object")
++            canonical_manifest_bytes = json.dumps(
++                manifest,
++                ensure_ascii=False,
++                sort_keys=True,
++                separators=(",", ":"),
++                allow_nan=False,
++            ).encode("utf-8")
++            if manifest_bytes != canonical_manifest_bytes:
++                raise ValueError("shared preselection manifest bytes are not canonical")
++            for pool_id, digest in manifest.items():
++                if pool_id not in POOL_ORDER or not _SHA256_RE.fullmatch(str(digest or "")):
++                    raise ValueError("shared preselection manifest entries are invalid")
++            manifest_raw_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
++        except Exception as error:
++            result["error"] = f"SHARED_PRESELECTION_ROOT_OR_MANIFEST_CANNOT_CONFIRM:{error}"
++            return result
++
++        mapping: dict[str, str] = {}
++        conflicted_codes: set[str] = set()
++        artifact_shas: dict[str, str] = {}
++        source_shas: dict[str, str] = {}
++        receipt_shas: dict[str, str] = {}
++        pool_audit: dict[str, dict[str, Any]] = {}
++        verified_pool_ids: list[str] = []
++        try:
+             for pool_id in _A_NAME_POOL_IDS:
+-                pool = pool_store.read_pool(trade_date, pool_id)
+-                rows = pool.get("rows")
+-                if not isinstance(rows, list):
+-                    raise ValueError(f"A canonical preselection pool rows are invalid: {pool_id}")
+-                artifact_shas[pool_id] = _canonical_digest(pool)
+-                source_sha = str(pool.get("source_sha256") or "").strip().lower()
+-                if not _SHA256_RE.fullmatch(source_sha):
+-                    raise ValueError(f"A canonical preselection pool source SHA is invalid: {pool_id}")
+-                source_shas[pool_id] = source_sha
+-                receipt_path = pool_root / "preselection_pools" / trade_date / "receipts" / f"{pool_id}.json"
+-                receipt_shas[pool_id] = _file_digest(receipt_path)
+-                for index, row in enumerate(rows):
+-                    if not isinstance(row, Mapping):
+-                        raise ValueError(f"A canonical preselection pool row is invalid: {pool_id}[{index}]")
+-                    for date_field in ("trade_date", "target_date"):
+-                        if date_field in row and _normalize_authority_date(row.get(date_field)) != trade_date:
+-                            raise ValueError(
+-                                f"A canonical preselection pool {date_field} mismatch: {pool_id}[{index}]"
++                try:
++                    snapshot = pool_store.read_pool_snapshot(trade_date, pool_id)
++                except PreselectionPoolArtifactMissing:
++                    pool_audit[pool_id] = {
++                        "status": "MISSING",
++                        "verification_status": "CANNOT_CONFIRM",
++                        "reason": "POOL_ARTIFACT_MISSING",
++                    }
++                    continue
++                except PreselectionPoolIntegrityError as error:
++                    pool_audit[pool_id] = {
++                        "status": "ISOLATED",
++                        "verification_status": "CANNOT_CONFIRM",
++                        "reason": error.reason,
++                    }
++                    continue
++
++                # A changed shared root or manifest invalidates the full read;
++                # it is deliberately outside the per-pool contract handler.
++                snapshot_root = snapshot.get("physical_source_root")
++                if (
++                    (snapshot_root is not None and Path(str(snapshot_root)) != pool_root)
++                    or snapshot.get("manifest_raw_sha256") != manifest_raw_sha256
++                ):
++                    raise RuntimeError("shared preselection root or manifest changed during name read")
++
++                pool = snapshot.get("artifact")
++                try:
++                    if not isinstance(pool, Mapping) or pool.get("pool_id") != pool_id:
++                        raise ValueError("pool snapshot identity is invalid")
++                    rows = pool.get("rows")
++                    if not isinstance(rows, list):
++                        raise ValueError("pool rows are invalid")
++                    source_sha = str(pool.get("source_sha256") or "").strip().lower()
++                    if not _SHA256_RE.fullmatch(source_sha):
++                        raise ValueError("pool source SHA is invalid")
++
++                    pool_mapping: dict[str, str] = {}
++                    pool_conflicts: set[str] = set()
++                    for index, row in enumerate(rows):
++                        if not isinstance(row, Mapping):
++                            raise ValueError(f"pool row is invalid at index {index}")
++                        for date_field in ("trade_date", "target_date"):
++                            if (
++                                date_field in row
++                                and _normalize_authority_date(row.get(date_field)) != trade_date
++                            ):
++                                raise ValueError(f"pool {date_field} mismatch at row {index}")
++                        alias_codes: dict[str, str] = {}
++                        for alias in _A_CODE_ALIAS_FIELDS:
++                            raw_alias = str(row.get(alias) or "").strip()
++                            if not raw_alias:
++                                continue
++                            normalized_alias = _normalize_a_code(raw_alias)
++                            if not normalized_alias:
++                                raise ValueError(f"pool code alias is invalid at row {index}: {alias}")
++                            alias_codes[alias] = normalized_alias
++                        if len(set(alias_codes.values())) > 1:
++                            raise ValueError(f"pool code alias conflict at row {index}")
++                        code = next(iter(alias_codes.values()), "")
++                        if not code or code in pool_conflicts:
++                            continue
++                        names = {
++                            name
++                            for name in (
++                                _canonical_name(row.get("name"), code),
++                                _canonical_name(row.get("stock_name"), code),
+                             )
+-                    alias_codes: dict[str, str] = {}
+-                    for alias in _A_CODE_ALIAS_FIELDS:
+-                        raw_alias = str(row.get(alias) or "").strip()
+-                        if not raw_alias:
++                            if name
++                        }
++                        if len(names) > 1:
++                            pool_mapping.pop(code, None)
++                            pool_conflicts.add(code)
+                             continue
+-                        normalized_alias = _normalize_a_code(raw_alias)
+-                        if not normalized_alias:
+-                            raise ValueError(
+-                                f"A canonical preselection pool code alias is invalid: {pool_id}[{index}].{alias}"
+-                            )
+-                        alias_codes[alias] = normalized_alias
+-                    if len(set(alias_codes.values())) > 1:
+-                        raise ValueError(
+-                            f"A canonical preselection pool code alias conflict: {pool_id}[{index}]"
+-                        )
+-                    code = next(iter(alias_codes.values()), "")
+-                    if not code:
++                        if not names:
++                            continue
++                        name = next(iter(names))
++                        previous = pool_mapping.get(code)
++                        if previous is not None and previous != name:
++                            pool_mapping.pop(code, None)
++                            pool_conflicts.add(code)
++                        else:
++                            pool_mapping[code] = name
++                except (KeyError, TypeError, ValueError) as error:
++                    pool_audit[pool_id] = {
++                        "status": "ISOLATED",
++                        "verification_status": "CANNOT_CONFIRM",
++                        "reason": f"POOL_CONTENT_INVALID:{error}",
++                    }
++                    continue
++
++                for code, name in pool_mapping.items():
++                    if code in conflicted_codes:
+                         continue
+-                    names = {
+-                        _canonical_name(row.get(field), code)
+-                        for field in ("name", "stock_name")
+-                        if _canonical_name(row.get(field), code)
+-                    }
+-                    if len(names) > 1:
+-                        raise ValueError(f"A canonical preselection pool name conflict: {code}")
+-                    if not names:
+-                        continue
+-                    name = next(iter(names))
+                     previous = mapping.get(code)
+                     if previous is not None and previous != name:
+-                        raise ValueError(f"A canonical preselection pool name conflict: {code}")
+-                    mapping[code] = name
+-            if not mapping:
+-                raise ValueError("A canonical preselection pool name map is empty")
++                        mapping.pop(code, None)
++                        conflicted_codes.add(code)
++                    else:
++                        mapping[code] = name
++                for code in pool_conflicts:
++                    mapping.pop(code, None)
++                    conflicted_codes.add(code)
++
++                artifact_sha = str(snapshot.get("artifact_sha256") or "").lower()
++                artifact_raw_sha = str(snapshot.get("artifact_raw_sha256") or "").lower()
++                receipt_raw_sha = str(snapshot.get("receipt_raw_sha256") or "").lower()
++                if not all(
++                    _SHA256_RE.fullmatch(value)
++                    for value in (artifact_sha, artifact_raw_sha, receipt_raw_sha)
++                ):
++                    raise RuntimeError(f"shared preselection pool snapshot SHA is invalid: {pool_id}")
++                artifact_shas[pool_id] = artifact_sha
++                source_shas[pool_id] = source_sha
++                receipt_shas[pool_id] = receipt_raw_sha
++                verified_pool_ids.append(pool_id)
++                pool_audit[pool_id] = {
++                    "status": "VERIFIED",
++                    "verification_status": "VERIFIED",
++                    "source_sha256": source_sha,
++                    "trio_raw_sha256": {
++                        "artifact": artifact_raw_sha,
++                        "manifest": manifest_raw_sha256,
++                        "receipt": receipt_raw_sha,
++                    },
++                }
++        except Exception as error:
+             result.update(
+                 {
+-                    "status": _NAME_AUTHORITY_EXACT,
+-                    "mapping": mapping,
+-                    "receipt_sha256": _canonical_digest(receipt_shas),
+-                    "selector_sha256": _canonical_digest(artifact_shas),
+-                    "source_sha256": _canonical_digest(source_shas),
+-                    "selector_sha_source": "CANONICAL_PRESELECTION_POOL_ARTIFACTS",
+-                    "error": None,
++                    "error": f"SHARED_PRESELECTION_ROOT_OR_MANIFEST_CANNOT_CONFIRM:{error}",
++                    "pool_audit": pool_audit,
++                    "mapping": {},
++                    "pool_ids": [],
++                    "verified_pool_ids": [],
++                    "unverified_pool_ids": list(_A_NAME_POOL_IDS),
++                    "pool_status": "CANNOT_CONFIRM",
+                 }
+             )
+-        except Exception as error:
+-            result["error"] = str(error)
++            return result
++
++        unverified_pool_ids = [
++            pool_id for pool_id in _A_NAME_POOL_IDS if pool_id not in verified_pool_ids
++        ]
++        result.update(
++            {
++                "mapping": mapping,
++                "pool_ids": list(verified_pool_ids),
++                "verified_pool_ids": list(verified_pool_ids),
++                "unverified_pool_ids": unverified_pool_ids,
++                "pool_status": "COMPLETE" if not unverified_pool_ids else "PARTIAL_SOURCE_SET",
++                "verification_status": "CANNOT_CONFIRM" if unverified_pool_ids else "VERIFIED",
++                "pool_audit": pool_audit,
++                "conflicted_codes": sorted(conflicted_codes),
++                "receipt_sha256": _canonical_digest(receipt_shas) if receipt_shas else None,
++                "selector_sha256": _canonical_digest(artifact_shas) if artifact_shas else None,
++                "source_sha256": _canonical_digest(source_shas) if source_shas else None,
++                "selector_sha_source": (
++                    "CANONICAL_PRESELECTION_POOL_ARTIFACTS" if verified_pool_ids else None
++                ),
++            }
++        )
++        if mapping or conflicted_codes:
++            result["status"] = _NAME_AUTHORITY_EXACT
++        else:
++            result["status"] = _NAME_AUTHORITY_CANNOT_CONFIRM
++
++        if unverified_pool_ids or conflicted_codes:
++            audit_summary = {
++                "pool_status": result["pool_status"],
++                "verification_status": result["verification_status"],
++                "verified_pool_ids": verified_pool_ids,
++                "unverified_pools": {
++                    pool_id: pool_audit.get(pool_id, {}) for pool_id in unverified_pool_ids
++                },
++                "trio_raw_sha256": {
++                    pool_id: pool_audit[pool_id]["trio_raw_sha256"]
++                    for pool_id in verified_pool_ids
++                },
++                "conflicted_codes": sorted(conflicted_codes),
++            }
++            result["error"] = "NAME_POOL_AUDIT:" + json.dumps(
++                audit_summary,
++                ensure_ascii=False,
++                sort_keys=True,
++                separators=(",", ":"),
++            )
++        elif result["status"] == _NAME_AUTHORITY_CANNOT_CONFIRM:
++            result["error"] = "VALIDATED_NAME_POOLS_CONTAIN_NO_USABLE_NAMES"
++
+         if result.get("status") == _NAME_AUTHORITY_EXACT:
+             self._a_name_authority_cache[trade_date] = result
+         return result
+@@ -696,17 +863,35 @@
+         output["name_authority_selector_sha256"] = authority.get("selector_sha256")
+         output["name_authority_source_sha256"] = authority.get("source_sha256")
+         output["name_authority_selector_sha_source"] = authority.get("selector_sha_source")
+-        output["name_authority_pool_ids"] = list(authority.get("pool_ids") or _A_NAME_POOL_IDS)
++        output["name_authority_pool_ids"] = list(authority.get("pool_ids") or [])
++        output["name_authority_expected_pool_ids"] = list(
++            authority.get("expected_pool_ids") or _A_NAME_POOL_IDS
++        )
++        output["name_authority_unverified_pool_ids"] = list(
++            authority.get("unverified_pool_ids") or []
++        )
++        output["name_authority_pool_status"] = authority.get("pool_status")
++        output["name_authority_verification_status"] = authority.get("verification_status")
++        output["name_authority_pool_audit"] = dict(authority.get("pool_audit") or {})
++        output["name_authority_conflicted_codes"] = list(
++            authority.get("conflicted_codes") or []
++        )
+         output["name_authority_applied_count"] = 0
+         output["name_authority_missing_count"] = len(missing_rows)
+         output["name_authority_error"] = authority.get("error")
+         projected_rows = [dict(row) for row in rows]
+         mapping = authority.get("mapping") if authority.get("status") == _NAME_AUTHORITY_EXACT else {}
++        conflicted_codes = set(authority.get("conflicted_codes") or [])
+         missing_codes: list[str] = []
++        conflicted_rows: list[str] = []
+         for row in projected_rows:
+             if _row_has_valid_name(row):
+                 continue
+             code = _normalize_a_code(row.get("code"))
++            if code in conflicted_codes:
++                missing_codes.append(code)
++                conflicted_rows.append(code)
++                continue
+             name = mapping.get(code)
+             if name:
+                 row["name"] = name
+@@ -721,8 +906,13 @@
+         )
+         if missing_codes and authority_exact:
+             cannot_confirm = list(output.get("cannot_confirm") or [])
+-            if _NAME_AUTHORITY_CODE_NOT_FOUND not in cannot_confirm:
++            if (
++                any(code not in conflicted_rows for code in missing_codes)
++                and _NAME_AUTHORITY_CODE_NOT_FOUND not in cannot_confirm
++            ):
+                 cannot_confirm.append(_NAME_AUTHORITY_CODE_NOT_FOUND)
++            if conflicted_rows and _NAME_AUTHORITY_NAME_CONFLICT not in cannot_confirm:
++                cannot_confirm.append(_NAME_AUTHORITY_NAME_CONFLICT)
+             output["cannot_confirm"] = cannot_confirm
+         output["rows"] = projected_rows
+         return output
+--- a/tests/test_stage_name_read_overlay.py
++++ b/tests/test_stage_name_read_overlay.py
+@@ -195,14 +195,16 @@
+     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+ ) -> None:
+     consumer, _selection_root, _data_root, _original = _consumer_fixture(tmp_path)
+-    original_read_pool = PreselectionPoolStore.read_pool
++    original_read_pool = PreselectionPoolStore.read_pool_snapshot
+     calls: list[tuple[str, str]] = []
+ 
+-    def counted_read_pool(self: PreselectionPoolStore, trade_date: str, pool_id: str) -> dict[str, Any]:
++    def counted_read_pool(
++        self: PreselectionPoolStore, trade_date: str, pool_id: str
++    ) -> dict[str, Any]:
+         calls.append((trade_date, pool_id))
+         return original_read_pool(self, trade_date, pool_id)
+ 
+-    monkeypatch.setattr(PreselectionPoolStore, "read_pool", counted_read_pool)
++    monkeypatch.setattr(PreselectionPoolStore, "read_pool_snapshot", counted_read_pool)
+     first = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))
+     second = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))
+ 
+@@ -260,16 +262,32 @@
+     assert all(row["name"] is None for row in market["rows"])
+ 
+ 
+-def test_missing_canonical_pool_fails_closed_without_changing_selection_fields(tmp_path: Path) -> None:
++def test_missing_canonical_pool_is_isolated_without_changing_selection_fields(tmp_path: Path) -> None:
+     consumer, selection_root, data_root, original = _consumer_fixture(tmp_path)
+     before = _file_hashes(selection_root)
+     (data_root / "preselection_pools" / TRADE_DATE / f"{A_POOL_IDS[-1]}.json").unlink()
+     market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
+ 
+-    assert market["name_authority_status"] == "CANNOT_CONFIRM"
+-    assert market["name_authority_error"]
+-    assert market["selection_status"] == original["selection_status"]
+-    assert [(row["name"], row["stock_name"]) for row in market["rows"]] == [(None, None)] * 3
++    assert market["name_authority_status"] == "EXACT_DATE_READ_OVERLAY"
++    assert market["name_authority_pool_status"] == "PARTIAL_SOURCE_SET"
++    assert market["name_authority_verification_status"] == "CANNOT_CONFIRM"
++    assert market["name_authority_pool_ids"] == list(A_POOL_IDS[:-1])
++    assert market["name_authority_unverified_pool_ids"] == [A_POOL_IDS[-1]]
++    missing_pool_audit = market["name_authority_pool_audit"][A_POOL_IDS[-1]]
++    assert missing_pool_audit["status"] == "MISSING"
++    assert missing_pool_audit["verification_status"] == "CANNOT_CONFIRM"
++    assert market["name_authority_applied_count"] == 3
++    assert market["name_authority_missing_count"] == 0
++    missing_pool_summary = json.loads(
++        str(market["name_authority_error"]).removeprefix("NAME_POOL_AUDIT:")
++    )
++    assert missing_pool_summary["verification_status"] == "CANNOT_CONFIRM"
++    assert missing_pool_summary["unverified_pools"][A_POOL_IDS[-1]]["status"] == "MISSING"
++    assert "POOL_ARTIFACT_MISSING" in str(market["name_authority_error"])
++    assert market["selection_status"] == original["selection_status"]
++    assert [(row["name"], row["stock_name"]) for row in market["rows"]] == [
++        ("甲公司", "甲公司"), ("乙公司", "乙公司"), ("丙公司", "丙公司")
++    ]
+     assert _file_hashes(selection_root) == before
+ 
+ 
+@@ -296,7 +314,7 @@
+     assert all(row["name"] is None for row in market["rows"])
+ 
+ 
+-def test_pool_manifest_or_receipt_sha_mismatch_fails_closed(tmp_path: Path) -> None:
++def test_pool_manifest_or_receipt_sha_mismatch_isolates_that_pool(tmp_path: Path) -> None:
+     consumer, _selection_root, data_root, original = _consumer_fixture(tmp_path)
+     artifact = data_root / "preselection_pools" / TRADE_DATE / f"{A_POOL_IDS[0]}.json"
+     payload = json.loads(artifact.read_text(encoding="utf-8"))
+@@ -304,13 +322,20 @@
+     artifact.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+     market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
+ 
+-    assert market["name_authority_status"] == "CANNOT_CONFIRM"
+-    assert "manifest or receipt SHA mismatch" in str(market["name_authority_error"])
+-    assert market["selection_status"] == original["selection_status"]
+-    assert all(row["name"] is None for row in market["rows"])
+-
+-
+-def test_pool_source_sha_mismatch_in_receipt_fails_closed(tmp_path: Path) -> None:
++    assert market["name_authority_status"] == "EXACT_DATE_READ_OVERLAY"
++    assert market["name_authority_pool_status"] == "PARTIAL_SOURCE_SET"
++    assert market["name_authority_verification_status"] == "CANNOT_CONFIRM"
++    assert market["name_authority_pool_ids"] == list(A_POOL_IDS[1:])
++    isolated_pool_audit = market["name_authority_pool_audit"][A_POOL_IDS[0]]
++    assert isolated_pool_audit["status"] == "ISOLATED"
++    assert isolated_pool_audit["verification_status"] == "CANNOT_CONFIRM"
++    assert "ISOLATED" in str(market["name_authority_error"])
++    assert market["name_authority_applied_count"] == 3
++    assert market["selection_status"] == original["selection_status"]
++    assert [row["name"] for row in market["rows"]] == ["甲公司", "乙公司", "丙公司"]
++
++
++def test_pool_source_sha_mismatch_in_receipt_isolates_that_pool(tmp_path: Path) -> None:
+     consumer, _selection_root, data_root, original = _consumer_fixture(tmp_path)
+     receipt = data_root / "preselection_pools" / TRADE_DATE / "receipts" / f"{A_POOL_IDS[0]}.json"
+     payload = json.loads(receipt.read_text(encoding="utf-8"))
+@@ -318,22 +343,51 @@
+     receipt.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+     market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
+ 
+-    assert market["name_authority_status"] == "CANNOT_CONFIRM"
+-    assert "manifest or receipt SHA mismatch" in str(market["name_authority_error"])
+-    assert market["selection_status"] == original["selection_status"]
+-    assert all(row["name"] is None for row in market["rows"])
+-
+-
+-def test_conflicting_canonical_pool_names_fail_closed(tmp_path: Path) -> None:
++    assert market["name_authority_status"] == "EXACT_DATE_READ_OVERLAY"
++    assert market["name_authority_pool_ids"] == list(A_POOL_IDS[1:])
++    audit = json.loads(str(market["name_authority_error"]).removeprefix("NAME_POOL_AUDIT:"))
++    assert "receipt" in audit["unverified_pools"][A_POOL_IDS[0]]["reason"]
++    assert market["name_authority_applied_count"] == 3
++    assert market["selection_status"] == original["selection_status"]
++    assert [row["name"] for row in market["rows"]] == ["甲公司", "乙公司", "丙公司"]
++
++
++def test_conflicting_canonical_name_is_isolated_to_its_code(tmp_path: Path) -> None:
+     conflict = {pool_id: ("甲公司", "乙公司", "丙公司") for pool_id in A_POOL_IDS}
+     conflict[A_POOL_IDS[-1]] = ("冲突名称", "乙公司", "丙公司")
+-    consumer, _selection_root, _data_root, original = _consumer_fixture(tmp_path, pool_names=conflict)
++    consumer, selection_root, _data_root, original = _consumer_fixture(tmp_path, pool_names=conflict)
++    before = _file_hashes(selection_root)
+     market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
+ 
+     assert market["name_authority_status"] == "CANNOT_CONFIRM"
+-    assert "name conflict" in str(market["name_authority_error"])
+-    assert market["selection_status"] == original["selection_status"]
+-    assert all(row["name"] is None for row in market["rows"])
++    assert market["name_authority_conflicted_codes"] == ["A.000001"]
++    assert market["name_authority_applied_count"] == 2
++    assert market["name_authority_missing_count"] == 1
++    assert market["rows"][0]["name"] is None
++    assert [row["name"] for row in market["rows"][1:]] == ["乙公司", "丙公司"]
++    assert "A.000001" in str(market["name_authority_error"])
++    assert market["selection_status"] == original["selection_status"]
++    assert _file_hashes(selection_root) == before
++
++
++def test_shared_manifest_error_rejects_all_name_projection(tmp_path: Path) -> None:
++    consumer, selection_root, data_root, original = _consumer_fixture(tmp_path)
++    manifest = data_root / "preselection_pools" / TRADE_DATE / "manifest.json"
++    manifest.write_text("{broken", encoding="utf-8")
++    before = _file_hashes(selection_root)
++
++    market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
++
++    assert market["name_authority_status"] == "CANNOT_CONFIRM"
++    assert market["name_authority_verification_status"] == "CANNOT_CONFIRM"
++    assert market["name_authority_pool_ids"] == []
++    assert market["name_authority_applied_count"] == 0
++    assert "SHARED_PRESELECTION_ROOT_OR_MANIFEST_CANNOT_CONFIRM" in str(
++        market["name_authority_error"]
++    )
++    assert all(row["name"] is None and row["stock_name"] is None for row in market["rows"])
++    assert market["run_id"] == original["run_id"]
++    assert _file_hashes(selection_root) == before
+ 
+ 
+ def test_missing_code_keeps_blank_name_and_records_not_found(tmp_path: Path) -> None:
+@@ -455,3 +509,40 @@
+         (row["code"], index, row["rank"], row["score"])
+         for index, row in enumerate(verified["rows"], start=1)
+     ]
++
++
++def test_missing_first_pool_does_not_block_names_from_remaining_valid_pool(
++    tmp_path: Path,
++) -> None:
++    consumer, selection_root, data_root, _original = _consumer_fixture(tmp_path)
++    first_pool_artifact = (
++        data_root / "preselection_pools" / TRADE_DATE / f"{A_POOL_IDS[0]}.json"
++    )
++    first_pool_artifact.unlink()
++
++    verified = SelectionStore(selection_root).read_verified(
++        TRADE_DATE, STAGE_ID, "A_SHARE"
++    )
++    market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
++
++    assert market["name_authority_status"] == "EXACT_DATE_READ_OVERLAY"
++    assert market["name_authority_applied_count"] == 3
++    assert [row["name"] for row in market["rows"]] == ["甲公司", "乙公司", "丙公司"]
++    assert market["name_authority_pool_ids"] == list(A_POOL_IDS[1:])
++    audit = json.loads(str(market["name_authority_error"]).removeprefix("NAME_POOL_AUDIT:"))
++    assert audit["unverified_pools"][A_POOL_IDS[0]]["reason"] == "POOL_ARTIFACT_MISSING"
++    assert set(audit["trio_raw_sha256"]) == set(A_POOL_IDS[1:])
++    assert set(audit["trio_raw_sha256"][A_POOL_IDS[1]]) == {
++        "artifact", "manifest", "receipt"
++    }
++    assert market["artifact_id"] == verified["artifact_id"]
++    assert market["run_id"] == verified["run_id"]
++    assert market["algorithm_sha256"] == verified["algorithm_sha256"]
++    assert market["raw_artifact_sha256"] == verified["raw_artifact_sha256"]
++    assert [
++        (row["code"], row["order"], row["rank"], row["score"], row["status"], row["formal_eligible"])
++        for row in market["rows"]
++    ] == [
++        (row["code"], index, row["rank"], row["score"], row["status"], row["formal_eligible"])
++        for index, row in enumerate(verified["rows"], start=1)
++    ]

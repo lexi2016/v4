@@ -1,0 +1,37 @@
+{
+  "source_root": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app",
+  "remote_base_commit": "c66717a7602367a30dc4d8719c71043915b2071d",
+  "format": "PATCH_ONLY_PRESERVE_PREEXISTING_DIRTY_BASELINE",
+  "source_deltas": [
+    {
+      "patch": "canonical-a-names.patch",
+      "source_path": "stage_center/consumer.py",
+      "before_sha256": "395067424d5e8b8016a239f80091f3c951452cc25cf6278089a54729a85f3be6",
+      "after_sha256": "9b8d3a6e5617bda878f50cf32b44663453296e5c81cba2d2e513e933e34bd686"
+    },
+    {
+      "patch": "canonical-a-names.patch",
+      "source_path": "tests/test_stage_name_read_overlay.py",
+      "before_sha256": "fe9f72d40443e26cab5dc07cb979e1019257842de94a362dd6248072e3854206",
+      "after_sha256": "fb3410cc0c1f18c028f351f3e5e4c0c2a1ba22ad25a1e92366aa53aed39e9e95"
+    },
+    {
+      "patch": "runtime-a-names.patch",
+      "source_path": "stage_center/consumer.py",
+      "before_sha256": "95252cb223a723ee1fea8769cc12d2086bdde1a11d69adcf3502c3c3edd9966a",
+      "after_sha256": "84e00dbfaab151c3f440983c2c7123dd36370a91b271a57741f140264ac8b3ca"
+    },
+    {
+      "patch": "runtime-hk-fupan.patch",
+      "source_path": "ops/materialize_scheduled_preselection.py",
+      "before_sha256": "0a1dac32bc981c06e804d913b14a4e3b8103ba26082a525182eead4a02e600c5",
+      "after_sha256": "36a67a960f27a6119459e9380cc8ec6fd06b079c415b850195fda168bf540e66"
+    }
+  ],
+  "patches": {
+    "canonical-a-names.patch": "e86c19f42a859599f7cfc7e75148741bbbde8d5baa2cf4b00f0625cebb41de58",
+    "runtime-a-names.patch": "2dee2c82b3f30fbc9182022c10e822417bd8a65e45c98ed2e092ada926cf37c1",
+    "runtime-hk-fupan.patch": "19b4909a92033e934f57226da8bf7a106631dc7650249961c776f59234e464df"
+  },
+  "new_test_sha256": "b16592a21ab3f04767dc09672399aa157bfe65c9cd8b4e222c31d044e15d8519"
+}
