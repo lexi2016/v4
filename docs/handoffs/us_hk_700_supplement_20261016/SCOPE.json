@@ -1,0 +1,29 @@
+{
+  "goal": "Lossless ingestion and display of complete700 source-reviewed relationships",
+  "writer": "mapping700_writer (gpt-6-luna max)",
+  "reviewer": "different identity Luna Max required",
+  "allowed_paths": [
+    "v4/manager_workbench/research_data/us_hk_667_review_overlay_20261015.json",
+    "v4/manager_workbench/us_mapping_catalog.py",
+    "tests/manager_workbench/test_us_mapping_catalog.py",
+    "apps/web/src/manager-workbench/Workbench.vue (two new evidence fields and parse limits only)",
+    "apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts",
+    "docs/handoffs/us_hk_700_supplement_20261016/",
+    "apps/web/src/manager-workbench/types.ts (USMappingReviewRevision.revision_json_parse_issues only)"
+  ],
+  "forbidden_paths": [
+    "original catalog",
+    "scheduler",
+    "service",
+    "store",
+    "bindings",
+    "engines",
+    "other frontend",
+    "8910",
+    "trading"
+  ],
+  "pass_signal": "independent source/behavior tests:700 unique/303remaining/667stocks/1003edges; old220 retained; malformed JSON raw+issue; FULL evidence+UI limits; lazy default response",
+  "deployment": "NOT_AUTHORIZED_FOR_THIS_CANDIDATE_PHASE; controller continues after review",
+  "independent_fact_acceptance": 0,
+  "research_only": true
+}
