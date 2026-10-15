@@ -1,0 +1,506 @@
+--- catalog40/v4/manager_workbench/us_mapping_catalog.py
++++ catalog220opt/v4/manager_workbench/us_mapping_catalog.py
+@@ -20,8 +20,8 @@
+ SOURCE_PACKAGE_SHA256 = "dac3c820fcd6919fabdccc9c37ee9055b729b200fcde5e48f0dcf527de81bc6d"
+ MEMBERSHIP_SHA256 = "9b799c0b74ac5047f4e44a1b3dfd1dfa5ca9ce978fa3b8e7877913c423424c9c"
+ BASE_FILE_SHA256 = "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671"
+-OVERLAY_FILE_SHA256 = "afece7acbfe20d9df4b54aa0841ae50694f7695730293bcc6847f0e3a2f538aa"
+-REVIEW_PACKAGE_SHA256 = "e623b55d2443dedf6298f05680bd6f658482d8ec122d072b852a072dec873d94"
++OVERLAY_FILE_SHA256 = "72a0f074e6412036cd103c7f73ccf15230eb3d1633c09742c88653b863eba384"
++REVIEW_PACKAGE_SHA256 = "8a214c3c10931e2ab807a3f1701449105702c68186a07a3c1da717413e69fab1"
+ RESEARCH_USES = {"PENDING_REVIEW", "CONDITIONAL_OBSERVATION", "BACKGROUND_HISTORICAL", "EXCLUDED_CURRENT"}
+ EXPECTED_STOCK_COUNT = 667
+ EXPECTED_RELATION_COUNT = 1003
+@@ -179,7 +179,7 @@
+                 value.get("source_package_sha256") != REVIEW_PACKAGE_SHA256):
+             raise CatalogValidationError("review overlay identity is invalid")
+         records = value.get("records", [])
+-        if len(records) != 40 or len({r["relation_id"] for r in records}) != 40:
++        if len(records) != 220 or len({r["relation_id"] for r in records}) != 220:
+             raise CatalogValidationError("review overlay coverage is invalid")
+         for record in records:
+             row = catalog["relations"][record["source_row"] - 1]
+@@ -237,6 +237,32 @@
+                    offset: int = 0, limit: int = 25, research_use: str | None = None) -> dict[str, Any]:
+     return _search_validated(validate_catalog(dict(catalog)), query, offset=offset, limit=limit,
+                              research_use=research_use)
++
++
++def _review_summary(review):
++    if review is None:
++        return None
++    revision_keys = {
++        "revision_research_fact_state", "revision_current_applicability_state",
++        "revision_research_fact_dates", "revision_current_applicability_checked_dates",
++        "revision_reason", "revision_remaining_gaps_json",
++        "revision_additional_research_findings_json", "revision_subsequent_research_addenda_json",
++    }
++    summary_keys = {
++        "primary_use", "primary_use_reason", "verified_facts_json", "usage_limits_json",
++        "current_usage_limits_with_addenda_json", "current_applicability_gaps_json",
++        "current_applicability_gaps_with_addenda_json", "next_key_evidence_json",
++        "current_next_key_evidence_with_addenda_json",
++    }
++    return {
++        "relation_id": review["relation_id"], "source_row": review["source_row"],
++        "hk_code": review["hk_code"], "us_symbol": review["us_symbol"],
++        "source_review_status": review["source_review_status"],
++        "independent_verification": review["independent_verification"],
++        "research_use": review["research_use"],
++        "revision": {k: v for k, v in review["revision"].items() if k in revision_keys},
++        "source_summary": {k: v for k, v in review.get("source_summary", {}).items() if k in summary_keys},
++    }
+ 
+ 
+ def _search_validated(value, query=None, *, offset=0, limit=25, research_use=None, overlay=None):
+@@ -290,7 +316,8 @@
+                 "relation_id":row["source_record"].get("关系编号"),
+                 "source_review_status":"SOURCE_REVIEWED" if review else "NOT_PROCESSED",
+                 "independent_verification":"NOT_RUN", "research_use":review["research_use"] if review else "PENDING_REVIEW",
+-                "review_revision":review})
++                "review_detail_level":"FULL" if exact_rid else "SUMMARY",
++                "review_revision":review if exact_rid else _review_summary(review)})
+         items.append(item)
+     use_counts=Counter(revisions[r["source_row"]]["research_use"] if r["source_row"] in revisions else "PENDING_REVIEW" for r in value["relations"])
+     reviewed_codes={r["hk_code"] for r in revisions.values()}
+--- catalog40/apps/web/src/manager-workbench/Workbench.vue
++++ catalog220opt/apps/web/src/manager-workbench/Workbench.vue
+@@ -1,7 +1,7 @@
+ <script setup lang="ts">
+ import { reactive } from "vue";
+ import { useWorkbench } from "./useWorkbench";
+-import type { Lane, Phase, PlanVersion, StockDecision, USFactorSummary } from "./types";
++import type { Lane, Phase, PlanVersion, StockDecision, USFactorSummary, USMappingCatalogRelation } from "./types";
+ import { LANES, LANE_LABELS, LANE_STATE_LABELS, JOB_STATE_LABELS, PHASE_LABELS,
+   showCount, showText, gapText } from "./types";
+ import { conditionLabel, decisionLabel, evidenceLink, firstReason, humanTime, labelForLane,
+@@ -57,6 +57,9 @@
+ function factorSummaryText(summary: USFactorSummary): string {
+   const decisions = summary.factor_decision_counts || {};
+   return `固定美股来源 ${showCount(summary.us_source_symbol_count)} 个；已配置代理主题 ${showCount(summary.proxy_source_count)} / ${showCount(summary.expected_proxy_source_count)} 个（核验通过 ${showCount(summary.verified_proxy_source_count)}，未知 ${showCount(summary.unknown_proxy_source_count)}）；目标日港股通范围 ${showCount(summary.eligible_hk_scope_count)} 只；因子唯一港股 ${showCount(summary.unique_factor_stock_count)} 只，路径 ${showCount(summary.factor_path_count)} 条，未知港股 ${showCount(summary.unknown_factor_stock_count)} 只。结果：条件观察 ${showCount(decisions.CONDITIONAL_WATCH)}，未入选 ${showCount(decisions.NOT_SELECTED)}，待核 ${showCount(decisions.UNASSESSED)}。这些数量属于不同范围，不能相加。`;
++}
++function catalogRelations(rows: USMappingCatalogRelation[]): USMappingCatalogRelation[] {
++  return rows.map(row => vm.catalogRelationDetails[row.relation_id]?.data || row);
+ }
+ function sourceValue(value: unknown): string {
+   return value === "" || value === null || value === undefined ? "来源未提供" : showText(value);
+@@ -531,7 +534,7 @@
+             <p>补证已有记录 {{ item.source_reviewed_relation_count }} 条；未处理 {{ item.unprocessed_relation_count }} 条。</p>
+             <p><strong>原表研究进度：</strong>{{ sourceValue(item.source_record["研究进度"]) }}（来源自报；本目录没有把它认作独立验收）</p>
+             <div v-if="item.relations.length">
+-              <article v-for="relation in item.relations" :key="relation.source_row" class="mwb-research-record">
++              <article v-for="relation in catalogRelations(item.relations)" :key="relation.source_row" class="mwb-research-record">
+                 <h4>{{ relation.us_symbol || "美股资产未提供" }} · {{ sourceValue(relation.source_record["type"]) }} · 原始表行 {{ relation.source_row }}</h4>
+                 <p><strong>{{ relation.relation_id }} · 研究用途：</strong>{{ researchUseLabel(relation.research_use) }}；来源处理 {{ relation.source_review_status }}；独立核验 {{ relation.independent_verification }}。</p>
+                 <p><strong>分部 / 原始事实：</strong>{{ sourceValue(relation.source_record["segment"]) }}；{{ sourceValue(relation.source_record["fact"]) }}</p>
+@@ -545,6 +548,12 @@
+                 <p><strong>原始候选 / 排除字段：</strong>effective_candidate={{ sourceValue(relation.source_record["effective_candidate"]) }}；current_observation_candidate={{ sourceValue(relation.source_record["current_observation_candidate"]) }}；audit_only={{ sourceValue(relation.source_record["audit_only"]) }}</p>
+                 <p><strong>原始预测 / 旧边处置：</strong>prediction={{ sourceValue(relation.source_record["prediction"]) }}；old_action={{ sourceValue(relation.source_record["old_action"]) }}；prediction_eligible={{ sourceValue(relation.source_record["prediction_eligible"]) }}；historical_PIT={{ sourceValue(relation.source_record["historical_PIT"]) }}</p>
+                 <p><strong>目录状态：</strong>事实独立核验 {{ relation.fact_review_status }}；预测资格固定为否；预测 {{ relation.prediction_validation }}；历史 PIT {{ relation.historical_PIT }}。</p>
++                <button v-if="relation.review_detail_level !== 'FULL'" type="button" class="mwb-quiet"
++                  :disabled="vm.catalogRelationDetails[relation.relation_id]?.loading"
++                  @click="vm.loadCatalogRelation(relation)">查看完整补证 {{ relation.relation_id }}</button>
++                <p v-if="vm.catalogRelationDetails[relation.relation_id]?.loading" role="status">正在读取完整补证 {{ relation.relation_id }}…</p>
++                <p v-if="vm.catalogRelationDetails[relation.relation_id]?.error" class="mwb-alert" role="alert">{{ relation.relation_id }}：{{ vm.catalogRelationDetails[relation.relation_id]?.error }}</p>
++                <p v-if="relation.review_detail_level === 'FULL'">已读取完整补证 {{ relation.relation_id }}；来源身份已核对。</p>
+                 <details v-if="relation.review_revision">
+                   <summary>来源补证 revision、当前缺口与下一证据</summary>
+                   <p>以下为来源研究记录与用途投影，保留原始事实；SOURCE_REVIEWED 不等于 INDEPENDENTLY_VERIFIED。</p>
+@@ -552,12 +561,22 @@
+                   <p><strong>当前适用状态：</strong>{{ sourceValue(relation.review_revision.revision.revision_current_applicability_state) }}</p>
+                   <p><strong>研究 / 当前适用核查日期：</strong>{{ sourceValue(relation.review_revision.revision.revision_research_fact_dates) }}；{{ sourceValue(relation.review_revision.revision.revision_current_applicability_checked_dates) }}</p>
+                   <p><strong>理由：</strong>{{ sourceValue(relation.review_revision.revision.revision_reason) }}</p>
++                  <article v-if="relation.review_revision.source_summary">
++                    <h5>来源研究者摘要（未独立验收）</h5>
++                    <p><strong>来源建议用途：</strong>{{ sourceValue(relation.review_revision.source_summary.primary_use) }}；{{ sourceValue(relation.review_revision.source_summary.primary_use_reason) }}</p>
++                    <p><strong>来源支持的事实范围：</strong>{{ sourceValue(relation.review_revision.source_summary.verified_facts_json) }}</p>
++                    <p><strong>使用限制 / 禁止据此推断：</strong>{{ sourceValue(relation.review_revision.source_summary.current_usage_limits_with_addenda_json || relation.review_revision.source_summary.usage_limits_json) }}</p>
++                    <p><strong>当前适用缺口：</strong>{{ sourceValue(relation.review_revision.source_summary.current_applicability_gaps_with_addenda_json || relation.review_revision.source_summary.current_applicability_gaps_json) }}</p>
++                    <p><strong>下一关键证据：</strong>{{ sourceValue(relation.review_revision.source_summary.current_next_key_evidence_with_addenda_json || relation.review_revision.source_summary.next_key_evidence_json) }}</p>
++                  </article>
++                  <p v-if="relation.review_revision.revision.revision_additional_research_findings_json"><strong>来源新增研究发现：</strong>{{ sourceValue(relation.review_revision.revision.revision_additional_research_findings_json) }}</p>
++                  <p v-if="relation.review_revision.revision.revision_subsequent_research_addenda_json"><strong>来源后续修订 / 冲突说明：</strong>{{ sourceValue(relation.review_revision.revision.revision_subsequent_research_addenda_json) }}</p>
+                   <p><strong>当前缺口 / 下一证据：</strong>{{ sourceValue(relation.review_revision.revision.revision_remaining_gaps_json) }}</p>
+-                  <p><strong>触发设计（未运行）：</strong>{{ sourceValue(relation.review_revision.revision.revision_trigger_design_json) }}</p>
+-                  <details><summary>逐字段修订与研究层级</summary>
++                  <p v-if="relation.review_detail_level === 'FULL'"><strong>触发设计（未运行）：</strong>{{ sourceValue(relation.review_revision.revision.revision_trigger_design_json) }}</p>
++                  <details v-if="relation.review_detail_level === 'FULL'"><summary>逐字段修订与研究层级</summary>
+                     <p v-for="[field, assessment] in revisionAssessments(relation.review_revision.revision.revision_field_assessments_json)" :key="field"><strong>{{ field }}：</strong>{{ sourceValue(assessment) }}</p>
+                   </details>
+-                  <details><summary>证据日期、定位、访问结果及边界</summary>
++                  <details v-if="relation.review_detail_level === 'FULL'"><summary>证据日期、定位、访问结果及边界</summary>
+                     <article v-for="(evidence, index) in relation.review_revision.evidence" :key="index">
+                       <p>{{ evidence.evidence_id }} · {{ evidence.title }} · {{ evidence.open_status }}</p>
+                       <p>发布日期 {{ sourceValue(evidence.published_date) }}；适用期 {{ sourceValue(evidence.applicable_period) }}；访问日期 {{ sourceValue(evidence.accessed_at) }}</p>
+@@ -566,6 +585,11 @@
+                       <a v-for="url in sourceUrls(evidence.url)" :key="url" :href="url" target="_blank" rel="noopener noreferrer">打开补证来源：{{ url }}</a>
+                     </article>
+                   </details>
++                </details>
++                <details v-if="relation.review_detail_level === 'FULL'">
++                  <summary>完整原始字段与来源研究记录</summary>
++                  <p>{{ sourceValue(relation.source_record) }}</p>
++                  <p>{{ sourceValue(relation.review_revision) }}</p>
+                 </details>
+                 <p><strong>原始 URL：</strong>{{ sourceValue(relation.source_record["url"]) }}</p>
+                 <p v-for="url in sourceUrls(relation.source_record['url'])" :key="url">
+--- catalog40/apps/web/src/manager-workbench/types.ts
++++ catalog220opt/apps/web/src/manager-workbench/types.ts
+@@ -256,9 +256,11 @@
+   independent_verification: "NOT_RUN";
+   research_use: string;
+   revision: Record<string, unknown>;
+-  evidence: Record<string, string>[];
++  evidence?: Record<string, string>[];
++  source_summary?: Record<string, unknown>;
+ }
+ export interface USMappingCatalogRelation {
++  review_detail_level: "SUMMARY" | "FULL";
+   relation_id: string;
+   source_review_status: "SOURCE_REVIEWED" | "NOT_PROCESSED";
+   independent_verification: "NOT_RUN";
+--- catalog40/apps/web/src/manager-workbench/useWorkbench.ts
++++ catalog220opt/apps/web/src/manager-workbench/useWorkbench.ts
+@@ -3,7 +3,7 @@
+ import type { DayQuery, WorkbenchApi } from "./api";
+ import type {
+   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
+-  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData
++  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation
+ } from "./types";
+ import { parseWorkbenchRoute, routeSearch } from "./route";
+ import type { WorkbenchRoute } from "./route";
+@@ -61,6 +61,9 @@
+   const catalog = ref<APIData<USMappingCatalogData>>(null);
+   const catalogLoading = ref(false);
+   const catalogError = ref("");
++  const catalogRelationDetails = ref<Record<string, {
++    loading: boolean; error: string; data: USMappingCatalogRelation | null;
++  }>>({});
+   const job = ref<APIData<JobRecord>>(null);
+   const jobId = ref("");
+   const jobLoading = ref(false);
+@@ -86,6 +89,7 @@
+   let historyAbort: AbortController | null = null;
+   let reviewAbort: AbortController | null = null;
+   let catalogAbort: AbortController | null = null;
++  const catalogRelationAborts = new Map<string, AbortController>();
+   let jobAbort: AbortController | null = null;
+   let jobTimer: ReturnType<typeof setTimeout> | null = null;
+ 
+@@ -100,6 +104,7 @@
+     daySeq++; detailSeq++; historySeq++; reviewSeq++; catalogSeq++;
+     dayAbort?.abort(); detailAbort?.abort(); historyAbort?.abort(); reviewAbort?.abort(); catalogAbort?.abort();
+     catalogLoading.value = false;
++    clearCatalogRelationDetails();
+     stopJobReads();
+   }
+   function resetPage(): void {
+@@ -205,11 +210,13 @@
+     if (next === "history") void loadHistory();
+     if (next === "reviews") void loadReview();
+     if (next === "catalog") void loadCatalog();
++    else clearCatalogRelationDetails();
+   }
+   async function loadCatalog(offset = catalogOffset.value): Promise<void> {
+     if (!Number.isInteger(offset) || offset < 0) return;
+     const query = catalogQuery.value.trim();
+     const seq = ++catalogSeq;
++    clearCatalogRelationDetails();
+     catalogAbort?.abort(); const ctrl = new AbortController(); catalogAbort = ctrl;
+     catalogOffset.value = offset; catalog.value = null; catalogError.value = ""; catalogLoading.value = true;
+     try {
+@@ -231,6 +238,48 @@
+       if (seq === catalogSeq) catalogLoading.value = false;
+     }
+   }
++  function clearCatalogRelationDetails(): void {
++    for (const ctrl of catalogRelationAborts.values()) ctrl.abort();
++    catalogRelationAborts.clear();
++    catalogRelationDetails.value = {};
++  }
++  async function loadCatalogRelation(relation: USMappingCatalogRelation): Promise<void> {
++    const rid = relation.relation_id;
++    const base = catalog.value?.data;
++    if (!base || !/^R[0-9]{3,4}$/.test(rid)) return;
++    const seq = catalogSeq;
++    catalogRelationAborts.get(rid)?.abort();
++    const ctrl = new AbortController(); catalogRelationAborts.set(rid, ctrl);
++    catalogRelationDetails.value[rid] = { loading: true, error: "", data: null };
++    try {
++      const result = await api.getUsMappingCatalog(rid, 0, 1, ctrl.signal);
++      if (seq !== catalogSeq || ctrl.signal.aborted || catalogRelationAborts.get(rid) !== ctrl) return;
++      const data = result.data;
++      const rows = data?.items.flatMap(item => item.relations) || [];
++      const full = rows[0];
++      if (!data || data.catalog_state !== "STRUCTURE_VALID_ONLY" || data.query !== rid ||
++          data.catalog_integrity_sha256 !== base.catalog_integrity_sha256 ||
++          data.review_source?.integrity_sha256 !== base.review_source?.integrity_sha256 ||
++          data.total !== 1 || rows.length !== 1 || !full || full.relation_id !== rid ||
++          full.hk_code !== relation.hk_code || full.us_symbol !== relation.us_symbol ||
++          full.source_row !== relation.source_row || full.review_detail_level !== "FULL" ||
++          full.fact_review_status !== "PENDING" || full.independent_verification !== "NOT_RUN" ||
++          full.prediction_eligible !== false || full.prediction_validation !== "UNTESTED" ||
++          full.historical_PIT !== "NOT_VALIDATED" || data.safety?.RESEARCH_ONLY !== true ||
++          data.safety?.production_allowed !== false || data.safety?.buy_gate_updated !== false ||
++          data.safety?.orders_sent !== false || data.safety?.prediction_validation !== "UNTESTED" ||
++          data.safety?.historical_PIT !== "NOT_VALIDATED") {
++        throw new ApiError("完整补证返回的关系身份、来源或安全状态不一致", 502);
++      }
++      catalogRelationDetails.value[rid] = { loading: false, error: "", data: full };
++    } catch (error) {
++      if (seq === catalogSeq && !ctrl.signal.aborted && catalogRelationAborts.get(rid) === ctrl) {
++        catalogRelationDetails.value[rid] = { loading: false, error: errorMessage(error), data: null };
++      }
++    } finally {
++      if (catalogRelationAborts.get(rid) === ctrl) catalogRelationAborts.delete(rid);
++    }
++  }
+   function searchCatalog(): void {
+     catalogQuery.value = catalogQueryDraft.value.trim();
+     void loadCatalog(0);
+@@ -384,11 +433,11 @@
+     route, panel, dateInput, decisionFilter, laneFilter, searchDraft, search, offset, limit,
+     day, dayLoading, dayError, stale, hasStale, detail, detailSymbol, detailLoading, detailError,
+     history, historyLoading, historyError, review, reviewLoading, reviewError,
+-    catalogResearchUse, catalogQueryDraft, catalogQuery, catalogOffset, catalogLimit, catalog, catalogLoading, catalogError,
++    catalogResearchUse, catalogQueryDraft, catalogQuery, catalogOffset, catalogLimit, catalog, catalogLoading, catalogError, catalogRelationDetails,
+     job, jobId, jobLoading, jobError, operationLoading, runPhase,
+     stocks, snapshot, counts, pagination, versions, lanes, selectedRunId, selectedDate, readMode, valid,
+     changeDate, changeVersion, loadDay, applyFilters, switchLane, setOffset, showPanel, openStock,
+-    loadHistory, loadReview, loadCatalog, searchCatalog, changeCatalogPage,
++    loadHistory, loadReview, loadCatalog, loadCatalogRelation, searchCatalog, changeCatalogPage,
+     pollJob, createPlan, retryJob, viewJobVersion
+   };
+ }
+--- catalog40/tests/manager_workbench/test_us_mapping_catalog.py
++++ catalog220opt/tests/manager_workbench/test_us_mapping_catalog.py
+@@ -160,10 +160,10 @@
+     assert result['total'] == 667
+     assert len(result['items']) == 25
+     progress = result['review_progress']
+-    assert progress['source_reviewed_relations'] == 40
+-    assert progress['unprocessed_relations'] == 963
+-    assert progress['source_reviewed_stocks'] == 22
+-    assert progress['all_original_relations_processed_stocks'] == 16
++    assert progress['source_reviewed_relations'] == 220
++    assert progress['unprocessed_relations'] == 783
++    assert progress['source_reviewed_stocks'] == 92
++    assert progress['all_original_relations_processed_stocks'] == 89
+     assert progress['independently_verified_relations'] == 0
+     assert sum(progress['research_use_counts'].values()) == 1003
+     all_items=[]
+@@ -175,7 +175,7 @@
+     assert [s['source_record'] for s in all_items] == [s['source_record'] for s in original['stocks']]
+     assert [r['source_record'] for r in sorted([r for s in all_items for r in s['relations']], key=lambda r:r['source_row'])] == [r['source_record'] for r in original['relations']]
+     revisions=[r for s in all_items for r in s['relations'] if r['review_revision']]
+-    assert len(revisions) == 40
++    assert len(revisions) == 220
+     assert all(r['fact_review_status']=='PENDING' and r['independent_verification']=='NOT_RUN' and not r['prediction_eligible'] for r in revisions)
+     exact = store.search(CATALOG_PATH, OVERLAY_PATH, 'R001')
+     assert [r['relation_id'] for s in exact['items'] for r in s['relations']] == ['R001']
+@@ -223,7 +223,7 @@
+ def test_api_filters_and_overlay_corruption_fail_closed(tmp_path,monkeypatch):
+     app=FastAPI();app.include_router(workbench_api.create_router(None));client=TestClient(app)
+     body=client.get('/api/v4/manager-workbench/mapping-catalog').json()['data']
+-    assert body['total']==667 and body['review_progress']['source_reviewed_relations']==40
++    assert body['total']==667 and body['review_progress']['source_reviewed_relations']==220
+     result=client.get('/api/v4/manager-workbench/mapping-catalog',params={'q':'R003','research_use':'EXCLUDED_CURRENT'}).json()['data']
+     assert result['items'][0]['relations'][0]['relation_id']=='R003'
+     assert client.get('/api/v4/manager-workbench/mapping-catalog?research_use=VERIFIED').status_code==422
+@@ -234,11 +234,78 @@
+ 
+ 
+ def test_overlay_builder_is_reproducible_and_rejects_unbound_zip(tmp_path):
+-    path=ROOT/'docs/handoffs/us_hk_667_finish_20261015/build_overlay.py'
++    path=ROOT/'docs/handoffs/us_hk_667_finish_20261015/post220/build_overlay.py'
+     spec=importlib.util.spec_from_file_location('us_hk_finish_builder',path)
+     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+-    zip_path=Path('/Users/lexi/Downloads/US_HK_667_batch2_cumulative40_review_20261015.zip')
++    zip_path=Path('/Users/lexi/Downloads/US_HK_667_batch11_cumulative220_review_20261015.zip')
+     if zip_path.exists():
+         assert module.build(zip_path)==json.loads(OVERLAY_PATH.read_bytes())
+     broken=tmp_path/'wrong.zip';broken.write_bytes(b'bad')
+     with pytest.raises(ValueError,match='source ZIP SHA mismatch'):module.build(broken)
++
++
++def test_220_preserves_prior40_history_and_r021_addendum_with_current_source_summary():
++    from v4.manager_workbench.us_mapping_catalog import CatalogStore
++    old_path=ROOT/'docs/handoffs/us_hk_667_finish_20261015/post220/preimage/v4/manager_workbench/research_data/us_hk_667_review_overlay_20261015.json'
++    old={r['relation_id']:r for r in json.loads(old_path.read_bytes())['records']}
++    current={r['relation_id']:r for r in json.loads(OVERLAY_PATH.read_bytes())['records']}
++    assert set(old)<=set(current) and len(set(current)-set(old))==180
++    for rid,before in old.items():
++        after=current[rid]
++        assert before['revision']['revision_research_fact_state']==after['revision']['revision_research_fact_state']
++        assert before['revision']['revision_current_applicability_state']==after['revision']['revision_current_applicability_state']
++        assert before['revision']['revision_field_assessments_json']==after['revision']['revision_field_assessments_json']
++    result=CatalogStore().search(CATALOG_PATH,OVERLAY_PATH,'R021')
++    row=result['items'][0]['relations'][0]
++    review=row['review_revision'];summary=review['source_summary']
++    addenda=review['revision']['revision_subsequent_research_addenda_json']
++    assert addenda and 'Delaware' in json.dumps(addenda,ensure_ascii=False)
++    assert 'IL' in json.dumps(summary['current_usage_limits_with_addenda_json'])
++    assert 'IL' in json.dumps(summary['current_next_key_evidence_with_addenda_json'])
++    assert row['independent_verification']=='NOT_RUN' and not row['prediction_eligible']
++    assert any(e['evidence_id']=='B5L3-R073-I01' for e in review['evidence'])
++    r004=current['R004']['source_summary']
++    assert 'next_key_evidence_json' in r004['source_plain_text_json_fields']
++    assert isinstance(r004['next_key_evidence_json'],str) and r004['next_key_evidence_json']
++
++
++def test_list_payload_is_bounded_and_rid_detail_preserves_complete_source_revision():
++    from v4.manager_workbench.us_mapping_catalog import CatalogStore
++    store=CatalogStore()
++    overlay=json.loads(OVERLAY_PATH.read_bytes())
++    expected={r['relation_id']:r for r in overlay['records']}
++    default=store.search(CATALOG_PATH,OVERLAY_PATH)
++    assert len(json.dumps(default,ensure_ascii=False).encode())<1_000_000
++    for query in ['', '00001', 'CVE']:
++        data=store.search(CATALOG_PATH,OVERLAY_PATH,query)
++        assert data['review_progress']==default['review_progress']
++        for item in data['items']:
++            for row in item['relations']:
++                assert row['review_detail_level']=='SUMMARY'
++                review=row['review_revision']
++                if review:
++                    assert 'evidence' not in review
++                    assert 'revision_complete_research_record_json' not in review['revision']
++                    assert 'revision_field_assessments_json' not in review['revision']
++                    assert review['revision']['revision_subsequent_research_addenda_json']==expected[row['relation_id']]['revision']['revision_subsequent_research_addenda_json']
++    # Exhaustively preserve all220 complete revisions through explicit RID requests.
++    for rid,review in expected.items():
++        detail=store.search(CATALOG_PATH,OVERLAY_PATH,rid)
++        rows=[row for item in detail['items'] for row in item['relations']]
++        assert len(rows)==1 and rows[0]['relation_id']==rid
++        assert rows[0]['review_detail_level']=='FULL' and rows[0]['review_revision']==review
++        assert rows[0]['fact_review_status']=='PENDING' and rows[0]['prediction_eligible'] is False
++        assert detail['review_progress']==default['review_progress']
++
++
++def test_api_summary_and_exact_rid_detail_have_same_identity_safety_and_progress():
++    app=FastAPI();app.include_router(workbench_api.create_router(None));client=TestClient(app)
++    listing=client.get('/api/v4/manager-workbench/mapping-catalog')
++    assert len(listing.content)<1_000_000
++    listed=listing.json()['data']
++    detail=client.get('/api/v4/manager-workbench/mapping-catalog?q=R021&limit=1').json()['data']
++    row=detail['items'][0]['relations'][0]
++    assert row['relation_id']=='R021' and row['review_detail_level']=='FULL'
++    assert row['review_revision']['evidence']
++    assert detail['review_progress']==listed['review_progress'] and detail['safety']==listed['safety']
++    assert detail['review_source']==listed['review_source']
+--- catalog40/apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts
++++ catalog220opt/apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts
+@@ -1,5 +1,5 @@
+ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+-import { cleanup, fireEvent, render, screen } from "@testing-library/vue";
++import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/vue";
+ import Workbench from "../Workbench.vue";
+ 
+ function envelope<T>(data: T, state = "READY"): Record<string, unknown> {
+@@ -22,11 +22,18 @@
+       pagination: { total: 0, offset: 0, limit: 50 }, versions: []
+     };
+     const relation = {
++      review_detail_level: "FULL",
+       relation_id: "R001", source_review_status: "SOURCE_REVIEWED", independent_verification: "NOT_RUN",
+       research_use: "PENDING_REVIEW",
+       review_revision: { revision: { revision_research_fact_state: "VERIFIED_DATED_ASSOCIATE_FACT",
+         revision_current_applicability_state: "PENDING_CURRENT_OWNERSHIP_AND_WEIGHT",
++        revision_subsequent_research_addenda_json: [{ revision: "Delaware正文与IL索引冲突未获解释" }],
+         revision_remaining_gaps_json: ["当前权益比例待核"], revision_research_fact_dates: ["2026-10-15 UTC"] },
++        source_summary: { primary_use: "来源研究用途示例", primary_use_reason: "保留边界", verified_facts_json: ["来源支持范围"],
++          usage_limits_json: "旧使用限制", next_key_evidence_json: "旧下一证据",
++          current_usage_limits_with_addenda_json: ["州注册冲突限制；SFD是WH ADR、87%为当前精确值"],
++          current_next_key_evidence_with_addenda_json: ["待官方更正索引或解释"],
++          current_applicability_gaps_json: ["旧缺口仍保留"] },
+         evidence: [{ evidence_id: "E1", title: "补证一", open_status: "OPENED_BODY", published_date: "2026-08-13",
+           url: "https://example.com/revision", does_not_support: "价格预测" }] },
+       source_row: 1, hk_code: "00001", us_symbol: "CVE",
+@@ -47,10 +54,10 @@
+     };
+     const catalogData = {
+       research_use: "",
+-      review_progress: { source_reviewed_relations: 40, unprocessed_relations: 963, source_reviewed_stocks: 22,
+-        all_original_relations_processed_stocks: 16, independently_verified_relations: 0,
++      review_progress: { source_reviewed_relations: 220, unprocessed_relations: 783, source_reviewed_stocks: 92,
++        all_original_relations_processed_stocks: 89, independently_verified_relations: 0,
+         independent_verification: "NOT_RUN", research_use_counts: { PENDING_REVIEW: 981 } },
+-      review_source: { source_package_sha256: "e623b55d2443dedf6298f05680bd6f658482d8ec122d072b852a072dec873d94", source_generated_at_utc: "2026-10-15T03:24:50Z", integrity_sha256: "b".repeat(64) },
++      review_source: { source_package_sha256: "8a214c3c10931e2ab807a3f1701449105702c68186a07a3c1da717413e69fab1", source_generated_at_utc: "2026-10-15T03:24:50Z", integrity_sha256: "b".repeat(64) },
+       catalog_id: "us_hk_667_20261015_from_20261014_membership",
+       catalog_state: "STRUCTURE_VALID_ONLY",
+       catalog_integrity_sha256: "a".repeat(64),
+@@ -81,14 +88,27 @@
+         relation_count: 1, source_reviewed_relation_count: 1, unprocessed_relation_count: 0, relations: [relation]
+       }]
+     };
++    let detailRequests = 0;
++    let releaseStaleDetail: ((value: Response) => void) | null = null;
+     const spy = vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
+       const url = String(input);
+       if (url.includes("/mapping-catalog")) {
+         const query = new URL(url, "http://localhost").searchParams.get("q") || "";
+         const params = new URL(url, "http://localhost").searchParams;
+         const offset = Number(params.get("offset") || 0);
++        const explicitDetail = query === "R001";
++        const summaryRelation = { ...relation, review_detail_level: "SUMMARY",
++          review_revision: { ...relation.review_revision, evidence: undefined } };
+         const data = { ...catalogData, query, offset, research_use: params.get("research_use") || "",
+-          total: query ? 1 : 667, items: catalogData.items.map(item => ({ ...item, ordinal: offset + 1 })) };
++          total: query ? 1 : 667, items: catalogData.items.map(item => ({ ...item, ordinal: offset + 1, relations: [explicitDetail ? relation : summaryRelation] })) };
++        if (explicitDetail) {
++          detailRequests++;
++          if (detailRequests === 1) return new Response(JSON.stringify({ detail: "补证读取失败示例" }), { status: 503 });
++          if (detailRequests === 2) return new Promise<Response>(resolve => { releaseStaleDetail = resolve; });
++          if (detailRequests === 3) return response(envelope({ ...data,
++            items: data.items.map(item => ({ ...item, relations: [{ ...relation, relation_id: "R999" }] }))
++          }, "STRUCTURE_VALID"));
++        }
+         return response(envelope(data, "STRUCTURE_VALID"));
+       }
+       return response(envelope(day, "NOT_RUN"));
+@@ -102,12 +122,23 @@
+     await fireEvent.click(screen.getByRole("tab", { name: "美股映射资料库" }));
+     await screen.findByText(/ZIP CRC：PASS；清单校验：PASS；包内文件：15/);
+     expect(screen.getByText(/预测状态 UNTESTED/)).toBeTruthy();
+-    expect(screen.getByText(/SOURCE_REVIEWED：40 \/ 1003 条关系、22 \/ 667 只股票；未处理 963 条关系/)).toBeTruthy();
+-    expect(screen.getByText(/全部原始关系已有记录：16 只股票/)).toBeTruthy();
++    expect(screen.getByText(/SOURCE_REVIEWED：220 \/ 1003 条关系、92 \/ 667 只股票；未处理 783 条关系/)).toBeTruthy();
++    expect(screen.getByText(/全部原始关系已有记录：89 只股票/)).toBeTruthy();
+     expect(screen.getByText(/INDEPENDENTLY_VERIFIED：0 条/)).toBeTruthy();
++    expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
++    expect(detailRequests).toBe(0);
++    await fireEvent.click(screen.getByRole("button", { name: "查看完整补证 R001" }));
++    await screen.findByText(/R001：.*补证读取失败示例/);
++    expect(screen.getByText(/当前权益比例待核/)).toBeTruthy();
++    await fireEvent.click(screen.getByRole("button", { name: "查看完整补证 R001" }));
++    await screen.findByText(/正在读取完整补证 R001/);
+     await fireEvent.click(screen.getByRole("button", { name: "下一页" }));
+     await screen.findByText(/当前 26–26 \/ 667/);
+     expect(spy.mock.calls.some(([input]) => String(input).includes("offset=25"))).toBe(true);
++    expect(releaseStaleDetail).not.toBeNull();
++    releaseStaleDetail!(response(envelope({ ...catalogData, query: "R001", offset: 0, total: 1 }, "STRUCTURE_VALID")));
++    await waitFor(() => { expect(screen.queryByText(/已读取完整补证 R001/)).toBeNull(); });
++    expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
+     await fireEvent.update(screen.getByRole("combobox", { name: "研究用途筛选" }), "PENDING_REVIEW");
+     await screen.findByText(/当前 1–1 \/ 667/);
+     expect(spy.mock.calls.some(([input]) => String(input).includes("research_use=PENDING_REVIEW"))).toBe(true);
+@@ -125,6 +156,17 @@
+     expect(screen.getByRole("link", { name: "打开来源：https://example.com/second" }).getAttribute("href")).toBe("https://example.com/second");
+     expect(screen.queryByRole("link", { name: /javascript:|password/ })).toBeNull();
+     expect(screen.getByText(/当前权益比例待核/)).toBeTruthy();
++    expect(screen.getByText(/州注册冲突限制/)).toBeTruthy();
++    expect(screen.getByText(/使用限制 \/ 禁止据此推断：/)).toBeTruthy();
++    expect(screen.getByText(/待官方更正索引或解释/)).toBeTruthy();
++    expect(screen.getByText(/Delaware正文与IL索引冲突未获解释/)).toBeTruthy();
++    expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
++    await fireEvent.click(screen.getByRole("button", { name: "查看完整补证 R001" }));
++    await screen.findByText(/R001：.*关系身份、来源或安全状态不一致/);
++    expect(screen.queryByText(/已读取完整补证 R001/)).toBeNull();
++    expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
++    await fireEvent.click(screen.getByRole("button", { name: "查看完整补证 R001" }));
++    await screen.findByText(/已读取完整补证 R001/);
+     expect(screen.getByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeTruthy();
+     await fireEvent.update(screen.getByRole("textbox", { name: /按港股代码、港股名称、美股资产代码或关系编号查询/ }), "R001");
+     await fireEvent.click(screen.getByRole("button", { name: "查询资料" }));
