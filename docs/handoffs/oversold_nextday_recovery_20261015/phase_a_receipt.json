@@ -1,0 +1,98 @@
+{
+  "schema_version": "oversold-recovery-phase-a-receipt-v1",
+  "stage": "A",
+  "status": "STAGE_A_COMPLETE_WITH_REMEDIATION_ESCALATION",
+  "overall_selection_status": "CANNOT_CONFIRM",
+  "worker": "oversold_recovery_writer",
+  "run": {
+    "run_id": "04fd6d63b3bc4a9e8fabe7a481c12d4c",
+    "method": "POST",
+    "endpoint": "/api/v4/manager-workbench/runs",
+    "target_date": "20261016",
+    "phase": "MANUAL",
+    "cutoff": "2026-10-15T23:42:00+08:00",
+    "lane": "OVERSOLD",
+    "panel_manifest": "assets/hk_0_2/panels/20261015-a562369dbc49/manifest.json",
+    "panel_manifest_sha256": "a562369dbc49f06761304c10ba7128d2289c7f0befd0d9264f7dbbc50404241c",
+    "panel_available_at": "2026-10-15T17:20:02+08:00",
+    "security_master_target_date": "20261015",
+    "security_master_rows": 689,
+    "security_master_available_at": "2026-10-15T17:30:18+08:00",
+    "evaluated_rows": 689,
+    "decisions": {
+      "UNASSESSED": 689
+    },
+    "engine_gap_reasons": {
+      "UNIT_ADJUSTMENT_OR_CURRENCY_UNKNOWN": 676,
+      "HK_HISTORY_FIELD_QUARANTINED": 13
+    }
+  },
+  "history_window": {
+    "expected_start": "20260722",
+    "expected_end": "20261015",
+    "expected_hk_securities_sessions": 61,
+    "panel_sessions": 58,
+    "globally_missing_sessions": [
+      "20261005",
+      "20261006",
+      "20261007"
+    ],
+    "runtime_calendar_classification": {
+      "20261005": "FULL_TRADING_DAY",
+      "20261006": "FULL_TRADING_DAY",
+      "20261007": "FULL_TRADING_DAY"
+    },
+    "per_security_window_evidence": {
+      "codes_with_57_of_60_prior_high_bars": 647,
+      "codes_with_additional_per_security_gaps": 29,
+      "codes_quarantined_for_history_fields": 13
+    },
+    "all_price_unit_volume_unit_adjustment_fields_missing": true
+  },
+  "existing_tdx_evidence": {
+    "current_target_date_manifest_count": 0,
+    "current_window_pointer": false,
+    "20261013": {
+      "run_id": "ac858f8fc4408b12709b5177",
+      "ready": 568,
+      "requested": 690,
+      "reusable_for_current_identity": false
+    },
+    "20261014": {
+      "run_id": "4e8a382e671907cbb0bd47af",
+      "canary_ready": 0,
+      "canary_requested": 3,
+      "failure_code": "HK_DAILY_SUPPLEMENT_OHLC_INVALID"
+    },
+    "existing_owner_function": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py:capture_tdxpy_window_supplement",
+    "public_api_or_cli_entry": false
+  },
+  "next_stage": {
+    "requires_scope_extension": true,
+    "first_action": "Run one current-identity TDX canary for the exact 20261015 61-session window through the existing supplement owner.",
+    "on_canary_pass": "Permit a full exact-window capture, bind its manifest at source_bindings.hk_panel.20261015.tdxpy_history, then create a new MANUAL run.",
+    "on_canary_failure": "Stop, preserve the raw failure and current run; do not relax OHLC checks or fall back to unverified sources.",
+    "candidate_paths_requiring_extension": [
+      "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/daily_supplements/tdxpy61/runs/20261015/<run_id>",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v9.json"
+    ],
+    "semantic_gap": "Date repair does not establish price unit, adjustment, currency, or quarantine semantics; candidate recovery remains unconfirmed."
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "tests": {
+    "unit_tests": "NOT_RUN",
+    "api_run": "COMPLETED_AND_READ_BACK",
+    "independent_reviewer": "PENDING"
+  },
+  "cannot_confirm": [
+    "No eligible OVERSOLD candidates exist in this run.",
+    "A current-identity TDX supplement canary has not been run.",
+    "TDX output semantics have not been proven sufficient to clear the 676 unit/adjustment/currency gaps or 13 history quarantine holds.",
+    "Independent reviewer behavior verification has not occurred."
+  ]
+}
