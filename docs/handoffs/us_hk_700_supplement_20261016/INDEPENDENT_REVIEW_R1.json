@@ -1,0 +1,34 @@
+{
+  "reviewer": "mapping700_review (gpt-6-luna max, different identity)",
+  "verdict": "FAIL",
+  "p0": 0,
+  "p1": 0,
+  "p2": [
+    {
+      "finding": "Exact unprocessed RID can be marked FULL with null review and misleading UI success",
+      "reproduction": "R700 source_review_status=NOT_PROCESSED; review_detail_level=FULL; review_revision=null",
+      "paths": [
+        "v4/manager_workbench/us_mapping_catalog.py:399",
+        "apps/web/src/manager-workbench/Workbench.vue:551"
+      ],
+      "required_fix": "Only real review records may be FULL; add unprocessed RID regression"
+    }
+  ],
+  "independent_checks": {
+    "python_tests": 13,
+    "vue_scenarios": 1,
+    "targeted_types": "PASS",
+    "all700_full": "PASS",
+    "supplement_and_manifest": "PASS",
+    "deterministic_overlay": "PASS",
+    "prior220_and1831_evidence": "PASS",
+    "malformed60_preserved": "PASS",
+    "catalog667_1003_unchanged": "PASS",
+    "default_response_bytes": 635865,
+    "largest_full_response_bytes": 227649,
+    "cache_loads": "one catalog and one overlay across default plus two FULL requests"
+  },
+  "deployment": "NOT_RUN",
+  "fact_acceptance": 0,
+  "standalone700_zip_sha": "CANNOT_CONFIRM"
+}
