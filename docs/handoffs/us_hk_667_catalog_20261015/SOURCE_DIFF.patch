@@ -1,0 +1,899 @@
+--- a/v4/manager_workbench/api.py
++++ b/v4/manager_workbench/api.py
+@@ -1,6 +1,7 @@
+ """Mounted-only FastAPI router. Every GET is read-only and version-scoped."""
+ from __future__ import annotations
+ 
++from pathlib import Path
+ from typing import Any, Literal
+ import re
+ 
+@@ -17,8 +18,10 @@
+ from .store import StorageConflict, StorageUnavailable
+ from .display_read import saved_names, display_stock, us_summary, lane_projection, lane_stock
+ from .engines.common import US_FACTOR_RULES_VERSION
++from .us_mapping_catalog import CatalogValidationError, load_catalog, search_catalog
+ 
+ PREFIX = "/api/v4/manager-workbench"
++US_MAPPING_CATALOG_PATH = Path(__file__).resolve().parent / "research_data" / "us_hk_667_catalog_20261015.json"
+ 
+ 
+ class RunRequest(BaseModel):
+@@ -104,6 +107,25 @@
+ 
+ def create_router(service: ManagerService) -> APIRouter:
+     router = APIRouter(prefix=PREFIX, tags=["manager-workbench"],route_class=WorkbenchRoute)
++
++    @router.get("/mapping-catalog")
++    def read_us_hk_mapping_catalog(
++        q: str | None = Query(None, max_length=128),
++        offset: int = Query(0, ge=0),
++        limit: int = Query(25, ge=1, le=200),
++    ):
++        def read():
++            try:
++                catalog = load_catalog(US_MAPPING_CATALOG_PATH)
++                data = search_catalog(catalog, q, offset=offset, limit=limit)
++            except CatalogValidationError as exc:
++                raise HTTPException(503, "US_HK_MAPPING_CATALOG_INVALID") from exc
++            return envelope("STRUCTURE_VALID", data, [
++                "SOURCE_FACTS_NOT_INDEPENDENTLY_VERIFIED",
++                "PREDICTION_UNTESTED",
++                "HISTORICAL_PIT_NOT_VALIDATED",
++            ])
++        return _safe_errors(read)
+ 
+     @router.get("/days/{date}")
+     def read_day(date: str, phase: Phase | None = None, run_id: str | None = None,
+--- a/apps/web/src/manager-workbench/Workbench.vue
++++ b/apps/web/src/manager-workbench/Workbench.vue
+@@ -15,7 +15,8 @@
+   { key: "detail", label: "个股详情" },
+   { key: "progress", label: "研究进度" },
+   { key: "history", label: "计划历史" },
+-  { key: "reviews", label: "收盘复盘" }
++  { key: "reviews", label: "收盘复盘" },
++  { key: "catalog", label: "美股映射资料库" }
+ ] as const;
+ 
+ function changeVersionBySelect(event: Event): void {
+@@ -56,6 +57,13 @@
+ function factorSummaryText(summary: USFactorSummary): string {
+   const decisions = summary.factor_decision_counts || {};
+   return `固定美股来源 ${showCount(summary.us_source_symbol_count)} 个；已配置代理主题 ${showCount(summary.proxy_source_count)} / ${showCount(summary.expected_proxy_source_count)} 个（核验通过 ${showCount(summary.verified_proxy_source_count)}，未知 ${showCount(summary.unknown_proxy_source_count)}）；目标日港股通范围 ${showCount(summary.eligible_hk_scope_count)} 只；因子唯一港股 ${showCount(summary.unique_factor_stock_count)} 只，路径 ${showCount(summary.factor_path_count)} 条，未知港股 ${showCount(summary.unknown_factor_stock_count)} 只。结果：条件观察 ${showCount(decisions.CONDITIONAL_WATCH)}，未入选 ${showCount(decisions.NOT_SELECTED)}，待核 ${showCount(decisions.UNASSESSED)}。这些数量属于不同范围，不能相加。`;
++}
++function sourceValue(value: unknown): string {
++  return value === "" || value === null || value === undefined ? "来源未提供" : showText(value);
++}
++function sourceUrls(value: unknown): string[] {
++  if (typeof value !== "string") return [];
++  return value.split(/\s+/).filter(url => /^https?:\/\/\S+$/i.test(url));
+ }
+ </script>
+ 
+@@ -449,6 +457,83 @@
+       </p>
+     </section>
+ 
++    <section v-if="vm.panel === 'catalog'" class="mwb-panel" aria-label="美股映射资料库">
++      <div class="mwb-heading">
++        <div><h2>美股 → 港股关系资料库</h2>
++          <p>读取用户提供的 2026-10-14 名单快照与逐关系研究包；这是静态研究资料，不是当日选股结果。</p></div>
++        <button type="button" class="mwb-quiet" :disabled="vm.catalogLoading" @click="vm.loadCatalog(0)">重新读取资料</button>
++      </div>
++      <p class="mwb-alert" role="status">
++        目录只通过结构和来源校验。公司事实独立核验仍为待办，预测状态 UNTESTED，历史 PIT NOT_VALIDATED；任何关系都没有预测或选股资格。
++      </p>
++      <form class="mwb-filters" @submit.prevent="vm.searchCatalog">
++        <label class="mwb-search">按港股代码、港股名称或美股资产代码查询
++          <input v-model="vm.catalogQueryDraft" maxlength="128" placeholder="例如 00001、HK.00001 或 CVE" />
++        </label>
++        <button type="submit" :disabled="vm.catalogLoading">查询资料</button>
++      </form>
++      <p v-if="vm.catalogLoading" role="status">正在读取映射资料…</p>
++      <p v-if="vm.catalogError" class="mwb-alert" role="alert">{{ vm.catalogError }}</p>
++      <template v-if="vm.catalog?.data">
++        <div class="mwb-detail-grid">
++          <article><h3>来源身份</h3>
++            <p>名单快照：{{ vm.catalog.data.source.membership_snapshot }}；名单 SHA256：{{ vm.catalog.data.source.membership_sha256 }}</p>
++            <p>研究包：{{ vm.catalog.data.source.package_name }}；SHA256：{{ vm.catalog.data.source.package_sha256 }}</p>
++            <p>ZIP CRC：{{ vm.catalog.data.source.zip_crc }}；清单校验：{{ vm.catalog.data.source.manifest }}；包内文件：{{ vm.catalog.data.source.package_member_count }}</p>
++            <p>目录完整性 SHA256：{{ vm.catalog.data.catalog_integrity_sha256 }}</p>
++          </article>
++          <article><h3>结构覆盖</h3>
++            <p>名单 {{ vm.catalog.data.coverage.membership_count }} 只；原始关系 {{ vm.catalog.data.coverage.relation_row_count }} 条；有关系记录 {{ vm.catalog.data.coverage.stocks_with_relations }} 只。</p>
++            <p>源文件自报进度：{{ showText(vm.catalog.data.source_claims.main_table_a_progress) }}；源文件自报预测：{{ showText(vm.catalog.data.source_claims.main_table_a_prediction_state) }}。</p>
++            <p>旧 997 条关系逐边比较：{{ vm.catalog.data.source_claims.old_matrix_comparison }}；独立事实核验：{{ vm.catalog.data.source_claims.independent_fact_verification }}。</p>
++          </article>
++        </div>
++        <p class="mwb-muted">本次查询匹配 {{ vm.catalog.data.total }} 只港股。空查询只读目录身份，不返回整包关系；当前结果按港股分页。</p>
++        <article v-for="item in vm.catalog.data.items" :key="item.hk_code" class="mwb-evidence">
++          <details open>
++            <summary>{{ item.ordinal }} / 667 · {{ item.hk_code }} {{ item.name || "名称未提供" }} · 来源关系 {{ item.relation_count }} 条</summary>
++            <p>英文简称：{{ item.english_name || "来源未提供" }} · 研究行业：{{ sourceValue(item.source_record["研究行业"]) }}</p>
++            <p><strong>主营：</strong>{{ sourceValue(item.source_record["主营"]) }}</p>
++            <p><strong>盈利驱动：</strong>{{ sourceValue(item.source_record["盈利驱动"]) }}</p>
++            <p><strong>主要及辅助资产：</strong>{{ sourceValue(item.source_record["主要及辅助资产"]) }}</p>
++            <p><strong>关系意义：</strong>{{ sourceValue(item.source_record["关系意义"]) }}</p>
++            <p><strong>原表研究进度：</strong>{{ sourceValue(item.source_record["研究进度"]) }}（来源自报；本目录没有把它认作独立验收）</p>
++            <div v-if="item.relations.length">
++              <article v-for="relation in item.relations" :key="relation.source_row" class="mwb-research-record">
++                <h4>{{ relation.us_symbol || "美股资产未提供" }} · {{ sourceValue(relation.source_record["type"]) }} · 原始表行 {{ relation.source_row }}</h4>
++                <p><strong>分部 / 原始事实：</strong>{{ sourceValue(relation.source_record["segment"]) }}；{{ sourceValue(relation.source_record["fact"]) }}</p>
++                <p><strong>传导机制：</strong>{{ sourceValue(relation.source_record["mechanism"]) }}</p>
++                <p><strong>触发条件：</strong>{{ sourceValue(relation.source_record["condition"]) }}</p>
++                <p><strong>方向与时段：</strong>{{ sourceValue(relation.source_record["direction"]) }}；{{ sourceValue(relation.source_record["timescale"]) }}</p>
++                <p><strong>失效条件 / 反例：</strong>{{ sourceValue(relation.source_record["failure"]) }}</p>
++                <p><strong>证据强度及原文理由：</strong>{{ sourceValue(relation.source_record["evidence_strength"]) }}；{{ sourceValue(relation.source_record["evidence_reason"]) }}</p>
++                <p><strong>信息日期：</strong>{{ sourceValue(relation.source_record["information_date"]) }}</p>
++                <p><strong>原始状态：</strong>status={{ sourceValue(relation.source_record["status"]) }}；mapping_status={{ sourceValue(relation.source_record["mapping_status"]) }}；relation_verification={{ sourceValue(relation.source_record["relation_verification"]) }}</p>
++                <p><strong>原始候选 / 排除字段：</strong>effective_candidate={{ sourceValue(relation.source_record["effective_candidate"]) }}；current_observation_candidate={{ sourceValue(relation.source_record["current_observation_candidate"]) }}；audit_only={{ sourceValue(relation.source_record["audit_only"]) }}</p>
++                <p><strong>原始预测 / 旧边处置：</strong>prediction={{ sourceValue(relation.source_record["prediction"]) }}；old_action={{ sourceValue(relation.source_record["old_action"]) }}；prediction_eligible={{ sourceValue(relation.source_record["prediction_eligible"]) }}；historical_PIT={{ sourceValue(relation.source_record["historical_PIT"]) }}</p>
++                <p><strong>目录状态：</strong>事实独立核验 {{ relation.fact_review_status }}；预测资格固定为否；预测 {{ relation.prediction_validation }}；历史 PIT {{ relation.historical_PIT }}。</p>
++                <p><strong>原始 URL：</strong>{{ sourceValue(relation.source_record["url"]) }}</p>
++                <p v-for="url in sourceUrls(relation.source_record['url'])" :key="url">
++                  <a :href="url" target="_blank" rel="noopener noreferrer">打开来源：{{ url }}</a>
++                </p>
++              </article>
++            </div>
++            <p v-else class="mwb-muted">本股在来源主表 B 中没有关系行，仍保留在完整港股名单里。</p>
++          </details>
++        </article>
++        <div v-if="vm.catalog.data.total > vm.catalogLimit" class="mwb-pagination">
++          <span>当前 {{ vm.catalog.data.offset + 1 }}–{{ Math.min(vm.catalog.data.offset + vm.catalog.data.items.length, vm.catalog.data.total) }} / {{ vm.catalog.data.total }}</span>
++          <div>
++            <button type="button" class="mwb-quiet" :disabled="vm.catalogOffset === 0 || vm.catalogLoading" @click="vm.changeCatalogPage(-1)">上一页</button>
++            <button type="button" class="mwb-quiet" :disabled="vm.catalogOffset + vm.catalogLimit >= vm.catalog.data.total || vm.catalogLoading" @click="vm.changeCatalogPage(1)">下一页</button>
++          </div>
++        </div>
++        <p v-if="vm.catalogQuery && !vm.catalog.data.items.length" class="mwb-empty">没有找到匹配的港股代码、名称或美股资产。</p>
++        <p v-if="!vm.catalogQuery" class="mwb-empty">输入港股代码或美股资产代码后查询，目录不会一次性载入整包关系。</p>
++      </template>
++      <p v-else-if="!vm.catalogLoading && !vm.catalogError" class="mwb-empty">点击“美股映射资料库”后读取来源身份；输入查询条件后再加载逐股关系。</p>
++    </section>
++
+     <footer class="mwb-footer">
+       <span>合同 {{ vm.day?.schema_version || "v4.manager_workbench.v1" }}</span>
+       <span>RESEARCH_ONLY={{ showText(vm.day?.RESEARCH_ONLY) }} / production_allowed={{ showText(vm.day?.production_allowed) }}</span>
+--- a/apps/web/src/manager-workbench/types.ts
++++ b/apps/web/src/manager-workbench/types.ts
+@@ -251,6 +251,51 @@
+   uncovered_reasons?: string[] | null;
+   gaps?: Gap[] | null;
+ }
++export interface USMappingCatalogRelation {
++  source_row: number;
++  hk_code: string;
++  us_symbol: string;
++  source_record: Record<string, string>;
++  fact_review_status: "PENDING";
++  prediction_eligible: false;
++  prediction_validation: "UNTESTED";
++  historical_PIT: "NOT_VALIDATED";
++}
++export interface USMappingCatalogStock {
++  ordinal: number;
++  hk_code: string;
++  name: string | null;
++  english_name: string | null;
++  source_record: Record<string, string>;
++  relation_count: number;
++  relations: USMappingCatalogRelation[];
++}
++export interface USMappingCatalogData {
++  catalog_id: string;
++  catalog_state: "STRUCTURE_VALID_ONLY";
++  catalog_integrity_sha256: string;
++  source: Record<string, unknown> & {
++    package_name: string;
++    package_sha256: string;
++    membership_snapshot: string;
++    membership_sha256: string;
++  };
++  coverage: Record<string, unknown> & {
++    membership_count: number;
++    relation_row_count: number;
++    stocks_with_relations: number;
++  };
++  source_claims: Record<string, unknown>;
++  safety: Required<SafetyFlags> & {
++    prediction_validation: "UNTESTED";
++    historical_PIT: "NOT_VALIDATED";
++  };
++  query: string;
++  total: number;
++  offset: number;
++  limit: number;
++  items: USMappingCatalogStock[];
++}
+ export const DECISION_LABELS: Record<Decision, string> = {
+   SELECTED: "严格入选", CONDITIONAL_WATCH: "条件观察", UNASSESSED: "待评估",
+   NOT_SELECTED: "未入选", OBSERVATION_ONLY: "仅观察"
+--- a/apps/web/src/manager-workbench/api.ts
++++ b/apps/web/src/manager-workbench/api.ts
+@@ -1,7 +1,7 @@
+ import { SCHEMA_VERSION } from "./types";
+ import type {
+   DayData, Decision, Envelope, HistoryData, JobCreated, JobRecord, Lane,
+-  Phase, ReviewSummary, StockDetails, RecommendationLane
++  Phase, ReviewSummary, StockDetails, RecommendationLane, USMappingCatalogData
+ } from "./types";
+ import { isValidDate } from "./route";
+ 
+@@ -130,6 +130,15 @@
+       return request<ReviewSummary>(transport,
+         "/reviews/" + date + "?plan_run_id=" + encodeURIComponent(runId), { signal });
+     },
++    async getUsMappingCatalog(query: string, offset = 0, limit = 25, signal?: AbortSignal) {
++      if (query.length > 128) throw new ApiError("映射资料查询不能超过 128 个字符", 422);
++      if (!Number.isInteger(offset) || offset < 0 || !Number.isInteger(limit) || limit < 1 || limit > 200) {
++        throw new ApiError("资料分页参数无效", 422);
++      }
++      const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
++      if (query.trim()) params.set("q", query.trim());
++      return request<USMappingCatalogData>(transport, "/mapping-catalog?" + params.toString(), { signal });
++    },
+     async createRun(date: string, phase: "MANUAL" | "RETROSPECTIVE", lanes?: Lane[]) {
+       exactDate(date);
+       if (phase !== "MANUAL" && phase !== "RETROSPECTIVE") throw new ApiError("手动阶段无效", 422);
+--- a/apps/web/src/manager-workbench/useWorkbench.ts
++++ b/apps/web/src/manager-workbench/useWorkbench.ts
+@@ -3,12 +3,12 @@
+ import type { DayQuery, WorkbenchApi } from "./api";
+ import type {
+   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
+-  ReviewSummary, StockDecision, StockDetails, RecommendationLane
++  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData
+ } from "./types";
+ import { parseWorkbenchRoute, routeSearch } from "./route";
+ import type { WorkbenchRoute } from "./route";
+ 
+-export type Panel = "stocks" | "detail" | "progress" | "history" | "reviews";
++export type Panel = "stocks" | "detail" | "progress" | "history" | "reviews" | "catalog";
+ type APIData<T> = Envelope<T> | null;
+ 
+ function errorMessage(error: unknown): string {
+@@ -53,6 +53,13 @@
+   const review = ref<APIData<ReviewSummary>>(null);
+   const reviewLoading = ref(false);
+   const reviewError = ref("");
++  const catalogQueryDraft = ref("");
++  const catalogQuery = ref("");
++  const catalogOffset = ref(0);
++  const catalogLimit = 25;
++  const catalog = ref<APIData<USMappingCatalogData>>(null);
++  const catalogLoading = ref(false);
++  const catalogError = ref("");
+   const job = ref<APIData<JobRecord>>(null);
+   const jobId = ref("");
+   const jobLoading = ref(false);
+@@ -72,11 +79,12 @@
+   const readMode = computed(() => route.value.runId ? "固定 run_id" : route.value.phase ? "按阶段读最新保存版" : "目标日最新保存版");
+   const valid = computed(() => route.value.error === null);
+ 
+-  let daySeq = 0, detailSeq = 0, historySeq = 0, reviewSeq = 0, jobSeq = 0, operationSeq = 0;
++  let daySeq = 0, detailSeq = 0, historySeq = 0, reviewSeq = 0, catalogSeq = 0, jobSeq = 0, operationSeq = 0;
+   let dayAbort: AbortController | null = null;
+   let detailAbort: AbortController | null = null;
+   let historyAbort: AbortController | null = null;
+   let reviewAbort: AbortController | null = null;
++  let catalogAbort: AbortController | null = null;
+   let jobAbort: AbortController | null = null;
+   let jobTimer: ReturnType<typeof setTimeout> | null = null;
+ 
+@@ -88,8 +96,9 @@
+     jobLoading.value = false;
+   }
+   function abortAll(): void {
+-    daySeq++; detailSeq++; historySeq++; reviewSeq++;
+-    dayAbort?.abort(); detailAbort?.abort(); historyAbort?.abort(); reviewAbort?.abort();
++    daySeq++; detailSeq++; historySeq++; reviewSeq++; catalogSeq++;
++    dayAbort?.abort(); detailAbort?.abort(); historyAbort?.abort(); reviewAbort?.abort(); catalogAbort?.abort();
++    catalogLoading.value = false;
+     stopJobReads();
+   }
+   function resetPage(): void {
+@@ -194,6 +203,41 @@
+     panel.value = next;
+     if (next === "history") void loadHistory();
+     if (next === "reviews") void loadReview();
++    if (next === "catalog") void loadCatalog();
++  }
++  async function loadCatalog(offset = catalogOffset.value): Promise<void> {
++    if (!Number.isInteger(offset) || offset < 0) return;
++    const query = catalogQuery.value.trim();
++    const seq = ++catalogSeq;
++    catalogAbort?.abort(); const ctrl = new AbortController(); catalogAbort = ctrl;
++    catalogOffset.value = offset; catalog.value = null; catalogError.value = ""; catalogLoading.value = true;
++    try {
++      const result = await api.getUsMappingCatalog(query, offset, catalogLimit, ctrl.signal);
++      if (seq !== catalogSeq || ctrl.signal.aborted) return;
++      if (!result.data || result.data.catalog_state !== "STRUCTURE_VALID_ONLY" ||
++          result.data.query !== query || result.data.offset !== offset ||
++          result.data.safety?.RESEARCH_ONLY !== true || result.data.safety?.production_allowed !== false ||
++          result.data.safety?.buy_gate_updated !== false || result.data.safety?.orders_sent !== false ||
++          result.data.safety?.prediction_validation !== "UNTESTED" ||
++          result.data.safety?.historical_PIT !== "NOT_VALIDATED") {
++        throw new ApiError("美股映射资料库返回的来源或安全状态不一致", 502);
++      }
++      catalog.value = result;
++    } catch (error) {
++      if (seq === catalogSeq && !isAbort(error)) catalogError.value = errorMessage(error);
++    } finally {
++      if (seq === catalogSeq) catalogLoading.value = false;
++    }
++  }
++  function searchCatalog(): void {
++    catalogQuery.value = catalogQueryDraft.value.trim();
++    void loadCatalog(0);
++  }
++  function changeCatalogPage(direction: -1 | 1): void {
++    const total = catalog.value?.data?.total ?? 0;
++    const next = catalogOffset.value + direction * catalogLimit;
++    if (next < 0 || next >= total || next === catalogOffset.value) return;
++    void loadCatalog(next);
+   }
+   async function openStock(stock: StockDecision): Promise<void> {
+     panel.value = "detail";
+@@ -338,9 +382,11 @@
+     route, panel, dateInput, decisionFilter, laneFilter, searchDraft, search, offset, limit,
+     day, dayLoading, dayError, stale, hasStale, detail, detailSymbol, detailLoading, detailError,
+     history, historyLoading, historyError, review, reviewLoading, reviewError,
++    catalogQueryDraft, catalogQuery, catalogOffset, catalogLimit, catalog, catalogLoading, catalogError,
+     job, jobId, jobLoading, jobError, operationLoading, runPhase,
+     stocks, snapshot, counts, pagination, versions, lanes, selectedRunId, selectedDate, readMode, valid,
+     changeDate, changeVersion, loadDay, applyFilters, switchLane, setOffset, showPanel, openStock,
+-    loadHistory, loadReview, pollJob, createPlan, retryJob, viewJobVersion
++    loadHistory, loadReview, loadCatalog, searchCatalog, changeCatalogPage,
++    pollJob, createPlan, retryJob, viewJobVersion
+   };
+ }
+--- /dev/null
++++ b/v4/manager_workbench/us_mapping_catalog.py
+@@ -0,0 +1,287 @@
++"""Read-only, source-bound US-to-HK research catalog validation and search.
++
++This module preserves the supplied review package as user-provided research.
++It does not validate company facts, promote source statuses, or assign
++prediction eligibility.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++from pathlib import Path
++import re
++from typing import Any, Mapping
++
++
++SCHEMA_VERSION = "v4.us_hk_mapping_catalog.v1"
++SOURCE_PACKAGE_SHA256 = "dac3c820fcd6919fabdccc9c37ee9055b729b200fcde5e48f0dcf527de81bc6d"
++MEMBERSHIP_SHA256 = "9b799c0b74ac5047f4e44a1b3dfd1dfa5ca9ce978fa3b8e7877913c423424c9c"
++EXPECTED_STOCK_COUNT = 667
++EXPECTED_RELATION_COUNT = 1003
++_CODE_RE = re.compile(r"^[0-9]{5}$")
++_US_SYMBOL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.\-]{0,19}$")
++
++
++class CatalogValidationError(ValueError):
++    """Raised when a catalog is damaged or violates its frozen source contract."""
++
++
++def canonical_bytes(value: Mapping[str, Any]) -> bytes:
++    return json.dumps(
++        value,
++        ensure_ascii=False,
++        sort_keys=True,
++        separators=(",", ":"),
++        allow_nan=False,
++    ).encode("utf-8")
++
++
++def integrity_sha256(value: Mapping[str, Any]) -> str:
++    body = dict(value)
++    body.pop("integrity_sha256", None)
++    return hashlib.sha256(canonical_bytes(body)).hexdigest()
++
++
++def validate_catalog(value: Any) -> dict[str, Any]:
++    if not isinstance(value, dict):
++        raise CatalogValidationError("catalog root must be an object")
++    if value.get("schema_version") != SCHEMA_VERSION:
++        raise CatalogValidationError("catalog schema version is invalid")
++    if value.get("integrity_sha256") != integrity_sha256(value):
++        raise CatalogValidationError("catalog integrity check failed")
++
++    source = value.get("source")
++    if not isinstance(source, dict):
++        raise CatalogValidationError("catalog source metadata is missing")
++    if source.get("package_sha256") != SOURCE_PACKAGE_SHA256:
++        raise CatalogValidationError("catalog source package identity is invalid")
++    if source.get("membership_sha256") != MEMBERSHIP_SHA256:
++        raise CatalogValidationError("catalog membership identity is invalid")
++    if source.get("membership_snapshot") != "2026-10-14":
++        raise CatalogValidationError("catalog membership snapshot is invalid")
++
++    flags = value.get("safety")
++    if flags != {
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++        "prediction_validation": "UNTESTED",
++        "historical_PIT": "NOT_VALIDATED",
++    }:
++        raise CatalogValidationError("catalog safety flags are invalid")
++
++    stocks = value.get("stocks")
++    relations = value.get("relations")
++    if not isinstance(stocks, list) or len(stocks) != EXPECTED_STOCK_COUNT:
++        raise CatalogValidationError("catalog stock count is invalid")
++    if not isinstance(relations, list) or len(relations) != EXPECTED_RELATION_COUNT:
++        raise CatalogValidationError("catalog relation count is invalid")
++
++    stock_by_code: dict[str, dict[str, Any]] = {}
++    for index, stock in enumerate(stocks, start=1):
++        if not isinstance(stock, dict) or stock.get("ordinal") != index:
++            raise CatalogValidationError("catalog stock order is invalid")
++        code = stock.get("hk_code")
++        if not isinstance(code, str) or _CODE_RE.fullmatch(code) is None or code in stock_by_code:
++            raise CatalogValidationError("catalog HK code is invalid or duplicated")
++        if not isinstance(stock.get("source_record"), dict):
++            raise CatalogValidationError("catalog stock source row is missing")
++        if stock["source_record"].get("代码") != code:
++            raise CatalogValidationError("catalog stock source row does not match code")
++        stock_by_code[code] = stock
++
++    observed_relation_ids: list[str] = []
++    relation_codes: set[str] = set()
++    for index, relation in enumerate(relations, start=1):
++        if not isinstance(relation, dict) or relation.get("source_row") != index:
++            raise CatalogValidationError("catalog relation order is invalid")
++        code = relation.get("hk_code")
++        symbol = relation.get("us_symbol")
++        raw = relation.get("source_record")
++        if not isinstance(code, str) or code not in stock_by_code:
++            raise CatalogValidationError("catalog relation references an unknown HK code")
++        if not isinstance(symbol, str) or not isinstance(raw, dict):
++            raise CatalogValidationError("catalog relation identity or source row is missing")
++        if raw.get("code") != code or raw.get("asset_code") != symbol:
++            raise CatalogValidationError("catalog relation source row does not match identity")
++        if relation.get("prediction_validation") != "UNTESTED" or relation.get("historical_PIT") != "NOT_VALIDATED":
++            raise CatalogValidationError("catalog relation was promoted beyond source validation")
++        if relation.get("fact_review_status") != "PENDING" or relation.get("prediction_eligible") is not False:
++            raise CatalogValidationError("catalog relation safety state is invalid")
++        if raw.get("prediction") != "UNTESTED" or raw.get("historical_PIT") != "NOT_VALIDATED":
++            raise CatalogValidationError("catalog relation source prediction fields changed")
++        relation_codes.add(code)
++        relation_id = raw.get("relation_id")
++        if relation_id:
++            observed_relation_ids.append(relation_id)
++
++    expected_relation_ids_by_code: dict[str, list[str]] = {code: [] for code in stock_by_code}
++    for relation in relations:
++        relation_id = relation["source_record"].get("relation_id")
++        if relation_id:
++            expected_relation_ids_by_code[relation["hk_code"]].append(relation_id)
++    for code, stock in stock_by_code.items():
++        if stock.get("relation_ids") != expected_relation_ids_by_code[code]:
++            raise CatalogValidationError("catalog stock relation index is invalid")
++
++    coverage = value.get("coverage")
++    if not isinstance(coverage, dict):
++        raise CatalogValidationError("catalog coverage metadata is missing")
++    if coverage.get("membership_count") != EXPECTED_STOCK_COUNT:
++        raise CatalogValidationError("catalog membership count is invalid")
++    if coverage.get("main_table_a_rows") != EXPECTED_STOCK_COUNT or coverage.get("main_table_a_unique_codes") != EXPECTED_STOCK_COUNT:
++        raise CatalogValidationError("catalog main table A coverage is invalid")
++    for key in [
++        "main_table_a_order_matches_membership",
++        "main_table_a_names_match_membership",
++        "coverage_table_order_matches_membership",
++        "report_section_order_matches_membership",
++        "report_section_names_match_membership",
++        "relation_rows_reference_membership",
++    ]:
++        if coverage.get(key) is not True:
++            raise CatalogValidationError(f"catalog structural check failed: {key}")
++    if coverage.get("relation_row_count") != EXPECTED_RELATION_COUNT:
++        raise CatalogValidationError("catalog relation coverage count is invalid")
++    if coverage.get("stocks_with_relations") != len(relation_codes):
++        raise CatalogValidationError("catalog relation coverage summary is invalid")
++    if coverage.get("stocks_without_relations") != [stock["hk_code"] for stock in stocks if stock["hk_code"] not in relation_codes]:
++        raise CatalogValidationError("catalog missing-relation list is invalid")
++    return value
++
++
++def load_catalog(path: Path | str) -> dict[str, Any]:
++    try:
++        raw = Path(path).read_bytes()
++        value = json.loads(raw.decode("utf-8"), parse_constant=lambda token: (_ for _ in ()).throw(ValueError(token)))
++    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
++        raise CatalogValidationError("catalog file cannot be read as valid JSON") from exc
++    return validate_catalog(value)
++
++
++def search_catalog(
++    catalog: Mapping[str, Any],
++    query: str | None = None,
++    *,
++    offset: int = 0,
++    limit: int = 25,
++) -> dict[str, Any]:
++    value = validate_catalog(dict(catalog))
++    if isinstance(offset, bool) or not isinstance(offset, int) or offset < 0:
++        raise CatalogValidationError("offset must be a non-negative integer")
++    if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 200:
++        raise CatalogValidationError("limit must be between 1 and 200")
++    needle = (query or "").strip()
++    if len(needle) > 128:
++        raise CatalogValidationError("query is too long")
++
++    stocks = value["stocks"]
++    relations = value["relations"]
++    if not needle:
++        selected: list[tuple[dict[str, Any], list[dict[str, Any]]]] = []
++    else:
++        normalized = needle.upper()
++        if normalized.startswith("HK."):
++            normalized = normalized[3:]
++        exact_hk = normalized if _CODE_RE.fullmatch(normalized) else None
++        exact_us = normalized if _US_SYMBOL_RE.fullmatch(normalized) else None
++
++        relations_by_code: dict[str, list[dict[str, Any]]] = {stock["hk_code"]: [] for stock in stocks}
++        for relation in relations:
++            relations_by_code[relation["hk_code"]].append(relation)
++
++        matching_relations: dict[str, list[dict[str, Any]]] = {}
++        if exact_hk is None:
++            for relation in relations:
++                raw = relation["source_record"]
++                if exact_us and raw.get("asset_code", "").upper() == exact_us:
++                    match = True
++                else:
++                    match = any(needle.casefold() in str(item).casefold() for item in raw.values())
++                if match:
++                    matching_relations.setdefault(relation["hk_code"], []).append(relation)
++
++        selected = []
++        for stock in stocks:
++            raw = stock["source_record"]
++            if exact_hk is not None:
++                if stock["hk_code"] == exact_hk:
++                    selected.append((stock, relations_by_code[stock["hk_code"]]))
++                continue
++            stock_match = any(needle.casefold() in str(item).casefold() for item in raw.values())
++            if exact_us and any(r["us_symbol"].upper() == exact_us for r in relations_by_code[stock["hk_code"]]):
++                stock_match = True
++            matched = matching_relations.get(stock["hk_code"], [])
++            if stock_match:
++                selected.append((stock, relations_by_code[stock["hk_code"]]))
++            elif matched:
++                selected.append((stock, matched))
++
++    total = len(selected)
++    items = []
++    for stock, relation_rows in selected[offset:offset + limit]:
++        items.append({
++            "ordinal": stock["ordinal"],
++            "hk_code": stock["hk_code"],
++            "name": stock.get("name"),
++            "english_name": stock.get("english_name"),
++            "source_record": stock["source_record"],
++            "relation_count": stock["relation_count"],
++            "relations": [
++                {
++                    "source_row": row["source_row"],
++                    "hk_code": row["hk_code"],
++                    "us_symbol": row["us_symbol"],
++                    "source_record": row["source_record"],
++                    "fact_review_status": row["fact_review_status"],
++                    "prediction_eligible": row["prediction_eligible"],
++                    "prediction_validation": row["prediction_validation"],
++                    "historical_PIT": row["historical_PIT"],
++                }
++                for row in relation_rows
++            ],
++        })
++
++    public_source = {key: val for key, val in value["source"].items() if key != "local_zip_path"}
++    claims = value["source_claims"]
++    public_claims = {
++        key: claims.get(key)
++        for key in [
++            "main_table_a_progress",
++            "main_table_a_relationship_class",
++            "main_table_a_prediction_state",
++            "main_table_b_prediction_state",
++            "main_table_b_old_action",
++            "old_matrix_comparison",
++            "independent_fact_verification",
++        ]
++    }
++    return {
++        "catalog_id": value["catalog_id"],
++        "catalog_state": "STRUCTURE_VALID_ONLY",
++        "catalog_integrity_sha256": value["integrity_sha256"],
++        "source": public_source,
++        "coverage": value["coverage"],
++        "source_claims": public_claims,
++        "safety": value["safety"],
++        "query": needle,
++        "total": total,
++        "offset": offset,
++        "limit": limit,
++        "items": items,
++    }
++
++
++__all__ = [
++    "CatalogValidationError",
++    "EXPECTED_RELATION_COUNT",
++    "EXPECTED_STOCK_COUNT",
++    "MEMBERSHIP_SHA256",
++    "SCHEMA_VERSION",
++    "SOURCE_PACKAGE_SHA256",
++    "integrity_sha256",
++    "load_catalog",
++    "search_catalog",
++    "validate_catalog",
++]
+--- /dev/null
++++ b/tests/manager_workbench/test_us_mapping_catalog.py
+@@ -0,0 +1,150 @@
++from __future__ import annotations
++
++import importlib.util
++import json
++from pathlib import Path
++import sys
++import zipfile
++
++from fastapi import FastAPI
++from fastapi.testclient import TestClient
++import pytest
++
++import v4.manager_workbench.api as workbench_api
++from v4.manager_workbench.us_mapping_catalog import (
++    CatalogValidationError,
++    load_catalog,
++    search_catalog,
++)
++
++
++ROOT = Path(__file__).resolve().parents[2]
++CATALOG_PATH = ROOT / "v4/manager_workbench/research_data/us_hk_667_catalog_20261015.json"
++MEMBERSHIP_PATH = ROOT / "docs/handoffs/hk_connect_list_20261014/港股通股票名单_667只_20261014.csv"
++REBUILD_SCRIPT = ROOT / "docs/handoffs/us_hk_667_catalog_20261015/rebuild_catalog.py"
++
++
++def _load_rebuild_module():
++    spec = importlib.util.spec_from_file_location("us_hk_catalog_rebuild", REBUILD_SCRIPT)
++    assert spec and spec.loader
++    module = importlib.util.module_from_spec(spec)
++    sys.modules[spec.name] = module
++    spec.loader.exec_module(module)
++    return module
++
++
++def test_source_bound_catalog_preserves_roster_order_and_every_relation_row():
++    catalog = load_catalog(CATALOG_PATH)
++    assert catalog["source"]["package_sha256"] == "dac3c820fcd6919fabdccc9c37ee9055b729b200fcde5e48f0dcf527de81bc6d"
++    assert catalog["source"]["membership_sha256"] == "9b799c0b74ac5047f4e44a1b3dfd1dfa5ca9ce978fa3b8e7877913c423424c9c"
++    assert len(catalog["stocks"]) == 667
++    assert len(catalog["relations"]) == 1003
++    assert catalog["coverage"]["report_sections"] == 667
++    assert catalog["coverage"]["stocks_with_relations"] == 649
++    assert catalog["coverage"]["stocks_without_relations"] == [
++        "01528", "01811", "01963", "01988", "02202", "02357", "02526", "02635",
++        "02922", "03311", "03774", "06049", "06066", "06658", "06666", "06681", "06963", "06979",
++    ]
++    assert catalog["safety"] == {
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++        "prediction_validation": "UNTESTED",
++        "historical_PIT": "NOT_VALIDATED",
++    }
++
++    import csv
++
++    with MEMBERSHIP_PATH.open(encoding="utf-8-sig", newline="") as stream:
++        roster = list(csv.DictReader(stream))
++    assert [stock["hk_code"] for stock in catalog["stocks"]] == [row["港股代码"] for row in roster]
++    assert [stock["name"] or "" for stock in catalog["stocks"]] == [row["中文简称"] for row in roster]
++    assert all(row["prediction_eligible"] is False for row in catalog["relations"])
++    assert all(row["prediction_validation"] == "UNTESTED" for row in catalog["relations"])
++    assert all(row["fact_review_status"] == "PENDING" for row in catalog["relations"])
++    assert {row["source_record"]["type"] for row in catalog["relations"]} >= {"OWNERSHIP", "SAME_ISSUER", "SUPPLY_CHAIN"}
++
++
++def test_search_keeps_historical_weak_and_audit_only_rows_without_promotion():
++    catalog = load_catalog(CATALOG_PATH)
++    exact_hk = search_catalog(catalog, "HK.00001")
++    assert exact_hk["total"] == 1
++    assert exact_hk["items"][0]["hk_code"] == "00001"
++    assert exact_hk["items"][0]["relations"]
++    assert any(row["us_symbol"] == "CVE" for row in exact_hk["items"][0]["relations"])
++
++    asset = search_catalog(catalog, "CVE")
++    assert any(item["hk_code"] == "00001" for item in asset["items"])
++    assert all(relation["prediction_eligible"] is False
++               for item in asset["items"] for relation in item["relations"])
++
++    historical_source = next(row for row in catalog["relations"]
++                             if row["source_record"].get("status") in {"HISTORICAL_ONLY", "DELISTED_EXCLUDE_PRICE"})
++    weak_source = next(row for row in catalog["relations"]
++                       if row["source_record"].get("mapping_status") == "REVIEWED_WEAK_MAPPING")
++    audit_source = next(row for row in catalog["relations"]
++                        if row["source_record"].get("audit_only") == "True")
++    for source in [historical_source, weak_source, audit_source]:
++        result = search_catalog(catalog, source["hk_code"])
++        matches = [row for row in result["items"][0]["relations"]
++                   if row["source_row"] == source["source_row"]]
++        assert len(matches) == 1
++        assert matches[0]["source_record"] == source["source_record"]
++        assert matches[0]["fact_review_status"] == "PENDING"
++        assert matches[0]["prediction_eligible"] is False
++        assert matches[0]["prediction_validation"] == "UNTESTED"
++
++
++def test_api_returns_read_only_asset_search_with_source_and_safety_flags():
++    app = FastAPI()
++    app.include_router(workbench_api.create_router(None))
++    response = TestClient(app).get("/api/v4/manager-workbench/mapping-catalog", params={"q": "CVE"})
++    assert response.status_code == 200
++    body = response.json()
++    assert body["state"] == "STRUCTURE_VALID"
++    assert body["gaps"] == [
++        "SOURCE_FACTS_NOT_INDEPENDENTLY_VERIFIED",
++        "PREDICTION_UNTESTED",
++        "HISTORICAL_PIT_NOT_VALIDATED",
++    ]
++    assert body["data"]["source"]["membership_snapshot"] == "2026-10-14"
++    assert body["data"]["safety"]["RESEARCH_ONLY"] is True
++    assert body["data"]["safety"]["production_allowed"] is False
++    assert body["data"]["safety"]["buy_gate_updated"] is False
++    assert body["data"]["safety"]["orders_sent"] is False
++    assert any(
++        relation["us_symbol"] == "CVE"
++        and relation["prediction_eligible"] is False
++        and relation["fact_review_status"] == "PENDING"
++        for item in body["data"]["items"]
++        for relation in item["relations"]
++    )
++
++
++def test_catalog_and_api_fail_closed_on_corrupt_data(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
++    catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
++    catalog["relations"][0]["source_record"]["status"] = "REVIEWED"
++    corrupted_catalog = tmp_path / "corrupted-catalog.json"
++    corrupted_catalog.write_text(json.dumps(catalog, ensure_ascii=False), encoding="utf-8")
++    with pytest.raises(CatalogValidationError, match="integrity check failed"):
++        load_catalog(corrupted_catalog)
++
++    monkeypatch.setattr(workbench_api, "US_MAPPING_CATALOG_PATH", corrupted_catalog)
++    app = FastAPI()
++    app.include_router(workbench_api.create_router(None))
++    response = TestClient(app).get("/api/v4/manager-workbench/mapping-catalog?q=CVE")
++    assert response.status_code == 503
++    body = response.json()
++    assert body["state"] == "FAILED"
++    assert body["data"] is None
++    assert body["gaps"] == ["US_HK_MAPPING_CATALOG_INVALID"]
++
++
++def test_rebuilder_rejects_changed_or_truncated_zip_before_producing_catalog(tmp_path: Path):
++    rebuild = _load_rebuild_module()
++    broken = tmp_path / "broken-source.zip"
++    with zipfile.ZipFile(broken, "w") as archive:
++        archive.writestr("README.md", "not the supplied package")
++    with pytest.raises(ValueError, match="source ZIP SHA mismatch"):
++        rebuild.build_catalog(broken, MEMBERSHIP_PATH)
+--- /dev/null
++++ b/apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts
+@@ -0,0 +1,103 @@
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import { cleanup, fireEvent, render, screen } from "@testing-library/vue";
++import Workbench from "../Workbench.vue";
++
++function envelope<T>(data: T, state = "READY"): Record<string, unknown> {
++  return {
++    schema_version: "v4.manager_workbench.v1", state, data, gaps: [],
++    RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false
++  };
++}
++function response(data: unknown): Response {
++  return new Response(JSON.stringify(data), { status: 200, headers: { "Content-Type": "application/json" } });
++}
++
++describe("source-bound US-to-HK research catalog", () => {
++  beforeEach(() => { window.history.replaceState(null, "", "?date=20261013"); });
++  afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
++
++  it("loads only on demand, searches an asset, and displays raw status and safety limits", async () => {
++    const day = {
++      snapshot: null, stocks: [], counts: null,
++      pagination: { total: 0, offset: 0, limit: 50 }, versions: []
++    };
++    const relation = {
++      source_row: 1, hk_code: "00001", us_symbol: "CVE",
++      source_record: {
++        type: "OWNERSHIP", segment: "联营投资", fact: "公司材料列明应占利润",
++        mechanism: "盈利与股权价值可影响投资收益", condition: "以正式盈利和权益变化为触发",
++        direction: "不预设当日方向", timescale: "消息日至数季",
++        failure: "业务分部抵消；持股变化；市场流动性",
++        evidence_strength: "HIGH", evidence_reason: "来源包中的明确关系陈述",
++        information_date: "2026-08-13", status: "HISTORICAL_ONLY",
++        mapping_status: "REVIEWED_WEAK_MAPPING", relation_verification: "VERIFIED_SCOPE_WITH_GAPS",
++        effective_candidate: "False", current_observation_candidate: "False", audit_only: "True",
++        prediction: "UNTESTED", old_action: "NOT_RUN", prediction_eligible: "False",
++        historical_PIT: "NOT_VALIDATED", url: "https://example.com/primary-evidence"
++      },
++      fact_review_status: "PENDING", prediction_eligible: false,
++      prediction_validation: "UNTESTED", historical_PIT: "NOT_VALIDATED"
++    };
++    const catalogData = {
++      catalog_id: "us_hk_667_20261015_from_20261014_membership",
++      catalog_state: "STRUCTURE_VALID_ONLY",
++      catalog_integrity_sha256: "a".repeat(64),
++      source: {
++        package_name: "逐股审核_001-667_实际研究结果.zip",
++        package_sha256: "dac3c820fcd6919fabdccc9c37ee9055b729b200fcde5e48f0dcf527de81bc6d",
++        membership_snapshot: "2026-10-14", membership_sha256: "9b799c0b74ac5047f4e44a1b3dfd1dfa5ca9ce978fa3b8e7877913c423424c9c",
++        zip_crc: "PASS", manifest: "PASS", package_member_count: 15
++      },
++      coverage: { membership_count: 667, relation_row_count: 1003, stocks_with_relations: 649 },
++      source_claims: {
++        main_table_a_progress: { REVIEWED: 667 },
++        main_table_a_prediction_state: { UNTESTED: 667 },
++        old_matrix_comparison: "NOT_RUN", independent_fact_verification: "PENDING"
++      },
++      safety: {
++        RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false,
++        orders_sent: false, prediction_validation: "UNTESTED", historical_PIT: "NOT_VALIDATED"
++      },
++      query: "CVE", total: 1, offset: 0, limit: 25,
++      items: [{
++        ordinal: 1, hk_code: "00001", name: "长和", english_name: "CKH HOLDINGS",
++        source_record: {
++          "研究行业": "综合企业", "主营": "港口、零售、基建、电讯及投资",
++          "盈利驱动": "分部盈利、投资收益与资产处置", "主要及辅助资产": "CVE",
++          "关系意义": "仅为研究线索", "研究进度": "REVIEWED"
++        },
++        relation_count: 1, relations: [relation]
++      }]
++    };
++    const spy = vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
++      const url = String(input);
++      if (url.includes("/mapping-catalog")) {
++        const query = new URL(url, "http://localhost").searchParams.get("q") || "";
++        const data = query ? catalogData : { ...catalogData, query: "", total: 0, items: [] };
++        return response(envelope(data, "STRUCTURE_VALID"));
++      }
++      return response(envelope(day, "NOT_RUN"));
++    });
++    vi.stubGlobal("fetch", spy);
++
++    render(Workbench);
++    await screen.findByText(/未读取|NOT_RUN/);
++    expect(spy.mock.calls.some(([input]) => String(input).includes("/mapping-catalog"))).toBe(false);
++
++    await fireEvent.click(screen.getByRole("tab", { name: "美股映射资料库" }));
++    await screen.findByText(/ZIP CRC：PASS；清单校验：PASS；包内文件：15/);
++    expect(screen.getByText(/预测状态 UNTESTED/)).toBeTruthy();
++
++    await fireEvent.update(screen.getByRole("textbox", { name: /按港股代码、港股名称或美股资产代码查询/ }), "CVE");
++    await fireEvent.click(screen.getByRole("button", { name: "查询资料" }));
++    await screen.findByText(/CVE · OWNERSHIP · 原始表行 1/);
++    expect(screen.getByText(/盈利与股权价值可影响投资收益/)).toBeTruthy();
++    expect(screen.getByText(/以正式盈利和权益变化为触发/)).toBeTruthy();
++    expect(screen.getByText(/业务分部抵消；持股变化；市场流动性/)).toBeTruthy();
++    expect(screen.getByText(/status=HISTORICAL_ONLY/)).toBeTruthy();
++    expect(screen.getByText(/current_observation_candidate=False；audit_only=True/)).toBeTruthy();
++    expect(screen.getByText(/事实独立核验 PENDING；预测资格固定为否；预测 UNTESTED；历史 PIT NOT_VALIDATED/)).toBeTruthy();
++    expect(screen.getByRole("link", { name: /打开来源：https:\/\/example.com\/primary-evidence/ })).toBeTruthy();
++    expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
++  });
++});
