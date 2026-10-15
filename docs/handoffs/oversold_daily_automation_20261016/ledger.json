@@ -1,0 +1,62 @@
+[
+  {
+    "worker": "oversold_daily_triage",
+    "milestone": "scheduler owner and minimal repair scope",
+    "dispatch_time": "2026-10-16T00:32+08:00",
+    "expected_terminal_type": "read-only evidence and implementation boundary",
+    "lifecycle_status": "COMPLETED",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true
+  },
+  {
+    "worker": "mapping700_intake",
+    "milestone": "560/700 complete supplement intake",
+    "dispatch_time": "2026-10-16T00:32:51.578362+08:00",
+    "expected_terminal_type": "read-only completeness and compatibility evidence",
+    "lifecycle_status": "COMPLETED",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true
+  },
+  {
+    "worker": "oversold_daily_writer",
+    "milestone": "daily scheduler deployed; controlled recovery 21/171/373/124; cache and bounded retry verified",
+    "dispatch_time": "2026-10-16T00:42:06.837314+08:00",
+    "expected_terminal_type": "candidate implementation receipt and tests; not deployed",
+    "lifecycle_status": "COMPLETED",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true
+  },
+  {
+    "worker": "mapping700_writer",
+    "milestone": "R2 activated API readback PASS",
+    "dispatch_time": "2026-10-16T00:42:06.837323+08:00",
+    "expected_terminal_type": "candidate implementation receipt and tests; not deployed",
+    "lifecycle_status": "COMPLETED",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true
+  },
+  {
+    "worker": "mapping700_review",
+    "milestone": "R2 live identity/API/static PASS",
+    "dispatch_time": "2026-10-16T00:57:24.720600+08:00",
+    "expected_terminal_type": "PASS/FAIL and independent test receipt",
+    "lifecycle_status": "COMPLETED",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true
+  },
+  {
+    "worker": "oversold_daily_review",
+    "milestone": "PASS_WITH_CANNOT_CONFIRM live scope; natural slot and failed-plan tick hash explicitly unverified",
+    "dispatch_time": "recorded in parent tool transcript",
+    "expected_terminal_type": "independent verdict",
+    "lifecycle_status": "COMPLETED",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true
+  }
+]
