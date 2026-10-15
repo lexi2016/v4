@@ -181,9 +181,45 @@ describe("pool and stage API boundary", () => {
       returned_rows: 100,
       rows: Array.from({ length: 100 }, (_, index) => ({ code: `HK.${index}` })),
     });
-    accepted.pool_count = 2;
+    accepted.pools.push({
+      pool_id: "wechat_public_account_v3_preselect",
+      market: "WECHAT",
+      status: "CANNOT_CONFIRM",
+      pool_size: 0,
+      returned_rows: 0,
+      page_offset: 0,
+      page_limit: POOL_PAGE_SIZE,
+      has_more: false,
+      complete: false,
+      rows: [],
+      cannot_confirm: ["WECHAT_OPTIONAL_POOL_NOT_MATERIALIZED"],
+    });
+    accepted.pool_count = 3;
     vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(accepted)));
-    await expect(loadPoolSnapshot("20261012")).resolves.toMatchObject({ data_status: "PARTIAL_WITH_ROWS" });
+    const acceptedResult = await loadPoolSnapshot("20261012");
+    expect(acceptedResult.data_status).toBe("PARTIAL_WITH_ROWS");
+    expect(acceptedResult.pools?.[2]).toMatchObject({
+      pool_id: "wechat_public_account_v3_preselect",
+      market: "WECHAT",
+      status: "CANNOT_CONFIRM",
+      rows: [],
+    });
+
+    const unregisteredWechat = poolPayload() as any;
+    unregisteredWechat.pools.push({
+      pool_id: "unregistered_wechat_pool",
+      market: "WECHAT",
+      status: "CANNOT_CONFIRM",
+      rows: [],
+    });
+    unregisteredWechat.pool_count = 2;
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(unregisteredWechat)));
+    await expect(loadPoolSnapshot("20261012")).rejects.toThrow("非法 market=WECHAT");
+
+    const invalidMarketTotal = poolPayload() as any;
+    invalidMarketTotal.market_totals.WECHAT = 0;
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(invalidMarketTotal)));
+    await expect(loadPoolSnapshot("20261012")).rejects.toThrow("market_totals 含非法市场 WECHAT");
   });
 
   it("requires explicit safe policy and flags for pool and stage responses", async () => {

@@ -145,7 +145,9 @@ function validatePoolResponse(payload: unknown, requestedDate: string, offset: n
       const group = item as JsonRecord;
       if (groupIds.has(group.pool_id as string)) invalid(label, "pool_id 重复");
       groupIds.add(group.pool_id as string);
-      if (group.market !== undefined && group.market !== "A" && group.market !== "HK") {
+      const isWechatPreselectionPool =
+        group.pool_id === "wechat_public_account_v3_preselect" && group.market === "WECHAT";
+      if (group.market !== undefined && group.market !== "A" && group.market !== "HK" && !isWechatPreselectionPool) {
         invalid(label, `非法 market=${String(group.market)}`);
       }
       status(group.status, label);
