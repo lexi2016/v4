@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from v4.manager_workbench.contracts import (
     HK, Counts, JobState, Lane, LaneResult, LaneState, Phase, RunContext, seal_snapshot,
 )
-from v4.manager_workbench.oversold_daily import OversoldDaily
+from v4.manager_workbench.oversold_daily import OversoldDaily, _CLASSIFIER_MIGRATION_SOURCE
 from v4.manager_workbench.scheduler import tick
 from v4.manager_workbench.service import ManagerService
 from v4.manager_workbench.store import WorkbenchStore
@@ -17,6 +17,8 @@ from v4.manager_workbench.store import WorkbenchStore
 
 SOURCE="20261016"
 TARGET="20261019"
+MIGRATION_SOURCE=_CLASSIFIER_MIGRATION_SOURCE["source_hk_session"]
+MIGRATION_TARGET=_CLASSIFIER_MIGRATION_SOURCE["target_date"]
 
 
 class MemoryStore:
@@ -69,6 +71,7 @@ class DailyService:
         self.submissions=[]
         self.submit_block=submit_block
         self.tdx_pin=None
+        self.source_day=SOURCE
         self.adapters=SimpleNamespace(panel_gap_plan=self.panel_gap_plan)
 
     def context(self,target_date,phase,*,trigger,cutoff,lanes,scope_refs=None):
@@ -83,7 +86,7 @@ class DailyService:
         refs=dict(scope_refs or {})
         refs.update(requested_lanes=[lane.value for lane in lanes],owner_bindings=bindings,owner_binding_gaps=gaps)
         return RunContext(target_date=target_date,phase=phase,cutoff=cutoff.isoformat(),trigger=trigger,
-            source_sessions={"hk_price":SOURCE,"us":"20261015"},rules_version="TEST_RULES",scope_refs=refs)
+            source_sessions={"hk_price":self.source_day,"us":"20261015"},rules_version="TEST_RULES",scope_refs=refs)
 
     def panel_gap_plan(self,context):
         return {"gap_codes":list(self.gap_codes),"target_date":context.target_date,
@@ -226,18 +229,18 @@ def test_capture_failures_have_three_attempts_and_visible_exhaustion(monkeypatch
         clock.set(datetime(2026,10,16,18,0,tzinfo=HK))
         assert daily.tick(source_day=SOURCE,target_date=TARGET,at=clock())["state"]=="RUNNING"
         state=wait_for_state(store,key,"JOB_PENDING")
-        assert state["capture_attempts"]==0 and len(service.submissions)==1
+        assert state["capture_attempts"]==3 and len(service.submissions)==1
     finally:
         daily.stop()
 
 
-def _capture_pin(service,index):
+def _capture_pin(service,index,source=SOURCE):
     manifest_sha=hex(index)[2:]*64
     service.tdx_pin=manifest_sha
     return dict(run_id=f"capture-{index}",manifest_sha256=manifest_sha,raw_sha256="f"*64,
         source_local_path="/tmp/fake-tdx",manifest_relative=f"runs/{SOURCE}/capture-{index}/manifest.json",
         raw_relative=f"runs/{SOURCE}/capture-{index}/raw_capture.json",available_at="2026-10-16T17:35:00+08:00",
-        target_date=SOURCE)
+        target_date=source)
 
 
 def _capture_evidence(error_type=None,error=None):
@@ -257,7 +260,8 @@ def test_normal_return_partial_transport_gap_retries_before_submission(monkeypat
         pin=_capture_pin(service,len(captures)+1);captures.append(pin)
         return pin
     def inspect(source,context,panel,master,pin):
-        return _capture_evidence("TimeoutError","timed out") if len(captures)==1 else _capture_evidence()
+        return (_capture_evidence("ResponseHeaderRecvFails","head_buf is not 0x10 : b''")
+            if len(captures)==1 else _capture_evidence())
     daily=OversoldDaily(service,clock=clock,capture=capture,inspect_capture=inspect,max_capture_attempts=3)
     key=daily.cursor_key(SOURCE,TARGET)
     try:
@@ -324,6 +328,71 @@ def test_transport_partial_after_capture_exhaustion_is_submitted_and_retained(mo
             lanes=[SimpleNamespace(lane=Lane.OVERSOLD,state=LaneState.PARTIAL)])
         assert daily.tick(source_day=SOURCE,target_date=TARGET,at=clock())["state"]=="PARTIAL_TERMINAL"
         assert store.cursor(key)["terminal_reason"]=="STABLE_OWNER_GAPS_RETAINED"
+    finally:
+        daily.stop()
+
+
+def _legacy_terminal_cursor():
+    return dict(_CLASSIFIER_MIGRATION_SOURCE,state="PARTIAL_TERMINAL",operation="DONE",
+        terminal_reason="STABLE_OWNER_GAPS_RETAINED",
+        capture_evidence_disposition="PARTIAL_SUBMITTED_NO_RETRYABLE_TRANSPORT",
+        capture_retryable_error_count=0,
+        tdxpy_manifest_sha256=_CLASSIFIER_MIGRATION_SOURCE["capture_manifest_sha256"])
+
+
+def test_exact_terminal_transport_migration_runs_once_and_preserves_budget(monkeypatch):
+    clock=FakeClock(datetime(2026,10,16,17,35,tzinfo=HK))
+    store=MemoryStore();service=DailyService(store,ready=True,gap_codes=["HK.00001"])
+    service.source_day=MIGRATION_SOURCE
+    captures=[]
+    def capture(source,context,plan):
+        pin=_capture_pin(service,len(captures)+1,source);captures.append(pin);return pin
+    def inspect(source,context,panel,master,pin):
+        return (_capture_evidence("ResponseHeaderRecvFails","head_buf is not 0x10 : b''")
+            if len(captures)==1 else _capture_evidence())
+    daily=OversoldDaily(service,clock=clock,capture=capture,inspect_capture=inspect)
+    daily._verify_classifier_migration_source=lambda *args,**kwargs: True
+    key=daily.cursor_key(MIGRATION_SOURCE,MIGRATION_TARGET)
+    store.set_cursor(key,_legacy_terminal_cursor())
+    try:
+        assert daily.tick(source_day=MIGRATION_SOURCE,target_date=MIGRATION_TARGET,at=clock())["state"]=="RUNNING"
+        state=wait_for_state(store,key,"RETRY_WAIT")
+        assert state["capture_attempts"]==2 and state["job_attempts"]==1
+        assert state["classifier_migration_attempts"]==1
+        assert state["capture_evidence_disposition"]=="PARTIAL_TRANSPORT_RETRY_PENDING"
+        next_retry=datetime.fromisoformat(state["next_retry_at"])
+        assert next_retry-clock.value>=timedelta(seconds=299)
+
+        clock.set(next_retry+timedelta(seconds=1))
+        assert daily.tick(source_day=MIGRATION_SOURCE,target_date=MIGRATION_TARGET,at=clock())["state"]=="RUNNING"
+        state=wait_for_state(store,key,"JOB_PENDING")
+        assert len(captures)==2 and len(service.submissions)==1
+        assert state["capture_attempts"]==3 and state["job_attempts"]==2
+        assert state["classifier_migration_attempts"]==1
+        job=service.submissions[0]["job"]
+        job.state=JobState.SUCCEEDED;job.finished_at="2026-10-16T18:00:00+08:00"
+        store.plans[job.run_id]=SimpleNamespace(run_id=job.run_id,
+            lanes=[SimpleNamespace(lane=Lane.OVERSOLD,state=LaneState.READY)])
+        assert daily.tick(source_day=MIGRATION_SOURCE,target_date=MIGRATION_TARGET,at=clock())["state"]=="SUCCEEDED"
+        assert daily.tick(source_day=MIGRATION_SOURCE,target_date=MIGRATION_TARGET,at=clock())["state"]=="SUCCEEDED"
+        assert len(captures)==2
+    finally:
+        daily.stop()
+
+
+def test_classifier_migration_does_not_unlock_a_different_terminal_cursor():
+    clock=FakeClock(datetime(2026,10,16,17,35,tzinfo=HK))
+    store=MemoryStore();service=DailyService(store,ready=True)
+    daily=OversoldDaily(service,clock=clock)
+    key=daily.cursor_key(MIGRATION_SOURCE,MIGRATION_TARGET)
+    state=_legacy_terminal_cursor();state["capture_manifest_sha256"]="f"*64
+    store.set_cursor(key,state)
+    try:
+        result=daily.tick(source_day=MIGRATION_SOURCE,target_date=MIGRATION_TARGET,at=clock())
+        assert result["state"]=="PARTIAL_TERMINAL"
+        assert store.cursor(key)["state"]=="PARTIAL_TERMINAL"
+        assert "classifier_migration_attempts" not in store.cursor(key)
+        assert service.submissions==[]
     finally:
         daily.stop()
 
