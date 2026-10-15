@@ -1,0 +1,123 @@
+{
+  "descriptor_sha256": "0e5769c23ec5cd6521849670b1f020deabd9ecc5431591d26b212ae00b5b66db",
+  "source_descriptor": {
+    "atol": 1e-06,
+    "contract": {
+      "adjustment_basis_status": "UNKNOWN",
+      "buy_gate_updated": false,
+      "currency_basis_status": "UNKNOWN",
+      "new_parquet_created": false,
+      "orders_sent": false,
+      "overlap_policy": "C owns every overlapping key; B supplements only keys absent from C",
+      "pit_safety_status": "UNKNOWN",
+      "production_allowed": false,
+      "raw_field_policy": "preserve source values; no rescaling or field aliasing",
+      "research_only": true,
+      "scoring_allowed": false,
+      "second_producer_created": false,
+      "units_status": "UNKNOWN"
+    },
+    "initial_c_snapshot": {
+      "manifest_relative": "panels/20261014-3958528f3441/manifest.json",
+      "manifest_sha256": "4c9a6c325a17e5341d6f1a9d82bdb89a688df6b36759222cac8c8c920657a76d",
+      "panel_rows": 460097,
+      "panel_sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+      "pointer_relative": "panel_latest.json",
+      "pointer_sha256": "47e680a7e58cf0985fffead2149ed1e8c3b1a9ec93a5c1f7f9e5f5ba93e6282c"
+    },
+    "market": "HK",
+    "metadata_only": [
+      {
+        "dataset": "A",
+        "id": "A_feature",
+        "kind": "feature",
+        "label_values_read": null,
+        "original_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/feature.parquet",
+        "path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260722_20260722_172235_10744/feature.parquet",
+        "read_policy": "METADATA_ONLY",
+        "sha256": "1437f5198e6d7a537bc2a11ad17e86042bb9ca2c894ad341126c0a7c05d0052e",
+        "size_bytes": 139225381
+      },
+      {
+        "dataset": "A",
+        "id": "A_label",
+        "kind": "label",
+        "label_values_read": false,
+        "original_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/label.parquet",
+        "path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260722_20260722_172235_10744/label.parquet",
+        "read_policy": "METADATA_ONLY",
+        "sha256": "f3340e6ea79268f4a1edf9fd701f702411254b8ce09dfd26b7882b29eb9d4018",
+        "size_bytes": 1687590
+      },
+      {
+        "dataset": "B",
+        "id": "B_operator_feature",
+        "kind": "feature",
+        "label_values_read": null,
+        "original_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_feature.parquet",
+        "path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260912_operator_d1_overnight/operator_feature.parquet",
+        "read_policy": "METADATA_ONLY",
+        "sha256": "47f926813b8085e8a66e9bdf9c8d1edfb595cdc04ed3d3eaf2525c104dad1a94",
+        "size_bytes": 157352913
+      },
+      {
+        "dataset": "B",
+        "id": "B_operator_label",
+        "kind": "label",
+        "label_values_read": false,
+        "original_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_label.parquet",
+        "path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260912_operator_d1_overnight/operator_label.parquet",
+        "read_policy": "METADATA_ONLY",
+        "sha256": "bfce3ce5f4000491eb01403ea08fecd341b92fcf9d2ab1b1e50eea47e69f077e",
+        "size_bytes": 17440217
+      }
+    ],
+    "migration": {
+      "compatibility_alias": "absolute symlink at each original package path",
+      "method": "same-device exclusive rename",
+      "old_package_paths": [
+        "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744",
+        "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight"
+      ],
+      "relocated_package_paths": [
+        "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260722_20260722_172235_10744",
+        "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260912_operator_d1_overnight"
+      ],
+      "source_audit_manifest_sha256": "eaa3121ddcac50631fe7d55a2870b1fb439bbf58caa18895784412f6ac15d589"
+    },
+    "owner": {
+      "asset_id": "hk_0_2",
+      "asset_schema_version": "v3_shared_data.hk_0_2_panel_asset.v2",
+      "manifest_relative_field": "manifest_relative",
+      "pointer_relative": "panel_latest.json",
+      "resolution_policy": "resolve-current-pointer-and-manifest-on-each-query"
+    },
+    "rtol": 1e-06,
+    "schema_version": 1,
+    "sources": {
+      "B": {
+        "columns": [
+          "code",
+          "date",
+          "open",
+          "high",
+          "low",
+          "close",
+          "trade",
+          "amount"
+        ],
+        "original_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/daily_bars.parquet",
+        "path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260912_operator_d1_overnight/daily_bars.parquet",
+        "row_count": 1014835,
+        "sha256": "17f5b62b6ec0264d48b6ee66ce0cd31aa8c1deb661e3e765b90b780add2eb230",
+        "size_bytes": 17142047,
+        "source_role": "raw_daily_history"
+      },
+      "C": {
+        "dynamic": true,
+        "owner": "hk_0_2",
+        "source_role": "existing_owner_panel"
+      }
+    }
+  }
+}

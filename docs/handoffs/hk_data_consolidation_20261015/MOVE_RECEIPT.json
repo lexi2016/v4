@@ -1,0 +1,215 @@
+{
+  "canonical_api_candidate": {
+    "active_runtime_reloaded": false,
+    "baseline_sha256": "5bb49c21de74eac44745d8b05f02c253fe1693b680843eee1a42bd3c71dd5f15",
+    "current_candidate_sha256": "b71d52e88dbf8898995611ec8649914672f6fce6c66eb0e5e5b1167c969d227b",
+    "path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_workbench/api.py"
+  },
+  "metadata_only": [
+    {
+      "id": "A_feature",
+      "label_values_read": null,
+      "path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260722_20260722_172235_10744/feature.parquet",
+      "read_policy": "METADATA_ONLY",
+      "sha256": "1437f5198e6d7a537bc2a11ad17e86042bb9ca2c894ad341126c0a7c05d0052e",
+      "size_bytes": 139225381
+    },
+    {
+      "id": "A_label",
+      "label_values_read": false,
+      "path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260722_20260722_172235_10744/label.parquet",
+      "read_policy": "METADATA_ONLY",
+      "sha256": "f3340e6ea79268f4a1edf9fd701f702411254b8ce09dfd26b7882b29eb9d4018",
+      "size_bytes": 1687590
+    },
+    {
+      "id": "B_operator_feature",
+      "label_values_read": null,
+      "path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260912_operator_d1_overnight/operator_feature.parquet",
+      "read_policy": "METADATA_ONLY",
+      "sha256": "47f926813b8085e8a66e9bdf9c8d1edfb595cdc04ed3d3eaf2525c104dad1a94",
+      "size_bytes": 157352913
+    },
+    {
+      "id": "B_operator_label",
+      "label_values_read": false,
+      "path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260912_operator_d1_overnight/operator_label.parquet",
+      "read_policy": "METADATA_ONLY",
+      "sha256": "bfce3ce5f4000491eb01403ea08fecd341b92fcf9d2ab1b1e50eea47e69f077e",
+      "size_bytes": 17440217
+    }
+  ],
+  "move": {
+    "copies_created": 0,
+    "method": "same_device_exclusive_os_rename",
+    "old_paths_preserved_as_absolute_symlinks": true,
+    "packages": [
+      {
+        "compatibility_alias": {
+          "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744",
+          "target": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260722_20260722_172235_10744",
+          "type": "absolute_symlink"
+        },
+        "directory_device": 16777229,
+        "directory_inode": 853403,
+        "files": [
+          {
+            "device": 16777229,
+            "inode": 1700614,
+            "name": "acceptance.json",
+            "sha256": "5082a1a14789f8c45084f84ed0d0386b529eaab735f984c6a6fed3653f42c03a",
+            "size_bytes": 8687
+          },
+          {
+            "device": 16777229,
+            "inode": 1689425,
+            "name": "feature.parquet",
+            "sha256": "1437f5198e6d7a537bc2a11ad17e86042bb9ca2c894ad341126c0a7c05d0052e",
+            "size_bytes": 139225381
+          },
+          {
+            "device": 16777229,
+            "inode": 1700615,
+            "name": "label.parquet",
+            "sha256": "f3340e6ea79268f4a1edf9fd701f702411254b8ce09dfd26b7882b29eb9d4018",
+            "size_bytes": 1687590
+          },
+          {
+            "device": 16777229,
+            "inode": 1700617,
+            "name": "manifest.json",
+            "sha256": "9c5ac66dbf870d37f0217bfd3cc7586553605853fb34fff5ce2a7e245c967b66",
+            "size_bytes": 6503
+          },
+          {
+            "device": 16777229,
+            "inode": 1700618,
+            "name": "summary.json",
+            "sha256": "85c092314e56dae264f9f7dadc55baa98b0c5db3c1b7cfa2987fbb751e75e1a3",
+            "size_bytes": 105193
+          }
+        ],
+        "original_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744",
+        "relocated_path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260722_20260722_172235_10744"
+      },
+      {
+        "compatibility_alias": {
+          "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight",
+          "target": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260912_operator_d1_overnight",
+          "type": "absolute_symlink"
+        },
+        "directory_device": 16777229,
+        "directory_inode": 26263824,
+        "files": [
+          {
+            "device": 16777229,
+            "inode": 26263828,
+            "name": "acceptance.json",
+            "sha256": "22b6844595a6cd198bc8b5ea9297552878e799851107f6a5988be7dc322eed1a",
+            "size_bytes": 905
+          },
+          {
+            "device": 16777229,
+            "inode": 26263825,
+            "name": "daily_bars.parquet",
+            "sha256": "17f5b62b6ec0264d48b6ee66ce0cd31aa8c1deb661e3e765b90b780add2eb230",
+            "size_bytes": 17142047
+          },
+          {
+            "device": 16777229,
+            "inode": 26263829,
+            "name": "manifest.json",
+            "sha256": "6e4eaddb7de0622e0849fab90aea236473c30440dbb7706eae984afc12d6f338",
+            "size_bytes": 2274
+          },
+          {
+            "device": 16777229,
+            "inode": 26263826,
+            "name": "operator_feature.parquet",
+            "sha256": "47f926813b8085e8a66e9bdf9c8d1edfb595cdc04ed3d3eaf2525c104dad1a94",
+            "size_bytes": 157352913
+          },
+          {
+            "device": 16777229,
+            "inode": 26263827,
+            "name": "operator_label.parquet",
+            "sha256": "bfce3ce5f4000491eb01403ea08fecd341b92fcf9d2ab1b1e50eea47e69f077e",
+            "size_bytes": 17440217
+          }
+        ],
+        "original_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight",
+        "relocated_path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260912_operator_d1_overnight"
+      }
+    ],
+    "source_payload_deleted": false,
+    "target_root": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件"
+  },
+  "owner_descriptor": {
+    "C_resolution": "dynamic panel_latest.json -> manifest_relative -> manifest panel_relative",
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/research_history.json",
+    "sha256": "54fbb5dd3db15353c06045bdf2be1937536b2873c58652dc6040a3073ec927cc",
+    "size_bytes": 5604,
+    "source_descriptor_sha256": "0e5769c23ec5cd6521849670b1f020deabd9ecc5431591d26b212ae00b5b66db"
+  },
+  "protected_state": {
+    "C_manifest_before_after_sha256": [
+      "4c9a6c325a17e5341d6f1a9d82bdb89a688df6b36759222cac8c8c920657a76d",
+      "4c9a6c325a17e5341d6f1a9d82bdb89a688df6b36759222cac8c8c920657a76d"
+    ],
+    "C_model_latest_before_after_sha256": [
+      "e739e8dcdc15fdb0cc89ddba216757d972f2ffa280a282b37e19340f97ff89e7",
+      "e739e8dcdc15fdb0cc89ddba216757d972f2ffa280a282b37e19340f97ff89e7"
+    ],
+    "C_panel_before_after_sha256": [
+      "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+      "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37"
+    ],
+    "C_pointer_before_after_sha256": [
+      "47e680a7e58cf0985fffead2149ed1e8c3b1a9ec93a5c1f7f9e5f5ba93e6282c",
+      "47e680a7e58cf0985fffead2149ed1e8c3b1a9ec93a5c1f7f9e5f5ba93e6282c"
+    ],
+    "relevant_plist_evidence": {
+      "aggregate_transaction_check": {
+        "captured_plist_count": 16,
+        "independent_all_file_status": "CANNOT_CONFIRM",
+        "per_file_hash_map_retained": false,
+        "writer_observed_before_after_hash_maps_equal": true
+      },
+      "capture_time_utc": "2026-10-15T04:38:42Z",
+      "files": [
+        {
+          "baseline_sha256": "20604d1b3daf2e6e77d2f1d64e42d865baa26e04bafdecf83231447685d3e5e3",
+          "baseline_source": "independent phase-2 audit value supplied by parent",
+          "current_matches_baseline": true,
+          "current_sha256": "20604d1b3daf2e6e77d2f1d64e42d865baa26e04bafdecf83231447685d3e5e3",
+          "current_size_bytes": 8034,
+          "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+          "role": "active_api"
+        },
+        {
+          "baseline_sha256": "317feeec98a924129f7926488b04a634f48fe6db54e53c32273fd5a4e6781e12",
+          "baseline_source": "independent phase-2 audit value supplied by parent",
+          "current_matches_baseline": true,
+          "current_sha256": "317feeec98a924129f7926488b04a634f48fe6db54e53c32273fd5a4e6781e12",
+          "current_size_bytes": 13860,
+          "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+          "role": "hk_scheduler"
+        }
+      ],
+      "no_plist_write_or_service_action_by_this_batch": true
+    }
+  },
+  "runtime_validation": {
+    "B_and_C_hashes_verified": true,
+    "active_C_pointer_manifest_panel_resolved": true,
+    "owner_descriptor_loaded": true,
+    "research_only": true,
+    "scoring_allowed": false
+  },
+  "schema_version": 1,
+  "source_audit_manifest": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_data_unification_audit_20261015/audit_manifest.json",
+    "sha256": "eaa3121ddcac50631fe7d55a2870b1fb439bbf58caa18895784412f6ac15d589"
+  },
+  "status": "MOVED_AND_IDENTITY_VERIFIED"
+}

@@ -1,0 +1,324 @@
+{
+  "descriptor_sha256": "bb9c1b5aeca577dce04579845730e0b66df9032b010031fe38d45380bf7eaa38",
+  "implementation": {
+    "path": "v4/hk_research_history.py",
+    "sha256": "cdc3f92b47c198f790d70083f18b8a9ee27b4928fbd67a32f10b7cf21d875472",
+    "size_bytes": 25309
+  },
+  "reconciliation": {
+    "status": "PASS_CANARY",
+    "descriptor_sha256": "bb9c1b5aeca577dce04579845730e0b66df9032b010031fe38d45380bf7eaa38",
+    "source_identity_before": {
+      "B": {
+        "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/daily_bars.parquet",
+        "size_bytes": 17142047,
+        "sha256": "17f5b62b6ec0264d48b6ee66ce0cd31aa8c1deb661e3e765b90b780add2eb230"
+      },
+      "C": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/hkconnect_vipdoc_daily_panel.parquet",
+        "size_bytes": 21117431,
+        "sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37"
+      },
+      "C_manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/manifest.json",
+        "size_bytes": 113580,
+        "sha256": "4c9a6c325a17e5341d6f1a9d82bdb89a688df6b36759222cac8c8c920657a76d"
+      }
+    },
+    "source_identity_after": {
+      "B": {
+        "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/daily_bars.parquet",
+        "size_bytes": 17142047,
+        "sha256": "17f5b62b6ec0264d48b6ee66ce0cd31aa8c1deb661e3e765b90b780add2eb230"
+      },
+      "C": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/hkconnect_vipdoc_daily_panel.parquet",
+        "size_bytes": 21117431,
+        "sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37"
+      },
+      "C_manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/manifest.json",
+        "size_bytes": 113580,
+        "sha256": "4c9a6c325a17e5341d6f1a9d82bdb89a688df6b36759222cac8c8c920657a76d"
+      }
+    },
+    "row_counts": {
+      "B": 1014835,
+      "C": 460097,
+      "B_classified_rows": 1014835,
+      "C_valid_keys": 460097,
+      "B_valid_keys": 1014835
+    },
+    "key_partition": {
+      "B_only": 577811,
+      "raw_matching_overlap": 406683,
+      "raw_conflicting_overlap": 30341,
+      "common": 437024,
+      "C_only": 23073,
+      "union_keys": 1037908
+    },
+    "classification_counts": {
+      "B-only": 577811,
+      "raw_matching_overlap": 406683,
+      "raw_conflicting_overlap": 30341,
+      "invalid_key": 0
+    },
+    "duplicate_key_counts": {
+      "B": 0,
+      "C": 0
+    },
+    "invalid_key_counts": {
+      "B": 0,
+      "C": 0
+    },
+    "field_mismatch_counts": {
+      "open": 507,
+      "high": 1014,
+      "low": 997,
+      "close": 1178,
+      "amount": 1355,
+      "trade": 30337
+    },
+    "known_conflict_pattern_counts": {
+      "20260706": 8,
+      "20260722": 621
+    },
+    "overlap_field_mismatch_checks": {
+      "amount": true,
+      "close": true,
+      "high": true,
+      "low": true,
+      "open": true,
+      "trade": true
+    },
+    "digests": {
+      "algorithm": "sha256 over source-order row SHA256 bytes; B uses raw 8 fields and C uses normalized key plus six raw numeric fields",
+      "B_classifications": {
+        "B-only": "950967eb13fdc89a8654700e2a94b03a0a2feb51f72855eb174db0f8b1efc234",
+        "raw_matching_overlap": "dc9011529c7bb587df2ea1fe29d640a91b7c98223543b778aba5e9f67448f24d",
+        "raw_conflicting_overlap": "3ce6c05e9ad7eeeb4ed324d0c3c686607878ae4ddbbfb0429c814de9af02227d",
+        "invalid_key": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "C_valid_rows": "f2f734a000ae57fbbc7b5162b3347c31aa287313e905a07d0fda50e75b3552ca",
+      "C_invalid_rows": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "C_only_rows": "45f847d0b9b0970a3e701083de2cc0cebbe03f08170e4692616e6e5898512a92"
+    },
+    "canaries": {
+      "B-only": {
+        "symbol": "HK.00001",
+        "date": "20180102",
+        "b_row_sha256": "f4ac19287d6c8b54c4fd18cb8087b2b8d3047fde6023af9c6753bf681b5c2db7"
+      },
+      "raw_matching_overlap": {
+        "symbol": "HK.00001",
+        "date": "20230630",
+        "b_row_sha256": "9c6220c3e6318432270c66e11d5159e02d2e91b94187374dad7687fa0c9b2f96",
+        "c_row_sha256": "fe686a60d6893ca672e4a474396b15f4b130f5d8f98b7ecb0111d1d596ed4afb",
+        "differing_fields": []
+      },
+      "raw_conflicting_overlap": {
+        "symbol": "HK.00001",
+        "date": "20260706",
+        "b_row_sha256": "32cec55002fd4cf0b85579ee98df6a40b1445a3e41a1b1e8b9a57c4cbb14c4fd",
+        "c_row_sha256": "94692a35357703f739f57b30a07a8e86af7824ac5fd68ad6a0b0ac2c128da77b",
+        "differing_fields": [
+          "low",
+          "close",
+          "amount",
+          "trade"
+        ]
+      },
+      "known_zero_in_c": {
+        "symbol": "HK.00001",
+        "date": "20260722",
+        "b_row_sha256": "57b8c9032439ac2ac86b97ecc20dfcd0774fd044e1e8064c8d406e98abc3f93c",
+        "c_row_sha256": "dd83e69d8a06a164a13a5f39763fda80b84181443cb2d166aa9ba2c8a6bed86f",
+        "differing_fields": [
+          "open",
+          "high",
+          "low",
+          "close",
+          "amount",
+          "trade"
+        ],
+        "pattern": "B trade and amount positive; C trade and amount zero"
+      }
+    },
+    "target_checks": {
+      "B_invalid_keys": true,
+      "B_only_keys": true,
+      "B_rows": true,
+      "C_invalid_keys": true,
+      "C_only_keys": true,
+      "common_keys": true,
+      "union_keys": true
+    },
+    "raw_market_rows_exported": false,
+    "semantic_or_unit_equivalence_claimed": false,
+    "scoring_allowed": false,
+    "research_only": true,
+    "acceptance_targets_sha256": "77564880a014ed2104fcc1f19acbb95824278c5649c4a36d47c8e1f5daba9f61"
+  },
+  "schema_version": 1,
+  "source_descriptor": {
+    "acceptance_targets": {
+      "B_invalid_keys": 0,
+      "B_only_keys": 577811,
+      "B_rows": 1014835,
+      "C_invalid_keys": 0,
+      "C_only_keys": 23073,
+      "common_keys": 437024,
+      "union_keys": 1037908
+    },
+    "atol": 1e-06,
+    "c_snapshot_binding": {
+      "activation": false,
+      "dynamic_active_pointer_validation": false,
+      "mode": "frozen_audit_snapshot_canary_only"
+    },
+    "descriptor_kind": "read_only_hk_research_history_union_canary",
+    "engine": {
+      "pyarrow": "23.0.1",
+      "python": "3.13.12"
+    },
+    "market": "HK",
+    "metadata_references_only_payload_not_read": {
+      "A_feature": {
+        "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/feature.parquet",
+        "payload_read": false,
+        "sha256": "1437f5198e6d7a537bc2a11ad17e86042bb9ca2c894ad341126c0a7c05d0052e",
+        "size_bytes": 139225381
+      },
+      "A_label": {
+        "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744/label.parquet",
+        "payload_read": false,
+        "sha256": "f3340e6ea79268f4a1edf9fd701f702411254b8ce09dfd26b7882b29eb9d4018",
+        "size_bytes": 1687590
+      },
+      "B_operator_feature": {
+        "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/operator_feature.parquet",
+        "payload_read": false,
+        "sha256": "47f926813b8085e8a66e9bdf9c8d1edfb595cdc04ed3d3eaf2525c104dad1a94",
+        "size_bytes": 157352913
+      }
+    },
+    "overlap_field_mismatch_targets": {
+      "amount": 1355,
+      "close": 1178,
+      "high": 1014,
+      "low": 997,
+      "open": 507,
+      "trade": 30337
+    },
+    "purpose": "C-preserving raw-history union with B-only supplementation",
+    "rtol": 1e-06,
+    "schema_version": 1,
+    "source_audit": {
+      "audit_script_sha256": "b338c936117b9a48142dc649a30eeb71348c85c4c7fcb1a2bbd8bffdcdf6fbad",
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_data_unification_audit_20261015/audit_manifest.json",
+      "sha256": "eaa3121ddcac50631fe7d55a2870b1fb439bbf58caa18895784412f6ac15d589",
+      "size_bytes": 7606
+    },
+    "sources": {
+      "B": {
+        "columns": [
+          "code",
+          "date",
+          "open",
+          "high",
+          "low",
+          "close",
+          "trade",
+          "amount"
+        ],
+        "key_columns": [
+          "code",
+          "date"
+        ],
+        "numeric_fields": [
+          "open",
+          "high",
+          "low",
+          "close",
+          "amount",
+          "trade"
+        ],
+        "path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight/daily_bars.parquet",
+        "role": "raw_daily_history",
+        "row_count": 1014835,
+        "sha256": "17f5b62b6ec0264d48b6ee66ce0cd31aa8c1deb661e3e765b90b780add2eb230",
+        "size_bytes": 17142047
+      },
+      "C": {
+        "columns": [
+          "trade_date",
+          "trade_date_compact",
+          "code_norm",
+          "ts_code",
+          "raw_code",
+          "market_type",
+          "exchange",
+          "open",
+          "high",
+          "low",
+          "close",
+          "amount",
+          "trade",
+          "position",
+          "source",
+          "source_path",
+          "continuity_break",
+          "pre_close",
+          "continuity_segment_id",
+          "pct_chg",
+          "amplitude_pct",
+          "intraday_high_pct",
+          "name",
+          "history_source",
+          "history_source_provider",
+          "history_source_row_sha256",
+          "history_source_raw_file_sha256",
+          "history_candidate_row_sha256",
+          "history_candidate_file_sha256",
+          "history_request_started_at",
+          "history_request_completed_at",
+          "volume_unit_status"
+        ],
+        "key_columns": [
+          "code_norm",
+          "trade_date"
+        ],
+        "manifest": {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/manifest.json",
+          "sha256": "4c9a6c325a17e5341d6f1a9d82bdb89a688df6b36759222cac8c8c920657a76d",
+          "size_bytes": 113580
+        },
+        "numeric_fields": [
+          "open",
+          "high",
+          "low",
+          "close",
+          "amount",
+          "trade"
+        ],
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261014-3958528f3441/hkconnect_vipdoc_daily_panel.parquet",
+        "role": "existing_hk_daily_panel",
+        "row_count": 460097,
+        "sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+        "size_bytes": 21117431
+      }
+    },
+    "union_policy": {
+      "adjustment_basis_status": "UNKNOWN",
+      "currency_basis_status": "UNKNOWN",
+      "feature_or_return_derivation": false,
+      "overlap_owner": "C",
+      "pit_safety_status": "UNKNOWN",
+      "raw_field_rescaling": false,
+      "research_only": true,
+      "scoring_allowed": false,
+      "supplement": "B-only rows only",
+      "units_status": "UNKNOWN"
+    }
+  }
+}

@@ -1,0 +1,277 @@
+{
+  "CANNOT_CONFIRM": [
+    "The live 8873 application does not serve the candidate route; no reload or deployment was authorized.",
+    "Units, currency basis, adjustment basis, and point-in-time safety of raw values remain unknown.",
+    "Independent reviewer acceptance is pending.",
+    "Unchanged identity for LaunchAgent plists outside the active API and HK scheduler files is CANNOT_CONFIRM: the transaction compared aggregate hash maps for 16 plists, but its per-file map was not retained."
+  ],
+  "canonical_api_candidate": {
+    "baseline_restored_in_memory_by_removing_only_import_and_route": true,
+    "baseline_restored_sha256": "5bb49c21de74eac44745d8b05f02c253fe1693b680843eee1a42bd3c71dd5f15",
+    "baseline_sha256": "5bb49c21de74eac44745d8b05f02c253fe1693b680843eee1a42bd3c71dd5f15",
+    "candidate_sha256": "b71d52e88dbf8898995611ec8649914672f6fce6c66eb0e5e5b1167c969d227b",
+    "unified_diff": "--- v4/manager_workbench/api.py (baseline)\n+++ v4/manager_workbench/api.py (candidate)\n@@ -19,6 +19,7 @@\n from .display_read import saved_names, display_stock, us_summary, lane_projection, lane_stock\n from .engines.common import US_FACTOR_RULES_VERSION\n from .us_mapping_catalog import CatalogValidationError, load_catalog, search_catalog\n+from v4.hk_research_history import OwnedHKResearchHistory\n \n PREFIX = \"/api/v4/manager-workbench\"\n US_MAPPING_CATALOG_PATH = Path(__file__).resolve().parent / \"research_data\" / \"us_hk_667_catalog_20261015.json\"\n@@ -126,6 +127,40 @@\n                 \"HISTORICAL_PIT_NOT_VALIDATED\",\n             ])\n         return _safe_errors(read)\n+\n+    @router.get(\"/hk-history\")\n+    def read_hk_history(\n+        symbol: str = Query(..., pattern=r\"^HK\\.[0-9]{5}$\"),\n+        start: str = Query(...),\n+        end: str = Query(...),\n+        offset: int = Query(0, ge=0),\n+        limit: int = Query(100, ge=1, le=200),\n+    ):\n+        if int(symbol[3:]) < 1:\n+            raise HTTPException(422, \"SYMBOL_INVALID\")\n+        if re.fullmatch(r\"[0-9]{8}\", start) is None or re.fullmatch(r\"[0-9]{8}\", end) is None:\n+            raise HTTPException(422, \"DATE_INVALID\")\n+        start_day = _date(start)\n+        end_day = _date(end)\n+\n+        def read():\n+            history = OwnedHKResearchHistory.from_shared_root(service.config.shared_root)\n+            data = history.query_union(\n+                symbol,\n+                start_day,\n+                end_day,\n+                offset=offset,\n+                limit=limit,\n+            )\n+            return envelope(\"READY\", _public(data), [\n+                \"RESEARCH_ONLY_RAW_HISTORY\",\n+                \"RAW_UNITS_UNKNOWN\",\n+                \"CURRENCY_BASIS_UNKNOWN\",\n+                \"ADJUSTMENT_BASIS_UNKNOWN\",\n+                \"PIT_SAFETY_UNKNOWN\",\n+                \"SCORING_DISABLED\",\n+            ])\n+        return _safe_errors(read)\n \n     @router.get(\"/days/{date}\")\n     def read_day(date: str, phase: Phase | None = None, run_id: str | None = None,\n",
+    "unified_diff_sha256": "721cba5882ca03994f6e874a3e001e63d4255bb12d64c073c26799253a3a1e3d"
+  },
+  "focused_tests": {
+    "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m unittest tests.test_hk_research_history -v",
+    "result": "PASS",
+    "tests_passed": 8
+  },
+  "frozen_full_reconciliation": {
+    "counts": {
+      "B": 1014835,
+      "B_classified_rows": 1014835,
+      "B_valid_keys": 1014835,
+      "C": 460097,
+      "C_valid_keys": 460097
+    },
+    "duplicate_key_counts": {
+      "B": 0,
+      "C": 0
+    },
+    "field_mismatch_counts": {
+      "amount": 1355,
+      "close": 1178,
+      "high": 1014,
+      "low": 997,
+      "open": 507,
+      "trade": 30337
+    },
+    "full_partition_rerun_in_phase2": false,
+    "invalid_key_counts": {
+      "B": 0,
+      "C": 0
+    },
+    "key_partition": {
+      "B_only": 577811,
+      "C_only": 23073,
+      "common": 437024,
+      "raw_conflicting_overlap": 30341,
+      "raw_matching_overlap": 406683,
+      "union_keys": 1037908
+    },
+    "predicate_note": "Strict AND predicate totals 629 (8 on 20260706, 621 on 20260722); broader OR presentation predicate totals 630 and includes HK.03403 with positive B amount and nonpositive B trade.",
+    "raw_market_rows_exported": false,
+    "receipt_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_data_consolidation_20261015/reconciliation.json",
+    "receipt_sha256": "8ef66157427b968ba9302ecc337e93c663896565355f2798c9710f0494912a81",
+    "semantic_or_unit_equivalence_claimed": false,
+    "status": "PASS_CANARY",
+    "strict_positive_B_zero_C_pattern_counts": {
+      "20260706": 8,
+      "20260722": 621
+    }
+  },
+  "generated_at_utc": "2026-10-15T04:29:21Z",
+  "implementation": {
+    "B_policy": "pinned raw daily history; adds only keys absent from active C panel",
+    "C_resolution": "read panel_latest.json -> current manifest_relative -> manifest panel_relative on each request",
+    "active_runtime_reloaded": false,
+    "adapter_path": "/Users/lexi/Desktop/学习/v4_app/v4/hk_research_history.py",
+    "api_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_workbench/api.py",
+    "api_route": "/api/v4/manager-workbench/hk-history",
+    "buy_gate_updated": false,
+    "deployed": false,
+    "orders_sent": false,
+    "overlap_policy": "C owns every overlapping key; raw source values preserved without rescaling",
+    "owner_descriptor_file_sha256": "54fbb5dd3db15353c06045bdf2be1937536b2873c58652dc6040a3073ec927cc",
+    "owner_descriptor_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/research_history.json",
+    "owner_source_descriptor_sha256": "0e5769c23ec5cd6521849670b1f020deabd9ecc5431591d26b212ae00b5b66db",
+    "production_allowed": false,
+    "research_only": true,
+    "scoring_allowed": false,
+    "tests_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_hk_research_history.py"
+  },
+  "moves": {
+    "all_source_payloads_retained": true,
+    "copies_created": 0,
+    "method": "same_device_exclusive_os_rename",
+    "old_paths_are_absolute_symlinks": true,
+    "packages": [
+      {
+        "directory_inode": 853403,
+        "files": 5,
+        "original_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260722/20260722_20260722_172235_10744",
+        "relocated_path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260722_20260722_172235_10744"
+      },
+      {
+        "directory_inode": 26263824,
+        "files": 5,
+        "original_path": "/Users/lexi/Desktop/学习/数据/港股/hk_connect_research_panels/versions/20260912/20260912_operator_d1_overnight",
+        "relocated_path": "/Users/lexi/Desktop/待删除/港股统一_20261015_旧面板原件/20260912_operator_d1_overnight"
+      }
+    ],
+    "receipt_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_data_consolidation_20261015/MOVE_RECEIPT.json",
+    "receipt_sha256": "fdad2a1e5e784db061459fa07e3746ff2dbfb855fcff9c11fc5b5d71cbc84398",
+    "status": "MOVED_AND_IDENTITY_VERIFIED"
+  },
+  "next_step": "Independent Luna Max reviewer inspects actual diff, frozen PASS scope, tests, and target behavior; stop before runtime integration.",
+  "protected_runtime_state": {
+    "C_manifest_before_after_sha256": [
+      "4c9a6c325a17e5341d6f1a9d82bdb89a688df6b36759222cac8c8c920657a76d",
+      "4c9a6c325a17e5341d6f1a9d82bdb89a688df6b36759222cac8c8c920657a76d"
+    ],
+    "C_model_latest_before_after_sha256": [
+      "e739e8dcdc15fdb0cc89ddba216757d972f2ffa280a282b37e19340f97ff89e7",
+      "e739e8dcdc15fdb0cc89ddba216757d972f2ffa280a282b37e19340f97ff89e7"
+    ],
+    "C_panel_before_after_sha256": [
+      "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+      "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37"
+    ],
+    "C_pointer_before_after_sha256": [
+      "47e680a7e58cf0985fffead2149ed1e8c3b1a9ec93a5c1f7f9e5f5ba93e6282c",
+      "47e680a7e58cf0985fffead2149ed1e8c3b1a9ec93a5c1f7f9e5f5ba93e6282c"
+    ],
+    "relevant_plist_evidence": {
+      "aggregate_transaction_check": {
+        "captured_plist_count": 16,
+        "independent_all_file_status": "CANNOT_CONFIRM",
+        "per_file_hash_map_retained": false,
+        "writer_observed_before_after_hash_maps_equal": true
+      },
+      "capture_time_utc": "2026-10-15T04:38:42Z",
+      "files": [
+        {
+          "baseline_sha256": "20604d1b3daf2e6e77d2f1d64e42d865baa26e04bafdecf83231447685d3e5e3",
+          "baseline_source": "independent phase-2 audit value supplied by parent",
+          "current_matches_baseline": true,
+          "current_sha256": "20604d1b3daf2e6e77d2f1d64e42d865baa26e04bafdecf83231447685d3e5e3",
+          "current_size_bytes": 8034,
+          "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+          "role": "active_api"
+        },
+        {
+          "baseline_sha256": "317feeec98a924129f7926488b04a634f48fe6db54e53c32273fd5a4e6781e12",
+          "baseline_source": "independent phase-2 audit value supplied by parent",
+          "current_matches_baseline": true,
+          "current_sha256": "317feeec98a924129f7926488b04a634f48fe6db54e53c32273fd5a4e6781e12",
+          "current_size_bytes": 13860,
+          "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+          "role": "hk_scheduler"
+        }
+      ],
+      "no_plist_write_or_service_action_by_this_batch": true
+    }
+  },
+  "real_key_canaries": {
+    "raw_market_rows_exported": false,
+    "results": [
+      {
+        "category": "B-only",
+        "direct_adapter": {
+          "overlap_status": "B-only",
+          "row_sha256": "f4ac19287d6c8b54c4fd18cb8087b2b8d3047fde6023af9c6753bf681b5c2db7",
+          "source": "B",
+          "status": "PASS"
+        },
+        "isolated_testclient": {
+          "http_status": 200,
+          "overlap_status": "B-only",
+          "research_only": true,
+          "row_sha256": "f4ac19287d6c8b54c4fd18cb8087b2b8d3047fde6023af9c6753bf681b5c2db7",
+          "scoring_allowed": false,
+          "source": "B",
+          "state": "READY",
+          "status": "PASS"
+        },
+        "key": {
+          "date": "20180102",
+          "symbol": "HK.00001"
+        },
+        "overlap_status": "B-only",
+        "row_sha256": "f4ac19287d6c8b54c4fd18cb8087b2b8d3047fde6023af9c6753bf681b5c2db7",
+        "source": "B",
+        "source_sha256": "17f5b62b6ec0264d48b6ee66ce0cd31aa8c1deb661e3e765b90b780add2eb230"
+      },
+      {
+        "category": "raw_matching_overlap",
+        "direct_adapter": {
+          "overlap_status": "raw_matching_overlap",
+          "row_sha256": "fe686a60d6893ca672e4a474396b15f4b130f5d8f98b7ecb0111d1d596ed4afb",
+          "source": "C",
+          "status": "PASS"
+        },
+        "isolated_testclient": {
+          "http_status": 200,
+          "overlap_status": "raw_matching_overlap",
+          "research_only": true,
+          "row_sha256": "fe686a60d6893ca672e4a474396b15f4b130f5d8f98b7ecb0111d1d596ed4afb",
+          "scoring_allowed": false,
+          "source": "C",
+          "state": "READY",
+          "status": "PASS"
+        },
+        "key": {
+          "date": "20230630",
+          "symbol": "HK.00001"
+        },
+        "overlap_status": "raw_matching_overlap",
+        "row_sha256": "fe686a60d6893ca672e4a474396b15f4b130f5d8f98b7ecb0111d1d596ed4afb",
+        "source": "C",
+        "source_sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37"
+      },
+      {
+        "category": "raw_conflicting_overlap",
+        "direct_adapter": {
+          "overlap_status": "raw_conflicting_overlap",
+          "row_sha256": "94692a35357703f739f57b30a07a8e86af7824ac5fd68ad6a0b0ac2c128da77b",
+          "source": "C",
+          "status": "PASS"
+        },
+        "isolated_testclient": {
+          "http_status": 200,
+          "overlap_status": "raw_conflicting_overlap",
+          "research_only": true,
+          "row_sha256": "94692a35357703f739f57b30a07a8e86af7824ac5fd68ad6a0b0ac2c128da77b",
+          "scoring_allowed": false,
+          "source": "C",
+          "state": "READY",
+          "status": "PASS"
+        },
+        "key": {
+          "date": "20260706",
+          "symbol": "HK.00001"
+        },
+        "overlap_status": "raw_conflicting_overlap",
+        "row_sha256": "94692a35357703f739f57b30a07a8e86af7824ac5fd68ad6a0b0ac2c128da77b",
+        "source": "C",
+        "source_sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37"
+      }
+    ],
+    "status": "PASS_THREE_REAL_KEY_CANARIES"
+  },
+  "runtime_plist_evidence": {
+    "aggregate_transaction_check": {
+      "captured_plist_count": 16,
+      "independent_all_file_status": "CANNOT_CONFIRM",
+      "per_file_hash_map_retained": false,
+      "writer_observed_before_after_hash_maps_equal": true
+    },
+    "capture_time_utc": "2026-10-15T04:38:42Z",
+    "files": [
+      {
+        "baseline_sha256": "20604d1b3daf2e6e77d2f1d64e42d865baa26e04bafdecf83231447685d3e5e3",
+        "baseline_source": "independent phase-2 audit value supplied by parent",
+        "current_matches_baseline": true,
+        "current_sha256": "20604d1b3daf2e6e77d2f1d64e42d865baa26e04bafdecf83231447685d3e5e3",
+        "current_size_bytes": 8034,
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+        "role": "active_api"
+      },
+      {
+        "baseline_sha256": "317feeec98a924129f7926488b04a634f48fe6db54e53c32273fd5a4e6781e12",
+        "baseline_source": "independent phase-2 audit value supplied by parent",
+        "current_matches_baseline": true,
+        "current_sha256": "317feeec98a924129f7926488b04a634f48fe6db54e53c32273fd5a4e6781e12",
+        "current_size_bytes": 13860,
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+        "role": "hk_scheduler"
+      }
+    ],
+    "no_plist_write_or_service_action_by_this_batch": true
+  },
+  "schema_version": 1,
+  "scope": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_data_consolidation_20261015/SCOPE.md",
+  "status": "PHASE2_CANARY_PASS_PENDING_INDEPENDENT_REVIEW"
+}
