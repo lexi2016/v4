@@ -1,0 +1,66 @@
+{
+  "status": "REMOTE_HEAD_AND_CONTENT_READBACK_VERIFIED",
+  "repository": "lexi2016/v4",
+  "branch": "codex/us-hk-mapping-finish-20261015",
+  "verified_head": "de9bf48ac54adfb21a970e28909c63ad3bd98711",
+  "baseline": "de51a794173cd4d48ac607da36e41a241fe51a83",
+  "previous_verified_groups": [
+    {
+      "head": "4cfc335e73a7876caf97883b728aa23da334139e",
+      "files": 7
+    },
+    {
+      "head": "79f9ec3d1dceff14cfefd247763402db4040ab98",
+      "files": 9
+    },
+    {
+      "head": "7fbf0a60b00f9df6f95328f9ce0d231689b43263",
+      "files": [
+        {
+          "path": "docs/handoffs/us_hk_667_runtime_finish_20261015/r2/active-to-candidate.diff",
+          "sha256": "3296b5665abd6fcfa94c79e0b3e37b058bb90941d0549a91dc57a907a75e88b8",
+          "readback_match": true
+        },
+        {
+          "path": "docs/handoffs/us_hk_667_runtime_finish_20261015/r2/prepare_exact_delta.py",
+          "sha256": "65f86c97378f27106953faaa752c889d8221930d9ba3bd7273897a34943a3319",
+          "readback_match": true
+        },
+        {
+          "path": "docs/handoffs/us_hk_667_finish_review_20261015/R2_RUNTIME_REVIEW_RECEIPT.md",
+          "sha256": "711f51614ee6b9bd192f5a10a001c116f18a3a65b0f8af2cd968f5b304c45199",
+          "readback_match": true
+        }
+      ]
+    }
+  ],
+  "final_files": [
+    {
+      "path": "docs/handoffs/us_hk_667_runtime_finish_20261015/r2/deploy_reviewed_candidate.py",
+      "sha256": "8dcb31cc3c2fe2d8f74fdd02839fbe206f385247bd2c08a74bad29118169c87b",
+      "readback_match": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_667_runtime_finish_20261015/r2/LIVE_DEPLOYMENT_RECEIPT.md",
+      "sha256": "cd674372413d32b2ab8e9a86af055f24028448f241aef2b46655886d6f4fc4fa",
+      "readback_match": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_667_finish_review_20261015/UI_RUNTIME_RECEIPT.md",
+      "sha256": "a7dd3553902e0c91472cd53dabc384a9222a4658b630a53b9cd4492b1b5d2b6b",
+      "readback_match": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_667_finish_review_20261015/LIVE_RUNTIME_REVIEW_RECEIPT.md",
+      "sha256": "79cf51eb7414b0bfc356bad18475cd2deb418fba482e49b30e5ae07a00c3fdbe",
+      "readback_match": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_667_finish_20261015/DELIVERY.md",
+      "sha256": "04978a9713af108d331c134383c8d203e0c5cd655096f1d540c73bd6b2e54b27",
+      "readback_match": true
+    }
+  ],
+  "sync_format": "Source patches and necessary helpers/compact receipts. No remote application-file integration or merge claimed.",
+  "excluded": "Bulk research JSON/ZIP/raw market data/generated dist/credentials/venv/node_modules"
+}
