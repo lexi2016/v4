@@ -1,0 +1,31 @@
+{
+  "files": [
+    {
+      "candidate_artifact": "runtime_candidate_r4/v4/manager_workbench/oversold_daily.py",
+      "candidate_sha256": "9ebeed117ee883805ac8a5e3331cb53fa688892905dd8292912ee5ba4b20099e",
+      "change": "replace only after exact r4 preimage comparison",
+      "path": "v4/manager_workbench/oversold_daily.py",
+      "runtime_preimage_artifact": "runtime_preimage_r4/v4/manager_workbench/oversold_daily.py",
+      "runtime_preimage_sha256": "1a88ac9c1bb3e1a2d68fff350a69204a65b7ebb782f27512bb4fc1c45f9b0583"
+    },
+    {
+      "candidate_artifact": "runtime_candidate_r4/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "candidate_sha256": "7b09a85431b2d4398de4f057a755b8b7398e82e26611297df9ba2efab8dbb250",
+      "change": "replace only after exact r4 preimage comparison",
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "runtime_preimage_artifact": "runtime_preimage_r4/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "runtime_preimage_sha256": "62513b42bcd133d3c447b9b797b81c19f43a306c9544ce97a11447db93b54e9e"
+    }
+  ],
+  "patch": {
+    "path": "runtime_exact_delta_r4.patch",
+    "sha256": "45ade21a1373ca418cb5208162c321deade6d141bb6dcb1d16d14e61a3b11669"
+  },
+  "release_id": "zsxq-pdf-ocr-scheduler-20261016-r4",
+  "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-pdf-ocr-scheduler-20261016-r4/release-manifest.json",
+  "release_manifest_sha256": "4710696eb61e60ac5dbd1ea56aa2e7a3762d9c1f9170d206b4dc0beac4769e91",
+  "runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-pdf-ocr-scheduler-20261016-r4/app",
+  "runtime_root_resolved": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-pdf-ocr-scheduler-20261016-r4/app",
+  "scope": "Two-file OVERSOLD transport/cache repair only; no activation or live capture.",
+  "status": "PREPARED_NOT_DEPLOYED"
+}
