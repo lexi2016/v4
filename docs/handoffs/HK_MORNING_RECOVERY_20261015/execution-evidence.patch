@@ -1,0 +1,1050 @@
+--- a/stage_center/execution_evidence.py
++++ b/stage_center/execution_evidence.py
+@@ -266,7 +266,7 @@
+             raise ValueError("selection changed after original store verification")
+         return {
+             "status": "BOUND_TO_VERIFIED_SELECTION_TRIO" if history_bound else "SELECTION_TRIO_MATCHES_CURRENT_RECEIPT_HISTORY_UNBOUND",
+-            "run_id": declared["run_id"], **hashes,
++            "run_id": declared["run_id"], **paths, **hashes,
+             "execution_verified": False, "natural_verified": False,
+         }
+     except (OSError, ValueError, TypeError, KeyError, AttributeError, UnicodeError, RecursionError):
+@@ -307,6 +307,7 @@
+         observed_decision = evaluate_due(stage_id, trade_date, observed)
+         status = "ON_SCHEDULE_MINUTE_OBSERVED" if decision.status == observed_decision.status == "DUE" else "OUTSIDE_SCHEDULE_MINUTE_OBSERVED"
+         return {"status": status, "evaluated_at": at.isoformat(), "observed_start_at": observed.isoformat(),
++                "scheduled_at": decision.scheduled_at.isoformat() if decision.scheduled_at else None,
+                 "delay_seconds": (at - decision.scheduled_at).total_seconds() if decision.scheduled_at else None,
+                 "original_due_status": receipt.get("due_status"),
+                 "legacy_exact_second_misclassification": status == "ON_SCHEDULE_MINUTE_OBSERVED" and receipt.get("due_status") == "LATE_CATCHUP_REPLAY",
+@@ -333,6 +334,14 @@
+         "selection_results": _verified_result_summaries(trade_date, stage_id, verified_markets),
+         "receipt_history_binding": "OWNER_HISTORY_NOT_RECORDED",
+         "selection_artifact_bindings": {},
++        "independent_execution_review": {"status": "CANNOT_CONFIRM", "scope_markets": [],
++                                         "cannot_confirm": ["INDEPENDENT_REVIEW_NOT_AVAILABLE"]},
++        "operating_execution_by_market": {
++            market: {"status": "CANNOT_CONFIRM", "scope_markets": [],
++                     "execution_verified": False, "natural_verified": False,
++                     "cannot_confirm": ["INDEPENDENT_REVIEW_NOT_AVAILABLE"]}
++            for market in STAGE_BY_ID[stage_id].markets
++        },
+         "RESEARCH_ONLY": True, "production_allowed": False,
+         "buy_gate_updated": False, "orders_sent": False,
+     }
+@@ -466,4 +475,32 @@
+         for binding in result["selection_artifact_bindings"].values():
+             if binding["status"] == "BOUND_TO_VERIFIED_SELECTION_TRIO":
+                 binding["status"] = "SELECTION_TRIO_MATCHES_OBSERVED_RECEIPT_CURRENT_CHANGED"
++    else:
++        from .independent_execution_review import read_independent_execution_review
++        independent = read_independent_execution_review(
++            root, trade_date, stage_id, receipt=receipt, receipt_bytes=raw,
++            receipt_sha256=result["observed_sha256"], receipt_history_binding=history,
++            selection_bindings=result["selection_artifact_bindings"],
++            verified_markets=verified_markets, selection_store=selection_store,
++            selection_stores=selection_stores,
++        )
++        result["independent_execution_review"] = {
++            key: value for key, value in independent.items() if key != "markets"
++        }
++        result["operating_execution_by_market"] = independent["markets"]
++        result["cannot_confirm"] = list(dict.fromkeys([*result["cannot_confirm"], *independent["cannot_confirm"]]))
++        expected_markets = list(STAGE_BY_ID[stage_id].markets)
++        if (independent.get("status") == "VERIFIED_FOR_EXPLICIT_SCOPE"
++                and independent.get("scope_markets") == expected_markets
++                and all(independent["markets"].get(market, {}).get("natural_verified") is True
++                        for market in expected_markets)):
++            result["execution_verified"] = True
++            result["natural_verified"] = True
++            result["cannot_confirm"] = [reason for reason in result["cannot_confirm"]
++                                         if reason != "NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING"]
++            result["status"] = "INDEPENDENT_NATURAL_EXECUTION_VERIFIED"
++        elif independent.get("status") == "VERIFIED_FOR_EXPLICIT_SCOPE":
++            result["cannot_confirm"] = [reason for reason in result["cannot_confirm"]
++                                         if reason != "NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING"]
++            result["cannot_confirm"].append("AGGREGATE_EXECUTION_SCOPE_NOT_COVERED")
+     return result
+--- /dev/null
++++ b/stage_center/independent_execution_review.py
+@@ -0,0 +1,406 @@
++"""Read-only consumer for separately published execution-review attestations.
++
++The review file is deliberately not produced here.  A distinct reviewer must
++inspect contemporaneous evidence and publish one immutable attestation plus
++its SHA index.  This reader checks those bytes against the current configured
++receipt, owner-history, selection, source, and attempt evidence.
++"""
++from __future__ import annotations
++
++from datetime import datetime
++import hashlib
++import json
++from pathlib import Path
++import re
++from typing import Any, Mapping
++from zoneinfo import ZoneInfo
++
++from infrastructure.owned_io import SafeRoot
++from .contracts import STAGE_BY_ID
++
++_MAX_REVIEW_BYTES = 1_048_576
++_MAX_SOURCE_BYTES = 64 * 1024 * 1024
++_SHA256 = re.compile(r"[0-9a-f]{64}")
++_REVIEW_ROOT = "independent_execution_reviews"
++_SELECTION_HASHES = (
++    "artifact_bytes_sha256", "manifest_bytes_sha256", "receipt_bytes_sha256",
++    "manifest_canonical_sha256", "receipt_canonical_sha256",
++)
++_SELECTION_PATHS = ("artifact_relative", "manifest_relative", "receipt_relative")
++_REPLAY_ORIGINS = frozenset({
++    "MANUAL_REPLAY", "CURRENT_DAY_RESEARCH_REPLAY", "HISTORICAL_BACKFILL", "LATE_CATCHUP_REPLAY",
++})
++_SHANGHAI = ZoneInfo("Asia/Shanghai")
++
++
++class _ReviewError(ValueError):
++    def __init__(self, reason: str):
++        super().__init__(reason)
++        self.reason = reason
++
++
++def _sha(raw: bytes) -> str:
++    return hashlib.sha256(raw).hexdigest()
++
++
++def _canonical_bytes(value: Any) -> bytes:
++    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
++
++
++def _strict_json(raw: bytes) -> Any:
++    def pairs(items):
++        result = {}
++        for key, value in items:
++            if key in result:
++                raise _ReviewError("INDEPENDENT_REVIEW_DUPLICATE_JSON_KEY")
++            result[key] = value
++        return result
++
++    try:
++        return json.loads(raw, object_pairs_hook=pairs)
++    except _ReviewError:
++        raise
++    except (ValueError, UnicodeError, RecursionError) as exc:
++        raise _ReviewError("INDEPENDENT_REVIEW_JSON_INVALID") from exc
++
++
++def _is_sha(value: Any) -> bool:
++    return isinstance(value, str) and _SHA256.fullmatch(value) is not None
++
++
++def _read(root: Path, relative: str, *, max_bytes: int = _MAX_REVIEW_BYTES) -> bytes:
++    try:
++        return SafeRoot(root).read_bytes(relative, max_bytes=max_bytes)
++    except FileNotFoundError as exc:
++        raise _ReviewError("INDEPENDENT_REVIEW_FILE_MISSING") from exc
++    except (OSError, ValueError) as exc:
++        raise _ReviewError("INDEPENDENT_REVIEW_PATH_OR_SIZE_REFUSED") from exc
++
++
++def _utc_timestamp(value: Any) -> bool:
++    if not isinstance(value, str):
++        return False
++    try:
++        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
++        return parsed.utcoffset() is not None and parsed.utcoffset().total_seconds() == 0
++    except (TypeError, ValueError):
++        return False
++
++
++def _default_market_facts(stage_id: str, reason: str) -> dict[str, dict[str, Any]]:
++    return {
++        market: {
++            "status": "CANNOT_CONFIRM", "scope_markets": [],
++            "execution_verified": False, "natural_verified": False,
++            "cannot_confirm": [reason],
++        }
++        for market in STAGE_BY_ID[stage_id].markets
++    }
++
++
++def _source_evidence_valid(
++    source_binding: Any, source_evidence: Any, stage_state_root: Path,
++) -> tuple[list[tuple[Path, str, bytes]], list[dict[str, str]]]:
++    if not isinstance(source_binding, dict):
++        raise _ReviewError("INDEPENDENT_SOURCE_BINDING_MISSING")
++    if not isinstance(source_evidence, (list, tuple)) or not source_evidence or any(not isinstance(item, str) for item in source_evidence):
++        raise _ReviewError("CURRENT_SELECTION_SOURCE_EVIDENCE_MISSING")
++    if source_binding.get("source_evidence_sha256") != _sha(_canonical_bytes(list(source_evidence))):
++        raise _ReviewError("CURRENT_SOURCE_EVIDENCE_SHA_MISMATCH")
++    sources = source_binding.get("sources")
++    if not isinstance(sources, list) or not sources:
++        raise _ReviewError("INDEPENDENT_SOURCE_FILES_MISSING")
++    snapshots: list[tuple[Path, str, bytes]] = []
++    normalized: list[dict[str, str]] = []
++    seen_paths: set[str] = set()
++    for item in sources:
++        if not isinstance(item, dict):
++            raise _ReviewError("INDEPENDENT_SOURCE_BINDING_INVALID")
++        identity = item.get("identity")
++        source_path = item.get("path")
++        digest = item.get("sha256")
++        cutoff = item.get("cutoff")
++        semantics = item.get("temporal_semantics")
++        evidence_entries = item.get("evidence_entries")
++        if (not isinstance(identity, str) or not identity.strip() or len(identity) > 200
++                or not isinstance(source_path, str) or not Path(source_path).is_absolute()
++                or not _is_sha(digest) or not isinstance(cutoff, str) or not cutoff.strip()
++                or not isinstance(semantics, str) or not semantics.strip()
++                or not isinstance(evidence_entries, list) or len(evidence_entries) < 4
++                or any(not isinstance(entry, str) or entry not in source_evidence for entry in evidence_entries)):
++            raise _ReviewError("INDEPENDENT_SOURCE_BINDING_INVALID")
++        if source_path in seen_paths:
++            raise _ReviewError("INDEPENDENT_SOURCE_PATH_DUPLICATE")
++        seen_paths.add(source_path)
++        # The reader never opens a reviewer-supplied arbitrary path.  Source
++        # paths must be present in the verified selection's evidence and stay
++        # under the configured SelectionStore's parent root.
++        if not any("=" in entry and entry.split("=", 1)[1] == source_path
++                   and (entry.split("=", 1)[0].endswith("_path") or entry.split("=", 1)[0].endswith("_json"))
++                   for entry in evidence_entries):
++            raise _ReviewError("SOURCE_PATH_NOT_IN_CURRENT_SELECTION_EVIDENCE")
++        if not any("=" in entry and entry.split("=", 1)[1] == identity
++                   and any(token in entry.split("=", 1)[0] for token in ("identity", "source", "route"))
++                   for entry in evidence_entries):
++            raise _ReviewError("SOURCE_IDENTITY_NOT_IN_CURRENT_SELECTION_EVIDENCE")
++        if not any("=" in entry and entry.split("=", 1)[1] == digest
++                   and "sha256" in entry.split("=", 1)[0]
++                   for entry in evidence_entries):
++            raise _ReviewError("SOURCE_SHA_NOT_IN_CURRENT_SELECTION_EVIDENCE")
++        if not any("=" in entry and entry.split("=", 1)[1] == cutoff
++                   and "cutoff" in entry.split("=", 1)[0]
++                   for entry in evidence_entries):
++            raise _ReviewError("SOURCE_CUTOFF_NOT_IN_CURRENT_SELECTION_EVIDENCE")
++        if not any("=" in entry and ("temporal" in entry.split("=", 1)[0] or "semantics" in entry.split("=", 1)[0])
++                   for entry in evidence_entries):
++            raise _ReviewError("SOURCE_TEMPORAL_SEMANTICS_NOT_IN_CURRENT_SELECTION_EVIDENCE")
++        try:
++            source_root = stage_state_root.resolve(strict=True)
++            resolved_path = Path(source_path).resolve(strict=False)
++            if str(resolved_path) != source_path:
++                raise ValueError("source path is not normalized or contains a symlink")
++            relative = resolved_path.relative_to(source_root).as_posix()
++        except (OSError, ValueError):
++            raise _ReviewError("SOURCE_PATH_OUTSIDE_BOUND_STAGE_ROOT")
++        if not relative or relative.startswith("../") or relative == ".":
++            raise _ReviewError("SOURCE_PATH_OUTSIDE_BOUND_STAGE_ROOT")
++        raw = _read(source_root, relative, max_bytes=_MAX_SOURCE_BYTES)
++        if _sha(raw) != digest:
++            raise _ReviewError("CURRENT_SOURCE_BYTES_SHA_MISMATCH")
++        snapshots.append((source_root, relative, raw))
++        normalized.append({"identity": identity, "path": source_path, "sha256": digest,
++                           "cutoff": cutoff, "temporal_semantics": semantics})
++    return snapshots, normalized
++
++
++def _attempt_facts(root: Path, trade_date: str, stage_id: str, receipt: Mapping[str, Any]) -> tuple[dict[str, Any], tuple[Path, str, bytes]]:
++    if (receipt.get("dispatch_mode") != "NATURAL" or receipt.get("due_status") != "DUE"
++            or receipt.get("mode") == "BACKFILL"
++            or receipt.get("execution_origin") not in (None, "NATURAL")
++            or receipt.get("execution_origin") in _REPLAY_ORIGINS
++            or receipt.get("same_day_late_observation_recovery") is True
++            or receipt.get("node_attempt_count") != 1):
++        raise _ReviewError("CURRENT_RUN_NOT_SINGLE_ATTEMPT_NATURAL_DUE")
++    journal = receipt.get("attempt_diagnostic")
++    attempt_id = journal.get("attempt_id") if isinstance(journal, dict) else None
++    if not isinstance(attempt_id, str) or re.fullmatch(r"[0-9a-f]{32}", attempt_id) is None:
++        raise _ReviewError("CURRENT_ATTEMPT_ID_MISSING")
++    expected_relative = f"{trade_date}/{stage_id}/attempt_evidence/{attempt_id}/001_START.json"
++    declared = journal.get("relative_paths")
++    if not isinstance(declared, list) or f"attempt_evidence/{attempt_id}/001_START.json" not in declared:
++        raise _ReviewError("CURRENT_ATTEMPT_START_NOT_DECLARED")
++    raw = _read(root, expected_relative)
++    start = _strict_json(raw)
++    if not isinstance(start, dict) or any(start.get(key) != value for key, value in {
++        "schema": "stage.attempt_diagnostic.v1", "event": "START", "attempt_id": attempt_id,
++        "trade_date": trade_date, "stage_id": stage_id, "attempt_number": 1,
++    }.items()):
++        raise _ReviewError("CURRENT_ATTEMPT_START_SCOPE_CONFLICT")
++    try:
++        evaluated = datetime.fromisoformat(start["evaluated_at"])
++        observed = datetime.fromisoformat(start["observed_at"])
++        if evaluated.utcoffset() is None or observed.utcoffset() is None:
++            raise ValueError("timezone required")
++        evaluated = evaluated.astimezone(_SHANGHAI)
++        observed = observed.astimezone(_SHANGHAI)
++        if evaluated.strftime("%Y%m%d") != trade_date or observed.strftime("%Y%m%d") != trade_date or observed < evaluated:
++            raise ValueError("clock conflict")
++        from .scheduler import evaluate_due
++        due = evaluate_due(stage_id, trade_date, evaluated)
++        observed_due = evaluate_due(stage_id, trade_date, observed)
++        if due.status != "DUE" or observed_due.status != "DUE" or due.scheduled_at is None:
++            raise ValueError("outside natural minute")
++        scheduled = due.scheduled_at.astimezone(_SHANGHAI).isoformat()
++    except (KeyError, TypeError, ValueError, OverflowError) as exc:
++        raise _ReviewError("CURRENT_ATTEMPT_CLOCK_NOT_ON_SCHEDULE") from exc
++    facts = {
++        "mode": receipt.get("dispatch_mode"), "due_status": receipt.get("due_status"),
++        "attempt_id": attempt_id, "attempt_count": 1,
++        "attempt_relative_path": expected_relative,
++        "attempt_sha256": _sha(raw), "scheduled_at_local": scheduled,
++        "evaluated_at_local": evaluated.isoformat(), "observed_at_local": observed.isoformat(),
++    }
++    return facts, (root, expected_relative, raw)
++
++
++def read_independent_execution_review(
++    root: Path | None,
++    trade_date: str,
++    stage_id: str,
++    *,
++    receipt: Mapping[str, Any],
++    receipt_bytes: bytes,
++    receipt_sha256: str,
++    receipt_history_binding: str,
++    selection_bindings: Mapping[str, Mapping[str, Any]],
++    verified_markets: Mapping[str, Mapping[str, Any]],
++    selection_store: Any = None,
++    selection_stores: Mapping[str, Any] | None = None,
++) -> dict[str, Any]:
++    """Validate an indexed independent review; never create or repair evidence."""
++    defaults = _default_market_facts(stage_id, "INDEPENDENT_REVIEW_NOT_AVAILABLE")
++    if root is None:
++        return {"status": "CANNOT_CONFIRM", "scope_markets": [], "markets": defaults,
++                "cannot_confirm": ["EXECUTION_RECEIPT_ROOT_NOT_BOUND"]}
++    directory = f"{_REVIEW_ROOT}/{trade_date}/{stage_id}"
++    attestation_relative = f"{directory}/attestation.json"
++    index_relative = f"{directory}/index.json"
++    snapshots: list[tuple[Path, str, bytes]] = []
++    try:
++        expected_receipt_relative = f"{trade_date}/{stage_id}/receipt.json"
++        current_receipt = _read(root, expected_receipt_relative)
++        if current_receipt != receipt_bytes or _sha(current_receipt) != receipt_sha256:
++            raise _ReviewError("CURRENT_RUNNER_RECEIPT_CHANGED")
++        if receipt_history_binding != "OWNER_HISTORY_SHA_BOUND":
++            raise _ReviewError("OWNER_HISTORY_NOT_SHA_BOUND")
++        history = receipt.get("receipt_history")
++        if not isinstance(history, dict):
++            raise _ReviewError("OWNER_HISTORY_REFERENCE_MISSING")
++        history_sha = history.get("sha256")
++        history_relative = history.get("relative_path")
++        expected_history_relative = f"{trade_date}/{stage_id}/attempt_evidence/recorded-{history_sha}/RECEIPT.json"
++        if not _is_sha(history_sha) or history_relative != expected_history_relative:
++            raise _ReviewError("OWNER_HISTORY_REFERENCE_CONFLICT")
++        current_history = _read(root, history_relative)
++        if _sha(current_history) != history_sha:
++            raise _ReviewError("CURRENT_OWNER_HISTORY_SHA_MISMATCH")
++        snapshots.extend([(Path(root), expected_receipt_relative, current_receipt),
++                          (Path(root), history_relative, current_history)])
++
++        index_raw = _read(root, index_relative)
++        attestation_raw = _read(root, attestation_relative)
++        index = _strict_json(index_raw)
++        attestation = _strict_json(attestation_raw)
++        if not isinstance(index, dict) or not isinstance(attestation, dict):
++            raise _ReviewError("INDEPENDENT_REVIEW_DOCUMENT_NOT_OBJECT")
++        if (index.get("schema_version") != "stage_center.independent_execution_review_index.v1"
++                or index.get("trade_date") != trade_date or index.get("stage_id") != stage_id
++                or index.get("attestation_relative_path") != attestation_relative
++                or index.get("attestation_sha256") != _sha(attestation_raw)):
++            raise _ReviewError("INDEPENDENT_REVIEW_INDEX_SHA_OR_SCOPE_MISMATCH")
++        snapshots.extend([(Path(root), index_relative, index_raw), (Path(root), attestation_relative, attestation_raw)])
++
++        if (attestation.get("schema_version") != "stage_center.independent_execution_review.v1"
++                or attestation.get("trade_date") != trade_date or attestation.get("stage_id") != stage_id
++                or attestation.get("runner") != "stage_center"):
++            raise _ReviewError("INDEPENDENT_REVIEW_IDENTITY_MISMATCH")
++        reviewer = attestation.get("reviewer_identity_or_role")
++        if not isinstance(reviewer, str) or not reviewer.strip() or len(reviewer) > 200:
++            raise _ReviewError("INDEPENDENT_REVIEWER_IDENTITY_MISSING")
++        if not _is_sha(attestation.get("reviewer_verifier_code_sha256")) or not _utc_timestamp(attestation.get("reviewed_at_utc")):
++            raise _ReviewError("INDEPENDENT_REVIEWER_CODE_OR_CLOCK_INVALID")
++
++        stage_markets = tuple(STAGE_BY_ID[stage_id].markets)
++        scope = attestation.get("scope_markets")
++        if (not isinstance(scope, list) or not scope
++                or any(not isinstance(market, str) for market in scope)
++                or len(set(scope)) != len(scope)):
++            raise _ReviewError("INDEPENDENT_REVIEW_SCOPE_INVALID")
++        expected_scope = [market for market in stage_markets if market in scope]
++        if scope != expected_scope or any(market not in stage_markets for market in scope):
++            raise _ReviewError("INDEPENDENT_REVIEW_MARKET_SCOPE_MISMATCH")
++        market_reviews = attestation.get("markets")
++        if not isinstance(market_reviews, dict) or set(market_reviews) != set(scope):
++            raise _ReviewError("INDEPENDENT_REVIEW_MARKET_BINDINGS_MISMATCH")
++
++        runner_binding = attestation.get("runner_receipt")
++        if (not isinstance(runner_binding, dict)
++                or runner_binding.get("relative_path") != expected_receipt_relative
++                or runner_binding.get("sha256") != receipt_sha256):
++            raise _ReviewError("INDEPENDENT_RUNNER_RECEIPT_SHA_MISMATCH")
++        owner_binding = attestation.get("owner_history")
++        if (not isinstance(owner_binding, dict)
++                or owner_binding.get("relative_path") != history_relative
++                or owner_binding.get("sha256") != history_sha):
++            raise _ReviewError("INDEPENDENT_OWNER_HISTORY_SHA_MISMATCH")
++
++        safety = attestation.get("safety")
++        expected_safety = {"RESEARCH_ONLY": True, "production_allowed": False,
++                           "buy_gate_updated": False, "orders_sent": False}
++        if not isinstance(safety, dict) or safety != expected_safety:
++            raise _ReviewError("INDEPENDENT_REVIEW_SAFETY_FLAGS_INVALID")
++        if "RESEARCH_ONLY" not in receipt:
++            raise _ReviewError("CURRENT_RECEIPT_RESEARCH_ONLY_MISSING")
++        if (receipt.get("RESEARCH_ONLY") is not True
++                or any(receipt.get(key) is not value for key, value in expected_safety.items()
++                       if key != "RESEARCH_ONLY")):
++            raise _ReviewError("CURRENT_RECEIPT_SAFETY_FLAGS_INCOMPLETE")
++
++        dispatch, attempt_snapshot = _attempt_facts(root, trade_date, stage_id, receipt)
++        if attestation.get("dispatch") != dispatch:
++            raise _ReviewError("INDEPENDENT_DISPATCH_OR_CLOCK_BINDING_MISMATCH")
++        snapshots.append(attempt_snapshot)
++
++        source_snapshots: list[tuple[Path, str, bytes]] = []
++        for market in scope:
++            lane = verified_markets.get(market) or {}
++            current_selection = selection_bindings.get(market) or {}
++            market_review = market_reviews[market]
++            if current_selection.get("status") != "BOUND_TO_VERIFIED_SELECTION_TRIO":
++                raise _ReviewError(f"CURRENT_SELECTION_TRIO_UNBOUND:{market}")
++            expected_selection = {key: current_selection.get(key) for key in (*_SELECTION_PATHS, "run_id", *_SELECTION_HASHES)}
++            declared_selection = market_review.get("selection") if isinstance(market_review, dict) else None
++            if not isinstance(declared_selection, dict) or declared_selection != expected_selection:
++                raise _ReviewError(f"INDEPENDENT_SELECTION_TRIO_MISMATCH:{market}")
++            selected_store = (selection_stores or {}).get(market, selection_store)
++            if selected_store is None:
++                raise _ReviewError(f"SELECTION_STORE_NOT_BOUND:{market}")
++            source_root = Path(selected_store.root).parent
++            selected_io = SafeRoot(selected_store.root)
++            selection_raw: dict[str, bytes] = {}
++            for field in _SELECTION_PATHS:
++                relative = current_selection[field]
++                raw = selected_io.read_bytes(relative, max_bytes=_MAX_SOURCE_BYTES)
++                selection_raw[field] = raw
++                snapshots.append((Path(selected_store.root), relative, raw))
++            if (_sha(selection_raw["artifact_relative"]) != current_selection.get("artifact_bytes_sha256")
++                    or _sha(selection_raw["manifest_relative"]) != current_selection.get("manifest_bytes_sha256")
++                    or _sha(selection_raw["receipt_relative"]) != current_selection.get("receipt_bytes_sha256")):
++                raise _ReviewError(f"CURRENT_SELECTION_TRIO_BYTES_CHANGED:{market}")
++            for field in ("manifest_relative", "receipt_relative"):
++                if _sha(_canonical_bytes(_strict_json(selection_raw[field]))) != current_selection.get(
++                    "manifest_canonical_sha256" if field == "manifest_relative" else "receipt_canonical_sha256"
++                ):
++                    raise _ReviewError(f"CURRENT_SELECTION_TRIO_CANONICAL_SHA_CHANGED:{market}")
++
++            source_snapshots_market, normalized_sources = _source_evidence_valid(
++                market_review.get("source_binding") if isinstance(market_review, dict) else None,
++                lane.get("source_evidence"), source_root,
++            )
++            source_snapshots.extend(source_snapshots_market)
++            # Attest only source descriptors whose bytes and immutable selection
++            # evidence were both checked in this read.
++            declared_sources = market_review["source_binding"]["sources"]
++            descriptor_keys = ("identity", "path", "sha256", "cutoff", "temporal_semantics")
++            declared_projection = [{key: source.get(key) for key in descriptor_keys} for source in declared_sources]
++            if declared_projection != normalized_sources:
++                raise _ReviewError(f"INDEPENDENT_SOURCE_DESCRIPTORS_MISMATCH:{market}")
++
++        snapshots.extend(source_snapshots)
++        # Re-read every bound file so concurrent replacement cannot pass.
++        for bound_root, relative, before in snapshots:
++            if _read(bound_root, relative, max_bytes=_MAX_SOURCE_BYTES) != before:
++                raise _ReviewError("BOUND_EVIDENCE_CHANGED_DURING_READ")
++
++        facts = _default_market_facts(stage_id, "MARKET_NOT_IN_INDEPENDENT_REVIEW_SCOPE")
++        for market in scope:
++            facts[market] = {
++                "status": "VERIFIED", "scope_markets": list(scope),
++                "reviewer_identity_or_role": reviewer,
++                "reviewed_at_utc": attestation["reviewed_at_utc"],
++                "execution_verified": True, "natural_verified": True,
++                "cannot_confirm": [],
++            }
++        return {
++            "status": "VERIFIED_FOR_EXPLICIT_SCOPE", "scope_markets": list(scope),
++            "reviewer_identity_or_role": reviewer,
++            "reviewed_at_utc": attestation["reviewed_at_utc"],
++            "attestation_sha256": _sha(attestation_raw), "index_sha256": _sha(index_raw),
++            "markets": facts, "cannot_confirm": [],
++        }
++    except _ReviewError as exc:
++        return {"status": "CANNOT_CONFIRM", "scope_markets": [], "markets": _default_market_facts(stage_id, exc.reason),
++                "cannot_confirm": [exc.reason]}
++    except (OSError, ValueError, TypeError, KeyError, AttributeError, UnicodeError, RecursionError, OverflowError):
++        return {"status": "CANNOT_CONFIRM", "scope_markets": [], "markets": _default_market_facts(stage_id, "INDEPENDENT_REVIEW_VALIDATION_FAILED"),
++                "cannot_confirm": ["INDEPENDENT_REVIEW_VALIDATION_FAILED"]}
+--- /dev/null
++++ b/tests/test_independent_execution_review_20261015.py
+@@ -0,0 +1,388 @@
++"""Fail-closed independent execution review reader contract."""
++from __future__ import annotations
++
++from datetime import datetime
++import hashlib
++import json
++from pathlib import Path
++from pathlib import PurePosixPath
++from zoneinfo import ZoneInfo
++
++import pytest
++
++from stage_center.execution_evidence import read_stage_execution
++from stage_center.scheduler import evaluate_due
++from infrastructure.owned_io import SafeRoot
++
++
++DATE = "20261014"
++ORDINARY_STAGE = "STAGE_0945_1030"
++HK_ONLY_STAGE = "STAGE_1545_1555"
++SAFETY = {"RESEARCH_ONLY": True, "production_allowed": False,
++          "buy_gate_updated": False, "orders_sent": False}
++
++
++def _sha(raw: bytes) -> str:
++    return hashlib.sha256(raw).hexdigest()
++
++
++def _canonical(value) -> bytes:
++    return json.dumps(value, ensure_ascii=False, sort_keys=True,
++                      separators=(",", ":"), allow_nan=False).encode("utf-8")
++
++
++def _write_test_receipt(payload, receipt_root, selection_store, trade_date, stage_id):
++    """Create fixture-only owner-history and selection references in tmp_path."""
++    result = dict(payload)
++    result.pop("receipt_history", None)
++    result["recorded_at"] = "2026-10-14T03:00:00+00:00"
++    result["record_time_source"] = "OWNER_WRITE_CLOCK_UTC"
++    result["selection_artifacts"] = {}
++    for market, lane in (result.get("markets") or {}).items():
++        verified = selection_store._verify_run(trade_date, stage_id, market, lane["run_id"])
++        parent = PurePosixPath(verified["artifact_relative"]).parent
++        paths = {
++            "artifact_relative": verified["artifact_relative"],
++            "manifest_relative": str(parent / "manifest.json"),
++            "receipt_relative": str(parent / "receipt.json"),
++        }
++        raw = {key: SafeRoot(selection_store.root).read_bytes(path) for key, path in paths.items()}
++        hashes = {
++            "artifact_bytes_sha256": _sha(raw["artifact_relative"]),
++            "manifest_bytes_sha256": _sha(raw["manifest_relative"]),
++            "receipt_bytes_sha256": _sha(raw["receipt_relative"]),
++            "manifest_canonical_sha256": _sha(_canonical(json.loads(raw["manifest_relative"]))),
++            "receipt_canonical_sha256": _sha(_canonical(json.loads(raw["receipt_relative"]))),
++        }
++        result["selection_artifacts"][market] = {
++            "schema_version": "stage_center.runner.selection_binding.v1",
++            **{key: lane[key] for key in ("run_id", "artifact_id", "algorithm_sha256", "raw_artifact_sha256", "selected_rows")},
++            **paths, **hashes, "trade_date": trade_date, "stage_id": stage_id, "market": market,
++        }
++    history_raw = _canonical(result)
++    history_sha = _sha(history_raw)
++    history_relative = f"{trade_date}/{stage_id}/attempt_evidence/recorded-{history_sha}/RECEIPT.json"
++    SafeRoot(receipt_root).write_bytes(history_relative, history_raw, require_absent=True)
++    result["receipt_history"] = {
++        "schema_version": "stage_center.runner.history_ref.v1",
++        "relative_path": history_relative,
++        "sha256": history_sha,
++    }
++    return result
++
++
++def _fixture(tmp_path: Path, *, stage_id: str = ORDINARY_STAGE,
++             dispatch_mode: str = "NATURAL", execution_origin: str | None = None,
++             mode: str | None = None, attempt_count: int = 1):
++    from stage_center.selection import SelectionStore, select_hk_four_lane
++
++    source_path = tmp_path / "source" / "minute-input.csv"
++    source_path.parent.mkdir(parents=True)
++    source_raw = b"fixture-only source bytes\n"
++    source_path.write_bytes(source_raw)
++    source_sha = _sha(source_raw)
++    cutoff = "2026-10-14T10:30:00+08:00" if stage_id == ORDINARY_STAGE else "2026-10-14T15:55:05+08:00"
++    semantics = "only observations in the scheduled stage window; exclude observations at or after cutoff"
++    evidence = [
++        "route=fixture_minute_source",
++        f"source_path={source_path}",
++        f"source_sha256={source_sha}",
++        f"source_cutoff={cutoff}",
++        f"source_temporal_semantics={semantics}",
++    ]
++    selection_store = SelectionStore(tmp_path / "selection")
++    result = select_hk_four_lane(
++        [dict(code="HK.00001", last_price=11, prev_close_price=10,
++              turnover=1_000_000, volume_ratio=1.5)],
++        DATE, stage_id, source_sha, source_evidence=evidence,
++    )
++    selection_store.publish(result, market="HK_CONNECT")
++    lane = selection_store.read_verified(DATE, stage_id, "HK_CONNECT")
++    lane["status"] = lane["selection_status"]
++
++    if stage_id == ORDINARY_STAGE:
++        evaluated_at = "2026-10-14T10:30:02.100000+08:00"
++        observed_at = "2026-10-14T10:30:04.200000+08:00"
++    else:
++        evaluated_at = "2026-10-14T15:55:05.100000+08:00"
++        observed_at = "2026-10-14T15:55:08.200000+08:00"
++    attempt_id = "a" * 32
++    attempt_relative = f"{DATE}/{stage_id}/attempt_evidence/{attempt_id}/001_START.json"
++    attempt_path = tmp_path / "receipts" / attempt_relative
++    attempt_path.parent.mkdir(parents=True)
++    attempt = {
++        "schema": "stage.attempt_diagnostic.v1", "event": "START",
++        "attempt_id": attempt_id, "trade_date": DATE, "stage_id": stage_id,
++        "attempt_number": 1, "evaluated_at": evaluated_at, "observed_at": observed_at,
++    }
++    attempt_raw = json.dumps(attempt, sort_keys=True).encode("utf-8")
++    attempt_path.write_bytes(attempt_raw)
++
++    payload = {
++        "schema_version": "stage_center.runner.receipt.v1",
++        "runner": "stage_center",
++        "trade_date": DATE, "stage_id": stage_id,
++        "dispatch_mode": dispatch_mode, "due_status": "DUE",
++        "execution_origin": execution_origin,
++        "mode": mode,
++        "node_attempt_count": attempt_count,
++        "attempt_diagnostic": {
++            "schema": "stage.attempt_diagnostic_summary.v1",
++            "attempt_id": attempt_id,
++            "relative_paths": [f"attempt_evidence/{attempt_id}/001_START.json"],
++        },
++        "status": "PARTIAL_WITH_ROWS",
++        **SAFETY,
++        "markets": {"HK_CONNECT": lane},
++    }
++    receipt_root = tmp_path / "receipts"
++    receipt = _write_test_receipt(payload, receipt_root, selection_store, DATE, stage_id)
++    receipt_path = receipt_root / DATE / stage_id / "receipt.json"
++    receipt_path.parent.mkdir(parents=True, exist_ok=True)
++    receipt_raw = json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8") + b"\n"
++    receipt_path.write_bytes(receipt_raw)
++    context = {"HK_CONNECT": lane}
++    baseline = read_stage_execution(
++        receipt_root, DATE, stage_id, context,
++        selection_store=selection_store,
++    )
++    return {
++        "root": receipt_root,
++        "selection_store": selection_store,
++        "lane": lane,
++        "source_path": source_path,
++        "source_sha": source_sha,
++        "source_cutoff": cutoff,
++        "source_semantics": semantics,
++        "source_evidence": evidence,
++        "attempt": attempt,
++        "attempt_raw": attempt_raw,
++        "attempt_relative": attempt_relative,
++        "attempt_id": attempt_id,
++        "receipt": receipt,
++        "payload": payload,
++        "context": context,
++        "baseline": baseline,
++        "stage_id": stage_id,
++    }
++
++
++def _review_artifact(fixture, scope_markets=("HK_CONNECT",)):
++    stage_id = fixture["stage_id"]
++    receipt = fixture["receipt"]
++    attempt = fixture["attempt"]
++    evaluated = datetime.fromisoformat(attempt["evaluated_at"]).astimezone(ZoneInfo("Asia/Shanghai"))
++    observed = datetime.fromisoformat(attempt["observed_at"]).astimezone(ZoneInfo("Asia/Shanghai"))
++    due = evaluate_due(stage_id, DATE, evaluated)
++    scope = list(scope_markets)
++    lane = fixture["lane"]
++    source_entries = list(lane["source_evidence"])
++    source = {
++        "identity": "fixture_minute_source",
++        "path": str(fixture["source_path"]),
++        "sha256": fixture["source_sha"],
++        "cutoff": fixture["source_cutoff"],
++        "temporal_semantics": fixture["source_semantics"],
++        "evidence_entries": fixture["source_evidence"],
++    }
++    selection = fixture["baseline"]["selection_artifact_bindings"]["HK_CONNECT"]
++    selection = {key: selection[key] for key in (
++        "artifact_relative", "manifest_relative", "receipt_relative", "run_id",
++        "artifact_bytes_sha256", "manifest_bytes_sha256", "receipt_bytes_sha256",
++        "manifest_canonical_sha256", "receipt_canonical_sha256",
++    )}
++    attestation = {
++        "schema_version": "stage_center.independent_execution_review.v1",
++        "trade_date": DATE, "stage_id": stage_id, "runner": "stage_center",
++        "scope_markets": scope,
++        "reviewer_identity_or_role": "independent-reviewer-fixture",
++        "reviewer_verifier_code_sha256": "c" * 64,
++        "reviewed_at_utc": "2026-10-14T04:00:00Z",
++        "runner_receipt": {
++            "relative_path": f"{DATE}/{stage_id}/receipt.json",
++            "sha256": fixture["baseline"]["observed_sha256"],
++        },
++        "owner_history": {
++            "relative_path": receipt["receipt_history"]["relative_path"],
++            "sha256": receipt["receipt_history"]["sha256"],
++        },
++        "markets": {
++            "HK_CONNECT": {
++                "selection": selection,
++                "source_binding": {
++                    "source_evidence_sha256": _sha(_canonical(source_entries)),
++                    "sources": [source],
++                },
++            },
++        },
++        "dispatch": {
++            "mode": receipt["dispatch_mode"], "due_status": receipt["due_status"],
++            "attempt_id": fixture["attempt_id"], "attempt_count": 1,
++            "attempt_relative_path": fixture["attempt_relative"],
++            "attempt_sha256": _sha(fixture["attempt_raw"]),
++            "scheduled_at_local": due.scheduled_at.astimezone(ZoneInfo("Asia/Shanghai")).isoformat(),
++            "evaluated_at_local": evaluated.isoformat(),
++            "observed_at_local": observed.isoformat(),
++        },
++        "safety": dict(SAFETY),
++    }
++    return attestation
++
++
++def _publish_review(fixture, attestation):
++    directory = fixture["root"] / "independent_execution_reviews" / DATE / fixture["stage_id"]
++    directory.mkdir(parents=True)
++    attestation_raw = json.dumps(attestation, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    (directory / "attestation.json").write_bytes(attestation_raw)
++    index = {
++        "schema_version": "stage_center.independent_execution_review_index.v1",
++        "trade_date": DATE, "stage_id": fixture["stage_id"],
++        "attestation_relative_path": f"independent_execution_reviews/{DATE}/{fixture['stage_id']}/attestation.json",
++        "attestation_sha256": _sha(attestation_raw),
++    }
++    (directory / "index.json").write_bytes(json.dumps(index, sort_keys=True, separators=(",", ":")).encode())
++
++
++def _read(fixture):
++    return read_stage_execution(
++        fixture["root"], DATE, fixture["stage_id"], fixture["context"],
++        selection_store=fixture["selection_store"],
++    )
++
++
++def test_missing_independent_index_keeps_natural_and_execution_false(tmp_path):
++    fixture = _fixture(tmp_path)
++    result = fixture["baseline"]
++    assert result["execution_verified"] is False
++    assert result["natural_verified"] is False
++    assert result["independent_execution_review"]["status"] == "CANNOT_CONFIRM"
++    assert "NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING" in result["cannot_confirm"]
++    assert result["operating_execution_by_market"]["HK_CONNECT"]["natural_verified"] is False
++
++
++def test_hk_only_review_is_scoped_and_does_not_promote_ordinary_stage_aggregate(tmp_path):
++    fixture = _fixture(tmp_path, stage_id=ORDINARY_STAGE)
++    _publish_review(fixture, _review_artifact(fixture, ("HK_CONNECT",)))
++    result = _read(fixture)
++    assert result["operating_execution_by_market"]["HK_CONNECT"]["natural_verified"] is True
++    assert result["operating_execution_by_market"]["HK_CONNECT"]["scope_markets"] == ["HK_CONNECT"]
++    assert result["operating_execution_by_market"]["A_SHARE"]["natural_verified"] is False
++    assert result["execution_verified"] is False
++    assert result["natural_verified"] is False
++    assert "AGGREGATE_EXECUTION_SCOPE_NOT_COVERED" in result["cannot_confirm"]
++
++
++def test_single_market_stage_can_verify_its_complete_natural_scope(tmp_path):
++    fixture = _fixture(tmp_path, stage_id=HK_ONLY_STAGE)
++    _publish_review(fixture, _review_artifact(fixture, ("HK_CONNECT",)))
++    result = _read(fixture)
++    assert result["execution_verified"] is True
++    assert result["natural_verified"] is True
++    assert result["status"] == "INDEPENDENT_NATURAL_EXECUTION_VERIFIED"
++    assert "NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING" not in result["cannot_confirm"]
++
++
++def test_missing_receipt_research_only_flag_fails_closed_even_with_hk_only_review(tmp_path):
++    fixture = _fixture(tmp_path)
++    receipt = dict(fixture["receipt"])
++    receipt.pop("RESEARCH_ONLY")
++
++    archived = {key: value for key, value in receipt.items() if key != "receipt_history"}
++    history_raw = _canonical(archived)
++    history_sha = _sha(history_raw)
++    history_relative = f"{DATE}/{fixture['stage_id']}/attempt_evidence/recorded-{history_sha}/RECEIPT.json"
++    SafeRoot(fixture["root"]).write_bytes(history_relative, history_raw, require_absent=True)
++    receipt["receipt_history"] = {
++        "schema_version": "stage_center.runner.history_ref.v1",
++        "relative_path": history_relative,
++        "sha256": history_sha,
++    }
++    receipt_path = fixture["root"] / DATE / fixture["stage_id"] / "receipt.json"
++    receipt_path.write_bytes(json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8") + b"\n")
++    fixture["receipt"] = receipt
++    fixture["baseline"] = read_stage_execution(
++        fixture["root"], DATE, fixture["stage_id"], fixture["context"],
++        selection_store=fixture["selection_store"],
++    )
++
++    _publish_review(fixture, _review_artifact(fixture, ("HK_CONNECT",)))
++    result = _read(fixture)
++
++    assert result["operating_execution_by_market"]["HK_CONNECT"]["natural_verified"] is False
++    assert result["independent_execution_review"]["status"] == "CANNOT_CONFIRM"
++    assert "CURRENT_RECEIPT_RESEARCH_ONLY_MISSING" in result["independent_execution_review"]["cannot_confirm"]
++
++
++@pytest.mark.parametrize(("mutation", "reason"), [
++    ("receipt_sha", "INDEPENDENT_RUNNER_RECEIPT_SHA_MISMATCH"),
++    ("date", "INDEPENDENT_REVIEW_IDENTITY_MISMATCH"),
++    ("market", "INDEPENDENT_REVIEW_MARKET_BINDINGS_MISMATCH"),
++    ("history_sha", "INDEPENDENT_OWNER_HISTORY_SHA_MISMATCH"),
++    ("source_sha", "SOURCE_SHA_NOT_IN_CURRENT_SELECTION_EVIDENCE"),
++    ("clock", "INDEPENDENT_DISPATCH_OR_CLOCK_BINDING_MISMATCH"),
++    ("safety", "INDEPENDENT_REVIEW_SAFETY_FLAGS_INVALID"),
++])
++def test_invalid_review_bindings_fail_closed(tmp_path, mutation, reason):
++    fixture = _fixture(tmp_path)
++    attestation = _review_artifact(fixture)
++    if mutation == "receipt_sha":
++        attestation["runner_receipt"]["sha256"] = "f" * 64
++    elif mutation == "date":
++        attestation["trade_date"] = "20261013"
++    elif mutation == "market":
++        attestation["scope_markets"] = ["A_SHARE"]
++    elif mutation == "history_sha":
++        attestation["owner_history"]["sha256"] = "e" * 64
++    elif mutation == "source_sha":
++        attestation["markets"]["HK_CONNECT"]["source_binding"]["sources"][0]["sha256"] = "f" * 64
++    elif mutation == "clock":
++        attestation["dispatch"]["observed_at_local"] = "2026-10-14T10:31:04.200000+08:00"
++    elif mutation == "safety":
++        attestation["safety"]["production_allowed"] = True
++    _publish_review(fixture, attestation)
++    result = _read(fixture)
++    assert result["execution_verified"] is False
++    assert result["natural_verified"] is False
++    assert reason in result["independent_execution_review"]["cannot_confirm"]
++
++
++@pytest.mark.parametrize(("dispatch_mode", "execution_origin", "mode", "attempt_count"), [
++    ("MANUAL", None, None, 1),
++    ("NATURAL", "HISTORICAL_BACKFILL", None, 1),
++    ("NATURAL", None, "BACKFILL", 1),
++    ("NATURAL", None, None, 2),
++])
++def test_manual_replay_backfill_or_repeated_attempt_cannot_verify_natural(
++    tmp_path, dispatch_mode, execution_origin, mode, attempt_count,
++):
++    fixture = _fixture(tmp_path, dispatch_mode=dispatch_mode,
++                       execution_origin=execution_origin, mode=mode,
++                       attempt_count=attempt_count)
++    _publish_review(fixture, _review_artifact(fixture))
++    result = _read(fixture)
++    assert result["execution_verified"] is False
++    assert result["natural_verified"] is False
++    assert "CURRENT_RUN_NOT_SINGLE_ATTEMPT_NATURAL_DUE" in result["independent_execution_review"]["cannot_confirm"]
++
++
++def test_source_bytes_changed_after_review_fail_closed(tmp_path):
++    fixture = _fixture(tmp_path)
++    _publish_review(fixture, _review_artifact(fixture))
++    fixture["source_path"].write_bytes(b"changed after independent review")
++    result = _read(fixture)
++    assert result["execution_verified"] is False
++    assert result["natural_verified"] is False
++    assert "CURRENT_SOURCE_BYTES_SHA_MISMATCH" in result["independent_execution_review"]["cannot_confirm"]
++
++
++def test_attestation_path_is_date_and_stage_derived_and_symlinks_fail_closed(tmp_path):
++    fixture = _fixture(tmp_path)
++    directory = fixture["root"] / "independent_execution_reviews" / DATE / fixture["stage_id"]
++    directory.mkdir(parents=True)
++    outside = tmp_path / "outside.json"
++    outside.write_text("{}")
++    (directory / "index.json").symlink_to(outside)
++    result = _read(fixture)
++    assert result["execution_verified"] is False
++    assert result["natural_verified"] is False
++    assert "INDEPENDENT_REVIEW_PATH_OR_SIZE_REFUSED" in result["independent_execution_review"]["cannot_confirm"]
+--- a/apps/web/src/App.vue
++++ b/apps/web/src/App.vue
+@@ -7,6 +7,27 @@
+ import GlobalIndustryMap from "./components/research/GlobalIndustryMap.vue";
+ import WechatMentionPool from "./components/research/WechatMentionPool.vue";
+ import { useAppShell } from "./app_shell/useAppShell";
++
++type OperatingExecutionFact = {
++  status?: string;
++  scope_markets?: string[];
++  cannot_confirm?: string[];
++};
++function operatingExecutionFacts(workbench: unknown): Record<string, OperatingExecutionFact> {
++  const evidence = (workbench as { execution_evidence?: { operating_execution_by_market?: unknown } } | null)?.execution_evidence;
++  const facts = evidence?.operating_execution_by_market;
++  return facts && typeof facts === "object" && !Array.isArray(facts)
++    ? facts as Record<string, OperatingExecutionFact>
++    : {};
++}
++function hasFourLaneFormalGap(workbench: unknown): boolean {
++  const rows = (workbench as { unified_rows?: unknown } | null)?.unified_rows;
++  return Array.isArray(rows) && rows.some((value) => {
++    if (!value || typeof value !== "object") return false;
++    const row = value as Record<string, unknown>;
++    return row.market === "HK" && row.source_mode === "HK_CONNECT_FOUR_LANE" && row.formal_eligible === false;
++  });
++}
+ const {
+   stageDefinitions,
+   closingTimeline,
+@@ -264,11 +285,22 @@
+             <b>证据绑定</b>
+             <span v-for="(lane, market) in stageWorkbench.execution_evidence.markets" :key="market">{{ market }} 选股引用：{{ lane.selection_binding }}</span>
+             <span v-for="(binding, market) in stageWorkbench.execution_evidence.selection_artifact_bindings" :key="market">{{ market }} 产物绑定：{{ binding.status }}</span>
++            <span v-for="(fact, market) in operatingExecutionFacts(stageWorkbench)" :key="`operating-${market}`">
++              {{ market }}独立运行事实：{{ fact.status || "CANNOT_CONFIRM" }}；核验范围：{{ fact.scope_markets?.join("、") || "未覆盖" }}
++            </span>
++            <template v-for="(fact, market) in operatingExecutionFacts(stageWorkbench)" :key="`operating-gap-${market}`">
++              <span v-if="fact.cannot_confirm?.length">
++                {{ market }}独立核验缺口：{{ fact.cannot_confirm.join("、") }}
++              </span>
++            </template>
+             <span>执行验收：{{ stageWorkbench.execution_evidence.execution_verified === true ? "VERIFIED" : "CANNOT_CONFIRM" }}</span>
+             <span>自然时段验收：{{ stageWorkbench.execution_evidence.natural_verified === true ? "VERIFIED" : "CANNOT_CONFIRM" }}</span>
+             <span>当前回执 SHA256（读取观察值）</span><code>{{ stageWorkbench.execution_evidence.observed_sha256 || "未记录" }}</code>
+           </article>
+           <p class="evidence-gap">{{ stageWorkbench.execution_evidence.cannot_confirm?.join("、") }}</p>
++          <p v-if="hasFourLaneFormalGap(stageWorkbench)" class="evidence-gap">
++            四路策略输出属于研究观察；formal_eligible=false 表示正式资格未授予，不代表行情采集失败。
++          </p>
+         </div>
+         <p v-else class="evidence-gap">CANNOT_CONFIRM：当前响应未提供可验证的 natural/recovery receipt 血缘。</p>
+         <p v-if="stageWorkbench?.stage_lineage?.cannot_confirm?.length" class="evidence-gap">
+--- a/apps/web/src/App.spec.ts
++++ b/apps/web/src/App.spec.ts
+@@ -1711,6 +1711,49 @@
+     expect(within(screen.getByRole("region", { name: "阶段运行血缘" })).getByText("status=CANNOT_CONFIRM")).toBeTruthy();
+     expect(within(screen.getByRole("region", { name: "阶段运行血缘" })).getAllByText("write=false")).toHaveLength(2);
+   });
++
++  it("shows scoped HK operating evidence separately from four-lane formal qualification", async () => {
++    const stage = structuredClone(referenceStage) as any;
++    stage.trade_date = "20261014";
++    stage.stage.stage_id = "STAGE_0945_1030";
++    stage.stage.window = "09:45-10:30";
++    stage.unified_rows = [{
++      market: "HK", code: "HK.00001", name: "研究观察行", rank: 1,
++      source_mode: "HK_CONNECT_FOUR_LANE", formal_eligible: false,
++    }];
++    stage.execution_evidence = {
++      status: "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED",
++      trade_date: "20261014", stage_id: "STAGE_0945_1030",
++      execution_verified: false, natural_verified: false,
++      markets: { HK_CONNECT: { selection_binding: "BOUND_TO_VERIFIED_SELECTION" } },
++      selection_artifact_bindings: { HK_CONNECT: { status: "BOUND_TO_VERIFIED_SELECTION_TRIO" } },
++      operating_execution_by_market: {
++        A_SHARE: { status: "CANNOT_CONFIRM", scope_markets: [], cannot_confirm: ["MARKET_NOT_IN_INDEPENDENT_REVIEW_SCOPE"] },
++        HK_CONNECT: { status: "VERIFIED", scope_markets: ["HK_CONNECT"], cannot_confirm: [] },
++      },
++      cannot_confirm: ["AGGREGATE_EXECUTION_SCOPE_NOT_COVERED"],
++      production_allowed: false, buy_gate_updated: false, orders_sent: false,
++    };
++    window.history.replaceState({}, "", "/?date=20261014&stage=STAGE_0945_1030");
++    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
++      if (url === "/api/v1/runs/date-list") {
++        return jsonResponse({ default_date: "20261014", stage_dates: ["20261014"], future_target_dates: [] });
++      }
++      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(stage);
++      return jsonResponse({ ...blockedPool, trade_date: "20261014" });
++    }));
++
++    render(App);
++
++    const lineage = await screen.findByRole("region", { name: "阶段运行血缘" });
++    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).startsWith("/api/v3/workbench/stage"))).toBe(true));
++    await waitFor(() => expect(lineage.textContent).toContain("HK_CONNECT独立运行事实"));
++    expect(within(lineage).getByText(/HK_CONNECT独立运行事实：VERIFIED；核验范围：HK_CONNECT/)).toBeTruthy();
++    expect(within(lineage).getByText(/A_SHARE独立核验缺口：MARKET_NOT_IN_INDEPENDENT_REVIEW_SCOPE/)).toBeTruthy();
++    expect(within(lineage).getByText("AGGREGATE_EXECUTION_SCOPE_NOT_COVERED")).toBeTruthy();
++    expect(within(lineage).getByText(/四路策略输出属于研究观察；formal_eligible=false 表示正式资格未授予，不代表行情采集失败。/)).toBeTruthy();
++    expect(within(lineage).getByText("自然时段验收：CANNOT_CONFIRM")).toBeTruthy();
++  });
+ });
+ 
+ // 0915 policy: original 8910 stays independent; V4 navigation is not a replacement.
+--- /dev/null
++++ b/docs/handoffs/HK_EXECUTION_EVIDENCE_20261015/CONTRACT.md
+@@ -0,0 +1,75 @@
++# HK independent execution review reader contract
++
++This change adds a read-only consumer. It does not create a review or promote
++the 2026-10-15 10:30 report, whose boundary remains `CANNOT_CONFIRM`.
++
++## Fixed artifact location and identity
++
++Under the already configured receipt root, the reader derives these paths only
++from the validated date and stage key:
++
++```text
++independent_execution_reviews/{YYYYMMDD}/{STAGE_ID}/attestation.json
++independent_execution_reviews/{YYYYMMDD}/{STAGE_ID}/index.json
++```
++
++`index.json` must contain `schema_version=stage_center.independent_execution_review_index.v1`,
++the exact date and stage, the exact derived `attestation.json` relative path, and
++the attestation's raw-byte SHA-256. The reader uses `SafeRoot`, a 1 MiB bound,
++no-follow path handling, duplicate-key rejection, and rereads every bound file
++before returning.
++
++`attestation.json` uses
++`schema_version=stage_center.independent_execution_review.v1` and binds:
++
++- exact `trade_date`, `stage_id`, `runner=stage_center`, a nonempty ordered
++  `scope_markets` subset, `reviewer_identity_or_role`, the review verifier's
++  SHA-256, and an explicit UTC `reviewed_at_utc`;
++- the exact runner receipt relative path and raw SHA, plus exact immutable owner
++  history path and raw SHA;
++- for every market in scope, the current SelectionStore run ID, artifact,
++  manifest and receipt relative paths, byte SHA values, and canonical manifest
++  and receipt SHA values;
++- the complete current selection `source_evidence` SHA and one or more source
++  descriptors (`identity`, exact evidence `path`, raw `sha256`, `cutoff`,
++  `temporal_semantics`, and exact `evidence_entries`). Source files must remain
++  under the configured SelectionStore parent root; each is read and hashed;
++- a dispatch object matching the contemporaneous attempt ID, attempt-start
++  path/SHA, one-attempt count, scheduler due minute, and evaluated/observed
++  clocks; and exactly `RESEARCH_ONLY=true`, `production_allowed=false`,
++  `buy_gate_updated=false`, `orders_sent=false`.
++
++The dispatch must be `NATURAL` and `DUE`, both clocks must fall inside the same
++scheduled minute, and replay, backfill, manual, late catch-up, repeated attempt,
++clock conflict, incomplete source, safety conflict, changed byte, or scope
++mismatch fails closed. Review publication may occur after a natural event only
++to attest its immutable contemporaneous evidence; it cannot make a manual,
++replayed, or backfilled event natural.
++
++## Projection boundary
++
++`operating_execution_by_market` reports only the exact attested market scope.
++An HK-only review may establish an HK operating fact while aggregate
++`execution_verified` and `natural_verified` stay false for an A+HK stage.
++Aggregate booleans can become true only when the review covers every market
++declared by that stage and all bindings pass. Stage 8 is HK-only by its frozen
++contract. These booleans do not change `formal_eligible`, PIT/temporal safety,
++production readiness, BUY, or order state. Four-lane HK rows with
++`formal_eligible=false` remain research observations; that status does not
++mean quote collection failed.
++
++The index proves byte consistency only. This repository has no signature or
++trusted-root mechanism for reviewer identity. A distinct reviewer must create
++the attestation under a separate identity; the controller must verify that
++identity, verifier-code SHA, and both raw files, then publish the two files
++once to the derived directory and read back their SHAs. No runner, UI request,
++report-level `PASS`, or this reader may synthesize the attestation.
++
++For the 10:30 case, the independent reviewer must first verify the original
++runner receipt, owner history, each in-scope selection trio and source, exact
++cutoff semantics, one-shot scheduler evidence, clocks, and safety flags from
++their current bytes. The existing 10:30 JSON report lacks the required
++machine-readable identity/code binding and remains supporting evidence only.
++If any source, identity, clock, or natural-schedule fact cannot be independently
++rechecked, publish no acceptance artifact and retain `CANNOT_CONFIRM` with the
++specific missing reason.

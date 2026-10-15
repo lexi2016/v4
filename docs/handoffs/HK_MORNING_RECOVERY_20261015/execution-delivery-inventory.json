@@ -1,0 +1,36 @@
+{
+  "delivery_kind": "PATCH_ONLY_AGAINST_RECORDED_ACTIVE_R2_BASE",
+  "base_release": "a-stage-names-api-20261015-r2",
+  "files": [
+    {
+      "path": "stage_center/execution_evidence.py",
+      "before_sha256": "b31877907313ab7fa015a37b9423c8267dde298c87b8277f14b22bcdbe61fc03",
+      "after_sha256": "94b08df8ce2f9dcfef50a0aa4f1c8f726cc5f6d76f6bb395a7e7800ced8cd3a4"
+    },
+    {
+      "path": "stage_center/independent_execution_review.py",
+      "before_sha256": null,
+      "after_sha256": "634e2b11b4b1eddbed9c649f11833061d480905f35f55fe1df57dc39599b9b3c"
+    },
+    {
+      "path": "tests/test_independent_execution_review_20261015.py",
+      "before_sha256": null,
+      "after_sha256": "9363a0eccf0f712ce7fc33de39cc418c055164a4f4997bfb12dd7b62834b39f7"
+    },
+    {
+      "path": "apps/web/src/App.vue",
+      "before_sha256": "030f0342269690ae12e7efb9d2e43cc14f607d2ede1565285a4974d0beca10c6",
+      "after_sha256": "71fb358a0ca855273ae0159691fe9a9715fae75d8c6944d275417278a37ef776"
+    },
+    {
+      "path": "apps/web/src/App.spec.ts",
+      "before_sha256": "fa58941ab279b10f142d7785937d2b835d6386104e9c6af270470e347c35a1bb",
+      "after_sha256": "640f468d740424dee5240af942ff2d4f0cf3444ee47ed0d4c1c445d4628f0703"
+    },
+    {
+      "path": "docs/handoffs/HK_EXECUTION_EVIDENCE_20261015/CONTRACT.md",
+      "before_sha256": null,
+      "after_sha256": "0b6bebdc547216c0ee9403d515fe884d716ff6dd23102d90913f4c2e16867a25"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": "hk_morning_recovery_scope.v1",
+  "date": "20261015",
+  "status": "RECOVERED_REVIEWED_API_VERIFIED_PARENT_UI_VERIFIED",
+  "goal": "Recover four missing morning HK stages from existing evidence, then verify API/UI; explain and minimally repair execution evidence consumption",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_head_before": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_base": "9ac5e77a70a9dc0ce13ed31d10a95c03dce5234d",
+  "branch": "codex/hk-morning-recovery-20261015",
+  "stages": [
+    "STAGE_0925",
+    "STAGE_0930_0935",
+    "STAGE_0935_0940",
+    "STAGE_0940_0945"
+  ],
+  "owners": {
+    "morning_source_writer": "/root/hk_morning_recovery_writer",
+    "execution_reader_writer": "/root/hk_execution_evidence_writer",
+    "independent_morning_reviewer": "/root/hk_morning_recovery_reviewer",
+    "independent_execution_reviewer": "/root/hk_execution_evidence_reviewer"
+  },
+  "existing_inputs": {
+    "d1_artifact_sha256": "66225363e4dd1b9da4f316d75a8dcc5f249bc0968128c646e9632a1a8b1b1c67",
+    "minute_capture_sha256": "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455",
+    "minute_capture_original_stage": "STAGE_0945_1030",
+    "minute_capture_observed_at": "2026-10-15T10:31:03.491290+08:00",
+    "auction_source": "existing 20261015 opening_second_filter CSV and acceptance"
+  },
+  "constraints": [
+    "Use existing StageCenter collector/RawStore/selection registry/SelectionStore; no parallel producer",
+    "No new provider capture when exact existing cache covers the windows",
+    "Keep original natural-failure receipts and existing A/10:30 artifacts unchanged",
+    "Restored minute results remain after-fact, missing historical orderbook and PIT unverified",
+    "Four-lane formal_eligible=false is existing policy, including yesterday; no gate change",
+    "Independent HK-only execution evidence cannot promote A+HK aggregate acceptance"
+  ],
+  "diagnosis_receipt_sha256": "8cb4d332ea2dd6ce8a6dcfefebad88ab073e07b3d7b04af0dc0c58c4158ae6f5",
+  "research_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

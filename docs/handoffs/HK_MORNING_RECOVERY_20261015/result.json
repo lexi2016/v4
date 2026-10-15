@@ -1,0 +1,88 @@
+{
+  "schema_version": "hk_morning_recovery_delivery.v1",
+  "status": "RECOVERED_REVIEWED_API_VERIFIED_PARENT_UI_VERIFIED",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "first_actual_attempt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ACCEPTANCE_RECOVERY_20261015/writer/actual_run_receipt_20261015.json",
+    "sha256": "e7ddf0c19612d17126f2dcd625d0052dc5bc665275c0c5aec3b8a85a2b23c454",
+    "status": "FAILED_STOP",
+    "error": "RuntimeError: STAGE_0930_0935 lost a required after-fact/PIT/orderbook marker",
+    "started_at": "2026-10-15T12:08:23.295144+08:00",
+    "protected_live_unchanged": true
+  },
+  "api_release": {
+    "release_id": "hk-execution-evidence-api-20261015-r1",
+    "manifest_sha256": "db23ade9e00866aebd8e55657accca637dd690ed7cd8446c1843330a67a8e61d",
+    "reviewer_postactivation_sha256": "4cededd3b7a705cc453abddc351d8cde51a486f080a4e7ed3e3d731601704be2"
+  },
+  "stages": [
+    {
+      "stage_id": "STAGE_0925",
+      "selected_hk_rows": 10,
+      "selected_a_rows": 10,
+      "selection_run_id": "run-60b2c780c3904e57f664d58b",
+      "backfill_run_id": "c98cce79aa634665a69fe1146d8e335a",
+      "mode": "BACKFILL",
+      "api_response_sha256": "dc72545d7f4c5e3ddca6415e5a934c90728f377161b08ea29e22d24e23ce2f19",
+      "parent_ui_verified": true
+    },
+    {
+      "stage_id": "STAGE_0930_0935",
+      "selected_hk_rows": 10,
+      "selected_a_rows": 10,
+      "selection_run_id": "run-9a03b73fd509be2260c8981c",
+      "backfill_run_id": "e48db9ca382944b3994e6f31efb4f329",
+      "mode": "BACKFILL",
+      "api_response_sha256": "39dd2b407617a6e90435e48074a1aad21db09782633e98874aa2a9bbdd818ef8",
+      "parent_ui_verified": true
+    },
+    {
+      "stage_id": "STAGE_0935_0940",
+      "selected_hk_rows": 10,
+      "selected_a_rows": 10,
+      "selection_run_id": "run-570de0cca76360024e3d53cc",
+      "backfill_run_id": "8b1b7c98935c4a6692362ab92040e31f",
+      "mode": "BACKFILL",
+      "api_response_sha256": "e85e1d4799f5805f05617e24845f53e35d72def150241361f44d378327439a90",
+      "parent_ui_verified": true
+    },
+    {
+      "stage_id": "STAGE_0940_0945",
+      "selected_hk_rows": 10,
+      "selected_a_rows": 10,
+      "selection_run_id": "run-81b3b469e5a14b4070649365",
+      "backfill_run_id": "93c0921e3b60443a8ea2a10d2b708652",
+      "mode": "BACKFILL",
+      "api_response_sha256": "17d933b666c5f9d0f49d94f4f4e9d5bc1fab1d080139b1057aa6d7d64301b7e5",
+      "parent_ui_verified": true
+    }
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "caveats": [
+    "Morning outputs are MANUAL/HISTORICAL BACKFILL; original natural failures are preserved.",
+    "Historical minute capture is after cutoff with PIT/orderbook/formal gaps.",
+    "API UI execution and natural acceptance remain CANNOT_CONFIRM.",
+    "Code delivery is scoped patches against recorded local/active baselines, not a clean remote source checkout.",
+    "09:25 raw temporal_cutoff_safe=false even though its HK API cannot_confirm list is empty; PIT remains CANNOT_CONFIRM."
+  ],
+  "resume": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ACCEPTANCE_RECOVERY_20261015/writer/resume_run_receipt_20261015.json",
+    "sha256": "e16012c3cce757adbd8bb89b3775aa6e0ad22b6d85224b100ac80e58d9fa8e55",
+    "status": "PASS",
+    "started_at": "2026-10-15T12:18:34.951192+08:00",
+    "completed_at": "2026-10-15T12:18:36.374270+08:00",
+    "protected_live_unchanged": true
+  },
+  "independent_postrecovery": {
+    "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ACCEPTANCE_RECOVERY_20261015/morning_reviewer/postrecovery_review_receipt_20261015.json",
+    "receipt_sha256": "bead15cf17c2e7a6237884279cadc1e3deb4b501cb033e92f37a8871ddcd06e8",
+    "verdict": "POSTRECOVERY_PASS",
+    "protected_path_count": 120,
+    "protected_inventory_sha256": "347c651407f0d439a75bed534af2358504c36df818170ef4e9e2bee9a960318b"
+  }
+}

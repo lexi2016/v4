@@ -1,0 +1,63 @@
+{
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "files": [
+    {
+      "path": "stage_center/_live_collectors_parts/hk_minute.py",
+      "baseline_sha256": "71fd23442fca8c6cbd09f306d8a691876b3112d804b58ef2c96f045f58278bae",
+      "baseline_source": "writer/before snapshot",
+      "candidate_sha256": "2ec08e3fea63f31a05b447ce6a947f47d5e391d4dcc47b60220d6f7f49944f32",
+      "delta": "Pinned Futu capture reader for the three exact after-fact HK minute windows, with D1/date/market/stage/SHA/code/window/future-bar validation."
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "baseline_sha256": "5f45f5e11bd6c04c2b56bfbb7abc6fa87e70b0016dbac979e250c12fd065a82d",
+      "baseline_source": "writer/before snapshot",
+      "candidate_sha256": "5109145e773b3c3cb1d2bef17d4430d48f73efaa2479ac14b9d16adbf19a9942",
+      "delta": "Allow the exact cached-capture source through the existing HK selection contract while retaining research-only, Top10, and NO_BUY checks."
+    },
+    {
+      "path": "stage_center/raw_store.py",
+      "baseline_sha256": "a4b5f950ccd6e54320473eb5d5bf61679f836a8bdbac47619674ffd2d3d50e48",
+      "baseline_source": "writer/before snapshot",
+      "candidate_sha256": "4cefe12c2f2ec8dc43a444c17e84b03f79fcd76607702fc5333ab5a956c7ec96",
+      "delta": "Add exact manifest-bound admission pinned to D1 artifact, Futu capture identity/time/stage, and minute windows; preserve PIT/formal/natural-time/orderbook uncertainty."
+    },
+    {
+      "path": "stage_center/runner.py",
+      "baseline_sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+      "baseline_source": "writer/before snapshot",
+      "candidate_sha256": "72ffbfa62daefe44158882c5f90e0c657741d3de0c85e18bad8d9f0b7aa5691e",
+      "delta": "Permit the cached capture provider only within existing manifest-bound after-fact authorization and verify canonical D1 producer identity."
+    },
+    {
+      "path": "stage_center/_runner_parts/slot_execution.py",
+      "baseline_sha256": "321927b7ddc2b041e3c0ebaae9698ad12c6d386453dec8366ebabe2e1d1e0a83",
+      "baseline_source": "active node-minute-stage-20261014-r1 release comparison",
+      "candidate_sha256": "6a0728117ff11478bab3a46eb2fb9ec3586863937392c64bfa504bc36c6bcefd",
+      "delta": "Narrow incomplete raw-bundle omission to the exact 20261015 HK-only recovery stages and remove stale D1 lane labels only for the validated after-fact selection input."
+    },
+    {
+      "path": "ops/run_hk_morning_cached_recovery.py",
+      "baseline_sha256": null,
+      "baseline_source": "new file in this batch",
+      "candidate_sha256": "eb4ed13372cb1888923a1f18e800d6773941c9a1d3f3faa6e588856438e9fc19",
+      "delta": "Offline-only isolated StageCenterRunner canary; requires a new non-runtime output root, uses current Asia/Shanghai clock per tick, and checks protected runtime state unchanged."
+    },
+    {
+      "path": "tests/test_hk_morning_cached_recovery_20261015.py",
+      "baseline_sha256": null,
+      "baseline_source": "new file in this batch",
+      "candidate_sha256": "f15786af31d48f68cb7879e772ceab007beec731dd56bcdefb94f245073ac5c4",
+      "delta": "Focused regression coverage for cache identity, date/stage/window rejection, deterministic output, live clock recording, and symlink output-root protection."
+    },
+    {
+      "path": "writer/run_hk_morning_cached_recovery_once.py",
+      "baseline_sha256": null,
+      "baseline_source": "new writer evidence script; not part of runtime source",
+      "candidate_sha256": "9052c11eef96960f8e2aed472b30bae8c58377bf582cacb2fd4e7f4b9e8a24b9",
+      "delta": "One-shot gated actual recovery script; pins inputs/config/candidate SHAs, uses actual Shanghai time, writes new HK-only backfill namespaces, checks protected state/symlinks, and emits a machine receipt. Not executed."
+    }
+  ],
+  "patch_sha256": "a43e1bf46fbc138d43bacfc6ce8a3f6c1e84ba8a8b4140e5ad91083766cd0061",
+  "one_shot_identity_note": "Earlier candidate metadata pinned an older operations script. Current operations source SHAs are in recovery-ops-inventory.json and exact reviewer receipts."
+}

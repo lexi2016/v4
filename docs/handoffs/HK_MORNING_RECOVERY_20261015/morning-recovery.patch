@@ -1,0 +1,2215 @@
+--- a/stage_center/_live_collectors_parts/hk_minute.py
++++ b/stage_center/_live_collectors_parts/hk_minute.py
+@@ -22,6 +22,454 @@
+         "observed_times": tuple(f"2026-10-12 14:{minute:02d}:00" for minute in range(45, 60)),
+     },
+ }
++
++_HK_MORNING_CACHED_DATE = "20261015"
++_HK_MORNING_CACHED_D1_SHA256 = "66225363e4dd1b9da4f316d75a8dcc5f249bc0968128c646e9632a1a8b1b1c67"
++_HK_MORNING_CACHED_D1_RUN_ID = "20261015-hk-connect-d1-top100-0-2-1d08535262fd"
++_HK_MORNING_CACHED_SOURCE_ID = "futu_cached_minute_capture"
++_HK_MORNING_CACHED_CAPTURE_SHA256 = "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455"
++_HK_MORNING_CACHED_CAPTURE_STAGE_ID = "STAGE_0945_1030"
++_HK_MORNING_CACHED_CAPTURED_AT = "2026-10-15T10:31:03.491290+08:00"
++_HK_MORNING_CACHED_STAGE_IDS = frozenset({
++    "STAGE_0930_0935",
++    "STAGE_0935_0940",
++    "STAGE_0940_0945",
++})
++
++
++def _hk_morning_cached_d1_provenance(binding, requested):
++    """Read the pinned D1 artifact to distinguish its producer run from the binding id."""
++    if (
++        binding is None
++        or binding.status != "READY"
++        or binding.market != "HK_CONNECT"
++        or binding.trade_date != _HK_MORNING_CACHED_DATE
++        or binding.sha256 != _HK_MORNING_CACHED_D1_SHA256
++        or set(binding.codes) != set(requested)
++    ):
++        return None
++    evidence = {
++        str(item).split("=", 1)[0]: str(item).split("=", 1)[1]
++        for item in binding.evidence
++        if "=" in str(item)
++    }
++    path_text = evidence.get("hk_d1_json", "")
++    if not path_text or evidence.get("hk_d1_sha256") != _HK_MORNING_CACHED_D1_SHA256:
++        return None
++    path = Path(path_text).expanduser()
++    try:
++        if path.is_symlink() or not path.is_file() or path.stat().st_size > 32 * 1024 * 1024:
++            return None
++        raw = path.read_bytes()
++        if hashlib.sha256(raw).hexdigest() != _HK_MORNING_CACHED_D1_SHA256:
++            return None
++        artifact = json.loads(raw.decode("utf-8"))
++    except (OSError, UnicodeError, ValueError, json.JSONDecodeError):
++        return None
++    rows = artifact.get("rows") if isinstance(artifact, dict) else None
++    artifact_codes = {
++        str(row.get("code") or "").upper()
++        for row in rows
++        if isinstance(row, dict)
++    } if isinstance(rows, list) else set()
++    if (
++        not isinstance(artifact, dict)
++        or artifact.get("trade_date") != _HK_MORNING_CACHED_DATE
++        or artifact.get("target_date") != _HK_MORNING_CACHED_DATE
++        or artifact.get("signal_date") != "20261014"
++        or artifact.get("pool_id") != "hkconnect_d1_top100"
++        or artifact.get("source_run_id") != _HK_MORNING_CACHED_D1_RUN_ID
++        or artifact.get("stage_selection_eligible") is not True
++        or any(artifact.get(key) is not False for key in ("production_allowed", "buy_gate_updated", "orders_sent"))
++        or not isinstance(rows, list)
++        or len(rows) != 100
++        or len(artifact_codes) != 100
++        or artifact_codes != set(requested)
++        or any(
++            not isinstance(row, dict)
++            or row.get("target_date") != _HK_MORNING_CACHED_DATE
++            or row.get("signal_date") != "20261014"
++            for row in rows
++        )
++    ):
++        return None
++    return _HK_MORNING_CACHED_DATE, "20261014", _HK_MORNING_CACHED_D1_RUN_ID
++
++
++def _load_hk_morning_cached_source(_v4_scope, /, plan, *, codes, shared_root):
++    """Project only the frozen 2026-10-15 Futu capture through the existing Futu window aggregator."""
++    dataset_path = os.environ.get("V4_HK_MORNING_CACHED_CAPTURE")
++    if not dataset_path:
++        return None
++    from stage_center.acquisition import SourceResult
++
++    requested = tuple(str(code).upper() for code in codes)
++    if (
++        plan.trade_date != _HK_MORNING_CACHED_DATE
++        or plan.stage_id not in _HK_MORNING_CACHED_STAGE_IDS
++        or getattr(plan, "historical_backfill", False) is not True
++        or len(requested) != 100
++        or len(set(requested)) != 100
++    ):
++        return SourceResult(
++            _HK_MORNING_CACHED_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(requested),
++            cannot_confirm=("HK_MORNING_CACHED_CAPTURE_SCOPE_MISMATCH",),
++            source_evidence=("historical_provider=futu_cached_minute_capture",),
++        )
++    binding = getattr(plan, "universe_bindings", {}).get("HK_CONNECT")
++    if _hk_morning_cached_d1_provenance(binding, requested) is None:
++        return SourceResult(
++            _HK_MORNING_CACHED_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(requested),
++            cannot_confirm=("HK_MORNING_CACHED_D1_BINDING_MISMATCH",),
++            source_evidence=("historical_provider=futu_cached_minute_capture",),
++        )
++    path = Path(dataset_path).expanduser()
++    try:
++        if path.is_symlink() or not path.is_file() or path.stat().st_size > 32 * 1024 * 1024:
++            raise ValueError("capture is not a bounded regular file")
++        path = path.resolve(strict=True)
++        raw_bytes = path.read_bytes()
++        capture_sha = hashlib.sha256(raw_bytes).hexdigest()
++        if capture_sha != _HK_MORNING_CACHED_CAPTURE_SHA256:
++            raise ValueError("capture SHA mismatch")
++        dataset = json.loads(raw_bytes.decode("utf-8"))
++    except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as error:
++        return SourceResult(
++            _HK_MORNING_CACHED_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(requested),
++            cannot_confirm=(f"HK_MORNING_CACHED_CAPTURE_INVALID:{type(error).__name__}",),
++            source_evidence=(
++                "historical_provider=futu_cached_minute_capture",
++                f"futu_capture_path={path}",
++            ),
++        )
++    return _build_hk_morning_cached_source(
++        _v4_scope,
++        plan,
++        codes=requested,
++        shared_root=shared_root,
++        capture_path=path,
++        capture_sha256=capture_sha,
++        dataset=dataset,
++    )
++
++
++def _build_hk_morning_cached_source(
++    _v4_scope,
++    /,
++    plan,
++    *,
++    codes,
++    shared_root,
++    capture_path,
++    capture_sha256,
++    dataset,
++):
++    """Validate a capture envelope and construct an after-fact SourceResult without I/O beyond imports."""
++    from datetime import datetime
++    from zoneinfo import ZoneInfo
++    from stage_center.acquisition import SourceResult
++    from stage_center.raw_store import (
++        HISTORICAL_OBSERVATION_CONTRACT_ID,
++        HISTORICAL_OBSERVATION_MANIFEST_SCHEMA,
++        _HISTORICAL_OBSERVATION_REQUIRED_CANNOT_CONFIRM,
++        _raw_artifact_csv_sha256,
++        historical_observation_manifest_markers,
++    )
++
++    requested = tuple(str(code).upper() for code in codes)
++    rows = dataset.get("rows") if isinstance(dataset, dict) else None
++    capture_codes = dataset.get("codes") if isinstance(dataset, dict) else None
++    captured_at_text = str(dataset.get("captured_at") or "") if isinstance(dataset, dict) else ""
++    try:
++        captured_at = datetime.fromisoformat(captured_at_text)
++    except ValueError:
++        captured_at = None
++    if (
++        capture_sha256 != _HK_MORNING_CACHED_CAPTURE_SHA256
++        or plan.trade_date != _HK_MORNING_CACHED_DATE
++        or plan.stage_id not in _HK_MORNING_CACHED_STAGE_IDS
++        or getattr(plan, "historical_backfill", False) is not True
++        or not isinstance(dataset, dict)
++        or dataset.get("trade_date") != _HK_MORNING_CACHED_DATE
++        or dataset.get("stage_id") != _HK_MORNING_CACHED_CAPTURE_STAGE_ID
++        or dataset.get("market") != "HK_CONNECT"
++        or dataset.get("adjustment") != "NONE"
++        or captured_at_text != _HK_MORNING_CACHED_CAPTURED_AT
++        or captured_at is None
++        or captured_at.tzinfo is None
++        or captured_at.astimezone(ZoneInfo("Asia/Hong_Kong")).strftime("%Y%m%d") != _HK_MORNING_CACHED_DATE
++        or not isinstance(capture_codes, list)
++        or len(capture_codes) != 100
++        or len(set(str(code).upper() for code in capture_codes)) != 100
++        or set(str(code).upper() for code in capture_codes) != set(requested)
++        or not isinstance(rows, list)
++        or len(rows) != 100000
++        or len(requested) != 100
++        or len(set(requested)) != 100
++    ):
++        return SourceResult(
++            _HK_MORNING_CACHED_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(requested),
++            cannot_confirm=("HK_MORNING_CACHED_CAPTURE_IDENTITY_MISMATCH",),
++            source_evidence=(
++                "historical_provider=futu_cached_minute_capture",
++                f"futu_capture_sha256={capture_sha256}",
++                f"futu_capture_path={capture_path}",
++            ),
++        )
++
++    binding = getattr(plan, "universe_bindings", {}).get("HK_CONNECT")
++    d1_provenance = _hk_morning_cached_d1_provenance(binding, requested)
++    if d1_provenance is None:
++        return SourceResult(
++            _HK_MORNING_CACHED_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(requested),
++            cannot_confirm=("HK_MORNING_CACHED_D1_BINDING_MISMATCH",),
++            source_evidence=(
++                "historical_provider=futu_cached_minute_capture",
++                f"futu_capture_sha256={capture_sha256}",
++            ),
++        )
++
++    capture_row_codes = {
++        str(row.get("code") or "").upper()
++        for row in rows
++        if isinstance(row, dict)
++    }
++    if capture_row_codes != set(requested) or any(not isinstance(row, dict) for row in rows):
++        return SourceResult(
++            _HK_MORNING_CACHED_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(requested),
++            cannot_confirm=("HK_MORNING_CACHED_CAPTURE_CODE_SET_MISMATCH",),
++            source_evidence=(
++                "historical_provider=futu_cached_minute_capture",
++                f"futu_capture_sha256={capture_sha256}",
++            ),
++        )
++
++    root = _v4_global(_v4_scope, "_shared_scripts_root")(shared_root)
++    module = _v4_global(_v4_scope, "_load_shared_module")(
++        root, "scripts.live_acquisition.futu_bridge"
++    )
++    window = module.STAGE_WINDOWS.get(plan.stage_id)
++    if window is None:
++        return SourceResult(
++            _HK_MORNING_CACHED_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(requested),
++            cannot_confirm=("HK_MORNING_CACHED_STAGE_WINDOW_UNAVAILABLE",),
++        )
++    start_text, end_text, cutoff_text = window
++    target_day = f"{_HK_MORNING_CACHED_DATE[:4]}-{_HK_MORNING_CACHED_DATE[4:6]}-{_HK_MORNING_CACHED_DATE[6:]}"
++    from datetime import timedelta
++
++    window_start = datetime.strptime(f"{target_day} {start_text}", "%Y-%m-%d %H:%M:%S") + timedelta(minutes=1)
++    window_end = datetime.strptime(f"{target_day} {end_text}", "%Y-%m-%d %H:%M:%S")
++    expected_last_bar = window_end - timedelta(seconds=5)
++    target_rows = [
++        row for row in rows
++        if str(row.get("time_key") or "").startswith(target_day + " ")
++    ]
++    selected_window_rows = []
++    counts = {}
++    seen = set()
++    for row in target_rows:
++        try:
++            moment = datetime.strptime(str(row.get("time_key") or ""), "%Y-%m-%d %H:%M:%S")
++        except ValueError:
++            continue
++        if window_start <= moment < window_end:
++            code = str(row.get("code") or "").upper()
++            key = (code, moment)
++            if key in seen:
++                return SourceResult(
++                    _HK_MORNING_CACHED_SOURCE_ID,
++                    "CANNOT_CONFIRM",
++                    requested_rows=len(requested),
++                    cannot_confirm=("HK_MORNING_CACHED_WINDOW_DUPLICATE_BAR",),
++                )
++            seen.add(key)
++            selected_window_rows.append(row)
++            counts[code] = counts.get(code, 0) + 1
++    if (
++        len(selected_window_rows) != 500
++        or set(counts) != set(requested)
++        or any(counts.get(code) != 5 for code in requested)
++    ):
++        return SourceResult(
++            _HK_MORNING_CACHED_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(requested),
++            cannot_confirm=("HK_MORNING_CACHED_WINDOW_COVERAGE_MISMATCH",),
++        )
++
++    provider_rows_sha256 = hashlib.sha256(
++        json.dumps(
++            sorted(selected_window_rows, key=lambda row: (str(row.get("code") or "").upper(), str(row.get("time_key") or ""))),
++            ensure_ascii=False,
++            sort_keys=True,
++            separators=(",", ":"),
++        ).encode("utf-8")
++    ).hexdigest()
++    projected = module.aggregate_futu_minute_window_rows(
++        _HK_MORNING_CACHED_DATE,
++        plan.stage_id,
++        target_rows,
++    )
++    if (
++        len(projected) != 100
++        or {str(row.get("code") or "").upper() for row in projected} != set(requested)
++        or any(
++            row.get("bar_count") != 5
++            or row.get("update_time") != f"{target_day} {expected_last_bar.strftime('%H:%M:%S')}"
++            or row.get("window_start") != f"{target_day} {window_start.strftime('%H:%M:%S')}"
++            or row.get("window_end") != f"{target_day} {expected_last_bar.strftime('%H:%M:%S')}"
++            for row in projected
++        )
++    ):
++        return SourceResult(
++            _HK_MORNING_CACHED_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(requested),
++            cannot_confirm=("HK_MORNING_CACHED_AGGREGATION_BOUNDARY_MISMATCH",),
++        )
++    normalized_rows = tuple({**row, "temporal_cutoff_safe": False} for row in projected)
++    raw_sha256 = _raw_artifact_csv_sha256(_HK_MORNING_CACHED_DATE, normalized_rows)
++    if raw_sha256 is None:
++        return SourceResult(
++            _HK_MORNING_CACHED_SOURCE_ID,
++            "CANNOT_CONFIRM",
++            requested_rows=len(requested),
++            cannot_confirm=("HK_MORNING_CACHED_RAW_PROJECTION_INVALID",),
++        )
++
++    source_date, signal_date, producer_run_id = d1_provenance
++    code_set_sha256 = hashlib.sha256(
++        json.dumps(tuple(sorted(requested)), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++    window_label = f"{start_text[:5]}-{end_text[:5]}"
++    evidence_values = [
++        f"historical_provider={_HK_MORNING_CACHED_SOURCE_ID}",
++        "historical_capture_after_target_cutoff=true",
++        "historical_temporal_cutoff_safe=false",
++        "historical_formal_stage_eligibility=CANNOT_CONFIRM",
++        "historical_natural_time_capture=CANNOT_CONFIRM",
++        "historical_pit_safe=false",
++        f"historical_price_signal_date={signal_date}",
++        f"hk_d1_producer_run_id={producer_run_id}",
++        f"hk_d1_producer_artifact_sha256={binding.sha256}",
++        f"historical_source_page_set_sha256={capture_sha256}",
++        f"futu_capture_path={capture_path}",
++        f"futu_capture_sha256={capture_sha256}",
++        f"futu_capture_stage_id={_HK_MORNING_CACHED_CAPTURE_STAGE_ID}",
++        f"futu_capture_captured_at={captured_at_text}",
++        "futu_capture_market=HK_CONNECT",
++        "futu_capture_adjustment=NONE",
++        f"futu_capture_window={plan.stage_id}:{start_text}-{end_text}",
++        f"futu_capture_window_provider_rows_sha256={provider_rows_sha256}",
++        "futu_capture_window_input_rows=500",
++        "futu_capture_window_codes=100",
++        "futu_capture_window_bars_per_code=5",
++        "futu_capture_orderbook_available=false",
++        f"futu_afterfact_dataset_sha256={capture_sha256}",
++        f"futu_afterfact_stage_id={plan.stage_id}",
++        f"futu_afterfact_window={window_label}",
++        f"futu_afterfact_window_start={target_day} {window_start.strftime('%H:%M:%S')}",
++        f"futu_afterfact_window_end_exclusive={target_day} {window_end.strftime('%H:%M:%S')}",
++        f"futu_afterfact_last_bar={target_day} {expected_last_bar.strftime('%H:%M:%S')}",
++        f"futu_afterfact_provider_rows_sha256={provider_rows_sha256}",
++        f"futu_afterfact_raw_artifact_sha256={raw_sha256}",
++        "futu_afterfact_temporal_cutoff_safe=false",
++        "futu_afterfact_pit_safe=false",
++        "futu_afterfact_formal_stage_eligibility=CANNOT_CONFIRM",
++        "futu_afterfact_natural_time_capture=CANNOT_CONFIRM",
++        "futu_afterfact_orderbook_unavailable=true",
++        "production_allowed=false",
++        "buy_gate_updated=false",
++        "orders_sent=false",
++    ]
++    required_evidence = sorted(set(evidence_values))
++    manifest = {
++        "schema_version": HISTORICAL_OBSERVATION_MANIFEST_SCHEMA,
++        "contract_id": HISTORICAL_OBSERVATION_CONTRACT_ID,
++        "target": {
++            "trade_date": _HK_MORNING_CACHED_DATE,
++            "stage_id": plan.stage_id,
++            "market": "HK_CONNECT",
++            "source_id": _HK_MORNING_CACHED_SOURCE_ID,
++            "source_status": "PARTIAL_WITH_ROWS",
++            "historical_backfill": True,
++            "observation_mode": "AFTERFACT_RESEARCH_ONLY",
++            "requested_rows": 100,
++        },
++        "pool": {
++            "source_date": source_date,
++            "signal_date": signal_date,
++            "source_run_id": producer_run_id,
++            "artifact_sha256": binding.sha256,
++            "code_set_sha256": code_set_sha256,
++            "codes": sorted(requested),
++        },
++        "observation": {
++            "price_signal_date": signal_date,
++            "capture_after_target_cutoff": True,
++            "temporal_cutoff_safe": False,
++            "formal_stage_eligibility": "CANNOT_CONFIRM",
++            "natural_time_capture": "CANNOT_CONFIRM",
++            "pit_safe": False,
++            "source_page_set_sha256": capture_sha256,
++            "raw_artifact_sha256": raw_sha256,
++            "required_source_evidence_sha256": hashlib.sha256(
++                json.dumps(required_evidence, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++            ).hexdigest(),
++            "requested_rows": 100,
++            "observed_rows": 100,
++            "missing_count": 0,
++            "observed_codes": sorted(requested),
++            "missing_codes": [],
++            "capture_sha256": capture_sha256,
++            "capture_path": str(capture_path),
++            "capture_stage_id": _HK_MORNING_CACHED_CAPTURE_STAGE_ID,
++            "capture_captured_at": captured_at_text,
++            "capture_market": "HK_CONNECT",
++            "capture_adjustment": "NONE",
++            "capture_window": f"{plan.stage_id}:{start_text}-{end_text}",
++            "capture_window_provider_rows_sha256": provider_rows_sha256,
++            "capture_window_input_rows": 500,
++            "capture_window_codes": 100,
++            "capture_window_bars_per_code": 5,
++            "raw_window_start": f"{target_day} {window_start.strftime('%H:%M:%S')}",
++            "raw_window_end": f"{target_day} {expected_last_bar.strftime('%H:%M:%S')}",
++        },
++        "safety": {
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        },
++        "required_source_evidence": required_evidence,
++    }
++    token, manifest_marker, mode_marker = historical_observation_manifest_markers(manifest)
++    evidence_values.extend((manifest_marker, mode_marker))
++    return SourceResult(
++        _HK_MORNING_CACHED_SOURCE_ID,
++        "PARTIAL_WITH_ROWS",
++        normalized_rows,
++        cannot_confirm=tuple(_HISTORICAL_OBSERVATION_REQUIRED_CANNOT_CONFIRM) + (
++            "HK_HISTORICAL_ORDERBOOK_UNAVAILABLE",
++        ),
++        requested_rows=100,
++        missing_symbols=(),
++        source_evidence=tuple(dict.fromkeys(evidence_values)),
++    )
+ 
+ 
+ def _load_futu_afterfact_source(plan, *, codes):
+@@ -227,6 +675,11 @@
+         # scan is not an equivalent source and must never be used as a
+         # fallback when the exact replay provider is unavailable.
+         return _v4_global(_v4_scope, '_collect_hk_stage8_replay')(plan, codes=codes, replay_provider=replay_provider)
++    cached_morning = _load_hk_morning_cached_source(
++        _v4_scope, plan, codes=codes, shared_root=shared_root
++    )
++    if cached_morning is not None:
++        return cached_morning
+     futu_afterfact = _load_futu_afterfact_source(plan, codes=codes)
+     if futu_afterfact is not None:
+         return futu_afterfact
+--- a/stage_center/_live_collectors_parts/selection_builder_registry.py
++++ b/stage_center/_live_collectors_parts/selection_builder_registry.py
+@@ -58,7 +58,8 @@
+     require(plan.trade_date == raw.get("trade_date"), "HISTORICAL_OBSERVATION_DATE_MISMATCH")
+     require(plan.stage_id == raw.get("stage_id"), "HISTORICAL_OBSERVATION_STAGE_MISMATCH")
+     require(raw.get("market") == "HK_CONNECT", "HISTORICAL_OBSERVATION_MARKET_MISMATCH")
+-    require(source.source_id == "pytdx_exhq", "HISTORICAL_OBSERVATION_SOURCE_ID_MISMATCH")
++    require(source.source_id in {"pytdx_exhq", "futu_cached_minute_capture"},
++            "HISTORICAL_OBSERVATION_SOURCE_ID_MISMATCH")
+     require(source.status == "PARTIAL_WITH_ROWS", "HISTORICAL_OBSERVATION_SOURCE_STATUS_MISMATCH")
+     require(raw.get("source_id") == source.source_id, "HISTORICAL_OBSERVATION_RAW_SOURCE_MISMATCH")
+     require(raw.get("status") == "PARTIAL_WITH_ROWS", "HISTORICAL_OBSERVATION_RAW_STATUS_MISMATCH")
+--- a/stage_center/raw_store.py
++++ b/stage_center/raw_store.py
+@@ -175,6 +175,22 @@
+     "HISTORICAL_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+     "HISTORICAL_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
+ )
++HK_MORNING_CACHED_AFTERFACT_SOURCE_ID = "futu_cached_minute_capture"
++HK_MORNING_CACHED_AFTERFACT_DATE = "20261015"
++HK_MORNING_CACHED_AFTERFACT_D1_SHA256 = "66225363e4dd1b9da4f316d75a8dcc5f249bc0968128c646e9632a1a8b1b1c67"
++HK_MORNING_CACHED_AFTERFACT_D1_RUN_ID = "20261015-hk-connect-d1-top100-0-2-1d08535262fd"
++HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256 = "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455"
++HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH = (
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/"
++    ".futu_minute_captures/20261015/STAGE_0945_1030/"
++    "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455.json"
++)
++HK_MORNING_CACHED_AFTERFACT_CAPTURED_AT = "2026-10-15T10:31:03.491290+08:00"
++_HK_MORNING_CACHED_AFTERFACT_STAGE_PROFILES = {
++    "STAGE_0930_0935": ("09:30:00", "09:35:05", "09:31:00", "09:35:00"),
++    "STAGE_0935_0940": ("09:35:00", "09:40:05", "09:36:00", "09:40:00"),
++    "STAGE_0940_0945": ("09:40:00", "09:45:05", "09:41:00", "09:45:00"),
++}
+ _TIME_FMT = "%Y-%m-%d %H:%M:%S"
+ _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
+ _LOCK_TIMEOUT_SECONDS = 10.0
+@@ -494,6 +510,134 @@
+         return None
+ 
+ 
++def _allows_hk_morning_cached_afterfact_observation(
++    *,
++    trade_date: str,
++    stage_id: str,
++    source_id: str,
++    target: Mapping[str, Any],
++    pool: Mapping[str, Any],
++    observation: Mapping[str, Any],
++    safety: Mapping[str, Any],
++    rows: Sequence[Mapping[str, Any]],
++    source_evidence: Sequence[str],
++    required_evidence: Sequence[Any],
++) -> bool:
++    """Admit only the pinned 2026-10-15 capture and its three exact HK windows."""
++    profile = _HK_MORNING_CACHED_AFTERFACT_STAGE_PROFILES.get(stage_id)
++    if profile is None:
++        return False
++    stage_start, cutoff, row_start, row_end = profile
++    target_day = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]}"
++    capture_path_text = str(observation.get("capture_path") or "")
++    capture_path = Path(capture_path_text)
++    evidence = {str(item) for item in source_evidence}
++    capture_window_sha = str(observation.get("capture_window_provider_rows_sha256") or "")
++    capture_window = f"{stage_id}:{stage_start}-{cutoff}"
++    window_label = f"{stage_start[:5]}-{cutoff[:5]}"
++    expected_markers = {
++        f"historical_provider={HK_MORNING_CACHED_AFTERFACT_SOURCE_ID}",
++        "historical_capture_after_target_cutoff=true",
++        "historical_temporal_cutoff_safe=false",
++        "historical_formal_stage_eligibility=CANNOT_CONFIRM",
++        "historical_natural_time_capture=CANNOT_CONFIRM",
++        "historical_pit_safe=false",
++        "historical_price_signal_date=20261014",
++        f"historical_source_page_set_sha256={HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256}",
++        f"futu_capture_path={HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH}",
++        f"futu_capture_sha256={HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256}",
++        "futu_capture_stage_id=STAGE_0945_1030",
++        f"futu_capture_captured_at={HK_MORNING_CACHED_AFTERFACT_CAPTURED_AT}",
++        "futu_capture_market=HK_CONNECT",
++        "futu_capture_adjustment=NONE",
++        f"futu_capture_window={capture_window}",
++        f"futu_capture_window_provider_rows_sha256={capture_window_sha}",
++        "futu_capture_window_input_rows=500",
++        "futu_capture_window_codes=100",
++        "futu_capture_window_bars_per_code=5",
++        "futu_capture_orderbook_available=false",
++        f"futu_afterfact_dataset_sha256={HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256}",
++        f"futu_afterfact_stage_id={stage_id}",
++        f"futu_afterfact_window={window_label}",
++        f"futu_afterfact_window_start={target_day} {row_start}",
++        f"futu_afterfact_window_end_exclusive={target_day} {cutoff}",
++        f"futu_afterfact_last_bar={target_day} {row_end}",
++        f"futu_afterfact_provider_rows_sha256={capture_window_sha}",
++        f"futu_afterfact_raw_artifact_sha256={observation.get('raw_artifact_sha256')}",
++        "futu_afterfact_temporal_cutoff_safe=false",
++        "futu_afterfact_pit_safe=false",
++        "futu_afterfact_formal_stage_eligibility=CANNOT_CONFIRM",
++        "futu_afterfact_natural_time_capture=CANNOT_CONFIRM",
++        "futu_afterfact_orderbook_unavailable=true",
++        "production_allowed=false",
++        "buy_gate_updated=false",
++        "orders_sent=false",
++    }
++    try:
++        capture_file_sha = _sha_file(capture_path) if (
++            capture_path_text == HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH
++            and not capture_path.is_symlink()
++            and capture_path.is_file()
++        ) else ""
++    except OSError:
++        capture_file_sha = ""
++    if (
++        trade_date != HK_MORNING_CACHED_AFTERFACT_DATE
++        or source_id != HK_MORNING_CACHED_AFTERFACT_SOURCE_ID
++        or target.get("source_id") != HK_MORNING_CACHED_AFTERFACT_SOURCE_ID
++        or target.get("historical_backfill") is not True
++        or target.get("observation_mode") != "AFTERFACT_RESEARCH_ONLY"
++        or pool.get("source_date") != HK_MORNING_CACHED_AFTERFACT_DATE
++        or pool.get("signal_date") != "20261014"
++        or pool.get("source_run_id") != HK_MORNING_CACHED_AFTERFACT_D1_RUN_ID
++        or pool.get("artifact_sha256") != HK_MORNING_CACHED_AFTERFACT_D1_SHA256
++        or observation.get("capture_sha256") != HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256
++        or observation.get("source_page_set_sha256") != HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256
++        or observation.get("capture_path") != HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH
++        or observation.get("capture_stage_id") != "STAGE_0945_1030"
++        or observation.get("capture_captured_at") != HK_MORNING_CACHED_AFTERFACT_CAPTURED_AT
++        or observation.get("capture_market") != "HK_CONNECT"
++        or observation.get("capture_adjustment") != "NONE"
++        or observation.get("capture_window") != capture_window
++        or observation.get("capture_window_input_rows") != 500
++        or observation.get("capture_window_codes") != 100
++        or observation.get("capture_window_bars_per_code") != 5
++        or observation.get("raw_window_start") != f"{target_day} {row_start}"
++        or observation.get("raw_window_end") != f"{target_day} {row_end}"
++        or not isinstance(required_evidence, list)
++        or not _SHA_RE.fullmatch(capture_window_sha)
++        or capture_file_sha != HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256
++        or observation.get("capture_after_target_cutoff") is not True
++        or observation.get("temporal_cutoff_safe") is not False
++        or observation.get("formal_stage_eligibility") != "CANNOT_CONFIRM"
++        or observation.get("natural_time_capture") != "CANNOT_CONFIRM"
++        or observation.get("pit_safe") is not False
++        or safety.get("production_allowed") is not False
++        or safety.get("buy_gate_updated") is not False
++        or safety.get("orders_sent") is not False
++        or len(rows) != 100
++        or not expected_markers.issubset(evidence)
++        or not expected_markers.issubset({str(item) for item in required_evidence})
++    ):
++        return False
++    codes = [str(row.get("code") or "").upper() for row in rows]
++    if len(set(codes)) != 100 or any(not _MARKET_CODE["HK_CONNECT"].fullmatch(code) for code in codes):
++        return False
++    for row in rows:
++        if (
++            row.get("temporal_cutoff_safe") is not False
++            or row.get("window_start") != f"{target_day} {row_start}"
++            or row.get("window_end") != f"{target_day} {row_end}"
++            or row.get("update_time") != f"{target_day} {row_end}"
++            or row.get("bar_count") not in (5, "5")
++            or any(row.get(field) not in (None, "") for field in (
++                "bid_price", "ask_price", "bid_vol", "ask_vol"
++            ))
++        ):
++            return False
++    return True
++
++
+ def _allows_manifest_bound_afterfact_observation(
+     *,
+     contract: str | None,
+@@ -549,7 +693,7 @@
+         or target.get("source_status") != source_status
+         or target.get("historical_backfill") is not True
+         or market != "HK_CONNECT"
+-        or source_id != "pytdx_exhq"
++        or source_id not in {"pytdx_exhq", HK_MORNING_CACHED_AFTERFACT_SOURCE_ID}
+         or source_status != "PARTIAL_WITH_ROWS"
+         or not rows
+         or target.get("observation_mode") != "AFTERFACT_RESEARCH_ONLY"
+@@ -606,6 +750,19 @@
+         or set(observed_codes).union(missing_codes) != set(pool_codes)
+     ):
+         return False
++    if source_id == HK_MORNING_CACHED_AFTERFACT_SOURCE_ID and not _allows_hk_morning_cached_afterfact_observation(
++        trade_date=trade_date,
++        stage_id=stage_id,
++        source_id=source_id,
++        target=target,
++        pool=pool,
++        observation=observation,
++        safety=safety,
++        rows=rows,
++        source_evidence=source_evidence,
++        required_evidence=required_evidence,
++    ):
++        return False
+     row_codes = [str(row.get("code") or "").upper() for row in rows]
+     missing = [str(code).upper() for code in missing_symbols]
+     if (
+@@ -631,7 +788,7 @@
+         return False
+     evidence = tuple(str(item) for item in source_evidence)
+     required_markers = {
+-        "historical_provider=pytdx_exhq",
++        f"historical_provider={source_id}",
+         "historical_capture_after_target_cutoff=true",
+         "historical_temporal_cutoff_safe=false",
+         "historical_formal_stage_eligibility=CANNOT_CONFIRM",
+--- a/stage_center/runner.py
++++ b/stage_center/runner.py
+@@ -117,7 +117,7 @@
+         not historical_backfill
+         or (plan.trade_date, plan.stage_id, market)
+         != (_HK_0930_TDX_RESEARCH_DATE, "STAGE_0930_0935", "HK_CONNECT")
+-        or source.source_id != "pytdx_exhq"
++        or source.source_id not in {"pytdx_exhq", "futu_cached_minute_capture"}
+         or source.status != "PARTIAL_WITH_ROWS"
+         or source.requested_rows != 100
+         or len(source.rows) != 100
+@@ -239,7 +239,7 @@
+         or not re.fullmatch(re.escape(HISTORICAL_OBSERVATION_CONTRACT_PREFIX) + r"[0-9a-f]{64}", contract)
+         or not historical_backfill
+         or market != "HK_CONNECT"
+-        or source.source_id != "pytdx_exhq"
++        or source.source_id not in {"pytdx_exhq", "futu_cached_minute_capture"}
+         or source.status != "PARTIAL_WITH_ROWS"
+         or binding is None
+         or binding.status != "READY"
+@@ -271,7 +271,10 @@
+         or target.get("historical_backfill") is not True
+         or target.get("observation_mode") != "AFTERFACT_RESEARCH_ONLY"
+         or binding.sha256 != pool.get("artifact_sha256")
+-        or binding.source_run_id != pool.get("source_run_id")
++        or (
++            source.source_id == "pytdx_exhq"
++            and binding.source_run_id != pool.get("source_run_id")
++        )
+         or _evidence_value(binding.evidence, "hk_d1_sha256") != binding.sha256
+         or _evidence_value(binding.evidence, "hk_d1_membership") != "exact_date_top100"
+     ):
+@@ -292,6 +295,14 @@
+         if isinstance(d1_payload, Mapping)
+         else ()
+     )
++    if (
++        source.source_id == "futu_cached_minute_capture"
++        and (
++            not isinstance(d1_payload, Mapping)
++            or d1_payload.get("source_run_id") != pool.get("source_run_id")
++        )
++    ):
++        reject("historical observation producer run does not match the pinned D1 artifact")
+     if not isinstance(d1_rows, list):
+         reject("historical observation D1 rows are invalid")
+     d1_codes = tuple(sorted(
+--- a/stage_center/_runner_parts/slot_execution.py
++++ b/stage_center/_runner_parts/slot_execution.py
+@@ -584,7 +584,7 @@
+                 and market not in exact_input_errors
+             ):
+                 try:
+-                    selection_sources[market] = _v4_global(_v4_scope, '_attach_hk_authority')(
++                    authorized_selection_source = _v4_global(_v4_scope, '_attach_hk_authority')(
+                         sources[market],
+                         d1_root=self.config.hk_d1_root,
+                         second_root=(
+@@ -597,6 +597,28 @@
+                         preselection_source_root=self.config.preselection_source_root,
+                         hk_binding=universe_bindings.get("HK_CONNECT"),
+                     )
++                    if (
++                        observation_contract is not None
++                        and authorized_selection_source.source_id == "futu_cached_minute_capture"
++                    ):
++                        # The exact D1 artifact can contain prior-day static
++                        # candidate lanes. The after-fact selection contract
++                        # forbids carrying those labels forward; keep D1
++                        # metadata but score the captured rows without them.
++                        authorized_selection_source = _v4_global(_v4_scope, 'replace')(
++                            authorized_selection_source,
++                            rows=_v4_global(_v4_scope, 'tuple')(
++                                {**row, "candidate_lanes": []}
++                                for row in authorized_selection_source.rows
++                            ),
++                            source_evidence=_v4_global(_v4_scope, 'tuple')(
++                                _v4_global(_v4_scope, 'dict').fromkeys(
++                                    (*authorized_selection_source.source_evidence,
++                                     "historical_d1_candidate_lanes_suppressed=true")
++                                )
++                            ),
++                        )
++                    selection_sources[market] = authorized_selection_source
+                 except _v4_global(_v4_scope, 'RunnerError') as error:
+                     exact_input_errors[market] = _v4_global(_v4_scope, 'str')(error)
+             if market in exact_input_errors and market not in selection_sources:
+@@ -737,12 +759,47 @@
+                 and temporal_false_observation_contracts.get("HK_CONNECT")
+                 == _v4_global(_v4_scope, 'HK_0930_TDX_RESEARCH_CONTRACT')
+             )
+-            if exact_hk_only_research_backfill:
++            from stage_center.raw_store import (
++                HK_MORNING_CACHED_AFTERFACT_SOURCE_ID,
++                HISTORICAL_OBSERVATION_CONTRACT_PREFIX,
++            )
++            exact_hk_only_0925_recovery = (
++                historical_backfill is True
++                and trade_date == "20261015"
++                and stage_id == "STAGE_0925"
++                and tuple(stage_spec.markets) == ("A_SHARE", "HK_CONNECT")
++                and tuple(markets) == ("HK_CONNECT",)
++                and tuple(raw_markets) == ("HK_CONNECT",)
++                and sources["HK_CONNECT"].source_id == "hk_auction_second_filter"
++                and "second_filter_csv_sha256=c3daa0dc36c9e4319cd87c4639ec0fb37cf3c4ccb7d44f9e3c2ea99616fdf31f"
++                in sources["HK_CONNECT"].source_evidence
++            )
++            exact_hk_only_cached_morning_backfill = (
++                historical_backfill is True
++                and trade_date == "20261015"
++                and stage_id in {
++                    "STAGE_0930_0935",
++                    "STAGE_0935_0940",
++                    "STAGE_0940_0945",
++                }
++                and tuple(stage_spec.markets) == ("A_SHARE", "HK_CONNECT")
++                and tuple(markets) == ("HK_CONNECT",)
++                and tuple(raw_markets) == ("HK_CONNECT",)
++                and sources["HK_CONNECT"].source_id == HK_MORNING_CACHED_AFTERFACT_SOURCE_ID
++                and temporal_false_observation_contracts.get("HK_CONNECT", "").startswith(
++                    HISTORICAL_OBSERVATION_CONTRACT_PREFIX
++                )
++            )
++            if (
++                exact_hk_only_research_backfill
++                or exact_hk_only_0925_recovery
++                or exact_hk_only_cached_morning_backfill
++            ):
+                 # The raw bundle contract requires every StageSpec market.
+-                # This one explicitly HK-only historical observation must
+-                # not fabricate an A_SHARE artifact to satisfy that contract.
+-                # The verified single-market raw artifact remains the input
+-                # to selection and is named as such in both receipts.
++                # These explicitly HK-only historical observations must not
++                # fabricate an A_SHARE artifact to satisfy that contract. The
++                # verified single-market raw artifact remains the selection
++                # input and is named as such in both receipts.
+                 single_market_research_bundle_evidence = (
+                     "historical_raw_bundle=OMITTED_HK_ONLY_RESEARCH_BACKFILL"
+                 )
+--- /dev/null
++++ b/ops/run_hk_morning_cached_recovery.py
+@@ -0,0 +1,322 @@
++"""Offline 2026-10-15 HK morning recovery canary through the StageCenter runner."""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import os
++import sys
++from datetime import datetime
++from pathlib import Path
++from typing import Any
++from zoneinfo import ZoneInfo
++
++
++PROJECT_ROOT = Path(__file__).resolve().parents[1]
++if str(PROJECT_ROOT) not in sys.path:
++    sys.path.insert(0, str(PROJECT_ROOT))
++
++TRADE_DATE = "20261015"
++STAGES = (
++    "STAGE_0925",
++    "STAGE_0930_0935",
++    "STAGE_0935_0940",
++    "STAGE_0940_0945",
++)
++MINUTE_STAGES = frozenset(STAGES[1:])
++DEFAULT_D1_ROOT = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data"
++)
++DEFAULT_SECOND_FILTER_ROOT = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter"
++)
++DEFAULT_CAPTURE = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/"
++    ".futu_minute_captures/20261015/STAGE_0945_1030/"
++    "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455.json"
++)
++DEFAULT_STAGE_RELEASE = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/"
++    "node-minute-stage-20261014-r1/app"
++)
++DEFAULT_PYTHON = PROJECT_ROOT / ".venv/bin/python"
++RECOVERY_CAPTURE_ENV = "V4_HK_MORNING_CACHED_CAPTURE"
++SHANGHAI = ZoneInfo("Asia/Shanghai")
++RUNTIME_STATE_ROOT = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state"
++)
++
++
++def _tree_sha256(path: Path) -> str:
++    if not path.exists():
++        return "ABSENT"
++    if path.is_file():
++        return hashlib.sha256(path.read_bytes()).hexdigest()
++    digest = hashlib.sha256()
++    for item in sorted(path.rglob("*")):
++        if item.is_symlink():
++            digest.update(b"SYMLINK\0" + item.relative_to(path).as_posix().encode())
++        elif item.is_file():
++            relative = item.relative_to(path).as_posix().encode("utf-8")
++            digest.update(relative + b"\0" + hashlib.sha256(item.read_bytes()).digest())
++    return digest.hexdigest()
++
++
++def _protected_live_state_digests() -> dict[str, str]:
++    stage = RUNTIME_STATE_ROOT / "stage"
++    protected = (
++        stage / "raw/runs/20261015",
++        stage / "raw/bundle_runs/20261015",
++        stage / "selection/selection_runs/20261015",
++        stage / "receipts/20261015",
++        stage / "raw/latest.json",
++        stage / "raw/bundle_latest.json",
++        stage / "selection/selection_latest.json",
++    )
++    return {str(path): _tree_sha256(path) for path in protected}
++
++
++def _mode_token(source_evidence: tuple[str, ...]) -> str:
++    prefix = "stage_center_observation_mode="
++    values = [item[len(prefix):] for item in source_evidence if item.startswith(prefix)]
++    if len(values) != 1:
++        raise RuntimeError("cached after-fact source did not produce one manifest token")
++    return values[0]
++
++
++def _result_selection(result: dict[str, Any], stage_id: str) -> dict[str, Any]:
++    if result.get("trade_date") != TRADE_DATE or result.get("stage_id") != stage_id:
++        raise RuntimeError(f"runner returned the wrong slot for {stage_id}")
++    markets = result.get("markets")
++    if not isinstance(markets, dict) or set(markets) != {"HK_CONNECT"}:
++        raise RuntimeError(f"runner did not isolate the HK lane for {stage_id}")
++    item = markets["HK_CONNECT"]
++    if not isinstance(item, dict) or item.get("write_performed") is False:
++        raise RuntimeError(f"runner did not publish the HK lane for {stage_id}")
++    return item
++
++
++def run_offline_canary(
++    *,
++    output_root: Path,
++    d1_root: Path = DEFAULT_D1_ROOT,
++    second_filter_root: Path = DEFAULT_SECOND_FILTER_ROOT,
++    capture_path: Path = DEFAULT_CAPTURE,
++    stage_release: Path = DEFAULT_STAGE_RELEASE,
++    python_path: Path = DEFAULT_PYTHON,
++) -> dict[str, Any]:
++    output_root = output_root.expanduser().resolve(strict=False)
++    runtime_state_root = RUNTIME_STATE_ROOT.expanduser().resolve(strict=False)
++    if output_root.exists():
++        raise ValueError("output_root must be a new directory")
++    if output_root == runtime_state_root or runtime_state_root in output_root.parents:
++        raise ValueError("offline canary output cannot be inside the active runtime state")
++    if not d1_root.is_dir() or not second_filter_root.is_dir() or not capture_path.is_file():
++        raise FileNotFoundError("one or more pinned HK recovery inputs are unavailable")
++    shared_root = stage_release / "upstreams/v3_shared_data"
++    if not shared_root.is_dir() or not python_path.is_file():
++        raise FileNotFoundError("read-only stage release bridge or project Python is unavailable")
++
++    output_root.mkdir(parents=True, exist_ok=False)
++    started_at = datetime.now(SHANGHAI)
++    before_live = _protected_live_state_digests()
++    old_capture_env = os.environ.get(RECOVERY_CAPTURE_ENV)
++    os.environ[RECOVERY_CAPTURE_ENV] = str(capture_path.expanduser().resolve())
++    try:
++        from stage_center.acquisition import build_plan
++        from stage_center._live_collectors_parts.hk_minute import (
++            _hk_morning_cached_d1_provenance,
++        )
++        from stage_center.live_collectors import collect_hk_minute
++        from stage_center.runner import (
++            RunnerConfig,
++            StageCenterRunner,
++            _build_hk_stage_binding,
++            _candidate_from_hk_binding,
++        )
++        from stage_center.selection import SelectionStore
++
++        config = RunnerConfig(
++            candidate_acquisition_root=output_root / "candidate_input",
++            raw_root=output_root / "stage/raw",
++            selection_root=output_root / "stage/selection",
++            receipt_root=output_root / "stage/receipts",
++            hk_d1_root=d1_root,
++            hk_second_filter_root=second_filter_root,
++            hk_auction_root=second_filter_root,
++            shared_data_root=shared_root,
++            python_path=python_path,
++        )
++        runner = StageCenterRunner(config)
++        binding = _build_hk_stage_binding(config.hk_d1_root, TRADE_DATE)
++        d1_provenance = _hk_morning_cached_d1_provenance(binding, binding.codes)
++        if (
++            binding.sha256 != "66225363e4dd1b9da4f316d75a8dcc5f249bc0968128c646e9632a1a8b1b1c67"
++            or d1_provenance is None
++            or len(binding.codes) != 100
++        ):
++            raise RuntimeError("canonical D1 Top100 identity differs from the frozen input")
++        candidate = _candidate_from_hk_binding(
++            root=config.candidate_acquisition_root,
++            trade_date=TRADE_DATE,
++            binding=binding,
++        )
++        stage_summaries: list[dict[str, Any]] = []
++        evaluated_at_by_stage: dict[str, str] = {}
++
++        for stage_id in STAGES:
++            evaluated_at = datetime.now(SHANGHAI)
++            evaluated_at_by_stage[stage_id] = evaluated_at.isoformat()
++            token = None
++            prepared = None
++            if stage_id in MINUTE_STAGES:
++                plan = build_plan(
++                    config.candidate_acquisition_root,
++                    TRADE_DATE,
++                    stage_id,
++                    candidate=candidate,
++                    universe_bindings={"HK_CONNECT": binding},
++                    historical_backfill=True,
++                )
++                prepared = collect_hk_minute(
++                    plan,
++                    codes=plan.codes_for("HK_CONNECT"),
++                    python_path=python_path,
++                    shared_root=shared_root,
++                    snapshot_root=None,
++                    replay_provider=None,
++                )
++                if prepared.status != "PARTIAL_WITH_ROWS" or len(prepared.rows) != 100:
++                    raise RuntimeError(
++                        f"{stage_id} cached source rejected: {prepared.cannot_confirm}"
++                    )
++                token = _mode_token(tuple(prepared.source_evidence))
++
++            result = runner.tick(
++                TRADE_DATE,
++                evaluated_at,
++                stage_id=stage_id,
++                historical_backfill=True,
++                historical_markets=("HK_CONNECT",),
++                historical_observation_contract=token,
++                _skip_precapture=True,
++            )
++            market_result = _result_selection(result, stage_id)
++            selection_run_id = str(market_result.get("run_id") or "")
++            if not selection_run_id:
++                raise RuntimeError(f"{stage_id} returned no immutable selection run id")
++            selection_latest = next(
++                (
++                    path
++                    for path in (output_root / "stage/selection").glob(
++                        "backfill/*/selection_latest.json"
++                    )
++                    if selection_run_id in path.read_text(encoding="utf-8")
++                ),
++                None,
++            )
++            if selection_latest is None:
++                raise RuntimeError(f"{stage_id} selection latest pointer is missing")
++            envelope = SelectionStore(selection_latest.parent).read_verified(
++                TRADE_DATE, stage_id, "HK_CONNECT"
++            )
++            selected = list(envelope.get("rows") or ())
++            if market_result.get("selected_rows") != len(selected):
++                raise RuntimeError(f"{stage_id} selection row count readback mismatch")
++            if any(row.get("action_level") != "NO_BUY" for row in selected):
++                raise RuntimeError(f"{stage_id} selection exceeded the NO_BUY boundary")
++            if stage_id in MINUTE_STAGES:
++                if (
++                    envelope.get("formal_eligible") is not False
++                    or envelope.get("selection_mode") != "RESEARCH_ONLY"
++                    or envelope.get("observation_status") != "OBSERVATION_UNVERIFIED"
++                    or not any(
++                        "HK_HISTORICAL_ORDERBOOK_UNAVAILABLE" in str(item)
++                        for item in envelope.get("cannot_confirm", ())
++                    )
++                ):
++                    raise RuntimeError(f"{stage_id} lost an after-fact or orderbook uncertainty marker")
++                if len(selected) > 10:
++                    raise RuntimeError(f"{stage_id} exceeded the existing four-lane Top10 cap")
++            stage_summaries.append(
++                {
++                    "stage_id": stage_id,
++                    "runner_evaluated_at": evaluated_at.isoformat(),
++                    "runner_status": result.get("status"),
++                    "due_status": result.get("due_status"),
++                    "selection_status": market_result.get("selection_status"),
++                    "source_status": market_result.get("source_status"),
++                    "selected_rows": len(selected),
++                    "selection_run_id": selection_run_id,
++                    "raw_artifact_sha256": market_result.get("raw_artifact_sha256"),
++                    "formal_eligible": envelope.get("formal_eligible"),
++                    "selection_mode": envelope.get("selection_mode"),
++                    "observation_status": envelope.get("observation_status"),
++                    "cannot_confirm": list(envelope.get("cannot_confirm") or ()),
++                    "source_evidence": list(envelope.get("source_evidence") or ()),
++                    "prepared_source_rows": len(prepared.rows) if prepared is not None else 20,
++                }
++            )
++
++        after_live = _protected_live_state_digests()
++        if before_live != after_live:
++            raise RuntimeError("live stage raw/selection/receipt bytes changed during offline canary")
++        summary = {
++            "schema_version": "hk_morning_cached_recovery_offline_canary.v1",
++            "status": "PASS",
++            "trade_date": TRADE_DATE,
++            "clock_timezone": "Asia/Shanghai",
++            "run_started_at": started_at.isoformat(),
++            "runner_evaluated_at_by_stage": evaluated_at_by_stage,
++            "receipt_captured_at": datetime.now(SHANGHAI).isoformat(),
++            "source_capture_sha256": "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455",
++            "d1_artifact_sha256": binding.sha256,
++            "d1_source_run_id": d1_provenance[2],
++            "stage_results": stage_summaries,
++            "protected_live_state_sha256_before": before_live,
++            "protected_live_state_sha256_after": after_live,
++            "write_root": str(output_root),
++            "research_only": True,
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        }
++        (output_root / "offline_canary_receipt.json").write_text(
++            json.dumps(summary, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
++            encoding="utf-8",
++        )
++        return summary
++    finally:
++        if old_capture_env is None:
++            os.environ.pop(RECOVERY_CAPTURE_ENV, None)
++        else:
++            os.environ[RECOVERY_CAPTURE_ENV] = old_capture_env
++
++
++def main(argv: list[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--output-root", type=Path, required=True)
++    parser.add_argument("--d1-root", type=Path, default=DEFAULT_D1_ROOT)
++    parser.add_argument("--second-filter-root", type=Path, default=DEFAULT_SECOND_FILTER_ROOT)
++    parser.add_argument("--capture", type=Path, default=DEFAULT_CAPTURE)
++    parser.add_argument("--stage-release", type=Path, default=DEFAULT_STAGE_RELEASE)
++    parser.add_argument("--python", type=Path, default=DEFAULT_PYTHON)
++    args = parser.parse_args(argv)
++    try:
++        summary = run_offline_canary(
++            output_root=args.output_root,
++            d1_root=args.d1_root,
++            second_filter_root=args.second_filter_root,
++            capture_path=args.capture,
++            stage_release=args.stage_release,
++            python_path=args.python,
++        )
++    except Exception as error:
++        print(json.dumps({"status": "FAIL", "error_type": type(error).__name__, "error": str(error)}, ensure_ascii=False), file=sys.stderr)
++        return 1
++    print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+--- /dev/null
++++ b/tests/test_hk_morning_cached_recovery_20261015.py
+@@ -0,0 +1,194 @@
++from __future__ import annotations
++
++import hashlib
++import json
++from datetime import datetime as RealDatetime, timedelta
++from pathlib import Path
++from zoneinfo import ZoneInfo
++
++import pytest
++
++import stage_center.live_collectors as live_collectors
++import ops.run_hk_morning_cached_recovery as recovery_cli
++from stage_center._live_collectors_parts.hk_minute import (
++    _build_hk_morning_cached_source,
++)
++from stage_center.acquisition import build_plan
++from stage_center.live_collectors import collect_hk_minute
++from stage_center.runner import _build_hk_stage_binding, _candidate_from_hk_binding
++
++
++TRADE_DATE = "20261015"
++D1_ROOT = Path("/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data")
++CAPTURE = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/"
++    ".futu_minute_captures/20261015/STAGE_0945_1030/"
++    "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455.json"
++)
++SHARED_ROOT = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/"
++    "node-minute-stage-20261014-r1/app/upstreams/v3_shared_data"
++)
++PYTHON_PATH = Path(__file__).resolve().parents[1] / ".venv/bin/python"
++CAPTURE_ENV = "V4_HK_MORNING_CACHED_CAPTURE"
++
++
++@pytest.fixture(scope="module")
++def input_context(tmp_path_factory):
++    binding = _build_hk_stage_binding(D1_ROOT, TRADE_DATE)
++    candidate = _candidate_from_hk_binding(
++        root=tmp_path_factory.mktemp("hk-morning-candidate"),
++        trade_date=TRADE_DATE,
++        binding=binding,
++    )
++    plan = build_plan(
++        candidate.root,
++        TRADE_DATE,
++        "STAGE_0930_0935",
++        candidate=candidate,
++        universe_bindings={"HK_CONNECT": binding},
++        historical_backfill=True,
++    )
++    payload = json.loads(CAPTURE.read_text(encoding="utf-8"))
++    return binding, plan, payload
++
++
++def _build(plan, payload, capture_sha=None):
++    raw = CAPTURE.read_bytes()
++    actual_sha = hashlib.sha256(raw).hexdigest()
++    return _build_hk_morning_cached_source(
++        vars(live_collectors),
++        plan,
++        codes=plan.codes_for("HK_CONNECT"),
++        shared_root=SHARED_ROOT,
++        capture_path=CAPTURE,
++        capture_sha256=capture_sha or actual_sha,
++        dataset=payload,
++    )
++
++
++def test_cached_futu_window_is_idempotent_and_keeps_afterfact_boundary(
++    input_context, monkeypatch
++):
++    _, plan, _ = input_context
++    monkeypatch.setenv(CAPTURE_ENV, str(CAPTURE))
++    first = collect_hk_minute(
++        plan,
++        codes=plan.codes_for("HK_CONNECT"),
++        python_path=PYTHON_PATH,
++        shared_root=SHARED_ROOT,
++    )
++    second = collect_hk_minute(
++        plan,
++        codes=plan.codes_for("HK_CONNECT"),
++        python_path=PYTHON_PATH,
++        shared_root=SHARED_ROOT,
++    )
++    assert first.status == second.status == "PARTIAL_WITH_ROWS"
++    assert len(first.rows) == len(second.rows) == 100
++    assert first.rows == second.rows
++    assert first.source_evidence == second.source_evidence
++    assert all(row["bar_count"] == 5 for row in first.rows)
++    assert all(row["temporal_cutoff_safe"] is False for row in first.rows)
++    assert all(row["update_time"] == "2026-10-15 09:35:00" for row in first.rows)
++    assert all(
++        row["window_start"] == "2026-10-15 09:31:00"
++        and row["window_end"] == "2026-10-15 09:35:00"
++        for row in first.rows
++    )
++    assert "futu_capture_stage_id=STAGE_0945_1030" in first.source_evidence
++    assert "futu_capture_captured_at=2026-10-15T10:31:03.491290+08:00" in first.source_evidence
++    assert "futu_capture_orderbook_available=false" in first.source_evidence
++    assert "futu_afterfact_pit_safe=false" in first.source_evidence
++    assert "futu_afterfact_formal_stage_eligibility=CANNOT_CONFIRM" in first.source_evidence
++
++
++def test_wrong_capture_sha_fails_closed(input_context, monkeypatch, tmp_path):
++    _, plan, _ = input_context
++    payload = CAPTURE.read_bytes()
++    changed = bytes([payload[0] ^ 1]) + payload[1:]
++    wrong_capture = tmp_path / "wrong-sha.json"
++    wrong_capture.write_bytes(changed)
++    monkeypatch.setenv(CAPTURE_ENV, str(wrong_capture))
++    source = collect_hk_minute(
++        plan,
++        codes=plan.codes_for("HK_CONNECT"),
++        python_path=PYTHON_PATH,
++        shared_root=SHARED_ROOT,
++    )
++    assert source.status == "CANNOT_CONFIRM"
++    assert any("HK_MORNING_CACHED_CAPTURE_INVALID" in item for item in source.cannot_confirm)
++
++
++@pytest.mark.parametrize(
++    ("field", "value"),
++    (("trade_date", "20261014"), ("stage_id", "STAGE_0935_0940")),
++)
++def test_wrong_capture_date_or_stage_fails_closed(input_context, field, value):
++    _, plan, payload = input_context
++    changed = dict(payload)
++    changed[field] = value
++    source = _build(plan, changed)
++    assert source.status == "CANNOT_CONFIRM"
++    assert "HK_MORNING_CACHED_CAPTURE_IDENTITY_MISMATCH" in source.cannot_confirm
++
++
++def test_replacing_a_target_window_bar_with_a_future_bar_is_rejected(input_context):
++    _, plan, payload = input_context
++    changed = dict(payload)
++    rows = list(payload["rows"])
++    target_index = next(
++        index
++        for index, row in enumerate(rows)
++        if row.get("time_key") == "2026-10-15 09:31:00"
++    )
++    rows[target_index] = {**rows[target_index], "time_key": "2026-10-15 09:36:00"}
++    changed["rows"] = rows
++    source = _build(plan, changed)
++    assert source.status == "CANNOT_CONFIRM"
++    assert "HK_MORNING_CACHED_WINDOW_COVERAGE_MISMATCH" in source.cannot_confirm
++
++
++def test_offline_canary_uses_and_records_live_shanghai_clock(tmp_path, monkeypatch):
++    start = RealDatetime(2026, 10, 15, 11, 39, 0, tzinfo=ZoneInfo("Asia/Shanghai"))
++    clock_values = [start + timedelta(seconds=offset) for offset in range(6)]
++    clock_calls = iter(clock_values)
++
++    class FixedClockDatetime(RealDatetime):
++        @classmethod
++        def now(cls, tz=None):
++            value = next(clock_calls)
++            return value if tz is None else value.astimezone(tz)
++
++    monkeypatch.setattr(recovery_cli, "datetime", FixedClockDatetime)
++    output_root = tmp_path / "offline-canary"
++    summary = recovery_cli.run_offline_canary(output_root=output_root)
++
++    expected_evaluations = {
++        stage: clock_values[index + 1].isoformat()
++        for index, stage in enumerate(recovery_cli.STAGES)
++    }
++    assert summary["clock_timezone"] == "Asia/Shanghai"
++    assert summary["run_started_at"] == clock_values[0].isoformat()
++    assert summary["runner_evaluated_at_by_stage"] == expected_evaluations
++    assert summary["receipt_captured_at"] == clock_values[5].isoformat()
++    assert all("10:32:00" not in value for value in expected_evaluations.values())
++    assert {
++        item["stage_id"]: item["runner_evaluated_at"]
++        for item in summary["stage_results"]
++    } == expected_evaluations
++
++
++def test_offline_output_root_symlink_alias_into_runtime_state_is_rejected(
++    tmp_path, monkeypatch
++):
++    runtime_root = tmp_path / "runtime-state"
++    runtime_root.mkdir()
++    alias = tmp_path / "runtime-alias"
++    alias.symlink_to(runtime_root, target_is_directory=True)
++    monkeypatch.setattr(recovery_cli, "RUNTIME_STATE_ROOT", runtime_root)
++
++    with pytest.raises(ValueError, match="active runtime state"):
++        recovery_cli.run_offline_canary(output_root=alias / "new-canary")
++
++    assert not (runtime_root / "new-canary").exists()
+--- /dev/null
++++ b/writer/run_hk_morning_cached_recovery_once.py
+@@ -0,0 +1,871 @@
++#!/usr/bin/env python3
++"""One-shot live HK morning recovery; execution is gated and must be authorized."""
++from __future__ import annotations
++
++import argparse
++import csv
++import hashlib
++import json
++import os
++import sys
++import tempfile
++from datetime import datetime
++from pathlib import Path
++from typing import Any
++from zoneinfo import ZoneInfo
++
++
++PROJECT_ROOT = Path("/Users/lexi/Desktop/学习/v4_app")
++WRITER_ROOT = Path(
++    "/Users/lexi/Desktop/学习/agents调试/V4_HK_ACCEPTANCE_RECOVERY_20261015/writer"
++)
++TRADE_DATE = "20261015"
++STAGES = (
++    "STAGE_0925",
++    "STAGE_0930_0935",
++    "STAGE_0935_0940",
++    "STAGE_0940_0945",
++)
++MINUTE_STAGES = frozenset(STAGES[1:])
++SHANGHAI = ZoneInfo("Asia/Shanghai")
++CAPTURE_ENV = "V4_HK_MORNING_CACHED_CAPTURE"
++
++ACTIVE_STAGE_APP = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/"
++    "node-minute-stage-20261014-r1/app"
++)
++ACTIVE_STAGE_CONFIG = ACTIVE_STAGE_APP / "stage_center_tick_config.json"
++ACTIVE_STAGE_CONFIG_SHA256 = "dd02f230420d62709571f1542d60eaf95d8a1ee7af2f4088ba5f761c1df43246"
++
++D1_PATH = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/"
++    "preselection_pools/20261015/hkconnect_d1_top100.json"
++)
++D1_FILE_SHA256 = "66225363e4dd1b9da4f316d75a8dcc5f249bc0968128c646e9632a1a8b1b1c67"
++D1_ARTIFACT_SHA256 = "e25b4a1c3a35632ceeb4edaaea2b128ae47c98020fceae58fd8a395ad801f685"
++D1_RUN_ID = "20261015-hk-connect-d1-top100-0-2-1d08535262fd"
++SECOND_FILTER_CSV = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/"
++    "opening_second_filter/20261015/hkconnect_0920_auction_second_filter_20261015.csv"
++)
++SECOND_FILTER_CSV_SHA256 = "c3daa0dc36c9e4319cd87c4639ec0fb37cf3c4ccb7d44f9e3c2ea99616fdf31f"
++SECOND_FILTER_ACCEPTANCE = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/"
++    "opening_second_filter/20261015/hkconnect_0920_auction_second_filter_20261015.acceptance.json"
++)
++SECOND_FILTER_ACCEPTANCE_SHA256 = "7cdf5abde712094a6a32fd7a5a8a56effd4403951b98e6c9bbd5b2d84eaa2d6e"
++FUTU_CAPTURE = Path(
++    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/"
++    ".futu_minute_captures/20261015/STAGE_0945_1030/"
++    "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455.json"
++)
++FUTU_CAPTURE_SHA256 = "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455"
++
++EXPECTED_SOURCE_SHAS = {
++    "stage_center/acquisition.py": "51da5204448ed75197735281e578edeb7becb8281903bbac68070e42cc06523f",
++    "stage_center/live_collectors.py": "b5bb9332565c4fa861d2a825b113a254755172e4b8e629703d05a947ab66527e",
++    "stage_center/selection.py": "48c12de4fb10892d28bdbe58ef9e30e9dcf56aeee506a86a1428f4cdd0a74d26",
++    "stage_center/runner.py": "72ffbfa62daefe44158882c5f90e0c657741d3de0c85e18bad8d9f0b7aa5691e",
++    "stage_center/_runner_parts/slot_execution.py": "6a0728117ff11478bab3a46eb2fb9ec3586863937392c64bfa504bc36c6bcefd",
++    "stage_center/_live_collectors_parts/hk_minute.py": "2ec08e3fea63f31a05b447ce6a947f47d5e391d4dcc47b60220d6f7f49944f32",
++    "stage_center/_live_collectors_parts/selection_builder_registry.py": "5109145e773b3c3cb1d2bef17d4430d48f73efaa2479ac14b9d16adbf19a9942",
++    "stage_center/raw_store.py": "4cefe12c2f2ec8dc43a444c17e84b03f79fcd76607702fc5333ab5a956c7ec96",
++}
++
++RECEIPT_PATH = WRITER_ROOT / "actual_run_receipt_20261015.json"
++CONFIG_KEYS = (
++    "candidate_acquisition_root",
++    "raw_root",
++    "selection_root",
++    "receipt_root",
++    "v3_formal_root",
++    "v3_research_root",
++    "v4_research_data_root",
++    "v4_morning_news_root",
++    "hk_d1_root",
++    "preselection_source_root",
++    "hk_second_filter_root",
++    "hk_full_universe_root",
++    "a_auction_root",
++    "hk_auction_root",
++    "hk_stage_replay_root",
++    "a_research_panel_receipt_root",
++    "shared_data_root",
++    "python_path",
++)
++
++
++def _now_shanghai() -> datetime:
++    return datetime.now(SHANGHAI)
++
++
++def _file_sha256(path: Path) -> str:
++    if path.is_symlink() or not path.is_file():
++        raise RuntimeError(f"expected a regular file: {path}")
++    digest = hashlib.sha256()
++    with path.open("rb") as stream:
++        for chunk in iter(lambda: stream.read(1 << 20), b""):
++            digest.update(chunk)
++    return digest.hexdigest()
++
++
++def _sha256_json(value: Any) -> str:
++    return hashlib.sha256(
++        json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++
++
++def _record_tree(path: Path, entries: dict[str, dict[str, Any]]) -> None:
++    key = str(path)
++    if path.is_symlink():
++        entries[key] = {"kind": "symlink", "target": os.readlink(path)}
++        return
++    if not path.exists():
++        entries[key] = {"kind": "absent"}
++        return
++    if path.is_file():
++        entries[key] = {
++            "kind": "file",
++            "size": path.stat().st_size,
++            "sha256": _file_sha256(path),
++        }
++        return
++    entries[key] = {"kind": "directory"}
++    for base, dirs, files in os.walk(path, followlinks=False):
++        base_path = Path(base)
++        for name in sorted(list(dirs)):
++            child = base_path / name
++            child_key = str(child)
++            if child.is_symlink():
++                entries[child_key] = {"kind": "symlink", "target": os.readlink(child)}
++                dirs.remove(name)
++            else:
++                entries[child_key] = {"kind": "directory"}
++        for name in sorted(files):
++            child = base_path / name
++            child_key = str(child)
++            if child.is_symlink():
++                entries[child_key] = {"kind": "symlink", "target": os.readlink(child)}
++            elif child.is_file():
++                entries[child_key] = {
++                    "kind": "file",
++                    "size": child.stat().st_size,
++                    "sha256": _file_sha256(child),
++                }
++
++
++def _protected_live_inventory(config: dict[str, Any]) -> dict[str, dict[str, Any]]:
++    raw = Path(config["raw_root"])
++    selection = Path(config["selection_root"])
++    receipts = Path(config["receipt_root"])
++    protected = (
++        raw / "runs" / TRADE_DATE,
++        raw / "bundle_runs" / TRADE_DATE,
++        selection / "selection_runs" / TRADE_DATE,
++        receipts / TRADE_DATE,
++        raw / "latest.json",
++        raw / "bundle_latest.json",
++        selection / "selection_latest.json",
++    )
++    entries: dict[str, dict[str, Any]] = {}
++    for path in protected:
++        _record_tree(path, entries)
++    symlinks = sorted(
++        path for path, value in entries.items() if value.get("kind") == "symlink"
++    )
++    if symlinks:
++        raise RuntimeError(f"protected live state contains symlinks: {symlinks[:10]}")
++    return dict(sorted(entries.items()))
++
++
++def _backfill_date_inventory(root: Path, kind: str) -> dict[str, dict[str, Any]]:
++    """Inventory only the target date's backfill data and per-run pointers."""
++    backfill = root / "backfill"
++    entries: dict[str, dict[str, Any]] = {}
++    if not backfill.exists():
++        return {str(backfill): {"kind": "absent"}}
++    if backfill.is_symlink() or not backfill.is_dir():
++        raise RuntimeError(f"backfill root is not a regular directory: {backfill}")
++    entries[str(backfill)] = {"kind": "directory"}
++    for run_root in sorted(backfill.iterdir()):
++        if run_root.is_symlink():
++            entries[str(run_root)] = {"kind": "symlink", "target": os.readlink(run_root)}
++            continue
++        if not run_root.is_dir():
++            entries[str(run_root)] = {
++                "kind": "file",
++                "size": run_root.stat().st_size,
++                "sha256": _file_sha256(run_root),
++            }
++            continue
++        entries[str(run_root)] = {"kind": "directory"}
++        if kind == "raw":
++            relative_roots = (
++                run_root / "latest.json",
++                run_root / "bundle_latest.json",
++                run_root / "runs" / TRADE_DATE,
++                run_root / "bundle_runs" / TRADE_DATE,
++            )
++        elif kind == "selection":
++            relative_roots = (
++                run_root / "selection_latest.json",
++                run_root / "selection_runs" / TRADE_DATE,
++            )
++        elif kind == "receipts":
++            relative_roots = (run_root / TRADE_DATE,)
++        else:
++            raise ValueError(f"unknown backfill inventory kind: {kind}")
++        for path in relative_roots:
++            _record_tree(path, entries)
++    return dict(sorted(entries.items()))
++
++
++def _compare_inventory(
++    before: dict[str, dict[str, Any]],
++    after: dict[str, dict[str, Any]],
++    *,
++    allowed_backfill_run_ids: set[str] | None = None,
++    backfill_root: Path | None = None,
++) -> dict[str, list[str]]:
++    allowed_backfill_run_ids = allowed_backfill_run_ids or set()
++    before_keys, after_keys = set(before), set(after)
++    changed = sorted(key for key in before_keys & after_keys if before[key] != after[key])
++    deleted = sorted(before_keys - after_keys)
++    added = sorted(after_keys - before_keys)
++    unexpected_added: list[str] = []
++    if backfill_root is not None:
++        allowed_root_transition = str(backfill_root / "backfill")
++        if (
++            allowed_root_transition in changed
++            and before[allowed_root_transition].get("kind") == "absent"
++            and after[allowed_root_transition].get("kind") == "directory"
++        ):
++            changed.remove(allowed_root_transition)
++        for key in added:
++            relative = Path(key).relative_to(backfill_root)
++            parts = relative.parts
++            if not parts or parts[0] != "backfill":
++                unexpected_added.append(key)
++            elif len(parts) > 1 and parts[1] not in allowed_backfill_run_ids:
++                unexpected_added.append(key)
++    return {
++        "changed": changed,
++        "deleted": deleted,
++        "added": added,
++        "unexpected_added": unexpected_added,
++    }
++
++
++def _assert_target_backfill_empty(config: dict[str, Any]) -> None:
++    from stage_center.raw_store import RawStore
++    from stage_center.selection import SelectionStore
++
++    raw_root = Path(config["raw_root"]) / "backfill"
++    selection_root = Path(config["selection_root"]) / "backfill"
++    receipt_root = Path(config["receipt_root"]) / "backfill"
++    collisions: list[str] = []
++    for backfill_root in (raw_root, selection_root, receipt_root):
++        if backfill_root.is_symlink():
++            raise RuntimeError(f"backfill root symlink is forbidden: {backfill_root}")
++        if backfill_root.exists():
++            if not backfill_root.is_dir():
++                raise RuntimeError(f"backfill root is not a directory: {backfill_root}")
++            nested_symlinks = sorted(
++                str(path) for path in backfill_root.rglob("*") if path.is_symlink()
++            )
++            if nested_symlinks:
++                raise RuntimeError(
++                    f"backfill root contains symlinks: {nested_symlinks[:10]}"
++                )
++    for stage_id in STAGES:
++        raw_role = RawStore._role(stage_id, "HK_CONNECT")
++        selection_role = SelectionStore._role(stage_id, "HK_CONNECT")
++        for run_root in sorted(raw_root.iterdir()) if raw_root.is_dir() else ():
++            if (run_root / "runs" / TRADE_DATE / raw_role).exists():
++                collisions.append(str(run_root / "runs" / TRADE_DATE / raw_role))
++            if (run_root / "bundle_runs" / TRADE_DATE / stage_id).exists():
++                collisions.append(str(run_root / "bundle_runs" / TRADE_DATE / stage_id))
++        for run_root in sorted(selection_root.iterdir()) if selection_root.is_dir() else ():
++            if (run_root / "selection_runs" / TRADE_DATE / selection_role).exists():
++                collisions.append(str(run_root / "selection_runs" / TRADE_DATE / selection_role))
++        for run_root in sorted(receipt_root.iterdir()) if receipt_root.is_dir() else ():
++            if (run_root / TRADE_DATE / stage_id / "receipt.json").exists():
++                collisions.append(str(run_root / TRADE_DATE / stage_id / "receipt.json"))
++    if collisions:
++        raise RuntimeError(f"target backfill lanes already exist; refusing duplicate run: {collisions}")
++
++
++def _check_source_shas() -> dict[str, str]:
++    actual: dict[str, str] = {}
++    for relative, expected in EXPECTED_SOURCE_SHAS.items():
++        path = PROJECT_ROOT / relative
++        observed = _file_sha256(path)
++        actual[relative] = observed
++        if observed != expected:
++            raise RuntimeError(f"candidate source SHA changed for {relative}")
++    return actual
++
++
++def _load_active_config() -> tuple[dict[str, Any], dict[str, Any]]:
++    config_sha = _file_sha256(ACTIVE_STAGE_CONFIG)
++    if config_sha != ACTIVE_STAGE_CONFIG_SHA256:
++        raise RuntimeError("active stage config SHA differs from the reviewed bridge")
++    config = json.loads(ACTIVE_STAGE_CONFIG.read_text(encoding="utf-8"))
++    safety = config.get("safety")
++    if not isinstance(safety, dict) or any(
++        safety.get(key) is not False
++        for key in ("production_allowed", "buy_gate_updated", "orders_sent")
++    ):
++        raise RuntimeError("active stage config safety flags are not all false")
++    required = (
++        "candidate_acquisition_root",
++        "raw_root",
++        "selection_root",
++        "receipt_root",
++        "hk_d1_root",
++        "preselection_source_root",
++        "hk_second_filter_root",
++        "hk_auction_root",
++        "shared_data_root",
++        "python_path",
++    )
++    if any(not config.get(key) for key in required):
++        raise RuntimeError("active stage config is missing a required runner bridge root")
++    runtime_stage = Path("/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage")
++    if any(
++        Path(config[key]).expanduser().resolve(strict=False) != runtime_stage / child
++        for key, child in (
++            ("raw_root", "raw"),
++            ("selection_root", "selection"),
++            ("receipt_root", "receipts"),
++        )
++    ):
++        raise RuntimeError("active stage config points outside the expected StageCenter state roots")
++    expected_source_roots = {
++        "preselection_source_root": D1_PATH.parents[2],
++        "hk_second_filter_root": SECOND_FILTER_CSV.parents[1],
++        "hk_auction_root": SECOND_FILTER_CSV.parents[1],
++    }
++    for key, expected_root in expected_source_roots.items():
++        if Path(config[key]).expanduser().resolve(strict=False) != expected_root.resolve(strict=False):
++            raise RuntimeError(f"active stage config changed its frozen input root: {key}")
++    config["_config_sha256"] = config_sha
++    kwargs = {
++        key: Path(config[key])
++        for key in CONFIG_KEYS
++        if config.get(key) is not None
++    }
++    return config, kwargs
++
++
++def _check_input_files(config: dict[str, Any]) -> dict[str, str]:
++    expected = {
++        str(D1_PATH): D1_FILE_SHA256,
++        str(SECOND_FILTER_CSV): SECOND_FILTER_CSV_SHA256,
++        str(SECOND_FILTER_ACCEPTANCE): SECOND_FILTER_ACCEPTANCE_SHA256,
++        str(FUTU_CAPTURE): FUTU_CAPTURE_SHA256,
++    }
++    actual: dict[str, str] = {}
++    for path_text, expected_sha in expected.items():
++        observed = _file_sha256(Path(path_text))
++        actual[path_text] = observed
++        if observed != expected_sha:
++            raise RuntimeError(f"frozen input SHA changed: {path_text}")
++
++    d1 = json.loads(D1_PATH.read_text(encoding="utf-8"))
++    if (
++        d1.get("trade_date") != TRADE_DATE
++        or d1.get("target_date") != TRADE_DATE
++        or d1.get("signal_date") != "20261014"
++        or d1.get("source_run_id") != D1_RUN_ID
++        or d1.get("source_sha256") != D1_ARTIFACT_SHA256
++        or len(d1.get("rows") or ()) != 100
++        or any(d1.get(flag) is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent"))
++    ):
++        raise RuntimeError("canonical D1 artifact identity or safety contract changed")
++
++    acceptance = json.loads(SECOND_FILTER_ACCEPTANCE.read_text(encoding="utf-8"))
++    if (
++        acceptance.get("target_date") != TRADE_DATE
++        or acceptance.get("signal_date") != "20261014"
++        or acceptance.get("status") != "AUCTION_SECOND_FILTER_READY"
++        or acceptance.get("csv_sha256") != SECOND_FILTER_CSV_SHA256
++        or acceptance.get("d1_artifact_sha256") != D1_ARTIFACT_SHA256
++        or acceptance.get("d1_run_id") != D1_RUN_ID
++        or acceptance.get("reference_only") is not True
++        or acceptance.get("action_level") != "NO_BUY"
++        or acceptance.get("publication_time") != "09:20:00"
++        or acceptance.get("signal_cutoff") != "09:19:59"
++        or acceptance.get("row_count") != 20
++        or acceptance.get("required_row_count") != 20
++        or any(acceptance.get(flag) is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent"))
++    ):
++        raise RuntimeError("09:20 acceptance artifact identity or safety contract changed")
++    return actual
++
++
++def _prepare_sources(config: dict[str, Any], runner_config: Any) -> tuple[Any, Any, dict[str, dict[str, Any]]]:
++    from stage_center.acquisition import build_plan
++    from stage_center._live_collectors_parts.hk_minute import _hk_morning_cached_d1_provenance
++    from stage_center.live_collectors import collect_hk_auction, collect_hk_minute
++    from stage_center.runner import _build_hk_stage_binding, _candidate_from_hk_binding
++
++    binding = _build_hk_stage_binding(
++        runner_config.hk_d1_root,
++        TRADE_DATE,
++        preselection_source_root=runner_config.preselection_source_root,
++    )
++    if (
++        binding.sha256 != D1_FILE_SHA256
++        or binding.trade_date != TRADE_DATE
++        or binding.market != "HK_CONNECT"
++        or len(binding.codes) != 100
++        or len(set(binding.codes)) != 100
++        or _hk_morning_cached_d1_provenance(binding, binding.codes) is None
++    ):
++        raise RuntimeError("production HK D1 binding differs from the frozen Top100")
++    candidate = _candidate_from_hk_binding(
++        root=runner_config.candidate_acquisition_root,
++        trade_date=TRADE_DATE,
++        binding=binding,
++    )
++    shared_root = runner_config.shared_data_root
++    prepared: dict[str, dict[str, Any]] = {}
++    for stage_id in STAGES:
++        plan = build_plan(
++            runner_config.candidate_acquisition_root,
++            TRADE_DATE,
++            stage_id,
++            candidate=candidate,
++            universe_bindings={"HK_CONNECT": binding},
++            historical_backfill=True,
++        )
++        if stage_id == "STAGE_0925":
++            source = collect_hk_auction(
++                plan,
++                codes=plan.codes_for("HK_CONNECT"),
++                python_path=runner_config.python_path,
++                shared_root=shared_root,
++                auction_root=runner_config.hk_auction_root,
++                replay_provider=None,
++            )
++            if (
++                source.status != "READY"
++                or len(source.rows) != 20
++                or f"second_filter_csv_sha256={SECOND_FILTER_CSV_SHA256}" not in source.source_evidence
++            ):
++                raise RuntimeError(f"{stage_id} exact 09:20 collector preflight failed: {source.cannot_confirm}")
++            token = None
++        else:
++            source = collect_hk_minute(
++                plan,
++                codes=plan.codes_for("HK_CONNECT"),
++                python_path=runner_config.python_path,
++                shared_root=shared_root,
++                snapshot_root=None,
++                replay_provider=None,
++            )
++            if source.status != "PARTIAL_WITH_ROWS" or len(source.rows) != 100:
++                raise RuntimeError(f"{stage_id} cached Futu collector preflight failed: {source.cannot_confirm}")
++            tokens = [
++                item.split("=", 1)[1]
++                for item in source.source_evidence
++                if item.startswith("stage_center_observation_mode=")
++            ]
++            if len(tokens) != 1:
++                raise RuntimeError(f"{stage_id} has no unique manifest-bound after-fact token")
++            token = tokens[0]
++        prepared[stage_id] = {
++            "plan": plan,
++            "source": source,
++            "observation_contract": token,
++            "source_rows": len(source.rows),
++        }
++    return binding, candidate, prepared
++
++
++def _verify_stage_result(
++    *,
++    result: dict[str, Any],
++    stage_id: str,
++    evaluated_at: datetime,
++    prepared: dict[str, Any],
++    config: dict[str, Any],
++) -> dict[str, Any]:
++    from stage_center.raw_store import RawStore
++    from stage_center.selection import SelectionStore
++
++    if result.get("trade_date") != TRADE_DATE or result.get("stage_id") != stage_id:
++        raise RuntimeError(f"runner returned the wrong target stage: {stage_id}")
++    if (
++        result.get("mode") != "BACKFILL"
++        or result.get("due_status") != "HISTORICAL_BACKFILL"
++        or result.get("latest_updated") is not False
++        or result.get("current_updated") is not False
++        or result.get("write_performed") is not True
++    ):
++        raise RuntimeError(f"{stage_id} runner receipt is not a written historical backfill")
++    if any(result.get(flag) is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent")):
++        raise RuntimeError(f"{stage_id} runner receipt safety flags changed")
++    markets = result.get("markets")
++    if not isinstance(markets, dict) or set(markets) != {"HK_CONNECT"}:
++        raise RuntimeError(f"{stage_id} runner result is not isolated to HK_CONNECT")
++    backfill_run_id = str(result.get("backfill_run_id") or "")
++    if not backfill_run_id or not backfill_run_id.isalnum():
++        raise RuntimeError(f"{stage_id} runner returned an unsafe backfill run id")
++    expected_roots = {
++        "raw_root": str(Path(config["raw_root"]) / "backfill" / backfill_run_id),
++        "selection_root": str(Path(config["selection_root"]) / "backfill" / backfill_run_id),
++        "receipt_root": str(Path(config["receipt_root"]) / "backfill" / backfill_run_id),
++    }
++    if result.get("namespace") != expected_roots:
++        raise RuntimeError(f"{stage_id} runner wrote outside its new backfill namespace")
++
++    market = markets["HK_CONNECT"]
++    market_evidence = set(market.get("source_evidence") or ())
++    if stage_id == "STAGE_0925" and (
++        prepared["source_rows"] != 20
++        or f"second_filter_csv_sha256={SECOND_FILTER_CSV_SHA256}" not in market_evidence
++    ):
++        raise RuntimeError("09:25 runner evidence no longer binds the exact 09:20 reference input")
++    selection_run_id = str(market.get("run_id") or "")
++    if not selection_run_id:
++        raise RuntimeError(f"{stage_id} selection run id is missing")
++    raw_store = RawStore(Path(expected_roots["raw_root"]))
++    raw_verified = raw_store.verify_latest(TRADE_DATE, stage_id, "HK_CONNECT")["verified"]
++    raw_sha = str(raw_verified.get("artifact_sha256") or "")
++    if raw_sha != market.get("raw_artifact_sha256"):
++        raise RuntimeError(f"{stage_id} raw artifact readback mismatch")
++    selection_store = SelectionStore(Path(expected_roots["selection_root"]))
++    envelope = selection_store.read_verified(TRADE_DATE, stage_id, "HK_CONNECT")
++    rows = list(envelope.get("rows") or ())
++    if (
++        envelope.get("run_id") != selection_run_id
++        or envelope.get("raw_artifact_sha256") != raw_sha
++        or len(rows) > 10
++        or any(row.get("action_level") != "NO_BUY" for row in rows)
++        or any(envelope.get(flag) is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent"))
++    ):
++        raise RuntimeError(f"{stage_id} immutable selection readback violated its identity or safety boundary")
++    if stage_id in MINUTE_STAGES:
++        evidence = set(envelope.get("source_evidence") or ())
++        required_uncertainty = {
++            "formal_pit=false",
++            "formal_stage_eligibility=CANNOT_CONFIRM",
++            "natural_time_capture=CANNOT_CONFIRM",
++            "HK_HISTORICAL_ORDERBOOK_UNAVAILABLE",
++        }
++        if (
++            envelope.get("formal_eligible") is not False
++            or envelope.get("selection_mode") != "RESEARCH_ONLY"
++            or envelope.get("observation_status") != "OBSERVATION_UNVERIFIED"
++            or not required_uncertainty.issubset(set(envelope.get("cannot_confirm") or ()))
++            or not any(item.startswith("futu_capture_sha256=" + FUTU_CAPTURE_SHA256) for item in evidence)
++        ):
++            raise RuntimeError(f"{stage_id} lost a required after-fact/PIT/orderbook marker")
++    receipt_path = Path(expected_roots["receipt_root"]) / TRADE_DATE / stage_id / "receipt.json"
++    receipt_sha = _file_sha256(receipt_path)
++    return {
++        "stage_id": stage_id,
++        "trade_date": TRADE_DATE,
++        "runner_evaluated_at": evaluated_at.isoformat(),
++        "prepared_source_rows": prepared["source_rows"],
++        "runner_status": result.get("status"),
++        "selection_status": market.get("selection_status"),
++        "source_status": market.get("source_status"),
++        "selected_rows": len(rows),
++        "selection_run_id": selection_run_id,
++        "raw_artifact_sha256": raw_sha,
++        "runner_receipt_path": str(receipt_path),
++        "runner_receipt_sha256": receipt_sha,
++        "backfill_run_id": backfill_run_id,
++        "backfill_roots": expected_roots,
++        "formal_eligible": envelope.get("formal_eligible"),
++        "selection_mode": envelope.get("selection_mode"),
++        "observation_status": envelope.get("observation_status"),
++        "cannot_confirm": list(envelope.get("cannot_confirm") or ()),
++        "source_evidence": list(envelope.get("source_evidence") or ()),
++    }
++
++
++def _atomic_update_receipt(path: Path, payload: dict[str, Any]) -> None:
++    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
++    try:
++        with os.fdopen(fd, "w", encoding="utf-8") as stream:
++            json.dump(payload, stream, ensure_ascii=False, sort_keys=True, indent=2)
++            stream.write("\n")
++            stream.flush()
++            os.fsync(stream.fileno())
++        os.replace(temp_name, path)
++    finally:
++        if os.path.exists(temp_name):
++            os.unlink(temp_name)
++
++
++def _write_receipt_exclusive(path: Path, payload: dict[str, Any]) -> None:
++    if path.exists() or path.is_symlink():
++        raise RuntimeError(f"one-shot receipt already exists; refusing another run: {path}")
++    path.parent.mkdir(parents=True, exist_ok=True)
++    fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
++    with os.fdopen(fd, "w", encoding="utf-8") as stream:
++        json.dump(payload, stream, ensure_ascii=False, sort_keys=True, indent=2)
++        stream.write("\n")
++        stream.flush()
++        os.fsync(stream.fileno())
++
++
++def execute_once() -> dict[str, Any]:
++    resolved_writer_root = WRITER_ROOT.resolve(strict=False)
++    runtime_state_root = Path(
++        "/Users/lexi/Library/Application Support/com.lexi.v4.local/state"
++    ).resolve(strict=False)
++    if (
++        resolved_writer_root != WRITER_ROOT.absolute()
++        or resolved_writer_root == runtime_state_root
++        or runtime_state_root in resolved_writer_root.parents
++    ):
++        raise RuntimeError("writer receipt directory is redirected into active runtime state")
++    if RECEIPT_PATH.exists() or RECEIPT_PATH.is_symlink():
++        raise RuntimeError(f"one-shot receipt already exists; refusing live execution: {RECEIPT_PATH}")
++    started_at = _now_shanghai()
++    receipt: dict[str, Any] = {
++        "schema_version": "hk_morning_cached_recovery_actual_run.v1",
++        "status": "IN_PROGRESS",
++        "trade_date": TRADE_DATE,
++        "target_stages": list(STAGES),
++        "clock_timezone": "Asia/Shanghai",
++        "run_started_at": started_at.isoformat(),
++        "stage_results": [],
++        "input_sha256": {},
++        "source_sha256": {},
++        "protected_live_before": None,
++        "protected_live_after": None,
++        "backfill_date_before": None,
++        "backfill_date_after": None,
++        "write_performed": False,
++        "research_only": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++    _write_receipt_exclusive(RECEIPT_PATH, receipt)
++
++    config: dict[str, Any] | None = None
++    protected_before: dict[str, dict[str, Any]] | None = None
++    backfill_before: dict[str, dict[str, dict[str, Any]]] | None = None
++    allowed_run_ids: set[str] = set()
++    old_capture_env = os.environ.get(CAPTURE_ENV)
++    current_stage: str | None = None
++    live_tick_started = False
++    error_text: str | None = None
++    try:
++        if started_at.strftime("%Y%m%d") != TRADE_DATE:
++            raise RuntimeError("actual Asia/Shanghai execution date is not 20261015")
++        if str(PROJECT_ROOT) not in sys.path:
++            sys.path.insert(0, str(PROJECT_ROOT))
++        os.environ[CAPTURE_ENV] = str(FUTU_CAPTURE)
++        source_shas = _check_source_shas()
++        config, config_kwargs = _load_active_config()
++        receipt["active_stage_release"] = str(ACTIVE_STAGE_APP)
++        receipt["active_stage_config_sha256"] = config["_config_sha256"]
++        receipt["source_sha256"] = source_shas
++        input_shas = _check_input_files(config)
++        receipt["input_sha256"] = input_shas
++
++        from stage_center.acquisition import build_plan
++        from stage_center._live_collectors_parts.hk_minute import _hk_morning_cached_d1_provenance
++        from stage_center.live_collectors import collect_hk_auction, collect_hk_minute
++        from stage_center.raw_store import RawStore
++        from stage_center.runner import (
++            StageCenterRunner,
++            _build_hk_stage_binding,
++            _candidate_from_hk_binding,
++            build_production_config,
++        )
++
++        runner_config = build_production_config(**config_kwargs)
++        binding, candidate, prepared = _prepare_sources(config, runner_config)
++        d1_provenance = _hk_morning_cached_d1_provenance(binding, binding.codes)
++        if d1_provenance is None:
++            raise RuntimeError("verified canonical D1 producer lineage disappeared during preflight")
++        receipt["d1_source_run_id"] = d1_provenance[2]
++        receipt["d1_binding_sha256"] = binding.sha256
++        receipt["preflight_sources"] = {
++            stage: {
++                "source_id": item["source"].source_id,
++                "status": item["source"].status,
++                "row_count": item["source_rows"],
++                "source_evidence": list(item["source"].source_evidence),
++                "observation_contract_present": item["observation_contract"] is not None,
++            }
++            for stage, item in prepared.items()
++        }
++        _assert_target_backfill_empty(config)
++        protected_before = _protected_live_inventory(config)
++        backfill_before = {
++            "raw": _backfill_date_inventory(Path(config["raw_root"]), "raw"),
++            "selection": _backfill_date_inventory(Path(config["selection_root"]), "selection"),
++            "receipts": _backfill_date_inventory(Path(config["receipt_root"]), "receipts"),
++        }
++        receipt["protected_live_before"] = protected_before
++        receipt["backfill_date_before"] = backfill_before
++        runner = StageCenterRunner(runner_config)
++
++        for stage_id in STAGES:
++            current_stage = stage_id
++            stage_evaluated_at = _now_shanghai()
++            if stage_evaluated_at.strftime("%Y%m%d") != TRADE_DATE:
++                raise RuntimeError("Asia/Shanghai date crossed during recovery; stopping before next stage")
++            receipt["current_stage"] = stage_id
++            receipt["current_stage_evaluated_at"] = stage_evaluated_at.isoformat()
++            receipt["input_sha256"] = _check_input_files(config)
++            current_binding = _build_hk_stage_binding(
++                runner_config.hk_d1_root,
++                TRADE_DATE,
++                preselection_source_root=runner_config.preselection_source_root,
++            )
++            if current_binding.sha256 != binding.sha256 or current_binding.codes != binding.codes:
++                raise RuntimeError("canonical HK D1 binding changed between stages")
++            live_tick_started = True
++            result = runner.tick(
++                TRADE_DATE,
++                stage_evaluated_at,
++                stage_id=stage_id,
++                historical_backfill=True,
++                historical_markets=("HK_CONNECT",),
++                historical_observation_contract=prepared[stage_id]["observation_contract"],
++                _skip_precapture=True,
++            )
++            result_summary = {
++                key: result.get(key)
++                for key in (
++                    "trade_date",
++                    "stage_id",
++                    "status",
++                    "due_status",
++                    "mode",
++                    "backfill_run_id",
++                    "latest_updated",
++                    "current_updated",
++                    "write_performed",
++                )
++            }
++            run_id = str(result.get("backfill_run_id") or "")
++            if run_id:
++                allowed_run_ids.add(run_id)
++            receipt["stage_results"].append(
++                {"stage_id": stage_id, "runner_evaluated_at": stage_evaluated_at.isoformat(), **result_summary}
++            )
++            if result.get("write_performed") is True:
++                receipt["write_performed"] = True
++            stage_evidence = _verify_stage_result(
++                result=result,
++                stage_id=stage_id,
++                evaluated_at=stage_evaluated_at,
++                prepared=prepared[stage_id],
++                config=config,
++            )
++            receipt["stage_results"][-1].update(stage_evidence)
++            protected_after_stage = _protected_live_inventory(config)
++            if protected_after_stage != protected_before:
++                raise RuntimeError(f"protected original/A/10:30 bytes changed after {stage_id}")
++            after_backfill_stage = {
++                "raw": _backfill_date_inventory(Path(config["raw_root"]), "raw"),
++                "selection": _backfill_date_inventory(Path(config["selection_root"]), "selection"),
++                "receipts": _backfill_date_inventory(Path(config["receipt_root"]), "receipts"),
++            }
++            for kind, root_key in (
++                ("raw", "raw_root"),
++                ("selection", "selection_root"),
++                ("receipts", "receipt_root"),
++            ):
++                diff = _compare_inventory(
++                    backfill_before[kind],
++                    after_backfill_stage[kind],
++                    allowed_backfill_run_ids=allowed_run_ids,
++                    backfill_root=Path(config[root_key]),
++                )
++                if diff["changed"] or diff["deleted"] or diff["unexpected_added"]:
++                    raise RuntimeError(f"unexpected {kind} backfill writes after {stage_id}: {diff}")
++
++        receipt["status"] = "PASS"
++        receipt["completed_at"] = _now_shanghai().isoformat()
++    except Exception as error:
++        error_text = f"{type(error).__name__}: {error}"
++        receipt["status"] = "FAILED_STOP" if live_tick_started else "PRECHECK_FAILED"
++        receipt["failed_stage"] = current_stage
++        receipt["error"] = error_text
++        receipt["completed_at"] = _now_shanghai().isoformat()
++    finally:
++        if old_capture_env is None:
++            os.environ.pop(CAPTURE_ENV, None)
++        else:
++            os.environ[CAPTURE_ENV] = old_capture_env
++        if config is not None:
++            try:
++                protected_after = _protected_live_inventory(config)
++                receipt["protected_live_after"] = protected_after
++                receipt["protected_live_unchanged"] = (
++                    protected_before is not None and protected_after == protected_before
++                )
++                after_backfill = {
++                    "raw": _backfill_date_inventory(Path(config["raw_root"]), "raw"),
++                    "selection": _backfill_date_inventory(Path(config["selection_root"]), "selection"),
++                    "receipts": _backfill_date_inventory(Path(config["receipt_root"]), "receipts"),
++                }
++                receipt["backfill_date_after"] = after_backfill
++                if backfill_before is not None:
++                    final_diffs = {}
++                    for kind, root_key in (
++                        ("raw", "raw_root"),
++                        ("selection", "selection_root"),
++                        ("receipts", "receipt_root"),
++                    ):
++                        final_diffs[kind] = _compare_inventory(
++                            backfill_before[kind],
++                            after_backfill[kind],
++                            allowed_backfill_run_ids=allowed_run_ids,
++                            backfill_root=Path(config[root_key]),
++                        )
++                    receipt["backfill_write_diff"] = final_diffs
++                    if any(
++                        diff["changed"] or diff["deleted"] or diff["unexpected_added"]
++                        for diff in final_diffs.values()
++                    ):
++                        receipt["status"] = "POSTCHECK_FAILED"
++                        receipt["error"] = "unexpected or non-new backfill namespace mutation"
++                if receipt.get("protected_live_unchanged") is False:
++                    receipt["status"] = "POSTCHECK_FAILED"
++                    receipt["error"] = "protected original/A/10:30 state changed"
++            except Exception as post_error:
++                receipt["status"] = "POSTCHECK_FAILED"
++                receipt["postcheck_error"] = f"{type(post_error).__name__}: {post_error}"
++        receipt["receipt_captured_at"] = _now_shanghai().isoformat()
++        receipt["failed_stage"] = receipt.get("failed_stage") or current_stage
++        receipt["execution_error"] = error_text
++        receipt["write_performed"] = bool(receipt.get("write_performed"))
++        _atomic_update_receipt(RECEIPT_PATH, receipt)
++    return receipt
++
++
++def main(argv: list[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument(
++        "--execute-after-reviewer-pass-and-parent-authorization",
++        action="store_true",
++        help="required guard; invoke only after independent PASS and parent authorization",
++    )
++    args = parser.parse_args(argv)
++    if not args.execute_after_reviewer_pass_and_parent_authorization:
++        parser.error("live state writes are gated until independent Reviewer PASS and parent authorization")
++    try:
++        receipt = execute_once()
++    except Exception as error:
++        print(json.dumps({"status": "NOT_STARTED", "error_type": type(error).__name__, "error": str(error)}, ensure_ascii=False), file=sys.stderr)
++        return 2
++    print(json.dumps({"status": receipt["status"], "receipt": str(RECEIPT_PATH)}, ensure_ascii=False, sort_keys=True))
++    return 0 if receipt.get("status") == "PASS" else 3
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
