@@ -1,0 +1,148 @@
+--- a/ops/build_close_review.py
++++ b/ops/build_close_review.py
+@@ -4,6 +4,9 @@
+ import argparse
+ import csv
+ import json
++import re
++from datetime import datetime
++from zoneinfo import ZoneInfo
+ from pathlib import Path
+ from typing import Any
+ 
+@@ -15,7 +18,7 @@
+ )
+ from infrastructure.preselection_pool_store import PreselectionPoolStore
+ from infrastructure.review_store import ReviewStore
+-from stage_center.consumer import StageSelectionConsumer
++from stage_center.consumer import StageSelectionConsumer, _verified_selection_provenance
+ 
+ 
+ _HK_MODEL_SOURCE_ROLES = frozenset(
+@@ -123,6 +126,7 @@
+                 trade_date,
+                 stage_id,
+                 markets=("HK_CONNECT",),
++                allow_backfill=True,
+             )
+             market = response.get("markets", {}).get("HK_CONNECT")
+             market_details = market if isinstance(market, dict) else {}
+@@ -147,6 +151,13 @@
+                 "backfill_run_id": market_details.get("backfill_run_id"),
+                 "backfill_run_ids": list(market_details.get("backfill_run_ids") or ()),
+                 "source_evidence": list(market_details.get("source_evidence") or ()),
++                "selection_manifest_receipt_verified": market_details.get("selection_manifest_receipt_verified"),
++                "selection_manifest_sha256": market_details.get("selection_manifest_sha256"),
++                "selection_receipt_sha256": market_details.get("selection_receipt_sha256"),
++                "selection_artifact_sha256": market_details.get("selection_artifact_sha256"),
++                "runner_receipt_verified": market_details.get("runner_receipt_verified"),
++                "runner_receipt_sha256": market_details.get("runner_receipt_sha256"),
++                "recovery_provenance": market_details.get("recovery_provenance"),
+                 "source_status": market_details.get("source_status"),
+                 "source_rows": market_details.get("source_rows"),
+                 "requested_rows": market_details.get("requested_rows"),
+@@ -162,6 +173,40 @@
+                 and response.get("stage_id") == stage_id
+             )
+             integrity_gap = "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID" in reasons
++            if market_details.get("selection_mode") == "BACKFILL":
++                # The display consumer can expose unverified/ambiguous wrappers.
++                # A review only admits the existing exact, uniquely bound trio.
++                backfill_verified = (
++                    market_details.get("market") == "HK_CONNECT"
++                    and market_details.get("trade_date") == trade_date
++                    and market_details.get("stage_id") == stage_id
++                    and market_details.get("selection_manifest_receipt_verified") is True
++                    and market_details.get("runner_receipt_verified") is True
++                    and isinstance(market_details.get("backfill_run_id"), str)
++                    and bool(market_details["backfill_run_id"])
++                    and market_details.get("backfill_run_ids") == [market_details["backfill_run_id"]]
++                    and "BACKFILL_NAMESPACE_CONFLICT" not in reasons
++                    and all(isinstance(market_details.get(key), str)
++                            and re.fullmatch(r"[0-9a-f]{64}", market_details[key])
++                            for key in ("selection_manifest_sha256", "selection_receipt_sha256",
++                                        "selection_artifact_sha256", "runner_receipt_sha256"))
++                )
++                if backfill_verified:
++                    # Rebind reported hashes to the immutable run, not merely
++                    # well-formed hashes copied from its latest pointer.
++                    bound = _verified_selection_provenance(
++                        type(consumer.store)(consumer.store.root / "backfill" / market_details["backfill_run_id"]),
++                        trade_date=trade_date, stage_id=stage_id, market="HK_CONNECT",
++                        run_id=market_details["run_id"],
++                    )
++                    backfill_verified = all(market_details.get(key) == bound.get(key) for key in (
++                        "selection_manifest_sha256", "selection_receipt_sha256", "selection_artifact_sha256",
++                    ))
++                if not backfill_verified:
++                    integrity_gap = True
++                    reasons.append("BACKFILL_REVIEW_PROVENANCE_CANNOT_CONFIRM")
++            if market_details.get("selection_mode") == "BACKFILL" and not integrity_gap:
++                reasons.append(f"HISTORICAL_BACKFILL_OBSERVATION:{market_details['backfill_run_id']}")
+             if not exact_identity:
+                 reasons.append("STAGE_RESPONSE_IDENTITY_MISMATCH")
+             if not response_safe:
+@@ -203,12 +248,30 @@
+     return result, evidence
+ 
+ 
++def _manual_recovery_context(context: dict[str, Any], trade_date: str) -> dict[str, Any]:
++    """Bind an operator recovery to the archived original; never a natural run."""
++    sha_fields = ("original_close_sha256", "original_import_receipt_sha256",
++                  "original_dispatcher_receipt_sha256", "archive_inventory_sha256")
++    fields = {"mode", "trade_date", "original_natural_run_id", *sha_fields}
++    if (not isinstance(context, dict) or set(context) != fields
++            or context.get("mode") != "MANUAL_HISTORICAL_RECOVERY"
++            or context.get("trade_date") != trade_date
++            or not isinstance(context.get("original_natural_run_id"), str)
++            or not re.fullmatch(r"[0-9a-f]{32}", context["original_natural_run_id"])
++            or any(not isinstance(context.get(key), str)
++                   or not re.fullmatch(r"[0-9a-f]{64}", context[key]) for key in sha_fields)):
++        raise ValueError("manual recovery context invalid")
++    return {**context, "recovered_at": datetime.now(ZoneInfo("Asia/Shanghai")).isoformat()}
++
++
+ def build_close_review(
+     data_root: Path,
+     trade_date: str,
+     *,
+     stage_selection_root: Path | str | None = None,
++    manual_recovery: dict[str, Any] | None = None,
+ ) -> dict[str, Any]:
++    recovery = _manual_recovery_context(manual_recovery, trade_date) if manual_recovery is not None else None
+     data_root = Path(data_root)
+     snapshot, snapshot_sha = CloseSnapshotStore(data_root).read_snapshot(trade_date)
+     capture_gap = futu_close_capture_time_gap(snapshot, trade_date)
+@@ -277,6 +340,16 @@
+     review_store = ReviewStore(data_root)
+     current = review_store.read_reference(trade_date)
+     expected_sha = _sha256(current) if current is not None else None
++    if recovery is not None:
++        if expected_sha != recovery["original_close_sha256"]:
++            raise ValueError("manual recovery original close SHA changed")
++        review["recovery_provenance"] = recovery
++        marker = (f"MANUAL_HISTORICAL_RECOVERY:{recovery['recovered_at']}:"
++                  f"source_natural_run={recovery['original_natural_run_id']}")
++        review["cannot_confirm"].append(marker)
++        for evidence in review["stage_input_evidence"].values():
++            if evidence.get("selection_mode") == "BACKFILL":
++                evidence["cannot_confirm"].append(marker)
+     publication = review_store.publish_native(review, expected_sha256=expected_sha)
+     return {"review": review, "publication": publication}
+ 
+@@ -286,12 +359,15 @@
+     parser.add_argument("--data-root", required=True, type=Path)
+     parser.add_argument("--date", required=True)
+     parser.add_argument("--stage-selection-root", type=Path)
++    parser.add_argument("--manual-recovery-context", type=Path)
+     args = parser.parse_args()
+     print(json.dumps(
+         build_close_review(
+             args.data_root,
+             args.date,
+             stage_selection_root=args.stage_selection_root,
++            manual_recovery=json.loads(args.manual_recovery_context.read_text(encoding="utf-8"))
++            if args.manual_recovery_context is not None else None,
+         ),
+         ensure_ascii=False,
+     ))

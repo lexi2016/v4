@@ -1,0 +1,112 @@
+{
+  "schema_version": "hk_manual_close_operation_rework_independent_review.v1",
+  "reviewer": "/root/hk_auto_review_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "reviewed_at_utc": "2026-10-15T09:26:54.548578+00:00",
+  "verdict": "PASS_OPERATION_REWORK",
+  "REVIEWED": true,
+  "BEHAVIOR_VERIFIED": true,
+  "scope": "TWO_ORIGINAL_OPERATION_P1_AND_DIRECT_FAILURE_ROLLBACK_PATHS_ONLY",
+  "script_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/manual_close_recovery.py",
+  "script_sha256": "dda58b0c8ccbcf1d41e1a4a4808ab1a9d35f783c74bb03d5203cb45f9ac00a44",
+  "writer_rework_receipt_sha256": "fbb96b1890f6a75f55d2f5895a003d2d90a34039784a47179bbc3bb436b3cd4f",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "original_P1_closure": {
+    "code_binding": "PASS hardcodedreviewedmanifest50166 plus inventoryfile2def; completeactualapp bytes/modes/entries verified before businessstore;4actualbytechange negatives refuse",
+    "commit_record": "PASS atomictemp+filefsync+replace+parentfsync journal PREPARED then immediatelyafterpublisher COMMITTED_PENDING_POSTCHECKS;postcheckfailures persistCOMMITTED_POSTCHECK_FAILED andfailurediagnostics withreplacementSHA;rollbackworks"
+  },
+  "independent_checks": [
+    {
+      "case": "consumer_code_tamper",
+      "PASS": true,
+      "result": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/rework-consumer_code_tamper-result.json",
+      "sha256": "2a7dfe0048674d9db0016836e1d5139db1d4faf7eeadb42736a087b1524012a1"
+    },
+    {
+      "case": "domain_code_tamper",
+      "PASS": true,
+      "result": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/rework-domain_code_tamper-result.json",
+      "sha256": "05120020c4bf9f4ec75bf832eba08cb0376f8f8dbf2e1073725be8568b748e07"
+    },
+    {
+      "case": "store_code_tamper",
+      "PASS": true,
+      "result": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/rework-store_code_tamper-result.json",
+      "sha256": "5a0fa75b94d65702465a4807729523064eec148cdae476900c79dad00970280e"
+    },
+    {
+      "case": "dependency_code_tamper",
+      "PASS": true,
+      "result": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/rework-dependency_code_tamper-result.json",
+      "sha256": "60a502067471de2e74a1761403ca0b8720dfec4ff2cc6c2a3c310b473d538805"
+    },
+    {
+      "case": "positive",
+      "PASS": true,
+      "result": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/rework-positive-result.json",
+      "sha256": "643906ea0e822d874599f13cb38ad1eb3094418c0f822640449b495cc3d7a64c"
+    },
+    {
+      "case": "postpublication_pool_drift",
+      "PASS": true,
+      "result": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/rework-postpublication_pool_drift-result.json",
+      "sha256": "a1afd6a5b2e542d56cd2cbeedbe5654a7215f1c99e950cd8a48e8232a64eb454"
+    },
+    {
+      "case": "postpublication_dispatcher_drift",
+      "PASS": true,
+      "result": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/rework-postpublication_dispatcher_drift-result.json",
+      "sha256": "78f8a9709c0238a042cf3534536dbb448b3031c85a78db1e0729f4ef2bb50c33"
+    }
+  ],
+  "default_PLAN_ONLY": "PASS unchanged exactfrozenplan, noapply",
+  "positive_result": "Existing realbytecopy fullbuilder70 observationrecords, manualoriginalrun andcurrentrecoverytime;archivedoriginal4files;newcloseCAS andexactrollback restoreoriginal",
+  "failure_result": "Pool/dispatcher drift afteractualfixturecommit remainsFAIL withdurableSHAjournal;rollbackavailable withoutrequiringunchangeddriftedinput;doesnot overwrite dispatcher/pool orwholemanifest",
+  "rollback_negative_checks": [
+    "WrongcurrentSHA refused andcloseunchanged",
+    "Archivedimportreceiptbyte drift refused beforepublish"
+  ],
+  "parallel_manifest_key": "Retained through positive andbothfailure rollbacks",
+  "execution_environment": "RuntimePython3.14 withPYTHONDONTWRITEBYTECODE=1 and-B; scriptconstants reboundonlyto reviewerowned isolatedroots;actualcandidatecode andexistingpublisherused",
+  "prior_source_candidate_PASS": {
+    "receipt": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/source-candidate-reviewer-receipt.json",
+    "sha256": "b9d4edd2204198f7c69b75b7d67f367ce326e6d26a729b838288391de9dc0fbe",
+    "reused_no_tests_repeated": true
+  },
+  "prior_operation_FAIL": {
+    "receipt": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/manual-operation-reviewer-receipt.json",
+    "sha256": "3c3cb3c2a97ed2b392e03070cf522213640e3011034ecb94d6e87de40e3b173e",
+    "preserved": true
+  },
+  "evidence": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/probe_manual_rework_independent.py",
+      "sha256": "9ee49d7d149696e61dc7d8e18e9f1f36432590e1f7235f74564ca0f200e5ec7d"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/rework-default-plan.json",
+      "sha256": "5bb6809cd92c3e270ef7c4d803636bca763afe5d12ff1a212e2b8ac5c3326290"
+    }
+  ],
+  "real_apply": "NOT_RUN_BY_REVIEWER",
+  "real_rollback": "NOT_RUN_BY_REVIEWER",
+  "service_actions": "NOT_RUN_BY_REVIEWER",
+  "market_or_provider_requests": 0,
+  "business_mutations": false,
+  "DEPLOYED": "PARENT_OWNED_NOT_RETESTED_IN_THIS_DELTA",
+  "API_VERIFIED": false,
+  "UI_VERIFIED": false,
+  "NATURAL_VERIFIED": false,
+  "next_step": "Main may run exact reviewedscript using-B/no-bytecode after own currentidentity/safe-window/CAS and archivegates; then separate readonly realartifact/API/UI acceptance.17:30monitor unaffected.",
+  "financial_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

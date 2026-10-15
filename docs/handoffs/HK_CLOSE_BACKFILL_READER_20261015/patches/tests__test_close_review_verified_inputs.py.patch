@@ -1,0 +1,22 @@
+--- a/tests/test_close_review_verified_inputs.py
++++ b/tests/test_close_review_verified_inputs.py
+@@ -105,7 +105,8 @@
+         def __init__(self, root):
+             calls.append(("root", root))
+ 
+-        def get(self, trade_date, stage_id, *, markets):
++        def get(self, trade_date, stage_id, *, markets, allow_backfill):
++            assert allow_backfill is True
+             calls.append((trade_date, stage_id, markets))
+             return {
+                 "trade_date": trade_date,
+@@ -132,7 +133,8 @@
+         def __init__(self, _root):
+             pass
+ 
+-        def get(self, trade_date, stage_id, *, markets):
++        def get(self, trade_date, stage_id, *, markets, allow_backfill):
++            assert allow_backfill is True
+             return {
+                 "trade_date": trade_date,
+                 "stage_id": stage_id,

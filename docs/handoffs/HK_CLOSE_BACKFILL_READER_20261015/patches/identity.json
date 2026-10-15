@@ -1,0 +1,43 @@
+{
+  "base_commit": "69449fcc7cf01017376c556b252528860fc5e7a7",
+  "candidate": {
+    "actual_delta": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/candidate-actualdiff.json",
+      "sha256": "a29a00540a89286ee2e9c0416db36fe063728e12eb95571ec046d63de27759d7"
+    },
+    "baseline_CAS_verified": true,
+    "candidate_app": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/candidates/hk-close-backfill-reader-main-20261015-r1/app",
+    "manifest": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/candidates/hk-close-backfill-reader-main-20261015-r1/release-manifest.json",
+      "sha256": "50166a5fc50bf37c7de385c489f773dca94218d3291891f8240eab51aade7875"
+    },
+    "non_delta_all_equal": true,
+    "physical_inventory": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/candidate-complete-inventory.json",
+      "sha256": "2def7bbf658fcae7b7e8c9d580c93bc6caae3fe23e0b94c1d20203c854009e69"
+    },
+    "staged_plist": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/main-staged.plist",
+      "sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0"
+    },
+    "status": "NOT_ACTIVATED",
+    "target_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-backfill-reader-main-20261015-r1/app"
+  },
+  "canonical_files": {
+    "ops/build_close_review.py": {
+      "after_sha256": "a7cf3beea192aa997c1f4f31016ccafc8c32cff8348147bf4051f5aba9877693",
+      "before_sha256": "fb7ad39e830267da8e3c0c683f644868cc737131d7441c4d01bd88fdb1c97e7a"
+    },
+    "tests/test_close_review_backfill_20261015.py": {
+      "after_sha256": "0cf626429d27cfb3347304b6f8a5dbe412fdaaa42a0ab8ebb89789bfdc361926",
+      "before_sha256": null
+    },
+    "tests/test_close_review_verified_inputs.py": {
+      "after_sha256": "3099498429346b6125467de3c3451fdf149ef888982c8ea8cdb4728219cc5873",
+      "before_sha256": "c0b3301718041f620a2b45f7d696528e03e5a0f462ac6d3a12a9271a55605356"
+    }
+  },
+  "exclude": "All raw fixtures/runtime data/large evidence/credentials/other dirty edits",
+  "mode": "PATCH_ONLY",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app"
+}

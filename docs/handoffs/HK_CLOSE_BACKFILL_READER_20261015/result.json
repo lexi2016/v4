@@ -1,0 +1,120 @@
+{
+  "date": "20261015",
+  "updated_at": "2026-10-15T17:34:52.442640+08:00",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "delivery_parent": "69449fcc7cf01017376c556b252528860fc5e7a7",
+  "branch": "codex/hk-close-backfill-reader-20261015",
+  "delivery_mode": "PATCH_ONLY_NOT_FULL_RUNTIME_SNAPSHOT",
+  "status": {
+    "IMPLEMENTED": true,
+    "REVIEWED": true,
+    "BEHAVIOR_VERIFIED": true,
+    "DEPLOYED": true,
+    "API_VERIFIED": true,
+    "UI_VERIFIED": true,
+    "NATURAL_VERIFIED": false
+  },
+  "main_release": "hk-close-backfill-reader-main-20261015-r1",
+  "manifest_sha256": "50166a5fc50bf37c7de385c489f773dca94218d3291891f8240eab51aade7875",
+  "plist_sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0",
+  "api_stage_release_unchanged": true,
+  "manual_recovery_at": "2026-10-15T17:29:46.289615+08:00",
+  "mode": "MANUAL_HISTORICAL_RECOVERY",
+  "original_natural_run": "06e39b51fda142449ad1cf9a8c1af480",
+  "original_close_sha256": "54688edbcd5edb6f2f5f559e1dccb6a31acd872a555968b586dd671c331b341d",
+  "replacement_close_sha256": "da3595ecc0ad44e7a1f7766d339e174aecefa8238e990e889fce8c401289627a",
+  "before": {
+    "stage_records": 30,
+    "unique_observations": 16,
+    "stages_with_rows": 3
+  },
+  "after": {
+    "stage_records": 70,
+    "unique_observations": 27,
+    "stages_with_rows": 7,
+    "observation_hits": 4,
+    "close_top_n": 20
+  },
+  "formal": "MISSING",
+  "PIT": "UNVERIFIED",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "protected_input_count": 38,
+  "evidence": {
+    "source_review": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/source-candidate-reviewer-receipt.json",
+      "sha256": "b9d4edd2204198f7c69b75b7d67f367ce326e6d26a729b838288391de9dc0fbe"
+    },
+    "operation_initial_fail": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/manual-operation-reviewer-receipt.json",
+      "sha256": "3c3cb3c2a97ed2b392e03070cf522213640e3011034ecb94d6e87de40e3b173e"
+    },
+    "operation_review": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/manual-operation-rework-reviewer-receipt.json",
+      "sha256": "d2d6407c5b97068594563f3043bda4dddab9547c4989e2ac067aa9e3dafb20f6"
+    },
+    "postrecovery_review": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/postrecovery/reviewer-receipt.json",
+      "sha256": "3bb0c4bfc3d621aead2d66f5f4fbadc810f9711baf102afc015d8d9174e5330e"
+    },
+    "activation": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/integration/main-activation.json",
+      "sha256": "97c760f824843177b19847359ac6c4a1b6a40e8d372b6419632ae2f01dbcd525"
+    },
+    "manual_command": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/integration/manual-close-command.json",
+      "sha256": "f4d5b2189f4248fb7f38afe415898dec1ecd3d1461cd7652249748166b5aafae"
+    },
+    "ui": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/integration/close-ui-readback.json",
+      "sha256": "9595022038135e236ddd71767d5bad3305f2af98037fbfc8157675b926cdd486"
+    },
+    "natural1730": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/integration/1730-monitor-receipt.json",
+      "sha256": "4e1e7d30a047f002bce30b1006bb777e5982dba883c5f4a6ba16d499d7bf9691"
+    }
+  },
+  "natural1730": {
+    "observed_at": "2026-10-15T17:33:24.327107+08:00",
+    "slot": "1730",
+    "business_date": "20261015",
+    "target_date": "20261016",
+    "natural_run": "f313de49f7ff41359e61e8130f50715b",
+    "dispatch_receipt": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20261015/1730/f313de49f7ff41359e61e8130f50715b.dispatch-receipt.json",
+    "dispatch_sha256": "5bfeff71dfd044b1316beab3fda3c96d98bba146c566e4882da5a979efe39cf7",
+    "mode": "LIVE",
+    "attempt": 1,
+    "finished_at": "2026-10-15T09:30:43.538623Z",
+    "state": "FAILED_UPSTREAM_NOT_READY_RETRY_PENDING",
+    "first_failed_layer": "HK_SCORING",
+    "scoring_exit_code": 1,
+    "security_master_rows": 689,
+    "canonical_hk_pool_present": false,
+    "specific_exception": "CANNOT_CONFIRM_STDERR_TRUNCATED_BY_EXISTING_RECEIPT",
+    "optional_A_csv_exception_seen": false,
+    "A_premarket_rows": 17,
+    "read_api": "http://127.0.0.1:8873/api/v3/stage-center/selection?date=20261016&stage=STAGE_0925",
+    "api_sha256": "1071e140e35cba8c1679c4b869bdd46d92482080478c548e19e3901b61544f2d",
+    "UI_VERIFIED": {
+      "date": "20261016",
+      "pool": "港股通 D-1 预选池",
+      "display": "未生成/待补齐",
+      "reason": "POOL_ARTIFACT_MISSING:hkconnect_d1_top100"
+    },
+    "next_checks": [
+      "17:42",
+      "17:52"
+    ],
+    "no_manual_retry": true
+  },
+  "not_run": [
+    "Future natural 1610 close under this reader",
+    "17:42/17:52 follow-up at this handoff time",
+    "Any new collection or stage rerun by this repair"
+  ]
+}

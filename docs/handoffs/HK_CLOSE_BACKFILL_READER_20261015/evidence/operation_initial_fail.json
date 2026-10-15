@@ -1,0 +1,74 @@
+{
+  "schema_version": "hk_manual_close_operation_independent_review.v1",
+  "reviewer": "/root/hk_auto_review_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "reviewed_at_utc": "2026-10-15T09:20:58.115578+00:00",
+  "verdict": "FAIL_OPERATION_SCRIPT",
+  "REVIEWED": true,
+  "BEHAVIOR_VERIFIED": false,
+  "scope": "ONLY_MANUAL_SCRIPT_AND_OPERATION_PLAN;SOURCE_CANDIDATE_PRIOR_PASS_UNCHANGED",
+  "writer_receipt_sha256": "3949f2cd44fcb9cec181be15308c71df50426bbf1f468605f21a1f74774e3a6b",
+  "manual_script_sha256": "18acc86c4bdea0a362656c979e2000f06526b0880a1ff82aee6564e2f0ccdce7",
+  "manual_plan_sha256": "5bb6809cd92c3e270ef7c4d803636bca763afe5d12ff1a212e2b8ac5c3326290",
+  "default_PLAN_ONLY": "PASS exact JSON matches frozen plan;noapply",
+  "findings": [
+    {
+      "id": "P1_OPERATION_CODE_BINDING_INCOMPLETE",
+      "priority": 1,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/manual_close_recovery.py",
+      "line": 29,
+      "actual": "Only builder compared to mutable preparedbuilder; actualconsumer code not checked against frozenmanifest. In isolated active fixture consumer bytes modifiedafteractivation, while originalmanifest andbuilder retained. --apply accepted andpublished close70.",
+      "expected": "Before any businessstore/lock/publication, compare actual requiredcode (atleastbuilder,consumer,domain,storedependencyclosure) with hashes bound to frozenmanifest/inventory; not only another mutablefile. Refuse code drift.",
+      "evidence": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/consumer_code_tamper-result.json"
+    },
+    {
+      "id": "P1_POSTPUBLICATION_FAILURE_LOSES_ROLLBACK_INPUT",
+      "priority": 1,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/manual_close_recovery.py",
+      "line": 62,
+      "actual": "After existingpublisher successfully commitsclose, pool/dispatcher assertions run before operation.json. Injected aftercommit poolbyte drift correctly raises but leaves changedclose andnooperation.json; --rollback immediately fails FileNotFoundError onoperation.json.",
+      "expected": "Persist publicationSHA/previousSHA/archivebinding and committed/pending-postcheck state immediately afterpublication returns, beforepostchecks; onpostcheckfailure persistdiagnostic and allow exactCASrollback without changingothermanifestkeys. Do not mislabel failurePASS.",
+      "evidence": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/postpublication_pool_drift-result.json"
+    }
+  ],
+  "positive_scope": "Defaultplanonly, bytearchive original4files, exactcloseCAS, originalrun/manualclock and existingpublisher reuse are present; priorisolatedCASrollback ofstore preservedparallelkey. Script failure paths currently block operationapproval.",
+  "reproductions": {
+    "fixture": "Reviewer-owned realbytecopies;scriptconstants O/D/P/DISPATCH/SELECTION pointonlytoisolatedtestroots;simulatedplist/sealpaths bindthese roots;actualcandidatecode used.",
+    "code_drift_probe": "Consumer appended harmlesscomment afterfixtureactivation; publicationmustrefuse anycodeSHA drift butdidnot.",
+    "postpublication_probe": "Testactor changesisolatedpoolbytes immediatelyafteractualbuilderreturns;testsactualcommitthenfailure andactualrollbackcommand.",
+    "business_or_active_mutations": false,
+    "realapply": false,
+    "deployment": false,
+    "provider_or_network_calls": 0
+  },
+  "evidence": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/probe_manual_operation.py",
+      "sha256": "a2762096eb6d5fa71ac8c732655266ee189bf73e04419b7fdb4465434bf25033"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/consumer_code_tamper-result.json",
+      "sha256": "414758464749760dc9a8612aa8fc2fefc1be77c1ee185498562539f4f74b4859"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/postpublication_pool_drift-result.json",
+      "sha256": "9288ea751bed382897db423eb56095926ce64776e4051f08963d5c3fe99b6119"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/manual-default-plan.json",
+      "sha256": "5bb6809cd92c3e270ef7c4d803636bca763afe5d12ff1a212e2b8ac5c3326290"
+    }
+  ],
+  "prior_source_candidate_PASS_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/source-candidate-reviewer-receipt.json",
+    "sha256": "b9d4edd2204198f7c69b75b7d67f367ce326e6d26a729b838288391de9dc0fbe"
+  },
+  "next_action": "Concentrated repair only evidence-root operation script; preserve source/candidatePASS and allFAILprobes; re-review changedoperationpaths only;no realapply untiloperationPASS",
+  "financial_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

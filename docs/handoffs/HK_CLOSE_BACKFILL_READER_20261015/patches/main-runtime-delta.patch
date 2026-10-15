@@ -1,0 +1,689 @@
+--- a/ops/build_close_review.py
++++ b/ops/build_close_review.py
+@@ -4,6 +4,9 @@
+ import argparse
+ import csv
+ import json
++import re
++from datetime import datetime
++from zoneinfo import ZoneInfo
+ from pathlib import Path
+ from typing import Any
+ 
+@@ -15,7 +18,7 @@
+ )
+ from infrastructure.preselection_pool_store import PreselectionPoolStore
+ from infrastructure.review_store import ReviewStore
+-from stage_center.consumer import StageSelectionConsumer
++from stage_center.consumer import StageSelectionConsumer, _verified_selection_provenance
+ 
+ 
+ _HK_MODEL_SOURCE_ROLES = frozenset(
+@@ -123,6 +126,7 @@
+                 trade_date,
+                 stage_id,
+                 markets=("HK_CONNECT",),
++                allow_backfill=True,
+             )
+             market = response.get("markets", {}).get("HK_CONNECT")
+             market_details = market if isinstance(market, dict) else {}
+@@ -147,6 +151,13 @@
+                 "backfill_run_id": market_details.get("backfill_run_id"),
+                 "backfill_run_ids": list(market_details.get("backfill_run_ids") or ()),
+                 "source_evidence": list(market_details.get("source_evidence") or ()),
++                "selection_manifest_receipt_verified": market_details.get("selection_manifest_receipt_verified"),
++                "selection_manifest_sha256": market_details.get("selection_manifest_sha256"),
++                "selection_receipt_sha256": market_details.get("selection_receipt_sha256"),
++                "selection_artifact_sha256": market_details.get("selection_artifact_sha256"),
++                "runner_receipt_verified": market_details.get("runner_receipt_verified"),
++                "runner_receipt_sha256": market_details.get("runner_receipt_sha256"),
++                "recovery_provenance": market_details.get("recovery_provenance"),
+                 "source_status": market_details.get("source_status"),
+                 "source_rows": market_details.get("source_rows"),
+                 "requested_rows": market_details.get("requested_rows"),
+@@ -162,6 +173,40 @@
+                 and response.get("stage_id") == stage_id
+             )
+             integrity_gap = "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID" in reasons
++            if market_details.get("selection_mode") == "BACKFILL":
++                # The display consumer can expose unverified/ambiguous wrappers.
++                # A review only admits the existing exact, uniquely bound trio.
++                backfill_verified = (
++                    market_details.get("market") == "HK_CONNECT"
++                    and market_details.get("trade_date") == trade_date
++                    and market_details.get("stage_id") == stage_id
++                    and market_details.get("selection_manifest_receipt_verified") is True
++                    and market_details.get("runner_receipt_verified") is True
++                    and isinstance(market_details.get("backfill_run_id"), str)
++                    and bool(market_details["backfill_run_id"])
++                    and market_details.get("backfill_run_ids") == [market_details["backfill_run_id"]]
++                    and "BACKFILL_NAMESPACE_CONFLICT" not in reasons
++                    and all(isinstance(market_details.get(key), str)
++                            and re.fullmatch(r"[0-9a-f]{64}", market_details[key])
++                            for key in ("selection_manifest_sha256", "selection_receipt_sha256",
++                                        "selection_artifact_sha256", "runner_receipt_sha256"))
++                )
++                if backfill_verified:
++                    # Rebind reported hashes to the immutable run, not merely
++                    # well-formed hashes copied from its latest pointer.
++                    bound = _verified_selection_provenance(
++                        type(consumer.store)(consumer.store.root / "backfill" / market_details["backfill_run_id"]),
++                        trade_date=trade_date, stage_id=stage_id, market="HK_CONNECT",
++                        run_id=market_details["run_id"],
++                    )
++                    backfill_verified = all(market_details.get(key) == bound.get(key) for key in (
++                        "selection_manifest_sha256", "selection_receipt_sha256", "selection_artifact_sha256",
++                    ))
++                if not backfill_verified:
++                    integrity_gap = True
++                    reasons.append("BACKFILL_REVIEW_PROVENANCE_CANNOT_CONFIRM")
++            if market_details.get("selection_mode") == "BACKFILL" and not integrity_gap:
++                reasons.append(f"HISTORICAL_BACKFILL_OBSERVATION:{market_details['backfill_run_id']}")
+             if not exact_identity:
+                 reasons.append("STAGE_RESPONSE_IDENTITY_MISMATCH")
+             if not response_safe:
+@@ -203,12 +248,30 @@
+     return result, evidence
+ 
+ 
++def _manual_recovery_context(context: dict[str, Any], trade_date: str) -> dict[str, Any]:
++    """Bind an operator recovery to the archived original; never a natural run."""
++    sha_fields = ("original_close_sha256", "original_import_receipt_sha256",
++                  "original_dispatcher_receipt_sha256", "archive_inventory_sha256")
++    fields = {"mode", "trade_date", "original_natural_run_id", *sha_fields}
++    if (not isinstance(context, dict) or set(context) != fields
++            or context.get("mode") != "MANUAL_HISTORICAL_RECOVERY"
++            or context.get("trade_date") != trade_date
++            or not isinstance(context.get("original_natural_run_id"), str)
++            or not re.fullmatch(r"[0-9a-f]{32}", context["original_natural_run_id"])
++            or any(not isinstance(context.get(key), str)
++                   or not re.fullmatch(r"[0-9a-f]{64}", context[key]) for key in sha_fields)):
++        raise ValueError("manual recovery context invalid")
++    return {**context, "recovered_at": datetime.now(ZoneInfo("Asia/Shanghai")).isoformat()}
++
++
+ def build_close_review(
+     data_root: Path,
+     trade_date: str,
+     *,
+     stage_selection_root: Path | str | None = None,
++    manual_recovery: dict[str, Any] | None = None,
+ ) -> dict[str, Any]:
++    recovery = _manual_recovery_context(manual_recovery, trade_date) if manual_recovery is not None else None
+     data_root = Path(data_root)
+     snapshot, snapshot_sha = CloseSnapshotStore(data_root).read_snapshot(trade_date)
+     capture_gap = futu_close_capture_time_gap(snapshot, trade_date)
+@@ -277,6 +340,16 @@
+     review_store = ReviewStore(data_root)
+     current = review_store.read_reference(trade_date)
+     expected_sha = _sha256(current) if current is not None else None
++    if recovery is not None:
++        if expected_sha != recovery["original_close_sha256"]:
++            raise ValueError("manual recovery original close SHA changed")
++        review["recovery_provenance"] = recovery
++        marker = (f"MANUAL_HISTORICAL_RECOVERY:{recovery['recovered_at']}:"
++                  f"source_natural_run={recovery['original_natural_run_id']}")
++        review["cannot_confirm"].append(marker)
++        for evidence in review["stage_input_evidence"].values():
++            if evidence.get("selection_mode") == "BACKFILL":
++                evidence["cannot_confirm"].append(marker)
+     publication = review_store.publish_native(review, expected_sha256=expected_sha)
+     return {"review": review, "publication": publication}
+ 
+@@ -286,12 +359,15 @@
+     parser.add_argument("--data-root", required=True, type=Path)
+     parser.add_argument("--date", required=True)
+     parser.add_argument("--stage-selection-root", type=Path)
++    parser.add_argument("--manual-recovery-context", type=Path)
+     args = parser.parse_args()
+     print(json.dumps(
+         build_close_review(
+             args.data_root,
+             args.date,
+             stage_selection_root=args.stage_selection_root,
++            manual_recovery=json.loads(args.manual_recovery_context.read_text(encoding="utf-8"))
++            if args.manual_recovery_context is not None else None,
+         ),
+         ensure_ascii=False,
+     ))
+--- a/stage_center/consumer.py
++++ b/stage_center/consumer.py
+@@ -20,6 +20,8 @@
+ 
+ RESPONSE_SOURCE = "SHARED_STAGE_CENTER"
+ READ_ONLY_CANNOT_CONFIRM = "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
++_BACKFILL_ID_RE = re.compile(r"^[A-Za-z0-9_.-]{1,128}$")
++_BACKFILL_MARKERS = frozenset({"recovery_mode=HISTORICAL_BACKFILL", "due_status=HISTORICAL_BACKFILL", "HISTORICAL_BACKFILL"})
+ _KNOWN_MARKETS = frozenset({"A_SHARE", "HK_CONNECT"})
+ _SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
+ _NAME_AUTHORITY_EXACT = "EXACT_DATE_READ_OVERLAY"
+@@ -211,15 +213,383 @@
+     return "PARTIAL_WITH_ROWS"
+ 
+ 
++def _file_digest(path: Path) -> str:
++    digest = hashlib.sha256()
++    with path.open("rb") as stream:
++        for chunk in iter(lambda: stream.read(1 << 20), b""):
++            digest.update(chunk)
++    return digest.hexdigest()
++
++
++def _invalid_market_with_reason(market: str, reason: str) -> dict[str, Any]:
++    payload = _invalid_market(market)
++    payload["cannot_confirm"] = [reason]
++    return payload
++
++
++def _append_reason(payload: dict[str, Any], reason: str) -> dict[str, Any]:
++    reasons = list(payload.get("cannot_confirm") or [])
++    if reason not in reasons:
++        reasons.append(reason)
++    payload["cannot_confirm"] = reasons
++    return payload
++
++
++def _safe_child(root: Path, *parts: str) -> Path | None:
++    """Resolve a read-only child path without following any symlink component."""
++    if root.is_symlink():
++        return None
++    candidate = root
++    for part in parts:
++        candidate = candidate / part
++        if candidate.is_symlink():
++            return None
++    try:
++        resolved_root = root.resolve()
++        resolved = candidate.resolve(strict=False)
++        resolved.relative_to(resolved_root)
++    except (OSError, ValueError):
++        return None
++    return candidate
++
++
++def _verified_selection_provenance(
++    store: SelectionStore,
++    *,
++    trade_date: str,
++    stage_id: str,
++    market: str,
++    run_id: str,
++) -> dict[str, Any]:
++    """Expose immutable SelectionStore identity only after rereading its run."""
++    latest = store._latest()
++    entry = latest.get("entries", {}).get(store._key(trade_date, stage_id, market))
++    if not isinstance(entry, Mapping) or entry.get("run_id") != run_id:
++        raise SelectionError("selection latest identity changed during provenance projection")
++    verified = store._verify_run(trade_date, stage_id, market, run_id)
++    if verified.get("run_id") != run_id:
++        raise SelectionError("selection run identity mismatch during provenance projection")
++    for field in ("manifest_sha256", "receipt_sha256", "artifact_sha256"):
++        if entry.get(field) != verified.get(field):
++            raise SelectionError("selection latest pointer SHA mismatch during provenance projection")
++    return {
++        "selection_run_id": run_id,
++        "selection_manifest_sha256": verified["manifest_sha256"],
++        "selection_receipt_sha256": verified["receipt_sha256"],
++        "selection_artifact_sha256": verified["artifact_sha256"],
++        "selection_manifest_receipt_verified": True,
++    }
++
++
++def _project_backfill_market(
++    market: str,
++    envelope: Mapping[str, Any],
++    *,
++    trade_date: str | None = None,
++    stage_id: str | None = None,
++) -> dict[str, Any]:
++    if ((trade_date is not None and envelope.get("trade_date") != trade_date)
++            or (stage_id is not None and envelope.get("stage_id") != stage_id)
++            or envelope.get("market", market) != market):
++        raise SelectionError("selection envelope date/stage/market mismatch")
++    rows = envelope.get("rows")
++    if not isinstance(rows, list):
++        raise SelectionError("selection rows are not a list")
++    if "selected_rows" in envelope and (
++        type(envelope.get("selected_rows")) is not int or envelope["selected_rows"] != len(rows)
++    ):
++        raise SelectionError("selection selected_rows differs from actual rows")
++    projected_rows: list[dict[str, Any]] = []
++    seen_codes: set[str] = set()
++    seen_ranks: set[int] = set()
++    for row in rows:
++        if not isinstance(row, Mapping):
++            raise SelectionError("selection row is not an object")
++        code = str(row.get("code") or "").strip()
++        if not code or code in seen_codes:
++            raise SelectionError("selection row code is missing or duplicated")
++        rank = row.get("rank")
++        if isinstance(rank, bool) or not isinstance(rank, int) or rank <= 0 or rank in seen_ranks:
++            raise SelectionError("selection row rank is missing, non-positive, or duplicated")
++        seen_codes.add(code)
++        seen_ranks.add(rank)
++        # Preserve the source order and rank; consumers must not re-sort by
++        # code or score.  Copying also prevents a caller from mutating the
++        # verified envelope returned by SelectionStore.
++        projected = deepcopy(dict(row))
++        projected["order"] = len(projected_rows) + 1
++        projected_rows.append(projected)
++    status = str(envelope.get("selection_status") or "CANNOT_CONFIRM")
++    projected = {
++        **({"trade_date": trade_date} if trade_date is not None else {}),
++        **({"stage_id": stage_id} if stage_id is not None else {}),
++        "market": market,
++        "status": status,
++        "selection_status": status,
++        "artifact_id": envelope.get("artifact_id"),
++        "run_id": envelope.get("run_id"),
++        "algorithm_id": envelope.get("algorithm_id"),
++        "algorithm_sha256": envelope.get("algorithm_sha256"),
++        "raw_artifact_sha256": envelope.get("raw_artifact_sha256"),
++        "source_status": envelope.get("source_status"),
++        "requested_rows": envelope.get("requested_rows", 0),
++        "source_rows": envelope.get("source_rows", 0),
++        "selected_rows": envelope.get("selected_rows", len(projected_rows)),
++        "coverage_ratio": envelope.get("coverage_ratio", 0.0),
++        "missing_symbols": list(envelope.get("missing_symbols") or []),
++        "source_evidence": list(envelope.get("source_evidence") or []),
++        "rows": projected_rows,
++        "cannot_confirm": list(envelope.get("cannot_confirm") or []),
++    }
++    evidence = set(projected["source_evidence"])
++    if market == "HK_CONNECT" and (
++        "selection_mode=BACKFILL" in evidence or bool(_BACKFILL_MARKERS & evidence)
++    ):
++        # A backfill marker can occupy the ordinary latest key. Its selection
++        # identity is useful provenance, but does not prove a natural Stage run.
++        projected["selection_mode"] = "BACKFILL"
++    return projected
++
++
+ class StageSelectionConsumer:
+     """Read-only shared selection consumer for V3/V3.5 adapters."""
+ 
+-    def __init__(self, root: Any, *, a_name_authority_root: Path | str | None = None):
++    def __init__(self, root: Any, *, a_name_authority_root: Path | str | None = None, runner_receipt_root: Path | str | None = None):
+         self.store = SelectionStore(root)
+         self.a_name_authority_root = (
+             Path(a_name_authority_root).expanduser() if a_name_authority_root is not None else None
+         )
++        self.runner_receipt_root = Path(runner_receipt_root).expanduser() if runner_receipt_root is not None else self.store.root.parent / "receipts"
+         self._a_name_authority_cache: dict[str, dict[str, Any]] = {}
++
++    def _verify_backfill_runner_receipt(
++        self,
++        *,
++        trade_date: str,
++        stage_id: str,
++        market: str,
++        backfill_run_id: str,
++        envelope: Mapping[str, Any],
++    ) -> tuple[bool, str | None]:
++        root = self.runner_receipt_root
++        relative = ("backfill", backfill_run_id, trade_date, stage_id, "receipt.json")
++        receipt_path = _safe_child(root, *relative)
++        if receipt_path is None or not receipt_path.is_file():
++            return False, None
++        try:
++            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
++            if not isinstance(receipt, Mapping):
++                return False, None
++            market_receipt = (receipt.get("markets") or {}).get(market)
++            if not isinstance(market_receipt, Mapping):
++                return False, None
++            if (
++                receipt.get("schema_version") != "stage_center.runner.receipt.v1"
++                or receipt.get("runner") != "stage_center"
++                or receipt.get("mode") != "BACKFILL"
++                or receipt.get("backfill_run_id") != backfill_run_id
++                or receipt.get("trade_date") != trade_date
++                or receipt.get("stage_id") != stage_id
++                or receipt.get("due_status") != "HISTORICAL_BACKFILL"
++                or receipt.get("latest_updated") is not False
++                or receipt.get("current_updated") is not False
++                or receipt.get("write_performed") is not True
++                or any(receipt.get(flag) is not False for flag in SAFETY_FLAGS)
++                or market_receipt.get("run_id") != envelope.get("run_id")
++                or market_receipt.get("artifact_id") != envelope.get("artifact_id")
++                or market_receipt.get("raw_artifact_sha256") != envelope.get("raw_artifact_sha256")
++                or market_receipt.get("selection_status") != envelope.get("selection_status")
++            ):
++                return False, None
++            return True, _file_digest(receipt_path)
++        except (OSError, ValueError, TypeError, json.JSONDecodeError):
++            return False, None
++
++
++    def _backfill_candidates(
++        self, trade_date: str, stage_id: str, market: str
++    ) -> tuple[list[dict[str, Any]], str | None]:
++        namespace_root = self.store.root / "backfill"
++        if not namespace_root.exists():
++            return [], None
++        if namespace_root.is_symlink() or not namespace_root.is_dir():
++            return [], "BACKFILL_NAMESPACE_CANNOT_CONFIRM"
++
++        candidates: list[dict[str, Any]] = []
++        conflicted = False
++        try:
++            children = sorted(namespace_root.iterdir(), key=lambda path: path.name)
++        except OSError:
++            return [], "BACKFILL_NAMESPACE_CANNOT_CONFIRM"
++        for candidate_root in children:
++            run_id = candidate_root.name
++            if not _BACKFILL_ID_RE.fullmatch(run_id):
++                continue
++            if candidate_root.is_symlink() or not candidate_root.is_dir():
++                continue
++            try:
++                candidate_store = SelectionStore(candidate_root)
++                latest = candidate_store._latest()
++                key = candidate_store._key(trade_date, stage_id, market)
++                entry = latest.get("entries", {}).get(key)
++                if not isinstance(entry, Mapping):
++                    continue
++                envelope = candidate_store.read_verified(trade_date, stage_id, market)
++                evidence = envelope.get("source_evidence")
++                evidence_values = {
++                    str(item).strip()
++                    for item in evidence
++                } if isinstance(evidence, list) else set()
++                if not (_BACKFILL_MARKERS & evidence_values):
++                    conflicted = True
++                    continue
++                projected = _project_backfill_market(market, envelope, trade_date=trade_date, stage_id=stage_id)
++                runner_verified, runner_sha = self._verify_backfill_runner_receipt(
++                    trade_date=trade_date,
++                    stage_id=stage_id,
++                    market=market,
++                    backfill_run_id=run_id,
++                    envelope=envelope,
++                )
++                projected.update(
++                    {
++                        "selection_mode": "BACKFILL",
++                        "backfill_run_id": run_id,
++                        "backfill_run_ids": [run_id],
++                        "selection_manifest_sha256": entry.get("manifest_sha256"),
++                        "selection_receipt_sha256": entry.get("receipt_sha256"),
++                        "selection_artifact_sha256": entry.get("artifact_sha256"),
++                        "selection_manifest_receipt_verified": True,
++                        "runner_receipt_verified": runner_verified,
++                        "runner_receipt_status": "VERIFIED" if runner_verified else "CANNOT_CONFIRM",
++                        "runner_receipt_sha256": runner_sha,
++                        "recovery_provenance": {
++                            "mode": "BACKFILL",
++                            "backfill_run_id": run_id,
++                            "selection_manifest_receipt_verified": True,
++                            "runner_receipt_verified": runner_verified,
++                            "runner_receipt_status": "VERIFIED" if runner_verified else "CANNOT_CONFIRM",
++                            "runner_receipt_sha256": runner_sha,
++                        },
++                    }
++                )
++                if not runner_verified:
++                    _append_reason(projected, "BACKFILL_RUNNER_RECEIPT_CANNOT_CONFIRM")
++                candidates.append(projected)
++            except (SelectionError, OSError, ValueError, TypeError, KeyError):
++                # A lane that advertises this exact date/stage/market but does
++                # not pass the normal SelectionStore checks cannot be selected.
++                try:
++                    candidate_store = SelectionStore(candidate_root)
++                    latest = candidate_store._latest()
++                    if candidate_store._key(trade_date, stage_id, market) in latest.get("entries", {}):
++                        conflicted = True
++                except (SelectionError, OSError, ValueError, TypeError):
++                    continue
++        if conflicted:
++            return [], "BACKFILL_NAMESPACE_CONFLICT"
++        return candidates, None
++
++
++    def _market_from_store_or_backfill(
++        self,
++        trade_date: str,
++        stage_id: str,
++        market: str,
++        *,
++        allow_backfill: bool = False,
++    ) -> dict[str, Any]:
++        try:
++            envelope = self.store.read_verified(trade_date, stage_id, market)
++            natural = _project_backfill_market(market, envelope, trade_date=trade_date, stage_id=stage_id)
++            natural.update(_verified_selection_provenance(
++                self.store, trade_date=trade_date, stage_id=stage_id,
++                market=market, run_id=str(envelope.get("run_id") or ""),
++            ))
++            if natural.get("selection_mode") == "BACKFILL":
++                if not allow_backfill:
++                    return _invalid_market_with_reason(
++                        market, "BACKFILL_NOT_FORMAL_STAGE_SELECTION"
++                    )
++                natural.update(runner_receipt_verified=False,
++                               runner_receipt_status="CANNOT_CONFIRM",
++                               runner_receipt_sha256=None)
++            natural = self._overlay_a_names(natural, trade_date)
++        except (SelectionError, OSError, ValueError, TypeError):
++            natural = _invalid_market(market)
++
++        # A verified ordinary result with rows, READY_EMPTY, or any successful
++        # status remains authoritative.  Only a missing/unreadable lane or a
++        # zero-row CANNOT_CONFIRM result can be repaired by a backfill lane.
++        if not _is_integrity_failure(natural) and (
++            int(natural.get("selected_rows") or 0) > 0
++            or natural.get("status") != "CANNOT_CONFIRM"
++        ):
++            return natural
++
++        # Historical recovery is a Stage workbench display capability. Other
++        # readers, including manager and ensure paths, keep the ordinary
++        # immutable-latest contract unless they explicitly opt in.
++        if not allow_backfill:
++            return natural
++
++        candidates, scan_error = self._backfill_candidates(trade_date, stage_id, market)
++        if scan_error:
++            return _append_reason(natural, scan_error)
++        if len(candidates) > 1:
++            identities = {
++                (
++                    item.get("run_id"),
++                    item.get("artifact_id"),
++                    item.get("raw_artifact_sha256"),
++                    item.get("selection_manifest_sha256"),
++                    item.get("selection_receipt_sha256"),
++                    item.get("selection_artifact_sha256"),
++                )
++                for item in candidates
++            }
++            if len(identities) != 1:
++                return _invalid_market_with_reason(market, "BACKFILL_NAMESPACE_CONFLICT")
++            # Several backfill wrappers can contain the same immutable
++            # selection manifest/receipt/artifact. Keep its verified rows but
++            # expose that no unique wrapper batch can be preferred.
++            selected = dict(candidates[0])
++            run_ids = sorted({
++                str(item.get("backfill_run_id"))
++                for item in candidates
++                if item.get("backfill_run_id")
++            })
++            selected["backfill_run_id"] = None
++            selected["backfill_run_ids"] = run_ids
++            selected["runner_receipt_verified"] = False
++            selected["runner_receipt_status"] = "CANNOT_CONFIRM"
++            selected["runner_receipt_sha256"] = None
++            provenance = dict(selected.get("recovery_provenance") or {})
++            provenance.update(
++                {
++                    "backfill_run_id": None,
++                    "backfill_run_ids": run_ids,
++                    "runner_receipt_verified": False,
++                    "runner_receipt_status": "CANNOT_CONFIRM",
++                    "runner_receipt_sha256": None,
++                    "namespace_conflict": True,
++                    "candidate_batches": [
++                        {
++                            "backfill_run_id": item.get("backfill_run_id"),
++                            "runner_receipt_verified": item.get("runner_receipt_verified") is True,
++                            "runner_receipt_sha256": item.get("runner_receipt_sha256"),
++                        }
++                        for item in candidates
++                    ],
++                }
++            )
++            selected["recovery_provenance"] = provenance
++            _append_reason(selected, "BACKFILL_NAMESPACE_CONFLICT")
++            return self._overlay_a_names(selected, trade_date)
++        if candidates:
++            return self._overlay_a_names(candidates[0], trade_date)
++        return natural
++
+ 
+     def _load_a_name_authority(self, trade_date: str) -> dict[str, Any]:
+         cached = self._a_name_authority_cache.get(trade_date)
+@@ -405,6 +775,7 @@
+         stage_id: str,
+         *,
+         markets: Sequence[str] | None = None,
++        allow_backfill: bool = False,
+     ) -> dict[str, Any]:
+         _validate_date(trade_date)
+         _validate_stage(stage_id)
+@@ -417,6 +788,11 @@
+ 
+         projected: list[dict[str, Any]] = []
+         for market in requested_markets:
++            if allow_backfill and market == "HK_CONNECT":
++                projected.append(self._market_from_store_or_backfill(
++                    trade_date, stage_id, market, allow_backfill=True,
++                ))
++                continue
+             try:
+                 envelope = self.store.read_verified(trade_date, stage_id, market)
+                 projected.append(self._overlay_a_names(_project_market(market, envelope), trade_date))
+--- a/tests/test_close_review_backfill_20261015.py
++++ b/tests/test_close_review_backfill_20261015.py
+@@ -0,0 +1,100 @@
++"""Close review consumes verified historical observations without formal promotion."""
++from __future__ import annotations
++
++import json
++from pathlib import Path
++import pytest
++
++from ops import build_close_review as producer
++from stage_center.selection import SelectionStore, ALGORITHM_SHA256
++from stage_center.contracts import SELECTION_ALGORITHM_ID
++
++DATE = '20261015'
++STAGE = 'STAGE_0930_0935'
++FLAGS = dict(production_allowed=False, buy_gate_updated=False, orders_sent=False)
++
++
++def publish(root: Path, *, batch='recovered', stage=STAGE, date=DATE, market='HK_CONNECT', natural=False):
++    lane = root if natural else root / 'backfill' / batch
++    envelope = dict(schema_version='stage_center.selection.v2', trade_date=date, stage_id=stage,
++                    market=market, algorithm_id=SELECTION_ALGORITHM_ID, algorithm_sha256=ALGORITHM_SHA256,
++                    raw_artifact_sha256='a'*64, source_status='READY', selection_status='PARTIAL_WITH_ROWS',
++                    requested_rows=100, source_rows=100, selected_rows=10, coverage_ratio=1.0,
++                    missing_symbols=[], rows=[dict(code=f'HK.{i:05d}', market='HK', rank=i, name=f'Name{i}') for i in range(1,11)],
++                    source_evidence=[] if natural else ['recovery_mode=HISTORICAL_BACKFILL'],
++                    cannot_confirm=[] if natural else ['HISTORICAL_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT_SAFE'], **FLAGS)
++    published = SelectionStore(lane).publish(envelope, market=market)
++    receipt = root.parent / 'receipts' / 'backfill' / batch / date / stage / 'receipt.json'
++    if not natural:
++        receipt.parent.mkdir(parents=True, exist_ok=True)
++        receipt.write_text(json.dumps(dict(schema_version='stage_center.runner.receipt.v1', runner='stage_center',
++            mode='BACKFILL', backfill_run_id=batch, due_status='HISTORICAL_BACKFILL', trade_date=date, stage_id=stage,
++            latest_updated=False, current_updated=False, write_performed=True,
++            markets={market:dict(run_id=published['run_id'], artifact_id=published['artifact_id'],
++                raw_artifact_sha256=envelope['raw_artifact_sha256'], selection_status=envelope['selection_status'])}, **FLAGS)))
++    return lane, published, receipt
++
++
++def test_valid_backfill_enters_observations_with_bound_proof(tmp_path):
++    root=tmp_path/'selection'; publish(root)
++    rows,evidence=producer._stage_rows_with_evidence(root,DATE)
++    assert len(rows[STAGE])==10
++    e=evidence[STAGE]
++    assert e['selection_mode']=='BACKFILL' and e['backfill_run_id']=='recovered'
++    assert e['runner_receipt_verified'] is True
++    assert 'HISTORICAL_BACKFILL_OBSERVATION:recovered' in e['cannot_confirm']
++    assert all(len(e[key])==64 for key in ['selection_manifest_sha256','selection_receipt_sha256','selection_artifact_sha256','runner_receipt_sha256'])
++    review=producer.build_native_close_review(DATE,close_rows=[],model_rows=[],stage_rows=rows,
++        stage_evidence=evidence,close_source_sha256='a'*64)
++    assert review['row_counts']['stage_rows']==10
++    assert STAGE in review['unverified_stages']
++    assert review['stage_union']['evidence_status']=='MISSING'
++    assert review['observed_stage_union']['pit_status']=='UNVERIFIED'
++
++
++@pytest.mark.parametrize('failure',['artifact','manifest','receipt','latest_sha','missing_runner','wrong_runner','wrong_date','wrong_market','conflict'])
++def test_invalid_backfill_never_enters_review(tmp_path,failure):
++    root=tmp_path/'selection'
++    lane,published,runner=publish(root, date='20261014' if failure=='wrong_date' else DATE,
++                                market='A_SHARE' if failure=='wrong_market' else 'HK_CONNECT')
++    if failure in {'artifact','manifest','receipt'}:
++        path=next((lane/'selection_runs').rglob({'artifact':'artifact.csv','manifest':'manifest.json','receipt':'receipt.json'}[failure]))
++        path.write_bytes(path.read_bytes()+b'corrupt')
++    elif failure=='latest_sha':
++        p=lane/'selection_latest.json';d=json.loads(p.read_text());next(iter(d['entries'].values()))['artifact_sha256']='f'*64;p.write_text(json.dumps(d))
++    elif failure=='missing_runner': runner.unlink()
++    elif failure=='wrong_runner':
++        d=json.loads(runner.read_text());d['markets']['HK_CONNECT']['run_id']='unknown';runner.write_text(json.dumps(d))
++    elif failure=='conflict':
++        publish(root,batch='second')
++    rows,_=producer._stage_rows_with_evidence(root,DATE)
++    assert rows[STAGE] is None
++
++
++def test_valid_natural_wins_over_historical(tmp_path):
++    root=tmp_path/'selection';publish(root);_,natural,_=publish(root,natural=True)
++    rows,e=producer._stage_rows_with_evidence(root,DATE)
++    assert len(rows[STAGE])==10 and e[STAGE]['run_id']==natural['run_id']
++    assert e[STAGE]['selection_mode'] is None
++
++
++def context():
++    return dict(mode='MANUAL_HISTORICAL_RECOVERY', trade_date=DATE, original_natural_run_id='a'*32,
++        original_close_sha256='b'*64, original_import_receipt_sha256='c'*64,
++        original_dispatcher_receipt_sha256='d'*64, archive_inventory_sha256='e'*64)
++
++
++@pytest.mark.parametrize('key,value',[('mode','NATURAL'),('trade_date','20261014'),('original_close_sha256','unknown'),('original_natural_run_id','unknown'),('archive_inventory_sha256',None)])
++def test_manual_context_rejects_unknown_or_wrong_identity(key,value):
++    c=context();c[key]=value
++    with pytest.raises(ValueError,match='manual recovery'):
++        producer._manual_recovery_context(c,DATE)
++
++
++def test_manual_context_has_real_recovery_time_and_does_not_promote_natural():
++    c=producer._manual_recovery_context(context(),DATE)
++    assert c['mode']=='MANUAL_HISTORICAL_RECOVERY'
++    assert c['recovered_at'].endswith('+08:00')
++    assert c['original_close_sha256']=='b'*64
++    with pytest.raises(ValueError,match='manual recovery'):
++        producer._manual_recovery_context({**context(),'extra':'bad'},DATE)
+--- a/tests/test_close_review_verified_inputs.py
++++ b/tests/test_close_review_verified_inputs.py
+@@ -51,7 +51,8 @@
+         def __init__(self, root):
+             calls.append(("root", root))
+ 
+-        def get(self, trade_date, stage_id, *, markets):
++        def get(self, trade_date, stage_id, *, markets, allow_backfill):
++            assert allow_backfill is True
+             calls.append((trade_date, stage_id, markets))
+             return {
+                 "trade_date": trade_date,
+@@ -78,7 +79,8 @@
+         def __init__(self, _root):
+             pass
+ 
+-        def get(self, trade_date, stage_id, *, markets):
++        def get(self, trade_date, stage_id, *, markets, allow_backfill):
++            assert allow_backfill is True
+             return {
+                 "trade_date": trade_date,
+                 "stage_id": stage_id,

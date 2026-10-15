@@ -1,0 +1,163 @@
+{
+  "schema_version": "hk_close_backfill_source_candidate_independent_review.v1",
+  "reviewer": "/root/hk_auto_review_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "reviewed_at_utc": "2026-10-15T09:16:59.001173+00:00",
+  "verdict": "PASS_SOURCE_AND_INACTIVE_MAIN_CANDIDATE",
+  "REVIEWED": true,
+  "BEHAVIOR_VERIFIED": true,
+  "DEPLOYED": false,
+  "API_VERIFIED": false,
+  "UI_VERIFIED": false,
+  "NATURAL_VERIFIED": false,
+  "candidate": {
+    "status": "PASS",
+    "candidate": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/candidates/hk-close-backfill-reader-main-20261015-r1/app",
+    "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-backfill-reader-main-20261015-r1/app",
+    "manifest_sha256": "50166a5fc50bf37c7de385c489f773dca94218d3291891f8240eab51aade7875",
+    "staged_plist_sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0",
+    "actualdiff_sha256": "a29a00540a89286ee2e9c0416db36fe063728e12eb95571ec046d63de27759d7",
+    "physical_entries": 964,
+    "changed_files": 4,
+    "unchanged_entries": 960,
+    "full_inventory_bytes_modes_kinds_match": true,
+    "CAS": "PASS_SNAPSHOT_RECHECK_IMMEDIATELY_BEFORE_ANY_INSTALL_OR_RELOAD",
+    "active_baseline_manifest_sha256": "5908c86a846bd00789f0de91e46376a6f53136206f711f263e37be7eba49a741",
+    "active_baseline_plist_sha256": "0c20b4cfa5b8ceeed298217ebebb6791ab604f0398aedeec98dd884df685df36",
+    "target_absent": true,
+    "transplanted_canonical_AST_functions_equal": [
+      "_file_digest",
+      "_invalid_market_with_reason",
+      "_append_reason",
+      "_safe_child",
+      "_verified_selection_provenance",
+      "_project_backfill_market",
+      "_verify_backfill_runner_receipt",
+      "_backfill_candidates",
+      "_market_from_store_or_backfill"
+    ],
+    "all_old_helpers_A_names_methods_and_default_get_AST_preserved": true,
+    "constructor_only_adds_optional_runner_receipt_root": true,
+    "get_only_adds_opt_in_HK_branch_default_false": true,
+    "baseline_domain_review_store_unchanged": true,
+    "staged_plist_only_release_identity_manifest_path_changes": true,
+    "existing_verified_inputs_tests": "Baseline retained; only2fakeConsumer signatures addallow_backfill andassertTrue; canonical has unrelated older test differences intentionally not copied",
+    "no_deployment_by_reviewer": true
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "independent_tests": "21 passed in0.18s from exact inactive candidate app;no bytecode/cache;reviewer temp state",
+  "negative_coverage": [
+    "Wrong artifact/manifest/receipt bytes",
+    "Wellformed wrong latest SHA",
+    "Missing orwrongrunner",
+    "Wrongdate/market",
+    "Ambiguous wrapper",
+    "Wrongmanualmode/date/SHAformat/runID/extra keys",
+    "Originalclose wrongCAS rejects without mutation"
+  ],
+  "behavior": {
+    "real_path_stage_records": 70,
+    "backfill_stage_count": 4,
+    "backfill_stages": [
+      "STAGE_0925",
+      "STAGE_0930_0935",
+      "STAGE_0935_0940",
+      "STAGE_0940_0945"
+    ],
+    "real_original_recovery_clocks": [
+      {
+        "stage_id": "STAGE_0925",
+        "backfill_run_id": "c98cce79aa634665a69fe1146d8e335a",
+        "runner_receipt_sha256": "a5af1a56beb99d095834629f8a28b9469b71f56f3ed629d37a6fc40a899443f1",
+        "original_recovery_recorded_at": "2026-10-15T04:08:24.282949+00:00",
+        "record_time_source": "OWNER_WRITE_CLOCK_UTC"
+      },
+      {
+        "stage_id": "STAGE_0930_0935",
+        "backfill_run_id": "e48db9ca382944b3994e6f31efb4f329",
+        "runner_receipt_sha256": "38f73ed8ff6d2322f473c597074f6034d8bfb141c19a80e131d902c799e917dd",
+        "original_recovery_recorded_at": "2026-10-15T04:08:24.730331+00:00",
+        "record_time_source": "OWNER_WRITE_CLOCK_UTC"
+      },
+      {
+        "stage_id": "STAGE_0935_0940",
+        "backfill_run_id": "8b1b7c98935c4a6692362ab92040e31f",
+        "runner_receipt_sha256": "f4cde149fe598305d118d2d24c92911538dc87d80196b952da69e48157db643b",
+        "original_recovery_recorded_at": "2026-10-15T04:18:35.916893+00:00",
+        "record_time_source": "OWNER_WRITE_CLOCK_UTC"
+      },
+      {
+        "stage_id": "STAGE_0940_0945",
+        "backfill_run_id": "93c0921e3b60443a8ea2a10d2b708652",
+        "runner_receipt_sha256": "3a8f19d69730fa0d1a74e4cdff094615c61bfd97190c3b32ce47052529da6b13",
+        "original_recovery_recorded_at": "2026-10-15T04:18:36.309295+00:00",
+        "record_time_source": "OWNER_WRITE_CLOCK_UTC"
+      }
+    ],
+    "natural3rows_priority_preserved": true,
+    "isolated_complete_builder_records": 70,
+    "deduplicated_observations": 27,
+    "observation_hits": 4,
+    "formal_stage_union": "MISSING",
+    "observation_PIT": "UNVERIFIED",
+    "recommendation_status": "NO_BUY",
+    "original_close_CASwrong_refused": true,
+    "isolatedrollback_preserves_other_manifest_key": true,
+    "manual_close_recovery_clock_mode_and_originalSHA_metadata": "Validated and preserved in isolated full builder;BACKFILL perstage markedhistorical andmanualclose marker",
+    "real_read_mutation_lock_network_attempts": [],
+    "isolated_write_boundary": "Reviewer-owned bytecopyfixture only;extra os.open dirfd guard enforces reviewerroot",
+    "real_source_inventory_count": 41,
+    "real_source_bytes_and_mtime_unchanged": true
+  },
+  "original_preexisting_failed_or_partial_tests": [
+    "Writer early failing testlogs remain originalwriter evidence; not relabeledPASS",
+    "Reviewer inventory first compared canonicalverifiedinputs testfile withcandidate incorrectly; actualmainbaseline intentionally preserved differentold tests; exact approved2fake signature changes confirmed; no candidate amendment"
+  ],
+  "manual_operation_plan_gate": {
+    "status": "NOT_REVIEWED_AWAITING_FINAL_WRITER_RECEIPT",
+    "not_granted": "No production rebuild/reload authorization by this receipt",
+    "required": "Operation script must bind actual archived original payload/importreceipt/fullmanifest/dispatcherbytes and all claimedSHA;builder only syntax-checks manualmetadata plus actualcloseCAS. Verify script separately before real publication.",
+    "preserve": "Original natural dispatch/receipts and A state; no whole stale manifest restore; onlyclose correspondingkey/trio and existing supersession;17:30 existing monitor unchanged",
+    "healthy_A_job": "Do not reload/interrupt active main daily task; main controller must choose safe gap and repeat completeCAS"
+  },
+  "evidence": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/candidate-seal.json",
+      "sha256": "368e242afa85390d7857676c9902aeadf555f2120b365a14d6fd285c190dd49b"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/pytest.log",
+      "sha256": "7b25e4ef29c0ab94de95a85856be5f8bc0b26c74cbe9f9cc74d41e107e6e7ff3"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/candidate-verification.json",
+      "sha256": "7295cb08721ded97c26cbc3f1b9b7f850d1e77694ceff0f38323d8690b12ce40"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/real-input.log",
+      "sha256": "17bf052555da9de79ae3d376d338a74f2e17088161460379bd9e35abe38d3ba0"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/real-input-canary.json",
+      "sha256": "86d9ad9c3309390b74c842486a2a9ac1c4e8a1e9721aa63e3ea2665abf001847"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/reviewer/real_input_independent.py",
+      "sha256": "810849b88c43d21e670b21e784152e0b42fda8fffa338635fb21219434be1e6b"
+    }
+  ],
+  "financial_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "reviewer_market_requests": 0,
+  "reviewer_production_rebuilds": 0,
+  "next_step": "Wait final evidence-only operation script receipt for separate bounded review; source/candidate tests not repeated withoutnewdelta"
+}

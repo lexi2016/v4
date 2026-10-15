@@ -1,0 +1,174 @@
+{
+  "schema_version": "hk_close_real_manual_recovery_independent_postcheck.v1",
+  "reviewer": "/root/hk_auto_review_sol",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "reviewed_at_utc": "2026-10-15T09:32:17.402582+00:00",
+  "verdict": "PASS_MANUAL_HISTORICAL_RECOVERY_AND_API",
+  "DEPLOYED": true,
+  "API_VERIFIED": true,
+  "BEHAVIOR_VERIFIED": true,
+  "UI_VERIFIED": "PARENT_OWNED_SEPARATE",
+  "NATURAL_VERIFIED": false,
+  "evidence_mode": "MANUAL_HISTORICAL_RECOVERY_NOT_NATURAL",
+  "identities": {
+    "main": {
+      "pid": 65309,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-backfill-reader-main-20261015-r1/app",
+      "manifest_sha256": "50166a5fc50bf37c7de385c489f773dca94218d3291891f8240eab51aade7875",
+      "plist_sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0",
+      "actual_process_cwd_verified": true
+    },
+    "api": {
+      "pid": 59730,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r4/app",
+      "manifest_sha256": "ec629d9d8b6eca2b6e20efe5fdcd29c13f8c373529285bcd3ddf34dba13b756d",
+      "plist_sha256": "4b501ff11e2b794d330954a480083ef5ad092280f06e60f68f35d5733b0fc7bb",
+      "actual_process_cwd_verified": true
+    }
+  },
+  "actual_command_receipt_sha256": "f4d5b2189f4248fb7f38afe415898dec1ecd3d1461cd7652249748166b5aafae",
+  "operation_directory": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_BACKFILL_READER_20261015/writer/manual-operations/20261015T092946266177Z",
+  "operation_sha256": "a9d91a65f7fbc4390c0621b9a96a09e3b124696bd02c5a641042574e9e62c5b7",
+  "operation_state": "POSTCHECK_VERIFIED",
+  "new_close_sha256": "da3595ecc0ad44e7a1f7766d339e174aecefa8238e990e889fce8c401289627a",
+  "original_close_sha256": "54688edbcd5edb6f2f5f559e1dccb6a31acd872a555968b586dd671c331b341d",
+  "current_close_import_receipt_sha256": "985fe65c07f80137333a6d4104b3aab655de8685f434c66f951da12e1472b21b",
+  "current_manifest_close_key": "da3595ecc0ad44e7a1f7766d339e174aecefa8238e990e889fce8c401289627a",
+  "whole_manifest_identity_not_required": "Other keys may change under authorized17:30 natural tasks; only matchingclosekey verified",
+  "archive_inventory_sha256": "15532b400f1c9c4a3ae9fc236b1b86576d47695d2774082a01c4c6c66e4e85fe",
+  "archive_original4files_byte_SHA_and_size_verified": true,
+  "original_natural_dispatcher_bytes_unchanged": true,
+  "row_counts": {
+    "close_top20": 20,
+    "hkconnect_universe": 698,
+    "model_0_2": 100,
+    "stage_rows": 70
+  },
+  "unique_observations": 27,
+  "observed_hits": 4,
+  "formal_stage_union_status": "MISSING",
+  "observed_PIT_status": "UNVERIFIED",
+  "recommendation_status": "NO_BUY",
+  "manual_recovery_provenance": {
+    "archive_inventory_sha256": "15532b400f1c9c4a3ae9fc236b1b86576d47695d2774082a01c4c6c66e4e85fe",
+    "mode": "MANUAL_HISTORICAL_RECOVERY",
+    "original_close_sha256": "54688edbcd5edb6f2f5f559e1dccb6a31acd872a555968b586dd671c331b341d",
+    "original_dispatcher_receipt_sha256": "0e5031eaf9c82b21f00b9b47ee51e372ca8a31e25837fa7d63c939e6571d0a3e",
+    "original_import_receipt_sha256": "ed7422cf3808ff83f3c202e1be5a23e0391165b9871dcbe0a0b450683a2573cf",
+    "original_natural_run_id": "06e39b51fda142449ad1cf9a8c1af480",
+    "recovered_at": "2026-10-15T17:29:46.289615+08:00",
+    "trade_date": "20261015"
+  },
+  "backfill_stages": [
+    {
+      "stage_id": "STAGE_0925",
+      "batch": "c98cce79aa634665a69fe1146d8e335a",
+      "selected_run_id": "run-60b2c780c3904e57f664d58b",
+      "runner_receipt_sha256": "a5af1a56beb99d095834629f8a28b9469b71f56f3ed629d37a6fc40a899443f1",
+      "original_backfill_recorded_at": "2026-10-15T04:08:24.282949+00:00",
+      "manual_close_recovered_at": "2026-10-15T17:29:46.289615+08:00",
+      "selection_trio_hashes": {
+        "selection_manifest_sha256": "ec5726783443883e262de440e32410defd8dcd26026f452e53e30248201e7fcb",
+        "selection_receipt_sha256": "1ac3db50a7b71f1b665a39a6160c35c4f9c2129d1f341222ed5942f633a7a4b7",
+        "selection_artifact_sha256": "db8b5f64f92f4edb63c74f64ebee93fd958fdaa6581386521ba6b4b7303a2193"
+      }
+    },
+    {
+      "stage_id": "STAGE_0930_0935",
+      "batch": "e48db9ca382944b3994e6f31efb4f329",
+      "selected_run_id": "run-9a03b73fd509be2260c8981c",
+      "runner_receipt_sha256": "38f73ed8ff6d2322f473c597074f6034d8bfb141c19a80e131d902c799e917dd",
+      "original_backfill_recorded_at": "2026-10-15T04:08:24.730331+00:00",
+      "manual_close_recovered_at": "2026-10-15T17:29:46.289615+08:00",
+      "selection_trio_hashes": {
+        "selection_manifest_sha256": "5d888c790a316aadd9ace5a512cf543763c5b5becbe061e4891a1e4d0511d4e0",
+        "selection_receipt_sha256": "dd95342518b7c09941a59be422bd46b33f5b8014209f532662af1cde7b475c9f",
+        "selection_artifact_sha256": "0f8cfcc988b87156f10a9006ee0f186264627aad2dc3aa46bab778a4469d7815"
+      }
+    },
+    {
+      "stage_id": "STAGE_0935_0940",
+      "batch": "8b1b7c98935c4a6692362ab92040e31f",
+      "selected_run_id": "run-570de0cca76360024e3d53cc",
+      "runner_receipt_sha256": "f4cde149fe598305d118d2d24c92911538dc87d80196b952da69e48157db643b",
+      "original_backfill_recorded_at": "2026-10-15T04:18:35.916893+00:00",
+      "manual_close_recovered_at": "2026-10-15T17:29:46.289615+08:00",
+      "selection_trio_hashes": {
+        "selection_manifest_sha256": "c7b66282d2d10f3ff8421266e6ef48ff3cfa1ca54ca429d37e629b729f82a074",
+        "selection_receipt_sha256": "f6c85e107189953bf0ac87289ec0cbb6642645a8b8ec4768c814e6a19b04d150",
+        "selection_artifact_sha256": "9c25d64d6cc1a693d748987eb6f67142c5a3694d12598fdfee0503efd61eb2f8"
+      }
+    },
+    {
+      "stage_id": "STAGE_0940_0945",
+      "batch": "93c0921e3b60443a8ea2a10d2b708652",
+      "selected_run_id": "run-81b3b469e5a14b4070649365",
+      "runner_receipt_sha256": "3a8f19d69730fa0d1a74e4cdff094615c61bfd97190c3b32ce47052529da6b13",
+      "original_backfill_recorded_at": "2026-10-15T04:18:36.309295+00:00",
+      "manual_close_recovered_at": "2026-10-15T17:29:46.289615+08:00",
+      "selection_trio_hashes": {
+        "selection_manifest_sha256": "b6dcdc6c6a442d1f60145075c91d5368313f8b970f70c49120ec99efc08f876f",
+        "selection_receipt_sha256": "5b83ab7447ae079a43301fd32d7fbc4cb3343ff8e4687bf547767ef4952ae05a",
+        "selection_artifact_sha256": "0d300ce761c21c6487b61869c899bd494897b1513a91f279eb29b946225bb0ea"
+      }
+    }
+  ],
+  "natural3_selected_runs_unchanged": true,
+  "protected_stage_D1_close_snapshot_file_count": 38,
+  "protected_original_input_SHA_map": {
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/hkconnect_close_snapshots/20261015.json": "d6d121e066df3a25c3ae716fdc4323dbb8678f453b7926f6ae80f7411cfac245",
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/hkconnect_close_snapshots/20261015.json": "cfd37acd26d04f7ce95de72fdf269e73f5b84236d913ddb98402522c307c6c1a",
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261015/hkconnect_d1_top100.json": "66225363e4dd1b9da4f316d75a8dcc5f249bc0968128c646e9632a1a8b1b1c67",
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261015/manifest.json": "223e0eb01c8f117cabe035721e04b45f1563709e537f1cd7d49cae5d3aa22540",
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261015/receipts/hkconnect_d1_top100.json": "50975336e7184c1d4c76416d03435f4d9f4f6c22a89b7e04b5a07f0209231981",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_latest.json": "8a5cb06c391c2d98069f8dabf27132201b148081727a989040904a06713b71fa",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0945_1030/run-e3edc8cdd02d17ebd94311e0/artifact.csv": "4e68a9de2583825d68aabcee20178079803c70bcd6f41eb3b7b83d27c199b14c",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0945_1030/run-e3edc8cdd02d17ebd94311e0/manifest.json": "9a2ee1efdc7b2fc666b21bbd49fe9ed08650eca93807e11325ae9741e9b92756",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0945_1030/run-e3edc8cdd02d17ebd94311e0/receipt.json": "5d168deb93fc8422f940c3c7d6d7ce9474593cacc0c3b22ad440a3d06fd29146",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_1300_1315/run-676337b8cfb57aab9860b0fb/artifact.csv": "e4556de2ba03017f2baac0f3cda801a75d1650021d7027cf625eb656f987e4eb",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_1300_1315/run-676337b8cfb57aab9860b0fb/manifest.json": "313f6d55436302769a6d6d20be5f1ce5a8b94590b7642d6e47d7ea13b90943d2",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_1300_1315/run-676337b8cfb57aab9860b0fb/receipt.json": "e92f061a502b9da33f8ccd01af25882b38e6a987f94c777f82ce5bb3dafe02a2",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_1445_1500/run-2e026753dba6094a50ee41c8/artifact.csv": "b2d0ea77eed808f564404a651e77f45539b0ebbfbbff10c2ab4f73103acbf92e",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_1445_1500/run-2e026753dba6094a50ee41c8/manifest.json": "a6f73b621ff3fa292786f25b2c863a0dc919b273fb79b8784789665948a5785d",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_1445_1500/run-2e026753dba6094a50ee41c8/receipt.json": "ba6189b1f7a327138abe7d0ea97f0c5634515f9938ed16c5acc12d9b9d10164b",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_1545_1555/run-65c3b689d2a8847744b2affc/artifact.csv": "e76caed860166382402a83bf82be41c569cd0173a8696290990e0f08e8718ed5",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_1545_1555/run-65c3b689d2a8847744b2affc/manifest.json": "686cab271531323f0d88a89257a59fc15b0ea253e9153cb8c820b4c33e348830",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_1545_1555/run-65c3b689d2a8847744b2affc/receipt.json": "4de680c589cbcabe04f91e7ec659e60ae662290eed45819c1a82231a158c2c84",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/8b1b7c98935c4a6692362ab92040e31f/selection_latest.json": "4e7058b032eae43eae11c3d103407c9b47d5c0325fe7382423cc992368d65780",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/8b1b7c98935c4a6692362ab92040e31f/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0935_0940/run-570de0cca76360024e3d53cc/artifact.csv": "9c25d64d6cc1a693d748987eb6f67142c5a3694d12598fdfee0503efd61eb2f8",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/8b1b7c98935c4a6692362ab92040e31f/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0935_0940/run-570de0cca76360024e3d53cc/manifest.json": "a513bc7213b93973d6efc4fc4c345b7c0ba2f4e12017f7a784ce5cff21f71d2d",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/8b1b7c98935c4a6692362ab92040e31f/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0935_0940/run-570de0cca76360024e3d53cc/receipt.json": "32cfd2b5e0debec87ba444dade50e88c888ed90cd8af8068200f07dedd9c0d27",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/backfill/8b1b7c98935c4a6692362ab92040e31f/20261015/STAGE_0935_0940/receipt.json": "f4cde149fe598305d118d2d24c92911538dc87d80196b952da69e48157db643b",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/e48db9ca382944b3994e6f31efb4f329/selection_latest.json": "b7acf127b9a27b0cb14ced3396e64e88945d4faa93ad2e28fc528ba3be737f82",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/e48db9ca382944b3994e6f31efb4f329/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0930_0935/run-9a03b73fd509be2260c8981c/artifact.csv": "0f8cfcc988b87156f10a9006ee0f186264627aad2dc3aa46bab778a4469d7815",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/e48db9ca382944b3994e6f31efb4f329/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0930_0935/run-9a03b73fd509be2260c8981c/manifest.json": "0b08f59f5b1b7b7799cedf5eda387b10c9d463b7c7d42131d1eb0eb9c7163a90",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/e48db9ca382944b3994e6f31efb4f329/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0930_0935/run-9a03b73fd509be2260c8981c/receipt.json": "4eeda7ff4734271a7229c4ed60903194915f2c0ae4a17347fba6d532fd2c2559",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/backfill/e48db9ca382944b3994e6f31efb4f329/20261015/STAGE_0930_0935/receipt.json": "38f73ed8ff6d2322f473c597074f6034d8bfb141c19a80e131d902c799e917dd",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/c98cce79aa634665a69fe1146d8e335a/selection_latest.json": "90cf45908b37485a5f9b19434c8432a1e5518e15700b7f2f791aa99f57244cd1",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/c98cce79aa634665a69fe1146d8e335a/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0925/run-60b2c780c3904e57f664d58b/artifact.csv": "db8b5f64f92f4edb63c74f64ebee93fd958fdaa6581386521ba6b4b7303a2193",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/c98cce79aa634665a69fe1146d8e335a/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0925/run-60b2c780c3904e57f664d58b/manifest.json": "8de0e8d1f549840fb9dc4a19ecb72ab3271b210cb98cde46e034ec7d0619d115",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/c98cce79aa634665a69fe1146d8e335a/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0925/run-60b2c780c3904e57f664d58b/receipt.json": "a45ee5edf12411bd5ec7a1e4b659d91b4f85bc2fa32839d966da74690baad242",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/backfill/c98cce79aa634665a69fe1146d8e335a/20261015/STAGE_0925/receipt.json": "a5af1a56beb99d095834629f8a28b9469b71f56f3ed629d37a6fc40a899443f1",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/93c0921e3b60443a8ea2a10d2b708652/selection_latest.json": "bb3cf9c100613975dc36608b7d53791ff5dd5a610993ea5a9802e74b9d1e42c1",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/93c0921e3b60443a8ea2a10d2b708652/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0940_0945/run-81b3b469e5a14b4070649365/artifact.csv": "0d300ce761c21c6487b61869c899bd494897b1513a91f279eb29b946225bb0ea",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/93c0921e3b60443a8ea2a10d2b708652/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0940_0945/run-81b3b469e5a14b4070649365/manifest.json": "84dfa769fe7aaed30141ea62cde7aa7e57e5260b6a5e82fbed20d9db8f281fce",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/93c0921e3b60443a8ea2a10d2b708652/selection_runs/20261015/HK_CONNECT_SELECTION_STAGE_0940_0945/run-81b3b469e5a14b4070649365/receipt.json": "ef49e209f755c88049071f34d62acd03fb1b60d22bb62826f238cdcc629bdfd3",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/backfill/93c0921e3b60443a8ea2a10d2b708652/20261015/STAGE_0940_0945/receipt.json": "3a8f19d69730fa0d1a74e4cdff094615c61bfd97190c3b32ce47052529da6b13"
+  },
+  "all_protected_SHA_unchanged": true,
+  "API_endpoint": "GET /api/v3/review?date=20261015",
+  "API_http_status": 200,
+  "API_response_sha256": "c2bd59bf477e4a249df43f44bb82d215bec16061e9800a949a3108a6aeaf0e37",
+  "API_native_all_payload_fields_equal_saved_artifact": true,
+  "API_stage_selection_eligible": false,
+  "reviewer_builder_test_collection_or_service_invocations": 0,
+  "reviewer_business_mutations": false,
+  "17_30_monitor": "PARENT_OWNED_NOT_ASSESSED",
+  "financial_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
