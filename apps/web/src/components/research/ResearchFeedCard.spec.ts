@@ -60,6 +60,21 @@ describe("ResearchFeedCard PDF detail identity", () => {
     });
   });
 
+  it("formats a PDF topic time with an explicit compact offset and keeps unknown offsets unconfirmed", () => {
+    const wrapper = mount(ResearchFeedCard, {
+      props: {
+        card: { ...card(firstDocumentId, "20261015"), source_topic_published_at: "2026-10-15T22:31:24.010+0800" },
+      },
+    });
+    expect(wrapper.text()).toContain("原话题时间：2026-10-15 22:31:24+08:00");
+
+    return wrapper.setProps({
+      card: { ...card(firstDocumentId, "20261015"), source_topic_published_at: "2026-10-15T22:31:24.010" },
+    }).then(() => {
+      expect(wrapper.text()).toContain("原话题时间：CANNOT_CONFIRM");
+    });
+  });
+
   it("clears cached OCR detail when an identically titled card changes date and document", async () => {
     const loadDetail = vi.mocked(loadResearchPdfDocumentDetail);
     loadDetail

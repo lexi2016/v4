@@ -139,6 +139,7 @@ def _process(
     counters=None,
     max_pages_per_document=2,
     downloader=None,
+    now_value=None,
 ):
     calls = counters if counters is not None else {"metadata": 0, "url": 0, "download": 0, "ocr": 0}
 
@@ -168,7 +169,7 @@ def _process(
         text = "VC均热板升级与算力散热。" * 50 if calls["ocr"] == 1 else "末页正文证据。" * 20
         return {"status": "OCR_OK", "method": ENGINE["engine"], "text": text, "width": 2000, "height": 2600}
 
-    now_value = datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI)
+    now_value = now_value or datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI)
     result = process_pdf_batch(
         data_root=root,
         trade_date=DATE,
@@ -345,6 +346,38 @@ def test_successful_page_chunk_is_partial_and_reports_real_page_progress(tmp_pat
     assert ready["processed_page_count"] == ready["page_count"] == 2
 
 
+def test_partial_resume_reuses_verified_pdf_and_preserves_recent_download_time(tmp_path):
+    root, files = _fixture(tmp_path)
+    calls = {"metadata": 0, "url": 0, "download": 0, "ocr": 0}
+    first_time = datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI)
+    later_time = datetime(2026, 10, 16, 1, 31, tzinfo=SHANGHAI)
+
+    first, _ = _process(
+        root, files, counters=calls, max_pages_per_document=1, now_value=first_time
+    )
+    first_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    document_id, document = next(
+        (key, row) for key, row in first_index["documents"].items() if row["source"]["file_id"] == FILE_ID
+    )
+    first_artifact = document["engine_runs"][first["engine_identity"]]
+    recent_download_time = first_artifact["downloaded_at"]
+    assert recent_download_time == first_time.isoformat()
+    assert calls["url"] == calls["download"] == 1
+
+    resumed, _ = _process(
+        root, files, counters=calls, max_pages_per_document=1, now_value=later_time
+    )
+    resumed_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    artifact = resumed_index["documents"][document_id]["engine_runs"][resumed["engine_identity"]]
+    assert resumed["processed_this_batch"][0]["status"] == "READY"
+    assert calls["url"] == calls["download"] == 1
+    assert artifact["downloaded_at"] == recent_download_time
+
+    detail = read_pdf_document_detail(root, document_id, DATE)
+    assert detail["processing"]["downloaded_at"] == recent_download_time
+    assert detail["receipt"]["integrity"] == "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED"
+
+
 def test_page_retry_resumes_covered_pages_and_stops_after_two_attempts(tmp_path):
     root, files = _fixture(tmp_path)
     calls = {"metadata": 0, "url": 0, "download": 0, "ocr": 0}
@@ -441,6 +474,74 @@ def test_empty_pdf_inventory_is_ready_empty_not_zero_count_pending(tmp_path):
     assert result["failed_total"] == 0
     receipt = store._read(result["receipt_path"])
     assert receipt["status"] == "READY_EMPTY"
+    index = store._read(STATE_RELATIVE)
+    assert index["sources"][RUN_ID]["enumeration_complete"] is True
+    projection = read_pdf_ingestion_projection(root, DATE)
+    assert projection["status"] == "READY_EMPTY"
+    assert projection["completed_count"] == projection["total_count"] == 0
+    assert projection["enumeration_source_run_count"] == 1
+
+    index["sources"][RUN_ID]["enumeration_complete"] = False
+    store._write(STATE_RELATIVE, index)
+    unverified = read_pdf_ingestion_projection(root, DATE)
+    assert unverified["status"] == "CANNOT_CONFIRM"
+    assert "PDF_SOURCE_ENUMERATION_MISSING" in unverified["cannot_confirm"]
+    assert "completed_count" not in unverified
+
+
+def test_raw_pdf_missing_group_topic_or_file_identity_is_not_counted_as_empty(tmp_path):
+    root, _files = _fixture(tmp_path)
+    store = NativeDataStore(root)
+    relative = f"external_sources/zsxq_hourly/{RUN_ID}/zsxq_recent_topics.json"
+    source = store._read(relative)
+    source["topics_brief"] = [
+        {"title": "unbound PDF", "files": [{"name": "orphan.pdf", "size": len(PDF_BYTES)}]}
+    ]
+    store._write(relative, source)
+
+    result = process_pdf_batch(
+        data_root=root,
+        trade_date=DATE,
+        slot=SLOT,
+        source_run_id=RUN_ID,
+        engine_info=ENGINE,
+        page_counter=lambda _pdf: 1,
+        page_renderer=lambda _pdf, _page, _out: Path("unused"),
+        ocr_page=lambda _image: {},
+    )
+
+    assert result["status"] == "CANNOT_CONFIRM"
+    assert result["cannot_confirm"] == ["PDF_SOURCE_ENUMERATION_INCOMPLETE"]
+    assert "pdf_reference_count" not in result
+    source_entry = store._read(STATE_RELATIVE)["sources"][RUN_ID]
+    assert source_entry["enumeration_complete"] is False
+    assert source_entry["enumeration_error"] == "PDF_SOURCE_ENUMERATION_INCOMPLETE"
+    assert "pdf_reference_count" not in source_entry
+
+    projection = read_pdf_ingestion_projection(root, DATE)
+    assert projection["status"] == "CANNOT_CONFIRM"
+    assert "PDF_SOURCE_ENUMERATION_MISSING" in projection["cannot_confirm"]
+    assert "completed_count" not in projection
+    assert "total_count" not in projection
+
+
+def test_missing_exact_date_pdf_enumeration_is_unassessed_without_zero_counts(tmp_path):
+    root, files = _fixture(tmp_path)
+    _process(root, files)
+
+    missing = read_pdf_ingestion_projection(root, "20261014")
+    assert missing["status"] == "NOT_ASSESSED"
+    assert "PDF_SOURCE_ENUMERATION_MISSING" in missing["cannot_confirm"]
+    assert "completed_count" not in missing
+    assert "total_count" not in missing
+
+    empty_index_root = tmp_path / "no-index"
+    empty_index_root.mkdir()
+    no_index = read_pdf_ingestion_projection(empty_index_root, DATE)
+    assert no_index["status"] == "NOT_ASSESSED"
+    assert "PDF_SOURCE_ENUMERATION_MISSING" in no_index["cannot_confirm"]
+    assert "completed_count" not in no_index
+    assert "total_count" not in no_index
 
 
 def test_pdf_projection_and_detail_are_read_only_and_bind_all_artifacts(tmp_path, monkeypatch):

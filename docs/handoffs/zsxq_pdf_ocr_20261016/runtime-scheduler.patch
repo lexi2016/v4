@@ -1,0 +1,180 @@
+--- a/ops/run_zsxq_hourly_delta.py
++++ b/ops/run_zsxq_hourly_delta.py
+@@ -19,6 +19,7 @@
+ from infrastructure.data_store import NativeDataStore
+ from infrastructure.isolated_package_loader import load_isolated_package_module
+ from infrastructure.owned_path import resolve_owned_path
++from infrastructure.zsxq_pdf_ingestion import process_pdf_batch, process_pdf_continuation
+ 
+ 
+ SHANGHAI = ZoneInfo("Asia/Shanghai")
+@@ -378,6 +379,15 @@
+     parser.add_argument("--data-root", required=True, type=Path)
+     parser.add_argument("--date", required=True)
+     parser.add_argument("--slot", required=True)
++    parser.add_argument(
++        "--pdf-only",
++        action="store_true",
++        help="Process PDFs from the exact existing hourly run without fetching topics.",
++    )
++    parser.add_argument("--source-run-id", help="Exact latest_run_id from the existing hourly status.")
++    parser.add_argument("--pdf-limit", type=int, default=1)
++    parser.add_argument("--pdf-file-id", help="Process one attachment id from topics_brief.files.")
++    parser.add_argument("--pdf-time-budget-seconds", type=int, default=180)
+     parser.add_argument("--cli", type=Path, default=DEFAULT_CLI)
+     parser.add_argument("--selector-panel", type=Path, default=DEFAULT_SELECTOR_PANEL)
+     parser.add_argument("--refetch-root", type=Path, default=DEFAULT_REFETCH_ROOT)
+@@ -385,6 +395,34 @@
+     parser.add_argument("--max-pages", type=int, default=20)
+     args = parser.parse_args(argv)
+     try:
++        if args.pdf_only:
++            if not args.source_run_id:
++                raise ValueError("--pdf-only requires --source-run-id")
++            if args.pdf_file_id:
++                result = process_pdf_batch(
++                    data_root=args.data_root,
++                    trade_date=args.date,
++                    slot=args.slot,
++                    source_run_id=args.source_run_id,
++                    cli=args.cli,
++                    limit=1,
++                    file_id=args.pdf_file_id,
++                    max_pages_per_document=1,
++                    time_budget_seconds=args.pdf_time_budget_seconds,
++                )
++            else:
++                result = process_pdf_continuation(
++                    data_root=args.data_root,
++                    trade_date=args.date,
++                    slot=args.slot,
++                    source_run_id=args.source_run_id,
++                    cli=args.cli,
++                    max_documents=args.pdf_limit,
++                    time_budget_seconds=args.pdf_time_budget_seconds,
++                )
++            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
++            # PDF progress is supplemental and must not fail the hourly research run.
++            return 0
+         result = materialize_zsxq_hourly_delta(
+             data_root=args.data_root,
+             trade_date=args.date,
+--- a/infrastructure/scheduling/executor_registry_research.py
++++ b/infrastructure/scheduling/executor_registry_research.py
+@@ -20,6 +20,86 @@
+ 
+ _PERIPHERAL_FETCH_TIMEOUT_SECONDS = 10
+ _HK_AUCTION_0920_TIMEOUT_SECONDS = 420
++
++
++def _zsxq_pdf_post_success(self: Any, request: DispatchRequest, result: dict[str, Any]) -> dict[str, Any]:
++    """Attach bounded PDF progress after the existing research chain succeeds."""
++    if result.get("status") != "SUCCEEDED":
++        return result
++    date = str(request.business_date)
++    slot = str(request.slot)
++    status_relative = (
++        f"research_module/runtime_outputs/zsxq_hourly/{date}/{slot}/"
++        f"v35_zsxq_hourly_status_{date}_{slot}.json"
++    )
++    try:
++        status_path = resolve_owned_path(self.data_root, status_relative)
++        source_status = json.loads(status_path.read_text(encoding="utf-8"))
++        source_run_id = str(source_status.get("latest_run_id") or "")
++        if (
++            source_status.get("trade_date") != date
++            or str(source_status.get("slot")) != slot
++            or source_status.get("fetch_ok") is not True
++            or source_status.get("status") not in {"READY", "READY_EMPTY"}
++            or not source_run_id
++        ):
++            raise ValueError("ZSXQ_SOURCE_STATUS_NOT_READY")
++        pdf_result = self._run(
++            "ops.run_zsxq_hourly_delta",
++            [
++                "--data-root", str(self.data_root),
++                "--date", date,
++                "--slot", slot,
++                "--source-run-id", source_run_id,
++                "--pdf-only",
++                "--pdf-limit", "1",
++                "--pdf-time-budget-seconds", "180",
++            ],
++            timeout_seconds=290,
++        )
++        try:
++            payload = json.loads(str(pdf_result.get("stdout") or ""))
++        except (json.JSONDecodeError, TypeError):
++            payload = {}
++        if not isinstance(payload, dict):
++            payload = {}
++        result["pdf_ingestion"] = {
++            "schema_version": payload.get("schema_version", "v4.zsxq_pdf_continuation.v1"),
++            "status": payload.get("status", "CANNOT_CONFIRM"),
++            "runner_status": pdf_result.get("status"),
++            "error_code": payload.get("error_code"),
++            "processed_document_count": payload.get("processed_document_count", 0),
++            "done_total": payload.get("done_total", 0),
++            "partial_total": payload.get("partial_total", 0),
++            "failed_total": payload.get("failed_total", 0),
++            "pending_total": payload.get("pending_total", 0),
++            "time_budget_seconds": 180,
++            "max_documents": 1,
++            "late_processing": True,
++            "pit_status": "NON_PIT_CURRENT_KNOWLEDGE_SUPPLEMENT",
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        }
++    except Exception as error:
++        result["pdf_ingestion"] = {
++            "schema_version": "v4.zsxq_pdf_continuation.v1",
++            "status": "CANNOT_CONFIRM",
++            "error_code": f"PDF_POST_SUCCESS_FAILED:{type(error).__name__}",
++            "processed_document_count": 0,
++            "done_total": 0,
++            "partial_total": 0,
++            "failed_total": 0,
++            "pending_total": 0,
++            "time_budget_seconds": 180,
++            "max_documents": 1,
++            "late_processing": True,
++            "pit_status": "NON_PIT_CURRENT_KNOWLEDGE_SUPPLEMENT",
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        }
++    return result
+ 
+ 
+ def _repair_requested(registry: Any) -> bool:
+@@ -372,8 +452,12 @@
+         raise WorkloadExecutionError(result)
+     if manager_dependency is not None:
+         result["manager_close_dependency"] = manager_dependency
+-    from infrastructure.scheduling.executor_registry_research import _refresh_opening_research_pool
+-    return _refresh_opening_research_pool(self, request, result)
++    from infrastructure.scheduling.executor_registry_research import (
++        _refresh_opening_research_pool,
++        _zsxq_pdf_post_success,
++    )
++    result = _refresh_opening_research_pool(self, request, result)
++    return _zsxq_pdf_post_success(self, request, result)
+ 
+ def _us_market_digest(
+     self, request: DispatchRequest
+@@ -543,8 +627,12 @@
+         ],
+     )
+     result["modules"] = modules
+-    from infrastructure.scheduling.executor_registry_research import _refresh_opening_research_pool
+-    return _refresh_opening_research_pool(self, request, result)
++    from infrastructure.scheduling.executor_registry_research import (
++        _refresh_opening_research_pool,
++        _zsxq_pdf_post_success,
++    )
++    result = _refresh_opening_research_pool(self, request, result)
++    return _zsxq_pdf_post_success(self, request, result)
+ 
+ def _morning_news_0830(self, request: DispatchRequest) -> dict[str, Any]:
+     module = "scripts.run_scheduled_morning_news"

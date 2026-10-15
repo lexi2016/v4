@@ -221,6 +221,22 @@ describe("ResearchView (research lane)", () => {
     expect(within(statusStrip).getByText(expected)).toBeTruthy();
   });
 
+  it("keeps missing exact-date PDF enumeration unassessed without zero counts", async () => {
+    stubResearchFetch({
+      ...lane(),
+      ocr_ingestion: {
+        status: "NOT_ASSESSED",
+        items: [],
+        cannot_confirm: ["PDF_SOURCE_ENUMERATION_MISSING"],
+      },
+    });
+
+    render(ResearchView, { props: { archiveDate: "20260804" } });
+
+    const statusStrip = await screen.findByRole("region", { name: "研报状态条" });
+    expect(statusCellValue(statusStrip, "OCR")).toBe("未评估");
+  });
+
   it("opens the公众号 archive panel when the entry explicitly requests it", async () => {
     stubResearchFetch(lane());
     render(ResearchView, { props: { archiveDate: "20260804", initialFeedFilter: "wechat" } });

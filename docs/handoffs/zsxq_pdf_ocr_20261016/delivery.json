@@ -1,0 +1,106 @@
+{
+  "schema_version": "v4.zsxq_pdf_delivery.v1",
+  "recorded_at": "2026-10-16T02:20:44.534213+08:00",
+  "canonical_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "github_base_commit": "6a415c4b210428d41bfd45413632b0f7d6746039",
+  "github_parent_commit": "80bf688aca718f3566bd9c5a1459598f69a1358f",
+  "github_branch": "codex/zsxq-pdf-ocr-20261016-r1",
+  "final_commit_identity": "Read the immutable GitHub commit containing this file; verified remote readback is retained locally.",
+  "states": [
+    "IMPLEMENTED",
+    "REVIEWED",
+    "TESTED",
+    "INTEGRATED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "UI_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "natural": "NATURAL_SLOT_UNVERIFIED",
+  "shared_module_sha256": "a66bf4b0512085a8730877595a4aade8e33cdaff6d5d99321e8ed05e2e47a0e8",
+  "review_receipt_sha256": {
+    "B1": "aa5f168fbaf313a73462bdb9d89b426579ca7b0657693556af2fd47ddb2c27f1",
+    "B2": "3a79389c39f2aab1cb52fd223fdbcc04c4579baa031d4acad9b2022092665b07",
+    "B3": "4c6eaf08ebe4abbe4487e24819b869b12224be77d753f5212c2cd7fa58b5222e"
+  },
+  "releases": {
+    "api": {
+      "release_id": "zsxq-pdf-ocr-api-20261016-r4",
+      "manifest_sha256": "a2dd8358300d0b61e8a365ed1ac8fe57e5872857208d5bd888e505b47a6cb135",
+      "base_release_id": "us-hk-mapping700-20261016-r2",
+      "target_paths": [
+        "apps/web/dist/assets/main-BtolhBIM.js",
+        "apps/web/dist/index.html",
+        "apps/web/src/components/research/ResearchFeedCard.vue",
+        "infrastructure/zsxq_pdf_ingestion.py"
+      ],
+      "non_target_bytes_preserved": true
+    },
+    "scheduler": {
+      "release_id": "zsxq-pdf-ocr-scheduler-20261016-r4",
+      "manifest_sha256": "4710696eb61e60ac5dbd1ea56aa2e7a3762d9c1f9170d206b4dc0beac4769e91",
+      "base_release_id": "oversold-daily-auto-20261016-r1",
+      "target_paths": [
+        "infrastructure/scheduling/executor_registry_research.py",
+        "infrastructure/zsxq_pdf_ingestion.py",
+        "ops/run_zsxq_hourly_delta.py"
+      ],
+      "non_target_bytes_preserved": true
+    }
+  },
+  "canary": {
+    "mode": "manual_real_pdf",
+    "completed_documents": 1,
+    "pages": 2,
+    "pending_documents": 78,
+    "enumerated_documents": 79,
+    "original_source_hashes_unchanged": {
+      "status": true,
+      "fetch_result": true,
+      "recent_topics": true,
+      "summary": true
+    },
+    "pdf_sha256": "3b13721231b7eaf935689798d5ee6af6719915653375542805d1f8a0e1315838",
+    "page_text_hashes_verified": true,
+    "semantic_investment_analysis": "NOT_RUN"
+  },
+  "api": {
+    "detail_status": "READY",
+    "wrong_date_http_status": 404,
+    "cache_control": "no-store",
+    "missing_enumeration": "NOT_ASSESSED_without_counts",
+    "historical_hour17_and_day12_bytes_unchanged": true
+  },
+  "ui": {
+    "status": "UI_VERIFIED",
+    "browser": "Codex In-app Browser",
+    "release": "zsxq-pdf-ocr-api-20261016-r4",
+    "real_pdf_pages_visible": [
+      1,
+      2
+    ],
+    "last_page_excerpt_visible": true,
+    "explicit_topic_offset_rendered": true,
+    "pdf_publication_time": "unknown_preserved",
+    "date_switch_15_14_15": "PASS",
+    "missing_date_ocr": "未评估",
+    "stale_pdf_detail_absent_on_14": true,
+    "collapse": "PASS",
+    "console_errors": [],
+    "screenshot_sha256": "2d69f46b74942c2623f7b845bc8824831cb335b55993d9728d1452a802a52cfe",
+    "prior_filter_and_narrow_checks": "r1-receipt.json"
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "limits": [
+    "Only one real document was processed; 78 pending attachments are not completed.",
+    "Natural hourly continuation not yet observed.",
+    "Unknown PDF publication time remains unknown.",
+    "OCR is source text, not independently verified investment claims.",
+    "Existing unrelated fixture/typecheck failures were recorded without expanding scope."
+  ]
+}

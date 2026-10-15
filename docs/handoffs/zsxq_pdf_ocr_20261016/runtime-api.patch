@@ -1,0 +1,85 @@
+--- a/apps/api/v35_api/research_lane_router.py
++++ b/apps/api/v35_api/research_lane_router.py
+@@ -22,6 +22,11 @@
+ from domains.research_day_product import consume_authoritative_research_day
+ from infrastructure.data_store import _date, _sha256
+ from infrastructure.research_lane_source import ResearchLaneSource
++from infrastructure.zsxq_pdf_ingestion import (
++    ZsxqPdfError,
++    read_pdf_document_detail,
++    read_pdf_ingestion_projection,
++)
+ from infrastructure.research_peripheral_store import (
+     CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP,
+     ResearchPeripheralStore,
+@@ -1117,10 +1122,70 @@
+     def research_lane(research_date: str = Query(default=""), date: str | None = Query(default=None)) -> dict:
+         result = _read_lane(research_date, date)
+         resolved = str(result.get("research_date") or "")
++        selected_pdf_date = resolved or str(research_date or date or "").strip()
++        try:
++            result["ocr_ingestion"] = (
++                read_pdf_ingestion_projection(data_root, selected_pdf_date)
++                if selected_pdf_date
++                else {
++                    "schema_version": "v4.zsxq_pdf_ingestion_projection.v1",
++                    "status": "NOT_MATERIALIZED",
++                    "research_date": "",
++                    "completed_count": 0,
++                    "done_count": 0,
++                    "partial_count": 0,
++                    "failed_count": 0,
++                    "pending_count": 0,
++                    "cannot_confirm_count": 0,
++                    "total_count": 0,
++                    "items": [],
++                    "cannot_confirm": ["PDF_INGESTION_RESEARCH_DATE_UNRESOLVED"],
++                    "research_only": True,
++                    "production_allowed": False,
++                    "buy_gate_updated": False,
++                    "orders_sent": False,
++                }
++            )
++        except Exception as error:
++            result["ocr_ingestion"] = {
++                "schema_version": "v4.zsxq_pdf_ingestion_projection.v1",
++                "status": "CANNOT_CONFIRM",
++                "research_date": selected_pdf_date,
++                "completed_count": 0,
++                "done_count": 0,
++                "partial_count": 0,
++                "failed_count": 0,
++                "pending_count": 0,
++                "cannot_confirm_count": 1,
++                "total_count": 0,
++                "items": [],
++                "cannot_confirm": [f"PDF_INGESTION_READ_FAILED:{type(error).__name__}"],
++                "research_only": True,
++                "production_allowed": False,
++                "buy_gate_updated": False,
++                "orders_sent": False,
++            }
+         if resolved:
+             result["update_diagnostic"] = source.update_diagnostic(
+                 resolved, artifact_verified=result.get("status") in {"READY", "LIVE_HOURLY"})
+         return result
++
++    @router.get("/pdf-documents/{document_id}")
++    def research_pdf_document_detail(
++        document_id: str,
++        research_date: str = Query(...),
++        response: Response = None,
++    ) -> dict:
++        if response is not None:
++            response.headers["Cache-Control"] = "no-store"
++        try:
++            return read_pdf_document_detail(data_root, document_id, research_date)
++        except ZsxqPdfError as error:
++            if error.code in {"DOCUMENT_NOT_FOUND", "DOCUMENT_DATE_MISMATCH"}:
++                raise HTTPException(status_code=404, detail=error.code) from error
++            if error.code in {"DOCUMENT_ID_INVALID", "TRADE_DATE_INVALID"}:
++                raise HTTPException(status_code=422, detail=error.code) from error
++            raise HTTPException(status_code=409, detail=error.code) from error
+ 
+     @router.get("/dates")
+     def research_dates() -> dict:

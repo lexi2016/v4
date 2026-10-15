@@ -29,6 +29,12 @@ function record(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function formatPdfTopicTimestamp(value: unknown): string {
+  const raw = text(value);
+  const compactOffset = raw.match(/^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?)([+-])(\d{2})(\d{2})$/);
+  return formatFeedTimestamp(compactOffset ? `${compactOffset[1]}${compactOffset[2]}${compactOffset[3]}:${compactOffset[4]}` : raw);
+}
+
 function pdfStatusLabel(value: unknown): string {
   const labels: Record<string, string> = {
     READY: "已完成",
@@ -92,8 +98,8 @@ const originalUrl = computed(() => {
     </div>
     <template v-if="isPdf">
       <div class="hourly-meta">话题：{{ text(card.topic_title) || "CANNOT_CONFIRM" }} · {{ text(card.group_name) || "来源组未确认" }}</div>
-      <div class="hourly-meta">原话题时间：{{ formatFeedTimestamp(card.source_topic_published_at) || "CANNOT_CONFIRM" }} · PDF 发布时间：未知</div>
-      <div class="hourly-meta">PDF 下载：{{ formatFeedTimestamp(card.downloaded_at) || "待处理" }} · OCR 完成：{{ formatFeedTimestamp(card.ocr_completed_at) || "待处理" }} · 延迟处理，非 PIT 补充</div>
+      <div class="hourly-meta">原话题时间：{{ formatPdfTopicTimestamp(card.source_topic_published_at) || "CANNOT_CONFIRM" }} · PDF 发布时间：未知</div>
+      <div class="hourly-meta">最近下载：{{ formatFeedTimestamp(card.downloaded_at) || "待处理" }} · OCR 完成：{{ formatFeedTimestamp(card.ocr_completed_at) || "待处理" }} · 延迟处理，非 PIT 补充</div>
       <div class="hourly-meta">页进度：{{ text(card.processed_page_count) || "0" }} / {{ text(card.page_count) || "待确认" }} 页 · 状态：{{ pdfStatusLabel(card.status) }}{{ text(card.reason_code) ? ` · ${text(card.reason_code)}` : "" }}</div>
       <div v-if="card.excerpt" class="hourly-summary">{{ text(card.excerpt) }}</div>
       <div class="hourly-focus-strip">
@@ -104,7 +110,7 @@ const originalUrl = computed(() => {
       <p v-if="pdfError" class="hourly-meta pdf-error" role="status">{{ pdfError }}</p>
       <section v-if="pdfOpen && pdfDetail" class="pdf-detail" aria-label="PDF OCR 正文">
         <div class="hourly-meta">校验状态：{{ text(record(pdfDetail.receipt).integrity) }} · PDF SHA256 / 页面 SHA256 已核验</div>
-        <div class="hourly-meta">PDF 发布时间：未知 · 下载时间：{{ formatFeedTimestamp(record(pdfDetail.processing).downloaded_at) || "CANNOT_CONFIRM" }} · OCR 完成：{{ formatFeedTimestamp(record(pdfDetail.processing).ocr_completed_at) || "CANNOT_CONFIRM" }}</div>
+        <div class="hourly-meta">PDF 发布时间：未知 · 最近下载：{{ formatFeedTimestamp(record(pdfDetail.processing).downloaded_at) || "CANNOT_CONFIRM" }} · OCR 完成：{{ formatFeedTimestamp(record(pdfDetail.processing).ocr_completed_at) || "CANNOT_CONFIRM" }}</div>
         <div v-if="pdfDetail.last_page_excerpt" class="pdf-last-page"><strong>末页节选</strong><p>{{ text(pdfDetail.last_page_excerpt) }}</p></div>
         <article v-for="page in pdfDetail.pages" :key="text(page.page_number)" class="pdf-page">
           <div class="hourly-meta">第 {{ text(page.page_number) }} 页 · {{ text(page.status) }} · {{ text(page.method) || "识别方法未确认" }}</div>

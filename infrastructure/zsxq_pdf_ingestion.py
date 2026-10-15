@@ -219,8 +219,6 @@ def enumerate_pdf_documents(
         group = topic.get("group") if isinstance(topic.get("group"), Mapping) else {}
         group_id = str(group.get("group_id") or "").strip()
         topic_id = str(topic.get("topic_id") or topic.get("id") or "").strip()
-        if not group_id or not topic_id:
-            continue
         files = topic.get("files") or []
         if not isinstance(files, list):
             continue
@@ -230,9 +228,11 @@ def enumerate_pdf_documents(
             name = str(raw_file.get("name") or "")
             if Path(name).suffix.lower() != ".pdf":
                 continue
+            if not group_id or not topic_id:
+                raise ZsxqPdfError("PDF_SOURCE_ENUMERATION_INCOMPLETE")
             file_id = str(raw_file.get("file_id") or "").strip()
             if not re.fullmatch(r"[0-9]{1,32}", file_id):
-                continue
+                raise ZsxqPdfError("PDF_SOURCE_ENUMERATION_INCOMPLETE")
             try:
                 size = int(raw_file.get("size"))
             except (TypeError, ValueError):
@@ -658,6 +658,62 @@ def _source_row_for_document(
     return source, dict(document_row)
 
 
+def _verified_source_enumeration(
+    store: NativeDataStore,
+    index: Mapping[str, Any],
+    source_run_id: str,
+    source_entry: Mapping[str, Any],
+) -> int:
+    """Recheck one exact-date attachment enumeration before treating zero as a result."""
+    trade_date = _date(str(source_entry.get("trade_date") or ""))
+    if source_entry.get("source_run_id") != source_run_id:
+        raise ZsxqPdfError("SOURCE_RUN_IDENTITY_MISMATCH")
+    slot = str(source_entry.get("slot") or "")
+    if (
+        source_entry.get("enumeration_complete") is not True
+        or source_entry.get("enumeration_scope") != "topics_brief.files_all_topics_including_noise"
+    ):
+        raise ZsxqPdfError("PDF_SOURCE_ENUMERATION_MISSING")
+    status, _fetch_result, recent, _summary, input_hashes = _source_binding(
+        store,
+        trade_date=trade_date,
+        slot=slot,
+        source_run_id=source_run_id,
+    )
+    if dict(source_entry.get("input_sha256") or {}) != input_hashes:
+        raise ZsxqPdfError("SOURCE_INPUT_SHA256_MISMATCH")
+    signature = _sha256(
+        json.dumps(
+            {"trade_date": trade_date, "slot": slot, "source_run_id": source_run_id, "input_hashes": input_hashes},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    )
+    if source_entry.get("source_signature") != signature:
+        raise ZsxqPdfError("SOURCE_SIGNATURE_MISMATCH")
+    topics = recent.get("topics_brief")
+    if not isinstance(topics, list) or source_entry.get("topic_count") != len(topics):
+        raise ZsxqPdfError("PDF_SOURCE_ENUMERATION_MISSING")
+    enumerated = enumerate_pdf_documents(recent, trade_date=trade_date, source_run_id=source_run_id)
+    reference_count = source_entry.get("pdf_reference_count")
+    if type(reference_count) is not int or reference_count != len(enumerated):
+        raise ZsxqPdfError("PDF_SOURCE_ENUMERATION_MISSING")
+    expected_ids = {str(row.get("document_key") or "") for row in enumerated}
+    documents = index.get("documents")
+    if not isinstance(documents, Mapping):
+        raise ZsxqPdfError("PROCESSING_INDEX_INVALID")
+    indexed_ids = {
+        str(document_id)
+        for document_id, row in documents.items()
+        if isinstance(row, Mapping)
+        and isinstance(row.get("source"), Mapping)
+        and row["source"].get("source_run_id") == source_run_id
+    }
+    if indexed_ids != expected_ids or status.get("trade_date") != trade_date:
+        raise ZsxqPdfError("PDF_SOURCE_ENUMERATION_MISSING")
+    return reference_count
+
+
 def _safe_document_paths(
     source: Mapping[str, Any],
     artifact: Mapping[str, Any],
@@ -768,6 +824,7 @@ def _verified_document_detail(
         or receipt.get("pdf_size") != artifact.get("pdf_size")
         or receipt.get("page_count") != page_count
         or receipt.get("pages_file_sha256") != artifact.get("pages_file_sha256")
+        or receipt.get("downloaded_at") != artifact.get("downloaded_at")
         or receipt_pages != expected_receipt_pages
         or receipt.get("pdf_published_at") is not None
         or receipt.get("late_processing") is not True
@@ -875,6 +932,35 @@ def _copy_cache_artifact(
     return pages
 
 
+def _verified_partial_pdf(
+    store: NativeDataStore,
+    source: Mapping[str, Any],
+    artifact: Mapping[str, Any],
+    pdf_relative: str,
+) -> tuple[bytes, str, Path] | None:
+    """Reuse owned PDF bytes for a partial OCR continuation when their binding still holds."""
+    if (
+        artifact.get("file_id") != source.get("file_id")
+        or artifact.get("pdf_path") != pdf_relative
+        or artifact.get("source_hash_raw") != source.get("source_hash_raw")
+        or artifact.get("pdf_size") != source.get("expected_size")
+        or not artifact.get("downloaded_at")
+        or not re.fullmatch(r"[0-9a-f]{64}", str(artifact.get("pdf_sha256") or ""))
+    ):
+        return None
+    pdf_path = _safe_artifact_path(store.root, pdf_relative)
+    if not pdf_path.is_file():
+        return None
+    raw = _store_io(store).read_bytes(pdf_relative, max_bytes=MAX_PDF_BYTES)
+    try:
+        pdf_sha = verify_pdf_bytes(raw, int(source.get("expected_size") or 0))
+    except ZsxqPdfError:
+        return None
+    if pdf_sha != artifact.get("pdf_sha256"):
+        return None
+    return raw, pdf_sha, pdf_path
+
+
 def _process_one(
     *,
     store: NativeDataStore,
@@ -947,8 +1033,8 @@ def _process_one(
     )
     persist()
     started_monotonic = time.monotonic()
-    downloaded_at: str | None = None
-    ocr_started_at: str | None = None
+    downloaded_at: str | None = artifact_state.get("downloaded_at")
+    ocr_started_at: str | None = artifact_state.get("ocr_started_at")
     pdf_relative = f"{processing_root}/pdfs/{source['document_key']}.pdf"
     engine_suffix = engine_identity[:16]
     pages_relative = f"{processing_root}/pages/{source['document_key']}_{engine_suffix}.json"
@@ -963,12 +1049,16 @@ def _process_one(
             raise ZsxqPdfError("SOURCE_HASH_MISSING")
         if source.get("source_hash_algorithm") is not None:
             raise ZsxqPdfError("SOURCE_HASH_ALGORITHM_MUST_REMAIN_UNKNOWN")
-        url = url_lookup(cli, str(source["file_id"]))
-        raw = downloader(url, int(source["expected_size"]))
-        pdf_sha = verify_pdf_bytes(raw, int(source["expected_size"]))
-        downloaded_at = _iso(now())
-        _store_io(store).write_bytes(pdf_relative, raw)
-        actual_pdf_path = _safe_artifact_path(store.root, pdf_relative)
+        cached_pdf = _verified_partial_pdf(store, source, artifact_state, pdf_relative)
+        if cached_pdf is not None:
+            raw, pdf_sha, actual_pdf_path = cached_pdf
+        else:
+            url = url_lookup(cli, str(source["file_id"]))
+            raw = downloader(url, int(source["expected_size"]))
+            downloaded_at = _iso(now())
+            pdf_sha = verify_pdf_bytes(raw, int(source["expected_size"]))
+            _store_io(store).write_bytes(pdf_relative, raw)
+            actual_pdf_path = _safe_artifact_path(store.root, pdf_relative)
         artifact_state["real_pdf_path"] = str(actual_pdf_path)
 
         page_count = page_counter(actual_pdf_path)
@@ -1032,7 +1122,10 @@ def _process_one(
             }
 
         old_pages: list[dict[str, Any]] = []
-        if artifact_state.get("pages_path") == pages_relative:
+        if (
+            artifact_state.get("pages_path") == pages_relative
+            and artifact_state.get("pdf_sha256") == pdf_sha
+        ):
             try:
                 old_pages = _read_pages(store, pages_relative)
                 if not all(isinstance(row.get("page_number"), int) for row in old_pages):
@@ -1127,6 +1220,7 @@ def _process_one(
             ocr_page_count=sum(1 for row in pages if row.get("status") in {"OCR_OK", "OCR_EMPTY"}),
             page_statuses=[row.get("status") for row in pages],
             full_page_coverage=coverage,
+            downloaded_at=downloaded_at,
             ocr_completed_at=completed_at,
             completed_at=completed_at,
             available_at=completed_at,
@@ -1305,7 +1399,50 @@ def process_pdf_batch(
         slot=slot,
         source_run_id=source_run_id,
     )
-    documents = enumerate_pdf_documents(recent, trade_date=trade_date, source_run_id=source_run_id)
+    try:
+        documents = enumerate_pdf_documents(recent, trade_date=trade_date, source_run_id=source_run_id)
+    except ZsxqPdfError as error:
+        if error.code != "PDF_SOURCE_ENUMERATION_INCOMPLETE":
+            raise
+        source_signature = _sha256(
+            json.dumps(
+                {"trade_date": trade_date, "slot": slot, "source_run_id": source_run_id, "input_hashes": input_hashes},
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        )
+        lock_budget_seconds = time_budget_seconds
+        with _store_io(store).kernel_lock(
+            LOCK_RELATIVE,
+            timeout=lock_budget_seconds,
+            poll=min(0.05, lock_budget_seconds),
+        ):
+            index = _read_index(store)
+            prior_source = index["sources"].get(source_run_id)
+            if prior_source and prior_source.get("source_signature") != source_signature:
+                raise ZsxqPdfError("SOURCE_RUN_MUTATED_SINCE_ENQUEUE")
+            index["sources"][source_run_id] = {
+                "trade_date": trade_date,
+                "slot": slot,
+                "source_run_id": source_run_id,
+                "source_signature": source_signature,
+                "input_sha256": input_hashes,
+                "topic_count": len(recent.get("topics_brief") or []),
+                "enumeration_complete": False,
+                "enumeration_scope": "topics_brief.files_all_topics_including_noise",
+                "enumeration_error": error.code,
+                "fetch_count": fetch_result.get("count"),
+                "source_fetched_at": status.get("fetched_at"),
+            }
+            _write_json(store, STATE_RELATIVE, index)
+        return {
+            "status": "CANNOT_CONFIRM",
+            "trade_date": trade_date,
+            "slot": slot,
+            "source_run_id": source_run_id,
+            "cannot_confirm": [error.code],
+            **SAFETY,
+        }
     if file_id is not None and not any(row["file_id"] == str(file_id) for row in documents):
         raise ZsxqPdfError("REQUESTED_FILE_NOT_IN_SOURCE_RUN")
     if engine_info is None:
@@ -1378,6 +1515,8 @@ def process_pdf_batch(
                 "input_sha256": input_hashes,
                 "topic_count": len(recent.get("topics_brief") or []),
                 "pdf_reference_count": len(documents),
+                "enumeration_complete": True,
+                "enumeration_scope": "topics_brief.files_all_topics_including_noise",
                 "fetch_count": fetch_result.get("count"),
                 "source_fetched_at": status.get("fetched_at"),
                 "processing_run_id": processing_run_id,
@@ -1824,15 +1963,12 @@ def read_pdf_ingestion_projection(data_root: Path, research_date: str) -> dict[s
         store = NativeDataStore(root)
         index_path = _safe_artifact_path(root, STATE_RELATIVE)
         if not index_path.is_file():
-            counts = {"completed_count": 0, "partial_count": 0, "failed_count": 0, "pending_count": 0, "cannot_confirm_count": 0, "total_count": 0}
             return {
                 "schema_version": "v4.zsxq_pdf_ingestion_projection.v1",
-                "status": "NOT_MATERIALIZED",
+                "status": "NOT_ASSESSED",
                 "research_date": selected_date,
-                **counts,
-                "done_count": 0,
                 "items": [],
-                "cannot_confirm": ["PDF_INGESTION_NOT_MATERIALIZED"],
+                "cannot_confirm": ["PDF_SOURCE_ENUMERATION_MISSING", "PDF_INGESTION_NOT_MATERIALIZED"],
                 **SAFETY,
             }
         index = _read_index(store)
@@ -1899,6 +2035,61 @@ def read_pdf_ingestion_projection(data_root: Path, research_date: str) -> dict[s
                     "source": {},
                     "can_open_detail": False,
                 })
+        if not items:
+            sources = index.get("sources")
+            date_sources = {
+                str(source_run_id): row
+                for source_run_id, row in (sources.items() if isinstance(sources, Mapping) else [])
+                if isinstance(row, Mapping) and row.get("trade_date") == selected_date
+            }
+            if not date_sources:
+                return {
+                    "schema_version": "v4.zsxq_pdf_ingestion_projection.v1",
+                    "status": "NOT_ASSESSED",
+                    "research_date": selected_date,
+                    "items": [],
+                    "cannot_confirm": ["PDF_SOURCE_ENUMERATION_MISSING"],
+                    **SAFETY,
+                }
+            try:
+                enumerated_total = sum(
+                    _verified_source_enumeration(store, index, source_run_id, source_entry)
+                    for source_run_id, source_entry in date_sources.items()
+                )
+            except ZsxqPdfError as error:
+                return {
+                    "schema_version": "v4.zsxq_pdf_ingestion_projection.v1",
+                    "status": "CANNOT_CONFIRM",
+                    "research_date": selected_date,
+                    "items": [],
+                    "cannot_confirm": sorted({"PDF_SOURCE_ENUMERATION_MISSING", error.code}),
+                    **SAFETY,
+                }
+            if enumerated_total != 0:
+                return {
+                    "schema_version": "v4.zsxq_pdf_ingestion_projection.v1",
+                    "status": "CANNOT_CONFIRM",
+                    "research_date": selected_date,
+                    "items": [],
+                    "cannot_confirm": ["PDF_SOURCE_ENUMERATION_MISSING"],
+                    **SAFETY,
+                }
+            return {
+                "schema_version": "v4.zsxq_pdf_ingestion_projection.v1",
+                "status": "READY_EMPTY",
+                "research_date": selected_date,
+                "completed_count": 0,
+                "done_count": 0,
+                "partial_count": 0,
+                "failed_count": 0,
+                "pending_count": 0,
+                "cannot_confirm_count": 0,
+                "total_count": 0,
+                "enumeration_source_run_count": len(date_sources),
+                "items": [],
+                "cannot_confirm": [],
+                **SAFETY,
+            }
         items.sort(key=lambda row: (str((row.get("source") or {}).get("source_topic_published_at") or ""), str(row.get("document_id") or "")), reverse=True)
         counts = {
             "completed_count": sum(1 for row in items if row.get("status") == "READY"),
@@ -1926,15 +2117,8 @@ def read_pdf_ingestion_projection(data_root: Path, research_date: str) -> dict[s
             "schema_version": "v4.zsxq_pdf_ingestion_projection.v1",
             "status": "CANNOT_CONFIRM",
             "research_date": selected,
-            "completed_count": 0,
-            "done_count": 0,
-            "partial_count": 0,
-            "failed_count": 0,
-            "pending_count": 0,
-            "cannot_confirm_count": 1,
-            "total_count": 0,
             "items": [],
-            "cannot_confirm": [error.code],
+            "cannot_confirm": sorted({"PDF_SOURCE_ENUMERATION_MISSING", error.code}),
             **SAFETY,
         }
 
