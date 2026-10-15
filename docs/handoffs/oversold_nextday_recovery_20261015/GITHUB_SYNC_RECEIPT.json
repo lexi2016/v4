@@ -1,0 +1,85 @@
+{
+  "status": "VERIFIED_REMOTE_HEAD_AND_BYTES",
+  "repository": "lexi2016/v4",
+  "branch": "codex/oversold-nextday-recovery-20261015",
+  "base": "94ae411163d92d1a7f30696205e0bf77a86b38bf",
+  "verified_head": "155d41549f242b6617025086a18513213a581de1",
+  "all_files": [
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/ROOT_CAUSE.md",
+      "sha256": "85d745813239ab481bcf0a8b4e72b75976085e613b823829cbe4fd75f13d40fa",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/phase_a_receipt.md",
+      "sha256": "7fdf2eb28c2a953ea70a2eb1f285ad771401d370c29d7f01fed67eadce8e7c2c",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/phase_a_receipt.json",
+      "sha256": "69a31f752725f90ff9a6ec2632213525f6e382788a62b3d3f15773d535cafa62",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/phase_b_receipt.md",
+      "sha256": "34d624adf0b563d8d51b62afe0d17dd01e44b42e9f2607b8031346d8cefbe491",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/phase_b_capture.py",
+      "sha256": "8cb8a8df0fab5e85b7817e43a30ad2932f5920b59f73334dd0fbde7e31bc1f58",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/phase_b_validate.py",
+      "sha256": "931c3c49b38ee069f5870934da2e7e83ab61aa2056f840ca1fb08147c94fe660",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/phase_b_candidate_config_receipt.json",
+      "sha256": "443722c896f3a93b63d5b23986a598b11de64fd8ef4ad99087ec5ea45807847e",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/INDEPENDENT_REVIEW.md",
+      "sha256": "0e07725f32eaacf76d5db2620f7f8ca45881c0f48bfe67ce6abf29d3f784bf55",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/phase_c_receipt.md",
+      "sha256": "a2e233cbe952abec64f14d2ab97540850b56c659bd1076643d53fbc58ddea521",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/phase_c_activate.py",
+      "sha256": "5bd20856ee5a0eaa6e4a11cade1a14568be785c6426da4e5f10f34df13930f21",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/phase_c_run.py",
+      "sha256": "7aa1bb7a5f91c1671160189d05d1536e1295b3622dcedc4bb657432a5fb0431d",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/UI_REVIEW.md",
+      "sha256": "03c2050f7fb521fc945fc5a18fc073d154d9fce84a5c8156910013932217b62c",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/LIVE_REVIEW.md",
+      "sha256": "5ac014a59ba79f9520e63a86bd35f5649eb18edaaa7867df4b44df3f6f9bcc3d",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/DELIVERY.md",
+      "sha256": "8bc26736252a6b56eba85ccaf7810d2edff1df84c3512dbc30b754f792b13628",
+      "remote_readback_equal": true
+    },
+    {
+      "path": "docs/handoffs/oversold_nextday_recovery_20261015/scope.json",
+      "sha256": "25fb054c0639f8d200179a65350b4d0e1f0afee39ef366880cac926039b569b3",
+      "remote_readback_equal": true
+    }
+  ],
+  "sync_scope": "Necessary recovery helpers and concise evidence only. Raw quotes, snapshots, large responses, active config/plist and screenshot remain local."
+}
