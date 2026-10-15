@@ -1,0 +1,26 @@
+# Independent US→HK catalog candidate review
+
+Verdict: REVIEWED=PASS; TESTED=PASS; BEHAVIOR_VERIFIED=PASS for the frozen candidate's in-process API and Vue component behavior. P0/P1/P2 findings: none within the frozen scope. Runtime integration, deployed API, rendered browser UI and natural-slot results are NOT_RUN in this receipt.
+
+Reviewer: independent child identity `us_mapping_finish_review`, gpt-6.1-sol high as explicitly directed by the controller under the user's model override. Read-only business review; this receipt is the reviewer's only new workspace file. No subagents, business edits, service operations, archive scripts, Git commit/push or external data calls.
+
+Source root: `/Users/lexi/Desktop/学习/v4_app`; HEAD `55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054`. Reviewed the catalog-only delta against `docs/handoffs/us_hk_667_finish_20261015/preimage/`, not the repository-wide dirty diff. All eight preimage hashes and all nine postimage hashes matched their manifests during independent verification. `api.py` changes are limited to catalog import/store/path/route; frontend changes are confined to catalog state, rendering and queries. Base catalog bytes remain SHA256 `3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671`, with no base-catalog Git diff. Overlay SHA256 is `afece7acbfe20d9df4b54aa0841ae50694f7695730293bcc6847f0e3a2f538aa`.
+
+Independent results on 2026-10-15, Python 3.14.6 / macOS arm64:
+
+- `PYTHONPATH=. .venv/bin/pytest --basetemp=/tmp/us_hk_finish_reviewer_pytest_20261015 -q tests/manager_workbench/test_us_mapping_catalog.py`: 9 passed, 1.28s; one Starlette/httpx deprecation warning.
+- From `apps/web`: `node_modules/.bin/vitest run src/manager-workbench/__tests__/us_mapping_catalog.spec.ts`: 1 passed; 871ms. This is a component test using a mocked transport, not a browser/runtime acceptance claim.
+- From `apps/web`: `node_modules/.bin/vue-tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --types vitest/globals src/manager-workbench/Workbench.vue src/manager-workbench/useWorkbench.ts`: exit 0.
+- Independent script verified pre/post SHA manifests; the actual supplied ZIP exists and rebuilding in memory gives exact JSON equality to the shipped overlay. ZIP SHA, manifest/member hashes, the full 667/1003 original CSV fields, 40 revision identities, source-row/HK/US identities and referenced evidence are validated by the builder. No output rewrite or archive code execution was used.
+- Independent full pagination returned 667 stocks, 1003 relations and 1003 unique relation IDs. Source stock and relation records remain equal to the original catalog. Counters are SOURCE_REVIEWED=40 relations / 22 stocks, all-original-relations-processed=16 stocks, unprocessed=963 relations, independent verification=NOT_RUN / 0. Research-use counts are pending 985, excluded-current 5, background-historical 10, conditional-observation 3.
+- Independent same-environment 8-call CVE comparison using the exact preimage module: prior load+search mean 65.42ms, candidate warm mean 9.93ms. This verifies in-process warm-path improvement only; response serialization/network/browser latency are excluded. The recorded default page payload is approximately 1.51MB and browser rendering performance remains for runtime review.
+
+Behavior and boundary review:
+
+- Default query browses all 667 stocks with pagination; HK/name/US and exact RID queries preserve global progress totals. Pending-review filtering selects matching relations without promoting status.
+- Original source facts and statuses remain intact. Revision statuses, dates, reasoning, gaps, field assessments and evidence records remain separately visible as source-provided research. Exact source-current-state routing is explicit, with pending as default. No source VERIFIED string upgrades independent acceptance.
+- JSON-array URLs and ordinary URL input are handled by the UI parser; link generation permits only HTTP/HTTPS URLs with hostnames and without credentials. Component assertions cover multiple JSON-array links, revision evidence links and rejection of unsafe/credential links. Links use `noopener noreferrer`.
+- Cache identity includes resolved path, device, inode, size, mtime_ns and ctime_ns; file changes trigger pinned-SHA and schema validation, concurrent-load identity changes reject, returned objects are deep copies, and failed reloads clear cached success. Independent tests reproduce restored-mtime tamper rejection, recovery, rehashed-base tamper rejection and API 503/data=null fail-closed behavior.
+- All relation fact_review_status values remain PENDING, prediction_eligible=false, prediction UNTESTED and historical PIT NOT_VALIDATED. RESEARCH_ONLY=true, production_allowed=false, buy_gate_updated=false, orders_sent=false. Engine/scoring/BUY behavior is outside the delta.
+
+Not claimed: independent substantive verification of the 40 company claims or all 1003 facts; prediction validation/backtesting, PIT acceptance, old997 comparison, active-release integration, deployed API/UI or natural observations. The next authorized review may reuse this candidate receipt if the reviewed bytes and acceptance scope remain unchanged, then separately bind and verify runtime identity and behavior.
