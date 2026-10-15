@@ -1,0 +1,855 @@
+--- a/v4/manager_workbench/scheduler.py
++++ b/v4/manager_workbench/scheduler.py
+@@ -78,13 +78,35 @@
+         validate_date(next_day)
+         if not _require_calendar(calendar,next_day) or next_day <= day:
+             raise CalendarUnavailable("HK_NEXT_SESSION_INVALID")
+-        key = "nextday_"+day+suffix
+-        if not service.store.cursor(key):
+-            job = service.submit(next_day,Phase.NEXT_DAY,trigger="SCHEDULED",cutoff=local,lanes=scheduled,
+-                                 scope_refs={"source_hk_session":day,
+-                                             "timing_status":"LATE_CATCHUP" if local>at1630 else "ON_SLOT"})
+-            service.store.set_cursor(key,{"job_id":job.job_id,"target_date":next_day,"cutoff":local.isoformat()})
+-            jobs.append({"phase":"NEXT_DAY","run_id":job.run_id,"job_id":job.job_id})
++        split_oversold = scheduled is not None and Lane.OVERSOLD in scheduled
++        if split_oversold:
++            # Keep the existing 16:30 work moving while OVERSOLD waits for the
++            # exact-date HK panel/master and any existing-owner TDX61 repair.
++            other_lanes=[lane for lane in scheduled if lane!=Lane.OVERSOLD]
++            if other_lanes:
++                key="nextday_other_"+day+suffix
++                if not service.store.cursor(key):
++                    job=service.submit(next_day,Phase.NEXT_DAY,trigger="SCHEDULED",cutoff=local,lanes=other_lanes,
++                        scope_refs={"source_hk_session":day,"merge_phase_lanes":True,
++                            "timing_status":"LATE_CATCHUP" if local>at1630 else "ON_SLOT"})
++                    service.store.set_cursor(key,{"job_id":job.job_id,"target_date":next_day,"cutoff":local.isoformat(),
++                        "lanes":[lane.value for lane in other_lanes]})
++                    jobs.append({"phase":"NEXT_DAY","run_id":job.run_id,"job_id":job.job_id})
++            driver=getattr(service,"oversold_daily",None)
++            if driver is not None:
++                try:
++                    progress=driver.tick(source_day=day,target_date=next_day,at=local)
++                    jobs.append({"phase":"NEXT_DAY","lane":"OVERSOLD","state":str(progress.get("state","SCHEDULED"))})
++                except Exception:
++                    jobs.append({"phase":"NEXT_DAY","lane":"OVERSOLD","state":"CANNOT_CONFIRM"})
++        else:
++            key = "nextday_"+day+suffix
++            if not service.store.cursor(key):
++                job = service.submit(next_day,Phase.NEXT_DAY,trigger="SCHEDULED",cutoff=local,lanes=scheduled,
++                                     scope_refs={"source_hk_session":day,
++                                                 "timing_status":"LATE_CATCHUP" if local>at1630 else "ON_SLOT"})
++                service.store.set_cursor(key,{"job_id":job.job_id,"target_date":next_day,"cutoff":local.isoformat()})
++                jobs.append({"phase":"NEXT_DAY","run_id":job.run_id,"job_id":job.job_id})
+     # Preserve the preopen latch above before any background capture enqueue.
+     if getattr(service,"capture_jobs",None) and (scheduled is None or Lane.ANNOUNCEMENT in scheduled):
+         capture_day=next_day if local>=at1630 else day
+--- a/v4/manager_workbench/inputs/source_bindings.py
++++ b/v4/manager_workbench/inputs/source_bindings.py
+@@ -5,6 +5,7 @@
+ """
+ from __future__ import annotations
+ import json
++from datetime import datetime
+ from pathlib import Path
+ from infrastructure.owned_io import SafeRoot
+ from ..engines.common import US_FACTOR_RULES_VERSION
+@@ -159,6 +160,67 @@
+     if original.get('futu_history'):pin['futu_history']=original['futu_history']
+     if original.get('tdxpy_history'):pin['tdxpy_history']=original['tdxpy_history']
+     return pin
++
++
++def _tdxpy_history_for_exact_parents(config, context, panel_pin, master_pin, configured_pin=None):
++    """Discover only a complete TDX61 run bound to this exact panel/master pair."""
++    if config.shared_root is None or not panel_pin or not master_pin:
++        return None
++    day=context.source_sessions['hk_price']
++    from upstreams.v3_shared_data.shared_data.hk_daily_supplement import (
++        _read_master_identity, _read_panel_identity, read_tdxpy_window_supplement,
++    )
++    panel, _=read(config.shared_root,panel_pin['manifest_relative'],panel_pin['manifest_sha256'])
++    panel_identity=_read_panel_identity(config.shared_root,day,
++        manifest_relative=panel_pin['manifest_relative'],manifest_sha256=panel_pin['manifest_sha256'])
++    master_identity,codes=_read_master_identity(config.shared_root,day)
++    master_doc,_=read(config.shared_root,master_pin['manifest_relative'],master_pin['manifest_sha256'])
++    if (master_identity['manifest_relative']!=master_pin['manifest_relative']
++            or master_identity['manifest_sha256']!=master_pin['manifest_sha256']
++            or master_doc.get('trade_date')!=day
++            or master_doc.get('artifact_sha256')!=master_identity['artifact_sha256']):
++        raise ValueError('TDXPY_MASTER_PARENT_BINDING_MISMATCH')
++    output=Path(config.shared_root)/'assets/hk_0_2/daily_supplements/tdxpy61'
++    candidates=[]
++    seen=set()
++    if isinstance(configured_pin,dict):
++        candidates.append(configured_pin)
++    for relative in files(output,f'runs/{day}/*/manifest.json'):
++        try:
++            _,manifest_sha=read(output,relative)
++            candidates.append(dict(source_local_path=str(output),manifest_relative=relative,
++                manifest_sha256=manifest_sha))
++        except (OSError,ValueError,KeyError,TypeError):
++            continue
++    verified=[]
++    for candidate in candidates:
++        try:
++            source=Path(candidate['source_local_path']).resolve()
++            relative=candidate['manifest_relative']
++            marker=(str(source),relative,candidate.get('manifest_sha256'))
++            if marker in seen:continue
++            seen.add(marker)
++            if source!=output.resolve():continue
++            manifest,msha=read(source,relative,candidate.get('manifest_sha256'))
++            raw_rel=manifest['raw_relative'];raw_sha=manifest['raw_sha256']
++            pin=dict(source_local_path=str(source),manifest_relative=relative,manifest_sha256=msha,
++                raw_relative=raw_rel,raw_sha256=raw_sha,target_date=day,
++                run_id=manifest.get('run_id'),available_at=manifest.get('available_at'),
++                capture_scope=manifest.get('capture_scope'))
++            if pin['capture_scope']!='PANEL_GAPS':continue
++            checked,_=read_tdxpy_window_supplement(pin,target_date=day,cutoff=context.cutoff,
++                expected_panel_sha=panel['panel_sha256'],expected_master_sha=master_identity['artifact_sha256'],
++                expected_codes=codes,expected_panel_manifest_sha=panel_identity['panel_manifest_sha256'],
++                expected_master_manifest_sha=master_identity['manifest_sha256'])
++            if (checked.get('panel_identity')!=panel_identity
++                    or checked.get('master_identity')!=master_identity
++                    or not before(checked.get('available_at'),context.cutoff)):
++                continue
++            available=datetime.fromisoformat(checked['available_at'].replace('Z','+00:00'))
++            verified.append((available,pin))
++        except (OSError,ValueError,KeyError,TypeError):
++            continue
++    return max(verified,key=lambda item:item[0])[1] if verified else None
+ 
+ 
+ def security_master(config, context):
+@@ -402,6 +464,15 @@
+     for name, resolver in [('membership',membership),('announcements',announcements),('hk_panel',hk_panel),('security_master',security_master),('us_mapping',us_mapping),('stage',stage)]:
+         try: result[name]=resolver(config,context)
+         except (OSError,ValueError,KeyError,TypeError) as error:gaps[name]=str(error) if isinstance(error,ValueError) else name.upper()+'_OWNER_UNAVAILABLE'
++    if result.get('hk_panel') and result.get('security_master'):
++        panel_pin=result['hk_panel']
++        configured_pin=panel_pin.pop('tdxpy_history',None)
++        try:
++            tdx_pin=_tdxpy_history_for_exact_parents(config,context,panel_pin,result['security_master'],configured_pin)
++            if tdx_pin:panel_pin['tdxpy_history']=tdx_pin
++            gaps.pop('tdxpy_history',None)
++        except (OSError,ValueError,KeyError,TypeError) as error:
++            gaps['tdxpy_history']=str(error) if isinstance(error,ValueError) else 'TDXPY_HISTORY_PARENT_UNAVAILABLE'
+     # No alternative close producer is configured. Exact-date explicit pins are
+     # allowed for an original complete ranking owner, otherwise the lane is unknown.
+     return result,gaps
+--- a/v4/manager_workbench/service.py
++++ b/v4/manager_workbench/service.py
+@@ -59,6 +59,10 @@
+         self.executor = executor
+         self.store = WorkbenchStore(config.state_root)
+         self.jobs = JobCoordinator(self.store, workers=config.workers)
++        self.oversold_daily=None
++        if config.scheduled_lanes is not None and Lane.OVERSOLD in config.scheduled_lanes:
++            from .oversold_daily import OversoldDaily
++            self.oversold_daily=OversoldDaily(self)
+         self.capture_jobs=None
+         if config.capture_enabled:
+             from .inputs.capture_jobs import CaptureJobs
+@@ -105,7 +109,82 @@
+ 
+     def stop(self):
+         if self.capture_jobs:self.capture_jobs.stop()
++        if getattr(self,"oversold_daily",None):self.oversold_daily.stop()
+         self.jobs.stop()
++
++    def _merge_phase_lane_snapshots(self, previous, incoming):
++        if incoming.context.phase != Phase.NEXT_DAY:
++            raise StorageConflict("PHASE_LANE_MERGE_PHASE_INVALID")
++        if previous is not None and (previous.context.target_date!=incoming.context.target_date
++                or previous.context.phase!=incoming.context.phase or previous.context.market!=incoming.context.market
++                or previous.context.rules_version!=incoming.context.rules_version
++                or previous.context.source_sessions.get("hk_price")!=incoming.context.source_sessions.get("hk_price")):
++            raise StorageConflict("PHASE_LANE_MERGE_CONTEXT_MISMATCH")
++        lanes={}
++        sources={}
++        inputs={}
++        cutoffs={}
++        sessions={}
++        fingerprints={}
++        requested=set(incoming.context.scope_refs.get("requested_lanes",[]))
++        if previous is not None:
++            requested.update(previous.context.scope_refs.get("requested_lanes",[]))
++            previous_sources=previous.changes.get("phase_lane_sources",{})
++            previous_inputs=previous.changes.get("phase_lane_inputs",{})
++            previous_cutoffs=previous.changes.get("phase_lane_cutoffs",{})
++            previous_sessions=previous.changes.get("phase_lane_source_sessions",{})
++            previous_fingerprints=previous.changes.get("phase_lane_fingerprints",{})
++            for lane in previous.lanes:
++                lanes[lane.lane.value]=lane
++                sources[lane.lane.value]=previous_sources.get(lane.lane.value,previous.run_id)
++                inputs[lane.lane.value]=previous_inputs.get(lane.lane.value,lane.input_sha256)
++                cutoffs[lane.lane.value]=previous_cutoffs.get(lane.lane.value,
++                    previous.context.scope_refs.get("source_cutoff",previous.context.cutoff))
++                sessions[lane.lane.value]=previous_sessions.get(lane.lane.value,previous.context.source_sessions)
++                fingerprints[lane.lane.value]=previous_fingerprints.get(lane.lane.value,
++                    previous.changes.get("fingerprint"))
++        requested.update(lane.lane.value for lane in incoming.lanes)
++        for lane in incoming.lanes:
++            lanes[lane.lane.value]=lane
++            sources[lane.lane.value]=incoming.changes.get("phase_lane_sources",{}).get(lane.lane.value,incoming.run_id)
++            inputs[lane.lane.value]=lane.input_sha256
++            cutoffs[lane.lane.value]=incoming.context.scope_refs.get("source_cutoff",incoming.context.cutoff)
++            sessions[lane.lane.value]=incoming.context.source_sessions
++            fingerprints[lane.lane.value]=incoming.changes.get("fingerprint")
++        if previous is not None and previous.run_id==incoming.run_id:
++            prior={lane.lane.value:lane for lane in previous.lanes}
++            if all(name in prior and prior[name].input_sha256==lane.input_sha256
++                   for name,lane in ((item.lane.value,item) for item in incoming.lanes)):
++                return previous
++            raise StorageConflict("PHASE_LANE_RUN_REUSE_CONFLICT")
++        ctx=incoming.context.model_copy(deep=True)
++        ctx.scope_refs["requested_lanes"]=sorted(requested)
++        merged_lanes=[lane.model_copy(update={"run_id":incoming.run_id},deep=True)
++            for _,lane in sorted(lanes.items())]
++        stocks=[StockDecision.model_validate(row) for row in self.engines.merge_decisions(ctx,merged_lanes)]
++        stocks=sort_stocks(stocks,merged_lanes)
++        incomplete=len(merged_lanes)<len(requested)
++        partial=incomplete or any(lane.state in (LaneState.NOT_RUN,LaneState.RUNNING,LaneState.PARTIAL,
++            LaneState.INPUT_MISSING,LaneState.FAILED) for lane in merged_lanes)
++        gaps=list(dict.fromkeys([gap for lane in merged_lanes for gap in lane.gaps]))
++        if incomplete:gaps.append("LANE_RESULTS_INCOMPLETE")
++        if partial and not gaps:gaps.append("LANE_PARTIAL")
++        changes=dict(incoming.changes)
++        changes.update(phase_lane_sources=sources,phase_lane_inputs=inputs,phase_lane_cutoffs=cutoffs,
++            phase_lane_source_sessions=sessions,phase_lane_fingerprints=fingerprints)
++        body=incoming.model_dump(mode="json")
++        body.update(context=ctx.model_dump(mode="json"),input_sha256=digest({"phase_lane_inputs":inputs}),
++            lanes=[lane.model_dump(mode="json") for lane in merged_lanes],
++            stocks=[stock.model_dump(mode="json") for stock in stocks],
++            counts=(Counts() if not stocks and partial else count_rows(stocks)).model_dump(mode="json"),
++            changes=changes,gaps=list(dict.fromkeys(gaps)))
++        merged=seal_snapshot(body)
++        validate_selected_evidence(merged)
++        return merged
++
++    def _commit_plan(self,snapshot):
++        merger=self._merge_phase_lane_snapshots if snapshot.context.scope_refs.get("merge_phase_lanes") else None
++        return self.store.commit_plan(snapshot,merger=merger)
+ 
+     def retry(self, job_id: str) -> JobRecord:
+         previous = self.jobs.get(job_id)
+@@ -136,7 +215,7 @@
+                 raise StepFailure("CHECKPOINT_RUN_MISMATCH")
+             self.jobs.update(job, step="PUBLISH")
+             try:
+-                saved = self.store.commit_plan(snap)
++                saved = self._commit_plan(snap)
+             except (StorageUnavailable, OSError) as exc:
+                 raise StepFailure("PUBLISH_UNAVAILABLE", retryable=True) from exc
+             return saved.run_id, JobState.PARTIAL if saved.gaps else JobState.SUCCEEDED
+@@ -273,7 +352,7 @@
+         self.store.save_checkpoint(job.job_id, "PUBLISH", snap.model_dump(mode="json"))
+         self.jobs.update(job, step="PUBLISH")
+         try:
+-            saved = self.store.commit_plan(snap)
++            saved = self._commit_plan(snap)
+         except (StorageUnavailable, OSError) as exc:
+             raise StepFailure("PUBLISH_UNAVAILABLE", retryable=True) from exc
+         return saved.run_id, JobState.PARTIAL if partial else JobState.SUCCEEDED
+--- a/v4/manager_workbench/store.py
++++ b/v4/manager_workbench/store.py
+@@ -102,9 +102,8 @@
+     def _catalog(self, snap: PlanSnapshot) -> Path:
+         return self._path("catalog", snap.context.target_date, snap.context.phase.value, _key(snap.run_id))
+ 
+-    def commit_plan(self, snap: PlanSnapshot, *, freeze: bool = False) -> PlanSnapshot:
++    def commit_plan(self, snap: PlanSnapshot, *, freeze: bool = False, merger=None) -> PlanSnapshot:
+         """Publication is atomic only after immutable readback passes model+run+SHA checks."""
+-        d = snap.model_dump(mode="json")
+         date, phase = snap.context.target_date, snap.context.phase.value
+         key = f"publish:{date}:{phase}"
+         with self.lock(key):
+@@ -114,6 +113,10 @@
+                 if before.get("run_id") == snap.run_id and before.get("product_sha256") == snap.product_sha256:
+                     return self.read_plan(snap.run_id)
+                 raise StorageConflict("PREOPEN_FROZEN")
++            if merger is not None:
++                previous=self.read_plan(before["run_id"]) if before else None
++                snap=merger(previous,snap)
++            d = snap.model_dump(mode="json")
+             self._write(self._path("snapshots", _key(snap.run_id)), d, immutable=True)
+             saved = self.read_plan(snap.run_id)
+             if saved.context != snap.context or saved.product_sha256 != snap.product_sha256 or saved.input_sha256 != snap.input_sha256:
+--- /dev/null
++++ b/v4/manager_workbench/oversold_daily.py
+@@ -0,0 +1,412 @@
++"""Asynchronous NEXT_DAY owner wait and existing TDX61 supplement orchestration."""
++from __future__ import annotations
++
++import os
++import hashlib
++import json
++import threading
++from concurrent.futures import ThreadPoolExecutor
++from datetime import datetime, timedelta, timezone
++from pathlib import Path
++
++from .contracts import HK, JobState, Lane, LaneState, Phase, digest, validate_date
++
++MAX_CAPTURE_ATTEMPTS=3
++MAX_JOB_ATTEMPTS=3
++RETRY_DELAYS=(60,300,900)
++RETRY_PROBE_SECONDS=900
++TERMINAL_STATES={"SUCCEEDED","PARTIAL_TERMINAL","OWNER_READINESS_EXPIRED"}
++
++
++def _now():
++    return datetime.now(HK)
++
++
++def _iso(value):
++    return value.astimezone(HK).isoformat()
++
++
++def _parse(value):
++    return datetime.fromisoformat(value) if value else None
++
++
++def _failure_code(error):
++    message=str(error)
++    if isinstance(error,ValueError) and message.isidentifier():
++        return message
++    return type(error).__name__.upper()
++
++
++def _is_transport_error(error_type,error):
++    from upstreams.v3_shared_data.shared_data.hk_daily_supplement import is_tdxpy_transport_error
++    return is_tdxpy_transport_error(error_type,error)
++
++
++def _retryable_partial_transport(evidence):
++    """Only classify transport evidence attached to unresolved owner records."""
++    records=evidence.get("records",[])
++    unresolved=[record for record in records if record.get("status")!="READY"]
++    if not unresolved:return []
++    found=[]
++    for record in unresolved:
++        errors=record.get("errors",[])
++        if not isinstance(errors,list):continue
++        for error in errors:
++            if not isinstance(error,dict):continue
++            if _is_transport_error(error.get("error_type"),error.get("error")):
++                found.append(dict(code=record.get("code"),endpoint=error.get("endpoint"),
++                    error_type=str(error.get("error_type"))))
++    # A failed catalogue page can leave a valid, partial catalogue in the owner
++    # cache. Associate its transport error with the unresolved rows; the owner
++    # refresh path below is responsible for making that cache retryable.
++    unresolved_codes={record.get("code") for record in unresolved}
++    unresolved_endpoints={error.get("endpoint") for record in unresolved for error in record.get("errors",[])
++        if isinstance(error,dict)}
++    refresh_by_endpoint={item.get("endpoint"):item for item in evidence.get("catalogue_cache_refreshes",[])}
++    for catalogue in evidence.get("catalogues",[]):
++        if catalogue.get("endpoint") not in unresolved_endpoints:continue
++        refresh=refresh_by_endpoint.get(catalogue.get("endpoint"))
++        if refresh:
++            status=refresh.get("status")
++            refresh_error_type=refresh.get("error_type",refresh.get("refreshed_error_type"))
++            refresh_error=refresh.get("error",refresh.get("refreshed_error"))
++            if status in {"RECOVERED","PARTIAL_REFRESHED_STABLE"}:
++                continue
++            if status in {"FAILED","PARTIAL_NOT_SUPERSET_RETAINED"}:
++                if not _is_transport_error(refresh_error_type,refresh_error):
++                    continue
++                found.append(dict(code=",".join(sorted(unresolved_codes)),endpoint=catalogue.get("endpoint"),
++                    error_type=str(refresh_error_type),scope="CATALOGUE_REFRESH"))
++                continue
++        for gap in catalogue.get("coverage_gaps",[]):
++            failure=gap.get("error") if gap.get("code")=="TDXPY_CATALOGUE_CAPTURE_ERROR" else None
++            if isinstance(failure,dict) and _is_transport_error(failure.get("error_type"),failure.get("error")):
++                found.append(dict(code=",".join(sorted(unresolved_codes)),endpoint=catalogue.get("endpoint"),
++                    error_type=str(failure.get("error_type")),scope="CATALOGUE"))
++    for error in evidence.get("failed_catalogues",[]):
++        if error.get("endpoint") not in unresolved_endpoints:continue
++        if _is_transport_error(error.get("error_type"),error.get("error")):
++            found.append(dict(code=",".join(sorted(unresolved_codes)),endpoint=error.get("endpoint"),
++                error_type=str(error.get("error_type")),scope="CATALOGUE"))
++    unique={ (item.get("code"),item.get("endpoint"),item.get("error_type"),item.get("scope")):item for item in found }
++    return list(unique.values())
++
++
++class OversoldDaily:
++    """One per existing service; the scheduler tick only queues this background work."""
++    def __init__(self,service,*,clock=None,capture=None,inspect_capture=None,max_capture_attempts=MAX_CAPTURE_ATTEMPTS,
++                 max_job_attempts=MAX_JOB_ATTEMPTS):
++        self.service=service
++        self.clock=clock or _now
++        self.capture=capture or self._capture_owner
++        self.inspect_capture=inspect_capture or self._inspect_capture
++        self.max_capture_attempts=max_capture_attempts
++        self.max_job_attempts=max_job_attempts
++        self.pool=ThreadPoolExecutor(max_workers=1,thread_name_prefix="mwb-oversold-daily")
++        self.guard=threading.RLock()
++        self.futures={}
++
++    @staticmethod
++    def cursor_key(source_day,target_date):
++        validate_date(source_day);validate_date(target_date)
++        return f"oversold_daily_{source_day}_{target_date}"
++
++    def _write(self,key,value):
++        with self.service.store.lock("oversold-daily-state:"+key):
++            current=self.service.store.cursor(key) or {}
++            current.update(value)
++            self.service.store.set_cursor(key,current)
++            return current
++
++    def _read(self,key):
++        return self.service.store.cursor(key) or {}
++
++    def _schedule(self,key,source_day,target_date,at,state):
++        state=dict(state)
++        exhausted_probe=state.get("state")=="RETRY_EXHAUSTED"
++        state.update(state="RUNNING",operation="PREFLIGHT",pid=os.getpid(),worker_started_at=_iso(self.clock()),
++            last_error=None,next_retry_at=None,check_count=state.get("check_count",0)+1,
++            exhausted_probe=exhausted_probe)
++        self.service.store.set_cursor(key,state)
++        future=self.pool.submit(self._attempt,key,source_day,target_date)
++        self.futures[key]=future
++        return {"state":"RUNNING","cursor_key":key}
++
++    def tick(self,*,source_day,target_date,at=None):
++        """Queue at most one exact-source-date task; return immediately to scheduler."""
++        validate_date(source_day);validate_date(target_date)
++        instant=at or self.clock()
++        if instant.tzinfo is None or instant.utcoffset() is None:raise ValueError("OVERSOLD_DAILY_TIMEZONE_REQUIRED")
++        key=self.cursor_key(source_day,target_date)
++        with self.guard,self.service.store.lock("oversold-daily-claim:"+key):
++            state=self._read(key)
++            if state and (state.get("source_hk_session")!=source_day or state.get("target_date")!=target_date):
++                return {"state":"CURSOR_IDENTITY_MISMATCH","cursor_key":key}
++            if state.get("state") in TERMINAL_STATES:
++                return {"state":state["state"],"cursor_key":key}
++            if state.get("state")=="JOB_PENDING":
++                state=self._reconcile_job(key,state)
++                if state.get("state") in TERMINAL_STATES or state.get("state")=="JOB_PENDING":
++                    return {"state":state["state"],"cursor_key":key}
++            if state.get("state")=="RUNNING":
++                pid=state.get("pid")
++                if isinstance(pid,int) and self.service.store._pid_alive(pid):
++                    return {"state":"RUNNING","cursor_key":key}
++                state.update(state="RETRY_WAIT",operation=None,pid=None,last_error="WORKER_PROCESS_INTERRUPTED",
++                    next_retry_at=_iso(instant))
++                self.service.store.set_cursor(key,state)
++            if state.get("state")=="RETRY_WAIT":
++                op=state.get("retry_operation")
++                if op=="CAPTURE" and state.get("capture_attempts",0)>=self.max_capture_attempts:
++                    state.update(state="RETRY_EXHAUSTED",next_retry_at=None,
++                        next_probe_at=_iso(instant+timedelta(seconds=RETRY_PROBE_SECONDS)))
++                    self.service.store.set_cursor(key,state)
++                    return {"state":"RETRY_EXHAUSTED","cursor_key":key}
++                if op=="JOB" and state.get("job_attempts",0)>=self.max_job_attempts:
++                    state.update(state="RETRY_EXHAUSTED",next_retry_at=None,
++                        next_probe_at=_iso(instant+timedelta(seconds=RETRY_PROBE_SECONDS)))
++                    self.service.store.set_cursor(key,state)
++                    return {"state":"RETRY_EXHAUSTED","cursor_key":key}
++                if op=="PREFLIGHT" and state.get("preflight_failures",0)>=self.max_job_attempts:
++                    state.update(state="RETRY_EXHAUSTED",next_retry_at=None,
++                        next_probe_at=_iso(instant+timedelta(seconds=RETRY_PROBE_SECONDS)))
++                    self.service.store.set_cursor(key,state)
++                    return {"state":"RETRY_EXHAUSTED","cursor_key":key}
++            next_retry=_parse(state.get("next_retry_at"))
++            if next_retry and instant.astimezone(HK)<next_retry.astimezone(HK):
++                return {"state":state.get("state","RETRY_WAIT"),"cursor_key":key}
++            if state.get("state")=="RETRY_EXHAUSTED":
++                next_probe=_parse(state.get("next_probe_at"))
++                if next_probe and instant.astimezone(HK)<next_probe.astimezone(HK):
++                    return {"state":"RETRY_EXHAUSTED","cursor_key":key}
++            if not state:
++                state={"schema_version":"v4.manager_workbench.oversold_daily.v1",
++                    "source_hk_session":source_day,"target_date":target_date,
++                    "capture_attempts":0,"job_attempts":0,"preflight_failures":0,"check_count":0}
++            return self._schedule(key,source_day,target_date,instant,state)
++
++    def _reconcile_job(self,key,state):
++        job=self.service.store.get_job(state.get("job_id",""))
++        if job is None:
++            return self._retry_state(key,state,"JOB","JOB_RECEIPT_MISSING")
++        if job.state in (JobState.QUEUED,JobState.RUNNING):return state
++        try:
++            plan=self.service.store.read_plan(job.run_id)
++            lane=next((item for item in plan.lanes if item.lane==Lane.OVERSOLD),None)
++        except (KeyError,ValueError):
++            lane=None
++        if job.state in (JobState.SUCCEEDED,JobState.PARTIAL) and lane is not None:
++            if lane.state==LaneState.PARTIAL:
++                return self._write(key,dict(state="PARTIAL_TERMINAL",operation="DONE",pid=None,
++                    finished_at=job.finished_at,run_id=plan.run_id,lane_state=lane.state.value,
++                    terminal_reason="STABLE_OWNER_GAPS_RETAINED"))
++            if lane.state in (LaneState.READY,LaneState.READY_EMPTY,LaneState.NOT_APPLICABLE):
++                return self._write(key,dict(state="SUCCEEDED",operation="DONE",pid=None,
++                    finished_at=job.finished_at,run_id=plan.run_id,lane_state=lane.state.value))
++        attempts=state.get("job_attempts",0)
++        if attempts>=self.max_job_attempts:
++            return self._write(key,dict(state="RETRY_EXHAUSTED",operation="DONE",pid=None,
++                finished_at=job.finished_at,last_error=job.failure_code or "OVERSOLD_LANE_NOT_TERMINAL",
++                retry_operation="JOB",next_probe_at=_iso(self.clock()+timedelta(seconds=RETRY_PROBE_SECONDS))))
++        return self._retry_state(key,state,"JOB",job.failure_code or "OVERSOLD_LANE_NOT_TERMINAL")
++
++    def _retry_state(self,key,state,operation,reason):
++        count=state.get("capture_attempts",0) if operation=="CAPTURE" else state.get("job_attempts",0)
++        delay=RETRY_DELAYS[min(max(count-1,0),len(RETRY_DELAYS)-1)]
++        next_retry=self.clock()+timedelta(seconds=delay)
++        return self._write(key,dict(state="RETRY_WAIT",operation=None,retry_operation=operation,pid=None,
++            last_error=reason,next_retry_at=_iso(next_retry)))
++
++    def _inspect_capture(self,source_day,context,panel_pin,master_pin,capture_pin):
++        from upstreams.v3_shared_data.shared_data.hk_daily_supplement import (
++            _read_master_identity,_read_panel_identity,read_tdxpy_window_supplement,
++        )
++        from upstreams.v3_shared_data.shared_data.paths import resolve_under
++
++        root=Path(self.service.config.shared_root).resolve()
++        panel_identity=_read_panel_identity(root,source_day,
++            manifest_relative=panel_pin["manifest_relative"],manifest_sha256=panel_pin["manifest_sha256"])
++        master_identity,codes=_read_master_identity(root,source_day)
++        if (panel_identity["panel_manifest_relative"]!=panel_pin["manifest_relative"]
++                or panel_identity["panel_manifest_sha256"]!=panel_pin["manifest_sha256"]
++                or master_identity["manifest_relative"]!=master_pin["manifest_relative"]
++                or master_identity["manifest_sha256"]!=master_pin["manifest_sha256"]):
++            raise ValueError("TDXPY_CAPTURE_PARENT_BINDING_MISMATCH")
++        manifest,records=read_tdxpy_window_supplement(capture_pin,target_date=source_day,
++            cutoff=capture_pin["available_at"],expected_panel_sha=panel_identity["panel_sha256"],
++            expected_master_sha=master_identity["artifact_sha256"],expected_codes=codes,
++            expected_panel_manifest_sha=panel_identity["panel_manifest_sha256"],
++            expected_master_manifest_sha=master_identity["manifest_sha256"])
++        if (manifest.get("capture_scope")!="PANEL_GAPS"
++                or manifest.get("run_id")!=capture_pin.get("run_id")
++                or manifest.get("available_at")!=capture_pin.get("available_at")):
++            raise ValueError("TDXPY_CAPTURE_RETURN_BINDING_MISMATCH")
++        raw_path=resolve_under(Path(capture_pin["source_local_path"]).resolve(),capture_pin["raw_relative"])
++        raw_bytes=raw_path.read_bytes()
++        if hashlib.sha256(raw_bytes).hexdigest()!=capture_pin.get("raw_sha256"):
++            raise ValueError("TDXPY_CAPTURE_RAW_SHA_MISMATCH")
++        raw=json.loads(raw_bytes)
++        return dict(manifest=manifest,records=records,catalogues=raw.get("catalogues",[]),
++            failed_catalogues=raw.get("failed_catalogues",[]),
++            catalogue_cache_refreshes=raw.get("catalogue_cache_refreshes",[]))
++
++    def _attempt(self,key,source_day,target_date):
++        try:
++            first_cutoff=self.clock()
++            scope={"source_hk_session":source_day,"merge_phase_lanes":True,
++                "oversold_daily_cursor_key":key}
++            context=self.service.context(target_date,Phase.NEXT_DAY,trigger="SCHEDULED",cutoff=first_cutoff,
++                lanes=[Lane.OVERSOLD],scope_refs=scope)
++            if context.source_sessions.get("hk_price")!=source_day:
++                raise ValueError("OVERSOLD_DAILY_SOURCE_SESSION_MISMATCH")
++            bindings=context.scope_refs.get("owner_bindings",{})
++            gaps=context.scope_refs.get("owner_binding_gaps",{})
++            panel_pin=bindings.get("hk_panel")
++            master_pin=bindings.get("security_master")
++            parent_signature=digest({"panel_manifest_sha256":(panel_pin or {}).get("manifest_sha256"),
++                "master_manifest_sha256":(master_pin or {}).get("manifest_sha256"),
++                "tdxpy_manifest_sha256":((panel_pin or {}).get("tdxpy_history") or {}).get("manifest_sha256")})
++            prior=self._read(key)
++            if prior.get("exhausted_probe"):
++                if parent_signature==prior.get("parent_signature"):
++                    self._write(key,dict(state="RETRY_EXHAUSTED",operation="WAITING_FOR_PARENT_CHANGE",pid=None,
++                        exhausted_probe=False,next_probe_at=_iso(self.clock()+timedelta(seconds=RETRY_PROBE_SECONDS))))
++                    return
++                self._write(key,dict(state="RUNNING",operation="PREFLIGHT",exhausted_probe=False,
++                    parent_signature=parent_signature,capture_attempts=0,job_attempts=0,preflight_failures=0))
++            else:
++                self._write(key,dict(parent_signature=parent_signature,exhausted_probe=False))
++            if not panel_pin or not master_pin:
++                reason="EXACT_DATE_HK_PANEL_UNAVAILABLE" if not panel_pin else "EXACT_DATE_HK_MASTER_UNAVAILABLE"
++                self._write(key,dict(state="WAITING_FOR_PANEL_MASTER",operation="WAITING",pid=None,
++                    last_error=gaps.get("hk_panel" if not panel_pin else "security_master",reason),
++                    checked_at=_iso(first_cutoff),next_retry_at=None))
++                return
++            self._write(key,dict(operation="CHECKING_PANEL_WINDOW",panel_manifest_sha256=panel_pin.get("manifest_sha256"),
++                master_manifest_sha256=master_pin.get("manifest_sha256"),checked_at=_iso(first_cutoff)))
++            gap_plan=self.service.adapters.panel_gap_plan(context)
++            gap_codes=gap_plan.get("gap_codes")
++            if not isinstance(gap_codes,list):raise ValueError("OVERSOLD_PANEL_GAP_PLAN_INVALID")
++            capture_pin=None
++            if gap_codes:
++                with self.service.store.lock("oversold-daily-state:"+key):
++                    state=self.service.store.cursor(key) or {}
++                    attempts=state.get("capture_attempts",0)
++                    if attempts>=self.max_capture_attempts:
++                        state.update(state="RETRY_EXHAUSTED",operation="DONE",pid=None,
++                            retry_operation="CAPTURE",last_error=state.get("last_error") or "TDXPY_RETRY_EXHAUSTED",
++                            next_probe_at=_iso(self.clock()+timedelta(seconds=RETRY_PROBE_SECONDS)))
++                        self.service.store.set_cursor(key,state)
++                        return
++                    state.update(state="RUNNING",operation="CAPTURING_TDXPY61",capture_attempts=attempts+1,
++                        panel_gap_plan_sha256=digest(gap_plan))
++                    self.service.store.set_cursor(key,state)
++                capture_result=self.capture(source_day,context,gap_plan)
++                if capture_result.get("status")=="NO_PANEL_GAPS":
++                    gap_codes=[]
++                else:
++                    capture_pin=capture_result
++                    evidence=self.inspect_capture(source_day,context,panel_pin,master_pin,capture_pin)
++                    manifest=evidence.get("manifest",{})
++                    retryable=_retryable_partial_transport(evidence) if manifest.get("unassessed_count",0)>0 else []
++                    if retryable:
++                        current=self._read(key)
++                        attempts=current.get("capture_attempts",0)
++                        disposition="PARTIAL_TRANSPORT_RETRY_PENDING" if attempts<self.max_capture_attempts else "PARTIAL_TRANSPORT_RETRIES_EXHAUSTED"
++                        self._write(key,dict(capture_run_id=capture_pin.get("run_id"),
++                            capture_manifest_sha256=capture_pin.get("manifest_sha256"),
++                            capture_available_at=capture_pin.get("available_at"),
++                            capture_evidence_disposition=disposition,
++                            capture_retryable_error_count=len(retryable),
++                            capture_retryable_endpoints=sorted({item.get("endpoint") for item in retryable if item.get("endpoint")})))
++                        if attempts<self.max_capture_attempts:
++                            self._retry_state(key,current,"CAPTURE","TDXPY_PARTIAL_TRANSPORT_GAPS")
++                            return
++                    elif manifest.get("unassessed_count",0)>0:
++                        self._write(key,dict(capture_evidence_disposition="PARTIAL_SUBMITTED_NO_RETRYABLE_TRANSPORT",
++                            capture_retryable_error_count=0,capture_retryable_endpoints=[]))
++                    else:
++                        self._write(key,dict(capture_evidence_disposition="COMPLETE",
++                            capture_retryable_error_count=0,capture_retryable_endpoints=[]))
++                self._write(key,dict(capture_run_id=(capture_pin or {}).get("run_id"),
++                    capture_manifest_sha256=(capture_pin or {}).get("manifest_sha256"),
++                    capture_available_at=(capture_pin or {}).get("available_at"),operation="REBINDING_AFTER_CAPTURE"))
++            final_cutoff=self.clock()
++            final_context=self.service.context(target_date,Phase.NEXT_DAY,trigger="SCHEDULED",cutoff=final_cutoff,
++                lanes=[Lane.OVERSOLD],scope_refs=scope)
++            if final_context.source_sessions.get("hk_price")!=source_day:
++                raise ValueError("OVERSOLD_DAILY_SOURCE_SESSION_MISMATCH")
++            final_bindings=final_context.scope_refs.get("owner_bindings",{})
++            if not final_bindings.get("hk_panel") or not final_bindings.get("security_master"):
++                self._write(key,dict(state="WAITING_FOR_PANEL_MASTER",operation="WAITING",pid=None,
++                    last_error="EXACT_DATE_PARENT_CHANGED_DURING_TDX_CAPTURE",checked_at=_iso(final_cutoff)))
++                return
++            if gap_codes and not final_bindings.get("hk_panel",{}).get("tdxpy_history"):
++                raise ValueError("TDXPY_EXACT_PARENT_MANIFEST_NOT_BOUND")
++            final_plan_sha=None
++            if gap_codes:
++                final_plan=self.service.adapters.panel_gap_plan(final_context)
++                final_plan_sha=digest(final_plan)
++                # A changed panel/master invalidates the just-finished capture. Keep
++                # the current run unsubmitted and re-evaluate against the new parents.
++                final_pin=final_bindings["hk_panel"].get("tdxpy_history",{})
++                if final_pin.get("manifest_sha256")!=(capture_pin or {}).get("manifest_sha256"):
++                    raise ValueError("TDXPY_CAPTURE_PARENT_REVISION_CHANGED")
++            final_scope=dict(final_context.scope_refs)
++            final_scope.update(source_hk_session=source_day,merge_phase_lanes=True,
++                oversold_daily_cursor_key=key,panel_gap_plan_sha256=final_plan_sha or digest(gap_plan))
++            if final_bindings.get("hk_panel",{}).get("tdxpy_history"):
++                final_scope["tdxpy_manifest_sha256"]=final_bindings["hk_panel"]["tdxpy_history"]["manifest_sha256"]
++            state=self._read(key)
++            job_attempts=state.get("job_attempts",0)
++            if job_attempts>=self.max_job_attempts:
++                self._write(key,dict(state="RETRY_EXHAUSTED",operation="DONE",pid=None,
++                    retry_operation="JOB",last_error=state.get("last_error") or "JOB_RETRY_EXHAUSTED",
++                    next_probe_at=_iso(self.clock()+timedelta(seconds=RETRY_PROBE_SECONDS))))
++                return
++            self._write(key,dict(state="RUNNING",operation="SUBMITTING_NEXT_DAY",job_attempts=job_attempts+1,
++                cutoff=_iso(final_cutoff),panel_manifest_sha256=final_bindings["hk_panel"].get("manifest_sha256"),
++                master_manifest_sha256=final_bindings["security_master"].get("manifest_sha256"),
++                tdxpy_manifest_sha256=final_bindings.get("hk_panel",{}).get("tdxpy_history",{}).get("manifest_sha256")))
++            job=self.service.submit(target_date,Phase.NEXT_DAY,trigger="SCHEDULED",lanes=[Lane.OVERSOLD],
++                cutoff=final_cutoff,scope_refs=final_scope)
++            self._write(key,dict(state="JOB_PENDING",operation="WAITING_FOR_JOB",pid=None,job_id=job.job_id,
++                run_id=job.run_id,job_attempts=job_attempts+1,cutoff=_iso(final_cutoff)))
++        except Exception as error:
++            state=self._read(key)
++            operation=state.get("operation")
++            if operation=="CAPTURING_TDXPY61":
++                self._retry_state(key,state,"CAPTURE",_failure_code(error))
++            elif operation=="REBINDING_AFTER_CAPTURE":
++                self._retry_state(key,state,"CAPTURE",_failure_code(error))
++            elif operation=="SUBMITTING_NEXT_DAY":
++                self._retry_state(key,state,"JOB",_failure_code(error))
++            else:
++                failures=state.get("preflight_failures",0)+1
++                if failures>=self.max_job_attempts:
++                    self._write(key,dict(state="RETRY_EXHAUSTED",operation="DONE",pid=None,
++                        preflight_failures=failures,last_error=_failure_code(error),retry_operation="PREFLIGHT",
++                        next_probe_at=_iso(self.clock()+timedelta(seconds=RETRY_PROBE_SECONDS))))
++                else:
++                    self._write(key,dict(state="RETRY_WAIT",operation=None,retry_operation="PREFLIGHT",pid=None,
++                        preflight_failures=failures,last_error=_failure_code(error),
++                        next_retry_at=_iso(self.clock()+timedelta(seconds=RETRY_DELAYS[failures-1]))))
++
++    def _capture_owner(self,source_day,context,gap_plan):
++        from upstreams.v3_shared_data.shared_data.hk_daily_supplement import capture_tdxpy_window_supplement
++        def connector(endpoint):
++            from pytdx.hq import TdxHq_API
++            host,port=endpoint.rsplit(":",1)
++            api=TdxHq_API(heartbeat=False,auto_retry=False,raise_exception=True)
++            if not api.connect(host,int(port),time_out=2.0):
++                try:api.disconnect()
++                finally:raise ConnectionError("TDXPY_CONNECT_FAILED")
++            return api
++        panel=gap_plan["panel_identity"]
++        return capture_tdxpy_window_supplement(self.service.config.shared_root,target_date=source_day,
++            connector=connector,clock=lambda:datetime.now(timezone.utc),
++            panel_binding=dict(manifest_relative=panel["panel_manifest_relative"],
++                manifest_sha256=panel["panel_manifest_sha256"]),panel_gap_plan=gap_plan)
++
++    def stop(self):
++        self.pool.shutdown(wait=True)
+--- a/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py
++++ b/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py
+@@ -729,6 +729,21 @@
+ TDXPY_MARKETS = {31: "香港主板", 48: "香港创业板", 49: "香港基金"}
+ WINDOW_SCHEMA = "v3_shared_data.hk_0_2_daily_supplement_tdxpy_window.v1"
+ WINDOW_MANIFEST = "v3_shared_data.hk_0_2_daily_supplement_tdxpy_manifest.v1"
++_TRANSPORT_ERROR_TYPES={"CONNECTIONERROR","CONNECTIONABORTEDERROR","CONNECTIONREFUSEDERROR",
++    "CONNECTIONRESETERROR","BROKENPIPEERROR","TIMEOUTERROR","SOCKETTIMEOUT","NETWORKERROR",
++    "REMOTEDISCONNECTED","TDXCONNECTIONERROR","TDXSOCKETERROR","TDXTIMEOUTERROR"}
++_TRANSPORT_ERROR_CODES={"TDXPY_CONNECT_FAILED","HK_DAILY_SUPPLEMENT_TDX_CONNECT_FAILED"}
++_OS_TRANSPORT_MESSAGES=("CONNECTION RESET","CONNECTION REFUSED","CONNECTION ABORTED",
++    "BROKEN PIPE","NETWORK IS UNREACHABLE","NO ROUTE TO HOST","TIMED OUT","TEMPORARY FAILURE")
++
++
++def is_tdxpy_transport_error(error_type,error):
++    """Recognize explicit connection/timeout evidence without retrying data quarantine."""
++    kind=str(error_type or "").rsplit(".",1)[-1].upper()
++    message=str(error or "").upper()
++    if kind in _TRANSPORT_ERROR_TYPES or any(code in message for code in _TRANSPORT_ERROR_CODES):
++        return True
++    return kind in {"OSERROR","IOERROR"} and any(token in message for token in _OS_TRANSPORT_MESSAGES)
+ 
+ 
+ def _json_native(value):
+@@ -741,7 +756,7 @@
+     return value
+ 
+ 
+-def _catalogue_document(endpoint,calls,available_at,*,failure=None,recovered_from=None):
++def _catalogue_document(endpoint,calls,available_at,*,failure=None,recovered_from=None,cache_refresh=None):
+     if len(calls)<2 or calls[0]['method']!='get_markets' or calls[1]['method']!='get_instrument_count':
+         raise ValueError('TDXPY_CATALOGUE_HEADER_MISSING')
+     total=calls[1]['response'];rows=[];gaps=[];seen_positions=set();final_total=None
+@@ -762,7 +777,47 @@
+     doc=dict(endpoint=endpoint,markets=calls[0]['response'],rows=rows,total=total,calls=calls,
+         available_at=available_at,coverage_status='PARTIAL' if gaps else 'COMPLETE',coverage_gaps=gaps)
+     if recovered_from:doc['recovered_from']=recovered_from
++    if cache_refresh:doc['cache_refresh']=cache_refresh
+     return doc
++
++
++def _catalogue_transient_failure(doc):
++    return any(isinstance(failure,dict)
++        and is_tdxpy_transport_error(failure.get('error_type'),failure.get('error'))
++        for failure in _catalogue_capture_errors(doc))
++
++
++def _catalogue_capture_errors(doc):
++    return [gap['error'] for gap in doc.get('coverage_gaps',[])
++        if gap.get('code')=='TDXPY_CATALOGUE_CAPTURE_ERROR' and isinstance(gap.get('error'),dict)]
++
++
++def _catalogue_preserves_entries(previous,current):
++    if previous.get('endpoint')!=current.get('endpoint') or previous.get('total')!=current.get('total'):
++        return False
++    if previous.get('markets')!=current.get('markets'):
++        return False
++    old={(row.get('market'),row.get('code')):row for row in previous.get('rows',[])}
++    new={(row.get('market'),row.get('code')):row for row in current.get('rows',[])}
++    return len(old)==len(previous.get('rows',[])) and all(new.get(key)==row for key,row in old.items())
++
++
++def _archive_and_replace_partial_catalogue(output,cpath,previous,current):
++    previous_bytes=cpath.read_bytes();previous_sha=_sha(previous_bytes)
++    relative=f"catalogues/archive/{previous['endpoint'].replace(':','_')}/{previous_sha}.json"
++    archive_path=resolve_under(output,relative)
++    if archive_path.exists():
++        if archive_path.read_bytes()!=previous_bytes:
++            raise ValueError('TDXPY_CATALOGUE_CACHE_ARCHIVE_SHA_COLLISION')
++    else:
++        _write_atomic(archive_path,previous_bytes,replace=False)
++    current=dict(current,cache_refresh=dict(schema_version='v3_shared_data.tdxpy_catalogue_cache_refresh.v1',
++        previous_relative=relative,previous_sha256=previous_sha))
++    _verify_catalogue(current,output)
++    if cpath.read_bytes()!=previous_bytes:
++        raise ValueError('TDXPY_CATALOGUE_CACHE_CHANGED_DURING_REFRESH')
++    _write_atomic(cpath,_canonical(current),replace=True)
++    return current
+ 
+ 
+ def _catalogue(api, endpoint, clock):
+@@ -811,8 +866,22 @@
+                 ended=True
+             else:raise ValueError('TDXPY_CATALOGUE_REQUESTS_INVALID')
+     failure=next((g['error'] for g in doc.get('coverage_gaps',[]) if g.get('code')=='TDXPY_CATALOGUE_CAPTURE_ERROR'),None)
+-    rebuilt=_catalogue_document(doc['endpoint'],calls,doc['available_at'],failure=failure,recovered_from=doc.get('recovered_from'))
++    rebuilt=_catalogue_document(doc['endpoint'],calls,doc['available_at'],failure=failure,
++        recovered_from=doc.get('recovered_from'),cache_refresh=doc.get('cache_refresh'))
+     if rebuilt!=doc or calls[1]['response']!=total or _timestamp(doc['available_at'])<last_time:raise ValueError('TDXPY_CATALOGUE_IDENTITY_INVALID')
++    cache_refresh=doc.get('cache_refresh')
++    if cache_refresh:
++        if (root is None or set(cache_refresh)!={'schema_version','previous_relative','previous_sha256'}
++                or cache_refresh.get('schema_version')!='v3_shared_data.tdxpy_catalogue_cache_refresh.v1'
++                or not cache_refresh.get('previous_relative','').startswith('catalogues/archive/')):
++            raise ValueError('TDXPY_CATALOGUE_CACHE_REFRESH_REFERENCE_INVALID')
++        previous_bytes=resolve_under(root,cache_refresh['previous_relative']).read_bytes()
++        if _sha(previous_bytes)!=cache_refresh['previous_sha256']:
++            raise ValueError('TDXPY_CATALOGUE_CACHE_REFRESH_SHA_MISMATCH')
++        previous=_verify_catalogue(json.loads(previous_bytes),root)
++        if (previous.get('endpoint')!=doc.get('endpoint') or previous.get('coverage_status')!='PARTIAL'
++                or not _catalogue_transient_failure(previous)):
++            raise ValueError('TDXPY_CATALOGUE_CACHE_REFRESH_SOURCE_INVALID')
+     for market,name in TDXPY_MARKETS.items():
+         matches=[r for r in doc['markets'] if r.get('market')==market]
+         if len(matches)!=1 or matches[0].get('name')!=name or matches[0].get('category')!=2:raise ValueError('TDXPY_HK_MARKET_IDENTITY_INVALID')
+@@ -969,7 +1038,8 @@
+     output.mkdir(parents=True,exist_ok=True)
+     with (output/'.capture.lock').open('a+b') as lock:
+         fcntl.flock(lock.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
+-        started=_time_text(clock());catalogues=[];records={};errors={};attempts=[];failed_catalogues=[];requests=0;hits=0
++        started=_time_text(clock());catalogues=[];records={};errors={};attempts=[];failed_catalogues=[]
++        catalogue_cache_refreshes=[];requests=0;hits=0
+         if any(_timestamp(v)>_timestamp(started) for v in (panel['manifest_prepared_at'],master['captured_at'])):
+             raise ValueError('TDXPY_PARENT_AFTER_CAPTURE')
+         for endpoint in TDXPY_NODES:
+@@ -980,7 +1050,36 @@
+                 # Catalogue cache is immutable evidence; captures retain its true
+                 # observation time and digest, never claim it was refreshed.
+                 cpath=resolve_under(output,'catalogues/'+endpoint.replace(':','_')+'.json')
+-                if cpath.exists():catalogue=_verify_catalogue(json.loads(cpath.read_bytes()),output)
++                if cpath.exists():
++                    cached=_verify_catalogue(json.loads(cpath.read_bytes()),output)
++                    catalogue=cached
++                    if _catalogue_transient_failure(cached):
++                        try:
++                            refreshed=_catalogue(api,endpoint,clock)
++                        except Exception as error:
++                            catalogue_cache_refreshes.append(dict(endpoint=endpoint,
++                                previous_sha256=_sha(_canonical(cached)),status='FAILED',
++                                error_type=type(error).__name__,error=str(error)))
++                        else:
++                            previous_rows=len(cached.get('rows',[]));refreshed_rows=len(refreshed.get('rows',[]))
++                            should_replace=(refreshed.get('coverage_status')=='COMPLETE'
++                                or (_catalogue_preserves_entries(cached,refreshed)
++                                    and (refreshed_rows>previous_rows or not _catalogue_transient_failure(refreshed))))
++                            if should_replace:
++                                catalogue=_archive_and_replace_partial_catalogue(output,cpath,cached,refreshed)
++                                status=('RECOVERED' if catalogue.get('coverage_status')=='COMPLETE'
++                                    else 'PARTIAL_REFRESHED_STABLE' if not _catalogue_transient_failure(catalogue)
++                                    else 'PARTIAL_IMPROVED')
++                            else:
++                                status='PARTIAL_NOT_SUPERSET_RETAINED'
++                            refresh_event=dict(endpoint=endpoint,previous_sha256=_sha(_canonical(cached)),
++                                status=status,refreshed_coverage=refreshed.get('coverage_status'),
++                                refreshed_row_count=refreshed_rows)
++                            failures=_catalogue_capture_errors(refreshed)
++                            if failures:
++                                refresh_event.update(refreshed_error_type=failures[0].get('error_type'),
++                                    refreshed_error=failures[0].get('error'))
++                            catalogue_cache_refreshes.append(refresh_event)
+                 else:
+                     catalogue=_recover_catalogue(output,endpoint) or _catalogue(api,endpoint,clock)
+                     _write_atomic(cpath,_canonical(catalogue),replace=False)
+@@ -1030,7 +1129,8 @@
+         raw=dict(schema_version=WINDOW_SCHEMA,target_date=target_date,requested_sessions=sessions,calendar_sha256=calendar_sha,
+             profile=TDXPY_PROFILE,capture_scope=scope,selected_codes=selected,
+             panel_identity=panel,master_identity=master,capture_started_at=started,available_at=prepared,
+-            catalogues=catalogues,records=[records[c] for c in selected],errors=errors,failed_attempts=attempts,failed_catalogues=failed_catalogues,
++            catalogues=catalogues,records=[records[c] for c in selected],errors=errors,failed_attempts=attempts,
++            failed_catalogues=failed_catalogues,catalogue_cache_refreshes=catalogue_cache_refreshes,
+             network_bar_requests=requests,cache_hits=hits,**SAFETY)
+         if panel_gap_plan is not None:
+             raw.update(panel_gap_plan=panel_gap_plan,panel_gap_plan_sha256=_sha(_canonical(panel_gap_plan)))
