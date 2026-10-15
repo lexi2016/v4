@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+import copy
 
 from upstreams.v3_shared_data.shared_data.hk_history_resolution import (
     FIELDS, RULE, SCHEMA, ResolutionError, ResolutionPolicy, canonical, guard_score_frame,
@@ -125,6 +126,59 @@ def test_cache_proof_binds_sources_rule_fields_window_and_codes(owner):
     with pytest.raises(ResolutionError,match='STALE'):policy.verify_proof(token,required_fields=('close',))
 
 
+def actual_admission_fixture(owner):
+    """Real policy, owned parquet and existing verified reference publisher."""
+    panel=owner/'panels/v1/panel.parquet'
+    source=pd.DataFrame(dict(code_norm=['HK.00001','HK.00165'],trade_date_compact=['20260102']*2,close=[2.,3.],pre_close=[1.,2.]))
+    source.to_parquet(panel,index=False)
+    mp=owner/'panels/v1/manifest.json';m=json.loads(mp.read_bytes());m.update(panel_sha256=sha(panel),panel_rows=2);mp.write_bytes(canonical(m))
+    install_resolution(owner,[record('HK.00165','20260102',held=('close',))])
+    from upstreams.v3_shared_data.shared_data.hk_security_master import publish_hk_security_master
+    publish_hk_security_master(owner.parent.parent,trade_date='20260102',
+        rows=[dict(code=c,name='Name '+c) for c in source.code_norm],
+        universe_codes_sha256='a'*64,captured_at='2026-01-02T17:30:00+08:00')
+    policy=ResolutionPolicy(owner);proof=policy._trusted_score_proof('20260102')
+    return policy,proof,panel
+
+
+@pytest.mark.parametrize('forgery',['held_to_allowed','fake_eligible','fake_original','window'])
+def test_actual_validators_reject_self_consistent_forged_admission(owner,forgery):
+    policy,genuine,_=actual_admission_fixture(owner)
+    assert policy.verify_proof(policy.encode_proof(genuine),codes=['HK.00001'])==genuine
+    assert resolution.validate_score_coverage(genuine,policy=policy,selected_codes=['HK.00001'])
+    forged=copy.deepcopy(genuine);coverage=forged['score_coverage']
+    if forgery=='held_to_allowed':
+        forged['excluded_codes'].remove('HK.00165');forged['allowed_codes'].append('HK.00165');forged['allowed_codes'].sort();forged['excluded_code_count']=0
+        coverage['quality_quarantined_codes'].remove('HK.00165');coverage['scoreable_signal_codes'].append('HK.00165');coverage['scoreable_signal_codes'].sort()
+    if forgery=='fake_eligible':
+        coverage['eligible_codes'].append('HK.99999');coverage['missing_signal_codes'].append('HK.99999')
+    if forgery=='fake_original':
+        coverage['original_signal_codes'].remove('HK.00165');coverage['quality_quarantined_codes'].remove('HK.00165');coverage['missing_signal_codes'].append('HK.00165')
+    if forgery=='window':forged['dependency_start']='20250101'
+    assert resolution._check_score_coverage(forged)  # the prior self-consistency gate accepts it
+    with pytest.raises(ResolutionError,match='ADMISSION_MISMATCH'):policy.verify_proof(policy.encode_proof(forged))
+    with pytest.raises(ResolutionError,match='ADMISSION_MISMATCH'):resolution.validate_score_coverage(forged,policy=policy)
+
+
+def test_admission_cache_rechecks_current_source_and_verified_master(owner):
+    policy,proof,panel=actual_admission_fixture(owner)
+    policy.verify_proof(policy.encode_proof(proof))
+    frame=pd.read_parquet(panel);frame.loc[0,'close']=99.;frame.to_parquet(panel,index=False)
+    with pytest.raises(ResolutionError,match='SOURCE_STALE'):policy.verify_proof(policy.encode_proof(proof))
+
+
+def test_admission_cache_rechecks_exact_verified_master_identity(owner):
+    policy,proof,_=actual_admission_fixture(owner)
+    policy.verify_proof(policy.encode_proof(proof))
+    from upstreams.v3_shared_data.shared_data.hk_security_master import publish_hk_security_master
+    publish_hk_security_master(owner.parent.parent,trade_date='20260102',
+        rows=[dict(code='HK.00001',name='Name HK.00001')],
+        universe_codes_sha256='b'*64,captured_at='2026-01-02T17:31:00+08:00')
+    with pytest.raises(ResolutionError,match='ADMISSION_MISMATCH'):policy.verify_proof(policy.encode_proof(proof))
+    updated=policy._trusted_score_proof('20260102')
+    assert updated['score_coverage']['eligible_codes']==['HK.00001']
+
+
 def test_transitive_proxy_window_and_current_only_trade(owner):
     dates=pd.bdate_range('2025-01-01',periods=140).strftime('%Y%m%d').tolist();signal=dates[-1]
     # Proxy labels use raw high/close/amount and pre_close only, not rolling features.
@@ -164,3 +218,78 @@ def test_real_policy_accepts_exact_append_and_stales_old_cache(owner):
     assert current.append_proof['status']=='APPEND_ONLY_COMPATIBLE'
     current.check_panel(manifest['panel_sha256'])
     with pytest.raises(ResolutionError,match='STALE'):current.verify_proof(token)
+
+@pytest.fixture
+def corrected_owner(owner):
+    data=pd.DataFrame(dict(code_norm=['HK.00001']*3,trade_date_compact=['20260703','20260706','20260707'],
+        open=[2.,2.,3.],high=[2.,2.,3.],low=[2.,2.,3.],close=[2.,2.,3.],amount=[20.,20.,30.],trade=[100.]*3,
+        pre_close=[1.,2.,2.],pct_chg=[100.,0.,50.],amplitude_pct=[0.]*3,intraday_high_pct=[100.,0.,50.],continuity_segment_id=[1]*3,continuity_break=['']*3))
+    cp=owner/'panels/v1/panel.parquet';data.to_parquet(cp,index=False)
+    mp=owner/'panels/v1/manifest.json';m=json.loads(mp.read_bytes());m.update(panel_sha256=sha(cp),panel_rows=3,panel_max_date='20260707');mp.write_bytes(canonical(m))
+    contract=install_resolution(owner,[record('HK.00001','20260706',held=('close','amount','trade'))])
+    raw=owner/'research_materials/raw.json';raw.write_bytes(b'fixture response')
+    ref=dict(raw_relative='research_materials/raw.json',raw_sha256=sha(raw),request_sha256='1'*64,response_sha256='2'*64,catalogue_sha256='3'*64,captured_at='2026-10-14T06:00:00+00:00')
+    vals=dict(open=2.5,high=3.,low=2.,close=3.,amount=30.)
+    def anchor(date,value):
+        fields=dict(open=value,high=value,low=value,close=value,amount=value*10)
+        return dict(date=date,C_values=fields,TDX_values=fields,evidence_refs=[ref])
+    rec=dict(symbol='HK.00001',date='20260706',rule_version=resolution.CORRECTION_RULE,channel='TDX_PROTOCOL_PARAM1_FIXED',
+        C_source_sha256=contract['bindings']['C_panel_sha256'],B_source_sha256=contract['bindings']['B_sha256'],
+        C_row_sha256='b'*64,B_row_sha256='a'*64,values=vals,evidence_refs=[ref],
+        anchors=[anchor('20260703',2.),anchor('20260707',3.)],
+        closure=dict(previous_date='20260703',next_date='20260707',event_pre_close=2.,next_pre_close=3.,continuity_segment_equal=True))
+    directory=owner/'history_resolution/test';correction=directory/'corrections.jsonl.gz';correction.write_bytes(gzip.compress(canonical(rec)+b'\n',mtime=0))
+    evidence=directory/'evidence.json';evidence.write_bytes(canonical(dict(sources=[dict(raw_relative=ref['raw_relative'],raw_sha256=sha(raw),manifest_relative='panels/v1/manifest.json',manifest_sha256=sha(mp))])))
+    contract.update(corrections_relative='history_resolution/test/corrections.jsonl.gz',corrections_sha256=sha(correction),
+        correction_evidence_relative='history_resolution/test/evidence.json',correction_evidence_sha256=sha(evidence),correction_key_count=1,correction_rule_version=resolution.CORRECTION_RULE)
+    (directory/'manifest.json').write_bytes(canonical(contract));(owner/'history_resolution_latest.json').write_bytes(canonical(dict(manifest_relative='history_resolution/test/manifest.json',manifest_sha256=sha(directory/'manifest.json'))))
+    return owner,data
+
+
+def test_sparse_corrected_fields_and_next_preclose_subset(corrected_owner):
+    root,data=corrected_owner;policy=ResolutionPolicy(root)
+    result=policy.guard_frame(data,required_fields=('close','amount'))
+    assert len(result)==3 and data.close.tolist()==[2.,2.,3.]
+    assert result.close.tolist()==[2.,3.,3.] and result.pre_close.tolist()==[1.,2.,3.]
+    subset=policy.guard_frame(data.iloc[[2]],required_fields=('close',))
+    assert subset.iloc[0].pre_close==3. and subset.iloc[0].pct_chg==0.
+    assert policy.held_fields('HK.00001','20260706')==['trade']
+    assert policy.held_fields('HK.00001','20260706',('close',),source='B')==['close']
+    assert policy.guard_frame(data,required_fields=('trade',)).empty
+    assert policy.field_admission('HK.00001','20260706','close')=='CORRECTED_TDX_RETROSPECTIVE_CHANNEL'
+    assert 'corrections_sha256' in result.attrs['history_resolution_proof']
+    assert policy.project_frame(data,source='B').equals(data)
+
+
+@pytest.mark.parametrize('tamper',['ledger','raw','evidence'])
+def test_sparse_overlay_tamper_failclosed(corrected_owner,tamper):
+    root,data=corrected_owner;policy=ResolutionPolicy(root)
+    path={'ledger':root/policy.manifest['corrections_relative'],'raw':root/'research_materials/raw.json','evidence':root/policy.manifest['correction_evidence_relative']}[tamper]
+    path.write_bytes(path.read_bytes()+b' ')
+    with pytest.raises(ResolutionError,match='CORRECTION'):ResolutionPolicy(root)
+
+
+def test_sparse_overlay_old_cache_proof_rejected(corrected_owner):
+    root,data=corrected_owner;policy=ResolutionPolicy(root)
+    proof=policy.proof(required_fields=('close',),start='20260703',end='20260707',consumer='TEST')
+    proof.pop('corrections_sha256');proof.pop('correction_rule_version')
+    with pytest.raises(ResolutionError,match='PROOF_STALE'):policy.verify_proof(policy.encode_proof(proof))
+
+
+def test_new_close_ratio_break_propagates_segment_and_never_bridges(corrected_owner):
+    root,data=corrected_owner;directory=root/'history_resolution/test'
+    path=directory/'corrections.jsonl.gz';rec=json.loads(gzip.decompress(path.read_bytes()))
+    rec['values'].update(high=4.,close=4.)
+    rec['closure'].update(event_pre_close=None,next_pre_close=4.,event_break='cross_day_close_ratio',next_break='')
+    path.write_bytes(gzip.compress(canonical(rec)+b'\n',mtime=0))
+    mp=directory/'manifest.json';manifest=json.loads(mp.read_bytes());manifest['corrections_sha256']=sha(path);mp.write_bytes(canonical(manifest))
+    (root/'history_resolution_latest.json').write_bytes(canonical(dict(manifest_relative='history_resolution/test/manifest.json',manifest_sha256=sha(mp))))
+    policy=ResolutionPolicy(root);result=policy.guard_frame(data,required_fields=('close',))
+    assert pd.isna(result.iloc[1].pre_close) and pd.isna(result.iloc[1].pct_chg)
+    assert result.continuity_segment_id.tolist()==[1,2,2]
+    assert result.continuity_break.tolist()==['','cross_day_close_ratio','']
+    assert result.iloc[2].pre_close==4.
+    subset=policy.guard_frame(data.iloc[[2]],required_fields=('close',))
+    assert subset.iloc[0].continuity_segment_id==2 and subset.iloc[0].pre_close==4.
+    again=policy.guard_frame(result,required_fields=('close',))
+    assert again.equals(result) and again.continuity_segment_id.tolist()==[1,2,2]

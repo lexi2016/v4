@@ -1,0 +1,318 @@
+{
+  "A15_full_exact_gate": {
+    "elapsed_seconds": 0.03,
+    "http_status": 200,
+    "old_full_response_reconstructed_sha256": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "only_allowed_changed_path": "A.name_authority_error.NAME_POOL_AUDIT.trio_raw_sha256.a_share_research_recommendation_pool.manifest",
+    "rows_sha256": "8d9cce0386d86865dd49f2db6f80a8d1cca454470a1662cd6cac4b45323e71c3",
+    "sha256": "42a05130c45171f200bf415ce9f5095dc3bcfd6e3f26499ecd9a04257291290f"
+  },
+  "A16_artifact_sha256": "bb0f61aeb251625f433f36bb70daa48467b045d40a4a95e663b98b623072a17d",
+  "A16_receipt_sha256": "cf7fc71154dba8867e7a7896f3c662ccf92626c391d533cb22bbe668523f8cf8",
+  "NATURAL_VERIFIED": false,
+  "P0": 0,
+  "P1": 0,
+  "P2": 0,
+  "Stage_reader": {
+    "algorithms_rerun": false,
+    "consumer_trio": {
+      "artifact": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+      "manifest": "768c5ebf4c1521f4c307a5a0d27c4505fc27eb001c86db7441838532b09dfb63",
+      "receipt": "5598929cef4405209d486b63fc15c31002fb4d5440fed8faaf5c5a6ad90ad4b0"
+    },
+    "natural_stage_verified": false,
+    "runtime": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r3/app",
+      "config_sha256": "c7c15e2f22b30e045af654c485346cded16dafda5c734c89b5c65a663405b812",
+      "configured_safety_flags_false": true,
+      "hk_d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+      "release_id": "hk-auto-execution-audit-20261015-r3",
+      "release_manifest_sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6",
+      "scheduler_plist_sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c"
+    },
+    "source_receipt_sha256": "fe656cfe25a9a94f0b4dfbe882e363cc241f80ea9bb4d8d643001bdc69e60810",
+    "status": "PRIOR_ACTUAL_STAGE_READER_PASS_IDENTITY_CONTINUED"
+  },
+  "Stage_triggered": false,
+  "UI_VERIFIED": false,
+  "UI_primary_observation": "Parent reports independently refreshed Chrome display with 100 valid HK rows; not rechecked by this Reviewer.",
+  "all_non_HK_unchanged": true,
+  "findings": [],
+  "history_canaries": [
+    {
+      "audit": {
+        "data_sha256": "dbd52541f84907478fdafd436b930f4779946b973d7391e78d9a607257fa0aa6",
+        "elapsed_seconds": 2.206,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "close_only": {
+        "data_sha256": "f8ab17fd08660115b566494305b6af62a8fd17eec5d2b1e45709f39ef62e85f6",
+        "elapsed_seconds": 2.52,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20180102",
+      "usable": {
+        "data_sha256": "697c3b04725603f908df499d9de305c4bde261db24923badf6f9598bb612976d",
+        "elapsed_seconds": 2.49,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      }
+    },
+    {
+      "audit": {
+        "data_sha256": "6414a70de2aab33d077acc25d7f531ad14f80eb2e57296ded3cd02d1ebe1fb9d",
+        "elapsed_seconds": 2.328,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "close_only": {
+        "data_sha256": "b5e398eab9c0edc655f166671709853d0439ba429215a0654236a4d0c1b7942f",
+        "elapsed_seconds": 2.797,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20230630",
+      "usable": {
+        "data_sha256": "56d7b34315222bd206556bc56acb6c7636c97936e2bba75b594d435bac7d5d73",
+        "elapsed_seconds": 2.554,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      }
+    },
+    {
+      "audit": {
+        "data_sha256": "d08490343dbeaca3c38a2fefdeacf4238e261f29c54310bf93cf8cef8b239804",
+        "elapsed_seconds": 2.631,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "close_only": {
+        "data_sha256": "999c6eab67a14049bda213d99e9cfa41b2d08aaf09dddd791d28f71cbf53707f",
+        "elapsed_seconds": 3.327,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20260706",
+      "usable": {
+        "data_sha256": "f613524ffc1745dd76f9c4cdccfe4ff009252f124eb8b6427cfd6acb7c3996cb",
+        "elapsed_seconds": 2.975,
+        "http_status": 200,
+        "quarantine_count": 1,
+        "row_count": 0
+      }
+    },
+    {
+      "audit": {
+        "data_sha256": "0f4ec17a6e14ead6938dfd8519a1da2cd21e3b81ee0259e1706614515be18d73",
+        "elapsed_seconds": 2.265,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "close_only": {
+        "data_sha256": "e5154c572e134c432174e169e50f497a60cfcebb75b80f88069d7c89a8e59567",
+        "elapsed_seconds": 3.034,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20260722",
+      "usable": {
+        "data_sha256": "4a376b6af7eb829a09e71a50e4121485072debbe26bb5df217dd3239a645a61b",
+        "elapsed_seconds": 2.595,
+        "http_status": 200,
+        "quarantine_count": 1,
+        "row_count": 0
+      }
+    },
+    {
+      "audit": {
+        "data_sha256": "210089720d93415eda16c1fce3b2ad18c1e4de0a54e8dca9b4650e11e05f15a3",
+        "elapsed_seconds": 2.293,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "close_only": {
+        "data_sha256": "042f2281ae9007befe635ca4cd4e016a5da25a7a1e6ca8f739db95bcbe510cb1",
+        "elapsed_seconds": 2.609,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20260909",
+      "usable": {
+        "data_sha256": "ef3a88eccb64c48ff52f922ee48cc6ae3e62e76799b821c43fd0e9247cc44768",
+        "elapsed_seconds": 2.616,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      }
+    }
+  ],
+  "invalid_HTTP_statuses": [
+    422,
+    422,
+    422,
+    422
+  ],
+  "limitations": [
+    "Stage reader acceptance is continued from independently frozen actual helper receipt because configured runtime and full current HK16 trio match exactly; no Stage execution was triggered.",
+    "Target15 A pool is absent: HK100 retrospective acceptance only; no pair-readiness claim.",
+    "Trade physical units, adjustment and PIT remain unproven; unresolved fields stay quarantined.",
+    "No natural-stage or independent UI verification claimed."
+  ],
+  "main_pair16": {
+    "a_selector_status": "READY",
+    "formal_pool_reuse": {
+      "a_pool_id": "a_d1_premarket_pool",
+      "a_row_count": 17,
+      "a_source_sha256": "d02a1e56e4fed7d56ded549642ae2fb6cd4f495b9b752757fee8bb4e77f2402f",
+      "hk_pool_id": "hkconnect_d1_top100",
+      "hk_row_count": 100,
+      "hk_source_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501"
+    },
+    "hk_lane_status": "READY",
+    "producer_called": false,
+    "status": "SUCCEEDED",
+    "write_performed": false
+  },
+  "model": "gpt-6.1-sol",
+  "model_recomputed": false,
+  "normal_HTTP": [
+    {
+      "elapsed_seconds": 1.866,
+      "projection_sha256": "b413a5139bd0e14f6ab75fbea7402ac4c76a77bf65a34134caa391f1fe73a3cc",
+      "row_count": 100,
+      "source_run_id": "20261015-hk-connect-d1-top100-0-2-a593ae3d384a",
+      "source_sha256": "11266dfe38b289b12c9c0b0ba8bedf07f8185e6d541f1f21e85467d32308e754",
+      "status": 200,
+      "target": "20261015"
+    },
+    {
+      "elapsed_seconds": 1.857,
+      "projection_sha256": "08d208153d0b545d4a72225d98664ef697eed7a2f69f2335d52f8fee3b8e19c2",
+      "row_count": 100,
+      "source_run_id": "20261016-hk-connect-d1-top100-0-2-6c9e570ab9d0",
+      "source_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501",
+      "status": 200,
+      "target": "20261016"
+    }
+  ],
+  "observed_at": "2026-10-15T13:39:55.284772+00:00",
+  "original_protection": {
+    "current_C_pointer_sha256": "aa3e5970038fff366294d8794e60f01622880461422ed2ef4c10e00c3c0a2d35",
+    "current_C_sha256": "a562369dbc49f06761304c10ba7128d2289c7f0befd0d9264f7dbbc50404241c",
+    "original_file_count": 16,
+    "two_directory_inodes_preserved": true
+  },
+  "owner_pointer_sha256": "95343ea26b4541d9a4dd0a3b9ad298cd0b832ae1fd214fe984d513d781626e2b",
+  "pending_before_after": 0,
+  "pins": {
+    "ACTIVATION_RECEIPT_R7.json": "90d986f5f82727453cd4f367e25857ed17b4a93c3d403d220f329e10297c0a88",
+    "ACTUAL_MAIN_ONLINE_R7.json": "7b0773ccf495165da7ea7b55dffa5e95dfc61e6b0d72d259ad3f12d5795180d7",
+    "ONLINE_WRITER_RECEIPT_R7.json": "200d144c2ff90ac088a7ab8f80f88c2c51aa38c7f39a20e619ec55d6bbd031af",
+    "REUSED_PUBLISHED_RUNS_BOUND_R7.json": "a1403046c664974466be3234bf2c84dd8e99800a6b211d70ecc9eabea3a43a34"
+  },
+  "producer_calls": 0,
+  "production_writes": 0,
+  "raw_values_or_A_rows_exported": false,
+  "reasoning_effort": "high",
+  "reviewer": "/root/hk_live_review_61",
+  "schema_version": "independent_online_review.r7.v1",
+  "scope": "FINAL_R7_ACTUAL_API_MAIN_SHARED_OWNER_AND_READ_ONLY_BEHAVIOR",
+  "service_actions": 0,
+  "services": {
+    "api": {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+      "pid": 90244,
+      "plist_sha256": "318fd9ea3c53f42ac09550cadea4e7c9d61bb10c93de29ef171e6180cd7faabf",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+        "V35_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "V35_PRESELECTION_SOURCE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V35_RELEASE_ID": "hk-tdx-conflict-repair-api-20261015-r5",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "2669da76235904ed1a283241b92cfd76caf444bafaf5e916bfecfb3e0c6f0dc0",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260923-manager-window-2sessions-units-announcements-r1/app/upstreams",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/workspace/v3_shared_data/.runtime/data"
+      }
+    },
+    "scheduler": {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+      "pid": 90252,
+      "plist_sha256": "cc2d35ed4c156b0e741276b49966ea6430d74f96359c9d4103c2800afc0c5344",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+        "V35_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V35_RELEASE_ID": "hk-tdx-conflict-repair-main-20261015-r2",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "03cb15ea4b45a6e58e6aa48a7e05010db3ff1ff59b34aaf9d6a856b591ec8447",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-reviewcore-20261015-r1/app",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V35_SHARED_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data",
+        "V4_MANAGER_MATERIALIZER_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-materializer-20261015-r1/app"
+      }
+    }
+  },
+  "shared_manifest_sha256": "1d78119783487800673421c55028bf36a94fdf147cf78872c4112cd3395956d8",
+  "statuses": [
+    "DEPLOYED",
+    "API_VERIFIED",
+    "BEHAVIOR_VERIFIED",
+    "STAGE_READ_IDENTITY_CONTINUED"
+  ],
+  "strict_actual_pools": [
+    {
+      "projection_sha256": "b413a5139bd0e14f6ab75fbea7402ac4c76a77bf65a34134caa391f1fe73a3cc",
+      "proof_sha256": "7640927e0e854bd56b3ab3e43a471d97422f80b30af2e910f3808cbba4850d26",
+      "row_count": 100,
+      "signal": "20261014",
+      "source": {
+        "already_exists": false,
+        "artifact_sha256": "11266dfe38b289b12c9c0b0ba8bedf07f8185e6d541f1f21e85467d32308e754",
+        "manifest_sha256": "f591b05df8215093d214b7e43ddf12c281dab9e3bdfbbc7b5c27b88c55a2687a",
+        "receipt_sha256": "f13c404b3aea60b34df07f0aadf6fd637acc22aec962b6e8cf284614d63dea8a",
+        "run_id": "20261015-hk-connect-d1-top100-0-2-a593ae3d384a"
+      },
+      "target": "20261015",
+      "trio": {
+        "artifact": "4a5257c5242820ab617c1be9cfa782aadb1278b1dc03734eedbea48a68c6b31d",
+        "manifest": "6e1b88b68b996e934ac9b3e723042cfd97f7bb639f0dbe1a08b69b748dc4b5f3",
+        "receipt": "cbea4f59ca92bd4eb1950473f00cb164dc2bdb3621bdeb34cdb99e64df760651"
+      }
+    },
+    {
+      "projection_sha256": "08d208153d0b545d4a72225d98664ef697eed7a2f69f2335d52f8fee3b8e19c2",
+      "proof_sha256": "ce40ef08eccb7af6053ddf6a34c2ce032522bbd049792e72bc32409fad1c486c",
+      "row_count": 100,
+      "signal": "20261015",
+      "source": {
+        "already_exists": false,
+        "artifact_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501",
+        "manifest_sha256": "2701f48e52d3e2e1812f39006dcf338acee980969f4fd8c2137d743c7c6d04ec",
+        "receipt_sha256": "4bab8045bee19e7824627a71614cc210d5c96d30f9a8ae344c6c149fdb12fc74",
+        "run_id": "20261016-hk-connect-d1-top100-0-2-6c9e570ab9d0"
+      },
+      "target": "20261016",
+      "trio": {
+        "artifact": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+        "manifest": "768c5ebf4c1521f4c307a5a0d27c4505fc27eb001c86db7441838532b09dfb63",
+        "receipt": "5598929cef4405209d486b63fc15c31002fb4d5440fed8faaf5c5a6ad90ad4b0"
+      }
+    }
+  ],
+  "verdict": "PASS",
+  "verification_command": "PYTHONDONTWRITEBYTECODE=1 <API python> /tmp/hk_independent_online_r7.py (read-only kernel env/launchctl/lsof, strict readers and normal HTTP only)"
+}

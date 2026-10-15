@@ -1,0 +1,57 @@
+{
+  "A_rows_exported": false,
+  "actual_source_only_loader": true,
+  "main_module_sha256": "68adcbfbe5a000786e94c20fedc0105b2dd95b239c52de8249bcaac452967864",
+  "pair16": {
+    "a_selector_status": "READY",
+    "formal_pool_reuse": {
+      "a_pool_id": "a_d1_premarket_pool",
+      "a_row_count": 17,
+      "a_source_sha256": "d02a1e56e4fed7d56ded549642ae2fb6cd4f495b9b752757fee8bb4e77f2402f",
+      "hk_pool_id": "hkconnect_d1_top100",
+      "hk_row_count": 100,
+      "hk_source_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501"
+    },
+    "hk_lane_status": "READY",
+    "producer_called": false,
+    "status": "SUCCEEDED",
+    "write_performed": false
+  },
+  "resolver_sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+  "status": "ACTUAL_MAIN_SHARED_AND_PHYSICAL_CONSUMER_PASS",
+  "target15_A_pool": "ABSENT_HK_ONLY_RETROSPECTIVE_NO_PAIR_CLAIM",
+  "targets": [
+    {
+      "model_sha256": "3b0d5d5239342439cabf25b30012365a64d78839bc3cd4d90bad7be6ff4aaa07",
+      "proof_sha256": "7640927e0e854bd56b3ab3e43a471d97422f80b30af2e910f3808cbba4850d26",
+      "row_count": 100,
+      "rows_projection_sha256": "b413a5139bd0e14f6ab75fbea7402ac4c76a77bf65a34134caa391f1fe73a3cc",
+      "signal_date": "20261014",
+      "source": {
+        "already_exists": false,
+        "artifact_sha256": "11266dfe38b289b12c9c0b0ba8bedf07f8185e6d541f1f21e85467d32308e754",
+        "manifest_sha256": "f591b05df8215093d214b7e43ddf12c281dab9e3bdfbbc7b5c27b88c55a2687a",
+        "receipt_sha256": "f13c404b3aea60b34df07f0aadf6fd637acc22aec962b6e8cf284614d63dea8a",
+        "run_id": "20261015-hk-connect-d1-top100-0-2-a593ae3d384a"
+      },
+      "status": "READY",
+      "target_date": "20261015"
+    },
+    {
+      "model_sha256": "3b0d5d5239342439cabf25b30012365a64d78839bc3cd4d90bad7be6ff4aaa07",
+      "proof_sha256": "ce40ef08eccb7af6053ddf6a34c2ce032522bbd049792e72bc32409fad1c486c",
+      "row_count": 100,
+      "rows_projection_sha256": "08d208153d0b545d4a72225d98664ef697eed7a2f69f2335d52f8fee3b8e19c2",
+      "signal_date": "20261015",
+      "source": {
+        "already_exists": false,
+        "artifact_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501",
+        "manifest_sha256": "2701f48e52d3e2e1812f39006dcf338acee980969f4fd8c2137d743c7c6d04ec",
+        "receipt_sha256": "4bab8045bee19e7824627a71614cc210d5c96d30f9a8ae344c6c149fdb12fc74",
+        "run_id": "20261016-hk-connect-d1-top100-0-2-6c9e570ab9d0"
+      },
+      "status": "READY",
+      "target_date": "20261016"
+    }
+  ]
+}

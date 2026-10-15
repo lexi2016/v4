@@ -1,0 +1,25 @@
+{
+  "actual_API_store_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app/infrastructure/preselection_pool_store.py",
+  "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q --basetemp=docs/handoffs/hk_tdx_conflict_repair_20261015/.r5_synthetic_tests_20261015_c docs/handoffs/hk_tdx_conflict_repair_20261015/test_reactivation_control_R5.py",
+  "exit_code": 0,
+  "models_recomputed": false,
+  "prior_attempt": {
+    "error": "PermissionError: Operation not permitted on unrelated pre-existing pytest garbage runtime_graph/snapshots",
+    "exit_code": 1,
+    "phase": "PYTEST_SESSION_CLEANUP",
+    "tests_passed": 16,
+    "unrelated_files_repaired": false
+  },
+  "production_state_modified": false,
+  "raw_market_data_copied": false,
+  "reused_independent_subresults": [
+    "R4 exact A gate positive and five negatives",
+    "R4 actual retained runs current policy/C/model/master/source/100/consumer digest",
+    "R3 business/model/projection/combination PASS"
+  ],
+  "runtime": "existing v3.5-mac Python3.14.6",
+  "scope": "R4 two P2 rollback failures and direct boundaries only",
+  "services_modified": false,
+  "status": "WRITER_TARGETED_TESTS_PASS_PENDING_INDEPENDENT",
+  "stdout": "21 passed in 0.28s"
+}

@@ -123,7 +123,7 @@ def test_scorer_empty_clean_proxy_universe_is_typed_hold_before_model(tmp_path):
         else:
             path=Path(__file__).resolve().parents[1]/source
             tree=ast.parse(path.read_text());node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='score_frozen_hk_0_2')
-        g=dict(Path=Path,Any=object,Iterable=list,validate_date=lambda v:v,StoreError=ValueError,ResolutionPolicy=ResolutionPolicy,
+        g=dict(Path=Path,Any=object,Iterable=list,validate_date=lambda v:v,_normalize_code=lambda v:v,StoreError=ValueError,ResolutionPolicy=ResolutionPolicy,
             guard_score_frame=guard_score_frame,_add_daily_features=lambda frame:frame,_add_proxy_labels=lambda frame:(frame,{}),
             load_frozen_hk_0_2_assets=lambda root:SimpleNamespace(root=owner,panel_path=owner/contract['bindings']['C_panel_relative'],
                 panel_manifest=dict(panel_sha256=contract['bindings']['C_panel_sha256'])))
@@ -298,3 +298,25 @@ def test_canonical_scheduler_source_only_HK_projection(problem):
         module_leaf='hk_0_2',reader_name='read_verified_hk_0_2_pool',target_date='20261015',signal_date='20261014')
     if problem=='exact_match':assert result['status']=='READY' and reason==''
     else:assert result is None and reason
+
+from test_hk_history_resolution import corrected_owner, owner
+
+
+def test_history_usable_correction_keeps_raw_audit_and_trade_hold(corrected_owner):
+    root,_=corrected_owner
+    from upstreams.v3_shared_data.shared_data.hk_history_resolution import ResolutionPolicy
+    fixture=legacy_fixture.HKResearchHistoryTests();fixture.setUp()
+    try:
+        adapter,_=fixture._adapter([legacy_fixture._b_row('HK.00001','2026-07-06',1.)],
+            [legacy_fixture._c_row('HK.00001',20260706,2.)])
+        audit=adapter.query_union('HK.00001','20260706','20260706')
+        usable=adapter.query_union('HK.00001','20260706','20260706',_policy=ResolutionPolicy(root),required_fields=('close','amount'))
+        assert audit['rows'][0]['raw_fields']['close']==2.
+        assert audit['rows'][0]['counterpart']['raw_fields']['close']==1.
+        assert usable['rows'][0]['raw_fields']==dict(close=3.,amount=30.)
+        assert usable['rows'][0]['field_admission']['close']=='CORRECTED_TDX_RETROSPECTIVE_CHANNEL'
+        assert usable['rows'][0]['correction_source']['channel']=='TDX_PROTOCOL_PARAM1_FIXED'
+        assert usable['rows'][0]['counterpart'] is None
+        held=adapter.query_union('HK.00001','20260706','20260706',_policy=ResolutionPolicy(root),required_fields=('trade',))
+        assert held['rows']==[] and held['quarantine_count']==1
+    finally:fixture.doCleanups()

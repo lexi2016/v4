@@ -1,0 +1,58 @@
+{
+  "active_pointer_installed": false,
+  "api": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+    "base_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/research-source-unified-api-20261015-r6/app",
+    "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5",
+    "manifest_sha256": "2669da76235904ed1a283241b92cfd76caf444bafaf5e916bfecfb3e0c6f0dc0",
+    "verification": {
+      "active_api_plist_sha256": "1c5ad617cca80d3f6b206eab39a452703dab4918fa18b4532bb52b868b143ec6",
+      "active_pointer": "base",
+      "base": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/research-source-unified-api-20261015-r6/app",
+        "application_inventory_entry_count": 1206,
+        "application_inventory_sha256": "facee20c030d185cd1254c72c7e7b0c19e58ddc2a8970c1343a2f81278f5adaa",
+        "release_id": "research-source-unified-api-20261015-r6",
+        "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/research-source-unified-api-20261015-r6/release-manifest.json",
+        "release_manifest_sha256": "a6eb7c96ef0bd5c449146176dbcfefc927f3df06ca64b9b02de9c0715e56c617",
+        "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/research-source-unified-api-20261015-r6"
+      },
+      "candidate": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+        "application_inventory_entry_count": 1206,
+        "application_inventory_sha256": "1d50010b160b5ae9791510568c1c69cdcfb966fda05c70feb1ba3ba24043c3cb",
+        "module_contract_sha256": null,
+        "module_role": "gateway",
+        "release_id": "hk-tdx-conflict-repair-api-20261015-r5",
+        "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/release-manifest.json",
+        "release_manifest_sha256": "2669da76235904ed1a283241b92cfd76caf444bafaf5e916bfecfb3e0c6f0dc0",
+        "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5"
+      },
+      "delta_paths": [
+        "infrastructure/preselection_pool_store.py",
+        "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+        "v3_shared_data/shared_data/hk_0_2.py",
+        "v3_shared_data/shared_data/hk_history_resolution.py",
+        "v4/hk_research_history.py"
+      ],
+      "delta_receipt_sha256": "53d9a2ecfe71aed2c7008f49129b7b4c1fc61aa6921bf7915dc7ef1870e4ac2d",
+      "non_delta_active_release_bytes_preserved": true,
+      "non_delta_entry_count": 1200,
+      "non_delta_inventory_sha256": "fb7f04a59467c93c54f8be059b028b4c95d3e735d3274db37a69267a4ba1d580",
+      "shared_lock_path": "/Users/lexi/Library/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+      "status": "PASS"
+    }
+  },
+  "materializer_source_reused": true,
+  "reviewcore_source_reused": true,
+  "services_changed": false,
+  "shared": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data",
+    "base_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data",
+    "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4",
+    "inventory_sha256": "ddb88f607cd4266f671a9ecf4558218baa538c5b3000fdbf53a75efbdb9702e0",
+    "manifest_sha256": "1d78119783487800673421c55028bf36a94fdf147cf78872c4112cd3395956d8",
+    "non_delta_count": 72
+  }
+}

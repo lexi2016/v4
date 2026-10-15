@@ -1,0 +1,31 @@
+{
+  "NATURAL_VERIFIED": false,
+  "Stage_execution_proven": false,
+  "action": "navigate and refresh",
+  "banner": {
+    "actual_release": "hk-tdx-conflict-repair-api-20261015-r5",
+    "manifest_sha256": "2669da76235904ed1a283241b92cfd76caf444bafaf5e916bfecfb3e0c6f0dc0",
+    "manifest_verified": true
+  },
+  "browser": "Chrome existing V4 tab",
+  "buy_gate_updated": false,
+  "independent_reviewer": false,
+  "observed_at": "EXACT_TIMESTAMP_NOT_SUPPLIED_IN_PARENT_MESSAGE",
+  "observer": "/root",
+  "orders_sent": false,
+  "production_allowed": false,
+  "raw_rows_exported": false,
+  "recorded_at": "2026-10-15T13:40:19.905284+00:00",
+  "stable_DOM": {
+    "names_nonempty": true,
+    "ranks": "1..100",
+    "region": "HK D1",
+    "row_count": 100,
+    "scores_finite": true,
+    "signal_date_all": "20261015",
+    "status": "STRICT_0_2_READY",
+    "unique_HK_codes": 100
+  },
+  "status": "PARENT_OBSERVED_LIVE_UI_PASS_NOT_INDEPENDENT_REVIEW",
+  "url": "http://127.0.0.1:8873/?date=20261016&stage=STAGE_0925"
+}

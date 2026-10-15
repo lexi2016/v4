@@ -600,16 +600,20 @@ class HKResearchHistory:
                     quarantine.append(dict(symbol=row["symbol"], date=row["date"], fields=held,
                                            reason="HK_HISTORY_FIELD_QUARANTINED", row_sha256=row["row_sha256"]))
                     continue
-                row["raw_fields"] = {field:row["raw_fields"].get(field) for field in required_fields}
+                row["raw_fields"] = _policy.effective_values(row['symbol'],row['date'],
+                    {field:row['raw_fields'].get(field) for field in required_fields},source=row['source'])
                 row["counterpart"] = None  # original B variants require explicit audit mode
                 row["usable_fields"] = list(required_fields)
                 decision = _policy.decisions.get((row["symbol"], row["date"]))
                 row["field_admission"] = {
-                    field: (decision["field_decisions"][field]["disposition"] if decision
-                            else "UNDISPUTED_KEEP_C_EXISTING_POLICY" if row["source"] == "C"
+                    field: (_policy.field_admission(row['symbol'],row['date'],field) if row['source']=='C'
                             else "B_ONLY_RESEARCH_NO_SCORING_ADMISSION")
                     for field in required_fields
                 }
+                if any(value=='CORRECTED_TDX_RETROSPECTIVE_CHANNEL' for value in row['field_admission'].values()):
+                    row['correction_source'] = dict(channel='TDX_PROTOCOL_PARAM1_FIXED',
+                        rule=_policy.manifest['correction_rule_version'],ledger_sha256=_policy.corrections_sha256,
+                        original_C_row_sha256=row['row_sha256'],historical_PIT='UNKNOWN',adjustment_name='UNKNOWN')
                 usable.append(row)
             result_rows = usable
         page = result_rows[offset:offset + limit]

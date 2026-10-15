@@ -1,0 +1,302 @@
+{
+  "NATURAL_VERIFIED": false,
+  "RESEARCH_ONLY": true,
+  "UI": "PRIMARY_PARENT_CHROME_OBSERVATION_SEPARATE_FROM_INDEPENDENT_ONLINE",
+  "actual_deployed_roles": {
+    "api": "hk-tdx-conflict-repair-api-20261015-r5",
+    "main": "hk-tdx-conflict-repair-main-20261015-r2",
+    "shared": "hk-tdx-conflict-repair-shared-20261015-r4"
+  },
+  "archived_support_descriptor_boundary": "PUBLICATION_COMBINED_R3, COMBINED_MAIN_PUBLICATION_R3 and PUBLICATION_STATE_PLAN_R3 are immutable candidate/test-support descriptors, not current deployment status. FINAL_RECEIPT/INDEPENDENT_ONLINE_REVIEW_R7 describe the accepted current deployment.",
+  "baseline_commit": "ff0e6e921e17e63172d34a494960cbdef85783c1",
+  "baseline_tree": "424140c48860e57941231e69a75462010e05c314",
+  "branch": "codex/hk-tdx-conflict-repair-20261015-r1",
+  "buy_gate_updated": false,
+  "canonical_patch_sources": [
+    {
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/CANONICAL_HK_DELTA_R2.patch",
+      "sha256": "26be31565e1270dd0cd8b8f0c0dc20c7db5c603b26ade2056c28e9652afddb14"
+    },
+    {
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/COMBINED_CANONICAL_DELTA.patch",
+      "sha256": "b5fe3714634c7e56688de2e0e2efa1564c2ca674cb41628d742669896b3d134b"
+    },
+    {
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/COMBINED_R3_CANONICAL_DELTA.patch",
+      "sha256": "f72358cc5713c3ab9dba693740f03167c11fe9897a3c0bd961e9d13d6d8feeef"
+    }
+  ],
+  "excludes": [
+    "all raw market payloads/captures/CSV/Parquet/native records",
+    "conflict/source-pins/decision/correction ledgers and evidence-index raw rows",
+    "actual active/before/staged plists and credentials",
+    "A market rows/state and full business artifacts",
+    "full release inventories, venv/runtime/dependency trees",
+    "large full attempt logs and all superseded attempt reports/drivers",
+    "source_projection/canonical_before and synthetic test temp directories",
+    "unrelated dirty workspace files",
+    "all source-data owner originals and historical panels/models"
+  ],
+  "external_main_retry_source": {
+    "commit": "e244586652974bb8438497346b3638cbb7454be8",
+    "use": "source reference only; no whole branch copy"
+  },
+  "github_sync_status": "SEPARATE_TRANSPORT_RECEIPT_PENDING_REMOTE_READBACK",
+  "independent_online": {
+    "receipt": "docs/handoffs/hk_tdx_conflict_repair_20261015/INDEPENDENT_ONLINE_REVIEW_R7.json",
+    "sha256": "10ec153702676a8b22d37a6b99ad6b3fdd8cb6f83c7be5efcce760096572b9ba",
+    "verdict": "PASS"
+  },
+  "merge": false,
+  "mixed_canonical_files": [
+    {
+      "current_local_sha256": "2e6d1c66452ec3be84f62c5ba51748aceb333ba8a6f91a0cab35c02313743357",
+      "full_file_excluded": true,
+      "path": "upstreams/v3_shared_data/shared_data/hk_0_2.py"
+    },
+    {
+      "current_local_sha256": "98db050ac6bf4c97dde6ee0aae7015030e2c648455270fba8d1d1e55594cfa9f",
+      "full_file_excluded": true,
+      "path": "infrastructure/preselection_pool_store.py"
+    },
+    {
+      "current_local_sha256": "6854d38819613cd09bfb51030887bb92840bebb4bd93d0d92cd08adbe5ee3f8f",
+      "full_file_excluded": true,
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py"
+    }
+  ],
+  "mixed_file_delivery": "Only already independently reviewed owned HK hunks. FINAL_CANONICAL_HK_DELTA contains the two mixed-file R2 sections followed by canonical main combined and R3 incremental sections in application order against their captured local preimages; do not overwrite unrelated dirty canonical files.",
+  "necessary_runtime_snapshot_exception": [
+    {
+      "actual_live_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/source_projection/shared/shared_data/hk_0_2.py",
+      "reason": "Required exact runtime code used by the existing regression tests, explicitly permitted full66KB module snapshot; no dataset"
+    },
+    {
+      "actual_live_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/source_projection/main/infrastructure/scheduling/executor_registry_preselection.py",
+      "reason": "Required exact reviewed main HK guard/retry source used by existing regression tests; isolated code snapshot, not mixed dirty canonical replacement"
+    }
+  ],
+  "orders_sent": false,
+  "payload_bytes_excluding_self": 610069,
+  "production_allowed": false,
+  "repository": "private lexi2016/v4",
+  "self_SHA_intentionally_omitted": true,
+  "self_included_in_transport": true,
+  "self_path": "docs/handoffs/hk_tdx_conflict_repair_20261015/SYNC_SUMMARY_FINAL.json",
+  "status": "FINAL_DELIVERY_FROZEN_INDEPENDENT_ONLINE_PASS",
+  "sync_candidates": [
+    {
+      "git_blob_sha1": "d693c75b8d29e3da589a990396c47c8588579e15",
+      "path": "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+      "size_bytes": 35466
+    },
+    {
+      "git_blob_sha1": "373a903743813fb4b6f7a8a6b78e09535f322a61",
+      "path": "v4/hk_research_history.py",
+      "sha256": "2cc5a2fe1f8440de4adf7449ee252ea462b333cde2a1ea9ac9216a7a43722ead",
+      "size_bytes": 49190
+    },
+    {
+      "git_blob_sha1": "34a31355656963d8ce92374d596dff86dc05b292",
+      "path": "tests/test_hk_history_resolution.py",
+      "sha256": "a80c445efe5857881170a6725ab75832c54d4e5e26f8836a70700dabeac06629",
+      "size_bytes": 20409
+    },
+    {
+      "git_blob_sha1": "03e091b2f4a2ad83b6670ff75baffd3f5fcc9cc9",
+      "path": "tests/test_hk_research_history.py",
+      "sha256": "8673841324af97b9a10660aa60a0070867278446703b438074a05fb787952f78",
+      "size_bytes": 22316
+    },
+    {
+      "git_blob_sha1": "dc68cb2695c5cca0c26a42d789e2707ac2ea8843",
+      "path": "tests/test_hk_history_resolution_consumers.py",
+      "sha256": "8c306ff3f2c8fd911ea408f42efd3bc663e3f45e823906db9c40a982d67930c7",
+      "size_bytes": 22869
+    },
+    {
+      "git_blob_sha1": "dec3a7ddcdf504ccdb3e4e8557d94c323ff68a98",
+      "path": "tests/test_hk_resolution_refresh.py",
+      "sha256": "7c11c8dd79c9a15530986de37eed19ea27a35c84a2eb2616f68affa1b0d3c16c",
+      "size_bytes": 15791
+    },
+    {
+      "git_blob_sha1": "e28174558ddba1de2e36eaacecfbc4c8c715c8a1",
+      "path": "tests/test_hk_nextday_missing_pool_20261015.py",
+      "sha256": "70ae5f3417a9f5bdcdb414cd3ecce24aea2f94155243e123917686121e96f17e",
+      "size_bytes": 52930
+    },
+    {
+      "git_blob_sha1": "a288a8b202585e31e46c42dc4cee278c0f93380d",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/source_projection/shared/shared_data/hk_0_2.py",
+      "sha256": "6dde013afb9140728ec60bfc160976caf2e4e10ea181b984d5b1a6e5f33689a1",
+      "size_bytes": 66097
+    },
+    {
+      "git_blob_sha1": "faa8679c4e361bdfb0b8db64de0f4c4cfe63e8a7",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/source_projection/main/infrastructure/scheduling/executor_registry_preselection.py",
+      "sha256": "68adcbfbe5a000786e94c20fedc0105b2dd95b239c52de8249bcaac452967864",
+      "size_bytes": 39328
+    },
+    {
+      "git_blob_sha1": "edddd6e29ce2e69ae11aa2d2187f8c0e948ab5b9",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/FINAL_CANONICAL_HK_DELTA.patch",
+      "sha256": "b206e152752b8a66d8cdad86c2a6730486711485b3e1b586cb7a7c1bfe01ebcf",
+      "size_bytes": 44086
+    },
+    {
+      "git_blob_sha1": "56b54ab23969b133cb59118764f0b7d8a470ab95",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/API_R5_DELTA.patch",
+      "sha256": "a4abb71c5b4695f641113a0eec04e36111dcff79acf197a1a7cebf120b327e6d",
+      "size_bytes": 72719
+    },
+    {
+      "git_blob_sha1": "674b160269be5db08737123c3c84c7058de02a4a",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/SHARED_R4_DELTA.patch",
+      "sha256": "415d7a869059a7548d8791b53ed91a5e057bbe84aa860c79febd9930e2be3816",
+      "size_bytes": 32851
+    },
+    {
+      "git_blob_sha1": "22b2181ae0c90ae89d526e6b63b9848100a39b38",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/COMBINED_MAIN_R3_CURRENT_ACTIVE_DELTA.patch",
+      "sha256": "9e0532f6c8cd1f797f058f04a032ca8e2d301bd294045fc5eb1760c96d882a70",
+      "size_bytes": 19655
+    },
+    {
+      "git_blob_sha1": "32321096d17a00ec2fd5e5ab7442cf01c529b054",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/publish_hk_only.py",
+      "sha256": "a49aed50d4d02c6ab0e27f4940a16cd4875a4e1c2e6194f9d076d45aa42c638b",
+      "size_bytes": 7443
+    },
+    {
+      "git_blob_sha1": "99079e0b141442f2e71fc46a676803a2137282fd",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/PUBLICATION_ORCHESTRATOR_R3.py",
+      "sha256": "82ff6ce44c898bc0f21efbebdd52e47032d89750bf76e60f3a7a58b231ccb586",
+      "size_bytes": 8773
+    },
+    {
+      "git_blob_sha1": "9ca766e31bd71c491807199da1910e58643bfe6a",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/HK_REACTIVATION_CONTROL_R5.py",
+      "sha256": "2d087109a1d84a561968f4153dfcc86462a4842c8e8c217374cfd1a2226d0559",
+      "size_bytes": 10366
+    },
+    {
+      "git_blob_sha1": "9dacb6fa536369ff4e83f72587be06ba2862920b",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/ROLLBACK_REACTIVATION_R5.py",
+      "sha256": "a56e60cbd718067654fc48df91e6675a1fbeef7759f18eefa1c9610247b8e2ee",
+      "size_bytes": 4124
+    },
+    {
+      "git_blob_sha1": "65e1b811f1bf32b63c576f3b7dab7efbb40f3c6c",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/test_reactivation_control_R5.py",
+      "sha256": "2e511415cf481767cf4e9b6fc945b70a432e8a22dc2b86bfb90b7e21286dd967",
+      "size_bytes": 12372
+    },
+    {
+      "git_blob_sha1": "c54df1c248360dc788d38382dd2fc4dc2ee400ec",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/PUBLICATION_COMBINED_R3.json",
+      "sha256": "577b1e038aea5b3d175326a48aa6558b95f9da7daf4c42cd18bfb8e40192c8be",
+      "size_bytes": 3902
+    },
+    {
+      "git_blob_sha1": "a0c10b4615ea44721e4e44279f9f3fffb00d6dbb",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/COMBINED_MAIN_PUBLICATION_R3.json",
+      "sha256": "9b9af28758b3d31823b3f0f6a781d5e3e82f83eb0c2fd83ab9382a8a57309ad1",
+      "size_bytes": 2037
+    },
+    {
+      "git_blob_sha1": "056a57ddaee867f1084614c83c873cb55e4fb46e",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/PUBLICATION_STATE_PLAN_R3.json",
+      "sha256": "b0e33bca3ef6bdad9a0c6af11983b9df4dcf126d44a3f124ec40e690724c2254",
+      "size_bytes": 5442
+    },
+    {
+      "git_blob_sha1": "1bfe9aefd1e379f50eb6b8788c3d09d9b5acb5cd",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/PHASE1_EVIDENCE_REVIEW.json",
+      "sha256": "568fc61c40627e29b75d37ec5ac55b88893656fe82c76eceac6f112d6c5eae72",
+      "size_bytes": 814
+    },
+    {
+      "git_blob_sha1": "7a400a123b3c55f3181ded192b2206920a2cffef",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/ORIGINALS_RECEIPT.json",
+      "sha256": "22b22e66f77a9a194736cbfa733341ac957bfef90ce978d27bcfb88d8f597c08",
+      "size_bytes": 598
+    },
+    {
+      "git_blob_sha1": "303178c74aa7f4d35c00e729e28cb57fe53456eb",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/VIEW_DERIVATION_RECEIPT.json",
+      "sha256": "cf454fa47c05058bf111086862d90345663f3002d7a8f40213d17e8352994306",
+      "size_bytes": 714
+    },
+    {
+      "git_blob_sha1": "0392e70a317b880bdf3b874af588d0981c3dfe96",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/CANDIDATE_MODEL_RECEIPT.json",
+      "sha256": "8bb2ad0699e77eeb09b22661878145d0a0929c2f24a9d7a0e497641451750918",
+      "size_bytes": 2317
+    },
+    {
+      "git_blob_sha1": "5e5ffba1053a3c767ed5fa561e3daeac1d3493dd",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/TARGET16_MODEL_RECEIPT.json",
+      "sha256": "8b4a174d69bf44f10c6c30f250b4cd2db768d85f64f6714cfa2dbf4a20c9cec7",
+      "size_bytes": 2317
+    },
+    {
+      "git_blob_sha1": "10d5b0591255f4f8b0fe66a7f7dcb14d6fe26f38",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/COMBINED_TEST_RECEIPT_R3.json",
+      "sha256": "62f2efc36d1ca55e4eb296ef8dd995bd81a7a6ea070cb436a1567af022754199",
+      "size_bytes": 4865
+    },
+    {
+      "git_blob_sha1": "38dd2ed19cca8ce7bff24f42d4ab280de64b6157",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/REACTIVATION_TEST_RECEIPT_R5.json",
+      "sha256": "c72d2fa2be540613e735c19d93b47be7401309a40ff0cf8b1a4d91e8c0e1177d",
+      "size_bytes": 1365
+    },
+    {
+      "git_blob_sha1": "2ce994c110b8ba76255ae2d82d7e02bc07fae7f0",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/ONLINE_WRITER_RECEIPT_R7.json",
+      "sha256": "200d144c2ff90ac088a7ab8f80f88c2c51aa38c7f39a20e619ec55d6bbd031af",
+      "size_bytes": 6894
+    },
+    {
+      "git_blob_sha1": "044c93ed5ad5361af8bccaaf38b887baeca06b2d",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/ACTUAL_MAIN_ONLINE_R7.json",
+      "sha256": "7b0773ccf495165da7ea7b55dffa5e95dfc61e6b0d72d259ad3f12d5795180d7",
+      "size_bytes": 2559
+    },
+    {
+      "git_blob_sha1": "518f26b8ae491a6a483bfa36caa28d460cebe81e",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/INDEPENDENT_ONLINE_REVIEW_R7.json",
+      "sha256": "10ec153702676a8b22d37a6b99ad6b3fdd8cb6f83c7be5efcce760096572b9ba",
+      "size_bytes": 14404
+    },
+    {
+      "git_blob_sha1": "67b67832ac2520ee6d52e202a9455cebc96035e5",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/UI_READBACK_R7.json",
+      "sha256": "3bb68e7ddae98999d74472e9bd50b3c43c8f94edaa79c4232da03b4e94026efe",
+      "size_bytes": 1011
+    },
+    {
+      "git_blob_sha1": "00d481d8d29a5720d7246bea7599a8890faf773f",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/SUPERSEDED_CLEANUP_RECEIPT_FINAL.json",
+      "sha256": "38e30cabd560a3c533f1a0b9d077e0f46bc06555b73a908166720d51e16838ab",
+      "size_bytes": 10247
+    },
+    {
+      "git_blob_sha1": "f32171d327918ac090864dca3f2fa99c000d87df",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/FINAL_RECEIPT.json",
+      "sha256": "2eab88ecca1593f6c485e9df7a56373a4c3566a73a86080212584e3b479ff561",
+      "size_bytes": 11946
+    },
+    {
+      "git_blob_sha1": "3f6d2c01121af708b030f6706648e7abd2b3e710",
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/RESULT.md",
+      "sha256": "36f13c8337d60d3b0d293a71eb6ef5755e6f6d6879766bb982cf247528d72645",
+      "size_bytes": 1852
+    }
+  ],
+  "sync_file_count_including_self": 36
+}

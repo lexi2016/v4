@@ -1,0 +1,211 @@
+{
+  "A15_exact_control": {
+    "artifact_id": "selection-b37a1ee172cd45451d78e35b",
+    "http_status": 200,
+    "rows_exported": false,
+    "run_id": "run-b37a1ee172cd45451d78e35b",
+    "sha256": "42a05130c45171f200bf415ce9f5095dc3bcfd6e3f26499ecd9a04257291290f",
+    "status": "PARTIAL_WITH_ROWS"
+  },
+  "A16_current_preserved_artifact_sha256": "bb0f61aeb251625f433f36bb70daa48467b045d40a4a95e663b98b623072a17d",
+  "NATURAL_VERIFIED": false,
+  "RESEARCH_ONLY": true,
+  "Stage_triggered": false,
+  "UI_independently_retested": false,
+  "UI_observed_by_parent": true,
+  "actual_service_identity": {
+    "api": {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+      "pid": 90244,
+      "plist_sha256": "318fd9ea3c53f42ac09550cadea4e7c9d61bb10c93de29ef171e6180cd7faabf",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+        "V35_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "V35_PRESELECTION_SOURCE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V35_RELEASE_ID": "hk-tdx-conflict-repair-api-20261015-r5",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "2669da76235904ed1a283241b92cfd76caf444bafaf5e916bfecfb3e0c6f0dc0",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260923-manager-window-2sessions-units-announcements-r1/app/upstreams",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/workspace/v3_shared_data/.runtime/data"
+      }
+    },
+    "scheduler": {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+      "pid": 90252,
+      "plist_sha256": "cc2d35ed4c156b0e741276b49966ea6430d74f96359c9d4103c2800afc0c5344",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+        "V35_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V35_RELEASE_ID": "hk-tdx-conflict-repair-main-20261015-r2",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "03cb15ea4b45a6e58e6aa48a7e05010db3ff1ff59b34aaf9d6a856b591ec8447",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-reviewcore-20261015-r1/app",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V35_SHARED_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data",
+        "V4_MANAGER_MATERIALIZER_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-materializer-20261015-r1/app"
+      }
+    }
+  },
+  "buy_gate_updated": false,
+  "cleanup": {
+    "never_activated_roots_renamed": 8,
+    "no_copy_or_permanent_delete": true,
+    "receipt_sha256": "38e30cabd560a3c533f1a0b9d077e0f46bc06555b73a908166720d51e16838ab",
+    "same_volume": true,
+    "size_bytes": 177448437
+  },
+  "errors_and_corrections": [
+    {
+      "evidence": "INDEPENDENT_CANDIDATE_REVIEW_R1.json",
+      "fix": "Consumers recompute actual source/master admission and coverage; real HK.00165 forgery rejects",
+      "issue": "Candidate proof could self-sign admission/coverage sets",
+      "sha256": "82e622eb5700de6aafe3279bf4247b730efed82e0627b320040420a503220ac7"
+    },
+    {
+      "evidence": "INDEPENDENT_COMBINED_REVIEW_R2.json",
+      "fix": "Approved static/standalone resolver imports; authoritative latest absence probe; same verified run metadata only; exact source/date/rank/score gates",
+      "issue": "Isolated loader import-policy incompatibility; missing-master no-latest order; exact publication date/stage metadata",
+      "sha256": "129bb28bee35fef952cbd89769b6b2bdf6c386309ff927f05a559737c26dfb6d"
+    },
+    {
+      "evidence": "A_MANIFEST_DIAGNOSIS_R3.json",
+      "fix": "Fresh full response equality with only the one approved exact parsed path SHA substitution",
+      "issue": "Full A hash gate initially rejected one truthful HK-container audit SHA reference",
+      "sha256": "5c7f55d06fbdb185055e84ac9df247c93187d43a1ef12baa3850bef3babddcf4"
+    },
+    {
+      "evidence": "INDEPENDENT_REACTIVATION_REVIEW_R5.json",
+      "fix": "Durable exact intents, component old/new/absent and full-entry CAS; independent safe restore steps; 21 actual-store failure regressions independently PASS",
+      "issue": "Partial consumer rollback and four-pin source-event CAS were insufficient",
+      "sha256": "7a6720df9dcf13fd9487f90a724ecb1637a5b234cdeb7b236f89c5738bae6d35"
+    },
+    {
+      "evidence": "ONLINE_VERIFY_PATH_FIX_R6.json",
+      "fix": "Explicit repository PYTHONPATH; Path(p).read_bytes; create the already referenced empty directory; preserve all failed receipts before controlled retry",
+      "issue": "Avoidable helper execution errors: import search path, str/Path receipt hashing, missing empty attempt directory",
+      "sha256": "f33a377b903cb35b0f73f8798a0e73834620be5b58e0a3687233aa3066adf92a"
+    },
+    {
+      "evidence": "INDEPENDENT_HK16_RECOVERY_REVIEW_R6.json",
+      "fix": "Preserved new A result, independently reviewed exact own HK16 removal, fresh current-A baseline; no inferred writer attribution",
+      "issue": "Concurrent A16 recommendation update changed protected manifest; exact HK16 rollback initially refused whole-manifest drift",
+      "sha256": "9147b493cd19d72436d4c1cb4554366a0049e1159588996c8bd3b5fa3f71953f"
+    }
+  ],
+  "findings": [],
+  "github": {
+    "baseline_commit": "ff0e6e921e17e63172d34a494960cbdef85783c1",
+    "baseline_tree": "424140c48860e57941231e69a75462010e05c314",
+    "branch": "codex/hk-tdx-conflict-repair-20261015-r1",
+    "external_main_retry_reference_commit": "e244586652974bb8438497346b3638cbb7454be8",
+    "merge": false,
+    "repository": "private lexi2016/v4",
+    "status": "SEPARATE_TRANSPORT_RECEIPT_PENDING_REMOTE_READBACK"
+  },
+  "independent_online_observed_at": "2026-10-15T13:39:55.284772+00:00",
+  "independent_online_receipt_sha256": "10ec153702676a8b22d37a6b99ad6b3fdd8cb6f83c7be5efcce760096572b9ba",
+  "independent_reviewer": "/root/hk_live_review_61",
+  "limitations": [
+    "Adjustment/param1 purpose/units/historical PIT remain UNKNOWN; numeric channel proof is explicit, not QFQ/NONE or native-unit equivalence",
+    "Unconfirmed trade and other fields remain field-specific quarantined; restoring model windows does not resolve every original conflict",
+    "UI is the primary parent Chrome observation; independent online review covers API/behavior/Stage-reader identity, not a new Stage execution",
+    "No natural-slot acceptance was claimed"
+  ],
+  "main_pair16": {
+    "a_selector_status": "READY",
+    "formal_pool_reuse": {
+      "a_pool_id": "a_d1_premarket_pool",
+      "a_row_count": 17,
+      "a_source_sha256": "d02a1e56e4fed7d56ded549642ae2fb6cd4f495b9b752757fee8bb4e77f2402f",
+      "hk_pool_id": "hkconnect_d1_top100",
+      "hk_row_count": 100,
+      "hk_source_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501"
+    },
+    "hk_lane_status": "READY",
+    "producer_called": false,
+    "status": "SUCCEEDED",
+    "write_performed": false
+  },
+  "model": {
+    "Top100_gate_unchanged": true,
+    "bundle_sha256": "3b0d5d5239342439cabf25b30012365a64d78839bc3cd4d90bad7be6ff4aaa07",
+    "new_model_or_algorithm": false,
+    "proxy_minimum_80_unchanged": true,
+    "real_model_runs_reused": "Exact own successful R3 production runs after strict current authority verification, no recomputation during retries",
+    "scoreable_minimum_500": "Existing canonical contract explicitly enforced in actual HK runtime; tightened from prior predict.empty only",
+    "scoreable_signal_codes_each_target": 664
+  },
+  "orders_sent": false,
+  "originals_and_current_non_HK_preserved": true,
+  "owner_pointer_sha256": "95343ea26b4541d9a4dd0a3b9ad298cd0b832ae1fd214fe984d513d781626e2b",
+  "pending_journals": 0,
+  "production_allowed": false,
+  "recorded_at": "2026-10-15T13:46:53.499900+00:00",
+  "release_roots": {
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+      "manifest_sha256": "2669da76235904ed1a283241b92cfd76caf444bafaf5e916bfecfb3e0c6f0dc0"
+    },
+    "main": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+      "manifest_sha256": "03cb15ea4b45a6e58e6aa48a7e05010db3ff1ff59b34aaf9d6a856b591ec8447"
+    },
+    "shared": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data",
+      "manifest_sha256": "1d78119783487800673421c55028bf36a94fdf147cf78872c4112cd3395956d8"
+    }
+  },
+  "repairs": {
+    "derived_continuity_closure_rows": 2420,
+    "later_segment_labels_updated": 69,
+    "new_continuity_break": "HK.02685/20260707",
+    "no_parallel_floor": true,
+    "original_rows_or_files_lost": 0,
+    "pre_close_values_changed": 1145,
+    "source_channel": "TDXPY_0_2_7_TDX_PROTOCOL_PARAM1_FIXED_DOUBLE_ANCHOR",
+    "sparse_complete_OHLC_amount_bars": 1210,
+    "trade_values_changed": 0
+  },
+  "resolution_manifest_sha256": "804d364fb36b7bc3e84b17f3afb7d5a474fdff4a39a4026d278ead8b555fc097",
+  "rollback_chain_retained": true,
+  "source_pins": {
+    "docs/handoffs/hk_tdx_conflict_repair_20261015/source_projection/main/infrastructure/scheduling/executor_registry_preselection.py": "68adcbfbe5a000786e94c20fedc0105b2dd95b239c52de8249bcaac452967864",
+    "docs/handoffs/hk_tdx_conflict_repair_20261015/source_projection/shared/shared_data/hk_0_2.py": "6dde013afb9140728ec60bfc160976caf2e4e10ea181b984d5b1a6e5f33689a1",
+    "upstreams/v3_shared_data/shared_data/hk_history_resolution.py": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+    "v4/hk_research_history.py": "2cc5a2fe1f8440de4adf7449ee252ea462b333cde2a1ea9ac9216a7a43722ead"
+  },
+  "status": "DEPLOYED_API_AND_BEHAVIOR_INDEPENDENT_PASS",
+  "statuses": [
+    "IMPLEMENTED",
+    "REVIEWED",
+    "TESTED",
+    "INTEGRATED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "target15_boundary": "RETROSPECTIVE_HK_ONLY_A_LOCAL_D1_POOL_ABSENT_NO_PAIR_OR_A_PRODUCTION",
+  "targets": [
+    {
+      "HK_status": "STRICT_0_2_READY",
+      "elapsed_seconds": 1.852,
+      "http_status": 200,
+      "row_count": 100,
+      "rows_projection_sha256": "b413a5139bd0e14f6ab75fbea7402ac4c76a77bf65a34134caa391f1fe73a3cc",
+      "source_artifact_sha256": "11266dfe38b289b12c9c0b0ba8bedf07f8185e6d541f1f21e85467d32308e754",
+      "source_run_id": "20261015-hk-connect-d1-top100-0-2-a593ae3d384a",
+      "target_date": "20261015"
+    },
+    {
+      "HK_status": "STRICT_0_2_READY",
+      "elapsed_seconds": 1.851,
+      "http_status": 200,
+      "row_count": 100,
+      "rows_projection_sha256": "08d208153d0b545d4a72225d98664ef697eed7a2f69f2335d52f8fee3b8e19c2",
+      "source_artifact_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501",
+      "source_run_id": "20261016-hk-connect-d1-top100-0-2-6c9e570ab9d0",
+      "target_date": "20261016"
+    }
+  ],
+  "writer": "/root/hk_live_writer_61"
+}

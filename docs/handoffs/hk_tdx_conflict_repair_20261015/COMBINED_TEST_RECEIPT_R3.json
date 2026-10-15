@@ -1,0 +1,99 @@
+{
+  "HK_runtime_3_13_actual_admission": "PASS_REAL_WRAPPER_GENUINE_AND_BOTH_FORGED_VALIDATORS",
+  "actual_main_security_policy_unchanged": true,
+  "additional_preserved_attempts": [
+    {
+      "cause": "API mapper name module imported from main rather than scoped exact API module",
+      "fix": "actual API name module scoped only during mapper import",
+      "result": "20 failed"
+    },
+    {
+      "cause": "real API mapper missing mandatory stage_selection_eligible",
+      "fix": "new authorized thin publisher completes stage/date metadata from current trusted strict source",
+      "result": "3 failed17passed"
+    },
+    {
+      "cause": "initial read-only probe lacked required V35_SHARED_PACKAGE_ROOT",
+      "fix": "set only existing selected root; actual wrapper then PASS without installing dependencies",
+      "result": "HK wrapper exit1"
+    }
+  ],
+  "changes": [
+    {
+      "after_sha256": "6854d38819613cd09bfb51030887bb92840bebb4bd93d0d92cd08adbe5ee3f8f",
+      "before_sha256": "1221da5f5ec5616a9510a8d4d6dbe852638faffdc4d3247eace2193b6cda73c3",
+      "patch_sha256": "f72358cc5713c3ab9dba693740f03167c11fe9897a3c0bd961e9d13d6d8feeef",
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py"
+    },
+    {
+      "after_sha256": "70ae5f3417a9f5bdcdb414cd3ecce24aea2f94155243e123917686121e96f17e",
+      "before_sha256": "858b98799869607b69a9509e827f163ab36f9bd6f9d3d16c5a0670046f130e2e",
+      "patch_sha256": "bfb59546e099ed561d385bcf9159d775f1172d1b12a1d739a09217c69f2c3760",
+      "path": "tests/test_hk_nextday_missing_pool_20261015.py"
+    },
+    {
+      "after_sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+      "before_sha256": "195a1febe0a7b38dbc94c76c5492c5940d6e1d8c799c2b35a7164984e01fb9cd",
+      "patch_sha256": "8104ce683f683782e9e3c1f4e0a801fc06ce7fecf5cdb24f1fa426ccac63570b",
+      "path": "upstreams/v3_shared_data/shared_data/hk_history_resolution.py"
+    }
+  ],
+  "command_environment": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+    "V4_HK_COMBINED_MAIN_APP": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+    "V4_HK_COMBINED_MAIN_SOURCE": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app/infrastructure/scheduling/executor_registry_preselection.py",
+    "V4_HK_COMBINED_SHARED_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data"
+  },
+  "command_template": "API-runtime-python -B -c \"import infrastructure.isolated_package_loader,infrastructure.preselection_pool_store; import pytest; pytest.main([-q,-p,no:cacheprovider,--import-mode=importlib,--basetemp=<fresh isolated path>,<absolute tests/test_hk_nextday_missing_pool_20261015.py>,-k,combined])\"",
+  "immutable_main_manifest_sha256": "03cb15ea4b45a6e58e6aa48a7e05010db3ff1ff59b34aaf9d6a856b591ec8447",
+  "immutable_main_source_sha256": "68adcbfbe5a000786e94c20fedc0105b2dd95b239c52de8249bcaac452967864",
+  "market_requests": 0,
+  "model_fitting": false,
+  "model_recomputed": false,
+  "numeric_projection_functions_AST_unchanged": true,
+  "observed_at": "2026-10-15T11:39:22.159025+00:00",
+  "output_boundaries": {
+    "A_rows_exported": false,
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "raw_values_exported": false
+  },
+  "prior_R2_numeric_model_and_1210_independent_PASS_reused": true,
+  "production_state_service_pointer_changes": false,
+  "real_admission_variants": [
+    "shared-r4",
+    "API-r5-upstreams",
+    "API-r5-legacy"
+  ],
+  "real_master_and_latest_reader_not_stubbed_in_empty_case": true,
+  "resolver_sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+  "status": "WRITER_AFFECTED_TESTS_PASS_PENDING_INDEPENDENT_REVIEW",
+  "tests": [
+    {
+      "exit_code": 0,
+      "result": "52 passed in 14.18s",
+      "scope": "full projection targeted file"
+    },
+    {
+      "exit_code": 0,
+      "result": "41 passed,11 deselected in14.87s",
+      "scope": "actual final main/shared code imported before pytest from isolated cwd",
+      "selection": "combined"
+    },
+    {
+      "exit_code": 0,
+      "result": "6 passed,46 deselected in9.12s",
+      "scope": "actual final loader root identity plus API-mapper READY aliases",
+      "selection": "actual_main_isolated or real_master_first or combined_API_real_mapper"
+    },
+    {
+      "exit_code": 0,
+      "result": "14 passed,32 deselected in0.35s",
+      "scope": "actual API-r5/shared-r4 admission/cache/refresh/500 boundaries"
+    }
+  ]
+}

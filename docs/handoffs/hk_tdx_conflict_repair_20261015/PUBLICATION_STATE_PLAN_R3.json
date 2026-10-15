@@ -1,0 +1,83 @@
+{
+  "A_rows_read": false,
+  "active_pointer_modified": false,
+  "before_pointer_sha256": "807238fe9e8f3cfd505f1afdf5feb1c3932437e200b5764dd8bee04c5536b4e7",
+  "consumer_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+  "cross_run_CSV_byte_identity_required": false,
+  "current_panel_sha256": "a562369dbc49f06761304c10ba7128d2289c7f0befd0d9264f7dbbc50404241c",
+  "each_publication_must_use_its_own_real_model_output_and_exact_verified_run": true,
+  "owner": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2",
+  "prepared_pointer_path": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/history_resolution_latest.combined.prepared.json",
+  "prepared_pointer_sha256": "95343ea26b4541d9a4dd0a3b9ad298cd0b832ae1fd214fe984d513d781626e2b",
+  "resolution_manifest_sha256": "804d364fb36b7bc3e84b17f3afb7d5a474fdff4a39a4026d278ead8b555fc097",
+  "shared_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+  "state_or_pointer_modified": false,
+  "target15_acceptance": "HK_READY100_RETROSPECTIVE_ONLY_A_LOCAL_POOL_ABSENT_NO_A_PRODUCTION_NO_PAIR_CLAIM",
+  "target16_acceptance": "HK_READY100_AND_EXISTING_A_READY_PAIR_EXACT_READ_NO_STAGE_TRIGGER",
+  "targets": {
+    "20261015": {
+      "HK_create_absent": false,
+      "candidate_canary_artifact_sha256": "29faa7164cb072e83ca8935e3b12eaee04eb513d069ba1f34ec500d551568e00",
+      "consumer_HK_previous_semantic_sha256": "66225363e4dd1b9da4f316d75a8dcc5f249bc0968128c646e9632a1a8b1b1c67",
+      "consumer_expected_previous": {
+        "artifact_raw_sha256": "66225363e4dd1b9da4f316d75a8dcc5f249bc0968128c646e9632a1a8b1b1c67",
+        "manifest_raw_sha256": "223e0eb01c8f117cabe035721e04b45f1563709e537f1cd7d49cae5d3aa22540",
+        "receipt_raw_sha256": "50975336e7184c1d4c76416d03435f4d9f4f6c22a89b7e04b5a07f0209231981"
+      },
+      "consumer_non_HK_manifest_sha256": "6ce5ec9093d3338fd550a0610f0eea8776afb67e953bd273728a6cdf49350dbe",
+      "consumer_preexisting_manifest_sha256": "223e0eb01c8f117cabe035721e04b45f1563709e537f1cd7d49cae5d3aa22540",
+      "expected_proof_sha256": "7640927e0e854bd56b3ab3e43a471d97422f80b30af2e910f3808cbba4850d26",
+      "new_publisher_completes_same_verified_run_stage_signal_target_fields": true,
+      "score_coverage_counts": {
+        "eligible_codes": 690,
+        "missing_signal_codes": 0,
+        "original_signal_codes": 690,
+        "quality_quarantined_codes": 26,
+        "scoreable_signal_codes": 664
+      },
+      "shared_expected_previous": {
+        "artifact_relative": "runs/20261015/HK_CONNECT_D1_TOP100_0_2/20261015-hk-connect-d1-top100-0-2-1d08535262fd/artifact.csv",
+        "artifact_sha256": "e25b4a1c3a35632ceeb4edaaea2b128ae47c98020fceae58fd8a395ad801f685",
+        "manifest_relative": "runs/20261015/HK_CONNECT_D1_TOP100_0_2/20261015-hk-connect-d1-top100-0-2-1d08535262fd/manifest.json",
+        "manifest_sha256": "571194cd52ccc4ad715cab37ba9105a674a03fe7fde4751ac7e19728e416f5cd",
+        "receipt_relative": "runs/20261015/HK_CONNECT_D1_TOP100_0_2/20261015-hk-connect-d1-top100-0-2-1d08535262fd/receipt.json",
+        "receipt_sha256": "fd59f33c858bd628ff4b5cd017fdbb40617b3c41b482e48e73e0e2f876fe7761",
+        "run_id": "20261015-hk-connect-d1-top100-0-2-1d08535262fd"
+      },
+      "shared_previous_latest_entry": {
+        "artifact_relative": "runs/20261015/HK_CONNECT_D1_TOP100_0_2/20261015-hk-connect-d1-top100-0-2-1d08535262fd/artifact.csv",
+        "artifact_sha256": "e25b4a1c3a35632ceeb4edaaea2b128ae47c98020fceae58fd8a395ad801f685",
+        "idempotency_key": "1d08535262fdefb6600df307d8921daaddb85a22b95353c69b4d0d8cbc841d18",
+        "manifest_relative": "runs/20261015/HK_CONNECT_D1_TOP100_0_2/20261015-hk-connect-d1-top100-0-2-1d08535262fd/manifest.json",
+        "manifest_sha256": "571194cd52ccc4ad715cab37ba9105a674a03fe7fde4751ac7e19728e416f5cd",
+        "owner": "v3_shared_data",
+        "receipt_relative": "runs/20261015/HK_CONNECT_D1_TOP100_0_2/20261015-hk-connect-d1-top100-0-2-1d08535262fd/receipt.json",
+        "receipt_sha256": "fd59f33c858bd628ff4b5cd017fdbb40617b3c41b482e48e73e0e2f876fe7761",
+        "run_id": "20261015-hk-connect-d1-top100-0-2-1d08535262fd",
+        "status": "READY",
+        "updated_at": "2026-10-14T17:30:44+08:00"
+      },
+      "signal_date": "20261014"
+    },
+    "20261016": {
+      "HK_create_absent": true,
+      "candidate_canary_artifact_sha256": "5cc686f63ed4d96a7e1e35cc2515c0f93385472a1afbc5268218dd06ef4b2e45",
+      "consumer_HK_previous_semantic_sha256": null,
+      "consumer_expected_previous": null,
+      "consumer_non_HK_manifest_sha256": "124ecd01ed8d2fae1c65e60fb7e1053d05488a808f27a08b62107755495c6a7e",
+      "consumer_preexisting_manifest_sha256": "124ecd01ed8d2fae1c65e60fb7e1053d05488a808f27a08b62107755495c6a7e",
+      "expected_proof_sha256": "ce40ef08eccb7af6053ddf6a34c2ce032522bbd049792e72bc32409fad1c486c",
+      "new_publisher_completes_same_verified_run_stage_signal_target_fields": true,
+      "score_coverage_counts": {
+        "eligible_codes": 689,
+        "missing_signal_codes": 0,
+        "original_signal_codes": 689,
+        "quality_quarantined_codes": 25,
+        "scoreable_signal_codes": 664
+      },
+      "shared_expected_previous": null,
+      "shared_previous_latest_entry": null,
+      "signal_date": "20261015"
+    }
+  }
+}

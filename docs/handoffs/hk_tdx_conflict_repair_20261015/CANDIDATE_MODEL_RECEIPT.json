@@ -1,0 +1,52 @@
+{
+  "active_pointer_installed": false,
+  "candidate_shared_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r2/app/upstreams/v3_shared_data",
+  "corrections_sha256": "2dbc4d0c3b77ff8a04353faa40c8442ddd362dede647aca6ea00a3ce99e4c221",
+  "current_panel_manifest_sha256": "bf80f6869862c9363f132d8ca0b134e613d919bc0441b52550efcc417726fba0",
+  "current_panel_sha256": "a562369dbc49f06761304c10ba7128d2289c7f0befd0d9264f7dbbc50404241c",
+  "elapsed_seconds": 32.262,
+  "excluded_code_count": 34,
+  "expected_HK_artifact_sha256": "29faa7164cb072e83ca8935e3b12eaee04eb513d069ba1f34ec500d551568e00",
+  "finite_unique_ordered_ranks": true,
+  "isolated_publication_called": true,
+  "isolated_publication_canary": {
+    "already_computed_real_model_rows_reused": true,
+    "artifact_sha256": "29faa7164cb072e83ca8935e3b12eaee04eb513d069ba1f34ec500d551568e00",
+    "existing_materialize_publish_and_verified_reader": true,
+    "production_store_modified": false,
+    "row_count": 100,
+    "status": "READY",
+    "temporary_master_and_owner_bindings_only": true
+  },
+  "master_code_count": 690,
+  "model_bundle_sha256": "3b0d5d5239342439cabf25b30012365a64d78839bc3cd4d90bad7be6ff4aaa07",
+  "model_fit_performed": false,
+  "new_continuity_breaks": [
+    {
+      "date": "20260706",
+      "reason": "cross_day_close_ratio",
+      "side": "next",
+      "symbol": "HK.02685"
+    }
+  ],
+  "preclose_values_changed": 1145,
+  "predicted_rows": 100,
+  "production_publication_called": false,
+  "proof_sha256": "42b51214f6a4c1e347cf4fdf71de79f64cc21c942d37e6a62fedab9919bd1fa0",
+  "raw_values_or_scores_exported": false,
+  "resolution_manifest_sha256": "c568c9f8abff082205bd19a051a1c25d3d3a0bf1a349883197139f7d3a1d0755",
+  "resolver_sha256": "ad5a31e468bc4bb1cf0cf6126c6fd7d631d6dfb0e5d1c5c79034e82f83410081",
+  "runtime_python": "3.13.12",
+  "score_coverage_counts": {
+    "eligible_codes": 690,
+    "missing_signal_codes": 0,
+    "original_signal_codes": 690,
+    "quality_quarantined_codes": 26,
+    "scoreable_signal_codes": 664
+  },
+  "scorer_sha256": "915d6233587d80e56115cd73f27406f79d8ac74c28ab919b744b6a8d7a56ea5e",
+  "signal_date": "20261014",
+  "source_or_state_modified": false,
+  "status": "CANDIDATE_ACTUAL_RESOLVER_MODEL100_PASS",
+  "target_date": "20261015"
+}
