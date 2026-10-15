@@ -1,0 +1,127 @@
+{
+  "schema": "guoen-live-rerun-result-v1",
+  "github_parent_commit": "16985dc24e1edec0a02efcbabe0ba2726565cf15",
+  "local_canonical_base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "pipeline_root": "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary",
+  "candidate_root": "evidence/guoen-live-rerun-20261015/candidate-20261015-01",
+  "run_id": "guoen-live-rerun-20261015-f6891bd10254b66b3cb2d72a",
+  "queue_id": "recent-day-guoen-20261015-b9418cf8660de7f303d0",
+  "started_at_utc": "2026-10-15T11:34:08.431Z",
+  "finished_at_utc": "2026-10-15T11:35:07.234Z",
+  "writer": "ushk_repair_writer",
+  "pre_run_review": "PASS, 6 independent tests",
+  "new_source_files": [
+    {
+      "path": "recent_day_freeze.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary/evidence/recent-day-20261014/recent_day_freeze.py",
+      "after_sha256": "7309a45e16aaca3ba6f17ca6ab819626b7eb9deff75692f0c5be21f88b0fbb23",
+      "before_sha256": "b82e8ef98b8590bfaee67470833ec5851ce6fac35cd2404856572e14cf3d963f"
+    },
+    {
+      "path": "test_guoen_targeted_rerun.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary/evidence/recent-day-20261014/test_guoen_targeted_rerun.py",
+      "after_sha256": "0d337738469b98d1b4a7549119d24b386eddd4cad6421da769f7e8ac5a68fda9",
+      "before_sha256": null
+    }
+  ],
+  "final_independent_review": {
+    "reviewed": "PASS",
+    "behavior_verified": "FAIL",
+    "overall_semantic_acceptance": "FAIL",
+    "candidate_manifest_sha256": "4e2a48f036e00671f053709f36a470c69b069f55e25f103f9d7aecafde7ea267",
+    "queue_state_sha256": "a57f1bfae0e4c430212919ac8e64f53efefdfa938edbb5f040409b40a4c54f27",
+    "attempts": {
+      "total": 2,
+      "per_article": 1,
+      "mechanical_status": "SUCCEEDED"
+    },
+    "articles": [
+      {
+        "article_id": "EASTMONEY:AN202610141830470256",
+        "job_id": "fad135c36dcdf18db62229e4d9d9a0067cea967e28c43dcc34edf5d2ff92a2a2",
+        "disposition": "SELECTED_EVENT",
+        "selection_basis": "OPERATING_EVENT",
+        "direction": "POSITIVE",
+        "business_event_fact": "PASS",
+        "positive_direction": "FAIL_UNSUPPORTED",
+        "citation_coverage": "FAIL",
+        "raw_sha256": "a83327ff9a6b7b60e4a1f8e2eb8d40cb6eb804e3179c37385ceb95f67997cf7b",
+        "projection_sha256": "a60ca06b95c21f405209d75557e556736152f1259d1e81aecaed3caed68eae4f",
+        "validated_sha256": "45985931a3f51e1a8a684e7727e789824927b52a2b869fbde74d8c7fe1ab768e",
+        "wall_seconds": 29.981,
+        "ttfc_seconds": 14.927,
+        "first_event_seconds": 0.767,
+        "findings": [
+          "Completion, 80% ownership and consolidation are supported; positive economic direction is not established.",
+          "U000009 uses 'the Company' rather than the full issuer name in the compound claim; payment and registration facts from U000008 are asserted in reason without separate evidence-array citation."
+        ]
+      },
+      {
+        "article_id": "EASTMONEY:AN202610141830469348",
+        "job_id": "75d4bfcd72cf787b7c4fc81d6182d3f4c9c7bdf110aedcceafb43e7d1e204f8a",
+        "disposition": "SELECTED_PERFORMANCE",
+        "selection_basis": "PERFORMANCE_RESEARCH",
+        "direction": "POSITIVE",
+        "business_judgment": "PASS",
+        "reported_values": "PASS",
+        "citation_coverage": "FAIL",
+        "raw_sha256": "526bf5fd767d60bb44e749c987486b715e5f714f4da599ff0b2c85a33e821d82",
+        "projection_sha256": "45814ef496e2b61dd3fdc2e26310847099f272628cd01222e3f2623c5a8f7f80",
+        "validated_sha256": "6540b4aaf00e38044840d6a7afd9a56085cc29b47c9c58da26a050cec906b2d0",
+        "wall_seconds": 28.817,
+        "ttfc_seconds": 5.071,
+        "first_event_seconds": 0.03,
+        "findings": [
+          "Net-profit range/growth cites U000016 only; upper bound U000017 and growth U000019 are not cited.",
+          "Adjusted-profit range/growth cites U000023 only; upper bound U000024 and growth U000026 are not cited.",
+          "EPS U000028, business drivers and unaudited preliminary-result limitations are supported."
+        ]
+      }
+    ],
+    "request_profile": {
+      "response_model": "qwen3_8_flash_next",
+      "temperature": 0,
+      "enable_thinking": false,
+      "request_schema_sha256": "30816be27a055151df27a26a683b093e502c937573feee7ae2a7e6150511bc07",
+      "parser_sha256": "f5b561b0f9be34b727df81b5002531bd955ce6e2b0949756c0b140d5ef2596a9",
+      "canonical_contract_sha256": "e1e1c9d5df3a2e87c636469c3023ce19b4e0cb615fdd6a3d4aa6091d35861cc3",
+      "runtime_settings_at_request": "CANNOT_CONFIRM",
+      "runtime_sha_discrepancy": {
+        "candidate_and_current_disk": "e05af04aa712ee134354a8c0fa97812761cee7d1304b3914c87b6a8636b22a99",
+        "stream_receipts": "836ee204bc85ffb772e4badbebaaf48e3d595d9efbf8479155a1dd48465f08ea"
+      },
+      "stream_schema_sha_discrepancy": "7f90e07cbb3572bbb8c33c75b0efa1b00cbb2d948821b1768a18a9526c79bbc8; meaning CANNOT_CONFIRM, actual serialized request schema matches candidate"
+    },
+    "old_raw_and_queue_unchanged": true,
+    "preflight_zero_attempt": "Parent-observed in visible browser; independent final queue verifies one attempt per article",
+    "model_load_timing": "Parent observed load-ready before second Start. Exact admin load timestamp absent in late-created receipt; independent precise ordering CANNOT_CONFIRM.",
+    "reviewer_identity": "simple_review_resume",
+    "reviewer_model": "gpt-6-luna",
+    "reviewer_reasoning": "max"
+  },
+  "temporary_ui": {
+    "url": "http://127.0.0.1:60922/",
+    "pid": 82361,
+    "explicit_candidate_root": true,
+    "visible_start": true,
+    "final_state": "FINISHED 2 SUCCEEDED",
+    "shutdown": "TERM after completed, only task-created helper closed",
+    "session_exit_code": 143
+  },
+  "states": {
+    "IMPLEMENTED": true,
+    "TESTED": "6 new independent tests; prior 33 unchanged tests reused",
+    "INTEGRATED": "original announcement runner",
+    "DEPLOYED": "loaded in actual local announcement rerun process only",
+    "API_VERIFIED": "actual two model responses",
+    "UI_VERIFIED": "two-target start and completion; screenshot retained",
+    "REVIEWED": "PASS (review performed)",
+    "BEHAVIOR_VERIFIED": "FAIL (full answer quality)",
+    "NATURAL_VERIFIED": "NOT_RUN; manual rerun"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
