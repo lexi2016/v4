@@ -1,0 +1,641 @@
+--- a/stage_center/_live_collectors_parts/hk_minute.py
++++ b/stage_center/_live_collectors_parts/hk_minute.py
+@@ -707,12 +707,13 @@
+         if getattr(plan, "same_day_late_observation_recovery", False):
+             # Current quotes cannot reconstruct the opening book. Keep bars as
+             # a watch list and preserve this gap instead of probing quotes again.
+-            return _v4_global(_v4_scope, 'replace')(
++            recovered = _v4_global(_v4_scope, 'replace')(
+                 source, status="PARTIAL_WITH_ROWS",
+                 cannot_confirm=(*source.cannot_confirm, "FUTU_AFTERFACT_CAPTURE_NOT_PIT_SAFE", "HK_HISTORICAL_ORDERBOOK_UNAVAILABLE"),
+                 source_evidence=(*source.source_evidence, "same_day_late_observation_recovery=true",
+                                  "active_snapshot_degraded_to_futu_observation=true", "pit_safe=false", "natural_time_capture=CANNOT_CONFIRM"),
+             )
++            return _mark_hk_futu_capture_pit_metadata(_v4_scope, plan, recovered)
+         from inspect import signature
+         refresh = _v4_global(_v4_scope, 'refresh_hk_active_lanes')
+         optional = {"snapshot_root": locals().get("snapshot_root"),
+@@ -731,13 +732,14 @@
+             and set(enriched.cannot_confirm).issubset(set(source.cannot_confirm) | snapshot_gaps)
+             and set(enriched.cannot_confirm) & snapshot_gaps
+         ):
+-            return _v4_global(_v4_scope, 'replace')(
++            recovered = _v4_global(_v4_scope, 'replace')(
+                 source, status="PARTIAL_WITH_ROWS",
+                 cannot_confirm=(*enriched.cannot_confirm, "HK_HISTORICAL_ORDERBOOK_UNAVAILABLE"),
+                 source_evidence=(*enriched.source_evidence,
+                                  "active_snapshot_degraded_to_futu_observation=true", "pit_safe=false"),
+             )
+-        return enriched
++            return _mark_hk_futu_capture_pit_metadata(_v4_scope, plan, recovered)
++        return _mark_hk_futu_capture_pit_metadata(_v4_scope, plan, enriched)
+     root = _v4_global(_v4_scope, '_shared_scripts_root')(shared_root)
+     module = _v4_global(_v4_scope, '_load_shared_module')(root, "scripts.live_acquisition.pytdx_exhq")
+     scoped_runner = _v4_global(_v4_scope, '_scoped_process_runner')(root, process_runner)
+@@ -788,6 +790,63 @@
+         stage_id=plan.stage_id,
+         cutoff_at=_v4_global(_v4_scope, 'STAGE_BY_ID')[plan.stage_id].cutoff,
+         pool_artifact_sha256=getattr(hk_binding, "sha256", None),
++    )
++
++
++def _mark_hk_futu_capture_pit_metadata(_v4_scope, plan, source):
++    """Report capture-clock facts separately from the existing bar-window flag."""
++    if plan.stage_id not in {"STAGE_1300_1315", "STAGE_1445_1500"} or not source.rows:
++        return source
++
++    from datetime import datetime
++    from zoneinfo import ZoneInfo
++
++    hong_kong = ZoneInfo("Asia/Hong_Kong")
++    stage = _v4_global(_v4_scope, 'STAGE_BY_ID').get(plan.stage_id)
++    cutoff_text = str(getattr(stage, "cutoff", ""))
++    trade_date = str(getattr(plan, "trade_date", ""))
++    try:
++        if len(trade_date) != 8 or not trade_date.isdigit() or not cutoff_text:
++            raise ValueError("stage cutoff scope is unavailable")
++        cutoff_date = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:8]}"
++        cutoff_at = datetime.fromisoformat(f"{cutoff_date}T{cutoff_text}").replace(tzinfo=hong_kong)
++        capture_times = []
++        for row in source.rows:
++            captured_at = row.get("futu_captured_at") if isinstance(row, Mapping) else None
++            if not isinstance(captured_at, str) or not captured_at.strip():
++                raise ValueError("capture clock is unavailable")
++            parsed = datetime.fromisoformat(captured_at)
++            if parsed.tzinfo is None:
++                raise ValueError("capture clock has no timezone")
++            capture_times.append(parsed.astimezone(hong_kong))
++    except (OverflowError, TypeError, ValueError):
++        clock_available = False
++        date_matches = None
++        before_cutoff = None
++        gap = "HK_FUTU_CAPTURE_CLOCK_UNAVAILABLE"
++    else:
++        clock_available = True
++        date_matches = all(captured_at.date() == cutoff_at.date() for captured_at in capture_times)
++        before_cutoff = all(captured_at < cutoff_at for captured_at in capture_times) if date_matches else None
++        gap = (
++            "HK_FUTU_CAPTURE_CLOCK_DATE_MISMATCH" if not date_matches
++            else "HK_FUTU_FULL_CHAIN_PIT_UNVERIFIED" if before_cutoff
++            else "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"
++        )
++
++    before_value = "CANNOT_CONFIRM" if before_cutoff is None else str(before_cutoff).lower()
++    date_value = "CANNOT_CONFIRM" if date_matches is None else str(date_matches).lower()
++    evidence = (
++        f"futu_capture_clock_available={str(clock_available).lower()}",
++        f"futu_capture_clock_date_matches_stage={date_value}",
++        f"futu_capture_before_stage_cutoff={before_value}",
++        "futu_full_chain_pit_status=CANNOT_CONFIRM",
++        "futu_capture_clock_alone_is_not_pit_proof=true",
++    )
++    return _v4_global(_v4_scope, 'replace')(
++        source,
++        cannot_confirm=tuple(dict.fromkeys((*source.cannot_confirm, gap))),
++        source_evidence=tuple(dict.fromkeys((*source.source_evidence, *evidence))),
+     )
+ 
+ 
+--- a/stage_center/_runner_parts/runner_receipts.py
++++ b/stage_center/_runner_parts/runner_receipts.py
+@@ -59,7 +59,16 @@
+ 
+ 
+ def _StageCenterRunner__write_receipt_body(_v4_scope, /, self, payload, trade_date, stage_id):
++    runner_error = _v4_global(_v4_scope, 'RunnerError')
++    if "RESEARCH_ONLY" in payload and payload["RESEARCH_ONLY"] is not True:
++        raise runner_error("runner receipt RESEARCH_ONLY contract conflict")
+     result = {"schema_version": "stage_center.runner.receipt.v1", "runner": "stage_center", **_v4_global(_v4_scope, '_deadline').before_receipt(payload), **_v4_global(_v4_scope, 'SAFETY_FLAGS')}
++    if any(result.get(key) is not False for key in ("production_allowed", "buy_gate_updated", "orders_sent")):
++        raise runner_error("runner receipt safety contract conflict")
++    if "RESEARCH_ONLY" not in result:
++        result["RESEARCH_ONLY"] = True
++    elif result["RESEARCH_ONLY"] is not True:
++        raise runner_error("runner receipt RESEARCH_ONLY contract conflict")
+     if self.config.backfill_run_id:
+         result.update(
+             {
+--- a/tests/test_hk_futu_afternoon_routing.py
++++ b/tests/test_hk_futu_afternoon_routing.py
+@@ -10,8 +10,10 @@
+ import stage_center.live_collectors as live
+ 
+ 
+-def collect(stage, reason=None, *, late=False, empty=False):
+-    row = {"code": "HK.01196", "futu_captured_at": "2026-10-13T13:15:03+08:00"}
++def collect(stage, reason=None, *, late=False, empty=False, captured_at="2026-10-13T13:15:03+08:00"):
++    row = {"code": "HK.01196", "score": 0.75, "temporal_cutoff_safe": True}
++    if captured_at is not None:
++        row["futu_captured_at"] = captured_at
+     source = SourceResult("futu", "READY", rows=() if empty else (row,), requested_rows=1)
+     calls = []
+     def refresh(value, **kwargs):
+@@ -64,3 +66,32 @@
+ def test_empty_futu_result_does_not_create_observation_rows():
+     result, calls = collect("STAGE_1300_1315", empty=True)
+     assert not result.rows and not calls
++
++
++@pytest.mark.parametrize(
++    "captured_at,clock_available,date_matches,before_cutoff,gap",
++    [
++        ("2026-10-13T13:14:59+08:00", "true", "true", "true", "HK_FUTU_FULL_CHAIN_PIT_UNVERIFIED"),
++        ("2026-10-13T13:15:00+08:00", "true", "true", "false", "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"),
++        ("2026-10-13T13:15:03+08:00", "true", "true", "false", "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"),
++        (None, "false", "CANNOT_CONFIRM", "CANNOT_CONFIRM", "HK_FUTU_CAPTURE_CLOCK_UNAVAILABLE"),
++    ],
++)
++def test_capture_clock_metadata_stays_separate_from_bar_window(
++    captured_at, clock_available, date_matches, before_cutoff, gap
++):
++    result, calls = collect("STAGE_1300_1315", captured_at=captured_at)
++
++    assert calls == ["STAGE_1300_1315"]
++    assert result.status == "READY"
++    assert len(result.rows) == 1
++    row = result.rows[0]
++    assert row["score"] == 0.75
++    assert row["temporal_cutoff_safe"] is True
++    assert row["candidate_lanes"] == ["LIVE_HKCONNECT_GAINER"]
++    assert gap in result.cannot_confirm
++    assert "futu_full_chain_pit_status=CANNOT_CONFIRM" in result.source_evidence
++    assert "futu_capture_clock_alone_is_not_pit_proof=true" in result.source_evidence
++    assert f"futu_capture_clock_available={clock_available}" in result.source_evidence
++    assert f"futu_capture_clock_date_matches_stage={date_matches}" in result.source_evidence
++    assert f"futu_capture_before_stage_cutoff={before_cutoff}" in result.source_evidence
+--- a/tests/test_natural_lineage_20261014.py
++++ b/tests/test_natural_lineage_20261014.py
+@@ -48,12 +48,17 @@
+     payload = _receipt(lane)
+     payload['large_source_evidence'] = 'x' * 1_280_000
+     first = runner._write_receipt(payload, '20261014', 'STAGE_0945_1030')
++    assert first['RESEARCH_ONLY'] is True
++    assert first['production_allowed'] is False
++    assert first['buy_gate_updated'] is False
++    assert first['orders_sent'] is False
+     out = read_stage_execution(root, '20261014', 'STAGE_0945_1030', {'HK_CONNECT':lane}, selection_store=store)
+     assert out['receipt_history_binding'] == 'OWNER_HISTORY_SHA_BOUND'
+     assert out['selection_artifact_bindings']['HK_CONNECT']['status'] == 'BOUND_TO_VERIFIED_SELECTION_TRIO'
+     assert out['status'] == 'OWNER_RECEIPT_SELECTION_TRIOS_BOUND_EXECUTION_UNVERIFIED'
+     assert out['natural_verified'] is False and out['execution_verified'] is False
+     first_raw = (root / first['receipt_history']['relative_path']).read_bytes()
++    assert json.loads(first_raw)['RESEARCH_ONLY'] is True
+     second = runner._write_receipt(first, '20261014', 'STAGE_0945_1030')
+     assert second['recorded_at'] != first['recorded_at']
+     assert (root / first['receipt_history']['relative_path']).read_bytes() == first_raw
+@@ -63,6 +68,22 @@
+     out = read_stage_execution(root, '20261014', 'STAGE_0945_1030', {'HK_CONNECT':lane}, selection_store=store)
+     assert out['receipt_history_binding'] == 'OWNER_HISTORY_CONFLICT'
+     assert out['natural_verified'] is False
++
++
++def test_owner_writer_rejects_explicit_research_only_false_before_binding(tmp_path):
++    from types import SimpleNamespace
++    from stage_center.runner import RunnerError, StageCenterRunner
++    store, lane = _published(tmp_path)
++    root = tmp_path / 'receipts'
++    runner = object.__new__(StageCenterRunner)
++    runner.config = SimpleNamespace(receipt_root=root, selection_root=store.root, backfill_run_id=None)
++    payload = _receipt(lane)
++    payload['RESEARCH_ONLY'] = False
++
++    with pytest.raises(RunnerError, match='RESEARCH_ONLY'):
++        runner._write_receipt(payload, '20261014', 'STAGE_0945_1030')
++
++    assert not root.exists()
+ 
+ 
+ def test_mismatched_selection_is_not_bound(tmp_path):
+--- a/ops/_run_stage_center_nodes_parts/stage_dispatch.py
++++ b/ops/_run_stage_center_nodes_parts/stage_dispatch.py
+@@ -3,6 +3,8 @@
+ import hashlib
+ import hashlib as _stage_hashlib
+ import os
++import subprocess
++import sys
+ from pathlib import Path
+ from ._namespace import read_global as _v4_global
+ 
+@@ -832,6 +834,98 @@
+         return persisted
+     finally:
+         lock.release()
++
++
++def _automatic_review_failure(receipt_root, trade_date, stage_id, receipt_sha256, reason):
++    """Persist bounded sidecar diagnostics without changing the owner receipt."""
++    if not receipt_root or not receipt_sha256:
++        return
++    try:
++        import json
++        from infrastructure.owned_io import SafeRoot
++        relative = f"independent_execution_reviews/rejections/{trade_date}/{stage_id}/{receipt_sha256}.json"
++        raw = json.dumps({
++            "schema_version": "stage_center.automatic_execution_review_rejection.v1",
++            "trade_date": trade_date, "stage_id": stage_id,
++            "expected_receipt_sha256": receipt_sha256,
++            "reviewer_identity_or_role": "AUTOMATED_INDEPENDENT_EXECUTION_VERIFIER",
++            "reason": reason[:240],
++        }, sort_keys=True, separators=(",", ":")).encode()
++        SafeRoot(receipt_root).write_bytes(relative, raw, require_absent=True)
++    except (OSError, ValueError):
++        return
++
++
++def _maybe_publish_automatic_execution_review(
++    _v4_scope, /, runner, trade_date, stage_id, *, mode, persisted,
++):
++    """Run the independent readback once, after a completed natural HK receipt."""
++    if (
++        mode != "NATURAL"
++        or not isinstance(persisted, dict)
++        or persisted.get("dispatch_mode") != "NATURAL"
++        or persisted.get("due_status") != "DUE"
++        or persisted.get("mode") == "BACKFILL"
++        or persisted.get("execution_origin") not in (None, "NATURAL")
++        or persisted.get("same_day_late_observation_recovery") is True
++        or not isinstance(persisted.get("markets"), dict)
++        or not isinstance(persisted["markets"].get("HK_CONNECT"), dict)
++        or "HK_CONNECT" not in _v4_global(_v4_scope, "STAGE_BY_ID")[stage_id].markets
++    ):
++        return
++    if persisted["markets"]["HK_CONNECT"].get("selection_mode") == "BACKFILL":
++        return
++    runner_config = getattr(runner, "config", None)
++    if runner_config is None:
++        return
++    receipt_sha256 = None
++    receipt_root = getattr(runner_config, "receipt_root", None)
++    try:
++        receipt_path = runner._receipt_path(trade_date, stage_id)
++        receipt_raw = _v4_global(_v4_scope, "Path")(receipt_path).read_bytes()
++        receipt_sha256 = _stage_hashlib.sha256(receipt_raw).hexdigest()
++        roots = {
++            "root": getattr(runner_config, "receipt_root", None),
++            "raw_root": getattr(runner_config, "raw_root", None),
++            "selection_root": getattr(runner_config, "selection_root", None),
++        }
++        if any(value is None for value in roots.values()):
++            _automatic_review_failure(receipt_root, trade_date, stage_id, receipt_sha256, "SIDECAR_CONFIGURED_ROOT_MISSING")
++            return
++        if getattr(runner_config, "hk_d1_root", None) is None:
++            _automatic_review_failure(receipt_root, trade_date, stage_id, receipt_sha256, "SIDECAR_CONFIGURED_HK_D1_ROOT_MISSING")
++            return
++        facade_path = _v4_global(_v4_scope, "Path")(_v4_global(_v4_scope, "__file__")).resolve()
++        verifier_path = facade_path.parent / "verify_stage_execution.py"
++        command = [
++            sys.executable,
++            str(verifier_path),
++            "--date", trade_date,
++            "--stage", stage_id,
++            "--root", str(roots["root"]),
++            "--raw-root", str(roots["raw_root"]),
++            "--selection-root", str(roots["selection_root"]),
++            "--expected-receipt-sha256", receipt_sha256,
++            "--hk-d1-root", str(runner_config.hk_d1_root),
++        ]
++        for argument, field in (("--preselection-source-root", "preselection_source_root"),
++                                ("--hk-second-filter-root", "hk_second_filter_root"),
++                                ("--shared-research-root", "v4_morning_news_root")):
++            if getattr(runner_config, field, None) is not None:
++                command.extend((argument, str(getattr(runner_config, field))))
++        completed = subprocess.run(
++            command, cwd=str(facade_path.parent.parent), check=False,
++            capture_output=True, text=True, timeout=30,
++        )
++        if completed.returncode != 0:
++            _automatic_review_failure(receipt_root, trade_date, stage_id, receipt_sha256, f"SIDECAR_EXIT_NONZERO:{completed.returncode}")
++    except subprocess.TimeoutExpired:
++        _automatic_review_failure(receipt_root, trade_date, stage_id, receipt_sha256, "SIDECAR_TIMEOUT")
++    except Exception as exc:
++        _automatic_review_failure(receipt_root, trade_date, stage_id, receipt_sha256, "SIDECAR_STARTUP_OR_WAIT_ERROR:" + type(exc).__name__)
++        # Review publication is a nonfatal readback sidecar.  The already
++        # completed selection receipt remains the dispatch result.
++        return
+ 
+ 
+ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_at, *, mode, runner, precaptures):
+@@ -1315,6 +1409,12 @@
+             persisted,
+             rewrite=lambda failed: runner._write_receipt(failed, trade_date, stage_id),
+         )
++        # The sidecar only reads the completed artifacts; do not hold the
++        # stage slot lock while its bounded subprocess runs.
++        lock.release()
++        _maybe_publish_automatic_execution_review(
++            _v4_scope, runner, trade_date, stage_id, mode=mode, persisted=persisted,
++        )
+         return persisted
+     finally:
+         lock.release()
+--- a/stage_center/hk_stage8/rtdata.py
++++ b/stage_center/hk_stage8/rtdata.py
+@@ -2,6 +2,7 @@
+ from __future__ import annotations
+ 
+ import json
++import hashlib
+ import os
+ import re
+ from datetime import datetime
+@@ -25,6 +26,42 @@
+ _STAGE8_CUTOFF_AT = "15:55:00"
+ _STAGE8_RT_DATA_BATCH_SIZE = 30
+ _STAGE8_NATURAL_SOURCE = "FUTU_RTDATA_NATURAL"
++
++
++def _persist_stage8_rtdata_capture(snapshot_root, *, trade_date, stage_id, codes,
++                                  fetched, provider_started_at, provider_finished_at):
++    """Preserve the existing provider response for independent readback."""
++    from infrastructure.owned_io import SafeRoot
++    if not re.fullmatch(r"\d{8}", trade_date) or stage_id != "STAGE_1545_1555":
++        raise ValueError("invalid Stage8 capture scope")
++    payload = {
++        "schema_version": "stage_center.hk_stage8_rtdata_capture.v1",
++        "trade_date": trade_date, "stage_id": stage_id, "market": "HK_CONNECT",
++        "codes": list(codes), "provider_started_at": provider_started_at,
++        "provider_finished_at": provider_finished_at, "captured_at": provider_finished_at,
++        "rows": list(fetched.get("rows") or ()), "errors": list(fetched.get("errors") or ()),
++        "cleanup_warnings": list(fetched.get("cleanup_warnings") or ()),
++        "missing_codes": list(fetched.get("missing_codes") or ()),
++        "batch_evidence": list(fetched.get("batch_evidence") or ()),
++        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
++    }
++    raw = (json.dumps(payload, ensure_ascii=False, sort_keys=True,
++                      separators=(",", ":"), allow_nan=False) + "\n").encode()
++    if len(raw) > 64 * 1024 * 1024:
++        raise ValueError("Stage8 capture exceeds bounded size")
++    digest = hashlib.sha256(raw).hexdigest()
++    relative = f".hk_stage8_rtdata_captures/{trade_date}/{stage_id}/{digest}.json"
++    root = Path(snapshot_root).expanduser().resolve()
++    owned = SafeRoot(root)
++    try:
++        owned.write_bytes(relative, raw, require_absent=True)
++    except FileExistsError:
++        if owned.read_bytes(relative, max_bytes=64 * 1024 * 1024) != raw:
++            raise ValueError("Stage8 capture immutable SHA conflict")
++    return (f"stage8_rtdata_capture_path={root / relative}",
++            f"stage8_rtdata_capture_sha256={digest}",
++            f"stage8_rtdata_provider_started_at={provider_started_at}",
++            f"stage8_rtdata_provider_finished_at={provider_finished_at}")
+ 
+ def _stage8_market_timestamp(value: Any, trade_date: str) -> datetime | None:
+     """Parse an RT_DATA timestamp and normalize explicit offsets to Shanghai."""
+@@ -380,9 +417,21 @@
+     )
+     provider = rtdata_provider or _fetch_hk_stage8_rtdata
+     try:
++        provider_started_at = datetime.now(_SHANGHAI).isoformat()
+         fetched = dict(provider(requested, batch_size=_STAGE8_RT_DATA_BATCH_SIZE))
++        provider_finished_at = datetime.now(_SHANGHAI).isoformat()
+     except Exception as error:
+         return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(requested), cannot_confirm=(f"HK_STAGE8_RTDATA_PROVIDER_ERROR:{type(error).__name__}",), source_evidence=tuple(dict.fromkeys((*evidence, *active_evidence))))
++    try:
++        capture_evidence = _persist_stage8_rtdata_capture(
++            snapshot_root, trade_date=plan.trade_date, stage_id=plan.stage_id,
++            codes=requested, fetched=fetched, provider_started_at=provider_started_at,
++            provider_finished_at=provider_finished_at,
++        )
++    except (OSError, ValueError, TypeError) as error:
++        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(requested),
++            cannot_confirm=(f"HK_STAGE8_RTDATA_CAPTURE_PERSIST_FAILED:{type(error).__name__}",),
++            source_evidence=tuple(dict.fromkeys((*evidence, *active_evidence))))
+     stage_start = _exact_market_timestamp(f"{plan.trade_date[:4]}-{plan.trade_date[4:6]}-{plan.trade_date[6:]}T{_STAGE8_START_AT}", plan.trade_date)
+     raw_by_code: dict[str, list[tuple[datetime, Mapping[str, Any]]]] = {}
+     temporal_error = False
+@@ -444,6 +493,7 @@
+             (
+                 *evidence,
+                 *active_evidence,
++                *capture_evidence,
+                 f"stage8_rtdata_requested_code_count={len(requested)}",
+                 f"stage8_rtdata_completed_code_count={len(raw_by_code)}",
+                 f"stage8_rtdata_missing_code_count={len(missing)}",
+--- a/stage_center/independent_execution_review.py
++++ b/stage_center/independent_execution_review.py
+@@ -10,6 +10,7 @@
+ from datetime import datetime
+ import hashlib
+ import json
++import os
+ from pathlib import Path
+ import re
+ from typing import Any, Mapping
+@@ -223,6 +224,49 @@
+     return facts, (root, expected_relative, raw)
+ 
+ 
++def _automated_execution_inputs(attestation, *, receipt_root, selection_store,
++                                trade_date, stage_id, receipt_sha256, lane):
++    """Revalidate typed automatic facts using only locally configured roots."""
++    from ops import verify_stage_execution as verifier
++    verifier_sha = _sha(Path(verifier.__file__).read_bytes())
++    if attestation.get("reviewer_verifier_code_sha256") != verifier_sha:
++        raise _ReviewError("AUTOMATED_VERIFIER_CODE_SHA_MISMATCH")
++    if (attestation.get("scope_markets") != ["HK_CONNECT"]
++            or attestation.get("scope_semantics") != "SCHEDULER_AND_ARTIFACT_OPERATION_FACTS_ONLY"):
++        raise _ReviewError("AUTOMATED_REVIEW_SCOPE_MISMATCH")
++    selection_root = Path(selection_store.root).resolve(strict=True)
++    stage_root = selection_root.parent
++    receipt_root = Path(receipt_root).resolve(strict=True)
++    # All ordinary owner paths are siblings of the bound SelectionStore.
++    # External data roots come from the trusted application environment only.
++    if receipt_root != stage_root / "receipts":
++        raise _ReviewError("AUTOMATED_OWNER_ROOT_BINDING_MISMATCH")
++    data_root = Path(os.environ.get("V35_DATA_ROOT") or stage_root.parent / "data").expanduser().resolve(strict=True)
++    pool_source = os.environ.get("V35_PRESELECTION_SOURCE_ROOT")
++    shared_source = os.environ.get("V35_MORNING_NEWS_DATA_ROOT")
++    try:
++        inputs = verifier.validate_execution_inputs(
++            trade_date=trade_date, stage_id=stage_id, receipt_root=receipt_root,
++            raw_root=stage_root / "raw", selection_root=selection_root,
++            expected_receipt_sha256=receipt_sha256, hk_d1_root=data_root,
++            preselection_source_root=Path(pool_source).expanduser() if pool_source else None,
++            hk_second_filter_root=data_root / "opening_second_filter",
++            shared_research_root=Path(shared_source).expanduser() if shared_source else None,
++        )
++    except Exception as exc:
++        raise _ReviewError("AUTOMATED_EXECUTION_INPUT_REVALIDATION_FAILED") from exc
++    if attestation.get("execution_inputs") != inputs:
++        raise _ReviewError("AUTOMATED_EXECUTION_INPUTS_MISMATCH")
++    market = attestation.get("markets", {}).get("HK_CONNECT", {})
++    expected_binding = {"schema_version": "stage_center.automated_source_binding.v1",
++        "source_evidence_sha256": _sha(_canonical_bytes(lane.get("source_evidence"))),
++        "sources": inputs["source_files"]}
++    if (market.get("source_binding") != expected_binding or market.get("operation_status") != "VERIFIED"
++            or market.get("formal_eligibility_status") != "CANNOT_CONFIRM" or market.get("pit_status") != "CANNOT_CONFIRM"
++            or market.get("pit_cannot_confirm") != inputs["source_time_facts"]["pit_cannot_confirm"]):
++        raise _ReviewError("AUTOMATED_SOURCE_BINDING_MISMATCH")
++
++
+ def read_independent_execution_review(
+     root: Path | None,
+     trade_date: str,
+@@ -363,19 +407,22 @@
+                 ):
+                     raise _ReviewError(f"CURRENT_SELECTION_TRIO_CANONICAL_SHA_CHANGED:{market}")
+ 
+-            source_snapshots_market, normalized_sources = _source_evidence_valid(
+-                market_review.get("source_binding") if isinstance(market_review, dict) else None,
+-                lane.get("source_evidence"), source_root,
+-            )
+-            source_snapshots.extend(source_snapshots_market)
+-            # Attest only source descriptors whose bytes and immutable selection
+-            # evidence were both checked in this read.
+-            declared_sources = market_review["source_binding"]["sources"]
+-            descriptor_keys = ("identity", "path", "sha256", "cutoff", "temporal_semantics")
+-            declared_projection = [{key: source.get(key) for key in descriptor_keys} for source in declared_sources]
+-            if declared_projection != normalized_sources:
+-                raise _ReviewError(f"INDEPENDENT_SOURCE_DESCRIPTORS_MISMATCH:{market}")
+-
++            if reviewer == "AUTOMATED_INDEPENDENT_EXECUTION_VERIFIER":
++                _automated_execution_inputs(attestation, receipt_root=root, selection_store=selected_store,
++                    trade_date=trade_date, stage_id=stage_id, receipt_sha256=receipt_sha256, lane=lane)
++            else:
++                source_snapshots_market, normalized_sources = _source_evidence_valid(
++                    market_review.get("source_binding") if isinstance(market_review, dict) else None,
++                    lane.get("source_evidence"), source_root,
++                )
++                source_snapshots.extend(source_snapshots_market)
++                # Attest only source descriptors whose bytes and immutable selection
++                # evidence were both checked in this read.
++                declared_sources = market_review["source_binding"]["sources"]
++                descriptor_keys = ("identity", "path", "sha256", "cutoff", "temporal_semantics")
++                declared_projection = [{key: source.get(key) for key in descriptor_keys} for source in declared_sources]
++                if declared_projection != normalized_sources:
++                    raise _ReviewError(f"INDEPENDENT_SOURCE_DESCRIPTORS_MISMATCH:{market}")
+         snapshots.extend(source_snapshots)
+         # Re-read every bound file so concurrent replacement cannot pass.
+         for bound_root, relative, before in snapshots:
+--- a/tests/test_independent_execution_review_20261015.py
++++ b/tests/test_independent_execution_review_20261015.py
+@@ -4,6 +4,7 @@
+ from datetime import datetime
+ import hashlib
+ import json
++import importlib.util
+ from pathlib import Path
+ from pathlib import PurePosixPath
+ from zoneinfo import ZoneInfo
+@@ -13,6 +14,65 @@
+ from stage_center.execution_evidence import read_stage_execution
+ from stage_center.scheduler import evaluate_due
+ from infrastructure.owned_io import SafeRoot
++
++
++def _automatic_fixture(tmp_path, monkeypatch):
++    path = Path(__file__).with_name("test_automatic_execution_review_20261015.py")
++    spec = importlib.util.spec_from_file_location("automatic_fixture_for_reader", path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    fixture = module._fixture(tmp_path)
++    monkeypatch.setenv("V35_DATA_ROOT", str(fixture["hk_d1_root"]))
++    monkeypatch.delenv("V35_PRESELECTION_SOURCE_ROOT", raising=False)
++    monkeypatch.delenv("V35_MORNING_NEWS_DATA_ROOT", raising=False)
++    module._verify(fixture)
++    return module, fixture
++
++
++@pytest.mark.parametrize("changed", ["snapshot", "d1", "wrong_root", "wrong_code_sha", "extra_inputs"])
++def test_automatic_reader_revalidates_extra_sources_and_local_code(tmp_path, monkeypatch, changed):
++    module, fixture = _automatic_fixture(tmp_path, monkeypatch)
++    directory = fixture["receipt_root"] / "independent_execution_reviews" / module.DATE / module.STAGE
++    if changed in {"snapshot", "d1"}:
++        key = "active_snapshot" if changed == "snapshot" else "hk_d1"
++        path = fixture["source_files"][key]
++        value = json.loads(path.read_bytes())
++        value["trade_date"] = "20990101"
++        path.write_bytes(_canonical(value))
++    elif changed == "wrong_root":
++        other_root = tmp_path / "unrelated-data"
++        other_root.mkdir()
++        monkeypatch.setenv("V35_DATA_ROOT", str(other_root))
++    else:
++        path = directory / "attestation.json"
++        attestation = json.loads(path.read_bytes())
++        if changed == "wrong_code_sha":
++            attestation["reviewer_verifier_code_sha256"] = "0" * 64
++        else:
++            attestation["execution_inputs"]["source_reconciliation"]["source_rows"] = 999
++        raw = _canonical(attestation)
++        path.write_bytes(raw)
++        index_path = directory / "index.json"
++        index = json.loads(index_path.read_bytes()); index["attestation_sha256"] = _sha(raw)
++        index_path.write_bytes(_canonical(index))
++    current = read_stage_execution(fixture["receipt_root"], module.DATE, module.STAGE,
++        {"HK_CONNECT": fixture["lane"]}, selection_store=fixture["selection_store"])
++    assert current["independent_execution_review"]["status"] == "CANNOT_CONFIRM"
++    assert current["operating_execution_by_market"]["HK_CONNECT"]["execution_verified"] is False
++
++
++def test_automatic_readonly_validator_never_publishes_or_writes(tmp_path, monkeypatch):
++    module, fixture = _automatic_fixture(tmp_path, monkeypatch)
++    from ops.verify_stage_execution import validate_execution_inputs
++    before = {str(path): (path.read_bytes(), path.stat().st_mtime_ns)
++              for path in tmp_path.rglob("*") if path.is_file()}
++    validate_execution_inputs(trade_date=module.DATE, stage_id=module.STAGE,
++        receipt_root=fixture["receipt_root"], raw_root=fixture["raw_root"],
++        selection_root=fixture["selection_root"], hk_d1_root=fixture["hk_d1_root"],
++        expected_receipt_sha256=_sha(fixture["receipt_raw"]))
++    after = {str(path): (path.read_bytes(), path.stat().st_mtime_ns)
++             for path in tmp_path.rglob("*") if path.is_file()}
++    assert before == after
+ 
+ 
+ DATE = "20261014"
+--- a/tests/test_hk_stage8_v4_recovery.py
++++ b/tests/test_hk_stage8_v4_recovery.py
+@@ -1,10 +1,12 @@
+ from __future__ import annotations
+ 
+ import json
++import hashlib
+ from datetime import datetime
+ from pathlib import Path
+ from types import SimpleNamespace
+ from zoneinfo import ZoneInfo
++import pytest
+ 
+ from stage_center import runner as stage_runner
+ from stage_center.acquisition import AcquisitionPlan
+@@ -30,6 +32,39 @@
+ CODES = tuple(f"HK.{index:05d}" for index in range(1, 11))
+ D1_CODES = tuple(f"HK.{index:05d}" for index in range(1, 101))
+ POOL_ARTIFACT_SHA = "b" * 64
++
++
++def test_stage8_response_capture_is_immutable_hash_named_and_exact(tmp_path):
++    from stage_center.hk_stage8.rtdata import _persist_stage8_rtdata_capture
++    fetched = {"rows": [{"code": "HK.00001", "cur_price": 11.0}], "errors": (),
++               "cleanup_warnings": (), "batch_evidence": ("batch=1",)}
++    arguments = dict(trade_date=TRADE_DATE, stage_id=STAGE_ID, codes=CODES, fetched=fetched,
++        provider_started_at="2026-09-11T15:55:05+08:00", provider_finished_at="2026-09-11T15:55:06+08:00")
++    first = _persist_stage8_rtdata_capture(tmp_path, **arguments)
++    pairs = dict(item.split("=", 1) for item in first)
++    path = Path(pairs["stage8_rtdata_capture_path"])
++    raw = path.read_bytes()
++    assert hashlib.sha256(raw).hexdigest() == pairs["stage8_rtdata_capture_sha256"] == path.stem
++    payload = json.loads(raw)
++    assert payload["rows"] == fetched["rows"]
++    assert payload["captured_at"] == arguments["provider_finished_at"]
++    assert _persist_stage8_rtdata_capture(tmp_path, **arguments) == first
++    path.write_bytes(b"conflicting existing bytes")
++    with pytest.raises(ValueError, match="immutable SHA conflict"):
++        _persist_stage8_rtdata_capture(tmp_path, **arguments)
++    assert path.read_bytes() == b"conflicting existing bytes"
++
++
++def test_stage8_response_capture_refuses_symlink_root_child(tmp_path):
++    from stage_center.hk_stage8.rtdata import _persist_stage8_rtdata_capture
++    outside = tmp_path / "outside"; outside.mkdir()
++    root = tmp_path / "raw"; root.mkdir()
++    (root / ".hk_stage8_rtdata_captures").symlink_to(outside, target_is_directory=True)
++    with pytest.raises((ValueError, OSError)):
++        _persist_stage8_rtdata_capture(root, trade_date=TRADE_DATE, stage_id=STAGE_ID,
++            codes=CODES, fetched={"rows": []}, provider_started_at="2026-09-11T15:55:05+08:00",
++            provider_finished_at="2026-09-11T15:55:06+08:00")
++    assert list(outside.iterdir()) == []
+ 
+ 
+ def _snapshot_rows(

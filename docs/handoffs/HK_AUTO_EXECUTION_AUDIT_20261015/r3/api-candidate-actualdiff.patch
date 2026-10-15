@@ -1,0 +1,88 @@
+--- baseline/ops/verify_stage_execution.py
++++ candidate/ops/verify_stage_execution.py
+@@ -15,6 +15,7 @@
+ import json
+ import re
+ import sys
++import time
+ from pathlib import Path, PurePosixPath
+ from typing import Any
+ from zoneinfo import ZoneInfo
+@@ -453,14 +454,38 @@
+     }
+ 
+ 
+-def _refuse_d1_pending(roots, trade_date):
+-    for root in dict.fromkeys(Path(root) for root in roots if root is not None):
+-        for relative in (f"preselection_pending_commits/{trade_date}/hkconnect_d1_top100.json", ".import.lock"):
++class _D1ImportBusy(VerificationError):
++    """A transient owner marker; never a permit to read through the lock."""
++
++
++def _refuse_d1_pending(roots, trade_date, *, check_import_lock=True):
++    configured = tuple(dict.fromkeys(Path(root) for root in roots if root is not None))
++    # Pending is always an immediate refusal, even when another root is busy.
++    for root in configured:
++        try:
++            SafeRoot(root).read_bytes(
++                f"preselection_pending_commits/{trade_date}/hkconnect_d1_top100.json", max_bytes=_MAX_JSON)
++        except FileNotFoundError:
++            continue
++        raise VerificationError("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++    if check_import_lock:
++        for root in configured:
+             try:
+-                SafeRoot(root).read_bytes(relative, max_bytes=_MAX_JSON)
++                SafeRoot(root).read_bytes(".import.lock", max_bytes=_MAX_JSON)
+             except FileNotFoundError:
+                 continue
+-            raise VerificationError("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++            raise _D1ImportBusy("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++
++
++def _d1_read_anchor(d1_root, trade_date, preselection_source_root):
++    """Untrusted byte/owner anchor for drift detection, never acceptance."""
++    from infrastructure.preselection_pool_store import PreselectionSourceResolver, PreselectionPoolStore
++    resolver = PreselectionSourceResolver(d1_root, source_root=preselection_source_root)
++    root = resolver.root_for_date(trade_date)
++    artifact, receipt = PreselectionPoolStore._relative(trade_date, "hkconnect_d1_top100")
++    io_root = SafeRoot(root)
++    paths = (artifact, f"preselection_pools/{trade_date}/manifest.json", receipt)
++    return str(root), tuple(io_root.read_bytes(path, max_bytes=_MAX_JSON) for path in paths)
+ 
+ 
+ def _d1_pool_semantics(payload, trade_date):
+@@ -521,6 +546,33 @@
+ 
+ 
+ def _d1_pool_time_binding(evidence, d1_root, trade_date, *, preselection_source_root=None):
++    roots = (d1_root, preselection_source_root)
++    _refuse_d1_pending(roots, trade_date, check_import_lock=False)
++    anchor = _d1_read_anchor(d1_root, trade_date, preselection_source_root)
++    deadline = time.monotonic() + 2.0
++    while True:
++        # A retry restarts the entire strict trio/date/member/expected-SHA read.
++        _refuse_d1_pending(roots, trade_date, check_import_lock=False)
++        if _d1_read_anchor(d1_root, trade_date, preselection_source_root) != anchor:
++            raise VerificationError("CURRENT_HK_D1_CHANGED_DURING_IMPORT_WAIT")
++        try:
++            result = _d1_pool_time_binding_once(evidence, d1_root, trade_date,
++                preselection_source_root=preselection_source_root)
++            if _d1_read_anchor(d1_root, trade_date, preselection_source_root) != anchor:
++                raise VerificationError("CURRENT_HK_D1_CHANGED_DURING_IMPORT_WAIT")
++            _refuse_d1_pending(roots, trade_date)
++            return result
++        except _D1ImportBusy:
++            _refuse_d1_pending(roots, trade_date, check_import_lock=False)
++            if _d1_read_anchor(d1_root, trade_date, preselection_source_root) != anchor:
++                raise VerificationError("CURRENT_HK_D1_CHANGED_DURING_IMPORT_WAIT")
++            remaining = deadline - time.monotonic()
++            if remaining <= 0:
++                raise VerificationError("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++            time.sleep(min(0.02, remaining))
++
++
++def _d1_pool_time_binding_once(evidence, d1_root, trade_date, *, preselection_source_root=None):
+     from infrastructure.preselection_pool_store import PreselectionSourceResolver, PreselectionPoolStore, validate_pool_artifact
+     from infrastructure.data_store import _canonical_bytes
+     pairs = _evidence_pairs(evidence)

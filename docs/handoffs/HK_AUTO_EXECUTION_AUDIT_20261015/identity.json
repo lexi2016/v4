@@ -1,0 +1,134 @@
+{
+  "api": {
+    "actual_delta": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/api-candidate-actualdiff.json",
+      "sha256": "63adb97258fa881482458c6a744c2497aba741924af545b31c838076686ccce6"
+    },
+    "application_inventory_sha256": "f12c8d8d8e719497cb532206246109fc94fb1bc32cd7c0c7d3685d1ff0e54ebe",
+    "baseline_CAS_verified": true,
+    "candidate_status": "NOT_ACTIVATED",
+    "changed_directories": 3,
+    "changed_files": 19,
+    "complete_inventory": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/api-candidate-complete-inventory.json",
+      "sha256": "d6a1268aff326f5a7b43e7116591cf383abdae58c0393882473aea05b05df8d5"
+    },
+    "manifest": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/candidates/hk-auto-execution-audit-api-20261015-r1/release-manifest.json",
+      "sha256": "85021b27d9bd930d2b4ade741206d4c92edefd65f2f05e7c7f5c78b5c05ce081"
+    },
+    "non_delta_all_equal": true,
+    "prepared_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/candidates/hk-auto-execution-audit-api-20261015-r1",
+    "staged_plist": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/api-staged.plist",
+      "sha256": "f3f80c20ade836daf2cd43819475e092e15eb2a76609b82bf3626a76d1561d43"
+    },
+    "target_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r1"
+  },
+  "candidate_state": "NOT_ACTIVATED",
+  "git_observed_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "source_files": [
+    {
+      "after_sha256": "9474b47a5a3a93cad4d79728289f5ff441b8d09ef2b1020437df6eb58b19aa8c",
+      "before_copy": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer/before/stage_center/_live_collectors_parts/hk_minute.py",
+      "before_sha256": "2ec08e3fea63f31a05b447ce6a947f47d5e391d4dcc47b60220d6f7f49944f32",
+      "method": "PATCH_ONLY_FROM_RECORDED_BEFORE",
+      "path": "stage_center/_live_collectors_parts/hk_minute.py"
+    },
+    {
+      "after_sha256": "39c917bd4a8b3279c550b45fbd3c3d24c2f727b3a07ffb0e04647d848ccca77d",
+      "before_copy": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer/before/stage_center/_runner_parts/runner_receipts.py",
+      "before_sha256": "4644bc399d333ec30e5311c4528b172cb453d228517325f784f79268f4f4766c",
+      "method": "PATCH_ONLY_FROM_RECORDED_BEFORE",
+      "path": "stage_center/_runner_parts/runner_receipts.py"
+    },
+    {
+      "after_sha256": "db24d04eddc1ca8236833f1ef7f0bc072a12dfee6f354eaae9eb9568db268846",
+      "before_copy": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer/before/tests/test_hk_futu_afternoon_routing.py",
+      "before_sha256": "cdce51e02523ee9e72dd95bfe5ec7794ad2111ef3092fdae9ca4fda4b464c905",
+      "method": "PATCH_ONLY_FROM_RECORDED_BEFORE",
+      "path": "tests/test_hk_futu_afternoon_routing.py"
+    },
+    {
+      "after_sha256": "59ceb92d66b321cc76343da04fb0f59425e07668f7e2eac3ea652b1405398f56",
+      "before_copy": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer/before/tests/test_natural_lineage_20261014.py",
+      "before_sha256": "4c89fcc35482a66f4b0a54809774dcd904aacd7427c55ed759057547b18c6008",
+      "method": "PATCH_ONLY_FROM_RECORDED_BEFORE",
+      "path": "tests/test_natural_lineage_20261014.py"
+    },
+    {
+      "after_sha256": "14f2fc775fc3be8e6e0d5294b1d9375d61c45b2a6fd8177ad58b82e90dd0565b",
+      "before_copy": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer/automatic-review/before/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "before_sha256": "4aba8a87abe0f46ffd4cce1e3e557136e157357c316b200826fe0783dab99dca",
+      "method": "PATCH_ONLY_FROM_RECORDED_BEFORE",
+      "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py"
+    },
+    {
+      "after_sha256": "432f4c49d5270755c2c0abcd26db68b0b9f16d68fca72c6161083c467179e586",
+      "before_copy": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/rework-before/stage_center/hk_stage8/rtdata.py",
+      "before_sha256": "fbc654cf9b21dc832c3fa76e8b0149c402956fc7c84901f93cba0b41a07dd4e2",
+      "method": "PATCH_ONLY_FROM_RECORDED_BEFORE",
+      "path": "stage_center/hk_stage8/rtdata.py"
+    },
+    {
+      "after_sha256": "15eea00ec18f026d72d281f1737e711e0785018b26cbf5efd61172566b5b821d",
+      "before_copy": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/rework-before/stage_center/independent_execution_review.py",
+      "before_sha256": "634e2b11b4b1eddbed9c649f11833061d480905f35f55fe1df57dc39599b9b3c",
+      "method": "PATCH_ONLY_FROM_RECORDED_BEFORE",
+      "path": "stage_center/independent_execution_review.py"
+    },
+    {
+      "after_sha256": "172dd462955964717f07cc053146a3e9bb2b415fd2415f87928ea44343232ca1",
+      "before_copy": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/rework-before/tests/test_independent_execution_review_20261015.py",
+      "before_sha256": "9363a0eccf0f712ce7fc33de39cc418c055164a4f4997bfb12dd7b62834b39f7",
+      "method": "PATCH_ONLY_FROM_RECORDED_BEFORE",
+      "path": "tests/test_independent_execution_review_20261015.py"
+    },
+    {
+      "after_sha256": "21ea8cb81448fb2b6c20ed74e7b391ec6c69e8954aac81fec2d4044c9d1d48d3",
+      "before_copy": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/rework-before/tests/test_hk_stage8_v4_recovery.py",
+      "before_sha256": "1adbe521978251c7040e0ce3aaa1fa36d9271f52eabeaef103af9a5b133daa33",
+      "method": "PATCH_ONLY_FROM_RECORDED_BEFORE",
+      "path": "tests/test_hk_stage8_v4_recovery.py"
+    },
+    {
+      "after_sha256": "894ba379e9f64acc190a4b947968b547bde6187aa694f3de2f68dcef6774725f",
+      "method": "NEW_FILE_FULLSOURCE",
+      "path": "ops/verify_stage_execution.py"
+    },
+    {
+      "after_sha256": "f8d3f7974c693ad3e6713060aa5c05acfc29c8395cc7b533da7292546e87dbc4",
+      "method": "NEW_FILE_FULLSOURCE",
+      "path": "tests/test_automatic_execution_review_20261015.py"
+    }
+  ],
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "stage": {
+    "actual_delta": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/stage-candidate-actualdiff.json",
+      "sha256": "e350e8687bbb97cf3f58955fecc2e6472ecc93d49e0cc6d96c1a77cd5a92b17f"
+    },
+    "application_inventory_sha256": "a76ca658e6512ef2c96612c975e942b8e8c2453d3000f329f921109e37bda87e",
+    "baseline_CAS_verified": true,
+    "candidate_status": "NOT_ACTIVATED",
+    "changed_directories": 0,
+    "changed_files": 12,
+    "complete_inventory": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/stage-candidate-complete-inventory.json",
+      "sha256": "26ec4ed534acd1519d0b4a06745a61e39cb535c269408ed6b2f5b7d511e363ba"
+    },
+    "manifest": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/candidates/hk-auto-execution-audit-20261015-r1/release-manifest.json",
+      "sha256": "afea2cd95c90519e7d08d595d143189c1b8f532ddadf08b7dd99a6c9d0cb7f15"
+    },
+    "non_delta_all_equal": true,
+    "prepared_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/candidates/hk-auto-execution-audit-20261015-r1",
+    "staged_plist": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/stage-staged.plist",
+      "sha256": "f24b78fdead97337b09c7fbbc66cec26d82b6811d89ceb7f10fd736a39916863"
+    },
+    "target_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r1"
+  },
+  "upload_excludes": "No credentials, raw market captures, synthetic fixture data, business receipts, complete release copies, caches, venv, node_modules or dist. Runtime patches contain source-only differences and two release config locator keys.",
+  "verifier_sha256": "894ba379e9f64acc190a4b947968b547bde6187aa694f3de2f68dcef6774725f"
+}

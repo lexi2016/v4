@@ -1,0 +1,85 @@
+{
+  "dynamic_evidence": "api-cross-owner-result.json",
+  "earlier_static_scan_gap": "Initial verify_run-only closure omitted latest codec, nested _safe_relative filesystem_io and runner top-level end_to_end_deadline. Actual pure API 8stage process now passes with all guards.",
+  "files": [
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_raw_store_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_raw_store_parts/__init__.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_raw_store_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_raw_store_parts/_namespace.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_raw_store_parts/codec.py",
+      "sha256": "504b97a64f483db17026dbeed6d5084fbc18ee972be60ad9e069ebd038708572",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_raw_store_parts/codec.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_raw_store_parts/filesystem_io.py",
+      "sha256": "f904f4086d4debfc32f5ad33ec2717cda522a59f2e15a3518c7aa83b91eef2b1",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_raw_store_parts/filesystem_io.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_raw_store_parts/transaction_read.py",
+      "sha256": "8b7e88dc5e5f41456e5222f1a5c08c5dcd05f5e5d7f2c179fd26652bff2932b6",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_raw_store_parts/transaction_read.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_raw_store_parts/receipt_identity.py",
+      "sha256": "b33c496a6052b450959a9b886c79ad8d5686230e320dbc99bfd98a3e8265a8f0",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_raw_store_parts/receipt_identity.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_live_collectors_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_live_collectors_parts/__init__.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_live_collectors_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_live_collectors_parts/_namespace.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_live_collectors_parts/hk_auction.py",
+      "sha256": "7658e15fbaffeb0846dad2eecc31c079f22968892c149385673eb6fa373e6dea",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_live_collectors_parts/hk_auction.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_runner_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_runner_parts/__init__.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_runner_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_runner_parts/_namespace.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "594a430e91a4a158ea9f72bae7a00aa19481b01b913d7e18c0f5e075954e9f1e",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/_runner_parts/hk_input_validation.py"
+    },
+    {
+      "exact_frozen_stage_bytes": true,
+      "path": "stage_center/end_to_end_deadline.py",
+      "sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/node-minute-stage-20261014-r1/app/stage_center/end_to_end_deadline.py"
+    }
+  ],
+  "only_executed_functions": "raw latest/verify_run/row/window/path read validation; auction CSV validation and reaggregation; namespace lookup. end_to_end_deadline imported by unchanged API runner, no Trace instantiation. Other definitions in frozen modules are never called by verifier."
+}

@@ -1,0 +1,53 @@
+{
+  "baseline_actual_inventory_sha256": "bbb42ddaa2c116dcf5afbbfd1eb0ad1eb5a4abaa1326353337a0abd2644e4c85",
+  "changes": [
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/api/v35_api/app.py",
+        "sha256": "acdd2293d2c1c2a75f6dfeeccaea87bb7f392945f97a6967d97ef9467fbec706",
+        "size": 328871
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "apps/api/v35_api/app.py",
+        "sha256": "82db854927c8106513c6004b5a0fda94b490e27dab36024ad5983b9967c00065",
+        "size": 323812
+      },
+      "path": "apps/api/v35_api/app.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "49a36c3725b8ee2546bc0fdc2044790386da152044053cb10c0750d199f0a7ae",
+        "size": 59030
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "894ba379e9f64acc190a4b947968b547bde6187aa694f3de2f68dcef6774725f",
+        "size": 57853
+      },
+      "path": "ops/verify_stage_execution.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_futu_observation_api_projection_r4.py",
+        "sha256": "381882522388739884b88c941338dee3e12492e543f52856479944f0a3a4edd7",
+        "size": 7962
+      },
+      "before": null,
+      "path": "tests/test_futu_observation_api_projection_r4.py"
+    }
+  ],
+  "non_delta_all_byte_mode_kind_equal": true,
+  "non_delta_entry_count": 1498,
+  "owner": "api"
+}

@@ -1,0 +1,385 @@
+--- a/stage_center/_live_collectors_parts/hk_minute.py
++++ b/stage_center/_live_collectors_parts/hk_minute.py
+@@ -845,8 +845,11 @@
+     )
+     return _v4_global(_v4_scope, 'replace')(
+         source,
+-        cannot_confirm=tuple(dict.fromkeys((*source.cannot_confirm, gap))),
+-        source_evidence=tuple(dict.fromkeys((*source.source_evidence, *evidence))),
++        # PIT incompleteness is an observation qualifier, not a raw-data error.
++        # Keep the source partial so downstream cards cannot label it formal.
++        status="PARTIAL_WITH_ROWS" if source.status == "READY" else source.status,
++        source_evidence=tuple(dict.fromkeys((*source.source_evidence, *evidence,
++                                           f"futu_pit_cannot_confirm={gap}"))),
+     )
+ 
+ 
+--- a/ops/verify_stage_execution.py
++++ b/ops/verify_stage_execution.py
+@@ -620,6 +620,22 @@
+     }
+ 
+ 
++def _legacy_pit_only_raw_observation(raw_verified, stage_id):
++    """Recognize only the R1 capture-clock qualifier regression, not bad data."""
++    return bool(
++        stage_id in {"STAGE_1300_1315", "STAGE_1445_1500"}
++        and raw_verified.get("status") == "CANNOT_CONFIRM"
++        and raw_verified.get("source_status") == "READY"
++        and raw_verified.get("source_id") == "futu"
++        and raw_verified.get("cannot_confirm") == ["HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"]
++        and raw_verified.get("row_count") == 100
++        and raw_verified.get("requested_rows") == 100
++        and not raw_verified.get("missing_symbols")
++        and "futu_full_chain_pit_status=CANNOT_CONFIRM" in raw_verified.get("source_evidence", [])
++        and "futu_capture_before_stage_cutoff=false" in raw_verified.get("source_evidence", [])
++    )
++
++
+ def _validated_attestation(*, trade_date: str, stage_id: str, receipt_root: Path,
+                        raw_root: Path, selection_root: Path,
+                        expected_receipt_sha256: str, hk_d1_root: Path | None = None,
+@@ -710,7 +726,9 @@
+ 
+     raw_latest = RawStore(raw_root).verify_latest(trade_date, stage_id, "HK_CONNECT")
+     raw_verified = raw_latest["verified"]
+-    if raw_verified.get("status") not in {"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS"}:
++    legacy_pit_observation = _legacy_pit_only_raw_observation(raw_verified, stage_id)
++    if (raw_verified.get("status") not in {"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS"}
++            and not legacy_pit_observation):
+         raise VerificationError("CURRENT_HK_RAW_ARTIFACT_NOT_OBSERVABLE")
+     if (raw_verified.get("artifact_sha256") != lane.get("raw_artifact_sha256")
+             or raw_verified.get("artifact_sha256") != lane_receipt.get("raw_artifact_sha256")):
+@@ -745,6 +763,9 @@
+     source_reconciliation = _reconcile_rows(aggregated, raw_root, raw_verified, lane, codes)
+ 
+     time_facts = _time_facts(source_evidence, trade_date, stage_id)
++    if legacy_pit_observation and not any(
++            item["after_stage_cutoff"] == "true" for item in time_facts["capture_times"]):
++        raise VerificationError("CURRENT_HK_LEGACY_PIT_CLOCK_CONFLICT")
+     reviewed_at = datetime.now(_UTC).isoformat().replace("+00:00", "Z")
+     attestation = {
+         "schema_version": "stage_center.independent_execution_review.v1",
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -4176,15 +4176,84 @@
+             return "PARTIAL_WITH_ROWS"
+         return str(fallback or "PARTIAL_WITH_ROWS")
+ 
++    def _legacy_hk_consumer_rows_match(rows: list[dict], bound_rows: Any) -> bool:
++        """Allow only the existing consumer's exact positional order projection."""
++        if not isinstance(bound_rows, list) or len(rows) != len(bound_rows):
++            return False
++        for position, (row, original) in enumerate(zip(rows, bound_rows), 1):
++            if not isinstance(row, dict) or not isinstance(original, dict):
++                return False
++            if type(row.get("order")) is not int or row["order"] != position:
++                return False
++            if "order" in original:
++                if type(original["order"]) is not int or original["order"] != position or row != original:
++                    return False
++            elif {key: value for key, value in row.items() if key != "order"} != original:
++                return False
++        return True
++
++    def _legacy_hk_pit_observation(
++        market_payload: Mapping[str, Any], rows: list[dict], *, trade_date: str, stage_id: str,
++    ) -> bool:
++        """Read-only compatibility for R1's PIT-only raw-status regression."""
++        if (configured_selection_root is None
++                or stage_id not in {"STAGE_1300_1315", "STAGE_1445_1500"}
++                or market_payload.get("status") != "PARTIAL_WITH_ROWS"
++                or market_payload.get("selection_status") != "PARTIAL_WITH_ROWS"
++                or market_payload.get("source_status") != "CANNOT_CONFIRM"
++                or market_payload.get("cannot_confirm") != ["HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"]
++                or market_payload.get("requested_rows") != 100
++                or market_payload.get("source_rows") != 100
++                or market_payload.get("selected_rows") != 10 or len(rows) != 10
++                or market_payload.get("missing_symbols")):
++            return False
++        try:
++            from infrastructure.owned_io import SafeRoot
++            from stage_center.selection import SelectionStore
++            from ops.verify_stage_execution import validate_execution_inputs
++            selection_root = Path(configured_selection_root).resolve(strict=True)
++            stage_root = selection_root.parent
++            bound = SelectionStore(selection_root).read_verified(trade_date, stage_id, "HK_CONNECT")
++            if any(market_payload.get(key) != bound.get(key) for key in (
++                    "artifact_id", "run_id", "raw_artifact_sha256", "source_status", "selection_status",
++                    "source_rows", "requested_rows", "selected_rows", "source_evidence", "cannot_confirm")):
++                return False
++            if not _legacy_hk_consumer_rows_match(rows, bound.get("rows")):
++                return False
++            receipt_raw = SafeRoot(stage_root / "receipts").read_bytes(
++                f"{trade_date}/{stage_id}/receipt.json", max_bytes=16 * 1024 * 1024)
++            inputs = validate_execution_inputs(
++                trade_date=trade_date, stage_id=stage_id, receipt_root=stage_root / "receipts",
++                raw_root=stage_root / "raw", selection_root=selection_root,
++                expected_receipt_sha256=hashlib.sha256(receipt_raw).hexdigest(),
++                hk_d1_root=store.root,
++                preselection_source_root=resolved_pool_source if configured_pool_source else None,
++                hk_second_filter_root=store.root / "opening_second_filter",
++                shared_research_root=Path(configured_morning_news_root) if configured_morning_news_root else None,
++            )
++            return bool(inputs["raw_artifact"]["sha256"] == market_payload["raw_artifact_sha256"]
++                        and inputs["source_reconciliation"]["raw_rows"] == 100
++                        and inputs["source_reconciliation"]["selected_rows"] == 10
++                        and inputs["source_time_facts"]["pit_status"] == "CANNOT_CONFIRM")
++        except Exception:
++            return False
++
+     def _hk_display_mode(
+         market_payload: Mapping[str, Any],
+         rows: list[dict],
+         execution_market: Mapping[str, Any] | None,
++        *, legacy_pit_observation: bool = False,
+     ) -> tuple[str, list[str]]:
+         """Only call HK rows formal after selection and execution binding agree."""
+         status = str(market_payload.get("status") or "CANNOT_CONFIRM")
+         selection_status = str(market_payload.get("selection_status") or status)
+         reasons = [str(item) for item in market_payload.get("cannot_confirm") or []]
++        # Display PIT qualifiers without turning valid partial rows into data errors.
++        reasons.extend(item.split("=", 1)[1] for item in market_payload.get("source_evidence") or []
++                       if isinstance(item, str) and item.startswith("futu_pit_cannot_confirm=")
++                       and item.split("=", 1)[1] in {
++                           "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF", "HK_FUTU_FULL_CHAIN_PIT_UNVERIFIED",
++                           "HK_FUTU_CAPTURE_CLOCK_UNAVAILABLE", "HK_FUTU_CAPTURE_CLOCK_DATE_MISMATCH"})
+         identity_present = all(
+             isinstance(market_payload.get(field), str) and market_payload.get(field)
+             for field in ("artifact_id", "run_id", "raw_artifact_sha256")
+@@ -4240,10 +4309,17 @@
+         if (
+             status not in {"READY", "PARTIAL_WITH_ROWS"}
+             or selection_status not in {"READY", "PARTIAL_WITH_ROWS"}
+-            or market_payload.get("source_status") not in {"READY", "PARTIAL_WITH_ROWS"}
++            or (market_payload.get("source_status") not in {"READY", "PARTIAL_WITH_ROWS"}
++                and not legacy_pit_observation)
+         ):
+             reasons.append("HK_SELECTION_OR_SOURCE_STATUS_NOT_READY")
+             return "CANNOT_CONFIRM", list(dict.fromkeys(reasons))
++
++        if legacy_pit_observation:
++            return "OBSERVATION_UNVERIFIED", list(dict.fromkeys(reasons + [
++                "HK_LEGACY_PIT_ONLY_OBSERVATION_INPUTS_REVALIDATED",
++                "HK_FULL_CHAIN_PIT_AND_FORMAL_ELIGIBILITY_CANNOT_CONFIRM",
++            ]))
+ 
+         execution = execution_market if isinstance(execution_market, Mapping) else {}
+         binding = execution.get("selection_binding")
+@@ -4362,7 +4438,10 @@
+             frontend_markets[alias]["rows"] = rows
+             if canonical_market == "HK_CONNECT" and ordinary_hk_display:
+                 display_mode, display_reasons = _hk_display_mode(
+-                    market_payload, rows, execution_markets.get(canonical_market)
++                    market_payload, rows, execution_markets.get(canonical_market),
++                    legacy_pit_observation=_legacy_hk_pit_observation(
++                        market_payload, rows, trade_date=str(payload.get("trade_date") or ""),
++                        stage_id=str(payload.get("stage_id") or "")),
+                 )
+                 frontend_markets[alias]["display_mode"] = display_mode
+                 frontend_markets[alias]["display_reasons"] = display_reasons
+--- a/tests/test_hk_futu_afternoon_routing.py
++++ b/tests/test_hk_futu_afternoon_routing.py
+@@ -83,15 +83,23 @@
+     result, calls = collect("STAGE_1300_1315", captured_at=captured_at)
+ 
+     assert calls == ["STAGE_1300_1315"]
+-    assert result.status == "READY"
++    assert result.status == "PARTIAL_WITH_ROWS"
+     assert len(result.rows) == 1
+     row = result.rows[0]
+     assert row["score"] == 0.75
+     assert row["temporal_cutoff_safe"] is True
+     assert row["candidate_lanes"] == ["LIVE_HKCONNECT_GAINER"]
+-    assert gap in result.cannot_confirm
++    assert gap not in result.cannot_confirm
++    assert f"futu_pit_cannot_confirm={gap}" in result.source_evidence
+     assert "futu_full_chain_pit_status=CANNOT_CONFIRM" in result.source_evidence
+     assert "futu_capture_clock_alone_is_not_pit_proof=true" in result.source_evidence
+     assert f"futu_capture_clock_available={clock_available}" in result.source_evidence
+     assert f"futu_capture_clock_date_matches_stage={date_matches}" in result.source_evidence
+     assert f"futu_capture_before_stage_cutoff={before_cutoff}" in result.source_evidence
++
++
++def test_capture_pit_metadata_preserves_real_data_errors():
++    result, _ = collect("STAGE_1300_1315", "HK_ACTIVE_SNAPSHOT_CORRUPT")
++    assert "HK_ACTIVE_SNAPSHOT_CORRUPT" in result.cannot_confirm
++    assert "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF" not in result.cannot_confirm
++    assert "futu_pit_cannot_confirm=HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF" in result.source_evidence
+--- a/tests/test_automatic_execution_review_20261015.py
++++ b/tests/test_automatic_execution_review_20261015.py
+@@ -114,20 +114,23 @@
+     return _publish_stage_fixture(tmp_path, STAGE, [raw_row], source_evidence, d1_root, source_files)
+ 
+ 
+-def _publish_stage_fixture(tmp_path, STAGE, raw_rows, source_evidence, d1_root, source_files):
++def _publish_stage_fixture(tmp_path, STAGE, raw_rows, source_evidence, d1_root, source_files,
++                           *, source_status="READY", source_id="fixture_futu", cannot_confirm=()):
+     from stage_center.contracts import STAGE_BY_ID
+     from datetime import timedelta
+     raw_root, selection_root, receipt_root = (tmp_path / key for key in ("raw", "selection", "receipts"))
+     stage = STAGE_BY_ID[STAGE]
+     assert all(set(row).issuperset(RAW_FIELDS) for row in raw_rows)
+     raw_result = RawStore(raw_root).publish(
+-        trade_date=DATE, stage_id=STAGE, market="HK_CONNECT", source_id="fixture_futu",
+-        source_status="READY", rows=[{field: row[field] for field in RAW_FIELDS} for row in raw_rows], source_evidence=source_evidence,
++        trade_date=DATE, stage_id=STAGE, market="HK_CONNECT", source_id=source_id,
++        source_status=source_status, cannot_confirm=cannot_confirm, rows=[{field: row[field] for field in RAW_FIELDS} for row in raw_rows], source_evidence=source_evidence,
+         requested_rows=100, window=stage.hk_window or stage.window, cutoff_at=stage.cutoff,
+     )
++    source_evidence = RawStore(raw_root).verify_latest(DATE, STAGE, "HK_CONNECT")["verified"]["source_evidence"]
+     envelope = select_hk_four_lane(
+         [{**row, "volume_ratio": 1.5} for row in raw_rows],
+         DATE, STAGE, raw_result["artifact_sha256"], source_evidence=source_evidence, requested_rows=100,
++        source_status=raw_result["status"], cannot_confirm=cannot_confirm,
+     )
+     selection_store = SelectionStore(selection_root)
+     selection_store.publish(envelope, market="HK_CONNECT")
+@@ -626,3 +629,63 @@
+     assert receipt_path.read_bytes() == fixture["receipt_raw"]
+     assert not (fixture["receipt_root"] / "independent_execution_reviews" / DATE / STAGE / "index.json").exists()
+ 
++
++
++def _pit_only_full_coverage_fixture(tmp_path, *, legacy=False, extra_error=None):
++    from dataclasses import replace
++    from stage_center.acquisition import SourceResult
++    from stage_center._live_collectors_parts.hk_minute import _mark_hk_futu_capture_pit_metadata
++    import stage_center.live_collectors as live
++    from upstreams.v3_shared_data.scripts.live_acquisition.futu_minute import aggregate_futu_minute_window_rows
++    stage_id = "STAGE_1445_1500"
++    seed = _other_stage_fixture(tmp_path / "seed", stage_id)
++    capture = json.loads(next((seed["raw_root"] / ".futu_minute_captures" / DATE / stage_id).glob("*.json")).read_bytes())
++    capture.update(captured_at="2026-10-14T15:01:06+08:00", no_data_codes=[])
++    capture["rows"] = [{**capture["rows"][0], "code": code} for code in capture["codes"]]
++    root = tmp_path / "target"; raw_root = root / "raw"
++    raw = _canonical(capture) + b"\n"; path = raw_root / ".futu_minute_captures" / DATE / stage_id / (_sha(raw) + ".json")
++    path.parent.mkdir(parents=True); path.write_bytes(raw)
++    old_snapshot = seed["source_files"]["active_snapshot"]
++    snapshot_path = raw_root / ".hk_active_snapshots_v2" / DATE / stage_id / "snapshot.json"
++    snapshot_path.parent.mkdir(parents=True); snapshot_path.write_bytes(old_snapshot.read_bytes())
++    evidence = [e for e in seed["source_evidence"] if not e.startswith(("futu_capture_path=", "futu_capture_sha256=", "futu_captured_at=", "futu_provider_rows_sha256=", "active_snapshot_path="))]
++    evidence += [f"futu_capture_path={path}", f"futu_capture_sha256={_sha(raw)}", f"futu_captured_at={capture['captured_at']}",
++                 f"futu_provider_rows_sha256={_sha(_canonical(capture['rows']))}", f"active_snapshot_path={snapshot_path}"]
++    raw_rows = aggregate_futu_minute_window_rows(DATE, stage_id, capture["rows"])
++    source = SourceResult("futu", "READY", rows=tuple({**row, "futu_captured_at": capture["captured_at"]} for row in raw_rows),
++                          requested_rows=100, source_evidence=tuple(evidence))
++    source = _mark_hk_futu_capture_pit_metadata(vars(live), SimpleNamespace(stage_id=stage_id, trade_date=DATE), source)
++    reasons = (["HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"] if legacy else []) + ([extra_error] if extra_error else [])
++    return _publish_stage_fixture(root, stage_id, raw_rows, source.source_evidence, seed["hk_d1_root"],
++        {"minute_capture": path, "active_snapshot": snapshot_path, "hk_d1": seed["source_files"]["hk_d1"]},
++        source_status="READY" if legacy else source.status, source_id="futu", cannot_confirm=reasons)
++
++
++@pytest.mark.parametrize("legacy", [False, True])
++def test_pit_only_source_remains_observable_after_strict_reaggregation(tmp_path, legacy):
++    from ops.verify_stage_execution import validate_execution_inputs
++    fixture = _pit_only_full_coverage_fixture(tmp_path, legacy=legacy)
++    inputs = validate_execution_inputs(trade_date=DATE, stage_id=fixture["stage_id"],
++        receipt_root=fixture["receipt_root"], raw_root=fixture["raw_root"], selection_root=fixture["selection_root"],
++        hk_d1_root=fixture["hk_d1_root"], expected_receipt_sha256=_sha(fixture["receipt_raw"]))
++    assert inputs["source_reconciliation"]["raw_rows"] == 100
++    assert inputs["source_reconciliation"]["selected_rows"] == 10
++    assert inputs["source_time_facts"]["pit_status"] == "CANNOT_CONFIRM"
++    assert "SOURCE_CAPTURE_AT_OR_AFTER_STAGE_CUTOFF" in inputs["source_time_facts"]["pit_cannot_confirm"]
++    assert fixture["lane"]["selection_status"] == "PARTIAL_WITH_ROWS"
++    assert not (fixture["receipt_root"] / "independent_execution_reviews").exists()
++
++
++def test_other_data_error_cannot_use_legacy_pit_observation_exception(tmp_path):
++    fixture = _pit_only_full_coverage_fixture(tmp_path, legacy=True, extra_error="BAD_SOURCE_DATA")
++    with pytest.raises(VerificationError, match="CURRENT_HK_RAW_ARTIFACT_NOT_OBSERVABLE"):
++        _verify(fixture)
++
++
++def test_legacy_pit_observation_still_rejects_changed_snapshot_bytes(tmp_path):
++    fixture = _pit_only_full_coverage_fixture(tmp_path, legacy=True)
++    p = fixture["source_files"]["active_snapshot"]
++    snapshot = json.loads(p.read_bytes()); snapshot["trade_date"] = "20990101"
++    p.write_bytes(_canonical(snapshot))
++    with pytest.raises(VerificationError):
++        _verify(fixture)
+--- a/tests/test_futu_observation_api_projection_r4.py
++++ b/tests/test_futu_observation_api_projection_r4.py
+@@ -18,7 +18,7 @@
+ 
+ 
+ @pytest.fixture(scope="module")
+-def project_selection():
++def project_selection(tmp_path_factory):
+     if str(ROOT) not in sys.path:
+         sys.path.insert(0, str(ROOT))
+     spec = importlib.util.spec_from_file_location("canonical_api_projection_r4", API_APP)
+@@ -26,7 +26,7 @@
+         raise AssertionError("canonical API module could not be loaded")
+     module = importlib.util.module_from_spec(spec)
+     spec.loader.exec_module(module)
+-    with tempfile.TemporaryDirectory(prefix="tmp-api-projection-r4-", dir=ROOT) as temp_root:
++    with tempfile.TemporaryDirectory(prefix="tmp-api-projection-r4-", dir=tmp_path_factory.getbasetemp()) as temp_root:
+         app = module.create_app(
+             data_root=Path(temp_root) / "data",
+             stage_center_selection_root=Path(temp_root) / "selection",
+@@ -101,7 +101,10 @@
+ 
+ 
+ def test_canonical_api_keeps_valid_hk_observation_counts(project_selection):
+-    projected = project_selection(_payload(), 50, ordinary_hk_display=True)
++    payload = _payload()
++    payload["markets"]["HK_CONNECT"]["source_evidence"].append(
++        "futu_pit_cannot_confirm=HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF")
++    projected = project_selection(payload, 50, ordinary_hk_display=True)
+     hk = projected["market_summaries"]["HK"]
+     rows = hk["rows"]
+     assert projected["status"] == "PARTIAL_WITH_ROWS"
+@@ -115,6 +118,7 @@
+     assert len(projected["unified_rows"]) == 10
+     assert projected["selected_a_rows"] == 0
+     assert hk["display_mode"] == "OBSERVATION_UNVERIFIED"
++    assert "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF" in hk["display_reasons"]
+     assert all(
+         row["formal_eligible"] is False
+         and row["action_level"] == "NO_BUY"
+@@ -146,3 +150,43 @@
+         assert projected["selected_hk_rows"] is None
+         assert projected["selected_a_rows"] == 1
+         assert [row["market"] for row in projected["unified_rows"]] == ["A"]
++
++
++def test_unbound_pit_only_status_does_not_bypass_display_validation(project_selection):
++    payload = _payload(); payload["stage_id"] = "STAGE_1445_1500"
++    hk = payload["markets"]["HK_CONNECT"]
++    hk.update(source_status="CANNOT_CONFIRM", requested_rows=100, source_rows=100,
++              cannot_confirm=["HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"])
++    result = project_selection(payload, 50, ordinary_hk_display=True)
++    assert result["selected_hk_rows"] is None
++    assert result["market_summaries"]["HK"]["rows"] == []
++
++
++def _consumer_row_matcher(project_selection):
++    legacy = next(cell.cell_contents for cell in project_selection.__closure__
++                  if callable(cell.cell_contents) and getattr(cell.cell_contents, "__name__", "") == "_legacy_hk_pit_observation")
++    return next(cell.cell_contents for cell in legacy.__closure__
++                if callable(cell.cell_contents) and getattr(cell.cell_contents, "__name__", "") == "_legacy_hk_consumer_rows_match")
++
++
++def test_legacy_consumer_order_projection_matches_exact_source_rows(project_selection):
++    match = _consumer_row_matcher(project_selection)
++    original = [{"code": "HK.00001", "rank": 1}, {"code": "HK.00002", "rank": 2}]
++    projected = [{**row, "order": position} for position, row in enumerate(original, 1)]
++    assert match(projected, original)
++    assert match(projected, projected)  # an original order key retains its exact binding
++
++
++@pytest.mark.parametrize("mutation", ["wrong_order", "bool_order", "missing_original", "extra_field", "swap_rows", "source_order_changed", "source_order_bool"])
++def test_legacy_consumer_order_projection_rejects_other_changes(project_selection, mutation):
++    match = _consumer_row_matcher(project_selection)
++    original = [{"code": "HK.00001", "rank": 1}, {"code": "HK.00002", "rank": 2}]
++    projected = [{**row, "order": position} for position, row in enumerate(original, 1)]
++    if mutation == "wrong_order": projected[0]["order"] = 2
++    elif mutation == "bool_order": projected[0]["order"] = True
++    elif mutation == "missing_original": projected[0].pop("rank")
++    elif mutation == "extra_field": projected[0]["unbound"] = "value"
++    elif mutation == "swap_rows": projected = [{**projected[1], "order": 1}, {**projected[0], "order": 2}]
++    elif mutation == "source_order_changed": original[0]["order"] = 99
++    else: original[0]["order"] = True
++    assert not match(projected, original)

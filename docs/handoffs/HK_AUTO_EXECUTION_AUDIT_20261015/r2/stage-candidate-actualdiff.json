@@ -1,0 +1,93 @@
+{
+  "baseline_actual_inventory_sha256": "9648a126ae5416c34c00ae9cabff4e005994c93faf4ddc177dcd9f80d1adef70",
+  "changes": [
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "49a36c3725b8ee2546bc0fdc2044790386da152044053cb10c0750d199f0a7ae",
+        "size": 59030
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "894ba379e9f64acc190a4b947968b547bde6187aa694f3de2f68dcef6774725f",
+        "size": 57853
+      },
+      "path": "ops/verify_stage_execution.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_live_collectors_parts/hk_minute.py",
+        "sha256": "571e2b30171c666bf39d95a7019379700e21e8ffd0fc3daca8c25a8fbc96b88b",
+        "size": 28538
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_live_collectors_parts/hk_minute.py",
+        "sha256": "31e237d8dde514ecfcad0a089234d832221419967291bce402ed9f192c5d7fe8",
+        "size": 28296
+      },
+      "path": "stage_center/_live_collectors_parts/hk_minute.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center_tick_config.json",
+        "sha256": "653fdb10886596fc7eb9d57b84c46f0d144a55145f769a26a709a5e94b11c58d",
+        "size": 2832
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center_tick_config.json",
+        "sha256": "a01919378fcd93cfbe46af87b4160140ade1390888473669d5c7caf8a7b10475",
+        "size": 2832
+      },
+      "path": "stage_center_tick_config.json"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_automatic_execution_review_20261015.py",
+        "sha256": "03f84f301abaac9e4f4a6284e91eef3272b8487b77ff98330314722e3c39817d",
+        "size": 43340
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_automatic_execution_review_20261015.py",
+        "sha256": "f8d3f7974c693ad3e6713060aa5c05acfc29c8395cc7b533da7292546e87dbc4",
+        "size": 38695
+      },
+      "path": "tests/test_automatic_execution_review_20261015.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_hk_futu_afternoon_routing.py",
+        "sha256": "f56b3436105b9f6966b97742fba17faf9d6e7d410e8933cb94daabfdfbf67823",
+        "size": 5318
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_hk_futu_afternoon_routing.py",
+        "sha256": "db24d04eddc1ca8236833f1ef7f0bc072a12dfee6f354eaae9eb9568db268846",
+        "size": 4847
+      },
+      "path": "tests/test_hk_futu_afternoon_routing.py"
+    }
+  ],
+  "non_delta_all_byte_mode_kind_equal": true,
+  "non_delta_entry_count": 1124,
+  "owner": "stage"
+}

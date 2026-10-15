@@ -1,0 +1,203 @@
+--- baseline/ops/verify_stage_execution.py
++++ candidate/ops/verify_stage_execution.py
+@@ -620,6 +620,22 @@
+     }
+ 
+ 
++def _legacy_pit_only_raw_observation(raw_verified, stage_id):
++    """Recognize only the R1 capture-clock qualifier regression, not bad data."""
++    return bool(
++        stage_id in {"STAGE_1300_1315", "STAGE_1445_1500"}
++        and raw_verified.get("status") == "CANNOT_CONFIRM"
++        and raw_verified.get("source_status") == "READY"
++        and raw_verified.get("source_id") == "futu"
++        and raw_verified.get("cannot_confirm") == ["HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"]
++        and raw_verified.get("row_count") == 100
++        and raw_verified.get("requested_rows") == 100
++        and not raw_verified.get("missing_symbols")
++        and "futu_full_chain_pit_status=CANNOT_CONFIRM" in raw_verified.get("source_evidence", [])
++        and "futu_capture_before_stage_cutoff=false" in raw_verified.get("source_evidence", [])
++    )
++
++
+ def _validated_attestation(*, trade_date: str, stage_id: str, receipt_root: Path,
+                        raw_root: Path, selection_root: Path,
+                        expected_receipt_sha256: str, hk_d1_root: Path | None = None,
+@@ -710,7 +726,9 @@
+ 
+     raw_latest = RawStore(raw_root).verify_latest(trade_date, stage_id, "HK_CONNECT")
+     raw_verified = raw_latest["verified"]
+-    if raw_verified.get("status") not in {"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS"}:
++    legacy_pit_observation = _legacy_pit_only_raw_observation(raw_verified, stage_id)
++    if (raw_verified.get("status") not in {"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS"}
++            and not legacy_pit_observation):
+         raise VerificationError("CURRENT_HK_RAW_ARTIFACT_NOT_OBSERVABLE")
+     if (raw_verified.get("artifact_sha256") != lane.get("raw_artifact_sha256")
+             or raw_verified.get("artifact_sha256") != lane_receipt.get("raw_artifact_sha256")):
+@@ -745,6 +763,9 @@
+     source_reconciliation = _reconcile_rows(aggregated, raw_root, raw_verified, lane, codes)
+ 
+     time_facts = _time_facts(source_evidence, trade_date, stage_id)
++    if legacy_pit_observation and not any(
++            item["after_stage_cutoff"] == "true" for item in time_facts["capture_times"]):
++        raise VerificationError("CURRENT_HK_LEGACY_PIT_CLOCK_CONFLICT")
+     reviewed_at = datetime.now(_UTC).isoformat().replace("+00:00", "Z")
+     attestation = {
+         "schema_version": "stage_center.independent_execution_review.v1",
+--- baseline/stage_center/_live_collectors_parts/hk_minute.py
++++ candidate/stage_center/_live_collectors_parts/hk_minute.py
+@@ -392,8 +392,11 @@
+     )
+     return _v4_global(_v4_scope, 'replace')(
+         source,
+-        cannot_confirm=tuple(dict.fromkeys((*source.cannot_confirm, gap))),
+-        source_evidence=tuple(dict.fromkeys((*source.source_evidence, *evidence))),
++        # PIT incompleteness is an observation qualifier, not a raw-data error.
++        # Keep the source partial so downstream cards cannot label it formal.
++        status="PARTIAL_WITH_ROWS" if source.status == "READY" else source.status,
++        source_evidence=tuple(dict.fromkeys((*source.source_evidence, *evidence,
++                                           f"futu_pit_cannot_confirm={gap}"))),
+     )
+ 
+ 
+--- baseline/stage_center_tick_config.json
++++ candidate/stage_center_tick_config.json
+@@ -24,7 +24,7 @@
+   "python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+   "raw_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw",
+   "receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+-  "release_id": "hk-auto-execution-audit-20261015-r1",
++  "release_id": "hk-auto-execution-audit-20261015-r2",
+   "research_mode": "LIVE_EXACT_DATE_READ_ONLY",
+   "safety": {
+     "buy_gate_updated": false,
+@@ -33,7 +33,7 @@
+   },
+   "schema_version": "stage_center.tick_config.v1",
+   "selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+-  "shared_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r1/app/upstreams/v3_shared_data",
++  "shared_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r2/app/upstreams/v3_shared_data",
+   "stage_research_producer": "EXISTING_HOURLY_RESEARCH_EXECUTOR",
+   "stage_research_root_role": "V4_HOURLY_RESEARCH_STORE_EXACT_DATE",
+   "v4_morning_news_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+--- baseline/tests/test_automatic_execution_review_20261015.py
++++ candidate/tests/test_automatic_execution_review_20261015.py
+@@ -114,20 +114,23 @@
+     return _publish_stage_fixture(tmp_path, STAGE, [raw_row], source_evidence, d1_root, source_files)
+ 
+ 
+-def _publish_stage_fixture(tmp_path, STAGE, raw_rows, source_evidence, d1_root, source_files):
++def _publish_stage_fixture(tmp_path, STAGE, raw_rows, source_evidence, d1_root, source_files,
++                           *, source_status="READY", source_id="fixture_futu", cannot_confirm=()):
+     from stage_center.contracts import STAGE_BY_ID
+     from datetime import timedelta
+     raw_root, selection_root, receipt_root = (tmp_path / key for key in ("raw", "selection", "receipts"))
+     stage = STAGE_BY_ID[STAGE]
+     assert all(set(row).issuperset(RAW_FIELDS) for row in raw_rows)
+     raw_result = RawStore(raw_root).publish(
+-        trade_date=DATE, stage_id=STAGE, market="HK_CONNECT", source_id="fixture_futu",
+-        source_status="READY", rows=[{field: row[field] for field in RAW_FIELDS} for row in raw_rows], source_evidence=source_evidence,
++        trade_date=DATE, stage_id=STAGE, market="HK_CONNECT", source_id=source_id,
++        source_status=source_status, cannot_confirm=cannot_confirm, rows=[{field: row[field] for field in RAW_FIELDS} for row in raw_rows], source_evidence=source_evidence,
+         requested_rows=100, window=stage.hk_window or stage.window, cutoff_at=stage.cutoff,
+     )
++    source_evidence = RawStore(raw_root).verify_latest(DATE, STAGE, "HK_CONNECT")["verified"]["source_evidence"]
+     envelope = select_hk_four_lane(
+         [{**row, "volume_ratio": 1.5} for row in raw_rows],
+         DATE, STAGE, raw_result["artifact_sha256"], source_evidence=source_evidence, requested_rows=100,
++        source_status=raw_result["status"], cannot_confirm=cannot_confirm,
+     )
+     selection_store = SelectionStore(selection_root)
+     selection_store.publish(envelope, market="HK_CONNECT")
+@@ -626,3 +629,63 @@
+     assert receipt_path.read_bytes() == fixture["receipt_raw"]
+     assert not (fixture["receipt_root"] / "independent_execution_reviews" / DATE / STAGE / "index.json").exists()
+ 
++
++
++def _pit_only_full_coverage_fixture(tmp_path, *, legacy=False, extra_error=None):
++    from dataclasses import replace
++    from stage_center.acquisition import SourceResult
++    from stage_center._live_collectors_parts.hk_minute import _mark_hk_futu_capture_pit_metadata
++    import stage_center.live_collectors as live
++    from upstreams.v3_shared_data.scripts.live_acquisition.futu_minute import aggregate_futu_minute_window_rows
++    stage_id = "STAGE_1445_1500"
++    seed = _other_stage_fixture(tmp_path / "seed", stage_id)
++    capture = json.loads(next((seed["raw_root"] / ".futu_minute_captures" / DATE / stage_id).glob("*.json")).read_bytes())
++    capture.update(captured_at="2026-10-14T15:01:06+08:00", no_data_codes=[])
++    capture["rows"] = [{**capture["rows"][0], "code": code} for code in capture["codes"]]
++    root = tmp_path / "target"; raw_root = root / "raw"
++    raw = _canonical(capture) + b"\n"; path = raw_root / ".futu_minute_captures" / DATE / stage_id / (_sha(raw) + ".json")
++    path.parent.mkdir(parents=True); path.write_bytes(raw)
++    old_snapshot = seed["source_files"]["active_snapshot"]
++    snapshot_path = raw_root / ".hk_active_snapshots_v2" / DATE / stage_id / "snapshot.json"
++    snapshot_path.parent.mkdir(parents=True); snapshot_path.write_bytes(old_snapshot.read_bytes())
++    evidence = [e for e in seed["source_evidence"] if not e.startswith(("futu_capture_path=", "futu_capture_sha256=", "futu_captured_at=", "futu_provider_rows_sha256=", "active_snapshot_path="))]
++    evidence += [f"futu_capture_path={path}", f"futu_capture_sha256={_sha(raw)}", f"futu_captured_at={capture['captured_at']}",
++                 f"futu_provider_rows_sha256={_sha(_canonical(capture['rows']))}", f"active_snapshot_path={snapshot_path}"]
++    raw_rows = aggregate_futu_minute_window_rows(DATE, stage_id, capture["rows"])
++    source = SourceResult("futu", "READY", rows=tuple({**row, "futu_captured_at": capture["captured_at"]} for row in raw_rows),
++                          requested_rows=100, source_evidence=tuple(evidence))
++    source = _mark_hk_futu_capture_pit_metadata(vars(live), SimpleNamespace(stage_id=stage_id, trade_date=DATE), source)
++    reasons = (["HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"] if legacy else []) + ([extra_error] if extra_error else [])
++    return _publish_stage_fixture(root, stage_id, raw_rows, source.source_evidence, seed["hk_d1_root"],
++        {"minute_capture": path, "active_snapshot": snapshot_path, "hk_d1": seed["source_files"]["hk_d1"]},
++        source_status="READY" if legacy else source.status, source_id="futu", cannot_confirm=reasons)
++
++
++@pytest.mark.parametrize("legacy", [False, True])
++def test_pit_only_source_remains_observable_after_strict_reaggregation(tmp_path, legacy):
++    from ops.verify_stage_execution import validate_execution_inputs
++    fixture = _pit_only_full_coverage_fixture(tmp_path, legacy=legacy)
++    inputs = validate_execution_inputs(trade_date=DATE, stage_id=fixture["stage_id"],
++        receipt_root=fixture["receipt_root"], raw_root=fixture["raw_root"], selection_root=fixture["selection_root"],
++        hk_d1_root=fixture["hk_d1_root"], expected_receipt_sha256=_sha(fixture["receipt_raw"]))
++    assert inputs["source_reconciliation"]["raw_rows"] == 100
++    assert inputs["source_reconciliation"]["selected_rows"] == 10
++    assert inputs["source_time_facts"]["pit_status"] == "CANNOT_CONFIRM"
++    assert "SOURCE_CAPTURE_AT_OR_AFTER_STAGE_CUTOFF" in inputs["source_time_facts"]["pit_cannot_confirm"]
++    assert fixture["lane"]["selection_status"] == "PARTIAL_WITH_ROWS"
++    assert not (fixture["receipt_root"] / "independent_execution_reviews").exists()
++
++
++def test_other_data_error_cannot_use_legacy_pit_observation_exception(tmp_path):
++    fixture = _pit_only_full_coverage_fixture(tmp_path, legacy=True, extra_error="BAD_SOURCE_DATA")
++    with pytest.raises(VerificationError, match="CURRENT_HK_RAW_ARTIFACT_NOT_OBSERVABLE"):
++        _verify(fixture)
++
++
++def test_legacy_pit_observation_still_rejects_changed_snapshot_bytes(tmp_path):
++    fixture = _pit_only_full_coverage_fixture(tmp_path, legacy=True)
++    p = fixture["source_files"]["active_snapshot"]
++    snapshot = json.loads(p.read_bytes()); snapshot["trade_date"] = "20990101"
++    p.write_bytes(_canonical(snapshot))
++    with pytest.raises(VerificationError):
++        _verify(fixture)
+--- baseline/tests/test_hk_futu_afternoon_routing.py
++++ candidate/tests/test_hk_futu_afternoon_routing.py
+@@ -83,15 +83,23 @@
+     result, calls = collect("STAGE_1300_1315", captured_at=captured_at)
+ 
+     assert calls == ["STAGE_1300_1315"]
+-    assert result.status == "READY"
++    assert result.status == "PARTIAL_WITH_ROWS"
+     assert len(result.rows) == 1
+     row = result.rows[0]
+     assert row["score"] == 0.75
+     assert row["temporal_cutoff_safe"] is True
+     assert row["candidate_lanes"] == ["LIVE_HKCONNECT_GAINER"]
+-    assert gap in result.cannot_confirm
++    assert gap not in result.cannot_confirm
++    assert f"futu_pit_cannot_confirm={gap}" in result.source_evidence
+     assert "futu_full_chain_pit_status=CANNOT_CONFIRM" in result.source_evidence
+     assert "futu_capture_clock_alone_is_not_pit_proof=true" in result.source_evidence
+     assert f"futu_capture_clock_available={clock_available}" in result.source_evidence
+     assert f"futu_capture_clock_date_matches_stage={date_matches}" in result.source_evidence
+     assert f"futu_capture_before_stage_cutoff={before_cutoff}" in result.source_evidence
++
++
++def test_capture_pit_metadata_preserves_real_data_errors():
++    result, _ = collect("STAGE_1300_1315", "HK_ACTIVE_SNAPSHOT_CORRUPT")
++    assert "HK_ACTIVE_SNAPSHOT_CORRUPT" in result.cannot_confirm
++    assert "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF" not in result.cannot_confirm
++    assert "futu_pit_cannot_confirm=HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF" in result.source_evidence

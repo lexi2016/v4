@@ -1,0 +1,34 @@
+{
+  "Stage_changed": false,
+  "candidate": {
+    "actual_delta": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r4-reader-compat/api-candidate-actualdiff.json",
+      "sha256": "884cf9c1eb0103dccfac73ad93fbf20f3931acd7aea8ea864ae0017204f1af35"
+    },
+    "application_inventory_sha256": "a70a1a90e38a4c9861e0796da830313b597592de796dd9d94200c0a73df9a5ac",
+    "baseline_CAS_verified": true,
+    "candidate_status": "NOT_ACTIVATED",
+    "changed_directories": 0,
+    "changed_files": 3,
+    "complete_inventory": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r4-reader-compat/api-candidate-complete-inventory.json",
+      "sha256": "b3616e20c6093d7780e284cb1193b03cd37d3a5155a15ff893d09e58fdae34a4"
+    },
+    "manifest": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r4-reader-compat/candidates/hk-auto-execution-audit-api-20261015-r4/release-manifest.json",
+      "sha256": "ec629d9d8b6eca2b6e20efe5fdcd29c13f8c373529285bcd3ddf34dba13b756d"
+    },
+    "non_delta_all_equal": true,
+    "prepared_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r4-reader-compat/candidates/hk-auto-execution-audit-api-20261015-r4",
+    "staged_plist": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r4-reader-compat/api-staged.plist",
+      "sha256": "4b501ff11e2b794d330954a480083ef5ad092280f06e60f68f35d5733b0fc7bb"
+    },
+    "target_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r4"
+  },
+  "exclude": "No actual/synthetic raw/selection/receipt/attestation/index files, fixture data, complete release trees, caches or credentials.",
+  "reader_sha256": "092da1c754b9d8ad264a871058971b0ed7ab430f78bea20bc77f4bcb95672669",
+  "receipt_sha256": "6ec4c550857e5d736c2afd629ead4c76d29b6b44ad7e6d319dbac87cd2610e28",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "verifier_sha256": "32872ffd4f99ca774252d238d38033c39b3dd0ab9b449a69c2dd35fddc556fc5"
+}

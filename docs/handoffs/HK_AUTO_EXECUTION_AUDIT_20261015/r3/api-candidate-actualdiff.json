@@ -1,0 +1,25 @@
+{
+  "baseline_actual_inventory_sha256": "14402274b7a605dd87caf3c2750c74624fe78763785f414186dd3bfb731a5c35",
+  "changes": [
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "32872ffd4f99ca774252d238d38033c39b3dd0ab9b449a69c2dd35fddc556fc5",
+        "size": 61786
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "49a36c3725b8ee2546bc0fdc2044790386da152044053cb10c0750d199f0a7ae",
+        "size": 59030
+      },
+      "path": "ops/verify_stage_execution.py"
+    }
+  ],
+  "non_delta_all_byte_mode_kind_equal": true,
+  "non_delta_entry_count": 1500,
+  "owner": "api"
+}

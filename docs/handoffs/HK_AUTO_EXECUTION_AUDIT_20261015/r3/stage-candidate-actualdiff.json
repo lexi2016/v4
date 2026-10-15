@@ -1,0 +1,59 @@
+{
+  "baseline_actual_inventory_sha256": "8796b90d6ad61da5d6857dc2af50b660aa6f0a43255da7c8386e752b511b9eb0",
+  "changes": [
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "32872ffd4f99ca774252d238d38033c39b3dd0ab9b449a69c2dd35fddc556fc5",
+        "size": 61786
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "49a36c3725b8ee2546bc0fdc2044790386da152044053cb10c0750d199f0a7ae",
+        "size": 59030
+      },
+      "path": "ops/verify_stage_execution.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center_tick_config.json",
+        "sha256": "c7c15e2f22b30e045af654c485346cded16dafda5c734c89b5c65a663405b812",
+        "size": 2832
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center_tick_config.json",
+        "sha256": "653fdb10886596fc7eb9d57b84c46f0d144a55145f769a26a709a5e94b11c58d",
+        "size": 2832
+      },
+      "path": "stage_center_tick_config.json"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_automatic_execution_review_20261015.py",
+        "sha256": "62ca19ff7b84599a522d96fce7dd89f8b86ac6e02bcc5b62921e6631b249da86",
+        "size": 47388
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_automatic_execution_review_20261015.py",
+        "sha256": "03f84f301abaac9e4f4a6284e91eef3272b8487b77ff98330314722e3c39817d",
+        "size": 43340
+      },
+      "path": "tests/test_automatic_execution_review_20261015.py"
+    }
+  ],
+  "non_delta_all_byte_mode_kind_equal": true,
+  "non_delta_entry_count": 1126,
+  "owner": "stage"
+}

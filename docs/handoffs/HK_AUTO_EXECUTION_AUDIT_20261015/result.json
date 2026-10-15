@@ -1,0 +1,228 @@
+{
+  "schema_version": "hk_auto_execution_audit_delivery.v1",
+  "checked_at": "2026-10-15T16:19:25.427429+08:00",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_HEAD": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "delivery_base_commit": "438b4fca3f25985b6a717cb3198c0b54d1a8f919",
+  "delivery_branch": "codex/hk-auto-execution-audit-20261015",
+  "delivery_mode": "PATCH_ONLY_EXACT_PREIMAGE_SHA_REQUIRED_NOT_FULL_RUNTIME_SNAPSHOT",
+  "writer": "/root/hk_auto_writer_sol",
+  "reviewer": "/root/hk_auto_review_sol",
+  "subagent_model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "scope_status": "REPAIR_COMPLETE_MONITOR_CONTINUES",
+  "status": {
+    "IMPLEMENTED": true,
+    "TESTED": true,
+    "REVIEWED": true,
+    "BEHAVIOR_VERIFIED": true,
+    "INTEGRATED": true,
+    "DEPLOYED": true,
+    "API_VERIFIED": true,
+    "UI_VERIFIED": true,
+    "NATURAL_VERIFIED": "R2_1555_HK_OPERATION_ONLY",
+    "R3_NEW_NATURAL": "NOT_RUN",
+    "PIT": "CANNOT_CONFIRM",
+    "FORMAL_ELIGIBILITY": "NOT_GRANTED",
+    "FULL_RUNTIME_GRAPH_IDENTITY": "CANNOT_CONFIRM"
+  },
+  "actual_stage": {
+    "face": "stage",
+    "status": "DEPLOYED_PENDING_READBACK",
+    "actual_time": "2026-10-15T16:15:17.675229+08:00",
+    "release": "hk-auto-execution-audit-20261015-r3",
+    "manifest_sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6",
+    "plist_sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c",
+    "steps": [
+      {
+        "operation": "bootout",
+        "returncode": 0,
+        "stderr": ""
+      },
+      {
+        "operation": "bootstrap",
+        "returncode": 0,
+        "stderr": ""
+      }
+    ],
+    "complete_inventory_match": true,
+    "identity_lines": [
+      "state = not running",
+      "working directory = /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r3/app"
+    ],
+    "no_manual_tick_or_attestation": true,
+    "natural1555_version": "R2_NOT_R3",
+    "new_R3_natural_status": "NOT_RUN"
+  },
+  "actual_api": {
+    "face": "api",
+    "status": "DEPLOYED_PENDING_READBACK",
+    "actual_time": "2026-10-15T16:15:18.424468+08:00",
+    "release": "hk-auto-execution-audit-api-20261015-r4",
+    "manifest_sha256": "ec629d9d8b6eca2b6e20efe5fdcd29c13f8c373529285bcd3ddf34dba13b756d",
+    "plist_sha256": "4b501ff11e2b794d330954a480083ef5ad092280f06e60f68f35d5733b0fc7bb",
+    "steps": [
+      {
+        "operation": "bootout",
+        "returncode": 0,
+        "stderr": ""
+      },
+      {
+        "operation": "bootstrap",
+        "returncode": 0,
+        "stderr": ""
+      }
+    ],
+    "complete_inventory_match": true,
+    "identity_lines": [
+      "state = xpcproxy",
+      "working directory = /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r4/app",
+      "pid = 59730",
+      "state = active",
+      "state = active"
+    ],
+    "no_manual_tick_or_attestation": true,
+    "natural1555_version": "R2_NOT_R3",
+    "new_R3_natural_status": "NOT_RUN"
+  },
+  "natural1555": {
+    "receipt_sha256": "831a1b0409fbb830b2038bee74837b61dd8502ecfccbc661a6e1a69a1da8d79f",
+    "history_sha256": "52b2b5b76fd81449016f8c543e0d2735dab72102a570ef767ea9cb3597515f83",
+    "index_sha256": "6985c5bb65a9b71563feae1a93876364cc0120a630cefa4e1f18f90a41581202",
+    "attestation_sha256": "5bd5dd8317e90af80f49d92ece5c638eeed3f7cb562b5b369af93803b94bfd81",
+    "verifier_sha256": "49a36c3725b8ee2546bc0fdc2044790386da152044053cb10c0750d199f0a7ae",
+    "selection_run_id": "run-65c3b689d2a8847744b2affc",
+    "source_reconciliation": {
+      "source_rows": 100,
+      "raw_rows": 100,
+      "selected_rows": 10,
+      "status": "SOURCE_WINDOW_REAGGREGATED_RAW_AND_SELECTION_PROJECTIONS_RECONCILED"
+    },
+    "PIT_status": "CANNOT_CONFIRM",
+    "formal_eligibility_status": "CANNOT_CONFIRM"
+  },
+  "validation": {
+    "independent_stage_tests": "40 passed; actual pool+8stage GET36busy case passed",
+    "independent_reader_tests": "31 passed + independent invalid natural clock negative test",
+    "candidate_concurrency": "41 actual busy events; HK10/natural VERIFIED",
+    "postactivation": "Actual pool overlap with four HTTP GETs;1500 A10HK10/20 missing proof;1555 A0HK10/10 originalR2 proof VERIFIED",
+    "protected_runtime_files": "18 files SHA andmtime unchanged; no production verifier replay or new historical attestation",
+    "environment": "local macOS runtime Python3.14; -B/PYTHONDONTWRITEBYTECODE; pytest no cacheprovider; isolated fixture state",
+    "R3_next_natural": "NOT_RUN; no forced natural task"
+  },
+  "remaining": {
+    "close1610": {
+      "checked_at": "2026-10-15T16:12:50.318481+08:00",
+      "node": "1610",
+      "dispatch_run_id": "06e39b51fda142449ad1cf9a8c1af480",
+      "dispatch_status": "SUCCEEDED",
+      "dispatch_mode": "LIVE",
+      "release": "hk-history-adjudication-scheduler-20261015-r3",
+      "dispatch_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20261015/1610/06e39b51fda142449ad1cf9a8c1af480.dispatch-receipt.json",
+      "dispatch_receipt_sha256": "0e5031eaf9c82b21f00b9b47ee51e372ca8a31e25837fa7d63c939e6571d0a3e",
+      "publication_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/close_reviews/20261015.json",
+      "publication_sha256": "54688edbcd5edb6f2f5f559e1dccb6a31acd872a555968b586dd671c331b341d",
+      "target_date": "20261015",
+      "capture": {
+        "api": "get_market_snapshot",
+        "plate_codes": [
+          "HK.GangGuTong",
+          "HK.LIST1922"
+        ],
+        "provider": "FUTU_OPENAPI",
+        "queried_at": "2026-10-15T16:10:00+08:00",
+        "source_sha256": "6d2343cbad2202af6e5b880fd08b2aab2a94653de59f4c7daff361c64d3e6a82",
+        "source_time_max": "2026-10-15T16:08:42+08:00",
+        "source_time_min": "2026-10-15T15:51:27+08:00",
+        "timestamp_field": "update_time",
+        "timezone": "Asia/Shanghai"
+      },
+      "review_status": "MODEL_REVIEW_PARTIAL_STAGE_EVIDENCE",
+      "row_counts": {
+        "close_top20": 20,
+        "hkconnect_universe": 698,
+        "model_0_2": 100,
+        "stage_rows": 30
+      },
+      "missing_stages": [
+        "STAGE_0925",
+        "STAGE_0930_0935",
+        "STAGE_0935_0940",
+        "STAGE_0940_0945"
+      ],
+      "unverified_stages": [
+        "STAGE_1445_1500"
+      ],
+      "cannot_confirm": [
+        "MISSING_STAGE:STAGE_0925",
+        "MISSING_STAGE:STAGE_0930_0935",
+        "MISSING_STAGE:STAGE_0935_0940",
+        "MISSING_STAGE:STAGE_0940_0945",
+        "UNVERIFIED_STAGE:STAGE_1445_1500",
+        "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"
+      ],
+      "observed_union": {
+        "selected_count": 16,
+        "hit_count": 4,
+        "stage_ids": [
+          "STAGE_0945_1030",
+          "STAGE_1300_1315",
+          "STAGE_1445_1500"
+        ],
+        "expected_stage_count": 7,
+        "pit_status": "UNVERIFIED"
+      },
+      "API_readback_sha256": "6b9064409110edb48e85482252c31ed98689c76b1a419371ce2ab4e928d0f533",
+      "UI": "stable current-date review shows3/7 stages30observation16unique4/20; four morning backfills not included by close reader",
+      "first_gap": "CLOSE_STAGE_INPUT_READER_SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID_FOR_FOUR_MORNING_STAGES",
+      "scope": "MONITOR_ONLY_NO_REPLAY_OR_WRITE",
+      "full_chain_acceptance": "CANNOT_CONFIRM",
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "historical": "morning MANUAL/HISTORICAL stays separate;1500 original rejection/index absence retained",
+    "PIT": "Source capture clocks at/after cutoff; future availability cannot be inferred from filtered bar times; no formal upgrade",
+    "monitor": "existing v4-2026-10-15 ACTIVE,16:22/32 and17:32/42/52;17:52 final thenPAUSED"
+  },
+  "evidence": {
+    "stage_candidate": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/reviewer-sol/r3/stage-candidate-reviewer-receipt.json",
+      "sha256": "2501ccc7ba4fa6670351d83ff7cce4ab6dc35d2a2deb573a47750a14d0f0433f"
+    },
+    "api_candidate": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/reviewer-sol/r4/reviewer-receipt.json",
+      "sha256": "52af9863bc06e41b9c2bcc25361f22fc16d88f62add72965ce6d07a5b5d0c991"
+    },
+    "postactivation": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/reviewer-sol/r4/postactivation/reviewer-receipt.json",
+      "sha256": "f6a4a8677f32cd101f57175a1143e7ab9453bc3fd5cd54ef06734420e28af746"
+    },
+    "natural1555": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/reviewer-sol/natural1555/reviewer-receipt.json",
+      "sha256": "bd2e26cb14f26d93342dec0be82f630448063907040bc4549238226f3ca45e52"
+    },
+    "stage_activation": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/integration/r3-stage-activation.json",
+      "sha256": "9ce4b1f447fa15e80abc16fd7f6c285d6458648fc1478ecd789d66671bfe28ff"
+    },
+    "api_activation": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/integration/r4-api-activation.json",
+      "sha256": "f26f875958fe5d33d2139e4633b84422461cb2a11d7015670e1f910acc2ba300"
+    },
+    "UI": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/integration/r4-ui-readback.json",
+      "sha256": "431e9c7225830d83aaab769c38d141cf99d5216d1bf180edcaa88ee2866e7148"
+    },
+    "close1610_monitor": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/integration/close1610-monitor-receipt.json",
+      "sha256": "4974fc0b646754feede443430650ae206360b9a874ecfac56b446a5c2280a0a9"
+    }
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "Vibe8910": "UNCHANGED"
+}

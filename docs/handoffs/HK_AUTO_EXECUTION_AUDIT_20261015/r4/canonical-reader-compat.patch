@@ -1,0 +1,68 @@
+--- a/stage_center/independent_execution_review.py
++++ b/stage_center/independent_execution_review.py
+@@ -32,6 +32,15 @@
+     "MANUAL_REPLAY", "CURRENT_DAY_RESEARCH_REPLAY", "HISTORICAL_BACKFILL", "LATE_CATCHUP_REPLAY",
+ })
+ _SHANGHAI = ZoneInfo("Asia/Shanghai")
++
++# Independently reviewed revalidation-equivalent verifier pair. This permits
++# R3's lock-wait-only reader upgrade to revalidate genuine R2 records using
++# all current checks; it is not an arbitrary historical-code allowlist.
++_AUTOMATED_VERIFIER_REVALIDATION_COMPATIBILITY = {
++    "32872ffd4f99ca774252d238d38033c39b3dd0ab9b449a69c2dd35fddc556fc5": frozenset({
++        "49a36c3725b8ee2546bc0fdc2044790386da152044053cb10c0750d199f0a7ae",
++    }),
++}
+ 
+ 
+ class _ReviewError(ValueError):
+@@ -229,7 +238,10 @@
+     """Revalidate typed automatic facts using only locally configured roots."""
+     from ops import verify_stage_execution as verifier
+     verifier_sha = _sha(Path(verifier.__file__).read_bytes())
+-    if attestation.get("reviewer_verifier_code_sha256") != verifier_sha:
++    declared_verifier_sha = attestation.get("reviewer_verifier_code_sha256")
++    compatible = _AUTOMATED_VERIFIER_REVALIDATION_COMPATIBILITY.get(verifier_sha, ())
++    if (not _is_sha(declared_verifier_sha)
++            or (declared_verifier_sha != verifier_sha and declared_verifier_sha not in compatible)):
+         raise _ReviewError("AUTOMATED_VERIFIER_CODE_SHA_MISMATCH")
+     if (attestation.get("scope_markets") != ["HK_CONNECT"]
+             or attestation.get("scope_semantics") != "SCHEDULER_AND_ARTIFACT_OPERATION_FACTS_ONLY"):
+--- a/tests/test_independent_execution_review_20261015.py
++++ b/tests/test_independent_execution_review_20261015.py
+@@ -446,3 +446,35 @@
+     assert result["execution_verified"] is False
+     assert result["natural_verified"] is False
+     assert "INDEPENDENT_REVIEW_PATH_OR_SIZE_REFUSED" in result["independent_execution_review"]["cannot_confirm"]
++
++
++@pytest.mark.parametrize("case", ["reviewed_R2", "current_R3", "unknown_code", "wrong_code", "changed_input", "changed_source_bytes", "failed_proof", "changed_local_code"])
++def test_reviewed_R2_record_compatibility_keeps_all_current_validation(tmp_path, monkeypatch, case):
++    module, fixture = _automatic_fixture(tmp_path, monkeypatch)
++    from ops import verify_stage_execution as verifier
++    directory = fixture["receipt_root"] / "independent_execution_reviews" / module.DATE / module.STAGE
++    path = directory / "attestation.json"; attestation = json.loads(path.read_bytes())
++    assert _sha(Path(verifier.__file__).read_bytes()) == "32872ffd4f99ca774252d238d38033c39b3dd0ab9b449a69c2dd35fddc556fc5"
++    if case != "current_R3":
++        attestation["reviewer_verifier_code_sha256"] = "49a36c3725b8ee2546bc0fdc2044790386da152044053cb10c0750d199f0a7ae"
++    if case == "unknown_code": attestation["reviewer_verifier_code_sha256"] = "1" * 64
++    elif case == "wrong_code": attestation["reviewer_verifier_code_sha256"] = "not-a-sha"
++    elif case == "changed_input": attestation["execution_inputs"]["source_reconciliation"]["source_rows"] = 999
++    elif case == "failed_proof": attestation["markets"]["HK_CONNECT"]["operation_status"] = "CANNOT_CONFIRM"
++    raw = _canonical(attestation);path.write_bytes(raw)
++    index_path = directory / "index.json"; index = json.loads(index_path.read_bytes());index["attestation_sha256"] = _sha(raw);index_path.write_bytes(_canonical(index))
++    if case == "changed_source_bytes":
++        snapshot_path = fixture["source_files"]["active_snapshot"]
++        snapshot = json.loads(snapshot_path.read_bytes()); snapshot["trade_date"] = "20990101"
++        snapshot_path.write_bytes(_canonical(snapshot))
++    if case == "changed_local_code":
++        original = Path.read_bytes; verifier_path = Path(verifier.__file__).resolve()
++        monkeypatch.setattr(Path, "read_bytes", lambda self: b"changed local verifier" if self.resolve() == verifier_path else original(self))
++    current = read_stage_execution(fixture["receipt_root"], module.DATE, module.STAGE,
++        {"HK_CONNECT": fixture["lane"]}, selection_store=fixture["selection_store"])
++    verified = current["operating_execution_by_market"]["HK_CONNECT"]["execution_verified"]
++    assert verified is (case in {"reviewed_R2", "current_R3"})
++    assert current["execution_verified"] is False  # HK scope never promotes mixed A/HK aggregate
++    assert current["natural_verified"] is False
++    if not verified:
++        assert current["independent_execution_review"]["status"] == "CANNOT_CONFIRM"

@@ -1,0 +1,188 @@
+--- baseline/ops/verify_stage_execution.py
++++ candidate/ops/verify_stage_execution.py
+@@ -15,6 +15,7 @@
+ import json
+ import re
+ import sys
++import time
+ from pathlib import Path, PurePosixPath
+ from typing import Any
+ from zoneinfo import ZoneInfo
+@@ -453,14 +454,38 @@
+     }
+ 
+ 
+-def _refuse_d1_pending(roots, trade_date):
+-    for root in dict.fromkeys(Path(root) for root in roots if root is not None):
+-        for relative in (f"preselection_pending_commits/{trade_date}/hkconnect_d1_top100.json", ".import.lock"):
++class _D1ImportBusy(VerificationError):
++    """A transient owner marker; never a permit to read through the lock."""
++
++
++def _refuse_d1_pending(roots, trade_date, *, check_import_lock=True):
++    configured = tuple(dict.fromkeys(Path(root) for root in roots if root is not None))
++    # Pending is always an immediate refusal, even when another root is busy.
++    for root in configured:
++        try:
++            SafeRoot(root).read_bytes(
++                f"preselection_pending_commits/{trade_date}/hkconnect_d1_top100.json", max_bytes=_MAX_JSON)
++        except FileNotFoundError:
++            continue
++        raise VerificationError("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++    if check_import_lock:
++        for root in configured:
+             try:
+-                SafeRoot(root).read_bytes(relative, max_bytes=_MAX_JSON)
++                SafeRoot(root).read_bytes(".import.lock", max_bytes=_MAX_JSON)
+             except FileNotFoundError:
+                 continue
+-            raise VerificationError("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++            raise _D1ImportBusy("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++
++
++def _d1_read_anchor(d1_root, trade_date, preselection_source_root):
++    """Untrusted byte/owner anchor for drift detection, never acceptance."""
++    from infrastructure.preselection_pool_store import PreselectionSourceResolver, PreselectionPoolStore
++    resolver = PreselectionSourceResolver(d1_root, source_root=preselection_source_root)
++    root = resolver.root_for_date(trade_date)
++    artifact, receipt = PreselectionPoolStore._relative(trade_date, "hkconnect_d1_top100")
++    io_root = SafeRoot(root)
++    paths = (artifact, f"preselection_pools/{trade_date}/manifest.json", receipt)
++    return str(root), tuple(io_root.read_bytes(path, max_bytes=_MAX_JSON) for path in paths)
+ 
+ 
+ def _d1_pool_semantics(payload, trade_date):
+@@ -521,6 +546,33 @@
+ 
+ 
+ def _d1_pool_time_binding(evidence, d1_root, trade_date, *, preselection_source_root=None):
++    roots = (d1_root, preselection_source_root)
++    _refuse_d1_pending(roots, trade_date, check_import_lock=False)
++    anchor = _d1_read_anchor(d1_root, trade_date, preselection_source_root)
++    deadline = time.monotonic() + 2.0
++    while True:
++        # A retry restarts the entire strict trio/date/member/expected-SHA read.
++        _refuse_d1_pending(roots, trade_date, check_import_lock=False)
++        if _d1_read_anchor(d1_root, trade_date, preselection_source_root) != anchor:
++            raise VerificationError("CURRENT_HK_D1_CHANGED_DURING_IMPORT_WAIT")
++        try:
++            result = _d1_pool_time_binding_once(evidence, d1_root, trade_date,
++                preselection_source_root=preselection_source_root)
++            if _d1_read_anchor(d1_root, trade_date, preselection_source_root) != anchor:
++                raise VerificationError("CURRENT_HK_D1_CHANGED_DURING_IMPORT_WAIT")
++            _refuse_d1_pending(roots, trade_date)
++            return result
++        except _D1ImportBusy:
++            _refuse_d1_pending(roots, trade_date, check_import_lock=False)
++            if _d1_read_anchor(d1_root, trade_date, preselection_source_root) != anchor:
++                raise VerificationError("CURRENT_HK_D1_CHANGED_DURING_IMPORT_WAIT")
++            remaining = deadline - time.monotonic()
++            if remaining <= 0:
++                raise VerificationError("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++            time.sleep(min(0.02, remaining))
++
++
++def _d1_pool_time_binding_once(evidence, d1_root, trade_date, *, preselection_source_root=None):
+     from infrastructure.preselection_pool_store import PreselectionSourceResolver, PreselectionPoolStore, validate_pool_artifact
+     from infrastructure.data_store import _canonical_bytes
+     pairs = _evidence_pairs(evidence)
+--- baseline/stage_center_tick_config.json
++++ candidate/stage_center_tick_config.json
+@@ -24,7 +24,7 @@
+   "python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+   "raw_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw",
+   "receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+-  "release_id": "hk-auto-execution-audit-20261015-r2",
++  "release_id": "hk-auto-execution-audit-20261015-r3",
+   "research_mode": "LIVE_EXACT_DATE_READ_ONLY",
+   "safety": {
+     "buy_gate_updated": false,
+@@ -33,7 +33,7 @@
+   },
+   "schema_version": "stage_center.tick_config.v1",
+   "selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+-  "shared_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r2/app/upstreams/v3_shared_data",
++  "shared_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r3/app/upstreams/v3_shared_data",
+   "stage_research_producer": "EXISTING_HOURLY_RESEARCH_EXECUTOR",
+   "stage_research_root_role": "V4_HOURLY_RESEARCH_STORE_EXACT_DATE",
+   "v4_morning_news_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+--- baseline/tests/test_automatic_execution_review_20261015.py
++++ candidate/tests/test_automatic_execution_review_20261015.py
+@@ -689,3 +689,77 @@
+     p.write_bytes(_canonical(snapshot))
+     with pytest.raises(VerificationError):
+         _verify(fixture)
++
++
++def _d1_retry_inputs(fixture):
++    return (fixture["source_evidence"], fixture["hk_d1_root"], DATE)
++
++
++def test_d1_import_lock_transient_wait_revalidates_without_writes(tmp_path, monkeypatch):
++    import os, fcntl
++    from ops import verify_stage_execution as v
++    fixture = _fixture(tmp_path); marker = fixture["hk_d1_root"] / ".import.lock"
++    marker.write_text("test-reader-owner")
++    # A separate test actor releases its own synthetic marker. The verifier
++    # process has every mutation/lock/process call blocked while validating.
++    child = subprocess.Popen([sys.executable, "-B", "-c",
++        "import time,pathlib;time.sleep(.15);pathlib.Path(__import__('sys').argv[1]).unlink()", str(marker)])
++    calls = []
++    def refuse(*args, **kwargs):
++        calls.append("mutation_or_lock"); raise AssertionError("verifier attempted a mutation")
++    try:
++        with monkeypatch.context() as guard:
++            for obj, names in ((os, ("mkdir", "makedirs", "unlink", "remove", "replace", "rename", "write")),
++                               (Path, ("write_bytes", "write_text", "mkdir", "unlink", "touch")),
++                               (fcntl, ("flock", "lockf")), (subprocess, ("Popen", "run"))):
++                for name in names: guard.setattr(obj, name, refuse)
++            result = v._d1_pool_time_binding(*_d1_retry_inputs(fixture))
++        assert result["status"] == "CONFIGURED_EXACT_DATE_TOP100_TRIO_VERIFIED"
++        assert calls == []
++    finally: child.wait(timeout=5)
++
++
++def test_d1_import_lock_persistent_timeout_is_bounded(tmp_path):
++    import time
++    from ops import verify_stage_execution as v
++    fixture = _fixture(tmp_path); (fixture["hk_d1_root"] / ".import.lock").write_text("test-reader-owner")
++    start = time.monotonic()
++    with pytest.raises(VerificationError, match="CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS"):
++        v._d1_pool_time_binding(*_d1_retry_inputs(fixture))
++    assert 1.9 <= time.monotonic() - start < 2.3
++
++
++def test_d1_pending_refuses_without_wait_even_with_busy_other_root(tmp_path, monkeypatch):
++    from ops import verify_stage_execution as v
++    fixture = _fixture(tmp_path); primary = tmp_path / "primary"; primary.mkdir()
++    (primary / ".import.lock").write_text("busy")
++    pending = fixture["hk_d1_root"] / "preselection_pending_commits" / DATE / "hkconnect_d1_top100.json"
++    pending.parent.mkdir(parents=True); pending.write_text("pending")
++    monkeypatch.setattr(v.time, "sleep", lambda *a: pytest.fail("pending must not wait"))
++    with pytest.raises(VerificationError, match="CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS"):
++        v._d1_pool_time_binding(fixture["source_evidence"], primary, DATE,
++                               preselection_source_root=fixture["hk_d1_root"])
++
++
++@pytest.mark.parametrize("change", ["trio", "owner", "pending"])
++def test_d1_retry_rejects_changes_during_busy_wait(tmp_path, change):
++    from ops import verify_stage_execution as v
++    fixture = _fixture(tmp_path); primary = tmp_path / "primary"; primary.mkdir()
++    marker = primary / ".import.lock"; marker.write_text("busy")
++    if change == "trio":
++        target = fixture["hk_d1_root"] / "preselection_pools" / DATE / "manifest.json"
++        action = "p.write_bytes(p.read_bytes()+b' ')"
++    elif change == "owner":
++        target = primary / "preselection_pools" / DATE
++        action = "p.mkdir(parents=True)"
++    else:
++        target = fixture["hk_d1_root"] / "preselection_pending_commits" / DATE / "hkconnect_d1_top100.json"
++        action = "p.parent.mkdir(parents=True);p.write_text('pending')"
++    child = subprocess.Popen([sys.executable, "-B", "-c",
++        "import time,pathlib,sys;time.sleep(.1);p=pathlib.Path(sys.argv[1]);" + action
++        + ";pathlib.Path(sys.argv[2]).unlink()", str(target), str(marker)])
++    try:
++        with pytest.raises((VerificationError, OSError)):
++            v._d1_pool_time_binding(fixture["source_evidence"], primary, DATE,
++                                   preselection_source_root=fixture["hk_d1_root"])
++    finally: child.wait(timeout=5)

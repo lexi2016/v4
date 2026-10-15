@@ -1,0 +1,59 @@
+{
+  "baseline_actual_inventory_sha256": "8514d19cf38ef85aef9f28019e11a51699ec50bda371aa8b9723bcc1fdbbdaeb",
+  "changes": [
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "32872ffd4f99ca774252d238d38033c39b3dd0ab9b449a69c2dd35fddc556fc5",
+        "size": 61786
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "49a36c3725b8ee2546bc0fdc2044790386da152044053cb10c0750d199f0a7ae",
+        "size": 59030
+      },
+      "path": "ops/verify_stage_execution.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/independent_execution_review.py",
+        "sha256": "092da1c754b9d8ad264a871058971b0ed7ab430f78bea20bc77f4bcb95672669",
+        "size": 26417
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/independent_execution_review.py",
+        "sha256": "15eea00ec18f026d72d281f1737e711e0785018b26cbf5efd61172566b5b821d",
+        "size": 25736
+      },
+      "path": "stage_center/independent_execution_review.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_independent_execution_review_20261015.py",
+        "sha256": "b16280199d2fef6dcaa4468655f4e8e86da20a5b526c0c56fa97ee455c824d4d",
+        "size": 23471
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_independent_execution_review_20261015.py",
+        "sha256": "172dd462955964717f07cc053146a3e9bb2b415fd2415f87928ea44343232ca1",
+        "size": 20886
+      },
+      "path": "tests/test_independent_execution_review_20261015.py"
+    }
+  ],
+  "non_delta_all_byte_mode_kind_equal": true,
+  "non_delta_entry_count": 1500,
+  "owner": "api"
+}

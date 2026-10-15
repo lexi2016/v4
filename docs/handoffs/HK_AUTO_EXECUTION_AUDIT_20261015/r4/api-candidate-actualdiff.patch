@@ -1,0 +1,156 @@
+--- baseline/ops/verify_stage_execution.py
++++ candidate/ops/verify_stage_execution.py
+@@ -15,6 +15,7 @@
+ import json
+ import re
+ import sys
++import time
+ from pathlib import Path, PurePosixPath
+ from typing import Any
+ from zoneinfo import ZoneInfo
+@@ -453,14 +454,38 @@
+     }
+ 
+ 
+-def _refuse_d1_pending(roots, trade_date):
+-    for root in dict.fromkeys(Path(root) for root in roots if root is not None):
+-        for relative in (f"preselection_pending_commits/{trade_date}/hkconnect_d1_top100.json", ".import.lock"):
++class _D1ImportBusy(VerificationError):
++    """A transient owner marker; never a permit to read through the lock."""
++
++
++def _refuse_d1_pending(roots, trade_date, *, check_import_lock=True):
++    configured = tuple(dict.fromkeys(Path(root) for root in roots if root is not None))
++    # Pending is always an immediate refusal, even when another root is busy.
++    for root in configured:
++        try:
++            SafeRoot(root).read_bytes(
++                f"preselection_pending_commits/{trade_date}/hkconnect_d1_top100.json", max_bytes=_MAX_JSON)
++        except FileNotFoundError:
++            continue
++        raise VerificationError("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++    if check_import_lock:
++        for root in configured:
+             try:
+-                SafeRoot(root).read_bytes(relative, max_bytes=_MAX_JSON)
++                SafeRoot(root).read_bytes(".import.lock", max_bytes=_MAX_JSON)
+             except FileNotFoundError:
+                 continue
+-            raise VerificationError("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++            raise _D1ImportBusy("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++
++
++def _d1_read_anchor(d1_root, trade_date, preselection_source_root):
++    """Untrusted byte/owner anchor for drift detection, never acceptance."""
++    from infrastructure.preselection_pool_store import PreselectionSourceResolver, PreselectionPoolStore
++    resolver = PreselectionSourceResolver(d1_root, source_root=preselection_source_root)
++    root = resolver.root_for_date(trade_date)
++    artifact, receipt = PreselectionPoolStore._relative(trade_date, "hkconnect_d1_top100")
++    io_root = SafeRoot(root)
++    paths = (artifact, f"preselection_pools/{trade_date}/manifest.json", receipt)
++    return str(root), tuple(io_root.read_bytes(path, max_bytes=_MAX_JSON) for path in paths)
+ 
+ 
+ def _d1_pool_semantics(payload, trade_date):
+@@ -521,6 +546,33 @@
+ 
+ 
+ def _d1_pool_time_binding(evidence, d1_root, trade_date, *, preselection_source_root=None):
++    roots = (d1_root, preselection_source_root)
++    _refuse_d1_pending(roots, trade_date, check_import_lock=False)
++    anchor = _d1_read_anchor(d1_root, trade_date, preselection_source_root)
++    deadline = time.monotonic() + 2.0
++    while True:
++        # A retry restarts the entire strict trio/date/member/expected-SHA read.
++        _refuse_d1_pending(roots, trade_date, check_import_lock=False)
++        if _d1_read_anchor(d1_root, trade_date, preselection_source_root) != anchor:
++            raise VerificationError("CURRENT_HK_D1_CHANGED_DURING_IMPORT_WAIT")
++        try:
++            result = _d1_pool_time_binding_once(evidence, d1_root, trade_date,
++                preselection_source_root=preselection_source_root)
++            if _d1_read_anchor(d1_root, trade_date, preselection_source_root) != anchor:
++                raise VerificationError("CURRENT_HK_D1_CHANGED_DURING_IMPORT_WAIT")
++            _refuse_d1_pending(roots, trade_date)
++            return result
++        except _D1ImportBusy:
++            _refuse_d1_pending(roots, trade_date, check_import_lock=False)
++            if _d1_read_anchor(d1_root, trade_date, preselection_source_root) != anchor:
++                raise VerificationError("CURRENT_HK_D1_CHANGED_DURING_IMPORT_WAIT")
++            remaining = deadline - time.monotonic()
++            if remaining <= 0:
++                raise VerificationError("CURRENT_HK_D1_PENDING_OR_IMPORT_IN_PROGRESS")
++            time.sleep(min(0.02, remaining))
++
++
++def _d1_pool_time_binding_once(evidence, d1_root, trade_date, *, preselection_source_root=None):
+     from infrastructure.preselection_pool_store import PreselectionSourceResolver, PreselectionPoolStore, validate_pool_artifact
+     from infrastructure.data_store import _canonical_bytes
+     pairs = _evidence_pairs(evidence)
+--- baseline/stage_center/independent_execution_review.py
++++ candidate/stage_center/independent_execution_review.py
+@@ -32,6 +32,15 @@
+     "MANUAL_REPLAY", "CURRENT_DAY_RESEARCH_REPLAY", "HISTORICAL_BACKFILL", "LATE_CATCHUP_REPLAY",
+ })
+ _SHANGHAI = ZoneInfo("Asia/Shanghai")
++
++# Independently reviewed revalidation-equivalent verifier pair. This permits
++# R3's lock-wait-only reader upgrade to revalidate genuine R2 records using
++# all current checks; it is not an arbitrary historical-code allowlist.
++_AUTOMATED_VERIFIER_REVALIDATION_COMPATIBILITY = {
++    "32872ffd4f99ca774252d238d38033c39b3dd0ab9b449a69c2dd35fddc556fc5": frozenset({
++        "49a36c3725b8ee2546bc0fdc2044790386da152044053cb10c0750d199f0a7ae",
++    }),
++}
+ 
+ 
+ class _ReviewError(ValueError):
+@@ -229,7 +238,10 @@
+     """Revalidate typed automatic facts using only locally configured roots."""
+     from ops import verify_stage_execution as verifier
+     verifier_sha = _sha(Path(verifier.__file__).read_bytes())
+-    if attestation.get("reviewer_verifier_code_sha256") != verifier_sha:
++    declared_verifier_sha = attestation.get("reviewer_verifier_code_sha256")
++    compatible = _AUTOMATED_VERIFIER_REVALIDATION_COMPATIBILITY.get(verifier_sha, ())
++    if (not _is_sha(declared_verifier_sha)
++            or (declared_verifier_sha != verifier_sha and declared_verifier_sha not in compatible)):
+         raise _ReviewError("AUTOMATED_VERIFIER_CODE_SHA_MISMATCH")
+     if (attestation.get("scope_markets") != ["HK_CONNECT"]
+             or attestation.get("scope_semantics") != "SCHEDULER_AND_ARTIFACT_OPERATION_FACTS_ONLY"):
+--- baseline/tests/test_independent_execution_review_20261015.py
++++ candidate/tests/test_independent_execution_review_20261015.py
+@@ -446,3 +446,35 @@
+     assert result["execution_verified"] is False
+     assert result["natural_verified"] is False
+     assert "INDEPENDENT_REVIEW_PATH_OR_SIZE_REFUSED" in result["independent_execution_review"]["cannot_confirm"]
++
++
++@pytest.mark.parametrize("case", ["reviewed_R2", "current_R3", "unknown_code", "wrong_code", "changed_input", "changed_source_bytes", "failed_proof", "changed_local_code"])
++def test_reviewed_R2_record_compatibility_keeps_all_current_validation(tmp_path, monkeypatch, case):
++    module, fixture = _automatic_fixture(tmp_path, monkeypatch)
++    from ops import verify_stage_execution as verifier
++    directory = fixture["receipt_root"] / "independent_execution_reviews" / module.DATE / module.STAGE
++    path = directory / "attestation.json"; attestation = json.loads(path.read_bytes())
++    assert _sha(Path(verifier.__file__).read_bytes()) == "32872ffd4f99ca774252d238d38033c39b3dd0ab9b449a69c2dd35fddc556fc5"
++    if case != "current_R3":
++        attestation["reviewer_verifier_code_sha256"] = "49a36c3725b8ee2546bc0fdc2044790386da152044053cb10c0750d199f0a7ae"
++    if case == "unknown_code": attestation["reviewer_verifier_code_sha256"] = "1" * 64
++    elif case == "wrong_code": attestation["reviewer_verifier_code_sha256"] = "not-a-sha"
++    elif case == "changed_input": attestation["execution_inputs"]["source_reconciliation"]["source_rows"] = 999
++    elif case == "failed_proof": attestation["markets"]["HK_CONNECT"]["operation_status"] = "CANNOT_CONFIRM"
++    raw = _canonical(attestation);path.write_bytes(raw)
++    index_path = directory / "index.json"; index = json.loads(index_path.read_bytes());index["attestation_sha256"] = _sha(raw);index_path.write_bytes(_canonical(index))
++    if case == "changed_source_bytes":
++        snapshot_path = fixture["source_files"]["active_snapshot"]
++        snapshot = json.loads(snapshot_path.read_bytes()); snapshot["trade_date"] = "20990101"
++        snapshot_path.write_bytes(_canonical(snapshot))
++    if case == "changed_local_code":
++        original = Path.read_bytes; verifier_path = Path(verifier.__file__).resolve()
++        monkeypatch.setattr(Path, "read_bytes", lambda self: b"changed local verifier" if self.resolve() == verifier_path else original(self))
++    current = read_stage_execution(fixture["receipt_root"], module.DATE, module.STAGE,
++        {"HK_CONNECT": fixture["lane"]}, selection_store=fixture["selection_store"])
++    verified = current["operating_execution_by_market"]["HK_CONNECT"]["execution_verified"]
++    assert verified is (case in {"reviewed_R2", "current_R3"})
++    assert current["execution_verified"] is False  # HK scope never promotes mixed A/HK aggregate
++    assert current["natural_verified"] is False
++    if not verified:
++        assert current["independent_execution_review"]["status"] == "CANNOT_CONFIRM"

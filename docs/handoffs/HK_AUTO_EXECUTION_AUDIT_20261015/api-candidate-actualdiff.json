@@ -1,0 +1,268 @@
+{
+  "baseline_actual_inventory_sha256": "42792584469968dcad12a12a232e497260def571ab55af600e38bca2124124bb",
+  "changes": [
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "894ba379e9f64acc190a4b947968b547bde6187aa694f3de2f68dcef6774725f",
+        "size": 57853
+      },
+      "before": null,
+      "path": "ops/verify_stage_execution.py"
+    },
+    {
+      "after": {
+        "kind": "directory",
+        "mode": "0755",
+        "path": "stage_center/_live_collectors_parts"
+      },
+      "before": null,
+      "path": "stage_center/_live_collectors_parts"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_live_collectors_parts/__init__.py",
+        "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "size": 70
+      },
+      "before": null,
+      "path": "stage_center/_live_collectors_parts/__init__.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_live_collectors_parts/_namespace.py",
+        "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "size": 527
+      },
+      "before": null,
+      "path": "stage_center/_live_collectors_parts/_namespace.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_live_collectors_parts/hk_auction.py",
+        "sha256": "7658e15fbaffeb0846dad2eecc31c079f22968892c149385673eb6fa373e6dea",
+        "size": 4747
+      },
+      "before": null,
+      "path": "stage_center/_live_collectors_parts/hk_auction.py"
+    },
+    {
+      "after": {
+        "kind": "directory",
+        "mode": "0755",
+        "path": "stage_center/_raw_store_parts"
+      },
+      "before": null,
+      "path": "stage_center/_raw_store_parts"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_raw_store_parts/__init__.py",
+        "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "size": 70
+      },
+      "before": null,
+      "path": "stage_center/_raw_store_parts/__init__.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_raw_store_parts/_namespace.py",
+        "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "size": 527
+      },
+      "before": null,
+      "path": "stage_center/_raw_store_parts/_namespace.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_raw_store_parts/codec.py",
+        "sha256": "504b97a64f483db17026dbeed6d5084fbc18ee972be60ad9e069ebd038708572",
+        "size": 4154
+      },
+      "before": null,
+      "path": "stage_center/_raw_store_parts/codec.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_raw_store_parts/filesystem_io.py",
+        "sha256": "f904f4086d4debfc32f5ad33ec2717cda522a59f2e15a3518c7aa83b91eef2b1",
+        "size": 3455
+      },
+      "before": null,
+      "path": "stage_center/_raw_store_parts/filesystem_io.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_raw_store_parts/receipt_identity.py",
+        "sha256": "b33c496a6052b450959a9b886c79ad8d5686230e320dbc99bfd98a3e8265a8f0",
+        "size": 2467
+      },
+      "before": null,
+      "path": "stage_center/_raw_store_parts/receipt_identity.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_raw_store_parts/transaction_read.py",
+        "sha256": "8b7e88dc5e5f41456e5222f1a5c08c5dcd05f5e5d7f2c179fd26652bff2932b6",
+        "size": 9469
+      },
+      "before": null,
+      "path": "stage_center/_raw_store_parts/transaction_read.py"
+    },
+    {
+      "after": {
+        "kind": "directory",
+        "mode": "0755",
+        "path": "stage_center/_runner_parts"
+      },
+      "before": null,
+      "path": "stage_center/_runner_parts"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_runner_parts/__init__.py",
+        "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "size": 70
+      },
+      "before": null,
+      "path": "stage_center/_runner_parts/__init__.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_runner_parts/_namespace.py",
+        "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "size": 527
+      },
+      "before": null,
+      "path": "stage_center/_runner_parts/_namespace.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/_runner_parts/hk_input_validation.py",
+        "sha256": "594a430e91a4a158ea9f72bae7a00aa19481b01b913d7e18c0f5e075954e9f1e",
+        "size": 27421
+      },
+      "before": null,
+      "path": "stage_center/_runner_parts/hk_input_validation.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0444",
+        "path": "stage_center/contracts.py",
+        "sha256": "26c247a8594063a7497a00825965e0b417610af6ff15d2cfc291dde130959be3",
+        "size": 3666
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0444",
+        "path": "stage_center/contracts.py",
+        "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+        "size": 2331
+      },
+      "path": "stage_center/contracts.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/end_to_end_deadline.py",
+        "sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+        "size": 21467
+      },
+      "before": null,
+      "path": "stage_center/end_to_end_deadline.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0444",
+        "path": "stage_center/hk_stage8/snapshot.py",
+        "sha256": "00bb691124522fc5a5d104243049b44872885039fcc06372a5d4d21b2f696d0f",
+        "size": 29014
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0444",
+        "path": "stage_center/hk_stage8/snapshot.py",
+        "sha256": "d1658e72a03a6842c2e6b1b3ae63f6889aa00f28c69ad0a7aa5c7400bf6f5267",
+        "size": 19508
+      },
+      "path": "stage_center/hk_stage8/snapshot.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/independent_execution_review.py",
+        "sha256": "15eea00ec18f026d72d281f1737e711e0785018b26cbf5efd61172566b5b821d",
+        "size": 25736
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "stage_center/independent_execution_review.py",
+        "sha256": "634e2b11b4b1eddbed9c649f11833061d480905f35f55fe1df57dc39599b9b3c",
+        "size": 22510
+      },
+      "path": "stage_center/independent_execution_review.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_automatic_execution_review_20261015.py",
+        "sha256": "f8d3f7974c693ad3e6713060aa5c05acfc29c8395cc7b533da7292546e87dbc4",
+        "size": 38695
+      },
+      "before": null,
+      "path": "tests/test_automatic_execution_review_20261015.py"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_independent_execution_review_20261015.py",
+        "sha256": "172dd462955964717f07cc053146a3e9bb2b415fd2415f87928ea44343232ca1",
+        "size": 20886
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "tests/test_independent_execution_review_20261015.py",
+        "sha256": "9363a0eccf0f712ce7fc33de39cc418c055164a4f4997bfb12dd7b62834b39f7",
+        "size": 17685
+      },
+      "path": "tests/test_independent_execution_review_20261015.py"
+    }
+  ],
+  "non_delta_all_byte_mode_kind_equal": true,
+  "non_delta_entry_count": 1478,
+  "owner": "api"
+}

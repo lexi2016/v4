@@ -1,0 +1,61 @@
+{
+  "candidates": {
+    "api": {
+      "actual_delta": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r3/api-candidate-actualdiff.json",
+        "sha256": "ae011f4dfa04259e74f24917c4a186dc75f85114621088584349d21a670b152e"
+      },
+      "application_inventory_sha256": "1683964c109dac26955046e582b90012d8535be9254ce0d785b6bc4df51de636",
+      "baseline_CAS_verified": true,
+      "candidate_status": "NOT_ACTIVATED",
+      "changed_directories": 0,
+      "changed_files": 1,
+      "complete_inventory": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r3/api-candidate-complete-inventory.json",
+        "sha256": "005d429513f37721c471941286b0cd50513ab7e596f6e5bcd5554c57e06f6d42"
+      },
+      "manifest": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r3/candidates/hk-auto-execution-audit-api-20261015-r3/release-manifest.json",
+        "sha256": "770012457bf5f11188afa86dd5cc9d73dfad27d2f78b18346e5487b1b7bdd3a9"
+      },
+      "non_delta_all_equal": true,
+      "prepared_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r3/candidates/hk-auto-execution-audit-api-20261015-r3",
+      "staged_plist": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r3/api-staged.plist",
+        "sha256": "68f4a0cfef74d1af5a0204539002a6c283b8ddd18bb00831a07ed9f2ff524ec3"
+      },
+      "target_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r3"
+    },
+    "stage": {
+      "actual_delta": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r3/stage-candidate-actualdiff.json",
+        "sha256": "63bae584a4948925bbb51b2e0f4c71bb6593961f7a20a146cc6374e8679a75e4"
+      },
+      "application_inventory_sha256": "ffb95a2e5dd796b91756aa27a1b803e2d527df442c483bcee41c48b268c97ad6",
+      "baseline_CAS_verified": true,
+      "candidate_status": "NOT_ACTIVATED",
+      "changed_directories": 0,
+      "changed_files": 3,
+      "complete_inventory": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r3/stage-candidate-complete-inventory.json",
+        "sha256": "ba53454c2dbac172193c5d8e1c566d02b370a57ab06009cba657b5f522a547a1"
+      },
+      "manifest": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r3/candidates/hk-auto-execution-audit-20261015-r3/release-manifest.json",
+        "sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6"
+      },
+      "non_delta_all_equal": true,
+      "prepared_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r3/candidates/hk-auto-execution-audit-20261015-r3",
+      "staged_plist": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_PIT_ACCEPTANCE_20261015/writer-sol/r3/stage-staged.plist",
+        "sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c"
+      },
+      "target_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r3"
+    },
+    "verifier_sha256": "32872ffd4f99ca774252d238d38033c39b3dd0ab9b449a69c2dd35fddc556fc5"
+  },
+  "exclude": "No captures, real/synthetic raw/selection/receipt data, entire candidate trees, caches, credentials.",
+  "receipt_sha256": "92293e3ad9197163ea6fc501942e3319e3608066ee9f3e755d2a99bc57dbdf11",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "status": "NOT_ACTIVATED"
+}
