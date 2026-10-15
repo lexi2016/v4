@@ -1,7 +1,10 @@
 # Sanitized US/HK 667 handoff
 
-This folder contains only a compact run-status summary and byte-identical snapshots of the isolated helper and its focused tests. It contains no original ZIP, stock list, full webpage, model answer, credential, or raw research response.
+This is an isolated local Flash Next execution-chain test, not a completed mapping delivery. The final visible three-stock canary ran 25 model requests: 00005, 00883 and 00002 all remain IN_PROGRESS. Independent review is FAIL; the 667-item bulk run was not started and remains locked.
 
-`current-run-summary.json` records the frozen input ZIP SHA, helper/test SHAs, three protocol/search run outcomes, the independent 00005 review findings, explicit-backend probe status, and the offline test result. Offline tests passed 13/13; semantic quality is **NOT_PASSED**. The queue remains stopped with bulk disabled.
+The helper repairs search routing, binds citations to fetched source units, and provides bounded per-item recovery. This includes prompt/output-protocol changes, but no model-weight training, manual answer editing, or diagnostic-source injection. The independent reviewer reran 28 focused tests successfully. Full-file diff scope remains CANNOT_CONFIRM because the exact source snapshot immediately before the last two repairs was unavailable. Engineering checks do not establish answer quality.
 
-The snapshots are **NOT_SELF_CONTAINED**: execution depends on the existing `batch_runner.py`, installed local oMLX/DDGS runtime, and the original task ZIP at its frozen path. No canonical repository, model setting, or service was changed. Do not treat this package as a quality pass or as authorization to bypass the existing evidence validator.
+`current-run-summary.json` records input/source hashes, runtime identity, exact validation command, actual failures, and unexecuted acceptance layers. Raw evidence remains local. The included helper and tests are byte-identical to the reviewed final files. No canonical V4 code was changed.
+
+These snapshots are NOT_SELF_CONTAINED: they depend on the existing batch_runner.py, installed local oMLX/DDGS environment, and the original frozen input ZIP. No credentials, original stock list, raw model answers, full source pages, or model runtime are included. Predictive validity remains untested.
+
