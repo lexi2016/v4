@@ -106,7 +106,7 @@ def test_tdx61_panel_gaps_reuse_exact_security_cache_and_bind_exact_parents(capt
     second,second_apis=_capture(root,plan,second_clock)
     assert second["manifest_sha256"]!=first["manifest_sha256"]
     assert second["cache_hits"]==2 and second["network_bar_requests"]==0
-    assert second_apis[0].calls==[] and second_apis[0].disconnected
+    assert second_apis==[]
 
     pin=dict(second)
     output=Path(pin["source_local_path"])
@@ -156,6 +156,57 @@ def test_tdx61_panel_gaps_reuse_exact_security_cache_and_bind_exact_parents(capt
             expected_panel_sha="x"*64,expected_master_sha="d"*64,expected_codes=CODES,
             expected_panel_manifest_sha=PANEL_ID["panel_manifest_sha256"],
             expected_master_manifest_sha=MASTER_ID["manifest_sha256"])
+
+
+def test_cached_canary_is_verified_before_any_network_connect(capture_setup):
+    root,plan=capture_setup
+    first,_=_capture(root,plan,Clock(datetime(2026,10,15,11,0,tzinfo=timezone.utc)))
+    calls=[]
+    def offline(endpoint):
+        calls.append(endpoint)
+        raise ConnectionError("network is down")
+
+    second=owner.capture_tdxpy_window_supplement(root,target_date=TARGET,connector=offline,
+        clock=Clock(datetime(2026,10,15,12,0,tzinfo=timezone.utc)),
+        output_root=first["source_local_path"],canary_codes=[CODES[0]],
+        panel_binding=dict(manifest_relative=PANEL_ID["panel_manifest_relative"],
+            manifest_sha256=PANEL_ID["panel_manifest_sha256"]),panel_gap_plan=plan)
+
+    assert calls==[]
+    assert second["ready_count"]==1 and second["unassessed_count"]==0
+    assert second["cache_hits"]==1 and second["network_bar_requests"]==0
+
+
+def test_cached_ready_rows_survive_offline_fetch_for_missing_rows(capture_setup):
+    root,plan=capture_setup
+    one_code=dict(plan,records=[dict(code=CODES[0],reasons=["HISTORY_DATE_DUPLICATE_OR_GAP"],
+        missing_sessions=[SESSIONS[0]]),dict(code=CODES[1],reasons=[],missing_sessions=[])],
+        gap_codes=[CODES[0]],panel_valid_count=1)
+    first,_=_capture(root,one_code,Clock(datetime(2026,10,15,11,0,tzinfo=timezone.utc)))
+    calls=[]
+    def offline(endpoint):
+        calls.append(endpoint)
+        raise ConnectionError("network is down")
+
+    second=owner.capture_tdxpy_window_supplement(root,target_date=TARGET,connector=offline,
+        clock=Clock(datetime(2026,10,15,12,0,tzinfo=timezone.utc)),
+        output_root=first["source_local_path"],
+        panel_binding=dict(manifest_relative=PANEL_ID["panel_manifest_relative"],
+            manifest_sha256=PANEL_ID["panel_manifest_sha256"]),panel_gap_plan=plan)
+    output=Path(second["source_local_path"])
+    raw=json.loads((output/second["raw_relative"]).read_bytes())
+
+    assert calls==list(owner.TDXPY_NODES)
+    assert second["ready_count"]==1 and second["unassessed_count"]==1
+    assert second["cache_hits"]==1 and second["network_bar_requests"]==0
+    assert raw["records"][0]["status"]=="READY"
+    assert raw["records"][1]["status"]=="UNASSESSED"
+    assert raw["records"][1]["errors"][0]["error_type"]=="ConnectionError"
+
+
+def test_response_header_recv_fails_is_transport_but_data_quarantine_is_not():
+    assert owner.is_tdxpy_transport_error("ResponseHeaderRecvFails","head_buf is not 0x10 : b''")
+    assert not owner.is_tdxpy_transport_error("ValueError","TDXPY_EXACT_61_SESSION_INCOMPLETE")
 
 
 def test_partial_transport_catalogue_cache_refreshes_and_keeps_original_evidence(capture_setup,monkeypatch):
