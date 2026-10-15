@@ -1,0 +1,93 @@
+{
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_local_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_base": "794d47ce2499d167e1faa0da5139f5d60a90731f",
+  "batch1_commit": "22743f92170462067430fce21d037663fe79eeff",
+  "batch2_commit": "bfe203881066782fa25bdb20d374fd7a382ef78e",
+  "branch": "codex/research-source-unification-20261015-r3",
+  "active_api_release": "research-source-unified-api-20261015-r6",
+  "manifest_sha256": "a6eb7c96ef0bd5c449146176dbcfefc927f3df06ca64b9b02de9c0715e56c617",
+  "research_source_closure": [
+    {
+      "path": "apps/web/src/api/research_lane.ts",
+      "sha256": "7256f2b9cf06463670eda08e3c31b5d40b5d86a692ec1595f78c02579ca90a0a",
+      "git_blob_sha": "23f3c6b0d6d4f69530ece5e4be32a5599bb230ea"
+    },
+    {
+      "path": "apps/web/src/composables/useResearchLane.ts",
+      "sha256": "2a6238656067ea964a78c2dcdd835caa64be8b1cef5ab45e13817415f9fdd686",
+      "git_blob_sha": "89db11f3e1d316387899c3ae13b280808643628b"
+    },
+    {
+      "path": "apps/web/src/composables/researchFeedPresentation.ts",
+      "sha256": "6ab145253d6ad1957902c5262ed0c82cc2adb4d58dff09ebc484fed4f76d0e52",
+      "git_blob_sha": "5c3b416b862bef8412b426f0129b1f9a2f09699d"
+    },
+    {
+      "path": "apps/web/src/views/ResearchView.vue",
+      "sha256": "cc84ad2e71af8e3c3ce67c31d8eb3e1af10fc7e33018d32ab5b134b9b79f5aca",
+      "git_blob_sha": "f4364808fea7b4a8f95a93a718f6b686871b37a6"
+    },
+    {
+      "path": "apps/web/src/styles/v3-research-lane.css",
+      "sha256": "2abbfd90773ec69ba3da7f8c735a54a0268245c23d39f9ffaa683440dae81a16",
+      "git_blob_sha": "598a022f515624fbc2ecd6f70b2361264b502bc8"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchImpactList.vue",
+      "sha256": "c2248151611747cf2c14f7e07983470cc85a94b3d566e7616ab133f533e7e087",
+      "git_blob_sha": "30324843b15c1187ddee7d6ca9f345fc141d8ac4"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchFeedCard.vue",
+      "sha256": "b5ccce19e181533d570a1b53001065397ed26b663485a788d257f62c31b35724",
+      "git_blob_sha": "a6223c3cabaf1f04a0d646393711af6b467ffb44"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchStatusStrip.vue",
+      "sha256": "5066ba418f6502e4ae6eefb2d7ac94221232aab16f187cbe875e33172ad4ac8a",
+      "git_blob_sha": "98cd6df8afc6f82ff1e91d8ba8a4771d6d572bcf"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchFeedPane.vue",
+      "sha256": "8980cd832a42b8d9bd353933ae98cb458d3fb13bc28c36e2f0df5892ddf72e4a",
+      "git_blob_sha": "a430dbf9a2fbf18f7fe5d648c16b96bf54cbe6ac"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchSourceColumns.vue",
+      "sha256": "4b6d6ee1344dfcca5ed45df8e60853be099942a1930047f6091b9ded0359fe1c",
+      "git_blob_sha": "40d848e639e965cd6e3e8a2f493564c938aa4b3c"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchAppendix.vue",
+      "sha256": "2969a9c32e5a253c7f4165f30f1faa3cf3283ebcb33aae0fb83f1c9b209f4a21",
+      "git_blob_sha": "4190d3a22693e2f832ed166258b7be8bb7a03cfb"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchContextPane.vue",
+      "sha256": "1cbcfcc7109e7b1a15d49e64435ba32b67c204f0bf0ea2a797a2a93687afac59",
+      "git_blob_sha": "f5779d1502707238977c2620e6b26735b9cc0102"
+    },
+    {
+      "path": "domains/research_hourly.py",
+      "sha256": "574f106bc2156cc8abc3c9fa37f19b2d8f65cd7e5a5b05b1fd2b77dc5d83a515",
+      "git_blob_sha": "1136502058a483ae61149e30873709ffe5191a83"
+    }
+  ],
+  "scheduler_changed_by_this_task": false,
+  "states": {
+    "IMPLEMENTED": true,
+    "REVIEWED": true,
+    "TESTED": "SCOPED_PASS_WITH_BASELINE_FAILURES_RECORDED",
+    "DEPLOYED": true,
+    "API_VERIFIED": true,
+    "UI_VERIFIED": "RESEARCH_SCOPE; global header narrow overflow retained",
+    "natural": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

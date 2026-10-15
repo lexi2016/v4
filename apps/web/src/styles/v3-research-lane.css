@@ -356,6 +356,10 @@
 .hourly-column-list .hourly-feed-card {
   padding: 10px;
 }
+.hourly-source-column > .hourly-column-list > .empty,
+.hourly-feed-pane > .hourly-feed-list > .empty {
+  overflow-wrap: anywhere;
+}
 .hourly-feed-head {
   display: flex;
       justify-content: space-between;
