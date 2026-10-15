@@ -1,0 +1,79 @@
+{
+  "schema": "flash_next_sampling_run_summary.v1",
+  "date": "2026-10-15",
+  "candidate_id": "candidate-667-0c824c6a6fbc-21fb312817",
+  "baseline_commit": "db7cc0d8103437fd8189acdaaf63cb3a717fd69d",
+  "baseline_helper_sha256": "e83492e56328e1df0646128394e1dd817931f983402f4d689e3cefcdedc127ba",
+  "candidate_helper_sha256": "21fb312817cc916eb96ad2b4433549a273f2099d764962db4dd659cde07c5198",
+  "tests_sha256": "224f758d1d9b333ab44aa3f6b09d8fbf7268fe215a218a3216bdb93b9cb55a33",
+  "source_root": "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary/evidence/us-hk-667-20261015",
+  "actual_runtime": {
+    "model": "qwen3_8_flash_next",
+    "omlx_version": "0.7.0",
+    "loopback_port": 8802,
+    "enable_thinking": false,
+    "settings_changed": false,
+    "weights_changed": false,
+    "idle_timeout_seconds": 300
+  },
+  "profile": {
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "min_p": 0.0,
+    "presence_penalty": 1.5,
+    "repetition_penalty": 1.0
+  },
+  "primary_source": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next#best-practices",
+  "input_package_sha256": "0c824c6a6fbcdc2386982cb40ab88c66459e1b1b7665df5ffcd68b339e4117d1",
+  "started_utc": "2026-10-15T09:43:10.150Z",
+  "finished_utc": "2026-10-15T09:49:29.712Z",
+  "model_requests": 28,
+  "engineering_review": "PASS",
+  "independent_tests": 29,
+  "semantic_review": "FAIL",
+  "semantic_pass_count": 0,
+  "canary_count": 3,
+  "queue": {
+    "IN_PROGRESS": 3,
+    "NOT_REVIEWED": 664
+  },
+  "bulk_started": false,
+  "bulk_unlocked": false,
+  "raw_answers_modified": false,
+  "reviewer": "simple_review_resume (independent Luna Max)",
+  "request_profile_verified_in_three_first_request_bodies": true,
+  "items": [
+    {
+      "code": "00005",
+      "verdict": "FAIL",
+      "raw_report": true,
+      "accepted_report": false,
+      "reason": "ADR FAQ supports listing and 1:5 ratio; it does not establish strong arbitrage or overnight predictive consistency. Unsupported F inference."
+    },
+    {
+      "code": "00883",
+      "verdict": "FAIL",
+      "raw_report": false,
+      "accepted_report": false,
+      "reason": "Round limit after repeated fetch of a real official PDF linked from fetched index but absent from prior search results. Frozen search-result URL guard rejected it."
+    },
+    {
+      "code": "00002",
+      "verdict": "FAIL",
+      "raw_report": true,
+      "accepted_report": false,
+      "reason": "Country percentages exist in source unit u0006 but cite product unit u0005. Unsupported C/F/G inferences and uncited relationships."
+    }
+  ],
+  "comparison_limit": "Three development canaries and time-varying web retrieval; descriptive only, not causal or held-out validation. No demonstrated quality gain.",
+  "decision": "NO_BREAKTHROUGH; candidate not admitted to bulk",
+  "next_hypothesis": "NOT_RUN: hold sampling/gates fixed and test single-item recovery from rejected URL via exact-URL search or explicit evidence-gap finalization.",
+  "verification_command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python' -m unittest discover -s evidence/us-hk-667-20261015/tests -p 'test_*.py' -v",
+  "canonical_v4_changes": false,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "RESEARCH_ONLY": true,
+  "verification_cwd": "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary"
+}
